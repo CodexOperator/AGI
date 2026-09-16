@@ -1801,6 +1801,29 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the same files (a shared cwd is fine when they would not). One kid "
         f"when the work is one thing. Do NOT fan three kids onto one file "
         f"— that is the measured collision hazard with extra steps.",
+        # the CEILING clause's own SLICE: when it says `across K kids`, each
+        # kid gets ceiling/K ON ITS NODE before the spawn, because the harvest
+        # measures overage against the kid node's `line_ceiling`.
+        f"WHEN THE TARGET'S CEILING CLAUSE SAYS `across K kids`, EACH KID "
+        f"GETS ITS SLICE, NOT THE WHOLE CEILING. Before spawning kid i, run "
+        f"`python3 extensions/agi/bin/write.py <kid-node> 'set line_ceiling "
+        f"N'` with N = ceiling / K, so the harvest measures that kid against "
+        f"the slice it was actually given. A `60-across-2` brief read as 60 "
+        f"each ran a kid to 212 (SM.52); the slice goes on the NODE before "
+        f"the spawn, never in prose only.",
+        # hypothesis:l4-audit-misses-per-side-pending-... item (8): a kid
+        # experiment node minted by dispatch carries a title DERIVED from its
+        # filename (`A00 f067c356 b0ad80`), which renders as an opaque id in
+        # every map. The parent demands a real title, in the kid's own words,
+        # and will not accept a round whose node still carries the derived one.
+        "EVERY KID SETS ITS OWN NODE TITLE IN ITS OWN WORDS, and you do not "
+        "accept a kid round whose node still carries the title derived from "
+        "its filename (`A00 f067c356 b0ad80`). Before you accept it, the "
+        "kid's experiment node must carry a real title, set by the kid with\n"
+        "  python3 extensions/agi/bin/write.py <kid-node> 'set title <the "
+        "kid's own words>'\n"
+        "A kid node still carrying its derived title is harvested as an "
+        "untitled defect (`untitled=[<node-id>]`).",
         # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
         # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
         # re-brief it received, in the node, before it continues or stops.
@@ -1813,7 +1836,11 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         "and, if you proceed, also 'set line_ceiling <new N>' on that same "
         "node, BEFORE that kid is resumed or a replacement is cut. A "
         "`rebrief_request` left without a `rebrief_answer` is harvested as "
-        "a named defect.",
+        "a named defect. WHEN YOU ANSWER A RE-BRIEF, ALSO DM YOUR DIRECTOR "
+        "THE ANSWER LINE -- kid id, N/C (the new ceiling), and "
+        "`proceed-with-N | cut` -- BEFORE the kid resumes. The in-node "
+        "answer alone is the measured SL7.135 failure: the rebrief at "
+        "99/120 was answered with no dm (F31).",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it

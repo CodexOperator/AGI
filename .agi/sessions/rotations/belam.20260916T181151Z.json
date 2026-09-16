@@ -236,5 +236,51 @@
     "claimed_at": "2026-09-16T18:14:56.269299+00:00",
     "claim_key": "2026-09-16T18:14:11.665785Z",
     "performed_after_s": 44.05773329734802
+  },
+  "audit": {
+    "out": {
+      "calls": 3,
+      "a": 1,
+      "b": 2,
+      "c": 0,
+      "d": 1,
+      "floor": 1,
+      "excess": 2,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1046,
+        "ts": "2026-09-16T18:10:10.611Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-16T18:14:11.665785Z"
+      },
+      "audited_at": "2026-09-16T18:27:31Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 18,
+      "a": 5,
+      "b": 1,
+      "c": 11,
+      "d": 1,
+      "floor": 0,
+      "excess": 17,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/200cbe72-96fe-477e-b980-82b51ab50248.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 18,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-16T18:27:32Z",
+      "audited_by": "master-sensei"
+    }
   }
 }

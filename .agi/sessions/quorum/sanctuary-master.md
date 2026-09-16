@@ -59,7 +59,9 @@ DIRECTOR LINE (sensei-director gen 28, post branch core/season2/posts/sensei-dir
   SM.59 = SM.32b        HARVESTED 3724ebb26 → REVIEWED gen 4: conjunct 1 ACCEPT (real refs, tuple kept, named refusals) · conjunct 2 DEMOTE :65 -- OWNER PREMISE (via the director 18:12Z): every perpetual post is SANCTUARY (home) town; the branch prefix core/ is the PROJECT town; SM.59 compared the two as one axis → refuses the universal state → the ordered sensei-director→director-sanctuary rename would be REFUSED today. Merge kept (fail-closed). [rule] line to belam 18:2xZ.
   SM.62 = hypothesis:l4-rename-boundary-preserves-the-real-branch-project-town-and-never-compares-it-to-the-home-town  MINTED 18:4xZ, dispatch order sent; ceiling 30 net-negative, 1 kid; the two renames wait on it + the Prime/MS config half.
   SM.61 harness-quote round 2  HARVESTED 4036fb67c → REVIEWED gen 4: ACCEPT :80 final (P1b closed; headless-tail caveat documented, my region-to-end-of-text withdrawn on the node).
-  SM.60 = SM.51-56 residue (15 items)   LIVE parent a00-08d3988f + kid a00-d2314637, item 15 FIRST.
+  SM.60 = SM.51-56 residue (15 items)   LIVE parent a00-08d3988f, item 15 FIRST (one kid done 18:26Z).
+  SM.62 rename boundary   LIVE a00-529d51a2 (18:26Z), no --cap.
+  SM.63 window-names-lock-holder (MS 18:28Z) + SM.64 suite-record-run-start (Prime 18:32Z)   MINTED 380442826, dispatch orders sent: SM.63 first, SM.64 after its harvest (same file, verification.py).
   QUEUE after: SM.48 residue (6 items, 2 kids) → rotate-card verb → banner-no-meter-command → 3 MS mints → 20/22/15/17 → 4 resume-seating. Renames: AFTER SM.62 lands + the Prime/MS settle the config half.
 REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :65 → SM.62 minted.
 ```
@@ -72,6 +74,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :6
 - TEMPLATE LINES WITH MASTER-SENSEI: parent answers a kid rebrief in-node AND dms its director; round ceiling across K kids → per-kid line_ceiling slices; 'the final card is one call: rotate.py card' (waits on the verb node); 3-Edits card habit.
 - SM.58 round 2 brief (sent 18:1xZ): (a) lone opening tag = region to end-of-text, (b) marker before the first region byte, (c) plain body byte-identical. If the parent's regex instead widens to `<system[-_]reminder>(?:.*?</system[-_]reminder>|.*)` check (b) explicitly — the P1b shape is the falsifier.
 - SUITE-LOCK PRIORITY (owner 17:5xZ via belam 18:06Z, verbatim in doc:l4-owner-decisions): thought-master's lane is an independent side pursuit that continues after the loop's posts finish; its lock requests are DEPRIORITIZED -- my landings + stamps, the point's and the Sensei's merge-ups take the lock first. Ask the window without deferring to TM.
+- TOWN AXES (Prime 18:27Z, config half LANDED 0bba784ee; ruling 496f4b99e on g17.1): [config] town_cell overrides -> sanctuary for all 13 `town: all` rows; NO second project-town cell -- the real ref (branch prefix) is the ONLY project axis; declared cells stream-master/thought-master/director-thought stay for now (plan 5 migrates). Neither rename is staged before SM.62 lands.
 - HABIT NOTE (gen 4): never grep posts.md raw -- every row prints its whole key_history (~10k tokens); use write.py config:seats 'read body N:M' or a python one-liner over the name/town cells. Never peek (F25) -- the inbox was empty, the call was waste.
 - HABIT NOTE: never probe a WRITING verb; never put backticks inside a double-quoted send.py string (bash eats them); after_join [reap-proof] exit 1 = the grep found no predecessor pids = the reap succeeded.
 
@@ -79,7 +82,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 final · SM.59 c1 accept / c2 :6
 `````
 ````
 ```
-gen 4 18:4xZ: SM.58→SM.61 :80 final, SM.59 c1 accept/c2 :65 reviewed by name; SM.62 minted + dispatch order sent to sensei-director (gen 28; SM.60 residue still live, item 15 first). [rule] to belam on the home-vs-project-town axis (config half his + MS). Nothing held, no throwaway trees, no background task. NEXT: read the inbox when nudged → review SM.60 / SM.62 harvests by name → three rules + stamp for the next MAIN landing (post branch tip currently 4036fb67c, unlanded: SM.57/58/59/61) → queue in §4.
+gen 4 18:5xZ: reviewed by name SM.58→SM.61 :80 final, SM.59 c1/c2 :65; minted SM.62 (live a00-529d51a2), SM.63 + SM.64 (380442826, dispatch orders sent, SM.63 before SM.64). Prime landed the config half 0bba784ee (overrides -> sanctuary; branch prefix = only project axis); renames wait on SM.62. Three suite-lock waits this gen (Prime rotation suite, a town-rows run, a full run) -- each a background until-loop, no MAIN commit inside a window. Nothing held, no throwaway trees, no background task. NEXT: harvests of SM.60/62/63/64 → review by name → land the post branch (SM.57/58/59/61/62+) on MAIN under the three rules + stamp.
 ```
 ````
 `````
