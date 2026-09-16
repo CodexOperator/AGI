@@ -801,3 +801,23 @@ OWNER 2026-09-14 15:5xZ (in the Prime pane, verbatim): "Also looks like the GitH
 OWNER 2026-09-14 16:1xZ (in the Prime pane, verbatim): "Let’s also rename the two directors manually for now until the rename rounds hit later once subscription resets. The director under you is called director-sanctuary and the other one is under though master called director-thought. Yours does the rounds you assign it and reviews merge-ups, and director-thought does thought master’s rounds and merge-up reviews. Otherwise same protocols for comms and everything else. I just want them named so there’s no confusion as sensei isn’t up at all atm. In GitHub copilot btw their names are also quite confusing and auto generated, both called ‘Update token prayer placement’ for some reason even though they’re both doing different things. And there’s a third GitHub cli session active as well apparently not sure what it’s doing since it’s several hours old can’t be thought master." + "Also can we do the review/research workflows through copilot as well to save on openrouter costs?" — applied: tmux window @372 sanctuary-director -> director-sanctuary (row name stays until the rename round); @369 = director-thought already; the third old Copilot session IS director-thought (seated 07:12Z); sensei-director @371 is a third director the Prime seated on the 14:5xZ order — banked question: keep it as a second director under the Prime or archive it (recommendation: archive after its --remote slice merged, so exactly one director per master as you describe). Reviews on copilot = SD.01 (point, in flight).
 
 OWNER 2026-09-14 16:5xZ (in the Prime pane, verbatim): "let’s fallback the prime now onto copilot CLI while you can verify it still" — applied by belam XXI: the Prime rotates onto harness copilot-cli now (CC weekly limit 98%).
+
+OWNER 2026-09-16 06:02Z (in the pane of the ROTATED Prime XX -- XXI gone, XXII seated on the Copilot CLI 09-14 17:13Z and stuck on its folder-trust dialog with no credits; XX banks and hands to a fresh Claude Code Prime; RESUME ORDER: sanctuary suite back in hybrid mode; SM + Sensei on SONNET pick up their backlogs; Prime finishes L4 leftovers; Thought Master + director-thought re-stood as they were, checked, reported; NEW master Key Master (Opus max) over ENCRYPTION town + free-floating director-key; the two new masters idle after reporting; all directors Sonnet; TM + Key Master Opus max; branch clean-up first; town-scoped goal numbering g1, g2... per town with mint_id/tags against collisions; stream + web-app towns untouched, stream off; predecessors reactivating + reclaiming the pin; the Prime dm'd only as needed), verbatim: "So I didn’t realize that my student plan pro subscription is actually super crap. They did some stuff but ran out of credits pretty instantly. 
+
+Let’s salvage what was done and re-spawn the sanctuary suite in hybrid mode as we had it. The sub resets in 10 minutes so just bring sessions back since we made it easy and tell them to recover what was done. 
+
+Let’s work through everything we have planned for all the master backlogs. So Sensei and Sanctuary Master go pick up where they left off on their backlogs/monitoring rotations with what sanctuary master has planned and you work through any L4 stuff left if any. 
+
+Then re-stand up Thought Master and director-thought on here as they were and check what was done then report to me. 
+
+Then stand up another master on opus called Key Master that will preside over encryption town in hybrid mode, and assign his free-floating director-key. 
+
+So we have masters working on core, encryption, and local towns all at once for now. The two new masters remain on idle after reporting to me. 
+
+All directors are on sonnet, Thought Master and Key Master on opus max, Sanctuary Master and Sensei on sonnet. 
+
+I know some of the towns may not be available as towns yet and that’s fine. Branch clean up can come first. 
+
+Speaking of, once a perpetual goal breaks off into a town it doesn’t keep its goal number anymore. The town each hosts its own g1, g2, g3 and so on and the tag system and/or our mint ID should keep any potential collisions in check right? 
+
+Then stream-town and web-app-town still remain untouched for now, stream stays off. Does our system allow for predecessors to just reactivate and reclaim pin? Let’s start. And can we make it so you don’t get spammed with messages constantly, only as needed direct to you?"
