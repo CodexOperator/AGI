@@ -2085,3 +2085,44 @@ def test_assembled_brief_names_the_session_dir_as_the_only_scratch_dir():
     assert "SCRATCH DIR" not in _text("kid", scaffold=SCAFFOLD)
     assert "SCRATCH DIR" not in _text(
         "parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+
+
+def _clause_graph(tmp_path, clause: str | None):
+    graph_root = tmp_path / ".agi"
+    (graph_root / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 40}}),
+        encoding="utf-8")
+    body = (clause or "no ceiling clause here") + "\n"
+    (graph_root / "nodes" / "hypothesis" / "h.md").write_text(
+        "---\nid: hypothesis:h\ntype: hypothesis\n---\n" + body,
+        encoding="utf-8")
+    return graph_root
+
+
+def test_kid_brief_ceiling_comes_from_the_dispatching_nodes_clause(tmp_path):
+    """hypothesis:l4-sm45b-...: conjunct (2). The kid's segment number EQUALS
+    the dispatching node's own CEILING clause, not a config default that
+    contradicts it -- with the clause `<=120 production lines` and the config
+    at 40, the segment must say 120 (and 2x = 240).
+    """
+    graph_root = _clause_graph(tmp_path, "CEILING: <=120 production lines")
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 120 lines" in kid
+    assert "above 240 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+    assert "dispatching node's own CEILING clause" in kid
+
+
+def test_kid_brief_ceiling_names_the_config_default_when_no_clause(tmp_path):
+    """conjunct (4): a node with no CEILING clause keeps the config default,
+    and the segment SAYS the number came from the default rather than from a
+    clause -- so a reader can tell the two apart.
+    """
+    graph_root = _clause_graph(tmp_path, None)
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "project config default" in kid
+    assert "dispatching node's own CEILING clause" not in kid
