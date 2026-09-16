@@ -7265,6 +7265,8 @@ RULING gen 22 (11:2xZ, TM.07 redo): rule (3) of the 10:5xZ note is MANDATORY for
 
 SEAT-PROTOCOL (owner 2026-09-16 13:5xZ, verbatim in doc:l4-owner-decisions): rotation pings reach the Sensei ONLY — config:rotations alerts matrix {audit:[master-sensei],edges:{}}; no post announces a rotation to anyone else, no [rotation] one-liners to the Prime or a master; the Sensei's audit dm to the Prime only on a finding (floor breach with a structural cause, or a failed key verification), a green audit stays in the rotation record. Rotation is automated via key verification: the record + the row are the proof. Trap paid: write.py set on a quoted-string field adds its own quotes — pass the bare value; prove a config change in-process (rotate._derive_receivers), never from the diff.
 
+SEAT-PROTOCOL (Prime ruling 2026-09-16 14:4xZ on SL7.133, MS-proposed): the Sensei audit verbs write their result INTO the rotation record (audit[side]); the record lives in MAIN's shared .agi/sessions/rotations/ whichever worktree runs the verb, so the Sensei commits the audited record by exact path in the SAME turn, never bundled — until SL7.134 makes finish_audit commit it itself. A green audit is the record; a FINDING line (excess over floor_wake 0 / floor_out 1 from config:rotations) is the only audit dm to the Prime.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
