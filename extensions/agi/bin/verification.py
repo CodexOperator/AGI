@@ -46,6 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import commands  # noqa: E402
+import spawn_budget  # noqa: E402 -- the ONE budget-dir reader (never re-globbed)
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
 import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
 
@@ -74,6 +75,9 @@ LEVELS: dict[str, list[str]] = {
 SUITE_CMD = "tests"
 
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
+#: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
+PROC = Path("/proc")
+
 SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
@@ -917,6 +921,50 @@ def check_seat_model(groot: Path) -> CheckResult:
 # that SENDS the reply is refused, not landed).
 
 
+def _lock_chain(pid: int) -> list[int]:
+    """`pid` and up to FOUR ancestors, from `PROC/<pid>/status`."""
+    chain: list[int] = []
+    for _ in range(5):
+        if pid <= 0 or pid in chain:
+            break
+        chain.append(pid)
+        try:
+            raw = (PROC / str(pid) / "status").read_text(encoding="utf-8")
+        except OSError:
+            break
+        m = re.search(r"^PPid:\s+(\d+)", raw, re.M)
+        pid = int(m.group(1)) if m else 0
+    return chain
+
+
+def _lock_tree(groot: Path, pid: int) -> str:
+    """The holder's tree: its worktree name, `main`, or `unresolved`."""
+    try:
+        cwd = os.readlink(PROC / str(pid) / "cwd")
+    except OSError:
+        return "unresolved"
+    main = str(locations.git_common_root(groot) or groot)
+    wt = os.path.join(main, ".agi", "worktrees") + "/"
+    if cwd.startswith(wt):
+        return cwd[len(wt):].split("/")[0] or "unresolved"
+    if cwd == main or cwd.startswith(main + "/"):
+        return "main"
+    return Path(cwd).name or "unresolved"
+
+
+def _lock_runner(groot: Path, chain: list[int]) -> str:
+    """The spawn-budget row for a pid on `chain`, through its own reader."""
+    try:
+        leases = spawn_budget.live_leases_readonly(groot)
+    except Exception:                    # a diagnostic reader never raises
+        return ""
+    for rec in leases:
+        if {rec.get("agent_pid"), rec.get("holder_pid")} & set(chain):
+            return (f" runner {rec.get('agent_id')} tier={rec.get('tier')}"
+                    f" iter={rec.get('iter')}")
+    return ""
+
+
 def render_window(groot: Path, grant: str | None = None) -> str:
     """The merge-up window reply: lock state + tip + baseline.
 
@@ -941,11 +989,20 @@ def render_window(groot: Path, grant: str | None = None) -> str:
         holder = None
     if holder is not None and _pid_alive(holder) and holder != os.getpid():
         try:
-            since = time.strftime("%H:%M:%SZ",
-                                  time.gmtime(lock_path.stat().st_mtime))
+            mtime = lock_path.stat().st_mtime
+            since = time.strftime("%H:%M:%SZ", time.gmtime(mtime))
+            age = f"{int(time.time() - mtime)}s"
         except OSError:
-            since = "?"
-        lines.append(f"lock: held by {holder} since {since}")
+            since, age = "?", "unresolved"
+        try:                       # the holder's argv head (60 bytes, NULs
+            raw = (PROC / str(holder) / "cmdline").read_bytes()[:60]
+            cmd = raw.replace(b"\0", b" ").decode("utf-8", "replace").strip()
+        except OSError:            # as spaces) -- unreadable is not fatal
+            cmd = ""
+        lines.append(f"lock: held by {holder} since {since} "
+                     f"(age {age}, tree {_lock_tree(groot, holder)}, "
+                     f"cmd {cmd or 'unresolved'})"
+                     + _lock_runner(groot, _lock_chain(holder)))
     else:
         lines.append("lock: free")
     # tip: pick the FIRST candidate whose origin ref actually resolves, so a
