@@ -1012,6 +1012,8 @@ def classify_call(cmd: str, tool: str, seat: str,
     s_label = _after_join_label(cmd, seat, after_join)
     if s_label is not None:
         return "s", s_label
+    if re.search(r"\bsend\.py\s+send\b", _norm_cmd(cmd).lower()):
+        return "d", "send=output"   # the post's own report, never a hand read
     if _is_byhand_read(cmd, tool):
         return "b", None
     return "d", None
@@ -2008,6 +2010,14 @@ def _resolve_predecessor_transcript(
     return None, "no predecessor transcript resolved"
 
 
+def _notified_outputs(path: Path) -> dict:
+    """{<output-file>: <task-id>} — every notification's harvest file."""
+    txt = Path(path).read_text(encoding="utf-8", errors="replace")
+    ids = re.findall(r"<task-id>([^<]+)</task-id>[\s\S]{0,400}?"
+                     r"<output-file>([^<]+)</output-file>", txt)
+    return {p.strip(): t.strip() for t, p in ids}
+
+
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
                      transcript_path: Path | None,
                      registry_dir: str | None = None,
@@ -2101,15 +2111,20 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
         return 2, [], {}, {}
 
     start_idx, start_ts = _last_real_input(log_path, not_after_ts=until_ts)
+    outs = _notified_outputs(log_path)
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
     for tool, inp in _tool_uses_after(log_path, start_idx, until_ts=until_ts):
         cat, label, cmd = classify_tool_use(
             tool, inp, seat, entries, facts_list, hand_paths)
+        tid = next((t for p, t in outs.items() if p and p in cmd), None)
+        cat, label = ("d", f"harvest of {tid}") if tid else (cat, label)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
-                      "summary": _summarize_tool_input(inp), "label": label})
+                      "summary": _summarize_tool_input(inp), "label": label,
+                      "pre": bool(tid) or label == "send=output"})
         counts[cat] += 1
     window = {"gen": gen_out, "record": record_stamp, "basis": basis,
+              "counted": len([c for c in calls if not c["pre"]]),
               "record_path": str(rec_path),
               "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
@@ -2154,7 +2169,7 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
     try:
         print(finish_audit(
-            root, args.seat, "out", len(calls), counts, window["record_path"],
+            root, args.seat, "out", window["counted"], counts, window["record_path"],
             window["record"], window["log_path"],
             audit_window_point(line=window["start_line"],
                                ts=window["start_ts"] or None),
