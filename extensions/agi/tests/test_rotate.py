@@ -33,7 +33,10 @@ def test_rotate_key_gate_refuses_keyed_seat_without_key(tmp_path):
     err = rotate._rotate_key_gate(tmp_path, "s1", {"pubkey": "deadbeef"})
     assert err is not None
     assert "s1" in err
-    assert "keygen s1" in err
+    # the recovery line is the ONE module constant -- never a hand-spelled
+    # positional `keygen s1` (rejected by send.py's argparse; the old tail
+    # sent the operator into a usage error).
+    assert rotate.KEYGEN_LINE.format(seat="s1") in err, err
 
 
 def test_rotate_key_gate_passes_when_key_present(tmp_path):
@@ -7578,7 +7581,8 @@ def _spawn_seed_git(tmp_path, seat_row=None):
                     "settings": "", "session_ref": "",
                     "session_id": "", "generation": 2,
                     "window": "", "pid": 0}
-    _write_seats_sheet(root, [seat_row])
+    _rows = seat_row if isinstance(seat_row, list) else [seat_row]
+    _write_seats_sheet(root, _rows)
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "seats seed"], check=True)
@@ -8035,6 +8039,119 @@ def test_first_seating_writes_row_and_commits_seating_row_and_pushes(
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "continue" and ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
+
+
+# --- keying a first seating (hypothesis:l4-the-unkeyed-refusal-quotes-the-
+#     exact-keygen-line-and-a-seating-keys-the-successors-row-so-no-post-
+#     reaches-rotate-unkeyed) -----------------------------------------------
+
+
+def test_keygen_line_is_the_one_refusal_spelling_and_its_tail_parses(
+        tmp_path, monkeypatch):
+    """clause (1): every refusal that sends an operator to key a seat quotes
+    the ONE module constant, and the tail it quotes PARSES under send.py's own
+    argparse (`keygen --post <seat>`), dispatching to `_cli_keygen` with the
+    seat resolved -- never a usage error."""
+    import send as _bin_send
+    line = rotate.KEYGEN_LINE.format(seat="belam")
+    assert line == "python3 extensions/agi/bin/send.py keygen --post belam"
+    # the refusal at the rotate-self gate quotes EXACTLY the constant.
+    err = rotate._rotate_key_gate(tmp_path, "belam", {"pubkey": "deadbeef"})
+    assert err is not None and f"`{line}`" in err, err
+    # the quoted tail IS send.py's argv[1:]: it parses and dispatches.
+    seen = {}
+    monkeypatch.setattr(_bin_send, "_cli_keygen",
+                        lambda root, args: seen.update(
+                            verb=args.verb, seat=args.seat) or 0)
+    assert _bin_send.main(line.split()[2:]) == 0
+    assert seen == {"verb": "keygen", "seat": "belam"}, seen
+
+
+def test_first_seating_keys_unkeyed_row_in_the_one_seating_commit(
+        tmp_path, monkeypatch, capsys):
+    """clause (2): `cmd_spawn` on an UNKEYED real row mints its FIRST key
+    (0600) through the ONE key writer and writes pubkey/sig_scheme/enc_scheme
+    INTO THE SAME seating row write -- ONE `seating row` commit carries the
+    identity cells AND the key cells."""
+    from agi.bin import send as _bin_send
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    rc = rotate.cmd_spawn(_spawn_seat_args(reg, wins, 7777), root)
+    assert rc == 0
+    # the FIRST key landed: 0600, through send's one writer.
+    key_path = _bin_send._seat_key_path(root, "belam")
+    assert key_path.is_file(), key_path
+    assert oct(os.stat(key_path).st_mode & 0o777) == oct(0o600)
+    # the pubkey cell is on the row the seating wrote (the local row IS the
+    # committed row) and the key file's scheme is the row's sig_scheme.
+    row = rotate._find_seat(root, "belam")
+    assert row and row.get("pubkey"), row
+    assert row.get("sig_scheme") == json.loads(
+        key_path.read_text(encoding="utf-8"))["scheme"]
+    # EXACTLY ONE commit after the seed: the seating row (identity + key
+    # cells together) -- never a second key commit.
+    commits = _git_commits(top, "proj/nodes/.geometry/seats.md")
+    assert len(commits) == 2, commits
+    assert "belam seating row:" in commits[0], commits[0]
+    shown = subprocess.run(
+        ["git", "-C", str(top), "show",
+         "origin/master:proj/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert row["pubkey"] in shown, shown
+    # clause (4): the seating record says it keyed the row.
+    rec = json.loads(next(
+        rotate._rotations_dir(root).glob("belam.*.seating.json")
+    ).read_text(encoding="utf-8"))
+    assert rec["handover"]["keyed_at_seating"] is True, rec["handover"]
+
+
+def test_first_seating_leaves_a_keyed_row_untouched(tmp_path):
+    """clause (2), negative half: a row that ALREADY names a pubkey is left
+    alone by the seating -- no key minted (a re-seat never rotates a key),
+    no pubkey cell overwritten, `keyed_at_seating` false."""
+    from agi.bin import send as _bin_send
+    scheme = _bin_send.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row={
+        "name": "belam", "role": "prime_director", "model": "x",
+        "effort": "max", "settings": "", "pubkey": pub.hex(),
+        "sig_scheme": "ed25519"})
+    key_path = _bin_send._seat_key_path(root, "belam")
+    assert not key_path.exists()
+    got = rotate._first_seating_spawn_writes(
+        root=root, seat="belam", generation=1, session_id="sess-1",
+        window="@w9", pid=4242, role="prime_director")
+    assert got["keyed_at_seating"] is False, got
+    assert not key_path.exists(), "a keyed row must never be re-minted"
+    row = rotate._find_seat(root, "belam")
+    assert row.get("pubkey") == pub.hex(), row
+
+
+def test_first_seating_dry_run_prints_would_key_and_writes_nothing(
+        tmp_path, monkeypatch, capsys):
+    """clause (3): `cmd_spawn --dry-run` on an unkeyed row prints the ONE
+    `would key <seat>` plan line and mints / writes NOTHING."""
+    from agi.bin import send as _bin_send
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("@42 belam\n", encoding="utf-8")
+    reg = _seating_registry(tmp_path)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **kw: (0, "echo ok"))
+    monkeypatch.setattr(rotate, "_seat_liveness_note", lambda *a, **k: None)
+    capsys.readouterr()
+    _ns = _spawn_seat_args(reg, wins, 7777)
+    _ns.dry_run = True
+    rc = rotate.cmd_spawn(_ns, root)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "would key belam" in out, out
+    assert not _bin_send._seat_key_path(root, "belam").exists()
+    assert not rotate._find_seat(root, "belam").get("pubkey")
 
 
 def _two_row_git_root(tmp_path):
@@ -8966,3 +9083,429 @@ def test_ack_gen_refusal_line_is_complete_and_pasteable(
     err = capsys.readouterr().err
     assert "ack --post np-post " in err and "--ref " in err, err
     assert "--text -" not in err, err
+# ── goal:g15.25 lines (1)+(2) (SM.250): post heads local-only, mirrored ──
+def test_seating_push_publishes_main_only_never_a_post_head(tmp_path, capsys):
+    """FALSIFIER (goal:g15.25 line (1)): the seating push
+    (`_push_season_branch`) publishes the checked-out MAIN branch only. A
+    locally created post branch is NEVER pushed as a head -- origin lists
+    zero `refs/heads/season2/posts/*`."""
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None)
+    branch = subprocess.run(["git", "-C", str(top), "rev-parse",
+                             "--abbrev-ref", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(top), "branch", "season2/posts/adv"],
+                   check=True)
+    capsys.readouterr()
+    line = rotate._push_season_branch(root)
+    assert "push: OK" in line, line
+    assert "season2/posts" not in line
+    heads = subprocess.run(
+        ["git", "ls-remote", str(bare), "refs/heads/season2/posts/*"],
+        capture_output=True, text=True).stdout.strip()
+    assert heads == "", heads
+    assert subprocess.run(
+        ["git", "ls-remote", str(bare), f"refs/heads/{branch}"],
+        capture_output=True, text=True).stdout.strip()
+
+
+def _git_with_post_branch(tmp_path, seat_row=None):
+    """`_git_with_bare` plus a checked-out `season2/posts/adv` with one
+    commit on top. Returns (root, top, bare, head_sha). `seat_row` (optional)
+    seeds the committed registry row in place of the default belam row (a
+    keyed post row for the merge-up auth tests)."""
+    root, top, bare = _git_with_bare(tmp_path, lambda r: None, seat_row=seat_row)
+    subprocess.run(["git", "-C", str(top), "checkout", "-q", "-b",
+                    "season2/posts/adv"], check=True)
+    subprocess.run(["git", "-C", str(top), "commit", "-q", "--allow-empty",
+                    "-m", "post work"], check=True)
+    head = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    return root, top, bare, head
+
+
+def test_rotate_out_stops_push_mirrors_post_branch_never_head(
+        tmp_path, capsys):
+    """goal:g15.25 (c): a rotate-out on a post branch pushes its tip to
+    `refs/agi/posts/<name>` and PROVES it by ls-remote -- it never pushes
+    `refs/heads/season2/posts/<name>`."""
+    root, top, bare, head = _git_with_post_branch(tmp_path)
+    capsys.readouterr()
+    assert rotate._stops_push(root, "stops") is None
+    err = capsys.readouterr().err
+    assert "refs/agi/posts/adv" in err and head in err, err
+    assert "(proved_by ls-remote)" in err, err
+    ls = subprocess.run(["git", "ls-remote", str(bare), "refs/agi/posts/adv"],
+                        capture_output=True, text=True).stdout.split()
+    assert ls and ls[0] == head, ls
+    assert subprocess.run(
+        ["git", "ls-remote", str(bare), "refs/heads/season2/posts/*"],
+        capture_output=True, text=True).stdout.strip() == ""
+
+
+def test_rotate_out_mirror_push_failure_refuses_by_name(tmp_path, capsys):
+    """goal:g15.25 (d): a mirror push the remote rejects REFUSES BY NAME
+    (naming the mirror ref) and no head is created."""
+    root, top, bare, _head = _git_with_post_branch(tmp_path)
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    hook.chmod(0o755)
+    err = rotate._stops_push(root, "stops")
+    assert err and "refused" in err and "refs/agi/posts/adv" in err, err
+    assert subprocess.run(
+        ["git", "ls-remote", str(bare), "refs/heads/season2/posts/*"],
+        capture_output=True, text=True).stdout.strip() == ""
+
+
+# ── goal:g15.25 (2)+(3) SM.250 slice B: rename-apply mirror + merge-up ──
+def _post_rename_origin_surface(season=2, old="adv", new="adv2"):
+    return [{"kind": "branch (origin)",
+             "src": f"origin/season{season}/posts/{old}",
+             "dst": f"origin/season{season}/posts/{new}",
+             "action": "seam-git"}]
+
+
+def _ls(bare, ref):
+    return subprocess.run(["git", "ls-remote", str(bare), ref],
+                          capture_output=True, text=True).stdout.split()
+
+
+def test_rename_apply_mirrors_new_tip_proves_then_drops_old_head(
+        tmp_path, capsys):
+    """B1: the rename-apply on a post branch mirrors the NEW tip to
+    refs/agi/posts/<new> and PROVES it by ls-remote BEFORE the old origin
+    head is dropped. Falsifiers: refs/heads/season2/posts/<new> appearing on
+    origin, or a head deleted before the mirror is proved."""
+    root, top, bare, _head = _git_with_post_branch(tmp_path)
+    # the LEGACY state: the post head is already on origin (pre-migration)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    subprocess.run(["git", "-C", str(top), "branch", "-m",
+                    "season2/posts/adv", "season2/posts/adv2"], check=True)
+    new_sha = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                             capture_output=True, text=True).stdout.strip()
+    capsys.readouterr()
+    applied, _skipped = rotate._apply_surfaces(
+        root, _post_rename_origin_surface(), delete_old=True,
+        run_git=lambda *a: rotate._live_git(top, *a), live=True)
+    assert applied == 1
+    err = capsys.readouterr().err
+    assert "refs/agi/posts/adv2" in err and "proved_by ls-remote" in err, err
+    ls = _ls(bare, "refs/agi/posts/adv2")
+    assert ls and ls[0] == new_sha, ls
+    assert _ls(bare, "refs/heads/season2/posts/adv2") == []
+    assert _ls(bare, "refs/heads/season2/posts/adv") == []
+
+
+def test_rename_apply_mirror_failure_refuses_and_keeps_old_head(
+        tmp_path, capsys):
+    """B1 falsifier: a rejected mirror push REFUSES BY NAME and the old
+    origin head is NOT deleted."""
+    root, top, bare, _head = _git_with_post_branch(tmp_path)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    subprocess.run(["git", "-C", str(top), "branch", "-m",
+                    "season2/posts/adv", "season2/posts/adv2"], check=True)
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
+    hook.chmod(0o755)
+    capsys.readouterr()
+    rotate._apply_surfaces(
+        root, _post_rename_origin_surface(), delete_old=True,
+        run_git=lambda *a: rotate._live_git(top, *a), live=True)
+    err = capsys.readouterr().err
+    assert "REFUSED" in err and "refs/agi/posts/adv2" in err, err
+    assert _ls(bare, "refs/heads/season2/posts/adv"), "old head was deleted"
+    assert _ls(bare, "refs/heads/season2/posts/adv2") == []
+
+
+def _merge_up_fixture(tmp_path):
+    """`_git_with_post_branch` plus a season2/main branch at the post's base,
+    checked out in MAIN (the merge-up target), AND a KEYED `adv` seat row: the
+    merge-up verb is key-gated like rotate, so every fixture that reaches the
+    merge must hold a signing key whose fingerprint matches the committed row.
+    Returns (root, top, bare). Callers set AGI_SEAT=adv."""
+    import send as bin_send
+    _priv, pub = bin_send.seatsig.get("ed25519").keygen()
+    row = {"name": "adv", "role": "parent", "model": "x", "effort": "max",
+           "settings": "", "session_ref": "", "session_id": "",
+           "generation": 2, "window": "", "pid": 0,
+           "pubkey": pub.hex(), "sig_scheme": "ed25519"}
+    other = {"name": "other", "role": "parent", "model": "x",
+             "effort": "max", "settings": "", "session_ref": "",
+             "session_id": "", "generation": 2, "window": "", "pid": 0,
+             "pubkey": "01", "sig_scheme": "ed25519"}
+    root, top, bare, _head = _git_with_post_branch(
+        tmp_path, seat_row=[row, other])
+    kdir = bin_send._seats_dir(root)
+    kdir.mkdir(parents=True, exist_ok=True)
+    (kdir / "adv.key").write_text(
+        '{"scheme": "ed25519", "priv_hex": "%s"}' % _priv.hex(),
+        encoding="utf-8")
+    os.chmod(kdir / "adv.key", 0o600)
+    subprocess.run(["git", "-C", str(top), "checkout", "-q", "-b",
+                    "season2/main", "master~0"], check=True)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/main"], check=True)
+    return root, top, bare
+
+
+def test_merge_up_dry_run_touches_nothing(tmp_path, capsys, monkeypatch):
+    """B2 (i): the dry-run prints the plan (lock, suite cmd, target, mirror)
+    and touches NOTHING -- no lock file, no merge, no push."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=True), root)
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "season2/posts/adv" in out and "season2/main" in out
+    assert "refs/agi/posts/adv" in out and "suite lock" in out
+    assert not (root / "sessions" / "verify-suite.lock").exists()
+    after = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == before
+
+
+def test_merge_up_unkeyed_caller_refused_nothing_merged(tmp_path, capsys,
+                                                        monkeypatch):
+    """C1 falsifier (the parent's probe, now asserted): an UNKEYED caller --
+    no AGI_SEAT/AGI_POST, no held key -- is refused BY NAME before the lock
+    is taken or any git read, and NOTHING merges or pushes."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.delenv("AGI_POST", raising=False)
+    before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "refused" in err and "no key holder identity" in err, err
+    assert "nothing merged" in err, err
+    after = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == before, "an unkeyed caller merged the post"
+    assert not (root / "sessions" / "verify-suite.lock").exists()
+    assert _ls(bare, "refs/heads/season2/main")[0] == before
+    assert _ls(bare, "refs/agi/posts/adv") == []
+
+
+def test_merge_up_out_of_rank_post_refused(tmp_path, capsys, monkeypatch):
+    """C1: a keyed caller whose --post is a DIFFERENT, EQUAL-ranked post is
+    refused by the SAME rank gate rotate uses, before any git read."""
+    root, top, _bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="other", name=None, dry_run=False), root)
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "may not rotate" in err and "nothing merged" in err, err
+    assert not (root / "sessions" / "verify-suite.lock").exists()
+
+
+def test_merge_up_held_lock_refuses_names_pid_nothing_merged(
+        tmp_path, capsys, monkeypatch):
+    """B2 (ii) falsifier: a HELD suite lock refuses BY NAME, naming the
+    holder pid, with nothing merged and the suite never spawned."""
+    root, top, _bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    sessions = root / "sessions"
+    sessions.mkdir(parents=True, exist_ok=True)
+    (sessions / "verify-suite.lock").write_text("1", encoding="utf-8")
+    spawned = []
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda *a, **k: spawned.append(a) or (True, "x"))
+    before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    assert rc == 3
+    err = capsys.readouterr().err
+    assert "held by pid 1" in err, err
+    assert not spawned, "the suite ran while the lock was held"
+    after = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == before
+
+
+def test_merge_up_proves_mirror_then_drops_pre_existing_origin_head(
+        tmp_path, capsys, monkeypatch):
+    """C2: the merge-up mirrors + ls-remote-proves the post tip FIRST and
+    ONLY THEN deletes the pre-existing origin head. Falsifier: a head deleted
+    before the mirror is proved."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    # the LEGACY state: the post head is already on origin (pre-migration)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    assert _ls(bare, "refs/heads/season2/posts/adv")
+    post_sha = subprocess.run(["git", "-C", str(top), "rev-parse",
+                               "season2/posts/adv"],
+                              capture_output=True, text=True).stdout.strip()
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda *a, **k: (True, "seam", {}))
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False,
+                        delete_old=True), root)
+    assert rc == 0, capsys.readouterr().err
+    # mirror proved at the post tip, legacy origin head GONE
+    ls = _ls(bare, "refs/agi/posts/adv")
+    assert ls and ls[0] == post_sha, ls
+    assert _ls(bare, "refs/heads/season2/posts/adv") == []
+
+
+def test_merge_up_mirror_failure_leaves_origin_head(tmp_path, capsys,
+                                                    monkeypatch):
+    """C2 falsifier: when the mirror is NOT proved the pre-existing origin
+    head SURVIVES -- never deleted first."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda *a, **k: (True, "seam", {}))
+    hook = bare / "hooks" / "pre-receive"
+    hook.write_text("#!/bin/sh\nwhile read _o _n ref; do\n"
+                    "  case \"$ref\" in refs/agi/*) exit 1;; esac\n"
+                    "done\nexit 0\n", encoding="utf-8")
+    hook.chmod(0o755)
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "refused" in err and "refs/agi/posts/adv" in err, err
+    assert _ls(bare, "refs/heads/season2/posts/adv"), "head deleted first"
+    assert _ls(bare, "refs/agi/posts/adv") == []
+
+
+def test_merge_up_locks_runs_suite_merges_pushes_mirrors_releases(
+        tmp_path, capsys, monkeypatch):
+    """B2 (ii)-(iv): lock FREE -> taken, the suite runs WHILE held (seam),
+    merge --no-ff into season2/main in MAIN, push MAIN, mirror proved, lock
+    released, ONE Prime line carrying suite + nodes a/d/t + tip sha. The
+    falsifier 'a merge-up that runs the suite without holding the lock' is
+    false: the seam observes the lock file."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    seen = {}
+    lock = root / "sessions" / "verify-suite.lock"
+
+    def _suite(r, main):
+        seen["lock_during_suite"] = lock.exists()
+        return True, "suite passed (seam)", {"passed": 7, "skipped": 1}
+
+    monkeypatch.setattr(rotate, "_merge_up_suite", _suite)
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    assert rc == 0, capsys.readouterr().err
+    assert seen.get("lock_during_suite") is True, "suite ran unlocked"
+    assert not lock.exists(), "lock not released"
+    post_sha = subprocess.run(["git", "-C", str(top), "rev-parse",
+                               "season2/posts/adv"],
+                              capture_output=True, text=True).stdout.strip()
+    # merged into target and pushed
+    merged = subprocess.run(["git", "-C", str(top), "rev-parse",
+                             "season2/main"],
+                            capture_output=True, text=True).stdout.strip()
+    assert merged != post_sha
+    assert subprocess.run(["git", "-C", str(top), "merge-base", "--is-ancestor",
+                           post_sha, "season2/main"]).returncode == 0
+    ls = _ls(bare, "refs/heads/season2/main")
+    assert ls and ls[0] == merged, ls
+    # mirrored, proved
+    assert _ls(bare, "refs/agi/posts/adv") and \
+        _ls(bare, "refs/agi/posts/adv")[0] == post_sha
+    # ONE Prime line (the real send path writes to the seat's inbox)
+    inbox = root / "sessions" / "inbox" / "prime.md"
+    body = inbox.read_text(encoding="utf-8")
+    assert "MERGE-UP adv" in body, body
+    assert "refs/agi/posts/adv" in body
+    # C3: the line carries suite n/n, nodes a/d/t and the tip sha
+    assert "suite 7/8" in body, body
+    assert "nodes " in body and "merge season2/posts/adv -> season2/main" in body
+    assert f"@{merged[:7]}" in body or merged in body, body
+
+
+def test_rename_apply_mirror_proof_is_keyed_to_the_branch_tip_not_head(
+        tmp_path, capsys):
+    """SM.25b defect (3): the rename-apply mirror proof is keyed to the sha of
+    the BRANCH BEING RENAMED -- its OWN tip -- never the caller's toplevel
+    HEAD. HEAD is deliberately parked on a different commit here. FALSIFIER:
+    the mirrored sha is HEAD's, or the old origin head is deleted on that
+    false proof."""
+    root, top, bare, post_sha = _git_with_post_branch(tmp_path)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    subprocess.run(["git", "-C", str(top), "branch", "-m",
+                    "season2/posts/adv", "season2/posts/adv2"], check=True)
+    # HEAD elsewhere: the post branch tip is no longer what HEAD resolves to
+    subprocess.run(["git", "-C", str(top), "checkout", "-q", "master"],
+                   check=True)
+    head_sha = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                              capture_output=True, text=True).stdout.strip()
+    assert head_sha != post_sha, "fixture must put HEAD on another commit"
+    capsys.readouterr()
+    rotate._apply_surfaces(
+        root, _post_rename_origin_surface(), delete_old=True,
+        run_git=lambda *a: rotate._live_git(top, *a), live=True)
+    ls = _ls(bare, "refs/agi/posts/adv2")
+    assert ls and ls[0] == post_sha, ls
+    assert ls[0] != head_sha, "mirror proved HEAD, not the renamed branch"
+    # the delete that followed rode the SAME proven tip (containment held)
+    assert _ls(bare, "refs/heads/season2/posts/adv") == []
+
+
+def test_merge_up_without_delete_old_prints_plan_deletes_nothing(
+        tmp_path, capsys, monkeypatch):
+    """SM.25b clause (4b): with NO --delete-old the merge-up prints the plan
+    (naming the head that WOULD be deleted and the mirror that would justify
+    it) and deletes NOTHING. FALSIFIER: any head deletion without the flag."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    monkeypatch.setattr(rotate, "_merge_up_suite",
+                        lambda *a, **k: (True, "seam", {}))
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False,
+                        delete_old=False), root)
+    assert rc == 0, capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "plan: would delete refs/heads/season2/posts/adv" in err, err
+    assert "refs/agi/posts/adv" in err, err
+    assert _ls(bare, "refs/heads/season2/posts/adv"), \
+        "head deleted without --delete-old"
+    assert _ls(bare, "refs/agi/posts/adv"), "mirror not proved"
+
+
+def test_origin_head_delete_refuses_without_a_containment_proof(tmp_path):
+    """SM.25b clause (4c): with --delete-old but NO containment proof -- the
+    mirror's content does not contain the origin head's tip -- the delete is
+    REFUSED by name and nothing is deleted. The mirror here holds an ANCESTOR
+    of the head (master), so the head carries commits the mirror does not and
+    deleting it would destroy content."""
+    root, top, bare, post_sha = _git_with_post_branch(tmp_path)
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    "season2/posts/adv"], check=True)
+    master_sha = subprocess.run(["git", "-C", str(top), "rev-parse",
+                                 "master"], capture_output=True,
+                                text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(top), "push", "-q", "origin",
+                    f"{master_sha}:refs/agi/posts/adv"], check=True)
+    state, detail = rotate._origin_head_delete_gate(
+        top, "season2/posts/adv", delete_old=True)
+    assert state == "refused", (state, detail)
+    assert "no containment proof" in detail and "diverged" in detail, detail
+    assert _ls(bare, "refs/heads/season2/posts/adv"), "head deleted anyway"
+    assert _ls(bare, "refs/agi/posts/adv")[0] == master_sha
+

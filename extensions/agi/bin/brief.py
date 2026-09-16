@@ -44,6 +44,7 @@ import sys
 from pathlib import Path
 
 import evidence_gate
+import spawn_budget
 
 from frontmatter import split_frontmatter
 
@@ -80,6 +81,22 @@ def _configured_profile(project_root: Path | None = None) -> str | None:
         return None
     mode = data.get("operating_mode")
     return mode if mode in PROFILES else None
+
+
+def _config_data(project_root: Path | None = None) -> dict:
+    """The project's parsed ``config.json`` as a dict, or ``{}``.
+
+    Read once, in ``assemble()``; ``_kid()`` has no ``project_root`` and no
+    business resolving config. Missing/unreadable config or a non-dict body
+    falls back to ``{}``, so the ceiling resolver's own default applies and the
+    brief stays deterministic for every caller that does not thread a number.
+    """
+    cfg_path = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def _effective_profile(profile: str | None = None,
@@ -1263,9 +1280,29 @@ def _is_build_target(parent_id: str) -> bool:
     return (parent_id or "").strip().startswith("build:")
 
 
+def _scratch_dir_clause(session_dir: Path | str | None) -> list[str]:
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- ONE clause, and a no-op when the session dir is unknown
+    (offline callers must not change). Rendered for the tiers that stage
+    scratch: the kid (which left the 27 tracked `.agi/tmp/` files and the
+    SL7.128 probes) and its parent.
+    """
+    if not session_dir:
+        return []
+    return [
+        f"SCRATCH DIR: your session dir {session_dir} is the ONLY scratch "
+        f"dir. Probes, kid briefs, notes and result files go under it; "
+        f"never `.agi/tmp/` or the repo root. Anything outside it is a "
+        f"stray the harvest drops."
+    ]
+
+
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
           source_root: str | None = None,
-          addendum: str | None = None) -> list[str]:
+          addendum: str | None = None,
+          session_dir: Path | str | None = None,
+          line_ceiling: int | None = None,
+          ceiling_source: str = "default") -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1313,6 +1350,47 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         ))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
+    # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    # for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    # as a number the kid can read, so the 2x checkpoint has a number to key
+    # on. `assemble()` resolves the int from config and hands it down; a
+    # caller that does not thread it still gets the default, never a missing
+    # segment, because a brief that says nothing is the defect this fixes.
+    ceiling = 40 if line_ceiling is None else int(line_ceiling)
+    ceiling_origin = {
+        "clause": " This number is the dispatching node's own CEILING clause,"
+                  " so the brief and the harvest agree on it.",
+        "explicit": " This number was set explicitly by the caller that"
+                    " assembled this brief.",
+    }.get(ceiling_source,
+          " This number is the project config default; the dispatching node"
+          " carries no CEILING clause.")
+    segs.append(
+        f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines.{ceiling_origin} "
+        f"Your production "
+        f"lines are measured with `git diff --numstat` over the production "
+        f"paths you were given (test files excluded). Checkpoint at your "
+        f"FIRST commit or first test run: measure those lines. If you are "
+        f"above 2x the ceiling (above {2 * ceiling} lines), STOP and write a "
+        f"re-brief request into your experiment node -- what you have done, "
+        f"what remains, the new ceiling you need -- and wait for the parent's "
+        f"answer before continuing. "
+        # conjuncts (2)/(3): the written record harvest reads. A count with
+        # no record cannot be harvested, and the `git diff --numstat` above is
+        # the ONE git a kid may run -- a read-only measurement. The `DO NOT run
+        # git` segment below forbids writes; this sentence authorises the read
+        # (option (a) of the contradiction: the brief names its own tool).
+        f"Record the measured count in your experiment node's frontmatter "
+        f"before you continue: `write.py <node-id> 'set production_lines N'` "
+        f"and `write.py <node-id> 'set line_ceiling N'` -- the whole verb line "
+        f"is ONE quoted argument. If you are above 2x, also write "
+        f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
+        f"you need>'` before you stop; harvest reads these fields and names an "
+        f"overage with no re-brief entry as a defect. That one `git diff "
+        f"--numstat` read is the ONLY git you may run: a read-only "
+        f"measurement, nothing staged, committed or pushed."
+    )
+    segs += _scratch_dir_clause(session_dir)
     segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
         # and swept up 37 lines of a CLAUDE.md section the director had
@@ -1467,6 +1545,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             branch_worktree: str | None = None,
             branch_base: str | None = None,
             source_root: str | None = None,
+            session_dir: Path | str | None = None,
             project_root: Path | str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
@@ -1722,6 +1801,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the same files (a shared cwd is fine when they would not). One kid "
         f"when the work is one thing. Do NOT fan three kids onto one file "
         f"— that is the measured collision hazard with extra steps.",
+        # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+        # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
+        # re-brief it received, in the node, before it continues or stops.
+        "ANSWER EVERY RE-BRIEF BEFORE YOU CONTINUE. Before dispatching the "
+        "next kid or signalling done, read each owned kid's node for a "
+        "`rebrief_request`. A re-brief with no answer is the failure this "
+        "rule prevents: answer it IN THE NODE with\n"
+        "  python3 extensions/agi/bin/write.py <node-id> 'set rebrief_answer "
+        "<proceed with ceiling N | cut>'\n"
+        "and, if you proceed, also 'set line_ceiling <new N>' on that same "
+        "node, BEFORE that kid is resumed or a replacement is cut. A "
+        "`rebrief_request` left without a `rebrief_answer` is harvested as "
+        "a named defect.",
         # hypothesis:l3-branch-source-paths-never-rerooted part 4 -- the
         # parent edits kids' nodes and shells out to `write.py` and
         # `dispatch.py` by relative path, so it too is told which checkout it
@@ -1729,6 +1821,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
          f"to it. Do not edit any other checkout, even one whose path appears "
          f"elsewhere in this prompt." if source_root else None),
+        *_scratch_dir_clause(session_dir),
         f"TARGET: {aim}\n"
         f"Your job, in order:\n"
         f"1. SPAWN kids with:\n"
@@ -1869,6 +1962,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              session_dir: Path | str | None = None,
              source_root: str | Path | None = None,
              kid_ceiling: int | None = None,
+             line_ceiling: int | None = None,
              addendum: str | None = None,
              project_root: str | Path | None = None,
              profile: str = "full") -> list[str]:
@@ -1984,6 +2078,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
                        source_root=str(source_root) if source_root else None,
+                       session_dir=session_dir,
                        project_root=project_root)
         segs = [s for s in segs if s is not None]
         # goal:g15.25 SM.26/SM.28 -- the director's dispatch-time word rides
@@ -1993,10 +2088,26 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         # profile and the advisor brief.
         return _finish(segs, tier)
 
+    # Resolve ONCE here from the dispatching node's own CEILING clause, then
+    # the project config default -- ONE number from ONE source, so a kid's
+    # brief and the harvest's `overage=` cannot name two different ceilings
+    # (hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-
+    # clause-one-number-for-brief-and-harvest). `target` is the dispatching
+    # node id every dispatcher already passes; an explicit kwarg still wins
+    # (tests, hand assembles). `_kid` never reads config or the node.
+    if line_ceiling is not None:
+        resolved_line_ceiling, ceiling_source = int(line_ceiling), "explicit"
+    else:
+        resolved_line_ceiling, ceiling_source = spawn_budget.node_line_ceiling(
+            _resolve_graph_root(project_root), target,
+            _config_data(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
-                addendum=addendum)
+                session_dir=session_dir,
+                addendum=addendum,
+                line_ceiling=resolved_line_ceiling,
+                ceiling_source=ceiling_source)
     return _finish(segs, tier)
 
 

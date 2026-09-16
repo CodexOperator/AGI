@@ -1237,3 +1237,86 @@ def test_agent_status_finds_record_under_a_post_worktree(root: Path):
     status, src, overdue = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
     assert status == "running", status
     assert src == "post:sanctuary-director", src
+
+
+def test_production_line_ceiling_reads_config_and_defaults_small():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (1): the number the kid brief names is
+    READ from `spawn.production_line_ceiling`, mirroring
+    `parent_max_kids` (same file, same shape, same defaulting rule), and the
+    default is a small constant rather than the whole change.
+    """
+    assert spawn_budget.production_line_ceiling({}) == 40
+    assert spawn_budget.production_line_ceiling({"spawn": {}}) == 40
+    assert spawn_budget.production_line_ceiling(
+        {"spawn": {"production_line_ceiling": 17}}) == 17
+    # explicit default wins only when the key is absent
+    assert spawn_budget.production_line_ceiling(
+        {"spawn": {"production_line_ceiling": 17}}, default=5) == 17
+    assert spawn_budget.production_line_ceiling({}, default=5) == 5
+    # a config with no `spawn` mapping must not raise
+    assert spawn_budget.production_line_ceiling({"spawn": None}) == 40
+
+
+def test_node_line_ceiling_parses_the_clause_and_defaults(tmp_path):
+    """hypothesis:l4-sm45b-the-kid-ceiling-is-the-dispatching-node-own-ceiling-
+    clause-one-number-for-brief-and-harvest: ONE resolver, the dispatching
+    node's own CEILING clause first, the config default otherwise. The three
+    corpus spellings resolve; a quoted example before the node's own trailing
+    clause does not win; malformed/absent/unreadable returns the default and
+    never raises.
+    """
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    node = graph / "nodes" / "hypothesis" / "h.md"
+    node.write_text(
+        "---\nid: hypothesis:h\ntype: hypothesis\n---\n"
+        "e.g. `CEILING: <=120 production lines` never reaches.\n"
+        "CEILING: <=20 production lines, 1 kid\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:h", {}) == (20, "clause")
+    # absent clause -> config default, named as such
+    (graph / "nodes" / "hypothesis" / "bare.md").write_text(
+        "---\nid: hypothesis:bare\ntype: hypothesis\n---\nno ceiling\n")
+    assert spawn_budget.node_line_ceiling(
+        graph, "hypothesis:bare", {"spawn": {"production_line_ceiling": 17}}
+    ) == (17, "default")
+    # unresolvable node -> default, never a crash
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:nope", {}) == (40, "default")
+    assert spawn_budget.node_line_ceiling(graph, None, {}) == (40, "default")
+    # the three accepted spellings
+    assert spawn_budget._ceiling_clause("CEILING: <=7 lines") == 7
+    assert spawn_budget._ceiling_clause("CEILING: 33 production lines") == 33
+    assert spawn_budget._ceiling_clause("CEILING: <=120 production lines") == 120
+    # malformed and non-matching are None -> the caller's default
+    assert spawn_budget._ceiling_clause("CEILING: <=abc production lines") is None
+    assert spawn_budget._ceiling_clause("HARD CEILING: 2 kids") is None
+    assert spawn_budget._ceiling_clause(None) is None
+
+
+def test_node_line_ceiling_reads_only_the_testable_claim_field(tmp_path):
+    """hypothesis:l4-sm46b-...: three probes of the ONE rule.
+
+    T1: a claim clause wins over a later body/notes number.
+    T2: no frontmatter at all -> the whole text, as before (fallback).
+    T3: parseable frontmatter, field present but clause-less -> the config
+        default; the body's number must NOT win.
+    """
+    graph = tmp_path / ".agi"
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True)
+    # T1: claim field carries the clause, notes quote a smaller number
+    (d / "t1.md").write_text(
+        "---\nid: hypothesis:t1\ntype: hypothesis\n"
+        "testable_claim: \"behaviour to build. CEILING: <=40 production lines.\"\n"
+        "---\n## Agent Notes\n_git diff --numstat ... 20 lines_\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t1", {}) == (40, "clause")
+    # T2: no frontmatter -> the fallback reads the whole text
+    (d / "t2.md").write_text(
+        "no frontmatter here\nCEILING: <=12 production lines\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t2", {}) == (12, "clause")
+    # T3: field present, no clause -> default, and the body does not win
+    (d / "t3.md").write_text(
+        "---\nid: hypothesis:t3\ntype: hypothesis\n"
+        "testable_claim: the thing being claimed, no number here\n"
+        "---\nCEILING: <=9 production lines\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t3", {}) == (40, "default")

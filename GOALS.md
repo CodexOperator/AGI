@@ -9784,6 +9784,16 @@ harvested SM.34 (l4-the-never-lower-baseline-counts-committed-node-files): ACCEP
 
 harvested SM.37 (l4-cmd-spawn-passes-generation-to-first-seating-run): ACCEPT :85 per SM, 2 kids self-policed a scope gap rather than overclaiming; 940 tests pass
 
+harvested SM.38 (l4-cmd-spawn-first-seating-rewrites-the-handoff-generation-header): ACCEPT :80 per SM despite 2.08x line overage (disclosed, clean); both belam g15 findings now closed (SM.37+SM.38)
+
+SM ACCEPT SM.39 (:80) and SM.40 (:80) -- both merged to sensei-director post branch, held for MAIN merge-up
+
+SM.45 harvested (4 kids: kid-checkpoint+rebrief+harvest-measurement feature, all conjuncts proved or inconclusive_lean_proved, 366 tests green post-merge). Flagged to SM as mechanical-rule DEMOTE candidate: round totalled ~221 prod lines vs 40-line ceiling (5.4x) across 4 kids, no mid-round re-brief dm before next kid -- the shape her post-SM.21 rule names regardless of work quality. Held in seat branch for her verdict + a future MAIN merge-up grant.
+
+SM.46 (SM.45b fix, 1 kid) and SM.43 (test_zoom mystery closed, 1 kid) harvested and merged, 483 tests green. SM.46: per-node CEILING resolver landed, dogfooded (brief now shows the node own clause not config 40); 120 lines vs 20-line clause but disclosed via the new in-node rebrief protocol and parent-authorized, not a silent overage. SM.43: root-caused the long-standing test_zoom full-suite-only failures to a session leak guard comparing live shared workflow jsonl file state across concurrent seats; fixed per-process, no production file touched, full suite 4996 passed 0 errors from this guard. SM.45 bytes (held at loop tip b5b3cf123) still need merging together with SM.46 per her instruction before this branch can go to MAIN.
+
+SM.47 (SM.46b fix, 1 kid) harvested and merged, 372 tests green. Closes the SM.45 -> SM.46 -> SM.47 chain: the ceiling resolver now reads only the dispatching node frontmatter testable_claim field (whole-text fallback only with no parseable frontmatter), fixing the last-match-wins-over-review-notes defect SM found in SM.46. Verified live: the SM.45 defect node now resolves (40,clause), was (20,clause). 10/10 production lines, exactly at ceiling. Named residual (not fixed, follow-up candidate): 18 live nodes with no testable_claim field still fall back to whole-text parsing. Post branch chain is now complete; will ask for a MAIN merge-up window.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
