@@ -267,6 +267,30 @@ def needs_credential(harness: dict) -> bool:
     return True
 
 
+def drop_unneeded_credential(env: dict[str, str], harness: dict) -> dict[str, str]:
+    """Apply the credential-none rule to a child environment, in ONE place.
+
+    `hypothesis:l4-needs-credential-is-provider-gated`. A harness row that
+    explicitly carries ``credential: "none"`` authenticates through its own
+    channel (pi-local speaking to a `$0` local model), so the inherited runtime
+    key -- which `dispatch.scrubbed_env` deliberately keeps for the no-
+    provisioning fallback -- must never reach its child.
+
+    The rule lives HERE and every adapter's ``child_env`` calls it, so every
+    spawn path that builds a child environment (main dispatch, the dry-run
+    mirror, adapter ``restart``, and any future path) gets it for free. It used
+    to be two ad-hoc pops in dispatch.py, which is exactly why the RESTART seam
+    kept inheriting the key: nothing forced a new spawn path to remember the
+    pop. `needs_credential` is the single decision, so this cannot drift from
+    the mint gate in dispatch.py.
+    """
+    if needs_credential(harness):
+        return env
+    import provisioning  # lazy: keeps this package import-light
+    env.pop(provisioning.RUNTIME_KEY_VAR, None)
+    return env
+
+
 def model_listing(harness: dict) -> dict[str, str]:
     """Return the selected adapter's configured tier/model listing.
 
