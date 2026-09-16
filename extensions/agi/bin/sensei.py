@@ -553,14 +553,6 @@ def _fact_label(cmd: str, facts: list[tuple[str, list[str]]]) -> str | None:
 # ── the seat's LATEST rotation record; env / newest-.jsonl unreachable without
 # ── an explicit --transcript) ────────────────────────────────────────────
 
-def _rotation_records(root: Path, seat: str) -> list[Path]:
-    """`sessions/rotations/<seat>.*.json` for a seat, newest-last."""
-    d = locations.shared_sessions_dir(root) / rotate.ROTATIONS_DIR_NAME
-    if not d.is_dir():
-        return []
-    return sorted(d.glob(f"{seat}.*.json"))
-
-
 def _record_transcript(rec: dict) -> Path | None:
     """The transcript a rotation record names on its own, or None.
 
@@ -704,9 +696,11 @@ def _select_rotation_record(records: list[tuple[Path, dict]], seat: str, *,
 
     Order (hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-post-
     and-record-never-by-b-generation):
-      1. an explicit `--record <stamp>` (or the literal `latest`) — matched
-         against the stamp token of `<seat>.<stamp>[.seating].json`, never
-         against a generation;
+      1. an explicit `--record <stamp>` — an EXACT stamp resolves, a
+         substring that matches exactly one record resolves, and >= 2
+         substring matches REFUSE BY NAME listing every matching stamp; the
+         literal `latest` is normalized to the no-flag default before this
+         step. Never matched against a generation;
       2. a DEPRECATED `--gen N`, through `gen_match` (the wake side matches
          `b_generation.after`, the rotate-out side `b_generation.before`) and
          REFUSING BY NAME when no record carries it — `--gen` is never the
@@ -714,7 +708,8 @@ def _select_rotation_record(records: list[tuple[Path, dict]], seat: str, *,
       3. the record whose `handover.join.session_id` matches `session_id` (a
          non-prime post's own wake record, keyed on the identity its row
          carries);
-      4. the seat's LATEST rotation record.
+      4. the seat's LATEST rotation record — the same arm `--record latest`
+         takes, session gate included.
 
     Returns `(idx, path, record, basis)`; on refusal `(None, None, None,
     reason)` where `reason` names what was looked for. `basis` names the
@@ -722,18 +717,39 @@ def _select_rotation_record(records: list[tuple[Path, dict]], seat: str, *,
     with the deprecated flag in parentheses)."""
     if not records:
         return None, None, None, f"no rotation records for seat {seat!r}"
-    if record and record != "latest":
-        hits = [t for t in records if _record_stamp(t[0], seat) == record]
-        if not hits:
-            hits = [t for t in records if record in t[0].name]
-        if not hits:
+    # `latest` is the DEFAULT, spelled out loud: normalize it to "no explicit
+    # record" so it flows through the SAME gen/session gate the no-flag
+    # default does, never short-circuiting past the identity gate
+    # (hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-stamps-by-
+    # name-and-latest-passes-the-session-gate, clause (3)).
+    if record == "latest":
+        record = None
+    if record:
+        # an EXACT stamp resolves with no session gate (an explicit stamp is
+        # explicit). The substring fallback survives only as a DISAMBIGUATOR:
+        # >= 2 matches is ambiguous and refuses BY NAME, listing every
+        # matching stamp, so a half-day stamp can never silently resolve to
+        # the newest record that happens to share it.
+        exact = [t for t in records if _record_stamp(t[0], seat) == record]
+        if exact:
+            path, rec = exact[-1]
+            return records.index(exact[-1]), path, rec, \
+                f"record {_record_stamp(path, seat)}"
+        hits = [t for t in records if record in t[0].name]
+        if len(hits) > 1:
+            stamps = ", ".join(_record_stamp(t[0], seat) for t in hits)
             return (None, None, None,
-                    f"no rotation record for seat {seat!r} matching "
-                    f"--record {record!r}")
-        i = records.index(hits[-1])
-        path, rec = records[i]
-        return i, path, rec, f"record {_record_stamp(path, seat)}"
-    if record != "latest" and gen is not None:
+                    f"ambiguous --record {record!r}: matches {len(hits)} "
+                    f"rotation records for seat {seat!r} ({stamps}); pass "
+                    f"the full stamp")
+        if len(hits) == 1:
+            path, rec = hits[0]
+            return records.index(hits[0]), path, rec, \
+                f"record {_record_stamp(path, seat)}"
+        return (None, None, None,
+                f"no rotation record for seat {seat!r} matching "
+                f"--record {record!r}")
+    if gen is not None:
         match = gen_match or (lambda r: _record_matches_gen(r, gen))
         for i in range(len(records) - 1, -1, -1):
             rec = records[i][1]
@@ -748,11 +764,13 @@ def _select_rotation_record(records: list[tuple[Path, dict]], seat: str, *,
                 f"no rotation record for seat {seat!r} whose b_generation "
                 f"matches {gen} (--gen is a deprecated alias for the record; "
                 f"pass --record <stamp> or no flag at all)")
-    if record != "latest" and session_id:
+    if session_id:
         # a non-empty session identity is a GATE, not a preference: the only
         # record on disk belonging to ANOTHER session must refuse by name,
         # never silently fall back to "latest" (P1, hypothesis:l4-sensei-
         # wake-audit-keys-on-the-session-not-gen-or-the-prime-ack-name).
+        # `--record latest` reaches this same arm (normalized above), so it
+        # is gated exactly like the no-flag default.
         for i in range(len(records) - 1, -1, -1):
             if _record_matches_session(records[i][1], session_id):
                 path, rec = records[i]
@@ -820,21 +838,27 @@ def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
          newest-.jsonl fallbacks of `rotate.resolve_transcript` are
          UNREACHABLE here by construction.
 
-    Returns `(path, source)`. `(None, source)` means the record/transcript was
-    absent; `source` names it so the caller can refuse with the name (never a
-    silent fall-through)."""
+    Returns `(path, source, rec_path)`. `(None, source)` means the
+    record/transcript was absent; `source` names it so the caller can refuse
+    with the name (never a silent fall-through). `rec_path` is the resolved
+    record (`None` for an explicit `--transcript`), handed back so the CLI
+    can PRINT the stamp the audit resolved instead of resolving it a second
+    time (hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-stamps-
+    by-name-and-latest-passes-the-session-gate)."""
     if transcript_path is not None:
         lp = Path(transcript_path).expanduser().resolve()
-        return (lp, "explicit") if lp.exists() else (None, "explicit-missing")
+        if lp.exists():
+            return lp, "explicit", None
+        return None, "explicit-missing", None
     rec_path, doc, reason = _select_wake_record(root, seat, gen, session_id,
                                                 record)
     if rec_path is None:
-        return None, reason
+        return None, reason, None
     src = f"record:{rec_path.name}"
     lp = _record_transcript(doc)
     if lp is None:
-        return None, f"{src} names no transcript"
-    return lp, src
+        return None, f"{src} names no transcript", rec_path
+    return lp, src, rec_path
 
 
 def _is_protocol_learning(cmd: str, tool: str) -> bool:
@@ -1324,9 +1348,8 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     hand_paths = _hand_read_paths(entries, facts, seat, session_id)
     after_join = _extract_after_join(fm, role)
 
-    log_path, source = _resolve_wake_transcript(root, seat, gen,
-                                               transcript_path, session_id,
-                                               record)
+    log_path, source, rec_path = _resolve_wake_transcript(
+        root, seat, gen, transcript_path, session_id, record)
     if log_path is None:
         print(f"ERR: cannot audit a wake for seat {seat!r}: {source}; "
               f"pass --transcript PATH or let the seat's rotation record "
@@ -1395,6 +1418,12 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     for c in window_calls:
         window_counts[c["cat"]] += 1
     window_counts["window_reason"] = reason
+    # the resolved RECORD identity travels WITH the report: the CLI prints
+    # this stamp, so `cmd_wake_audit` never re-resolves (ONE call site, the
+    # record the report names is the record the audit read).
+    window_counts["record"] = (_record_stamp(rec_path, seat)
+                               if rec_path is not None else None)
+    window_counts["record_reason"] = source
     return 0, window_calls, window_counts
 
 
@@ -1441,18 +1470,17 @@ def cmd_wake_audit(root: Path, args) -> int:
         return code
     redact = getattr(args, "redact", True)
     row = seat_row(load_seats(root), args.seat)
-    # the printed identity is the RECORD stamp, never a generation: the ONE
-    # call site that resolved the window (`_select_wake_record`), so the
-    # header names the record the audit actually read.
+    # the printed identity is the RECORD stamp, never a generation, and it is
+    # the stamp `wake_audit` itself resolved and carried back on `counts` --
+    # no second `_select_wake_record` call that could name a record the
+    # window did not read (hypothesis:l4-the-sensei-record-selector-refuses-
+    # ambiguous-stamps-by-name-and-latest-passes-the-session-gate).
     if args.transcript:
         ident = f"--transcript {args.transcript}"
+    elif counts.get("record") is not None:
+        ident = f"--record {counts['record']}"
     else:
-        _rp, _rr, _reason = _select_wake_record(
-            root, args.seat, args.gen,
-            rotate._ack_session_id(root, args.seat),
-            getattr(args, "record", None))
-        ident = (f"--record {_record_stamp(_rp, args.seat)}" if _rp is not None
-                 else f"--record ? ({_reason})")
+        ident = f"--record ? ({counts.get('record_reason', '?')})"
     print(f"sensei.py wake-audit --seat {args.seat} {ident} "
           f"(role {row['role']})")
     print(f"window: first assistant tool_use -> ack / first real work "
@@ -1603,8 +1631,9 @@ def cmd_calls(args) -> int:
 # transcript (that one is the successor's).
 
 
-# (merge SL1.01 x L4.240: renamed from `_rotation_records` — the wake-audit side
-#  defines a Path-list reader under that name; this one returns (path, record).)
+# (merge SL1.01 x L4.240: renamed from `_rotation_records`. The wake-audit
+#  side's same-named Path-list reader was DEAD and is deleted — this is the one
+#  rotation-record reader, returning (path, record).)
 def _seat_rotation_records(root: Path, seat: str) -> list[tuple[Path, dict]]:
     """`(path, record)` for every rotation record whose `seat` field equals
     `seat`, sorted by record filename (the timestamp-ordered glob). Matches
