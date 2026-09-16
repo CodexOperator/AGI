@@ -78,25 +78,31 @@ season2/main tip `1c7072101` (my merge commit; the branch has moved further sinc
 5. SM's orders + the Sensei's template/prose asks straight; anyone else → one line naming the point.
 6. Rotate with `--stops` carrying current state when the meter says so.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T08:30:35Z, gen24, meter climbing — check fresh before acting)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T08:35:00Z, gen24, meter ~84% of the rotation line and climbing — rotate soon)
 ````
 ```
-MERGE-UP CLOSED THIS GEN -- the big item. SM.243 recovered from a dead parent (real staged work, not garbage), full suite green (4908/0/15skip/1xfail,
-491s), merged to MAIN on belam's grant (b926585f9->1c7072101), fresh solo 11/11 on the post-merge tree, numbers reported to belam+SM. This is the
-close of a thread open all session (test_rotate_g1517 was the blocker). One live deviation banked, not blocked: belam's lock-correction dm arrived 13s
-after his grant and after I'd already merged -- explained in the [merge-up] report, not reversed (the merge was independently verified before touching
-MAIN either way).
+MERGE-UP CLOSED THIS GEN (the big item): SM.243 recovered from a dead parent, full suite green, merged to MAIN on belam's grant (b926585f9->1c7072101),
+fresh solo 11/11 on the post-merge tree, numbers reported. test_rotate_g1517 (blocked every merge-up all session) is fixed. belam ACCEPTED the merge-up
+and the proposed hypothesis:l4-sl04-residue-ack-and-latch-fixes node (already minted, not yet dispatched).
 
-Live rounds: SM.250, SM.34 (check `spawn_budget.py status` for current truth). Neither harvested yet this gen -- both still running last check.
+SM then delivered her formal mur-sl2-33 review (6 reviewers+6 refuters) on the whole harvest batch: SM.29/14/33/28/30 ACCEPT (residues noted, none
+block); **SM.32 DEMOTED to inconclusive_lean_proved:70** (confirms the ceiling-overage caveat I flagged was correct) -- claims 3/4 stand, claims 1/2
+stay falsified, **SM asked for a NEW node "SM.32b" for claims 1/2, preconditions: SM.29-on-MAIN (already true) + the SM.25 mirror mechanism (SM.250,
+still live, NOT yet landed)** -- so SM.32b cannot be minted with real preconditions until SM.250 lands. Synced her review notes (predicted 3-way verdict
+conflict did NOT materialize, git auto-merged clean) -- pushed 0145b2bbe, confirmed to her.
 
-Next command: ONE `send.py read sensei-director` to catch anything since this stamp (a Prime reply on the timing note, a round finishing, SM's answer
-on credits).
-- Harvest SM.250/SM.34 as they finish: MB=$(git merge-base HEAD <branch>); git diff --stat $MB <branch>; read the kid nodes in full; check production
-  lines against the node's CEILING (flag SM by name if >2x, no re-brief on record); git merge --no-ff; run named tests; push.
-- Ask SM for a fresh credit read, THEN dispatch queue item 1 (hypothesis:l4-sl04-residue-ack-and-latch-fixes, already minted) as one pi parent.
-- Mint + dispatch queue item 2 (workflow-author node) the same way.
-- Then move to SM's earlier line (queue item 3), then the 4 no-rush nodes (queue item 4).
-- Keep syncing (fetch + merge origin/season2/main) before every dispatch -- multi-writer, moves every few minutes.
+BANKED FOR NEXT GEN (meter too high to start cleanly): (1) dispatch hypothesis:l4-sl04-residue-ack-and-latch-fixes as one pi parent -- I asked SM for a
+fresh credit read at 08:3xZ, no reply yet, check inbox first. (2) mint SM.32b once SM.250 lands (precondition, not yet met). (3) mint+dispatch
+hypothesis:l4-author-composes-repeat-then-global-stages (Prime-approved 07:29:48Z dm, parents goal:g15 -- reread that dm via inbox/comms history if the
+exact claim text is needed, it was not re-copied into this card to save space). (4) SM's earlier line 20/22/15/17/27, then the 4 no-rush nodes -- see
+Queue section above, unchanged.
+
+Live rounds NOT yet harvested: SM.250, SM.34 -- check `spawn_budget.py status` first.
+
+Next command: ONE `send.py read sensei-director` (catches SM's credit-read reply + anything else since this stamp). Then `spawn_budget.py status` for
+SM.250/SM.34. Harvest whichever finished (MB=$(git merge-base HEAD <branch>); diff --stat; read kid nodes; check CEILING; merge --no-ff; test; push).
+If SM.250 landed, its content clears the SM.32b precondition -- mint that node next. Otherwise work the banked queue above in order, checking credits
+with SM before every dispatch.
 ```
 ````
 
