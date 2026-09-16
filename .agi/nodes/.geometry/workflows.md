@@ -16,16 +16,16 @@ thought_session: belam-S1-L4-VII
 title: Workflow type registry and the prime-owned default harness
 types:
   - {"name": "review", "harness": "pi", "stage_shapes": ["global-checks", "review:{target}"]}
-  - {"name": "drafting", "harness": "claude-code", "stage_shapes": ["draft:{slug}", "critic"]}
+  - {"name": "drafting", "harness": "pi", "stage_shapes": ["draft:{slug}", "critic"]}
   - {"name": "research", "harness": "pi", "stage_shapes": ["read", "refute:{lens}", "synthesize"]}
   - {"name": "route-probe", "harness": "pi", "stage_shapes": ["emit", "critic"]}
   - {"name": "plan-research", "harness": "pi", "stage_shapes": ["map", "draft", "judge", "verify", "synthesize"]}
   - {"name": "investigate-refute", "harness": "pi", "stage_shapes": ["investigate:{key}", "refute:{key}"]}
-  - {"name": "merge-up-review", "harness": "claude-code", "stage_shapes": ["review:{key}", "verify:{key}"]}
-  - {"name": "desktop-check", "harness": "claude-code", "stage_shapes": ["capture-and-read"]}
+  - {"name": "merge-up-review", "harness": "pi", "stage_shapes": ["review:{key}", "verify:{key}"]}
+  - {"name": "desktop-check", "harness": "pi", "stage_shapes": ["capture-and-read"]}
   - {"name": "trove-survey", "harness": "claude-code", "stage_shapes": ["read:{key}", "critique:{key}", "panel:{key}", "judge"]}
-  - {"name": "recovery-survey", "harness": "claude-code", "stage_shapes": ["survey:{key}", "refute:{key}"]}
-  - {"name": "g15-close-triage", "harness": "claude-code", "stage_shapes": ["triage:{key}", "refute:{key}"]}
+  - {"name": "recovery-survey", "harness": "pi", "stage_shapes": ["survey:{key}", "refute:{key}"]}
+  - {"name": "g15-close-triage", "harness": "pi", "stage_shapes": ["triage:{key}", "refute:{key}"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
