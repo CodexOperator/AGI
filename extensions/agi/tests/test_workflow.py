@@ -311,7 +311,13 @@ def test_run_stage_pi_schema_violating_json_is_unstructured():
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {})
     assert rc == 0, rc
-    assert value == {"unstructured": '{"slug": 123}'}, value
+    assert value == {"unstructured": '{"slug": 123}',
+                     "violations": value["violations"]}, value
+    # a JSON return that FAILED the schema keeps its NAMED violation — it is
+    # not filed silently under the same key as prose (hypothesis:l4-a-per-run-
+    # workflow-key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name).
+    assert value["violations"], value
+    assert any("slug" in v for v in value["violations"]), value
 
 
 # ---------- lenient pi stage return: bare / fenced / prose ----------------
@@ -1836,3 +1842,249 @@ def test_pi_stage_receives_minted_key_across_the_process(tmp_path,
         assert "ANTHROPIC_API_KEY" not in child_env
     finally:
         restore()
+
+
+# ---------- conjunct 2: the per-run minted key is REVOKED at run end --------
+# hypothesis:l4-a-per-run-workflow-key-is-revoked-at-run-end-and-a-schema-miss-
+# keeps-its-name. `_resolve_workflow_spawn_env` minted and dropped the hash, so
+# nothing could revoke it and the key outlived the run on success, on stage
+# failure and on a raise/timeout path.
+
+def _revoke_spy(monkeypatch, _wf, result=True):
+    calls = []
+
+    def fake_revoke(key_hash, root=None):
+        calls.append(key_hash)
+        return result
+
+    monkeypatch.setattr(_wf.provisioning, "revoke", fake_revoke)
+    return calls
+
+
+def _fake_pi_completed(_sp, rc=0, stdout=None):
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            return _sp.CompletedProcess(
+                cmd, rc, stdout=stdout if stdout is not None
+                else _GOOD_REVIEW_JSON, stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="CTX", stderr="")
+    return fake_run
+
+
+def test_pi_run_revokes_the_minted_key_once_on_success(tmp_path_factory,
+                                                       monkeypatch):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint", lambda **kw: _fake_minted())
+    revoked = _revoke_spy(monkeypatch, _wf)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=_fake_pi_completed(_sp)):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert revoked == ["hash-sk-minted-run"], revoked
+    finally:
+        restore()
+
+
+def test_pi_run_revokes_the_minted_key_once_when_a_stage_fails(
+        tmp_path_factory, monkeypatch):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint", lambda **kw: _fake_minted())
+    revoked = _revoke_spy(monkeypatch, _wf)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=_fake_pi_completed(_sp, rc=1)):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc != 0, buf.getvalue()
+        assert revoked == ["hash-sk-minted-run"], revoked
+    finally:
+        restore()
+
+
+def test_pi_run_with_no_mint_revokes_nothing(tmp_path_factory, monkeypatch):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    revoked = _revoke_spy(monkeypatch, _wf)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=_fake_pi_completed(_sp)):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert revoked == [], revoked
+    finally:
+        restore()
+
+
+def test_revoke_failure_does_not_fail_the_run_but_is_named(
+        tmp_path_factory, monkeypatch, capsys):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(_wf.provisioning, "mint", lambda **kw: _fake_minted())
+    revoked = _revoke_spy(monkeypatch, _wf, result=False)
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=_fake_pi_completed(_sp)):
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert revoked == ["hash-sk-minted-run"], revoked
+        err = capsys.readouterr().err
+        assert "revoke" in err and "hash-sk-minted-run" in err, err
+    finally:
+        restore()
+
+
+# ---------- conjunct 5: the stage timeout comes from the manifest ----------
+
+def _manifest_with_timeout(timeout_s=None, stage_timeout=None):
+    st = {"label": "only", "role": "kid", "model_hint": "sonnet",
+          "prompt": "do the thing",
+          "schema": {"type": "object", "properties": {"ok": {"type": "boolean"}},
+                     "required": ["ok"]}}
+    if stage_timeout is not None:
+        st["timeout_s"] = stage_timeout
+    m = {"name": "review", "type": "review", "script": "agi-round-review.js",
+         "stages": [st]}
+    if timeout_s is not None:
+        m["timeout_s"] = timeout_s
+    return m
+
+
+def _capture_timeouts(tmp_path_factory, monkeypatch, manifest):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: manifest
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    seen = []
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            seen.append(kw.get("timeout"))
+            return _sp.CompletedProcess(cmd, 0, stdout='{"ok": true}',
+                                        stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="CTX", stderr="")
+
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi", {}, False, out=buf)
+        assert rc == 0, buf.getvalue()
+        return seen
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
+
+
+def test_manifest_timeout_s_reaches_the_stage_subprocess(
+        tmp_path_factory, monkeypatch):
+    seen = _capture_timeouts(tmp_path_factory, monkeypatch,
+                             _manifest_with_timeout(timeout_s=7))
+    assert seen == [7], seen
+
+
+def test_no_manifest_timeout_keeps_the_600_default(tmp_path_factory,
+                                                   monkeypatch):
+    seen = _capture_timeouts(tmp_path_factory, monkeypatch,
+                             _manifest_with_timeout())
+    assert seen == [600], seen
+
+
+def test_per_stage_timeout_overrides_the_manifest(tmp_path_factory,
+                                                  monkeypatch):
+    seen = _capture_timeouts(
+        tmp_path_factory, monkeypatch,
+        _manifest_with_timeout(timeout_s=7, stage_timeout=3))
+    assert seen == [3], seen
+
+
+# ---------- conjunct 3: a schema miss keeps its violation -------------------
+
+def _run_one_stage_with_output(tmp_path_factory, monkeypatch, output,
+                               schema=None):
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    manifest = {"name": "review", "type": "review",
+                "script": "agi-round-review.js",
+                "stages": [{"label": "only", "role": "kid",
+                            "model_hint": "sonnet", "prompt": "p",
+                            "schema": schema if schema is not None else
+                            {"type": "object",
+                             "properties": {"answer": {"type": "integer"}},
+                             "required": ["answer"]}}]}
+    _wf._load_manifest = lambda repo, key: manifest
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            return _sp.CompletedProcess(cmd, 0, stdout=output, stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="CTX", stderr="")
+
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi", {}, False, out=buf)
+        rows = []
+        path = tmp / "sessions" / "workflows" / "review.jsonl"
+        if path.exists():
+            rows = [json.loads(l) for l in
+                    path.read_text(encoding="utf-8").splitlines()]
+        return rc, buf.getvalue(), rows
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
+
+
+def test_schema_violation_is_recorded_on_the_unstructured_return(
+        tmp_path_factory, monkeypatch):
+    rc, text, rows = _run_one_stage_with_output(
+        tmp_path_factory, monkeypatch, '{"answer": "x"}')
+    assert rc == 0, text
+    assert "[summary] workflow=review stages=1 ok=0 unstructured=1 failed=0" in text
+    assert rows, "the run must be tracked"
+    ret = rows[0]["returns"]["only"]
+    assert ret == '{"answer": "x"}', ret
+    viol = rows[0]["violations"]["only"]
+    assert viol, rows[0]
+    assert any("answer" in v for v in viol), viol
+
+
+def test_later_valid_candidate_still_wins_after_a_schema_miss(
+        tmp_path_factory, monkeypatch):
+    rc, text, rows = _run_one_stage_with_output(
+        tmp_path_factory, monkeypatch, '{"answer": "x"}\n{"answer": 4}')
+    assert rc == 0, text
+    assert "[summary] workflow=review stages=1 ok=1 unstructured=0 failed=0" in text
+    assert rows[0]["returns"] == {}, rows[0]
