@@ -2161,3 +2161,26 @@ def test_parent_brief_demands_the_kid_title_in_its_own_words():
     assert "'set title" in parent
     assert "A00 f067c356 b0ad80" in parent
     assert "untitled=[<node-id>]" in parent
+
+
+def test_kid_brief_demands_the_title_so_no_parent_has_to_hand_carry_it():
+    """hypothesis:l4-the-kid-brief-demands-a-title-... item (1): the title
+    demand lived ONLY in `_parent`, so a kid whose parent did not hand-carry
+    it never saw the rule it was failing and its node kept the dispatch
+    DERIVED title. The dispatch-rendered `_kid` brief must carry it too."""
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "SET YOUR OWN NODE TITLE IN YOUR OWN WORDS" in kid
+    assert "'set title" in kid
+    assert "untitled=[<node-id>]" in kid
+
+
+def test_parent_brief_never_lands_a_kids_own_node_by_hand():
+    """hypothesis:l4-the-kid-brief-demands-a-title-... item (3): a kid's
+    authored node is the kid's. When a kid leaves its own node edit
+    uncommitted, the parent re-briefs THAT kid to commit it -- a director
+    never lands it by hand (SL7.136 01a9312f1 was at the edge)."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "A KID'S AUTHORED NODE IS THE KID'S" in parent
+    assert "RE-BRIEF THAT KID" in parent
+    assert "never land it by hand" in parent
+    assert "THOUGHT" in parent

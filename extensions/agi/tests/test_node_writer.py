@@ -1575,3 +1575,82 @@ def test_live_tree_round_trip_zero_drift_and_reports_byte_change_count(
           f"bytes_change={len(byte_changed)}")
     print("BYTES_CHANGE_IDS=" + " ".join(
         x for x in sorted(byte_changed)))
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-
+# written -- FIX-ONLY round for the mur-49 by-name residue. A brand-new node
+# of a type with NO active schema is a genuinely unknown type, not an
+# unresolved one: nothing legitimate is being preserved, so the write must be
+# REJECTED before any directory or file is created. Every other UNVERIFIED
+# path (an existing file of an undeclared type, a schema that exists but
+# declares no spawn: block) is unchanged.
+# --------------------------------------------------------------------------
+
+
+def _seeded_node_dirs(project):
+    return sorted(p.name for p in (project / "nodes").iterdir() if p.is_dir())
+
+
+def test_create_of_an_unknown_type_refuses_before_writing(project):
+    """Clauses 1-4: a genuinely new type with no schema refuses BY NAME."""
+    res = nw.write_node(project, "notown", "missing-thing", ["idea:i1"])
+    assert res.rejected, f"expected REJECTED, got {res.status} ({res.reason})"
+    assert res.gate is not None and res.gate.status == nw.spawn_gate.UNVERIFIED
+    assert "notown" in res.reason
+    assert "context/schemas/[notown].md" in res.reason
+    assert not (project / "nodes" / "notown").exists()
+
+
+def test_unknown_type_refusal_leaves_no_stray_directory(project):
+    """The regression the L4.338 round paid for: nodes/notown/ survived."""
+    before = _seeded_node_dirs(project)
+    nw.write_node(project, "notown", "another-missing", ["idea:i1"])
+    assert _seeded_node_dirs(project) == before
+
+
+def test_schema_without_a_spawn_block_still_writes(project):
+    """Regression pin: the OTHER UNVERIFIED branch is untouched.
+
+    `[floating].md` exists (so the type is not genuinely unknown) but
+    declares no `spawn:` block, so `schema.rule_for` returns None and the
+    gate is UNVERIFIED. That is not the no-schema case: the write proceeds
+    exactly as before.
+    """
+    sd = project / "context" / "schemas"
+    (sd / "[floating].md").write_text("---\nname: floating\n---\nfloating\n")
+    res = nw.write_node(project, "floating", "fl1", ["idea:i1"])
+    assert res.written, f"expected WRITTEN, got {res.status} ({res.reason})"
+    assert (project / "nodes" / "floating" / "fl1.md").exists()
+    assert res.gate.status == nw.spawn_gate.UNVERIFIED
+
+
+def test_existing_undeclared_type_file_is_still_skipped(project):
+    """Regression pin: an EXISTING file of an undeclared type is not refused.
+
+    `update_node` never calls `check_spawn` (the only `check_spawn` call site
+    in node_writer.py is `write_node`), so write_node's SKIPPED is the
+    correct pin for "an update to an existing node of an undeclared type".
+    """
+    d = project / "nodes" / "notown"
+    d.mkdir(parents=True)
+    (d / "existing.md").write_text(
+        "---\nid: notown:existing\ntype: notown\n---\n\nbody\n")
+    res = nw.write_node(project, "notown", "existing", ["idea:i1"])
+    assert res.status == nw.SKIPPED, f"{res.status}: {res.reason}"
+    assert not res.rejected
+
+
+def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
+    """The carve-out: the refusal needs SCHEMAS PRESENT and this type absent.
+
+    With no active schema loaded at all (schemas dir missing/empty) the gate
+    cannot tell an unknown type from an unconfigured project, and
+    `check_spawn`'s fail-open instinct applies exactly as it does to an
+    unresolved parent type. The L4.338 defect is the other case: a real
+    project whose schema set IS loaded and simply has no entry for the type.
+    """
+    (tmp_path / "nodes").mkdir()
+    res = nw.write_node(tmp_path, "notown", "unconfigured", ["idea:i1"])
+    assert res.written, f"{res.status}: {res.reason}"
+    assert (tmp_path / "nodes" / "notown" / "unconfigured.md").exists()
