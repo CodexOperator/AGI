@@ -9772,6 +9772,8 @@ harvested SM.34 (l4-the-never-lower-baseline-counts-committed-node-files): ACCEP
 
 harvested SM.37 (l4-cmd-spawn-passes-generation-to-first-seating-run): ACCEPT :85 per SM, 2 kids self-policed a scope gap rather than overclaiming; 940 tests pass
 
+harvested SM.38 (l4-cmd-spawn-first-seating-rewrites-the-handoff-generation-header): ACCEPT :80 per SM despite 2.08x line overage (disclosed, clean); both belam g15 findings now closed (SM.37+SM.38)
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
