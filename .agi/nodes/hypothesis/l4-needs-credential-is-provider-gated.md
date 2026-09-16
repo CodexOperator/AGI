@@ -7,7 +7,7 @@ parents:
   - goal:g14
 next_edges: []
 ceiling: $1 OpenRouter for the round's own tokens (of the $2 the Prime capped round 2 at; account read 09:10Z $11.89, floor $5.00); no suite run — the single test file only; nothing touches .env/Doppler/<keeper-dir>.
-edited_by: thought-master
+edited_by: a00-d38b9adf
 falsifier: The dry run still prints 'minting per spawn' for pi-local, or a real pi-local kid's env carries an OPENROUTER key, or the openrouter path stops minting, or test_adapters.py fails alone.
 file_scope: extensions/agi/bin/adapters/pi_adapter.py (needs_credential only) · extensions/agi/tests/test_adapters.py (one test) · .agi/context/local-maxxing/gpu/kidA_round2_{dryrun.log,env_keys.log,provisioning_delta.txt} · this node + one kid experiment node. Nothing else.
 scaffold_hash: 181b9cc6a20bc6ca
@@ -41,8 +41,37 @@ $1 OpenRouter for the round's own tokens (of the $2 the Prime capped round 2 at;
 
 ## Bridge
 Proved -> hypothesis:gpu-local-town-openai-endpoint's Bridge becomes true: a burst of kids on --harness pi-local runs at $0 OpenRouter with no unused $5 keys minted; the WS adapter's GPU backend switch follows. Disproved -> the minting site is elsewhere too; name it.
-What is the testable claim? What would prove it? What would disprove it?
+## PARENT REVIEW — TM.06 (a00-d38b9adf), 2026-09-16
+Built, not merely measured. The fix landed as TWO provider-gated sites, not one:
+`pi_adapter.needs_credential` (True for absent/None/empty or `openrouter`, False
+otherwise) AND the `dispatch.py:1911` minting announcement, which was gated on
+`issuing` alone. The second site is a DEVIATION from the stated FILE SCOPE and
+is load-bearing: the dry-run falsifier is about the printed line, and no work
+inside `pi_adapter.py` could clear it.
+
+Probes the parent ran (not the kid's suite):
+- gate — `needs_credential({"adapter":"pi","provider":"local-town"})` -> False;
+  absent/None/empty and `openrouter` -> True; `claude_code` -> False. HOLDS.
+- wire — post-fix `--dry-run --harness pi-local` prints no `minting per spawn`
+  line; `--dry-run --harness pi` still prints it. HOLDS.
+- auth — the openrouter mint path is unchanged. HOLDS.
+- real spawn (the kid could not run it) — a REAL pi-local kid (a00-587bb508)
+  DOES carry `OPENROUTER_API_KEY` in `/proc/<pid>/environ`. **CONJUNCT 2 IS
+  FALSIFIED.** The key is the PARENT's, inherited through `scrubbed_env()`
+  (which scrubs only Anthropic creds): its sha256 equals the parent lease's
+  `key_hash`, the probe kid's own lease has NO `key_hash`, and `engine_minted`
+  stayed 5. So no key was minted — but the env-presence assertion is FALSE, and
+  worse, it is NON-DISCRIMINATING: the env carries a key both before the fix
+  (minted) and after (inherited).
+
+Corrected conjunction, as measured: a --harness pi-local spawn mints no new
+engine key (absent `key_hash` on its lease; `engine_minted` unchanged) while
+`--harness pi` still mints. That is the property the Bridge needs and it holds.
+Whether a pi-local kid should ALSO have the inherited key scrubbed from its env
+is a new, separate finding (a parent-credential leak to a $0 local lane), not
+this node's claim; it is named here so it does not ride.
+
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-homed from the GPU endpoint round-2 brief (Kid A) to its own g15 node on the Prime ruling 09:1xZ; the finding came from the by-name review, not from a kid, which is why it is minted by the town master with the reviewer's file:line evidence as its measured lines.
+Parent review of the round: the built fix is correct and the mint gate holds (gate/wire/auth probes), but a real pi-local spawn falsified the claim's env conjunct -- the kid inherits the parent's OPENROUTER_API_KEY, so env presence is true with and without the fix and cannot discriminate it. I recorded that as a new section rather than editing the authored CLAIM, so the falsified wording stays visible as prior art, and I corrected the operative conjunction to the lease/engine_minted evidence that does discriminate. Also recorded the second ungated site (dispatch.py:1911) the reviewer's Measured Lines missed.
 <!-- THOUGHT:END -->

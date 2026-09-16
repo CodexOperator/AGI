@@ -1908,7 +1908,13 @@ def main() -> int:
         cred_limit = _ut_limit
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
-    if issuing:
+    # hypothesis:l4-needs-credential-is-provider-gated — this announcement is
+    # the ONE observable of the mint that a --dry-run can print, so it has to
+    # be gated by the SAME predicate the mint itself is (line ~2427). Before
+    # this, `--harness pi-local` (provider local-town, cost 0) printed
+    # 'minting per spawn' and would have minted an unused key: the print said
+    # a key was issued that the harness never needed.
+    if issuing and adapters.needs_credential(dispatch_harness):
         print(f"credentials: minting per spawn, limit=${cred_limit} "
               f"ttl={cred_ttl}min"
               + (f" workspace={cred_ws}" if cred_ws else " workspace=(default)"))
