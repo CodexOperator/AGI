@@ -882,6 +882,44 @@ def test_rotate_out_audit_writes_the_window_number_and_prints_green(
                               + audit["d"] + audit["pre"])
 
 
+def test_rotate_out_printed_buckets_equal_the_recorded_buckets(
+        tmp_path, capsys):
+    """SM.51-56 item 8, the falsifying case the suite missed: the PRINTED
+    bucket line must report the SAME buckets the record holds -- the
+    non-pre `a/b/c/d` plus the named `pre`. Pre-fix the line printed the
+    ALL-CALLS classification (`counts`, d=3) while the record held the
+    reconciling payload (d=1), so the same audit disagreed with itself and
+    `a+b+c+d` over-counted against `len(calls)`."""
+    import re
+    from types import SimpleNamespace
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", f"cat {OUT_FILE} | cut -c1-200"),
+        ("Bash", SEND),
+        ("Bash", ROTATE),
+    ])
+    rot_dir = graph / "sessions" / "rotations"
+    for p in rot_dir.glob("*.json"):
+        rec = json.loads(p.read_text(encoding="utf-8"))
+        p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    args = SimpleNamespace(seat=SEAT, gen=GEN, transcript=None, record=None,
+                           registry_dir=None, redact=True, no_record=False)
+    assert sensei.cmd_rotate_out_audit(graph, args) == 0
+    out = capsys.readouterr().out
+    m = re.search(r"counts: a=(\d+) b=(\d+) c=(\d+) d=(\d+) pre=(\d+)", out)
+    assert m is not None
+    pa, pb, pc, pd, ppre = (int(g) for g in m.groups())
+    audit = json.loads((rot_dir / f"{SEAT}.{OUT_STAMP}.json")
+                       .read_text(encoding="utf-8"))["audit"]["out"]
+    assert (pa, pb, pc, pd, ppre) == (audit["a"], audit["b"], audit["c"],
+                                      audit["d"], audit["pre"])
+    assert pd == 1 and ppre == 2
+    floor = pa + pb + pc + pd
+    assert floor == 1 == pd + pb          # the floor set, not all calls
+    assert floor + ppre == audit["calls"] == 3
+    assert "(a+b+c+d is the floor set; pre is excluded from the floor)" in out
+
+
 def _notification(tid: str, path: str) -> str:
     return ("<task-notification>\n<task-id>" + tid + "</task-id>\n"
             "<tool-use-id>t1</tool-use-id>\n"
