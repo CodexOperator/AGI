@@ -591,12 +591,22 @@ def test_fallback_pids_reads_dict_chain_and_bare_ints():
 def _write_root_join_absent(tmp_path: Path, shape: str):
     """`_write_root` with the PREV (gen 14 joining) record written in a shape
     that carries NO `handover.join.transcript`:
-      - "near_miss": `handover` PRESENT (seating_row_commit) but NO `join`,
-        plus the top-level `transcript_path` — the shape
-        `rotate._seating_record_merge_handover` builds.
+      - "near_miss": a HYBRID — `observations.b_generation` (the rotate-self
+        gen spelling) PLUS a `handover.seating_row_commit` and the top-level
+        `transcript_path`. Kept because it is what the pre-fix producer left
+        behind and it exercises the top-level fallback under the OLD gen
+        spelling.
       - "first_seating": the prime first-SEATING record shape
         (`rotate._seating_record`): top-level `gen_after` (NO
-        `observations.b_generation`) + top-level `transcript_path`.
+        `observations.b_generation`) + top-level `transcript_path`, and NO
+        `handover`.
+      - "seating_merged": the LITERAL product of
+        `rotate._seating_record_merge_handover` applied to a prime
+        first-seating record — `rotate._seating_record`'s keys and the same
+        in-memory handover merge the writer performs, with
+        `handover.seating_row_commit` merged in and NO `join` under
+        `handover`. It carries NO `observations.b_generation` anywhere (the
+        seating producer never writes it — that absence is the point).
     Returns `(graph, tr, prev_path)`."""
     graph, tr = _write_root(tmp_path, None)
     prev_path = graph / "sessions" / "rotations" / f"{SEAT}.{PREV_STAMP}.json"
@@ -605,19 +615,41 @@ def _write_root_join_absent(tmp_path: Path, shape: str):
                 "observations": {"b_generation": {"before": 13, "after": 14}},
                 "handover": {"seating_row_commit": "abc123"},
                 "transcript_path": str(tr)}
-    else:
+    elif shape == "first_seating":
         prev = {"rotation": "seating", "seat": SEAT,
                 "recorded_at": "2026-09-11T10:00:00Z", "trigger":
                 "first-seating", "gen_before": 0, "gen_after": GEN,
                 "transcript_path": str(tr)}
+    elif shape == "seating_merged":
+        # Built by the PRODUCER (`rotate._seating_record`) so key drift in the
+        # seating record shape fails HERE rather than silently in the fixture,
+        # then merged in memory exactly as `_seating_record_merge_handover`
+        # merges the handover back onto the record it already wrote (the
+        # writer's own `merged = dict(rec.get("handover") or {});
+        # merged.update(handover)`). `recorded_at` is pinned so the record
+        # lands on PREV_STAMP's slot.
+        prev = rotate._seating_record(
+            seat=SEAT, role="prime_director", source="rotate",
+            window_id=None, ref="", pid=None, session_id="",
+            transcript_path=str(tr), first_turn=None, generation=GEN)
+        merged = dict(prev.get("handover") or {})
+        merged.update({"seating_row_commit": "abc123"})
+        prev["handover"] = merged
+        prev["recorded_at"] = "2026-09-11T10:00:00Z"
+        assert "observations" not in prev, prev
+        assert "join" not in prev["handover"], prev
+    else:
+        raise AssertionError(f"unknown shape {shape!r}")
     prev_path.write_text(json.dumps(prev), encoding="utf-8")
     return graph, tr, prev_path
 
 
-@pytest.mark.parametrize("shape", ["near_miss", "first_seating"])
+@pytest.mark.parametrize("shape",
+                         ["near_miss", "first_seating", "seating_merged"])
 def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
-    """The near-miss shape (handover present, join absent, top-level path) and
-    the first-seating shape (top-level `gen_after`) BOTH resolve to the
+    """The near-miss shape (handover present, join absent, top-level path), the
+    first-seating shape (top-level `gen_after`) and the merged seating record
+    `rotate._seating_record_merge_handover` actually writes ALL resolve to the
     predecessor's transcript, and the printed `source` names the spelling the
     chain actually took — never a `handover.join.transcript` lie."""
     graph, tr, _ = _write_root_join_absent(tmp_path, shape)
@@ -627,11 +659,14 @@ def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
     assert source == f"previous record gen_after=={GEN} transcript_path"
 
 
-def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path):
+@pytest.mark.parametrize("shape",
+                         ["near_miss", "first_seating", "seating_merged"])
+def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path, shape):
     """End-to-end: the audit exits 0 and classifies the predecessor's window
-    when the previous record carries the join-absent near-miss shape. Before
-    the fix this exited 2 ("no predecessor transcript resolved")."""
-    graph, tr, _ = _write_root_join_absent(tmp_path, "near_miss")
+    for EVERY join-absent predecessor shape the producers leave behind — the
+    near-miss hybrid, the first-seating record and the merged seating record.
+    Before the fix each exited 2 ("no predecessor transcript resolved")."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
     code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
     assert code == 0
     assert str(window["log_path"]) == str(tr)
