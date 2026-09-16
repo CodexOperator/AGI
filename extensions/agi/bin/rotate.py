@@ -19467,15 +19467,10 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
             return 2
     elif args.stops is not None:
         # (clause b) an explicit --stops is NOT a bypass: rewrite the card's
-        # where-it-stops slot with that ONE line BEFORE the gate; on a card
-        # that EXISTS, a slot that is ambiguous or absent refuses BY NAME.
+        # where-it-stops slot with that ONE line BEFORE the gate. No pre-check:
+        # `_write_stops_section` itself CREATES a missing slot and REFUSES an
+        # ambiguous one (returns (None, ...)), so the refusal below covers it.
         _ecard = _own_card_path(root, target)
-        _ecur, _ecwhy = _default_stops_text(root, target)
-        if _ecard.exists() and _ecur is None and _ecwhy.startswith(
-                ("ambiguous", "card owns no")):
-            print(f"rotate refused: {_ecwhy} (nothing delegated)",
-                  file=sys.stderr)
-            return 2
         _ewf, _ewsl = _write_stops_section(_ecard, target, args.stops)
         if _ewf is None:
             print(f"rotate refused: {_ewsl} (nothing delegated)", file=sys.stderr)
