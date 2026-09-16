@@ -108,7 +108,7 @@
     "max_live": 25,
     "credential": {
       "provider": "openrouter",
-      "per_spawn_limit_usd": 5.0,
+      "per_spawn_limit_usd": 1.5,
       "ttl_minutes": 180,
       "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     },
