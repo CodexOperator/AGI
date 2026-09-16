@@ -1030,3 +1030,79 @@ def test_nonce_ledger_absent_file_regression(tmp_path):
                   json.loads(lp.read_text(encoding="utf-8"))) == \
         ["n_first", "n_second"]
     assert "n_first" in seen2 and "n_second" in seen2
+
+
+# ---------------------------------------------------------------------------
+# KID B (SD.09 slice: conjunct 4) -- the three ring-GATE call sites that
+# caught only LedgerWriteError now catch the READ-side LedgerReadError too,
+# so a present-but-unreadable ledger refuses BY NAME at every gate that
+# already refused a failed write. Real malformed files, fixture roots only.
+# ---------------------------------------------------------------------------
+def _unreadable_ledger(root):
+    """Write a genuinely unparseable ledger where `_ledger_path(root)`
+    resolves (`<root>/sessions/ring-nonces.json` for a fixture graph root)."""
+    lp = root / "sessions" / "ring-nonces.json"
+    lp.parent.mkdir(parents=True, exist_ok=True)
+    lp.write_text("{ this is not json", encoding="utf-8")
+    return lp
+
+
+def test_suite_gate_unreadable_ledger_read_is_a_naming_refusal(tmp_path):
+    """verification.py site (wire-live): a quorum-valid suite-grant against a
+    PRESENT-but-unreadable ledger returns a naming refusal string, never an
+    unhandled LedgerReadError out of `seen.__contains__` (the first hit)."""
+    root, signers = _suite_grant_root(tmp_path)
+    lp = _unreadable_ledger(root)
+    fields = verification._suite_grant_fields(root, "rotation", "approval")
+    canonical = rings.canonical_bytes("suite-grant", fields)
+    sigs = [_sig(signers, m, canonical) for m in ("alice", "bob")]
+    refusal = verification._ring_gate_refusal(root, "approval", "rotation",
+                                              sigs, fields=fields)
+    assert isinstance(refusal, str)
+    assert "merge grant refused" in refusal
+    assert str(lp) in refusal
+
+
+def test_suite_gate_remember_read_error_is_a_naming_refusal(tmp_path,
+                                                            monkeypatch):
+    """verification.py site, second raise point: a LedgerReadError out of
+    `remember()` (seen answered cleanly, the WRITE-side read failed) is the
+    same naming refusal -- the widened catch covers both raise points."""
+    root, signers = _suite_grant_root(tmp_path)
+
+    def _read_boom(_root):
+        class _Seen:
+            def __contains__(self, _item):
+                return False
+
+        def _remember(_nonce):
+            raise rings.LedgerReadError(
+                "could not read the nonce ledger at /fixture/ring-nonces.json")
+        return _Seen(), _remember
+
+    monkeypatch.setattr(rings, "nonce_ledger", _read_boom)
+    fields = verification._suite_grant_fields(root, "rotation", "approval")
+    canonical = rings.canonical_bytes("suite-grant", fields)
+    sigs = [_sig(signers, m, canonical) for m in ("alice", "bob")]
+    refusal = verification._ring_gate_refusal(root, "approval", "rotation",
+                                              sigs, fields=fields)
+    assert isinstance(refusal, str)
+    assert "merge grant refused" in refusal
+    assert "ring-nonces.json" in refusal
+
+
+def test_dispatch_round_gate_unreadable_ledger_read_is_a_naming_refusal(
+        tmp_path):
+    """dispatch.py site (wire-live): a quorum-valid round-cut against a
+    PRESENT-but-unreadable ledger returns a naming refusal string, never an
+    unhandled LedgerReadError."""
+    root, signers = _suite_grant_root(tmp_path)
+    lp = _unreadable_ledger(root)
+    fields = dispatch._round_cut_fields("kid", "", "", "", 0)
+    canonical = rings.canonical_bytes("round-cut", fields)
+    sigs = [_sig(signers, m, canonical) for m in ("alice", "bob")]
+    refusal = dispatch._round_ring_refusal(str(tmp_path), "approval", "kid",
+                                           "", sigs, fields=fields)
+    assert isinstance(refusal, str)
+    assert "refused" in refusal
+    assert str(lp) in refusal
