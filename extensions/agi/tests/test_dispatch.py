@@ -1540,6 +1540,60 @@ def test_dispatch_allows_a_real_openrouter_slug(tmp_path):
     assert "not an OpenRouter slug" not in combined, combined
 
 
+def test_openrouter_preflight_prints_the_sub_floor_notice_before_the_account_refusal(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-sd06-residue-renumber-notice-fixture-dry-run-parity-
+    refused-run-key conjunct (2). The notice surface — `dispatch.py`'s
+    `notice: {msg}` when `check_key_floor` returns `(True, <marker>)` — had NO
+    committed test anywhere in the tree: only the parent's own in-process
+    probe exercised it. This is that test, on the live path and the live
+    pre-flight (not a helper in isolation): with the key floor returning
+    `(True, 'M')` and the account floor `(False, 'X')`, `notice: M` must reach
+    stderr BEFORE `ERR: X`, and the round must reach NO spawn. FALSIFIER: drop
+    the notice print and this test fails on the ordering assertion (it would
+    also fail if the notice moved below the account floor)."""
+    root = _guard_project(tmp_path, "~z-ai/glm-flash-latest")
+    # `_guard_project` omits `allowed_models` (its tests stop at --dry-run,
+    # which returns before the allowlist gate); the live pre-flight needs it.
+    (root / ".agi" / "config.json").write_text(
+        '{"metric_primary": "outcome_coverage",'
+        ' "spawn": {"harness": "pi", "parallel": 1},'
+        ' "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",'
+        '   "models": {"kid": "~z-ai/glm-flash-latest"},'
+        '   "allowed_extra": ["~z-ai/glm-flash-latest"]}}}')
+    monkeypatch.setattr(dispatch.provisioning, "available",
+                        lambda root=None: False)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
+                        lambda cfg, root=None: (True, "M"))
+    monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
+                        lambda cfg, root=None: (False, "X"))
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    class _Proc:
+        pid = 4242
+
+    spawned: list = []
+
+    def _popen(*a, **k):
+        spawned.append(a)
+        return _Proc()
+
+    monkeypatch.setattr(dispatch.subprocess, "Popen", _popen)
+    monkeypatch.setattr(sys, "argv", [
+        str(BIN / "dispatch.py"), str(root), "1", "--tier", "kid",
+        "--target", "hypothesis:x", "--harness", "pi"])
+    rc = dispatch.main()
+    err = capsys.readouterr().err
+    assert rc == 1, err
+    assert "notice: M" in err, err
+    assert "ERR: X" in err, err
+    assert err.index("notice: M") < err.index("ERR: X"), err
+    assert spawned == [], f"a refused dispatch must never reach Popen: {spawned}"
+
+
 # --- the respawn defect that cost money, 2026-09-10 -------------------------
 # Two bugs in `_reap_one_impl`, both measured in production while the guards
 # above were green. $2.01 of key burned in ~30 minutes across four rounds.
