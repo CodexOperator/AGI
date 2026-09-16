@@ -167,16 +167,18 @@ def test_alias_resolution_in_find_seat(tmp_path, capsys):
     assert "deprecated alias used: old -> new" in capsys.readouterr().err
 
 
-def test_dry_run_lists_round2_surfaces_not_applied(tmp_path):
+def test_dry_run_lists_round2_surfaces_not_applied(tmp_path, monkeypatch):
     _geo(tmp_path, rows=[{"name": "old", "role": "kid"},
                          {"name": "new", "role": "kid",
                           "rotated_by": "old"}])
     _session_files(tmp_path, "old")
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
     # dry-run shows row + branch + tmux surfaces as round 2
     out = _capture_stdout(lambda: rotate.cmd_rename_post(
         _ns("old", "new", dry_run=True), tmp_path))
     assert "row old name -> row new name" in out
-    assert "branch: season2/posts/old -> season2/posts/new" in out
+    assert "branch: core/season2/posts/old/main -> core/season2/posts/new/main" in out
     assert "tmux window: old -> new" in out
     # apply does NOT touch config/branch/tmux surfaces (they are seamed/shipped)
     out2 = _capture_stdout(lambda: rotate.cmd_rename_post(
@@ -278,14 +280,17 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
     goal:g15.25 (1)+(2): the post head is never pushed as a head -- the
     rename-apply mirrors to refs/agi/posts/<new> and proves it."""
     _geo(tmp_path, rows=[{"name": "old"}])
-    surfaces = rotate._rename_surfaces(tmp_path, "old", "new")
+    surfaces = rotate._rename_surfaces(
+        tmp_path, "old", "new",
+        branches_reader=_reader("core/season2/posts/old/main"))
     calls = []
     rec = lambda *a: calls.append(a)          # noqa: E731
     rc, _ = rotate._apply_surfaces(tmp_path, surfaces, run_git=rec,
                                    run_tmux=lambda *a: calls.append(("T",) + a))
     git_calls = [c for c in calls if c[0] != "T"]
-    assert ("branch", "-m", "season2/posts/old", "season2/posts/new") in git_calls
-    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") \
+    assert ("branch", "-m", "core/season2/posts/old/main",
+            "core/season2/posts/new/main") in git_calls
+    assert ("push", "origin", "core/season2/posts/new/main:refs/agi/posts/new") \
         in git_calls, git_calls
     assert not any(c[0] == "push" and len(c) == 3 and c[2].startswith(":")
                    for c in git_calls), "old branch deleted without --delete-old"
@@ -293,11 +298,12 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
     rotate._apply_surfaces(tmp_path, surfaces, delete_old=True,
                            run_git=lambda *a: calls2.append(a),
                            run_tmux=lambda *a: None)
-    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") in calls2
-    assert ("push", "origin", ":season2/posts/old") in calls2
+    assert ("push", "origin", "core/season2/posts/new/main:refs/agi/posts/new") \
+        in calls2
+    assert ("push", "origin", ":core/season2/posts/old/main") in calls2
     # never a bare head push of the post branch
     assert not any(c[0] == "push" and len(c) == 3
-                   and c[2] == "season2/posts/new"
+                   and c[2] == "core/season2/posts/new/main"
                    for c in calls2), calls2
 
 
@@ -420,9 +426,14 @@ def test_tmux_seam_no_match_skips_by_name(tmp_path, capsys):
 
 
 def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
-    """KID 4 the gap: WITHOUT --live, the --now/--apply path must call
-    subprocess.run ZERO times -- git/tmux ride the print-only seams, so a
-    caller who does not opt into --live can never execute a real rename."""
+    """KID 4 the gap: WITHOUT --live, the --now/--apply path must MUTATE
+    nothing through subprocess.run -- git/tmux ride the print-only seams, so
+    a caller who does not opt into --live can never execute a real rename.
+    SM.32b ROUND 2 narrows this from `zero subprocess` to `zero MUTATING
+    subprocess`: the rename boundary must READ the real local refs
+    (`for-each-ref`, read-only) to refuse a branch whose town segment
+    disagrees with the row cell, and a blanket ban made that impossible.
+    The safety property -- no real rename without --live -- is unchanged."""
     calls = []
     monkeypatch.setattr(rotate.subprocess, "run",
                         lambda *a, **k: calls.append(a))
@@ -434,7 +445,9 @@ def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
                            delete_old=False, live=False),
         tmp_path)
     assert rc == 0, rc
-    assert calls == [], f"default path must not subprocess.run: {calls}"
+    mutating = [a for a in calls if "for-each-ref" not in a[0]]
+    assert mutating == [], f"default path must not mutate: {mutating}"
+    assert calls, "the read-only ref reader must have run"
 
 
 def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
@@ -457,6 +470,9 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
                                    "stderr": "", "returncode": 0})()
         if cmd[0] == "tmux" and cmd[1] == "list-sessions":
             return type("R", (), {"stdout": "$1 agi-rc\n$4 view-old\n",
+                                   "stderr": "", "returncode": 0})()
+        if cmd[0] == "git" and "for-each-ref" in cmd:
+            return type("R", (), {"stdout": "core/season2/posts/old/main\n",
                                    "stderr": "", "returncode": 0})()
         if cmd[0] == "git" and "rev-parse" in cmd:
             if "--show-toplevel" in cmd:
@@ -482,15 +498,16 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
     assert ("git", "-C", str(tmp_path), "worktree", "move",
             ".agi/worktrees/post-old", ".agi/worktrees/post-new") in rec
     assert ("git", "-C", str(tmp_path), "branch", "-m",
-            "season2/posts/old", "season2/posts/new") in rec
+            "core/season2/posts/old/main",
+            "core/season2/posts/new/main") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
             f"{sha}:refs/agi/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "ls-remote", "origin",
             "refs/agi/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
-            ":season2/posts/old") in rec, "--delete-old must push :old"
+            ":core/season2/posts/old/main") in rec, "--delete-old must push :old"
     assert ("git", "-C", str(tmp_path), "push", "origin",
-            "season2/posts/new") not in rec, "a post head was pushed"
+            "core/season2/posts/new/main") not in rec, "a post head was pushed"
     # tmux window resolved to @5 and renamed by that id
     tmux = [c for c in rec if c[0] == "tmux"]
     assert ("tmux", "rename-window", "-t", "@5", "new") in tmux
@@ -528,3 +545,132 @@ def test_live_never_runs_in_boundary_apply_default(tmp_path):
         assert not p.exists()
         assert _renamed(p, "old", "new").exists()
     assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
+
+# ── SM.32b: the rename boundary is TOWN-FIRST (goal:g15.25) ────────────────
+# SM.62: the spelling comes from the REAL local ref, never from the row town
+# cell -- a post's HOME town and its branch's PROJECT town are separate axes.
+def test_rename_post_surface_is_town_first(tmp_path, monkeypatch):
+    """(a) the branch surface carries the REAL ref's own spelling and NEVER
+    the legacy town-less `season2/posts/<name>` shape (goal:g15.25 SM.32b)."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    assert ("branch: core/season2/posts/old/main -> "
+            "core/season2/posts/new/main") in out, out
+    assert "branch: season2/posts/old -> season2/posts/new" not in out
+
+
+def test_rename_post_refuses_a_cross_town_rename_by_name(tmp_path, capsys):
+    """(b) a new name whose row carries a DIFFERENT town is a NAMED refusal:
+    non-zero exit, both towns on stderr, nothing staged or written."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"},
+                         {"name": "new", "town": "sanctuary"}])
+    rc = rotate.cmd_rename_post(_ns("old", "new"), tmp_path)
+    err = capsys.readouterr().err
+    assert rc != 0, rc
+    assert "REFUSED" in err and "core" in err and "sanctuary" in err, err
+    assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
+
+
+def test_rename_post_proceeds_when_new_row_is_same_town(tmp_path, monkeypatch):
+    """(c) the matching-cell case proceeds: dry-run exits 0 on the town-first
+    surface."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"},
+                         {"name": "new", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    assert "core/season2/posts/old/main" in out, out
+    assert "dry-run, nothing changed" in out
+
+
+def test_rename_post_refuses_an_unresolvable_row_by_name(tmp_path, capsys):
+    """(b') a post whose config row cannot be resolved refuses by NAME
+    rather than silently falling back to a town-less spelling."""
+    _geo(tmp_path, rows=[{"name": "other", "town": "core"}])
+    rc = rotate.cmd_rename_post(_ns("old", "new", dry_run=True), tmp_path)
+    err = capsys.readouterr().err
+    assert rc != 0 and "REFUSED" in err and "old" in err, err
+
+
+# ── SM.32b ROUND 2 + SM.62: the REAL refs supply the spelling ──────────────
+# Round 2 read the post's REAL local refs through an injectable reader. SM.62
+# deletes the row-town-vs-branch comparison: a post's HOME town cell and its
+# branch's PROJECT town are separate axes, so a disagreement is no refusal and
+# a post with no real ref has no branch surface at all (skipped by name).
+def _reader(*names):
+    return lambda _root: list(names)
+
+
+def test_a_sanctuary_home_post_on_a_core_branch_proceeds(tmp_path, monkeypatch):
+    """(a) the LIVE shape: `core/season7/posts/sensei-director/main` exists
+    while the row cell resolves to `sanctuary` -> the rename PROCEEDS, keeps
+    the REAL (town, season) tuple, and never re-spells the town."""
+    _geo(tmp_path, rows=[{"name": "sensei-director", "town": "sanctuary"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season7/posts/sensei-director/main", "season2/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("sensei-director", "sensei-director2", dry_run=True), tmp_path))
+    assert ("branch: core/season7/posts/sensei-director/main -> "
+            "core/season7/posts/sensei-director2/main") in out, out
+    assert "sanctuary/season7" not in out, out
+
+
+def test_agreeing_real_branch_is_the_spelling_the_surface_carries(tmp_path):
+    """(b) a real branch whose town segment equals the row cell supplies the
+    spelling -- the surface carries the REAL ref, not a re-derived string."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    surfs = {s["kind"]: s for s in rotate._rename_surfaces(
+        tmp_path, "old", "new",
+        branches_reader=_reader("core/season7/posts/old/main"))}
+    assert surfs["branch"]["src"] == "core/season7/posts/old/main", surfs
+    # the new branch keeps the SAME (town, season) tuple -- never the ladder's
+    assert surfs["branch"]["dst"] == "core/season7/posts/new/main", surfs
+
+
+def test_a_reader_that_cannot_answer_skips_the_branch_surfaces_by_name(
+        tmp_path, capsys):
+    """(c) None means CANNOT ANSWER (a gitless fixture), never `no refs`:
+    the branch surfaces are skipped BY NAME naming the post -- never a
+    spelling derived from the row town, which a reader that cannot see the
+    refs has no authority to invent."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    err = capsys.readouterr().err
+    assert "branch:" not in out and "branch (origin):" not in out, out
+    assert "cannot read local refs for old" in err, err
+    assert "nothing to rename" in err, err
+
+
+def test_no_real_branch_for_the_post_skips_the_branch_surfaces_by_name(
+        tmp_path, monkeypatch, capsys):
+    """(c') a first seating/migration: the reader answers, but no ref for
+    the post exists -> no branch surface, skipped by name, dry-run exit 0."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "season2/main", "core/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    err = capsys.readouterr().err
+    assert "branch:" not in out and "branch (origin):" not in out, out
+    assert "no real branch for old" in err and "nothing to rename" in err, err
+    assert "season2/posts/old" not in out, out
+
+
+def test_real_branches_that_disagree_with_each_other_refuse(
+        tmp_path, monkeypatch, capsys):
+    """(d) several real refs for the same post that disagree are AMBIGUOUS:
+    a NAMED refusal, never a silent pick."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main", "sanctuary/season2/posts/old/main"))
+    rc = rotate.cmd_rename_post(_ns("old", "new"), tmp_path)
+    err = capsys.readouterr().err
+    assert rc == 4, rc
+    assert "REFUSED" in err and "disagree" in err, err
+    assert "core/season2/posts/old/main" in err, err
+    assert "sanctuary/season2/posts/old/main" in err, err

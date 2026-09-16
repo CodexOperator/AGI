@@ -123,3 +123,21 @@ def test_audience_quorum_still_resolves_from_a_director_row(tmp_path):
     text = path.read_text()
     assert "[ask] who owns the keep?" in text
     assert "from: sanctuary-director" in text
+
+
+def test_rename_boundary_never_derives_a_branch_from_the_row_town(project):
+    """SM.62: the rename surface's branch is the REAL local ref, never a
+    town spelled from the row home town. A fixture with no readable local
+    refs has NO branch surface at all -- the derived-spelling fallback is
+    DELETED, so `towns.row_town` no longer feeds the branch spelling on this
+    path (it is read for the new-name home-town refusal, and nothing else)."""
+    import rotate
+    _write_posts_node(project, [
+        {"name": "belam", "role": "director", "town": "all"},
+        {"name": "declared-post", "role": "director", "town": "sanctuary"},
+    ])
+    for old in ("belam", "declared-post"):
+        kinds = {s["kind"] for s in
+                 rotate._rename_surfaces(project, old, old + "2")}
+        assert "branch" not in kinds, kinds
+        assert "branch (origin)" not in kinds, kinds
