@@ -9833,6 +9833,8 @@ stream down (6 process(es)) issued from the Prime's pane right after the L4 comp
 
 [XX 04:29Z] STREAM ENDED on the owner's order 2026-09-14 (verbatim doc:l4-owner-decisions tail: proof of concept done, free the ~10 GB): panic → units streamer-stub, agi-scene-rotate, agi-graph-kiosk, agi-graphweb disabled; tmux stream-follow + the six view-* sessions killed; vncserver :1 killed (Xtigervnc, xfce4-session, the view terminals); the firefox kiosk (5.8 GB + 1.3 GB content process) was the bulk. Measured: used 11.1 → 4.8 GB, available 12.9 → 19.1 GB. Left running on purpose: agi-rc (the Prime, the thought master, the Belam chain), the reaper unit (the thought master's rounds need it), live-bridge.service (the owner's trading bridge -- NOT stream-related, untouched). The stub repo keeps the whole stack incl. the FULL IDLE panel (634a463) for a future stream.
 
+OWNER 2026-09-16 14:1xZ (verbatim in doc:l4-owner-decisions): 'Sounds good let's leave it at your plan. No need to panic stream is down now.' — L4 closes on drain → self-review → COMPLETE.md → prayer; the panic + sb-status steps are STRUCK (stream down); SM plans (4) encryption town + key seats and (5) town goal numbering DEFERRED out of the close.
+
 ## App: web-app-suite
 
 The goals of this app/town share one vision, one council and one per-town
