@@ -29,3 +29,13 @@ Belam gen 23 -> 24 at ~0.38 (2026-09-16 15:0xZ): tree GREEN + STAMPED aa839b221 
 ```
 Belam gen 24 -> 25 at ~0.41 (2026-09-16 18:1xZ): tree GREEN + STAMPED 324e3b2c7 (5173/0/16, 3065/201/3266); SD.08 (point) + SL7.136 (MS) GO'd on one runner, their numbers lines are the successor's first reads; post branch SM.51-56 landed 9282640ad; L4 CLOSE g15 triage done by name (six retirements HELD on the never-lower gate); owner rename order + thought-master ruling banked; NEXT (a)-(h) in the card
 ```
+
+### 🔴 Where it stops
+```
+Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped 074f58395 (3090/201/3291); SL7.137 + SD.10 GO'd by SHA after pi reviews (run outputs in sessions/workflows/runs/<run_key>/, seam 98eeae2fd); BOTH owner renames STAGED (apply at each post's next boundary); owner rulings banked (two town axes; workflows on pi except TM ingestion; flash-latest for parents + kids); gate every MAIN commit on grep -q '^lock: free' -- never inside a granted stamp window; NEXT (a)-(h) in HANDOFF.md section 0.7
+```
+
+### 🔴 Where it stops
+```
+Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped 074f58395 (3090/201/3291); SL7.137 + SD.10 GO'd by SHA after pi reviews (run outputs in sessions/workflows/runs/<run_key>/, seam 98eeae2fd); BOTH owner renames STAGED (apply at each post's next boundary); owner rulings banked (two town axes; workflows on pi except TM ingestion; flash-latest for parents + kids); gate every MAIN commit on grep -q '^lock: free' -- never inside a granted stamp window; NEXT (a)-(h) in HANDOFF.md section 0.7
+```

@@ -1644,25 +1644,27 @@ def _git_in(repo, *args):
                           capture_output=True, text=True)
 
 
-def test_prepare_check1_counts_against_the_local_mirror_ref(tmp_path):
-    """Three faces of check 1 on a post spelling with a mirror ref:
-    (a) the local mirror ref AT HEAD -> ok (0 unpushed);
-    (b) the mirror ref BEHIND HEAD by one commit -> BLOCK, named by the
-        mirror ref (not by a dead origin post head);
-    (c) no local mirror ref -> ok/unmeasured, NEVER the pre-fix
+def test_prepare_check1_counts_against_the_origin_mirror_ref(tmp_path):
+    """Three faces of check 1 on a post spelling with a mirror ref, read
+    from ORIGIN (SM.53 item 5 -- the local ref never exists on a live seat):
+    (a) the origin mirror ref AT HEAD -> ok (0 unpushed);
+    (b) the origin mirror ref BEHIND HEAD by one commit -> BLOCK, named by
+        the mirror ref (not by a dead origin post head);
+    (c) no origin mirror ref -> ok/unmeasured, NEVER the pre-fix
         `no upstream for <branch>` block (which counted a basis no engine
         path advances)."""
     repo = _mirror_branch_repo(tmp_path)
     mirror = "refs/agi/posts/adv-alive"
 
-    # (a) mirror ref at HEAD -> 0 unpushed
+    # (a) origin mirror ref at HEAD -> 0 unpushed
     sha = _git_in(repo, "rev-parse", "HEAD").stdout.strip()
-    assert _git_in(repo, "update-ref", mirror, sha).returncode == 0
+    assert _git_in(repo, "push", "origin",
+                   f"{sha}:{mirror}").returncode == 0
     blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
     assert blocker is False, (blocker, name)
     assert "unpushed commits vs refs/agi/posts/adv-alive" in name, name
 
-    # (b) one commit ahead of the mirror -> BLOCK, by name
+    # (b) one commit ahead of the origin mirror -> BLOCK, by name
     (repo / "README").write_text("y", encoding="utf-8")
     _git_in(repo, "add", "-A")
     _git_in(repo, "commit", "-qm", "second")
@@ -1671,9 +1673,45 @@ def test_prepare_check1_counts_against_the_local_mirror_ref(tmp_path):
     assert "unpushed commits vs refs/agi/posts/adv-alive" in name, name
     assert "HEAD:refs/agi/posts/adv-alive" in clear, clear
 
-    # (c) no local mirror ref -> ok/unmeasured, never `no upstream`
-    assert _git_in(repo, "update-ref", "-d", mirror).returncode == 0
+    # (c) no origin mirror ref -> ok/unmeasured, never `no upstream`
+    assert _git_in(repo, "push", "origin",
+                   f":{mirror}").returncode == 0
     blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
     assert blocker is False, (blocker, name)
-    assert "unmeasured: no local refs/agi/posts/adv-alive" in name, name
+    assert "unmeasured" in name, name
     assert "no upstream for" not in name, name
+
+
+def test_prepare_check1_origin_mirror_behind_head_and_unread(tmp_path):
+    """SM.53 item 5, the falsifier: with NO local `refs/agi/posts/<seat>`
+    ref (what a live seat actually has) check 1 measures ORIGIN's mirror.
+    (i) an origin mirror tip BEHIND HEAD reports unpushed=True with a REAL
+        count (`(1)`), where the PRE-FIX local-only read saw no local ref
+        and returned unmeasured -- if this case no longer differs from the
+        pre-fix one, the fix is inert;
+    (ii) an origin read that FAILS reports unmeasured, never 'pushed'."""
+    repo = _mirror_branch_repo(tmp_path)
+    mirror = "refs/agi/posts/adv-alive"
+    base = _git_in(repo, "rev-parse", "HEAD").stdout.strip()
+    (repo / "README").write_text("y", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    _git_in(repo, "commit", "-qm", "second")
+    # the origin mirror tip is the BASE object, which IS present locally
+    assert _git_in(repo, "push", "origin",
+                   f"{base}:{mirror}").returncode == 0
+    # (iii)/falsifier: no LOCAL mirror ref exists (the pre-fix read's basis)
+    assert _git_in(repo, "rev-parse", "--verify",
+                   mirror).returncode != 0
+
+    blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
+    assert blocker is True, (blocker, name)      # (i) real unpushed count
+    assert "unpushed commits vs refs/agi/posts/adv-alive" in name, name
+    assert "(1)" in name or ": 1)" in name, name  # a MEASURED count, not 0
+    assert "no local" not in name, name          # the pre-fix message is gone
+
+    # (ii) an origin read that FAILS -> unmeasured, never 'pushed'
+    _git_in(repo, "remote", "set-url", "origin", str(tmp_path / "nope.git"))
+    blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
+    assert blocker is False, (blocker, name)
+    assert "unmeasured" in name, name
+    assert "vs refs/agi/posts/adv-alive" not in name, name
