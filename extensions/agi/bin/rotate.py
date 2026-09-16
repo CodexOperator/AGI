@@ -14241,6 +14241,23 @@ def _prepare_churn_path(porcelain_line: str) -> bool:
     return path.startswith(PREPARE_CHURN_DIRS) and path.endswith(".json")
 
 
+def _prepare_owner_guess(path: str) -> str:
+    """OWNER guess for a dirty path OUTSIDE the merge, parsed from the path
+    alone (SM.40). `.agi/sessions/iter-<ITER>/**` and root-level
+    `orders-<ITER>-*` -> `iter <ITER>`; `.agi/sessions/quorum/<SEAT>.md` ->
+    `post <SEAT>`; anything else -> `unknown`. A guess is never a claim: the
+    line is never-blocking, it only stops a reader committing dirt whose
+    owner the bare list hid (master-sensei 2026-09-16 10:04-10:05Z)."""
+    m = re.match(r"^\.agi/sessions/iter-([^/]+)/", path)
+    if not m:
+        m = re.match(r"^orders-([A-Za-z0-9]+\.[0-9]+)-", path)
+    if m:
+        return f"iter {m.group(1)}"
+    if re.match(r"^(?:\.agi/)?sessions/quorum/[^/]+\.md$", path):
+        return f"post {Path(path).stem}"
+    return "unknown"
+
+
 def _prepare_dirty_paths(porcelain: list[str] | None,
                          root: Path, top: Path | None) -> list[str]:
     """The NON-churn dirty/untracked paths `git status --porcelain` reports
@@ -14554,6 +14571,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     porcelain = _git_maybe(root, "status", "--porcelain")
     top = _git_toplevel(root)
     dirty_paths = _prepare_dirty_paths(porcelain, root, top)
+    # SM.40: the churn class is NAMED, never silently dropped -- a hidden
+    # class was the bug (the tree was dirty yet prepare printed a plain
+    # `[ok] dirty tree`). Same predicate that excludes them from the block.
+    churn_paths: list[str] = []
+    for ln in (porcelain or []):
+        if ln.strip() and _prepare_churn_path(ln):
+            p = _porcelain_path(ln)
+            if p and p not in churn_paths:
+                churn_paths.append(p)
     # claim 2 (one-serializer hypothesis): a dirty path whose ONLY delta vs
     # HEAD is trailing whitespace / a missing EOF newline reads CLEAN — named
     # on ONE benign (never-blocking, ok) line, never a dirty-tree blocker. A
@@ -14594,6 +14620,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     if _touch is not None:
         _foreign = [p for p in dirty_paths if p not in _touch]
         _block_paths = [p for p in dirty_paths if p in _touch]
+    # SM.40 own-card BLOCK: the rotating post's OWN card is dirty work a
+    # rotation must not proceed over, even though the merge would not touch
+    # it. Resolved from the path's OWNER guess, which needs only the seat
+    # (the rotating ITER is not resolvable at prepare time -- no own-iter
+    # rule is built, per the brief's fallback).
+    _own = [p for p in _foreign
+            if _prepare_owner_guess(p) == f"post {seat}"]
+    _block_paths += _own
+    _foreign = [p for p in _foreign if p not in _own]
     if dirty_paths:
         shown: list[str] = []
         for p in _block_paths:
@@ -14606,8 +14641,10 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
             if _index_staged_real_change(root, top, p):
                 shown.append(f"{p}: staged change (index differs from HEAD)")
             else:
-                shown.append(p + (f" (touched by origin/{_sb})"
-                                  if _touch is not None else ""))
+                note = (": your own card" if p in _own else
+                        (f" (touched by origin/{_sb})"
+                         if _touch is not None else ""))
+                shown.append(p + note)
         suffix = (f", +{len(_block_paths) - 5} more"
                   if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
@@ -14621,11 +14658,21 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # would NOT touch — NAMED as one never-blocking line (capped at 5, then
     # `+N more`), never a block, never a stop_commit (goal:g15.25).
     if _foreign:
-        _fs = _foreign[:5]
+        _fs = [f"{p} [owner: {_prepare_owner_guess(p)}]"
+               for p in _foreign[:5]]
         _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
         checks.append((False,
                        "foreign dirt (not in the merge): "
                        + ", ".join(_fs) + _suf, ""))
+    # SM.40 rotation churn: `_prepare_churn_path`'s paths, named on ONE
+    # never-blocking line. Never a BLOCK (grid_sync commits them); named so
+    # the class is visible rather than swallowed.
+    if churn_paths:
+        _cs = churn_paths[:5]
+        _csuf = (f", +{len(churn_paths) - 5} more"
+                 if len(churn_paths) > 5 else "")
+        checks.append((False, "rotation churn: " + ", ".join(_cs) + _csuf,
+                       ""))
     # claim 2 benign naming: each whitespace-only-delta path is named on ONE
     # never-blocking (ok) line so prepare both passes AND says why the path
     # was not a blocker. Name relative to the repo top so the familiar
