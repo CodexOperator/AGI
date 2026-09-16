@@ -1,10 +1,13 @@
 """goal:g15.25 SM.32 claim (4) — readers treat rows by their REAL town.
 
 Until the Prime's 0a town-cell lines land one row per rotation boundary, the
-six director rows still spell `town: all`. Readers must treat the keep rows
-(sanctuary-master, master-sensei, sensei-director) as `sanctuary` and the
-prime + point + review (belam, sanctuary-director, sanctuary-helper) as
-`core` NOW — through `towns.row_town`, whose transitional map is DATA in the
+six director rows still spell `town: all`. Readers must treat EVERY
+perpetual post row — the keep (sanctuary-master, master-sensei,
+sensei-director) AND the prime + point + review (belam, sanctuary-director,
+sanctuary-helper) — as `sanctuary` NOW (owner ruling relayed 2026-09-16
+18:12Z: a perpetual agent post's HOME town is sanctuary by definition; the
+PROJECT town it builds on is the branch prefix, a separate axis) — through
+`towns.row_town`, whose transitional map is DATA in the
 `[config]` schema, never a literal town name in `bin/*.py`
 (`test_no_literal_town.py`). A declared cell always wins over the map, so the
 reader self-retires as the cells move.
@@ -30,9 +33,9 @@ EXPECTED = {
     "sanctuary-master": "sanctuary",
     "master-sensei": "sanctuary",
     "sensei-director": "sanctuary",
-    "belam": "core",
-    "sanctuary-director": "core",
-    "sanctuary-helper": "core",
+    "belam": "sanctuary",
+    "sanctuary-director": "sanctuary",
+    "sanctuary-helper": "sanctuary",
 }
 
 
