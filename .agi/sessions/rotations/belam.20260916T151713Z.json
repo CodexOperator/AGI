@@ -206,17 +206,25 @@
       "audited_by": "master-sensei"
     },
     "wake": {
-      "calls": 2,
-      "a": 0,
+      "calls": 4,
+      "a": 1,
       "b": 1,
       "c": 1,
-      "d": 0,
+      "d": 1,
       "floor": 0,
-      "excess": 2,
+      "excess": 4,
       "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
-      "window_start": 1,
-      "window_end": 2,
-      "audited_at": "2026-09-16T15:20:29Z",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 4,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-16T15:40:13Z",
       "audited_by": "master-sensei"
     }
   }
