@@ -1,0 +1,41 @@
+[run-key] pd-qwen-qwen3-8-27b-deepseek-v4-1-flash-arxiv-2607-24653-glm-5-3-flash-arxiv-2603-12201
+workflow paper-digest (harness=pi)
+├─ [ ] read:deepseek-v4-1-flash
+├─ [ ] read:arxiv-2607-24653
+├─ [ ] read:glm-5-3-flash
+├─ [ ] read:arxiv-2603-12201
+├─ [ ] critique:deepseek-v4-1-flash
+├─ [ ] critique:arxiv-2607-24653
+├─ [ ] critique:glm-5-3-flash
+└─ [ ] critique:arxiv-2603-12201
+workflow paper-digest (harness=pi)
+├─ [~] read:deepseek-v4-1-flash — model=qwen/qwen3.8-27b effort=high
+├─ [ ] read:arxiv-2607-24653
+├─ [ ] read:glm-5-3-flash
+├─ [ ] read:arxiv-2603-12201
+├─ [ ] critique:deepseek-v4-1-flash
+├─ [ ] critique:arxiv-2607-24653
+├─ [ ] critique:glm-5-3-flash
+└─ [ ] critique:arxiv-2603-12201
+workflow paper-digest (harness=pi)
+├─ [✗] read:deepseek-v4-1-flash — pi exited rc=1
+├─ [ ] read:arxiv-2607-24653
+├─ [ ] read:glm-5-3-flash
+├─ [ ] read:arxiv-2603-12201
+├─ [ ] critique:deepseek-v4-1-flash
+├─ [ ] critique:arxiv-2607-24653
+├─ [ ] critique:glm-5-3-flash
+└─ [ ] critique:arxiv-2603-12201
+workflow.py: stage read:deepseek-v4-1-flash pi exited rc=1
+ 401 User not found.
+
+workflow.py: workflow=paper-digest failed at stage read:deepseek-v4-1-flash (rc=3)
+[stage] read:deepseek-v4-1-flash failed
+[stage] read:arxiv-2607-24653 pending
+[stage] read:glm-5-3-flash pending
+[stage] read:arxiv-2603-12201 pending
+[stage] critique:deepseek-v4-1-flash pending
+[stage] critique:arxiv-2607-24653 pending
+[stage] critique:glm-5-3-flash pending
+[stage] critique:arxiv-2603-12201 pending
+[summary] workflow=paper-digest stages=8 ok=0 failed=1
