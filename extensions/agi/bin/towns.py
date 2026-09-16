@@ -37,7 +37,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from graph_core.persistence.frontmatter import load_node_file as _load_node_file  # noqa: E402
 
-__all__ = ["Town", "TownError", "load_towns", "town_tuples", "derive_names"]
+__all__ = ["Town", "TownError", "load_towns", "town_tuples", "derive_names",
+           "config_town_cell", "accepted_towns", "row_town"]
 
 AUTO = "auto"
 
@@ -303,6 +304,52 @@ def derive_names(town: str, season: int, post: str = "", loop_round: str = "",
         if "loop" in d:
             out.append(d["loop"])
     return out
+
+
+def config_town_cell(root) -> dict:
+    """The `[config]` schema's `town_cell` declaration (goal:g15.25 SM.32), or
+    {} when the schema or the block is absent. The block is DATA: the row
+    field to judge, where the accepted vocabulary comes from, and the
+    transitional row-name -> town map for rows still spelling `town: all`."""
+    p = _graph_dir(root) / "context" / "schemas" / "[config].md"
+    try:
+        nf = _load_node_file(p, body=False)
+        tc = nf.frontmatter.get("town_cell")
+        return dict(tc) if isinstance(tc, dict) else {}
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def accepted_towns(root) -> set[str]:
+    """The accepted `town` vocabulary: the ladder's declared `towns:` list
+    plus the schema's `also_accepted` (which carries `core`). The retired
+    `all` is never among them."""
+    tc = config_town_cell(root)
+    out = {str(t) for t in (tc.get("also_accepted") or [])}
+    if str(tc.get("accepted_from") or "").startswith("ladder"):
+        try:
+            nf = _load_node_file(
+                _graph_dir(root) / "nodes" / ".geometry" / "ladder.md",
+                body=False)
+            out |= {str(t) for t in (nf.frontmatter.get("towns") or [])}
+        except Exception:  # noqa: BLE001
+            pass
+    return out
+
+
+def row_town(root, row, fallback: str = "core") -> str:
+    """A config row's REAL town (goal:g15.25 SM.32). The declared `town` cell
+    wins when it names a town; while a row still spells the retired
+    `town: all` the schema's transitional `overrides` map resolves it by row
+    name; anything else falls back to ``fallback``. Never returns `all`."""
+    name = str((row or {}).get("name") or "")
+    town = str((row or {}).get("town") or "").strip()
+    if town and town != "all":
+        return town
+    overrides = config_town_cell(root).get("overrides") or {}
+    if isinstance(overrides, dict) and name in overrides:
+        return str(overrides[name])
+    return fallback
 
 
 def _main(argv=None) -> int:

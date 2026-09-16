@@ -455,11 +455,19 @@ def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
             "name": str(r.get("name") or ""),
             "label": str(r.get("role") or ""),
             "fraction": r.get("fraction"),
+            "town": str(r.get("town") or "core"),
         }
         if r.get("tier") == 3 or r.get("mantled"):
             spirits.append(rec)
         else:
             probes.append(rec)
+    # goal:g15.25 SM.32 -- group by the row's REAL town, sanctuary rows first
+    # (the keep's own people), core rows after. STABLE: within a town the
+    # registry order is preserved, so a fixture whose rows all read `core`
+    # keeps its original order. `towns.row_town` resolves a row still
+    # spelling `town: all`.
+    spirits.sort(key=lambda x: x["town"] == "core")
+    probes.sort(key=lambda x: x["town"] == "core")
     return SanctuaryScene(tuple(spirits), tuple(probes),
                           len(ephemeral_leases or []), rotating, True)
 
@@ -500,6 +508,11 @@ def load_seat_rows(root: Path, fm_by_id: dict):
             if not rows:
                 rows = (gf.get("config:seats") or {}).get("seats")
             rows = rows or []
+        try:
+            import towns as _towns
+            rows = [{**r, "town": _towns.row_town(root, r)} for r in rows]
+        except Exception:  # noqa: BLE001  (a row still renders without a town)
+            pass
     return list(rows), present
 
 
@@ -539,10 +552,11 @@ def render_sanctuary_human(scene: SanctuaryScene, width: int = 120) -> list[str]
     ]
     for s in scene.spirits:
         frac = f"  {s['fraction']:.0%}" if s["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']}{frac}")
+        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']} "
+                     f"[{s['town']}]{frac}")
     for p in scene.probes:
         frac = f"  {p['fraction']:.0%}" if p["fraction"] is not None else ""
-        lines.append(f"  {GLYPH['wisp']}  {p['name']}  probe{frac}")
+        lines.append(f"  {GLYPH['wisp']}  {p['name']}  {p['town']} probe{frac}")
     lines.append(f"  {scene.ephemeral_wisps} ephemeral wisps")
     if scene.rotating:
         holder, seat = scene.rotating
@@ -554,8 +568,10 @@ def render_sanctuary_llm(scene: SanctuaryScene) -> str:
     """Exactly what a kid is handed, from the same `SanctuaryScene`."""
     if not scene.registry_present:
         return "# sanctuary viewport\n\nno seat registry yet\n"
-    body = [f"- spirit {s['name']} ({s['label']})" for s in scene.spirits]
-    body += [f"- probe {p['name']} ({p['label']})" for p in scene.probes]
+    body = [f"- spirit {s['name']} ({s['label']}) town={s['town']}"
+            for s in scene.spirits]
+    body += [f"- probe {p['name']} ({p['label']}) town={p['town']}"
+             for p in scene.probes]
     body.append(f"- ephemeral_wisps: {scene.ephemeral_wisps}")
     if scene.rotating:
         body.append(f"- rotating: {scene.rotating[0]} ~~~✧~~~> {scene.rotating[1]}")
