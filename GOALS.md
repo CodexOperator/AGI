@@ -9786,6 +9786,8 @@ SM ACCEPT SM.39 (:80) and SM.40 (:80) -- both merged to sensei-director post bra
 
 SM.45 harvested (4 kids: kid-checkpoint+rebrief+harvest-measurement feature, all conjuncts proved or inconclusive_lean_proved, 366 tests green post-merge). Flagged to SM as mechanical-rule DEMOTE candidate: round totalled ~221 prod lines vs 40-line ceiling (5.4x) across 4 kids, no mid-round re-brief dm before next kid -- the shape her post-SM.21 rule names regardless of work quality. Held in seat branch for her verdict + a future MAIN merge-up grant.
 
+SM.46 (SM.45b fix, 1 kid) and SM.43 (test_zoom mystery closed, 1 kid) harvested and merged, 483 tests green. SM.46: per-node CEILING resolver landed, dogfooded (brief now shows the node own clause not config 40); 120 lines vs 20-line clause but disclosed via the new in-node rebrief protocol and parent-authorized, not a silent overage. SM.43: root-caused the long-standing test_zoom full-suite-only failures to a session leak guard comparing live shared workflow jsonl file state across concurrent seats; fixed per-process, no production file touched, full suite 4996 passed 0 errors from this guard. SM.45 bytes (held at loop tip b5b3cf123) still need merging together with SM.46 per her instruction before this branch can go to MAIN.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
