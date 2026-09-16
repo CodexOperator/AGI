@@ -1,0 +1,29 @@
+# Kid B — engine route: pi completion against provider local-town (tunnel 127.0.0.1:18080)
+# run 2026-09-16, core-town (core-town-listdrop)
+
+## argv head emitted by pi_adapter.model_args + build_command (verbatim from kidB_dispatch_dryrun.log):
+#   /home/ubuntu/.npm-global/bin/pi --provider local-town --model Qwen3.5-9B-Q4_K_M -p
+
+## argv executed (same provider/model/-p head; positional prompt scoped to ONE read tool call;
+##   --session-dir added to keep session files out of ~/.pi/agent/sessions):
+OPENROUTER_API_KEY unset (env -u OPENROUTER_API_KEY)
+/home/ubuntu/.npm-global/bin/pi --provider local-town --model Qwen3.5-9B-Q4_K_M -p \
+  --session-dir /tmp/kidB_run/sessions2 \
+  "Use the read tool to read the file /tmp/kidB_run/sample.txt. Then reply with exactly the contents of that file and nothing else."
+
+## stdout (out2.log):
+hostname-file-content-test
+
+## session event timeline (sessions2/*.jsonl) — proof of ONE executed read tool call:
+2026-09-16T08:25:02.345Z | model_change | local-town Qwen3.5-9B-Q4_K_M
+2026-09-16T08:25:02.395Z | user | text | stop= None | "Use the read tool to read the file /tmp/kidB_run/sample.txt
+2026-09-16T08:25:04.886Z | assistant | thinking | stop= toolUse
+2026-09-16T08:25:04.886Z | assistant | toolCall name= read args= {"path": "/tmp/kidB_run/sample.txt"}
+2026-09-16T08:25:04.926Z | toolResult | text | stop= None | "hostname-file-content-test\n"
+2026-09-16T08:25:06.990Z | assistant | thinking | stop= stop
+2026-09-16T08:25:06.990Z | assistant | text | stop= stop | "hostname-file-content-test"
+2026-09-16T08:25:39.787Z | compaction (pi trailing post-turn summary, not the tool turn) |
+
+## WALL: 43.080600872s (date +%s.%N). user 08:25:02.395Z -> final assistant stop 08:25:06.990Z = 4.6s;
+##   the remaining ~33s is pi's own trailing compaction/summary call, not the tool turn.
+## usage.cost in the session: {input:0, output:0, cacheRead:0, cacheWrite:0, total:0} => $0 OpenRouter.
