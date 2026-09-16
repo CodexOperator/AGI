@@ -9834,6 +9834,8 @@ SM.60 (SM51-56 residue, 4 kids: items 1-15) harvested+merged with 4 real conflic
 
 SM.64 harvested+merged: rotate.py:3484 docstring reworded per SM correction (was: attempted re-pin at SM.63, superseded/unmerged). 1 line, proved, test_branch_spelling_grep.py 3/3 pass. SM51-56 residue chain (SM.60/63/64) fully closed.
 
+SM.65 landed (verification.py window line now names pid, age, tree, cmd, runner row; kid a00-6da6a81b proved, parent reviewed e4b5a0320). 66 production lines vs 35 ceiling, under the 2x stop gate of 70, disclosed honest by kid and parent, not self-demoted -- flagged to SM for review by name. 166 tests green independently re-run post-merge on this seat branch.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
