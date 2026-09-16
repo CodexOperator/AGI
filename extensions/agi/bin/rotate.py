@@ -12444,6 +12444,15 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
 
 
+def _strip_harness(text: str) -> str:
+    """Drop harness-signature regions from captured output before it rides a
+    delivered dm -- the ONE read of send's signature list, never a second
+    spelling (hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-
+    quoted-block-reads-as-marked-data, conjunct 4)."""
+    import send as _send  # local: same dir (send.py pattern)
+    return _send.HARNESS_BLOCK_RE.sub("", text)
+
+
 def _run_first_turn_commands(startup: dict, values: dict, *,
                              dry_run: bool = False) -> list:
     """Run the template's `startup.first_turn` list, one at a time, BEFORE
@@ -12612,7 +12621,7 @@ def _compose_startup_output(results: list) -> str:
         else:
             if r.get("truncated"):
                 lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
-            out = (r.get("output") or "").strip()
+            out = _strip_harness((r.get("output") or "").strip())
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
     return "\n".join(lines)
@@ -13530,7 +13539,7 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
         if with_output:
             if r.get("truncated"):
                 lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
-            out = (r.get("output") or "").strip()
+            out = _strip_harness((r.get("output") or "").strip())
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
         return lines
