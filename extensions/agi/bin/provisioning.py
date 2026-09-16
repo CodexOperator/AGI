@@ -491,10 +491,45 @@ def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool
         f"{remaining:.2f} remains. Top up the account before the next spawn")
 
 
+def _key_is_expired(rec: dict) -> bool:
+    """True when a listing row carries an `expires_at` already in the past.
+
+    An absent/None `expires_at` means the key has NO TTL (the API's
+    `expires_in_seconds` trap), so it does NOT expire and is not expired.
+    """
+    raw = rec.get("expires_at")
+    if not raw:
+        return False
+    try:
+        ts = datetime.datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=datetime.timezone.utc)
+    return ts <= datetime.datetime.now(datetime.timezone.utc)
+
+
+def _live_key_headroom(rec: dict) -> float:
+    """Still-spendable USD on one listing row: `limit - usage`, or 0.0 when
+    the row is not live — not engine-minted, disabled, expired, or uncapped."""
+    if not str(rec.get("name") or "").startswith(f"{NAME_PREFIX}-"):
+        return 0.0
+    if rec.get("limit") is None or rec.get("disabled"):
+        return 0.0
+    if _key_is_expired(rec):
+        return 0.0
+    return max(0.0, float(rec["limit"]) - float(rec.get("usage") or 0.0))
+
+
 def cap_headroom(cfg: dict, root: Path | str | None,
                  cap: float, slots: int = 1) -> tuple[bool, str | None]:
     """(ok, msg): does `cap` fit pool minus floor minus live caps?
     Fail-open on an absent key or a network error (check_account_floor idiom).
+
+    `live` is what is still SPENDABLE, not what was granted: for each live
+    un-expired engine-minted key it sums `limit - usage` (see
+    `_live_key_headroom`), so a key already spent or already dead frees its
+    headroom.
 
     `slots` prices the round at `cap * slots` (one minted key per slot,
     `spawn.parallel`); the refusal names the multiplier when it is > 1.
@@ -519,9 +554,7 @@ def cap_headroom(cfg: dict, root: Path | str | None,
             f"(provisioning API error); round cap ${cap:.2f} proceeds "
             f"unmeasured")
     floor = min_account_remaining_floor(cfg) or 0.0
-    live = sum(float(r["limit"]) for r in keys
-               if str(r.get("name") or "").startswith(f"{NAME_PREFIX}-")
-               and r.get("limit") is not None)
+    live = sum(_live_key_headroom(r) for r in keys)
     avail = bal[2] - floor - live
     if cap > avail:
         _head = (f"round cap ${cap / slots:.2f} x {slots} slots = ${cap:.2f}"
@@ -529,8 +562,8 @@ def cap_headroom(cfg: dict, root: Path | str | None,
         return False, (
             f"{_head} exceeds pool headroom ${avail:.2f} "
             f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f}) "
-            f"(live counts every {NAME_PREFIX}- key's full limit; disabled, "
-            f"expired and already-spent keys included)")
+            f"(live counts each un-expired {NAME_PREFIX}- key's limit minus "
+            f"usage; disabled and expired keys are free)")
     return True, None
 
 
