@@ -318,6 +318,25 @@ NONCE_LEDGER_TTL_S = 86400
 NONCE_LEDGER_FILE = "ring-nonces.json"
 
 
+#: Path-shape errors that mean the ledger file provably CANNOT exist -- a
+#: missing parent, or a parent component that is not a directory. These read
+#: as an empty seen set, exactly like an absent file: nothing could have been
+#: recorded there, so reading them as empty drops nothing. Any OTHER failure
+#: means the ledger is present-but-unreadable and must RAISE.
+_ABSENT_LEDGER_ERRORS = (FileNotFoundError, NotADirectoryError)
+
+
+class LedgerReadError(Exception):
+    """A nonce_ledger read could not be completed on a present ledger.
+
+    Raised instead of swallowing (the read half of the write-side rule): an
+    unreadable-but-present ledger is NOT an empty one. If it read as empty, a
+    previously-admitted nonce could be re-admitted and remember() would
+    overwrite the file, permanently dropping every entry the failed read
+    could not see. Callers refuse by name, exactly as for LedgerWriteError.
+    A genuinely absent ledger still reads as an empty seen set."""
+
+
 class LedgerWriteError(Exception):
     """A nonce_ledger.remember() write could not be completed.
 
@@ -478,16 +497,29 @@ def nonce_ledger(root) -> tuple:
     and appends the freshly admitted nonce; refused records never reach it.
     remember() RAISES LedgerWriteError (naming the ledger path and the
     underlying error) when the ledger cannot be written -- a nonce is never
-    spent silently."""
+    spent silently. A ledger that is PRESENT but unreadable raises
+    LedgerReadError by name from the same two verbs, so it is never read as
+    an empty one (only an absent/uncollidable path reads as empty)."""
     lpath = _ledger_path(root)
 
     def _read() -> list:
         try:
             import json as _json
             d = _json.loads(lpath.read_text(encoding="utf-8"))
+            # A non-list payload is a SHAPE miss, not a read failure: the
+            # only ledger shape there is, is a JSON list. Kept as [] because
+            # the claim is about read failure and a non-list ledger carries
+            # no entry a caller could name; tightening this is a separate
+            # change (see the node's caveat).
             return d if isinstance(d, list) else []
-        except Exception:  # noqa: BLE001
-            return []
+        except _ABSENT_LEDGER_ERRORS:
+            return []  # nothing could be recorded there: no nonces seen yet
+        except Exception as exc:  # noqa: BLE001
+            raise LedgerReadError(
+                f"could not read the nonce ledger at {lpath}: {exc} -- an "
+                "unreadable ledger is NOT an empty one (reading it as empty "
+                "would re-admit a spent nonce and drop the entries already "
+                "recorded)") from exc
 
     def _fresh(entries: list) -> list:
         now = time.time()

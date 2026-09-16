@@ -917,3 +917,116 @@ def test_json_field_nested_keys_injective():
     assert rings.json_field({1: "a"}) != rings.json_field({"1": "a"})
     assert rings.json_field((1, 2)) != rings.json_field([1, 2])
     assert rings.json_field("plain") == "plain"
+
+
+# ---------------------------------------------------------------------------
+# KID A (SD.09 slice: conjuncts 1,2,3,5) -- a PRESENT-but-unreadable ledger
+# must never read as an empty one. LedgerReadError is raised by name; a
+# genuinely ABSENT ledger is unchanged. Fixture roots only.
+# ---------------------------------------------------------------------------
+def _ledger_file(root):
+    return root / "sessions" / "ring-nonces.json"
+
+
+def test_nonce_ledger_malformed_json_read_raises(tmp_path):
+    """A present ledger whose JSON does not parse raises LedgerReadError
+    naming the ledger path -- never [] (the defect this round fixes)."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    lp = _ledger_file(root)
+    lp.parent.mkdir(parents=True)
+    lp.write_text("{not json at all", encoding="utf-8")
+    _, remember = rings.nonce_ledger(root)
+    with pytest.raises(rings.LedgerReadError) as ei:
+        remember("n_any")
+    assert "ring-nonces.json" in str(ei.value)
+    assert "could not read the nonce ledger" in str(ei.value)
+
+
+@pytest.mark.skipif(__import__("os").geteuid() == 0,
+                    reason="root bypasses mode bits; the 000 read would pass")
+def test_nonce_ledger_chmod_000_read_raises(tmp_path):
+    """A present, valid ledger denied by mode bits raises LedgerReadError.
+    The permission bit is ASSERTED to deny before the call, so the test
+    cannot silently pass on a chmod that did not take effect."""
+    import os
+
+    root = tmp_path / "proj"
+    root.mkdir()
+    lp = _ledger_file(root)
+    lp.parent.mkdir(parents=True)
+    lp.write_text('[{"nonce": "old", "ts": "2020-01-01T00:00:00Z"}]',
+                  encoding="utf-8")
+    os.chmod(lp, 0o000)
+    try:
+        with pytest.raises(PermissionError):
+            lp.read_text(encoding="utf-8")
+    finally:
+        os.chmod(lp, 0o644)
+    os.chmod(lp, 0o000)
+    try:
+        _, remember = rings.nonce_ledger(root)
+        with pytest.raises(rings.LedgerReadError):
+            remember("n_any")
+    finally:
+        os.chmod(lp, 0o644)
+
+
+def test_nonce_ledger_directory_at_ledger_path_raises(tmp_path):
+    """An IsADirectoryError at the ledger path is a genuine
+    non-FileNotFoundError OSError and must raise, not read as empty."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    lp = _ledger_file(root)
+    lp.mkdir(parents=True)
+    _, remember = rings.nonce_ledger(root)
+    with pytest.raises(rings.LedgerReadError):
+        remember("n_any")
+
+
+def test_nonce_ledger_remember_unreadable_leaves_file_unchanged(tmp_path):
+    """The whole point: remember() on an unreadable ledger raises by name and
+    the file on disk is left BYTE-FOR-BYTE UNCHANGED -- no empty-history
+    overwrite that drops the entries the failed read could not see."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    lp = _ledger_file(root)
+    lp.parent.mkdir(parents=True)
+    raw = '[{"nonce": "old1", "ts": "2020-01-01T00:00:00Z"}, BROKEN'
+    lp.write_text(raw, encoding="utf-8")
+    _, remember = rings.nonce_ledger(root)
+    with pytest.raises(rings.LedgerReadError):
+        remember("n_new")
+    assert lp.read_text(encoding="utf-8") == raw
+
+
+def test_nonce_ledger_membership_on_unreadable_ledger_raises(tmp_path):
+    """`nonce in seen` propagates LedgerReadError -- an unreadable ledger is
+    never answered as "not seen" (which would re-admit a spent nonce)."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    lp = _ledger_file(root)
+    lp.parent.mkdir(parents=True)
+    lp.write_text("{broken", encoding="utf-8")
+    seen, _ = rings.nonce_ledger(root)
+    with pytest.raises(rings.LedgerReadError):
+        "n_old" in seen
+
+
+def test_nonce_ledger_absent_file_regression(tmp_path):
+    """Clause 5, unchanged: an absent ledger reads as an empty seen set and
+    remember() creates it cleanly; a second remember() on the now-valid file
+    adds a second entry and drops neither."""
+    seen, remember = rings.nonce_ledger(tmp_path)
+    assert "n_first" not in seen
+    remember("n_first")
+    lp = tmp_path / "sessions" / "ring-nonces.json"
+    assert [e["nonce"] for e in json.loads(lp.read_text(encoding="utf-8"))] == \
+        ["n_first"]
+    _, remember2 = rings.nonce_ledger(tmp_path)
+    remember2("n_second")
+    seen2, _ = rings.nonce_ledger(tmp_path)
+    assert sorted(e["nonce"] for e in
+                  json.loads(lp.read_text(encoding="utf-8"))) == \
+        ["n_first", "n_second"]
+    assert "n_first" in seen2 and "n_second" in seen2
