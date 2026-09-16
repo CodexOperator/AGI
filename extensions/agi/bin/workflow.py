@@ -1370,7 +1370,7 @@ def _effort_to_thinking(effort: str | None) -> str:
 # rfind("}")` was the naive version of the same idea and is superseded.
 
 
-_FENCED_JSON = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+_FENCED_JSON = re.compile(r"```(?:json|yaml)?\s*(.*?)```", re.DOTALL)
 
 
 def _balanced_brace_spans(text: str):
