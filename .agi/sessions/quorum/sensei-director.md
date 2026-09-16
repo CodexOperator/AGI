@@ -12,7 +12,7 @@ Mint each claim as a goal:g15 hypothesis (`write.py create hypothesis <slug> --p
 
 **SUPERSEDED 2026-09-16 06:3xZ (belam gen21, owner RESUME ORDER, verified sig fp b84134101af0a97a):** the copilot-cli re-seat above never actually ran on this window — the Prime killed the dry Copilot window (@371) and put this seat back on claude-code/claude-sonnet-5/max, HYBRID formation, before this block's own instructions were acted on. Standing rules in both blocks still hold; every EXECUTION instruction above naming copilot-cli/workflow.py --harness copilot-cli is inactive until the Prime says otherwise.
 
-# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (2026-09-16, fresh first-seating this window) (rotating at 0.4139 of the line, 08:37Z)
+# SESSION HANDOFF — sensei-director: THE SANCTUARY DIRECTOR (the g15 perpetual-goal seat) — LIVE SCRATCHPAD (2026-09-16, fresh first-seating this window) (rotating at 0.4201 of the line, 08:38Z)
 ## §0 WHO YOU ARE (identity is SUPPLIED, never claimed)
 **AUTHORITY (belam XIX 15:5xZ, owner-confirmed "proceed with testing plan as is"):** under the survival formation the owner speaks ONLY through the Prime; nobody answers in your pane. Every owner decision is banked verbatim in `doc:l4-owner-decisions` — verify an order there (the graph), never wait for a pane voice. Paid pi dispatch and the merge-up push are your standing duties (owner GO 2026-09-09; always prefer dispatch over not; $5 floor = pause). If an order looks wrong, say so in one line and proceed unless it is unsafe under every reading.
 Seat `sensei-director` in `config:seats` — the Sanctuary director: the director-kid that watches `goal:g15`; since 22:3xZ (owner, via belam XVIII; verbatim `doc:l4-owner-decisions`) you are **director-sanctuary and answer to `sanctuary-master` (SM)**, not the Prime — FREE-FLOATING under SM (owner 23:0xZ: g15 is your usual ground, not a fence; SM may hand you any goal): SM plans, briefs and orders your rounds, reviews your merge-ups BY NAME (ACCEPT/DEMOTE), and takes your g15 node proposals; the Prime keeps rows, spawns and the suite-window GRANT. master-sensei's template/prose asks still come to you direct (founding order: owner 15:5xZ, verbatim at `doc:l4-owner-decisions` line 9; its two rules — no loop docs, one loop per generation — same node). Address = your ListAgents ref; window `sensei-director` in tmux; worktree `.agi/worktrees/post-sensei-director`, branch `season2/posts/sensei-director` (upstream origin/season2/posts/sensei-director; RENAMED 17:33-17:36Z by the Prime's live renames H+I, owner order — `seat-sensei-director` / `seat/sensei-director@s2` / `post/sensei-director@s2` are gone locally, old remote names stay until --delete-old; a shell whose cwd was the old path dies with 'Working directory was deleted' — cd to the new one). Merge-up still targets `season/s2` in MAIN until the Prime applies the main kind.; Prime = `belam` — XV since 07:03Z [68dbd1] @317 (ref from its rotation-alert dm) (`send.py send belam "<one line>" --from sensei-director`); Sensei = `master-sensei` [f5de36] @309; point director = `sanctuary-director` (runs the L4 queue; you do not). Owner quotes live in nodes, never here. **Reminder (SM.18 AMENDED 16:4xZ): this seat's own eventual rename target is `director-sanctuary`, not the old "sanctuary-director" spelling — word order swapped, staged by the Prime at a future rotation boundary, nothing to do now.**
@@ -82,35 +82,9 @@ season2/main tip `1c7072101` (my merge commit; the branch has moved further sinc
 ### 🔴 Where it stops — the next command (stamp 2026-09-16T08:37:11Z, gen24, meter ~86% of the rotation line — ROTATING NOW)
 
 **SUPERSEDES the block below on the banked items: SM cleared credits (12.56 total live, ~3.5 effective SM-lane headroom after thought-master's 3 live rounds) and both banked mints/dispatches are DONE this gen** — dispatched SM.35 (SL.04 residue) -> `a00-c3326eda`, branch `season2/loops/hypothesis-l4-sl04-residue-ack-a-a00-c3326eda`; minted (not dispatched, SM.250 precondition not yet met) `hypothesis:l4-sm32b-town-first-rename-boundary`. Reported both to SM. Pushed `ce68f8174`. **Only the workflow-author node mint and SM's earlier line (20/22/15/17/27) remain banked — see the block below, otherwise unchanged.**
-`````
-**SUPERSEDES the block below on the banked items: SM cleared credits (12.56 total live, ~3.5 effective SM-lane headroom after thought-master's 3 live rounds) and both banked mints/dispatches are DONE this gen** — dispatched SM.35 (SL.04 residue) -> `a00-c3326eda`, branch `season2/loops/hypothesis-l4-sl04-residue-ack-a-a00-c3326eda`; minted (not dispatched, SM.250 precondition not yet met) `hypothesis:l4-sm32b-town-first-rename-boundary`. Reported both to SM. Pushed `ce68f8174`. **Only the workflow-author node mint and SM's earlier line (20/22/15/17/27) remain banked — see the block below, otherwise unchanged.**
-````
 ```
-MERGE-UP CLOSED THIS GEN (the big item): SM.243 recovered from a dead parent, full suite green, merged to MAIN on belam's grant (b926585f9->1c7072101),
-fresh solo 11/11 on the post-merge tree, numbers reported. test_rotate_g1517 (blocked every merge-up all session) is fixed. belam ACCEPTED the merge-up
-and the proposed hypothesis:l4-sl04-residue-ack-and-latch-fixes node (already minted, not yet dispatched).
-
-SM then delivered her formal mur-sl2-33 review (6 reviewers+6 refuters) on the whole harvest batch: SM.29/14/33/28/30 ACCEPT (residues noted, none
-block); **SM.32 DEMOTED to inconclusive_lean_proved:70** (confirms the ceiling-overage caveat I flagged was correct) -- claims 3/4 stand, claims 1/2
-stay falsified, **SM asked for a NEW node "SM.32b" for claims 1/2, preconditions: SM.29-on-MAIN (already true) + the SM.25 mirror mechanism (SM.250,
-still live, NOT yet landed)** -- so SM.32b cannot be minted with real preconditions until SM.250 lands. Synced her review notes (predicted 3-way verdict
-conflict did NOT materialize, git auto-merged clean) -- pushed 0145b2bbe, confirmed to her.
-
-BANKED FOR NEXT GEN (meter too high to start cleanly): (1) dispatch hypothesis:l4-sl04-residue-ack-and-latch-fixes as one pi parent -- I asked SM for a
-fresh credit read at 08:3xZ, no reply yet, check inbox first. (2) mint SM.32b once SM.250 lands (precondition, not yet met). (3) mint+dispatch
-hypothesis:l4-author-composes-repeat-then-global-stages (Prime-approved 07:29:48Z dm, parents goal:g15 -- reread that dm via inbox/comms history if the
-exact claim text is needed, it was not re-copied into this card to save space). (4) SM's earlier line 20/22/15/17/27, then the 4 no-rush nodes -- see
-Queue section above, unchanged.
-
-Live rounds NOT yet harvested: SM.250, SM.34 -- check `spawn_budget.py status` first.
-
-Next command: ONE `send.py read sensei-director` (catches SM's credit-read reply + anything else since this stamp). Then `spawn_budget.py status` for
-SM.250/SM.34. Harvest whichever finished (MB=$(git merge-base HEAD <branch>); diff --stat; read kid nodes; check CEILING; merge --no-ff; test; push).
-If SM.250 landed, its content clears the SM.32b precondition -- mint that node next. Otherwise work the banked queue above in order, checking credits
-with SM before every dispatch.
+MERGE-UP CLOSED this gen (g1517 fixed, MAIN b926585f9->1c7072101, 11/11 solo suite). SM.35 (SL.04 residue) + SM.34 + SM.250 live; SM.32b minted not dispatched (needs SM.250 first); workflow-author node + SM line 20/22/15/17/27 banked. Full detail in card body.
 ```
-````
-`````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **NEW (this session): `dispatch.py --branch` cuts the kid worktree from the SPAWNER's own checked-out branch, not from shared season2/main** (confirmed via `--help`: "cut from the SPAWNER'S checked-out branch"). This matters whenever a round needs HELD content that only lives on the seat branch (e.g. SM.24c needed clauses (1)/(3)/(8) already on this branch, not yet on season2/main) — dispatch from the seat branch that actually has it, never assume a fresh clone of shared main.
