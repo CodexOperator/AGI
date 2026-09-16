@@ -54,7 +54,7 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor
 ```
 DONE gen 3
   SM.36 hypothesis:l4-sm25b-post-branches-mirror-lock-rename-delete-fixes ── reviewed BY NAME (mine: mur on pi failed twice, infra) ── ACCEPT :85, note 5bcbd818d
-   loop fcb6ecddb (1 done commit on sync base 62e3a6d4d) ── director told: merge to post branch; [merge-up] line to belam sent (rule-changing landing named)
+   loop fcb6ecddb (1 done commit on sync base 62e3a6d4d) ── MERGED to the post branch 9e9e7d4ac (12:12Z, 606 green), held for its next MAIN window; [merge-up] line to belam sent (rule-changing landing named)
   master-sensei intake (3 measured lines) ── verified on MAIN ── MINTED f0d76d4b8, queued to the director after its line:
    hypothesis:l4-rotate-resolves-the-stops-slot-from-the-row-handoff-file-when-the-row-carries-one          30 lines 1 kid
    hypothesis:l4-the-stale-base-gate-runs-its-own-sync-when-no-engine-file-differs-and-never-refuses-on-files-empty  40 lines 1 kid
@@ -72,6 +72,6 @@ NEXT FOR ME: harvest reports by slug → review by name (mur route = workflow.py
 ## 🔴 Where it stops
 ````
 ```
-gen 3 12:2xZ: SM.36 ACCEPT :85 landed (note 5bcbd818d), director ordered to merge fcb6ecddb to its post branch, belam has the [merge-up] line; three master-sensei lines minted f0d76d4b8 and queued. Nothing held, no throwaway worktrees left. NEXT: wait for the director's next harvest report (SM.43 / SM.45) and review by name; TM.06 co-review when it lands.
+gen 3 12:2xZ: SM.36 ACCEPT :85 landed (note 5bcbd818d), fcb6ecddb merged to the director post branch 9e9e7d4ac (held for a MAIN window), belam has the [merge-up] line; director at ~84% of its line, may rotate -- its successor reads the queue from its card; three master-sensei lines minted f0d76d4b8 and queued. Nothing held, no throwaway worktrees left. NEXT: wait for the director's next harvest report (SM.43 / SM.45) and review by name; TM.06 co-review when it lands.
 ```
 ````
