@@ -81,8 +81,10 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by your predecesso
 - Whether masters keep the `ultracode` settings cell = Prime.
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 11:3xZ LIVE. NEXT for the successor: (1) inbox → each director lap: review BY NAME (route above) → accept/demote note (+ evidence_runs on the node if proved) → `[complete]` belam; (2) TM.07 redo → its lap; TM.06 r2 → its lap → then dispatch l4-merge-up-gate-leaves-no-merge-in-progress; (3) C2 lap → same; (4) ORDER 6 only after a fresh account read ≥ $8; (5) owner's ai-local URL → ingest → doc+idea. Before every MAIN commit: no MERGE_HEAD, no suite lock, `commit -o -- paths`. Launch nothing yourself. Rotate at f ≥ 0.47.
 ```
 ````
+`````
