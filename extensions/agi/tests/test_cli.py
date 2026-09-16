@@ -507,6 +507,73 @@ def test_done_worktree_commit_scopes_to_the_rounds_own_paths(tmp_path,
 
 
 # --------------------------------------------------------------------------
+# item (5): done in a linked-worktree kid under the REAL agent-git hook
+# --------------------------------------------------------------------------
+
+def test_done_worktree_kid_commit_is_allowed_by_the_real_agent_git_hook(
+        tmp_path, monkeypatch, capsys):
+    """Item (5) verification, measured not assumed: a kid whose frontmatter
+    landed, resident in the linked worktree dispatch creates, commits its own
+    node under the REAL agent-git pre-commit hook with the dispatch env
+    (AGI_TIER=kid, AGI_TREE_PROJECT_ROOT=<worktree>). `done` must NOT print
+    `tier kid may not commit` -- the hook's kid branch admits exactly this
+    shape (basename carries the agent id)."""
+    import argparse
+    from pathlib import Path
+
+    agent = "a00-k1ab12cd"
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+    hook = Path(__file__).resolve().parents[1] / "hooks" / "agent-git"
+    _ggit(main, "config", "core.hooksPath", str(hook))
+
+    br = f"season2/loops/round-{agent}"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "sessions" / "iter-001" / agent).mkdir(parents=True)
+    (wt_graph / "sessions" / "iter-001" / agent / "agent.json").write_text(
+        '{"id": "%s", "node_id": "experiment:%s-own", '
+        '"parent": "hypothesis:h1", "status": "running"}' % (agent, agent))
+    (wt_graph / "nodes" / "experiment" / f"{agent}-own.md").write_text(
+        "---\nid: experiment:%s-own\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\n# own\n" % agent)
+
+    monkeypatch.setenv("AGI_TIER", "kid")
+    monkeypatch.setenv("AGI_PROJECT_ROOT", str(wt_graph))
+    monkeypatch.setenv("AGI_TREE_PROJECT_ROOT", str(wt))
+    monkeypatch.setenv("AGI_AGENT_ID", agent)
+
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id=agent, verdict="proved", confidence=0.9,
+        node_id=f"experiment:{agent}-own", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 0
+    cap = capsys.readouterr()
+    # the round's own node commit LANDS: the hook admitted it and no
+    # `tier kid may not commit` line is printed
+    assert "may not commit" not in cap.err, cap.err
+    assert "committed worktree" in cap.out, cap.out
+    assert "may not commit" not in cap.out, cap.out
+    assert _ggit(main, "rev-list", "--count",
+                 f"season/s1..{br}").stdout.strip() == "1"
+
+
+# --------------------------------------------------------------------------
 # hypothesis:l3-done-lifts-testable-claim -- the completion-half lift at done
 # --------------------------------------------------------------------------
 
