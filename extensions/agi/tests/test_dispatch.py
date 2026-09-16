@@ -2793,6 +2793,10 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
         return real_popen(argv, **kw)
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
+    # the startup-grace poll's sleep seam (dispatch.py:97-102): a stub child
+    # that never exits (poll() -> None) otherwise sleeps the real 20 s grace
+    # on every cap test that gets as far as spawning. Same seam as 1be791764.
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
               "AGI_ACTOR"):
         monkeypatch.delenv(k, raising=False)
@@ -2840,8 +2844,8 @@ def test_cap_over_pool_headroom_is_refused_by_name_and_mints_nothing(
     assert mints == [], "a refused cap must never mint"
     assert "round cap $5.00 exceeds pool headroom $1.50" in err, err
     assert "pool $6.00" in err and "floor $1.00" in err and "live $3.50" in err
-    # item 15: the refusal NAMES its own conservatism.
-    assert "live counts every agi- key's full limit" in err, err
+    # item 15 (built by a00-4a19ce42): live is limit minus usage on live keys.
+    assert "live counts each un-expired agi- key's limit minus usage" in err, err
 
 
 def test_cap_prices_every_slot_and_names_the_multiplier(
