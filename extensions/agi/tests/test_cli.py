@@ -1293,3 +1293,26 @@ def test_salvage_preserve_dry_run_names_the_preserved_tree_sha(tmp_path):
     real_sha, _ = cli._salvage_preserve(wt, "ag")
     assert real_sha == sha, (real_sha, sha)
     assert g("rev-parse", "HEAD^{tree}").stdout.strip() == sha
+
+
+def test_session_complete_stamps_the_acting_seat(tmp_path, monkeypatch):
+    """A `session-complete` is the seat's OWN work act (hypothesis:l4-the-card-
+    age-captive-...-the-rotating-seat-own-last-act, conjunct 1): the verb
+    stamps the acting seat's last-act through the ONE clock (bin/last_act.py),
+    and a `--dry-run` touches nothing."""
+    import argparse
+    cli = _load_cli()
+    graph = tmp_path / "proj" / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    monkeypatch.setattr(cli, "_main_graph_root", lambda r: r)
+    monkeypatch.setattr(cli, "_session_complete", lambda *a, **k: 0)
+    monkeypatch.setenv("AGI_SEAT", "seat-a")
+    stamp = graph / "sessions" / "seats" / "seat-a.last-act"
+    args = argparse.Namespace(iter_n="SM.1", worktree=None, dry_run=True)
+    assert cli.cmd_session_complete(args) == 0
+    assert not stamp.exists(), "a dry run must stamp nothing"
+    args.dry_run = False
+    assert cli.cmd_session_complete(args) == 0
+    assert stamp.exists(), "session-complete left no seat last-act stamp"

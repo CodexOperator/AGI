@@ -65,6 +65,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
 from graph_core.persistence import frontmatter  # noqa: E402
@@ -4139,6 +4140,8 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
                   f"{exc}", file=sys.stderr)
             return 4
         print(f"merge-up: {line}")
+        # The seat's OWN last act (conjunct 1): a post merged up.
+        last_act.touch_env(root, post)
         return 0
     finally:
         try:
@@ -8574,9 +8577,14 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
             argv += ["--actor", seat]
         if role:
             argv += ["--role", role]
+        # THE CLOSEOUT HAZARD (conjunct 1, measured): this note runs AFTER the
+        # rotation wrote the seat's card, so a stamp on write.py would read as a
+        # FRESH act and re-stale the card the rotation just produced. The marker
+        # makes the subprocess WRITE, never stamp.
+        env = {**os.environ, last_act.INTERNAL_ENV: "1"}
         try:
             out = subprocess.run(argv, capture_output=True, text=True,
-                                 timeout=120, cwd=str(root))
+                                 timeout=120, cwd=str(root), env=env)
         except Exception as exc:  # noqa: BLE001
             return (False, "refused", f"g17_1_note could not run: {exc}")
         if out.returncode == 0:

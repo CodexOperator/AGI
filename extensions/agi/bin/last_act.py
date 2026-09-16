@@ -13,12 +13,21 @@ P7: every reader fails open — unmeasurable reads NOT stale; `touch` never rais
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 STAMP_DIRNAME = "seats"
+
+#: Set in the env of an ENGINE-INTERNAL write.py invocation (the rotate
+#: closeout's `_g17_1_note`) so its stamp cannot re-stale the card it just
+#: wrote (conjunct 1's measured hazard).
+INTERNAL_ENV = "AGI_LAST_ACT_INTERNAL"
+
+#: The env keys an act's seat is resolved from, in order.
+SEAT_ENV = ("AGI_SEAT", "AGI_ACTOR", "AGI_AGENT_ID", "USER")
 _UNSET = object()
 
 
@@ -50,6 +59,29 @@ def touch(root, seat: str) -> None:
         p.write_text(f"{int(time.time())}\n", encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
+
+
+def env_seat(explicit: str | None = None) -> str:
+    """The seat a verb acts as: the caller's `explicit` flag first (--actor,
+    --seat, --from), else AGI_SEAT, AGI_ACTOR, AGI_AGENT_ID, USER. '' when
+    nothing names a seat, and then NO stamp is written."""
+    for v in (explicit, *[os.environ.get(k) for k in SEAT_ENV]):
+        if v and str(v).strip():
+            return str(v).strip()
+    return ""
+
+
+def touch_env(root, explicit: str | None = None) -> str:
+    """Stamp the ACTING seat from the flag/env, SKIPPED when the invocation is
+    engine-internal (`INTERNAL_ENV`): the closeout's own `write.py note` runs
+    AFTER the rotation wrote the card, so a stamp there would re-stale it.
+    Returns the seat stamped ('' when skipped or unnamed). Never raises (P7)."""
+    if os.environ.get(INTERNAL_ENV):
+        return ""
+    seat = env_seat(explicit)
+    if seat:
+        touch(root, seat)
+    return seat
 
 
 def own_card(root, seat: str) -> Path | None:

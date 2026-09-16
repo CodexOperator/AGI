@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
@@ -2734,6 +2735,8 @@ def main() -> int:
             cfg=cfg,
         )
 
+    # The DISPATCHING seat's own last act (conjunct 1): a round is cut.
+    last_act.touch_env(root, args.seat)
     return 0
 
 
