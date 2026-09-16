@@ -590,11 +590,12 @@ def _kid_measured_lines(root, agent_id: str):
     return total
 
 
-def _kid_line_ceiling(root, fm: dict) -> int:
-    """The ceiling the 2x checkpoint is taken against: the node's own
-    `line_ceiling` when present and > 0, else the project config's
-    `spawn.production_line_ceiling` default (`spawn_budget` owns the number;
-    never a second hardcoded 40)."""
+def _kid_line_ceiling(root, fm: dict, target: str | None = None) -> int:
+    """The 2x checkpoint's ceiling: the node's own `line_ceiling` when > 0
+    (an answered re-brief wins), else the DISPATCHING node's own CEILING clause
+    (or config default) via `spawn_budget.node_line_ceiling` -- the SAME
+    resolver `brief.assemble()` uses, so the two cannot name two numbers.
+    """
     ceiling = _budget_num(fm.get("line_ceiling"))
     if ceiling is not None and ceiling > 0:
         return int(ceiling)
@@ -603,7 +604,7 @@ def _kid_line_ceiling(root, fm: dict) -> int:
             encoding="utf-8"))
     except (OSError, ValueError):
         cfg = {}
-    return spawn_budget.production_line_ceiling(cfg)
+    return spawn_budget.node_line_ceiling(root, target, cfg)[0]
 
 
 def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
@@ -634,7 +635,8 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
         measured = _kid_measured_lines(root, str(kid.get("id") or ""))
         lines = measured if measured is not None \
             else _budget_num(fm.get("production_lines"))
-        ceiling = _kid_line_ceiling(root, fm)
+        ceiling = _kid_line_ceiling(root, fm,
+                                    str(kid.get("target") or "") or None)
         if lines is None or ceiling <= 0:
             continue
         if fm.get("rebrief_request"):
