@@ -62,7 +62,15 @@ if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${A
     REAL_TREE=$(cd "$AGI_TREE_PROJECT_ROOT" && pwd -P 2>/dev/null)
     if [ -n "${REAL_TREE:-}" ] && [ "$REAL_TREE" = "$REAL_TOPLEVEL" ]; then
         SCOPE_OK=1
-        for P in $(git diff --cached --name-only --diff-filter=ACDMR); do
+        # Read the INDEX NUL-separated (`-z`): git then neither C-quotes a
+        # non-ASCII path (core.quotePath) nor splits one containing whitespace,
+        # either of which made every `case` arm miss. `--no-renames` lists a
+        # rename as D old + A new, so BOTH paths are judged (plain --name-only
+        # printed only the destination — the kid-id-named half). No
+        # `--diff-filter`: `T` (typechange) is a scope change too, and
+        # `--diff-filter=ACDMR` omitted it entirely, so a tracked node swapped
+        # for a symlink was never even listed.
+        while IFS= read -r -d '' P; do
             case "$P" in
                 .agi/config.json) SCOPE_OK=0 ;;
                 .agi/nodes/*)
@@ -72,7 +80,7 @@ if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${A
                     esac ;;
                 .agi/sessions/quorum/*) SCOPE_OK=0 ;;
             esac
-        done
+        done < <(git diff --cached --name-only -z --no-renames)
         [ "$SCOPE_OK" = "1" ] && exit 0
     fi
 fi
