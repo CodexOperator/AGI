@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.29 reviewed by name (mur-sl2-33, wf_9cedfafb-a6e, reviewer+refuter agree): ACCEPT with residue. Rename is clean by mechanism (viewport.py:1053 choices graph/keep, :1077 branch, _render_keep :565, seat_status.py:14; zero runnable sanctuary literal in bin/ at f3f618efd), ladder declares sanctuary, guard stays green and reaches the new town. Residue 1: sanctuary.create.sh:12 has no council-sanctuary posts-row step - run before the row exists it mints the town then towns.load_towns raises and set -e aborts before git add; Prime order = ladder on MAIN, write the council-sanctuary row, then run the script. Residue 2: test_viewport.py:474 reaches the real tmux server via rotate._existing_windows (read-only, no dependence) - plumb the window_path seam through _render_keep in a follow-on.
