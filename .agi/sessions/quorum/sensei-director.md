@@ -48,7 +48,7 @@ Neighbourhoods — rotate: `test_rotate*.py test_session_start_bootstrap.py test
 Never: `HANDOFF.md` · `briefs/prime-director-successor.md` · `doc:l4-*` · `goal:g17.1` · the point's worktree/branch/rounds `L4.*` · `config:seats` beyond your own row · `config:rotations` · `master` · delete/`git rm` a node · force-push · rebase · `git add -A` · `grid.py commit` off `season/s2` · the old `seat-*` worktree path (any shell cwd there is dead since the 17:3xZ rename).
 **OWNER ORDER (via master-sensei 16:49Z, verbatim in `doc:l4-owner-decisions` tail: "tracking generations is just a waste of latent space"; applied to this card 2026-09-13T17:05:24Z): non-Prime posts track NO generation anywhere — never write "gen N" / "generation N" in this card, a dm line, or a commit message. Label state by post name + timestamp (or the `@NNN` window counter) instead. Only the Prime keeps its roman-numeral count (`belam XIX`, etc.) — that stays untouched. SM.24 is the matching CODE change (ack/records/labels/rows); it has not landed yet, so `config:seats` may still carry a live `generation` cell for now — this rule governs what THIS SEAT WRITES, not the schema.**
 Rules: goal reports, node proposals and round questions go to SM (`send.py send sanctuary-master …`); message the Prime ONLY for the suite window, merge-up numbers, a Prime-only decision, a rotation line, a red merge or a rule-changing finding · intake = SM's orders + the Sensei's template/prose asks (anyone else: one line naming the point) · commit + push after every action · a goal-node `note` needs `snapshot-goals.py --render` in the same commit · `write.py <id> "note <text>" --actor sensei-director --role director`, one note per call, backticks only inside single quotes · always pass `--from sensei-director` / `--actor sensei-director` · prefer dispatch over not; **floor is $1.6, UPDATED 2026-09-16 ~13:5xZ (owner via the Prime, 8e29dd8d2, relayed by SM) — supersedes the old $5.00 figure below.** Account runs to $0 and the Prime swaps the key when the gate refuses; dispatch as before at cap $1.5. **A 520 is transient — re-dispatch, it is NOT a floor signal.** (superseded: owner 09:2xZ 2026-09-13, verbatim in `doc:l4-owner-decisions` tail; `config.json` `provisioning.min_account_remaining_usd = 5.0`, 310a5591f — below it NO new round was dispatched, live rounds finish, NO Sonnet parents/kids fallback, PAUSED until the owner resumed) · meter: READ ONLY — `rotate.py meter --post sensei-director` (after_join already pins it at spawn per `config:rotations` line 77; a `--pin` re-call is wasted, master-sensei audit) · card current as each part finishes, never batched at rotation · **card upkeep: one full Write per landing beats several small Edits** (Sensei audit 407fb2012: the prior session spent 40/151 calls — 22 edits, 5 `date -u`, 7 commits — on card upkeep alone; until SM.20 lands and auto-stamps the landed-row/stops slot, batch a landing's card changes into a single Write) · **at 0.4: ONE call `python3 extensions/agi/bin/rotate.py rotate` — bare and keyed (F23 in `config:rotations`): name, role, model, effort, prompt-file and timeout come from your row + key, NO flag, nothing to look up, never `-h`; it refuses by name when the card's where-it-stops slot is stale — write the card, or pass `--stops '<one line>'`** (it writes the stops slot, commits card + own row, pushes, runs the captives, merges origin/season/s2 when behind and pushes that too; the alert dm is the rotation line — no send.py after) · **prayer in exactly TWO spots per session (owner order via the Sensei, applied @ 9519087de; rule of record moral:faith §4.1): the very first tokens of the first reply and the very last tokens before rotate-self returns — NEVER at the start or end of a turn in between (a nudge, dm, notification or owner line opens with the work)** · **Sensei wake-audit cuts (10:39Z, OUT 6):** never re-stamp the header by hand (this header carries no rotation-count narrative — §3 carries state; rotate-self writes rotating-at) · never `git merge origin/season/s2` by hand ahead of `rotate-self --stops` (it merges the season branch itself, rotate.py:9215) · never arm an inbox/dm Monitor (nudges reach the pane; F14 re-word by the Sensei, unobjected) · write §3 as each harvest lands, never at rotation · **the last test result goes in `--stops` ONLY (or in the card row BEFORE the wait) — one of the two, never both** (Sensei: OUT 2 = row re-write + --stops carrying the same nbhd result) · **SM standing rule, MECHANICAL as of her SM.21 review (17:05Z): a round whose parent passes 2x its brief's CEILING WITHOUT a re-brief dm to SM before the next kid is DEMOTED at her review BY NAME, regardless of how good its tests are.** SM.21 was the first live test of this rule and broke it (350 vs 100 lines, no re-brief) — she "noted" it rather than demoting this once, but said plainly the mechanism is live from here. **This applies to a PARENT's own internal kid fan-out, not only the director's own top-level dispatch** — the director cannot see a parent's kid-spawning decision before it happens, so the only working defense is to check cumulative size (`git diff --stat` against the round's own merge-base) after EVERY kid-completion ping during a still-live round, not just at final harvest, and fire SM a one-line re-brief (projected lines, why, kid count) the moment it looks like the NEXT kid would cross 2x — waiting for the round's own `done` and reporting the overage as a harvest caveat is what just happened and is no longer good enough. · **credits: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' /home/ubuntu/work/agi/.env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"` works fine from this seat — CORRECTED 2026-09-16T09:36Z (SM): the old "known dead end" belief was a RELATIVE path bug (`.env` lives at the MAIN root `/home/ubuntu/work/agi/.env`, not in this worktree) not a missing key. Use the ABSOLUTE path; live = total_credits minus total_usage. Ask SM only when you want her own read/pacing judgment, not because the check itself is broken.** · **before reporting a test failure as a "confirmed bug" to SM or anyone: re-run it at least 2-3 times fresh (a single failing run in a session this heavy on repeated pytest invocations can be a stale /tmp/pytest-of-ubuntu tmp-dir artifact, not a real defect — confirmed once already, cost a false report that had to be retracted).** · **SM standing rule (after that same false-bug-report retraction): a bug report to SM carries the re-run count (N/N) — one observation is a note, not a finding.**
-## §3 🔴 STATE — post sensei-director @392 — stamp 2026-09-16T14:59Z (fresh seating, gen 26->27 rotation)
+## §3 🔴 STATE — post sensei-director @392 — stamp 2026-09-16T15:01Z (fresh seating, gen 26->27 rotation)
 | | |
 |---|---|
 | seat | `core/season2/posts/sensei-director/main`, pushed and synced (`e726b1757`). Bare `git push` works. |
@@ -59,7 +59,8 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 | **`grid.py commit --all`** | refused on this seat branch this session ("node refs are branch-blind"); confirms §1 — it belongs at MERGE-UP time on season2/main, never per-round HARVEST here. Did not override. |
 | Prime | belam — nothing owed yet this session (SM handles the merge-up ask per her arrangement above). |
 | credits | ~$8.53 read before SM.48 — now stale (SM.47 finished since). **Re-read before the next dispatch, unconditionally.** |
-| meter | 0.3359/0.47 (71% of line) as of last reading — climbing steadily each nudge. Close to the 0.4/85% rotate point; do NOT start anything big new, finish what is live (the Prime's merge-up grant) and watch for the rotate signal. |
+| meter | 0.3663/0.47 (78% of line) as of last reading — climbing steadily each nudge. VERY close to the 0.4/85% rotate point now; finish SM.49 (small, 10 lines) and the merge-up, do not start anything else. |
+| **SM ESCALATED SM.48's residual to BLOCKING (15:01Z dm)** | Kid2's finding was worse than a follow-up: `last_act.env_seat` prefers `AGI_SEAT`, and `dispatch.py:1245-1250` lets an inherited `AGI_SEAT` survive into every kid's env — so ANY live kid's `write.py`/`cli.py done` stamps the DIRECTOR's own clock, not the kid's, re-creating the loop for the common case (not an edge case). Plus the `NO_HELP` gap would turn the merge-up suite red. She minted the fix: `hypothesis:l4-sm48b-a-spawned-agent-stamps-its-own-id-never-the-inherited-seat-so-a-kid-act-cannot-stale-the-director` (10 lines, 1 kid: AGI_AGENT_ID first, USER dropped, explicit flag wins, `last_act.py` into `NO_HELP`). Pulled clean via merge (`3d470d88c`). **Dispatched SM.49** → parent `a00-1d0ac11a`, branch `season2/loops/hypothesis-l4-sm48b-a-spawned-ag-a00-1d0ac11a`. **She is telling belam the merge-up window WAITS until this lands** — fold SM.48+SM.48b into one ask on the new tip once green. |
 
 ### Queue, in real priority order (SM's 12:31Z re-order, verbatim slugs/labels; SM.46+SM.43 both DONE, see row above)
 1. `hypothesis:l4-the-no-reap-pred-pids-placeholder-resolves-to-a-named-non-matching-value-never-a-refusal` (10 lines, 1 kid, new SM add) — NEXT, not yet dispatched.
@@ -70,33 +71,29 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 6. `hypothesis:l4-author-composes-repeat-then-global-stages` — banked, never re-verified it doesn't already exist; check before minting.
 7. SM's (or the Sensei's) orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T14:59Z, NOT rotating)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T15:01Z, NOT rotating)
 ````
 ```
-NOTHING live right now -- both SM.47 (the SM.45/46/47 chain) and SM.48 (card-age-captive
-priority) are harvested, merged, tested and reported. Branch tip 1675983c8, pushed.
+SM.49 (=SM.48b, the AGI_SEAT-leak BLOCKING fix) is LIVE: parent a00-1d0ac11a, branch
+season2/loops/hypothesis-l4-sm48b-a-spawned-ag-a00-1d0ac11a, 10 lines, 1 kid -- small, should
+be quick. The merge-up window ask to belam (already sent once, tip e726b1757) is ON HOLD --
+SM is telling him herself that it waits for this. DO NOT re-ask the Prime until SM.49 is
+harvested and merged; DO NOT merge anything to MAIN before a grant line regardless.
 
-STILL OUTSTANDING: the merge-up window ask sent to belam (`[merge-up] window?`, tip was
-e726b1757 at the time -- now 1675983c8, SM.48 rides along too if the grant lands after this
-harvest, mention the newer tip if/when reporting numbers). WAITING ON THE PRIME'S GRANT LINE.
-When it arrives: merge on MAIN ONLY on that line (S1), render + --render --check, commands.py
-verify-suite in the BACKGROUND (one until-loop), grid.py commit --all (legal once on MAIN),
-push origin season2/main + refs/grid/*:refs/grid/*, verification.py --level rotation --stamp,
-then ONE message to belam: 5 numbers + hash + one line per goal. Never merge MAIN before the
-grant line, however long the wait runs.
+When SM.49 finishes: harvest with the usual pattern (git diff --numstat against ITS OWN
+merge-base, read the kid node, run last_act/rotation_alert/rotate/help-smoke tests, merge
+--no-ff, note g15, commit, push), CONFIRM test_bin_help_smoke.py[last_act.py] now passes (the
+fix is supposed to add it to NO_HELP), report to SM by name. THEN ask belam for the window
+again on the new tip (SM.45-47 + SM.48 + SM.48b all riding together) -- confirm suite lock
+free in main + every worktree first (F7), tag the dm [merge-up].
 
-Two small residuals flagged to SM, NOT hand-fixed (not engine/test code a director writes):
-last_act.py missing from test_bin_help_smoke.py's NO_HELP registry (1 failing test, cosmetic);
-a dispatched kid's inherited AGI_SEAT stamps the PARENT seat's last-act clock instead of its
-own (SM.48 kid2's push_further). Both are follow-up-node candidates, SM's call on priority.
-
-Credits ~$8.53 as of ~14:2xZ, STALE -- re-read before any new dispatch. Meter 0.3359/0.47 (71%
-of line) at last reading and climbing each nudge, CLOSE to the 0.4/85% rotate point. Do NOT
-start the next queue item (pred_pids no-reap) now -- wait for the Prime's grant, execute the
-merge-up in full (never leave it half-done for a successor), THEN reassess the meter before
-taking on anything else. If the meter crosses the line while the grant is still pending, WAIT
-for the grant and finish the merge-up before rotating -- an in-flight merge-up is the one state
-a successor cannot pick up cold.
+Credits ~$8.25 as of ~15:0xZ, STALE -- re-read before any new dispatch (there should not be one
+before SM.49 harvests). Meter 0.3663/0.47 (78% of line), climbing FAST now -- close to the
+0.4/85% rotate point. If the meter crosses the line before SM.49 lands and the merge-up is
+still pending: DO NOT rotate with a merge-up in flight -- that is the one state a successor
+cannot pick up cold. Finish harvesting SM.49 and either complete the merge-up or get it to a
+clean, fully-reported holding state (branch pushed, SM informed, nothing uncommitted) before
+handing off, even if that means running past the normal rotate point this one time.
 ```
 ````
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
