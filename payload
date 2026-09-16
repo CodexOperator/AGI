@@ -2523,7 +2523,7 @@ def test_rotate_self_dry_run_plan_prints_ack_post(fake_ladder, tmp_path,
     assert rc == 0
     out = capsys.readouterr().out
     assert "after_join dry-run" in out, out
-    assert re.search(r"ack --post \S+ --gen", out), out
+    assert re.search(r"ack --post \S+", out), out
     ack_lines = [ln for ln in out.splitlines() if "rotate.py ack" in ln]
     assert ack_lines, "the dry-run plan prints a captive ack line"
     assert all("ack --seat" not in ln for ln in ack_lines), ack_lines
@@ -3570,7 +3570,13 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     `ack_written` names the rotated `.ack.gen<N>.json` (a reader following the
     record must not open a path that no longer exists) and the spawn-time
     value is preserved under `ack_written_at_spawn`. Naming only — the on-disk
-    ack contract is untouched."""
+    ack contract is untouched.
+
+    clause (1) IDENTITY migration: this seat is NON-prime (role parent), so
+    its ack is now keyed on its session id and `_rotate_ack_file` is a NO-OP
+    — a session-keyed ack can never silence the next seating, so there is
+    nothing to rotate to a gen name. The record names the session-keyed file
+    and the file persists."""
     _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
                                    "model": "x", "effort": "max"}])
     # CLAUSE 9 (goal:g15.25): a refused spawn-row write FAILS LOUD (record
@@ -3619,14 +3625,18 @@ def test_rotate_self_record_names_rotated_ack_after_rotation(
     rec = json.loads(recs[-1].read_text(encoding="utf-8"))
     assert rec["result"] == "success"
     hand = rec["handover"] or {}
-    assert hand["ack_written"].endswith("adv-alive.ack.gen1.json"), \
+    assert hand["ack_written"].endswith("adv-alive.ack.s-123.json"), \
         hand["ack_written"]
-    assert hand["ack_written_at_spawn"].endswith("adv-alive.ack.json")
-    # the live ack is gone and the .gen1 name is what actually exists
+    assert hand.get("ack_written_at_spawn",
+                    hand["ack_written"]).endswith("adv-alive.ack.s-123.json")
+    # clause (1): a session-keyed ack is never rotated to a gen name; only
+    # the legacy `.ack.json` name is left behind.
     assert not (tmp_path / "sessions" / "seats"
                 / "adv-alive.ack.json").exists()
+    assert not (tmp_path / "sessions" / "seats"
+                / "adv-alive.ack.gen1.json").exists()
     assert (tmp_path / "sessions" / "seats"
-            / "adv-alive.ack.gen1.json").exists()
+            / "adv-alive.ack.s-123.json").exists()
 
 
 def test_rotate_self_stops_behind_merges_and_pushes_merge_commit_before_spawn(
@@ -4610,7 +4620,9 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
                            registry_dir=str(reg), pid=None, ask_diff=False)
     rc = rotate.cmd_spawn(args, tmp_path)
     assert rc == 0
-    ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+    # clause (1): a non-prime seating's ack is keyed on the session id the
+    # join found (`_seating_registry` seeds 2717-aaaa), not a gen.
+    ack = json.loads((rotate._ack_path(tmp_path, "director-seat", "2717-aaaa"))
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "continue", ack
     assert ack["source"] == "seating", ack
@@ -4710,7 +4722,7 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
                            registry_dir=str(reg), pid=None, ask_diff=True)
     rc = rotate.cmd_spawn(args, tmp_path)
     assert rc == 0
-    ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+    ack = json.loads((rotate._ack_path(tmp_path, "director-seat", "2717-aaaa"))
                      .read_text(encoding="utf-8"))
     assert ack["answer"] == "diff-requested", ack
     assert ack["source"] == "seating", ack
@@ -4763,7 +4775,8 @@ def test_first_seating_turn_one_ack_tracks_ask_diff_mode(tmp_path, monkeypatch):
     def _run(args):
         rc = rotate.cmd_spawn(args, tmp_path)
         assert rc == 0
-        ack = json.loads((rotate._ack_path(tmp_path, "director-seat"))
+        ack = json.loads((rotate._ack_path(tmp_path, "director-seat",
+                                           "2717-aaaa"))
                          .read_text(encoding="utf-8"))
         boot = (rotate._sessions_dir(tmp_path) / "seats"
                 / "director-seat.bootstrap.json")
@@ -8388,7 +8401,7 @@ def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
                                "role": "director",
                                "session_id": uid}])
     code = rotate.cmd_ack(SimpleNamespace(
-        seat="sanctuary-director", gen=7, ref=uid,
+        seat="sanctuary-director", gen=None, ref=uid,
         answer="continue", text=""), root)
     assert code == 2
     err = capsys.readouterr().err
@@ -8396,6 +8409,43 @@ def test_cmd_ack_refuses_ref_equal_to_own_session_id_uuid(tmp_path,
     assert uid in err
     # nothing written: no ack file (and the row is untouched by a refusal).
     assert not rotate._ack_path(root, "sanctuary-director").exists()
+
+
+def test_ack_identity_keys_nonprime_by_session_and_refuses_gen(
+        tmp_path, monkeypatch, capsys):
+    """clause (1) IDENTITY: a registered NON-prime post whose row carries a
+    `session_id` keys its ack on session id (`seats/<seat>.ack.<sid8>.json`),
+    `--gen` is refused BY NAME with nothing written, and a `prime_director`
+    row keeps `.ack.json` + `--gen` byte-identical. The session-keyed ack is
+    never rotated to a gen name."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    sid = "a1b2c3d4-1111-2222-3333-444455556666"
+    _write_seats_sheet(root, [
+        {"name": "np-post", "role": "director", "session_id": sid},
+        {"name": "prime-post", "role": "prime_director",
+         "session_id": "ffffffff-0000-0000-0000-000000000000"}])
+    assert (rotate._ack_path(root, "np-post").name
+            == "np-post.ack.a1b2c3d4.json")
+    assert rotate._ack_path(root, "prime-post").name == "prime-post.ack.json"
+    # --gen REFUSED on the non-prime post, by name; nothing written.
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="np-post", gen=3, ref=None, answer="continue", text=""), root)
+    assert rc == 2
+    assert "--gen is refused on non-prime post" in capsys.readouterr().err
+    assert not rotate._ack_path(root, "np-post").exists()
+    # --session accepted; the ack lands session-keyed and is never rotated.
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="np-post", gen=None, ref=None, answer="continue", text=""),
+        root)
+    assert rc == 0 and rotate._ack_path(root, "np-post").exists()
+    assert rotate._rotate_ack_file(root, "np-post", 9) == ""
+    assert rotate._ack_path(root, "np-post").exists()
+    # prime unchanged: --gen accepted, `.ack.json` written.
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="prime-post", gen=7, ref=None, answer="continue", text=""),
+        root)
+    assert rc == 0 and rotate._ack_path(root, "prime-post").exists()
 
 
 def test_seat_has_live_session_window_cell_and_dead_pid_over_join():
