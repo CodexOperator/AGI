@@ -36,7 +36,7 @@ Prior mur-53/54, branch-reshuffle, L4.363/364/365 narrative: resolved, closed, p
 
 ## §1 LANDED
 
-Nothing merged to MAIN this session yet. SD.02 parent spawned on `season2/loops/hypothesis-l4-a-per-run-workflow-a00-08a53ba9`; not harvestable yet.
+✅ **SD.02/L4.373 fully landed.** Parent `a00-08a53ba9` harvested (verdict=proved, 7 negative probes, 68/68 fresh pytest independently re-run). Merged into my post branch, then into MAIN (`160f941d9`), pushed to `origin/season2/main` + grid refs — confirmed on origin by content, not just SHA (`_revoke_run_credential` present in origin's `workflow.py`). `verification.py --level rotation --stamp`: RESULT PASS 10/10, active=2897 deprecated=199 total=3096, stamped `020f7799e`. One `[merge-up]` line sent to belam with full numbers. This session's only live item is now closed.
 
 ## §2 QUEUE (not live, no GO)
 
@@ -44,10 +44,11 @@ Carried from prior card: mur-49 residues (nonce_ledger silent-swallow-on-unreada
 
 ## §3 🔴 NEXT COMMAND
 
-1. Wait for SD.02 to harvest (a kid/parent completion line nudges this seat — F25: one `send.py read sanctuary-director` per nudge, act on real content, never peek-then-ignore).
-2. On harvest: review (`workflow.py run merge-up-review --harness pi`), independently verify (diff read in full + fresh suite run, not the kid's pasted numbers), then MERGE-UP RECIPE below.
-3. Do not dispatch SD.03 without an explicit Prime message naming it specifically.
-4. Do not invent new mints/dispatches beyond SD.02/SD.03 without a named GO — general "resume" is not a blank check for new scope.
+SD.02 closed (§1). Nothing named and live right now. On any future wake:
+1. `send.py read sanctuary-director` per nudge (F25), act on real content only.
+2. Do not dispatch SD.03 without an explicit Prime message naming it specifically.
+3. Do not invent new mints/dispatches beyond a named GO — general "resume" is not a blank check for new scope; mur-49/R2-R6 still need their own separate signed GO (§2), not asked for this session.
+4. sanctuary-helper is idle, told to expect the next mur when one exists — none does yet.
 
 ## §4 TRAPS (this session, new)
 
