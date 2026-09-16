@@ -26,8 +26,15 @@ STAMP_DIRNAME = "seats"
 #: wrote (conjunct 1's measured hazard).
 INTERNAL_ENV = "AGI_LAST_ACT_INTERNAL"
 
-#: The env keys an act's seat is resolved from, in order.
-SEAT_ENV = ("AGI_SEAT", "AGI_ACTOR", "AGI_AGENT_ID", "USER")
+#: The env keys an act's seat is resolved from, in order. AGI_AGENT_ID comes
+#: FIRST: a spawned agent's env carries the dispatching seat's inherited
+#: AGI_SEAT, so resolving AGI_SEAT first stamped the DIRECTOR for a kid's act
+#: and staled its card (the rotation loop). USER is dropped: noise, not a seat.
+#: An AGENT (kid/parent) uses SEAT_ENV; a seat that OWNS itself (AGI_TIER in
+#: OWNED_TIERS) uses SEAT_ENV_OWNED, or a director's own act never stales its card.
+SEAT_ENV = ("AGI_AGENT_ID", "AGI_SEAT", "AGI_ACTOR")
+SEAT_ENV_OWNED = ("AGI_SEAT", "AGI_AGENT_ID", "AGI_ACTOR")
+OWNED_TIERS = ("director", "prime_director")
 _UNSET = object()
 
 
@@ -63,9 +70,11 @@ def touch(root, seat: str) -> None:
 
 def env_seat(explicit: str | None = None) -> str:
     """The seat a verb acts as: the caller's `explicit` flag first (--actor,
-    --seat, --from), else AGI_SEAT, AGI_ACTOR, AGI_AGENT_ID, USER. '' when
-    nothing names a seat, and then NO stamp is written."""
-    for v in (explicit, *[os.environ.get(k) for k in SEAT_ENV]):
+    --seat, --from), then the tier-chosen tuple -- SEAT_ENV for an agent's own
+    id, SEAT_ENV_OWNED for a seat that owns itself. '' when nothing names a
+    seat, and then NO stamp is written."""
+    keys = SEAT_ENV_OWNED if (os.environ.get("AGI_TIER") or "").strip() in OWNED_TIERS else SEAT_ENV
+    for v in (explicit, *[os.environ.get(k) for k in keys]):
         if v and str(v).strip():
             return str(v).strip()
     return ""
