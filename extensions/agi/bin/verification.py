@@ -32,6 +32,7 @@ tool exists to catch (H0/H0b: 29k nodes lost).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -295,6 +296,102 @@ def _read_state(groot: Path) -> dict | None:
         return None
 
 
+def _node_manifest(groot: Path) -> list[str] | None:
+    """The COMMITTED node blobs (`git ls-tree -r HEAD`, sorted). None when
+    `groot` is not a git tree or HEAD has no tree. Neither the working tree
+    NOR the index: `git ls-files` is the INDEX, so a staged-but-uncommitted
+    node entered the "committed" manifest and a later read named a file no
+    commit ever held (SM.34 conjunct 2).
+
+    `*.md` only, because the metric this stands in for is
+    `nodes_dir.rglob("*.md")` — a `.bak` or a `.py` under `nodes/` is not a
+    node, and counting one offsets the committed active count upward and
+    MASKS a real node drop (SM.34 kid 3)."""
+    out = _git(groot, ["ls-tree", "-r", "--name-only", "HEAD", "--", "nodes"])
+    if out is None:
+        return None
+    return sorted(p for p in out.splitlines()
+                  if p.strip().endswith(".md"))
+
+
+def _committed_deprecated(groot: Path, manifest: list[str]) -> int | None:
+    """How many of HEAD's manifest blobs declare `status: deprecated`, read
+    with the SAME parser the metric uses — `frontmatter.read_frontmatter` +
+    `str.strip().lower()` — over the whole manifest in ONE
+    `git cat-file --batch`.
+
+    A line anchor errs BOTH ways: `status: "deprecated"` is retired to the
+    parser and invisible to `^status: deprecated`, so committed active reads
+    HIGH and masks a drop; the same line inside a BODY is the reverse and
+    raises a spurious FAIL (SM.33). A malformed header (`<path> missing`)
+    returns None rather than ending the parse with a PARTIAL count; None when
+    git cannot answer."""
+    from frontmatter import read_frontmatter
+    try:
+        r = subprocess.run(["git", "cat-file", "--batch"], cwd=str(groot),
+                           input="".join(f"HEAD:./{p}\n" for p in manifest)
+                           .encode(), capture_output=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    out, dep, i = r.stdout, 0, 0
+    while i < len(out):
+        nl = out.find(b"\n", i)
+        if nl < 0:
+            return None
+        head = out[i:nl].split()
+        i = nl + 1
+        # `--batch` answers `<path> missing` (2 fields) for an object it
+        # cannot read, and HEAD can move between `_node_manifest` and this
+        # call, so this is REACHABLE: `break` returned a PARTIAL count as if
+        # complete, reading the active count HIGH and masking a drop silently.
+        # None is the function's own "git cannot answer" contract.
+        if len(head) != 3 or head[1] != b"blob" or not head[2].isdigit():
+            return None
+        size = int(head[2])
+        blob = out[i:i + size]
+        i += size + 1
+        if b"deprecated" not in blob:   # cheap superset: skip the yaml load
+            continue
+        st = (read_frontmatter(blob.decode("utf-8", "replace"))
+              or {}).get("status")
+        if isinstance(st, str) and st.strip().lower() == "deprecated":
+            dep += 1
+    return dep
+
+
+def _committed_counts(groot: Path, manifest: list[str] | None = None
+                      ) -> dict | None:
+    """Smoke's active/deprecated/total triple read from HEAD's COMMITTED tree
+    instead of the working tree, so the number that GATES the FAIL is a
+    committed number (SM.34 conjunct 3): a worktree read whose working-tree
+    count was inflated by an untracked filler no longer masks a real drop.
+
+    Both cells come from the same `.md`-only population (kid 3) and the
+    deprecated cell goes through the parser, so on a CLEAN checkout the triple
+    EQUALS `metrics.node_lifecycle_stats` for every spelling (kid 4)."""
+    if manifest is None:
+        manifest = _node_manifest(groot)
+    if manifest is None:
+        return None
+    dep = _committed_deprecated(groot, manifest)
+    if dep is None:
+        return None
+    return {"active": max(len(manifest) - dep, 0),
+            "deprecated": dep, "total": len(manifest)}
+
+
+def _node_dirt(groot: Path) -> list[str] | None:
+    """Node paths `git status --short` flags here, or None when not a git
+    tree. Non-empty means smoke's count is NOT a committed count, so a stamp
+    from it would record bytes no other checkout can see — refused by name."""
+    out = _git(groot, ["status", "--short", "--", "nodes"])
+    if out is None:
+        return None
+    return [ln[3:].strip() for ln in out.splitlines() if ln.strip()]
+
+
 def compare_count(groot: Path, current: dict | None,
                   *, stamp: bool = False) -> CheckResult:
     """The node-count check: FAIL when active is below the recorded baseline.
@@ -316,6 +413,13 @@ def compare_count(groot: Path, current: dict | None,
             True, _git(groot, ["rev-parse", "HEAD"]), "explicit --stamp")
     else:
         can_stamp, head_sha, why = _stamp_context(groot)
+    manifest = _node_manifest(groot)
+    committed = _committed_counts(groot, manifest)
+    dirt = _node_dirt(groot) or []
+    if can_stamp and dirt:
+        can_stamp = False
+        why = (f"{why}; refused by name — {len(dirt)} uncommitted node "
+               f"path(s) here: {', '.join(dirt[:5])}")
     state = _read_state(groot)
     stale = ""
     if state and state.get("sha"):
@@ -326,7 +430,7 @@ def compare_count(groot: Path, current: dict | None,
             state = None
     if state is None:
         if can_stamp and head_sha:
-            _write_state(groot, current, head_sha, why)
+            _write_state(groot, current, head_sha, why, manifest)
             return CheckResult(
                 "node-count", "PASS", time.monotonic() - start, current,
                 note=f"baseline recorded (sha={head_sha}){stale}",
@@ -336,30 +440,49 @@ def compare_count(groot: Path, current: dict | None,
             "node-count", "PASS", time.monotonic() - start, current,
             note=note,
             message=f"active compared, no baseline stamped: {why}")
-    if current["active"] < state["active"]:
+    # The gate reads the COMMITTED active count whenever the working tree can
+    # lie about it — i.e. whenever `_node_dirt` is non-empty, which is exactly
+    # when an untracked filler could inflate `current['active']` and hide a
+    # real committed-node drop (SM.34 conjunct 3). On a clean tree the metric
+    # already IS the committed number, so `current` is used unchanged.
+    using_committed = bool(committed and dirt)
+    measured = committed["active"] if using_committed else current["active"]
+    label = "committed active" if using_committed else "active"
+    if measured < state["active"]:
+        prior = state.get("manifest")
+        missing = (sorted(set(prior) - set(manifest))
+                   if isinstance(prior, list) and manifest is not None else [])
+        lost = (("missing committed file(s): " + ", ".join(missing[:5]))
+                if missing else "no committed manifest on record (counts only)")
         return CheckResult(
             "node-count", "FAIL", time.monotonic() - start, current,
             note=("ACTIVE COUNT DROPPED: "
-                  f"active={current['active']} below baseline={state['active']} "
+                  f"{label}={measured} below baseline={state['active']}; "
+                  f"(working tree reported active={current['active']}) {lost} "
                   "(H0/H0b: 29k nodes lost to a silent drop)"),
-            message=("active below recorded baseline: "
-                     f"{current['active']} < {state['active']}"))
+            message=("committed active below recorded baseline: "
+                     f"{measured} < {state['active']}; {lost}"))
     if can_stamp and head_sha:
-        _write_state(groot, current, head_sha, why)
+        _write_state(groot, current, head_sha, why, manifest)
         note = f"active steady; baseline updated (sha={head_sha}){stale}"
     else:
         note = f"active steady; NOT STAMPED: {why}{stale}"
     return CheckResult("node-count", "PASS", time.monotonic() - start, current,
-                       note=note, message=("active steady: "
-                                           f"{current['active']} >= baseline "
+                       note=note, message=(f"{label} steady: "
+                                           f"{measured} >= baseline "
                                            f"{state['active']}"))
 
 
 def _write_state(groot: Path, current: dict, sha: str | None,
-                 reason: str) -> None:
+                 reason: str, manifest: list[str] | None = None) -> None:
     """The stamped baseline carries provenance: the counts, the head sha, the
     moment, and WHY it was stamped — so a hand reset is never needed and a
-    stale baseline can be REPORTED rather than silently trusted."""
+    stale baseline can be REPORTED rather than silently trusted.
+
+    It carries the committed FILE MANIFEST too (sorted relative paths + its
+    sha256), so a later drop can name the file it lost. The `reason` cell is
+    left byte-for-byte as before; the manifest is named by `manifest_sha256`.
+    """
     path = _state_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
     doc = {
@@ -370,6 +493,10 @@ def _write_state(groot: Path, current: dict, sha: str | None,
         "stamped_at": time.time(),
         "reason": reason,
     }
+    if manifest is not None:
+        doc["manifest"] = manifest
+        doc["manifest_sha256"] = hashlib.sha256(
+            "\n".join(manifest).encode("utf-8")).hexdigest()
     path.write_text(json.dumps(doc), encoding="utf-8")
 
 
