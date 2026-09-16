@@ -185,6 +185,9 @@ def test_successful_spawn_stays_0_and_leaves_the_scaffold_live(
     """Success golden: with a working Popen the dispatch exits 0, byte-identical
     exit code to today, and the scaffolded node is left LIVE (not deprecated)."""
     captured = _stub_popen(monkeypatch)
+    # item 2: without this seam the startup grace sleeps the real 20 s
+    # (`_GRACE_SLEEP` polled in 2 s steps); the stub child is alive past it.
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     monkeypatch.setattr(sys, "argv", _argv(project))
 
     code = dispatch.main()
