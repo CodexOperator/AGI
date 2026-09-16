@@ -145,3 +145,7 @@ SL7.110 HARVESTED (a00-d94d023f; proved 0.85/0.9/0.95): cli.py done for tier par
 SM.05 HARVESTED (a00-70702192; kid 1 lean_disproved:70 — the opt-in flag was read after the session env strip; kid 2 proved 0.85 — flag snapshotted at conftest import): ONE autouse fixture stubs rotate._openrouter_get and delenvs the OPENROUTER keys unless AGI_REAL_JUDGE=1; test-only; pin tests 24/1.5s
 
 gen24 harvest: SM.28 orders-channel per-agent keying (479 green), SM.32 town-cell vocab gate+readers claims 3/4 proved 1/2 falsified for next round (ceiling caveat flagged to SM, no rebrief on record), SM.30 suite wall-time tracking+reap seaming (290 green) -- all merged --no-ff, pushed
+
+harvested SM.35 (l4-sl04-residue-ack-and-latch-fixes): proved, items 4/7/8 fixed + item 3 confirmed already-satisfied by SM.243; 933 rotate-neighbourhood tests pass, 0 fail
+
+harvested SM.34 (l4-the-never-lower-baseline-counts-committed-node-files): ACCEPT :75 per SM mur-sl2-34, stamp now counts committed node files + records manifest so a drop names the file; 1015 verification+rotate-neighbourhood tests pass, 0 fail. New stamp gate refuses on untracked MAIN node paths -- flagging to Prime.
