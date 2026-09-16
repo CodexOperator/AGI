@@ -859,3 +859,9 @@ APPLIED (thought-master, owner GO in its pane): every ingestion = doc:<key> (lin
 > Oh no I just wanted to share some info with him that is more private as a test of how disparate masters can accomplish things with their directors without needing to have your involvement for context preservation. When they get done I will share what we were working on. Continue as you were, let everything keep building itself.
 
 RULING taken: a master keeps an owner thread in its own town's nodes (doc/idea/hypothesis under the town goal) and relays to the Prime ONLY what changes a rule or needs a Prime decision — the Prime is not the context-preservation hub; "Pause after we have to talk" was not an order to the Prime. Standing: everything keeps building itself.
+
+### OWNER 2026-09-16 ~07:3xZ — parents and kids ceiling (thought-master pane, relayed by the master-sensei 07:41Z, verbatim)
+
+> Also that standing charter is way stale inform sensei. You can have up to 5 pi parents. And each up to 10 kids depending on total limit available
+
+APPLIED by the master-sensei: `.agi/config.json` spawn.parent_max_kids 5 -> 10 (lands when the suite lock clears; the test pin is a fixture); the TM self-applies its charter's cadence text and relays to director-thought; `dispatch.py --level` is zoom, not kid count; parents-live has no knob — spawn max_live 25 stays the tree-wide bound; the $5.00 floor and "check the KEY not the account" stand.
