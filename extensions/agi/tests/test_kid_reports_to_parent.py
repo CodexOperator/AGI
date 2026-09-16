@@ -462,10 +462,12 @@ def test_harvest_names_a_rebrief_instead_of_an_overage(graph, monkeypatch,
     assert "overage=" not in text, text
 
 
-def test_harvest_is_unchanged_under_2x_or_with_no_record(graph, monkeypatch,
-                                                         capsys):
-    """Under 2x adds nothing; a pre-fix kid with no fields adds nothing --
-    absent is not over-budget and no defect may be fabricated from it."""
+def test_harvest_is_unchanged_under_2x_or_without_a_resolvable_commit(
+        graph, monkeypatch, capsys):
+    """Under 2x adds nothing; a kid with no record and NO resolvable `done`
+    commit adds nothing -- absent is not over-budget and no defect may be
+    fabricated from a missing anchor. (A no-record kid WITH an over-budget
+    commit IS named -- see the two measurement tests below.)"""
     _write_kid_node(graph, "experiment:k-under",
                     production_lines=30, line_ceiling=40)
     under = _harvest_text(graph, monkeypatch, "experiment:k-under")
@@ -478,3 +480,63 @@ def test_harvest_is_unchanged_under_2x_or_with_no_record(graph, monkeypatch,
     capsys.readouterr()
     assert "overage=" not in bare and "rebrief=" not in bare, bare
     assert "kids=[experiment:k-bare]" in bare, bare
+
+
+def _git_done_commit(root: Path, agent_id: str, added: int,
+                     rel: str = "extensions/agi/bin/thing.py") -> None:
+    """A real repo whose newest commit is `<agent_id> done:` adding `added`
+    PRODUCTION lines (the measurement anchor `_kid_measured_lines` greps
+    for), so the MEASUREMENT path is exercised, not the record path."""
+    def g(*a):
+        return subprocess.run(["git", "-C", str(root), *a],
+                              capture_output=True, text=True, check=True)
+    g("init", "-q")
+    g("config", "user.email", "t@example.invalid")
+    g("config", "user.name", "t")
+    (root / "seed.txt").write_text("seed\n")
+    g("add", "-A")
+    g("commit", "-qm", "seed")
+    p = root / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("x = 1\n" * added)
+    g("add", "-A")
+    g("commit", "-qm", f"{agent_id} done: work")
+
+
+def test_harvest_measures_a_kid_that_records_nothing(project, graph,
+                                                     monkeypatch, capsys):
+    """THE FALSIFIER: a pre-fix kid with NO `production_lines` record whose
+    done commit IS over 2x -> the harvest still NAMES the defect. This is
+    the hole the record-only check failed open on."""
+    _git_done_commit(project, "a00-kid-1", 90)
+    _write_kid_node(graph, "experiment:k-bare")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-bare")
+    capsys.readouterr()
+    assert "overage=[experiment:k-bare 90/40 no-rebrief]" in text, text
+    assert "rebrief=" not in text, text
+
+
+def test_measured_lines_beat_a_contradicting_record(project, graph,
+                                                    monkeypatch, capsys):
+    """The record says 30 (under 2x); git says 200 -> the MEASURED value
+    wins and the overage is named, so a stale/understated self-report cannot
+    launder an over-budget kid."""
+    _git_done_commit(project, "a00-kid-1", 200)
+    _write_kid_node(graph, "experiment:k-record",
+                    production_lines=30, line_ceiling=40)
+    text = _harvest_text(graph, monkeypatch, "experiment:k-record")
+    capsys.readouterr()
+    assert "overage=[experiment:k-record 200/40 no-rebrief]" in text, text
+
+
+def test_measured_overage_still_honours_a_rebrief(project, graph,
+                                                  monkeypatch, capsys):
+    """A measured overage WITH a `rebrief_request` is named as rebrief, not
+    as a defect -- measurement changes the count, not the naming rules."""
+    _git_done_commit(project, "a00-kid-1", 120)
+    _write_kid_node(graph, "experiment:k-asked",
+                    rebrief_request="needs 80 lines")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-asked")
+    capsys.readouterr()
+    assert "rebrief=[experiment:k-asked 120/40]" in text, text
+    assert "overage=" not in text, text
