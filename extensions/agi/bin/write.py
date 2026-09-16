@@ -1557,7 +1557,7 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                     fields,
                     max_age_s=_rings._effective_max_age_s(ring),
                     seen=seen, remember=remember)
-            except _rings.LedgerWriteError as le:
+            except (_rings.LedgerWriteError, _rings.LedgerReadError) as le:
                 if _refuse(out_decision, preview,
                            f"{node_type} nodes ({where}): {le}. "
                            f"(rung 2 multisig ring)"):
