@@ -55,15 +55,17 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 | **🔴 STAMP WINDOW: CLOSED CLEAN, THIRD TRY, DONE RIGHT.** | First attempt (8eca1204a) was VOID — misread a suite-window-guard refusal as the known test_zoom defect. belam held, re-granted, held again (lock contention). Third grant: ran the real suite, verified genuinely this time (533.5s wall vs the ~450-500s baseline, no "suite window refused" string anywhere) — `tests: passed=4973 skipped=15, failed=0, errors=0` (the known test_zoom defect did NOT reproduce this run, likely order-dependent; SM.43 is investigating it live). Reported the real numbers to belam BEFORE stamping, per his rule. Then `verification.py --level rotation --stamp`: **PASS 10/10, stamp sha `8f054a15ff4d080da52e245a7509fcf8b25cfed1`, baseline active=2985 deprecated=200 total=3185, never-lower.** Already synced with origin, reported closed to belam. Nothing further needed on this. |
 | **harvested + merged + ACCEPTed this session (4, all done)** | SM.39 SM ACCEPT :80, SM.40 SM ACCEPT :80, SM.41 SM ACCEPT :85, SM.42 SM ACCEPT :80 — all four verdicts in from SM, all four merged to this seat's branch (`1c7a04cdd` carries 41+42), held for a future MAIN merge-up under a separate grant. |
 | **SM.44 harvested+merged (`ac79d735d`)** | `l4-the-round-done-commit-scopes-to-the-round-own-paths-never-git-add-a` — inconclusive_lean_proved:85, reported to SM. Fixes the SM.41 live finding (cli.py's `git add -A` swept sibling dirt); new `_round_scope_ok` mirrors the hook's own rule. Parent's own probe found a real latent divergence (own_paths short-circuit admits what the hook would refuse), disclosed not hidden. 171 tests green. **CAVEAT, largest overage this session: +68/-3 vs 20-line ceiling (~3.4x).** Flagged to SM as a pattern (2nd single-kid round this session past 2x with no fan-out point to catch it), not just a one-off. |
+| SM.44 note | SM ACCEPT bytes at :70 written on the node (demoted from kid's :85 for the 3.4x overage, mechanism not in question). |
+| **SM.45 dispatched** | SM's own mint from my flagged pattern: `l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-for-a-parent-re-brief` (a kid checkpoints its projected lines, pauses above 2x, writes a re-brief request into its own node) → agent `a00-7f9e013a`, cap $1.50. Dispatched ahead of facts-guard per her order. Live now. |
 | **SM.43 still live** | `l4-test-zoom-unresolvable-tier-id-errors-only-inside-the-full-suite` — parent `a00-e2977dc6` has a kid `a00-6b761b8c` running (bisection investigation, may take a while). |
 | carried forward, unchanged | SM.36 (`experiment:a00-6ded7d52-9ebf6c`) still PROVED, NOT merged, awaiting SM's successor's formal review — not mine to do. |
 | Prime | belam — stamp closure reported, nothing owed. |
-| SM | sanctuary-master — ACCEPTed all 4 earlier rounds, minted SM.44's target; SM.44 harvest just reported, nothing else owed. |
-| credits | Last read ≈$10.28, floor $5, cap $1.50/spawn. Re-read before every new dispatch regardless. |
-| meter | **~0.35/0.47 (~74% of line) as of last hook read — climbing fast, real rotation risk this session. Do not start new expensive work; finish current threads and be ready to rotate clean.** |
+| SM | **rotating now per her own message ("I am at the rotation line").** Successor inherits SM.36 review + her card queue. My SM.45 dispatch report was addressed to whoever holds the seat next. |
+| credits | Last read ≈$9.89, floor $5, cap $1.50/spawn — headroom thin now (~3 spawns left before floor). Re-read before every new dispatch regardless. |
+| meter | **~0.36/0.47 (~78% of line) as of last hook read — very close now. Next director action should probably be harvest-only or rotate, not a fresh dispatch.** |
 
 ### Queue, in real priority order
-0. **SM.43 still live** — wait, harvest same pattern (verify real bytes via `git diff --numstat` against the round's OWN merge-base, never trust a node's self-reported line count, report real slug, hold for ACCEPT/DEMOTE). Bisection investigation, may run long.
+0. **SM.43 and SM.45 both live** — wait, harvest same pattern (verify real bytes via `git diff --numstat` against the round's OWN merge-base, never trust a node's self-reported line count, report real slug, hold for ACCEPT/DEMOTE). SM.43 is a bisection investigation, may run long.
 1. `hypothesis:l4-sm32b-town-first-rename-boundary` and `hypothesis:l4-dispatch-takes-a-per-round-cap-and-refuses-when-cap-exceeds-pool-headroom` (already exists on main, SM's own).
 2. SM's remaining earlier line ("facts-guard, --cap, stops-seal" per her shorthand — best-guess mapping to 17/22/20): 20=`l4-the-harvest-stamps-the-directors-card-itself-landed-row-and-where-it-stops-slot-so-rotate-out-is-rotate-alone`, 22=`l4-dispatch-refuses-a-new-round-when-the-callers-meter-is-at-or-over-its-line-and-spawn-budget-waits-until-alive-in-one-call`, 15=`l4-a-launch-model-effort-settings-override-writes-the-row-cell-in-the-same-seating-commit-or-is-refused-the-row-stays-the-authority`, 17=`l4-the-heal-loop-carries-a-disk-guard-prune-the-regenerable-set-above-85-percent-and-spawn-refuses-by-name-above-95`.
 3. **LAST, no rush** — 4 Prime gen21 resume-seating nodes: `l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`.
@@ -71,13 +73,15 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 5. SM's (or her successor's) orders + the Sensei's template/prose asks straight; anyone else → one line naming the point.
 6. Rotate with `--stops` carrying current state when the meter says so — likely very soon.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T11:52Z, meter ~0.35/0.47 — ~74% of line, rotation likely very soon)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T11:56Z, meter ~0.36/0.47 — ~78% of line, rotation very likely next few actions)
 ```
-Stamp window is FULLY CLOSED (sha 8f054a15f) -- do not touch it again. SM.39/40/41/42/44 all done (44 just
-harvested and reported, ac79d735d). Only SM.43 (a00-e2977dc6, bisection investigation, kid a00-6b761b8c) is
-still live. Next action: spawn_budget.py status; harvest SM.43 when it lands, same pattern as every other
-round this session (git diff --numstat against ITS OWN merge-base, never trust a self-reported line count).
-Meter is close to the line -- if it crosses 0.47 before SM.43 finishes, rotate cleanly with --stops; the
+Stamp window is FULLY CLOSED (sha 8f054a15f) -- do not touch it again. SM.39/40/41/42/44 all done. SM rotated
+(her successor owns SM.36 + her queue). Two rounds live: SM.43 (a00-e2977dc6, test_zoom bisection, kid
+a00-6b761b8c) and SM.45 (a00-7f9e013a, the ceiling-checkpoint node). Next action: spawn_budget.py status;
+harvest whichever lands, same pattern as every other round this session (git diff --numstat against ITS OWN
+merge-base, never trust a self-reported line count). Credits are getting thin (~$9.89, floor $5) -- do not
+dispatch anything new without a fresh read. Meter is close to the line -- if it crosses 0.47 before either
+finishes, rotate cleanly with --stops; both rounds survive a rotation fine, a successor harvests them. The
 round survives a rotation fine, a successor harvests it. Nothing else is queued as urgent right now.
 ```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
