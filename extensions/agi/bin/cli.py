@@ -1672,6 +1672,55 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                   file=sys.stderr)
 
 
+def _round_scope_ok(rel: str, agent_id: str, own_paths: set) -> bool:
+    """Is `rel` a path this round's `done` commit may add?
+
+    hypothesis:l4-the-round-done-commit-scopes-to-the-round-own-paths-never-
+    git-add-a -- the round-done commit names its own paths instead of `git
+    add -A`, and the rule it names them by is the SAME one the agent-git
+    pre-commit hook already enforces on a --branch kid (hooks/agent-git/
+    pre-commit): everything the round touched is its own EXCEPT
+    `.agi/config.json`, `.agi/sessions/quorum/*`, and a node file whose
+    basename does not carry this round's agent id. `own_paths` holds the
+    round's explicit node files (`--node-id` / `--owns`, resolved), so a
+    round whose node filename is a human slug still commits its own node.
+
+    Measured on SM.41: `add -A` swept a SIBLING kid's dirty node into the
+    round commit, the hook refused it by name, and `done` failed.
+    """
+    p = rel.replace(os.sep, "/")
+    if p in own_paths:
+        return True
+    if p.endswith("/"):
+        # An untracked DIRECTORY git collapsed (only reachable without
+        # `-uall`); its contents cannot be judged from here, so never sweep
+        # it -- fail-closed, the quorum-card hazard lives in this shape.
+        return False
+    if p == ".agi/config.json":
+        return False
+    if p.startswith(".agi/sessions/quorum/"):
+        return False
+    if p.startswith(".agi/nodes/"):
+        return bool(agent_id) and agent_id in p.rsplit("/", 1)[-1]
+    return True
+
+
+def _round_own_node_paths(root: Path, checkout_root: Path,
+                          node_id: str | None, owns: list | None) -> set:
+    """The round's own node files, relative to the checkout toplevel."""
+    out = set()
+    for nid in [node_id, *(owns or [])]:
+        if not nid:
+            continue
+        nf = _find_node_file(root, nid)
+        if nf and nf.exists():
+            try:
+                out.add(Path(os.path.relpath(nf, checkout_root)).as_posix())
+            except ValueError:
+                pass
+    return out
+
+
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
@@ -1717,16 +1766,35 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
         return None
 
     status = subprocess.run(
-        ["git", "-C", str(checkout), "status", "--porcelain"],
+        ["git", "-C", str(checkout_root), "status", "--porcelain", "-z",
+         "--no-renames", "-uall"],
         capture_output=True, text=True)
     if status.returncode != 0 or not status.stdout.strip():
         return None   # clean worktree -> nothing to commit
+
+    # Scope the add the way the pre-commit hook scopes a --branch kid: only
+    # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
+    # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
+    # path is named on stderr and left where it is.
+    own = _round_own_node_paths(root, checkout_root, node_id, owns)
+    in_scope, foreign = [], []
+    for rec in status.stdout.split("\0"):
+        if len(rec) < 4:
+            continue
+        p = rec[3:]
+        (in_scope if _round_scope_ok(p, agent_id, own) else foreign).append(p)
+    if foreign:
+        print(f"leaving {len(foreign)} foreign path(s) uncommitted in "
+              f"{checkout_root}: {', '.join(foreign)}", file=sys.stderr)
+    if not in_scope:
+        return None   # nothing of the round's own -> not our commit
 
     # `<agent_id> done: <node_id or owns[0]> verdict=<verdict>`
     ref = node_id or (owns[0] if owns else "node")
     subject = f"{agent_id} done: {ref} verdict={verdict}"
 
-    add = subprocess.run(["git", "-C", str(checkout), "add", "-A"],
+    add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
+                          *in_scope],
                          capture_output=True, text=True)
     if add.returncode != 0:
         print(f"ERR: worktree commit add failed in {checkout_root}: "
@@ -1735,7 +1803,7 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
         return None
 
     commit = subprocess.run(
-        ["git", "-C", str(checkout),
+        ["git", "-C", str(checkout_root),
          "-c", "user.email=agi@local", "-c", "user.name=agi",
          "commit", "-qm", subject],
         capture_output=True, text=True)
