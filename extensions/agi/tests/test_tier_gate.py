@@ -215,7 +215,11 @@ def _plant_in_tree(tier, status="running"):
         # (measured: 13 of 20 sends). The child then exits rc=1 and the line is
         # lost. os.write is a bare syscall: no Python buffer, no lock, safe to
         # call from the handler.
-        os.write(1, f"cleaned {marker}\n".encode())
+        try:
+            os.write(1, f"cleaned {marker}\n".encode())
+        except OSError:
+            pass  # a closed stdout must not turn SIGTERM into a survived
+            # write error; the re-raise below stays UNCONDITIONAL.
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         os.kill(os.getpid(), signal.SIGTERM)
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -1274,3 +1278,17 @@ def test_decision_record_roots_include_own_shared_and_every_worktree(
     # dedup: the invoking-tree sessions root appears exactly once.
     assert len(roots) == len(set(roots))
     assert roots[0] == str((fake / ".agi" / "sessions").resolve())
+
+def test_sigterm_emission_tolerates_a_closed_stdout():
+    """A closed stdout must not turn SIGTERM into a survived write error: the
+    handler's `os.write` is wrapped in `try/except OSError` while the
+    re-raise stays UNCONDITIONAL."""
+    src = Path(__file__).read_text(encoding="utf-8")
+    guarded = ('try:\n'
+               '            os.write(1, f"cleaned {marker}\\n".encode())\n'
+               '        except OSError:')
+    assert guarded in src, "the os.write is not wrapped in try/except OSError"
+    after = src.split(guarded, 1)[1]
+    body = after.split("\ndef ", 1)[0]
+    assert "os.kill(os.getpid(), signal.SIGTERM)" in body, \
+        "the SIGTERM re-raise must stay unconditional after the guarded write"
