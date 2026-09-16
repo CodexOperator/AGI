@@ -502,7 +502,14 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     is this parent (dispatch.py stamps it at spawn), in the same iteration
     manifest. Status is the terminal signal: `done` accepted, `failed`/
     `hung-healed` failed, everything else demoted. Branch tip via
-    `_branch_tip`."""
+    `_branch_tip`.
+
+    conjunct (4) of l4-a-kid-checkpoints-...-re-brief: the line also names
+    each owned kid's MEASURED overage against its ceiling -- measured from
+    the kid's own `done` commit, because a kid that records nothing must
+    still be measured (the record-only check failed open: no record, no
+    defect, clean harvest).
+    """
     kids = [a for a in manifest.get("agents", []) or []
             if a.get("spawned_by_agent") == agent_id]
     accepted = demoted = failed = 0
@@ -518,10 +525,127 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
             demoted += 1
     branch = row.get("branch") or ""
     tip = _branch_tip(root, branch)
+    notes = _kid_budget_notes(root, kids)
+    tail = (" " + " ".join(notes)) if notes else ""
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
-            f"branch={branch or '-'} tip={tip or '-'}")
+            f"branch={branch or '-'} tip={tip or '-'}{tail}")
+
+
+def _budget_num(value):
+    """A frontmatter count as a number, or None when absent/unreadable.
+
+    `bool` is refused (it is an int subclass and never a budget), and a
+    non-numeric value is None so a typo never fabricates a defect.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value) if value == int(value) else value
+    return None
+
+
+#: What the git measurement counts as a production file: source suffixes,
+#: never a `tests/` path and never a node/markdown file.
+_SOURCE_SUFFIXES = (".py", ".sh", ".bash", ".ts", ".tsx", ".js",
+                    ".rs", ".go", ".rb", ".c", ".h", ".cpp", ".java")
+
+
+def _kid_measured_lines(root, agent_id: str):
+    """Added PRODUCTION lines in the kid's own `<id> done:` commit, or None.
+
+    conjunct (4): the harvest measures the kid from git instead of trusting
+    its self-report. Read-only `git log` / `git show --numstat` from the MAIN
+    checkout, wrapped exactly like `_branch_tip`. None means no anchor
+    resolved -- never fabricate a measurement the repo cannot support.
+    """
+    if not agent_id:
+        return None
+    main = locations.git_common_root(root) or root
+
+    def g(*a):
+        try:
+            r = subprocess.run(["git", "-C", str(main), *a],
+                               capture_output=True, text=True, timeout=30)
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+        return r.stdout if r.returncode == 0 else ""
+
+    shas = g("log", "--all", "--format=%H",
+             "--grep", f"^{re.escape(agent_id)} done:").split()
+    if not shas:
+        return None
+    total = 0
+    for line in g("show", "--numstat", "--format=", shas[0]).splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3 or not parts[0].isdigit():
+            continue
+        path = parts[2]
+        if "tests" in path.split("/") or not path.endswith(_SOURCE_SUFFIXES):
+            continue
+        total += int(parts[0])
+    return total
+
+
+def _kid_line_ceiling(root, fm: dict) -> int:
+    """The ceiling the 2x checkpoint is taken against: the node's own
+    `line_ceiling` when present and > 0, else the project config's
+    `spawn.production_line_ceiling` default (`spawn_budget` owns the number;
+    never a second hardcoded 40)."""
+    ceiling = _budget_num(fm.get("line_ceiling"))
+    if ceiling is not None and ceiling > 0:
+        return int(ceiling)
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError):
+        cfg = {}
+    return spawn_budget.production_line_ceiling(cfg)
+
+
+def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
+    """conjunct (4): name each owned kid's overage, or nothing.
+
+    The kid's lines are MEASURED from its `done` commit; only when no anchor
+    resolves does the node's own `production_lines` record stand in. Over 2x
+    with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
+    `rebrief_request` present -> `rebrief=[id N/C]`, PLUS `unanswered=[id]`
+    when the node carries no `rebrief_answer` (the overage was disclosed, the
+    answer is outstanding -- conjunct (3)); at or under 2x -> nothing. A
+    measured-zero kid with no commit at all still adds nothing.
+    """
+    notes: list[str] = []
+    for kid in kids:
+        nid = str(kid.get("node_id") or "-")
+        if nid == "-":
+            continue
+        fm: dict = {}
+        nf = _find_node_file(root, nid)
+        if nf is not None:
+            try:
+                fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+            except OSError:
+                fm = {}
+            if not isinstance(fm, dict):
+                fm = {}
+        measured = _kid_measured_lines(root, str(kid.get("id") or ""))
+        lines = measured if measured is not None \
+            else _budget_num(fm.get("production_lines"))
+        ceiling = _kid_line_ceiling(root, fm)
+        if lines is None or ceiling <= 0:
+            continue
+        if fm.get("rebrief_request"):
+            notes.append(f"rebrief=[{nid} {lines}/{ceiling}]")
+            # conjunct (3): a re-brief the parent never answered is itself a
+            # named defect, kept alongside the disclosure token.
+            if not fm.get("rebrief_answer"):
+                notes.append(f"unanswered=[{nid}]")
+        elif lines > 2 * ceiling:
+            notes.append(f"overage=[{nid} {lines}/{ceiling} no-rebrief]")
+    return notes
 
 
 def _session_manifest_holders(root: Path, iter_n) -> list[Path]:
