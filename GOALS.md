@@ -9814,6 +9814,8 @@ SM.55 harvested + merged (facts-guard): 1 kid as briefed, proved, parent ACCEPT 
 
 SM.56 harvested + merged (--cap): 1 kid as briefed, proved, parent ACCEPT. dispatch.py --cap + provisioning.cap_headroom, 40/40 lines exactly at ceiling. 3 real-binary adversarial probes all hold; two disclosed correctly-justified deviations from literal claim text; one latent multi-slot pricing gap named (unreachable today). 352/352 tests independently re-verified (5 pre-existing skips).
 
+SM.57 landed: rotate.py stops-slot seal (l4-rotate-seals-the-stops-slot-on-the-bare-path). Kid1 built 4 clauses, parent falsified clause (b) pre-check via a negative probe (refused a missing slot instead of creating it, redundant with the delegate-side writer), kid2 deleted the 7-line pre-check (net -5 lines), parent re-verified, verdict proved. Rotate neighbourhood 538 passed/4 skipped post-merge.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
