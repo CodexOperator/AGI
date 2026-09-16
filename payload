@@ -1848,7 +1848,12 @@ def _orders_section() -> str | None:
     none of them has to learn a new parameter to carry the director's word.
     """
     text = os.environ.get("AGI_ORDERS_TEXT")
-    if not text:
+    # goal:g15.25 SM.28 -- the presence gate is `text.strip()`, not truthiness:
+    # a WHITESPACE-ONLY file is ABSENT (measured pre-fix: `"   \n\t\n"`
+    # rendered `## DISPATCH ORDERS` with a blank body and was copied and
+    # recorded). A non-empty file is still rendered VERBATIM -- no strip on
+    # render, so leading/trailing bytes the sender wrote reach the parent.
+    if text is None or not text.strip():
         return None
     sender = (os.environ.get("AGI_ORDERS_FROM")
               or os.environ.get("AGI_POST") or "unspecified")
@@ -1890,6 +1895,21 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         raise BriefError(
             f"unknown profile {profile!r}; known: {', '.join(PROFILES)}"
         )
+
+    # goal:g15.25 SM.28 -- ONE exit for every route. The orders section rides
+    # the LAST segment of any route whose DISPATCH accepts `--orders` -- the
+    # parent brief, the advisor brief a tier-3 parent resolves to, and the
+    # survival profile, which previously returned before the parent branch and
+    # dropped the section while dispatch.py printed `orders: N lines` and
+    # recorded {from,sha256,bytes,path} on the manifest. A KID never renders
+    # it: a kid's orders ARE the carry-forward segment handed in by the parent
+    # (test_orders_never_reach_a_kid_brief).
+    def _finish(body: list[str], head_tier: str) -> list[str]:
+        if tier != "kid":
+            _o = _orders_section()
+            if _o:
+                body = [*body, _o]
+        return _prepend_head(body, tier=head_tier)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical
@@ -1915,17 +1935,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # injected prose.
     if profile in ("survival", "ultimate_survival"):
         segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
-        return _prepend_head(segs, tier=tier)
+        return _finish(segs, tier)
 
     # Director and prime_director get the constitution head prepended
     if tier == "director":
         segs = _director(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py))
-        return _prepend_head(segs, tier=tier)
+        return _finish(segs, tier)
 
     if tier == "prime_director":
         segs = _prime_director(agent_id=agent_id, iter_n=iter_n,
                                cli_py=str(cli_py))
-        return _prepend_head(segs, tier=tier)
+        return _finish(segs, tier)
 
     if tier == "advisor":
         # The advisor reads at the tier-3 parent's level — same prayers,
@@ -1940,14 +1960,14 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         segs = _advisor(agent_id=agent_id, iter_n=iter_n, target=target,
                         dispatch_py=dispatch_py, goal=goal_v,
                         session_dir=session_dir)
-        return _prepend_head(segs, tier=_ADVISOR_HEAD_TIER)
+        return _finish(segs, _ADVISOR_HEAD_TIER)
 
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
         # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
         segs = _liaison(agent_id=agent_id)
-        return _prepend_head(segs, tier=_LIAISON_HEAD_TIER)
+        return _finish(segs, _LIAISON_HEAD_TIER)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
@@ -1966,19 +1986,18 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        source_root=str(source_root) if source_root else None,
                        project_root=project_root)
         segs = [s for s in segs if s is not None]
-        # goal:g15.25 SM.26 -- the director's dispatch-time word rides the
-        # parent brief as its LAST section, one heading, verbatim. Absent or
-        # empty orders render nothing (byte-identical brief).
-        _orders = _orders_section()
-        if _orders:
-            segs.append(_orders)
-        return _prepend_head(segs, tier=tier)
+        # goal:g15.25 SM.26/SM.28 -- the director's dispatch-time word rides
+        # the parent brief as its LAST section, one heading, verbatim; the
+        # single `_finish` exit is what makes the dry-run line, the manifest
+        # record and the brief agree on EVERY route, including the survival
+        # profile and the advisor brief.
+        return _finish(segs, tier)
 
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
                 addendum=addendum)
-    return _prepend_head(segs, tier=tier)
+    return _finish(segs, tier)
 
 
 def closing_line(tier: str, agent_id: str, iter_n: int,
