@@ -576,3 +576,118 @@ def test_fallback_pids_reads_dict_chain_and_bare_ints():
     # no s12 / no chain -> []
     assert sensei._fallback_pids({}) == []
     assert sensei._fallback_pids({"s12_self_reap": {"chain": []}}) == []
+
+
+# ── hypothesis:l4-predecessor-transcript-shares-the-record-precedence-chain-
+# ── and-the-join-absent-shape-resolves: the PREDECESSOR side resolves through
+# ── the SAME precedence chain `_record_transcript` applies, and the two
+# ── producer shapes rotate._seating_record_merge_handover leaves behind
+# ── (handover PRESENT / join ABSENT / top-level transcript_path set; and a
+# ── first-SEATING record whose generation rides top-level `gen_after`) are
+# ── no longer silent misses. FALSIFIER before the fix: `_resolve_predecessor_
+# ── transcript` reads only `handover.join.transcript`, so both shapes returned
+# ── `(None, "no predecessor transcript resolved")` and the audit exited 2.
+
+def _write_root_join_absent(tmp_path: Path, shape: str):
+    """`_write_root` with the PREV (gen 14 joining) record written in a shape
+    that carries NO `handover.join.transcript`:
+      - "near_miss": `handover` PRESENT (seating_row_commit) but NO `join`,
+        plus the top-level `transcript_path` — the shape
+        `rotate._seating_record_merge_handover` builds.
+      - "first_seating": the prime first-SEATING record shape
+        (`rotate._seating_record`): top-level `gen_after` (NO
+        `observations.b_generation`) + top-level `transcript_path`.
+    Returns `(graph, tr, prev_path)`."""
+    graph, tr = _write_root(tmp_path, None)
+    prev_path = graph / "sessions" / "rotations" / f"{SEAT}.{PREV_STAMP}.json"
+    if shape == "near_miss":
+        prev = {"seat": SEAT, "recorded_at": "2026-09-11T10:00:00Z",
+                "observations": {"b_generation": {"before": 13, "after": 14}},
+                "handover": {"seating_row_commit": "abc123"},
+                "transcript_path": str(tr)}
+    else:
+        prev = {"rotation": "seating", "seat": SEAT,
+                "recorded_at": "2026-09-11T10:00:00Z", "trigger":
+                "first-seating", "gen_before": 0, "gen_after": GEN,
+                "transcript_path": str(tr)}
+    prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    return graph, tr, prev_path
+
+
+@pytest.mark.parametrize("shape", ["near_miss", "first_seating"])
+def test_predecessor_resolves_join_absent_shapes(tmp_path, shape):
+    """The near-miss shape (handover present, join absent, top-level path) and
+    the first-seating shape (top-level `gen_after`) BOTH resolve to the
+    predecessor's transcript, and the printed `source` names the spelling the
+    chain actually took — never a `handover.join.transcript` lie."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, shape)
+    p, source = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == tr, f"{shape}: resolved {p}, expected {tr}"
+    assert source == f"previous record gen_after=={GEN} transcript_path"
+
+
+def test_rotate_out_audit_resolves_near_miss_and_classifies(tmp_path):
+    """End-to-end: the audit exits 0 and classifies the predecessor's window
+    when the previous record carries the join-absent near-miss shape. Before
+    the fix this exited 2 ("no predecessor transcript resolved")."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, "near_miss")
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert str(window["log_path"]) == str(tr)
+    assert window["source"] == f"previous record gen_after=={GEN} transcript_path"
+    assert counts == {"a": 1, "b": 1, "c": 1, "d": 2, "s": 0}
+
+
+def test_predecessor_precedence_join_wins_over_top_level(tmp_path):
+    """The chain is SHARED with `_record_transcript`: when the previous record
+    carries BOTH the join spelling and the top-level path, the JOIN wins — the
+    fix must not turn the top-level fallback into an override."""
+    graph, tr, prev_path = _write_root_join_absent(tmp_path, "near_miss")
+    join_tr = tmp_path / "join-wins.jsonl"
+    join_tr.write_text(tr.read_text(encoding="utf-8"), encoding="utf-8")
+    prev = json.loads(prev_path.read_text(encoding="utf-8"))
+    prev["handover"]["join"] = {"transcript": str(join_tr)}
+    prev_path.write_text(json.dumps(prev), encoding="utf-8")
+    p, source = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == join_tr
+    assert source == f"previous record gen_after=={GEN} handover.join.transcript"
+
+
+def test_predecessor_never_resolves_the_out_records_own_transcript(tmp_path):
+    """The OUT record (b_generation.before==GEN) carries a top-level
+    `transcript_path` in the near-miss fixture-adjacent shape; it must NOT be
+    the answer — resolution step (2) is the record that brought gen N IN."""
+    graph, tr, _ = _write_root_join_absent(tmp_path, "near_miss")
+    out_path = graph / "sessions" / "rotations" / f"{SEAT}.{OUT_STAMP}.json"
+    out = json.loads(out_path.read_text(encoding="utf-8"))
+    decoy = tmp_path / "out-own.jsonl"
+    decoy.write_text(tr.read_text(encoding="utf-8"), encoding="utf-8")
+    out["transcript_path"] = str(decoy)
+    out_path.write_text(json.dumps(out), encoding="utf-8")
+    p, _ = sensei._resolve_predecessor_transcript(
+        graph, SEAT, GEN, sensei._seat_rotation_records(graph, SEAT), None)
+    assert p == tr, f"resolved the OUT record's own transcript: {p}"
+
+
+def test_transcript_spelling_names_each_link():
+    """`_transcript_spelling` names the link `_record_transcript` took, in the
+    same order, and '' when none names a transcript."""
+    assert sensei._transcript_spelling({}) == ""
+    assert sensei._transcript_spelling(
+        {"session_log": "/a.jsonl", "transcript_path": "/b.jsonl"}) == \
+        "session_log"
+    assert sensei._transcript_spelling(
+        {"handover": {"session_log": "/a.jsonl"},
+         "transcript_path": "/b.jsonl"}) == "handover.session_log"
+    assert sensei._transcript_spelling(
+        {"handover": {"join": {"transcript": "/j.jsonl"}},
+         "transcript_path": "/b.jsonl"}) == "handover.join.transcript"
+    assert sensei._transcript_spelling({"transcript_path": "/b.jsonl"}) == \
+        "transcript_path"
+    assert sensei._transcript_spelling(
+        {"observations": {"c_readback_log_path": "/c.log"}}) == ""
+    assert sensei._transcript_spelling(
+        {"observations": {"c_readback_log_path": "/c.jsonl"}}) == \
+        "observations.c_readback_log_path"
