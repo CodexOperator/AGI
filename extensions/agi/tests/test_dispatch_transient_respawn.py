@@ -212,3 +212,28 @@ def test_the_classifier_reads_only_whole_signature_logs(tmp_path):
     assert dispatch._startup_death_is_transient(empty) is None
     missing = tmp_path / "d.log"
     assert dispatch._startup_death_is_transient(missing) is None
+
+
+def _deprecated_files(root: Path):
+    dep = root / ".agi" / "nodes" / "deprecated"
+    return [f for d in dep.glob("*") if d.is_dir() for f in d.glob("*.md")]
+
+
+def test_transient_exhaustion_is_bounded_at_three_and_deprecates(
+        project, monkeypatch, capsys):
+    """item 3 + item 1: a child that ALWAYS dies transiently is re-spawned
+    exactly `_GRACE_MAX_ATTEMPTS` (3) times and no more, then dispatch exits 5
+    -- and the orphan scaffold that leaves behind (no agent record ever
+    registered) is deprecated the same run, like every other seam."""
+    spawned = _fake_spawn(monkeypatch, [
+        {"bytes": CATALOGUE + DEAD_520, "rc": 1, "left": 0},
+    ])
+    monkeypatch.setattr(dispatch, "_GRACE_BACKOFF_S", (0, 0))
+    monkeypatch.setattr(sys, "argv", _argv(project))
+
+    code = dispatch.main()
+    assert code == 5, f"exhaustion must return rc 5, got {code}"
+    assert len(spawned) == dispatch._GRACE_MAX_ATTEMPTS == 3, (
+        f"expected exactly 3 spawns, got {len(spawned)}")
+    assert _deprecated_files(project), (
+        "an exhausted transient death must deprecate its orphan scaffold")
