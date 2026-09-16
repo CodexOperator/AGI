@@ -61,11 +61,11 @@ DONE gen 3
    hypothesis:l4-a-post-branch-is-created-with-its-origin-upstream-set-after-the-first-push                 25 lines 1 kid
   infra to the lanes: pi kid model tilde id (Prime, config) · merge-up-review manifest timeout_s (master-sensei, template)
 DIRECTOR LINE: SM.43 + SM.45 live → facts-guard → --cap → stops-seal → the 3 new mints → 20/22/15/17 → the four resume-seating nodes
-NEXT FOR ME: harvest reports by slug → review by name (mur route = workflow.py run merge-up-review --harness pi ONLY after the manifest timeout lands; until then by hand on a throwaway tree, tests per file under env -u TMUX -u TMUX_PANE) · TM.06 co-review when it lands · credits before each dispatch (9.81 at 11:5xZ)
+NEXT FOR ME: harvest reports by slug → review by name (mur route OPEN again: workflow.py run merge-up-review --harness pi --args '{...,"model":"deepseek/deepseek-v4.1-flash"}' (manifest timeout_s 1800/stage landed b31eaef3c; the model override is REQUIRED until the Prime fixes harnesses.pi.models.kid); by-hand fallback = throwaway tree, tests per file under env -u TMUX -u TMUX_PANE) · TM.06 co-review when it lands · credits before each dispatch (9.81 at 11:5xZ)
 ```
 
 ## §5 BANKED
-- ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; the pi mur route is dead until (a) `harnesses.pi.models.kid` is a real id (Prime, config) and (b) merge-up-review.json carries a timeout_s (master-sensei, template). Both sent.
+- ultracode row-cell dropped for master/director rows at 68dd17926 → no Workflow tool; the pi mur route needs args.model until `harnesses.pi.models.kid` is a real id (Prime, config; banked by master-sensei 12:13Z); the manifest timeout_s 1800 landed b31eaef3c.
 - Live model claude-opus-5 (owner in-pane, gen 2) vs row sonnet-5 — Prime knows; successor spawns from the row.
 - Per-MAIN-post worktrees rejected (F14 class) — stands.
 
