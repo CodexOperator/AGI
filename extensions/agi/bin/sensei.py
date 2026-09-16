@@ -2010,12 +2010,21 @@ def _resolve_predecessor_transcript(
     return None, "no predecessor transcript resolved"
 
 
-def _notified_outputs(path: Path) -> dict:
-    """{<output-file>: <task-id>} — every notification's harvest file."""
-    txt = Path(path).read_text(encoding="utf-8", errors="replace")
-    ids = re.findall(r"<task-id>([^<]+)</task-id>[\s\S]{0,400}?"
-                     r"<output-file>([^<]+)</output-file>", txt)
-    return {p.strip(): t.strip() for t, p in ids}
+def _notified_outputs(path: Path) -> list:
+    """[(line_index, <output-file>, <task-id>)] in file order: the harvest is
+    scoped to the notification IMMEDIATELY preceding the read (probe P2)."""
+    out = []
+    for i, line in enumerate(Path(path).read_text(
+            encoding="utf-8", errors="replace").splitlines()):
+        for m in re.finditer(r"<task-id>([^<]+)</task-id>[\s\S]{0,400}?"
+                             r"<output-file>([^<]+)</output-file>", line):
+            out.append((i, m.group(2).strip(), m.group(1).strip()))
+    return out
+
+
+#: a bare read (cat/head/tail/sed/less/more of a path-like operand) is a poll.
+_READ_PATHS = re.compile(
+    r"\b(cat|head|tail|less|more|sed)\b[^|;&]*?[\s=][\w./~-]*[/.][\w./-]*")
 
 
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
@@ -2111,14 +2120,23 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
         return 2, [], {}, {}
 
     start_idx, start_ts = _last_real_input(log_path, not_after_ts=until_ts)
-    outs = _notified_outputs(log_path)
+    notices = _notified_outputs(log_path)
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
-    for tool, inp in _tool_uses_after(log_path, start_idx, until_ts=until_ts):
+    for idx, tool, inp, ts in _iter_assistant_tool_uses(log_path):
+        if idx < start_idx or (until_ts is not None and ts is not None
+                               and _normts(ts) > _normts(until_ts)):
+            continue
         cat, label, cmd = classify_tool_use(
             tool, inp, seat, entries, facts_list, hand_paths)
-        tid = next((t for p, t in outs.items() if p and p in cmd), None)
-        cat, label = ("d", f"harvest of {tid}") if tid else (cat, label)
+        # P2: the harvest is the notification IMMEDIATELY preceding this read.
+        prev = [n for n in notices if n[0] < idx][-1:]
+        tid = prev[0][2] if prev and prev[0][1] in cmd else None
+        if tid:
+            cat, label = "d", f"harvest of {tid}"
+        elif (cat == "d" and label is None and _READ_PATHS.search(cmd)
+              and not re.search(r"\bsed\b[^|;&]*\s-i", cmd)):
+            cat = "b"   # P3: a bare read of an unnotified path is a poll (b)
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "pre": bool(tid) or label == "send=output"})
