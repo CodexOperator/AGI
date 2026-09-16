@@ -505,8 +505,10 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     `_branch_tip`.
 
     conjunct (4) of l4-a-kid-checkpoints-...-re-brief: the line also names
-    each owned kid's measured overage against the ceiling it recorded. Pure
-    read of the node files -- the parent already computes each kid's diff.
+    each owned kid's MEASURED overage against its ceiling -- measured from
+    the kid's own `done` commit, because a kid that records nothing must
+    still be measured (the record-only check failed open: no record, no
+    defect, clean harvest).
     """
     kids = [a for a in manifest.get("agents", []) or []
             if a.get("spawned_by_agent") == agent_id]
@@ -523,7 +525,7 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
             demoted += 1
     branch = row.get("branch") or ""
     tip = _branch_tip(root, branch)
-    notes = _kid_budget_notes(root, node_ids)
+    notes = _kid_budget_notes(root, kids)
     tail = (" " + " ".join(notes)) if notes else ""
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
@@ -546,29 +548,92 @@ def _budget_num(value):
     return None
 
 
-def _kid_budget_notes(root: Path, node_ids: list[str]) -> list[str]:
-    """conjunct (4): name each owned kid's recorded overage, or nothing.
+#: What the git measurement counts as a production file: source suffixes,
+#: never a `tests/` path and never a node/markdown file.
+_SOURCE_SUFFIXES = (".py", ".sh", ".bash", ".ts", ".tsx", ".js",
+                    ".rs", ".go", ".rb", ".c", ".h", ".cpp", ".java")
 
-    Over 2x with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
-    `rebrief_request` present -> `rebrief=[id N/C]`; at or under 2x, or no
-    record at all (a pre-fix kid), -> nothing. Absent is never over-budget.
+
+def _kid_measured_lines(root, agent_id: str):
+    """Added PRODUCTION lines in the kid's own `<id> done:` commit, or None.
+
+    conjunct (4): the harvest measures the kid from git instead of trusting
+    its self-report. Read-only `git log` / `git show --numstat` from the MAIN
+    checkout, wrapped exactly like `_branch_tip`. None means no anchor
+    resolved -- never fabricate a measurement the repo cannot support.
+    """
+    if not agent_id:
+        return None
+    main = locations.git_common_root(root) or root
+
+    def g(*a):
+        try:
+            r = subprocess.run(["git", "-C", str(main), *a],
+                               capture_output=True, text=True, timeout=30)
+        except (subprocess.TimeoutExpired, OSError):
+            return ""
+        return r.stdout if r.returncode == 0 else ""
+
+    shas = g("log", "--all", "--format=%H",
+             "--grep", f"^{re.escape(agent_id)} done:").split()
+    if not shas:
+        return None
+    total = 0
+    for line in g("show", "--numstat", "--format=", shas[0]).splitlines():
+        parts = line.split("\t")
+        if len(parts) < 3 or not parts[0].isdigit():
+            continue
+        path = parts[2]
+        if "tests" in path.split("/") or not path.endswith(_SOURCE_SUFFIXES):
+            continue
+        total += int(parts[0])
+    return total
+
+
+def _kid_line_ceiling(root, fm: dict) -> int:
+    """The ceiling the 2x checkpoint is taken against: the node's own
+    `line_ceiling` when present and > 0, else the project config's
+    `spawn.production_line_ceiling` default (`spawn_budget` owns the number;
+    never a second hardcoded 40)."""
+    ceiling = _budget_num(fm.get("line_ceiling"))
+    if ceiling is not None and ceiling > 0:
+        return int(ceiling)
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(
+            encoding="utf-8"))
+    except (OSError, ValueError):
+        cfg = {}
+    return spawn_budget.production_line_ceiling(cfg)
+
+
+def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
+    """conjunct (4): name each owned kid's overage, or nothing.
+
+    The kid's lines are MEASURED from its `done` commit; only when no anchor
+    resolves does the node's own `production_lines` record stand in. Over 2x
+    with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
+    `rebrief_request` present -> `rebrief=[id N/C]`; at or under 2x ->
+    nothing. A measured-zero kid with no commit at all still adds nothing.
     """
     notes: list[str] = []
-    for nid in node_ids:
-        if not nid or nid == "-":
+    for kid in kids:
+        nid = str(kid.get("node_id") or "-")
+        if nid == "-":
             continue
+        fm: dict = {}
         nf = _find_node_file(root, nid)
-        if nf is None:
-            continue
-        try:
-            fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
-        except OSError:
-            continue
-        if not isinstance(fm, dict):
-            continue
-        lines = _budget_num(fm.get("production_lines"))
-        ceiling = _budget_num(fm.get("line_ceiling"))
-        if lines is None or ceiling is None or ceiling <= 0:
+        if nf is not None:
+            try:
+                fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+            except OSError:
+                fm = {}
+            if not isinstance(fm, dict):
+                fm = {}
+        measured = _kid_measured_lines(root, str(kid.get("id") or ""))
+        lines = measured if measured is not None \
+            else _budget_num(fm.get("production_lines"))
+        ceiling = _kid_line_ceiling(root, fm)
+        if lines is None or ceiling <= 0:
             continue
         if fm.get("rebrief_request"):
             notes.append(f"rebrief=[{nid} {lines}/{ceiling}]")
