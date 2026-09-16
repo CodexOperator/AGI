@@ -2498,3 +2498,136 @@ def test_stalled_dead_in_service_lane_lands_in_died(tmp_path, monkeypatch):
     assert "death" in rec, "the stalled-dead record must carry the death class"
     assert out["died"] == ["a00-stl"], out
     assert adapter.calls == [], "a stalled record must never be restarted"
+
+
+def test_orders_copy_is_per_agent_and_written_after_the_last_refusal_gate():
+    """goal:g15.25 SM.28 claim (4). Measured pre-fix: the orders copy was the
+    ONE path `<iter>/orders.md`, written ABOVE the kid-ceiling and key/account
+    floor gates -- so two parent dispatches into one iter dir overwrote each
+    other's file, and a round refused after that point left `orders.md` with
+    no `manifest.json` beside it. The copy must be keyed by the AGENT ID the
+    manifest record is keyed by (`orders.<agent>.md`, never the sender token
+    `AGI_ORDERS_FROM`, which two parents can share) and its write must sit
+    INSIDE the slot loop, below every per-slot refusal gate (budget lease,
+    zoom render, harness/model, mint) and above Popen. Structural: the write
+    is inline in `main()`, so the source position is the seam that proves
+    it."""
+    import ast
+    src = (BIN / "dispatch.py").read_text()
+    tree = ast.parse(src)
+    writes = [
+        n for n in ast.walk(tree)
+        if isinstance(n, ast.Call)
+        and getattr(n.func, "attr", "") == "write_text"
+        and n.args
+        and isinstance(n.args[0], ast.Name)
+        and n.args[0].id == "_orders_text"
+    ]
+    assert len(writes) == 1, "exactly one orders copy write expected"
+    # per-agent: the target is `_orders_file`, never a bare literal path.
+    fn = writes[0].func
+    assert isinstance(fn.value, ast.Name) and fn.value.id == "_orders_file"
+    # keyed template, not a shared constant: no bare `orders.md` literal may
+    # survive, and the token is the agent id the manifest record carries.
+    keyed = [n for n in ast.walk(tree)
+             if isinstance(n, ast.JoinedStr)
+             and any(isinstance(v, ast.Constant)
+                     and "orders." in str(v.value) for v in n.values)
+             and "agent_id" in ast.unparse(n)]
+    assert keyed, "the copy path must be the `orders.<agent_id>.md` template"
+    assert "\"orders.md\"" not in src, (
+        "a single shared `orders.md` is the two-parents-collide defect")
+    # after the last whole-dispatch refusal gate ...
+    gate = next(n for n in ast.walk(tree)
+                if isinstance(n, ast.Call)
+                and getattr(n.func, "attr", "") == "check_account_floor")
+    assert writes[0].lineno > gate.lineno, (
+        "the orders copy must be written after the last whole-dispatch "
+        "refusal gate or a refused round leaves an orphan file")
+    # ... and inside the slot loop: after the budget lease is taken, before
+    # Popen. A write above the per-slot gates is what orphaned the file when
+    # a slot was refused (measured: zoom-gate refusal left orders.SAME.md).
+    lease = min((n for n in ast.walk(tree)
+                 if isinstance(n, ast.Call)
+                 and getattr(n.func, "attr", "") == "acquire"),
+                key=lambda n: n.lineno)
+    popen = next(n for n in ast.walk(tree)
+                 if isinstance(n, ast.Call)
+                 and getattr(n.func, "attr", "") == "Popen")
+    assert lease.lineno < writes[0].lineno < popen.lineno, (
+        "the orders copy belongs inside the slot loop, below the per-slot "
+        "refusal gates and above Popen")
+
+
+def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
+        tmp_path, monkeypatch):
+    """goal:g15.25 SM.28 claim (4), KEYING half. Measured pre-fix: the copy
+    was keyed by the sender (`AGI_ORDERS_FROM`), which two parents sharing a
+    `--from` (or both defaulting to "unspecified") collide on, and it was
+    written BEFORE the agent id existed. Live path, faked only at the process
+    boundary (adapter + Popen + zoom): two parent dispatches into ONE iter dir
+    must leave TWO files, each named for the agent id its manifest record is
+    keyed by, and each record's `orders.path` must name its own file."""
+    import json as _json
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text(_json.dumps({
+        "harnesses": {"claude-code": {
+            "adapter": "claude_code",
+            "models": {"kid": "claude-sonnet-5", "parent": "claude-opus-5"},
+            "allowed_models": ["claude-sonnet-5", "claude-opus-5"]}},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n"
+        '  - {"tier": 3, "role": "parent", "harness": "claude-code", '
+        '"model": "claude-opus-5", "effort": "max", "settings": "ultracode"}\n'
+        "---\n\nbody\n")
+
+    class _Proc:
+        pid = 4242
+
+    class _Adapter:
+        def build_command(self, **kw):
+            return [sys.executable, "-c", "pass"]
+
+        def child_env(self, **kw):
+            return {}
+
+        def needs_credential(self, *a, **k):
+            return False
+
+    class _Run:
+        returncode = 0
+        stdout = "ctx\n"
+        stderr = ""
+
+    monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+
+    for from_token in ("p1", "p2"):
+        orders = tmp_path / f"orders-{from_token}.md"
+        orders.write_text(f"SCOPE: parent {from_token}\n")
+        monkeypatch.setattr(sys, "argv", [
+            str(BIN / "dispatch.py"), str(tmp_path), "1",
+            "--harness", "claude-code", "--tier", "parent",
+            "--target", "hypothesis:x", "--orders", str(orders),
+            "--from", "SAME",  # both parents share the sender token
+            "--detach"])
+        assert dispatch.main() == 0
+
+    iter_dir = graph / "sessions" / "iter-001"
+    manifest = _json.loads((iter_dir / "manifest.json").read_text())
+    recs = [a for a in manifest["agents"] if a.get("orders")]
+    assert len(recs) == 2, manifest
+    paths = [Path(r["orders"]["path"]) for r in recs]
+    assert len({str(p) for p in paths}) == 2, (
+        f"two parents into one iter dir collided on {paths}")
+    assert not (iter_dir / "orders.SAME.md").exists(), (
+        "the sender token must never key the copy")
+    for rec, path in zip(recs, paths):
+        assert path.name == f"orders.{rec['id']}.md", (rec["id"], path)
+        assert path.is_file(), path
+    assert {p.read_text() for p in paths} == {
+        "SCOPE: parent p1\n", "SCOPE: parent p2\n"}

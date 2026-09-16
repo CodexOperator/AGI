@@ -1925,3 +1925,31 @@ def test_parent_brief_hands_the_diff_and_probe_duty_not_the_kid():
     # the kid brief must NOT acquire any of them
     assert "git diff merge-base" not in kid
     assert "one negative probe per claim conjunct" not in kid
+
+
+def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):
+    """goal:g15.25 SM.28 claim (2)+(3), in-process. Measured pre-fix: the
+    survival profile and the advisor brief (a tier-3 parent's brief) both
+    returned BEFORE the parent branch, so `assemble` dropped the section while
+    dispatch.py printed `orders: N lines` and recorded it on the manifest --
+    record says delivered, brief does not. ONE exit (`_finish`) appends it on
+    every route whose dispatch accepts `--orders`, and a KID still never sees
+    it (a kid's orders ARE the carry-forward segment)."""
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "SCOPE: only dispatch.py.")
+    monkeypatch.setenv("AGI_ORDERS_FROM", "sanctuary-director")
+    monkeypatch.setenv("AGI_ORDERS_TS", "1757789000")
+    monkeypatch.setenv("AGI_BRIEF_PROFILE", "survival")
+    for tier in ("parent", "advisor"):
+        segs = brief.assemble(tier=tier, agent_id="a00-t", iter_n=1,
+                              dispatch_py="/x/dispatch.py", target="t:1")
+        assert segs[-1].startswith(
+            "## DISPATCH ORDERS (from sanctuary-director"), tier
+        assert "SCOPE: only dispatch.py." in segs[-1]
+    kid = brief.assemble(tier="kid", agent_id="a00-t", iter_n=1,
+                         dispatch_py="/x/dispatch.py", scaffold=SCAFFOLD)
+    assert not any("DISPATCH ORDERS" in s for s in kid)
+    monkeypatch.setenv("AGI_ORDERS_TEXT", "   \n\t\n")
+    absent = brief.assemble(tier="parent", agent_id="a00-t", iter_n=1,
+                            dispatch_py="/x/dispatch.py", target="t:1")
+    assert not any("DISPATCH ORDERS" in s for s in absent), (
+        "a whitespace-only orders file must render no heading")

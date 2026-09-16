@@ -137,12 +137,12 @@ def test_dispatch_no_longer_touches_the_node_tree_at_all():
     # (hypothesis:l4-dispatch-echoes-less-than-it-knows): the redacted env,
     # argv and full brief, written into the SESSION dir beside agent.json --
     # a session file, never a node.
-    # `orders.md` is SM.26's dispatch-orders carry-forward
-    # (hypothesis:l4-dispatch-orders-reach-a-parents-own-brief-verbatim-under-one-heading-and-ride-the-manifest):
-    # a byte-identical copy of the --orders source file into the SESSION
-    # (iter) dir beside agent.json -- a session file, never a node.
+    # `_orders_file` is the dispatch-orders copy (goal:g15.25 SM.26, re-keyed
+    # per agent in SM.28): a byte-identical copy of the `--orders` source file
+    # into the SESSION (iter) dir as `<iter>/orders.<agent>.md`, named by the
+    # manifest record's own id -- a session file, never a node.
     session_artefacts = ("agent.json", "manifest.json", "manifest_tmp",
-                         "spawn.json", "orders.md")
+                         "spawn.json", "_orders_file")
     for ln in writes:
         assert any(a in ln for a in session_artefacts), ln
 
