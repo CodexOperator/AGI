@@ -147,6 +147,34 @@ def test_merge_target_leaf_is_its_own_target():
         "season2/web-app-suite/season1/main"
 
 
+def test_merge_target_v3_town_post_and_loop_map_to_the_trunk():
+    # SM.36 residue (1): every LIVE seat carries the v3 TOWN-FIRST spelling
+    # (`parse` returns kind "v3_post"/"v3_loop", with `town`/`town_season`
+    # and NO `season` key). Pre-fix these fell through to
+    # "a /main leaf is its own merge target", so merge_target returned the
+    # POST BRANCH ITSELF and `merge-up --post` refused `MAIN is on <trunk>`
+    # for every live seat. The target is the trunk of the SAME tuple, derived
+    # through the module's ONE tuple helper (never the branch, never a second
+    # hand-spelled name) -- the town-first v3 trunk `core/season2/main`.
+    assert b.merge_target("core/season2/posts/sensei-director/main") == \
+        b.derive_names("core", 2)["town_season_main"]
+    assert b.merge_target("core/season2/posts/sensei-director/main") == \
+        "core/season2/main"
+    assert b.merge_target(
+        "core/season2/posts/sensei-director/loops/L4.332/a00-x") == \
+        "core/season2/main"
+    # a NON-core town's post/loop under its own town season trunk, never the
+    # core season main the pre-fix fallback would have named
+    assert b.merge_target(
+        "streaming-suite/season2/posts/foo/main") == \
+        "streaming-suite/season2/main"
+    # a v3 TRUNK leaf is still its own merge target (unchanged behaviour)
+    assert b.merge_target("core/season2/main") == "core/season2/main"
+    assert b.merge_target("core/main") == "core/main"
+    # the season-first spellings still behave (no regression)
+    assert b.merge_target("season2/posts/foo") == "season2/main"
+
+
 # --- ref_candidates (the season-grammar reader resolver) ---
 
 
