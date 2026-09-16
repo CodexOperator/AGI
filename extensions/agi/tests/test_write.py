@@ -13,6 +13,7 @@ The two invariants worth testing are the two the goal states in bold:
 from __future__ import annotations
 
 import ast
+import subprocess
 import sys
 from pathlib import Path
 
@@ -1622,3 +1623,86 @@ def test_submit_resolves_repo_root_descend_only(project):
     assert res.status == node_writer.UPDATED
     text = (project / "nodes/hypothesis/h1.md").read_text()
     assert "status: active" in text
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-
+# is-written — clause 5 (the front end surfaces the refusal) and the
+# stray-directory sweep as its own fixture test.
+#
+# Every probe here runs on the `project` fixture (a throwaway `.agi/` graph),
+# NEVER against a real project root — the whole reason this round exists is
+# that a previous kid wrote an undeclared-type node into the LIVE tree while
+# probing this refusal. `_seeded_node_dirs` is the sweep: the set of
+# directories under `nodes/` is asserted as an EXACT set, not just
+# "unchanged", so a stray `nodes/notown/` cannot hide behind a diff.
+# --------------------------------------------------------------------------
+
+def _seeded_node_dirs(graph: Path) -> set[str]:
+    return {p.name for p in (graph / "nodes").iterdir() if p.is_dir()}
+
+
+def test_create_refuses_a_type_with_no_active_schema_by_name(project):
+    """Clause 5, Python front end: `write.create` of a type with no
+    `context/schemas/[<type>].md` is refused BY NAME, writes no node, and
+    leaves no directory behind.
+
+    `_schemas()` writes `[hypothesis].md` and `[experiment].md` only, so the
+    schema set IS loaded and `notown` is genuinely unknown — the case the
+    carve-out for an unconfigured graph deliberately does not cover."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    res, made = write.create(project, "notown", "cli-missing", ["goal:g1"])
+    assert res.rejected, "an unknown type must be refused, not written"
+    assert made is None
+    assert "notown" in res.reason, "the refusal must name the type"
+    assert "context/schemas/[notown].md" in res.reason, (
+        "the refusal must name the missing schema file a caller has to add")
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before == {"goal", "hypothesis"}, (
+        "a refused create must leave the nodes/ directory set byte-identical")
+
+
+def test_create_of_an_unknown_type_leaves_no_payload_file(project):
+    """Clause 5, sharpest probe: `write.create` calls
+    `node_writer.ensure_payload(...)` BEFORE `write_node`, so the source file
+    exists before the gate is judged. A refused create must clean it up — a
+    stray source file with no node behind it is exactly the file left behind
+    by a refused create."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    res, made = write.create(project, "notown", "cli-payload", ["goal:g1"],
+                             payload="src/notown_payload.py")
+    assert res.rejected
+    assert made is None
+    assert not (project / "src" / "notown_payload.py").exists(), (
+        "a refused create must not leave its payload source file behind")
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before
+
+
+def test_create_cli_refuses_an_unknown_type_and_stays_off_disk(project):
+    """Clause 5, the front end a human actually runs: the same refusal
+    through `write.py create` end-to-end — non-zero exit, the refusal text on
+    stderr, and the nodes/ directory set unchanged."""
+    _schemas(project)
+    before = _seeded_node_dirs(project)
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "create", "notown",
+         "cli-sub", "--parent", "goal:g1", "--root", str(project)],
+        capture_output=True, text=True,
+    )
+    assert proc.returncode != 0, "a refused create must exit non-zero"
+    assert "notown" in proc.stderr, "the refusal must name the type on stderr"
+    assert "context/schemas/[notown].md" in proc.stderr
+    assert not (project / "nodes" / "notown").exists()
+    assert _seeded_node_dirs(project) == before == {"goal", "hypothesis"}
+
+
+def test_create_still_mints_a_declared_type_at_the_front_end(project):
+    """Regression pin: the new refusal must not over-reach. A type that DOES
+    have a schema still mints through the same front end."""
+    _schemas(project)
+    res, made = write.create(project, "hypothesis", "still-fine", ["goal:g1"])
+    assert res.written and not res.rejected
+    assert (project / "nodes" / "hypothesis" / "still-fine.md").exists()
