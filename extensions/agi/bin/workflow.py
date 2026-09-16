@@ -943,6 +943,13 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             "unstructured": counts.get("unstructured", 0),
             "returns": {lb: st["detail"] for lb, st in view.state.items()
                         if st["status"] == "unstructured"},
+            # A schema-invalid JSON return keeps its NAMED violation here, so
+            # the record says what was wrong rather than filing JSON-shaped
+            # output under the same key as prose (hypothesis:l4-a-per-run-
+            # workflow-key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-
+            # name conjunct (3)).
+            "violations": {lb: st["violations"] for lb, st in view.state.items()
+                           if st.get("violations")},
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -969,7 +976,8 @@ class RunView:
         self.harness = harness
         self.out = out
         self.order = [st["label"] for st in stages]
-        self.state = {lb: {"status": "pending", "detail": ""}
+        self.state = {lb: {"status": "pending", "detail": "",
+                           "violations": []}
                       for lb in self.order}
 
     def _tree(self) -> None:
@@ -1013,14 +1021,22 @@ class RunView:
     def stage_failed(self, label: str, reason: str) -> None:
         self._set(label, "failed", reason.replace("\n", " ")[:120])
 
-    def stage_unstructured(self, label: str, text: str) -> None:
+    def stage_unstructured(self, label: str, text: str,
+                           violations: list[str] | None = None) -> None:
         """A stage whose pi process succeeded (rc 0) but returned no JSON that
         validates against its schema. Recorded as its own status, NEVER as a
         failure: the run continues and the text is carried WHOLE — not the
         120-char stub `stage_finished` writes for structured returns — so the
         prose the agent actually wrote is still readable
-        (hypothesis:l4-a-workflow-pi-stage-mints... conjunct (h))."""
+        (hypothesis:l4-a-workflow-pi-stage-mints... conjunct (h)).
+
+        `violations` names WHY a JSON candidate failed its schema (empty for
+        genuine prose), so the tracking row can record the named violation
+        instead of losing it (hypothesis:l4-a-per-run-workflow-key-is-revoked-
+        at-run-end-and-a-schema-miss-keeps-its-name conjunct (3))."""
         self._set(label, "unstructured", text)
+        if label in self.state:
+            self.state[label]["violations"] = list(violations or [])
 
     def summary(self) -> None:
         """The ONE summary both harnesses print. Renders from stage order and
@@ -1153,8 +1169,14 @@ def _workflow_credential_tier(stages: list) -> str:
 
 
 def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
-                                stages: list) -> dict:
-    """The env a pi stage is spawned under. ONE mint per RUN, not per stage:
+                                stages: list) -> tuple[dict, str | None]:
+    """The env a pi stage is spawned under, plus the MINTED KEY HASH so the
+    caller can revoke it when the run ends (hypothesis:l4-a-per-run-workflow-
+    key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (2)).
+    The hash is returned rather than dropped: the old signature handed back a
+    bare env dict, so nothing downstream could name the key to delete it and
+    it outlived the run. `(env, None)` on every fallback path — nothing to
+    revoke. ONE mint per RUN, not per stage:
     a capped key minted through the SAME seam dispatch.py uses for a
     dispatched spawn, named `workflow:<run_key>` and carrying the run's ladder
     tier — so a workflow pi stage no longer inherits whatever dead
@@ -1169,7 +1191,7 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
     if not would_mint:
         print(f"workflow.py: {_credential_line(False, reason)}",
               file=sys.stderr)
-        return _pi_env()
+        return _pi_env(), None
     limit_usd, ttl_minutes = provisioning.settings(cfg)
     try:
         minted = provisioning.mint(
@@ -1182,14 +1204,38 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
               file=sys.stderr)
         print(f"workflow.py: {_credential_line(False, f'mint failed: {exc}')}",
               file=sys.stderr)
-        return _pi_env()
+        return _pi_env(), None
     if minted is None:
         print(f"workflow.py: {_credential_line(False, 'mint returned None')}",
               file=sys.stderr)
-        return _pi_env()
+        return _pi_env(), None
     env = _pi_env()
     env[provisioning.RUNTIME_KEY_VAR] = minted.secret
-    return env
+    return env, minted.key_hash
+
+
+def _revoke_run_credential(key_hash: str | None, root) -> None:
+    """Delete the ONE per-run minted key when the run ends — success, stage
+    failure or a raised/timeout path, exactly once (called from a `finally`).
+    Nothing is revoked when the run minted nothing.
+
+    Never raises and never changes the run's exit code: the key's TTL is the
+    backstop, and a run that did the work must not be reported failed because
+    a cleanup call failed. But a False return (or a seam that raises) IS named
+    on stderr — a silent failure to revoke is exactly how the key outlives the
+    run this closes."""
+    if not key_hash:
+        return
+    try:
+        ok = provisioning.revoke(key_hash, root=root)
+    except Exception as exc:  # revoke() never raises; a mock seam may
+        print(f"workflow.py: warn: could not revoke the run credential "
+              f"{key_hash}: {exc}", file=sys.stderr)
+        return
+    if not ok:
+        print(f"workflow.py: warn: revoke returned False for the run "
+              f"credential {key_hash} — it will die at its TTL",
+              file=sys.stderr)
 
 
 def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
@@ -1309,7 +1355,7 @@ def _json_candidates(text: str) -> list[str]:
     return cands
 
 
-def _resolve_lenient_return(schema, text: str):
+def _resolve_lenient_return(schema, text: str, violations_out=None):
     """The FIRST candidate in `text` that both parses as JSON and passes
     `schema` (via `validate_return`), or None when no candidate validates.
 
@@ -1317,14 +1363,24 @@ def _resolve_lenient_return(schema, text: str):
     a model that emitted a stray JSON snippet before its real answer must not
     lose the answer (hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-
     key-like-a-dispatched-spawn conjunct (h)). Prose-only output validates
-    nothing and returns None, which the caller records as `unstructured`."""
+    nothing and returns None, which the caller records as `unstructured`.
+
+    But a candidate that was JSON and failed its schema is NOT prose, and its
+    named violation must survive: when `violations_out` is given, each such
+    candidate's violation strings are appended to it, so the caller can record
+    what was wrong instead of dropping it (hypothesis:l4-a-per-run-workflow-
+    key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (3)).
+    A LATER candidate that validates still wins and the run still succeeds."""
     for cand in _json_candidates(text):
         try:
             value = json.loads(cand)
         except (ValueError, json.JSONDecodeError):
             continue
-        if not validate_return(schema, value):
+        violated = validate_return(schema, value)
+        if not violated:
             return value
+        if violations_out is not None:
+            violations_out.extend(violated)
     return None
 
 
@@ -1332,7 +1388,8 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
                   prior: dict | None = None,
                   spawn_env: dict | None = None,
-                  context_text: str | None = None) -> tuple[int, "dict | None"]:
+                  context_text: str | None = None,
+                  timeout_s: float | None = None) -> tuple[int, "dict | None"]:
     """Execute ONE stage on the pi harness: spin the pi binary headlessly with
     the resolved provider/model/thinking and the rendered prompt, capture its
     stdout, parse the last JSON object, and validate it against the stage's
@@ -1348,7 +1405,13 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     `spawn_env` is the env the pi process runs under; when None the inherited
     `_pi_env()` is used, so a view-less/legacy caller is byte-unchanged. The
     live pi path passes the ONE per-run env from
-    `_resolve_workflow_spawn_env()`."""
+    `_resolve_workflow_spawn_env()`.
+
+    `timeout_s` is the stage's wall-clock budget, resolved by the CALLER from
+    the manifest (`stage["timeout_s"]` > `manifest["timeout_s"]` > 600) —
+    this function never re-reads a manifest (hypothesis:l4-a-per-run-workflow-
+    key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (5)).
+    None means 600, byte-identical to the old hardcoded literal."""
     import subprocess
     k = knobs[stage["label"]]
     prompt = render_stage_prompt(stage, run_args, prior=prior)
@@ -1375,7 +1438,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         proc = subprocess.run(cmd, capture_output=True, text=True,
                               env=(spawn_env if spawn_env is not None
                                    else _pi_env()),
-                              timeout=600)
+                              timeout=(600 if timeout_s is None else timeout_s))
     except (OSError, subprocess.SubprocessError) as exc:
         if view is not None:
             view.stage_failed(stage["label"], f"could not start pi: {exc}")
@@ -1390,8 +1453,10 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
               file=sys.stderr)
         return 3, None
+    violations: list[str] = []
     try:
-        value = _resolve_lenient_return(stage.get("schema"), output)
+        value = _resolve_lenient_return(stage.get("schema"), output,
+                                        violations)
     except (ValueError, json.JSONDecodeError) as exc:
         # `_resolve_lenient_return` swallows per-candidate parse errors; a
         # raise here is unexpected (a broken schema), so keep it fatal.
@@ -1406,15 +1471,30 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         # JSON. That is `unstructured`, never a failure: the run continues,
         # the stage's whole text rides the value so the next stage's `prior`
         # can read it, and the run summary shows it in its own column.
+        # Dedupe: a fenced candidate and its bare span are the same text, so
+        # the same violation would otherwise be recorded twice.
+        seen: set[str] = set()
+        violations = [v for v in violations
+                      if not (v in seen or seen.add(v))]
         if view is not None:
-            view.stage_unstructured(stage["label"], output)
+            view.stage_unstructured(stage["label"], output, violations)
         else:
             out.write(f"[unstructured] {stage['label']} "
                       f"({len(output)} chars)\n")
-        print(f"workflow.py: stage {stage['label']} returned no schema-valid "
-              f"JSON; recorded unstructured ({len(output)} chars)",
-              file=sys.stderr)
-        return 0, {"unstructured": output}
+        if violations:
+            # A JSON return that FAILED its schema is not the same thing as
+            # prose: name the violation the run kept instead of losing it.
+            print(f"workflow.py: stage {stage['label']} returned JSON that "
+                  f"violates its schema ({len(violations)} violation(s)): "
+                  f"{violations[0]}", file=sys.stderr)
+        else:
+            print(f"workflow.py: stage {stage['label']} returned no schema-valid "
+                  f"JSON; recorded unstructured ({len(output)} chars)",
+                  file=sys.stderr)
+        ret = {"unstructured": output}
+        if violations:
+            ret["violations"] = violations
+        return 0, ret
     if view is not None:
         view.stage_finished(stage["label"], value)
     else:
@@ -1503,33 +1583,49 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # resolved knobs or the stage prompt, so a real run could not happen
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
-    spawn_env = _resolve_workflow_spawn_env(root, cfg, run_key, harness, stages)
-    prior_by_key: dict[tuple, dict] = {}
-    for st in stages:
-        prior = None
-        if "_repeat_key" in st and st.get("chained_from"):
-            # The chain mechanism: a repeated stage whose manifest names a
-            # `chained_from` base label renders with the PRIOR stage's
-            # validated return for the SAME repeat key merged into its prompt
-            # context (so it can name the finding's schema fields —
-            # {answer}, {still_live}, ...). Nothing else on pi crosses stage
-            # boundaries; run_args only otherwise.
-            prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
-        context_text = _stage_context(repo, root, st)
-        rc, value = _run_stage_pi(
-            cfg, st, knobs, args, out=out, view=view, prior=prior,
-            spawn_env=spawn_env, context_text=context_text)
-        if rc != 0:
-            print(f"workflow.py: workflow={key} failed at stage "
-                  f"{st['label']} (rc={rc})", file=sys.stderr)
-            view.summary()
-            _track_run(root, key, harness, view, run_key)
-            return rc
-        if "_repeat_key" in st and value is not None:
-            prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
-    view.summary()
-    _track_run(root, key, harness, view, run_key)
-    return 0
+    spawn_env, minted_key_hash = _resolve_workflow_spawn_env(
+        root, cfg, run_key, harness, stages)
+    # The minted key is revoked when the RUN ends, however it ends — success,
+    # a stage failure (rc > 0) or a raised/timeout path — so the `finally` is
+    # the whole point: a key that outlives its run is the falsifier this
+    # closes (hypothesis:l4-a-per-run-workflow-key-is-revoked-at-run-end-and-
+    # a-schema-miss-keeps-its-name conjunct (2)).
+    try:
+        prior_by_key: dict[tuple, dict] = {}
+        for st in stages:
+            prior = None
+            if "_repeat_key" in st and st.get("chained_from"):
+                # The chain mechanism: a repeated stage whose manifest names a
+                # `chained_from` base label renders with the PRIOR stage's
+                # validated return for the SAME repeat key merged into its prompt
+                # context (so it can name the finding's schema fields —
+                # {answer}, {still_live}, ...). Nothing else on pi crosses stage
+                # boundaries; run_args only otherwise.
+                prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
+            context_text = _stage_context(repo, root, st)
+            # The stage's wall-clock budget comes from the MANIFEST, a stage
+            # key overriding the workflow key, default 600 when neither is
+            # declared (hypothesis:l4-a-per-run-workflow-key-is-revoked-at-
+            # run-end-and-a-schema-miss-keeps-its-name conjunct (5)) — never a
+            # literal buried inside _run_stage_pi.
+            stage_timeout = st.get("timeout_s") or manifest.get("timeout_s")
+            rc, value = _run_stage_pi(
+                cfg, st, knobs, args, out=out, view=view, prior=prior,
+                spawn_env=spawn_env, context_text=context_text,
+                timeout_s=stage_timeout)
+            if rc != 0:
+                print(f"workflow.py: workflow={key} failed at stage "
+                      f"{st['label']} (rc={rc})", file=sys.stderr)
+                view.summary()
+                _track_run(root, key, harness, view, run_key)
+                return rc
+            if "_repeat_key" in st and value is not None:
+                prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
+        view.summary()
+        _track_run(root, key, harness, view, run_key)
+        return 0
+    finally:
+        _revoke_run_credential(minted_key_hash, root)
 
 
 _JS_IDENT = re.compile(r"\W")
