@@ -1586,13 +1586,45 @@ def test_g_sub_floor_cap_key_is_skipped_not_refused(monkeypatch, capsys):
     ok, msg = provisioning.check_key_floor(
         {"provisioning": {"min_key_remaining_usd": 1.0}})
 
-    assert ok is True and msg is None, (
-        "a sub-floor cap must not refuse a spawn")
+    assert ok is True and msg is not None, (
+        "a skipped sub-floor cap must be VISIBLE in the return value")
+    assert "sub-floor" in msg
+    assert "agi-iterX-kid-a" in msg
+    assert "$0.25" in msg and "$1.00" in msg
     err = capsys.readouterr().err.strip().splitlines()
     assert len(err) == 1, f"expected exactly one stderr line, got {err!r}"
-    assert "sub-floor" in err[0]
-    assert "agi-iterX-kid-a" in err[0]
-    assert "$0.25" in err[0] and "$1.00" in err[0]
+    assert err[0] == msg, "the marker and the stderr line are ONE sentence"
+
+
+def test_g_sub_floor_marker_is_absent_when_no_key_is_skipped(monkeypatch):
+    """Control for the marker: a listing with no sub-floor cap returns
+    (True, None), so `msg is not None` really does mean a skip fired and is
+    not a marker that is always present."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterX-kid-c", "limit": 5.0,
+                            "usage": 1.0}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is True and msg is None
+
+
+def test_g_sub_floor_skip_does_not_swallow_a_later_real_refusal(monkeypatch):
+    """Scanning continues past a skip: a sub-floor key followed by a key whose
+    remaining is below the floor still REFUSES, so the marker never trades a
+    refusal for a pass."""
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(
+        provisioning, "list_all_keys",
+        lambda root=None: [{"name": "agi-iterX-kid-a", "limit": 0.25,
+                            "usage": 0.04},
+                           {"name": "agi-iterX-kid-b", "limit": 5.0,
+                            "usage": 4.5}])
+    ok, msg = provisioning.check_key_floor(
+        {"provisioning": {"min_key_remaining_usd": 1.0}})
+    assert ok is False
+    assert "agi-iterX-kid-b" in msg and "sub-floor" not in msg
 
 
 def test_g_above_floor_cap_with_drained_remaining_still_refuses(monkeypatch):
@@ -1611,3 +1643,5 @@ def test_g_above_floor_cap_with_drained_remaining_still_refuses(monkeypatch):
     assert ok is False
     assert "agi-iterX-kid-b" in msg
     assert "$0.50" in msg  # 5.0 - 4.5
+    assert "sub-floor" not in msg, (
+        "the refusal is not the sub-floor skip marker")
