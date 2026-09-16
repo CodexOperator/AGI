@@ -1993,10 +1993,20 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
                                       f"{_conv} {_old}->{_new}")
                 except Exception:                   # noqa: BLE001
                     pass
+            # goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-
+            # seating-run): pass the `_spawn_gen` cmd_spawn already resolved
+            # (row-first, HANDOFF-header fallback) into the first seating, so
+            # a gen-less seat row whose HANDOFF carries gen N composes its
+            # first-turn block at gen N -- the SAME value the meter pin, the
+            # seating record and the row commit use. Without the kwarg
+            # `_first_seating_run` re-resolved from the row ONLY and fell to
+            # FIRST_SEATING_GEN=1, so the printed block disagreed with the
+            # pin (a gen-less re-spawn).
             startup_block, first_turn = _first_seating_run(
                 root, seat=seat, role=_fs_role, succ_name=name,
                 tmux_session=tmux_session, dry_run=args.dry_run,
-                ask_diff=bool(getattr(args, "ask_diff", False)))
+                ask_diff=bool(getattr(args, "ask_diff", False)),
+                generation=_spawn_gen)
     # The SEAT ROW is the model source for a seated spawn, the flags only an
     # override — the same precedence rotate-self (`cmd_rotate_self`), the
     # reaper's crash-recovery respawn (heal.py) and seats-launch already use.
@@ -4025,9 +4035,24 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
         # rotate-self runs and appends the composed `## STARTUP OUTPUT` block
         # to the seat's first input. Fail-soft: a role with no template or no
         # first_turn yields the empty string (byte-identical to before).
+        #
+        # goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-
+        # seating-run), round 2: this is the SECOND `_first_seating_run`
+        # caller (cmd_spawn was the first). Resolve the row's generation ONCE
+        # here, the SAME way cmd_spawn does -- row-first, HANDOFF-header
+        # fallback -- and thread it into BOTH the run and the announce, so a
+        # gen-less row whose HANDOFF carries gen N stops composing `gen=1`.
+        # Keep 0 as 0: only a `None` rowgen falls back (never `or`, never
+        # `or FIRST_SEATING_GEN`).
+        _rowgen = _seat_row_generation(root, name)
+        if _rowgen is None:
+            _hg = _read_generation(root, name)
+            if _hg > 0:
+                _rowgen = _hg
         startup_block, first_turn = _first_seating_run(
             root, seat=name, role=tier, succ_name=name,
-            tmux_session=tmux_session, dry_run=args.dry_run)
+            tmux_session=tmux_session, dry_run=args.dry_run,
+            generation=_rowgen)
         rc, _ = spawn_window(
             name=name,
             tier=tier,
@@ -4061,7 +4086,8 @@ def cmd_seats_launch(args: argparse.Namespace, root: Path) -> int:
                     tmux_session=tmux_session,
                     window_path=getattr(args, "window_path", None),
                     first_turn=first_turn,
-                    registry_dir=getattr(args, "registry_dir", None))
+                    registry_dir=getattr(args, "registry_dir", None),
+                    generation=_rowgen)
             except Exception as exc:                        # noqa: BLE001
                 print(f"warn: first-seating announcement failed: {exc}",
                       file=sys.stderr)
