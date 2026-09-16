@@ -566,10 +566,16 @@ def _record_transcript(rec: dict) -> Path | None:
 
     Checked in order: the record's `session_log` (direct path), the
     `handover.session_log`, the `handover.join.transcript` (the name every
-    LIVE rotation record carries), then
+    LIVE rotation record carries), the TOP-LEVEL `transcript_path` (the name
+    a FIRST-SEATING record carries, rotate.py `_seating_record`), then
     `observations.c_readback_log_path` WHEN it is a CC `.jsonl` (a legacy
     debug `.log` is not tool_use-parseable, so naming it would make the audit
-    silently read nothing)."""
+    silently read nothing).
+
+    Precedence mirrors `rotate._record_join`: for the SAME logical identity
+    the `handover.join.*` spelling wins WHEN PRESENT, and the top-level
+    spelling is the fallback when the join spelling is absent -- so a record
+    carrying both resolves the join transcript, never the top-level path."""
     for key in ("session_log",):
         v = rec.get(key)
         if v:
@@ -584,6 +590,11 @@ def _record_transcript(rec: dict) -> Path | None:
             v = j.get("transcript")
             if v:
                 return Path(str(v)).expanduser()
+    # the first-seating shape: the top-level path is the FALLBACK, read only
+    # when no `handover.join.transcript` was present above.
+    v = rec.get("transcript_path")
+    if v:
+        return Path(str(v)).expanduser()
     obs = rec.get("observations")
     if isinstance(obs, dict):
         v = obs.get("c_readback_log_path")
