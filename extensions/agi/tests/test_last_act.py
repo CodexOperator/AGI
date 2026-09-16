@@ -208,7 +208,7 @@ def test_spawned_agent_stamps_its_own_id_never_the_inherited_seat(
     did nothing -- the rotation loop. Also folds in conjunct 4: a stray USER
     names no seat at all."""
     graph = _seat_graph(tmp_path)
-    for k in ("AGI_ACTOR",):
+    for k in ("AGI_ACTOR", "AGI_TIER"):
         monkeypatch.delenv(k, raising=False)
     monkeypatch.setenv("AGI_AGENT_ID", "a00-x")
     monkeypatch.setenv("AGI_SEAT", "sensei-director")
@@ -234,6 +234,7 @@ def test_only_a_seat_env_stamps_that_seat_itself(tmp_path, monkeypatch):
     graph = _seat_graph(tmp_path)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.delenv("AGI_ACTOR", raising=False)
+    monkeypatch.delenv("AGI_TIER", raising=False)
     monkeypatch.setenv("AGI_SEAT", "sensei-director")
 
     assert last_act.env_seat() == "sensei-director"
@@ -255,3 +256,33 @@ def test_explicit_actor_beats_the_agent_id_env(tmp_path, monkeypatch):
     assert last_act.stamp_path(graph, "master-sensei").exists()
     assert not last_act.stamp_path(graph, "a00-x").exists()
     assert not last_act.stamp_path(graph, "sensei-director").exists()
+
+
+# ── a seat that OWNS ITSELF stales its OWN card (SM.49 conjunct 2) ────────
+
+def test_director_tier_stamps_the_seat_it_owns(tmp_path, monkeypatch):
+    """conjunct 2: a DIRECTOR is itself a spawned agent -- dispatch.py exports
+    AGI_AGENT_ID, AGI_ACTOR AND AGI_SEAT together (measured from the real
+    `dispatch.py --tier director --seat sensei-director --dry-run`) -- so
+    keying AGI_AGENT_ID first for everyone re-pointed the director's own clock
+    at its agent id and its card never went stale. AGI_TIER=director says the
+    actor IS the seat: the seat stamps `<post>.last-act` and the card reads
+    STALE, while the agent id is never stamped."""
+    graph = _seat_graph(tmp_path)
+    monkeypatch.setenv("AGI_TIER", "director")
+    monkeypatch.setenv("AGI_AGENT_ID", "dry00-x")
+    monkeypatch.setenv("AGI_ACTOR", "dry00-x")
+    monkeypatch.setenv("AGI_SEAT", "sensei-director")
+    card = graph / "sessions" / "quorum" / "sensei-director.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("card\n")
+    # back-date the card so `mtime < act` is decidable inside one test second
+    # (git is absent here, so the card's own commit is unmeasurable = None).
+    past = time.time() - 10
+    os.utime(card, (past, past))
+
+    assert last_act.env_seat() == "sensei-director"
+    assert last_act.touch_env(graph) == "sensei-director"
+    assert last_act.stamp_path(graph, "sensei-director").exists()
+    assert not last_act.stamp_path(graph, "dry00-x").exists()
+    assert last_act.card_stale(graph, "sensei-director", card)[0] is True
