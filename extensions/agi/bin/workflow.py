@@ -54,6 +54,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -989,6 +990,10 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             # name conjunct (3)).
             "violations": {lb: st["violations"] for lb, st in view.state.items()
                            if st.get("violations")},
+            # Every transient retry is NAMED in the record: stage label,
+            # attempt n, matched signature, sleep seconds.
+            "attempts": {lb: st["attempts"] for lb, st in view.state.items()
+                         if st.get("attempts")},
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -1016,7 +1021,7 @@ class RunView:
         self.out = out
         self.order = [st["label"] for st in stages]
         self.state = {lb: {"status": "pending", "detail": "",
-                           "violations": []}
+                           "violations": [], "attempts": []}
                       for lb in self.order}
 
     def _tree(self) -> None:
@@ -1063,6 +1068,12 @@ class RunView:
 
     def stage_failed(self, label: str, reason: str) -> None:
         self._set(label, "failed", reason.replace("\n", " ")[:120])
+
+    def stage_attempts(self, label: str, attempts: list) -> None:
+        """Record the named retry rows (attempt n, signature, sleep_s) for a
+        stage, so `_track_run`'s jsonl row carries them."""
+        if label in self.state:
+            self.state[label]["attempts"] = [dict(a) for a in attempts]
 
     def stage_unstructured(self, label: str, text: str,
                            violations: list[str] | None = None) -> None:
@@ -1421,6 +1432,45 @@ def _resolve_lenient_return(schema, text: str, violations_out=None):
     return None
 
 
+# The ONE injectable sleep seam for the transient-5xx retry: tests
+# monkeypatch `workflow._RETRY_SLEEP`, so a retry NEVER sleeps for real.
+_RETRY_SLEEP = time.sleep
+
+# Two sleeps for three attempts total; no sleep after the FINAL attempt, so
+# the record's last row honestly carries `sleep_s: 0` (never 135).
+_PI_RETRY_BACKOFF_S = (15, 45)
+
+# The transient signatures. The HTTP shape is dispatch.py's `_DEATH_STREAM_RE`
+# widened with the provider's own literal `error code: 520` bytes.
+_PI_TRANSIENT_RE = re.compile(
+    r"error code:\s*5\d\d|"
+    r"stream error|h2 protocol error|upstream error|"
+    r"connection reset|econnreset|"
+    r"http(?:/\d+(?:\.\d+)?)?\s*5\d\d", re.I)
+
+
+def _pi_failure_is_transient(output_text: str, stderr_text: str,
+                             stage: dict) -> "str | None":
+    """The MATCHED signature string when a failed pi attempt is TRANSIENT,
+    else None. Only ever called on the rc != 0 branch.
+
+    Transient requires BOTH: the combined output carries one of
+    `_PI_TRANSIENT_RE`'s signatures, AND no schema-valid JSON candidate was
+    produced by that same output. A stage that emitted a valid return and then
+    died is NOT retried — the value it wrote is what the run keeps, and
+    re-running it would spend a second key on work already done."""
+    combined = f"{output_text}\n{stderr_text}"
+    m = _PI_TRANSIENT_RE.search(combined)
+    if not m:
+        return None
+    try:
+        if _resolve_lenient_return(stage.get("schema"), combined) is not None:
+            return None
+    except (ValueError, json.JSONDecodeError):
+        pass
+    return m.group(0)
+
+
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
                   prior: dict | None = None,
@@ -1471,25 +1521,73 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     else:
         out.write(f"# {_dispatching_line(stage, k)}\n")
         out.write(f"$ {' '.join(cmd)}\n")
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True,
-                              env=(spawn_env if spawn_env is not None
-                                   else _pi_env()),
-                              timeout=(600 if timeout_s is None else timeout_s))
-    except (OSError, subprocess.SubprocessError) as exc:
+    attempts: list[dict] = []
+    # Bounded retry, ONLY for a transient (5xx/stream-signature) failure: at
+    # most 3 attempts, sleeping 15 then 45 s through the injectable seam.
+    while True:
+        try:
+            proc = subprocess.run(
+                cmd, capture_output=True, text=True,
+                env=(spawn_env if spawn_env is not None else _pi_env()),
+                timeout=(600 if timeout_s is None else timeout_s))
+        except (OSError, subprocess.SubprocessError) as exc:
+            # A timeout or an unrunnable binary is NOT transient: one attempt,
+            # rc 2, byte-identical to before.
+            if view is not None:
+                view.stage_failed(stage["label"], f"could not start pi: {exc}")
+            print(f"workflow.py: stage {stage['label']} could not start pi: "
+                  f"{exc}", file=sys.stderr)
+            return 2, None
+        output = proc.stdout or ""
+        if proc.returncode == 0:
+            if attempts:
+                # Name the successful attempt too (a success never sleeps).
+                attempts.append({"attempt": len(attempts) + 1,
+                                 "signature": None, "sleep_s": 0})
+                if view is not None:
+                    view.stage_attempts(stage["label"], attempts)
+            break
+        signature = _pi_failure_is_transient(output, proc.stderr or "", stage)
+        if signature is None:
+            # rc != 0 WITHOUT the transient signature is a real failure, never
+            # retried (falsifier: a stage retried on a failure without it).
+            if view is not None:
+                view.stage_failed(stage["label"],
+                                  f"pi exited rc={proc.returncode}")
+            print(f"workflow.py: stage {stage['label']} pi exited rc="
+                  f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
+                  file=sys.stderr)
+            return 3, None
+        max_attempts = len(_PI_RETRY_BACKOFF_S) + 1
+        n = len(attempts) + 1
+        if n >= max_attempts:
+            # Exhausted: `sleep_s: 0` — there is no sleep after the last try.
+            attempts.append({"attempt": n, "signature": signature,
+                             "sleep_s": 0})
+            if view is not None:
+                view.stage_attempts(stage["label"], attempts)
+                view.stage_failed(
+                    stage["label"],
+                    f"pi exited rc={proc.returncode} after {n} transient "
+                    f"attempt(s) (signature: {signature})")
+            print(f"workflow.py: stage {stage['label']} gave up after {n} "
+                  f"transient attempts (signature: {signature})\n"
+                  f"{output[-2000:]}", file=sys.stderr)
+            return 3, None
+        sleep_s = _PI_RETRY_BACKOFF_S[n - 1]
+        attempts.append({"attempt": n, "signature": signature,
+                         "sleep_s": sleep_s})
         if view is not None:
-            view.stage_failed(stage["label"], f"could not start pi: {exc}")
-        print(f"workflow.py: stage {stage['label']} could not start pi: "
-              f"{exc}", file=sys.stderr)
-        return 2, None
-    output = proc.stdout or ""
-    if proc.returncode != 0:
-        if view is not None:
-            view.stage_failed(stage["label"], f"pi exited rc={proc.returncode}")
-        print(f"workflow.py: stage {stage['label']} pi exited rc="
-              f"{proc.returncode}\n{output[-2000:]} {proc.stderr or ''}",
-              file=sys.stderr)
-        return 3, None
+            # The stage stays `running` across a retry: a run that succeeds on
+            # attempt 2 must end `ok`, never `failed`.
+            view.stage_attempts(stage["label"], attempts)
+            view.stage_started(stage["label"],
+                               f"attempt {n + 1}/{max_attempts} after "
+                               f"{signature}")
+        print(f"workflow.py: stage {stage['label']} transient attempt "
+              f"{n}/{max_attempts} (signature: {signature}); retrying in "
+              f"{sleep_s}s", file=sys.stderr)
+        _RETRY_SLEEP(sleep_s)
     violations: list[str] = []
     try:
         value = _resolve_lenient_return(stage.get("schema"), output,
