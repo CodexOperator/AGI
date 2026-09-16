@@ -4300,6 +4300,27 @@ def test_rotation_and_seating_records_carry_the_box_fact(tmp_path):
     assert len(sbox["loadavg"]) == 3
 
 
+def test_record_join_surfaces_the_first_seating_transcript_path():
+    """hypothesis:l4-predecessor-transcript-shares-the-record-precedence-
+    chain-and-the-join-absent-shape-resolves (3): the ONE accessor
+    `_record_join` surfaces the TOP-LEVEL `transcript_path` a first-SEATING
+    record carries (`rotate._seating_record`), while the RICHER
+    `handover.join.transcript` still wins when both are present — the same
+    precedence `sensei._record_transcript`'s docstring claims this accessor
+    mirrors. Falsifier before the fix: `_record_join` returned no
+    `transcript` key at all for the only shape a first seating writes."""
+    seated = rotate._seating_record(
+        seat="s", role="director", source="test", window_id="@7",
+        ref="", pid=123, session_id="sess-1",
+        transcript_path="/tmp/seat.jsonl", first_turn=None)
+    assert rotate._record_join(seated).get("transcript") == "/tmp/seat.jsonl"
+    # both spellings present -> the handover.join spelling wins
+    both = dict(seated, handover={"join": {"transcript": "/tmp/join.jsonl"}})
+    assert rotate._record_join(both).get("transcript") == "/tmp/join.jsonl"
+    # a record naming no transcript carries no `transcript` key
+    assert "transcript" not in rotate._record_join({"seat": "s"})
+
+
 def test_rotate_self_interrupted_after_spawn_leaves_started_record(
         fake_ladder, tmp_path, monkeypatch):
     """A non-`continue` read-back reply must leave a durable TERMINAL record
