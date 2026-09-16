@@ -1385,6 +1385,45 @@ def test_session_complete_stamps_the_acting_seat(tmp_path, monkeypatch):
     assert stamp.exists(), "session-complete left no seat last-act stamp"
 
 
+def test_worktree_done_commit_subject_carries_the_kid_nodes_verdict(tmp_path):
+    """item (5), commit half. A parent round carries no `--node-id`, so
+    `_auto_commit_worktree`'s ref is the OWNED KID node. The subject must
+    carry the verdict THAT node carries -- measured at b3523f325: subject
+    `a00-19566029 done: experiment:a00-f067c356-b0ad80 verdict=pending` over a
+    node carrying `verdict: inconclusive_lean_disproved:70`, which reads as a
+    false claim about the kid node. The parent's own `--verdict` may not leak
+    into the subject when the ref is the kid's node."""
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/slug-abc12345@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    # The filename carries the round's agent id (scope); find_node_file
+    # resolves by frontmatter id -- the kid's stored verdict is the truth.
+    (wt_graph / "nodes" / "experiment" / "a00-parent-kid.md").write_text(
+        "---\nid: experiment:kid\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\nverdict: inconclusive_lean_disproved:70\n"
+        "---\n\nbody\n")
+
+    cli = _load_cli()
+    root = cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                                     ["experiment:kid"], "pending")
+    assert root is not None
+    subject = _ggit(main, "log", "-1", "--format=%s", br).stdout.strip()
+    assert "done: experiment:kid verdict=inconclusive_lean_disproved:70" in \
+        subject, subject
+    assert "verdict=pending" not in subject, subject
 # --------------------------------------------------------------------------
 # hypothesis:l4-sm36-...-one-scope-rule -- item 9 (the cli half of the ONE
 # rule) and item 8 (the died-no-work scaffold moved, never deleted).

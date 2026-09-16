@@ -503,6 +503,27 @@ def test_harvest_never_invents_an_unanswered_rebrief(graph, monkeypatch,
     assert "unanswered=" not in text, text
 
 
+def test_harvest_names_a_kid_node_still_wearing_its_derived_title(
+        graph, monkeypatch, capsys):
+    """item (8): a node whose `title` is the one node_writer DERIVED from its
+    filename (`_derive_title('k-auto')` -> `K auto`) -- or is absent -- has no
+    title of its own and is named `untitled=`; a real title is silent."""
+    _write_kid_node(graph, "experiment:k-auto", title="K auto")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-auto")
+    capsys.readouterr()
+    assert "untitled=[experiment:k-auto]" in text, text
+
+
+def test_harvest_is_silent_when_the_kid_set_its_own_title(graph, monkeypatch,
+                                                          capsys):
+    """A title in the kid's own words is not a defect."""
+    _write_kid_node(graph, "experiment:k-titled",
+                    title="Per-side audit misses and the brief slice")
+    text = _harvest_text(graph, monkeypatch, "experiment:k-titled")
+    capsys.readouterr()
+    assert "untitled=" not in text, text
+
+
 def test_harvest_is_unchanged_under_2x_or_without_a_resolvable_commit(
         graph, monkeypatch, capsys):
     """Under 2x adds nothing; a kid with no record and NO resolvable `done`

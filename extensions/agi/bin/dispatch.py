@@ -2625,6 +2625,15 @@ def main() -> int:
                 if branch_ref:
                     drop_branch_worktree(root, branch_ref["worktree"])
                 spawn_budget.release(lease)
+                # No round will consume the orders copy and no agent record
+                # will follow the scaffold: the same cleanup + named issue
+                # line as the rc-4 seams, never a live orphan behind rc 5.
+                if _orders_file is not None:
+                    _orders_file.unlink(missing_ok=True)
+                _report_unregistered_scaffold(
+                    root, scaffold_info, agent_id,
+                    detail=f"died transiently (signature: {_sig}) on all "
+                           f"{_GRACE_MAX_ATTEMPTS} attempts")
                 return 5
             _sleep_s = _GRACE_BACKOFF_S[_attempt - 1]
             with open(log_file, "ab") as _af:
