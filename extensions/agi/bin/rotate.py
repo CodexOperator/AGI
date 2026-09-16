@@ -3438,19 +3438,22 @@ def _local_branches(root: Path | None) -> list[str] | None:
         return None
 
 
-def _town_post_branch(root: Path | None, town: str, name: str,
-                      reader=None) -> str:
-    """The town-first post branch for `name` in `town`. SM.32b ROUND 2: the
-    REAL local refs are authoritative -- a real branch whose town segment
-    disagrees with the row town cell is a NAMED REFUSAL naming both
-    spellings; an agreeing branch is the spelling carried; None (cannot
-    answer) or no ref for the post (a first seating) keeps the derived
-    spelling."""
-    derived = branches.derive_names(town, _row_season(root),
-                                    post=name)["post_main"]
+def _town_post_branch(root: Path | None, name: str,
+                      reader=None) -> str | None:
+    """The REAL town-first post branch for `name`, read from local refs.
+    SM.62: a post's HOME town (`towns.row_town`) and the PROJECT town its
+    branch builds on (`core/`, `web-app-suite/`, ...) are SEPARATE axes, so
+    this NEVER derives a spelling from the row cell. Returns the real ref
+    spelling when the refs carry exactly one (town, town_season) tuple for
+    the post; a NAMED RenameTownRefusal when several real refs disagree;
+    None when git cannot answer or the post has no real ref -- the branch
+    surfaces are then SKIPPED BY NAME and the reason is printed here, the
+    one place that knows whether git could answer at all."""
     names = (reader or _local_branches)(root)
     if names is None:
-        return derived
+        print(f"rename-post: cannot read local refs for {name}: nothing to "
+              f"rename", file=sys.stderr)
+        return None
     real = []
     for n in names:
         try:
@@ -3460,7 +3463,9 @@ def _town_post_branch(root: Path | None, town: str, name: str,
         if p.get("kind") in ("post", "v3_post") and p.get("name") == name:
             real.append((n, p))
     if not real:
-        return derived
+        print(f"rename-post: no real branch for {name}: nothing to rename",
+              file=sys.stderr)
+        return None
     tuples = []
     for _ref, p in real:
         t = (p.get("town"), p.get("town_season"))
@@ -3470,19 +3475,18 @@ def _town_post_branch(root: Path | None, town: str, name: str,
         raise RenameTownRefusal(
             f"rename-post REFUSED: {name} has real branches that disagree "
             f"({', '.join(ref for ref, _ in real)})")
-    t_town, _t_season = tuples[0]
-    if t_town != town:
-        raise RenameTownRefusal(
-            f"rename-post REFUSED: {name} is in town {town} (row cell), the "
-            f"real branch {real[0][0]} carries town {t_town or '(none)'} "
-            f"(derived spelling {derived})")
     return real[0][0]
 
 
 def _rename_post_segment(branch: str, name: str) -> str:
     """`branch`'s post segment renamed to `name`, keeping the SAME (town,
-    town_season) tuple -- a rename never moves a post's season."""
+    town_season) tuple -- a rename never moves a post's season. SM.62: a
+    legacy town-less `season2/posts/<name>` ref has no town segment, so its
+    shape is preserved verbatim by swapping the post segment alone (the
+    real ref is never re-spelled into a town-first one)."""
     p = branches.parse(branch)
+    if p.get("town") is None:
+        return branch.replace(f"/posts/{p['name']}", f"/posts/{name}")
     return branches.derive_names(p["town"], p["town_season"],
                                  post=name)["post_main"]
 
@@ -3558,13 +3562,14 @@ def _rename_surfaces(root: Path, old: str, new: str,
             raise RenameTownRefusal(
                 f"rename-post REFUSED: {old} is in town {old_town}, the new "
                 f"name {new} is a row in town {new_town}")
-    old_branch = _town_post_branch(root, old_town, old, branches_reader)
-    new_branch = _rename_post_segment(old_branch, new)
+    old_branch = _town_post_branch(root, old, branches_reader)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    add("branch", old_branch, new_branch, "seam-git")
-    add("branch (origin)", f"origin/{old_branch}", f"origin/{new_branch}",
-        "seam-git")
+    if old_branch is not None:
+        new_branch = _rename_post_segment(old_branch, new)
+        add("branch", old_branch, new_branch, "seam-git")
+        add("branch (origin)", f"origin/{old_branch}",
+            f"origin/{new_branch}", "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")

@@ -167,11 +167,13 @@ def test_alias_resolution_in_find_seat(tmp_path, capsys):
     assert "deprecated alias used: old -> new" in capsys.readouterr().err
 
 
-def test_dry_run_lists_round2_surfaces_not_applied(tmp_path):
+def test_dry_run_lists_round2_surfaces_not_applied(tmp_path, monkeypatch):
     _geo(tmp_path, rows=[{"name": "old", "role": "kid"},
                          {"name": "new", "role": "kid",
                           "rotated_by": "old"}])
     _session_files(tmp_path, "old")
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
     # dry-run shows row + branch + tmux surfaces as round 2
     out = _capture_stdout(lambda: rotate.cmd_rename_post(
         _ns("old", "new", dry_run=True), tmp_path))
@@ -278,7 +280,9 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
     goal:g15.25 (1)+(2): the post head is never pushed as a head -- the
     rename-apply mirrors to refs/agi/posts/<new> and proves it."""
     _geo(tmp_path, rows=[{"name": "old"}])
-    surfaces = rotate._rename_surfaces(tmp_path, "old", "new")
+    surfaces = rotate._rename_surfaces(
+        tmp_path, "old", "new",
+        branches_reader=_reader("core/season2/posts/old/main"))
     calls = []
     rec = lambda *a: calls.append(a)          # noqa: E731
     rc, _ = rotate._apply_surfaces(tmp_path, surfaces, run_git=rec,
@@ -467,6 +471,9 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
         if cmd[0] == "tmux" and cmd[1] == "list-sessions":
             return type("R", (), {"stdout": "$1 agi-rc\n$4 view-old\n",
                                    "stderr": "", "returncode": 0})()
+        if cmd[0] == "git" and "for-each-ref" in cmd:
+            return type("R", (), {"stdout": "core/season2/posts/old/main\n",
+                                   "stderr": "", "returncode": 0})()
         if cmd[0] == "git" and "rev-parse" in cmd:
             if "--show-toplevel" in cmd:
                 return type("R", (), {"stdout": str(tmp_path) + "\n",
@@ -540,11 +547,14 @@ def test_live_never_runs_in_boundary_apply_default(tmp_path):
     assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
 
 # ── SM.32b: the rename boundary is TOWN-FIRST (goal:g15.25) ────────────────
-def test_rename_post_surface_is_town_first(tmp_path):
-    """(a) the branch surface carries the row's TOWN segment through
-    `towns.row_town` / `branches.derive_names` and NEVER the legacy
-    town-less `season2/posts/<name>` spelling (goal:g15.25 SM.32b)."""
+# SM.62: the spelling comes from the REAL local ref, never from the row town
+# cell -- a post's HOME town and its branch's PROJECT town are separate axes.
+def test_rename_post_surface_is_town_first(tmp_path, monkeypatch):
+    """(a) the branch surface carries the REAL ref's own spelling and NEVER
+    the legacy town-less `season2/posts/<name>` shape (goal:g15.25 SM.32b)."""
     _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
     out = _capture_stdout(lambda: rotate.cmd_rename_post(
         _ns("old", "new", dry_run=True), tmp_path))
     assert ("branch: core/season2/posts/old/main -> "
@@ -564,11 +574,13 @@ def test_rename_post_refuses_a_cross_town_rename_by_name(tmp_path, capsys):
     assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
 
 
-def test_rename_post_proceeds_when_new_row_is_same_town(tmp_path):
+def test_rename_post_proceeds_when_new_row_is_same_town(tmp_path, monkeypatch):
     """(c) the matching-cell case proceeds: dry-run exits 0 on the town-first
     surface."""
     _geo(tmp_path, rows=[{"name": "old", "town": "core"},
                          {"name": "new", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main"))
     out = _capture_stdout(lambda: rotate.cmd_rename_post(
         _ns("old", "new", dry_run=True), tmp_path))
     assert "core/season2/posts/old/main" in out, out
@@ -584,33 +596,27 @@ def test_rename_post_refuses_an_unresolvable_row_by_name(tmp_path, capsys):
     assert rc != 0 and "REFUSED" in err and "old" in err, err
 
 
-# ── SM.32b ROUND 2: the REAL refs gate the row town cell ──────────────────
-# The round-1 assertion compared the derived branch's town segment against
-# the same town it had just been derived from -- a tautology. Round 2 reads
-# the post's REAL local refs through an injectable reader and refuses a
-# spelling whose town segment disagrees with the row town cell.
+# ── SM.32b ROUND 2 + SM.62: the REAL refs supply the spelling ──────────────
+# Round 2 read the post's REAL local refs through an injectable reader. SM.62
+# deletes the row-town-vs-branch comparison: a post's HOME town cell and its
+# branch's PROJECT town are separate axes, so a disagreement is no refusal and
+# a post with no real ref has no branch surface at all (skipped by name).
 def _reader(*names):
     return lambda _root: list(names)
 
 
-def test_real_branch_town_disagreeing_with_the_row_cell_refuses(
-        tmp_path, monkeypatch, capsys):
-    """(a) the LIVE shape: `core/season2/posts/sensei-director/main` exists
-    while the row cell resolves to `sanctuary` -> NAMED refusal, exit
-    non-zero, BOTH towns and BOTH spellings, nothing staged."""
+def test_a_sanctuary_home_post_on_a_core_branch_proceeds(tmp_path, monkeypatch):
+    """(a) the LIVE shape: `core/season7/posts/sensei-director/main` exists
+    while the row cell resolves to `sanctuary` -> the rename PROCEEDS, keeps
+    the REAL (town, season) tuple, and never re-spells the town."""
     _geo(tmp_path, rows=[{"name": "sensei-director", "town": "sanctuary"}])
     monkeypatch.setattr(rotate, "_local_branches", _reader(
-        "core/season2/posts/sensei-director/main", "season2/main"))
-    rc = rotate.cmd_rename_post(
-        _ns("sensei-director", "sensei-director2"), tmp_path)
-    err = capsys.readouterr().err
-    assert rc == 4, rc
-    assert "REFUSED" in err, err
-    assert "core" in err and "sanctuary" in err, err
-    assert "core/season2/posts/sensei-director/main" in err, err
-    assert "sanctuary/season2/posts/sensei-director/main" in err, err
-    assert not (tmp_path / "sessions" / "seats" /
-                "sensei-director.rename.json").exists()
+        "core/season7/posts/sensei-director/main", "season2/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("sensei-director", "sensei-director2", dry_run=True), tmp_path))
+    assert ("branch: core/season7/posts/sensei-director/main -> "
+            "core/season7/posts/sensei-director2/main") in out, out
+    assert "sanctuary/season7" not in out, out
 
 
 def test_agreeing_real_branch_is_the_spelling_the_surface_carries(tmp_path):
@@ -625,23 +631,34 @@ def test_agreeing_real_branch_is_the_spelling_the_surface_carries(tmp_path):
     assert surfs["branch"]["dst"] == "core/season7/posts/new/main", surfs
 
 
-def test_a_reader_that_cannot_answer_keeps_the_derived_spelling(tmp_path):
+def test_a_reader_that_cannot_answer_skips_the_branch_surfaces_by_name(
+        tmp_path, capsys):
     """(c) None means CANNOT ANSWER (a gitless fixture), never `no refs`:
-    today's derive-and-proceed behaviour is kept."""
+    the branch surfaces are skipped BY NAME naming the post -- never a
+    spelling derived from the row town, which a reader that cannot see the
+    refs has no authority to invent."""
     _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
-    surfs = {s["kind"]: s for s in rotate._rename_surfaces(
-        tmp_path, "old", "new", branches_reader=lambda _root: None)}
-    assert surfs["branch"]["src"] == "core/season2/posts/old/main", surfs
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    err = capsys.readouterr().err
+    assert "branch:" not in out and "branch (origin):" not in out, out
+    assert "cannot read local refs for old" in err, err
+    assert "nothing to rename" in err, err
 
 
-def test_no_real_branch_for_the_post_keeps_the_derived_spelling(tmp_path):
+def test_no_real_branch_for_the_post_skips_the_branch_surfaces_by_name(
+        tmp_path, monkeypatch, capsys):
     """(c') a first seating/migration: the reader answers, but no ref for
-    the post exists -> the derived spelling, exactly as before."""
+    the post exists -> no branch surface, skipped by name, dry-run exit 0."""
     _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
-    surfs = {s["kind"]: s for s in rotate._rename_surfaces(
-        tmp_path, "old", "new", branches_reader=_reader("season2/main",
-                                                        "core/main"))}
-    assert surfs["branch"]["src"] == "core/season2/posts/old/main", surfs
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "season2/main", "core/main"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    err = capsys.readouterr().err
+    assert "branch:" not in out and "branch (origin):" not in out, out
+    assert "no real branch for old" in err and "nothing to rename" in err, err
+    assert "season2/posts/old" not in out, out
 
 
 def test_real_branches_that_disagree_with_each_other_refuse(
