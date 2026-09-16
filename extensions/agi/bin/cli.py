@@ -4395,7 +4395,17 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
     if not (kinds & {"town_main", "main", "post", "loop"}):
         return 0
-    town_tuples, town_src, town_declared = _rs_town_set(root)
+    import towns  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        town_tuples, town_src, town_declared = _rs_town_set(root)
+    except towns.TownError as exc:
+        # clauses 4+5 — a PRESENT-but-BROKEN town:* node is a VALIDATION
+        # REFUSAL, never an absence and never a silent ladder guess. The
+        # reason is printed BY NAME; a --dry-run plan exits 0 (a plan attempt
+        # is not a crash) while --apply HARD-REFUSES non-zero (a broken
+        # declared set is never silently replaced by the ladder fallback).
+        print(f"town set REFUSED: {exc}", file=sys.stderr)
+        return 0 if dry else 1
     print(f"  town set: {town_src}")
     # The v3 TOWN-FIRST tree is DERIVED from the town tuples (I-3a-2): a graph
     # that declares NO town set at all (no town:* node and no ladder towns:
@@ -4760,7 +4770,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # with no town:* node and no ladder towns: list), the old season-first-
     # only stream stays and the header says the yield is inert.
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
-    _rs_tuples, _rs_town_src, _rs_town_declared = _rs_town_set(root)
+    import towns  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        _rs_tuples, _rs_town_src, _rs_town_declared = _rs_town_set(root)
+    except towns.TownError as exc:
+        # clauses 4+5 (same consume-shape as _rs_v3_run): a present-but-
+        # broken town set is a VALIDATION REFUSAL reported BY NAME — a dry
+        # pass exits 0 (a plan attempt is not a crash), a real pass
+        # HARD-REFUSES non-zero (never silently guess from the ladder).
+        print(f"town set REFUSED: {exc}", file=sys.stderr)
+        return 0 if dry else 1
     _v3_on = bool(kinds & {"town_main", "main", "post", "loop"}) and \
         _rs_town_declared
     _yield_note = ("; v3 YIELD active (declared town set)" if _v3_on
