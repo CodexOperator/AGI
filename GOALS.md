@@ -9784,6 +9784,8 @@ harvested SM.38 (l4-cmd-spawn-first-seating-rewrites-the-handoff-generation-head
 
 SM ACCEPT SM.39 (:80) and SM.40 (:80) -- both merged to sensei-director post branch, held for MAIN merge-up
 
+SM.45 harvested (4 kids: kid-checkpoint+rebrief+harvest-measurement feature, all conjuncts proved or inconclusive_lean_proved, 366 tests green post-merge). Flagged to SM as mechanical-rule DEMOTE candidate: round totalled ~221 prod lines vs 40-line ceiling (5.4x) across 4 kids, no mid-round re-brief dm before next kid -- the shape her post-SM.21 rule names regardless of work quality. Held in seat branch for her verdict + a future MAIN merge-up grant.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
