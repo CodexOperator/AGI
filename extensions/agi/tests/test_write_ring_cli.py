@@ -570,3 +570,27 @@ def test_live_schema_scan_reports_empty_written_by():
     # still gates nothing.
     print(f"schema scan: {total} schemas, {declared} declare written_by, "
           f"{not_declared} undeclared, {empty_declared} empty-but-declared")
+
+def test_H4b_gate_refuses_by_name_when_ledger_present_but_unreadable(
+        tmp_path):
+    """clause 4: a LedgerReadError from a PRESENT-but-unreadable ledger (the
+    first hit is `_Seen.__contains__`, which freshness_refusal consults before
+    remember) becomes a by-name EditError through the WIDENED catch -- never
+    an unhandled traceback, never a silent spend."""
+    root, signers = _ring_root(tmp_path)
+    ts, nonce = _now(), "write-h4b"
+    fields = _cell_fields(root, "config:seats", {"a": "1"},
+                          ts=ts, nonce=nonce)
+    canonical = rings.canonical_bytes("config-write", fields)
+    sigs = _sigs(signers, canonical, ["alice", "bob"])
+    # A genuinely unreadable ledger where rings._ledger_path(root) resolves.
+    lp = root / "sessions" / "ring-nonces.json"
+    lp.parent.mkdir(parents=True, exist_ok=True)
+    lp.write_text("{ not json at all", encoding="utf-8")
+
+    with pytest.raises(write.EditError) as ei:
+        write._enforce_written_by(
+            root, "config", "director1", "config:seats", role="prime",
+            set_fm={"a": "1"}, signatures=sigs, ring_fresh=(ts, nonce))
+    msg = str(ei.value)
+    assert "nonce ledger" in msg and "ring-nonces.json" in msg
