@@ -570,32 +570,37 @@ def _suite_lock_held(root: Path) -> bool:
     return _pid_alive(holder)
 
 
-def _season_unpushed(root: Path) -> bool:
-    """An unpushed merge commit on the season branch: `origin/<season>..<season>`
-    is non-zero from the MAIN checkout. This is the `git status -sb` *ahead* the
-    claim names. Unmeasurable reads clean (P7); a season branch with no local
-    ref (not checked out) reads clean too — there is nothing to merge-up that is
-    not pushed."""
+def _season_unpushed_count(root: Path) -> int:
+    """How many commits the season branch is AHEAD of origin, from the MAIN
+    checkout — MEASURED, and printed as INFO only. Unmeasurable or no local
+    season ref reads 0 (P7)."""
     sb = _season_branch_checked(root)
     main_root, _ = _main_root(root)
     top = _git_toplevel(main_root)
     if top is None or not sb:
-        return False
-    n = _git_count_maybe(top, "rev-list", "--count", f"origin/{sb}..{sb}")
-    return bool(n)
+        return 0
+    return _git_count_maybe(top, "rev-list", "--count", f"origin/{sb}..{sb}") or 0
+
+
+def _season_unpushed(root: Path) -> bool:
+    """Whether the season branch is ahead of origin. Kept as a NAME (a test
+    asserts on it); it NO LONGER gates the rotation — being ahead in a shared
+    checkout is the normal state between pushes, usually another seat's commit
+    (hypothesis:l4-the-card-age-captive-...-merge-up-in-flight-means-a-real-
+    merge, conjunct 3)."""
+    return bool(_season_unpushed_count(root))
 
 
 def _merge_in_flight(root: Path) -> str | None:
-    """Which of the three merge-up signals holds, or None when clean. FIXED
-    order (hypothesis line (4) gate (b)): MAIN's MERGE_HEAD, the suite lock,
-    then a season unpushed merge commit. Returns the `(<which>)` label of the
-    FIRST that holds. Never raises (P7): an unmeasurable signal reads clean."""
+    """Which REAL merge-in-flight signal holds, or None when clean. FIXED
+    order: MAIN's MERGE_HEAD (a merge-up being performed RIGHT NOW), the suite
+    lock held by a LIVE pid. A plain "ahead of origin" is NOT a merge in
+    flight — it is measured separately and printed as INFO (conjunct 3).
+    Never raises (P7): an unmeasurable signal reads clean."""
     if _merge_head_present(root):
         return "merge in progress on MAIN"
     if _suite_lock_held(root):
         return "verify-suite lock live"
-    if _season_unpushed(root):
-        return "unpushed merge commit on the season branch"
     return None
 
 
@@ -612,53 +617,39 @@ def _card_path(root: Path, seat: str) -> Path:
         root / "sessions" / "quorum" / f"{seat}.md"
 
 
-def _work_last_ts(top, card_rel: str | None, seats_rel: str | None) -> int | None:
-    """The last WORK commit's mtime at the repo top, or None when unmeasurable.
-    Mirrors rotate.py check 4's exclusion: comms dms, rotation records, the
-    card itself and the seat own-row seats are bookkeeping, NEVER WORK — so a
-    stops write can satisfy (not re-trigger) the card-age captive."""
-    spec = ["log", "-1", "--no-merges", "--format=%ct", "--", ".",
-            ":(exclude).agi/comms", ":(exclude).agi/sessions/rotations"]
-    if card_rel:
-        spec.append(f":(exclude){card_rel}")
-    if seats_rel:
-        spec.append(f":(exclude){seats_rel}")
-    lines = _git_maybe(top, *spec)
-    if not lines or not lines[0].strip():
-        return None
+def _import_last_act():
+    """The ONE seat-scoped clock (bin/last_act.py), or None (P7)."""
     try:
-        return int(lines[0].strip())
-    except ValueError:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import last_act  # noqa: PLC0415
+        return last_act
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _work_last_ts(root, seat: str, card: Path | None = None) -> int | None:
+    """The SEAT'S OWN last work act (bin/last_act.last_act_ts), or None when
+    unmeasurable. The repo-wide `git log -1 --no-merges -- .` clock is GONE:
+    another seat's commit can never stale this seat's card (conjunct 1/2)."""
+    mod = _import_last_act()
+    try:
+        return mod.last_act_ts(root, seat, card) if mod is not None else None
+    except Exception:  # noqa: BLE001
         return None
 
 
 def _card_stale_measure(root: Path, seat: str, card: Path) -> tuple[bool, str]:
-    """Card-age captive (gate (a)): `(stale, clear_line)`. The card must be
-    NEWER than the last WORK commit; when it is older the hook does NOT rotate
-    and prints the card line to write instead. Unmeasurable last-WORK (no git)
-    reads NOT stale — the same ok-unmeasurable rule rotate's captives use."""
-    top = _git_toplevel(root) or root
-    try:
-        card_rel = str(card.resolve().relative_to(Path(top).resolve()))
-    except (ValueError, OSError):
-        card_rel = None
-    seats_rel = None
-    try:
-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
-        import rotate  # noqa: PLC0415
-        sres = str(rotate._ack_seats_path(root).resolve()
-                   .relative_to(Path(top).resolve()))
-        seats_rel = sres
-    except Exception:  # noqa: BLE001
-        seats_rel = None
-    last_ts = _work_last_ts(top, card_rel, seats_rel)
-    stale = False
-    if last_ts is not None and card.exists():
-        try:
-            stale = card.stat().st_mtime < last_ts
-        except OSError:
-            stale = False   # an unstat-able card reads not-stale (P7)
-    return stale, f"rotate.py handoff --driven --seat {seat}"
+    """Card-age captive (gate (a)): `(stale, clear_line)` — the seat's card
+    must be NEWER than the seat's OWN last act; when it is older the hook does
+    NOT rotate and prints the exit line to run FIRST (conjunct 4). Unmeasurable
+    reads NOT stale, the same ok-unmeasurable rule rotate's captives use."""
+    clear_line = f"rotate.py handoff --driven --seat {seat}"
+    mod = _import_last_act()
+    if mod is None:
+        return False, clear_line
+    last_ts = _work_last_ts(root, seat, card)
+    stale, _act = mod.card_stale(root, seat, card, last_ts=last_ts)
+    return stale, clear_line
 
 
 def _prepare_other_captives(root: Path, seat: str) -> list[tuple[str, str]]:
@@ -884,21 +875,30 @@ def _gated_rotate(root: Path, seat: str, session_id: str = "") -> str | None:
         return "no-seat-identified"
     card = _card_path(root, seat)
 
-    # gate (a) card-age captive
+    # gate (a) card-age captive — the ONE-LINE EXIT prints FIRST (conjunct 4),
+    # then why it is withheld. Never buried under prose.
     stale, clear_line = _card_stale_measure(root, seat, card)
     if stale:
-        print("[rotation] card-age captive: the seat card is older than the "
-              "last WORK commit — the hook does not rotate a seat whose card "
-              "is stale. Write it, then re-check on the next prompt:")
         print(f"  {clear_line}")
+        print("[rotation] card-age captive: the seat card is older than the "
+              "seat's OWN last act — run the line above, then re-check on "
+              "the next prompt.")
         return "card-stale"
 
-    # gate (b) NO MERGE-UP IN FLIGHT — THE POINT of the node, tested first.
+    # gate (b) A REAL MERGE IN FLIGHT — the point of the node, tested first.
     which = _merge_in_flight(root)
     if which:
         print(f"{DEFER_PREFIX} ({which}) — the hook does not rotate while a "
               f"merge-up is in flight; re-check on the next prompt.")
         return which
+    # ...and the unpushed count is MEASURED and printed as INFO, never a
+    # captive: being ahead of origin in a shared checkout is the normal state
+    # between pushes and is usually another seat's commit (conjunct 3).
+    n_unpushed = _season_unpushed_count(root)
+    if n_unpushed:
+        sb = _season_branch_checked(root) or "season"
+        print(f"info: {n_unpushed} unpushed commit(s) on {sb} "
+              f"(not a merge in flight)")
 
     # ----- stale-latch release: runs BEFORE gate (c), so a latch whose holder
     # pid is DEAD is released even on a prompt where a LATER captive holds the
