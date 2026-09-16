@@ -26,8 +26,11 @@ STAMP_DIRNAME = "seats"
 #: wrote (conjunct 1's measured hazard).
 INTERNAL_ENV = "AGI_LAST_ACT_INTERNAL"
 
-#: The env keys an act's seat is resolved from, in order.
-SEAT_ENV = ("AGI_SEAT", "AGI_ACTOR", "AGI_AGENT_ID", "USER")
+#: The env keys an act's seat is resolved from, in order. AGI_AGENT_ID comes
+#: FIRST: a spawned agent's env carries the dispatching seat's inherited
+#: AGI_SEAT, so resolving AGI_SEAT first stamped the DIRECTOR for a kid's act
+#: and staled its card (the rotation loop). USER is dropped: noise, not a seat.
+SEAT_ENV = ("AGI_AGENT_ID", "AGI_SEAT", "AGI_ACTOR")
 _UNSET = object()
 
 
@@ -63,8 +66,9 @@ def touch(root, seat: str) -> None:
 
 def env_seat(explicit: str | None = None) -> str:
     """The seat a verb acts as: the caller's `explicit` flag first (--actor,
-    --seat, --from), else AGI_SEAT, AGI_ACTOR, AGI_AGENT_ID, USER. '' when
-    nothing names a seat, and then NO stamp is written."""
+    --seat, --from), else AGI_AGENT_ID (a spawned agent stamps its OWN id,
+    never the seat it inherited), else AGI_SEAT, AGI_ACTOR. '' when nothing
+    names a seat, and then NO stamp is written."""
     for v in (explicit, *[os.environ.get(k) for k in SEAT_ENV]):
         if v and str(v).strip():
             return str(v).strip()
