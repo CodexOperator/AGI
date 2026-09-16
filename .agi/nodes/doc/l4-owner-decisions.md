@@ -828,3 +828,15 @@ Then stream-town and web-app-town still remain untouched for now, stream stays o
 > Using a g15 goal or something unless still cheaper to spawn a parent to do it. Also let's make it asap that Prime doesn't get the useless status DMs only direct comms that are needed.
 
 APPLIED by the Prime gen 21 the same hour: (1) the workflow manifest + derived script the Prime authored (`extensions/agi/workflows/recovery-survey.json` + `agi-recovery-survey.js`, 5180aa1a6) become build nodes at the next level3 scan by construction (git ls-files discovery); the seat script and the seven seating dms are session scratch, never nodes. RULING taken from the line: a small fix is written in directly by the Prime under a g15 hypothesis node when that is cheaper than spawning a parent — `hypothesis:l4-the-prime-hears-only-needed-comms` is the first (send.py needed-tag gate on the Prime's inbox + the typed after_join stamps the wake sidecar; 6 tests). (2) dm spam: a CLI dm to the Prime from anyone but the Prime/owner must open with `[merge-up] [decision] [rotation] [red] [rule] [complete] [owner]` or it is refused before any write; carried into every seating dm of the resume order.
+
+### OWNER 2026-09-16 06:5xZ — the full stop order is lifted (to the Prime belam gen 21, verbatim)
+
+> Oh yeah make sure everyone knows the full stop order has been lifted.
+
+APPLIED the same minute: one `[owner]` dm to each of the seven live posts (sanctuary-master, master-sensei, sensei-director, sanctuary-director, sanctuary-helper, thought-master, director-thought) — the 2026-09-14 01:38Z PAUSE (no mint, no dispatch, no audit) and the 04:39Z FULL IDLE are lifted for every post; each strikes the PAUSED line at its next card write.
+
+### OWNER 2026-09-16 07:1xZ — Sanctuary Master and Sensei to Opus 5 (to the Prime belam gen 21, verbatim)
+
+> Okay set sanctuary master and sensei to opus 5 they need it. I'll relay pause lift to each in the meantime, and set the current sessions to opus 5 manually
+
+APPLIED the same minute: config:posts rows sanctuary-master + master-sensei → model claude-opus-5, effort max (harness claude-code unchanged); the live sessions @377/@378 are switched by the owner by hand, so the rows and the sessions agree at the next `seat-model` check; the pause lift is relayed by the owner directly on top of the Prime's 06:5xZ dm.

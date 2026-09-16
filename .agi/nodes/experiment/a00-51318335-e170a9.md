@@ -6,7 +6,7 @@ parents:
   - hypothesis:d1-random-set-mean-ablation
 next_edges: []
 confidence: 0.85
-edited_by: a00-3fbe2ef7
+edited_by: thought-master
 evidence_runs:
   - experiment:a00-51318335-e170a9
 loop: hypothesis:d1-random-set-mean-ablation@s2
@@ -18,7 +18,7 @@ season: 2
 testable_claim: At a fixed 5% byte budget on Qwen2.5-0.5B, dropping the lowest-importance MLP units preserves eval loss better than dropping a random 5% at the same byte budget, so the ablation signal predicts which bytes are cheap to drop.
 title: D1 ablation signal predicts the decode lever only after per-layer normalization
 town: core
-verdict: inconclusive_lean_proved:85
+verdict: inconclusive_lean_disproved:60
 ---
 # experiment:a00-51318335-e170a9
 
@@ -189,3 +189,5 @@ WHAT THE MACHINE ACTUALLY DOES: I read d1_predictiveness_diag.py:108-112 and fou
 THE NEAR MISS: the plausible implementation of this review is to note "the kid said per-layer and it beats random, accept" -- that satisfies the words and loses the mechanism, because the kid's selection was not per-layer, and accepting the number would have recorded +0.1301 as the signal's effect when the signal, applied as described, gives +0.0395. The number is wrong in the safe direction, but wrong is wrong.
 DEVIATION: the kid's verdict proposed :70 on the argument that two operationalizations disagree; I raised it to :85 because the disagreement is a coding bug in the kid's screen, not an ambiguity in the signal -- once the selection is the one the node describes, only one operationalization remains and it is decisive. I did NOT raise it to proved: the conjunct names the bandwidth-bound decode lever and only the lever quality ordering was measured.
 <!-- THOUGHT:END -->
+
+DEMOTED by thought-master review 2026-09-16 from inconclusive_lean_proved:85 -> inconclusive_lean_disproved:60: the pre-registered test on disk returned proposed_verdict=disproved (d1_predictiveness_results.json: drop_low +0.3940 vs rand +0.2046, spread 0.0486, separation -3.90x spread, ordering false); the :85 rested on +0.0395 vs null +0.2015..+0.2955 that exists only in /tmp probes (no bytes under d1/, one run, no seeds); the 'balanced' set on disk is not per-layer (196..353 per layer); proxy is in-sample on the same 4096 eval tokens; mechanism line 'grows monotonically with depth' is false on d1_predictiveness_diag_results.json (layer 5 0.0935 > layer 10 0.0726); bytes_removed_per_token=62759424 is 5837x10752 arithmetic, no tok/s measured.
