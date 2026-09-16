@@ -152,6 +152,60 @@ def test_kid_brief_carries_no_iteration_contract():
     assert "FAN-OUT AND BRANCHES" not in kid
 
 
+def test_kid_brief_names_its_production_line_ceiling():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    as a NUMBER the kid can read. Before this, the kid brief named no
+    production-line budget at all, so the 2x checkpoint had no number to key
+    on and a single kid ran to 3.4x with nothing to measure against. The
+    decimal digits must appear in the assembled text, and the 2x threshold
+    must be spelled out as arithmetic the kid can do without asking.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "PRODUCTION-LINE CEILING" in kid
+    assert "40" in kid, "the literal ceiling number must be readable"
+    assert "git diff --numstat" in kid, "how the lines are measured"
+    assert "above 80 lines" in kid, "the 2x threshold as arithmetic"
+    assert "re-brief" in kid, "what to do above 2x"
+
+
+def test_kid_brief_reads_the_ceiling_from_config_not_a_constant(tmp_path):
+    """The ceiling is READ, not hardcoded: a project that sets
+    `spawn.production_line_ceiling` sees its own number and its own 2x.
+    `project_root` is the graph root (`.agi/`) -- the same argument
+    `_configured_profile` already resolves config from.
+    """
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 17}}),
+        encoding="utf-8")
+    kid = _text("kid", scaffold=SCAFFOLD, project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 17 lines" in kid
+    assert "above 34 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+
+
+def test_kid_line_ceiling_defaults_to_forty_without_a_project_root():
+    """A caller that does not thread project_root still gets a readable
+    ceiling -- the segment must never be absent, since a brief that says
+    nothing is exactly the defect conjunct (1) fixes.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
+def test_the_line_ceiling_is_kid_only():
+    """No other tier's brief gains the segment -- a parent plans against a
+    kid ceiling, not a production-line one, and reordering/adding to the
+    parent brief here would be scope the conjunct does not own.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "PRODUCTION-LINE CEILING" not in parent
+    director = _text("director")
+    assert "PRODUCTION-LINE CEILING" not in director
+
+
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
     """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
     -- the per-kid brief channel. THREADING addendum through assemble must

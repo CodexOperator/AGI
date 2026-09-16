@@ -1237,3 +1237,22 @@ def test_agent_status_finds_record_under_a_post_worktree(root: Path):
     status, src, overdue = spawn_budget._agent_status(root, "a00-06c44930", "L4.193")
     assert status == "running", status
     assert src == "post:sanctuary-director", src
+
+
+def test_production_line_ceiling_reads_config_and_defaults_small():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (1): the number the kid brief names is
+    READ from `spawn.production_line_ceiling`, mirroring
+    `parent_max_kids` (same file, same shape, same defaulting rule), and the
+    default is a small constant rather than the whole change.
+    """
+    assert spawn_budget.production_line_ceiling({}) == 40
+    assert spawn_budget.production_line_ceiling({"spawn": {}}) == 40
+    assert spawn_budget.production_line_ceiling(
+        {"spawn": {"production_line_ceiling": 17}}) == 17
+    # explicit default wins only when the key is absent
+    assert spawn_budget.production_line_ceiling(
+        {"spawn": {"production_line_ceiling": 17}}, default=5) == 17
+    assert spawn_budget.production_line_ceiling({}, default=5) == 5
+    # a config with no `spawn` mapping must not raise
+    assert spawn_budget.production_line_ceiling({"spawn": None}) == 40
