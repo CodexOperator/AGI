@@ -2587,6 +2587,9 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
     class _Proc:
         pid = 4242
 
+        def poll(self):  # a child that never exits: outlives the startup grace
+            return None
+
     class _Adapter:
         def build_command(self, **kw):
             return [sys.executable, "-c", "pass"]
@@ -2605,6 +2608,8 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
     monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
     monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
     monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    # the startup-grace poll's sleep seam: never sleep for real in a test
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
 
     for from_token in ("p1", "p2"):
         orders = tmp_path / f"orders-{from_token}.md"
