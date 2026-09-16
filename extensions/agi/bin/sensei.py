@@ -812,9 +812,10 @@ def _select_wake_record(root: Path, seat: str, gen: int | None,
                         record: str | None = None,
                         ) -> tuple[Path | None, dict | None, str]:
     """`_select_rotation_record` with the wake side's `--gen` predicate
-    (`b_generation.after` / top-level `gen_after`). ONE call site for both
-    `_resolve_wake_transcript` and the CLI header, so the record the report
-    names is the record the audit read."""
+    (`b_generation.after` / top-level `gen_after`). Its ONE caller is
+    `_resolve_wake_transcript`, so the record the report names is the record
+    the audit read; the CLI header does NOT call it -- it reads the stamp
+    `wake_audit` carried back on `counts['record']`."""
     _i, path, rec, reason = _select_rotation_record(
         _seat_rotation_records(root, seat), seat,
         record=record, gen=gen, session_id=session_id,
@@ -827,7 +828,7 @@ def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
                              transcript_path: Path | None,
                              session_id: str | None = None,
                              record: str | None = None
-                             ) -> tuple[Path | None, str]:
+                             ) -> tuple[Path | None, str, Path | None]:
     """The transcript the wake audit reads, in the g15 order:
 
       1. an explicit `--transcript PATH` (must exist)
@@ -1443,7 +1444,7 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     # a missing/malformed cell is NAMED on the result line, never silent.
     floors = _audit_floors(fm)
     window_counts["_floor"] = floors["wake"]
-    window_counts["_floor_misses"] = floors["_misses"]
+    window_counts["_floor_misses"] = floors["_misses_wake"]
     return 0, window_calls, window_counts
 
 
@@ -1502,24 +1503,28 @@ FALLBACK_AUDIT_FLOOR = {"wake": 0, "out": 1}
 
 
 def _audit_floors(fm: str) -> dict:
-    """`{"wake": N, "out": M, "_misses": [cell,...]}` from config:rotations.
+    """`{"wake": N, "out": M, "_misses_wake": [...], "_misses_out": [...]}`.
 
-    `_read_rotations` already hands both audit verbs the frontmatter text, so
-    the floors are read where they are declared and never carried as a second
-    live copy in this file. A missing/unparseable cell falls back to the
-    owner's number recorded in `FALLBACK_AUDIT_FLOOR`, and the cell NAME
-    travels back on `_misses` so the verb's result line can name it -- a
-    silent fallback was the `cell nothing reads` trap. Never raises.
+    The misses are PER SIDE: a wake audit whose `floor_out` cell is the only
+    one missing must not print a MISS naming `floor_out`, and each verb reads
+    only its own bucket. `_read_rotations` already hands both audit verbs the
+    frontmatter text, so the floors are read where they are declared and never
+    carried as a second live copy in this file. A missing/unparseable cell
+    falls back to the owner's number recorded in `FALLBACK_AUDIT_FLOOR`, and
+    the cell NAME travels back on that side's bucket so the verb's result line
+    can name it -- a silent fallback was the `cell nothing reads` trap. Never
+    raises.
     """
     out = dict(FALLBACK_AUDIT_FLOOR)
-    misses: list[str] = []
+    misses: dict[str, list[str]] = {"wake": [], "out": []}
     for side, cell in (("wake", "floor_wake"), ("out", "floor_out")):
         m = re.search(rf"^{cell}:\s*(-?\d+)\s*$", fm or "", re.M)
         if m:
             out[side] = int(m.group(1))
         else:
-            misses.append(cell)
-    out["_misses"] = misses
+            misses[side].append(cell)
+    out["_misses_wake"] = misses["wake"]
+    out["_misses_out"] = misses["out"]
     return out
 
 
@@ -1554,9 +1559,13 @@ def audit_payload(side: str, calls: int, counts: dict, transcript: str,
     window it read (record stamp, transcript, bounds). `calls` is the number
     of tool_use calls INSIDE the audit window -- the same number the printed
     line reports, never a second count. `floor` is the config:rotations cell
-    the verb resolved; `None` (a direct caller) uses the recorded fallback."""
+    the verb resolved. `None` is REFUSED BY NAME: the silent fallback this
+    once substituted was a second, unreachable copy of `FALLBACK_AUDIT_FLOOR`
+    (the verb always resolves the cell via `_audit_floors`)."""
     if floor is None:
-        floor = FALLBACK_AUDIT_FLOOR[side]
+        raise ValueError(
+            f"audit_payload side {side!r} needs a resolved floor "
+            f"(config:rotations cell); got None")
     floor = int(floor)
     a, b, c, d = (int(counts.get(k, 0)) for k in ("a", "b", "c", "d"))
     # the wake window EXCLUDES the cut call (d): only a/b/c span it (the
@@ -1692,6 +1701,11 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
     tracked = subprocess.run(
         ["git", "-C", str(top), "ls-files", "--error-unmatch", "--", rel],
         capture_output=True, text=True, timeout=10)
+    # index state BEFORE any `git add`: an entry ANOTHER author already staged
+    # must never be reset by this verb's failure path (goal:g4.1 `git reset`).
+    pre_staged = subprocess.run(
+        ["git", "-C", str(top), "diff", "--cached", "--quiet", "--", rel],
+        capture_output=True, text=True, timeout=10).returncode != 0
     if tracked.returncode != 0:
         add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
                              capture_output=True, text=True, timeout=10)
@@ -1724,7 +1738,8 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
             if staged.returncode == 0 and worktree.returncode == 0:
                 return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record "
                         "already clean after the rewrite")
-            _unstage_audit_record(top, rel)
+            if not pre_staged:
+                _unstage_audit_record(top, rel)
             return ("REFUSED", f"audit_record_commit: REFUSED \u2014 "
                     f"{(cm.stderr or cm.stdout or '').strip()}; {rel} left "
                     f"uncommitted")
@@ -1739,7 +1754,8 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
         return ("COMMITTED", f"audit_record_commit: committed (sha {sha}) "
                 f"\u2014 {rel}")
     except Exception as exc:  # noqa: BLE001
-        _unstage_audit_record(top, rel)
+        if not pre_staged:
+            _unstage_audit_record(top, rel)
         return ("FAILED", f"audit_record_commit: FAILED \u2014 {exc}")
 
 
@@ -1760,7 +1776,9 @@ def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
     when the record is still STARTED or is not byte-canonical; the verb's
     caller turns that into a non-zero exit with the named reason."""
     if floor is None:
-        floor = FALLBACK_AUDIT_FLOOR[side]
+        raise AuditRefusal(
+            f"no floor resolved for side {side!r}: the verb reads the "
+            f"config:rotations cell before it finishes an audit")
     line = audit_finding_line(seat, side, stamp, calls, floor, counts,
                               floor_misses)
     payload = audit_payload(side, calls, counts, transcript,
@@ -1810,6 +1828,14 @@ def cmd_wake_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {summary}{lbl}")
     if not calls:
         print("  (no assistant tool_use found in the transcript)")
+    # An EMPTY transcript is an ABSENCE, not a measurement: `green 0` was a
+    # measured false positive (sensei-director 20260916T162402Z, 3 min after
+    # the join). The verb prints the pending line and writes NOTHING into the
+    # rotation record -- no finish_audit, no audit.wake key, no commit.
+    if not calls:
+        print(f"pending {args.seat} wake --record "
+              f"{counts.get('record') or '?'}: no tool_use yet")
+        return 0
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
     try:
@@ -2215,7 +2241,7 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
               "recorded_at": recorded_at, "source": source,
               "log_path": str(log_path),
               "floor": floors["out"],
-              "floor_misses": floors["_misses"],
+              "floor_misses": floors["_misses_out"],
               "window_reason": "predecessor window, bounded by record (rotate-out; "
                               "d is the decision, not a cut)"}
     return 0, calls, counts, window
