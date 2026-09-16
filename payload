@@ -491,6 +491,30 @@ def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool
         f"{remaining:.2f} remains. Top up the account before the next spawn")
 
 
+def cap_headroom(cfg: dict, root: Path | str | None,
+                 cap: float) -> tuple[bool, str | None]:
+    """(ok, msg): does `cap` fit pool minus floor minus live caps?
+    Fail-open on an absent key or a network error (check_account_floor idiom).
+    """
+    try:
+        bal = credit_balance(root)
+        if bal is None:
+            return True, None
+        keys = list_all_keys(root)
+    except ProvisioningError:
+        return True, None
+    floor = min_account_remaining_floor(cfg) or 0.0
+    live = sum(float(r["limit"]) for r in keys
+               if str(r.get("name") or "").startswith(f"{NAME_PREFIX}-")
+               and r.get("limit") is not None)
+    avail = bal[2] - floor - live
+    if cap > avail:
+        return False, (
+            f"round cap ${cap:.2f} exceeds pool headroom ${avail:.2f} "
+            f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f})")
+    return True, None
+
+
 def check_runtime_key_usable(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
     """(ok, message) — the provisioning-ABSENT pre-flight (this round's REQUIRED d/e).
 
