@@ -2535,3 +2535,170 @@ def test_cmd_spawn_seatless_in_root_resolves_rowgen_and_uses_first_gen(
 
     assert rc == 0                 # no UnboundLocalError, spawn "succeeded"
     assert captured.get("generation") == rotate.FIRST_SEATING_GEN
+
+
+# ---- goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-seating- #
+# ---- run): cmd_spawn threads its resolved _spawn_gen into the first seating #
+
+def _fs_capture_spawn_first_turn_block(tmp_path, monkeypatch, rows,
+                                       handoff_gen=None, name="handoff-seat"):
+    """Drive the REAL `rotate.cmd_spawn` seat path and return the composed
+    first-turn STARTUP block it hands `spawn_window` via `extra`.
+
+    The row sheet carries `rows`; when `handoff_gen` is not None a
+    `<name>.handoff.md` header with that generation is written too. That is
+    exactly the shape the defect needs: a row with NO `generation:` cell but
+    a HANDOFF carrying gen N. `spawn_window` is stubbed to a NON-ZERO rc so
+    the seating returns right after the call and none of the announce / pin /
+    commit side effects run -- the block is what this test measures.
+    """
+    _fs_seats_sheet(tmp_path, rows)
+    _fs_director_first_turn(tmp_path, monkeypatch)
+    if handoff_gen is not None:
+        hands = rotate._sessions_dir(tmp_path) / "seats"
+        hands.mkdir(parents=True, exist_ok=True)
+        (hands / f"{name}.handoff.md").write_text(
+            f"seat: {name}\ngeneration: {handoff_gen}\nrotated_at: t\n",
+            encoding="utf-8")
+    captured = []
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **kw: (captured.append(kw) or (1, "fail")))
+    args = SimpleNamespace(name=name, tier="prime_director",
+                           prompt_file=None, model=None, effort=None,
+                           settings=None, tmux_session="agi-rc",
+                           window_path=None, dry_run=False,
+                           successor_argv=None, seat=name,
+                           registry_dir=None, pid=None, no_autopsy=True)
+    rotate.cmd_spawn(args, tmp_path)
+    assert captured, "spawn_window must be called on the seating path"
+    return captured[0].get("extra") or ""
+
+
+def test_cmd_spawn_handoff_gen_reaches_first_turn_block(monkeypatch,
+                                                       tmp_path):
+    """THE FIX. A spawn onto a seat row that has NO `generation:` cell but
+    whose HANDOFF header carries gen 7 must compose its first-turn block at
+    gen 7 -- the value the same spawn's meter pin / seating record / row
+    commit already use. Pre-fix `cmd_spawn` called `_first_seating_run` with
+    NO `generation=` kwarg, so the helper re-resolved from the row ONLY and
+    fell to FIRST_SEATING_GEN=1: the block read `gen=1` while the pin read 7.
+    """
+    block = _fs_capture_spawn_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": ""}],
+        handoff_gen=7)
+    assert "gen=7" in block, \
+        f"first-turn block must read the HANDOFF gen 7:\n{block}"
+    assert "gen=1" not in block, \
+        f"stale gen=1 in the first-turn block (the defect):\n{block}"
+
+
+def test_cmd_spawn_row_gen_still_reaches_first_turn_block(monkeypatch,
+                                                         tmp_path):
+    """REGRESSION: a seat row WITH `generation: 9` (no handoff) is unchanged
+    -- the block reads gen 9 exactly as before the fix (the helper's own
+    row-first resolution already handled this path)."""
+    block = _fs_capture_spawn_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": "", "generation": 9}],
+        handoff_gen=None)
+    assert "gen=9" in block, f"row gen 9 must survive:\n{block}"
+    assert "gen=1" not in block, f"no stale gen=1:\n{block}"
+
+
+def test_cmd_spawn_no_row_gen_no_handoff_still_reads_gen_1(monkeypatch,
+                                                          tmp_path):
+    """REGRESSION: a seat row with NO generation cell and NO handoff
+    generation still composes at FIRST_SEATING_GEN=1 -- the fallback is
+    intact and `_spawn_gen` is never left unset."""
+    block = _fs_capture_spawn_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": ""}],
+        handoff_gen=None)
+    assert "gen=1" in block, \
+        f"a gen-less, handoff-less seat stays at gen 1:\n{block}"
+
+
+# ---- goal:g15 (hypothesis:l4-cmd-spawn-passes-generation-to-first-seating- #
+# ---- run), round 2: the SECOND `_first_seating_run` caller, cmd_seats_    #
+# ---- launch (rotate.py ~4028), resolves the row generation ONCE per row   #
+
+def _fs_capture_seats_launch_first_turn_block(tmp_path, monkeypatch, rows,
+                                              handoff_gen=None,
+                                              name="handoff-seat"):
+    """Drive the REAL `rotate.cmd_seats_launch` and return the composed
+    first-turn STARTUP block it hands `spawn_window` via `extra`.
+
+    Same defect shape as the cmd_spawn helper above: a row with NO
+    `generation:` cell whose `<name>.handoff.md` header carries gen N.
+    `spawn_window` is stubbed to a NON-ZERO rc so the loop `continue`s right
+    after the call and neither the announce nor the read-back runs -- the
+    composed block is what this test measures.
+    """
+    _fs_seats_sheet(tmp_path, rows)
+    _fs_director_first_turn(tmp_path, monkeypatch)
+    if handoff_gen is not None:
+        hands = rotate._sessions_dir(tmp_path) / "seats"
+        hands.mkdir(parents=True, exist_ok=True)
+        (hands / f"{name}.handoff.md").write_text(
+            f"seat: {name}\ngeneration: {handoff_gen}\nrotated_at: t\n",
+            encoding="utf-8")
+    captured = []
+    monkeypatch.setattr(
+        rotate, "spawn_window",
+        lambda **kw: (captured.append(kw) or (1, "fail")))
+    args = SimpleNamespace(tmux_session="agi-rc", prompt_file=None,
+                           window_path=None, dry_run=False,
+                           successor_argv=None, registry_dir=None)
+    rotate.cmd_seats_launch(args, tmp_path)
+    assert captured, "spawn_window must be called on the seats-launch path"
+    return captured[0].get("extra") or ""
+
+
+def test_seats_launch_handoff_gen_reaches_first_turn_block(monkeypatch,
+                                                           tmp_path):
+    """THE FIX (round 2 residual). `cmd_seats_launch` is the OTHER caller of
+    `_first_seating_run` and still passes NO `generation=`, so a seat row with
+    NO `generation:` cell whose HANDOFF header carries gen 7 composes `gen=1`
+    in its first-turn block. After the fix it must read gen 7 -- the same
+    value the row-first resolution already gives a row that carries a cell.
+    """
+    block = _fs_capture_seats_launch_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": ""}],
+        handoff_gen=7)
+    assert "gen=7" in block, \
+        f"seats-launch first-turn block must read the HANDOFF gen 7:\n{block}"
+    assert "gen=1" not in block, \
+        f"stale gen=1 in the seats-launch first-turn block:\n{block}"
+
+
+def test_seats_launch_row_gen_still_reaches_first_turn_block(monkeypatch,
+                                                             tmp_path):
+    """REGRESSION: a seat row WITH `generation: 5` (no handoff) is unchanged
+    -- the block reads gen 5."""
+    block = _fs_capture_seats_launch_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": "", "generation": 5}],
+        handoff_gen=None)
+    assert "gen=5" in block, f"row gen 5 must survive:\n{block}"
+    assert "gen=1" not in block, f"no stale gen=1:\n{block}"
+
+
+def test_seats_launch_no_row_gen_no_handoff_still_reads_gen_1(monkeypatch,
+                                                              tmp_path):
+    """REGRESSION: a seat row with NO generation cell and NO handoff still
+    composes at FIRST_SEATING_GEN=1 -- the fallback is intact."""
+    block = _fs_capture_seats_launch_first_turn_block(
+        tmp_path, monkeypatch,
+        [{"name": "handoff-seat", "role": "director", "model": "m",
+          "effort": "max", "settings": ""}],
+        handoff_gen=None)
+    assert "gen=1" in block, \
+        f"a gen-less, handoff-less seat stays at gen 1:\n{block}"
