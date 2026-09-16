@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.47 harvest reviewed BY NAME by sanctuary-master gen 3 14:5xZ (merge-up 53d6f4d22 on the post branch, parents b99311149 + 2318b7256): ACCEPT at :85. Bytes: node_line_ceiling reads the node through frontmatter.read_frontmatter and parses testable_claim alone when it is a non-empty str, else the whole text; read_frontmatter returns None (never raises) on missing/malformed frontmatter -- probed on five shapes -- so the isinstance guard makes the fallback total; _ceiling_clause stays the ONE parser. 10 production lines on a 10-line clause; director verified live that the SM.45 node now resolves (40, clause) where it resolved (20, clause) before. Residual as specified by the claim, not a defect: 18 live nodes with no testable_claim field still parse whole-text. The SM.45 -> SM.46 -> SM.47 chain is complete on the post branch; the hold on its MAIN merge-up is RELEASED.

@@ -25,6 +25,7 @@ The `ts` a `propose` prints is the `--since` handle for a matching `apply`.
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import re
 import subprocess
@@ -1424,6 +1425,16 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     window_counts["record"] = (_record_stamp(rec_path, seat)
                                if rec_path is not None else None)
     window_counts["record_reason"] = source
+    # the write-back identity travels WITH the report, exactly as the record
+    # stamp does: the record PATH the audit itself read (never re-resolved),
+    # the transcript path, and the call count / bounds of the window. Private
+    # keys so a reader that binds the a/b/c/d/s buckets is unaffected.
+    window_counts["_record_path"] = (str(rec_path) if rec_path is not None
+                                     else None)
+    window_counts["_transcript"] = str(log_path)
+    window_counts["_calls"] = len(window_calls)
+    window_counts["_window_start"] = 1
+    window_counts["_window_end"] = window_end
     return 0, window_calls, window_counts
 
 
@@ -1462,6 +1473,96 @@ def redact_text(s: str) -> str:
     return text
 
 
+# ── audit record write-back ───────────────────────────────────────────────
+# hypothesis:l4-the-sensei-audit-verbs-write-their-result-into-the-rotation-
+# record-and-name-a-finding-only-over-the-floor: both audit verbs write their
+# result INTO the audited rotation record under one top-level `audit` key and
+# print ONE line naming the finding only when the window is over the floor.
+# The dm to the Prime stays a Sensei act -- the verb never sends one.
+
+# The owner's floors (doc:l4-owner-decisions, owner 2026-09-12 03:2xZ,
+# verbatim: "floor of 1 call when rotating out and 0 calls on wake"). No
+# ladder lookup for these exists in the engine, so they are constants here --
+# ONE dict, ONE reader (`AUDIT_FLOOR[side]`), never a second copy.
+AUDIT_FLOOR = {"wake": 0, "out": 1}
+
+AUDIT_SIDES = ("wake", "out")
+
+
+def audit_payload(side: str, calls: int, counts: dict, transcript: str,
+                  window_start, window_end) -> dict:
+    """The `audit[side]` payload: the counts the audit measured, the floor it
+    is measured against, the excess over that floor, and the identity of the
+    window it read (record stamp, transcript, bounds). `calls` is the number
+    of tool_use calls INSIDE the audit window -- the same number the printed
+    line reports, never a second count."""
+    floor = AUDIT_FLOOR[side]
+    return {
+        "calls": int(calls),
+        "a": int(counts.get("a", 0)),
+        "b": int(counts.get("b", 0)),
+        "c": int(counts.get("c", 0)),
+        "d": int(counts.get("d", 0)),
+        "floor": floor,
+        "excess": max(0, int(calls) - floor),
+        "transcript": transcript,
+        "window_start": window_start,
+        "window_end": window_end,
+        "audited_at": datetime.datetime.now(
+            datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "audited_by": SENSEI,
+    }
+
+
+def audit_finding_line(seat: str, side: str, record_stamp: str | None,
+                       calls: int, floor: int) -> str:
+    """The ONE line the owner asked for. `excess == 0` is `green`; anything
+    over the floor is a `FINDING` naming the excess and the floor. Every
+    spelling of the line names the RECORD stamp, never a generation."""
+    stamp = record_stamp if record_stamp else "?"
+    excess = max(0, int(calls) - int(floor))
+    if excess == 0:
+        return f"green {seat} {side} --record {stamp} {calls} (floor {floor})"
+    return (f"FINDING {seat} {side} --record {stamp} excess {excess} "
+            f"over floor {floor}")
+
+
+def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
+    """Read-modify-write the ONE top-level `audit` key of a rotation record.
+
+    `rotate.py` writes every rotation record as
+    `json.dumps(record, indent=2) + "\n"` (rotate.py:4566,5304), so parsing
+    and re-dumping with the SAME call is byte-preserving for every other key.
+    `audit` is assigned LAST, so a fresh record gains the key after its
+    existing keys; on a re-run the existing `audit` dict keeps its position
+    and only its OWN side is replaced -- a re-run replaces its side and never
+    grows or duplicates the record."""
+    p = Path(rec_path)
+    rec = json.loads(p.read_text(encoding="utf-8"))
+    if not isinstance(rec, dict):
+        raise ValueError(f"rotation record {p} is not a JSON object")
+    audit = rec.get("audit")
+    if not isinstance(audit, dict):
+        audit = {}
+    audit[side] = payload
+    rec["audit"] = audit
+    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
+                 rec_path, stamp: str | None, transcript: str,
+                 window_start, window_end, no_record: bool) -> str:
+    """Write the result into the audited record (unless `--no-record`) and
+    return the ONE line to print. The write is keyed on the record PATH the
+    audit itself resolved -- never a second selector call that could name a
+    different record."""
+    payload = audit_payload(side, calls, counts, transcript,
+                            window_start, window_end)
+    if rec_path is not None and not no_record:
+        write_audit_into_record(rec_path, side, payload)
+    return audit_finding_line(seat, side, stamp, calls, AUDIT_FLOOR[side])
+
+
 def cmd_wake_audit(root: Path, args) -> int:
     code, calls, counts = wake_audit(root, args.seat, args.gen,
                                      Path(args.transcript) if args.transcript else None,
@@ -1498,6 +1599,13 @@ def cmd_wake_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {summary}{lbl}")
     if not calls:
         print("  (no assistant tool_use found in the transcript)")
+    # the audit result goes INTO the audited rotation record and one line
+    # names it: green under the floor, FINDING over it (owner 13:5xZ).
+    print(finish_audit(
+        root, args.seat, "wake", counts.get("_calls", len(calls)), counts,
+        counts.get("_record_path"), counts.get("record"),
+        counts.get("_transcript", ""), counts.get("_window_start", 1),
+        counts.get("_window_end"), getattr(args, "no_record", False)))
     return 0
 
 
@@ -1851,6 +1959,7 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
                       "summary": _summarize_tool_input(inp), "label": label})
         counts[cat] += 1
     window = {"gen": gen_out, "record": record_stamp, "basis": basis,
+              "record_path": str(rec_path),
               "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
               "log_path": str(log_path),
@@ -1889,6 +1998,12 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
     if not calls:
         print("  (no assistant tool_use after the last real input)")
+    # the audit result goes INTO the audited rotation record and one line
+    # names it: green under the floor, FINDING over it (owner 13:5xZ).
+    print(finish_audit(
+        root, args.seat, "out", len(calls), counts, window["record_path"],
+        window["record"], window["log_path"], window["start_line"],
+        window["recorded_at"] or None, getattr(args, "no_record", False)))
     return 0
 
 
@@ -2045,6 +2160,9 @@ def main(argv: list[str] | None = None) -> int:
                    default=True,
                    help="mask keys/emails/message bodies in the printed "
                         "report (default ON; --no-redact for a local raw view)")
+    p.add_argument("--no-record", action="store_true",
+                   help="dry read: print the audit line and write NOTHING "
+                        "into the rotation record")
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
@@ -2065,6 +2183,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--registry-dir", default=None,
                    help="registry dir to fall back through (default: "
                         "rotate.REGISTRY_DEFAULT_DIR)")
+    p.add_argument("--no-record", action="store_true",
+                   help="dry read: print the audit line and write NOTHING "
+                        "into the rotation record")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
