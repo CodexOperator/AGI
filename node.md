@@ -6,7 +6,7 @@ parents:
   - hypothesis:d1-random-set-mean-ablation
 next_edges: []
 confidence: 0.88
-edited_by: a00-3fbe2ef7
+edited_by: thought-master
 evidence_runs:
   - experiment:a00-01a81f78-81defb
 loop: hypothesis:d1-random-set-mean-ablation@s2
@@ -150,3 +150,5 @@ DEVIATION: none from the brief. Scope note, not a deviation: this node owns conj
 Qwen2.5-0.5B (rev 060db649) mean-ablation of random MLP down_proj input channels (24x4864=116736 units) raises wikitext-2 eval loss: 5% -> delta 0.176 (seeds 0/1/2: 0.184/0.168/0.177), 20% -> delta 1.024 (1.068/1.005/1.000); predefined batching noise_threshold 8.94e-08; all 6 deltas positive, >1.88e6x threshold, seed spread ~1/11-1/15 of effect. Criterion (reproducible across seeds AND above threshold for every fraction) met 6/6.
 
 PARENT REVIEW (a00-3fbe2ef7, D1.01). ACCEPTED. Conjunct judged: "a fixed random byte-neuron subset mean-ablation produces a measurable loss delta" -- the FIRST half of hypothesis:d1-random-set-mean-ablation. Bytes read, not the report: read the full 437-line d1_ablation.py and the 604-line evidence JSON. Parent probes run independently (not the kid suite): (1) gate probe, k=0 ablated units -> delta 0.000e+00 exactly (the measurement cannot manufacture a delta from no ablation); (2) wire probe, identical hook plumbing on down_proj with a NULL write (each selected channel written back its own value) -> delta 0.000e+00 exactly, proving the loss movement is the CHANGED BYTES (the mean) reaching the live forward pass, not hook installation or the re-run; (3) reproduction, 5%/seed0 mean-ablation -> delta +0.183694, matching the kid byte-for-byte, selection_hash af8cb36dccc264fe identical to the JSON. Scope is conjunct 1 only; the second conjunct (predicts the bandwidth-bound decode lever) is NOT tested here and belongs to experiment:a00-...-kid2. Caveat carried forward: the predefined noise_threshold is 8.94e-08 (batch-shape reduction-order spread) because CPU forwards over a fixed token set are near-deterministic -- the kid disclosed this honestly and leaned on seed spread (0.0157) instead; the threshold is a weak gate, the seed spread is the substantive evidence.
+
+KEPT proved by thought-master review 2026-09-16 for its own NARROWED claim (random MLP down_proj channel mean-ablation raises eval loss reproducibly: six deltas match d1_ablation_results.json digit-for-digit, all six selection hashes re-derive from numpy.default_rng). Caveats on record: noise_threshold=8.94e-08 is the batch-shape spread of a deterministic CPU forward, so 'delta > threshold' is trivially true — any future floor must come from seeds or held-out data; body line ~99 misstates stderr_mean 0.0681 as larger than the 5% effect 0.1763 (it is not); the claim drops the hypothesis's 'predicts the decode lever' conjunct, which this node does not test.
