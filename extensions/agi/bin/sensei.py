@@ -603,6 +603,31 @@ def _record_transcript(rec: dict) -> Path | None:
     return None
 
 
+def _transcript_spelling(rec: dict) -> str:
+    """Which spelling of `_record_transcript`'s precedence chain names this
+    record's transcript, or '' when none does. Naming the spelling the
+    resolution actually took keeps the audit's printed `source` honest — the
+    predecessor side now resolves through the same chain as the record side,
+    so a `handover.join.transcript` label would be a lie on a first-seating
+    predecessor resolved by its top-level `transcript_path`."""
+    if rec.get("session_log"):
+        return "session_log"
+    ho = rec.get("handover")
+    if isinstance(ho, dict):
+        if ho.get("session_log"):
+            return "handover.session_log"
+        j = ho.get("join")
+        if isinstance(j, dict) and j.get("transcript"):
+            return "handover.join.transcript"
+    if rec.get("transcript_path"):
+        return "transcript_path"
+    obs = rec.get("observations")
+    if isinstance(obs, dict) and obs.get("c_readback_log_path") \
+            and str(obs["c_readback_log_path"]).lower().endswith(".jsonl"):
+        return "observations.c_readback_log_path"
+    return ""
+
+
 def _record_matches_session(rec: dict, session_id: str) -> bool:
     """Whether a rotation record belongs to session `session_id`.
 
@@ -1547,8 +1572,13 @@ def _resolve_predecessor_transcript(
     Resolution order (never the newest slug-dir transcript — that one is the
     successor's, and it would be a named false positive): (1) explicit
     `--transcript`; (2) the previous record of the same seat whose
-    `b_generation.after == N` — it carries the `handover.join.transcript` of
-    gen N joining; (3) `~/.claude/sessions/<pid>.json` for a pid in the
+    `b_generation.after == N` (or the top-level `gen_after == N` a first-
+    SEATING record carries) — it carries gen N's transcript through
+    `_record_transcript`'s full precedence chain (`session_log` >
+    `handover.join.transcript` > top-level `transcript_path` > a `.jsonl`
+    `observations.c_readback_log_path`), so a predecessor seated by a first
+    seating resolves and the join-absent shape is not a silent miss;
+    (3) `~/.claude/sessions/<pid>.json` for a pid in the
     OUTGOING record's `s12_self_reap.chain` (the ONE reap section — the
     `handover.reap_own_pid` stand-in is retired, g15.25 (c)), resolved
     through `rotate.transcript_from_registry` (the registry file is content,
@@ -1560,15 +1590,22 @@ def _resolve_predecessor_transcript(
     if explicit:
         return Path(explicit), "explicit --transcript"
     for _p, rec in records:
-        bf, af = _gen_bounds(rec)
-        if af == gen:
-            join = rec.get("handover", {})
-            if isinstance(join, dict):
-                join = join.get("join")
-            if isinstance(join, dict) and join.get("transcript"):
-                return (Path(str(join["transcript"])),
-                        f"previous record b_generation.after=={gen} "
-                        "handover.join.transcript")
+        # `_record_matches_gen` reads BOTH spellings the producer writes:
+        # `observations.b_generation.after` (a rotate-self record) AND the
+        # TOP-LEVEL `gen_after` a first-SEATING record carries
+        # (rotate._seating_record). Reusing it is why a predecessor that was
+        # seated by a first seating is found at all.
+        if not _record_matches_gen(rec, gen):
+            continue
+        # ... and then the SAME precedence chain `_record_transcript` applies:
+        # `handover.join.transcript` wins WHEN PRESENT, and the top-level
+        # `transcript_path` is the fallback when the join spelling is ABSENT
+        # (the near-miss shape rotate._seating_record_merge_handover leaves
+        # behind: `handover` present, `join` absent). One resolver, not two.
+        p = _record_transcript(rec)
+        if p is not None:
+            return (p, f"previous record gen_after=={gen} "
+                       f"{_transcript_spelling(rec)}")
     # fallback: the pid chain of the record that rotated gen N out
     out_rec = next((rec for _p, rec in records
                     if (rec.get("observations", {}).get("b_generation", {})
