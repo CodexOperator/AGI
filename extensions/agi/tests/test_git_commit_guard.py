@@ -856,3 +856,89 @@ def test_branch_kid_refuses_without_agent_id(branch_kid):
     res = _kid_commit(wt, env)
     assert res.returncode == 1, f"id-less branch kid committed: {res.stdout}"
     assert "kid may not commit" in res.stderr
+
+
+def _base_commit(wt: Path, rel: str, text: str = "---\ntype: hypothesis\n---\n") -> None:
+    """Track a file with a plain (human-tier) commit, so a later `git mv` or
+    typechange has something committed to rename/modify."""
+    _stage(wt, rel, text)
+    subprocess.run(
+        ["git", "commit", "-m", f"base: {rel}"],
+        cwd=wt, capture_output=True, check=True,
+        env={**hook_env(), "AGI_TIER": ""},
+    )
+
+
+def test_branch_kid_refuses_non_ascii_named_node(branch_kid):
+    """Out-of-scope (f), probe A — a `.agi/nodes/` path whose basename carries
+    a non-ASCII byte. `git diff --cached --name-only` C-QUOTES such paths
+    (`".agi/nodes/hypothesis/\\303\\251.md"`) because core.quotePath defaults
+    true, so each `case` arm missed and SCOPE_OK stayed 1. The path is passed
+    as a Python str, never shell-quoted, and IS out of scope (basename
+    `caf\u00e9.md` carries no agent id)."""
+    main, wt = branch_kid
+    name = "caf\u00e9.md"
+    p = wt / ".agi" / "nodes" / "hypothesis" / name
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("---\ntype: hypothesis\n---\n")
+    subprocess.run(
+        ["git", "add", "--", f".agi/nodes/hypothesis/{name}"],
+        cwd=wt, capture_output=True, check=True,
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a C-quoted non-ASCII node path: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
+    # the guard must refuse BY NAME -- the rename/typechange refusals below
+    # share this assertion so a refusal cannot come from a stale hook.
+
+
+def test_branch_kid_refuses_rename_of_another_authors_node(branch_kid):
+    """Out-of-scope (f), probe B — `git mv` another author's node to a path
+    that DOES carry the kid's id. `--name-only` without `--no-renames` prints
+    ONLY the destination for a rename, and the destination carries the agent
+    id, so the old (foreign) path was never checked. With `--no-renames` the
+    rename is listed as D old + A new and BOTH paths are judged."""
+    main, wt = branch_kid
+    _base_commit(wt, ".agi/nodes/hypothesis/other-author-node.md")
+    subprocess.run(
+        ["git", "mv", ".agi/nodes/hypothesis/other-author-node.md",
+         f".agi/nodes/hypothesis/{AGENT_ID}-stolen.md"],
+        cwd=wt, capture_output=True, check=True,
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a rename of another author's node: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
+
+
+def test_branch_kid_refuses_typechange_node(branch_kid):
+    """Out-of-scope (f), probe C — a tracked `.agi/nodes/` file replaced by a
+    symlink. git records this as a TYPECHANGE (`T`), and
+    `--diff-filter=ACDMR` omits `T`, so git never even listed the path.
+    Measured on this box (git 2.43.0): `git status --short` reports
+    `T  .agi/nodes/hypothesis/tracked-node.md` and
+    `--diff-filter=ACDMR --name-only` prints nothing, while the unfiltered
+    `--name-only` lists it. The fix drops `--diff-filter` entirely."""
+    main, wt = branch_kid
+    rel = ".agi/nodes/hypothesis/tracked-node.md"
+    _base_commit(wt, rel)
+    f = wt / rel
+    f.unlink()
+    f.symlink_to("/etc/passwd")
+    subprocess.run(["git", "add", "-A", "--", rel], cwd=wt,
+                   capture_output=True, check=True)
+    # pin the shape this test is about: it must be a T record, not M.
+    st = subprocess.run(["git", "diff", "--cached", "--name-status"],
+                        cwd=wt, capture_output=True, text=True, check=True)
+    assert st.stdout.startswith("T\t"), (
+        f"expected a typechange record, got: {st.stdout!r} -- on a filesystem "
+        "that records M instead, this test still asserts the refusal"
+    )
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, (
+        f"branch kid committed a typechanged node: {res.stdout}"
+    )
+    assert "kid may not commit" in res.stderr
