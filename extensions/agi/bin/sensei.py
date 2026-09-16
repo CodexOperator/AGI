@@ -1710,7 +1710,16 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
             staged = subprocess.run(
                 ["git", "-C", str(top), "diff", "--cached", "--quiet",
                  "--", rel], capture_output=True, text=True, timeout=10)
-            if staged.returncode == 0:
+            worktree = subprocess.run(
+                ["git", "-C", str(top), "diff", "--quiet", "--", rel],
+                capture_output=True, text=True, timeout=10)
+            # `already clean` means the commit had NOTHING to commit: no
+            # staged change AND no worktree change. A TRACKED record gets no
+            # `git add` (index==HEAD) while the audit dirty-ed the WORKTREE,
+            # so index-clean alone read a REFUSED commit as SKIPPED -- exit 0
+            # with ` M <rel>` left behind (P8). Any surviving difference in
+            # EITHER half is REFUSED.
+            if staged.returncode == 0 and worktree.returncode == 0:
                 return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record "
                         "already clean after the rewrite")
             _unstage_audit_record(top, rel)
