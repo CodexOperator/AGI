@@ -40,6 +40,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+import frontmatter  # NOQA: E402
 import locations  # NOQA: E402
 
 #: THE ONE definition of a terminal agent status (hypothesis:l4-one-definition-
@@ -329,8 +330,16 @@ def node_line_ceiling(graph_root, node_id, cfg, default: int = 40
     The DISPATCHING node's own CEILING clause wins, then the config default;
     `source` is `"clause"` or `"default"` so the brief can say which it used.
     An unresolvable node is not a ceiling of zero, and not a crash either.
+
+    Read from the frontmatter `testable_claim` field alone when that field
+    exists: a body or Agent-Notes mention is prose about the ceiling, never
+    the ceiling (hypothesis:l4-sm46b...). No parseable frontmatter, or no such
+    field: the whole text, as before. `_ceiling_clause` stays THE ONE parser.
     """
-    n = _ceiling_clause(_node_text(graph_root, node_id))
+    text = _node_text(graph_root, node_id)
+    fm = None if text is None else frontmatter.read_frontmatter(text)
+    claim = fm.get("testable_claim") if isinstance(fm, dict) else None
+    n = _ceiling_clause(claim if isinstance(claim, str) and claim else text)
     if n is not None:
         return n, "clause"
     return production_line_ceiling(cfg or {}, default), "default"
