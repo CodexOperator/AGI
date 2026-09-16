@@ -176,7 +176,7 @@ def test_dry_run_lists_round2_surfaces_not_applied(tmp_path):
     out = _capture_stdout(lambda: rotate.cmd_rename_post(
         _ns("old", "new", dry_run=True), tmp_path))
     assert "row old name -> row new name" in out
-    assert "branch: season2/posts/old -> season2/posts/new" in out
+    assert "branch: core/season2/posts/old/main -> core/season2/posts/new/main" in out
     assert "tmux window: old -> new" in out
     # apply does NOT touch config/branch/tmux surfaces (they are seamed/shipped)
     out2 = _capture_stdout(lambda: rotate.cmd_rename_post(
@@ -284,8 +284,9 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
     rc, _ = rotate._apply_surfaces(tmp_path, surfaces, run_git=rec,
                                    run_tmux=lambda *a: calls.append(("T",) + a))
     git_calls = [c for c in calls if c[0] != "T"]
-    assert ("branch", "-m", "season2/posts/old", "season2/posts/new") in git_calls
-    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") \
+    assert ("branch", "-m", "core/season2/posts/old/main",
+            "core/season2/posts/new/main") in git_calls
+    assert ("push", "origin", "core/season2/posts/new/main:refs/agi/posts/new") \
         in git_calls, git_calls
     assert not any(c[0] == "push" and len(c) == 3 and c[2].startswith(":")
                    for c in git_calls), "old branch deleted without --delete-old"
@@ -293,11 +294,12 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
     rotate._apply_surfaces(tmp_path, surfaces, delete_old=True,
                            run_git=lambda *a: calls2.append(a),
                            run_tmux=lambda *a: None)
-    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") in calls2
-    assert ("push", "origin", ":season2/posts/old") in calls2
+    assert ("push", "origin", "core/season2/posts/new/main:refs/agi/posts/new") \
+        in calls2
+    assert ("push", "origin", ":core/season2/posts/old/main") in calls2
     # never a bare head push of the post branch
     assert not any(c[0] == "push" and len(c) == 3
-                   and c[2] == "season2/posts/new"
+                   and c[2] == "core/season2/posts/new/main"
                    for c in calls2), calls2
 
 
@@ -482,15 +484,16 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
     assert ("git", "-C", str(tmp_path), "worktree", "move",
             ".agi/worktrees/post-old", ".agi/worktrees/post-new") in rec
     assert ("git", "-C", str(tmp_path), "branch", "-m",
-            "season2/posts/old", "season2/posts/new") in rec
+            "core/season2/posts/old/main",
+            "core/season2/posts/new/main") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
             f"{sha}:refs/agi/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "ls-remote", "origin",
             "refs/agi/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
-            ":season2/posts/old") in rec, "--delete-old must push :old"
+            ":core/season2/posts/old/main") in rec, "--delete-old must push :old"
     assert ("git", "-C", str(tmp_path), "push", "origin",
-            "season2/posts/new") not in rec, "a post head was pushed"
+            "core/season2/posts/new/main") not in rec, "a post head was pushed"
     # tmux window resolved to @5 and renamed by that id
     tmux = [c for c in rec if c[0] == "tmux"]
     assert ("tmux", "rename-window", "-t", "@5", "new") in tmux
@@ -528,3 +531,47 @@ def test_live_never_runs_in_boundary_apply_default(tmp_path):
         assert not p.exists()
         assert _renamed(p, "old", "new").exists()
     assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
+
+# ── SM.32b: the rename boundary is TOWN-FIRST (goal:g15.25) ────────────────
+def test_rename_post_surface_is_town_first(tmp_path):
+    """(a) the branch surface carries the row's TOWN segment through
+    `towns.row_town` / `branches.derive_names` and NEVER the legacy
+    town-less `season2/posts/<name>` spelling (goal:g15.25 SM.32b)."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    assert ("branch: core/season2/posts/old/main -> "
+            "core/season2/posts/new/main") in out, out
+    assert "branch: season2/posts/old -> season2/posts/new" not in out
+
+
+def test_rename_post_refuses_a_cross_town_rename_by_name(tmp_path, capsys):
+    """(b) a new name whose row carries a DIFFERENT town is a NAMED refusal:
+    non-zero exit, both towns on stderr, nothing staged or written."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"},
+                         {"name": "new", "town": "sanctuary"}])
+    rc = rotate.cmd_rename_post(_ns("old", "new"), tmp_path)
+    err = capsys.readouterr().err
+    assert rc != 0, rc
+    assert "REFUSED" in err and "core" in err and "sanctuary" in err, err
+    assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
+
+
+def test_rename_post_proceeds_when_new_row_is_same_town(tmp_path):
+    """(c) the matching-cell case proceeds: dry-run exits 0 on the town-first
+    surface."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"},
+                         {"name": "new", "town": "core"}])
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    assert "core/season2/posts/old/main" in out, out
+    assert "dry-run, nothing changed" in out
+
+
+def test_rename_post_refuses_an_unresolvable_row_by_name(tmp_path, capsys):
+    """(b') a post whose config row cannot be resolved refuses by NAME
+    rather than silently falling back to a town-less spelling."""
+    _geo(tmp_path, rows=[{"name": "other", "town": "core"}])
+    rc = rotate.cmd_rename_post(_ns("old", "new", dry_run=True), tmp_path)
+    err = capsys.readouterr().err
+    assert rc != 0 and "REFUSED" in err and "old" in err, err

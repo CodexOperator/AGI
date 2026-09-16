@@ -68,6 +68,7 @@ import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
+import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -3397,6 +3398,46 @@ def _live_tmux(root, *a):
     return r.stdout
 
 
+class RenameTownRefusal(Exception):
+    """A rename that would move a post out of its declared town
+    (goal:g15.25 SM.32b); `cmd_rename_post` prints its message and exits
+    non-zero -- never a silent legacy fallback."""
+
+
+def _row_season(root: Path | None) -> int:
+    """The season NUMBER a town-first branch carries, from the SAME ladder
+    field `season_branch` reads; the pre-town-first literal 2 is the fallback."""
+    s = load_ladder_field(root, "current_season", None) if root else None
+    try:
+        return max(1, int(s))
+    except (TypeError, ValueError):
+        return 2
+
+
+def _row_town_or_refuse(root: Path | None, name: str) -> str:
+    """The row's REAL town through `towns.row_town` -- a declared cell wins,
+    the transitional map retires itself -- or a NAMED REFUSAL."""
+    row = _find_seat(root, name)
+    if row is None:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town (unresolved), no config "
+            f"row named {name}")
+    return towns.row_town(root, row)
+
+
+def _town_post_branch(root: Path | None, town: str, name: str) -> str:
+    """The town-first post branch for `name` in `town`, derived through the
+    ONE grammar (`branches.derive_names`), then ASSERTED by name."""
+    branch = branches.derive_names(town, _row_season(root),
+                                   post=name)["post_main"]
+    seg = branch.split("/", 1)[0]
+    if seg != town:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town {town}, the derived "
+            f"branch {branch} carries town {seg or '(none)'}")
+    return branch
+
+
 def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
     dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
@@ -3459,12 +3500,21 @@ def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
                         f"row {new}.{k}->{new}", "ship",
                         print_line=f"write.py {nm} 'replace {k} -- {new}'")
 
+    old_town = _row_town_or_refuse(root, old)
+    new_row = _find_seat(root, new)
+    if new_row is not None:
+        new_town = towns.row_town(root, new_row)
+        if new_town != old_town:
+            raise RenameTownRefusal(
+                f"rename-post REFUSED: {old} is in town {old_town}, the new "
+                f"name {new} is a row in town {new_town}")
+    old_branch = _town_post_branch(root, old_town, old)
+    new_branch = _town_post_branch(root, old_town, new)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    add("branch", branches.post_branch(2, old), branches.post_branch(2, new),
+    add("branch", old_branch, new_branch, "seam-git")
+    add("branch (origin)", f"origin/{old_branch}", f"origin/{new_branch}",
         "seam-git")
-    add("branch (origin)", f"origin/{branches.post_branch(2, old)}",
-        f"origin/{branches.post_branch(2, new)}", "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
@@ -3788,7 +3838,11 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         return 2
 
     row = _find_seat(root, old)
-    surfaces = _rename_surfaces(root, old, new)
+    try:
+        surfaces = _rename_surfaces(root, old, new)
+    except RenameTownRefusal as exc:
+        print(str(exc), file=sys.stderr)
+        return 4
     if not surfaces:
         print(f"rename-post: no surfaces found for {old!r} -> {new!r}",
               file=sys.stderr)
