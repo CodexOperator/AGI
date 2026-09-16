@@ -93,12 +93,96 @@ def test_absent_dispatcher_is_a_stderr_line_not_a_crash(project, monkeypatch, ca
     assert not _inbox(project, "director").exists()
 
 
-def test_missing_manifest_silently_skips(project, monkeypatch, capsys):
+def test_missing_manifest_is_a_named_line_and_nonzero(project, monkeypatch, capsys):
+    """hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-from-the-
+    dispatching-seats-own-tree, conjunct (2): a poster that finds no iter
+    manifest in ANY candidate tree prints ONE named line to stderr and returns
+    non-zero -- the pre-fix behaviour was a silent `return`."""
     monkeypatch.setattr(cli, "_session_root", lambda: project)
     rc = cli._alarm_dispatcher_on_done(project, "L4.997", "ghost",
                                        "experiment:g-x", "pending")
+    assert rc == 1, "the poster must report failure, not return quietly"
+    err = capsys.readouterr().err
+    assert err.count("harvest dm NOT sent: no iter manifest under ") == 1, err
+    assert str(project) in err and str(project / ".agi") in err, err
+
+
+# --- hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-from-the-
+# dispatching-seats-own-tree -- a seat that runs from a linked worktree writes
+# the round's iter manifest under ITS OWN tree, in NEITHER the round's
+# worktree NOR MAIN; the poster must resolve it from the round's agent record
+# (`record_path`) and the tree dispatch.py recorded at spawn.
+
+def _seat_fixture(tmp_path: Path, iter_n: str, agent_id: str, dispatcher: str):
+    """(round_graph, seat_graph, record) -- two sibling graphs under tmp_path,
+    the manifest + record under the SEAT's tree, the round's tree empty."""
+    graphs = []
+    for name in ("round", "seat"):
+        g = tmp_path / name / ".agi"
+        g.mkdir(parents=True)
+        (g / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+        graphs.append(g)
+    round_graph, seat_graph = graphs
+    _write_manifest(seat_graph, iter_n, agent_id, dispatcher)
+    seat_iter = cli.locations.iteration_dir(seat_graph, iter_n)
+    adir = seat_iter / agent_id
+    adir.mkdir(parents=True)
+    record = adir / "agent.json"
+    record.write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": dispatcher,
+        "dispatched_from_tree": str(seat_graph),
+    }, indent=2))
+    return round_graph, seat_graph, record
+
+
+def test_a_worktree_seats_harvest_dm_fires_from_the_seats_own_tree(
+        tmp_path, monkeypatch):
+    iter_n, agent_id, dispatcher = "L4.990", "a00-seatround", "sensei-director"
+    round_graph, seat_graph, record = _seat_fixture(
+        tmp_path, iter_n, agent_id, dispatcher)
+    monkeypatch.delenv("AGI_TIER", raising=False)
+
+    # pre-fix state, measured: without the seat's OWN dir the holder list is
+    # empty, which is why the old poster's `if not holders: return` was silent.
+    assert cli._session_manifest_holders(round_graph, iter_n) == []
+
+    rc = cli._alarm_dispatcher_on_done(round_graph, iter_n, agent_id, None,
+                                       "pending", record)
+
     assert rc is None
-    assert capsys.readouterr().err == ""
+    inbox = _inbox(round_graph, dispatcher)
+    assert inbox.is_file(), (
+        "the dm must fire from the SEAT's iter dir, not the round's")
+    text = inbox.read_text()
+    assert text.count("from:") == 1
+    assert f"agent={agent_id}" in text
+
+
+def test_a_main_seated_round_is_unchanged(tmp_path, monkeypatch):
+    """Regression guard: local == seat == shared -> exactly ONE holder and
+    the dm still fires (the identity case the fix must not disturb)."""
+    graph = tmp_path / "main" / ".agi"
+    graph.mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    iter_n, agent_id, dispatcher = "L4.991", "a00-mainseat", "sensei-director"
+    _write_manifest(graph, iter_n, agent_id, dispatcher)
+    adir = cli.locations.iteration_dir(graph, iter_n) / agent_id
+    adir.mkdir(parents=True)
+    record = adir / "agent.json"
+    record.write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": dispatcher,
+        "dispatched_from_tree": str(graph),
+    }, indent=2))
+    monkeypatch.delenv("AGI_TIER", raising=False)
+
+    holders = cli._session_manifest_holders(graph, iter_n, [adir.parent])
+    assert len(holders) == 1, holders
+    assert holders[0] == cli.locations.iteration_dir(graph, iter_n)
+
+    cli._alarm_dispatcher_on_done(graph, iter_n, agent_id, None, "pending",
+                                  record)
+    text = _inbox(graph, dispatcher).read_text()
+    assert text.count("from:") == 1
 
 import time  # noqa: E402 (used by the heal fixtures below)
 
