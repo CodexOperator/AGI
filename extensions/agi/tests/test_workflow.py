@@ -166,7 +166,7 @@ def test_stage_return_is_schema_validated():
 # ---------- pi harness LIVE path: prompt render + JSON parse + validate -----
 
 from workflow import (  # noqa: E402
-    render_stage_prompt, _parse_last_json, _effort_to_thinking,
+    render_stage_prompt, _effort_to_thinking,
     _run_stage_pi, _stage_context,
 )
 
@@ -210,16 +210,6 @@ def test_render_stage_prompt_requires_prompt_text():
         raise AssertionError("expected ValueError for a prompt-less stage")
     except ValueError as exc:
         assert "no 'prompt'" in str(exc)
-
-
-def test_parse_last_json_tolerates_preamble_and_trailing_glue():
-    assert _parse_last_json("ok here\n{\"slug\": \"x\", \"v\": 1}\n thanks") == \
-        {"slug": "x", "v": 1}
-    try:
-        _parse_last_json("no braces here")
-        raise AssertionError("expected ValueError")
-    except ValueError:
-        pass
 
 
 def test_effort_to_thinking_map():
@@ -2030,6 +2020,74 @@ def test_per_stage_timeout_overrides_the_manifest(tmp_path_factory,
     assert seen == [3], seen
 
 
+def _capture_timeouts_rc(tmp_path_factory, monkeypatch, manifest):
+    """Like `_capture_timeouts`, but returns (rc, seen) so a REFUSED run can
+    be asserted: `seen == []` is the observable that no stage was dispatched."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: manifest
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    seen = []
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            seen.append(kw.get("timeout"))
+            return _sp.CompletedProcess(cmd, 0, stdout='{"ok": true}',
+                                        stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="CTX", stderr="")
+
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "review", "pi", {}, False, out=buf)
+        return rc, seen
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
+
+
+def test_manifest_timeout_zero_is_refused_by_name_before_any_stage(
+        tmp_path_factory, monkeypatch, capsys):
+    """A manifest timeout_s=0 must NOT reach subprocess.run(timeout=0) and
+    silently kill every stage. Definition (a): refused by name, non-zero exit,
+    ZERO stages dispatched (conjunct (6))."""
+    rc, seen = _capture_timeouts_rc(
+        tmp_path_factory, monkeypatch, _manifest_with_timeout(timeout_s=0))
+    assert rc != 0, "a zero-second budget must refuse the run"
+    assert seen == [], f"no stage may be dispatched under a 0 budget: {seen}"
+    err = capsys.readouterr().err
+    assert "timeout_s" in err and "0" in err, err
+
+
+def test_stage_timeout_zero_overrides_manifest_600_and_is_refused(
+        tmp_path_factory, monkeypatch, capsys):
+    """A stage-level timeout_s=0 with a manifest timeout_s=600 proves the
+    STAGE value is the one resolved (0 -> refused by name, no stage
+    dispatched) rather than the manifest's 600 (which would have run)."""
+    rc, seen = _capture_timeouts_rc(
+        tmp_path_factory, monkeypatch,
+        _manifest_with_timeout(timeout_s=600, stage_timeout=0))
+    assert rc != 0
+    assert seen == [], f"the manifest's 600 must not be used: {seen}"
+    err = capsys.readouterr().err
+    assert "only" in err and "0" in err, err
+    assert "600" not in err, err
+
+
+def test_negative_stage_timeout_is_refused_not_passed_through(
+        tmp_path_factory, monkeypatch, capsys):
+    rc, seen = _capture_timeouts_rc(
+        tmp_path_factory, monkeypatch,
+        _manifest_with_timeout(stage_timeout=-1))
+    assert rc != 0
+    assert seen == []
+    assert "timeout_s" in capsys.readouterr().err
+
+
 # ---------- conjunct 3: a schema miss keeps its violation -------------------
 
 def _run_one_stage_with_output(tmp_path_factory, monkeypatch, output,
@@ -2092,3 +2150,36 @@ def test_later_valid_candidate_still_wins_after_a_schema_miss(
     assert rc == 0, text
     assert "[summary] workflow=review stages=1 ok=1 unstructured=0 failed=0" in text
     assert rows[0]["returns"] == {}, rows[0]
+
+
+# ---------- conjunct 4: the tree PREVIEWS, never inlines, a blob --------
+
+def test_tree_previews_a_multi_kb_detail_while_tracking_keeps_it_whole(
+        tmp_path_factory, monkeypatch):
+    """A >= 4000-char unstructured return renders ONE tree line that is
+    SHORTER than the input and names the exact omitted size, while the
+    tracking row still holds the whole text character-for-character
+    (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
+    conjunct (4)). Numeric on both sides."""
+    from workflow import _TREE_DETAIL_PREVIEW_CHARS
+    output = "".join(f"prose line {i} of the model's stdout\n"
+                     for i in range(300))
+    assert len(output) >= 4000, len(output)
+    rc, text, rows = _run_one_stage_with_output(
+        tmp_path_factory, monkeypatch, output)
+    assert rc == 0, text
+    stage_lines = [l for l in text.splitlines() if l.startswith("└─ [?] only")]
+    assert len(stage_lines) == 1, text
+    tree_line = stage_lines[0]
+    assert "\n" not in tree_line
+    # The tree is the preview: strictly shorter than the blob it describes.
+    assert len(tree_line) < len(output), (len(tree_line), len(output))
+    flat_len = len(output.replace("\n", " "))
+    omitted = flat_len - _TREE_DETAIL_PREVIEW_CHARS
+    assert f"… (+{omitted} chars)" in tree_line, tree_line
+    assert len(tree_line) == len("└─ [?] only — ") + _TREE_DETAIL_PREVIEW_CHARS + \
+        len(f"… (+{omitted} chars)"), len(tree_line)
+    # The tracking row still carries the whole text, unchanged.
+    assert rows, "the run must be tracked"
+    assert rows[0]["returns"]["only"] == output
+    assert len(rows[0]["returns"]["only"]) == len(output)

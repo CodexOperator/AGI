@@ -2084,6 +2084,13 @@ def main() -> int:
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
+        # conjunct (2) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+        # code-and-truncation: ok=True still means dispatch proceeds, but a
+        # (True, <marker>) return NAMES a skipped sub-floor minted key. A
+        # marker returned to a caller that ignores it is the falsifier, so it
+        # reaches a surface here as a NOTICE, before the account-floor block.
+        if _hkey_ok and _hkey_msg:
+            print(f"notice: {_hkey_msg}", file=sys.stderr)
         # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
         # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
         # floor cannot see, so a drained account must refuse a spawn the same
