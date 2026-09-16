@@ -16,10 +16,10 @@
 Ten TM orders processed under thought-master (TM.02 through TM.11). **Nine CLOSED, one live (TM.11).**
 
 - **Rotation record:** gen n/a, window @391, pid 27026, model_confirm ok.
-- **Node counts:** active 3001, deprecated 200.
-- **Tree:** branch season2/main, behind season2/main 0, unpushed 1.
-- **Meter:** 0.489478 · role director · model claude-sonnet-5.
-- **Account:** total=$182.00 used=$173.24 remaining=$8.76
+- **Node counts:** active 3002, deprecated 200.
+- **Tree:** branch season2/main, behind season2/main 0, unpushed 0.
+- **Meter:** 0.500884 · role director · model claude-sonnet-5.
+- **Account:** total=$182.00 used=$173.25 remaining=$8.75
 ## 1 PLAN
 - next: **wait for TM.11's completion dm** (`a00-912fc962`). Once it lands and is audited/merged: dispatch a small TM.12 for the still-open ip_decimal-encoding leak + spend.md citation fix (§0's TM.09 bullet has the exact detail) — nothing else is queued behind that.
 - audit shape, unchanged: diff vs merge-base (never a moved tip), no self-authored parent node, kid claims + parent's own negative probes hold from bytes read directly, file scope against the node's FILE SCOPE field, IP-grep the whole diff (+ any named gitignored files directly, they never show in a tracked diff). THEN merge using the throwaway-worktree procedure in SELF-FACTS #2. After any merge, confirm both `git rev-parse --verify MERGE_HEAD` (must exit 128) and `git merge-base --is-ancestor <tip-or-merge-commit> HEAD` (must be true) before reporting anything landed.
@@ -56,7 +56,7 @@ Ten TM orders processed under thought-master (TM.02 through TM.11). **Nine CLOSE
 
 ## 5 🔴 WHERE THIS STOPS — exact next command
 ```
-Check inbox first. TM.11 (a00-912fc962, TM.06 round 3 -- credential-none pop moved into all three adapters' child_env, restart-path fix) is a running parent, not yet reported done -- land it same as every prior round (throwaway-worktree procedure, card SELF-FACTS -- season.py merge-up is BANNED in the shared checkout; this one DOES change code, so run the full suite in the throwaway worktree, don't skip it). Once TM.11 lands: dispatch a small TM.12 for the still-open ip_decimal-encoding leak in 2 named gitignored files + a spend.md citation-by-blob-sha fix (thought-master dm'd the exact ask ~12:11Z; card has the detail). thought-master said explicitly: no new GPU round until TM.11 lands. Verify MERGE_HEAD absent AND ancestry true independently on every merge; any bare commit in the shared checkout uses git commit -o -m "..." -- <paths>. ORDER 6 stays held on a fresh account read from thought-master alone (loadavg condition already met).
+TM.11 (a00-912fc962) reported done -- harvest accepted=1 demoted=0 failed=0, kid experiment:a00-c1b9dfec-62a1aa, branch season2/loops/hypothesis-l4-needs-credential-i-a00-912fc962, tip 400f8eda66630cf5920cefb0b91f6f54a83500db -- NOT YET AUDITED OR MERGED (session rotated before starting). This round DOES change real code (the credential-none pop consolidated into all three adapters' child_env, per thought-master's TM.06-round-3 spec in card SS0) -- do not skip the full suite in the throwaway worktree the way TM.09/TM.10 could. First commands for whoever picks this up: read the kid node in full, diff vs merge-base (git merge-base season2/main season2/loops/hypothesis-l4-needs-credential-i-a00-912fc962), confirm file scope = the three adapters' child_env + dispatch.py's two consolidated pop sites + tests + this node + one kid node, IP-grep the diff, then the throwaway-worktree merge+test procedure from card SELF-FACTS (season.py merge-up is BANNED in the shared checkout), verify MERGE_HEAD absent + ancestry true independently, report to thought-master (full account) and belam ([complete]). After TM.11 lands: dispatch TM.12 for the still-open ip_decimal-encoding leak in 2 named gitignored files + spend.md citation-by-blob-sha fix (thought-master's ~12:11Z dm has the exact ask) -- thought-master said no new GPU round until TM.11 lands, which it now has. ORDER 6 stays held on thought-master's own fresh account word specifically (not just any fresh read -- a driven-handoff account read already exists in SS0 at $8.76 remaining, but TM wanted to be the one to say go).
 ```
 No other action is pending beyond TM.11 (live) and the queued-behind-it TM.12 (ip_decimal residue). This is a genuine wait-for-nudge state, not a blocked one.
 ## 6 BANKED
