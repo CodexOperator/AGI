@@ -71,3 +71,81 @@ Prompt-token cost at the 35B-A3B's measured pp rate, same formula on pp512:
 - The 35B-A3B single-stream tg was 12.396 tok/s with a ~36-token prompt; longer prompts lower it.
 - Electricity is the owner's own cost; this row exists to answer "off OpenRouter how far", not to
   bill anyone.
+
+---
+
+# ADDENDUM — 2026-09-16T12:2xZ — agent `a00-80a08fbb` (Kid C residue, iter TM.10)
+
+Two things the table above got wrong or left unnamed. Raw rows:
+`.agi/context/local-maxxing/gpu/kidC_bench.jsonl`. Full write-up:
+`experiment:a00-80a08fbb-3ad171`.
+
+## 1. `pp512 = 10.44` was a COLD-FIRST-REQUEST number, not a prefill rate
+
+The table's pp512 cell for the 35B is the cost of the **first request after
+model load**, when the `--fit on` CPU-side MoE experts are still being
+first-touched through the mmap. Same server, same config
+(`-ngl 99 --n-cpu-moe 28 -np 1 -c 16384`), same 512-token request:
+
+| 35B-A3B prefill | prompt_n | pp tok/s | wall s |
+|---|---|---|---|
+| pp512, cold (first request after load) | 524 | **9.58** | 55.28 |
+| pp512, warm | 524 | **400.54** | 2.01 |
+| pp8118, first request of a (partly warm) process | 8118 | **135.76** | 60.63 |
+| pp8118, warm | 8110 | **593.78** | 15.12 |
+
+The 42x cold/warm gap on the 512 control is inside ONE process and one config.
+The loader states the mechanism itself:
+
+```
+tensor overrides to CPU are used with mmap enabled - consider using --load-mode none for better performance
+```
+
+**So the prefill line in the reading above is wrong in direction.** Prefill is
+not the 35B's binding cost at kid-sized context: 8.1k tokens costs 13.7 s warm.
+What costs ~55-60 s is the first token of a cold model, at any length. A kid
+prompt's real price on this box is the cold start, once per load — not length.
+
+At the warm 35B prefill rate the prompt-token row becomes
+`(156.94+65+40)*0.15/(593.78*3.6)` = **$0.0184 / 1M prompt tokens** (was
+$0.8666 quoted from the cold number — 47x over). The 9B's $0.0114 is unchanged.
+
+## 2. The explicit split that reproduces `--fit on`, read back
+
+`--fit on` never said what it chose; `/props` and `/v1/models` do not expose it.
+Re-run with an explicit split instead (chosen from the GGUF tensor table: 40
+layers x 332.0 MiB of `*_exps`, so ~1 expert layer per 332 MiB of VRAM):
+
+| | `--n-cpu-moe` | CUDA0 model buffer | CPU_Mapped | VRAM at load |
+|---|---|---|---|---|
+| trial | 30 | 5230.32 MiB | 11485.69 MiB | 5976 MiB |
+| **chosen** | **28** | **5894.32 MiB** | **10751.51 MiB** | **6640 MiB** |
+| round-2 `--fit on` | (unknown) | — | — | 6666 MiB |
+
+Load log, verbatim: `offloading 39 repeating layers to GPU`,
+`offloaded 41/41 layers to GPU`. `--n-cpu-moe N` keeps the FIRST N layers'
+experts on CPU (`common/arg.cpp` L2763-2772). `-ngl 99`, RSS
+(`ps -o rss= -C llama-server`) **10,878,640 KB ~= 10.38 GiB**, `docker stats`
+MemUsage 2.87-5.83 GiB, host `free -m` used 2.2-2.5 GB with ~13.5 GB in
+`buff/cache`.
+
+**tg128 is throughput-neutral vs `--fit on`, but noisy.** Seven
+`max_tokens=128 ignore_eos` calls on this config: **8.22 / 12.56 / 16.39 /
+20.90 / 41.12 / 42.10 / 44.12 tok/s** (median 20.90). Round 2's 12.396 sits
+inside the spread; the 41-44 cluster is the fully-resident state. Any single
+tg number from this box is good to ~2x, not better.
+
+**Consequence for the cost table:** with a warm tg of 20.9 tok/s at 203.04 W
+(`W_total` 308.04), the 35B's single-stream output row recomputes to
+**$0.614 / 1M out** (was $0.7300); at the resident 44.12 tok/s it is **$0.291**,
+and at 12.556 tok/s **$1.022**. Break-even vs `deepseek-v4-flash` at
+308 W_total is **72.4 tok/s**. The conclusion in the reading above — that
+electricity only closes the gap under aggregate batching — still holds on the
+tg axis; what it does not hold on is the *prompt* axis, which is ~47x cheaper
+than the table said.
+
+**Router caveat.** The running router preset (`--fit on --jinja -np 2`, no
+`-c`) gives the 35B **`n_ctx_slot = 4096`** while the 9B gets 23552, so an 8k
+prompt cannot be issued against the running router for the larger model at all
+(`request (10018 tokens) exceeds the available context size (4096 tokens)`).
+Length beyond 4k for the 35B needs an explicit `-c`, i.e. a restart.
