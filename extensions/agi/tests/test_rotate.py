@@ -8863,3 +8863,85 @@ def test_spawn_to_registry_s_omitted_when_never_registered(tmp_path):
     rec = {"recorded_at": "2026-09-13T00:00:00Z"}
     assert _r._spawn_to_registry_s(rec, 9999, registry_dir=str(tmp_path)) is None
     assert _r._spawn_to_registry_s(rec, None, registry_dir=str(tmp_path)) is None
+
+
+def test_seating_announcement_ack_line_is_genless_for_a_nonprime_post():
+    """SL.04 residue item 3 (regression): the first-seating `--ask-diff` ack
+    line is built by `_ack_call_args`, so a NON-prime post emits
+    `ack --post <seat>` and NEVER `--gen` (which `cmd_ack` refuses by name),
+    while the PRIME post keeps `--seat <seat> --gen N` byte-identical."""
+    body = rotate._compose_seating_announcement(
+        seat="director-seat", ref="abc123", generation=3, role="director",
+        ask_diff=True)
+    ack_line = [ln for ln in body.splitlines() if "ack" in ln][0]
+    assert "ack --post director-seat " in ack_line, ack_line
+    assert "--gen" not in ack_line and "--seat" not in ack_line, ack_line
+    assert "--ref abc123 diff --text -" in ack_line, ack_line
+
+    prime = rotate._compose_seating_announcement(
+        seat="belam", ref="abc123", generation=3, role="prime", ask_diff=True)
+    prime_line = [ln for ln in prime.splitlines() if "ack" in ln][0]
+    assert "ack --seat belam --gen 3 --ref abc123 diff --text -" in prime_line
+
+
+def test_after_join_dm_ack_line_routes_through_ack_call_args():
+    """SL.04 residue item 4: the after_join SECOND INPUT's captive line is
+    built by the same shared `_ack_call_args` helper, so a NON-prime post
+    emits `ack --post <seat> --ref <r> diff --text -` with NO `--gen` (a
+    pasted line must not hit cmd_ack's by-name refusal), the PRIME keeps
+    `--seat <seat> --gen N`, and an UNKNOWN role (no row) keeps the legacy
+    gen-bearing tail. The `--ref ... diff --text -` tail is intact in every
+    branch."""
+    dm = rotate._compose_after_join_dm(
+        "director-seat", 7, "abc123", [], role="director")
+    line = [ln for ln in dm.splitlines() if "ack" in ln][0]
+    assert ("python3 extensions/agi/bin/rotate.py ack --post director-seat "
+            "--ref abc123 diff --text -") in line, line
+    assert "--gen" not in line, line
+
+    prime = rotate._compose_after_join_dm(
+        "belam", 7, "abc123", [], role="prime")
+    pline = [ln for ln in prime.splitlines() if "ack" in ln][0]
+    assert ("python3 extensions/agi/bin/rotate.py ack --seat belam --gen 7 "
+            "--ref abc123 diff --text -") in pline, pline
+
+    unknown = rotate._compose_after_join_dm("s", 1, "r", [])
+    uline = [ln for ln in unknown.splitlines() if "ack" in ln][0]
+    assert "ack --post s --gen 1 --ref r diff --text -" in uline, uline
+
+
+def test_after_join_dm_omits_ack_line_when_gen_unresolved():
+    """The item-4 guard stays: an unresolved gen omits the captive line
+    ENTIRELY -- never a placeholder, never `--gen 0`."""
+    dm = rotate._compose_after_join_dm("belam", "", "r", [], role="director")
+    assert "ack" not in dm, dm
+
+
+def test_ack_gen_refusal_line_is_complete_and_pasteable(
+        tmp_path, monkeypatch, capsys):
+    """SL.04 residue item 8: the by-name `--gen` refusal prints a COMPLETE,
+    pasteable command -- `python3 extensions/agi/bin/rotate.py` (never bare
+    `rotate.py`), the seat's `--session <sid8>`, `--ref`, and `--text -` on a
+    `diff` so the pasted form streams a body instead of submitting EMPTY text
+    that rotate-self would read as `continue`."""
+    root = _proj(tmp_path)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    sid = "a1b2c3d4-1111-2222-3333-444455556666"
+    _write_seats_sheet(root, [{"name": "np-post", "role": "director",
+                               "session_id": sid}])
+
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="np-post", gen=3, ref=None, answer="diff", text=""), root)
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "python3 extensions/agi/bin/rotate.py ack --post np-post " in err, err
+    assert f"--session {sid[:8]} " in err, err
+    assert "--ref <your ListAgents ref> diff --text -" in err, err
+
+    # `continue` is a complete command too (no `--text -` needed).
+    rc = rotate.cmd_ack(SimpleNamespace(
+        seat="np-post", gen=3, ref=None, answer="continue", text=""), root)
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "ack --post np-post " in err and "--ref " in err, err
+    assert "--text -" not in err, err
