@@ -1639,6 +1639,20 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
     p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
 
+def _unstage_audit_record(top, rel: str) -> None:
+    """Unstage the audited record after a commit that did NOT land.
+
+    A `git add` that is never committed leaves the record STAGED in the
+    shared index -- `A  <rel>` -- which the next author's commit could sweep
+    in (goal:g4.1). Never raises: the commit outcome is the caller's to name.
+    """
+    try:
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
                          stamp: str | None, line: str) -> tuple[str, str]:
     """Commit the audited record as ITS OWN one-pathspec commit (g17.1: the
@@ -1689,12 +1703,17 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
             ["git", "-C", str(top), "commit", "-q", "-o", "-m", msg,
              "--", rel], capture_output=True, text=True, timeout=30)
         if cm.returncode != 0:
-            dirty = subprocess.run(
-                ["git", "-C", str(top), "diff", "--quiet", "--", rel],
-                capture_output=True, text=True, timeout=10)
-            if dirty.returncode == 0:
+            # index-vs-HEAD, NEVER worktree-vs-index: right after `git add`
+            # the worktree and the index are identical, so `git diff --quiet`
+            # read a REFUSED commit as "already clean" and returned SKIPPED --
+            # exit 0 and `A  <rel>` left staged in the shared index (P7).
+            staged = subprocess.run(
+                ["git", "-C", str(top), "diff", "--cached", "--quiet",
+                 "--", rel], capture_output=True, text=True, timeout=10)
+            if staged.returncode == 0:
                 return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record "
                         "already clean after the rewrite")
+            _unstage_audit_record(top, rel)
             return ("REFUSED", f"audit_record_commit: REFUSED \u2014 "
                     f"{(cm.stderr or cm.stdout or '').strip()}; {rel} left "
                     f"uncommitted")
@@ -1709,6 +1728,7 @@ def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
         return ("COMMITTED", f"audit_record_commit: committed (sha {sha}) "
                 f"\u2014 {rel}")
     except Exception as exc:  # noqa: BLE001
+        _unstage_audit_record(top, rel)
         return ("FAILED", f"audit_record_commit: FAILED \u2014 {exc}")
 
 

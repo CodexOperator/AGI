@@ -32,7 +32,9 @@ record):
   - the audited record is committed by exact path (temp repo, never this
     one), a merge in progress refuses by name, and an UNTRACKED record is
     `git add`ed and committed alone so the audited record is never left dirty;
-  - a REFUSED/FAILED commit makes the verb exit non-zero (SKIPPED stays 0);
+  - a REFUSED/FAILED commit makes the verb exit non-zero (SKIPPED stays 0),
+    and a REFUSED commit on an untracked record is left modified-untracked,
+    never STAGED in the shared index;
   - a missing `floor_wake`/`floor_out` cell is NAMED on the result line;
   - the wake excess is a+b+c (the cut call d excluded); the out excess is the
     full call count.
@@ -719,6 +721,37 @@ def test_untracked_record_is_added_and_committed_alone(tmp_path, capsys):
     assert _git(tmp_path, "status", "--porcelain", "--", rel).strip() == ""
     assert _git(tmp_path, "rev-list", "--count", "HEAD").strip() == "1"
     assert rel in _git(tmp_path, "log", "-1", "--name-only", "--format=")
+
+
+def test_refused_untracked_commit_exits_four_and_leaves_it_unstaged(
+        tmp_path, capsys, monkeypatch):
+    """A commit the hook REFUSES on an UNTRACKED record (the P7 defect):
+    the verb exits non-zero and the record is left modified-untracked, NEVER
+    `A  <rel>` in the shared index. Worktree-vs-index `git diff --quiet`
+    reads clean right after `git add`, so the old check called a refused
+    commit SKIPPED, exited 0, and left the record staged."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [])
+    _git_init(tmp_path)
+    rel = str(rec_path.relative_to(tmp_path))
+    hooks = tmp_path / "refusing-hooks"
+    hooks.mkdir()
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\necho 'refused by test hook' >&2\nexit 1\n",
+                   encoding="utf-8")
+    pre.chmod(0o755)
+    # the ambient env pins core.hooksPath at command-line scope, which beats
+    # repo config: point it at the refusing hook for this test
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "core.hooksPath")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", str(hooks))
+
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 4
+    assert "audit_record_commit: REFUSED" in capsys.readouterr().out
+    por = _git(tmp_path, "status", "--porcelain", "--", rel)
+    assert por.strip().startswith("??"), por
+    assert "A " not in por and "M " not in por
+    # the audit itself WAS written; only the commit was refused
+    assert "wake" in json.loads(rec_path.read_text(encoding="utf-8"))["audit"]
 
 
 def test_wake_excess_excludes_the_cut_call_d(tmp_path, capsys):
