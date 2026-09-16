@@ -44,6 +44,7 @@ import sys
 from pathlib import Path
 
 import evidence_gate
+import spawn_budget
 
 from frontmatter import split_frontmatter
 
@@ -80,6 +81,23 @@ def _configured_profile(project_root: Path | None = None) -> str | None:
         return None
     mode = data.get("operating_mode")
     return mode if mode in PROFILES else None
+
+
+def _configured_line_ceiling(project_root: Path | None = None) -> int:
+    """The production-line ceiling for the assembled kid brief.
+
+    Read once, in ``assemble()``, from the project's own ``config.json`` --
+    never inside ``_kid()``, which has no ``project_root`` and no business
+    resolving config. Missing/unreadable config or an absent key falls back
+    to ``spawn_budget.production_line_ceiling``'s own default, so the brief
+    stays deterministic for every caller that does not thread it.
+    """
+    cfg_path = _resolve_graph_root(project_root) / "config.json"
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        data = {}
+    return spawn_budget.production_line_ceiling(data)
 
 
 def _effective_profile(profile: str | None = None,
@@ -1283,7 +1301,8 @@ def _scratch_dir_clause(session_dir: Path | str | None) -> list[str]:
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
           source_root: str | None = None,
           addendum: str | None = None,
-          session_dir: Path | str | None = None) -> list[str]:
+          session_dir: Path | str | None = None,
+          line_ceiling: int | None = None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1331,6 +1350,23 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         ))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
+    # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-2x-
+    # for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    # as a number the kid can read, so the 2x checkpoint has a number to key
+    # on. `assemble()` resolves the int from config and hands it down; a
+    # caller that does not thread it still gets the default, never a missing
+    # segment, because a brief that says nothing is the defect this fixes.
+    ceiling = 40 if line_ceiling is None else int(line_ceiling)
+    segs.append(
+        f"YOUR PRODUCTION-LINE CEILING: {ceiling} lines. Your production "
+        f"lines are measured with `git diff --numstat` over the production "
+        f"paths you were given (test files excluded). Checkpoint at your "
+        f"FIRST commit or first test run: measure those lines. If you are "
+        f"above 2x the ceiling (above {2 * ceiling} lines), STOP and write a "
+        f"re-brief request into your experiment node -- what you have done, "
+        f"what remains, the new ceiling you need -- and wait for the parent's "
+        f"answer before continuing."
+    )
     segs += _scratch_dir_clause(session_dir)
     segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
@@ -1890,6 +1926,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              session_dir: Path | str | None = None,
              source_root: str | Path | None = None,
              kid_ceiling: int | None = None,
+             line_ceiling: int | None = None,
              addendum: str | None = None,
              project_root: str | Path | None = None,
              profile: str = "full") -> list[str]:
@@ -2015,11 +2052,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
         # profile and the advisor brief.
         return _finish(segs, tier)
 
+    # Resolve ONCE here from the project config; `_kid` never reads config.
+    # An explicit kwarg wins (tests, hand assembles); otherwise the project's
+    # `spawn.production_line_ceiling`, defaulting to 40.
+    resolved_line_ceiling = (int(line_ceiling) if line_ceiling is not None
+                             else _configured_line_ceiling(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
                 session_dir=session_dir,
-                addendum=addendum)
+                addendum=addendum,
+                line_ceiling=resolved_line_ceiling)
     return _finish(segs, tier)
 
 
