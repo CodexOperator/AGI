@@ -502,7 +502,12 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     is this parent (dispatch.py stamps it at spawn), in the same iteration
     manifest. Status is the terminal signal: `done` accepted, `failed`/
     `hung-healed` failed, everything else demoted. Branch tip via
-    `_branch_tip`."""
+    `_branch_tip`.
+
+    conjunct (4) of l4-a-kid-checkpoints-...-re-brief: the line also names
+    each owned kid's measured overage against the ceiling it recorded. Pure
+    read of the node files -- the parent already computes each kid's diff.
+    """
     kids = [a for a in manifest.get("agents", []) or []
             if a.get("spawned_by_agent") == agent_id]
     accepted = demoted = failed = 0
@@ -518,10 +523,58 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
             demoted += 1
     branch = row.get("branch") or ""
     tip = _branch_tip(root, branch)
+    notes = _kid_budget_notes(root, node_ids)
+    tail = (" " + " ".join(notes)) if notes else ""
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
-            f"branch={branch or '-'} tip={tip or '-'}")
+            f"branch={branch or '-'} tip={tip or '-'}{tail}")
+
+
+def _budget_num(value):
+    """A frontmatter count as a number, or None when absent/unreadable.
+
+    `bool` is refused (it is an int subclass and never a budget), and a
+    non-numeric value is None so a typo never fabricates a defect.
+    """
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value) if value == int(value) else value
+    return None
+
+
+def _kid_budget_notes(root: Path, node_ids: list[str]) -> list[str]:
+    """conjunct (4): name each owned kid's recorded overage, or nothing.
+
+    Over 2x with no `rebrief_request` -> `overage=[id N/C no-rebrief]`; a
+    `rebrief_request` present -> `rebrief=[id N/C]`; at or under 2x, or no
+    record at all (a pre-fix kid), -> nothing. Absent is never over-budget.
+    """
+    notes: list[str] = []
+    for nid in node_ids:
+        if not nid or nid == "-":
+            continue
+        nf = _find_node_file(root, nid)
+        if nf is None:
+            continue
+        try:
+            fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+        except OSError:
+            continue
+        if not isinstance(fm, dict):
+            continue
+        lines = _budget_num(fm.get("production_lines"))
+        ceiling = _budget_num(fm.get("line_ceiling"))
+        if lines is None or ceiling is None or ceiling <= 0:
+            continue
+        if fm.get("rebrief_request"):
+            notes.append(f"rebrief=[{nid} {lines}/{ceiling}]")
+        elif lines > 2 * ceiling:
+            notes.append(f"overage=[{nid} {lines}/{ceiling} no-rebrief]")
+    return notes
 
 
 def _session_manifest_holders(root: Path, iter_n) -> list[Path]:

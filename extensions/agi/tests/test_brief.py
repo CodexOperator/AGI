@@ -206,6 +206,27 @@ def test_the_line_ceiling_is_kid_only():
     assert "PRODUCTION-LINE CEILING" not in director
 
 
+def test_kid_brief_requires_the_machine_readable_record():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (2): the ceiling segment is the ONE
+    segment that grows, and it now names the frontmatter fields the kid must
+    write (`production_lines`, `line_ceiling`, `rebrief_request`) so harvest
+    has a record to read. Conjunct (1)'s ceiling and 2x arithmetic must
+    survive in the SAME segment -- this is an extension, not a replacement.
+    The read-only `git diff --numstat` is authorised explicitly, so it no
+    longer contradicts the `DO NOT run git` segment.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "production_lines" in kid, "the count field harvest reads"
+    assert "line_ceiling" in kid, "the ceiling field harvest reads"
+    assert "rebrief_request" in kid, "the re-brief field harvest reads"
+    # conjunct (1) does not regress:
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "above 80 lines" in kid
+    assert "git diff --numstat" in kid
+    assert "read-only" in kid, "the one authorised git read says so"
+
+
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
     """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
     -- the per-kid brief channel. THREADING addendum through assemble must

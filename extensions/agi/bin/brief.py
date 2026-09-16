@@ -1365,7 +1365,21 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         f"above 2x the ceiling (above {2 * ceiling} lines), STOP and write a "
         f"re-brief request into your experiment node -- what you have done, "
         f"what remains, the new ceiling you need -- and wait for the parent's "
-        f"answer before continuing."
+        f"answer before continuing. "
+        # conjuncts (2)/(3): the written record harvest reads. A count with
+        # no record cannot be harvested, and the `git diff --numstat` above is
+        # the ONE git a kid may run -- a read-only measurement. The `DO NOT run
+        # git` segment below forbids writes; this sentence authorises the read
+        # (option (a) of the contradiction: the brief names its own tool).
+        f"Record the measured count in your experiment node's frontmatter "
+        f"before you continue: `write.py <node-id> 'set production_lines N'` "
+        f"and `write.py <node-id> 'set line_ceiling N'` -- the whole verb line "
+        f"is ONE quoted argument. If you are above 2x, also write "
+        f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
+        f"you need>'` before you stop; harvest reads these fields and names an "
+        f"overage with no re-brief entry as a defect. That one `git diff "
+        f"--numstat` read is the ONLY git you may run: a read-only "
+        f"measurement, nothing staged, committed or pushed."
     )
     segs += _scratch_dir_clause(session_dir)
     segs += [
