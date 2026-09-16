@@ -325,6 +325,45 @@ def test_record_after_join_block_persists_code_head(tmp_path, monkeypatch):
         rot._code_head = orig_head
 
 
+def test_after_join_stamps_both_code_head_and_loaded(tmp_path, monkeypatch):
+    """(c) SM.71: the rotation record stamps TWO cells beside each other —
+    `code_head` (the HEAD that committed the bytes) and `code_loaded` (the
+    LOADED rotate.py mtime:size at import, captured in the module constant
+    `_LOADED_ROTATE_IDENTITY`). A stale image is therefore visible BY NAME:
+    when the loaded identity no longer matches the HEAD that this record
+    was composed under, the two cells DIFFER. Best-effort code_head (git
+    refusal -> '') is still a distinct cell from the loaded identity."""
+    rec_path = tmp_path / "seat.20260911T000000Z.json"
+    rec_path.write_text(json.dumps({"rotation": "rotate-self", "seat": "s",
+                                    "result": "success", "gen_after": 7}))
+    import agi.bin.rotate as rot
+    orig_head = rot._code_head
+    orig_loaded = rot._LOADED_ROTATE_IDENTITY
+    rot._code_head = lambda root: "c0debeef"
+    try:
+        out = rotate.run_after_join(
+            tmp_path, seat="s", gen=7, startup=_startup(after_join=[
+                {"label": "ack", "cmd": "echo ack-op"}]),
+            values=VALUES, record_path=str(rec_path), delay_override=0,
+            sleep_impl=lambda s: None,
+            send_dm=lambda to, text: None)
+        assert out["appended"] is True
+        saved = json.loads(rec_path.read_text())
+        aj = saved["after_join"]
+        assert aj["code_loaded"] == orig_loaded, \
+            f"loaded cell must carry the module identity: {aj}"
+        # the two cells are independent: the loaded identity (an mtime:size
+        # stamp) never collides with the 7-hex-sha code_head, so a STALE
+        # loaded image is visible by name in the record.
+        assert aj["code_loaded"] != aj["code_head"], \
+            f"stale loaded image must read differently from code_head: {aj}"
+        assert aj["code_head"] == "c0debeef"
+    finally:
+        rec_path.unlink(missing_ok=True)
+        rot._LOADED_ROTATE_IDENTITY = orig_loaded
+        rot._code_head = orig_head
+
+
 def test_heal_service_calls_the_same_rotate_function(tmp_path):
     """(e) caller 1 — the heal.py watch loop (the service when inline_reaper
     is false) reaches the SAME rotate.run_after_join_for_seat, and is a silent
@@ -1175,6 +1214,28 @@ def test_derive_pred_pids_from_s12_chain():
             == "\\b(111|222|333)\\b")
     rec2 = {"s12_self_reap": {"chain": [{"pid": "9"}, {"pid": 8}]}}
     assert rotate._derive_pred_pids(Path("."), "s", rec2) == "\\b(9|8)\\b"
+
+
+def test_derive_pred_pids_from_belam_reap_chain():
+    """(b) SM.71: when `s12_self_reap.chain` is absent/empty on a
+    numeral-chain seat, `_derive_pred_pids` ALSO reads
+    `s12_self_reap.belam_reap.chain[].pid` — the Belam FIFO-cap reap's
+    reaped OLDEST-chain pids — so the reap-proof greps the reaped chain
+    instead of resolving the placeholder empty (the named
+    'no predecessor chain' refusal). A record whose ONLY reap evidence is
+    `belam_reap.chain` yields those pids, never '{pred_pids} empty'."""
+    rec = {"s12_self_reap": {"belam_reap": {"chain": [
+        {"pid": 401}, 402, {"pid": "403"}]}}}
+    assert (rotate._derive_pred_pids(Path("."), "s", rec)
+            == "\\b(401|402|403)\\b")
+    # own chain EMPTY -> still falls back to belam_reap (int/str/float pids)
+    rec2 = {"s12_self_reap": {"chain": [],
+                                "belam_reap": {"chain": [{"pid": 7}]}}}
+    assert rotate._derive_pred_pids(Path("."), "s", rec2) == "\\b7\\b"
+    # belam chain present but own chain also present: own chain WINS
+    rec3 = {"s12_self_reap": {"chain": [111],
+                                "belam_reap": {"chain": [{"pid": 7}]}}}
+    assert rotate._derive_pred_pids(Path("."), "s", rec3) == "\\b111\\b"
 
 
 def test_derive_pred_pids_from_predecessor_row(monkeypatch):
