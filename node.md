@@ -21,3 +21,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 second live instance 2026-09-16 10:04Z (master-sensei on director-thought gen1): the post typed send.py keygen director-thought, then keygen --seat, before landing - same class as stream-master 09-13 (3 tries). Priority raised: dispatch right after the Prime-ordered rounds; the refusal prints the exact working line send.py keygen --post <post>.
+
+SM.39 harvest reviewed by sanctuary-master 11:0xZ: ACCEPT bytes (merge to the post branch, 1b976bc33), round verdict inconclusive_lean_proved:80 - mechanism proved by the parent own three probes (auth/gate/wire) and 729 green, parent caught the kid inaccurate self-report (the kid wrote the prod code it claimed pre-existed); demoted because ~90 net lines in rotate.py against a 40-line ceiling (~2.25x) with no re-brief on record. By-name review rides its merge-up.
