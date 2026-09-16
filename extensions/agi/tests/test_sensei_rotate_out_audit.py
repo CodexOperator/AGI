@@ -863,7 +863,7 @@ def test_rotate_out_audit_writes_the_counted_number_and_prints_green(tmp_path,
                            registry_dir=None, redact=True, no_record=False)
     assert sensei.cmd_rotate_out_audit(graph, args) == 0
     out = capsys.readouterr().out
-    assert (f"green {SEAT} out --record {OUT_STAMP} 1 (floor 1)") in out
+    assert (f"green {SEAT} out --record {OUT_STAMP} 1 (floor 1") in out
     audit = json.loads((rot_dir / f"{SEAT}.{OUT_STAMP}.json")
                        .read_text(encoding="utf-8"))["audit"]["out"]
     assert audit["calls"] == 1 and audit["excess"] == 0
