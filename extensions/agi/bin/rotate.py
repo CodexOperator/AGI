@@ -12444,6 +12444,60 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
 
 
+class FactsBodyRangeError(ValueError):
+    """A `facts*` first_turn entry that names no `read body N:M`, or two
+    templates whose same label disagrees -- refused BY NAME (template +
+    label), never as a bare `no facts entry`."""
+
+
+def facts_body_ranges(templates: dict) -> list:
+    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive,
+    resolved from the templates' OWN `facts*` first_turn cmd(s) -- `write.py
+    config:rotations 'read body N:M'` (SM.55 residue, item 11).
+
+    A template may carry several entries (`facts`, `facts-2`, `facts-N`) and
+    each is returned; every template carrying the SAME label must agree; a
+    `facts*` cmd that names no body range raises `FactsBodyRangeError` naming
+    both the template and the label. Ordered `facts` first, then `facts-2`,
+    `facts-3` … This is the PRODUCTION half of the guard's rule: the guard in
+    `test_rotate_templates.py` imports it, so the rule and production are the
+    same rule."""
+    by_label: dict = {}
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        for e in startup.get("first_turn") or []:
+            if not isinstance(e, dict):
+                continue
+            label = e.get("label")
+            if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
+                                                              label):
+                continue
+            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            if not m:
+                raise FactsBodyRangeError(
+                    f"template {name!r} {label!r} cmd does not name a body "
+                    f"range: {e!r}")
+            by_label.setdefault(label, set()).add(
+                (int(m.group(1)), int(m.group(2))))
+    if not by_label:
+        raise FactsBodyRangeError(
+            "no template declares a `facts` read body N:M first_turn")
+    out = []
+    for label in sorted(by_label, key=lambda l: (l != "facts",
+                                                 0 if l == "facts"
+                                                 else int(l.rsplit("-", 1)[1]))):
+        rs = by_label[label]
+        if len(rs) != 1:
+            raise FactsBodyRangeError(
+                f"facts body ranges disagree across templates for {label!r}: "
+                f"{rs}")
+        n, m = rs.pop()
+        out.append((label, n, m))
+    return out
+
+
 def _run_first_turn_commands(startup: dict, values: dict, *,
                              dry_run: bool = False) -> list:
     """Run the template's `startup.first_turn` list, one at a time, BEFORE
@@ -12472,6 +12526,11 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        # item 11(a): an ENTRY-level `byte_cap` wins over the template cell;
+        # the template cap stays the fallback, so an entry with no cell is
+        # byte-identical to before. The value that truncated the output is the
+        # value recorded on the result.
+        entry_cap = int(entry.get("byte_cap") or byte_cap)
         # A per-entry `fallback:` (e.g. "fallback: --key {prime_key}") names a
         # WHOLE FRAGMENT substituted when a USED placeholder is EMPTY -- so a
         # prime-authority entry whose {prime_ref} is empty resolves by the
@@ -12574,12 +12633,12 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "timed_out_after_s": timeout_s})
             continue
         truncated = False
-        if len(out) > byte_cap:
-            out = out[:byte_cap]
+        if len(out) > entry_cap:
+            out = out[:entry_cap]
             truncated = True
         results.append({"label": label, "cmd": record_cmd, "rc": rc,
                         "output": out, "truncated": truncated,
-                        "byte_cap": byte_cap})
+                        "byte_cap": entry_cap})
     return results
 
 

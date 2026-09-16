@@ -811,6 +811,8 @@ def test_rotate_out_the_measured_shape_is_one_out_call_not_three(tmp_path):
     assert len(calls) == 3            # all three still PRINTED
     assert window["counted"] == 1     # only the rotate is an out call
     assert counts == {"a": 0, "b": 0, "c": 0, "d": 3, "s": 0}
+    # the two excluded calls carry `pre`; window['counted'] is the floor set
+    assert [c["pre"] for c in calls] == [True, True, False]
     assert calls[0]["label"] == "harvest of bpohvkj78"
     assert calls[1]["label"] == "send=output"
     assert [c["cat"] for c in calls] == ["d", "d", "d"]
@@ -846,8 +848,13 @@ def test_rotate_out_a_send_does_not_hide_the_calls_after_it(tmp_path):
     assert [c["cat"] for c in calls] == ["d", "d", "d"]
 
 
-def test_rotate_out_audit_writes_the_counted_number_and_prints_green(tmp_path,
-                                                                    capsys):
+def test_rotate_out_audit_writes_the_window_number_and_prints_green(
+        tmp_path, capsys):
+    """SM.51-56 item 8: ONE count per side. The line's count and the
+    record's `calls` are the SAME read -- the payload's reconciling total
+    `a+b+c+d+pre` -- while the excess keeps measuring ONLY the floor set
+    `a+b+c+d` (`window['counted']`). The named `pre` bucket explains the two
+    excluded calls (`send=output` report + harvest read)."""
     from types import SimpleNamespace
     graph, tr = _write_root(tmp_path, None)
     _notified_transcript(tr, [
@@ -863,11 +870,16 @@ def test_rotate_out_audit_writes_the_counted_number_and_prints_green(tmp_path,
                            registry_dir=None, redact=True, no_record=False)
     assert sensei.cmd_rotate_out_audit(graph, args) == 0
     out = capsys.readouterr().out
-    assert (f"green {SEAT} out --record {OUT_STAMP} 1 (floor 1") in out
+    # printed count == payload['calls'] == 3 (1 floor-set call + 2 pre)
+    assert (f"green {SEAT} out --record {OUT_STAMP} 3 (floor 1") in out
     audit = json.loads((rot_dir / f"{SEAT}.{OUT_STAMP}.json")
                        .read_text(encoding="utf-8"))["audit"]["out"]
-    assert audit["calls"] == 1 and audit["excess"] == 0
-    assert audit["d"] == 3 and audit["b"] == 0
+    assert audit["calls"] == 3 and audit["excess"] == 0
+    assert audit["pre"] == 2          # the named, additive excluded bucket
+    assert audit["d"] == 1 and audit["b"] == 0
+    # reconciliation by construction: calls == every bucket it reports
+    assert audit["calls"] == (audit["a"] + audit["b"] + audit["c"]
+                              + audit["d"] + audit["pre"])
 
 
 def _notification(tid: str, path: str) -> str:
@@ -909,6 +921,66 @@ def test_rotate_out_a_stale_notified_path_is_not_the_harvest(tmp_path):
     assert calls[0]["cat"] == "b" and calls[0]["label"] is None
     assert window["counted"] == 2          # the stale read and the rotate
     assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
+
+
+def test_rotate_out_a_non_read_mention_of_the_path_is_not_the_harvest(tmp_path):
+    """SM.51-56 item 9: the harvest is a READ of the notified <output-file>,
+    never any command that merely MENTIONS it. `rm <path> && <rotate>` names
+    the path but is not a harvest -- it is classified by the normal rules and
+    is COUNTED (the falsifier the pre-fix substring test failed)."""
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", f"rm {OUT_FILE} && " + ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["label"] is None            # not `harvest of bpohvkj78`
+    assert calls[0]["pre"] is False             # never excluded from the floor
+    assert window["counted"] == 1
+
+
+def test_rotate_out_a_send_without_a_tag_is_counted_not_the_report(tmp_path):
+    """SM.51-56 item 10: `send=output` is the REPORT SHAPE (`[tag]`), never
+    the verb. An untagged mid-window dm to a peer is real work and IS counted;
+    a tagged send is the post's own report and is excluded."""
+    graph, tr = _write_root(tmp_path, None)
+    untagged = ("python3 extensions/agi/bin/send.py send belam 'progress: "
+                "half done, still working'")
+    _notified_transcript(tr, [
+        ("Bash", untagged),
+        ("Bash", SEND),
+        ("Bash", ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["label"] is None and calls[0]["pre"] is False
+    assert calls[1]["label"] == "send=output" and calls[1]["pre"] is True
+    assert window["counted"] == 2   # the untagged send + the rotate
+
+
+def test_rotate_out_a_read_tool_of_the_notified_path_is_the_harvest(tmp_path):
+    """item 9: a `Read` tool_use whose own path IS the notified <output-file>
+    is the harvest too, not only a Bash read verb."""
+    graph, tr = _write_root(tmp_path, None)
+    events = [json.dumps({"type": "user", "message": {
+        "role": "user", "content": "go"}}),
+        json.dumps({"type": "user", "message": {"role": "user",
+            "content": _notification("bpohvkj78", OUT_FILE)}}),
+        json.dumps({"type": "assistant", "message": {"role": "assistant",
+            "content": [{"type": "tool_use", "name": "Read",
+                         "input": {"file_path": OUT_FILE}}]}}),
+        json.dumps({"type": "user", "message": {"role": "user",
+            "content": [{"type": "tool_result", "content": "ok",
+                         "tool_use_id": "t"}]}}),
+        json.dumps({"type": "assistant", "message": {"role": "assistant",
+            "content": [{"type": "tool_use", "name": "Bash",
+                         "input": {"command": ROTATE}}]}})]
+    tr.write_text("\n".join(events) + "\n", encoding="utf-8")
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["label"] == "harvest of bpohvkj78"
+    assert calls[0]["pre"] is True
+    assert window["counted"] == 1
 
 
 def test_rotate_out_a_bare_read_with_no_notification_is_a_poll(tmp_path):
