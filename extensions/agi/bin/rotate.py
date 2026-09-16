@@ -5091,6 +5091,8 @@ def _write_rotation_record(root: Path, record: dict,
     #     written between the join and the outcome: rebuilding the dict from
     #     arguments drops it BY CONSTRUCTION (mechanism (A)).
     _preserve_audit(record, path)
+    # (clause a) nor the OUTCOME rewrite: 0 of 18 records carried the seal.
+    _preserve_stops_sha(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -15288,7 +15290,9 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     except Exception:  # noqa: BLE001
         card_stale = False   # unmeasurable reads NOT stale (P7)
     checks.append((card_stale, "card older than last commit",
-                   f"rotate.py handoff --driven --seat {seat}"))
+                   "write your card (a save is enough: the check reads mtime), "
+                   "commit it, then rotate; fallback: rotate.py handoff "
+                   f"--driven --seat {seat}"))
 
     # 5 meter pin missing or stale (seat_pin-stale). The check needs the
     # seat's CURRENT generation — which now comes from the config:seats ROW
@@ -17037,10 +17041,27 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return None                       # rewritten during this generation
     _m = re.search(r"gen (\d+)->(\d+)", _subj)
     _gp = f" gen {_m.group(1)}->{_m.group(2)}" if _m else ""
+    # (clause b2) name BOTH stamps and WHICH clock ran newer (newest act).
+    def _act(*a: str) -> str:
+        _o = _git_maybe(top, *a)
+        return _o[0] if _o else ""
+    _acts = [(_act("log", "-1", "--format=%cs", "--", rel),
+              "the card's last commit"),
+             (_act("log", "-1", "--format=%cs", "--grep",
+                   f"^{re.escape(seat)} .*(harvest|merge-up)"),
+              "the post's newest harvest/merge-up commit")]
+    try:
+        _acts += [(str(json.loads(_p.read_text(encoding="utf-8")).get(
+            "recorded_at") or "")[:10], "the post's newest rotation record")
+            for _p in _rotations_dir(root).glob(f"{seat}.*.json")]
+    except Exception:  # noqa: BLE001
+        pass
+    _wd, _wsrc = max((a for a in _acts if a[0]), key=lambda a: a[0],
+                     default=("", "none"))
     return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
-            f"{_gp} @ {_sha[:8]} {_date}): the slot still holds the "
-            f"predecessor's stop block; write the card where-it-stops section "
-            f"or pass --stops")
+            f"{_gp} @ {_sha[:8]} {_date}; newest work act {_wd or '?'} from "
+            f"{_wsrc}): the slot still holds the predecessor's stop block; "
+            f"write the card where-it-stops section or pass --stops")
 
 
 def _rotate_human_gate(root: Path, seat: str,
@@ -19443,6 +19464,16 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
         if _stale:
             print(f"rotate refused: {_stale} (nothing delegated)",
                   file=sys.stderr)
+            return 2
+    elif args.stops is not None:
+        # (clause b) an explicit --stops is NOT a bypass: rewrite the card's
+        # where-it-stops slot with that ONE line BEFORE the gate. No pre-check:
+        # `_write_stops_section` itself CREATES a missing slot and REFUSES an
+        # ambiguous one (returns (None, ...)), so the refusal below covers it.
+        _ecard = _own_card_path(root, target)
+        _ewf, _ewsl = _write_stops_section(_ecard, target, args.stops)
+        if _ewf is None:
+            print(f"rotate refused: {_ewsl} (nothing delegated)", file=sys.stderr)
             return 2
     # (5) --dry-run prints the ONE resolved line, then delegates (rotate-self's
     # own dry-run does the rest, touching nothing). The stops token is truthful
