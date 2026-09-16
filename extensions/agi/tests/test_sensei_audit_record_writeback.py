@@ -754,6 +754,84 @@ def test_refused_untracked_commit_exits_four_and_leaves_it_unstaged(
     assert "wake" in json.loads(rec_path.read_text(encoding="utf-8"))["audit"]
 
 
+def test_refused_tracked_commit_exits_four_and_leaves_it_modified(
+        tmp_path, capsys, monkeypatch):
+    """A commit the hook REFUSES on a TRACKED record (the P8 defect kid 2
+    left): the audit rewrote the WORKTREE, no `git add` happened, so
+    index==HEAD and the old index-only `git diff --cached --quiet` check read
+    the refused commit as SKIPPED -- exit 0 with ` M <rel>` left behind. Any
+    surviving worktree difference is REFUSED, so the verb exits non-zero and
+    the record is never left STAGED in the shared index."""
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [])
+    _git_init(tmp_path)
+    rel = str(rec_path.relative_to(tmp_path))
+    _git(tmp_path, "add", "--", rel)
+    _git(tmp_path, "commit", "-q", "-m", "seed", "--", rel)
+    hooks = tmp_path / "refusing-hooks"
+    hooks.mkdir()
+    pre = hooks / "pre-commit"
+    pre.write_text("#!/bin/sh\necho 'refused by test hook' >&2\nexit 1\n",
+                   encoding="utf-8")
+    pre.chmod(0o755)
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "core.hooksPath")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", str(hooks))
+
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 4
+    out = capsys.readouterr().out
+    assert "audit_record_commit: REFUSED" in out
+    assert "SKIPPED" not in out
+    por = _git(tmp_path, "status", "--porcelain", "--", rel)
+    assert por.startswith(" M"), por
+    assert "A " not in por
+    assert "wake" in json.loads(rec_path.read_text(encoding="utf-8"))["audit"]
+
+
+def test_genuinely_clean_rerun_still_skips_and_exits_zero(
+        tmp_path, capsys, monkeypatch):
+    """The ONE case where SKIPPED is right: a commit that fails with nothing
+    to commit at all -- no staged change AND no worktree change. Built as a
+    REAL byte-identical re-run: the clock is frozen so the second audit
+    rewrites the same bytes, and only then is the commit made to fail."""
+    import datetime as _dt
+
+    class _Frozen(_dt.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return _dt.datetime(2026, 9, 11, 12, 0, 0,
+                                tzinfo=_dt.timezone.utc)
+
+    class _Mod:
+        datetime = _Frozen
+        timezone = _dt.timezone
+
+    monkeypatch.setattr(sensei, "datetime", _Mod)
+    graph, rec_path, _tr = _write_wake_project(tmp_path, [])
+    _git_init(tmp_path)
+    rel = str(rec_path.relative_to(tmp_path))
+    _git(tmp_path, "add", "--", rel)
+    _git(tmp_path, "commit", "-q", "-m", "seed", "--", rel)
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0  # committed
+    capsys.readouterr()
+    clean = rec_path.read_text(encoding="utf-8")
+
+    real = subprocess.run
+
+    def refuse_commit(cmd, *a, **kw):
+        if isinstance(cmd, list) and "commit" in cmd:
+            return SimpleNamespace(returncode=1, stdout="", stderr="no-op")
+        return real(cmd, *a, **kw)
+
+    monkeypatch.setattr(sensei.subprocess, "run", refuse_commit)
+    assert sensei.cmd_wake_audit(graph, _wake_args()) == 0
+    out = capsys.readouterr().out
+    assert "audit_record_commit: SKIPPED" in out
+    assert "REFUSED" not in out
+    # FALSIFIER: byte-identical, so there was genuinely nothing to commit
+    assert rec_path.read_text(encoding="utf-8") == clean
+    assert _git(tmp_path, "status", "--porcelain", "--", rel).strip() == ""
+
+
 def test_wake_excess_excludes_the_cut_call_d(tmp_path, capsys):
     """The wake excess is a+b+c - floor; d is the cut call itself (belam
     20260916T151713Z reported excess 4 where a+b+c=3). The out side keeps the
