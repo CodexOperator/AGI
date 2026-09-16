@@ -1316,3 +1316,60 @@ def test_session_complete_stamps_the_acting_seat(tmp_path, monkeypatch):
     args.dry_run = False
     assert cli.cmd_session_complete(args) == 0
     assert stamp.exists(), "session-complete left no seat last-act stamp"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-sm36-...-one-scope-rule -- item 9 (the cli half of the ONE
+# rule) and item 8 (the died-no-work scaffold moved, never deleted).
+# --------------------------------------------------------------------------
+
+def test_round_scope_ok_is_one_rule_and_honours_explicit_own_paths():
+    """The cli predicate: a human-slug node named in own_paths is IN scope,
+    the very same path without own_paths is another author's node, a sibling
+    kid's node is never in scope, and the agent's own id-named node is in
+    scope without own_paths."""
+    cli = _load_cli()
+    agent = "a00-e2890daf"
+    own = ".agi/nodes/experiment/human-slug-node.md"
+    assert cli._round_scope_ok(own, agent, {own}) is True
+    assert cli._round_scope_ok(own, agent, set()) is False
+    assert cli._round_scope_ok(
+        ".agi/nodes/experiment/a00-otherkid-1.md", agent, {own}) is False
+    assert cli._round_scope_ok(
+        f".agi/nodes/experiment/{agent}-7f2449.md", agent, set()) is True
+
+
+def test_scope_check_reads_own_paths_from_the_env_the_hook_exports(
+        monkeypatch):
+    """The served surface the hook calls: NUL-separated paths on stdin,
+    AGI_ROUND_OWN_PATHS carrying the round's own paths. Exit 0 iff every path
+    is in the ONE rule."""
+    import argparse
+    import io
+    import sys
+    cli = _load_cli()
+    own = ".agi/nodes/experiment/human-slug-node.md"
+    sibling = ".agi/nodes/experiment/a00-otherkid-1.md"
+    monkeypatch.setenv("AGI_ROUND_OWN_PATHS", own)
+    args = argparse.Namespace(agent_id="a00-e2890daf", own=[])
+    monkeypatch.setattr(sys, "stdin", io.StringIO(own + "\0"))
+    assert cli.cmd_scope_check(args) == 0
+    monkeypatch.setattr(sys, "stdin", io.StringIO(sibling + "\0"))
+    assert cli.cmd_scope_check(args) == 1
+
+
+def test_died_no_work_scaffold_moved_to_deprecated_and_never_deleted():
+    """item 8: experiment:a00-af4a5702-dabe39 (spawn died no-work) is MOVED to
+    deprecated/ with status: deprecated; the live path is gone and the
+    deprecated path exists exactly once."""
+    from pathlib import Path
+    repo = Path(__file__).resolve().parents[3]
+    graph = repo / ".agi"
+    live = sorted((graph / "nodes" / "experiment").glob("a00-af4a5702*"))
+    dead = (graph / "nodes" / "deprecated" / "experiment"
+            / "a00-af4a5702-dabe39.md")
+    assert live == [], f"died-no-work scaffold still live: {live}"
+    assert dead.is_file(), "scaffold was deleted, not moved to deprecated/"
+    text = dead.read_text(encoding="utf-8")
+    assert "status: deprecated" in text
+    assert "SPAWN DIED NO-WORK" in text, "Agent Notes were not kept verbatim"

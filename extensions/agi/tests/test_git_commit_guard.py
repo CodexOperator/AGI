@@ -942,3 +942,38 @@ def test_branch_kid_refuses_typechange_node(branch_kid):
         f"branch kid committed a typechanged node: {res.stdout}"
     )
     assert "kid may not commit" in res.stderr
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l4-sm36-...-one-scope-rule item 9 — ONE rule, one implementation.
+# The hook now DELEGATES to cli._round_scope_ok via `cli.py scope-check`, so a
+# round's explicit own path (a human-slug node) is accepted by BOTH.
+# ---------------------------------------------------------------------------
+
+HUMAN_SLUG = ".agi/nodes/experiment/human-slug-node.md"
+
+
+def test_branch_kid_commits_own_human_slug_node_when_round_owns_it(branch_kid):
+    """Red before the fix: the hook scoped a node by AGI_AGENT_ID-in-basename
+    only, so a round whose --node-id is a human slug was accepted by
+    cli._round_scope_ok (own_paths) and REFUSED by the hook. The hook reads the
+    round's own paths from AGI_ROUND_OWN_PATHS and must agree."""
+    main, wt = branch_kid
+    _stage(wt, HUMAN_SLUG, "---\ntype: experiment\n---\n")
+    env = branch_kid_env(wt, tree_root=str(wt))
+    env["AGI_ROUND_OWN_PATHS"] = HUMAN_SLUG
+    res = _kid_commit(wt, env)
+    assert res.returncode == 0, (
+        f"own human-slug node REFUSED by the hook: {res.stdout} / {res.stderr}"
+    )
+
+
+def test_branch_kid_still_refuses_unowned_human_slug_node(branch_kid):
+    """The other half of the SAME rule: with no AGI_ROUND_OWN_PATHS the
+    human-slug node is another author's node and is refused — proving the
+    delegation did not simply widen the admission."""
+    main, wt = branch_kid
+    _stage(wt, HUMAN_SLUG, "---\ntype: experiment\n---\n")
+    res = _kid_commit(wt, branch_kid_env(wt, tree_root=str(wt)))
+    assert res.returncode == 1, f"unowned human-slug node committed: {res.stdout}"
+    assert "kid may not commit" in res.stderr
