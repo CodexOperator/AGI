@@ -2054,7 +2054,7 @@ def test_manifest_timeout_zero_is_refused_by_name_before_any_stage(
         tmp_path_factory, monkeypatch, capsys):
     """A manifest timeout_s=0 must NOT reach subprocess.run(timeout=0) and
     silently kill every stage. Definition (a): refused by name, non-zero exit,
-    ZERO stages dispatched (conjunct (6))."""
+    ZERO stages dispatched (conjunct (5))."""
     rc, seen = _capture_timeouts_rc(
         tmp_path_factory, monkeypatch, _manifest_with_timeout(timeout_s=0))
     assert rc != 0, "a zero-second budget must refuse the run"
@@ -2086,6 +2086,144 @@ def test_negative_stage_timeout_is_refused_not_passed_through(
     assert rc != 0
     assert seen == []
     assert "timeout_s" in capsys.readouterr().err
+
+
+# ---------- conjunct 3 (SD.06 residue): --dry-run agrees with the live run
+# on timeout_s, and conjunct 4: the refusal has its own return code ----------
+
+def _dry_run_with_manifest(tmp_path_factory, monkeypatch, manifest):
+    """Drive `--dry-run` with an injected manifest; returns (rc, stdout).
+
+    Same shape as `_capture_timeouts_rc` but `dry_run=True`, so the credential
+    and dispatch lines are captured instead of subprocess.run."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: manifest
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "pi", {}, True, out=buf)
+        assert not (tmp / "sessions").exists(), (
+            "a dry run must not create a sessions dir")
+        return rc, buf.getvalue()
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
+
+
+def test_dry_run_refuses_an_invalid_timeout_exactly_as_the_live_run(
+        tmp_path_factory, monkeypatch, capsys):
+    """hypothesis:l4-sd06-residue-renumber-notice-fixture-dry-run-parity-
+    refused-run-key conjunct (3). Pre-fix the `if dry_run:` return sat ABOVE
+    the budget-resolution loop, so `--dry-run` printed the credential line,
+    every dispatch line and `[summary]` and exited 0 for a manifest whose
+    `timeout_s` the live run refuses — the dry run APPROVED a run that could
+    not start. Each invalid shape must now refuse under `--dry-run` too, with
+    the same rc 5 the live run gives and no dispatch/summary lines."""
+    for manifest in (_manifest_with_timeout(timeout_s=0),
+                     _manifest_with_timeout(stage_timeout=-1),
+                     _manifest_with_timeout(stage_timeout="600")):
+        rc, text = _dry_run_with_manifest(tmp_path_factory, monkeypatch,
+                                          manifest)
+        assert rc == 5, (rc, text)
+        assert "[dispatch]" not in text, text
+        assert "[summary]" not in text, text
+        err = capsys.readouterr().err
+        assert "timeout_s" in err, err
+
+
+def test_dry_run_still_green_for_a_valid_timeout(tmp_path_factory,
+                                                 monkeypatch):
+    """Control for the parity fix: a valid budget still dry-runs to rc 0 with
+    its dispatch and summary lines, so the refusal did not become a blanket
+    refusal."""
+    rc, text = _dry_run_with_manifest(
+        tmp_path_factory, monkeypatch, _manifest_with_timeout(timeout_s=7))
+    assert rc == 0, text
+    assert "[dispatch]" in text and "[summary]" in text, text
+
+
+def test_timeout_refusal_rc_is_distinct_from_the_stage_parse_error_rc(
+        tmp_path_factory, monkeypatch):
+    """conjunct (4). Pre-fix the timeout refusal returned 4 — the same value
+    `_run_stage_pi` returns when a stage's output cannot be parsed — so a
+    caller could not tell "refused before any stage ran" from "a stage ran and
+    returned unparseable output". Both arms are DRIVEN here, not asserted from
+    a comment: the parse-error arm by making `_resolve_lenient_return` raise
+    (the only path that reaches its handler), the refusal arm by an invalid
+    `timeout_s`. The two must differ."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: _manifest_with_timeout(timeout_s=7)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+
+    def _boom(*a, **k):
+        raise ValueError("forced schema failure")
+
+    monkeypatch.setattr(_wf, "_resolve_lenient_return", _boom)
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            return _sp.CompletedProcess(cmd, 0, stdout='{"ok": true}',
+                                        stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="CTX", stderr="")
+
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            parse_rc = run_workflow(REPO / ".agi", "review", "pi", {},
+                                    False, out=buf)
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
+    assert parse_rc == 4, (
+        f"the stage return-parse-error arm is rc 4, got {parse_rc}")
+
+    refused_rc, seen = _capture_timeouts_rc(
+        tmp_path_factory, monkeypatch, _manifest_with_timeout(timeout_s=0))
+    assert refused_rc == 5, refused_rc
+    assert seen == [], seen
+    assert refused_rc != parse_rc, (
+        "a refused-before-any-stage run must not share the stage parse-error "
+        "return code")
+
+
+def test_no_per_run_key_is_minted_for_a_timeout_refused_run(
+        tmp_path_factory, monkeypatch):
+    """conjunct (4), the mint half. The budget is resolved BEFORE
+    `_resolve_workflow_spawn_env`, so a manifest that will be refused spends
+    NO key: with provisioning 'available' and `mint` patched, a refused run
+    must call it ZERO times."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    saved_manifest = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: _manifest_with_timeout(timeout_s=0)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+    minted = []
+    monkeypatch.setattr(_wf.provisioning, "mint",
+                        lambda **kw: minted.append(kw))
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run",
+                        side_effect=lambda *a, **k: _sp.CompletedProcess(
+                            [], 0, stdout="", stderr="")):
+            rc = run_workflow(REPO / ".agi", "review", "pi", {}, False,
+                              out=buf)
+        assert rc == 5, (rc, buf.getvalue())
+        assert minted == [], (
+            f"a refused run must spend no key, minted {len(minted)}")
+    finally:
+        _wf._load_manifest = saved_manifest
+        restore()
 
 
 # ---------- conjunct 3: a schema miss keeps its violation -------------------
@@ -2152,7 +2290,7 @@ def test_later_valid_candidate_still_wins_after_a_schema_miss(
     assert rows[0]["returns"] == {}, rows[0]
 
 
-# ---------- conjunct 4: the tree PREVIEWS, never inlines, a blob --------
+# ---------- conjunct 3: the tree PREVIEWS, never inlines, a blob --------
 
 def test_tree_previews_a_multi_kb_detail_while_tracking_keeps_it_whole(
         tmp_path_factory, monkeypatch):
@@ -2160,7 +2298,7 @@ def test_tree_previews_a_multi_kb_detail_while_tracking_keeps_it_whole(
     SHORTER than the input and names the exact omitted size, while the
     tracking row still holds the whole text character-for-character
     (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
-    conjunct (4)). Numeric on both sides."""
+    conjunct (3)). Numeric on both sides."""
     from workflow import _TREE_DETAIL_PREVIEW_CHARS
     output = "".join(f"prose line {i} of the model's stdout\n"
                      for i in range(300))

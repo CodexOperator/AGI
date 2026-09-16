@@ -355,7 +355,7 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     refusing on its remaining would block every dispatch for the key's TTL.
 
     🔴 A skip is VISIBLE IN THE RETURN VALUE (hypothesis:l4-workflow-residue-
-    sub-floor-marker-dead-code-and-truncation conjunct (2)): when at least one
+    sub-floor-marker-dead-code-and-truncation conjunct (1)): when at least one
     sub-floor cap is skipped the function returns `(True, <marker>)`, where
     `<marker>` is the SAME sentence printed to stderr — one string, one
     construction, so the two can never drift. `(True, None)` is reserved for
