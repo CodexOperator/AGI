@@ -58,6 +58,22 @@ FIXED = {"stream": True, "cache_prompt": False}
 
 
 def _parse_args(argv):
+    if "-h" in argv or "--help" in argv:
+        print(
+            "usage: WS_RAW_KEY=<key> python3 ws_raw.py [options]\n"
+            "\n"
+            "  --port PORT         listen port (default 18431)\n"
+            "  --backend NAME=URL  backend base URL, repeatable\n"
+            "                      (default cpu=http://127.0.0.1:18430)\n"
+            "  -h, --help          this message\n"
+            "\n"
+            "env:\n"
+            "  WS_RAW_KEY          static key, required (callers and backends)\n"
+            "\n"
+            "The host is fixed to 127.0.0.1; this relay never binds a public\n"
+            "interface.  Any other flag is an error.\n"
+        )
+        raise SystemExit(0)
     opts = {"port": 18431, "host": "127.0.0.1", "backends": {}}
     i = 0
     while i < len(argv):
