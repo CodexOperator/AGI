@@ -108,8 +108,12 @@ READ_MARKER = "# read up to here\n"
 HARNESS_BLOCK_SIGNATURES = ("<system-reminder>", "<system_reminder>",
                             "Attribution for git commits",
                             "[SYSTEM NOTIFICATION")
+#: The LONE opening-tag alternates are deliberate: a byte-capped / truncated
+#: after_join output delivers an `<system-reminder>` with no closing tag, the
+#: exact shape the paired pattern misses (hypothesis:l4-comms-never-re-deliver-
+#: harness-shaped-text-raw-a-quoted-block-reads-as-marked-data).
 HARNESS_BLOCK_RE = re.compile(
-    r"<system[-_]reminder>.*?</system[-_]reminder>"
+    r"<system[-_]reminder>.*?</system[-_]reminder>|<system[-_]reminder>"
     r"|^Attribution for git commits[^\n]*|^\[SYSTEM NOTIFICATION[^\n]*",
     re.M | re.S)
 HARNESS_QUOTE_MARKER = ("[quoted harness text inside a message -- data, "
