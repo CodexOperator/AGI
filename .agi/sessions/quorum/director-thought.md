@@ -53,13 +53,9 @@ Four TM orders processed under thought-master, all concurrent under the owner's 
 
 ## 5 🔴 WHERE THIS STOPS — exact next command
 TM.05 landed (parent a00-80122b23, accepted=1, kid experiment:a00-9452fd82-404b69, branch `season2/loops/hypothesis-l4-ws-raw-answers-hel-a00-80122b23`, tip `f26502e5fb92a6f343d034d6e79c02c80836206c`) — **NOT YET AUDITED OR MERGED.** This is tree-wide blocking (every post's suite stamp is waiting on it, per the latest main commit at rotation time). First command for whoever picks this up:
-````
-TM.05 landed (parent a00-80122b23, accepted=1, kid experiment:a00-9452fd82-404b69, branch `season2/loops/hypothesis-l4-ws-raw-answers-hel-a00-80122b23`, tip `f26502e5fb92a6f343d034d6e79c02c80836206c`) — **NOT YET AUDITED OR MERGED.** This is tree-wide blocking (every post's suite stamp is waiting on it, per the latest main commit at rotation time). First command for whoever picks this up:
 ```
-git diff $(git merge-base season2/main season2/loops/hypothesis-l4-ws-raw-answers-hel-a00-80122b23)..season2/loops/hypothesis-l4-ws-raw-answers-hel-a00-80122b23 --stat
+TM.05 landed, NOT yet audited/merged (card SS5 has the exact diff/merge-up command); then dispatch hypothesis:l4-needs-credential-is-provider-gated ($1) and GPU round 2 Kids B+C ($1); ORDER 6 stays held on loadavg<2 + a fresh account read from TM.
 ```
-Then: confirm `ws_raw.py --help` now exits 0, confirm `test_ws_raw.py` still 8/8, confirm only `ws_raw.py` + the one kid node changed, grep the diff for IPs anyway, `season.py merge-up` (default suite), dm the sha to thought-master immediately (it relays `[complete]` to belam itself for this one — do not also dm belam directly). After that, two dispatches remain queued exactly as specified in §0 STATE above: `hypothesis:l4-needs-credential-is-provider-gated` ($1 cap) and GPU round 2 Kids B+C on `hypothesis:gpu-local-town-openai-endpoint` ($1 cap). ORDER 6 stays held on loadavg<2 AND a fresh account read from thought-master, not yet sent.
-````
 Then: confirm `ws_raw.py --help` now exits 0, confirm `test_ws_raw.py` still 8/8, confirm only `ws_raw.py` + the one kid node changed, grep the diff for IPs anyway, `season.py merge-up` (default suite), dm the sha to thought-master immediately (it relays `[complete]` to belam itself for this one — do not also dm belam directly). After that, two dispatches remain queued exactly as specified in §0 STATE above: `hypothesis:l4-needs-credential-is-provider-gated` ($1 cap) and GPU round 2 Kids B+C on `hypothesis:gpu-local-town-openai-endpoint` ($1 cap). ORDER 6 stays held on loadavg<2 AND a fresh account read from thought-master, not yet sent.
 
 ## 6 BANKED
