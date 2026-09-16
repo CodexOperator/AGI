@@ -592,6 +592,33 @@ def _record_transcript(rec: dict) -> Path | None:
     return None
 
 
+def _record_matches_session(rec: dict, session_id: str) -> bool:
+    """Whether a rotation record belongs to session `session_id`.
+
+    clause (1) IDENTITY of hypothesis:l4-sensei-wake-audit-keys-on-the-
+    session-not-gen-or-the-prime-ack-name: a non-prime post is generation-
+    less, so its record is found by the `handover.join.session_id` the SAME
+    row carries (`rotate._ack_session_id`), not by a generation. A full
+    match or an 8-char-prefix match either way counts -- the ack is spelled
+    with `session_id[:8]`, so a caller holding either spelling resolves the
+    same record. The 8-char floor keeps a truncated/blank id from matching
+    everything."""
+    if not session_id:
+        return False
+    ho = rec.get("handover")
+    if not isinstance(ho, dict):
+        return False
+    j = ho.get("join")
+    if not isinstance(j, dict):
+        return False
+    sid = str(j.get("session_id") or "")
+    if not sid:
+        return False
+    return (sid == session_id
+            or (len(session_id) >= 8 and sid.startswith(session_id))
+            or (len(sid) >= 8 and session_id.startswith(sid)))
+
+
 def _record_matches_gen(rec: dict, gen: int) -> bool:
     """Whether a rotation record belongs to generation `gen`.
 
@@ -610,22 +637,33 @@ def _record_matches_gen(rec: dict, gen: int) -> bool:
 
 
 def _latest_record(root: Path, seat: str,
-                   gen: int | None = None) -> tuple[Path, dict] | None:
-    """The seat's latest rotation record (or the latest matching `gen`).
+                   gen: int | None = None,
+                   session_id: str | None = None) -> tuple[Path, dict] | None:
+    """The seat's latest rotation record (or the latest matching `gen` /
+    `session_id`).
 
     Files are named `<seat>.<UTC timestamp>.json` so sorted name order is time
     order, the same rule `rotate.py status --record latest` uses. Parses JSON;
-    a record that does not parse is skipped, not fatal."""
+    a record that does not parse is skipped, not fatal.
+
+    A non-empty `session_id` (a non-prime post's row, `rotate._ack_session_id`)
+    narrows selection to the record whose `handover.join.session_id` matches --
+    latest by filename order among matches -- so a generation-less post is
+    found by its session, never by "latest". `gen` filters the same way and
+    with `session_id == ""` is byte-identical to before."""
     files = _rotation_records(root, seat)
-    if gen is not None:
+    if gen is not None or session_id:
         matches = []
         for p in reversed(files):
             try:
                 doc = json.loads(p.read_text(encoding="utf-8"))
             except Exception:  # noqa: BLE001
                 continue
-            if _record_matches_gen(doc, gen):
-                matches.append((p, doc))
+            if gen is not None and not _record_matches_gen(doc, gen):
+                continue
+            if session_id and not _record_matches_session(doc, session_id):
+                continue
+            matches.append((p, doc))
         if not matches:
             return None
         return matches[0]
@@ -638,12 +676,15 @@ def _latest_record(root: Path, seat: str,
 
 
 def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
-                             transcript_path: Path | None) -> tuple[Path | None, str]:
+                             transcript_path: Path | None,
+                             session_id: str | None = None) -> tuple[Path | None, str]:
     """The transcript the wake audit reads, in the g15 order:
 
       1. an explicit `--transcript PATH` (must exist)
-      2. the seat's rotation record — `--gen N` selects the record for gen N,
-         no `--gen` means the LATEST record — via the record's OWN
+      2. the seat's rotation record — a non-empty `session_id` (a non-prime
+         post's row) selects the record whose `handover.join.session_id`
+         matches; `--gen N` selects the record for gen N; neither means the
+         LATEST record — via the record's OWN
          `session_log`/session id. The env / newest-.jsonl fallbacks of
          `rotate.resolve_transcript` are UNREACHABLE here by construction.
 
@@ -653,8 +694,11 @@ def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
     if transcript_path is not None:
         lp = Path(transcript_path).expanduser().resolve()
         return (lp, "explicit") if lp.exists() else (None, "explicit-missing")
-    rec = _latest_record(root, seat, gen=gen)
+    rec = _latest_record(root, seat, gen=gen, session_id=session_id)
     if rec is None:
+        if session_id:
+            return None, (f"no rotation record for {seat!r} session "
+                          f"{session_id[:8]}")
         if gen is not None:
             return None, f"no rotation record for {seat!r} gen {gen}"
         return None, f"no rotation record for seat {seat!r}"
@@ -851,7 +895,8 @@ def _synthesize_read_cmd(tool: str, inp) -> str:
     return " ".join(parts)
 
 
-def _hand_read_paths(entries: list[dict], facts, seat: str) -> set:
+def _hand_read_paths(entries: list[dict], facts, seat: str,
+                     session_id: str = "") -> set:
     """Derive the set of by-hand-read PATH SIGNALS for a wake.
 
     Category (b) for a NON-Bash Read/Grep/Glob is "a file a configured step
@@ -859,7 +904,13 @@ def _hand_read_paths(entries: list[dict], facts, seat: str) -> set:
     signal traces to a role's first_turn entry or a `## facts` cited shape (the
     files/records those cmds read), plus the seat's OWN record / pin (meter) /
     ack / bootstrap / transcript locations (hypothesis:l4-the-audit-
-    classifier-is-derived)."""
+    classifier-is-derived).
+
+    A non-empty `session_id` (the seat row's own, `rotate._ack_session_id`)
+    adds the seat's session-keyed ack name `seats/<seat>.ack.<session_id8>.json`
+    -- the name `rotate._ack_path` writes for a non-prime post. The legacy
+    `seats/<seat>.ack.json` signal is ALWAYS present, so a Prime post (and a
+    row-less / session-less fallback) stays byte-identical."""
     signals: set[str] = set()
 
     def _scan(cmd: str) -> None:
@@ -894,7 +945,10 @@ def _hand_read_paths(entries: list[dict], facts, seat: str) -> set:
     # item 6's falsifier: a hand-read path list that is still literal).
     s = seat.lower()
     signals.add(f"sessions/rotations/{s}")        # the seat's rotation record
-    signals.add(f"seats/{s}.ack.json")            # the seat's ack
+    signals.add(f"seats/{s}.ack.json")            # the seat's (legacy) ack
+    if session_id:
+        # the session-keyed ack spell a non-prime post's ack actually has
+        signals.add(f"seats/{s}.ack.{session_id[:8]}.json")
     signals.add(f"seats/{s}.bootstrap.json")      # the seat's bootstrap
     signals.add(f"sessions/{s}.meter")            # the seat's pin / meter
     return signals
@@ -1128,10 +1182,16 @@ def wake_audit(root: Path, seat: str, gen: int | None,
               f"another role's)", file=sys.stderr)
         return 2, [], {}
     facts = _parse_facts(facts_text)
-    hand_paths = _hand_read_paths(entries, facts, seat)
+    # clause (1) IDENTITY: the seat's OWN session id ("" for a prime seat, a
+    # row-less throwaway, or a row with no session_id) keys the ack signal and
+    # the record resolution. One identity path, `rotate._ack_session_id` -- the
+    # same one `rotate._ack_path` writes with.
+    session_id = rotate._ack_session_id(root, seat)
+    hand_paths = _hand_read_paths(entries, facts, seat, session_id)
     after_join = _extract_after_join(fm, role)
 
-    log_path, source = _resolve_wake_transcript(root, seat, gen, transcript_path)
+    log_path, source = _resolve_wake_transcript(root, seat, gen,
+                                               transcript_path, session_id)
     if log_path is None:
         print(f"ERR: cannot audit a wake for seat {seat!r}: {source}; "
               f"pass --transcript PATH or let the seat's rotation record "
