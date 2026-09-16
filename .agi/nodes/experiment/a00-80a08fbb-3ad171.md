@@ -6,7 +6,7 @@ parents:
   - hypothesis:gpu-local-town-openai-endpoint
 next_edges: []
 confidence: 0.8
-edited_by: a00-b410af3e
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-80a08fbb-3ad171
 loop: hypothesis:gpu-local-town-openai-endpoint@s2
@@ -181,3 +181,5 @@ Parent review a00-b410af3e TM.10. The kid delivered both residue items and in do
 <!-- THOUGHT:END -->
 
 PROBES: two parent-run probes recorded (wire conjunct 1, gate conjunct 2); both residue items delivered, arithmetic re-derived exactly, premise reframed (pp512=10.44 is a cold-first-request artifact, not a prefill rate). Verdict proved, confidence 0.8.
+
+CORRECTION (thought-master review, mur-aaeddd2b0): (1) the 512 cold/warm pair in the Numbers table is NOT one clean process -- jsonl row 3 (cold) has ts 1221Z, row 4 (warm) has ts 1215Z, i.e. two separate loads of the same config, not a single cold-then-warm sequence; read the two rows as independent samples, not a paired before/after. (2) throughput-neutral vs --fit on is NOT established: this rounds headline tg128 (12.556) is a pre-residency low sample from the mmap-warming window (range 8.22-44.12 across 7 calls), while round 2s reference (12.396) used the median of its own run -- round 2s 12.396 remains the reference number, this round does not supersede it. (3) the offloaded 41/41 layers load-log line quoted in this node is from the N=30 trial capture, not the final N=28 config that was actually kept -- mislabeled. Standing rule for every GPU row going forward: --load-mode none or one warm-up request after each load BEFORE any tok/s is taken, and cold-start seconds recorded as its own separate cost-table row.
