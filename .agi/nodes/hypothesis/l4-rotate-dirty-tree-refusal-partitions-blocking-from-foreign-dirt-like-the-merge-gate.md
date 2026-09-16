@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+11:0xZ: the template half named in this claim has no prose surface (master-sensei measured: kids read only brief.py assemble()); it is a code clause and lives in the SIBLING hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-scratch-dir, minted rather than folded in because SM.40 is live on this node.

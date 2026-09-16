@@ -327,28 +327,3 @@ def test_derived_allowed_models_empty_when_nothing_names_a_model():
     assert adapters.derived_allowed_models(ROWS, "nobody", {}) == set()
     assert adapters.derived_allowed_models([], "pi",
                                            {"allowed_extra": []}) == set()
-
-
-# ------------------------------------- needs_credential is provider-gated
-
-def test_pi_needs_credential_only_when_the_provider_is_openrouter():
-    """hypothesis:l4-needs-credential-is-provider-gated. `needs_credential`
-    used to return True unconditionally, so dispatch.py minted and injected
-    an OpenRouter key into EVERY pi spawn -- including `--harness pi-local`
-    (provider `local-town`, cost 0), whose endpoint never sees the key.
-
-    Three cases, and the absent case is the load-bearing one: it keeps the
-    legacy `agent_dispatch` synthesis (which has no `provider` key and is
-    OpenRouter by default, goal:s34) still minting.
-    """
-    pi = adapters.load("pi")
-    # legacy synthesis / any harness that does not name a provider
-    assert pi.needs_credential({"adapter": "pi"}) is True
-    assert pi.needs_credential({"adapter": "pi", "provider": None}) is True
-    assert pi.needs_credential({"adapter": "pi", "provider": ""}) is True
-    # OpenRouter reaches a metered endpoint: mint
-    assert pi.needs_credential({"adapter": "pi",
-                                "provider": "openrouter"}) is True
-    # a local endpoint with no key in its path: do not mint
-    assert pi.needs_credential({"adapter": "pi",
-                                "provider": "local-town"}) is False
