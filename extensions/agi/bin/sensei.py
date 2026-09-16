@@ -605,13 +605,18 @@ def _record_matches_session(rec: dict, session_id: str) -> bool:
     everything."""
     if not session_id:
         return False
+    # clause (2): rotate.py writes the session id in TWO places -- the record
+    # TOP level (`rec["session_id"]`, rotate.py:4702-4703) for a first-seating
+    # record, and `handover.join.session_id` for a rotate-self record. Read
+    # BOTH, in `rotate._record_join`'s order (top level first, handover.join
+    # wins when present), so the matcher resolves the same record that
+    # `rotate._record_join` would -- never one of the two spellings alone.
+    sid = str(rec.get("session_id") or "")
     ho = rec.get("handover")
-    if not isinstance(ho, dict):
-        return False
-    j = ho.get("join")
-    if not isinstance(j, dict):
-        return False
-    sid = str(j.get("session_id") or "")
+    if isinstance(ho, dict):
+        j = ho.get("join")
+        if isinstance(j, dict) and j.get("session_id"):
+            sid = str(j["session_id"])
     if not sid:
         return False
     return (sid == session_id
@@ -777,7 +782,12 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
         return True
     if re.search(r"sessions/rotations|claude/projects", nc):
         return True
-    if re.search(r"(ls|cat|sed|grep)\b.*(sessions|rotations|bootstrap|\.ack\.json|\.meter|(?:seats|posts)\.md)", nc):
+    # clause (3): the session-keyed ack spell `seats/<seat>.ack.<sid8>.json`
+    # (rotate._ack_path for a non-prime seat) has NO `sessions` segment, so the
+    # `.ack.json` alternative above cannot see it. Match the keyed name too --
+    # narrowly, exactly 8 hex chars between the two dots, so an unrelated
+    # `.json` (or any other `.ack.*`) never lands in (b).
+    if re.search(r"(ls|cat|sed|grep)\b.*(sessions|rotations|bootstrap|\.ack\.json|\.ack\.[0-9a-f]{8}\.json|\.meter|(?:seats|posts)\.md)", nc):
         return True
     if re.search(r"rotate\.py ack|rotate\.py meter --pin", nc):
         return True
@@ -1609,7 +1619,14 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
     # and on the wake side. `facts` from _read_rotations is the facts_text
     # string; `_parse_facts` turns it into the re-derive shapes.
     facts_list = _parse_facts(facts)
-    hand_paths = _hand_read_paths(entries, facts_list, seat)
+    # clause (1) IDENTITY, same as wake_audit (:1189): both audits derive the
+    # hand-read paths with the seat's OWN session id (`rotate._ack_session_id`,
+    # the SAME identity `rotate._ack_path` writes with), so a session-keyed ack
+    # Read classifies the SAME (b) on both sides -- the one-wrapper invariant
+    # at `classify_tool_use` (a tool_use the two audits classify differently is
+    # a falsifier).
+    session_id = rotate._ack_session_id(root, seat)
+    hand_paths = _hand_read_paths(entries, facts_list, seat, session_id)
 
     records = _seat_rotation_records(root, seat)
     if not records:
