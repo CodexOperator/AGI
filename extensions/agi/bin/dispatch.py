@@ -2707,6 +2707,10 @@ def main() -> int:
             # line naming the gap rather than guessing a pane identity. Never
             # inferred from a tmux window name or $USER (identity supplied).
             "dispatched_by": _resolved_seat(args.seat),
+            # hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-
+            # from-the-dispatching-seats-own-tree -- the DISPATCHING seat's
+            # OWN graph root at spawn; NOT the agent's `worktree` below (the
+            # --branch checkout, the CHILD's tree).
             # hypothesis:l4-a-parent-cuts-five-and-merges-its-kids — WHO
             # spawned this kid, by agent id (not seat): the parent-kid
             # ceiling gate (_parent_kid_ceiling_gate) counts these records
@@ -2715,6 +2719,7 @@ def main() -> int:
             # director or a human at a shell (no AGI_AGENT_ID), which also
             # keeps the gate fail-open.
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
+            "dispatched_from_tree": str(root),
         }
         # goal:g15.25 SM.26 -- the parent record NAMES what the parent was
         # told: the sender, the sha256/byte count of the exact orders bytes,
