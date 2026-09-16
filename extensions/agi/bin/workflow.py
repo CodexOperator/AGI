@@ -903,6 +903,34 @@ def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
 _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
           "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]"}
 
+# The tree renders a HEAD of a stage's detail, never the whole thing
+# (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
+# conjunct (4)). An `unstructured` return is the entire model stdout by
+# design, so a multi-KB blob on one tree line buries every other stage.
+# BUDGET: 200 characters. Justification: a tree line is read by a human
+# watching a live run and by a parent harvesting it; 200 chars is about one
+# terminal line at 200 columns — enough to identify WHAT a stage returned
+# (its first sentence) and no more. It is deliberately an order of magnitude
+# below the >= 4000-char returns the falsifier names, so such a return cannot
+# dominate the tree. The FULL text is untouched in `state[lb]["detail"]` and
+# in the tracking row's `returns`; only the render is cut.
+_TREE_DETAIL_PREVIEW_CHARS = 200
+
+
+def _preview_detail(text: str) -> str:
+    """The tree's head-preview of one stage's detail, newlines flattened.
+
+    Returns the whole flattened text when it fits the budget, else a
+    `_TREE_DETAIL_PREVIEW_CHARS` head plus an explicit elision marker naming
+    the EXACT number of characters omitted: `… (+<N> chars)`. The result is
+    always a single line — no embedded newline — because the tree relies on
+    that."""
+    flat = text.replace("\n", " ")
+    if len(flat) <= _TREE_DETAIL_PREVIEW_CHARS:
+        return flat
+    omitted = len(flat) - _TREE_DETAIL_PREVIEW_CHARS
+    return f"{flat[:_TREE_DETAIL_PREVIEW_CHARS]}… (+{omitted} chars)"
+
 
 def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = None) -> None:
     """Append one row per real workflow run to `.agi/sessions/workflows/<key>.jsonl`.
@@ -988,8 +1016,12 @@ class RunView:
             s = self.state[lb]
             branch = "└─" if i == last else "├─"
             # A stage's detail may be WHOLE prose (an `unstructured` return is
-            # not truncated) — flatten newlines for the tree, never cut it.
-            flat = s["detail"].replace("\n", " ") if s["detail"] else ""
+            # not truncated in STATE, and the tracking row keeps it whole) —
+            # but the TREE shows a head-preview only, with the omitted size
+            # named, so one multi-KB return cannot dominate the tree
+            # (conjunct (4) of hypothesis:l4-workflow-residue-sub-floor-
+            # marker-dead-code-and-truncation). `detail` itself is never cut.
+            flat = _preview_detail(s["detail"]) if s["detail"] else ""
             detail = f" — {flat}" if flat else ""
             o.write(f"{branch} {_GLYPH[s['status']]} {lb}{detail}\n")
         o.flush()
@@ -1288,19 +1320,13 @@ def _effort_to_thinking(effort: str | None) -> str:
         (effort or "").strip().lower(), "medium")
 
 
-def _parse_last_json(text: str):
-    """Pull the last JSON object out of a model's stdout.
-
-    The model is asked for *exactly one* JSON object, but a flashrier may emit
-    a preamble or trailing glue; scanning for the last complete `{...}` block is
-    the tolerant parse. Returns the parsed value, or raises ValueError with a
-    short reason (no braces found / invalid JSON)."""
-    start = text.find("{")
-    end = text.rfind("}")
-    if start < 0 or end < 0 or end <= start:
-        raise ValueError("no JSON object `{...}` found in stage output")
-    import json as _json
-    return _json.loads(text[start:end + 1])
+# _parse_last_json was DELETED here (hypothesis:l4-workflow-residue-sub-floor-
+# marker-dead-code-and-truncation conjunct (3)). It had no production caller:
+# the only hits in the tree were this definition and a unit test of it. Its
+# job — tolerant extraction of a JSON object from model stdout — is done by
+# `_balanced_brace_spans` / `_resolve_lenient_return` below, which are
+# depth-aware AND string-aware; `_parse_last_json`'s `find("{") /
+# rfind("}")` was the naive version of the same idea and is superseded.
 
 
 _FENCED_JSON = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
@@ -1503,6 +1529,53 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     return 0, value
 
 
+# The historical, undeclared default wall-clock budget for one stage. Named
+# here so the resolver is the ONE place the default lives; `_run_stage_pi`
+# still guards its own `timeout_s is None` for legacy callers, and that guard
+# resolves to this same number.
+_DEFAULT_STAGE_TIMEOUT_S = 600
+
+
+def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
+    """The stage's wall-clock budget in seconds, DECLARED — never truthy.
+
+    Presence, not truthiness: a stage-level `timeout_s` wins whenever the key
+    is present and not None, so a declared `0` is not silently replaced by the
+    manifest value. The old `st.get("timeout_s") or manifest.get("timeout_s")`
+    did exactly that (hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+    code-and-truncation conjunct (6)).
+
+    🔴 THE MEANING OF `0`, defined here and only here, is definition (a) from
+    the brief: a zero-second budget is an INVALID budget, and the run is
+    REFUSED BY NAME before any stage is dispatched (`run_workflow` catches the
+    ValueError and exits non-zero with one stderr line naming the key and the
+    stage, before the per-run key is minted). A negative or non-numeric value
+    is refused the same way. Refusing is observable; the alternatives are not
+    — `subprocess.run(timeout=0)` raises `TimeoutExpired` immediately and
+    kills EVERY stage of the run, which is the silent kill the falsifier
+    names, and definition (b) (`0` means wait forever) is indistinguishable
+    from a hung stage until it has already hung.
+
+    An absent value anywhere falls through to the manifest value and then to
+    `_DEFAULT_STAGE_TIMEOUT_S` (600), byte-behaviour-identical to before.
+    """
+    label = stage.get("label")
+    if "timeout_s" in stage and stage["timeout_s"] is not None:
+        raw = stage["timeout_s"]
+        where = f"stage {label!r} timeout_s"
+    else:
+        raw = manifest.get("timeout_s")
+        where = f"stage {label!r} inherits workflow timeout_s"
+    if raw is None:
+        return _DEFAULT_STAGE_TIMEOUT_S
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or raw <= 0:
+        raise ValueError(
+            f"{where}={raw!r} is not a positive number of seconds; a budget "
+            f"of 0 (or less, or non-numeric) is not a request to wait "
+            f"forever — the run is refused before any stage is dispatched")
+    return raw
+
+
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                  out=sys.stdout) -> int:
     repo = _repo_root(root)
@@ -1583,6 +1656,21 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # resolved knobs or the stage prompt, so a real run could not happen
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
+    # Resolve EVERY stage's wall-clock budget before anything is dispatched or
+    # minted: a budget that is not a positive number of seconds is refused by
+    # name here, so no stage is started under it and no key is spent on it
+    # (conjunct (6) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+    # code-and-truncation; see `_resolve_stage_timeout` for the definition of
+    # `0`). This also means a manifest-level `timeout_s: 0` can no longer
+    # reach `subprocess.run(timeout=0)` and silently kill every stage.
+    stage_timeouts: dict[str, int] = {}
+    for st in stages:
+        try:
+            stage_timeouts[st["label"]] = _resolve_stage_timeout(st, manifest)
+        except ValueError as exc:
+            print(f"workflow.py: workflow={key} refused: {exc}",
+                  file=sys.stderr)
+            return 4
     spawn_env, minted_key_hash = _resolve_workflow_spawn_env(
         root, cfg, run_key, harness, stages)
     # The minted key is revoked when the RUN ends, however it ends — success,
@@ -1603,12 +1691,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # boundaries; run_args only otherwise.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
             context_text = _stage_context(repo, root, st)
-            # The stage's wall-clock budget comes from the MANIFEST, a stage
-            # key overriding the workflow key, default 600 when neither is
-            # declared (hypothesis:l4-a-per-run-workflow-key-is-revoked-at-
-            # run-end-and-a-schema-miss-keeps-its-name conjunct (5)) — never a
-            # literal buried inside _run_stage_pi.
-            stage_timeout = st.get("timeout_s") or manifest.get("timeout_s")
+            # The stage's wall-clock budget was resolved (declared, never
+            # truthy) before anything was dispatched — see
+            # `_resolve_stage_timeout` for the definition of `0` and the
+            # refusal path (hypothesis:l4-workflow-residue-sub-floor-marker-
+            # dead-code-and-truncation conjunct (6)).
+            stage_timeout = stage_timeouts[st["label"]]
             rc, value = _run_stage_pi(
                 cfg, st, knobs, args, out=out, view=view, prior=prior,
                 spawn_env=spawn_env, context_text=context_text,
