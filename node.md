@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-needs-credential-is-provider-gated
 next_edges: []
 confidence: 0.9
-edited_by: a00-912fc962
+edited_by: a00-4243c9f7
 evidence_runs:
   - experiment:a00-c1b9dfec-62a1aa
 loop: hypothesis:l4-needs-credential-is-provider-gated@s2
@@ -107,6 +107,12 @@ $ python3 -m pytest extensions/agi/tests/test_adapters.py \
     extensions/agi/tests/test_claude_code_adapter.py \
     extensions/agi/tests/test_copilot_cli_adapter.py \
     extensions/agi/tests/test_dispatch_scaffold_unregistered.py -q
+105 passed
+$ python3 -m pytest extensions/agi/tests/test_adapters.py \
+    extensions/agi/tests/test_claude_code_adapter.py \
+    extensions/agi/tests/test_copilot_cli_adapter.py \
+    extensions/agi/tests/test_dispatch_scaffold_unregistered.py \
+    extensions/agi/tests/test_credential_none_spawn.py -q
 117 passed
 $ python3 -m pytest extensions/agi/tests/test_real_adapter_restart.py \
     extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_workflow.py -q
