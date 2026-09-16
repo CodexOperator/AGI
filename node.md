@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ITEM (5), belam gen 26 21:42Z, measured on mur-sl7-138-r2 21:40Z: when the per-run mint FAILS (the workspace 403) workflow.py :1231 logs '[credential] inherited env (<reason>)' and RUNS the stage on the inherited OPENROUTER_API_KEY -- the owner-deleted 401 key -- so the reviewer spins to the 1800 s cap on a dead credential, spending nothing and reporting nothing. CLAIM (5): a failed mint REFUSES the stage by name (rc 3, the mint error verbatim) unless the inherited key is proven usable (provisioning.check_runtime_key_usable) -- never a silent fallback onto a credential nothing verified. FALSIFIER: a stage that starts on an inherited key after a mint failure without a usable-check line. TEST: fake mint failure + fake unusable inherited key -> rc 3 with the mint error; fake mint failure + usable key -> stage runs with a named '[credential] inherited env, verified' line. Same kid as items (1)+(3); ceiling +10. ALSO carried onto this node's first kid from node A (SM ruling 21:4xZ): the cap_headroom refusal line names limit-sum and used-sum beside live; the expired-1.50 + live-1.50-used-1.00 -> 0.50 test; the tmp_path-length bound in test_ack_cell_printer.
