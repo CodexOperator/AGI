@@ -514,6 +514,11 @@ def live_iteration_ids(root: Path) -> set:
     return live
 
 
+def live_leases_readonly(root: Path) -> list[dict]:
+    """Live leases, READ-ONLY (no sweep/unlink/lock), with their full rows."""
+    return [rec for _p, rec in _read_leases(root) if _lease_is_live(rec)]
+
+
 def live_agents(root: Path) -> list[dict]:
     """Live leases, after reclaiming dead ones. Takes the lock itself."""
     with _budget_lock(root):
