@@ -48,6 +48,7 @@ import locations  # noqa: E402
 import commands  # noqa: E402
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
 import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
+import schema_registry  # noqa: E402  -- the ONE schema reader the gates use
 
 #: Per-check wall-clock ceiling. A check that hangs past this is a failure the
 #: successor must see, not a run that never returns.
@@ -523,6 +524,54 @@ def _write_state(groot: Path, current: dict, sha: str | None,
         doc["manifest_sha256"] = hashlib.sha256(
             "\n".join(manifest).encode("utf-8")).hexdigest()
     path.write_text(json.dumps(doc), encoding="utf-8")
+
+
+#: The two top-level directories under `nodes/` that are structural rather
+#: than node types, declared legitimate by CLAUDE.md's own Conventions
+#: section: `.geometry` (commands/crons/shape config) and `deprecated`
+#: (retired nodes, moved here rather than deleted).
+STRUCTURAL_NODE_DIRS = frozenset({".geometry", "deprecated"})
+
+
+def check_node_dirs(groot: Path, *, nodes_dir: Path | None = None,
+                    schemas_dir: Path | None = None) -> CheckResult:
+    """FAIL, by name, when a top-level directory under `<groot>/nodes/`
+    matches no schema and is neither `.geometry` nor `deprecated`.
+
+    Detect, never repair: it names the stray directory and touches nothing.
+    The allowed set is every schema the registry knows — ACTIVE OR INACTIVE,
+    so a directory for a schema whose file is not bracket-named (a deprecated
+    /inactive type) is legitimate, and only a name matching no schema at all
+    is stray. `schema_registry.load_schemas_from_dir` is the SAME reader
+    `spawn_gate.check_spawn` uses; this check builds no second reader.
+    (hypothesis:l4-a-verify-suite-check-refuses-a-node-directory-outside-the-
+    active-schema-set.)
+    """
+    start = time.monotonic()
+    nodes = nodes_dir if nodes_dir is not None else groot / "nodes"
+    schemas = (schemas_dir if schemas_dir is not None
+               else groot / "context" / "schemas")
+    reg = schema_registry.load_schemas_from_dir(schemas)
+    allowed = set(reg.names()) | STRUCTURAL_NODE_DIRS
+    if not nodes.is_dir():
+        return CheckResult("node-dirs", "SKIP", time.monotonic() - start,
+                           note=f"no nodes directory at {nodes}")
+    dirs = sorted(p.name for p in nodes.iterdir() if p.is_dir())
+    stray = [d for d in dirs if d not in allowed]
+    number = {"dirs": len(dirs), "stray": len(stray),
+              "schemas": len(reg.names())}
+    if stray:
+        return CheckResult(
+            "node-dirs", "FAIL", time.monotonic() - start, number,
+            note=(f"STRAY NODE DIR(S): {', '.join(stray)} -- no schema "
+                  "(active or inactive) matches and neither is .geometry/"
+                  "deprecated. Read-only: nothing moved, nothing deleted; "
+                  "what to do with it is a reviewer's call."),
+            message=f"{len(stray)} directory(ies) outside the schema set")
+    return CheckResult(
+        "node-dirs", "PASS", time.monotonic() - start, number,
+        note=(f"{len(dirs)} dir(s); all match a schema or "
+              f".geometry/deprecated"))
 
 
 # --- the suite lock (opt-in; one runner at a time) --------------------------
@@ -1094,6 +1143,15 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # the rotation/full rounds so `verify` (verification.py) carries it.
     if level in ("rotation", "full"):
         results.append(check_seat_model(groot))
+    # surface 1 of hypothesis:l4-a-verify-suite-check-refuses-a-node-
+    # directory-outside-the-active-schema-set -- the stray-directory guard,
+    # wired at the SAME levels as bin-freshness and seat-model above (the
+    # LEVELS dict names only commands.py-resolved check NAMES; a check built
+    # from the graph itself is appended by level here) and NOT at `quick`,
+    # which is the pre-commit set that must stay under 15s and has not earned
+    # a graph-wide directory scan. Read-only, so it is safe at rotation.
+    if level in ("rotation", "full"):
+        results.append(check_node_dirs(groot))
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
     # --stamp FORCED smoke above, so `current` is this run's fresh count and a
