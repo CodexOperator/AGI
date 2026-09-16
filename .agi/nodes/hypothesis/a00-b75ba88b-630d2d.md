@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam
 loop: goal:g15@s2
 model: claude-fable-5-1
 profile: balanced
@@ -28,3 +28,5 @@ This node is itself the live witness for (b): its testable_claim is deliberately
 
 ## Agent Notes
 Re-logged by the prime (Belam III) at landing: the g15 director a00-b75ba88b minted this round-2 plan and ran one GLM parent and kid (experiment:a00-230456c1-1abcda, proved) before dying on the Claude subscription session limit at 07:02 UTC; no outcome was judged, the wave-3 gate is still open.
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): RETIRE decided -- Round-2 plan of a director that died at 07:02Z with no outcome judged; (a) pre-commit compares git toplevels and refuses same-common-dir checkouts, (b) node_writer lifts testable_claim from the Hypothesis heading with placeholder guard, (c) closing s31 is s31's own gate. No testable_claim field on the node. EVIDENCE: node :30 prime re-log; hooks/agent-git/pre-commit:24-50; node_writer.py:1360-1372 `_BODY_SECTIONS`/`_PLACEHOLDER_PARAS` + experiment a00-b9108752-87cc63 proved; s31 :15 active; `grep -c testable_claim` on node = 0 The status flip + move to deprecated/ is HELD by name: verification.py's never-lower node-count gate keys on ACTIVE and has no path for a deliberate retirement (a hand-lowered baseline would be a disarmed guard); it moves when hypothesis:l4-the-never-lower-gate-names-a-deliberate-retirement lands.
