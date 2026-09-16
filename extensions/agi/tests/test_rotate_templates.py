@@ -384,12 +384,17 @@ _HAND_STEP_PATTERNS = [
 ]
 
 
-def _facts_body_range(templates: dict) -> tuple[int, int]:
-    """The wake-read facts body region (N, M), 1-based inclusive, resolved
-    from the templates' OWN `facts` first_turn cmd — `write.py
-    config:rotations 'read body N:M'`. Every template carrying a facts entry
-    must agree; a facts cmd that stops naming a body range fails loudly."""
-    ranges = set()
+def _facts_body_range(templates: dict) -> list[tuple[str, int, int]]:
+    """EVERY wake-read facts body region (label, N, M), 1-based inclusive,
+    resolved from the templates' OWN `facts*` first_turn cmd(s) — `write.py
+    config:rotations 'read body N:M'`. A template may carry several entries
+    (facts, facts-2, facts-N) and each is returned: the old one-pair reader
+    silently dropped every label but `facts`, so a facts-2 region was never
+    scanned or cap-checked. Every template carrying the SAME label must
+    agree; a facts* cmd that stops naming a body range fails loudly BY NAME
+    (template + label), never as a bare "no facts entry". Ordered facts
+    first, then facts-2, facts-3 …"""
+    by_label: dict[str, set[tuple[int, int]]] = {}
     for name, ent in templates.items():
         if not isinstance(ent, dict):
             continue
@@ -397,15 +402,26 @@ def _facts_body_range(templates: dict) -> tuple[int, int]:
         for e in startup.get("first_turn") or []:
             if not isinstance(e, dict):
                 continue
-            if e.get("label") != "facts":
+            label = e.get("label")
+            if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
+                                                             label):
                 continue
             m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
-            assert m, (f"{name} facts cmd does not name a body range: {e!r}")
-            ranges.add((int(m.group(1)), int(m.group(2))))
-    assert ranges, "no template declares a `facts` read body N:M first_turn"
-    assert len(ranges) == 1, (f"facts body ranges disagree across templates: "
-                              f"{ranges}")
-    return ranges.pop()
+            assert m, (f"template {name!r} {label!r} cmd does not name a body "
+                       f"range: {e!r}")
+            by_label.setdefault(label, set()).add(
+                (int(m.group(1)), int(m.group(2))))
+    assert by_label, "no template declares a `facts` read body N:M first_turn"
+    out = []
+    for label in sorted(by_label, key=lambda l: (l != "facts",
+                                                 0 if l == "facts"
+                                                 else int(l.rsplit("-", 1)[1]))):
+        rs = by_label[label]
+        assert len(rs) == 1, (f"facts body ranges disagree across templates "
+                              f"for {label!r}: {rs}")
+        n, m = rs.pop()
+        out.append((label, n, m))
+    return out
 
 
 def _canonical_body_lines(source: "str | Path") -> list[str]:
@@ -451,15 +467,19 @@ def _region_hand_hits(source: "str | Path") -> list[tuple[int, int, str, str]]:
     `facts` cmd of `source`. The one reader both the live node and the
     falsifier fixtures route through."""
     templates = _live_templates(source)
-    n, m = _facts_body_range(templates)
+    regions = _facts_body_range(templates)
     lines = _canonical_body_lines(source)
-    hits = []
-    for i in range(n, m + 1):
-        line = lines[i - 1]
-        for label, rx in _HAND_STEP_PATTERNS:
-            for mo in rx.finditer(line):
-                hits.append((i, mo.start(), label, _classify_hand_hit(line, mo.start())))
-    return hits
+    hits: dict[tuple[int, int, str], tuple[int, int, str, str]] = {}
+    for _facts_label, n, m in regions:
+        for i in range(n, m + 1):
+            line = lines[i - 1]
+            for label, rx in _HAND_STEP_PATTERNS:
+                for mo in rx.finditer(line):
+                    hits.setdefault(
+                        (i, mo.start(), label),
+                        (i, mo.start(), label,
+                         _classify_hand_hit(line, mo.start())))
+    return list(hits.values())
 
 
 def _rotations_fixture_with_region(tmp_path: Path, body_lines: list[str],
@@ -637,11 +657,11 @@ def test_region_live_f16_run_once_seen_but_not_a_waked_hand_step():
     src = Path(__file__).resolve().parents[3] \
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     lines = _canonical_body_lines(src)
-    n, m = _facts_body_range(_live_templates(src))
+    regions = _facts_body_range(_live_templates(src))
     # (SL7.97) locate F16 by its FACT ID, never by the vocab phrase — a regex
     # on 'run it once' is phrase-keyed and would either red for the wrong
     # reason or silently miss if the canon reworded F16 in the region.
-    f16_lines = [i for i in range(n, m + 1)
+    f16_lines = [i for _facts_label, n, m in regions for i in range(n, m + 1)
                  if re.match(r"-\s*F16\b", lines[i - 1])]
     assert len(f16_lines) == 1, (
         f"expected exactly one F16 fact line in the region, got "
@@ -1094,6 +1114,43 @@ def test_m3_template_source_recorded(tmp_path):
     assert doc["steps_reached"] == ["handoff"]
 
 
+def _facts_cap_violations(templates: dict, lines: list[str]) -> list[str]:
+    """Every facts* first_turn entry whose rendered region exceeds 90% of ITS
+    OWN byte_cap (an entry-level `byte_cap` if present, else the template's
+    startup `byte_cap`), by name. `_facts_body_range` resolves every facts*
+    label first (and refuses by name an entry whose cmd names no range), then
+    each carrying template is measured per label. ONE decision: the live guard
+    and every falsifier fixture call THIS, so a fixture cannot pass on a state
+    the live assertion would refuse."""
+    regions = {lbl: (n, m) for lbl, n, m in _facts_body_range(templates)}
+    violations = []
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        tmpl_cap = int(startup.get("byte_cap") or 4000)
+        for e in startup.get("first_turn") or []:
+            if not isinstance(e, dict):
+                continue
+            lbl = e.get("label")
+            if lbl not in regions:
+                continue
+            n, m = regions[lbl]
+            assert m <= len(lines), (f"template {name!r} {lbl!r} range {n}:{m} "
+                                     f"runs past the body ({len(lines)} lines)")
+            cap = int(e.get("byte_cap") or tmpl_cap)
+            limit = int(cap * 0.9)
+            rendered = ("\n".join(lines[n - 1:m]) + "\n").encode("utf-8")
+            if len(rendered) > limit:
+                violations.append(
+                    f"template {name!r} {lbl!r}: facts region {n}:{m} renders "
+                    f"to {len(rendered)} bytes, over the 10%-headroom limit "
+                    f"{limit} of byte_cap {cap} — the wake would receive a "
+                    f"TRUNCATED facts section; compact it or add a facts-2 "
+                    f"entry, never drop")
+    return violations
+
+
 def test_live_facts_region_fits_under_every_template_byte_cap_with_headroom():
     """A first_turn entry whose output exceeds its `byte_cap` is a DELIVERY
     FAILURE, never a truncation (Prime rule, g17.1, 2026-09-13 17:1xZ). The
@@ -1101,34 +1158,70 @@ def test_live_facts_region_fits_under_every_template_byte_cap_with_headroom():
     `byte_cap: 8000` while the section had grown to 15 KB — F14-F27 were
     silently cut from every director wake for ~20 h, and three early
     rotations on director-point followed (master-sensei audit 17:09Z).
-    Guard on the LIVE node: the rendered facts region (the exact bytes
-    `write.py config:rotations 'read body N:M'` prints, plus one trailing
-    newline) must fit under EVERY facts-carrying template's byte_cap with
-    10% headroom, so a fact added past the cap turns this red before a
-    wake pays for it. If the set outgrows the cap, the answer is a second
-    entry (facts-2), never a drop."""
+    Guard on the LIVE node: EVERY first_turn label matching facts* (facts,
+    facts-2, facts-N) must fit its OWN byte_cap with 10% headroom — the old
+    guard gated on label == 'facts' only, so a facts-2 region was never
+    measured, and a facts* entry whose range cannot be resolved fails by name
+    through `_facts_body_range` before any cap is read. If the set outgrows
+    the cap, the answer is a second entry (facts-2), never a drop."""
     src = Path(__file__).resolve().parents[3] \
         / ".agi" / "nodes" / ".geometry" / "rotations.md"
     templates = _live_templates(src)
-    n, m = _facts_body_range(templates)
     lines = _canonical_body_lines(src)
-    assert m <= len(lines), f"facts range {n}:{m} runs past the body ({len(lines)} lines)"
-    rendered = ("\n".join(lines[n - 1:m]) + "\n").encode("utf-8")
-    checked = 0
-    for name, ent in templates.items():
-        if not isinstance(ent, dict):
-            continue
-        startup = ent.get("startup") or {}
-        entries = startup.get("first_turn") or []
-        if not any(isinstance(e, dict) and e.get("label") == "facts"
-                   for e in entries):
-            continue
-        cap = int(startup.get("byte_cap") or 4000)
-        limit = int(cap * 0.9)
-        assert len(rendered) <= limit, (
-            f"template {name!r}: facts region {n}:{m} renders to "
-            f"{len(rendered)} bytes, over the 10%-headroom limit {limit} of "
-            f"byte_cap {cap} — the wake would receive a TRUNCATED facts "
-            f"section; compact it or add a facts-2 entry, never drop")
-        checked += 1
-    assert checked >= 1, "no template carries a facts first_turn entry"
+    assert _facts_body_range(templates), "no template carries a facts entry"
+    violations = _facts_cap_violations(templates, lines)
+    assert not violations, "; ".join(violations)
+
+
+def test_facts_cap_guard_refuses_a_facts2_over_its_own_byte_cap():
+    """FALSIFIER (the pre-fix defect): a template's `facts-2` entry whose
+    rendered body exceeds ITS OWN byte_cap must be REFUSED BY NAME. Before
+    this change the guard gated on `label == 'facts'` alone, so this fixture
+    passed silently — the facts-2 region was never measured (PRE-FIX probe:
+    `_facts_body_range` returned (1, 3), not both ranges; scratch
+    prefix_probe.py)."""
+    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
+           "'read body 1:3'")
+    templates = {"director": {"startup": {
+        "byte_cap": 4000,
+        "first_turn": [
+            {"label": "facts", "cmd": cmd},
+            {"label": "facts-2", "cmd": cmd, "byte_cap": 8},
+        ]}}}
+    # 9 rendered bytes ("L1\nL2\nL3\n") against the 7-byte 90% limit of cap 8
+    assert _facts_body_range(templates) == [("facts", 1, 3),
+                                            ("facts-2", 1, 3)]
+    viol = _facts_cap_violations(templates, ["L1", "L2", "L3"])
+    assert viol, ("facts-2 over its own byte_cap must be refused; pre-fix the "
+                  "label=='facts' gate let it pass")
+    assert "facts-2" in viol[0] and "'director'" in viol[0]
+    assert "byte_cap 8" in viol[0]
+
+
+def test_facts_range_resolution_refuses_a_facts2_without_a_body_range():
+    """FALSIFIER: a `facts-2` entry whose cmd names no `read body N:M` fails
+    by NAME (template + label). Pre-fix it either vanished (other `facts`
+    entries existed) or was folded into the bare 'no template declares a
+    facts entry' refusal, which names neither."""
+    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
+           "'read body 1:3'")
+    templates = {"director": {"startup": {"first_turn": [
+        {"label": "facts", "cmd": cmd},
+        {"label": "facts-2", "cmd": "true"}]}}}
+    with pytest.raises(AssertionError) as exc:
+        _facts_body_range(templates)
+    assert "facts-2" in str(exc.value) and "director" in str(exc.value)
+
+
+def test_facts_body_range_returns_every_facts_label_ordered():
+    """The pre-fix reader returned ONE (n, m) pair and a template carrying
+    both `facts` and `facts-2` resolved only `facts`. Widened: BOTH ranges are
+    returned, facts first, and `_facts_cap_violations` measures both."""
+    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
+           "'read body {}:{}'")
+    templates = {"director": {"startup": {"byte_cap": 4000,
+                                           "first_turn": [
+        {"label": "facts-2", "cmd": cmd.format(5, 7)},
+        {"label": "facts", "cmd": cmd.format(1, 3)}]}}}
+    got = _facts_body_range(templates)
+    assert got == [("facts", 1, 3), ("facts-2", 5, 7)], got
