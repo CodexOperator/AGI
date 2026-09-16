@@ -1811,6 +1811,19 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the slice it was actually given. A `60-across-2` brief read as 60 "
         f"each ran a kid to 212 (SM.52); the slice goes on the NODE before "
         f"the spawn, never in prose only.",
+        # hypothesis:l4-audit-misses-per-side-pending-... item (8): a kid
+        # experiment node minted by dispatch carries a title DERIVED from its
+        # filename (`A00 f067c356 b0ad80`), which renders as an opaque id in
+        # every map. The parent demands a real title, in the kid's own words,
+        # and will not accept a round whose node still carries the derived one.
+        "EVERY KID SETS ITS OWN NODE TITLE IN ITS OWN WORDS, and you do not "
+        "accept a kid round whose node still carries the title derived from "
+        "its filename (`A00 f067c356 b0ad80`). Before you accept it, the "
+        "kid's experiment node must carry a real title, set by the kid with\n"
+        "  python3 extensions/agi/bin/write.py <kid-node> 'set title <the "
+        "kid's own words>'\n"
+        "A kid node still carrying its derived title is harvested as an "
+        "untitled defect (`untitled=[<node-id>]`).",
         # hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
         # 2x-for-a-parent-re-brief, conjunct (3): the parent ANSWERS the
         # re-brief it received, in the node, before it continues or stops.

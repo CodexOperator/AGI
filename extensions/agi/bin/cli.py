@@ -608,6 +608,16 @@ def _kid_line_ceiling(root, fm: dict, target: str | None = None) -> int:
     return spawn_budget.node_line_ceiling(root, target, cfg)[0]
 
 
+def _auto_titled(nf: Path, fm: dict) -> bool:
+    """A node whose `title` is still the one `node_writer` DERIVED from its
+    filename (`A00 f067c356 b0ad80`) -- or is absent -- has no title of its
+    own. item (8): the parent brief demands a real title and the harvest names
+    the node that never got one.
+    """
+    title = str(fm.get("title") or "").strip()
+    return not title or title == node_writer._derive_title(nf.stem)
+
+
 def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
     """conjunct (4): name each owned kid's overage, or nothing.
 
@@ -633,6 +643,9 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
                 fm = {}
             if not isinstance(fm, dict):
                 fm = {}
+        # item (8): a derived/absent title is named regardless of budget.
+        if nf is not None and _auto_titled(nf, fm):
+            notes.append(f"untitled=[{nid}]")
         measured = _kid_measured_lines(root, str(kid.get("id") or ""))
         lines = measured if measured is not None \
             else _budget_num(fm.get("production_lines"))
@@ -1917,8 +1930,27 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
         return None   # nothing of the round's own -> not our commit
 
     # `<agent_id> done: <node_id or owns[0]> verdict=<verdict>`
+    # item (5): when this is a PARENT round (`node_id is None`), `ref` is an
+    # owned KID node, so the subject must carry the verdict THAT node carries
+    # -- never the parent's own gate-resolved `--verdict`, which would read as
+    # a false claim about the kid node (b3523f325: subject `verdict=pending`
+    # over a node carrying `inconclusive_lean_disproved:70`). Only when the
+    # ref IS this round's own node does the round's verdict stand. The round's
+    # own verdict record is untouched either way.
     ref = node_id or (owns[0] if owns else "node")
-    subject = f"{agent_id} done: {ref} verdict={verdict}"
+    subject_verdict = verdict
+    if node_id is None and owns:
+        nf = _find_node_file(root, ref)
+        if nf is not None:
+            try:
+                kfm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+            except OSError:
+                kfm = {}
+            stored = str((kfm or {}).get("verdict") or "").strip() \
+                if isinstance(kfm, dict) else ""
+            if stored:
+                subject_verdict = stored
+    subject = f"{agent_id} done: {ref} verdict={subject_verdict}"
 
     add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
                           *in_scope],
