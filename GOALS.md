@@ -9800,6 +9800,8 @@ SM.49 (SM.48b blocking fix, 2 kids) harvested and merged, 753 tests green, the l
 
 SM.51 landed: pred_pids no-reap placeholder now names a regex-inert non-matching value instead of refusing (rotate.py _derive_pred_pids, 6 prod lines/10 ceiling). experiment:a00-8f102c41-bcc0c5 proved. 84+162 kid/parent tests + 974 neighbourhood (0 fail) post-merge.
 
+SM.52 landed: pi-runner (workflow.py, proved, 117/19 lines) + dispatcher (dispatch.py, inconclusive_lean_disproved:65, 95/3 lines) transient-5xx retry with bounded backoff. Kid2 self-found and disclosed a real defect: the 4th-failure exhaustion path leaks an orphaned scaffold node (no _report_unregistered_scaffold call) -- not fixed, flagged as follow-up. 256/256 tests green (my own re-run). CEILING FLAGGED: brief was <=60 lines across <=2 kids, combined actual 212 (~3.5x), no re-brief sent -- reported to SM for her ACCEPT/DEMOTE call per the SM.21 rule.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
