@@ -325,7 +325,8 @@ def _below_floor_message(which: str, label: str, remaining: float,
         f"on OpenRouter or revoke the drained key before the next spawn")
 
 
-def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
+def check_key_floor(cfg: dict, root: Path | str | None = None,
+                    iter_n: int | str | None = None) -> tuple[bool, str | None]:
     """(ok, message) — the pre-flight before a spawn takes a budget slot.
 
     Consults BOTH the runtime key and every outstanding engine-minted key, and
@@ -350,9 +351,13 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     THIS engine minted (`agi-` prefix) are in scope — the owner's long-lived
     key, named `agi`, and any hand-made key are never refused here.
 
-    A key whose **cap** is below the floor is SKIPPED with one stderr line,
-    not refused (hypothesis:(g)): a cap below the floor can never pass it, so
-    refusing on its remaining would block every dispatch for the key's TTL.
+    A key whose **cap** is AT or below the floor is SKIPPED with one stderr
+    line, not refused (hypothesis:(g) and hypothesis:(6) item 3): a cap that
+    touches the floor -- `<=`, not `<` -- can never pass it, so refusing on
+    its remaining would block every dispatch for the key's TTL. A key capped
+    $1.00 against a $1.00 floor is at its first cent of spend (remaining
+    $0.9999 < floor) the whole TTL: `<=` is what keeps THAT key from freezing
+    a seat that never mints it (measured on the live tree, TM.20).
 
     🔴 A skip is VISIBLE IN THE RETURN VALUE (hypothesis:l4-workflow-residue-
     sub-floor-marker-dead-code-and-truncation conjunct (1)): when at least one
@@ -365,6 +370,21 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     which used to be `(True, None)`. Scanning continues past a skip, so a
     later key whose remaining is below the floor still refuses; when several
     caps are skipped the FIRST marker is returned (stderr names every one).
+
+    `iter_n` is the spawn's OWNING ITERATION, threaded by the dispatch
+    pre-flight (hypothesis:(6) item 1). With provisioning LIVE the spawn runs
+    on a FRESH mint, so an outstanding key that belongs to a DIFFERENT
+    iteration is a proxy for a credential this spawn will not use — a check
+    that guards a proxy certifies the state it failed to inspect, and the
+    exact state that stopped the live loop (one seat's key froze every other
+    seat for its TTL). When `iter_n` is given, only keys of the SAME
+    iteration (same `iter{iter_n}` prefix — the round that OWNS them) are
+    consulted; every other minted key is skipped without a marker, exactly
+    as if it were out of scope. A drained same-iteration key still refuses,
+    and the refusal NAMES the owning iter (item 4). When `iter_n` is None —
+    a non-dispatch caller — every machine-minted key is consulted, exactly
+    as before, so the absence of an owning iteration fails OPEN to today's
+    behaviour.
     """
     # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
     # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
@@ -406,12 +426,26 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
         used = rec.get("usage")
         if limit is None or used is None:
             continue  # uncapped or unreadable → fail-open, no headroom to guard
+        # hypothesis:(6) item 1 — the OWNING-ITERATION gate. A key carries its
+        # iteration as the second `agi-` token (`key_name`: `agi-iter<id>-...`).
+        # A dispatch threads its own iter_n; a key of any OTHER iteration is
+        # not this spawn's credential (this spawn gets a FRESH mint) and must
+        # not gate it — the proxy-reading that froze the live loop. A key we
+        # cannot attribute to this iteration is skipped the same way, so
+        # unparseable names fail open. `iter_n=None` (non-dispatch) consults
+        # every machine-minted key, byte-for-byte today's scan.
+        if iter_n is not None:
+            own = name[len(f"{NAME_PREFIX}-"):].split("-", 1)[0]
+            if own != f"iter{iter_n}":
+                continue
         # hypothesis:l4-a-workflow-pi-stage-mints-its-own-capped-key-like-a-
-        # dispatched-spawn conjunct (g): a key whose CAP is below the floor can
-        # never pass it — refusing on its REMAINING blocks every dispatch for
-        # the key's whole TTL. Name it and skip; a cap at/above the floor whose
+        # dispatched-spawn conjunct (g), closed to `<=` by hypothesis:(6) item
+        # 3: a key whose CAP is AT or below the floor (cap == floor touches it)
+        # can never pass it — refusing on its REMAINING blocks every dispatch
+        # for the key's whole TTL (a cap==floor key is under the floor from
+        # its first cent). Name it and skip; a cap above the floor whose
         # remaining is below it still refuses exactly as before.
-        if float(limit) < floor:
+        if float(limit) <= floor:
             marker = (
                 f"sub-floor minted key {name!r} cap ${float(limit):.2f} is "
                 f"below the floor ${floor:.2f} "
@@ -423,6 +457,18 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
             continue
         remaining = float(limit) - float(used)
         if remaining < floor:
+            if iter_n is not None:
+                # hypothesis:(6) item 2/4 — a drained key refuses only the
+                # round that OWNS it (same iter), and the refusal NAMES the
+                # owning iter so a reader knows whose drained key stopped the
+                # spawn (another seat's key must not read as this round's).
+                return False, (
+                    f"outstanding minted key {name!r} remaining ${remaining:.2f} "
+                    f"is below the configured floor ${floor:.2f} "
+                    f"(provisioning.min_key_remaining_usd) — owned by THIS "
+                    f"iteration {iter_n} (same iter prefix); spending a budget "
+                    f"slot on this round risks the key crossing its cap "
+                    f"mid-round. Revoke the drained key or wait out its TTL")
             return False, _below_floor_message(
                 "outstanding minted key", name, remaining, floor)
     return True, skipped
