@@ -2142,7 +2142,7 @@ def main() -> int:
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
-        # conjunct (2) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+        # conjunct (1) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
         # code-and-truncation: ok=True still means dispatch proceeds, but a
         # (True, <marker>) return NAMES a skipped sub-floor minted key. A
         # marker returned to a caller that ignores it is the falsifier, so it
