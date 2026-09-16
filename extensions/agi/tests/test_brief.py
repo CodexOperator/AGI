@@ -2149,3 +2149,15 @@ def test_parent_brief_slices_the_ceiling_across_kids():
     assert "N = ceiling / K" in parent
     assert "set line_ceiling" in parent
     assert "60-across-2" in parent
+
+
+def test_parent_brief_demands_the_kid_title_in_its_own_words():
+    """item (8): kid experiment nodes are minted with the title node_writer
+    DERIVED from the filename (`A00 f067c356 b0ad80`), which renders as an
+    opaque id. The parent brief must demand a real title, in the kid's own
+    words, and name the derived title as a harvest defect."""
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "SETS ITS OWN NODE TITLE IN ITS OWN WORDS" in parent
+    assert "'set title" in parent
+    assert "A00 f067c356 b0ad80" in parent
+    assert "untitled=[<node-id>]" in parent

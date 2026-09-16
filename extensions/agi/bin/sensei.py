@@ -828,7 +828,7 @@ def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
                              transcript_path: Path | None,
                              session_id: str | None = None,
                              record: str | None = None
-                             ) -> tuple[Path | None, str]:
+                             ) -> tuple[Path | None, str, Path | None]:
     """The transcript the wake audit reads, in the g15 order:
 
       1. an explicit `--transcript PATH` (must exist)

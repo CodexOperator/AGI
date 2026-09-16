@@ -1008,3 +1008,14 @@ def test_select_wake_record_annotation_and_docstring_are_true():
     assert "ONE call site for both" not in src, \
         "the CLI header is a reader of counts['record'], not a call site"
     assert "_resolve_wake_transcript" in src
+
+
+def test_resolve_wake_transcript_annotation_is_the_true_triple():
+    """item (11): the function at the old :829 returns `(path, source,
+    rec_path)` three-tuples twice (`return lp, "explicit", None`), so its
+    annotation is the true 3-tuple -- not `tuple[Path | None, str]`. The
+    last kid annotated `_select_wake_record` (already a 3-tuple) instead."""
+    import inspect
+    src = inspect.getsource(sensei._resolve_wake_transcript)
+    assert "-> tuple[Path | None, str, Path | None]" in src, \
+        "the true 3-tuple annotation on _resolve_wake_transcript"
