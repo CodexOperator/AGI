@@ -3425,20 +3425,70 @@ def _row_town_or_refuse(root: Path | None, name: str) -> str:
     return towns.row_town(root, row)
 
 
-def _town_post_branch(root: Path | None, town: str, name: str) -> str:
-    """The town-first post branch for `name` in `town`, derived through the
-    ONE grammar (`branches.derive_names`), then ASSERTED by name."""
-    branch = branches.derive_names(town, _row_season(root),
-                                   post=name)["post_main"]
-    seg = branch.split("/", 1)[0]
-    if seg != town:
+def _local_branches(root: Path | None) -> list[str] | None:
+    """Every LOCAL branch short name under `refs/heads`, or None when git
+    cannot answer (a gitless fixture). None means CANNOT ANSWER, never
+    `no refs`: the caller keeps the derived spelling."""
+    if root is None:
+        return None
+    try:
+        return _git_lines(Path(root), "for-each-ref",
+                          "--format=%(refname:short)", "refs/heads")
+    except Exception:  # noqa: BLE001 -- gitless fixture / no repo here
+        return None
+
+
+def _town_post_branch(root: Path | None, town: str, name: str,
+                      reader=None) -> str:
+    """The town-first post branch for `name` in `town`. SM.32b ROUND 2: the
+    REAL local refs are authoritative -- a real branch whose town segment
+    disagrees with the row town cell is a NAMED REFUSAL naming both
+    spellings; an agreeing branch is the spelling carried; None (cannot
+    answer) or no ref for the post (a first seating) keeps the derived
+    spelling."""
+    derived = branches.derive_names(town, _row_season(root),
+                                    post=name)["post_main"]
+    names = (reader or _local_branches)(root)
+    if names is None:
+        return derived
+    real = []
+    for n in names:
+        try:
+            p = branches.parse(n)
+        except ValueError:
+            continue
+        if p.get("kind") in ("post", "v3_post") and p.get("name") == name:
+            real.append((n, p))
+    if not real:
+        return derived
+    tuples = []
+    for _ref, p in real:
+        t = (p.get("town"), p.get("town_season"))
+        if t not in tuples:
+            tuples.append(t)
+    if len(tuples) > 1:
         raise RenameTownRefusal(
-            f"rename-post REFUSED: {name} is in town {town}, the derived "
-            f"branch {branch} carries town {seg or '(none)'}")
-    return branch
+            f"rename-post REFUSED: {name} has real branches that disagree "
+            f"({', '.join(ref for ref, _ in real)})")
+    t_town, _t_season = tuples[0]
+    if t_town != town:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town {town} (row cell), the "
+            f"real branch {real[0][0]} carries town {t_town or '(none)'} "
+            f"(derived spelling {derived})")
+    return real[0][0]
 
 
-def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
+def _rename_post_segment(branch: str, name: str) -> str:
+    """`branch`'s post segment renamed to `name`, keeping the SAME (town,
+    town_season) tuple -- a rename never moves a post's season."""
+    p = branches.parse(branch)
+    return branches.derive_names(p["town"], p["town_season"],
+                                 post=name)["post_main"]
+
+
+def _rename_surfaces(root: Path, old: str, new: str,
+                     branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
     dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
     surface set the claim names -- session files, dm logs + .state.json
@@ -3508,8 +3558,8 @@ def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
             raise RenameTownRefusal(
                 f"rename-post REFUSED: {old} is in town {old_town}, the new "
                 f"name {new} is a row in town {new_town}")
-    old_branch = _town_post_branch(root, old_town, old)
-    new_branch = _town_post_branch(root, old_town, new)
+    old_branch = _town_post_branch(root, old_town, old, branches_reader)
+    new_branch = _rename_post_segment(old_branch, new)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
     add("branch", old_branch, new_branch, "seam-git")
