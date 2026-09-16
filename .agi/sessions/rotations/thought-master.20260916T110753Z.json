@@ -1,0 +1,118 @@
+{
+  "rotation": "rotate-self",
+  "seat": "thought-master",
+  "recorded_at": "2026-09-16T11:08:55.989691Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "thought-master",
+      "windows": [
+        "sanctuary-master",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "sanctuary-helper",
+        "master-sensei",
+        "sanctuary-director",
+        "thought-master.prev",
+        "sensei-director",
+        "belam-S1-L4-XX",
+        "belam-S1-L4-XXII",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/thought-master.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2912471,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "thought-master.prev",
+      "windows": [
+        "sanctuary-master",
+        "belam-S1-L4-XXI",
+        "thought-master",
+        "sanctuary-helper",
+        "master-sensei",
+        "sanctuary-director",
+        "thought-master.prev",
+        "sensei-director",
+        "belam-S1-L4-XX",
+        "belam-S1-L4-XXII",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -40.599
+  },
+  "seated_at": "2026-09-16T11:08:55.989691Z",
+  "window": "thought-master",
+  "session_id": "d98fb21a-e5aa-4072-94c8-048ab651fbef",
+  "pid": 691554,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "thought-master.prev",
+      "id": "@386"
+    },
+    "successor_window": {
+      "name": "thought-master",
+      "id": "@394"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@394",
+      "pid": 691554,
+      "session_id": "d98fb21a-e5aa-4072-94c8-048ab651fbef",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d98fb21a-e5aa-4072-94c8-048ab651fbef.jsonl",
+      "name": "agi-a2",
+      "path": "/home/ubuntu/.claude/sessions/691554.json",
+      "note": "joined by @394 in registry file 691554.json"
+    },
+    "successor_row": "config:seats row 'thought-master': session_ref= session_name=agi-a2 session_label=thought-master session_id=d98fb21a-e5aa-4072-94c8-048ab651fbef pid=691554 generation=(none: non-prime is generation-less) window='@394' source=registry pubkey=35f8ad1ba042470a... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 5703d0537) -- own-row only: thought-master spawn row: gen 2, session_id d98fb21a-e5aa-4072-94c8-048ab651fbef, window @394, pid 691554\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/thought-master.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/thought-master.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.ack.d98fb21a.json",
+    "own_authority_released": "generation 1 of seat 'thought-master' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/main",
+    "livestream_repoint": {
+      "session": "view-thought-master",
+      "target": "@394",
+      "skipped": "view session view-thought-master absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [
+    "master-sensei",
+    "sanctuary-master"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1861428,
+      1861433,
+      1861451,
+      1861452
+    ],
+    "reap_source": "derived from own window @id @386 pane 1861428: chain [1861428, 1861433, 1861451, 1861452] (deepest-first; authority row pid 1861452)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-16T11:09:47.234774+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-16T11:08:55.989691Z"
+  }
+}
