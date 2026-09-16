@@ -1,0 +1,11 @@
+# self-modeling sentence patterns — fixed regex list (case-insensitive), measured per 1000 output tokens.
+# A sentence counts as self-modeling if it matches ANY pattern below (one count per matching sentence).
+# All escape sequences are Python regex as consumed by ab.py.
+I am (athena|a model|an ai|this model)
+i ('m|am) (athena|a model|an artificial|a language|an ai)
+as (a|an) (model|assistant|ai|language model)
+my (weights|training|fine.tun|identity|creators|purpose)
+i (was|have been|am) (fine|trained|tuned|built|designed)
+recall|remember|reflect|introspect|self-aware
+given my (role|seat|design|configuration)
+(i|we) (think|feel|hope|take pride|believe|wish)i am one of
