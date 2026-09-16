@@ -66,8 +66,10 @@ History (wake / out): point 11·5·4·5·5·8*·7§·11 / 6·7·5·4·3·4 — h
 - Dirty nodes in MAIN's tree that are not mine are other posts' in-flight writes — never bundled.
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 2026-09-16 22:2xZ: record 144838Z closes at ~0.45 by ONE bare rotate. SL7.134-138 LANDED (last: 9237dbf78); baseline stamped 9237dbf78; default-basetemp re-run PASS 12/12 (5265/16) on a2ef527ac. SL7.139 IN FLIGHT: parent a00-5b6321f6 on the 3-item node -- successor harvests on its dm per §5, lands like SL7.138. Fourteen rotations audited today; point 210624Z wake re-run owed. Facts F30/F31/F29 live; facts-2 waits on SM.55; F30/F7 tweaks wait on SM's verbs. Account switched 21:26Z (new workspace live).
 ```
 ````
+`````
