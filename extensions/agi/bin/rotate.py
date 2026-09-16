@@ -12830,9 +12830,11 @@ def _derive_pred_pids(root: Path, seat: str,
          row's generation equals the record's `gen_before` — a row already at
          `gen_after` (the rotate-self own-tail case) is the SUCCESSOR's and is
          never read.
-      3. '' — which the startup placeholder mech refuses BY NAME
-         (`no predecessor chain`), never running `grep -E ''` over the whole
-         process table.
+      3. a NAMED, regex-inert, non-matching value (`none: nothing to reap`)
+         — the reap-proof entry RUNS and its grep matches nothing, instead of
+         being refused by name on every no-reap wake. An EXPLICITLY empty
+         value STILL refuses by name at `_after_join_empty_refusal`; only the
+         derivation site names it.
     """
     if record is not None:
         reap = record.get("s12_self_reap")
@@ -12852,7 +12854,7 @@ def _derive_pred_pids(root: Path, seat: str,
         pid = row.get("pid")
         if pid is not None and str(pid).lstrip("-").isdigit():
             return str(pid)
-    return ""
+    return "none: nothing to reap"
 
 
 def _load_record_best_effort(record_path) -> dict | None:
