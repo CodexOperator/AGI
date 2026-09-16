@@ -28,3 +28,5 @@ FIXED IN-LOOP by the Prime directly (belam gen 24, 2026-09-16 15:3xZ; owner 09-1
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 The parent-round route cost 1.50 USD of a 8.14 USD account for 2 assertion lines; the node's own CEILING named the Prime write as the alternative. The measurement that closes it is the before/after pair on the same claude-named path, not a green in MAIN, which passes by accident of location.
 <!-- THOUGHT:END -->
+
+ADDENDUM (same class, SM [merge-up] 15:30Z: the ONE red in the c227b8f06 stamp run, 5085/1/15): test_rotate_verb_resolvers.py:97 asserted the old positional 'keygen fresh' while SM.39 landed rotate.KEYGEN_LINE 'keygen --post {seat}' (send.py's real argparse grammar) -- production right, the test anchored on stale wording. Prime direct write 15:3xZ: the assertion now reads rotate.KEYGEN_LINE.format(seat='fresh') in why, so the test follows the constant it checks; file 11/11 green in MAIN.
