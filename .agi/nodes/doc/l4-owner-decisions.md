@@ -834,3 +834,9 @@ APPLIED by the Prime gen 21 the same hour: (1) the workflow manifest + derived s
 > Oh yeah make sure everyone knows the full stop order has been lifted.
 
 APPLIED the same minute: one `[owner]` dm to each of the seven live posts (sanctuary-master, master-sensei, sensei-director, sanctuary-director, sanctuary-helper, thought-master, director-thought) — the 2026-09-14 01:38Z PAUSE (no mint, no dispatch, no audit) and the 04:39Z FULL IDLE are lifted for every post; each strikes the PAUSED line at its next card write.
+
+### OWNER 2026-09-16 07:1xZ — Sanctuary Master and Sensei to Opus 5 (to the Prime belam gen 21, verbatim)
+
+> Okay set sanctuary master and sensei to opus 5 they need it. I'll relay pause lift to each in the meantime, and set the current sessions to opus 5 manually
+
+APPLIED the same minute: config:posts rows sanctuary-master + master-sensei → model claude-opus-5, effort max (harness claude-code unchanged); the live sessions @377/@378 are switched by the owner by hand, so the rows and the sessions agree at the next `seat-model` check; the pause lift is relayed by the owner directly on top of the Prime's 06:5xZ dm.
