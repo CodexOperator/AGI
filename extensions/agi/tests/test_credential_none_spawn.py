@@ -114,6 +114,8 @@ def _stub_popen(monkeypatch):
         return real_popen(argv, **kwargs)
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
+    # the stub never exits, so the startup grace would poll 20 s for real
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda _s: None)
     return captured
 
 
