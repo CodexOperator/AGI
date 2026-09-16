@@ -1320,3 +1320,33 @@ def test_node_line_ceiling_reads_only_the_testable_claim_field(tmp_path):
         "testable_claim: the thing being claimed, no number here\n"
         "---\nCEILING: <=9 production lines\n", encoding="utf-8")
     assert spawn_budget.node_line_ceiling(graph, "hypothesis:t3", {}) == (40, "default")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-sm36-...-one-scope-rule item 7 — a reader catches Exception,
+# never BaseException: KeyboardInterrupt/SystemExit must NOT read as "absent".
+# --------------------------------------------------------------------------
+
+def test_node_text_propagates_keyboard_interrupt_but_swallows_oserror(
+        tmp_path, monkeypatch):
+    """`_node_text` falls through to `node_writer.find_node_file`, and that
+    fallback caught `BaseException` — so a Ctrl-C during the lookup was
+    reported as "node absent". After the fix it catches `Exception`: an
+    OSError still returns None, a KeyboardInterrupt propagates."""
+    import node_writer
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes").mkdir(parents=True)
+
+    def _raise(exc):
+        def _f(root, nid):
+            raise exc
+        return _f
+
+    monkeypatch.setattr(node_writer, "find_node_file", _raise(OSError("boom")))
+    assert spawn_budget._node_text(graph, "hypothesis:absent-slug") is None
+
+    monkeypatch.setattr(node_writer, "find_node_file",
+                        _raise(KeyboardInterrupt()))
+    with pytest.raises(KeyboardInterrupt):
+        spawn_budget._node_text(graph, "hypothesis:absent-slug")

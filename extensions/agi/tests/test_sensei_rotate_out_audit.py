@@ -758,3 +758,167 @@ def test_transcript_spelling_names_each_link():
     assert sensei._transcript_spelling(
         {"observations": {"c_readback_log_path": "/c.jsonl"}}) == \
         "observations.c_readback_log_path"
+
+
+# ── SM.54 (hypothesis:l4-the-rotate-out-audit-counts-a-tag-send-as-output-and-
+# ── a-notified-output-file-read-as-its-harvest): the measured gen-8 shape —
+# ── (cat <task output-file>, `send.py send <post> '[tag] ...'`, rotate) — is
+# ── 1 out call, not 3. A `send.py send` is the post's OWN report (d,
+# ── `send=output`), never a hand read (b); a read of the <output-file> the
+# ── immediately preceding task-notification named is that task's HARVEST (d,
+# ── `harvest of <task-id>`), never a poll; a read of any OTHER path is
+# ── untouched and still counts.
+
+OUT_FILE = "/tmp/claude-1001/root/59ca602d/tasks/bpohvkj78.output"
+
+
+def _notified_transcript(tr: Path, calls):
+    """The measured transcript: one real user turn, a task-notification (a
+    plain-string user turn — the CC shape), then `calls`."""
+    events = [json.dumps({"type": "user", "message": {"role": "user",
+              "content": [{"type": "text", "text": "merge-up 14: go"}]}}),
+              json.dumps({"type": "user", "message": {"role": "user",
+              "content": "<task-notification>\n<task-id>bpohvkj78</task-id>\n"
+              "<tool-use-id>t1</tool-use-id>\n"
+              f"<output-file>{OUT_FILE}</output-file>\n"
+              "<status>completed</status>\n</task-notification>"}})]
+    for tool, cmd in calls:
+        events.append(json.dumps({"type": "assistant",
+            "message": {"role": "assistant", "content": [
+                {"type": "tool_use", "name": tool,
+                 "input": {"command": cmd}}]}}))
+        events.append(json.dumps({"type": "user", "message": {"role": "user",
+            "content": [{"type": "tool_result", "content": "ok",
+                         "tool_use_id": "t"}]}}))
+    tr.write_text("\n".join(events) + "\n", encoding="utf-8")
+
+
+SEND = ("python3 extensions/agi/bin/send.py send belam '[complete] stamped "
+        "suite; rotate now' && cat .agi/sessions/quorum/belam.md")
+ROTATE = "python3 extensions/agi/bin/rotate.py rotate"
+
+
+def test_rotate_out_the_measured_shape_is_one_out_call_not_three(tmp_path):
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", f"cat {OUT_FILE} | cut -c1-200 && cat "
+                 ".agi/sessions/verify-count.json"),
+        ("Bash", SEND),
+        ("Bash", ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert len(calls) == 3            # all three still PRINTED
+    assert window["counted"] == 1     # only the rotate is an out call
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 3, "s": 0}
+    assert calls[0]["label"] == "harvest of bpohvkj78"
+    assert calls[1]["label"] == "send=output"
+    assert [c["cat"] for c in calls] == ["d", "d", "d"]
+    assert calls[2]["label"] is None
+
+
+def test_rotate_out_a_read_of_an_unnotified_file_still_counts(tmp_path):
+    # FALSIFIER: a read of a path no notification named stays a hand read (b)
+    # and is COUNTED — the harvest rule must not un-count unrelated reads.
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", "cat .agi/sessions/master-sensei.log | tail -20"),
+        ("Bash", ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["cat"] == "b" and calls[0]["label"] is None
+    assert window["counted"] == 2
+
+
+def test_rotate_out_a_send_does_not_hide_the_calls_after_it(tmp_path):
+    # a send BEFORE other calls: only the send itself is un-counted; every
+    # call after it is an out call.
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", SEND),
+        ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py -q"),
+        ("Bash", ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert window["counted"] == 2
+    assert [c["cat"] for c in calls] == ["d", "d", "d"]
+
+
+def test_rotate_out_audit_writes_the_counted_number_and_prints_green(tmp_path,
+                                                                    capsys):
+    from types import SimpleNamespace
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", f"cat {OUT_FILE}"),
+        ("Bash", SEND),
+        ("Bash", ROTATE),
+    ])
+    rot_dir = graph / "sessions" / "rotations"
+    for p in rot_dir.glob("*.json"):
+        rec = json.loads(p.read_text(encoding="utf-8"))
+        p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    args = SimpleNamespace(seat=SEAT, gen=GEN, transcript=None, record=None,
+                           registry_dir=None, redact=True, no_record=False)
+    assert sensei.cmd_rotate_out_audit(graph, args) == 0
+    out = capsys.readouterr().out
+    assert (f"green {SEAT} out --record {OUT_STAMP} 1 (floor 1") in out
+    audit = json.loads((rot_dir / f"{SEAT}.{OUT_STAMP}.json")
+                       .read_text(encoding="utf-8"))["audit"]["out"]
+    assert audit["calls"] == 1 and audit["excess"] == 0
+    assert audit["d"] == 3 and audit["b"] == 0
+
+
+def _notification(tid: str, path: str) -> str:
+    return ("<task-notification>\n<task-id>" + tid + "</task-id>\n"
+            "<tool-use-id>t1</tool-use-id>\n"
+            f"<output-file>{path}</output-file>\n"
+            "<status>completed</status>\n</task-notification>")
+
+
+def _plain_transcript(tr: Path, notices, calls):
+    """A real user turn, then `notices` raw user-turn strings, then `calls`."""
+    events = [json.dumps({"type": "user", "message": {"role": "user",
+              "content": [{"type": "text", "text": "merge-up 14: go"}]}})]
+    events += [json.dumps({"type": "user", "message": {"role": "user",
+                "content": n}}) for n in notices]
+    for tool, cmd in calls:
+        events.append(json.dumps({"type": "assistant",
+            "message": {"role": "assistant", "content": [
+                {"type": "tool_use", "name": tool,
+                 "input": {"command": cmd}}]}}))
+        events.append(json.dumps({"type": "user", "message": {"role": "user",
+            "content": [{"type": "tool_result", "content": "ok",
+                         "tool_use_id": "t"}]}}))
+    tr.write_text("\n".join(events) + "\n", encoding="utf-8")
+
+
+def test_rotate_out_a_stale_notified_path_is_not_the_harvest(tmp_path):
+    # PROBE P2: a SECOND notification (another output file) follows the first;
+    # a read of the FIRST, now stale, path is no task's harvest — it is a bare
+    # read (b) and IS counted. The whole-file scan un-counted it forever.
+    graph, tr = _write_root(tmp_path, None)
+    other = "/tmp/claude-1001/root/59ca602d/tasks/aaa111.output"
+    _plain_transcript(tr,
+                      [_notification("bpohvkj78", OUT_FILE),
+                       _notification("othertask", other)],
+                      [("Bash", f"cat {OUT_FILE}"), ("Bash", ROTATE)])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["cat"] == "b" and calls[0]["label"] is None
+    assert window["counted"] == 2          # the stale read and the rotate
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
+
+
+def test_rotate_out_a_bare_read_with_no_notification_is_a_poll(tmp_path):
+    # PROBE P3: `cat some.log` with no notification anywhere — the claim's own
+    # test list says [b], uncounted. Kid 1 dodged this by using a sessions/
+    # path `_is_byhand_read` already matched; this is the bare case.
+    graph, tr = _write_root(tmp_path, None)
+    _plain_transcript(tr, [], [("Bash", "cat some.log"), ("Bash", ROTATE)])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["cat"] == "b" and calls[0]["label"] is None
+    assert window["counted"] == 2
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}

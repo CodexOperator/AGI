@@ -1832,6 +1832,24 @@ def _round_scope_ok(rel: str, agent_id: str, own_paths: set) -> bool:
     return True
 
 
+def cmd_scope_check(args: argparse.Namespace) -> int:
+    """hypothesis:l4-sm36-...-one-scope-rule -- THE one scope rule, served to
+    the agent-git pre-commit hook.
+
+    The hook pipes its cached-change list in NUL-separated on stdin and passes
+    the round's explicit own paths in `--own` (newline-separated in
+    AGI_ROUND_OWN_PATHS). Both the hook and `_auto_commit_worktree` therefore
+    read the SAME predicate, so a human-slug node a round explicitly owns is
+    accepted by BOTH or neither -- never one rule each.
+    """
+    own = set(p for p in (args.own or []) if p)
+    own |= {p for p in os.environ.get("AGI_ROUND_OWN_PATHS", "").split("\n")
+            if p}
+    paths = [p for p in sys.stdin.read().split("\0") if p]
+    agent_id = args.agent_id or ""
+    return 0 if all(_round_scope_ok(p, agent_id, own) for p in paths) else 1
+
+
 def _round_own_node_paths(root: Path, checkout_root: Path,
                           node_id: str | None, owns: list | None) -> set:
     """The round's own node files, relative to the checkout toplevel."""
@@ -1938,6 +1956,10 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # hook at the checkout root for THIS commit: the worktree is the round's
     # own branch and `_round_scope_ok` already scoped the add.
     commit_env["AGI_PROJECT_ROOT"] = str(checkout_root)
+    # hypothesis:l4-sm36-...-one-scope-rule -- hand the round's OWN node
+    # paths to the pre-commit hook, which reads the SAME predicate. Without
+    # this a human-slug own node was accepted here and refused there.
+    commit_env["AGI_ROUND_OWN_PATHS"] = "\n".join(sorted(own))
     commit = subprocess.run(
         ["git", "-C", str(checkout_root),
          "-c", "user.email=agi@local", "-c", "user.name=agi",
@@ -5394,6 +5416,13 @@ def main() -> int:
         help="the graph root (.agi dir) to act on — required to run --apply "
              "against a fixture repo; default resolves the live tree normally.")
     p_lp.set_defaults(func=cmd_loop_prune)
+
+    p_scope = sub.add_parser("scope-check")
+    p_scope.add_argument("--agent-id", default=None)
+    p_scope.add_argument("--own", action="append", default=[],
+                         help="a path this round explicitly owns (repeatable); "
+                              "NUL-separated paths read from stdin")
+    p_scope.set_defaults(func=cmd_scope_check)
 
     args = ap.parse_args()
     return args.func(args)

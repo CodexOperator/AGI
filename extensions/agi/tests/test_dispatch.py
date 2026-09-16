@@ -2641,6 +2641,9 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
     class _Proc:
         pid = 4242
 
+        def poll(self):  # a child that never exits: outlives the startup grace
+            return None
+
     class _Adapter:
         def build_command(self, **kw):
             return [sys.executable, "-c", "pass"]
@@ -2659,6 +2662,8 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
     monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
     monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
     monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    # the startup-grace poll's sleep seam: never sleep for real in a test
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
 
     for from_token in ("p1", "p2"):
         orders = tmp_path / f"orders-{from_token}.md"
@@ -2685,3 +2690,153 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
         assert path.is_file(), path
     assert {p.read_text() for p in paths} == {
         "SCOPE: parent p1\n", "SCOPE: parent p2\n"}
+
+
+# --- hypothesis:l4-dispatch-takes-a-per-round-cap-and-refuses-when-cap-
+# exceeds-pool-headroom — the `--cap` flag on the REAL spawn path.
+#
+# Three conjuncts, each driven through `dispatch.main()` with the network
+# stubbed (provisioning.mint / credit_balance / list_all_keys and
+# subprocess.Popen), so the mint call itself is observed rather than a helper:
+#   (a) `--cap 2.00` -> mint(limit_usd=2.00) and the spawn line reports it;
+#   (b) no flag    -> mint(limit_usd=<configured 1.5>), byte-identical path;
+#   (c) cap over pool-minus-floor-minus-live-caps -> exit 1, stderr names
+#       pool/floor/live, and NO mint happened.
+
+def _cap_project(tmp_path):
+    """A scratch openrouter project whose standing per-spawn cap is 1.5 and
+    whose account floor is 1.0."""
+    import json
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "nodes" / "goal").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({
+        "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
+                             "models": {"kid": "deepseek/deepseek-v4"}}},
+        "spawn": {"harness": "pi", "parallel": 1, "max_live": 25,
+                  "credential": {"per_spawn_limit_usd": 1.5,
+                                 "ttl_minutes": 180}},
+        "provisioning": {"min_account_remaining_usd": 1.0},
+        "agent_dispatch": {"inline_reaper": False},
+    }))
+    (graph / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n  - {tier: 0, role: kid, "
+        "harness: pi, model: deepseek/deepseek-v4}\n---\nbody")
+    (graph / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
+    (graph / "nodes" / "goal" / "g15.md").write_text(
+        "---\nid: goal:g15\ntype: goal\n---\nbody\n")
+    (graph / "nodes" / "hypothesis" / "x.md").write_text(
+        "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
+        "---\nbody\n")
+    return tmp_path
+
+
+def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0),
+                      keys=()):
+    """Drive dispatch.main() for one openrouter kid slot with the network and
+    the child process stubbed. Returns (exit_code, [mint kwargs], captured)."""
+    import json
+    import os
+    import provisioning
+    import sys as _sys
+    project = _cap_project(tmp_path)
+    mint_calls: list = []
+
+    class _Minted:
+        secret = "sk-or-v1-x"
+        key_hash = "h"
+        name = "agi-iter1-kid-X"
+        expires_at = "Z"
+
+        def __init__(self, limit):
+            self.limit_usd = limit
+
+    def _fake_mint(**kw):
+        mint_calls.append(kw)
+        return _Minted(kw["limit_usd"])
+
+    monkeypatch.setattr(provisioning, "available", lambda root=None: True)
+    monkeypatch.setattr(provisioning, "mint", _fake_mint)
+    monkeypatch.setattr(provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(provisioning, "check_key_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(provisioning, "check_account_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: balance)
+    monkeypatch.setattr(provisioning, "list_all_keys",
+                        lambda root=None: list(keys))
+
+    real_popen = subprocess.Popen
+
+    class _StubProc:
+        pid = 7777
+
+        def poll(self):
+            return None
+
+        def wait(self, timeout=None):
+            return 0
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    def _patched(argv, **kw):
+        if (kw.get("env") or {}).get("AGI_AGENT_ID"):
+            return _StubProc()
+        return real_popen(argv, **kw)
+
+    monkeypatch.setattr(subprocess, "Popen", _patched)
+    for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
+              "AGI_ACTOR"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(_sys, "argv", [
+        str(BIN / "dispatch.py"), str(project), "1", "--level", "small",
+        "--harness", "pi", "--tier", "kid", "--target", "hypothesis:x",
+        *extra])
+    code = dispatch.main()
+    return code, mint_calls, project
+
+
+def test_cap_flag_mints_at_exactly_that_limit(tmp_path, monkeypatch, capsys):
+    """(a) `--cap 2.00` overrides the configured 1.5 and the spawn line reports
+    the minted key's cap, so the round's real spend bound is the flag."""
+    code, mints, _p = _run_cap_dispatch(tmp_path, monkeypatch, "--cap", "2.00")
+    out = capsys.readouterr().out
+    assert code == 0
+    assert [m["limit_usd"] for m in mints] == [2.00]
+    assert "cap=$2.0" in out
+
+
+def test_no_cap_flag_keeps_the_configured_standing_limit(tmp_path, monkeypatch,
+                                                         capsys):
+    """(b) no flag -> the standing `spawn.credential.per_spawn_limit_usd`
+    applies unchanged, and no headroom call is made."""
+    code, mints, _p = _run_cap_dispatch(tmp_path, monkeypatch)
+    out = capsys.readouterr().out
+    assert code == 0
+    assert [m["limit_usd"] for m in mints] == [1.5]
+    assert "cap=$1.5" in out
+
+
+def test_cap_over_pool_headroom_is_refused_by_name_and_mints_nothing(
+        tmp_path, monkeypatch, capsys):
+    """(c) pool 6.00 - floor 1.00 - live 3.50 = 1.50 headroom; a 5.00 cap is
+    REFUSED, naming all three numbers, exit 1, and no mint happens."""
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, "--cap", "5.00",
+        balance=(10.0, 4.0, 6.0),
+        keys=[{"name": "agi-iter1-kid-a", "limit": 2.0},
+              {"name": "human-key", "limit": 99.0},
+              {"name": "agi-iter1-parent-b", "limit": 1.5}])
+    err = capsys.readouterr().err
+    assert code == 1
+    assert mints == [], "a refused cap must never mint"
+    assert "round cap $5.00 exceeds pool headroom $1.50" in err, err
+    assert "pool $6.00" in err and "floor $1.00" in err and "live $3.50" in err
