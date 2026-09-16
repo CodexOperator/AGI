@@ -81,5 +81,5 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor
 
 ## 🔴 Where it stops
 ```
-PAUSED (owner 01:38Z via Prime): no mint, no dispatch, no audit; answer only the owner or the Prime. Live: SM.238 (23b) merge-up in the director's window; SM.249 (24b) harvest-then-hold. When 23b + the point's window 54 are on MAIN → one-line 'paused' to the Prime (sent 01:5xZ pre-emptively with states) and idle. On the owner's lift: resume order 23b → 29 → 30 → 24b((0), gates the 0a unset) → 25 → 32 → 28 → 33 → 27 → 20 → 17 → 14 → 15 → 10 → 11 → 22 → 01b; review each merge-up BY NAME; thought-master round-0 table review when it reports; my row UNKEYED (keygen pending) so the out-line stays rotate-self; floor $5.
+PAUSED (owner 01:38Z via Prime): no mint, no dispatch, no audit; answer only the owner or the Prime. 02:3xZ: SM.23b/SL2#32 LANDED @c32136769 (2856/198/3054; 4782/0/15) — goal:g15.25 closed by the director; SM.249 (24b) HELD on the post branch (g1517 regression → 24c). Nothing live under me; director idle. Paused line sent to the Prime. On the owner's lift: resume order 23b → 29 → 30 → 24b((0), gates the 0a unset) → 25 → 32 → 28 → 33 → 27 → 20 → 17 → 14 → 15 → 10 → 11 → 22 → 01b; review each merge-up BY NAME; thought-master round-0 table review when it reports; my row UNKEYED (keygen pending) so the out-line stays rotate-self; floor $5.
 ```
