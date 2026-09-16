@@ -462,6 +462,44 @@ def test_sanctuary_human_and_llm_state_the_same_spirits_and_wisps():
     assert "2 ephemeral wisps" in human and "ephemeral_wisps: 2" in llm
 
 
+def test_the_theme_renamed_to_keep_renders_the_scene_not_the_graph(tmp_path, capsys):
+    """hypothesis:l4-the-viewport-theme-literal-is-renamed-keep... (goal:g8.2).
+
+    The flag names the VIEW, never a town: the entry point is `_render_keep`
+    (the old `_render_sanctuary` name is gone) and it reaches the keep scene
+    path, not the graph frame stream — no rendered line may be a frame line.
+    """
+    import types
+    assert not hasattr(V, "_render_sanctuary"), "the old theme entry must be gone"
+    rc = V._render_keep(types.SimpleNamespace(emit="llm", width=100), tmp_path, {})
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert not [ln for ln in out.splitlines() if V._FRAME_LINE.match(ln)], (
+        "the keep theme must not render the graph frame stream")
+
+
+def test_theme_sanctuary_is_refused_by_argparse_and_keep_is_not(tmp_path):
+    """The falsifier: the old town-named spelling no longer resolves.
+
+    `--theme sanctuary` must die at argparse (rc=2, `invalid choice`) while
+    `--theme keep` parses. `--project` points at a path with no graph so the
+    keep run stops AFTER parsing, which is exactly what proves parsing passed.
+    """
+    import subprocess
+    vp = BIN / "viewport.py"
+    keep = subprocess.run(
+        [sys.executable, str(vp), "--theme", "keep", "--emit", "llm",
+         "--project", str(tmp_path / "gone")],
+        capture_output=True, text=True)
+    assert "invalid choice" not in keep.stderr, keep.stderr
+    bad = subprocess.run(
+        [sys.executable, str(vp), "--theme", "sanctuary", "--emit", "llm",
+         "--project", str(tmp_path)],
+        capture_output=True, text=True)
+    assert bad.returncode == 2
+    assert "invalid choice" in bad.stderr
+
+
 # --------------------------------------------------------------------------
 # hypothesis:l3w4-seat-graph-view — seats render ON the graph, not beside it.
 # One OccupantIndex, two readers (goal:g9.7 applied one level down). Three
