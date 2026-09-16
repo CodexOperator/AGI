@@ -68,6 +68,7 @@ import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
+import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -3397,7 +3398,97 @@ def _live_tmux(root, *a):
     return r.stdout
 
 
-def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
+class RenameTownRefusal(Exception):
+    """A rename that would move a post out of its declared town
+    (goal:g15.25 SM.32b); `cmd_rename_post` prints its message and exits
+    non-zero -- never a silent legacy fallback."""
+
+
+def _row_season(root: Path | None) -> int:
+    """The season NUMBER a town-first branch carries, from the SAME ladder
+    field `season_branch` reads; the pre-town-first literal 2 is the fallback."""
+    s = load_ladder_field(root, "current_season", None) if root else None
+    try:
+        return max(1, int(s))
+    except (TypeError, ValueError):
+        return 2
+
+
+def _row_town_or_refuse(root: Path | None, name: str) -> str:
+    """The row's REAL town through `towns.row_town` -- a declared cell wins,
+    the transitional map retires itself -- or a NAMED REFUSAL."""
+    row = _find_seat(root, name)
+    if row is None:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town (unresolved), no config "
+            f"row named {name}")
+    return towns.row_town(root, row)
+
+
+def _local_branches(root: Path | None) -> list[str] | None:
+    """Every LOCAL branch short name under `refs/heads`, or None when git
+    cannot answer (a gitless fixture). None means CANNOT ANSWER, never
+    `no refs`: the caller keeps the derived spelling."""
+    if root is None:
+        return None
+    try:
+        return _git_lines(Path(root), "for-each-ref",
+                          "--format=%(refname:short)", "refs/heads")
+    except Exception:  # noqa: BLE001 -- gitless fixture / no repo here
+        return None
+
+
+def _town_post_branch(root: Path | None, town: str, name: str,
+                      reader=None) -> str:
+    """The town-first post branch for `name` in `town`. SM.32b ROUND 2: the
+    REAL local refs are authoritative -- a real branch whose town segment
+    disagrees with the row town cell is a NAMED REFUSAL naming both
+    spellings; an agreeing branch is the spelling carried; None (cannot
+    answer) or no ref for the post (a first seating) keeps the derived
+    spelling."""
+    derived = branches.derive_names(town, _row_season(root),
+                                    post=name)["post_main"]
+    names = (reader or _local_branches)(root)
+    if names is None:
+        return derived
+    real = []
+    for n in names:
+        try:
+            p = branches.parse(n)
+        except ValueError:
+            continue
+        if p.get("kind") in ("post", "v3_post") and p.get("name") == name:
+            real.append((n, p))
+    if not real:
+        return derived
+    tuples = []
+    for _ref, p in real:
+        t = (p.get("town"), p.get("town_season"))
+        if t not in tuples:
+            tuples.append(t)
+    if len(tuples) > 1:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} has real branches that disagree "
+            f"({', '.join(ref for ref, _ in real)})")
+    t_town, _t_season = tuples[0]
+    if t_town != town:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town {town} (row cell), the "
+            f"real branch {real[0][0]} carries town {t_town or '(none)'} "
+            f"(derived spelling {derived})")
+    return real[0][0]
+
+
+def _rename_post_segment(branch: str, name: str) -> str:
+    """`branch`'s post segment renamed to `name`, keeping the SAME (town,
+    town_season) tuple -- a rename never moves a post's season."""
+    p = branches.parse(branch)
+    return branches.derive_names(p["town"], p["town_season"],
+                                 post=name)["post_main"]
+
+
+def _rename_surfaces(root: Path, old: str, new: str,
+                     branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
     dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
     surface set the claim names -- session files, dm logs + .state.json
@@ -3459,12 +3550,21 @@ def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
                         f"row {new}.{k}->{new}", "ship",
                         print_line=f"write.py {nm} 'replace {k} -- {new}'")
 
+    old_town = _row_town_or_refuse(root, old)
+    new_row = _find_seat(root, new)
+    if new_row is not None:
+        new_town = towns.row_town(root, new_row)
+        if new_town != old_town:
+            raise RenameTownRefusal(
+                f"rename-post REFUSED: {old} is in town {old_town}, the new "
+                f"name {new} is a row in town {new_town}")
+    old_branch = _town_post_branch(root, old_town, old, branches_reader)
+    new_branch = _rename_post_segment(old_branch, new)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    add("branch", branches.post_branch(2, old), branches.post_branch(2, new),
+    add("branch", old_branch, new_branch, "seam-git")
+    add("branch (origin)", f"origin/{old_branch}", f"origin/{new_branch}",
         "seam-git")
-    add("branch (origin)", f"origin/{branches.post_branch(2, old)}",
-        f"origin/{branches.post_branch(2, new)}", "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
@@ -3788,7 +3888,11 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         return 2
 
     row = _find_seat(root, old)
-    surfaces = _rename_surfaces(root, old, new)
+    try:
+        surfaces = _rename_surfaces(root, old, new)
+    except RenameTownRefusal as exc:
+        print(str(exc), file=sys.stderr)
+        return 4
     if not surfaces:
         print(f"rename-post: no surfaces found for {old!r} -> {new!r}",
               file=sys.stderr)
