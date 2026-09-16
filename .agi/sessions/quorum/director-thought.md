@@ -1,30 +1,31 @@
-# POST HANDOFF - director-thought - 2026-09-14
+# CARD — director-thought
 
-## 0 STATE
-- D1.01 merged and pushed: `04994c52f` on `season2/main`.
-- Registered review: `mur-d1-01`; review and verify resolved without failures.
-- D1 artifacts: two experiment nodes plus durable ablation scripts, JSON evidence, logs, and mean cache under `.agi/context/local-maxxing/d1/`.
-- TM.2 remains Prime-only and blocked on the earlier OpenRouter 401.
+## SELF-FACTS (gen1 wake-audit, master-sensei 2026-09-16T07:21Z) — handed, not fetched
+- Ack grammar is F6, verbatim: `rotate.py ack --post <post> --ref <bare ref> continue|diff [--text -]`. Never grep rotate.py source for it.
+- Card path is always `.agi/sessions/quorum/<post>.md` (F26). Never `find`/search for it.
+- On any wake, read your own inbox FIRST (call 1) — a nudge names the reason you're awake.
+- Never read another seat's rotation record (e.g. your master's) — not your concern; wait for their message instead.
+
+## 0 STATE (2026-09-16)
+- Re-stood on claude-sonnet-5/max per owner 06:3xZ resume order (prior dry Copilot window @369 killed).
+- Reported recovery to thought-master (gen1, first-seating, window @386); standing by for its first g14.3 research-round order.
+- Tree-wide 09-14 PAUSE + FULL IDLE lifted by owner 06:5xZ broadcast (belam) — mint/dispatch/audit/merge-up all green again. No PAUSED line was in this card, so nothing to strike.
 
 ## 1 PLAN
-- done: dispatch D1 parent with the required CPU-only kid split.
-- done: review D1 bytes and run the registered merge-up workflow.
-- done: merge, validate links/schema, push, and report numbers to belam and thought-master.
-- next: no new round until a new order arrives.
+- next: wait for thought-master's order; audit + merge-up its round when it lands (g14.3: director-thought directs the master's research rounds on qwen3.8-50b quantization / Camber Cloud XS feasibility).
+- do not mint/dispatch a round myself; do not hand-write engine code (owner, 04e5070c9).
+- message belam only for: merge-up numbers, a Prime-only decision, a rotation line, a red merge, a rule-changing finding.
 
-## 2 LANDED
-- `experiment:a00-01a81f78-81defb`: `proved`; 5% mean loss delta `0.176350`, 20% delta `1.024380`, all 6/6 positive; `~/.venv-lm` has transformers 5.17.0 and datasets 5.0.1 with CPU torch inherited.
-- `experiment:a00-51318335-e170a9`: `inconclusive_lean_proved:85`; true per-layer low delta `+0.0395` versus random `+0.2015..+0.2955`; global proxy anti-predicts; no real bytes/tok measurement.
-- Graph validation: 3064 resolved links, 0 broken. Schema dry-run reports 156 pre-existing missing required fields.
+## 2 LANDED (prior round, closed 09-14)
+- `experiment:a00-01a81f78-81defb`: proved; 5% mean loss delta 0.176350, 20% delta 1.024380, all 6/6 positive.
+- `experiment:a00-51318335-e170a9`: inconclusive_lean_proved:85.
+- Graph validation at close: 3064 resolved links, 0 broken. Merged `04994c52f`.
 
 ## 3 STOP
-D1.01 is complete. Exact next action: remain idle; do not launch another round without a new order.
+Waiting on thought-master's next order. Nothing else open.
 
 ## 4 TRAPS
-- Parent completed overdue after 2449 seconds; the parent branch was reviewed only after its terminal signal.
-- The D1 parent correctly accepted two kid experiment nodes and authored no active experiment node; one deprecated historical experiment artifact is present in the branch.
 - `links.py schema` is a dry report, not a clean-suite signal.
 
 ## 5 VERIFICATION
 `git show --stat --oneline 04994c52f`
-
