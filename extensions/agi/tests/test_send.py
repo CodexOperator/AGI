@@ -128,6 +128,23 @@ def test_send_prints_inbox_path(project: Path, capsys):
     assert captured.out.strip() == expected
 
 
+def test_send_verb_stamps_the_sending_seat(project: Path, monkeypatch, capsys):
+    """A `send` is one of the seat's OWN work acts (conjunct 1): the verb
+    stamps the `--from` seat's last-act, so a rotation can see the seat worked
+    after its card. The stamp is the ONE clock (bin/last_act.py)."""
+    monkeypatch.chdir(project)
+    for key in ("AGI_SEAT", "AGI_ACTOR", "AGI_AGENT_ID"):
+        monkeypatch.delenv(key, raising=False)
+    rc = send_mod.main(["send", "peer", "hello", "--from", "seat-a"])
+    capsys.readouterr()
+    assert rc == 0
+    stamp = project / ".agi" / "sessions" / "seats" / "seat-a.last-act"
+    assert stamp.is_file(), "send left no seat last-act stamp"
+    # and ONLY the sending seat was stamped.
+    assert sorted(p.name for p in stamp.parent.glob("*.last-act")) == \
+        ["seat-a.last-act"]
+
+
 # ── hypothesis:l3w4-seat-transport: best-effort tmux nudge ───────────────
 
 

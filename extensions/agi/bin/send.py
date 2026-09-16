@@ -64,6 +64,7 @@ import seatsig  # noqa: E402
 import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
+import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -5082,6 +5083,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(refusal, file=sys.stderr)
                 return 3
             print(send_room(croot, args.room, text, sender).resolve())
+            last_act.touch_env(root, sender)
             return 0
         if args.dm_to is not None:
             text = " ".join(args.send_args)
@@ -5096,6 +5098,7 @@ def main(argv: list[str] | None = None) -> int:
                 return 3
             print(send_dm(croot, _detect_sender(sender), to, text,
                           sender).resolve())
+            last_act.touch_env(root, sender)
             return 0
         # unchanged: inbox send -- first token is the target, the rest is text
         if not args.send_args:
@@ -5123,6 +5126,7 @@ def main(argv: list[str] | None = None) -> int:
             print(refusal, file=sys.stderr)
             return 3
         send(root, resolved_target, text, sender)
+        last_act.touch_env(root, sender)
         return 0
 
     if args.verb == "read":

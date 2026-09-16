@@ -152,6 +152,102 @@ def test_kid_brief_carries_no_iteration_contract():
     assert "FAN-OUT AND BRANCHES" not in kid
 
 
+def test_kid_brief_names_its_production_line_ceiling():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (1): the kid brief carries its ceiling
+    as a NUMBER the kid can read. Before this, the kid brief named no
+    production-line budget at all, so the 2x checkpoint had no number to key
+    on and a single kid ran to 3.4x with nothing to measure against. The
+    decimal digits must appear in the assembled text, and the 2x threshold
+    must be spelled out as arithmetic the kid can do without asking.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "PRODUCTION-LINE CEILING" in kid
+    assert "40" in kid, "the literal ceiling number must be readable"
+    assert "git diff --numstat" in kid, "how the lines are measured"
+    assert "above 80 lines" in kid, "the 2x threshold as arithmetic"
+    assert "re-brief" in kid, "what to do above 2x"
+
+
+def test_kid_brief_reads_the_ceiling_from_config_not_a_constant(tmp_path):
+    """The ceiling is READ, not hardcoded: a project that sets
+    `spawn.production_line_ceiling` sees its own number and its own 2x.
+    `project_root` is the graph root (`.agi/`) -- the same argument
+    `_configured_profile` already resolves config from.
+    """
+    graph_root = tmp_path / ".agi"
+    graph_root.mkdir()
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 17}}),
+        encoding="utf-8")
+    kid = _text("kid", scaffold=SCAFFOLD, project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 17 lines" in kid
+    assert "above 34 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+
+
+def test_kid_line_ceiling_defaults_to_forty_without_a_project_root():
+    """A caller that does not thread project_root still gets a readable
+    ceiling -- the segment must never be absent, since a brief that says
+    nothing is exactly the defect conjunct (1) fixes.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
+def test_the_line_ceiling_is_kid_only():
+    """No other tier's brief gains the segment -- a parent plans against a
+    kid ceiling, not a production-line one, and reordering/adding to the
+    parent brief here would be scope the conjunct does not own.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "PRODUCTION-LINE CEILING" not in parent
+    director = _text("director")
+    assert "PRODUCTION-LINE CEILING" not in director
+
+
+def test_parent_brief_names_the_rebrief_answer_protocol():
+    """conjunct (3): an answer with no channel is the same defect as a
+    request nobody reads. The PARENT brief must name the field it writes
+    (`rebrief_answer`), the field it reads (`rebrief_request`), and the
+    logged writer that carries the write.
+    """
+    parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
+    assert "rebrief_answer" in parent, "the answer field the parent must write"
+    assert "rebrief_request" in parent, "the request field the parent reads"
+    assert "set rebrief_answer" in parent, "the exact verb the parent runs"
+    assert "line_ceiling" in parent, "the ceiling re-set when proceeding"
+
+
+def test_rebrief_answer_protocol_is_parent_only():
+    """The KID brief names `rebrief_request` (it writes it) but must NOT gain
+    the parent's answer segment -- the two tiers stay distinct."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "rebrief_request" in kid, "the kid writes the request"
+    assert "rebrief_answer" not in kid, "the answer is not the kid's to write"
+
+
+def test_kid_brief_requires_the_machine_readable_record():
+    """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
+    2x-for-a-parent-re-brief, conjunct (2): the ceiling segment is the ONE
+    segment that grows, and it now names the frontmatter fields the kid must
+    write (`production_lines`, `line_ceiling`, `rebrief_request`) so harvest
+    has a record to read. Conjunct (1)'s ceiling and 2x arithmetic must
+    survive in the SAME segment -- this is an extension, not a replacement.
+    The read-only `git diff --numstat` is authorised explicitly, so it no
+    longer contradicts the `DO NOT run git` segment.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "production_lines" in kid, "the count field harvest reads"
+    assert "line_ceiling" in kid, "the ceiling field harvest reads"
+    assert "rebrief_request" in kid, "the re-brief field harvest reads"
+    # conjunct (1) does not regress:
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "above 80 lines" in kid
+    assert "git diff --numstat" in kid
+    assert "read-only" in kid, "the one authorised git read says so"
+
+
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
     """hypothesis:l3-parent-never-told-to-iterate, carry-forward axis (SD.12)
     -- the per-kid brief channel. THREADING addendum through assemble must
@@ -1953,3 +2049,80 @@ def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):
                             dispatch_py="/x/dispatch.py", target="t:1")
     assert not any("DISPATCH ORDERS" in s for s in absent), (
         "a whitespace-only orders file must render no heading")
+
+
+def test_assembled_brief_names_the_session_dir_as_the_only_scratch_dir():
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- the kid and parent briefs (the tiers that stage scratch:
+    SL7.128 left 3 probes and a kid brief in `.agi/tmp/` because BOTH the
+    tier that stages and the tier that reads them were never handed a session
+    dir) name the session dir as the ONLY scratch dir. NO tier's brief
+    advertises `.agi/tmp/` as the scratch location, and a brief assembled
+    without a session dir is unchanged (the clause is a no-op offline)."""
+    sess = "sessions/iter-SM42/a00-216b7dca"
+    rendered = {}
+    for tier in ("kid", "parent", "director", "prime_director", "liaison"):
+        kw = {}
+        if tier == "kid":
+            kw["scaffold"] = SCAFFOLD
+        if tier == "parent":
+            kw["dispatch_py"] = "/x/dispatch.py"
+            kw["target"] = "hypothesis:y"
+        rendered[tier] = _text(tier, session_dir=sess, **kw)
+
+    for tier in ("kid", "parent"):
+        text = rendered[tier]
+        assert sess in text, f"{tier} brief must name its session dir"
+        assert "ONLY scratch dir" in text, tier
+
+    # `.agi/tmp/` may appear ONLY inside the negating clause ("never ...").
+    for tier, text in rendered.items():
+        for m in re.finditer(r"\.agi/tmp/", text):
+            before = text[max(0, m.start() - 8):m.start()]
+            assert "never" in before, (tier, before)
+
+    # no-op when the session dir is unknown: existing callers byte-unchanged.
+    assert "SCRATCH DIR" not in _text("kid", scaffold=SCAFFOLD)
+    assert "SCRATCH DIR" not in _text(
+        "parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+
+
+def _clause_graph(tmp_path, clause: str | None):
+    graph_root = tmp_path / ".agi"
+    (graph_root / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph_root / "config.json").write_text(
+        json.dumps({"spawn": {"production_line_ceiling": 40}}),
+        encoding="utf-8")
+    body = (clause or "no ceiling clause here") + "\n"
+    (graph_root / "nodes" / "hypothesis" / "h.md").write_text(
+        "---\nid: hypothesis:h\ntype: hypothesis\n---\n" + body,
+        encoding="utf-8")
+    return graph_root
+
+
+def test_kid_brief_ceiling_comes_from_the_dispatching_nodes_clause(tmp_path):
+    """hypothesis:l4-sm45b-...: conjunct (2). The kid's segment number EQUALS
+    the dispatching node's own CEILING clause, not a config default that
+    contradicts it -- with the clause `<=120 production lines` and the config
+    at 40, the segment must say 120 (and 2x = 240).
+    """
+    graph_root = _clause_graph(tmp_path, "CEILING: <=120 production lines")
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 120 lines" in kid
+    assert "above 240 lines" in kid
+    assert "PRODUCTION-LINE CEILING: 40" not in kid
+    assert "dispatching node's own CEILING clause" in kid
+
+
+def test_kid_brief_ceiling_names_the_config_default_when_no_clause(tmp_path):
+    """conjunct (4): a node with no CEILING clause keeps the config default,
+    and the segment SAYS the number came from the default rather than from a
+    clause -- so a reader can tell the two apart.
+    """
+    graph_root = _clause_graph(tmp_path, None)
+    kid = _text("kid", scaffold=SCAFFOLD, target="hypothesis:h",
+                project_root=graph_root)
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+    assert "project config default" in kid
+    assert "dispatching node's own CEILING clause" not in kid

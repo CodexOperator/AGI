@@ -25,6 +25,7 @@ The `ts` a `propose` prints is the `--since` handle for a matching `apply`.
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import re
 import subprocess
@@ -553,14 +554,6 @@ def _fact_label(cmd: str, facts: list[tuple[str, list[str]]]) -> str | None:
 # ── the seat's LATEST rotation record; env / newest-.jsonl unreachable without
 # ── an explicit --transcript) ────────────────────────────────────────────
 
-def _rotation_records(root: Path, seat: str) -> list[Path]:
-    """`sessions/rotations/<seat>.*.json` for a seat, newest-last."""
-    d = locations.shared_sessions_dir(root) / rotate.ROTATIONS_DIR_NAME
-    if not d.is_dir():
-        return []
-    return sorted(d.glob(f"{seat}.*.json"))
-
-
 def _record_transcript(rec: dict) -> Path | None:
     """The transcript a rotation record names on its own, or None.
 
@@ -677,11 +670,125 @@ def _record_matches_gen(rec: dict, gen: int) -> bool:
     return False
 
 
+def _record_stamp(path: Path, seat: str) -> str:
+    """The `<stamp>` token of a rotation record's filename:
+    `<seat>.<stamp>[.seating].json` -> `<stamp>`.
+
+    This is the ONE identity both audits print. It is a timestamp, NEVER a
+    generation, because a non-prime post's rotate-self record carries no
+    generation at any depth (hypothesis:l4-the-sensei-audit-verbs-resolve-
+    the-window-by-post-and-record-never-by-b-generation)."""
+    name = path.name
+    if name.startswith(seat + "."):
+        name = name[len(seat) + 1:]
+    if name.endswith(".json"):
+        name = name[:-len(".json")]
+    return name.split(".")[0]
+
+
+def _select_rotation_record(records: list[tuple[Path, dict]], seat: str, *,
+                            record: str | None = None,
+                            gen: int | None = None,
+                            session_id: str | None = None,
+                            gen_match=None,
+                            ) -> tuple[int | None, Path | None, dict | None,
+                                       str]:
+    """Resolve ONE of the seat's rotation records, by RECORD first.
+
+    Order (hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-post-
+    and-record-never-by-b-generation):
+      1. an explicit `--record <stamp>` — an EXACT stamp resolves, a
+         substring that matches exactly one record resolves, and >= 2
+         substring matches REFUSE BY NAME listing every matching stamp; the
+         literal `latest` is normalized to the no-flag default before this
+         step. Never matched against a generation;
+      2. a DEPRECATED `--gen N`, through `gen_match` (the wake side matches
+         `b_generation.after`, the rotate-out side `b_generation.before`) and
+         REFUSING BY NAME when no record carries it — `--gen` is never the
+         default;
+      3. the record whose `handover.join.session_id` matches `session_id` (a
+         non-prime post's own wake record, keyed on the identity its row
+         carries);
+      4. the seat's LATEST rotation record — the same arm `--record latest`
+         takes, session gate included.
+
+    Returns `(idx, path, record, basis)`; on refusal `(None, None, None,
+    reason)` where `reason` names what was looked for. `basis` names the
+    record stamp, never a generation (the `--gen` basis names the stamp too,
+    with the deprecated flag in parentheses)."""
+    if not records:
+        return None, None, None, f"no rotation records for seat {seat!r}"
+    # `latest` is the DEFAULT, spelled out loud: normalize it to "no explicit
+    # record" so it flows through the SAME gen/session gate the no-flag
+    # default does, never short-circuiting past the identity gate
+    # (hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-stamps-by-
+    # name-and-latest-passes-the-session-gate, clause (3)).
+    if record == "latest":
+        record = None
+    if record:
+        # an EXACT stamp resolves with no session gate (an explicit stamp is
+        # explicit). The substring fallback survives only as a DISAMBIGUATOR:
+        # >= 2 matches is ambiguous and refuses BY NAME, listing every
+        # matching stamp, so a half-day stamp can never silently resolve to
+        # the newest record that happens to share it.
+        exact = [t for t in records if _record_stamp(t[0], seat) == record]
+        if exact:
+            path, rec = exact[-1]
+            return records.index(exact[-1]), path, rec, \
+                f"record {_record_stamp(path, seat)}"
+        hits = [t for t in records if record in t[0].name]
+        if len(hits) > 1:
+            stamps = ", ".join(_record_stamp(t[0], seat) for t in hits)
+            return (None, None, None,
+                    f"ambiguous --record {record!r}: matches {len(hits)} "
+                    f"rotation records for seat {seat!r} ({stamps}); pass "
+                    f"the full stamp")
+        if len(hits) == 1:
+            path, rec = hits[0]
+            return records.index(hits[0]), path, rec, \
+                f"record {_record_stamp(path, seat)}"
+        return (None, None, None,
+                f"no rotation record for seat {seat!r} matching "
+                f"--record {record!r}")
+    if gen is not None:
+        match = gen_match or (lambda r: _record_matches_gen(r, gen))
+        for i in range(len(records) - 1, -1, -1):
+            rec = records[i][1]
+            if not match(rec):
+                continue
+            if session_id and not _record_matches_session(rec, session_id):
+                continue
+            path = records[i][0]
+            return (i, path, rec, f"record {_record_stamp(path, seat)} "
+                                   f"(deprecated --gen {gen})")
+        return (None, None, None,
+                f"no rotation record for seat {seat!r} whose b_generation "
+                f"matches {gen} (--gen is a deprecated alias for the record; "
+                f"pass --record <stamp> or no flag at all)")
+    if session_id:
+        # a non-empty session identity is a GATE, not a preference: the only
+        # record on disk belonging to ANOTHER session must refuse by name,
+        # never silently fall back to "latest" (P1, hypothesis:l4-sensei-
+        # wake-audit-keys-on-the-session-not-gen-or-the-prime-ack-name).
+        # `--record latest` reaches this same arm (normalized above), so it
+        # is gated exactly like the no-flag default.
+        for i in range(len(records) - 1, -1, -1):
+            if _record_matches_session(records[i][1], session_id):
+                path, rec = records[i]
+                return i, path, rec, f"record {_record_stamp(path, seat)}"
+        return (None, None, None,
+                f"no rotation record for {seat!r} session {session_id[:8]}")
+    i = len(records) - 1
+    path, rec = records[i]
+    return i, path, rec, f"record {_record_stamp(path, seat)}"
+
+
 def _latest_record(root: Path, seat: str,
                    gen: int | None = None,
                    session_id: str | None = None) -> tuple[Path, dict] | None:
     """The seat's latest rotation record (or the latest matching `gen` /
-    `session_id`).
+    `session_id`). Thin wrapper over `_select_rotation_record` — ONE resolver,
+    never a second copy of the selection rules.
 
     Files are named `<seat>.<UTC timestamp>.json` so sorted name order is time
     order, the same rule `rotate.py status --record latest` uses. Parses JSON;
@@ -692,63 +799,67 @@ def _latest_record(root: Path, seat: str,
     latest by filename order among matches -- so a generation-less post is
     found by its session, never by "latest". `gen` filters the same way and
     with `session_id == ""` is byte-identical to before."""
-    files = _rotation_records(root, seat)
-    if gen is not None or session_id:
-        matches = []
-        for p in reversed(files):
-            try:
-                doc = json.loads(p.read_text(encoding="utf-8"))
-            except Exception:  # noqa: BLE001
-                continue
-            if gen is not None and not _record_matches_gen(doc, gen):
-                continue
-            if session_id and not _record_matches_session(doc, session_id):
-                continue
-            matches.append((p, doc))
-        if not matches:
-            return None
-        return matches[0]
-    for p in reversed(files):
-        try:
-            return p, json.loads(p.read_text(encoding="utf-8"))
-        except Exception:  # noqa: BLE001
-            continue
-    return None
+    _idx, path, rec, _reason = _select_rotation_record(
+        _seat_rotation_records(root, seat), seat,
+        gen=gen, session_id=session_id)
+    if path is None or rec is None:
+        return None
+    return path, rec
+
+
+def _select_wake_record(root: Path, seat: str, gen: int | None,
+                        session_id: str | None,
+                        record: str | None = None,
+                        ) -> tuple[Path | None, dict | None, str]:
+    """`_select_rotation_record` with the wake side's `--gen` predicate
+    (`b_generation.after` / top-level `gen_after`). ONE call site for both
+    `_resolve_wake_transcript` and the CLI header, so the record the report
+    names is the record the audit read."""
+    _i, path, rec, reason = _select_rotation_record(
+        _seat_rotation_records(root, seat), seat,
+        record=record, gen=gen, session_id=session_id,
+        gen_match=(lambda r: _record_matches_gen(r, gen))
+        if gen is not None else None)
+    return path, rec, reason
 
 
 def _resolve_wake_transcript(root: Path, seat: str, gen: int | None,
                              transcript_path: Path | None,
-                             session_id: str | None = None) -> tuple[Path | None, str]:
+                             session_id: str | None = None,
+                             record: str | None = None
+                             ) -> tuple[Path | None, str]:
     """The transcript the wake audit reads, in the g15 order:
 
       1. an explicit `--transcript PATH` (must exist)
-      2. the seat's rotation record — a non-empty `session_id` (a non-prime
-         post's row) selects the record whose `handover.join.session_id`
-         matches; `--gen N` selects the record for gen N; neither means the
-         LATEST record — via the record's OWN
-         `session_log`/session id. The env / newest-.jsonl fallbacks of
-         `rotate.resolve_transcript` are UNREACHABLE here by construction.
+      2. the seat's rotation record, resolved by RECORD (`_select_rotation_
+         record`): an explicit `--record <stamp>`, else the DEPRECATED
+         `--gen N`, else the record whose `handover.join.session_id` matches
+         the seat's own identity, else the LATEST record — via the record's
+         OWN `session_log`/join/top-level spellings. The env /
+         newest-.jsonl fallbacks of `rotate.resolve_transcript` are
+         UNREACHABLE here by construction.
 
-    Returns `(path, source)`. `(None, source)` means the record/transcript was
-    absent; `source` names it so the caller can refuse with the name (never a
-    silent fall-through)."""
+    Returns `(path, source, rec_path)`. `(None, source)` means the
+    record/transcript was absent; `source` names it so the caller can refuse
+    with the name (never a silent fall-through). `rec_path` is the resolved
+    record (`None` for an explicit `--transcript`), handed back so the CLI
+    can PRINT the stamp the audit resolved instead of resolving it a second
+    time (hypothesis:l4-the-sensei-record-selector-refuses-ambiguous-stamps-
+    by-name-and-latest-passes-the-session-gate)."""
     if transcript_path is not None:
         lp = Path(transcript_path).expanduser().resolve()
-        return (lp, "explicit") if lp.exists() else (None, "explicit-missing")
-    rec = _latest_record(root, seat, gen=gen, session_id=session_id)
-    if rec is None:
-        if session_id:
-            return None, (f"no rotation record for {seat!r} session "
-                          f"{session_id[:8]}")
-        if gen is not None:
-            return None, f"no rotation record for {seat!r} gen {gen}"
-        return None, f"no rotation record for seat {seat!r}"
-    rec_path, doc = rec
+        if lp.exists():
+            return lp, "explicit", None
+        return None, "explicit-missing", None
+    rec_path, doc, reason = _select_wake_record(root, seat, gen, session_id,
+                                                record)
+    if rec_path is None:
+        return None, reason, None
     src = f"record:{rec_path.name}"
     lp = _record_transcript(doc)
     if lp is None:
-        return None, f"{src} names no transcript"
-    return lp, src
+        return None, f"{src} names no transcript", rec_path
+    return lp, src, rec_path
 
 
 def _is_protocol_learning(cmd: str, tool: str) -> bool:
@@ -1200,16 +1311,18 @@ def _is_row_commit(cmd: str) -> bool:
 
 
 def wake_audit(root: Path, seat: str, gen: int | None,
-               transcript_path: Path | None) -> tuple[int, list[dict], dict]:
+               transcript_path: Path | None,
+               record: str | None = None) -> tuple[int, list[dict], dict]:
     """Run the classification over the seat's wake transcript.
 
     Returns `(exit_code, per_call_rows, counts)` so the CLI body and the tests
     share one implementation. Reads the LIVE config:rotations template AND the
     `## facts` bullets for the seat's role. The transcript is resolved in the
-    g15 order (explicit --transcript, else the seat's LATEST rotation record's
-    own session_log — never the env / newest-.jsonl fallbacks). The window
-    runs from the first assistant tool_use to the first call classifiable as
-    real work (category d, excluded); service-owed (s) calls never cut it."""
+    g15 order (explicit --transcript, else the seat's rotation record, by
+    RECORD: `record=`/`_select_wake_record` — never the env / newest-.jsonl
+    fallbacks). The window runs from the first assistant tool_use to the first
+    call classifiable as real work (category d, excluded); service-owed (s)
+    calls never cut it."""
     rows = load_seats(root)
     row = seat_row(rows, seat)
     if row is None:
@@ -1236,8 +1349,8 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     hand_paths = _hand_read_paths(entries, facts, seat, session_id)
     after_join = _extract_after_join(fm, role)
 
-    log_path, source = _resolve_wake_transcript(root, seat, gen,
-                                               transcript_path, session_id)
+    log_path, source, rec_path = _resolve_wake_transcript(
+        root, seat, gen, transcript_path, session_id, record)
     if log_path is None:
         print(f"ERR: cannot audit a wake for seat {seat!r}: {source}; "
               f"pass --transcript PATH or let the seat's rotation record "
@@ -1306,6 +1419,29 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     for c in window_calls:
         window_counts[c["cat"]] += 1
     window_counts["window_reason"] = reason
+    # the resolved RECORD identity travels WITH the report: the CLI prints
+    # this stamp, so `cmd_wake_audit` never re-resolves (ONE call site, the
+    # record the report names is the record the audit read).
+    window_counts["record"] = (_record_stamp(rec_path, seat)
+                               if rec_path is not None else None)
+    window_counts["record_reason"] = source
+    # the write-back identity travels WITH the report, exactly as the record
+    # stamp does: the record PATH the audit itself read (never re-resolved),
+    # the transcript path, and the call count / bounds of the window. Private
+    # keys so a reader that binds the a/b/c/d/s buckets is unaffected.
+    window_counts["_record_path"] = (str(rec_path) if rec_path is not None
+                                     else None)
+    window_counts["_transcript"] = str(log_path)
+    window_counts["_calls"] = len(window_calls)
+    # the bounds travel in the ONE shared shape (named keys, null where this
+    # side has no such measure), same as the rotate-out side.
+    window_counts["_window_start"] = audit_window_point(call_index=1)
+    window_counts["_window_end"] = audit_window_point(call_index=window_end)
+    # the floor comes from the config:rotations CELL this verb already read;
+    # a missing/malformed cell is NAMED on the result line, never silent.
+    floors = _audit_floors(fm)
+    window_counts["_floor"] = floors["wake"]
+    window_counts["_floor_misses"] = floors["_misses"]
     return 0, window_calls, window_counts
 
 
@@ -1344,15 +1480,319 @@ def redact_text(s: str) -> str:
     return text
 
 
+# ── audit record write-back ───────────────────────────────────────────────
+# hypothesis:l4-the-sensei-audit-verbs-write-their-result-into-the-rotation-
+# record-and-name-a-finding-only-over-the-floor: both audit verbs write their
+# result INTO the audited rotation record under one top-level `audit` key and
+# print ONE line naming the finding only when the window is over the floor.
+# The dm to the Prime stays a Sensei act -- the verb never sends one.
+
+# The owner's floors live in config:rotations as the frontmatter CELLS
+# `floor_wake` / `floor_out` (doc:l4-owner-decisions, owner 2026-09-12 03:2xZ,
+# verbatim: "floor of 1 call when rotating out and 0 calls on wake").
+# `_audit_floors` reads those cells; this dict is the ONLY fallback, and it is
+# reached only when `config:rotations` exists but a cell is missing or
+# unreadable. It carries the owner's numbers explicitly rather than inventing
+# 0/1 from nowhere, and it is NOT a second live copy: when the cell is present
+# it always wins (hypothesis:l4-a-started-record-keeps-its-audit-and-the-verb-
+# commits-what-it-wrote, part (b)).
+FALLBACK_AUDIT_FLOOR = {"wake": 0, "out": 1}
+
+
+def _audit_floors(fm: str) -> dict:
+    """`{"wake": N, "out": M, "_misses": [cell,...]}` from config:rotations.
+
+    `_read_rotations` already hands both audit verbs the frontmatter text, so
+    the floors are read where they are declared and never carried as a second
+    live copy in this file. A missing/unparseable cell falls back to the
+    owner's number recorded in `FALLBACK_AUDIT_FLOOR`, and the cell NAME
+    travels back on `_misses` so the verb's result line can name it -- a
+    silent fallback was the `cell nothing reads` trap. Never raises.
+    """
+    out = dict(FALLBACK_AUDIT_FLOOR)
+    misses: list[str] = []
+    for side, cell in (("wake", "floor_wake"), ("out", "floor_out")):
+        m = re.search(rf"^{cell}:\s*(-?\d+)\s*$", fm or "", re.M)
+        if m:
+            out[side] = int(m.group(1))
+        else:
+            misses.append(cell)
+    out["_misses"] = misses
+    return out
+
+
+class AuditRefusal(Exception):
+    """The audit verb refuses BY NAME before the rewrite: nothing was
+    written, the caller exits non-zero, and the message is greppable."""
+
+
+#: The exact string the verb prints when the resolved record still reads
+#: `result: started`. The wake audit lands ~20 s after the join and the
+#: record turns success ~60 s later, so an audit of the STARTED bytes would
+#: be dropped by the outcome rewrite; the verb refuses instead of sleeping.
+STARTED_REFUSAL = "record still STARTED; audit after the outcome"
+
+
+def audit_window_point(call_index=None, line=None, ts=None) -> dict:
+    """ONE shape for an audit window's bounds, both sides.
+
+    Before this, `window_start`/`window_end` carried DIFFERENT units under the
+    same key names (wake: 1-based call indexes; out: a transcript line index
+    and an ISO timestamp), so a reader could not tell which it held. Every
+    bound is now this dict with all three named keys present, `null` where
+    that side has no such measure: `call_index` (1-based index over the calls
+    scanned), `line` (0-based transcript line offset), `ts` (ISO-8601 UTC)."""
+    return {"call_index": call_index, "line": line, "ts": ts}
+
+
+def audit_payload(side: str, calls: int, counts: dict, transcript: str,
+                  window_start, window_end, floor: int | None = None) -> dict:
+    """The `audit[side]` payload: the counts the audit measured, the floor it
+    is measured against, the excess over that floor, and the identity of the
+    window it read (record stamp, transcript, bounds). `calls` is the number
+    of tool_use calls INSIDE the audit window -- the same number the printed
+    line reports, never a second count. `floor` is the config:rotations cell
+    the verb resolved; `None` (a direct caller) uses the recorded fallback."""
+    if floor is None:
+        floor = FALLBACK_AUDIT_FLOOR[side]
+    floor = int(floor)
+    a, b, c, d = (int(counts.get(k, 0)) for k in ("a", "b", "c", "d"))
+    # the wake window EXCLUDES the cut call (d): only a/b/c span it (the
+    # verb's own note). The out window keeps the full call count -- its floor
+    # 1 IS the rotate and d there is the genuine decision. ONE rule; the
+    # printed line and this payload compute the excess the same way.
+    measured = a + b + c if side == "wake" else int(calls)
+    return {
+        "calls": int(calls),
+        "a": a,
+        "b": b,
+        "c": c,
+        "d": d,
+        "floor": floor,
+        "excess": max(0, measured - floor),
+        "transcript": transcript,
+        "window_start": window_start,
+        "window_end": window_end,
+        "audited_at": datetime.datetime.now(
+            datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "audited_by": SENSEI,
+    }
+
+
+def audit_finding_line(seat: str, side: str, record_stamp: str | None,
+                       calls: int, floor: int, counts: dict | None = None,
+                       floor_misses=None) -> str:
+    """The ONE line the owner asked for. `excess == 0` is `green`; anything
+    over the floor is a `FINDING` naming the excess and the floor. Every
+    spelling of the line names the RECORD stamp, never a generation. The wake
+    excess is a+b+c (the cut call d is excluded); the out excess is the full
+    call count. A fallback floor names the missing config cell it replaced."""
+    stamp = record_stamp if record_stamp else "?"
+    measured = int(calls)
+    if side == "wake" and counts is not None:
+        measured = sum(int(counts.get(k, 0)) for k in ("a", "b", "c"))
+    excess = max(0, measured - int(floor))
+    miss = (f" [MISS {'/'.join(floor_misses)} -> fallback {int(floor)}]"
+            if floor_misses else "")
+    if excess == 0:
+        return (f"green {seat} {side} --record {stamp} {calls} "
+                f"(floor {int(floor)}{miss})")
+    return (f"FINDING {seat} {side} --record {stamp} excess {excess} "
+            f"over floor {int(floor)}{miss}")
+
+
+def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
+    """Read-modify-write the ONE top-level `audit` key of a rotation record.
+
+    `rotate.py` writes every rotation record as
+    `json.dumps(record, indent=2) + "\n"` (rotate.py:4566,5304), so parsing
+    and re-dumping with the SAME call is byte-preserving for every other key.
+    `audit` is assigned LAST, so a fresh record gains the key after its
+    existing keys; on a re-run the existing `audit` dict keeps its position
+    and only its OWN side is replaced -- a re-run replaces its side and never
+    grows or duplicates the record.
+
+    TWO runtime preconditions refuse BY NAME (raise `AuditRefusal`, write
+    nothing) rather than producing a record the outcome rewrite would drop or
+    a diff would misread:
+
+    * `result: started` -- the outcome rewrite is ~60 s out and an audit of
+      the started bytes is dropped by construction; refuse instead of sleep.
+    * the bytes are not rotate.py's canonical form -- a whole-record reflow
+      formats away exactly the bytes a grid diff reads."""
+    p = Path(rec_path)
+    raw = p.read_text(encoding="utf-8")
+    rec = json.loads(raw)
+    if not isinstance(rec, dict):
+        raise ValueError(f"rotation record {p} is not a JSON object")
+    if rec.get("result") == "started":
+        raise AuditRefusal(f"{STARTED_REFUSAL} -- {p.name}")
+    if json.dumps(rec, indent=2) + "\n" != raw:
+        raise AuditRefusal(
+            f"rotation record {p.name} is not in rotate.py's canonical byte "
+            f"form; refusing to reflow it (audit after normalize)")
+    audit = rec.get("audit")
+    if not isinstance(audit, dict):
+        audit = {}
+    audit[side] = payload
+    rec["audit"] = audit
+    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _unstage_audit_record(top, rel: str) -> None:
+    """Unstage the audited record after a commit that did NOT land.
+
+    A `git add` that is never committed leaves the record STAGED in the
+    shared index -- `A  <rel>` -- which the next author's commit could sweep
+    in (goal:g4.1). Never raises: the commit outcome is the caller's to name.
+    """
+    try:
+        subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
+                       capture_output=True, text=True, timeout=10)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _commit_audit_record(root: Path, rec_path, *, seat: str, side: str,
+                         stamp: str | None, line: str) -> tuple[str, str]:
+    """Commit the audited record as ITS OWN one-pathspec commit (g17.1: the
+    Sensei commits the audited record by exact path in the same turn).
+
+    Returns `(status, printed_line)`, status in COMMITTED / SKIPPED /
+    REFUSED / FAILED -- a REFUSED or FAILED commit makes the verb exit
+    non-zero, so a dropped audit is never silent. An UNTRACKED record is
+    `git add`ed then committed alone (one record, one commit): the audit
+    wrote it, so leaving it dirty is the defect. Best-effort: never raises.
+    """
+    try:
+        graph = rotate._shared_graph_root(Path(root))
+        top = rotate._git_toplevel(graph) or rotate._git_toplevel(Path(root))
+    except Exception:  # noqa: BLE001
+        top = None
+    if top is None:
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 no git repo; "
+                "the audit rewrite stays uncommitted (gitless fixture/root)")
+    rp = Path(rec_path)
+    if not rp.exists():
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 no rotation "
+                "record to commit")
+    try:
+        rel = str(rp.resolve().relative_to(top.resolve()))
+    except ValueError:
+        return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record lies "
+                "outside the git repo")
+    merge = subprocess.run(
+        ["git", "-C", str(top), "rev-parse", "-q", "--verify", "MERGE_HEAD"],
+        capture_output=True, text=True, timeout=10)
+    if merge.returncode == 0:
+        return ("REFUSED", f"audit_record_commit: REFUSED \u2014 merge in "
+                f"progress (MERGE_HEAD present); {rel} left uncommitted")
+    tracked = subprocess.run(
+        ["git", "-C", str(top), "ls-files", "--error-unmatch", "--", rel],
+        capture_output=True, text=True, timeout=10)
+    if tracked.returncode != 0:
+        add = subprocess.run(["git", "-C", str(top), "add", "--", rel],
+                             capture_output=True, text=True, timeout=10)
+        if add.returncode != 0:
+            return ("REFUSED", f"audit_record_commit: REFUSED \u2014 {rel} is "
+                    f"not tracked by git and could not be added; nothing "
+                    f"committed")
+    msg = f"audit record: {seat} {side} {stamp or '?'} \u2014 {line}"
+    try:
+        cm = subprocess.run(
+            ["git", "-C", str(top), "commit", "-q", "-o", "-m", msg,
+             "--", rel], capture_output=True, text=True, timeout=30)
+        if cm.returncode != 0:
+            # index-vs-HEAD, NEVER worktree-vs-index: right after `git add`
+            # the worktree and the index are identical, so `git diff --quiet`
+            # read a REFUSED commit as "already clean" and returned SKIPPED --
+            # exit 0 and `A  <rel>` left staged in the shared index (P7).
+            staged = subprocess.run(
+                ["git", "-C", str(top), "diff", "--cached", "--quiet",
+                 "--", rel], capture_output=True, text=True, timeout=10)
+            worktree = subprocess.run(
+                ["git", "-C", str(top), "diff", "--quiet", "--", rel],
+                capture_output=True, text=True, timeout=10)
+            # `already clean` means the commit had NOTHING to commit: no
+            # staged change AND no worktree change. A TRACKED record gets no
+            # `git add` (index==HEAD) while the audit dirty-ed the WORKTREE,
+            # so index-clean alone read a REFUSED commit as SKIPPED -- exit 0
+            # with ` M <rel>` left behind (P8). Any surviving difference in
+            # EITHER half is REFUSED.
+            if staged.returncode == 0 and worktree.returncode == 0:
+                return ("SKIPPED", "audit_record_commit: SKIPPED \u2014 record "
+                        "already clean after the rewrite")
+            _unstage_audit_record(top, rel)
+            return ("REFUSED", f"audit_record_commit: REFUSED \u2014 "
+                    f"{(cm.stderr or cm.stdout or '').strip()}; {rel} left "
+                    f"uncommitted")
+        sha = ""
+        try:
+            out = subprocess.run(
+                ["git", "-C", str(top), "rev-parse", "--short", "HEAD"],
+                capture_output=True, text=True, timeout=10)
+            sha = (out.stdout or "").strip()
+        except Exception:  # noqa: BLE001
+            sha = ""
+        return ("COMMITTED", f"audit_record_commit: committed (sha {sha}) "
+                f"\u2014 {rel}")
+    except Exception as exc:  # noqa: BLE001
+        _unstage_audit_record(top, rel)
+        return ("FAILED", f"audit_record_commit: FAILED \u2014 {exc}")
+
+
+def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
+                 rec_path, stamp: str | None, transcript: str,
+                 window_start, window_end, no_record: bool,
+                 floor: int | None = None,
+                 floor_misses: list | None = None) -> tuple[str, str | None]:
+    """Write the result into the audited record (unless `--no-record`) and
+    return `(line, commit_status)`. The write is keyed on the record PATH the
+    audit itself resolved -- never a second selector call that could name a
+    different record. On a real write the audited record is committed by
+    exact path in the same turn; the commit outcome is printed as its own
+    line (`audit_record_commit: ...`) and its STATUS is returned so the verb's
+    exit code carries a REFUSED/FAILED commit.
+
+    Raises `AuditRefusal` (from `write_audit_into_record`) BEFORE the rewrite
+    when the record is still STARTED or is not byte-canonical; the verb's
+    caller turns that into a non-zero exit with the named reason."""
+    if floor is None:
+        floor = FALLBACK_AUDIT_FLOOR[side]
+    line = audit_finding_line(seat, side, stamp, calls, floor, counts,
+                              floor_misses)
+    payload = audit_payload(side, calls, counts, transcript,
+                            window_start, window_end, floor)
+    status = None
+    if rec_path is not None and not no_record:
+        write_audit_into_record(rec_path, side, payload)
+        status, cline = _commit_audit_record(root, rec_path, seat=seat,
+                                             side=side, stamp=stamp, line=line)
+        print(cline)
+    return line, status
+
+
 def cmd_wake_audit(root: Path, args) -> int:
     code, calls, counts = wake_audit(root, args.seat, args.gen,
-                                     Path(args.transcript) if args.transcript else None)
+                                     Path(args.transcript) if args.transcript else None,
+                                     record=getattr(args, "record", None))
     if code != 0:
         return code
     redact = getattr(args, "redact", True)
-    gen_label = args.gen if args.gen is not None else "latest"
-    print(f"sensei.py wake-audit --seat {args.seat} --gen {gen_label} "
-          f"(role {seat_row(load_seats(root), args.seat)['role']})")
+    row = seat_row(load_seats(root), args.seat)
+    # the printed identity is the RECORD stamp, never a generation, and it is
+    # the stamp `wake_audit` itself resolved and carried back on `counts` --
+    # no second `_select_wake_record` call that could name a record the
+    # window did not read (hypothesis:l4-the-sensei-record-selector-refuses-
+    # ambiguous-stamps-by-name-and-latest-passes-the-session-gate).
+    if args.transcript:
+        ident = f"--transcript {args.transcript}"
+    elif counts.get("record") is not None:
+        ident = f"--record {counts['record']}"
+    else:
+        ident = f"--record ? ({counts.get('record_reason', '?')})"
+    print(f"sensei.py wake-audit --seat {args.seat} {ident} "
+          f"(role {row['role']})")
     print(f"window: first assistant tool_use -> ack / first real work "
           f"({len(calls)} calls scanned, {counts.get('window_reason', '?')})")
     print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} d={counts['d']}")
@@ -1368,7 +1808,22 @@ def cmd_wake_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {summary}{lbl}")
     if not calls:
         print("  (no assistant tool_use found in the transcript)")
-    return 0
+    # the audit result goes INTO the audited rotation record and one line
+    # names it: green under the floor, FINDING over it (owner 13:5xZ).
+    try:
+        line, status = finish_audit(
+            root, args.seat, "wake", counts.get("_calls", len(calls)), counts,
+            counts.get("_record_path"), counts.get("record"),
+            counts.get("_transcript", ""),
+            counts.get("_window_start") or audit_window_point(call_index=1),
+            counts.get("_window_end"), getattr(args, "no_record", False),
+            floor=counts.get("_floor"),
+            floor_misses=counts.get("_floor_misses"))
+    except AuditRefusal as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 3
+    print(line)
+    return 4 if status in ("REFUSED", "FAILED") else 0
 
 
 # ── calls ─────────────────────────────────────────────────────────────────
@@ -1501,8 +1956,9 @@ def cmd_calls(args) -> int:
 # transcript (that one is the successor's).
 
 
-# (merge SL1.01 x L4.240: renamed from `_rotation_records` — the wake-audit side
-#  defines a Path-list reader under that name; this one returns (path, record).)
+# (merge SL1.01 x L4.240: renamed from `_rotation_records`. The wake-audit
+#  side's same-named Path-list reader was DEAD and is deleted — this is the one
+#  rotation-record reader, returning (path, record).)
 def _seat_rotation_records(root: Path, seat: str) -> list[tuple[Path, dict]]:
     """`(path, record)` for every rotation record whose `seat` field equals
     `seat`, sorted by record filename (the timestamp-ordered glob). Matches
@@ -1564,54 +2020,44 @@ def _fallback_pids(rec: dict) -> list[int]:
 
 
 def _resolve_predecessor_transcript(
-        root: Path, seat: str, gen: int, records: list[tuple[Path, dict]],
+        root: Path, seat: str, records: list[tuple[Path, dict]], idx: int,
         explicit: str | None,
         registry_dir: str | None = None) -> tuple[Path | None, str]:
-    """Resolve the OUTGOING predecessor's transcript `--gen N`.
+    """Resolve the OUTGOING predecessor's transcript for the SELECTED record
+    `records[idx]` (hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-
+    by-post-and-record-never-by-b-generation — keyed on the record, never on
+    a generation).
 
     Resolution order (never the newest slug-dir transcript — that one is the
     successor's, and it would be a named false positive): (1) explicit
-    `--transcript`; (2) the previous record of the same seat whose
-    `b_generation.after == N` (or the top-level `gen_after == N` a first-
-    SEATING record carries) — it carries gen N's transcript through
-    `_record_transcript`'s full precedence chain (`session_log` >
-    `handover.join.transcript` > top-level `transcript_path` > a `.jsonl`
-    `observations.c_readback_log_path`), so a predecessor seated by a first
-    seating resolves and the join-absent shape is not a silent miss;
-    (3) `~/.claude/sessions/<pid>.json` for a pid in the
-    OUTGOING record's `s12_self_reap.chain` (the ONE reap section — the
-    `handover.reap_own_pid` stand-in is retired, g15.25 (c)), resolved
-    through `rotate.transcript_from_registry` (the registry file is content,
-    never itself the transcript — returning it would read 0 calls and exit 0,
-    a silent false negative).
+    `--transcript`; (2) the NEAREST EARLIER record of the same seat that names
+    a transcript — that record is the rotation which SEATED the predecessor,
+    so its `handover.join.transcript` (or, on a first-seating record, its
+    top-level `transcript_path`) IS the predecessor's own; a nearer record
+    that names none (a crash-recovery rotation that never joined) is skipped
+    rather than turned into a silent miss; (3) `~/.claude/sessions/<pid>.json`
+    for a pid in the SELECTED record's `s12_self_reap.chain` (the ONE reap
+    section), resolved through `rotate.transcript_from_registry` (the registry
+    file is content, never itself the transcript — returning it would read 0
+    calls and exit 0, a silent false negative).
     Returns `(path|None, reason)`. A registry file that parses and NAMES a
     derived transcript that is absent resolves to `(None, "registry <f> names
     <p>")` — a NAMED REFUSAL the caller must print (never a quiet `0 calls`)."""
     if explicit:
         return Path(explicit), "explicit --transcript"
-    for _p, rec in records:
-        # `_record_matches_gen` reads BOTH spellings the producer writes:
-        # `observations.b_generation.after` (a rotate-self record) AND the
-        # TOP-LEVEL `gen_after` a first-SEATING record carries
-        # (rotate._seating_record). Reusing it is why a predecessor that was
-        # seated by a first seating is found at all.
-        if not _record_matches_gen(rec, gen):
-            continue
-        # ... and then the SAME precedence chain `_record_transcript` applies:
-        # `handover.join.transcript` wins WHEN PRESENT, and the top-level
-        # `transcript_path` is the fallback when the join spelling is ABSENT
-        # (the near-miss shape rotate._seating_record_merge_handover leaves
-        # behind: `handover` present, `join` absent). One resolver, not two.
-        p = _record_transcript(rec)
+    # (2) walk BACK from the selected record: the rotation that seated the
+    # predecessor wrote the record just before it, and ITS join names the
+    # predecessor's transcript. Positional by construction (one record per
+    # rotation), never inferred from a generation the record may not carry.
+    for k in range(idx - 1, -1, -1):
+        prev_path, prev = records[k]
+        p = _record_transcript(prev)
         if p is not None:
-            return (p, f"previous record gen_after=={gen} "
-                       f"{_transcript_spelling(rec)}")
-    # fallback: the pid chain of the record that rotated gen N out
-    out_rec = next((rec for _p, rec in records
-                    if (rec.get("observations", {}).get("b_generation", {})
-                        or {}).get("before") == gen
-                    or rec.get("b_generation", {}).get("before") == gen),
-                   None)
+            return (p, f"previous record {_record_stamp(prev_path, seat)} "
+                       f"{_transcript_spelling(prev)}")
+    # fallback: the pid chain of the SELECTED record (the one whose
+    # recorded_at bounds the window).
+    out_rec = records[idx][1] if 0 <= idx < len(records) else None
     reg_dir = Path(registry_dir or rotate.REGISTRY_DEFAULT_DIR).expanduser()
     for pid in _fallback_pids(out_rec) if out_rec else []:
         cand = reg_dir / f"{pid}.json"
@@ -1630,20 +2076,25 @@ def _resolve_predecessor_transcript(
 
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
                      transcript_path: Path | None,
-                     registry_dir: str | None = None
+                     registry_dir: str | None = None,
+                     record: str | None = None
                      ) -> tuple[int, list[dict], dict, dict]:
     """Classify the outgoing predecessor's calls from its last real input to
     the record's `recorded_at` (mirror of `wake_audit`).
 
     Returns `(exit_code, per_call_rows, counts, window)`. Reuses
     `classify_call`/`_iter_tool_uses`/_is_protocol_learning — refactored
-    shared, never copied. `--gen` defaults to the latest record's
-    `b_generation.before` (the most recent rotation). Window = every
-    assistant tool_use after the last real user turn AT OR BEFORE the record's
-    `recorded_at`, up to `recorded_at` (NOT the transcript end — a farewell
-    turn and its calls after the rotation are excluded, belam gen IX);
-    category (d) rows are the genuine decisions (card edit, rotate-self,
-    ack, one-line report) and are NOT a cut point here."""
+    shared, never copied. The window is resolved by RECORD, never by a
+    generation (hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-
+    post-and-record-never-by-b-generation): no flag selects the seat's LATEST
+    rotation record, `record=<stamp>` names one exactly, and `--gen N` is a
+    DEPRECATED alias that resolves through `b_generation.before` and refuses
+    by name otherwise. Window = every assistant tool_use after the last real
+    user turn AT OR BEFORE the record's `recorded_at`, up to `recorded_at`
+    (NOT the transcript end — a farewell turn and its calls after the rotation
+    are excluded, belam gen IX); category (d) rows are the genuine decisions
+    (card edit, rotate-self, ack, one-line report) and are NOT a cut point
+    here."""
     rows = load_seats(root)
     row = seat_row(rows, seat)
     if row is None:
@@ -1682,25 +2133,24 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
               f"{seat!r}", file=sys.stderr)
         return 2, [], {}, {}
 
-    if gen is None:
-        gen = _gen_bounds(records[-1][1])[0]
-        if gen is None:
-            print("ERR: cannot default --gen: the latest record has no "
-                  "b_generation.before", file=sys.stderr)
-            return 2, [], {}, {}
-
-    # the record that rotated gen N OUT narrows resolution + gives recorded_at
-    out_rec = next((rec for _p, rec in records
-                    if _gen_bounds(rec)[0] == gen), None)
-    if out_rec is None:
-        print(f"ERR: no rotation record with b_generation.before == {gen} "
-              f"for seat {seat!r}", file=sys.stderr)
+    rec_idx, rec_path, out_rec, basis = _select_rotation_record(
+        records, seat, record=record, gen=gen,
+        gen_match=(lambda r: _gen_bounds(r)[0] == gen)
+        if gen is not None else None)
+    if rec_path is None:
+        print(f"ERR: {basis}", file=sys.stderr)
         return 2, [], {}, {}
+    out_rec = out_rec or {}
+    record_stamp = _record_stamp(rec_path, seat)
+    # `window['gen']` is kept for readers that already hold it; it is the
+    # record's OWN generation when the record carries one and None otherwise.
+    # It is never what the window is keyed on.
+    gen_out = _gen_bounds(out_rec)[0]
     recorded_at = out_rec.get("recorded_at") or ""
     until_ts = recorded_at or None
 
     log_path, source = _resolve_predecessor_transcript(
-        root, seat, gen, records,
+        root, seat, records, rec_idx,
         str(transcript_path) if transcript_path else None,
         registry_dir=registry_dir)
     if log_path is None:
@@ -1708,7 +2158,7 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
             print(f"ERR: {source}, absent", file=sys.stderr)
         else:
             print(f"ERR: no predecessor transcript resolved for seat {seat!r} "
-                  f"gen {gen} ({source}); pass --transcript PATH",
+                  f"record {record_stamp} ({source}); pass --transcript PATH",
                   file=sys.stderr)
         return 2, [], {}, {}
     if not log_path.is_file():
@@ -1725,9 +2175,14 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label})
         counts[cat] += 1
-    window = {"gen": gen, "start_line": start_idx, "start_ts": start_ts,
+    floors = _audit_floors(fm)
+    window = {"gen": gen_out, "record": record_stamp, "basis": basis,
+              "record_path": str(rec_path),
+              "start_line": start_idx, "start_ts": start_ts,
               "recorded_at": recorded_at, "source": source,
               "log_path": str(log_path),
+              "floor": floors["out"],
+              "floor_misses": floors["_misses"],
               "window_reason": "predecessor window, bounded by record (rotate-out; "
                               "d is the decision, not a cut)"}
     return 0, calls, counts, window
@@ -1737,12 +2192,17 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     code, calls, counts, window = rotate_out_audit(
         root, args.seat, args.gen,
         Path(args.transcript) if args.transcript else None,
-        registry_dir=args.registry_dir)
+        registry_dir=args.registry_dir,
+        record=getattr(args, "record", None))
     if code != 0:
         return code
     row = seat_row(load_seats(root), args.seat)
-    print(f"sensei.py rotate-out-audit --seat {args.seat} --gen {window['gen']} "
-          f"(role {row['role']})")
+    # every printed line names the RECORD stamp, never a generation
+    print(f"sensei.py rotate-out-audit --seat {args.seat} --record "
+          f"{window['record']} (role {row['role']})")
+    if args.gen is not None:
+        print(f"  (--gen is a deprecated alias: resolved to record "
+              f"{window['record']})")
     print(f"predecessor transcript: {window['log_path']} "
           f"({window['source']})")
     end = window["recorded_at"]
@@ -1758,7 +2218,22 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
     if not calls:
         print("  (no assistant tool_use after the last real input)")
-    return 0
+    # the audit result goes INTO the audited rotation record and one line
+    # names it: green under the floor, FINDING over it (owner 13:5xZ).
+    try:
+        line, status = finish_audit(
+            root, args.seat, "out", len(calls), counts, window["record_path"],
+            window["record"], window["log_path"],
+            audit_window_point(line=window["start_line"],
+                               ts=window["start_ts"] or None),
+            audit_window_point(ts=window["recorded_at"] or None),
+            getattr(args, "no_record", False), floor=window.get("floor"),
+            floor_misses=window.get("floor_misses"))
+    except AuditRefusal as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 3
+    print(line)
+    return 4 if status in ("REFUSED", "FAILED") else 0
 
 
 # ── apply_note (the one place write.py can be reached from) ──────────────
@@ -1897,9 +2372,16 @@ def main(argv: list[str] | None = None) -> int:
                         help="classify a rotation wake's tool calls")
     p.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     p.add_argument("--gen", type=int, default=None,
-                   help="rotation-record generation to audit (default: the "
-                        "seat's LATEST rotation record; the transcript comes "
-                        "from that record's own session_log)")
+                   help="DEPRECATED alias for --record: the rotation record "
+                        "whose b_generation.after matches N (a first-seating "
+                        "record's top-level gen_after counts); refuses by "
+                        "name when no record carries it, and is NEVER the "
+                        "default")
+    p.add_argument("--record", default=None,
+                   help="rotation record to audit, by the stamp token of "
+                        "<seat>.<stamp>.json (or 'latest', the default: the "
+                        "seat's latest rotation record). The record, never "
+                        "a generation, is the identity")
     p.add_argument("--transcript", default=None,
                    help="explicit transcript path (overrides the seat's "
                         "rotation record; env/newest-.jsonl are never used)")
@@ -1907,19 +2389,32 @@ def main(argv: list[str] | None = None) -> int:
                    default=True,
                    help="mask keys/emails/message bodies in the printed "
                         "report (default ON; --no-redact for a local raw view)")
+    p.add_argument("--no-record", action="store_true",
+                   help="dry read: print the audit line and write NOTHING "
+                        "into the rotation record")
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
     p.add_argument("--seat", "--post", action=geometry_config.SeatAction, required=True)
     p.add_argument("--gen", type=int, default=None,
-                   help="generation that ROTATED OUT (default: the latest "
-                        "record's b_generation.before)")
+                   help="DEPRECATED alias for --record: the rotation record "
+                        "whose b_generation.before matches N; refuses by name "
+                        "when no record carries it, and is NEVER the default")
+    p.add_argument("--record", default=None,
+                   help="rotation record to audit, by the stamp token of "
+                        "<seat>.<stamp>.json (or 'latest', the default: the "
+                        "seat's latest rotation record, whose recorded_at "
+                        "bounds the window and whose nearest earlier record "
+                        "names the predecessor's transcript)")
     p.add_argument("--transcript", default=None,
                    help="explicit predecessor transcript path (else resolved "
                         "from the rotation records)")
     p.add_argument("--registry-dir", default=None,
                    help="registry dir to fall back through (default: "
                         "rotate.REGISTRY_DEFAULT_DIR)")
+    p.add_argument("--no-record", action="store_true",
+                   help="dry read: print the audit line and write NOTHING "
+                        "into the rotation record")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)

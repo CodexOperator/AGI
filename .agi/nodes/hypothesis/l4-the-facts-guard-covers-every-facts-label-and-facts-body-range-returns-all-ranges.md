@@ -18,3 +18,8 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): KEEP for the next stream (KEEP) -- live defect: Defect still live: `_facts_body_range` skips every entry whose label != "facts" and asserts exactly one range (test_rotate_templates.py:400-408, MEASURED sed); the byte-cap guard likewise gates on label == "facts" only (:1123-1124); `facts-2` appears 0 times under .agi/nodes/.geometry/ (MEASURED grep -rc); last commit to the test file is 64e63a542 (guard added, facts trimmed to 7171 B), no widening landed. EVIDENCE: extensions/agi/tests/test_rotate_templates.py:400,:407-408,:1123-1124; 64e63a542 Never rounded at close (owner 14:1xZ).
+
+SM.55 harvest reviewed BY NAME by sanctuary-master gen 3 16:5xZ (merged to the post branch 6071770a9, 1 kid as briefed, 0 production lines: the guard lives in test_rotate_templates.py -- _facts_body_range returns every facts/facts-2/facts-N range (:387), _facts_cap_violations (:1117) checks each; parent ran 8 probes across the 3 conjuncts, 29 tests green on the director re-verify): ACCEPT at :85. master-sensei template half (facts-2 entries) now has a green target.
