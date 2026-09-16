@@ -3614,6 +3614,17 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                 # falsifier and is gone. Never delete first. Trunks (an
                 # unrecognised kind) keep today's head rename unchanged.
                 _mirror = branches.mirror_ref_for_branch(_dst)
+                # SM.36 residue (4): the rename-apply PLAN line is printed
+                # UNCONDITIONALLY -- whether or not --delete-old is set, and
+                # on the seam as well as the live path -- so a caller can see
+                # the rename it would apply. Pre-fix it printed only as part
+                # of the mirror/containment work, so a plain rename-apply
+                # without --delete-old said nothing at all.
+                print(f"rename-post PLAN: origin/{_src} -> origin/{_dst}"
+                      + (f" mirror {_mirror}" if _mirror else
+                         " (trunk head rename)")
+                      + (" + delete-old" if delete_old else ""),
+                      file=sys.stderr)
                 if _mirror and live:
                     _top = _git_toplevel(root) or Path(root)
                     # SM.25b defect (3): prove the RENAMED BRANCH'S OWN tip --
@@ -3654,6 +3665,27 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                     applied += 1
                 else:
                     # print-only trunk seam (no mirror, nothing deleted here).
+                    # SM.36 residue (3): this arm used to head-push `_dst` --
+                    # and, under --delete-old, push `:{_src}` -- with NO
+                    # containment proof, for ANY spelling `parse` does not
+                    # recognise as a post/loop. A one-season ALIAS is not a
+                    # trunk: it is refused BY NAME here (no head push, no
+                    # delete, counted skipped). Trunks keep today's head
+                    # rename unchanged.
+                    _alias = None
+                    for _cand in (_dst, _src):
+                        try:
+                            if branches.parse(_cand).get("kind") == "alias":
+                                _alias = _cand
+                                break
+                        except ValueError:
+                            continue
+                    if _alias is not None:
+                        print(f"rename-post REFUSED: {_alias} is a deprecated "
+                              f"alias spelling -- no head push, nothing "
+                              f"deleted", file=sys.stderr)
+                        skipped += 1
+                        continue
                     run_git("push", "origin", _dst)
                     if delete_old:
                         run_git("push", "origin", f":{_src}")
@@ -4879,18 +4911,31 @@ def _first_seating_handoff_write(root: Path, seat: str,
     was written (a missing header is written, never left absent).
     """
     hp = _seat_hands(root) / f"{seat}.handoff.md"
+    pred = sref = ""
     if hp.exists():
         try:
+            gen_same = False
             for line in hp.read_text(encoding="utf-8",
                                      errors="replace").splitlines():
                 ls = line.strip()
                 if ls.startswith("generation:"):
-                    if ls.split(":", 1)[1].strip() == str(generation):
-                        return False
-                    break
+                    gen_same = ls.split(":", 1)[1].strip() == str(generation)
+                elif ls.startswith("predecessor_session:"):
+                    # SM.36 residue (5): carry the EXISTING predecessor_session
+                    # / session_ref header cells through the rewrite -- the old
+                    # path called `_write_handoff` with neither, so a first
+                    # seating silently dropped what an earlier rotation had
+                    # stamped. Absent cells stay absent (session_ref is only
+                    # written when non-empty); a value is never invented.
+                    pred = ls.split(":", 1)[1].strip()
+                elif ls.startswith("session_ref:"):
+                    sref = ls.split(":", 1)[1].strip()
+            if gen_same:
+                return False
         except OSError:
             pass
-    _write_handoff(root, seat, int(generation))
+    _write_handoff(root, seat, int(generation),
+                   predecessor_session=pred, session_ref=sref)
     return True
 
 

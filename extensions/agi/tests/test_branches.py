@@ -569,16 +569,98 @@ def test_mirror_and_prove_refuses_by_name_on_failed_push(tmp_path):
     assert _ls_remote(bare, "refs/heads/season2/posts/*") == []
 
 
-def test_no_engine_path_pushes_a_post_head():
-    """goal:g15.25 (e): no engine source names a post branch as a pushed
-    HEAD ref (`refs/heads/season<n>/posts/...`)."""
-    bin_dir = Path(b.__file__).parent
-    offenders = []
-    for p in sorted(bin_dir.glob("*.py")):
-        for i, line in enumerate(
-                p.read_text(encoding="utf-8").splitlines(), 1):
-            if line.lstrip().startswith("#"):
-                continue                      # a comment names it to refuse it
-            if "refs/heads/season" in line and "posts" in line:
-                offenders.append(f"{p.name}:{i}")
-    assert not offenders, offenders
+def _post_head_pushes(argvs):
+    """Pushes that would ADVANCE a post/loop head. STRUCTURAL: it reads the
+    argv tuples the engine actually issued, never source text -- a push
+    built at runtime is caught, a comment is irrelevant.
+
+    Not a post head: a delete (`:ref`), and the ADDITIVE mirror
+    (`sha:refs/agi/posts/...`), which is not `refs/heads/*` at all."""
+    bad = []
+    for argv in argvs:
+        parts = [str(a) for a in argv]
+        if "push" not in parts:
+            continue
+        tail = parts[parts.index("push") + 1:]
+        if "--delete" in tail:
+            continue                         # a delete, not a head push
+        for spec in tail:
+            if spec.startswith("-") or spec == "origin" or spec.startswith(":"):
+                continue
+            dst = spec.split(":", 1)[1] if ":" in spec else spec
+            if dst.startswith("refs/agi/"):
+                continue                     # the additive mirror, not a head
+            if "/posts/" in dst or "/loops/" in dst:
+                bad.append(tuple(argv))
+                break
+    return bad
+
+
+def test_no_engine_path_pushes_a_post_head(monkeypatch, tmp_path):
+    """goal:g15.25 (e), SM.36 residue (6): STRUCTURAL -- the engine's push
+    SITES are driven through a seamed `subprocess.run` / a recording
+    `run_git`, and EVERY argv actually issued is captured. No argv may name
+    a post head. Pre-fix this test was a literal grep over `bin/*.py` source
+    text: a push built from a variable defeated it, a comment tripped it,
+    and it could never see a real argv."""
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from agi.bin import rotate as r
+
+    sha = "a" * 40
+    argvs = []
+
+    def sub_rec(cmd, *a, **kw):
+        full = list(cmd) if not isinstance(cmd, str) else [cmd]
+        argvs.append(tuple(full))
+        out = ""
+        if "rev-parse" in full:
+            out = sha + "\n"
+        elif "ls-remote" in full:
+            out = f"{sha}\t{full[-1]}\n"
+        return subprocess.CompletedProcess(full, 0, out, "")
+
+    def git_rec(*a):
+        argvs.append(tuple(a))
+
+    monkeypatch.setattr(r.subprocess, "run", sub_rec)
+    monkeypatch.setattr(b.subprocess, "run", sub_rec)
+
+    # (a) the ONE proof every post path pushes through (seamed subprocess.run)
+    ok, detail, _info = b.mirror_and_prove(
+        tmp_path, b.mirror_ref_for_branch("season2/posts/adv"))
+    assert ok is True, detail
+    assert any("refs/agi/posts/adv" in " ".join(a) for a in argvs), argvs
+
+    # (b) the rename-apply surface table, both --delete-old settings, and
+    #     (c) its live path -- driven through the seams, argv captured
+    post_surfaces = [{"kind": "branch (origin)",
+                      "src": "origin/season2/posts/old",
+                      "dst": "origin/season2/posts/new",
+                      "action": "seam-git"}]
+    alias_surfaces = [{"kind": "branch (origin)", "src": "origin/season2/main",
+                       "dst": "origin/seat/old@s2", "action": "seam-git"}]
+    trunk_surfaces = [{"kind": "branch (origin)", "src": "origin/season1/main",
+                       "dst": "origin/season2/main", "action": "seam-git"}]
+    for delete_old in (False, True):
+        r._apply_surfaces(tmp_path, post_surfaces, delete_old=delete_old,
+                          run_git=git_rec, run_tmux=lambda *a: None)
+        r._apply_surfaces(tmp_path, alias_surfaces, delete_old=delete_old,
+                          run_git=git_rec, run_tmux=lambda *a: None)
+        r._apply_surfaces(tmp_path, trunk_surfaces, delete_old=delete_old,
+                          run_git=git_rec, run_tmux=lambda *a: None)
+    r._apply_surfaces(tmp_path, post_surfaces, live=True, run_git=git_rec,
+                      run_tmux=lambda *a: None)
+
+    assert argvs, "the seam captured nothing -- the test would be vacuous"
+    bad = _post_head_pushes(argvs)
+    assert not bad, f"engine pushed a post head: {bad}"
+
+    # NEGATIVE CONTROL: the detector reads ARGV, so a push built at runtime
+    # (invisible to a source grep) is caught, and would have been missed.
+    rogue = ("push", "origin", "season2/posts/rogue")
+    assert _post_head_pushes([rogue]) == [rogue]
+    assert _post_head_pushes([("git", "-C", ".", "push", "origin",
+                               "refs/heads/season2/posts/rogue")])
+    assert _post_head_pushes([("push", "origin", f"{sha}:refs/agi/posts/a")]) == []
+    assert _post_head_pushes([("push", "origin", ":season2/posts/old")]) == []
