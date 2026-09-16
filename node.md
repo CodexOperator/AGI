@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+clause added 09:3xZ, measured on director-sanctuary: the pool read must resolve OPENROUTER_PROVISIONING_KEY from the PROJECT ROOT .env (locations.py root, never cwd) - a worktree post has no .env of its own and the F13 one-liner fails there; also observed: SM.36 was minted a 1.50-dollar/180-min key while SM.35 got the standing 5.00, so a per-tier cap already exists in provisioning - --cap should override that value, not add a second mechanism.
