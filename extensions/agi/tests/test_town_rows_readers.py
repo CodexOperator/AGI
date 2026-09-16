@@ -122,22 +122,19 @@ def test_audience_quorum_still_resolves_from_a_director_row(tmp_path):
     assert "from: sanctuary-director" in text
 
 
-def test_rename_boundary_derives_its_branch_town_through_row_town(project):
-    """SM.32b: the rename surface's branch town comes from `towns.row_town`.
-    The transitional `all` + overrides map AND a declared cell must both land
-    in the derived branch segment -- the rename path is not a second
-    hand-spelled town map."""
+def test_rename_boundary_never_derives_a_branch_from_the_row_town(project):
+    """SM.62: the rename surface's branch is the REAL local ref, never a
+    town spelled from the row home town. A fixture with no readable local
+    refs has NO branch surface at all -- the derived-spelling fallback is
+    DELETED, so `towns.row_town` no longer feeds the branch spelling on this
+    path (it is read for the new-name home-town refusal, and nothing else)."""
     import rotate
     _write_posts_node(project, [
         {"name": "belam", "role": "director", "town": "all"},
         {"name": "declared-post", "role": "director", "town": "sanctuary"},
     ])
-    surfs = {s["kind"]: s for s in
-             rotate._rename_surfaces(project, "belam", "belam2")}
-    assert surfs["branch (origin)"]["src"] == \
-        "origin/core/season2/posts/belam/main", surfs
-    surfs2 = {s["kind"]: s for s in
-              rotate._rename_surfaces(
-                  project, "declared-post", "declared-post2")}
-    assert surfs2["branch (origin)"]["src"] == \
-        "origin/sanctuary/season2/posts/declared-post/main", surfs2
+    for old in ("belam", "declared-post"):
+        kinds = {s["kind"] for s in
+                 rotate._rename_surfaces(project, old, old + "2")}
+        assert "branch" not in kinds, kinds
+        assert "branch (origin)" not in kinds, kinds
