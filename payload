@@ -4281,8 +4281,11 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
                   f"{exc}", file=sys.stderr)
             return 4
         print(f"merge-up: {line}")
-        # The seat's OWN last act (conjunct 1): a post merged up.
-        last_act.touch_env(root, post)
+        # The CALLER's own last act (conjunct 1, SM.48 residue 1): a merge-up
+        # is an act BY WHOEVER RAN IT. Stamping `post` (the TARGET) re-stales
+        # the merged post's own card -- the captive loop from the other side.
+        if caller_post:
+            last_act.touch_env(root, caller_post)
         return 0
     finally:
         try:
@@ -14822,6 +14825,28 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return None
 
 
+def _unpushed_by_author(root: Path, spec: str, label: str
+                        ) -> tuple[bool, str, str] | None:
+    """Check 1's verdict for `rev-list --count <spec>`, SCOPED BY AUTHOR
+    (SM.48 residue 2): a commit the acting checkout's OWN author identity did
+    not write -- a `grid_sync` cron commit on a shared trunk -- is not this
+    seat's unpushed work and must NOT captive its rotation. The unscoped
+    count is still NAMED (never a silent 'pushed'), `git push` stays the
+    clear, and an unmeasurable identity blocks exactly as before: this
+    narrows the gate, never widens it (P7)."""
+    raw = _git_count_maybe(root, "rev-list", "--count", spec)
+    if raw is None:
+        return None
+    me_lines = _git_maybe(root, "config", "user.email")
+    me = (me_lines[0].strip() if me_lines else "")
+    mine = (_git_count_maybe(root, "rev-list", "--count", f"--author={me}",
+                             spec) if me else raw)
+    if mine is not None and raw > 0 and mine <= 0:
+        return (False, f"{label} (other author: {raw}, not blocking)",
+                "git push")
+    return (raw > 0, label, "git push")
+
+
 def _git_unquote_path(s: str) -> str:
     """Decode ONE git `core.quotePath`-escaped path back to its literal name.
 
@@ -15143,18 +15168,17 @@ def _prepare_merge_target(root: Path) -> str:
     return season_branch(root)
 
 
-def _prepare_checks(root: Path, seat: str, perform: bool = False,
-                    stops_rotation: bool = False
+def _prepare_checks(root: Path, seat: str, perform: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
-    `stops_rotation` marks a `rotate-self --stops/--stops-file` run. Only such
-    a run exempts the seat's ack seats path (seats.md/posts.md) from check 4's
-    "last WORK commit" scan: a --stops run's OWN card+seats commit must not
-    re-age the card (goal:g15.25 line (3)). A plain `prepare`, or a
-    `rotate-self --prepare` which delegates to it, must NOT carry the
-    exclusion (SL7.30) — seating bookkeeping on a non-stops run is still WORK
-    worth ageing the card against (SL7.12 had applied it unconditionally).
+    The `stops_rotation` parameter is RETIRED (SM.68 residue 6): it gated the
+    SL7.30 seats/posts exclusion from check 4's scan, but check 4 then moved
+    to the seat-scoped `bin/last_act.py` clock, so the exclusion — and the
+    parameter nothing read — stopped meaning anything. The stoppable flow
+    keeps its own `_stops_has` branch; an unused parameter a docstring claims
+    changes behaviour is a lie the next reader believes, so it is gone by
+    name (a test asserts the signature, not the docstring).
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
@@ -15245,16 +15269,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
                            f"({rsha[:12]}: {mn})",
                     f"git push origin HEAD:{mirror}")
     else:
-        n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
-        if n is not None:
-            unpushed, pname, pclear = (n > 0, "unpushed commits", "git push")
+        scoped = _unpushed_by_author(root, "@{u}..HEAD", "unpushed commits")
+        if scoped is not None:
+            unpushed, pname, pclear = scoped
         else:
-            alt = _git_count_maybe(root, "rev-list", "--count",
-                                   f"origin/{branch}..HEAD")
-            if alt is not None:
-                unpushed, pname, pclear = \
-                    (alt > 0, f"unpushed commits vs origin/{branch}",
-                     "git push")
+            scoped = _unpushed_by_author(
+                root, f"origin/{branch}..HEAD",
+                f"unpushed commits vs origin/{branch}")
+            if scoped is not None:
+                unpushed, pname, pclear = scoped
             else:
                 unpushed, pname, pclear = \
                     (True, f"no upstream for {branch}",
@@ -15494,7 +15517,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         card_stale, _last_ts = last_act.card_stale(root, seat, card)
     except Exception:  # noqa: BLE001
         card_stale = False   # unmeasurable reads NOT stale (P7)
-    checks.append((card_stale, "card older than last commit",
+        _last_ts = None
+    # SM.68 residue (5): NAME the unmeasurable state. `card_stale` returns
+    # `(False, None)` when NO own act is measurable (no stamp AND no card
+    # commit) -- the SAME False a measured-fresh seat returns, but with a
+    # real `_last_ts`. Both used to print `[ok] card older than last commit`,
+    # so a seat whose clock could not be read was indistinguishable from one
+    # read and found fresh. The measured-fresh and blocked labels stay
+    # byte-identical; only the no-clock case gains a suffix.
+    _card_label = "card older than last commit"
+    if card_stale is False and _last_ts is None:
+        _card_label += " (unmeasured: no own act)"
+    checks.append((card_stale, _card_label,
                    "write your card (a save is enough: the check reads mtime), "
                    "commit it, then rotate; fallback: rotate.py handoff "
                    f"--driven --seat {seat}"))
@@ -17679,8 +17713,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
     # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
     _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
-    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate,
-                                          stops_rotation=_stops_has)
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
     # background tasks BEFORE it spawns, so it knows what to leave behind
