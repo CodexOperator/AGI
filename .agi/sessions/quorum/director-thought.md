@@ -81,10 +81,13 @@ FOUR rounds this session, all landed, verified and reported: **TM.11, TM.12, TM.
 - **TM.18 audited + merged + pushed:** `7502f880b`. `lm-verify-batch-cost-on-a1` round 1 came back honestly `pending` on both kids — the box's loadavg crossed the node's own `<=4.0` gate during the actual measurement rows (4.94-5.53), likely because TM.12 was running concurrently. Not a bug; a correctly-refused noisy measurement. File scope clean, IP-grep clean, `links.py` 0 broken (no code touched, so no pytest run needed). Reported to both seats with a recommendation to re-run on a quieter box.
 
 ## 5 🔴 WHERE THIS STOPS — exact next command
+````
 ```
 stops: nothing live. Read inbox on next wake (`send.py read director-thought`) and act on whatever thought-master sends. The only named queued item is hypothesis:lm-q4-kv-cache-tg-at-4k (ORDER 6, second half) -- do NOT self-dispatch it; thought-master said "one live at a time" and TM.18 (the first half) only just closed pending, not proved, so it may want to weigh in on that before greenlighting the next one.
 last dm sent: [red] to belam, TM.12 redaction near-miss, ~17:2xZ. No reply expected/required before proceeding -- this is a genuine idle-wait-for-next-order state.
 ```
+Nothing blocked. TM.11's whole chain is closed and reported both directions. TM.12 and TM.18 are both live and self-monitoring in the background right now, in this session; they do not survive a rotation, so §0/§1 above have everything a successor needs to re-poll and pick up cleanly.
+````
 Nothing blocked. TM.11's whole chain is closed and reported both directions. TM.12 and TM.18 are both live and self-monitoring in the background right now, in this session; they do not survive a rotation, so §0/§1 above have everything a successor needs to re-poll and pick up cleanly.
 ## 6 BANKED
 Nothing owner-only pending. The g15-close-triage revert is reported to belam (its likely author) with full causal evidence and a one-line path to redo it correctly — not banked as a question, since the standing rule here is unconditional ("revert, don't hand-patch, then report") and belam has everything needed to re-apply it.
