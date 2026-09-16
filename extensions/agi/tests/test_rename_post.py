@@ -273,8 +273,10 @@ def test_alias_resolves_in_send_and_prints(tmp_path, capsys):
 
 def test_branch_deleted_only_under_delete_old(tmp_path):
     """The old branch is deleted ONLY under --delete-old: without it the
-    seam records branch -m + push new but NO `:old` delete; with it the
-    `push origin :old` delete is recorded too."""
+    seam records branch -m + the ADDITIVE mirror of the new tip but NO
+    `:old` delete; with it the `push origin :old` delete is recorded too.
+    goal:g15.25 (1)+(2): the post head is never pushed as a head -- the
+    rename-apply mirrors to refs/agi/posts/<new> and proves it."""
     _geo(tmp_path, rows=[{"name": "old"}])
     surfaces = rotate._rename_surfaces(tmp_path, "old", "new")
     calls = []
@@ -283,14 +285,20 @@ def test_branch_deleted_only_under_delete_old(tmp_path):
                                    run_tmux=lambda *a: calls.append(("T",) + a))
     git_calls = [c for c in calls if c[0] != "T"]
     assert ("branch", "-m", "season2/posts/old", "season2/posts/new") in git_calls
+    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") \
+        in git_calls, git_calls
     assert not any(c[0] == "push" and len(c) == 3 and c[2].startswith(":")
                    for c in git_calls), "old branch deleted without --delete-old"
     calls2 = []
     rotate._apply_surfaces(tmp_path, surfaces, delete_old=True,
                            run_git=lambda *a: calls2.append(a),
                            run_tmux=lambda *a: None)
-    assert ("push", "origin", "season2/posts/new") in calls2
+    assert ("push", "origin", "season2/posts/new:refs/agi/posts/new") in calls2
     assert ("push", "origin", ":season2/posts/old") in calls2
+    # never a bare head push of the post branch
+    assert not any(c[0] == "push" and len(c) == 3
+                   and c[2] == "season2/posts/new"
+                   for c in calls2), calls2
 
 
 def test_apply_never_writes_config(tmp_path):
@@ -430,13 +438,16 @@ def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
 
 
 def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
-    """KID 4: with --live, --apply injects REAL git/tmux executors routed
-    through subprocess.run. The exact argv tuples for branch -m, push new,
-    the --delete-old `push origin :old`, and worktree move must arrive;
-    tmux list-windows feeds the @id resolution so rename-window fires by id."""
+    """KID 4 + goal:g15.25 (2): with --live, --apply injects REAL git/tmux
+    executors routed through subprocess.run. The worktree move and the
+    branch -m arrive; the post head is NEVER pushed -- the new tip is
+    mirrored to refs/agi/posts/new and proved by ls-remote -- and only then
+    the --delete-old `push origin :old`. tmux list-windows feeds the @id
+    resolution so rename-window fires by id."""
     _geo(tmp_path, rows=[{"name": "old"}])
     _session_files(tmp_path, "old")
     rec = []
+    sha = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
 
     def fake_run(cmd, *a, **k):
         rec.append(tuple(cmd))
@@ -447,6 +458,16 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
         if cmd[0] == "tmux" and cmd[1] == "list-sessions":
             return type("R", (), {"stdout": "$1 agi-rc\n$4 view-old\n",
                                    "stderr": "", "returncode": 0})()
+        if cmd[0] == "git" and "rev-parse" in cmd:
+            if "--show-toplevel" in cmd:
+                return type("R", (), {"stdout": str(tmp_path) + "\n",
+                                       "stderr": "", "returncode": 0})()
+            return type("R", (), {"stdout": sha + "\n", "stderr": "",
+                                   "returncode": 0})()
+        if cmd[0] == "git" and "ls-remote" in cmd:
+            return type("R", (), {
+                "stdout": f"{sha}\trefs/agi/posts/new\n", "stderr": "",
+                "returncode": 0})()
         return type("R", (), {"stdout": "", "stderr": "",
                                "returncode": 0})()
 
@@ -457,15 +478,19 @@ def test_live_apply_runs_real_git_argv(tmp_path, monkeypatch, capsys):
                            delete_old=True, live=True),
         tmp_path)
     assert rc == 0, rc
-    # git: worktree move + branch -m + the two pushes (+ origin delete)
+    # git: worktree move + branch -m + the mirror push/prove (+ origin delete)
     assert ("git", "-C", str(tmp_path), "worktree", "move",
             ".agi/worktrees/post-old", ".agi/worktrees/post-new") in rec
     assert ("git", "-C", str(tmp_path), "branch", "-m",
             "season2/posts/old", "season2/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
-            "season2/posts/new") in rec
+            f"{sha}:refs/agi/posts/new") in rec
+    assert ("git", "-C", str(tmp_path), "ls-remote", "origin",
+            "refs/agi/posts/new") in rec
     assert ("git", "-C", str(tmp_path), "push", "origin",
             ":season2/posts/old") in rec, "--delete-old must push :old"
+    assert ("git", "-C", str(tmp_path), "push", "origin",
+            "season2/posts/new") not in rec, "a post head was pushed"
     # tmux window resolved to @5 and renamed by that id
     tmux = [c for c in rec if c[0] == "tmux"]
     assert ("tmux", "rename-window", "-t", "@5", "new") in tmux
