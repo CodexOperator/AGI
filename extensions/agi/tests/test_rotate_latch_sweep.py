@@ -317,3 +317,44 @@ def test_preserve_inherits_stale_list_and_marks_it(tmp_path):
 
     assert rec["swept_latches"] == ["hook-adv-old-gen1.lock"]
     assert rec.get("inherited") is True
+
+
+def test_sweep_removes_dead_session_keyed_latch_and_keeps_live(tmp_path,
+                                                               capsys):
+    """SL.04 residue item 7: the post-SM.243 NON-prime latch shape
+    `hook-<seat>-<session_id[:8]>.lock` (what `rotation_alert._latch_path`
+    WRITES for a non-prime seat with a session id) is swept when its holder
+    is DEAD, left alone when its holder is ALIVE, and swept exactly along
+    with the gen shape -- the pre-fix glob (`hook-<seat>-gen*.lock` only)
+    left the session-keyed file on disk. Fails on the pre-fix code."""
+    rot = _rot(tmp_path)
+    dead_sid = rot / "hook-adv-sid-2717aaaa.lock"
+    dead_sid.write_text(f"pid {_dead_pid()} hook\n", encoding="utf-8")
+    live_sid = rot / "hook-adv-sid-9999bbbb.lock"
+    live_sid.write_text(f"pid {os.getpid()} hook\n", encoding="utf-8")
+    dead_gen = rot / "hook-adv-sid-gen1.lock"
+    dead_gen.write_text(f"pid {_dead_pid()} hook\n", encoding="utf-8")
+
+    swept = rotate._sweep_dead_hook_latches(tmp_path, "adv-sid")
+
+    assert set(swept) == {"hook-adv-sid-2717aaaa.lock",
+                          "hook-adv-sid-gen1.lock"}
+    assert not dead_sid.exists(), "a dead session-keyed latch is swept"
+    assert not dead_gen.exists(), "the gen shape is still swept"
+    assert live_sid.exists(), "a LIVE session-keyed latch is never unlinked"
+    err = capsys.readouterr().err
+    assert "hook-adv-sid-2717aaaa.lock" in err
+
+
+def test_sweep_never_unlinks_a_live_session_keyed_latch(tmp_path, capsys):
+    """The item-7 falsifier: a live-pid latch of EITHER shape is left alone.
+    A widening that dropped the liveness gate would fail here."""
+    rot = _rot(tmp_path)
+    live_sid = rot / "hook-adv-live-abcdef12.lock"
+    live_sid.write_text(f"pid {os.getpid()} hook\n", encoding="utf-8")
+    live_gen = rot / "hook-adv-live-gen4.lock"
+    live_gen.write_text(f"pid {os.getpid()} hook\n", encoding="utf-8")
+
+    assert rotate._sweep_dead_hook_latches(tmp_path, "adv-live") == []
+    assert live_sid.exists() and live_gen.exists()
+    assert capsys.readouterr().err == ""
