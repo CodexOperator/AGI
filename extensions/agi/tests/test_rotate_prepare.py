@@ -1608,3 +1608,72 @@ def test_prepare_check2_another_posts_card_is_foreign_named(
     assert rc == 0, out
     assert "[BLOCK]" not in out, out
     assert (".agi/sessions/quorum/belam.md [owner: post belam]") in out, out
+
+
+# --------------------------------------------------------------------------
+# SM.36 residue (2): prepare check 1 measures a post/loop branch against its
+# LOCAL mirror ref `refs/agi/<kind>/<leaf>`, never `@{u}`/`origin/<branch>` --
+# under SM.36 NO engine path advances an origin post head any more, so a seat
+# rotation either read behind forever or a seat hand-pushed a head.
+#
+# Fixture: a REAL repo checked out on a v3 town-first post branch plus a bare
+# origin; the mirror ref is created LOCALLY (`git update-ref`) so the check
+# resolves it WITHOUT a fetch (prepare must never fetch -- fetch is a network
+# WRITE). Fixture-only, bare-repo setup; `--delete-old` is never invoked.
+# --------------------------------------------------------------------------
+
+
+def _mirror_branch_repo(tmp_path, branch="core/season2/posts/adv-alive/main"):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    repo = tmp_path / "repo"
+    subprocess.run(["git", "init", "-q", "-b", branch, str(repo)], check=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / "README").write_text("x", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-qm", "init"], check=True)
+    subprocess.run(["git", "-C", str(repo), "remote", "add", "origin",
+                    str(origin)], check=True)
+    return repo
+
+
+def _git_in(repo, *args):
+    return subprocess.run(["git", "-C", str(repo), *args],
+                          capture_output=True, text=True)
+
+
+def test_prepare_check1_counts_against_the_local_mirror_ref(tmp_path):
+    """Three faces of check 1 on a post spelling with a mirror ref:
+    (a) the local mirror ref AT HEAD -> ok (0 unpushed);
+    (b) the mirror ref BEHIND HEAD by one commit -> BLOCK, named by the
+        mirror ref (not by a dead origin post head);
+    (c) no local mirror ref -> ok/unmeasured, NEVER the pre-fix
+        `no upstream for <branch>` block (which counted a basis no engine
+        path advances)."""
+    repo = _mirror_branch_repo(tmp_path)
+    mirror = "refs/agi/posts/adv-alive"
+
+    # (a) mirror ref at HEAD -> 0 unpushed
+    sha = _git_in(repo, "rev-parse", "HEAD").stdout.strip()
+    assert _git_in(repo, "update-ref", mirror, sha).returncode == 0
+    blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
+    assert blocker is False, (blocker, name)
+    assert "unpushed commits vs refs/agi/posts/adv-alive" in name, name
+
+    # (b) one commit ahead of the mirror -> BLOCK, by name
+    (repo / "README").write_text("y", encoding="utf-8")
+    _git_in(repo, "add", "-A")
+    _git_in(repo, "commit", "-qm", "second")
+    blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
+    assert blocker is True, (blocker, name)
+    assert "unpushed commits vs refs/agi/posts/adv-alive" in name, name
+    assert "HEAD:refs/agi/posts/adv-alive" in clear, clear
+
+    # (c) no local mirror ref -> ok/unmeasured, never `no upstream`
+    assert _git_in(repo, "update-ref", "-d", mirror).returncode == 0
+    blocker, name, clear = rotate._prepare_checks(repo, "adv-alive")[0]
+    assert blocker is False, (blocker, name)
+    assert "unmeasured: no local refs/agi/posts/adv-alive" in name, name
+    assert "no upstream for" not in name, name

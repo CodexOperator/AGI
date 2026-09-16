@@ -319,7 +319,10 @@ def _node_text(graph_root, node_id) -> str | None:
         import node_writer  # local: keeps spawn_budget free of that import
         path = node_writer.find_node_file(root, node_id)
         return None if path is None else Path(path).read_text(encoding="utf-8")
-    except BaseException:
+    except Exception:
+        # hypothesis:l4-sm36-...-one-scope-rule item 7: a READER must never
+        # swallow KeyboardInterrupt/SystemExit. `except BaseException` did, so
+        # a Ctrl-C during the fallback lookup read as "node absent".
         return None
 
 
