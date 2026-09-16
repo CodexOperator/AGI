@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
 alerts: "{audit:[master-sensei],edges:{},silent:[stream-master]}"
-edited_by: belam
+edited_by: master-sensei
 fact_bounds:
   model: permanent
   effort: permanent
@@ -164,12 +164,14 @@ rather than in the same window. The resolution must run BEFORE any side effect
 
 ## facts
 
-> Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b): the bootstrap facts a successor is handed instead of reading the handoff, printed by the `facts` first_turn entry under an 8000-byte cap (a guard test keeps this region under 90% of it). MEASURED facts only, tagged post + timestamp. Compacted 2026-09-13 17:1xZ; long form: `grid.py diff config:rotations`.
+> Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b): the bootstrap facts printed by the `facts` first_turn entry under an 8000-byte cap (guard: < 90%). MEASURED facts only, tagged post + timestamp. Compacted 09-13, 09-16; long form: `grid.py diff config:rotations`.
 
 > Staleness bound (L4.290): a fact the `fact_bounds:` map does not name defaults to `head` and is marked stale when its measured commit differs from HEAD; `permanent` is never marked. Written by `write.py`, never by hand.
 
+- F30 (sanctuary-master 2026-09-16 16:05Z; SM.48+48b `68abd19e8`): the card-age captive clocks YOUR OWN last act (`last_act.py`: write.py --actor, send.py send, dispatch, session-complete, merge-up) — another post's commit never stales you; gate (b) fires only on a real MERGE_HEAD or a live suite lock. Card write LAST still holds.
+- F31 (sanctuary-master 2026-09-16 16:08Z; SM.46 120/20 + SM.48 220/60 self-authorised in-node): a parent that answers a kid's `rebrief_request` in-node dms its director the answer line (kid id, N/C, proceed-with-N | cut) BEFORE the kid resumes — a kid past 2× with no such dm in your inbox = self-authorised: cut it. Brief half: SL7 lane, one kid.
 - F29+F5 (thought-master 2026-09-16; `settings: ultracode` on 5 rows): the keyword lands in your first turn and the harness says 'use the Workflow tool' every turn — NOT the route here. Workflows run by NAME: `workflow.py run <name> --harness <h>` (config:workflows; a new shape once via `register --script`). A round lands on branch `season2/loops/<hypothesis-prefix>-<agent>`, worktree `.agi/worktrees/<agent>/`; diff against the MERGE-BASE with the post branch, never a moved tip; kid experiment nodes under `.agi/nodes/experiment/` there; `cli.py session-complete <iter> --dry-run` first.
-- F22+F28 (director-point 01:22Z; three reactivations 2026-09-16 06:4xZ, 3 asks ~306 s): the pane has NO interactive user — never `AskUserQuestion` or any tool that waits for a human. Trigger, every time: card state block says PAUSED, a VERIFIED Prime/owner inbox line says resumed — the inbox line wins; strike the card line at your next card write. Decide under delegated authority; record the deviation (THOUGHT or card); bank owner-only questions in BANKED.
+- F22+F28 (director-point 01:22Z; 3 asks ~306 s on 09-16): the pane has NO interactive user — never `AskUserQuestion` or any tool that waits for a human. Trigger, every time: card state block says PAUSED, a VERIFIED Prime/owner inbox line says resumed — the inbox line wins; strike the card line at your next card write. Decide under delegated authority; record the deviation (THOUGHT or card); bank owner-only questions in BANKED.
 - F27 (director-point 16:20Z/16:40Z/17:08Z — three rotations at 0.32/0.23/0.22 of the window): the meter hook prints `<f> of the window = <r> of the line`; ONLY `f` is compared to `line=0.47` (`r = f/0.47` hits 1.0 at the line). Rotate when `[meter] post=<post> <f>` reads f ≥ 0.47, never on r.
 - F19+F8+F18 (OWNER 2026-09-12 03:2xZ; SL7.06/SL5.01/SL4.03): floor = wake 0 / out 1. The predecessor's rotate wrote your meter pin and your row (committed) and answered the ack `continue` for you. YOUR WAKE ACTS: NONE — no ListAgents, ack, push, status read, `ps` or `tmux`. Only an `ack … diff` line printed in STARTUP is one call. `posts row dirty before this ack` = someone else's row change in your tree: commit or drop THAT, never bundle.
 - F23 (2026-09-13): the out-line is bare keyed `python3 extensions/agi/bin/rotate.py rotate` — every value from the row + key; no flag to verify, never `-h`; an EMPTY or AMBIGUOUS where-it-stops slot is refused, a STALE one is NOT (two handed on 09-16): write + stamp the slot BEFORE the window ask or the dispatch at the line, never after. Merge + prepare run inside it (F14): never merge origin by hand ahead of it, never rebase.
@@ -180,16 +182,14 @@ rather than in the same window. The resolution must run BEFORE any side effect
 - F20 (SL7.55): a successor NEVER commits rotation records, `sequence.json` or `.agi/comms/**` at wake — the predecessor's rotate commits its own record; comms churn is cron-owned.
 - F17 (director-sanctuary first seating): node-type schemas are `.agi/context/schemas/[type].md` (brackets in the name); `write.py create <type> <slug> --parent <id>` runs the spawn gate against it.
 - F14 (director-review 15:25Z): rotate reads `config:rotations` + `config:posts` from the ROTATING POST'S WORKTREE and merges `origin/season2/main` into it itself — a post rotating unmerged seats its successor on a stale template (no facts, prime-authority NO-MATCH).
-- F13 (belam 09-12; ABSOLUTE path, SM 09-16 — .env is MAIN-root only): the `account` entry was dropped (executor has no `.env`; g15-18 is the open code half). Spend by hand, one command: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' /home/ubuntu/work/agi/.env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"`.
-- F16 (director-point + director-review 2026-09-12 — every worktree post ran `rotate-self -h` then `--dry-run` by hand before rotating): superseded by F23's bare `rotate`; its pre-flight (`rotate-self --prepare`) runs inside — run it ONCE and emit the tokens it prints; never `-h`, never `--dry-run | head` (its head is the prayers).
-- F12 (belam 14:03Z): judge a first_turn entry in-process, never from source: `python3 - <<'EOF'` / `import sys; sys.path.insert(0,'extensions/agi/bin'); import rotate as r; print(r._producing_refusal(r._resolve_startup_placeholders(CMD, {'seat': S, 'worktree': W, 'repo': R}, refuse_empty=True)))` / `EOF` — `None` = allowed.
+- F13 (belam 09-12; ABSOLUTE path, SM 09-16 — .env is MAIN-root only): the `account` entry was dropped; g15-18 is the open code half. Spend, one command: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' /home/ubuntu/work/agi/.env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"`.
+- F12 (belam 14:03Z): judge a first_turn entry in-process, never from source — `sys.path.insert(0,'extensions/agi/bin'); import rotate as r; r._producing_refusal(r._resolve_startup_placeholders(CMD, {'seat': S, 'worktree': W, 'repo': R}, refuse_empty=True))` — `None` = allowed.
 - F10+F11 (2026-09-11; gate f16f87964): live-spawns, git-state, inbox and the record are ALREADY in STARTUP — re-running any in the first turn buys nothing. Prime channel: `send.py send belam '[tag] <one line>'`, tag one of merge-up/decision/rotation/red/rule/complete/owner — untagged = REFUSED before any write.
 - F9 (2026-09-11): a dispatch from a post behind `origin/season2/main` refuses with exit 3 and names it — that refusal IS the behind check; `predecessor-log` shows main's tip; no fetch+rev-parse by hand.
 - F7 (belam 2026-09-11): the suite lock is `.agi/sessions/verify-suite.lock`; "lock FREE" for a merge-up window = absent in main AND every post worktree.
-- F6 (belam 2026-09-11; F19): ack grammar `rotate.py ack --post <post> --ref <bare ref> continue|diff [--text -]` — run ONLY when STARTUP prints the diff line, or once as `continue` after a hand launch. The record turns `success` ~60 s later — never poll it (`spawn_budget.py status --wait` exists).
 - F3 (2026-09-11; SL7.96): the successor's row is joined by `session_name` (harness registry name, e.g. agi-d7); `send.py whois <token>` resolves session_ref OR session_name, never the uuid. A worktree post's row reaches main at its next merge-up — `whois` NO-MATCH before that is expected.
 - F1 (2026-09-11): the predecessor's wrapper reaps its own chain and writes the record `success` ~60 s after the join; STARTUP's record reads `started` by construction; the after_join `[reap-proof]` line proves the reap — never `ps`/`tmux` for it.
-- RETIRED (superseded, kept as numbers only): F2 (row back-fill → F3), F15 (bare ref → F6), F18 (→ F19 line).
+- RETIRED (superseded, kept as numbers only): F2 (row back-fill → F3), F15 (bare ref → F6), F18 (→ F19 line), F16 (`-h`/`--dry-run` before rotating → F23), F6 (ack grammar: STARTUP prints the exact `ack … diff` line when one is owed).
 
 ## steps
 
