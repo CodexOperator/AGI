@@ -187,4 +187,12 @@ def card_stale(root, seat: str, card, last_ts=_UNSET) -> tuple[bool, int | None]
     if act is None:
         return False, None                   # unmeasurable: NOT stale (P7)
     own = card_commit_ts(root, card)
-    return (mtime < act and (own is None or act > own)), act
+    stamp = _stamp_ts(stamp_path(root, seat))
+    # SM.48 residue (3): a STAMP after the card's WRITE mtime is stale whatever
+    # the card's own commit time -- committing a card written before an act
+    # (M -> S -> C, C > S) must not suppress it. `act > own` compared the act
+    # against the COMMIT, so C always beat S. `own` stays the floor only for
+    # the no-stamp case (a bare commit is never an act after the card).
+    if stamp is not None and mtime < stamp:
+        return True, act
+    return (own is None and mtime < act), act

@@ -201,6 +201,29 @@ def test_successful_spawn_stays_0_and_leaves_the_scaffold_live(
         "a successful spawn must not deprecate anything")
 
 
+def test_spawn_record_carries_the_dispatching_seats_own_tree(
+        project, tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-from-the-
+    dispatching-seats-own-tree, conjunct (3): the record dispatch.py writes in
+    the SAME dict as `dispatched_by` carries the DISPATCHING seat's own
+    resolved graph root -- the tree the harvest poster resolves the iter dir
+    from. It is NOT the agent's `worktree` (the --branch checkout)."""
+    _stub_popen(monkeypatch)
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(sys, "argv", _argv(project))
+    assert dispatch.main() == 0
+    capsys.readouterr()
+
+    graph = project / ".agi"
+    manifest = json.loads(
+        (graph / "sessions" / "iter-001" / "manifest.json").read_text())
+    rec = manifest["agents"][0]
+    assert rec["dispatched_from_tree"] == str(graph), rec
+    assert "dispatched_by" in rec, rec
+    assert rec.get("worktree") != rec["dispatched_from_tree"], (
+        "the seat's tree must never be conflated with the agent's worktree")
+
+
 def test_stale_base_rc_3_path_is_untouched(project, tmp_path, monkeypatch):
     """The stale-base refusal still exits 3 (before any scaffold); the new
     rc-4 registration logic downstream must not disturb it."""
