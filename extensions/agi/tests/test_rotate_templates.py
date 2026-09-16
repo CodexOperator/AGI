@@ -387,41 +387,18 @@ _HAND_STEP_PATTERNS = [
 def _facts_body_range(templates: dict) -> list[tuple[str, int, int]]:
     """EVERY wake-read facts body region (label, N, M), 1-based inclusive,
     resolved from the templates' OWN `facts*` first_turn cmd(s) — `write.py
-    config:rotations 'read body N:M'`. A template may carry several entries
-    (facts, facts-2, facts-N) and each is returned: the old one-pair reader
-    silently dropped every label but `facts`, so a facts-2 region was never
-    scanned or cap-checked. Every template carrying the SAME label must
-    agree; a facts* cmd that stops naming a body range fails loudly BY NAME
-    (template + label), never as a bare "no facts entry". Ordered facts
-    first, then facts-2, facts-3 …"""
-    by_label: dict[str, set[tuple[int, int]]] = {}
-    for name, ent in templates.items():
-        if not isinstance(ent, dict):
-            continue
-        startup = ent.get("startup") or {}
-        for e in startup.get("first_turn") or []:
-            if not isinstance(e, dict):
-                continue
-            label = e.get("label")
-            if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
-                                                             label):
-                continue
-            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
-            assert m, (f"template {name!r} {label!r} cmd does not name a body "
-                       f"range: {e!r}")
-            by_label.setdefault(label, set()).add(
-                (int(m.group(1)), int(m.group(2))))
-    assert by_label, "no template declares a `facts` read body N:M first_turn"
-    out = []
-    for label in sorted(by_label, key=lambda l: (l != "facts",
-                                                 0 if l == "facts"
-                                                 else int(l.rsplit("-", 1)[1]))):
-        rs = by_label[label]
-        assert len(rs) == 1, (f"facts body ranges disagree across templates "
-                              f"for {label!r}: {rs}")
-        n, m = rs.pop()
-        out.append((label, n, m))
-    return out
+    config:rotations 'read body N:M'`.
+
+    SM.55 residue (item 11): this is now the PRODUCTION reader
+    `rotate.facts_body_ranges` (imported, never a second copy), so the
+    guard's rule and production's rule are the same rule. The production
+    reader refuses BY NAME with `FactsBodyRangeError`; it is re-raised here as
+    `AssertionError` so every existing `pytest.raises(AssertionError)` fixture
+    keeps reading the production refusal text."""
+    try:
+        return rotate.facts_body_ranges(templates)
+    except rotate.FactsBodyRangeError as exc:
+        raise AssertionError(str(exc)) from exc
 
 
 def _canonical_body_lines(source: "str | Path") -> list[str]:
@@ -1225,3 +1202,67 @@ def test_facts_body_range_returns_every_facts_label_ordered():
         {"label": "facts", "cmd": cmd.format(1, 3)}]}}}
     got = _facts_body_range(templates)
     assert got == [("facts", 1, 3), ("facts-2", 5, 7)], got
+
+
+# ── SM.55 residue (item 11): the PRODUCTION facts reader + entry-level cap ──
+
+class _Proc:
+    def __init__(self, out: str):
+        self.returncode = 0
+        self.stdout = out
+        self.stderr = ""
+
+
+def _fake_run(monkeypatch, out: str):
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda *a, **k: _Proc(out))
+
+
+def test_production_facts_reader_refuses_a_facts3_without_a_range_by_name():
+    """item 11(b): `rotate.facts_body_ranges` is the production home of the
+    rule and refuses a `facts*` entry that names no `read body N:M` BY NAME
+    (template + label) — here `facts-3`."""
+    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
+           "'read body {}:{}'")
+    templates = {"director": {"startup": {"first_turn": [
+        {"label": "facts", "cmd": cmd.format(1, 3)},
+        {"label": "facts-2", "cmd": cmd.format(5, 7)},
+        {"label": "facts-3", "cmd": "true"}]}}}
+    with pytest.raises(rotate.FactsBodyRangeError) as exc:
+        rotate.facts_body_ranges(templates)
+    assert "facts-3" in str(exc.value) and "director" in str(exc.value)
+
+
+def test_production_reader_and_the_test_helper_agree_on_three_labels():
+    """item 11(3): the guard's `_facts_body_range` IS the production reader,
+    so the two agree label-for-label and range-for-range on a fixture carrying
+    `facts`, `facts-2` and `facts-3`."""
+    cmd = ("python3 extensions/agi/bin/write.py config:rotations "
+           "'read body {}:{}'")
+    templates = {"director": {"startup": {"first_turn": [
+        {"label": "facts-3", "cmd": cmd.format(9, 11)},
+        {"label": "facts", "cmd": cmd.format(1, 3)},
+        {"label": "facts-2", "cmd": cmd.format(5, 7)}]}}}
+    assert rotate.facts_body_ranges(templates) == \
+        _facts_body_range(templates) == \
+        [("facts", 1, 3), ("facts-2", 5, 7), ("facts-3", 9, 11)]
+
+
+def test_entry_level_byte_cap_truncates_at_its_own_cap_not_the_template_cap(
+        monkeypatch):
+    """item 11(a): the startup runner applied only the TEMPLATE's byte_cap, so
+    a `facts-2` entry with its own cell was truncated at the wrong cap while
+    the guard enforced the entry cell. The entry cap now wins; the recorded
+    `byte_cap` is the value that truncated; an entry without a cell still
+    falls back to the template cap byte-for-byte."""
+    _fake_run(monkeypatch, "x" * 500)
+    startup = {"byte_cap": 10, "first_turn": [
+        {"label": "facts-2", "cmd": "ps -e", "byte_cap": 7},
+        {"label": "facts", "cmd": "ps -e"}]}
+    res = rotate._run_first_turn_commands(startup, {})
+    assert res[0]["truncated"] is True
+    assert len(res[0]["output"]) == 7 and res[0]["byte_cap"] == 7
+    # the no-cell entry is byte-identical to the template cap
+    assert len(res[1]["output"]) == 10 and res[1]["byte_cap"] == 10
+    block = rotate._compose_startup_output(res)
+    assert "(output truncated to 7 bytes)" in block
