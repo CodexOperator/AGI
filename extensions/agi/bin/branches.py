@@ -449,6 +449,15 @@ def merge_target(branch: str) -> str:
     the trunk of the SAME tuple, `<town>/season<m>/main` (derive_names),
     never the branch itself. Given the leaf itself (a token set A name),
     returns it unchanged.
+
+    MAP: a v3 town-first `town/season<m>/posts/<name>/main` resolves the
+    trunk `town/season<m>/main` (e.g. `core/season2/posts/<seat>/main` ->
+    `core/season2/main`). The LIVE MAIN under that town may be spelled WITH
+    or WITHOUT the town segment -- `season2/main` and `core/season2/main`
+    are two DISTINCT origin heads on this tree -- so `merge-up --post`
+    REFUSES BY NAME (`MAIN is on <cur>, not <target>`) rather than merge
+    across the wrong trunk spelling. The resolution is deliberately NOT
+    widened to guess the live spelling (the window-ask ruling stands).
     """
     parsed = parse(branch)
     kind = parsed["kind"]

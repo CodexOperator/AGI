@@ -68,6 +68,7 @@ import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
+import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -3397,7 +3398,101 @@ def _live_tmux(root, *a):
     return r.stdout
 
 
-def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
+class RenameTownRefusal(Exception):
+    """A rename that would move a post out of its declared town
+    (goal:g15.25 SM.32b); `cmd_rename_post` prints its message and exits
+    non-zero -- never a silent legacy fallback."""
+
+
+def _row_season(root: Path | None) -> int:
+    """The season NUMBER a town-first branch carries, from the SAME ladder
+    field `season_branch` reads; the pre-town-first literal 2 is the fallback."""
+    s = load_ladder_field(root, "current_season", None) if root else None
+    try:
+        return max(1, int(s))
+    except (TypeError, ValueError):
+        return 2
+
+
+def _row_town_or_refuse(root: Path | None, name: str) -> str:
+    """The row's REAL town through `towns.row_town` -- a declared cell wins,
+    the transitional map retires itself -- or a NAMED REFUSAL."""
+    row = _find_seat(root, name)
+    if row is None:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} is in town (unresolved), no config "
+            f"row named {name}")
+    return towns.row_town(root, row)
+
+
+def _local_branches(root: Path | None) -> list[str] | None:
+    """Every LOCAL branch short name under `refs/heads`, or None when git
+    cannot answer (a gitless fixture). None means CANNOT ANSWER, never
+    `no refs`: the caller keeps the derived spelling."""
+    if root is None:
+        return None
+    try:
+        return _git_lines(Path(root), "for-each-ref",
+                          "--format=%(refname:short)", "refs/heads")
+    except Exception:  # noqa: BLE001 -- gitless fixture / no repo here
+        return None
+
+
+def _town_post_branch(root: Path | None, name: str,
+                      reader=None) -> str | None:
+    """The REAL town-first post branch for `name`, read from local refs.
+    SM.62: a post's HOME town (`towns.row_town`) and the PROJECT town its
+    branch builds on (`core/`, `web-app-suite/`, ...) are SEPARATE axes, so
+    this NEVER derives a spelling from the row cell. Returns the real ref
+    spelling when the refs carry exactly one (town, town_season) tuple for
+    the post; a NAMED RenameTownRefusal when several real refs disagree;
+    None when git cannot answer or the post has no real ref -- the branch
+    surfaces are then SKIPPED BY NAME and the reason is printed here, the
+    one place that knows whether git could answer at all."""
+    names = (reader or _local_branches)(root)
+    if names is None:
+        print(f"rename-post: cannot read local refs for {name}: nothing to "
+              f"rename", file=sys.stderr)
+        return None
+    real = []
+    for n in names:
+        try:
+            p = branches.parse(n)
+        except ValueError:
+            continue
+        if p.get("kind") in ("post", "v3_post") and p.get("name") == name:
+            real.append((n, p))
+    if not real:
+        print(f"rename-post: no real branch for {name}: nothing to rename",
+              file=sys.stderr)
+        return None
+    tuples = []
+    for _ref, p in real:
+        t = (p.get("town"), p.get("town_season"))
+        if t not in tuples:
+            tuples.append(t)
+    if len(tuples) > 1:
+        raise RenameTownRefusal(
+            f"rename-post REFUSED: {name} has real branches that disagree "
+            f"({', '.join(ref for ref, _ in real)})")
+    return real[0][0]
+
+
+def _rename_post_segment(branch: str, name: str) -> str:
+    """`branch`'s post segment renamed to `name`, keeping the SAME (town,
+    town_season) tuple -- a rename never moves a post's season. SM.62: a
+    legacy town-less post ref has no town segment, so its
+    shape is preserved verbatim by swapping the post segment alone (the
+    real ref is never re-spelled into a town-first one)."""
+    p = branches.parse(branch)
+    if p.get("town") is None:
+        return branch.replace(f"/posts/{p['name']}", f"/posts/{name}")
+    return branches.derive_names(p["town"], p["town_season"],
+                                 post=name)["post_main"]
+
+
+def _rename_surfaces(root: Path, old: str, new: str,
+                     branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
     dst, appliable, action, ...}. ROUND 2 (SM.18): the table is the FULL
     surface set the claim names -- session files, dm logs + .state.json
@@ -3459,12 +3554,22 @@ def _rename_surfaces(root: Path, old: str, new: str) -> list[dict]:
                         f"row {new}.{k}->{new}", "ship",
                         print_line=f"write.py {nm} 'replace {k} -- {new}'")
 
+    old_town = _row_town_or_refuse(root, old)
+    new_row = _find_seat(root, new)
+    if new_row is not None:
+        new_town = towns.row_town(root, new_row)
+        if new_town != old_town:
+            raise RenameTownRefusal(
+                f"rename-post REFUSED: {old} is in town {old_town}, the new "
+                f"name {new} is a row in town {new_town}")
+    old_branch = _town_post_branch(root, old, branches_reader)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    add("branch", branches.post_branch(2, old), branches.post_branch(2, new),
-        "seam-git")
-    add("branch (origin)", f"origin/{branches.post_branch(2, old)}",
-        f"origin/{branches.post_branch(2, new)}", "seam-git")
+    if old_branch is not None:
+        new_branch = _rename_post_segment(old_branch, new)
+        add("branch", old_branch, new_branch, "seam-git")
+        add("branch (origin)", f"origin/{old_branch}",
+            f"origin/{new_branch}", "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
@@ -3788,7 +3893,11 @@ def cmd_rename_post(args: argparse.Namespace, root: Path) -> int:
         return 2
 
     row = _find_seat(root, old)
-    surfaces = _rename_surfaces(root, old, new)
+    try:
+        surfaces = _rename_surfaces(root, old, new)
+    except RenameTownRefusal as exc:
+        print(str(exc), file=sys.stderr)
+        return 4
     if not surfaces:
         print(f"rename-post: no surfaces found for {old!r} -> {new!r}",
               file=sys.stderr)
@@ -5091,6 +5200,8 @@ def _write_rotation_record(root: Path, record: dict,
     #     written between the join and the outcome: rebuilding the dict from
     #     arguments drops it BY CONSTRUCTION (mechanism (A)).
     _preserve_audit(record, path)
+    # (clause a) nor the OUTCOME rewrite: 0 of 18 records carried the seal.
+    _preserve_stops_sha(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -12442,6 +12553,69 @@ def _resolve_startup_placeholders(command: str, values: dict, *,
     return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", _sub, command)
 
 
+def _strip_harness(text: str) -> str:
+    """Drop harness-signature regions from captured output before it rides a
+    delivered dm -- the ONE read of send's signature list, never a second
+    spelling (hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-
+    quoted-block-reads-as-marked-data, conjunct 4)."""
+    import send as _send  # local: same dir (send.py pattern)
+    return _send.HARNESS_BLOCK_RE.sub("", text)
+
+
+class FactsBodyRangeError(ValueError):
+    """A `facts*` first_turn entry that names no `read body N:M`, or two
+    templates whose same label disagrees -- refused BY NAME (template +
+    label), never as a bare `no facts entry`."""
+
+
+def facts_body_ranges(templates: dict) -> list:
+    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive,
+    resolved from the templates' OWN `facts*` first_turn cmd(s) -- `write.py
+    config:rotations 'read body N:M'` (SM.55 residue, item 11).
+
+    A template may carry several entries (`facts`, `facts-2`, `facts-N`) and
+    each is returned; every template carrying the SAME label must agree; a
+    `facts*` cmd that names no body range raises `FactsBodyRangeError` naming
+    both the template and the label. Ordered `facts` first, then `facts-2`,
+    `facts-3` … This is the PRODUCTION half of the guard's rule: the guard in
+    `test_rotate_templates.py` imports it, so the rule and production are the
+    same rule."""
+    by_label: dict = {}
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        for e in startup.get("first_turn") or []:
+            if not isinstance(e, dict):
+                continue
+            label = e.get("label")
+            if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
+                                                              label):
+                continue
+            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            if not m:
+                raise FactsBodyRangeError(
+                    f"template {name!r} {label!r} cmd does not name a body "
+                    f"range: {e!r}")
+            by_label.setdefault(label, set()).add(
+                (int(m.group(1)), int(m.group(2))))
+    if not by_label:
+        raise FactsBodyRangeError(
+            "no template declares a `facts` read body N:M first_turn")
+    out = []
+    for label in sorted(by_label, key=lambda l: (l != "facts",
+                                                 0 if l == "facts"
+                                                 else int(l.rsplit("-", 1)[1]))):
+        rs = by_label[label]
+        if len(rs) != 1:
+            raise FactsBodyRangeError(
+                f"facts body ranges disagree across templates for {label!r}: "
+                f"{rs}")
+        n, m = rs.pop()
+        out.append((label, n, m))
+    return out
+
+
 def _run_first_turn_commands(startup: dict, values: dict, *,
                              dry_run: bool = False) -> list:
     """Run the template's `startup.first_turn` list, one at a time, BEFORE
@@ -12470,6 +12644,11 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        # item 11(a): an ENTRY-level `byte_cap` wins over the template cell;
+        # the template cap stays the fallback, so an entry with no cell is
+        # byte-identical to before. The value that truncated the output is the
+        # value recorded on the result.
+        entry_cap = int(entry.get("byte_cap") or byte_cap)
         # A per-entry `fallback:` (e.g. "fallback: --key {prime_key}") names a
         # WHOLE FRAGMENT substituted when a USED placeholder is EMPTY -- so a
         # prime-authority entry whose {prime_ref} is empty resolves by the
@@ -12572,12 +12751,12 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "timed_out_after_s": timeout_s})
             continue
         truncated = False
-        if len(out) > byte_cap:
-            out = out[:byte_cap]
+        if len(out) > entry_cap:
+            out = out[:entry_cap]
             truncated = True
         results.append({"label": label, "cmd": record_cmd, "rc": rc,
                         "output": out, "truncated": truncated,
-                        "byte_cap": byte_cap})
+                        "byte_cap": entry_cap})
     return results
 
 
@@ -12610,7 +12789,7 @@ def _compose_startup_output(results: list) -> str:
         else:
             if r.get("truncated"):
                 lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
-            out = (r.get("output") or "").strip()
+            out = _strip_harness((r.get("output") or "").strip())
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
     return "\n".join(lines)
@@ -12840,8 +13019,10 @@ def _row_pred_pid_usable(root: Path, seat: str,
     rotate-self own-tail case) — its pid MUST NOT be reaped. The row is used
     only while its generation still equals the record's `gen_before` (the row
     not yet re-written); a row at `gen_after`, or a record with no
-    `gen_before` to compare, falls to ''. Callers with no record (a dry-run
-    of a NEW rotation) stay on the old row-read path."""
+    `gen_before` to compare, is UNUSABLE and returns False (the caller then
+    falls to the named `none: nothing to reap` value, never to ''). Callers
+    with no record (a dry-run of a NEW rotation) stay on the old row-read
+    path."""
     if record is None:
         return True
     gb = record.get("gen_before")
@@ -12855,7 +13036,9 @@ def _derive_pred_pids(root: Path, seat: str,
                       record: dict | None) -> str:
     """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
     WORD-BOUNDED ERE ALTERNATION over the pids THIS rotation reaped, else the
-    predecessor row's own `pid`, else ''. ONE reader, shared by every
+    predecessor row's own `pid`, else the named, regex-inert value
+    `"none: nothing to reap"` (the final `return` below) -- never ''. ONE
+    reader, shared by every
     after_join performer (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-
     performer-derives-pred-pids...): the watch/service, the rotate-self own
     tail and the dry-run plan. Before this helper each caller passed NO
@@ -13528,7 +13711,7 @@ def _compose_after_join_dm(seat: str, gen: str | int, succ_ref: str,
         if with_output:
             if r.get("truncated"):
                 lines.append(f"    (output truncated to {r['byte_cap']} bytes)")
-            out = (r.get("output") or "").strip()
+            out = _strip_harness((r.get("output") or "").strip())
             if out:
                 lines.extend(f"    {ln}" for ln in out.splitlines())
         return lines
@@ -14414,7 +14597,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # _compose_after_join_dm intends today.
         sref = (row or {}).get("session_ref") or ""
         # (SL7.98) the performer derives pred_pids from the RECORD's
-        # s12_self_reap chain (else the predecessor row, else '') so the
+        # s12_self_reap chain (else the predecessor row, else the named
+        # `"none: nothing to reap"` -- never '') so the
         # reap-proof entry runs against the REAL reaped pids and is never
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
@@ -15002,12 +15186,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # `refs/agi/<kind>/<leaf>` and NO engine path advances `origin/<branch>`
     # any more, so counting `@{u}..HEAD`/`origin/<branch>..HEAD` measures a
     # basis that cannot exist (every rotation read behind forever, or a seat
-    # hand-pushed a head). When the branch resolves a mirror ref, count
-    # `mirror..HEAD` against the LOCAL mirror ref if it resolves -- NEVER a
-    # fetch (fetch is a network WRITE and prepare must not do it), and the
-    # local ref is what a worktree seat actually has. A mirror that does not
-    # resolve is reported ok/unmeasured: never a block on a basis that cannot
-    # be measured. Everything else keeps the pre-existing @{u}/origin
+    # hand-pushed a head). When the branch resolves a mirror ref, read
+    # ORIGIN's tip with `ls-remote` and count `origin-tip..HEAD` -- NEVER a
+    # fetch (fetch is a network WRITE and prepare must not do it), and NEVER
+    # the local `refs/agi/*` ref, which no engine path or fetch refspec ever
+    # creates on a live seat (SM.53 item 5: the arm was inert). An ls-remote
+    # that FAILS or returns nothing, or a remote tip whose object is not
+    # present locally, is reported ok/unmeasured by name: never a block, and
+    # never a silent 'pushed'. Everything else keeps the pre-existing
+    # @{u}/origin
     # fallback: when `@{u}` does not resolve (a fresh seat branch with no
     # upstream yet -- exactly the unpushed case), count
     # `origin/<branch>..HEAD` if that ref exists, else BLOCK `no upstream for
@@ -15025,18 +15212,38 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         unpushed, pname, pclear = (False, "unpushed commits "
                                    "(detached: unmeasured)", "git push")
     elif mirror:
-        msha = _git_maybe(root, "rev-parse", "--verify", mirror)
-        mn = (_git_count_maybe(root, "rev-list", "--count",
-                               f"{mirror}..HEAD")
-              if msha else None)
-        if mn is None:
+        # SM.53 (5): the arm read only the LOCAL `refs/agi/*` ref, which no
+        # engine path or fetch refspec ever creates -- `msha` was None on
+        # every live seat. Read ORIGIN's ref instead. An ls-remote that
+        # FAILS or returns nothing, or a remote tip not present locally, is
+        # UNKNOWN/unmeasured by name -- never 'pushed'; `mn == 0` means
+        # 'mirror current', never 'could not read' (the pre-fix conflation).
+        _rls = _git_maybe(root, "ls-remote", "origin", mirror)
+        rsha = (_rls[0].split("\t")[0].strip() if _rls else "")
+        if not rsha:
             unpushed, pname, pclear = (
-                False, f"unpushed commits (unmeasured: no local {mirror})",
+                False, f"unpushed commits (unmeasured: origin {mirror} "
+                       f"unread or absent)",
+                f"git push origin HEAD:{mirror}")
+        elif _git_maybe(root, "cat-file", "-e",
+                        f"{rsha}^{{commit}}") is None:
+            unpushed, pname, pclear = (
+                False, f"unpushed commits (unmeasured: origin {mirror} tip "
+                       f"{rsha[:12]} not present locally)",
                 f"git push origin HEAD:{mirror}")
         else:
-            unpushed, pname, pclear = (
-                mn > 0, f"unpushed commits vs {mirror}",
-                f"git push origin HEAD:{mirror}")
+            mn = _git_count_maybe(root, "rev-list", "--count",
+                                  f"{rsha}..HEAD")
+            if mn is None:
+                unpushed, pname, pclear = (
+                    False, f"unpushed commits (unmeasured: {mirror} vs "
+                           f"{rsha[:12]} unreadable)",
+                    f"git push origin HEAD:{mirror}")
+            else:
+                unpushed, pname, pclear = (
+                    mn > 0, f"unpushed commits vs {mirror} "
+                           f"({rsha[:12]}: {mn})",
+                    f"git push origin HEAD:{mirror}")
     else:
         n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
         if n is not None:
@@ -15288,7 +15495,9 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     except Exception:  # noqa: BLE001
         card_stale = False   # unmeasurable reads NOT stale (P7)
     checks.append((card_stale, "card older than last commit",
-                   f"rotate.py handoff --driven --seat {seat}"))
+                   "write your card (a save is enough: the check reads mtime), "
+                   "commit it, then rotate; fallback: rotate.py handoff "
+                   f"--driven --seat {seat}"))
 
     # 5 meter pin missing or stale (seat_pin-stale). The check needs the
     # seat's CURRENT generation — which now comes from the config:seats ROW
@@ -17037,10 +17246,27 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return None                       # rewritten during this generation
     _m = re.search(r"gen (\d+)->(\d+)", _subj)
     _gp = f" gen {_m.group(1)}->{_m.group(2)}" if _m else ""
+    # (clause b2) name BOTH stamps and WHICH clock ran newer (newest act).
+    def _act(*a: str) -> str:
+        _o = _git_maybe(top, *a)
+        return _o[0] if _o else ""
+    _acts = [(_act("log", "-1", "--format=%cs", "--", rel),
+              "the card's last commit"),
+             (_act("log", "-1", "--format=%cs", "--grep",
+                   f"^{re.escape(seat)} .*(harvest|merge-up)"),
+              "the post's newest harvest/merge-up commit")]
+    try:
+        _acts += [(str(json.loads(_p.read_text(encoding="utf-8")).get(
+            "recorded_at") or "")[:10], "the post's newest rotation record")
+            for _p in _rotations_dir(root).glob(f"{seat}.*.json")]
+    except Exception:  # noqa: BLE001
+        pass
+    _wd, _wsrc = max((a for a in _acts if a[0]), key=lambda a: a[0],
+                     default=("", "none"))
     return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
-            f"{_gp} @ {_sha[:8]} {_date}): the slot still holds the "
-            f"predecessor's stop block; write the card where-it-stops section "
-            f"or pass --stops")
+            f"{_gp} @ {_sha[:8]} {_date}; newest work act {_wd or '?'} from "
+            f"{_wsrc}): the slot still holds the predecessor's stop block; "
+            f"write the card where-it-stops section or pass --stops")
 
 
 def _rotate_human_gate(root: Path, seat: str,
@@ -18063,7 +18289,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             # performers do (the record at rec_path when one exists — in a dry
             # run of a NEW rotation none does — else the predecessor row), so
             # a reap-proof entry is planned against the derived pids, or the
-            # NAMED refusal when '' — never `dry: True` over an unresolved
+            # NAMED refusal when the derived value is `"none: nothing to
+            # reap"` -- never `dry: True` over an unresolved
             # placeholder.
             aj_values = dict(startup_values)
             aj_values["pred_pids"] = _derive_pred_pids(
@@ -19443,6 +19670,16 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
         if _stale:
             print(f"rotate refused: {_stale} (nothing delegated)",
                   file=sys.stderr)
+            return 2
+    elif args.stops is not None:
+        # (clause b) an explicit --stops is NOT a bypass: rewrite the card's
+        # where-it-stops slot with that ONE line BEFORE the gate. No pre-check:
+        # `_write_stops_section` itself CREATES a missing slot and REFUSES an
+        # ambiguous one (returns (None, ...)), so the refusal below covers it.
+        _ecard = _own_card_path(root, target)
+        _ewf, _ewsl = _write_stops_section(_ecard, target, args.stops)
+        if _ewf is None:
+            print(f"rotate refused: {_ewsl} (nothing delegated)", file=sys.stderr)
             return 2
     # (5) --dry-run prints the ONE resolved line, then delegates (rotate-self's
     # own dry-run does the rest, touching nothing). The stops token is truthful

@@ -1664,6 +1664,10 @@ def test_cap_headroom_refuses_and_names_pool_floor_and_live(monkeypatch):
     assert ok is False
     assert "pool headroom $1.50" in msg, msg
     assert "pool $6.00" in msg and "floor $1.00" in msg and "live $3.50" in msg
+    # item 15: the conservatism is NAMED, not implied (the house shape:
+    # a parenthesised clause after the arithmetic).
+    assert "live counts every agi- key's full limit" in msg, msg
+    assert "disabled, expired and already-spent keys included" in msg, msg
 
 
 def test_cap_headroom_admits_a_cap_inside_headroom(monkeypatch):
@@ -1677,14 +1681,21 @@ def test_cap_headroom_admits_a_cap_inside_headroom(monkeypatch):
 
 
 def test_cap_headroom_fails_open_on_absent_key_and_network_error(monkeypatch):
+    """item 12: BOTH fail-opens carry a marker naming the unmeasured cap --
+    `(True, None)` is reserved for "measured and fits", never for a read that
+    could not happen (the `check_key_floor` idiom)."""
     monkeypatch.setattr(provisioning, "credit_balance", lambda root=None: None)
-    assert provisioning.cap_headroom({}, None, 5.0) == (True, None)
+    ok, msg = provisioning.cap_headroom({}, None, 5.0)
+    assert ok is True
+    assert msg and "cap not measured" in msg and "no provisioning key" in msg, msg
 
     def _boom(root=None):
         raise provisioning.ProvisioningError("unreachable")
 
     monkeypatch.setattr(provisioning, "credit_balance", _boom)
-    assert provisioning.cap_headroom({}, None, 5.0) == (True, None)
+    ok, msg = provisioning.cap_headroom({}, None, 5.0)
+    assert ok is True
+    assert msg and "cap not measured" in msg and "unreadable" in msg, msg
 
 
 def test_cap_headroom_with_no_declared_floor_treats_it_as_zero(monkeypatch):

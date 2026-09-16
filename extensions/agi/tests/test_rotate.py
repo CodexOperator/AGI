@@ -9272,6 +9272,37 @@ def test_merge_up_dry_run_touches_nothing(tmp_path, capsys, monkeypatch):
     assert after == before
 
 
+def test_merge_up_main_on_another_branch_refusal_text_pinned(
+        tmp_path, capsys, monkeypatch):
+    """SM.53 item 4: the CURRENT `merge-up --post` refusal is pinned
+    VERBATIM, so the text a live seat reads cannot drift silently. With MAIN
+    on `master` (not the post's resolved trunk `season2/main`), the verb
+    exits 3 and names both branches on stderr with `, not ` and
+    `-- nothing merged` -- the by-name refusal the v3 trunk-spelling gap
+    (docstring MAP in branches.merge_target) is deliberately left to. The
+    fix is the NAMING, not a widened resolution: nothing merges."""
+    root, top, bare = _merge_up_fixture(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "adv")
+    before = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    subprocess.run(["git", "-C", str(top), "checkout", "-q", "master"],
+                   check=True)
+    capsys.readouterr()
+    rc = rotate.cmd_merge_up(
+        SimpleNamespace(post="adv", name=None, dry_run=False), root)
+    err = capsys.readouterr().err
+    assert rc == 3, err
+    assert "merge-up refused: MAIN is on" in err, err
+    assert ", not " in err, err
+    assert "-- nothing merged" in err, err
+    assert "'master'" in err and "'season2/main'" in err, err
+    assert not (root / "sessions" / "verify-suite.lock").exists()
+    after = subprocess.run(["git", "-C", str(top), "rev-parse", "HEAD"],
+                           capture_output=True, text=True).stdout.strip()
+    assert after == before, "a refused merge-up moved MAIN"
+    assert _ls(bare, "refs/heads/season2/main")[0] == before
+
+
 def test_merge_up_unkeyed_caller_refused_nothing_merged(tmp_path, capsys,
                                                         monkeypatch):
     """C1 falsifier (the parent's probe, now asserted): an UNKEYED caller --
@@ -9512,3 +9543,27 @@ def test_origin_head_delete_refuses_without_a_containment_proof(tmp_path):
     assert _ls(bare, "refs/heads/season2/posts/adv"), "head deleted anyway"
     assert _ls(bare, "refs/agi/posts/adv")[0] == master_sha
 
+
+
+def test_rename_post_default_reader_is_real_git_and_preserves_the_real_ref(
+        tmp_path, capsys):
+    """SM.32b ROUND 2 + SM.62: the DEFAULT branch reader is real git, not only
+    the injected one. `_git_with_post_branch` creates the real ref
+    `season2/posts/adv` (NO town segment) while the row cell declares `core`;
+    SM.62 deletes the row-town-vs-branch comparison, so the ref's own shape
+    is carried VERBATIM -- `season2/posts/adv2` -- never re-spelled into
+    `core/season2/...` and never refused."""
+    row = {"name": "adv", "role": "director", "town": "core"}
+    root, top, bare, head = _git_with_post_branch(tmp_path, seat_row=[row])
+    # sanity: the reader really reaches the ref the fixture created
+    assert "season2/posts/adv" in rotate._local_branches(root)
+    capsys.readouterr()
+    rc = rotate.cmd_rename_post(SimpleNamespace(
+        old_name="adv", new_name="adv2", dry_run=False, now=False,
+        apply=False, root=None), root)
+    assert rc == 0, (rc, capsys.readouterr().err)
+    staged = root / "sessions" / "seats" / "adv.rename.json"
+    assert staged.exists()
+    surfs = {s["kind"]: s for s in json.loads(staged.read_text())["surfaces"]}
+    assert surfs["branch"]["src"] == "season2/posts/adv", surfs["branch"]
+    assert surfs["branch"]["dst"] == "season2/posts/adv2", surfs["branch"]
