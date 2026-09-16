@@ -1263,9 +1263,27 @@ def _is_build_target(parent_id: str) -> bool:
     return (parent_id or "").strip().startswith("build:")
 
 
+def _scratch_dir_clause(session_dir: Path | str | None) -> list[str]:
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- ONE clause, and a no-op when the session dir is unknown
+    (offline callers must not change). Rendered for the tiers that stage
+    scratch: the kid (which left the 27 tracked `.agi/tmp/` files and the
+    SL7.128 probes) and its parent.
+    """
+    if not session_dir:
+        return []
+    return [
+        f"SCRATCH DIR: your session dir {session_dir} is the ONLY scratch "
+        f"dir. Probes, kid briefs, notes and result files go under it; "
+        f"never `.agi/tmp/` or the repo root. Anything outside it is a "
+        f"stray the harvest drops."
+    ]
+
+
 def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
           source_root: str | None = None,
-          addendum: str | None = None) -> list[str]:
+          addendum: str | None = None,
+          session_dir: Path | str | None = None) -> list[str]:
     """One node, bounded scope. Behaviour-preserving move of the old inline text.
 
     The wording is unchanged on purpose: it is the brief every measured
@@ -1313,6 +1331,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         ))
     if is_build:
         segs.append(_BUILD_IMPERATIVE)
+    segs += _scratch_dir_clause(session_dir)
     segs += [
         # goal:s28 session, 2026-09-02 -- a kid ran `git add -A && git commit`
         # and swept up 37 lines of a CLAUDE.md section the director had
@@ -1467,6 +1486,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
             branch_worktree: str | None = None,
             branch_base: str | None = None,
             source_root: str | None = None,
+            session_dir: Path | str | None = None,
             project_root: Path | str | None = None) -> list[str]:
     """A loop, not a node. `goal:g4.8` + `hypothesis:l3-parent-never-told-to-iterate`.
 
@@ -1729,6 +1749,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         (f"YOUR CHECKOUT: {source_root}. Every source path below is relative "
          f"to it. Do not edit any other checkout, even one whose path appears "
          f"elsewhere in this prompt." if source_root else None),
+        *_scratch_dir_clause(session_dir),
         f"TARGET: {aim}\n"
         f"Your job, in order:\n"
         f"1. SPAWN kids with:\n"
@@ -1984,6 +2005,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
                        branch_worktree=os.environ.get("AGI_PARENT_WORKTREE"),
                        branch_base=os.environ.get("AGI_PARENT_BASE_BRANCH"),
                        source_root=str(source_root) if source_root else None,
+                       session_dir=session_dir,
                        project_root=project_root)
         segs = [s for s in segs if s is not None]
         # goal:g15.25 SM.26/SM.28 -- the director's dispatch-time word rides
@@ -1996,6 +2018,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
                 scaffold=scaffold,
                 source_root=str(source_root) if source_root else None,
+                session_dir=session_dir,
                 addendum=addendum)
     return _finish(segs, tier)
 
