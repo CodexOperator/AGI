@@ -2140,7 +2140,7 @@ def main() -> int:
         if not _rtk_ok:
             print(f"ERR: {_rtk_msg}", file=sys.stderr)
             return 1
-        _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root)
+        _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root, iter_n=args.iter_n)
         if not _hkey_ok:
             print(f"ERR: {_hkey_msg}", file=sys.stderr)
             return 1
