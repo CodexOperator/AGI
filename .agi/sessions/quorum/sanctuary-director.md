@@ -48,13 +48,13 @@ Prior mur-53/54, branch-reshuffle, L4.363/364/365 narrative: resolved, closed, p
 Carried from prior sessions: mur-49 residues (nonce_ledger silent-swallow-on-unreadable, unknown-schema probe needs a fixture root, harvest guard should diff for stray node dirs, town-set loader refusal-reported-as-absence) — background for R2/R4/R5/R6, still no separate signed GO from belam. Not dispatched this session either.
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
-
+```
 SD.08 is merged to the post branch and ready, but its MAIN merge-up is blocked on TWO things, neither resolved as of this write:
 1. **Belam's own explicit ordering**: sensei-director's post branch (SM.51-56, sha `74d3a119f`) must land on MAIN and stamp FIRST; my window opens only after that stamp, per belam's 17:36Z message. Check whether it has landed: `git log origin/season2/main --oneline --grep="74d3a119f"` or just check whether `git merge-base --is-ancestor 74d3a119f origin/season2/main` (from any worktree with that commit fetched) now says yes.
 2. **One unconfirmed test failure**: the pre-merge-up full suite in my post branch (this session, ~17:4xZ) came back 10/11 — `test_rotate.py::test_bootstrap_writes_before_spawn_in_rotate_self` FAILED, 5133 passed/16 skipped/1 xfailed. This is in `rotate.py`, a file my SD.06/SD.08 rounds never touched, and heavy concurrent SM/sensei-director rotate.py work landed in the same sync — almost certainly the same class as the earlier g1517 case (someone else's in-flight work), but **belam has not explicitly named it clear-to-ignore the way g1517 was named**. Reported to belam (§0), no reply received as of rotation. Re-check `send.py read sanctuary-director` — if belam names it clear (or the failure is gone on a fresh suite run), proceed with the MAIN merge-up recipe exactly as it ran for SD.02/SD.06 (ask-and-grant already effectively open — belam granted the window pending #1/#2, no need to re-ask unless a lot of time has passed). If belam calls it real, do not merge until whoever owns rotate.py's work fixes it — not this seat's file.
 
 Once SD.08 lands on MAIN: nothing else is live. Do not invent new mints/dispatches beyond a named GO (SD.03 stays held; mur-49/R2-R6 in §2 still need their own separate signed GO). `send.py read sanctuary-director` per nudge (F25) is still the whole wake protocol.
-
+```
 ## §4 TRAPS (this session, new)
 
 - 🔴 **`.env` lives at the MAIN repo root (`/home/ubuntu/work/agi/.env`), not in any worktree.** F13's hand-balance-check command silently produces "Missing Authentication header" if pointed at a worktree-relative `.env` — that's a wrong-path failure, not a real auth failure. Always point at the MAIN root.
