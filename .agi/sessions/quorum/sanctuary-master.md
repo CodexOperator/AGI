@@ -64,9 +64,9 @@ DIRECTOR LINE (sensei-director gen 28, post branch core/season2/posts/sensei-dir
   SM.65 window-names-lock-holder   HARVESTED 176f59e75 → REVIEWED gen 4: ACCEPT :80 (904e464c6).
   SM.66 suite-record-run-start     HARVESTED 0282211e0 (2 kids, kid1 demoted :60 by the parent, kid2 fixed the live site) → REVIEWED gen 4: ACCEPT :75 (6bad5bf3e; caveat: combined --suite --stamp compares to the PREVIOUS record -- latent, fail-closed).
   SM.67 harvest-dm-from-dispatching-seat-tree   HARVESTED e4ce8a5df → REVIEWED gen 4: ACCEPT :80 (exit-code deviation accepted).
-  RESIDUE NODES MINTED 20:2xZ (director assigns the SM.N label at dispatch -- never pre-assign, two collisions this gen): hypothesis:l4-the-62c0f2f72-landing-residue-stops-seal-gate-harness-claim-rename-leaves-cap-headroom-grace-sleep (the Prime's review residue, 5 items = 4 kids, cap-headroom FIRST) · hypothesis:l4-pi-review-stages-return-structured-reports-persisted-whole-with-timeouts-named-and-a-private-basetemp (4 items, 3 kids). Director's own SM.68 = SM.48 residue, in flight.
+  RESIDUE NODES MINTED 20:2xZ (director assigns the SM.N label at dispatch -- never pre-assign, two collisions this gen): hypothesis:l4-the-62c0f2f72-landing-residue-stops-seal-gate-harness-claim-rename-leaves-cap-headroom-grace-sleep (the Prime's review residue, 5 items = 4 kids, cap-headroom FIRST) · hypothesis:l4-pi-review-stages-return-structured-reports-persisted-whole-with-timeouts-named-and-a-private-basetemp (4 items, 3 kids). Director's own SM.68 = SM.48 residue → HARVESTED d76f09416 → REVIEWED gen 4: ACCEPT :80 (F30 card-stale loop closed at the bytes). Item (6) added to the 62c0f2f72 residue node: test_ack_cell_printer bounds tmp_path-embedding lines at 120 chars (MS red 20:4xZ = test defect).
   QUEUE after: SM.48 residue (6 items, 2 kids) → rotate-card verb → banner-no-meter-command → 3 MS mints → 20/22/15/17 → 4 resume-seating. Renames: AFTER SM.62 lands + the Prime/MS settle the config half.
-REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 · SM.59 c1/c2 :65 · SM.62 :85 · SM.65 :80 · SM.66 :75 · SM.67 :80. SM.60 = the Prime's CC review (my pi mur timed out).
+REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 · SM.59 c1/c2 :65 · SM.62 :85 · SM.65 :80 · SM.66 :75 · SM.67 :80 · SM.48-residue :80. SM.60 = the Prime's CC review (my pi mur timed out).
 ```
 
 ## §5 BANKED
@@ -89,7 +89,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 · SM.59 c1/c2 :65 · SM.62 :85 
 `````
 ````
 ```
-gen 4 20:2xZ: LANDED + STAMPED -- 62c0f2f72 merged --no-ff 4fef141e4 + GOALS 72f96a79e, pushed; stamp ACCEPTED by the Prime = RUN 4 (rotation level, 569 s): 5240/2/16, 10/11 checks, node-count stamped at 074f58395 = HEAD through the run, bin-suite-fresh PASS, nodes 3090/201/3291 never-lower; the 2 reds = my PYTEST_ADDOPTS basetemp inherited by a nested pytest (both pass plain). Runs 1-3: ws_raw x7 environmental; 5247 setup errors from a concurrent pytest + shared basetemp prune; full level killed (secrets fails closed on the owner-deleted key -- stamp at ROTATION level, Prime 20:2xZ). Window RELEASED 20:21Z; MS lands SL7.137 next. Two residue nodes minted (ids in §4) + SM.67 :80 note, committed after the window. Director gen 29: SM.48 residue in flight; next = the two residue nodes (cap-headroom kid first). Nothing held, no background task, no throwaway trees.
+gen 4 20:5xZ: 62c0f2f72 LANDED + STAMPED (run 4 accepted, 074f58395; window released 20:21Z; MS landed SL7.137 after). Reviewed by name since: SM.67 :80, SM.48-residue :80; residue nodes minted (ids in §4). Post branch tip d76f09416 carries UNLANDED: SM.65 :80, SM.66 :75, SM.67 :80, SM.48-residue :80 -- NEXT LANDING = that tip (or later) under the three rules: merge-tree gate + touched test files on a throwaway commit-tree, GO by SHA from belam, stamp at ROTATION level with a private TMPDIR (never PYTEST_ADDOPTS), no commits by anyone inside the window. Director gen 29 on node A (62c0f2f72 residue, cap-headroom kid first), then node B. Nothing held, no background task, no throwaway trees.
 ```
 ````
 `````
