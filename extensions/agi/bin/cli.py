@@ -2778,6 +2778,59 @@ def _rs_v3_successor(tuples: list[dict], job: dict) -> str | None:
     return None
 
 
+def _rs_mirror_ref_for_name(name: str, season: int) -> str | None:
+    """The `refs/agi/<kind>/<leaf>` MIRROR ref a LOCAL-ONLY post/loop branch's
+    tip lives at, else None for a trunk/unknown name. The name goes through
+    branches.parse -- the ONE grammar -- and BOTH spellings are handled: a
+    season-first `season<n>/posts|x/<leaf>` and a v3 town-first
+    `v3_post`/`v3_loop`. An alias is canonicalised first. NEVER raises: an
+    unparseable name is simply not a post/loop.
+
+    hypothesis:l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-
+    and-the-merge-up-takes-the-suite-lock-itself-no-window-ask, clause (6):
+    a post/loop branch never reaches origin as a head (clause (1)) -- its tip
+    is mirrored to the flat namespace of clause (2) -- so the mirror, not
+    `refs/heads/<name>`, is what the delete gates must read."""
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        p = branches.parse(name)
+    except ValueError:
+        return None
+    if p.get("kind") == "alias":
+        try:
+            p = branches.parse(p.get("canonical") or "")
+        except ValueError:
+            return None
+    kind, leaf = p.get("kind"), p.get("name")
+    if not leaf:
+        return None
+    if kind in ("post", "v3_post"):
+        return branches.mirror_ref(season, "posts", leaf)
+    if kind in ("loop", "v3_loop"):
+        return branches.mirror_ref(season, "loops", leaf)
+    return None
+
+
+def _rs_v3_gate_ref(tuples: list[dict], job: dict, season: int) -> str | None:
+    """The FULL ref whose ORIGIN PRESENCE proves a `new is None` delete job's
+    work reached origin, per kind (clause (6)): a POST/LOOP branch is
+    LOCAL-ONLY by contract, so its clause-(2) mirror `refs/agi/posts|loops/
+    <leaf>` is the proof -- never `refs/heads/<name>`, which a local-only
+    branch can never satisfy. A town_main keeps its v3 town-first HEAD
+    (`_rs_v3_successor`). None when no ref derives: the caller REFUSES by
+    name, never guesses."""
+    kind = job.get("kind")
+    if kind in ("post", "loop"):
+        return _rs_mirror_ref_for_name(job.get("old") or "", season)
+    if kind == "town_main":
+        # `_rs_v3_successor` consults the tuples only for the POST arm (the
+        # town-first leaf is derived from the job's own name), so an empty
+        # tuple list still resolves a town_main successor.
+        succ = _rs_v3_successor(tuples, job)
+        return f"refs/heads/{succ}" if succ else None
+    return None
+
+
 def _rs_containment_state(repo: Path, old: str,
                           targets: list) -> tuple[str, str | None]:
     """Content containment of a `--delete-old` job's origin tip in the first
@@ -2796,14 +2849,17 @@ def _rs_containment_state(repo: Path, old: str,
     reading as containment. This is the rc-honest idiom cmd_loop_prune
     already uses, applied to the REMOTE tips rather than local branches
     (hypothesis:l4-delete-old-requires-content-containment-every-job-
-    ancestor-of-successor-or-trunk, mur-52)."""
+    ancestor-of-successor-or-trunk, mur-52). `old` is ALWAYS an origin HEAD
+    (that is what `--delete-old` deletes), but each TARGET is a FULL ref
+    (clause (6): a post/loop target is its `refs/agi/...` mirror), so the
+    two probes use different readers."""
     old_sha = _rs_ls_remote_sha(repo, old)
     if not old_sha:
         return "failed", None
     for target in targets:
         if not target:
             continue
-        tgt_sha = _rs_ls_remote_sha(repo, target)
+        tgt_sha = _rs_ls_remote_ref_sha(repo, target)
         if not tgt_sha:
             continue  # absent on origin: try the next target, never guess
         r = subprocess.run(
@@ -2819,17 +2875,43 @@ def _rs_containment_state(repo: Path, old: str,
 
 def _rs_containment_targets(tuples: list[dict], job: dict,
                             season: int) -> list:
-    """The ordered content-containment candidates for one delete job: its
-    own rename target (`new`) when it has one, else its derived v3 successor
-    (`_rs_v3_successor`, the SAME derivation the presence gate already uses),
-    else the file's own season trunk main (`branches.season_main(season)` --
-    the ONE grammar source, never a hand-spelled `season<n>/main`).
-    `_rs_containment_state` skips a candidate ABSENT on origin, so the order
-    is a preference among resolvable targets, never a boundary that lets an
-    absent ref read as containment."""
+    """The ordered content-containment candidates for one delete job, as
+    FULL refs (never bare branch names) so the state reader can ls-remote
+    each one verbatim (clause (6)). A POST/LOOP successor is LOCAL-ONLY by
+    contract, so its clause-(2) mirror `refs/agi/posts|loops/<leaf>` is the
+    FIRST candidate -- the mirror holds exactly the tip the head delete would
+    otherwise destroy. The rename job's own `new` target keeps its kind's ref
+    (a post `new` resolves to the mirror too, never a head). town_main/trunk
+    kinds stay `refs/heads/<name>` (unchanged origin HEAD), and the file's own
+    season trunk main (`branches.season_main(season)` -- the ONE grammar
+    source, never a hand-spelled `season<n>/main`) remains the final
+    fallback. `_rs_containment_state` skips a candidate ABSENT on origin, so
+    the order is a preference among resolvable targets, never a boundary that
+    lets an absent ref read as containment."""
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    kind = job.get("kind")
+    new = job.get("new")
     succ = _rs_v3_successor(tuples, job) if tuples else None
-    return [job.get("new"), succ, branches.season_main(season)]
+    refs: list[str] = []
+    if kind in ("post", "loop"):
+        # the local-only branch's OWN mirror (clause (2)): the tip the origin
+        # head delete would destroy, and the only ref that holds it.
+        m = _rs_mirror_ref_for_name(new or job.get("old") or "", season)
+        if m:
+            refs.append(m)
+    for name in (new, succ):
+        if not name:
+            continue
+        refs.append(_rs_mirror_ref_for_name(name, season)
+                    or f"refs/heads/{name}")
+    refs.append(f"refs/heads/{branches.season_main(season)}")
+    out: list[str] = []
+    seen: set[str] = set()
+    for ref in refs:
+        if ref not in seen:
+            seen.add(ref)
+            out.append(ref)
+    return out
 
 
 def _post_rename_ls_remote(repo: Path, ref: str) -> bool:
@@ -3830,6 +3912,19 @@ def _rs_ls_remote_sha(repo: Path, old: str) -> str:
     return line.split("\t")[0] if line else ""
 
 
+def _rs_ls_remote_ref_sha(repo: Path, ref: str) -> str:
+    """The current origin tip sha of a FULL ref (e.g. `refs/heads/<b>` or the
+    clause-(2) mirror `refs/agi/posts/<leaf>`), or '' when origin has no such
+    ref. The full-ref twin of `_rs_ls_remote_sha`, which hardcodes the
+    `refs/heads/` prefix and keeps its existing callers: the clause-(6)
+    containment reader must be able to probe the `refs/agi/*` mirror verbatim
+    rather than a head that a local-only post/loop contractually never has."""
+    r = subprocess.run(["git", "ls-remote", "origin", ref],
+                       cwd=repo, capture_output=True, text=True)
+    line = (r.stdout or "").strip()
+    return line.split("\t")[0] if line else ""
+
+
 # --------------------------------------------------------------------------
 # I-3a-2 Region A — the v3 TOWN-FIRST plan (hypothesis:l4-the-reshuffle-
 # plans-the-final-town-first-tree-from-the-town-tuples-and-the-mirror-line-
@@ -4630,16 +4725,26 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
         # same refusal (honest, still deletes nothing). A v3-off tree keeps
         # the old direct-delete behaviour — there is no v3 successor to
         # require when the town set is undeclared.
+        # hypothesis:l4-post-branches-are-local-only-...-no-window-ask,
+        # clause (6): the presence proof is READ BY KIND. A post/loop
+        # successor is LOCAL-ONLY (clause (1)), never an origin head, so the
+        # gate reads its clause-(2) mirror `refs/agi/posts|loops/<leaf>`
+        # (`_rs_v3_gate_ref`); a town_main keeps its v3 town-first head. A
+        # post delete job whose mirror is ABSENT on origin is REFUSED BY
+        # NAME -- deleting the head without the mirror would destroy the only
+        # copy of the work.
         v3_gate_refused: list[str] = []
         if _v3_on:
             for j in djobs:
-                if j["new"] or j.get("kind") not in ("post", "town_main"):
+                if j["new"] or j.get("kind") not in ("post", "town_main",
+                                                     "loop"):
                     continue
-                succ = _rs_v3_successor(_rs_tuples, j)
-                if succ is not None and _post_rename_remote_ref_state(
-                        repo, f"refs/heads/{succ}") == "present":
+                gate_ref = _rs_v3_gate_ref(_rs_tuples, j, season)
+                if gate_ref is not None and _post_rename_remote_ref_state(
+                        repo, gate_ref) == "present":
                     continue
-                j["v3_successor"] = succ
+                j["v3_successor"] = gate_ref or _rs_v3_successor(
+                    _rs_tuples, j)
                 v3_gate_refused.append(j["old"])
         # hypothesis:l4-delete-old-requires-content-containment-every-job-
         # ancestor-of-successor-or-trunk (SAFETY-CRITICAL, mur-52): origin
