@@ -162,5 +162,29 @@
     "claimed_at": "2026-09-16T16:08:04.926751+00:00",
     "claim_key": "2026-09-16T16:07:11.548457Z",
     "performed_after_s": 52.742090463638306
+  },
+  "audit": {
+    "out": {
+      "calls": 0,
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 0,
+      "floor": 1,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/1f1ba501-4c37-44fd-9ace-5698802dc4d5.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1682,
+        "ts": "2026-09-16T16:06:02.039Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-16T16:07:11.548457Z"
+      },
+      "audited_at": "2026-09-16T16:16:50Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
