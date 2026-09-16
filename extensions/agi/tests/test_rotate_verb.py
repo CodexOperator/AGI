@@ -389,3 +389,127 @@ def test_started_record_seals_stops_sha256(tmp_path):
                                       steps=["handoff", "spawn"])
     rec2 = json.loads(path.read_text(encoding="utf-8"))
     assert rec2["stops_sha256"] == target
+
+
+# --- (15) clause (a): the OUTCOME rewrite keeps the stops seal ---------------
+def test_outcome_rewrite_keeps_stops_sha256(tmp_path):
+    """The file a reader finds on disk a minute later is the OUTCOME record:
+    a seal kept only by the started writer is dropped by the rewrite that
+    rebuilds the dict from arguments. Sealing must survive THAT write."""
+    import hashlib
+    stops = "run the suite and report"
+    target = hashlib.sha256(stops.encode()).hexdigest()
+    path = tmp_path / "rotations" / "prime.20260916T000000Z.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rotate._write_rotate_self_started(path, seat="prime", steps=["handoff"],
+                                      stops_sha256=target)
+    assert json.loads(path.read_text(encoding="utf-8"))["stops_sha256"] == target
+    # the OUTCOME rewrite of the SAME path (no stops_sha256 argument):
+    rotate._write_rotation_record(tmp_path, {"seat": "prime",
+                                             "result": "success"}, path=path)
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    assert rec["result"] == "success"           # it IS the outcome record
+    assert rec["stops_sha256"] == target        # and the seal survived it
+
+
+# --- (16) clause (b): explicit --stops re-stamps the card's slot ------------
+def test_explicit_stops_rewrites_card_slot(tmp_path, monkeypatch):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")  # stale slot
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse(["--stops", "fresh handoff"]), tmp_path)
+    assert code == 0
+    assert captured["ns"].stops == "fresh handoff"
+    # the card's slot BYTES now carry the explicit line, not the old block.
+    slot, _why = rotate._default_stops_text(tmp_path, "prime")
+    assert slot is not None and "fresh handoff" in slot
+    assert "run the suite and report" not in slot
+
+
+# --- (17) clause (b2): the refusal names BOTH stamps and the source ---------
+def test_stale_refusal_names_both_stamps_and_source(tmp_path, monkeypatch,
+                                                    capsys):
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: 0)
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 2
+    err = capsys.readouterr().err
+    day = subprocess.run(["git", "-C", str(tmp_path), "log", "-1",
+                          "--format=%cs"], capture_output=True, text=True,
+                         check=True).stdout.strip()
+    assert err.count(day) >= 2                  # the slot stamp AND the act
+    assert "newest work act" in err
+    assert "the card's last commit" in err      # WHICH source ran newer
+    # the fix text is unchanged (the byte comparison is still the gate).
+    assert "write the card where-it-stops section or pass --stops" in err
+
+
+# --- (18) clause (c): check 4 names the one-line exit FIRST -----------------
+def test_check4_one_line_exit_first_and_saved_card_clear(tmp_path, monkeypatch):
+    import os
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _stops_card(tmp_path, "prime", "run the suite")
+    monkeypatch.setattr(rotate, "_git_maybe", lambda *a, **k: None)
+    card = tmp_path / "sessions" / "quorum" / "prime.md"
+    stamp = tmp_path / "sessions" / "seats" / "prime.last-act"
+    stamp.parent.mkdir(parents=True, exist_ok=True)
+    stamp.write_text("2000000000\n", encoding="utf-8")
+    os.utime(card, (1000000000, 1000000000))    # card older than the act
+
+    def c4():
+        return [c for c in rotate._prepare_checks(tmp_path, "prime")
+                if c[1] == "card older than last commit"][0]
+
+    blocked = c4()
+    assert blocked[0] is True
+    # the CHEAPEST exit is named FIRST, the driven walk SECOND.
+    assert blocked[2].index("write your card") < blocked[2].index(
+        "handoff --driven")
+    # a card SAVED after the seat's last act reads NOT stale, no walk needed.
+    os.utime(card, (3000000000, 3000000000))
+    assert c4()[0] is False
+
+
+# --- (19) explicit --stops on a card with NO slot creates it, delegates -----
+def test_explicit_stops_on_card_with_no_slot_delegates(tmp_path, monkeypatch):
+    """P1 falsifier: the pre-check that refused a MISSING slot removed a
+    capability the delegated path already had -- `_write_stops_section`
+    CREATES the slot when the card has none. An explicit --stops on such a
+    card must delegate (exit 0), not refuse."""
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    card = tmp_path / "sessions" / "quorum" / "prime.md"
+    card.parent.mkdir(parents=True, exist_ok=True)
+    card.write_text("# card\n\nlead only, no stops slot\n", encoding="utf-8")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse(["--stops", "fresh one line"]), tmp_path)
+    assert code == 0                             # delegated, not refused
+    assert captured.get("ns") is not None        # the stub WAS called
+    assert captured["ns"].stops == "fresh one line"
+    # the write the delegation performs CREATES the missing slot.
+    import shutil
+    copy = tmp_path / "copy.md"
+    shutil.copyfile(card, copy)
+    full, slot = rotate._write_stops_section(copy, "prime", "fresh one line")
+    assert slot == "created"
+    assert full is not None and "fresh one line" in full
