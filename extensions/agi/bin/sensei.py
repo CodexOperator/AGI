@@ -2303,9 +2303,18 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     print(f"window: [last real input {window['start_line']} "
           f"{window['start_ts'] or '(no ts)'} -> {end or 'record end'}] "
           f"{len(calls)} calls")
+    # the buckets are the NON-pre categories plus the named `pre` class, so
+    # `calls == a+b+c+d+pre` and `window["counted"] == a+b+c+d`; built ONCE
+    # here so the printed line and the record's payload read the same dict.
     n_pre = len([c for c in calls if c["pre"]])
-    print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} "
-          f"d={counts['d']} pre={n_pre} (pre excluded from the floor)")
+    payload_counts = {k: 0 for k in ("a", "b", "c", "d", "s")}
+    for c in calls:
+        if not c["pre"]:
+            payload_counts[c["cat"]] += 1
+    payload_counts["pre"] = n_pre
+    print(f"counts: a={payload_counts['a']} b={payload_counts['b']} "
+          f"c={payload_counts['c']} d={payload_counts['d']} pre={n_pre} "
+          f"(a+b+c+d is the floor set; pre is excluded from the floor)")
     print(f"  (a=duplicates a rotate-self step/record field; b=hand poll/read; "
           f"c=protocol learning; d=genuine decision; pre=own report/harvest)")
     for i, c in enumerate(calls, 1):
@@ -2315,13 +2324,6 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         print("  (no assistant tool_use after the last real input)")
     # the audit result goes INTO the audited rotation record and one line
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
-    # the payload buckets are the NON-pre categories plus the named `pre`
-    # class, so `calls == a+b+c+d+pre` and `window["counted"] == a+b+c+d`.
-    payload_counts = {k: 0 for k in ("a", "b", "c", "d", "s")}
-    for c in calls:
-        if not c["pre"]:
-            payload_counts[c["cat"]] += 1
-    payload_counts["pre"] = n_pre
     try:
         line, status = finish_audit(
             root, args.seat, "out", len(calls), payload_counts,
