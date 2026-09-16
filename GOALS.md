@@ -9808,6 +9808,10 @@ L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage by N
 
 SM.54 harvested (audit-classifier): 2 kids not 1, final inconclusive_lean_proved:90, sensei.py 36/-3 vs ceiling 15 (approx 2.4x, no re-brief to SM before kid 2 -- flagged, not self-adjudicated). 179/179 sensei tests re-verified independently.
 
+SM.54 reviewed by name: ACCEPT :80 (SM) -- parent falsifying its own kid and re-briefing in-round is the mechanism working; 2.4x un-briefed cost 80 not lower. Rides the pending merge-up window with SM.51-53 (SM adds it to belam line on his GO).
+
+SM.55 harvested + merged (facts-guard): 1 kid as briefed, proved, parent ACCEPT :90. 0/30 production lines by design -- the guard lives in test_rotate_templates.py so master-sensei template half has a green target. 29/29 tests independently re-verified.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
