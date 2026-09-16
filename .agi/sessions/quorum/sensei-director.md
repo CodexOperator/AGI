@@ -60,18 +60,16 @@ Rules: goal reports, node proposals and round questions go to SM (`send.py send 
 | credits | $16.3 remaining per SM's fresh read (182 total, 165.69 used) — floor $5, not close. |
 | traps this session | 5 new, filed in §4: `dispatch.py --branch` cuts from the SPAWNER's own checked-out branch, not shared main — matters whenever a round needs HELD content that only exists on the seat branch; the root checkout at `/home/ubuntu/work/agi` is a live multi-writer surface, so a local unpushed merge there can get carried along and published by ANOTHER seat's own push before you decide to push it yourself; never double-background (`run_in_background: true` PLUS a shell `&` inside the command) — the harness only tracks the outer wrapper, which exits almost immediately, not the real process, so its "completed" notification is meaningless; `send.py peek <own-seat>` is the safe way to test identity/sender resolution without consuming a real unread message; a suite failure that exactly matches a ruling already sitting on the graph is not a fresh bug to re-diagnose — cite the ruling and move on. |
 
-### Live rounds (snapshot at the 07:11Z stamp — `spawn_budget.py status` is the current truth, this ages fast)
+### Live rounds (snapshot at 07:24Z — `spawn_budget.py status` is the current truth, this ages fast)
 | iter | node | agent |
 |---|---|---|
-| SM.14 | l4-the-ack-prints-only-the-changed-cells-of-its-own-row-never-the-whole-row-twice | a00-0302d929 |
 | SM.243 (=24c) | l4-non-prime-genless-clauses-0-2-7-records-readers-migration | a00-0866334b |
 | SM.250 (=25) | l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-and-the-merge-up-takes-the-suite-lock-itself-no-window-ask | a00-ea1066f0 |
-| SM.30 | l4-the-full-suite-runs-under-600-s-solo-real-waits-and-process-reaps-are-seamed-not-slept | a00-aa68dd29 |
+| SM.30 | l4-the-full-suite-runs-under-600-s-solo-real-waits-and-process-reaps-are-seamed-not-slept | a00-aa68dd29 (overdue nudge fired 07:21Z, still working per spawn_budget — do not cut a replacement) |
 | SM.32 | l4-the-keep-and-director-rows-carry-their-real-town-cell-and-a-live-cell-change-is-a-measured-rename-at-the-posts-boundary | a00-2e8e0402 |
 | SM.28 | l4-the-orders-channel-refuses-what-it-cannot-deliver-and-every-orders-record-names-bytes-that-reached-a-brief | a00-e9a79454 |
-| SM.33 | l4-the-gui-session-label-is-post-word-gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label | a00-3698e8e9 |
 
-SM.29 already harvested (see landed-this-session row above) — not in this table.
+**SM.29, SM.14 and SM.33 all harvested this session** (see landed-this-session row above) — not in this table. SM.14: ack diff-only printing, 4/4 probes held, merged `d87f02d49` (part of that push). SM.33: adversarial re-review, no code change, correctly declined to rebuild a superseded label scheme.
 
 ### Merge-up state
 SM.23b/SM.238's content is on season2/main; the tip moves constantly (multi-writer — `git -C /home/ubuntu/work/agi log --oneline -5` for the real current tip, do not trust a sha written here for long). ONE known suite failure remains (`test_rotate_g1517`), fix in flight as SM.243. **Do not report this merge-up fully closed until SM.243 lands and a fresh full suite reads green** — belam has the interim numbers with the caveat attached; this is a continuation, not a fresh window-ask.
@@ -84,29 +82,31 @@ SM.23b/SM.238's content is on season2/main; the tip moves constantly (multi-writ
 5. Once the live rounds land and a fresh full suite reads green including SM.243's fix: report the close to belam and SM in one numbers line (continuation of the interim report, not a fresh window-ask unless belam says otherwise).
 6. Rotate with `--stops` carrying current state — no-closeout ruling still stands unless the Prime lifts it by name.
 
-### 🔴 Where it stops — the next command (stamp 2026-09-16T07:11:47Z)
+### 🔴 Where it stops — the next command (stamp 2026-09-16T07:24Z, rotating near 0.80 of the line)
 ```
 Fresh first-seating this window (gen23). Recovered real state from the LIVE inbox rather than trusting the embedded stale card (which claimed a copilot-cli
 re-seat already superseded by a verified 06:3xZ order, minutes before this session's first token).
 
-This session: reconciled all 4 old branch tips (clean, nothing stranded), reported to SM. Merged SM.23b/SM.238 (heal-wait fix) -- it ended up live on
-season2/main via the shared root checkout's own multi-writer dynamic (other seats committed on top and one of them pushed before I did), not through a push
-I triggered myself. Full suite on that tree: 4857 passed / 1 failed (test_rotate_g1517, KNOWN -- SM's own ruling predicted this shape retiring) / 15 skipped
-/ 1 xfailed, 510s. Reported interim [merge-up] numbers to belam with the caveat attached. Harvested SM.29 myself (viewport theme rename): reviewed the
-kid's diff, 55 tests green, merged, pushed. Minted SM.24c as its own node (not a dispatch against the broader 24b claim), scoped to clauses (0)(2)(7) + the
-g1517 test migration + kid3 scaffold deprecation. Dispatched SM's full authoritative sequence: 14, 30, 243(24c), 250(25), 32, 28, 33 -- all live as of this
-stamp except 29 (already harvested).
+This session, in order: reconciled all 4 old branch tips (clean, nothing stranded), reported to SM. Merged SM.23b/SM.238 (heal-wait fix) -- it ended up
+live on season2/main via the shared root checkout's own multi-writer dynamic, not through a push I triggered myself. Full suite on that tree: 4857 passed /
+1 failed (test_rotate_g1517, KNOWN -- SM's own ruling predicted this shape retiring) / 15 skipped / 1 xfailed, 510s. Reported interim [merge-up] numbers to
+belam with the caveat attached -- STILL NOT closed. Minted SM.24c as its own node, scoped to clauses (0)(2)(7) + the g1517 test migration + kid3 scaffold
+deprecation. Dispatched SM's full authoritative sequence (29,30,24bc,25,32,28,33) plus SM.14 from her earlier line. Harvested SM.29 (viewport theme
+rename, 55 tests green), SM.14 (ack diff-only printing, 4/4 probes held), and SM.33 (adversarial re-review, no code change, correctly declined to rebuild a
+now-superseded label scheme) -- all merged and pushed, last push `d87f02d49`.
 
-STATE RIGHT NOW: 7 paid rounds live (check `spawn_budget.py status` for current truth -- this ages fast). Nothing else dispatched. Merge-up NOT fully
-closed -- waiting on SM.243 to fix the one known suite failure before reporting green.
+STATE RIGHT NOW: 5 paid rounds still live -- SM.243(24c), SM.250(25), SM.30, SM.32, SM.28 (check `spawn_budget.py status` for current truth, this ages
+fast; SM.30's parent got one "overdue" nudge at 07:21Z, which is informational only -- it is still working, do NOT cut a replacement for it). Merge-up NOT
+closed -- waiting on SM.243 specifically to fix the one known suite failure before a fresh full suite can read green.
 
 Next command for whoever reads this: ONE `send.py read sensei-director` (F25 -- no peek first) to catch anything that landed since this stamp.
-- Check `spawn_budget.py status` for which of the 7 live rounds finished; harvest each the same way SM.29 was harvested here (diff against the correct
-  merge-base, run named tests, merge --no-ff, push).
+- Check `spawn_budget.py status` for which of the 5 live rounds finished; harvest each the same way SM.14/29/33 were harvested this session: diff against
+  the correct merge-base (`MB=$(git merge-base HEAD <branch>)`), read the kid's actual evidence/probes (not just its verdict line), run its named tests,
+  `git merge --no-ff`, push.
 - Once SM.243 lands: re-run the full suite on the current merged tree. If green, that closes the SM.23b/238+24b/24c merge-up -- report the close to belam
-  and SM (continuation of the interim report already sent, not a fresh window-ask, unless belam says otherwise).
-- After the authoritative-sequence rounds are all harvested: move to SM's earlier line (14 already live; 20, 22, 15, 17, 27 next, in that order -- slugs in
-  the Queue section above).
+  and SM (a continuation of the interim report already sent, not a fresh window-ask, unless belam says otherwise).
+- After the authoritative-sequence rounds are all harvested: move to SM's earlier line -- 20, 22, 15, 17, 27 next, in that order (slugs in the Queue
+  section above; all pre-verified fresh this session).
 - The 4 new Prime-found nodes are last, no rush, and still need a fresh status/verdict check before dispatch.
 - Keep syncing (git fetch + merge origin/season2/main) before every dispatch -- the shared branch moves every few minutes with this many seats active.
 No-closeout ruling still stands -- stops only, unless the Prime lifts it by name.
