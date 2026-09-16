@@ -14950,21 +14950,46 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     <rc>)` and the rotation continues with the stale ref, exactly as today."""
     checks: list[tuple[bool, str, str]] = []
 
-    # 1 unpushed commits on the checked-out branch. When `@{u}` does not
-    # resolve (a fresh seat branch with no upstream yet — exactly the
-    # unpushed case), count `origin/<branch>..HEAD` if that ref exists, else
-    # BLOCK `no upstream for <branch>` with the push command (a branch with
-    # no upstream makes a bare `@{u}..HEAD` count None, which used to fall
-    # through as (None or 0) > 0 = False and leave the unpushed captive
-    # INERT). A detached HEAD and an unmeasurable branch both print ok.
+    # 1 unpushed commits on the checked-out branch. A post/loop branch is
+    # LOCAL-ONLY under SM.36: its tip lives in the ADDITIVE mirror ref
+    # `refs/agi/<kind>/<leaf>` and NO engine path advances `origin/<branch>`
+    # any more, so counting `@{u}..HEAD`/`origin/<branch>..HEAD` measures a
+    # basis that cannot exist (every rotation read behind forever, or a seat
+    # hand-pushed a head). When the branch resolves a mirror ref, count
+    # `mirror..HEAD` against the LOCAL mirror ref if it resolves -- NEVER a
+    # fetch (fetch is a network WRITE and prepare must not do it), and the
+    # local ref is what a worktree seat actually has. A mirror that does not
+    # resolve is reported ok/unmeasured: never a block on a basis that cannot
+    # be measured. Everything else keeps the pre-existing @{u}/origin
+    # fallback: when `@{u}` does not resolve (a fresh seat branch with no
+    # upstream yet -- exactly the unpushed case), count
+    # `origin/<branch>..HEAD` if that ref exists, else BLOCK `no upstream for
+    # <branch>` with the push command (a branch with no upstream makes a bare
+    # `@{u}..HEAD` count None, which used to fall through as
+    # (None or 0) > 0 = False and leave the unpushed captive INERT). A
+    # detached HEAD and an unmeasurable branch both print ok.
     branch_lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD")
     branch = (branch_lines[0].strip() if branch_lines else "")
+    mirror = branches.mirror_ref_for_branch(branch) if branch else None
     if not branch:
         unpushed, pname, pclear = (False, "unpushed commits (unmeasured)",
                                    "git push")
     elif branch == "HEAD":
         unpushed, pname, pclear = (False, "unpushed commits "
                                    "(detached: unmeasured)", "git push")
+    elif mirror:
+        msha = _git_maybe(root, "rev-parse", "--verify", mirror)
+        mn = (_git_count_maybe(root, "rev-list", "--count",
+                               f"{mirror}..HEAD")
+              if msha else None)
+        if mn is None:
+            unpushed, pname, pclear = (
+                False, f"unpushed commits (unmeasured: no local {mirror})",
+                f"git push origin HEAD:{mirror}")
+        else:
+            unpushed, pname, pclear = (
+                mn > 0, f"unpushed commits vs {mirror}",
+                f"git push origin HEAD:{mirror}")
     else:
         n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
         if n is not None:
