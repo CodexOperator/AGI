@@ -28,10 +28,12 @@ import atexit
 import importlib.util
 import json
 import os
+import select
 import shutil
 import signal
 import subprocess
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -197,6 +199,23 @@ def _plant_in_tree(tier, status="running"):
     # behavior when the whole suite is killed mid-run.
     def _on_sigterm(signum, frame):
         shutil.rmtree(marker, True)
+        # EMITTED OBSERVABLE (hypothesis:l4-the-sigterm-stale-record-test-waits-
+        # on-what-the-child-emits-never-on-wall-clock): the parent must be able
+        # to WAIT on the cleanup HAVING HAPPENED instead of inferring it from
+        # the process EXIT under wall clock. Written AFTER the rmtree and
+        # BEFORE the re-raise, so `cleaned <marker>` is the last thing this
+        # process emits. Nothing else depends on it: every other _plant_in_tree
+        # caller installs this handler and never sends SIGTERM.
+        #
+        # os.write, NEVER print(): the signal lands while the main thread may
+        # still hold stdout's BufferedWriter lock -- the parent can read a
+        # flushed line while the child is a few bytecodes short of RETURNING
+        # from that same print -- and a re-entrant call from the handler raises
+        # `RuntimeError: reentrant call inside <_io.BufferedWriter name='stdout'>`
+        # (measured: 13 of 20 sends). The child then exits rc=1 and the line is
+        # lost. os.write is a bare syscall: no Python buffer, no lock, safe to
+        # call from the handler.
+        os.write(1, f"cleaned {marker}\n".encode())
         signal.signal(signal.SIGTERM, signal.SIG_DFL)
         os.kill(os.getpid(), signal.SIGTERM)
     signal.signal(signal.SIGTERM, _on_sigterm)
@@ -539,6 +558,34 @@ def test_planted_dir_is_removed_after_the_run():
     assert after == before, f"tree sessions changed: {before} -> {after}"
 
 
+def _readline_within(proc, buffered, deadline):
+    """Read one newline-terminated line from `proc`'s stdout before `deadline`.
+
+    A BLOCKING read on the PIPE (select + os.read), never a filesystem poll
+    and never a bare `proc.wait(timeout=)` standing in for the observable:
+    the parent's whole claim is that it waits on what the child EMITS
+    (hypothesis:l4-the-sigterm-stale-record-test-waits-on-what-the-child-emits-
+    never-on-wall-clock). `os.read` on the raw fd bypasses any BufferedReader
+    buffering, so a line the child flushed can never be hidden from the wait.
+    `buffered` is a one-element list carrying a partial line across calls;
+    returns the decoded line (no trailing newline) or None at timeout/EOF.
+    """
+    while b"\n" not in buffered[0]:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return None
+        ready, _, _ = select.select([proc.stdout], [], [], remaining)
+        if not ready:
+            return None
+        chunk = os.read(proc.stdout.fileno(), 4096)
+        if not chunk:
+            return None
+        buffered[0] += chunk
+    line, _sep, rest = buffered[0].partition(b"\n")
+    buffered[0] = rest
+    return line.decode("utf-8", "replace").rstrip("\r")
+
+
 def test_sigterm_kill_leaves_no_stale_record_under_aborted_subprocess():
     """THE SIGTERM half (L4.276 build order). A child that plants a marker and
     is then SIGTERMed must leave NO `iter-test-*` dir under the record root.
@@ -547,17 +594,28 @@ def test_sigterm_kill_leaves_no_stale_record_under_aborted_subprocess():
     marker survives (the phantom hypothesis:l4-a-phantom-running-record-with-a-
     dead-pid-is-named names). This child installs that handler when it plants,
     so the SIGTERM triggers the rmtree-then-re-raise and the marker is gone
-    while the child still dies by SIGTERM (returncode < 0)."""
-    import tempfile, time
+    while the child still dies by SIGTERM (returncode < 0).
+
+    Build order (hypothesis:l4-the-sigterm-stale-record-test-waits-on-what-the-
+    child-emits-never-on-wall-clock): the parent waits on what the child
+    EMITS, never on wall clock. The child emits `armed <marker>` only AFTER
+    the handler is installed, and the handler emits `cleaned <marker>` from
+    inside itself after the rmtree and before the re-raise. The parent does
+    TWO blocking reads on ONE overall deadline -- no 5 s filesystem poll and
+    no bare `wait(timeout=10)` standing in for the observable -- and only then
+    asserts `rc < 0` and marker absent. Every assertion names its step, so a
+    red in the one-line suite summary (which records no traceback) still
+    names the step that failed.
+    """
+    import tempfile
 
     tests_dir = os.path.dirname(__file__)
     child_src = (
-        "import sys, time\n"
+        "import os, sys, time\n"
         f"sys.path.insert(0, {tests_dir!r})\n"
         "from test_tier_gate import _plant_in_tree\n"
         "marker = _plant_in_tree(\"parent\")\n"
-        "print(marker)\n"
-        "sys.stdout.flush()\n"
+        "os.write(1, f\"armed {marker}\\n\".encode())\n"
         "time.sleep(120)\n")
     with tempfile.TemporaryDirectory() as d:
         cfile = os.path.join(d, "plant_and_sleep.py")
@@ -565,29 +623,52 @@ def test_sigterm_kill_leaves_no_stale_record_under_aborted_subprocess():
             f.write(child_src)
         env = dict(os.environ)
         env.pop("AGI_TIER", None)
+        # Binary stdout: _readline_within owns decoding and reads the raw fd,
+        # so no TextIOWrapper may buffer an emitted line away from the wait.
         proc = subprocess.Popen(
             [sys.executable, cfile], stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, text=True, env=env, cwd=os.getcwd())
+            stderr=subprocess.PIPE, env=env, cwd=os.getcwd())
         marker = None
+        buffered = [b""]
         try:
-            marker_line = proc.stdout.readline().strip()
-            assert marker_line, "child never printed the marker path"
-            marker = Path(marker_line)
-            deadline = time.monotonic() + 5
-            while not marker.exists() and time.monotonic() < deadline:
-                time.sleep(0.05)
-            assert marker.exists(), "child did not plant the marker"
-            assert marker.name.startswith("iter-test-")
+            deadline = time.monotonic() + 15
+            armed = _readline_within(proc, buffered, deadline)
+            assert armed is not None and armed.startswith("armed "), (
+                "step=armed-emitted: child never emitted 'armed <marker>' "
+                f"within the deadline (got {armed!r})")
+            marker = Path(armed.split(" ", 1)[1].strip())
+            assert marker.name.startswith("iter-test-"), (
+                "step=armed-marker-name: emitted an unexpected marker name "
+                f"{marker.name!r}")
+            assert marker.exists(), (
+                "step=armed-marker-present: 'armed' was emitted and the "
+                "handler is installed, but the marker dir is not on disk")
+
             proc.send_signal(signal.SIGTERM)
-            proc.wait(timeout=10)
-            assert proc.returncode < 0, ("expected signal-terminated "
-                                         f"(rc<0), got {proc.returncode}")
-            assert not marker.exists(), \
-                "SIGTERM left a stale iter-test-* dir under the record root: " \
-                "the _plant_in_tree SIGTERM handler did not run"
+
+            cleaned = _readline_within(proc, buffered, deadline)
+            assert cleaned is not None and cleaned.startswith("cleaned "), (
+                "step=cleaned-emitted: SIGTERM did not make the child emit "
+                f"'cleaned <marker>' within the deadline (got {cleaned!r}); "
+                "the _plant_in_tree SIGTERM handler did not run its rmtree")
+
+            remaining = max(0.0, deadline - time.monotonic())
+            try:
+                proc.wait(timeout=remaining)
+            except subprocess.TimeoutExpired:
+                raise AssertionError(
+                    "step=child-exit: child emitted 'cleaned' but had not "
+                    "exited within the deadline")
+            assert proc.returncode < 0, (
+                "step=rc-negative: expected signal-terminated (rc<0), got "
+                f"{proc.returncode}")
+            assert not marker.exists(), (
+                "step=marker-gone: SIGTERM left a stale iter-test-* dir under "
+                "the record root after the handler reported 'cleaned'")
         finally:
             if proc.poll() is None:
-                proc.kill(); proc.wait()
+                proc.kill()
+                proc.wait()
             if marker is not None and marker.exists():
                 shutil.rmtree(marker, True)
 
