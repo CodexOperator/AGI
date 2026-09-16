@@ -9822,6 +9822,8 @@ SM.59 harvested+merged: rename boundary now reads REAL local branch refs (not a 
 
 SHARPER correction (owner, live, this session, second message): all perpetual agent posts ARE sanctuary town -- that is what makes it a town of agents, not a project/codebase axis. So row-town=sanctuary vs real-branch-town=<project> is not a rare cross-assignment edge case, it is the UNIVERSAL permanent state for every perpetual director/master post in the system, since agent-town and project-town are different categories entirely, never expected to agree. SM.59 conjunct 2 as built compares them and fails closed on disagreement -- read this way, it would refuse essentially every perpetual-post rename, not a narrow case. This is a premise-level question about the merged round, not a row-cell data-hygiene item. Not reverting the merge (fails closed = safe direction, no wrong rename can happen); flagging for SM/Prime judgment before anyone treats the row cell as the thing to fix.
 
+SM.61 (round 2 close) harvested+merged: widened HARNESS_BLOCK_RE with a lone-opening-tag alternative, 4 production lines, 14 parent probes all pass. Independently re-verified SM P1b (lone tag immediately followed by an Attribution line) with a standalone empirical probe: marker lands before the first region byte, raw tag absent, the Attribution line is separately escaped/indented too -- confirmed P1b closed, no round 3 needed. hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-quoted-block-reads-as-marked-data is now proved across both rounds. Neighbourhood 527 passed/4 skipped post-merge.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
