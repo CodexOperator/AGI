@@ -953,7 +953,6 @@ def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
     mur-sl7-137, 2026-09-16 20:02Z: both stages unstructured, both lost).
     Best effort: a persistence failure never fails the run."""
     try:
-        import locations as _loc
         sess = _loc.shared_project_root(root) or root
         d = Path(sess) / "sessions" / "workflows" / "runs" / run_key
         d.mkdir(parents=True, exist_ok=True)
