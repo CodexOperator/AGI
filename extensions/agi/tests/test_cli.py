@@ -1424,6 +1424,80 @@ def test_worktree_done_commit_subject_carries_the_kid_nodes_verdict(tmp_path):
     assert "done: experiment:kid verdict=inconclusive_lean_disproved:70" in \
         subject, subject
     assert "verdict=pending" not in subject, subject
+
+
+def test_worktree_done_commit_subject_names_unset_for_an_empty_kid_verdict(
+        tmp_path):
+    """hypothesis:l4-the-kid-brief-demands-a-title-and-the-done-subject-
+    never-borrows-the-parent-verdict-for-an-empty-node item (2): when the
+    owned kid node carries NO or an EMPTY verdict key, the subject must NAME
+    that (`verdict=unset`) and must never borrow the parent's gate-resolved
+    `--verdict` -- the same false-claim shape b3523f325 fixed, one branch
+    over."""
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/slug-empty@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    # The kid node exists but its verdict key is EMPTY.
+    (wt_graph / "nodes" / "experiment" / "a00-parent-kid2.md").write_text(
+        "---\nid: experiment:kid2\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\nverdict: ''\n---\n\nbody\n")
+
+    cli = _load_cli()
+    root = cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                                     ["experiment:kid2"],
+                                     "inconclusive_lean_proved:60")
+    assert root is not None
+    subject = _ggit(main, "log", "-1", "--format=%s", br).stdout.strip()
+    assert "done: experiment:kid2 verdict=unset" in subject, subject
+    assert "inconclusive_lean_proved:60" not in subject, subject
+
+
+def test_worktree_done_commit_subject_unset_when_the_kid_node_is_absent(
+        tmp_path):
+    """Same item (2), the missing-file leg: with no node to read a verdict
+    from, there is nothing to attribute to the kid either, so the subject
+    says `unset` rather than the parent's `--verdict`."""
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/slug-missing@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    # A file the round owns (agent id in the filename) but not the node id.
+    (wt_graph / "nodes" / "experiment" / "a00-parent-missing.md").write_text(
+        "---\nid: experiment:elsewhere\ntype: experiment\n---\n\nbody\n")
+
+    cli = _load_cli()
+    root = cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                                     ["experiment:missing"],
+                                     "inconclusive_lean_proved:60")
+    assert root is not None
+    subject = _ggit(main, "log", "-1", "--format=%s", br).stdout.strip()
+    assert "done: experiment:missing verdict=unset" in subject, subject
+    assert "inconclusive_lean_proved:60" not in subject, subject
 # --------------------------------------------------------------------------
 # hypothesis:l4-sm36-...-one-scope-rule -- item 9 (the cli half of the ONE
 # rule) and item 8 (the died-no-work scaffold moved, never deleted).
