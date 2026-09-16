@@ -95,6 +95,9 @@ class CheckResult:
     number: dict | None = None
     note: str = ""
     message: str = ""
+    #: The suite's slowest tests, parsed from pytest's --durations table.
+    #: [] means the table was absent or unparsable -- never a fabricated one.
+    durations: list = field(default_factory=list)
 
 
 _PYTEST_COUNT_PATTERNS = (
@@ -121,6 +124,22 @@ def _parse_pytest_counts(output: str) -> dict:
         if m:
             counts[key] = int(m.group(1))
     return counts
+
+
+_DURATION_LINE = re.compile(
+    r"^\s*(\d+\.\d+)s\s+(call|setup|teardown)\s+(\S+)\s*$", re.MULTILINE)
+
+
+def _parse_pytest_durations(output: str) -> list[dict]:
+    """pytest's `--durations=N` table as [{"test", "seconds"}], or [].
+
+    The table is the ONLY source (hypothesis:l4-the-full-suite-runs-under-600-s
+    -solo-real-waits-and-process-reaps-are-seamed-not-slept claim (4)): no
+    table, no list -- an empty list is recorded and MUST NOT be invented
+    into a slowest-15, so a passing run with no durations reads as none.
+    """
+    return [{"test": m.group(3), "seconds": float(m.group(1))}
+            for m in _DURATION_LINE.finditer(output)]
 
 
 def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
@@ -508,7 +527,9 @@ def _read_suite_ts(groot: Path) -> float | None:
         return None
 
 
-def _record_suite_ts(groot: Path, decision: dict | None = None) -> None:
+def _record_suite_ts(groot: Path, decision: dict | None = None, *,
+                     wall_s: float | None = None,
+                     slowest_15: list | None = None) -> None:
     """Persist the suite-completed timestamp (same idiom as _write_state).
 
     Written to the SHARED sessions dir (see `_suite_ts_path`), so a first
@@ -524,6 +545,14 @@ def _record_suite_ts(groot: Path, decision: dict | None = None) -> None:
     doc = {"suite_ran_at": time.time()}
     if decision is not None:
         doc["ring_decision"] = decision
+    # Conjunct 4: the wall time is the CHECK's own `.seconds`, never a
+    # second measurement, and the slowest-15 is what pytest printed ([] when
+    # it printed no table). None means "this caller did not run a suite" and
+    # leaves any existing value alone.
+    if wall_s is not None:
+        doc["suite_wall_s"] = round(float(wall_s), 3)
+    if slowest_15 is not None:
+        doc["slowest_15"] = slowest_15
     # Merge over any existing record so the grant decision is not lost when a
     # second --suite (no ring) refreshes the timestamp.
     try:
@@ -836,9 +865,15 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
                                 ".geometry/commands.md — add it to the node")
     cmd = table[name]
     ceiling = SUITE_TIMEOUT if name == SUITE_CMD else PER_CHECK_TIMEOUT
+    argv = list(cmd.argv)
+    # The SUITE alone asks pytest for its slowest-15 table, so the next
+    # ceiling round measures from the record rather than a scratch log
+    # (claim (4)). Every other check's argv is untouched.
+    if name == SUITE_CMD and not any(a.startswith("--durations") for a in argv):
+        argv.append("--durations=15")
     try:
         proc = subprocess.run(
-            cmd.argv, capture_output=True, text=True,
+            argv, capture_output=True, text=True,
             timeout=ceiling, cwd=cmd.cwd or None)
     except subprocess.TimeoutExpired:
         return CheckResult(name, "FAIL", time.monotonic() - start,
@@ -847,6 +882,7 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
         return CheckResult(name, "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
     output = (proc.stdout or "") + (proc.stderr or "")
+    durations = _parse_pytest_durations(output) if name == SUITE_CMD else []
     number = _parse_number(name, proc.returncode, output)
     ok = _passed(name, proc.returncode, number)
     note = ""
@@ -861,7 +897,8 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
         tail = "\n".join(output.splitlines()[-12:])
         note = (note + "\n" + tail) if note else tail
     return CheckResult(name, "PASS" if ok else "FAIL",
-                       time.monotonic() - start, number, note=note)
+                       time.monotonic() - start, number, note=note,
+                       durations=durations)
 
 
 def run_level(groot: Path, level: str, suite: bool, verbose: bool,
@@ -1195,7 +1232,11 @@ def main(argv: list[str] | None = None) -> int:
         # freshness check answers "has the suite run since this file
         # changed", not "did it pass" -- pass/fail is the suite's own
         # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
-        _record_suite_ts(groot, _suite_decision)
+        _suite_res = next((r for r in results if r.name == SUITE_CMD), None)
+        _record_suite_ts(groot, _suite_decision,
+                         wall_s=_suite_res.elapsed if _suite_res else None,
+                         slowest_15=(_suite_res.durations
+                                     if _suite_res else None))
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,
