@@ -13030,6 +13030,19 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
         # fires, so the after_join sends zero machine lines to a silent post.
         if _alert_allowed(root, seat):
             _dm_ret = send_dm(seat, dm)
+            if nudge_suppressed:
+                # hypothesis:l4-the-prime-hears-only-needed-comms: the TYPED
+                # input IS the announcement of this unread state, so stamp
+                # the wake sidecar exactly as a typed token does -- else the
+                # dm copy (durable, kept) reads as never-announced and `wake`
+                # re-nudges it (wake:idle) on its next idle pass (measured
+                # belam gen 21: typed 06:08Z, re-nudged 06:23Z).
+                try:
+                    import send as _send_mod
+                    _send_mod._record_announced(
+                        root, seat, _send_mod._unread_digest(root, seat))
+                except Exception:  # noqa: BLE001 -- best-effort sidecar
+                    pass
         sent = True
         if (isinstance(_dm_ret, tuple) and len(_dm_ret) == 2
                 and isinstance(_dm_ret[0], str)):

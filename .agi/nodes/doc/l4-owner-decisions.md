@@ -821,3 +821,10 @@ I know some of the towns may not be available as towns yet and that’s fine. Br
 Speaking of, once a perpetual goal breaks off into a town it doesn’t keep its goal number anymore. The town each hosts its own g1, g2, g3 and so on and the tag system and/or our mint ID should keep any potential collisions in check right? 
 
 Then stream-town and web-app-town still remain untouched for now, stream stays off. Does our system allow for predecessors to just reactivate and reclaim pin? Let’s start. And can we make it so you don’t get spammed with messages constantly, only as needed direct to you?"
+
+### OWNER 2026-09-16 06:3xZ — scripts as nodes; small fixes written in directly; dm spam ASAP (to the Prime belam gen 21, in the remote-control pane; verbatim)
+
+> Are the scripts nodes? If not just write them in directly
+> Using a g15 goal or something unless still cheaper to spawn a parent to do it. Also let's make it asap that Prime doesn't get the useless status DMs only direct comms that are needed.
+
+APPLIED by the Prime gen 21 the same hour: (1) the workflow manifest + derived script the Prime authored (`extensions/agi/workflows/recovery-survey.json` + `agi-recovery-survey.js`, 5180aa1a6) become build nodes at the next level3 scan by construction (git ls-files discovery); the seat script and the seven seating dms are session scratch, never nodes. RULING taken from the line: a small fix is written in directly by the Prime under a g15 hypothesis node when that is cheaper than spawning a parent — `hypothesis:l4-the-prime-hears-only-needed-comms` is the first (send.py needed-tag gate on the Prime's inbox + the typed after_join stamps the wake sidecar; 6 tests). (2) dm spam: a CLI dm to the Prime from anyone but the Prime/owner must open with `[merge-up] [decision] [rotation] [red] [rule] [complete] [owner]` or it is refused before any write; carried into every seating dm of the resume order.
