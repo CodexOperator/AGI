@@ -314,8 +314,17 @@ def restart(
 
 
 def needs_credential(harness: dict) -> bool:
-    """Pi agents authenticate through a minted OpenRouter key."""
-    return True
+    """Does this pi harness require a minted OpenRouter key?
+
+    Allowlist, not a provider check (hypothesis:l4-needs-credential-is-
+    provider-gated). A harness row that explicitly carries
+    ``credential: "none"`` authenticates through its own channel — e.g.
+    ``pi-local`` speaking to a `$0` local model — and must not be minted a
+    key it never uses. Every other row, including rows with an unknown or
+    absent provider and test fixtures with a placeholder provider, defaults
+    to True so the mint path stays exactly as wide as it was.
+    """
+    return harness.get("credential") != "none"
 
 
 def import_sys_stderr():
