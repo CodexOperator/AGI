@@ -1953,3 +1953,39 @@ def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):
                             dispatch_py="/x/dispatch.py", target="t:1")
     assert not any("DISPATCH ORDERS" in s for s in absent), (
         "a whitespace-only orders file must render no heading")
+
+
+def test_assembled_brief_names_the_session_dir_as_the_only_scratch_dir():
+    """hypothesis:l4-the-assembled-brief-names-the-session-dir-as-the-only-
+    scratch-dir -- the kid and parent briefs (the tiers that stage scratch:
+    SL7.128 left 3 probes and a kid brief in `.agi/tmp/` because BOTH the
+    tier that stages and the tier that reads them were never handed a session
+    dir) name the session dir as the ONLY scratch dir. NO tier's brief
+    advertises `.agi/tmp/` as the scratch location, and a brief assembled
+    without a session dir is unchanged (the clause is a no-op offline)."""
+    sess = "sessions/iter-SM42/a00-216b7dca"
+    rendered = {}
+    for tier in ("kid", "parent", "director", "prime_director", "liaison"):
+        kw = {}
+        if tier == "kid":
+            kw["scaffold"] = SCAFFOLD
+        if tier == "parent":
+            kw["dispatch_py"] = "/x/dispatch.py"
+            kw["target"] = "hypothesis:y"
+        rendered[tier] = _text(tier, session_dir=sess, **kw)
+
+    for tier in ("kid", "parent"):
+        text = rendered[tier]
+        assert sess in text, f"{tier} brief must name its session dir"
+        assert "ONLY scratch dir" in text, tier
+
+    # `.agi/tmp/` may appear ONLY inside the negating clause ("never ...").
+    for tier, text in rendered.items():
+        for m in re.finditer(r"\.agi/tmp/", text):
+            before = text[max(0, m.start() - 8):m.start()]
+            assert "never" in before, (tier, before)
+
+    # no-op when the session dir is unknown: existing callers byte-unchanged.
+    assert "SCRATCH DIR" not in _text("kid", scaffold=SCAFFOLD)
+    assert "SCRATCH DIR" not in _text(
+        "parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
