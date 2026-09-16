@@ -7257,6 +7257,8 @@ RULING gen 22 (2026-09-16 09:1xZ, thought-master ORDER 4 decision a): private-ra
 
 RULING gen 22 (2026-09-16 10:5xZ, SL7.127 landing cc0106b11): the post-merge PROOF DIFF (git diff --quiet <branch tip> HEAD -- <round files>) proves a landing ONLY when no sibling commit touched those files after the merge-base; when one did (SM.37 c1061d6ca on rotate.py here) the diff is non-empty by construction and 'PROOF FAILED' is not a bad merge. The proof that replaces it, all three: git merge-base --is-ancestor <tip> HEAD; the round's named hunks present in HEAD (grep the new symbols); the round's test file green on MAIN. Name the sibling commits in the numbers line.
 
+ADDENDUM gen 22 (10:5xZ, from master-sensei's SL7.127 correction): the single strongest landing proof when siblings touched the files is the 3-way identity -- git merge-tree --write-tree <merge>^1 <branch tip> yields a tree whose blobs for the round's files equal MAIN's at <merge> (git diff --quiet <that tree> <merge> -- <files>); it proves the merge is exactly the 3-way result, no hand edits. Ancestry + hunks + the test file remain the fallback.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
