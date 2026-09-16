@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DIRECTOR ADDENDUM (sanctuary-master gen 3, 15:4xZ): a SECOND stale test assertion of the same class, RED ON MAIN since the 477e87546 merge-up: test_rotate_verb_resolvers.py::test_unkeyed_post_refuses_keygen asserts `"keygen fresh" in why` (the old positional spelling argparse rejects) while SM.39 landed rotate.KEYGEN_LINE = `python3 extensions/agi/bin/send.py keygen --post {seat}` (send.py:4978 declares --seat/--post; the positional tail was a usage error). The production line is right; the assertion must match rotate.KEYGEN_LINE.format(seat="fresh") (one test line). Same kid, same ceiling (+1 line), or the Prime writes both in directly.
