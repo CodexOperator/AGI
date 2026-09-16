@@ -2164,11 +2164,24 @@ def main() -> int:
                 return 1
         # conjunct (2): a --cap over headroom REFUSES by name before any mint.
         if args.cap is not None:
+            # hypothesis:...cap-notices item 14: a non-positive cap always
+            # fits the comparison below, so it must never reach it.
+            if float(args.cap) <= 0:
+                print(f"ERR: --cap must be > 0, got {args.cap:g}",
+                      file=sys.stderr)
+                return 1
+            # item 13: the slot loop mints ONE key per slot, so price the
+            # round at cap x slots -- n read from THIS resolved cfg.
+            _slots = max(1, adapters.parallelism(cfg))
             _cap_ok, _cap_msg = provisioning.cap_headroom(
-                cfg, root, float(args.cap))
+                cfg, root, float(args.cap) * _slots, slots=_slots)
             if not _cap_ok:
                 print(f"ERR: {_cap_msg}", file=sys.stderr)
                 return 1
+            # item 12: a fail-open return is never silent -- the SAME marker
+            # string is the sentence a reader sees, exactly like `_hkey_msg`.
+            if _cap_msg:
+                print(f"notice: {_cap_msg}", file=sys.stderr)
 
     # goal:g15.25 SM.28 -- the orders copy travels WITH the round, so it is
     # written INSIDE the slot loop below (see the write above Popen): keyed by

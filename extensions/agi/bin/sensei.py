@@ -1014,7 +1014,12 @@ def classify_call(cmd: str, tool: str, seat: str,
     if s_label is not None:
         return "s", s_label
     if re.search(r"\bsend\.py\s+send\b", _norm_cmd(cmd).lower()):
-        return "d", "send=output"   # the post's own report, never a hand read
+        # SM.54 residue (item 10): keyed on the REPORT SHAPE, never the verb.
+        # Only a send whose MESSAGE opens with a `[tag]` (`'[complete] …'`) is
+        # the post's own report; an untagged `send.py send` is a mid-window dm
+        # to a peer -- real work (d), counted, never excluded.
+        if _is_tagged_send(cmd):
+            return "d", "send=output"   # the post's own report, never a hand read
     if _is_byhand_read(cmd, tool):
         return "b", None
     return "d", None
@@ -1568,13 +1573,19 @@ def audit_payload(side: str, calls: int, counts: dict, transcript: str,
             f"(config:rotations cell); got None")
     floor = int(floor)
     a, b, c, d = (int(counts.get(k, 0)) for k in ("a", "b", "c", "d"))
-    # the wake window EXCLUDES the cut call (d): only a/b/c span it (the
-    # verb's own note). The out window keeps the full call count -- its floor
-    # 1 IS the rotate and d there is the genuine decision. ONE rule; the
-    # printed line and this payload compute the excess the same way.
-    measured = a + b + c if side == "wake" else int(calls)
+    # SM.54 residue (item 8): ONE count, reconciling by construction. Each
+    # side names the class its floor count EXCLUDES as its own additive
+    # bucket -- wake the service-owed `s` (outside the a+b+c window), out the
+    # `pre` class (`send=output` report + harvest read). `calls` is therefore
+    # always the sum of every bucket THIS payload reports, and the caller's
+    # `calls` argument is not trusted for it. The excess is measured against
+    # the FLOOR set only (wake a+b+c; out a+b+c+d), unchanged in meaning.
+    extra_key = "s" if side == "wake" else "pre"
+    extra = int(counts.get(extra_key, 0))
+    measured = a + b + c if side == "wake" else a + b + c + d
     return {
-        "calls": int(calls),
+        "calls": a + b + c + d + extra,
+        extra_key: extra,
         "a": a,
         "b": b,
         "c": c,
@@ -1600,8 +1611,11 @@ def audit_finding_line(seat: str, side: str, record_stamp: str | None,
     call count. A fallback floor names the missing config cell it replaced."""
     stamp = record_stamp if record_stamp else "?"
     measured = int(calls)
-    if side == "wake" and counts is not None:
-        measured = sum(int(counts.get(k, 0)) for k in ("a", "b", "c"))
+    if counts is not None:
+        # the FLOOR set, symmetrical with audit_payload: wake excludes the
+        # cut call d AND the service-owed s; out excludes the `pre` class.
+        keys = ("a", "b", "c") if side == "wake" else ("a", "b", "c", "d")
+        measured = sum(int(counts.get(k, 0)) for k in keys)
     excess = max(0, measured - int(floor))
     miss = (f" [MISS {'/'.join(floor_misses)} -> fallback {int(floor)}]"
             if floor_misses else "")
@@ -1779,10 +1793,12 @@ def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
         raise AuditRefusal(
             f"no floor resolved for side {side!r}: the verb reads the "
             f"config:rotations cell before it finishes an audit")
-    line = audit_finding_line(seat, side, stamp, calls, floor, counts,
-                              floor_misses)
     payload = audit_payload(side, calls, counts, transcript,
                             window_start, window_end, floor)
+    # the printed count and the recorded count are the SAME read: the
+    # payload's reconciling `calls`, never the caller's second number.
+    line = audit_finding_line(seat, side, stamp, payload["calls"], floor,
+                              counts, floor_misses)
     status = None
     if rec_path is not None and not no_record:
         write_audit_into_record(rec_path, side, payload)
@@ -2118,6 +2134,50 @@ def _notified_outputs(path: Path) -> list:
 _READ_PATHS = re.compile(
     r"\b(cat|head|tail|less|more|sed)\b[^|;&]*?[\s=][\w./~-]*[/.][\w./-]*")
 
+#: a `send.py send` whose MESSAGE argument opens with a `[tag]` -- the post's
+#: own report shape (`'[complete] …'`/`'[blocked] …'`).
+_SEND_TAG = re.compile(r"""['"]\s*\[[^\]]+\]""")
+
+
+def _is_tagged_send(cmd: str) -> bool:
+    """A `send.py send` whose MESSAGE argument opens with a `[tag]`.
+
+    The verb alone is not the report: an untagged send mid-window is a dm to
+    a peer and is real work. Only the tagged shape is the post's own report
+    (SM.54 residue, item 10), and it is the ONE class `pre` excludes."""
+    m = re.search(r"\bsend\.py\s+send\b(.*)", _norm_cmd(cmd), re.I)
+    return bool(m and _SEND_TAG.search(m.group(1)))
+
+
+def _read_verb_operand_is(cmd: str, path: str) -> bool:
+    """Whether `cmd` READS exactly `path`: a `cat|head|tail|less|more|sed`
+    whose same-pipe-segment operand token IS that path (the `_READ_PATHS`
+    read-word set, never a second list). A bare mention (`rm`, `grep`, a send
+    body, an `echo`) is not a read."""
+    if not path:
+        return False
+    for m in re.finditer(r"(?<![\w-])(?:cat|head|tail|less|more|sed)(?![\w-])",
+                         cmd):
+        seg = re.split(r"[|;&]", cmd[m.end():])[0]
+        for tok in seg.split():
+            if tok.strip("'\"") == path:
+                return True
+    return False
+
+
+def _harvest_read_of(path: str, tool: str, inp, cmd: str) -> bool:
+    """Whether THIS tool_use is a READ of the notified `<output-file>`
+    `path` (SM.54 residue, item 9): a read verb's operand (Bash) or a Read
+    tool's own `file_path`/`path`. Every other mention of the path -- a send
+    body, `rm`, `grep`, `echo` -- is not a harvest and stays classified by
+    the normal rules."""
+    if tool == "Read" and isinstance(inp, dict):
+        if inp.get("file_path") == path or inp.get("path") == path:
+            return True
+    if tool in ("Bash", "") or tool is None:
+        return _read_verb_operand_is(cmd, path)
+    return False
+
 
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
                      transcript_path: Path | None,
@@ -2223,7 +2283,8 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
             tool, inp, seat, entries, facts_list, hand_paths)
         # P2: the harvest is the notification IMMEDIATELY preceding this read.
         prev = [n for n in notices if n[0] < idx][-1:]
-        tid = prev[0][2] if prev and prev[0][1] in cmd else None
+        tid = (prev[0][2] if prev and
+               _harvest_read_of(prev[0][1], tool, inp, cmd) else None)
         if tid:
             cat, label = "d", f"harvest of {tid}"
         elif (cat == "d" and label is None and _READ_PATHS.search(cmd)
@@ -2268,10 +2329,20 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     print(f"window: [last real input {window['start_line']} "
           f"{window['start_ts'] or '(no ts)'} -> {end or 'record end'}] "
           f"{len(calls)} calls")
-    print(f"counts: a={counts['a']} b={counts['b']} c={counts['c']} "
-          f"d={counts['d']}")
+    # the buckets are the NON-pre categories plus the named `pre` class, so
+    # `calls == a+b+c+d+pre` and `window["counted"] == a+b+c+d`; built ONCE
+    # here so the printed line and the record's payload read the same dict.
+    n_pre = len([c for c in calls if c["pre"]])
+    payload_counts = {k: 0 for k in ("a", "b", "c", "d", "s")}
+    for c in calls:
+        if not c["pre"]:
+            payload_counts[c["cat"]] += 1
+    payload_counts["pre"] = n_pre
+    print(f"counts: a={payload_counts['a']} b={payload_counts['b']} "
+          f"c={payload_counts['c']} d={payload_counts['d']} pre={n_pre} "
+          f"(a+b+c+d is the floor set; pre is excluded from the floor)")
     print(f"  (a=duplicates a rotate-self step/record field; b=hand poll/read; "
-          f"c=protocol learning; d=genuine decision)")
+          f"c=protocol learning; d=genuine decision; pre=own report/harvest)")
     for i, c in enumerate(calls, 1):
         lbl = f" <{c['label']}>" if c["label"] else ""
         print(f"  {i:>2} [{c['cat']}] {c['tool']}: {c['summary']}{lbl}")
@@ -2281,7 +2352,8 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
     # names it: green under the floor, FINDING over it (owner 13:5xZ).
     try:
         line, status = finish_audit(
-            root, args.seat, "out", window["counted"], counts, window["record_path"],
+            root, args.seat, "out", len(calls), payload_counts,
+            window["record_path"],
             window["record"], window["log_path"],
             audit_window_point(line=window["start_line"],
                                ts=window["start_ts"] or None),

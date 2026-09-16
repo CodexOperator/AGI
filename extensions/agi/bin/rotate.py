@@ -12562,6 +12562,60 @@ def _strip_harness(text: str) -> str:
     return _send.HARNESS_BLOCK_RE.sub("", text)
 
 
+class FactsBodyRangeError(ValueError):
+    """A `facts*` first_turn entry that names no `read body N:M`, or two
+    templates whose same label disagrees -- refused BY NAME (template +
+    label), never as a bare `no facts entry`."""
+
+
+def facts_body_ranges(templates: dict) -> list:
+    """EVERY wake-read facts body region `(label, N, M)`, 1-based inclusive,
+    resolved from the templates' OWN `facts*` first_turn cmd(s) -- `write.py
+    config:rotations 'read body N:M'` (SM.55 residue, item 11).
+
+    A template may carry several entries (`facts`, `facts-2`, `facts-N`) and
+    each is returned; every template carrying the SAME label must agree; a
+    `facts*` cmd that names no body range raises `FactsBodyRangeError` naming
+    both the template and the label. Ordered `facts` first, then `facts-2`,
+    `facts-3` … This is the PRODUCTION half of the guard's rule: the guard in
+    `test_rotate_templates.py` imports it, so the rule and production are the
+    same rule."""
+    by_label: dict = {}
+    for name, ent in templates.items():
+        if not isinstance(ent, dict):
+            continue
+        startup = ent.get("startup") or {}
+        for e in startup.get("first_turn") or []:
+            if not isinstance(e, dict):
+                continue
+            label = e.get("label")
+            if not isinstance(label, str) or not re.fullmatch(r"facts(-\d+)?",
+                                                              label):
+                continue
+            m = re.search(r"read body (\d+):(\d+)", e.get("cmd", ""))
+            if not m:
+                raise FactsBodyRangeError(
+                    f"template {name!r} {label!r} cmd does not name a body "
+                    f"range: {e!r}")
+            by_label.setdefault(label, set()).add(
+                (int(m.group(1)), int(m.group(2))))
+    if not by_label:
+        raise FactsBodyRangeError(
+            "no template declares a `facts` read body N:M first_turn")
+    out = []
+    for label in sorted(by_label, key=lambda l: (l != "facts",
+                                                 0 if l == "facts"
+                                                 else int(l.rsplit("-", 1)[1]))):
+        rs = by_label[label]
+        if len(rs) != 1:
+            raise FactsBodyRangeError(
+                f"facts body ranges disagree across templates for {label!r}: "
+                f"{rs}")
+        n, m = rs.pop()
+        out.append((label, n, m))
+    return out
+
+
 def _run_first_turn_commands(startup: dict, values: dict, *,
                              dry_run: bool = False) -> list:
     """Run the template's `startup.first_turn` list, one at a time, BEFORE
@@ -12590,6 +12644,11 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
         entry = e if isinstance(e, dict) else {"label": str(e), "cmd": str(e)}
         label = entry.get("label", "")
         cmd = entry.get("cmd", "")
+        # item 11(a): an ENTRY-level `byte_cap` wins over the template cell;
+        # the template cap stays the fallback, so an entry with no cell is
+        # byte-identical to before. The value that truncated the output is the
+        # value recorded on the result.
+        entry_cap = int(entry.get("byte_cap") or byte_cap)
         # A per-entry `fallback:` (e.g. "fallback: --key {prime_key}") names a
         # WHOLE FRAGMENT substituted when a USED placeholder is EMPTY -- so a
         # prime-authority entry whose {prime_ref} is empty resolves by the
@@ -12692,12 +12751,12 @@ def _run_first_turn_commands(startup: dict, values: dict, *,
                             "timed_out_after_s": timeout_s})
             continue
         truncated = False
-        if len(out) > byte_cap:
-            out = out[:byte_cap]
+        if len(out) > entry_cap:
+            out = out[:entry_cap]
             truncated = True
         results.append({"label": label, "cmd": record_cmd, "rc": rc,
                         "output": out, "truncated": truncated,
-                        "byte_cap": byte_cap})
+                        "byte_cap": entry_cap})
     return results
 
 
@@ -12960,8 +13019,10 @@ def _row_pred_pid_usable(root: Path, seat: str,
     rotate-self own-tail case) — its pid MUST NOT be reaped. The row is used
     only while its generation still equals the record's `gen_before` (the row
     not yet re-written); a row at `gen_after`, or a record with no
-    `gen_before` to compare, falls to ''. Callers with no record (a dry-run
-    of a NEW rotation) stay on the old row-read path."""
+    `gen_before` to compare, is UNUSABLE and returns False (the caller then
+    falls to the named `none: nothing to reap` value, never to ''). Callers
+    with no record (a dry-run of a NEW rotation) stay on the old row-read
+    path."""
     if record is None:
         return True
     gb = record.get("gen_before")
@@ -12975,7 +13036,9 @@ def _derive_pred_pids(root: Path, seat: str,
                       record: dict | None) -> str:
     """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
     WORD-BOUNDED ERE ALTERNATION over the pids THIS rotation reaped, else the
-    predecessor row's own `pid`, else ''. ONE reader, shared by every
+    predecessor row's own `pid`, else the named, regex-inert value
+    `"none: nothing to reap"` (the final `return` below) -- never ''. ONE
+    reader, shared by every
     after_join performer (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-
     performer-derives-pred-pids...): the watch/service, the rotate-self own
     tail and the dry-run plan. Before this helper each caller passed NO
@@ -14534,7 +14597,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # _compose_after_join_dm intends today.
         sref = (row or {}).get("session_ref") or ""
         # (SL7.98) the performer derives pred_pids from the RECORD's
-        # s12_self_reap chain (else the predecessor row, else '') so the
+        # s12_self_reap chain (else the predecessor row, else the named
+        # `"none: nothing to reap"` -- never '') so the
         # reap-proof entry runs against the REAL reaped pids and is never
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
@@ -15122,12 +15186,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # `refs/agi/<kind>/<leaf>` and NO engine path advances `origin/<branch>`
     # any more, so counting `@{u}..HEAD`/`origin/<branch>..HEAD` measures a
     # basis that cannot exist (every rotation read behind forever, or a seat
-    # hand-pushed a head). When the branch resolves a mirror ref, count
-    # `mirror..HEAD` against the LOCAL mirror ref if it resolves -- NEVER a
-    # fetch (fetch is a network WRITE and prepare must not do it), and the
-    # local ref is what a worktree seat actually has. A mirror that does not
-    # resolve is reported ok/unmeasured: never a block on a basis that cannot
-    # be measured. Everything else keeps the pre-existing @{u}/origin
+    # hand-pushed a head). When the branch resolves a mirror ref, read
+    # ORIGIN's tip with `ls-remote` and count `origin-tip..HEAD` -- NEVER a
+    # fetch (fetch is a network WRITE and prepare must not do it), and NEVER
+    # the local `refs/agi/*` ref, which no engine path or fetch refspec ever
+    # creates on a live seat (SM.53 item 5: the arm was inert). An ls-remote
+    # that FAILS or returns nothing, or a remote tip whose object is not
+    # present locally, is reported ok/unmeasured by name: never a block, and
+    # never a silent 'pushed'. Everything else keeps the pre-existing
+    # @{u}/origin
     # fallback: when `@{u}` does not resolve (a fresh seat branch with no
     # upstream yet -- exactly the unpushed case), count
     # `origin/<branch>..HEAD` if that ref exists, else BLOCK `no upstream for
@@ -15145,18 +15212,38 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         unpushed, pname, pclear = (False, "unpushed commits "
                                    "(detached: unmeasured)", "git push")
     elif mirror:
-        msha = _git_maybe(root, "rev-parse", "--verify", mirror)
-        mn = (_git_count_maybe(root, "rev-list", "--count",
-                               f"{mirror}..HEAD")
-              if msha else None)
-        if mn is None:
+        # SM.53 (5): the arm read only the LOCAL `refs/agi/*` ref, which no
+        # engine path or fetch refspec ever creates -- `msha` was None on
+        # every live seat. Read ORIGIN's ref instead. An ls-remote that
+        # FAILS or returns nothing, or a remote tip not present locally, is
+        # UNKNOWN/unmeasured by name -- never 'pushed'; `mn == 0` means
+        # 'mirror current', never 'could not read' (the pre-fix conflation).
+        _rls = _git_maybe(root, "ls-remote", "origin", mirror)
+        rsha = (_rls[0].split("\t")[0].strip() if _rls else "")
+        if not rsha:
             unpushed, pname, pclear = (
-                False, f"unpushed commits (unmeasured: no local {mirror})",
+                False, f"unpushed commits (unmeasured: origin {mirror} "
+                       f"unread or absent)",
+                f"git push origin HEAD:{mirror}")
+        elif _git_maybe(root, "cat-file", "-e",
+                        f"{rsha}^{{commit}}") is None:
+            unpushed, pname, pclear = (
+                False, f"unpushed commits (unmeasured: origin {mirror} tip "
+                       f"{rsha[:12]} not present locally)",
                 f"git push origin HEAD:{mirror}")
         else:
-            unpushed, pname, pclear = (
-                mn > 0, f"unpushed commits vs {mirror}",
-                f"git push origin HEAD:{mirror}")
+            mn = _git_count_maybe(root, "rev-list", "--count",
+                                  f"{rsha}..HEAD")
+            if mn is None:
+                unpushed, pname, pclear = (
+                    False, f"unpushed commits (unmeasured: {mirror} vs "
+                           f"{rsha[:12]} unreadable)",
+                    f"git push origin HEAD:{mirror}")
+            else:
+                unpushed, pname, pclear = (
+                    mn > 0, f"unpushed commits vs {mirror} "
+                           f"({rsha[:12]}: {mn})",
+                    f"git push origin HEAD:{mirror}")
     else:
         n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
         if n is not None:
@@ -18202,7 +18289,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             # performers do (the record at rec_path when one exists — in a dry
             # run of a NEW rotation none does — else the predecessor row), so
             # a reap-proof entry is planned against the derived pids, or the
-            # NAMED refusal when '' — never `dry: True` over an unresolved
+            # NAMED refusal when the derived value is `"none: nothing to
+            # reap"` -- never `dry: True` over an unresolved
             # placeholder.
             aj_values = dict(startup_values)
             aj_values["pred_pids"] = _derive_pred_pids(
