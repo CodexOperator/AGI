@@ -3481,7 +3481,7 @@ def _town_post_branch(root: Path | None, name: str,
 def _rename_post_segment(branch: str, name: str) -> str:
     """`branch`'s post segment renamed to `name`, keeping the SAME (town,
     town_season) tuple -- a rename never moves a post's season. SM.62: a
-    legacy town-less `season2/posts/<name>` ref has no town segment, so its
+    legacy town-less post ref has no town segment, so its
     shape is preserved verbatim by swapping the post segment alone (the
     real ref is never re-spelled into a town-first one)."""
     p = branches.parse(branch)
