@@ -11,6 +11,11 @@ evidence_runs:
   - experiment:a00-39aeb1ef-5dd96b
 loop: hypothesis:l4-the-seating-merged-fixture-is-written-and-merged-by-both-rotate-producers-and-read-back-from-disk@s2
 model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "PROBE=writer_suffix pytest extensions/agi/tests/test_sensei_rotate_out_audit.py -q (conftest wraps rotate._write_seating_record to name <seat>.<stamp>.json, a suffix the merger glob *.seating.json cannot see)", "expected": "seating_merged tests fail because the file the fixture wrote is not the file the merger globs", "observed": "2 failed, 28 passed -- test_predecessor_resolves_join_absent_shapes[seating_merged] and test_rotate_out_audit_resolves_near_miss_and_classifies[seating_merged], at 'assert merged_path == str(written)'", "result": "refused"}
+  - {"conjunct": 2, "class": "wire", "cmd": "PROBE=wire pytest extensions/agi/tests/test_sensei_rotate_out_audit.py -q (conftest replaces rotate._seating_record_merge_handover with a raiser)", "expected": "the seating_merged fixture fails, proving its call site reaches the REAL merger and is not an inlined copy", "observed": "2 failed, 28 passed -- both seating_merged ids fail with 'WIRE-PROBE: merger reached'", "result": "refused"}
+  - {"conjunct": 3, "class": "gate", "cmd": "PROBE=gate_nomatch pytest ... (merger returns \"\") and PROBE=gate_nomerg (merger returns the right path but never writes the handover back)", "expected": "gate_nomatch fails the equality assert; gate_nomerg fails the disk-read assert prev[handover][seating_row_commit]=='abc123' -- a returned path is refused unless the bytes were merged and read back", "observed": "gate_nomatch 2 failed at 'assert merged_path == str(written)' with observed '' == '<path>'; gate_nomerg 2 failed on the disk-read assertion", "result": "refused"}
+  - {"conjunct": 4, "class": "wire", "cmd": "PROBE=record_rename pytest ... (rotate._seating_record renames gen_after -> generation_after)", "expected": "a renamed key in the seating record leaves the fixture unresolvable and fails the suite", "observed": "2 failed, 28 passed -- both seating_merged ids fail at 'assert p == tr' (resolved None)", "result": "refused"}
 profile: balanced
 role: kid
 scaffold_hash: 45159dfd6807f540
