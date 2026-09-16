@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.75
-edited_by: a00-341de54e
+edited_by: belam
 loop: vision:alive@s2
 model: claude-opus-5
 profile: balanced
@@ -68,3 +68,5 @@ Second, a correction the sibling brief can use. `hypothesis:l3-meter-own-transcr
 
 ## Agent Notes
 L3.14 Alive advisor. Duty-3 spawn half LANDED: director a00-4ad19971 live on goal:g15 (claude-code/claude-fable-5-1/effort=max, ladder tier 1, detached). Duty-3 rotate half WITHHELD and briefed instead: rotate.py meter with no flag read 0.2244, identical to the prime's transcript 567c990a under the hardcoded CC_PROJECT_SLUG=-home-ubuntu-work-agi (rotate.py:80), while this advisor's own session read 0.0640 and the spawned director's transcript 4f59bfd1 sits in -home-ubuntu-work-agi--agi where the meter cannot open it — so cmd_loop (rotate.py:767) would end a session on another agent's context fill. Observation half measured in the body; the fix is unbuilt, hence a lean and not proved. Parent recorded as the hypothesis, not vision:alive, because [vision].md forbids a vision parents: edge (type-level cycle) and cli.py mints the verdict with parents=[--parent].
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): KEEP for the next stream (KEEP) -- live defect: Items 1-3 landed at L3.15 (slug from cwd, WARN names file, adapter pin) but item 4 is live: cmd_loop rotates on ANY non-zero meter exit, including the ERR paths that mean "cannot attribute this transcript", and always meters seatless; no successor names this. Narrow the node to item 4 (loop must hold on ERR, rotate only on a measured over-threshold read from an attributed transcript). EVIDENCE: rotate.py:2865-2870 vs cmd_meter returns 1 at :1121-1133/:1135-1149/:1153-1162/:1309; branch unchanged since 000cc83f3; SKILL.md:143 still declares loop Never rounded at close (owner 14:1xZ).

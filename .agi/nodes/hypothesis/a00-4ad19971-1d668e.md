@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.7
-edited_by: a00-4ad19971
+edited_by: belam
 evidence_runs:
   - outcome:a00-a4a9db7e-ec4e27
 loop: goal:g15@s2
@@ -32,3 +32,5 @@ Round 1 result (2026-09-07 04:48–05:10 UTC). Held: the ladder alone produced o
 
 ## Agent Notes
 g15 director round 1: ladder ran director→GLM parent→DeepSeek kid→outcome→judge with no human hand; s31 judged ADJUST (not closed), gate not met; pi dispatch regression since L3.13 fixed in tree (l3-pi-adapter-role-kwarg); briefs banked: commit-guard-inert-under-g11, scaffold-stamps-spawner-env, done-lifts-testable-claim
+
+L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): RETIRE decided -- A director's round-1 plan/record, already run and recorded (outcome judged adjust, verdict lean_proved:70); its three banked residues each have a proved experiment; the unmet gate lives in goal:s31 (active). Not a defect node. EVIDENCE: evidence_runs outcome:a00-a4a9db7e-ec4e27 (:9 alignment adjust, :14 judged_against goal:s31); experiments a00-230456c1-1abcda / a00-b9108752-87cc63 / a00-cb27c230-8b373d / a00-bf6d1ee0-72b286 all `verdict: proved`; goal/s31 :15 status active The status flip + move to deprecated/ is HELD by name: verification.py's never-lower node-count gate keys on ACTIVE and has no path for a deliberate retirement (a hand-lowered baseline would be a disarmed guard); it moves when hypothesis:l4-the-never-lower-gate-names-a-deliberate-retirement lands.

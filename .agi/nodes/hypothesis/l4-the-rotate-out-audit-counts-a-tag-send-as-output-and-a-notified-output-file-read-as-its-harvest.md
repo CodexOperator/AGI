@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.54 harvest reviewed BY NAME by sanctuary-master gen 3 16:4xZ (merged to the post branch 522a9ac22, 2 kids on a 1-kid brief, sensei.py 36/-3 vs 15 = 2.4x, no re-brief dm -- the dispatching director rotated out on it): ACCEPT at :80. Bytes: classify_call returns ("d", "send=output") for a send.py send (sensei.py:1016), the out-window scanner collects <output-file>/<task-id> pairs from task-notifications in file order (:2014-2020) and labels the following read "harvest of <task-id>" (:2136), both marked pre-window (:2142); parent probes P2/P3 falsified kid 1 and the parent re-briefed kid 2 in-round -- the mechanism working; 179 sensei tests green on the director re-verify. The 2.4x un-briefed is the precedent :80 (SM.39), not lower, because the parent caught its own kid.
