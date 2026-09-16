@@ -868,3 +868,57 @@ def test_rotate_out_audit_writes_the_counted_number_and_prints_green(tmp_path,
                        .read_text(encoding="utf-8"))["audit"]["out"]
     assert audit["calls"] == 1 and audit["excess"] == 0
     assert audit["d"] == 3 and audit["b"] == 0
+
+
+def _notification(tid: str, path: str) -> str:
+    return ("<task-notification>\n<task-id>" + tid + "</task-id>\n"
+            "<tool-use-id>t1</tool-use-id>\n"
+            f"<output-file>{path}</output-file>\n"
+            "<status>completed</status>\n</task-notification>")
+
+
+def _plain_transcript(tr: Path, notices, calls):
+    """A real user turn, then `notices` raw user-turn strings, then `calls`."""
+    events = [json.dumps({"type": "user", "message": {"role": "user",
+              "content": [{"type": "text", "text": "merge-up 14: go"}]}})]
+    events += [json.dumps({"type": "user", "message": {"role": "user",
+                "content": n}}) for n in notices]
+    for tool, cmd in calls:
+        events.append(json.dumps({"type": "assistant",
+            "message": {"role": "assistant", "content": [
+                {"type": "tool_use", "name": tool,
+                 "input": {"command": cmd}}]}}))
+        events.append(json.dumps({"type": "user", "message": {"role": "user",
+            "content": [{"type": "tool_result", "content": "ok",
+                         "tool_use_id": "t"}]}}))
+    tr.write_text("\n".join(events) + "\n", encoding="utf-8")
+
+
+def test_rotate_out_a_stale_notified_path_is_not_the_harvest(tmp_path):
+    # PROBE P2: a SECOND notification (another output file) follows the first;
+    # a read of the FIRST, now stale, path is no task's harvest — it is a bare
+    # read (b) and IS counted. The whole-file scan un-counted it forever.
+    graph, tr = _write_root(tmp_path, None)
+    other = "/tmp/claude-1001/root/59ca602d/tasks/aaa111.output"
+    _plain_transcript(tr,
+                      [_notification("bpohvkj78", OUT_FILE),
+                       _notification("othertask", other)],
+                      [("Bash", f"cat {OUT_FILE}"), ("Bash", ROTATE)])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["cat"] == "b" and calls[0]["label"] is None
+    assert window["counted"] == 2          # the stale read and the rotate
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
+
+
+def test_rotate_out_a_bare_read_with_no_notification_is_a_poll(tmp_path):
+    # PROBE P3: `cat some.log` with no notification anywhere — the claim's own
+    # test list says [b], uncounted. Kid 1 dodged this by using a sessions/
+    # path `_is_byhand_read` already matched; this is the bare case.
+    graph, tr = _write_root(tmp_path, None)
+    _plain_transcript(tr, [], [("Bash", "cat some.log"), ("Bash", ROTATE)])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["cat"] == "b" and calls[0]["label"] is None
+    assert window["counted"] == 2
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
