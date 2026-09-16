@@ -108,6 +108,7 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 5. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, **merge origin before every dispatch/check — the tree is busy, expect 2-3 stale-base retries in a row as normal, not a signal to stop.**
 
 ### 🔴 Where it stops — the next command (stamp 2026-09-16T18:52:28Z)
+````
 ```
 CLEAN ROTATION. Nothing live (spawn_budget confirmed empty of this seats own
 rounds at the stamp above), nothing unpushed, nothing unreported. Seven
@@ -163,6 +164,7 @@ Standing lessons from this generation, carried forward:
   rather than guessing; she corrected this herself within two messages this
   generation.
 ```
+````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted)
 - 🔴 **NEW: a pool-headroom dispatch refusal is a distinct failure mode from a floor breach** — `pool - floor - live < cap` can trip even with a healthy pool, because SM.56's own gate summed EVERY `agi-` keys full limit tree-wide (expired/disabled/spent included) rather than true outstanding exposure. SM's interim standing order: dispatch WITHOUT `--cap` (the gate only runs when the flag is passed; the per-spawn cap from config still applies per key). Check whether the real counting fix (queued in the backlog) has landed before assuming this interim rule is still needed.
