@@ -4991,6 +4991,33 @@ def _preserve_closeout(rec: dict, existing_path: Path | None) -> None:
         rec["closeout"] = doc["closeout"]
 
 
+def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
+    """Carry the Sensei's `audit` block from the on-disk rotation record into
+    a FRESH dict about to overwrite it, so the outcome rewrite ~60 s after the
+    wake audit never drops it (hypothesis:l4-a-started-record-keeps-its-audit-
+    and-the-verb-commits-what-it-wrote, part (a)).
+
+    Same mechanism (A) as `_preserve_swept_latches` / `_preserve_closeout`:
+    both `_write_rotate_self_started` and the in-place `_write_rotation_record`
+    rebuild the dict from arguments, so a key outside their argument list is
+    lost by construction. An `audit` THIS run measured always wins -- the
+    on-disk block is copied only when `rec` carries none of its own -- so a
+    re-run never inherits a stale audit. Absent on disk -> leaves `rec`
+    unchanged. Best-effort: never raises.
+    """
+    if "audit" in rec or existing_path is None:
+        return
+    p = Path(existing_path)
+    if not p.exists():
+        return
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return
+    if isinstance(doc, dict) and "audit" in doc:
+        rec["audit"] = doc["audit"]
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -5015,6 +5042,10 @@ def _write_rotation_record(root: Path, record: dict,
     # (SL7.84) an in-place OUTCOME rewrite of a closeout rotation must also
     #     keep the phase-3 captive-step log (`closeout: [...]`).
     _preserve_closeout(record, path)
+    # (SL7.134) nor the Sensei's `audit` block (`audit: {wake|out: {...}}`),
+    #     written between the join and the outcome: rebuilding the dict from
+    #     arguments drops it BY CONSTRUCTION (mechanism (A)).
+    _preserve_audit(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -5111,6 +5142,9 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     _preserve_closeout(rec, path)
     # (SL7.116) nor the stops_sha256 a rewrite seals, once written.
     _preserve_stops_sha(rec, path)
+    # (SL7.134) nor the Sensei's `audit` block, written on this same file
+    #     between the join and the outcome rewrite (mechanism (A)).
+    _preserve_audit(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
