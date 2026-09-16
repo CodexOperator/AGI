@@ -18,6 +18,7 @@ versa) fails these tests.
 """
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -259,6 +260,39 @@ def test_check_4_is_identical_under_stops_and_plain(
              if c[1] == "card older than last commit"][0]
     assert plain[0] is True, plain     # blocked, the own act is newer
     assert stops == plain, (plain, stops)
+
+
+def test_hook_and_rotate_agree_on_the_card_stale_verdict(prep_root, monkeypatch):
+    """(C) ONE verdict, TWO readers: the hook's gate (a) measure and rotate's
+    `_prepare_checks` check 4 read the SAME seat-scoped clock (`bin/
+    last_act.py`) on the SAME fixture state -- fresh AND stale. A second
+    implementation of the clock is the falsifier; a disagreement between the
+    thing that REFUSES the rotation and the thing that HOLDS it is worse than
+    either being wrong alone."""
+    import os
+    hook_path = _REPO / "extensions" / "agi" / "hooks" / "rotation_alert.py"
+    spec = importlib.util.spec_from_file_location("rotation_alert_agree",
+                                                  hook_path)
+    hook = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(hook)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    _no_git(monkeypatch)
+    card = prep_root / "sessions" / "quorum" / "adv-alive.md"
+
+    def verdicts():
+        hook_stale, _line = hook._card_stale_measure(prep_root, "adv-alive",
+                                                     card)
+        rot = [c for c in rotate._prepare_checks(prep_root, "adv-alive")
+               if c[1] == "card older than last commit"][0]
+        return hook_stale, rot[0]
+
+    # FRESH: the stamp is older than the card.
+    _stamp(prep_root, 1)
+    assert verdicts() == (False, False)
+    # STALE: the seat worked AFTER writing the card.
+    os.utime(card, (1000000000, 1000000000))
+    _stamp(prep_root, 2_000_000_000)
+    assert verdicts() == (True, True)
 
 
 def test_prepare_clean_fixture_exits_0(prep_root, capsys, monkeypatch):
