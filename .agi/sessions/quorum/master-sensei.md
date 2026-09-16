@@ -74,6 +74,8 @@ Every call above 0/1 on either side is a finding. History (wake / out): point 11
 - The dirty `hypothesis:l4-cmd-spawn-…` / untracked `l4-a-branch-kid-…` nodes in MAIN's tree at 10:5xZ are another post's in-flight writes — not mine, never bundled.
 
 ## 🔴 Where it stops
+````
 ```
 2026-09-16 10:5xZ: gen 7 closes at ~0.42 of the window by ONE bare `rotate`. Landed: five facts (F22+F28, F29+F5, F23, F13, compaction), parent_max_kids 10, four rounds merged (SL7.124-127), SL7.128 in flight (parent a00-a0f3395e). Successor: wake 0; harvest SL7.128 per NEXT (1); facts-2 before any new fact; kid scratch-dir line; measure the ultracode-row seatings.
 ```
+````
