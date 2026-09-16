@@ -353,6 +353,18 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     A key whose **cap** is below the floor is SKIPPED with one stderr line,
     not refused (hypothesis:(g)): a cap below the floor can never pass it, so
     refusing on its remaining would block every dispatch for the key's TTL.
+
+    🔴 A skip is VISIBLE IN THE RETURN VALUE (hypothesis:l4-workflow-residue-
+    sub-floor-marker-dead-code-and-truncation conjunct (2)): when at least one
+    sub-floor cap is skipped the function returns `(True, <marker>)`, where
+    `<marker>` is the SAME sentence printed to stderr — one string, one
+    construction, so the two can never drift. `(True, None)` is reserved for
+    the genuinely silent paths (no listing, unreachable API, nothing skipped),
+    so a tuple-reading caller can tell "a sub-floor minted key was skipped"
+    from "no keys at all" and from "the API was unreachable" — all three of
+    which used to be `(True, None)`. Scanning continues past a skip, so a
+    later key whose remaining is below the floor still refuses; when several
+    caps are skipped the FIRST marker is returned (stderr names every one).
     """
     # hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use, item 1.
     # THE RUNTIME LEG IS CONDITIONAL, and the condition is the one thing that
@@ -385,6 +397,7 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
     if not listing:
         return True, None
     floor = min_key_remaining_floor(cfg)
+    skipped: str | None = None
     for rec in listing:
         name = str(rec.get("name") or "")
         if not name.startswith(f"{NAME_PREFIX}-"):
@@ -399,18 +412,20 @@ def check_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, st
         # the key's whole TTL. Name it and skip; a cap at/above the floor whose
         # remaining is below it still refuses exactly as before.
         if float(limit) < floor:
-            print(
+            marker = (
                 f"sub-floor minted key {name!r} cap ${float(limit):.2f} is "
                 f"below the floor ${floor:.2f} "
                 f"(provisioning.min_key_remaining_usd) — skipped; a key "
-                f"capped below the floor can never pass it",
-                file=sys.stderr)
+                f"capped below the floor can never pass it")
+            print(marker, file=sys.stderr)
+            if skipped is None:
+                skipped = marker
             continue
         remaining = float(limit) - float(used)
         if remaining < floor:
             return False, _below_floor_message(
                 "outstanding minted key", name, remaining, floor)
-    return True, None
+    return True, skipped
 
 
 def min_account_remaining_floor(cfg: dict) -> float | None:
