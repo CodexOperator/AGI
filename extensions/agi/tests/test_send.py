@@ -3612,6 +3612,23 @@ def test_whois_claim_yes_by_seat_name(monkeypatch):
     assert "sanctuary-helper" in text
 
 
+def test_whois_answer_prints_no_generation_for_a_nonprime_row(monkeypatch):
+    """clause (7) READERS (send.py half, hypothesis:l4-non-prime-genless-
+    clauses-0-2-7-records-readers-migration): the whois answer names seat +
+    role only -- a NON-prime row's answer carries NO `gen`/`generation`
+    token, even when the row still carries a stale leftover `generation`
+    cell (the clause (2) leftover send.py:3184 already tolerates)."""
+    row = dict(FAKE_ROWS[1])
+    row["generation"] = 12          # stale leftover, never printed
+    _stub_pushed(monkeypatch, ([row], FAKE_SHA))
+    rc, text = send_mod.whois(Path("."), "6f9bb5",
+                              claim="sanctuary-director")
+    assert rc == 0, text
+    assert "seat sanctuary-director, role director" in text
+    assert "generation" not in text
+    assert "gen=" not in text
+
+
 def test_whois_claim_different_row_is_no(monkeypatch):
     """Impersonation: the ref is present in the table but under a DIFFERENT
     seat/role than the claim. A presence-only check would pass this; whois must
