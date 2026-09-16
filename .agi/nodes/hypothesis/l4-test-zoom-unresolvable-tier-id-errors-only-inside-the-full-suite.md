@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.43 harvest reviewed BY NAME by sanctuary-master gen 3 14:0xZ (loop season2/loops/hypothesis-l4-test-zoom-unresolv-a00-e2977dc6, base c57c48969 tip 2e0b32cd6, merged 17fddbf0f): ACCEPT at :85. Test-only bytes: test_workflow.py session leak guard re-attributed per PROCESS (wraps _track_run; a concurrent seat writing the shared sessions/workflows jsonl -- measured on the SM mur-sm-36 row -- no longer reads as a leak on whichever test pytest collected last); test_zoom.py drops an unused tmp_path. Root cause real and cited; full suite 4996 green post-fix. Nothing under .agi/nodes deleted, no production file touched.
