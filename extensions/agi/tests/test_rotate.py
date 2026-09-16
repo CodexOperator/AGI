@@ -7745,7 +7745,10 @@ def test_spawn_window_agi_seat_export_and_byte_identical_absent(monkeypatch, tmp
     assert "launch-wrapper" in seated
     claude_argv = base.split(" && ")[-1]
     assert f" -- {claude_argv}" in seated
-    assert seated.index("launch-wrapper") < seated.index("claude")
+    # anchor on the binary token the wrapper emits (`-- <claude argv>`), never the bare
+    # substring "claude" -- it matches a checkout path under /tmp/claude-*/ first
+    # (hypothesis:l4-the-launch-wrapper-order-tests-anchor-on-the-binary-token-not-a-substring-of-the-checkout-path).
+    assert seated.index("launch-wrapper") < seated.index(f" -- {claude_argv}")
 
 
 def test_cmd_spawn_and_loop_forward_seat(monkeypatch, tmp_path):

@@ -94,7 +94,10 @@ def test_unkeyed_post_refuses_keygen(tmp_path, monkeypatch):
     monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, why = rotate._caller_post(tmp_path)
     assert (post, row) == (None, None)
-    assert "fresh" in why and "unkeyed" in why and "keygen fresh" in why
+    assert "fresh" in why and "unkeyed" in why
+    # the refusal names the REAL argparse grammar (SM.39: rotate.KEYGEN_LINE
+    # `keygen --post {seat}`), never the old positional spelling.
+    assert rotate.KEYGEN_LINE.format(seat="fresh") in why
 
 
 def test_mismatched_key_refuses_fingerprints(tmp_path, monkeypatch):
