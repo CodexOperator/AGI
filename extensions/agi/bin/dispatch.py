@@ -1647,7 +1647,36 @@ def main() -> int:
     # the parent brief (brief._orders_section). `_orders_text` is the text the
     # manifest records and the iter dir copies; the env is what the assembled
     # brief reads. Set before any build_command runs (dry-run included).
+    # goal:g15.25 SM.28 -- `--orders` is consumed by EXACTLY two tiers: `kid`
+    # (the per-kid carry-forward, same channel as --prompt-file) and `parent`
+    # (brief._orders_section). Every other tier read the bytes and dropped
+    # them -- measured on SM.26: `--tier director --orders <path>` exited 0
+    # with the file never opened, no heading and no note, which is the
+    # accept-and-drop class hypothesis:l4b23-promptfile-drop exists to
+    # prevent. Refuse BY NAME at argument-parsing time, before any read.
+    if args.orders is not None and args.tier not in ("kid", "parent"):
+        print(f"--orders is consumed by tier `kid` (per-kid carry-forward) "
+              f"and tier `parent` (the dispatch-orders section); tier "
+              f"`{args.tier}` neither threads nor carries it forward. "
+              f"Refusing rather than accepting-and-dropping "
+              f"(goal:g15.25 SM.28).", file=sys.stderr)
+        return 2
+    # A missing orders path must be a NAMED REFUSAL, never a
+    # FileNotFoundError traceback out of _read_prompt_file (measured: parent
+    # tier, absent path, rc 1 + traceback). `-` is stdin and has no path.
+    if (args.orders is not None and args.orders != "-"
+            and not Path(args.orders).is_file()):
+        print(f"ERR: --orders path does not exist or is not a file: "
+              f"{args.orders} (goal:g15.25 SM.28).", file=sys.stderr)
+        return 2
     _orders_text = apply_orders_env(args)
+    # goal:g15.25 SM.28 -- the presence gate is `text.strip()`: a
+    # WHITESPACE-ONLY file is ABSENT (no heading, no copy, no record, the
+    # brief byte-identical), so the dry-run line, the manifest record and the
+    # assembled brief cannot disagree about whether orders were delivered.
+    # (Measured pre-fix: a `"   \n\t\n"` file rendered `## DISPATCH ORDERS`
+    # with a blank body and was copied and recorded.)
+    _orders_present = bool(_orders_text and _orders_text.strip())
     if (args.tier == "kid" and args.prompt_file is not None
             and args.orders is None):
         print("note: --prompt-file is deprecated; use --orders (same "
@@ -1967,13 +1996,6 @@ def main() -> int:
             args=args, targets=targets, tier_eff=tier_eff)
     iter_dir.mkdir(parents=True, exist_ok=True)
 
-    # goal:g15.25 SM.26 -- the orders file travels WITH the round: copy it into
-    # the iter dir so a worktree/round carries the exact bytes the parent was
-    # told, beside the manifest that hashes them. Only non-empty orders (an
-    # empty file renders no heading, so there is nothing to carry).
-    if _orders_text:
-        (iter_dir / "orders.md").write_text(_orders_text, encoding="utf-8")
-
     # goal:s28 — merge into existing manifest rather than overwriting.
     # A parent dispatch into the same iter dir must not clobber its own
     # entry (or any other agent's). Read old manifest first; new agents
@@ -2065,6 +2087,15 @@ def main() -> int:
                 print(f"ERR: {_acc_msg}", file=sys.stderr)
                 return 1
 
+    # goal:g15.25 SM.28 -- the orders copy travels WITH the round, so it is
+    # written INSIDE the slot loop below (see the write above Popen): keyed by
+    # the agent id the manifest record is keyed by, below every per-slot
+    # refusal gate (lease, zoom render, harness/model, mint) so a refused
+    # dispatch leaves NO orphan file, and above Popen so a spawned agent's
+    # manifest record can name the copy that actually rode its round.
+    # Measured pre-fix: ONE `<iter>/orders.<from>.md` written ABOVE the gates,
+    # so two parents collided on one file and a round refused at a gate left
+    # orders.md with no manifest.json beside it.
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
             level, target, strategy, role = target_entry
@@ -2435,6 +2466,16 @@ def main() -> int:
                 detail=f"harness {harness_name!r} cannot spawn tier "
                        f"{args.tier!r}: {exc}")
             return 1
+        # goal:g15.25 SM.28 -- the orders copy for THIS slot, keyed by the
+        # agent id the manifest record is keyed by (`<iter>/orders.<agent>.md`),
+        # written here -- below every per-slot refusal gate above (lease, zoom
+        # render, harness/model, mint) and above Popen -- so a refused
+        # dispatch leaves no orphan file.
+        _orders_file: Path | None = None
+        if _orders_present and args.tier == "parent":
+            _orders_file = iter_dir / f"orders.{agent_id}.md"
+            # the iter dir's per-agent orders copy -- a session artefact
+            _orders_file.write_text(_orders_text, encoding="utf-8")
         log_file = sess_dir / "output.log"
         try:
             with open(log_file, "wb") as logf:
@@ -2455,6 +2496,10 @@ def main() -> int:
             if branch_ref:
                 drop_branch_worktree(root, branch_ref["worktree"])
             spawn_budget.release(lease)
+            # No process exists, so no round consumed the copy: drop it rather
+            # than leave an orders file with no agent record to name it.
+            if _orders_file is not None:
+                _orders_file.unlink(missing_ok=True)
             # hypothesis:l4-dispatch-exits-non-zero-and-deprecates-the-scaffold-
             # when-no-agent-record-follows-a-scaffolded-node -- a node was
             # scaffolded for this agent but the registration step (the Popen
@@ -2507,13 +2552,16 @@ def main() -> int:
         # told: the sender, the sha256/byte count of the exact orders bytes,
         # and the source path. A harvest review can then read (and verify) the
         # director's word from the record, never re-derive it from prose.
-        if _orders_text and args.tier == "parent":
+        if _orders_present and _orders_file is not None:
             _obytes = _orders_text.encode("utf-8")
             agent_record["orders"] = {
                 "from": os.environ.get("AGI_ORDERS_FROM") or "",
                 "sha256": hashlib.sha256(_obytes).hexdigest(),
                 "bytes": len(_obytes),
-                "path": str(args.orders),
+                # the ABSOLUTE path of the copy that actually rode the round,
+                # so a harvest review reads the bytes the parent was handed
+                # rather than re-resolving the dispatcher's argv.
+                "path": str(_orders_file.resolve()),
             }
         # hypothesis:l4-a-kid-spawn... — record the exemption on the kid record
         # so a reader can see the round was admitted on a live-parent grace.

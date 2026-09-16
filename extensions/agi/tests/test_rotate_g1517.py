@@ -106,7 +106,7 @@ def test_spawn_first_seating_role_from_row_and_pin_at_row_gen(
     rows = [
         {"name": "director-seat", "role": "director", "model": "m",
          "effort": "max", "settings": "", "session_kind": "remote-control",
-         "generation": 11},
+         "generation": 11, "session_id": "2717-aaaa"},
         {"name": "sensei-peer", "role": "prime_director"},
     ]
     _seats_sheet(tmp_path, rows)
@@ -145,6 +145,48 @@ def test_spawn_first_seating_role_from_row_and_pin_at_row_gen(
         encoding="utf-8"))
     assert ack["gen_after"] == 11, \
         f"spawn's ack gen_after must follow the row gen, got {ack['gen_after']}"
+    # clause (1) IDENTITY: a NON-prime seat whose row carries a session_id
+    # keys its ack on it — the retired gen-keyed `<seat>.ack.json` shape is
+    # gone, so this asserts the session-id-keyed file the spawn actually wrote
+    # (same seating, same pin, new key), never a revert of `_ack_path`.
+    assert rotate._ack_path(tmp_path, "director-seat").name == \
+        "director-seat.ack.2717-aaa.json", \
+        f"non-prime ack must be session-id-keyed, got " \
+        f"{rotate._ack_path(tmp_path, 'director-seat').name!r}"
+
+
+# ---- (0b) rotate-out rename uniqueness + own @id captured at rename ------ #
+
+def test_rename_own_window_prev_unique_and_own_id_captured_at_rename(
+        tmp_path):
+    """clause (0b): a STALE `<seat>.prev` left by a previous, un-reaped
+    rotation is killed BEFORE the rename, and the predecessor's @id comes from
+    the own window captured AT the rename (the plain seat name) — never a
+    first-match-by-name lookup of the rename target. NEGATIVE half: with only
+    a stale `.prev` and no own window, the stale one is still gone, so a
+    later `pred_alive` (pred_name in the live names) can never report it live."""
+    wins = tmp_path / "windows.txt"
+    # the own window (plain seat name, carrying its tmux @id) plus a stale
+    # `.prev` from an earlier rotation that was never reaped.
+    wins.write_text("@9 adv\n@7 adv.prev\n", encoding="utf-8")
+    own_id = rotate._rename_own_window("adv", "adv.prev", "agi-rc", str(wins))
+    assert own_id == "@9", \
+        f"own @id must be captured at the rename, got {own_id!r} (the stale " \
+        f"@7 is the first-match-by-name defect)"
+    lines = [ln for ln in wins.read_text(encoding="utf-8").splitlines()
+             if ln.strip()]
+    assert lines == ["@9 adv.prev"], \
+        f"exactly ONE .prev window after the rename, got {lines!r}"
+    assert rotate._successor_window_id("adv.prev", "agi-rc", str(wins)) == "@9", \
+        "a name-based reader must resolve the renamed OWN window, not a stale one"
+    # NEGATIVE: only a stale `.prev`, no own window -> it is killed and nothing
+    # is renamed, so `pred_alive` on the target name is False (never live).
+    stale_only = tmp_path / "stale.txt"
+    stale_only.write_text("@7 adv.prev\n", encoding="utf-8")
+    assert rotate._rename_own_window("adv", "adv.prev", "agi-rc",
+                                     str(stale_only)) is None
+    assert "adv.prev" not in stale_only.read_text(encoding="utf-8"), \
+        "a stale .prev must not survive to be reported live"
 
 
 # ---- (c) a first rotation acked at gen 1 is NOT a first seating ---------- #

@@ -890,6 +890,52 @@ def test_read_generation_resolves_through_handoff_when_row_is_generation_less(
     assert measured is True and source == "handoff header"
 
 
+def test_respawn_genless_row_pins_handoff_generation_not_first_seating(
+        tmp_path, monkeypatch, capsys):
+    """clause (0a) (hypothesis:l4-non-prime-genless-clauses-0-2-7-records-
+    readers-migration): a RE-spawn of an existing seat whose config:seats row
+    carries NO `generation` cell but whose handoff header is at gen 12 pins
+    `_spawn_gen` through `_read_generation` -- 12, NEVER FIRST_SEATING_GEN=1.
+    A pin at 1 is exactly what makes the seat's own `meter --seat` read
+    `seat_pin-stale:1:12`; after the fix the same read is clean."""
+    seat = "np-post"
+    root = _proj(tmp_path)
+    _write_seats_sheet(root, [{"name": seat, "role": "director"}])
+    rotate._write_handoff(root, seat, 12)
+    assert rotate._seat_row_generation(root, seat) is None
+    assert rotate._read_generation(root, seat) == 12
+
+    # hermetic: no real git/tmux ever runs; the spawn itself is stubbed.
+    def _run(cmd, **kw):
+        return subprocess.CompletedProcess(
+            cmd if isinstance(cmd, list) else [], 0, "", "")
+    monkeypatch.setattr(rotate.subprocess, "run", _run)
+    monkeypatch.setattr(rotate, "spawn_window", lambda **k: (0, "x"))
+    monkeypatch.setattr(rotate, "_first_seating_announce", lambda *a, **k: [])
+    monkeypatch.setattr(rotate, "_current_sequence", lambda root=None: 0)
+    args = SimpleNamespace(
+        name=seat, tier="director", prompt_file=None, model=None, effort=None,
+        settings=None, tmux_session="t", window_path=None, dry_run=False,
+        successor_argv=None, seat=seat, registry_dir=None, no_autopsy=True,
+        pid=None)
+    assert rotate.cmd_spawn(args, root) == 0
+
+    pin = root / "sessions" / f"{seat}.meter"
+    assert pin.is_file(), capsys.readouterr().out
+    gen_s, _, _target = pin.read_text(encoding="utf-8").partition("\t")
+    assert gen_s.strip() == "12", pin.read_text(encoding="utf-8")
+
+    # the meter read is CLEAN once the pin names a real transcript: the pin's
+    # written generation matches the seat's resolved generation (12), so
+    # neither `_read_seat_pin` nor `resolve_transcript` yields seat_pin-stale.
+    tp = root / "t.jsonl"
+    tp.write_text("{}\n", encoding="utf-8")
+    pin.write_text(f"{gen_s.strip()}\t{tp}\n", encoding="utf-8")
+    assert rotate._read_seat_pin(
+        root, seat, cur_gen=rotate._read_generation(root, seat))[1] is None
+    assert rotate.resolve_transcript(root=root, seat=seat)[1] == "seat_pin"
+
+
 def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path):
     """ORDER 2, CRITICAL: the successor pubkey + key_history cells ride the ONE
     spawn-row write (`_successor_row_write`), appending EXACTLY ONE retired
@@ -3810,16 +3856,132 @@ def test_seat_handoff_generation_bumps_on_rotation(fake_ladder, tmp_path,
 
 def test_status_seats_flag_lists_fraction_and_age(fake_ladder, tmp_path,
                                                   capsys):
-    """`status --seats` prints seat/generation/fraction/age per registry row."""
+    """`status --seats` prints seat/session/fraction/age per registry row.
+
+    MIGRATED for clause (7) READERS (hypothesis:l4-non-prime-genless-clauses-
+    0-2-7-records-readers-migration): a NON-prime row is generation-less, so
+    the line carries `session=<id8>`, never `gen=` -- the retired shape this
+    test used to assert."""
     _write_seats_sheet(tmp_path,
                        [{"name": "kid-1", "role": "director",
+                         "session_id": "abcdef01-2345-6789-abcd-ef0123456789",
                          "rotated_by": "advisor"}])
     _pin_seat_transcript(tmp_path, "kid-1", tokens=10000)  # 0.1
     rc = rotate.cmd_status(SimpleNamespace(seats=True), tmp_path)
     assert rc == 0
     out = capsys.readouterr().out
-    assert "kid-1\tgen=" in out
+    assert "kid-1\tsession=abcdef01" in out
+    assert "gen=" not in out
     assert "frac=0.100" in out
+
+
+def test_status_seats_prime_keeps_gen_and_nonprime_drops_it(fake_ladder,
+                                                           tmp_path, capsys):
+    """clause (7) READERS: ONE predicate, two lines. A PRIME row keeps the
+    exact `gen=` line; a NON-prime row prints `session=<id8>` and no `gen=`."""
+    _write_seats_sheet(tmp_path, [
+        {"name": "belam", "role": "prime", "generation": 12},
+        {"name": "sanctuary-director", "role": "director",
+         "session_id": "abcdef01-2345-6789-abcd-ef0123456789"},
+    ])
+    rc = rotate.cmd_status(SimpleNamespace(seats=True), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    prime = [l for l in out.splitlines() if l.startswith("belam\t")][0]
+    assert "gen=12" in prime
+    nprime = [l for l in out.splitlines()
+              if l.startswith("sanctuary-director\t")][0]
+    assert "gen=" not in nprime
+    assert "session=abcdef01" in nprime
+
+
+def test_status_record_nonprime_prints_session_and_seated_at(fake_ladder,
+                                                            tmp_path, capsys):
+    """clause (7) READERS: `status --record latest` prints `session=<id8>` +
+    `seated_at=<ts>` for a NON-prime post and no `gen=` -- the genless reader
+    shape. The seated_at comes from the latest rotation record."""
+    _write_seats_sheet(tmp_path, [
+        {"name": "sanctuary-director", "role": "director",
+         "session_id": "abcdef01-2345-6789-abcd-ef0123456789"},
+    ])
+    rot = tmp_path / "sessions" / "rotations"
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / "sanctuary-director.20260916T010203Z.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": "sanctuary-director",
+                    "result": "success",
+                    "seated_at": "2026-09-16T01:02:03Z",
+                    "session_id": "abcdef01-2345-6789-abcd-ef0123456789"}),
+        encoding="utf-8")
+    rc = rotate.cmd_status(
+        SimpleNamespace(seats=False, seat="sanctuary-director",
+                        record="latest", wait=0), tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    rowline = [l for l in out.splitlines() if l.startswith("row: ")][0]
+    assert "gen=" not in rowline
+    assert "session=abcdef01" in rowline
+    assert "seated_at=2026-09-16T01:02:03Z" in rowline
+
+
+def test_status_record_prime_keeps_gen_line(fake_ladder, tmp_path, capsys):
+    """The PRIME half of clause (7): `status --record latest` for the Prime
+    post is byte-identical to today -- `row: belam\tgen=<N>\tfrac=...`."""
+    _write_seats_sheet(tmp_path, [
+        {"name": "belam", "role": "prime", "generation": 12},
+    ])
+    rc = rotate.cmd_status(
+        SimpleNamespace(seats=False, seat="belam", record="latest", wait=0),
+        tmp_path)
+    assert rc == 0
+    out = capsys.readouterr().out
+    rowline = [l for l in out.splitlines() if l.startswith("row: ")][0]
+    assert rowline.startswith("row: belam\tgen=12\tfrac=")
+    assert "seated_at=" not in rowline
+
+
+def test_meter_refusal_for_nonprime_names_session_not_generation(
+        fake_ladder, tmp_path, capsys):
+    """clause (7) READERS (meter half): a NON-prime seat whose pin was
+    written by a different rotation is refused BY SESSION ID -- the ERR line
+    names no generation, even though the pin's stamp is the internal
+    mechanism. The refusal still fires (same code path, exit 1)."""
+    seat = "sanctuary-director"
+    _write_seats_sheet(tmp_path, [{
+        "name": seat, "role": "director",
+        "session_id": "abcdef01-2345-6789-abcd-ef0123456789"}])
+    rotate._write_handoff(tmp_path, seat, 12)      # cur gen 12 (fallback)
+    tp = tmp_path / "t.jsonl"
+    tp.write_text("{}\n", encoding="utf-8")
+    (tmp_path / "sessions" / f"{seat}.meter").write_text(
+        f"1\t{tp}\n", encoding="utf-8")           # stale predecessor pin
+    rc = rotate.cmd_meter(
+        SimpleNamespace(session_log=None, check=False, seat=seat, pin=None),
+        tmp_path)
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "written by generation" not in err
+    assert "is generation" not in err
+    assert "abcdef01" in err
+
+
+def test_meter_refusal_for_prime_still_names_generation(fake_ladder,
+                                                        tmp_path, capsys):
+    """The PRIME half: the meter's cross-generation refusal is byte-for-byte
+    what it always was -- a PRIME seat's stale pin still names the
+    generation pair."""
+    seat = "belam"
+    _write_seats_sheet(tmp_path, [
+        {"name": seat, "role": "prime", "generation": 12}])
+    tp = tmp_path / "t.jsonl"
+    tp.write_text("{}\n", encoding="utf-8")
+    (tmp_path / "sessions" / f"{seat}.meter").write_text(
+        f"1\t{tp}\n", encoding="utf-8")
+    rc = rotate.cmd_meter(
+        SimpleNamespace(session_log=None, check=False, seat=seat, pin=None),
+        tmp_path)
+    assert rc == 1
+    err = capsys.readouterr().err
+    assert "written by generation 1 but this session is generation 12" in err
 
 
 def test_rotate_self_ack_is_generation_checked_not_log_cursor(fake_ladder,
@@ -4046,8 +4208,12 @@ def test_rotate_self_writes_record_with_five_observations(fake_ladder, tmp_path,
     assert a["present"] is True and a["window"] == "adv-alive"
     assert "adv-alive" in a["windows"]
     assert "source" in a and "window-path file" in a["source"]
-    # (b) generation before/after
-    assert obs["b_generation"] == {"before": 0, "after": 1}
+    # (b) clause (2): a NON-prime rotation record is genless -- the gen
+    # observation is gone and the seated identity (seated_at + window) is
+    # carried instead. No gen_before/gen_after anywhere on the record.
+    assert "b_generation" not in obs
+    assert "gen_before" not in rec and "gen_after" not in rec
+    assert rec["seated_at"] and rec["window"] == "adv-alive"
     # (c) which log the read-back actually read
     assert str(obs["c_readback_log_path"]).endswith("adv-alive.log")
     # (d) read-before-write stale-continue cursor
@@ -4176,10 +4342,11 @@ def test_rotate_self_interrupted_after_spawn_leaves_started_record(
     assert rec["result"] == "unwitnessed", (
         f"record left {rec['result']!r}: a rotation that stopped looking "
         "in-flight is the defect, not the outcome")
-    # generation is carried in the observation (the `started`-shape top-level
-    # keys are gone from the terminal shape, same as the success record's)
+    # clause (2): a non-prime record is genless -- the gen observation is
+    # replaced by the seated identity (seated_at), never a hard-coded gen.
     obs = rec.get("observations", {})
-    assert obs.get("b_generation", {}).get("before") >= 0
+    assert "b_generation" not in obs
+    assert rec["seated_at"]
     # (w3) readback_log is now POPULATED, not absent, exactly where a
     # diagnostician needs it
     assert "c_readback_log_path" in obs, "readback_log must be populated"
@@ -4542,10 +4709,12 @@ def test_compose_seating_announcement_ask_diff_exact_ack_line():
 
 def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatch):
     """A first seating through `spawn --seat S` (non-dry) emits the SAME
-    rotation-alert dm a rotation does — trigger: first-seating, generation
-    0 -> 1, carrying seat, window @id, pid, session id — and writes ONE
-    gen-1 seating record carrying the first_turn results. The falsifier: a
-    spawn after which the Sensei's dm has no seating line."""
+    rotation-alert dm a rotation does — trigger: first-seating — carrying
+    seat, window @id, pid, session id, and (clause (2), a NON-prime seat)
+    the genless `re-seated <ts> session <id8>` line, never `generation 0 ->
+    1`; it writes ONE genless seating record carrying the first_turn
+    results. The falsifier: a spawn after which the Sensei's dm has no
+    seating line."""
     import send as _send  # the SAME top-level module rotate's lazy import binds to
     rows = [
         {"name": "director-seat", "role": "director", "model": "m",
@@ -4574,7 +4743,10 @@ def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatc
     _to, text = sent[0]
     assert _to == "sensei-peer"
     assert "first seating director-seat @42" in text
-    assert "generation 0 -> 1" in text
+    # clause (2): a NON-prime seating announce is genless -- `re-seated <ts>
+    # session <id8>`, and the string `generation` never appears.
+    assert "re-seated" in text and "session 2717-aaa" in text
+    assert "generation" not in text
     assert "trigger: first-seating" in text
     assert "ref: (pending ack)" in text
     assert "pid: 999" in text and "session: 2717-aaaa" in text
@@ -4582,9 +4754,14 @@ def test_spawn_first_seating_emits_seating_alert_and_record(tmp_path, monkeypatc
     recs = list(rotate._rotations_dir(tmp_path).glob("director-seat.*.seating.json"))
     assert len(recs) == 1, f"exactly ONE seating record, got {recs}"
     rec = json.loads(recs[0].read_text(encoding="utf-8"))
-    assert rec["rotation"] == "seating" and rec["gen_after"] == 1
+    assert rec["rotation"] == "seating"
+    # clause (2): no gen_before/gen_after on a non-prime seating record; the
+    # seated identity (seated_at + session_id + pid + window) replaces it.
+    assert "gen_before" not in rec and "gen_after" not in rec
+    assert rec["seated_at"]
     assert rec["trigger"] == "first-seating" and rec["source"] == "cmd_spawn"
-    assert rec["session_id"] == "2717-aaaa" and rec["window_id"] == "@42"
+    assert rec["session_id"] == "2717-aaaa" and rec["window"] == "@42"
+    assert rec["pid"] is not None
     assert rec["first_turn"], "the seating record must carry the first_turn results"
     assert rec["first_turn"][0]["label"] == "probe"
 
@@ -4628,7 +4805,9 @@ def test_spawn_first_seating_default_ack_source_seating_wake_zero(
     assert ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
     _to, text = sent[0]
-    assert "generation 0 -> 1" in text and "--gen 0" not in text
+    # clause (2): genless -- `re-seated ... session <id8>`, never a gen.
+    assert "re-seated" in text and "generation" not in text
+    assert "--gen 0" not in text
     assert "rotate.py ack" not in text, \
         f"default seating alert must carry NO ack line: {text}"
     assert "diff --text" not in text
@@ -4728,8 +4907,11 @@ def test_spawn_first_seating_ask_diff_prints_exact_ack_line(
     assert ack["source"] == "seating", ack
     assert ack["gen_after"] == 1
     _to, text = sent[0]
-    assert "generation 0 -> 1" in text and "--gen 0" not in text
-    assert ("rotate.py ack --seat director-seat --gen 1 "
+    # clause (2) + (1): a NON-prime seating acks by `--post`, never `--gen`,
+    # and the announce names no generation.
+    assert "re-seated" in text and "generation" not in text
+    assert "--gen" not in text, text
+    assert ("rotate.py ack --post director-seat "
             "--ref <your ListAgents ref> diff --text -") in text, text
 
 
@@ -5334,6 +5516,59 @@ def test_compose_announcement_pre_join_names_identity_unresolved():
     assert "belam-III (pre-join" in body
     assert "pre-join: successor ref not yet resolved" in body
     assert "belam-III [" not in body
+
+
+def test_non_prime_rotation_record_is_genless():
+    """clause (2): a NON-prime rotation record carries seated_at + session_id
+    + pid + window and NO gen_before/gen_after (and no `b_generation`
+    observation). Falsifier: any non-prime surface still printing a gen."""
+    rec = rotate._rotate_self_record(
+        seat="director-seat", role="director", result="success",
+        gen_before=3, gen_after=4,
+        handover={"successor_window": {"name": "director-seat", "id": "@42"},
+                  "join": {"session_id": "2717-aaaa-bbbb", "pid": 999}})
+    assert "gen_before" not in rec and "gen_after" not in rec
+    assert "b_generation" not in rec["observations"]
+    assert rec["seated_at"]
+    assert rec["window"] == "director-seat"
+    assert rec["session_id"] == "2717-aaaa-bbbb" and rec["pid"] == 999
+
+
+def test_non_prime_announce_is_genless_re_seated_session():
+    """clause (2): the NON-prime announce reads
+    `[rotation-alert] <post> re-seated <ts> session <id8>` -- contains
+    `re-seated` + `session`, NEVER the substring `generation`."""
+    body = rotate._compose_announcement(
+        seat="director-seat", successor="director-seat", gen_before=3,
+        gen_after=4, trigger="rotate-self", handoff_path="h.md",
+        in_flight="none", seq=5, role="director",
+        seated_at="2026-01-01T00:00:00Z", session_id="2717-aaaa-bbbb")
+    assert body.startswith(
+        "[rotation-alert] director-seat re-seated 2026-01-01T00:00:00Z "
+        "session 2717-aaa |"), body
+    assert "generation" not in body
+    assert "trigger: rotate-self" in body
+
+
+def test_prime_seat_record_and_announce_keep_the_gen_shape():
+    """clause (2): the prime chain stays byte-identical -- a PRIME seat's
+    record and announce keep `generation N -> M` and the gen keys."""
+    body = rotate._compose_announcement(
+        seat="belam-II", successor="belam-III", gen_before=3, gen_after=4,
+        trigger="rotate-self", handoff_path="h.md", in_flight="none",
+        seq=5, role="prime_director")
+    assert "generation 3 -> 4" in body and "re-seated" not in body
+    rec = rotate._rotate_self_record(
+        seat="belam-II", role="prime_director", result="success",
+        gen_before=3, gen_after=4)
+    assert rec["observations"]["b_generation"] == {"before": 3, "after": 4}
+    assert "seated_at" not in rec
+    seating = rotate._seating_record(
+        seat="belam-II", role="prime_director", source="test",
+        window_id="@9", ref="", pid=1, session_id="s",
+        transcript_path="", first_turn=None, generation=2)
+    assert seating["gen_before"] == 0 and seating["gen_after"] == 2
+    assert "seated_at" not in seating and seating["window_id"] == "@9"
 
 
 @pytest.mark.parametrize("window", ["", "41"])
@@ -6452,11 +6687,12 @@ def test_ack_refuses_any_uuid_shaped_ref_by_name(tmp_path, monkeypatch,
     assert belam.get("session_ref") in (None, "")
 
 
-def _ack_seed_git(tmp_path, session_ref=""):
+def _ack_seed_git(tmp_path, session_ref="", extra=None):
     """A real git repo (top = tmp_path) with the graph root (`proj/`) and a
     COMMITTED seats.md carrying one row — the r3b `ack ... continue` COMMITS
     path. sessions/ is gitignored so the ack.json the ack writes stays out of
-    `git status`. Returns (graph_root, repo_top)."""
+    `git status`. `extra` folds further cells into the row (a fat row, like a
+    live one carrying key_history). Returns (graph_root, repo_top)."""
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "config", "user.email",
                     "ack@test"], check=True)
@@ -6467,9 +6703,11 @@ def _ack_seed_git(tmp_path, session_ref=""):
     # the graph root carries the project marker (write.submit resolves the
     # graph root DESCEND-ONLY inside `root`, like `.agi/config.json` in live)
     (root / "agi-tree.config.json").write_text("{}", encoding="utf-8")
-    _write_seats_sheet(root, [{"name": "belam", "role": "prime_director",
-                               "model": "x", "effort": "max",
-                               "settings": "", "session_ref": session_ref}])
+    row = {"name": "belam", "role": "prime_director",
+           "model": "x", "effort": "max",
+           "settings": "", "session_ref": session_ref}
+    row.update(extra or {})
+    _write_seats_sheet(root, [row])
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
     subprocess.run(["git", "-C", str(tmp_path), "commit", "-q", "-m",
                     "seats seed"], check=True)
@@ -6595,8 +6833,8 @@ def test_ack_continue_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert msg == "belam ack: gen 7, session_ref f52a4c, window , pid"
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert "  session_ref:  -> f52a4c" in out.splitlines()  # cell, sorted
+    assert not any(ln.startswith(("+", "-")) for ln in out.splitlines())
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
 
@@ -6695,10 +6933,78 @@ def test_ack_diff_empty_commits_own_row_write(tmp_path, monkeypatch, capsys):
     assert files == ["proj/nodes/.geometry/seats.md"]   # seats.md ONLY
     out = capsys.readouterr().out
     assert "ack: committed own row write" in out
-    assert any(ln.startswith("+") for ln in out.splitlines())
-    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert not any(ln.startswith(("+", "-")) for ln in out.splitlines())
+    assert "  session_ref:  -> f52a4c" in out.splitlines()
     assert "git -C {0} push".format(top) in out  # exact push line printed
     assert "--no-commit" not in out
+
+
+def test_ack_cell_printer_names_only_changed_cells(
+        tmp_path, monkeypatch, capsys):
+    """g15.25 clauses (1)+(3) (hypothesis:l4-the-ack-prints-only-the-changed-
+    cells-of-its-own-row-never-the-whole-row-twice): on a FAT row (key_history
+    + 60-char note, the live shape) a commit that moves exactly two cells
+    prints exactly two `  <cell>: <old> -> <new>` lines, sorted, NO line
+    starting +/- (never the whole JSON row twice), no line over 120 chars, and
+    the unchanged key_history/note cells are never printed. The exact
+    `git -C <top> push` line stays the LAST line (SL4.03 / clause (3))."""
+    extra = {"session_name": "belam", "session_id": "2717-aaaa",
+             "window": "@42", "pid": 0,
+             "key_history": [{"k": "a" * 40}, {"k": "b" * 40}],
+             "note": "n" * 60}
+    root, top = _ack_seed_git(tmp_path, extra=extra)
+    reg = _seating_registry(tmp_path)      # window @42, pid 999, sid 2717-a
+    monkeypatch.chdir(root)
+    code = rotate.cmd_ack(SimpleNamespace(
+        seat="belam", gen=7, ref="f52a4c", answer="continue", text="",
+        registry_dir=str(reg)), root)
+    assert code == 0, capsys.readouterr().err
+    lines = capsys.readouterr().out.splitlines()
+    assert "ack: committed own row write (proj/nodes/.geometry/seats.md):" \
+        in lines
+    cells = [ln for ln in lines if ln.startswith("  ")]
+    assert cells == ["  pid: 0 -> 999", "  session_ref:  -> f52a4c"], lines
+    assert not any(ln.startswith(("+", "-")) for ln in lines), lines
+    assert "key_history" not in "\n".join(lines)   # unchanged, never printed
+    assert lines[-1] == f"git -C {top} push"           # push line LAST
+    assert all(len(ln) <= 120 for ln in lines), [len(ln) for ln in lines]
+
+
+def test_ack_cell_printer_summarises_key_history(tmp_path, capsys):
+    """claim (1): a key_history change prints `N -> M entries`, never the
+    array itself (one line per changed cell, whatever the cell's size)."""
+    root, top = _ack_seed_git(tmp_path, extra={"key_history": [{"k": "a"}]})
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '[{"k": "a"}]', '[{"k": "a"}, {"k": "b"}, {"k": "c"}]'),
+        encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam",
+        SimpleNamespace(seat="belam", gen=7, ref="f52a4c", text=""),
+        "f52a4c")
+    assert ok, out
+    assert "  key_history: 1 -> 3 entries" in out.splitlines(), out
+    assert '{"k"' not in out                    # the array is never printed
+    assert out.splitlines()[-1] == f"git -C {top} push"
+
+
+def test_ack_cell_printer_falls_back_on_non_json_diff(tmp_path, capsys):
+    """claim (1) falsifier: a NON-JSON row diff FALLS BACK to today's
+    whole-line +/- output and SAYS SO -- never a traceback, never a silent
+    empty cell list."""
+    root, top = _ack_seed_git(tmp_path)
+    seats = rotate._ack_seats_path(root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"session_ref": ""', '"session_ref": "f52a4c",'), encoding="utf-8")
+    ok, out = rotate._ack_commit_seats(
+        root, "belam",
+        SimpleNamespace(seat="belam", gen=7, ref="f52a4c", text=""),
+        "f52a4c")
+    assert ok, out
+    assert "not JSON" in out
+    assert any(ln.startswith("+") for ln in out.splitlines())  # today's lines
+    assert any(ln.startswith("-") for ln in out.splitlines())
+    assert out.splitlines()[-1] == f"git -C {top} push"
 
 
 def test_ack_own_row_pre_dirty_refused_before_write(tmp_path, monkeypatch, capsys):

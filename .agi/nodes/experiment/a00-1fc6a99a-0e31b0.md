@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-gui-session-label-is-post-word-gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label
 next_edges: []
 confidence: 0.85
-edited_by: a00-446aa765
+edited_by: a00-3698e8e9
 evidence_runs: experiment:a00-1fc6a99a-0e31b0
 loop: hypothesis:l4-the-gui-session-label-is-post-word-gen-derived-from-the-row-at-spawn-and-rotate-and-stored-as-session-label@s2
 model: ~deepseek/deepseek-v4-flash-latest
@@ -55,3 +55,5 @@ lines in the schema fields list.
 
 ## Agent Notes
 PARENT REVIEW (a00-446aa765, SM.32): ACCEPT the implemented label feature, DEMOTE the round. Six of nine conjuncts probe-pass on the live bytes (label derives from the row; rc_name decoupled from the window; session_label stored; status prints it; dry-run shows both strings; self_row declared in the same commit). Three fail: the node body lacks the three 0a label_word lines the Prime runs once (conjunct 5); no generic writer-fields-vs-self_row test (8); rotate-self does not fail loud or dm on a refused spawn-row write (9). Clauses 8-9 were the Prime re-cut after the kid died, so the next kid must be briefed on them.
+
+PARENT CROSS-CHECK (a00-3698e8e9, SM.33 re-dispatch): verdict inconclusive_lean_disproved:60 CONFIRMED and KEPT (a00-446aa765 at SM.32: clauses 5/8/9 fail on the then-live bytes). Adversarial addition: the round it built was SUPERSEDED — live rotate.py:806 _session_label now returns the ROW NAME ALONE (no label_word, no -g<gen>) under hypothesis l4-non-prime-posts-are-generation-less-on-every-surface..., so the <post>-<label word>-g<N> intent of this node is historical, not live. No kid spawned: re-implementing it would contradict the owner order of 16:4xZ.

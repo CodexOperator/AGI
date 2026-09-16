@@ -958,9 +958,17 @@ def test_reap_belam_oldest_pane_seam_detached_tree(_fix, tmp_path, monkeypatch):
     TERM the real detached non-child tree. No error, `pids` = the full
     descendant chain, `window_id` from the @id seam.
 
-    rotate.py stays byte-identical. The recorded `reaped`/`gone_after` can
-    read False for the same non-child zombie-race as clause (c), so the
-    load-bearing assertion is that every derived chain pid settles to gone.
+    rotate.py names the wait: `_reap_belam_oldest` now forwards a `wait_secs`
+    keyword to `_reap_chain` (production default stays 5.0, behaviour
+    unchanged); this test passes a small BOUNDED value. The chain is
+    NON-CHILD, so a TERM'd member whose parent is still alive reads as a live
+    zombie to `_pid_alive` and the wait loop burns the FULL `wait_secs` plus
+    the 1 s post-SIGKILL settle poll for that pid — 3 descendants x 6 s = the
+    18.53 s this test used to spend. The reaps stay REAL (the tree is really
+    TERM'd and really settles gone); only the wait bound changed. The recorded
+    `reaped`/`gone_after` can read False for the same non-child zombie-race as
+    clause (c), so the load-bearing assertion is that every derived chain pid
+    settles to gone.
     """
     root, pids = _spawn_detached_tree(tmp_path)
     try:
@@ -969,7 +977,8 @@ def test_reap_belam_oldest_pane_seam_detached_tree(_fix, tmp_path, monkeypatch):
         monkeypatch.setattr(rotate, "_pane_pid", lambda pane: root)
 
         out = rotate._reap_belam_oldest(
-            tmux_session="agi-rc", oldest=str(pids[0]), window_path=str(wpath))
+            tmux_session="agi-rc", oldest=str(pids[0]), window_path=str(wpath),
+            wait_secs=0.5)
 
         assert "skipped" not in out, out
         assert out["pids"] == pids[1:], f"chain={out['pids']!r} want {pids[1:]!r}"
