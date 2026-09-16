@@ -120,3 +120,24 @@ def test_audience_quorum_still_resolves_from_a_director_row(tmp_path):
     text = path.read_text()
     assert "[ask] who owns the keep?" in text
     assert "from: sanctuary-director" in text
+
+
+def test_rename_boundary_derives_its_branch_town_through_row_town(project):
+    """SM.32b: the rename surface's branch town comes from `towns.row_town`.
+    The transitional `all` + overrides map AND a declared cell must both land
+    in the derived branch segment -- the rename path is not a second
+    hand-spelled town map."""
+    import rotate
+    _write_posts_node(project, [
+        {"name": "belam", "role": "director", "town": "all"},
+        {"name": "declared-post", "role": "director", "town": "sanctuary"},
+    ])
+    surfs = {s["kind"]: s for s in
+             rotate._rename_surfaces(project, "belam", "belam2")}
+    assert surfs["branch (origin)"]["src"] == \
+        "origin/core/season2/posts/belam/main", surfs
+    surfs2 = {s["kind"]: s for s in
+              rotate._rename_surfaces(
+                  project, "declared-post", "declared-post2")}
+    assert surfs2["branch (origin)"]["src"] == \
+        "origin/sanctuary/season2/posts/declared-post/main", surfs2
