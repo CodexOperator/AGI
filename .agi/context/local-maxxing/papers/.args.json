@@ -1,0 +1,6 @@
+{"model":"qwen/qwen3.8-27b","papers":[
+ {"key":"deepseek-v4-1-flash","url":"https://www.alphaxiv.org/abs/2609.deepseek-v4-1-flash","hint":"DeepSeek V4.1 Flash tech report — owner: compute-cost tricks; also arxiv/alphaxiv overview pages if the abs page is thin"},
+ {"key":"arxiv-2607-24653","url":"https://arxiv.org/abs/2607.24653","hint":"owner-named optimization advance (Moonshot or DeepSeek lineage); read the HTML or PDF"},
+ {"key":"glm-5-3-flash","url":"https://autoclaw.z.ai/blog/model/glm-5.3-flash/","hint":"Z.ai GLM-5.3-Flash model blog — owner: compute-cost tricks; find the linked tech report if any"},
+ {"key":"arxiv-2603-12201","url":"https://arxiv.org/pdf/2603.12201","hint":"owner-named optimization advance; read the abs page first for the title then the PDF"}
+]}
