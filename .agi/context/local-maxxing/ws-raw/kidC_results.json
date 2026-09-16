@@ -1,0 +1,98 @@
+{
+  "auth_header_raw": {
+    "admitted": true,
+    "error": null,
+    "content_tokens": 8
+  },
+  "auth_header_chat": {
+    "admitted": true,
+    "error": null,
+    "content_tokens": 8
+  },
+  "auth_no_key_refused": true,
+  "raw_nprobs": {
+    "token_frames": 48,
+    "argmax_ok": 48,
+    "n_entries_set": [
+      5
+    ],
+    "sha_nprobs0": "a2b3547036649a62",
+    "sha_nprobs5_req0": "a2b3547036649a62",
+    "sha_nprobs5_req1": "a2b3547036649a62",
+    "sha_unchanged": true
+  },
+  "chat_top_logprobs": {
+    "content_deltas": 24,
+    "with_logprobs": 24,
+    "sample": {
+      "content": [
+        {
+          "id": 151667,
+          "token": "<think>",
+          "bytes": [
+            60,
+            116,
+            104,
+            105,
+            110,
+            107,
+            62
+          ],
+          "logprob": -0.0001895011228043586,
+          "top_logprobs": [
+            {
+              "id": 151667,
+              "token": "<think>",
+              "bytes": [
+                60,
+                116,
+                104,
+                105,
+                110,
+                107,
+                62
+              ],
+              "logprob": -0.0001895011228043586
+            },
+            {
+              "id": 151644,
+              "token": "",
+              "bytes": [],
+              "logprob": -10.559388160705566
+            },
+            {
+              "id": 80135,
+              "token": "iquement",
+              "bytes": [
+                105,
+                113,
+                117,
+                101,
+                109,
+                101,
+                110,
+                116
+              ],
+              "logprob": -10.826319694519043
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "backend_switch_cpu2": {
+    "admitted": true,
+    "cap1_before": 6,
+    "cap1_after": 6,
+    "cap2_before": 0,
+    "cap2_after": 1,
+    "landed_on_cpu2_only": true
+  },
+  "gpu_listening": true,
+  "gpu_chat": {
+    "admitted": true,
+    "error": null,
+    "content_tokens": 0,
+    "reasoning_frames": 16
+  }
+}

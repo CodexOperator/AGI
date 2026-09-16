@@ -1,0 +1,48 @@
+{"req": 0, "idx": 0, "token": " How", "n_entries": 5, "argmax_token": " How", "argmax_ok": true}
+{"req": 0, "idx": 1, "token": " many", "n_entries": 5, "argmax_token": " many", "argmax_ok": true}
+{"req": 0, "idx": 2, "token": " numbers", "n_entries": 5, "argmax_token": " numbers", "argmax_ok": true}
+{"req": 0, "idx": 3, "token": " are", "n_entries": 5, "argmax_token": " are", "argmax_ok": true}
+{"req": 0, "idx": 4, "token": " there", "n_entries": 5, "argmax_token": " there", "argmax_ok": true}
+{"req": 0, "idx": 5, "token": "?", "n_entries": 5, "argmax_token": "?", "argmax_ok": true}
+{"req": 0, "idx": 6, "token": " Also", "n_entries": 5, "argmax_token": " Also", "argmax_ok": true}
+{"req": 0, "idx": 7, "token": ",", "n_entries": 5, "argmax_token": ",", "argmax_ok": true}
+{"req": 0, "idx": 8, "token": " how", "n_entries": 5, "argmax_token": " how", "argmax_ok": true}
+{"req": 0, "idx": 9, "token": " many", "n_entries": 5, "argmax_token": " many", "argmax_ok": true}
+{"req": 0, "idx": 10, "token": " numbers", "n_entries": 5, "argmax_token": " numbers", "argmax_ok": true}
+{"req": 0, "idx": 11, "token": " are", "n_entries": 5, "argmax_token": " are", "argmax_ok": true}
+{"req": 0, "idx": 12, "token": " there", "n_entries": 5, "argmax_token": " there", "argmax_ok": true}
+{"req": 0, "idx": 13, "token": " in", "n_entries": 5, "argmax_token": " in", "argmax_ok": true}
+{"req": 0, "idx": 14, "token": " the", "n_entries": 5, "argmax_token": " the", "argmax_ok": true}
+{"req": 0, "idx": 15, "token": " range", "n_entries": 5, "argmax_token": " range", "argmax_ok": true}
+{"req": 0, "idx": 16, "token": " from", "n_entries": 5, "argmax_token": " from", "argmax_ok": true}
+{"req": 0, "idx": 17, "token": " ", "n_entries": 5, "argmax_token": " ", "argmax_ok": true}
+{"req": 0, "idx": 18, "token": "1", "n_entries": 5, "argmax_token": "1", "argmax_ok": true}
+{"req": 0, "idx": 19, "token": " to", "n_entries": 5, "argmax_token": " to", "argmax_ok": true}
+{"req": 0, "idx": 20, "token": " ", "n_entries": 5, "argmax_token": " ", "argmax_ok": true}
+{"req": 0, "idx": 21, "token": "2", "n_entries": 5, "argmax_token": "2", "argmax_ok": true}
+{"req": 0, "idx": 22, "token": "0", "n_entries": 5, "argmax_token": "0", "argmax_ok": true}
+{"req": 0, "idx": 23, "token": "?", "n_entries": 5, "argmax_token": "?", "argmax_ok": true}
+{"req": 1, "idx": 0, "token": " How", "n_entries": 5, "argmax_token": " How", "argmax_ok": true}
+{"req": 1, "idx": 1, "token": " many", "n_entries": 5, "argmax_token": " many", "argmax_ok": true}
+{"req": 1, "idx": 2, "token": " numbers", "n_entries": 5, "argmax_token": " numbers", "argmax_ok": true}
+{"req": 1, "idx": 3, "token": " are", "n_entries": 5, "argmax_token": " are", "argmax_ok": true}
+{"req": 1, "idx": 4, "token": " there", "n_entries": 5, "argmax_token": " there", "argmax_ok": true}
+{"req": 1, "idx": 5, "token": "?", "n_entries": 5, "argmax_token": "?", "argmax_ok": true}
+{"req": 1, "idx": 6, "token": " Also", "n_entries": 5, "argmax_token": " Also", "argmax_ok": true}
+{"req": 1, "idx": 7, "token": ",", "n_entries": 5, "argmax_token": ",", "argmax_ok": true}
+{"req": 1, "idx": 8, "token": " how", "n_entries": 5, "argmax_token": " how", "argmax_ok": true}
+{"req": 1, "idx": 9, "token": " many", "n_entries": 5, "argmax_token": " many", "argmax_ok": true}
+{"req": 1, "idx": 10, "token": " numbers", "n_entries": 5, "argmax_token": " numbers", "argmax_ok": true}
+{"req": 1, "idx": 11, "token": " are", "n_entries": 5, "argmax_token": " are", "argmax_ok": true}
+{"req": 1, "idx": 12, "token": " there", "n_entries": 5, "argmax_token": " there", "argmax_ok": true}
+{"req": 1, "idx": 13, "token": " in", "n_entries": 5, "argmax_token": " in", "argmax_ok": true}
+{"req": 1, "idx": 14, "token": " the", "n_entries": 5, "argmax_token": " the", "argmax_ok": true}
+{"req": 1, "idx": 15, "token": " range", "n_entries": 5, "argmax_token": " range", "argmax_ok": true}
+{"req": 1, "idx": 16, "token": " from", "n_entries": 5, "argmax_token": " from", "argmax_ok": true}
+{"req": 1, "idx": 17, "token": " ", "n_entries": 5, "argmax_token": " ", "argmax_ok": true}
+{"req": 1, "idx": 18, "token": "1", "n_entries": 5, "argmax_token": "1", "argmax_ok": true}
+{"req": 1, "idx": 19, "token": " to", "n_entries": 5, "argmax_token": " to", "argmax_ok": true}
+{"req": 1, "idx": 20, "token": " ", "n_entries": 5, "argmax_token": " ", "argmax_ok": true}
+{"req": 1, "idx": 21, "token": "2", "n_entries": 5, "argmax_token": "2", "argmax_ok": true}
+{"req": 1, "idx": 22, "token": "0", "n_entries": 5, "argmax_token": "0", "argmax_ok": true}
+{"req": 1, "idx": 23, "token": "?", "n_entries": 5, "argmax_token": "?", "argmax_ok": true}
