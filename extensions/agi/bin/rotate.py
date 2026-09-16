@@ -7464,9 +7464,10 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
 def _resolved_stops_slot_text(card_path: Path) -> str:
     """The rotate-self --stops --dry-run 'stops slot:' line for a card, read
     fresh and never written: the located header line + '(replace)', or
-    'none — will append at end' when no titled slot exists, or the ambiguous
-    refusal. Keys on TITLE only (the numeral fallback is deleted), so a card
-    carrying only `## §3 …` (no title) reports append-at-end."""
+    'none — will create at end' when no titled slot exists (the caller then
+    CREATES a `## 🔴 Where it stops` section at the card's end), or the
+    ambiguous refusal. Keys on TITLE only (the numeral fallback is deleted),
+    so a card carrying only `## §3 …` (no title) reads as create-at-end."""
     card_txt = (card_path.read_text(encoding="utf-8")
                 if card_path.exists() else "")
     _preamble, _secs = _split_card_sections(card_txt)
@@ -16750,15 +16751,18 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                          diff_gap: str | None = None,
                          frac: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
-    own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
-    any header whose title `_locate_where_it_stops` keys on -- 'where it
-    stops' / 'next command'), replacing only the slot's FENCED block (the
+    own card's where-it-stops slot (a `## 🔴 Where it stops` SECTION, or any
+    header whose title `_locate_where_it_stops` keys on -- 'where it stops' /
+    'next command' -- at `## ` level or as a `###` subheader inside one),
+    replacing only the slot's FENCED block (the
     fence + the stops text together, rendered by `_render_stops_block`) and
     carrying the slot's own prose OUTSIDE the fence -- before it and after
     it -- byte-identical. When the card has no where-it-stops slot at ALL,
-    the slot is CREATED at the card's end as `### 🔴 Where it stops` using
-    the SAME render function. When `--ask-diff <gap>` accompanies `--stops`,
-    the gap is ALSO written as `diff requested: <gap>` after the fence.
+    the slot is CREATED at the card's end as a `## 🔴 Where it stops`
+    SECTION -- never a bare `### ` block, which would land in the preamble
+    where the locator never looks -- using the SAME render function. When
+    `--ask-diff <gap>` accompanies `--stops`, the gap is ALSO written as
+    `diff requested: <gap>` after the fence.
     Returns `(body, slot)` on success (slot in {'replaced', 'created'})
     or `(None, error)` when the where-it-stops slot is AMBIGUOUS (refused,
     never guessed). Never raises."""
@@ -19622,7 +19626,7 @@ def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
                         "if their round is orphaned")
     p.add_argument("--stops", default=None,
                    help="what the seat leaves behind: written into the "
-                        "seat's own card's `### 🔴 Where it stops` section "
+                        "seat's own card's `## 🔴 Where it stops` section "
                         "at rotate-out (`-` reads stdin); commits it with "
                         "the seat's own seats.md row in ONE pathspec "
                         "commit and pushes")
