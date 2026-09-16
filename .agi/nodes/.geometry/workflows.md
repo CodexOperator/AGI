@@ -24,6 +24,7 @@ types:
   - {"name": "merge-up-review", "harness": "claude-code", "stage_shapes": ["review:{key}", "verify:{key}"]}
   - {"name": "desktop-check", "harness": "claude-code", "stage_shapes": ["capture-and-read"]}
   - {"name": "trove-survey", "harness": "claude-code", "stage_shapes": ["read:{key}", "critique:{key}", "panel:{key}", "judge"]}
+  - {"name": "recovery-survey", "harness": "claude-code", "stage_shapes": ["survey:{key}", "refute:{key}"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
@@ -34,6 +35,7 @@ workflows:
   - {"name": "merge-up-review", "type": "merge-up-review"}
   - {"name": "desktop-check", "type": "desktop-check"}
   - {"name": "trove-survey", "type": "trove-survey"}
+  - {"name": "recovery-survey", "type": "recovery-survey"}
 ---
 <!-- BODY:BEGIN -->
 # config:workflows
