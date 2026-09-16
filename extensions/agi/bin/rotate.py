@@ -3614,6 +3614,17 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                 # falsifier and is gone. Never delete first. Trunks (an
                 # unrecognised kind) keep today's head rename unchanged.
                 _mirror = branches.mirror_ref_for_branch(_dst)
+                # SM.36 residue (4): the rename-apply PLAN line is printed
+                # UNCONDITIONALLY -- whether or not --delete-old is set, and
+                # on the seam as well as the live path -- so a caller can see
+                # the rename it would apply. Pre-fix it printed only as part
+                # of the mirror/containment work, so a plain rename-apply
+                # without --delete-old said nothing at all.
+                print(f"rename-post PLAN: origin/{_src} -> origin/{_dst}"
+                      + (f" mirror {_mirror}" if _mirror else
+                         " (trunk head rename)")
+                      + (" + delete-old" if delete_old else ""),
+                      file=sys.stderr)
                 if _mirror and live:
                     _top = _git_toplevel(root) or Path(root)
                     # SM.25b defect (3): prove the RENAMED BRANCH'S OWN tip --
@@ -3654,6 +3665,27 @@ def _apply_surfaces(root: Path, surfaces: list[dict], delete_old: bool = False,
                     applied += 1
                 else:
                     # print-only trunk seam (no mirror, nothing deleted here).
+                    # SM.36 residue (3): this arm used to head-push `_dst` --
+                    # and, under --delete-old, push `:{_src}` -- with NO
+                    # containment proof, for ANY spelling `parse` does not
+                    # recognise as a post/loop. A one-season ALIAS is not a
+                    # trunk: it is refused BY NAME here (no head push, no
+                    # delete, counted skipped). Trunks keep today's head
+                    # rename unchanged.
+                    _alias = None
+                    for _cand in (_dst, _src):
+                        try:
+                            if branches.parse(_cand).get("kind") == "alias":
+                                _alias = _cand
+                                break
+                        except ValueError:
+                            continue
+                    if _alias is not None:
+                        print(f"rename-post REFUSED: {_alias} is a deprecated "
+                              f"alias spelling -- no head push, nothing "
+                              f"deleted", file=sys.stderr)
+                        skipped += 1
+                        continue
                     run_git("push", "origin", _dst)
                     if delete_old:
                         run_git("push", "origin", f":{_src}")
@@ -4879,18 +4911,31 @@ def _first_seating_handoff_write(root: Path, seat: str,
     was written (a missing header is written, never left absent).
     """
     hp = _seat_hands(root) / f"{seat}.handoff.md"
+    pred = sref = ""
     if hp.exists():
         try:
+            gen_same = False
             for line in hp.read_text(encoding="utf-8",
                                      errors="replace").splitlines():
                 ls = line.strip()
                 if ls.startswith("generation:"):
-                    if ls.split(":", 1)[1].strip() == str(generation):
-                        return False
-                    break
+                    gen_same = ls.split(":", 1)[1].strip() == str(generation)
+                elif ls.startswith("predecessor_session:"):
+                    # SM.36 residue (5): carry the EXISTING predecessor_session
+                    # / session_ref header cells through the rewrite -- the old
+                    # path called `_write_handoff` with neither, so a first
+                    # seating silently dropped what an earlier rotation had
+                    # stamped. Absent cells stay absent (session_ref is only
+                    # written when non-empty); a value is never invented.
+                    pred = ls.split(":", 1)[1].strip()
+                elif ls.startswith("session_ref:"):
+                    sref = ls.split(":", 1)[1].strip()
+            if gen_same:
+                return False
         except OSError:
             pass
-    _write_handoff(root, seat, int(generation))
+    _write_handoff(root, seat, int(generation),
+                   predecessor_session=pred, session_ref=sref)
     return True
 
 
@@ -12830,9 +12875,11 @@ def _derive_pred_pids(root: Path, seat: str,
          row's generation equals the record's `gen_before` — a row already at
          `gen_after` (the rotate-self own-tail case) is the SUCCESSOR's and is
          never read.
-      3. '' — which the startup placeholder mech refuses BY NAME
-         (`no predecessor chain`), never running `grep -E ''` over the whole
-         process table.
+      3. a NAMED, regex-inert, non-matching value (`none: nothing to reap`)
+         — the reap-proof entry RUNS and its grep matches nothing, instead of
+         being refused by name on every no-reap wake. An EXPLICITLY empty
+         value STILL refuses by name at `_after_join_empty_refusal`; only the
+         derivation site names it.
     """
     if record is not None:
         reap = record.get("s12_self_reap")
@@ -12852,7 +12899,7 @@ def _derive_pred_pids(root: Path, seat: str,
         pid = row.get("pid")
         if pid is not None and str(pid).lstrip("-").isdigit():
             return str(pid)
-    return ""
+    return "none: nothing to reap"
 
 
 def _load_record_best_effort(record_path) -> dict | None:
@@ -14950,21 +14997,46 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     <rc>)` and the rotation continues with the stale ref, exactly as today."""
     checks: list[tuple[bool, str, str]] = []
 
-    # 1 unpushed commits on the checked-out branch. When `@{u}` does not
-    # resolve (a fresh seat branch with no upstream yet — exactly the
-    # unpushed case), count `origin/<branch>..HEAD` if that ref exists, else
-    # BLOCK `no upstream for <branch>` with the push command (a branch with
-    # no upstream makes a bare `@{u}..HEAD` count None, which used to fall
-    # through as (None or 0) > 0 = False and leave the unpushed captive
-    # INERT). A detached HEAD and an unmeasurable branch both print ok.
+    # 1 unpushed commits on the checked-out branch. A post/loop branch is
+    # LOCAL-ONLY under SM.36: its tip lives in the ADDITIVE mirror ref
+    # `refs/agi/<kind>/<leaf>` and NO engine path advances `origin/<branch>`
+    # any more, so counting `@{u}..HEAD`/`origin/<branch>..HEAD` measures a
+    # basis that cannot exist (every rotation read behind forever, or a seat
+    # hand-pushed a head). When the branch resolves a mirror ref, count
+    # `mirror..HEAD` against the LOCAL mirror ref if it resolves -- NEVER a
+    # fetch (fetch is a network WRITE and prepare must not do it), and the
+    # local ref is what a worktree seat actually has. A mirror that does not
+    # resolve is reported ok/unmeasured: never a block on a basis that cannot
+    # be measured. Everything else keeps the pre-existing @{u}/origin
+    # fallback: when `@{u}` does not resolve (a fresh seat branch with no
+    # upstream yet -- exactly the unpushed case), count
+    # `origin/<branch>..HEAD` if that ref exists, else BLOCK `no upstream for
+    # <branch>` with the push command (a branch with no upstream makes a bare
+    # `@{u}..HEAD` count None, which used to fall through as
+    # (None or 0) > 0 = False and leave the unpushed captive INERT). A
+    # detached HEAD and an unmeasurable branch both print ok.
     branch_lines = _git_maybe(root, "rev-parse", "--abbrev-ref", "HEAD")
     branch = (branch_lines[0].strip() if branch_lines else "")
+    mirror = branches.mirror_ref_for_branch(branch) if branch else None
     if not branch:
         unpushed, pname, pclear = (False, "unpushed commits (unmeasured)",
                                    "git push")
     elif branch == "HEAD":
         unpushed, pname, pclear = (False, "unpushed commits "
                                    "(detached: unmeasured)", "git push")
+    elif mirror:
+        msha = _git_maybe(root, "rev-parse", "--verify", mirror)
+        mn = (_git_count_maybe(root, "rev-list", "--count",
+                               f"{mirror}..HEAD")
+              if msha else None)
+        if mn is None:
+            unpushed, pname, pclear = (
+                False, f"unpushed commits (unmeasured: no local {mirror})",
+                f"git push origin HEAD:{mirror}")
+        else:
+            unpushed, pname, pclear = (
+                mn > 0, f"unpushed commits vs {mirror}",
+                f"git push origin HEAD:{mirror}")
     else:
         n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
         if n is not None:

@@ -1186,7 +1186,7 @@ def test_derive_pred_pids_from_predecessor_row(monkeypatch):
     assert rotate._derive_pred_pids(Path("."), "s", None) == "777"
     monkeypatch.setattr(rotate, "_find_seat",
                         lambda root, name: {"role": "parent"})
-    assert rotate._derive_pred_pids(Path("."), "s", {}) == ""
+    assert rotate._derive_pred_pids(Path("."), "s", {}) == NO_REAP
 
 
 def test_pred_pids_alternation_is_word_bounded():
@@ -1208,6 +1208,58 @@ def test_pred_pids_alternation_is_word_bounded():
     assert re.search(single, "112345") is None, "substring must NOT match"
 
 
+#: The no-reap case names its value instead of returning '' (a bare '' is
+#: refused by name at _after_join_empty_refusal on every no-reap wake).
+NO_REAP = "none: nothing to reap"
+
+
+def test_no_reap_case_names_value_and_entry_runs():
+    """(a) no s12 chain + no usable row pid -> the NAMED value, and the
+    reap-proof entry resolves it WITHOUT a refusal (rc present). The named
+    value is non-empty, so the reuse of first_seating's refusal path is not
+    triggered."""
+    import agi.bin.rotate as rot
+    real_find = rot._find_seat
+    rot._find_seat = lambda root, name: {"role": "parent"}
+    try:
+        assert rot._derive_pred_pids(Path("."), "s", {}) == NO_REAP
+    finally:
+        rot._find_seat = real_find
+    entry = {"label": "reap-proof", "cmd": "printf '%s' '{pred_pids}'"}
+    vals = dict(VALUES)
+    vals["pred_pids"] = NO_REAP
+    r = rot._run_after_join_command(entry, vals, 60, 4000)
+    assert "rc" in r and "refused" not in r, r
+    assert NO_REAP in r.get("output", ""), r
+
+
+def test_named_no_reap_value_greps_nothing_in_fixture_ps():
+    """(b) the named value, run through `re` against a fixture ps table,
+    matches NOTHING — it is a regex-inert literal with no ERE metacharacters
+    and no bare pid digits."""
+    import re
+    assert re.search(NO_REAP, NO_REAP) is not None
+    for ch in ".*|()[]{}\\^$+?":
+        if ch != ":":
+            assert ch not in NO_REAP, (ch, NO_REAP)
+    assert not re.search(r"\d", NO_REAP), "no bare pid digits"
+    ps_table = "\n".join([
+        "  1234     1 ?        00:00:00 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups",
+        "  2222  1234 pts/0    00:00:01 -bash",
+        "  7777  2222 ?        00:00:00 python3 extensions/agi/bin/rotate.py status --seat main",
+        " 11111     1 ?        00:00:00 /usr/lib/systemd/systemd --user",
+    ])
+    assert re.search(NO_REAP, ps_table) is None, ps_table
+
+
+def test_reaped_chain_alternation_unchanged():
+    """(c) a reaped chain still yields the word-bounded alternation — the
+    no-reap naming touches the final fallback only."""
+    assert (rotate._derive_pred_pids(Path("."), "s",
+                                    {"s12_self_reap": {"chain": [111, 222]}})
+            == "\\b(111|222)\\b")
+
+
 def test_row_fallback_refuses_successor_row_at_gen_after(monkeypatch):
     """(FALSIFIER) the ROW fallback is generation-guarded: a row already
     rewritten to the record's `gen_after` (the rotate-self own-tail case) is
@@ -1218,7 +1270,7 @@ def test_row_fallback_refuses_successor_row_at_gen_after(monkeypatch):
     # row at gen_after == the successor's rewritten row -> refused
     monkeypatch.setattr(rot, "_find_seat",
                         lambda root, name: {"pid": "777", "generation": 6})
-    assert rot._derive_pred_pids(Path("."), "s", rec) == ""
+    assert rot._derive_pred_pids(Path("."), "s", rec) == NO_REAP
     # row still at gen_before == the predecessor -> used
     monkeypatch.setattr(rot, "_find_seat",
                         lambda root, name: {"pid": "777", "generation": 5})
