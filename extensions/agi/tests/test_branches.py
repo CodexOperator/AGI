@@ -175,6 +175,26 @@ def test_merge_target_v3_town_post_and_loop_map_to_the_trunk():
     assert b.merge_target("season2/posts/foo") == "season2/main"
 
 
+def test_merge_target_docstring_names_the_v3_mapping_and_live_spelling():
+    """SM.53 item 4: the v3 town-first mapping is NAMED in the docstring,
+    NOT just implemented -- a v3 `town/season<m>/posts/<name>/main` resolves
+    the trunk `town/season<m>/main`, and the LIVE MAIN under that town may
+    be spelled with or without the town segment (`season2/main` vs
+    `core/season2/main` are two distinct origin heads), which is exactly why
+    `merge-up --post` refuses by name rather than merging across the wrong
+    trunk. Pinning the NAMING here keeps a later edit from silently dropping
+    the explanation while the resolution stays."""
+    doc = b.merge_target.__doc__ or ""
+    assert "town/season<m>/posts/<name>/main" in doc, doc
+    assert "town/season<m>/main" in doc, doc
+    assert "season2/main" in doc and "core/season2/main" in doc, doc
+    assert "refuses by name" in doc or "REFUSES BY NAME" in doc, doc
+    # and the naming describes the resolution that actually runs
+    assert b.merge_target("core/season2/posts/adv/main") == \
+        "core/season2/main"
+    assert b.merge_target("core/season2/posts/adv/main") != "season2/main"
+
+
 # --- ref_candidates (the season-grammar reader resolver) ---
 
 
@@ -664,3 +684,62 @@ def test_no_engine_path_pushes_a_post_head(monkeypatch, tmp_path):
                                "refs/heads/season2/posts/rogue")])
     assert _post_head_pushes([("push", "origin", f"{sha}:refs/agi/posts/a")]) == []
     assert _post_head_pushes([("push", "origin", ":season2/posts/old")]) == []
+
+
+def _post_head_push_lines(text):
+    """Source-text twin of `_post_head_pushes`: each source LINE is
+    de-quoted into whitespace tokens, a `push` token starts an argv-like
+    window to the end of the line, and the SAME argv predicate runs on it.
+    Limits (by construction): a refspec assembled at runtime from variables,
+    or split across lines, defeats it, and a comment or docstring that
+    SPELLS one trips it. It is a belt beside the structural test, not the
+    whole guard -- the structural test drives the real argv."""
+    import re as _re
+    bad = []
+    for n, line in enumerate(text.splitlines(), 1):
+        tokens = _re.sub(r"['\"]|,", " ", line).split()
+        if "push" not in tokens:
+            continue
+        i = tokens.index("push")
+        if _post_head_pushes([tuple(tokens[i:])]):
+            bad.append((n, line.strip()))
+    return bad
+
+
+def test_source_wide_no_bin_py_spells_a_post_head_push():
+    """SM.36 residue (6) restoration: the STRUCTURAL test above drives only
+    `mirror_and_prove` + `_apply_surfaces`, so a post-head push spelled into
+    any OTHER `bin/*.py` path is invisible to it. This greps the SOURCE of
+    every `extensions/agi/bin/*.py` for a `git push` whose refspec names a
+    `posts/<name>` / `loops/<name>` HEAD rather than its `refs/agi/posts/...`
+    mirror -- the same predicate, over source text. Limits, stated: a push
+    built at runtime (from a variable) defeats it, and a comment spelling
+    one trips it -- which is exactly why the structural test also exists.
+    The predicate is proven non-vacuous on in-test SAMPLE lines BEFORE the
+    tree is scanned, then the real tree is asserted clean."""
+    # (a) the predicate is never vacuous: a spelled post-head push IS caught
+    sample = '    _git_proc(main, "push", "origin", "season2/posts/rogue")'
+    assert _post_head_push_lines(sample), "the detector missed a sample push"
+    assert _post_head_push_lines(
+        '    _git_proc(main, "push", "origin", '
+        '"refs/heads/season2/loops/x")')
+    # ... while the additive mirror, a delete, and a trunk push stay clean
+    assert _post_head_push_lines(
+        '    _git_proc(main, "push", "origin", f"{sha}:refs/agi/posts/a")'
+    ) == []
+    assert _post_head_push_lines(
+        '    _git_proc(main, "push", "--delete", "origin", '
+        '"season2/posts/x")') == []
+    assert _post_head_push_lines(
+        '    _git_proc(main, "push", "origin", "season2/main")') == []
+
+    # (b) the real tree is clean
+    bin_dir = Path(__file__).resolve().parents[2] / "agi" / "bin"
+    files = sorted(bin_dir.glob("*.py"))
+    assert files, f"no bin/*.py found under {bin_dir}"
+    bad = []
+    for p in files:
+        for n, line in _post_head_push_lines(
+                p.read_text(encoding="utf-8", errors="replace")):
+            bad.append(f"{p.name}:{n}: {line}")
+    assert not bad, "bin/*.py spells a post-head push:\n" + "\n".join(bad)

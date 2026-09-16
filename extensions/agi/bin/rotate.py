@@ -12842,8 +12842,10 @@ def _row_pred_pid_usable(root: Path, seat: str,
     rotate-self own-tail case) — its pid MUST NOT be reaped. The row is used
     only while its generation still equals the record's `gen_before` (the row
     not yet re-written); a row at `gen_after`, or a record with no
-    `gen_before` to compare, falls to ''. Callers with no record (a dry-run
-    of a NEW rotation) stay on the old row-read path."""
+    `gen_before` to compare, is UNUSABLE and returns False (the caller then
+    falls to the named `none: nothing to reap` value, never to ''). Callers
+    with no record (a dry-run of a NEW rotation) stay on the old row-read
+    path."""
     if record is None:
         return True
     gb = record.get("gen_before")
@@ -12857,7 +12859,9 @@ def _derive_pred_pids(root: Path, seat: str,
                       record: dict | None) -> str:
     """The predecessor pids for a rotation's `{pred_pids}` placeholder — the
     WORD-BOUNDED ERE ALTERNATION over the pids THIS rotation reaped, else the
-    predecessor row's own `pid`, else ''. ONE reader, shared by every
+    predecessor row's own `pid`, else the named, regex-inert value
+    `"none: nothing to reap"` (the final `return` below) -- never ''. ONE
+    reader, shared by every
     after_join performer (goal:g15.25 SL7.98, hypothesis:l4-every-after-join-
     performer-derives-pred-pids...): the watch/service, the rotate-self own
     tail and the dry-run plan. Before this helper each caller passed NO
@@ -14416,7 +14420,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # _compose_after_join_dm intends today.
         sref = (row or {}).get("session_ref") or ""
         # (SL7.98) the performer derives pred_pids from the RECORD's
-        # s12_self_reap chain (else the predecessor row, else '') so the
+        # s12_self_reap chain (else the predecessor row, else the named
+        # `"none: nothing to reap"` -- never '') so the
         # reap-proof entry runs against the REAL reaped pids and is never
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
@@ -15004,12 +15009,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
     # `refs/agi/<kind>/<leaf>` and NO engine path advances `origin/<branch>`
     # any more, so counting `@{u}..HEAD`/`origin/<branch>..HEAD` measures a
     # basis that cannot exist (every rotation read behind forever, or a seat
-    # hand-pushed a head). When the branch resolves a mirror ref, count
-    # `mirror..HEAD` against the LOCAL mirror ref if it resolves -- NEVER a
-    # fetch (fetch is a network WRITE and prepare must not do it), and the
-    # local ref is what a worktree seat actually has. A mirror that does not
-    # resolve is reported ok/unmeasured: never a block on a basis that cannot
-    # be measured. Everything else keeps the pre-existing @{u}/origin
+    # hand-pushed a head). When the branch resolves a mirror ref, read
+    # ORIGIN's tip with `ls-remote` and count `origin-tip..HEAD` -- NEVER a
+    # fetch (fetch is a network WRITE and prepare must not do it), and NEVER
+    # the local `refs/agi/*` ref, which no engine path or fetch refspec ever
+    # creates on a live seat (SM.53 item 5: the arm was inert). An ls-remote
+    # that FAILS or returns nothing, or a remote tip whose object is not
+    # present locally, is reported ok/unmeasured by name: never a block, and
+    # never a silent 'pushed'. Everything else keeps the pre-existing
+    # @{u}/origin
     # fallback: when `@{u}` does not resolve (a fresh seat branch with no
     # upstream yet -- exactly the unpushed case), count
     # `origin/<branch>..HEAD` if that ref exists, else BLOCK `no upstream for
@@ -15027,18 +15035,38 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         unpushed, pname, pclear = (False, "unpushed commits "
                                    "(detached: unmeasured)", "git push")
     elif mirror:
-        msha = _git_maybe(root, "rev-parse", "--verify", mirror)
-        mn = (_git_count_maybe(root, "rev-list", "--count",
-                               f"{mirror}..HEAD")
-              if msha else None)
-        if mn is None:
+        # SM.53 (5): the arm read only the LOCAL `refs/agi/*` ref, which no
+        # engine path or fetch refspec ever creates -- `msha` was None on
+        # every live seat. Read ORIGIN's ref instead. An ls-remote that
+        # FAILS or returns nothing, or a remote tip not present locally, is
+        # UNKNOWN/unmeasured by name -- never 'pushed'; `mn == 0` means
+        # 'mirror current', never 'could not read' (the pre-fix conflation).
+        _rls = _git_maybe(root, "ls-remote", "origin", mirror)
+        rsha = (_rls[0].split("\t")[0].strip() if _rls else "")
+        if not rsha:
             unpushed, pname, pclear = (
-                False, f"unpushed commits (unmeasured: no local {mirror})",
+                False, f"unpushed commits (unmeasured: origin {mirror} "
+                       f"unread or absent)",
+                f"git push origin HEAD:{mirror}")
+        elif _git_maybe(root, "cat-file", "-e",
+                        f"{rsha}^{{commit}}") is None:
+            unpushed, pname, pclear = (
+                False, f"unpushed commits (unmeasured: origin {mirror} tip "
+                       f"{rsha[:12]} not present locally)",
                 f"git push origin HEAD:{mirror}")
         else:
-            unpushed, pname, pclear = (
-                mn > 0, f"unpushed commits vs {mirror}",
-                f"git push origin HEAD:{mirror}")
+            mn = _git_count_maybe(root, "rev-list", "--count",
+                                  f"{rsha}..HEAD")
+            if mn is None:
+                unpushed, pname, pclear = (
+                    False, f"unpushed commits (unmeasured: {mirror} vs "
+                           f"{rsha[:12]} unreadable)",
+                    f"git push origin HEAD:{mirror}")
+            else:
+                unpushed, pname, pclear = (
+                    mn > 0, f"unpushed commits vs {mirror} "
+                           f"({rsha[:12]}: {mn})",
+                    f"git push origin HEAD:{mirror}")
     else:
         n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
         if n is not None:
@@ -18084,7 +18112,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             # performers do (the record at rec_path when one exists — in a dry
             # run of a NEW rotation none does — else the predecessor row), so
             # a reap-proof entry is planned against the derived pids, or the
-            # NAMED refusal when '' — never `dry: True` over an unresolved
+            # NAMED refusal when the derived value is `"none: nothing to
+            # reap"` -- never `dry: True` over an unresolved
             # placeholder.
             aj_values = dict(startup_values)
             aj_values["pred_pids"] = _derive_pred_pids(
