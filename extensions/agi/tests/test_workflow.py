@@ -993,46 +993,58 @@ def test_dry_run_writes_no_row(tmp_path_factory):
 # (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp).
 
 
-def _real_workflow_jsonl_counts():
-    """{path: line_count} for every *.jsonl under the REAL (main-checkout)
-    sessions/workflows dir, resolving through the same tracker seam a live
-    run uses, or {} when no dir exists yet."""
-    import workflow as _wf
-    try:
-        sess = _wf._loc.shared_project_root(REPO) or REPO
-    except Exception:  # resolver blown up mid-fix: fall back, stay strict
-        sess = REPO
-    # BOTH the shared (MAIN) dir and this checkout's own: in a seat worktree
-    # `_track_run(REPO / ".agi")` lands in the worktree's gitignored
-    # `.agi/sessions/workflows/`, so a guard that reads only the shared dir
-    # is blind there (merge-up 40, sanctuary-director 182119Z: the guard was
-    # green from the seat and red from MAIN on the same bytes).
-    counts: dict = {}
-    for base in {Path(sess), Path(REPO) / ".agi"}:
-        wf_dir = base / "sessions" / "workflows"
-        if not wf_dir.is_dir():
-            continue
-        counts.update({str(p): len(p.read_text(encoding="utf-8").splitlines())
-                       for p in sorted(wf_dir.glob("*.jsonl"))})
-    return counts
-
-
 @pytest.fixture(scope="session", autouse=True)
 def _no_workflow_row_leaks_to_real_sessions():
-    """Assert the real `.agi/sessions/workflows/*.jsonl` line counts are
-    IDENTICAL at session end to what they were at session start -- i.e. no
-    test in this file appended a phantom row to production state. The counts
-    are taken fresh (not cached), and every per-test tmp redirect is restored
-    by a `finally` long before this session-scoped teardown fires, so the
-    real resolver is what we measure."""
-    before = _real_workflow_jsonl_counts()
-    yield
-    after = _real_workflow_jsonl_counts()
-    changed = {p for p, c in before.items() if after.get(p) != c}
-    changed |= {p for p in after if p not in before}
-    assert not changed, (
+    """Assert NO workflow row tracked by THIS pytest process reached a real
+    sessions dir.
+
+    The previous body compared `.agi/sessions/workflows/*.jsonl` LINE COUNTS
+    at session start and session end and called any change a leak
+    (hypothesis:l4-a-workflow-test-tracks-no-row-outside-tmp). That is
+    unsound under concurrency: the shared `<main>/.agi/sessions/workflows/` is
+    LIVE production state, written by every seat on the box through
+    `workflow.py run` -> `_track_run` -> `shared_project_root`. Measured
+    2026-09-16: `{"run_key": "mur-sm-36", "workflow": "merge-up-review",
+    "harness": "pi", "timestamp": "2026-09-16T11:57:04.916706+00:00"}` -- a
+    live season merge-up review, not a test artefact -- landed in
+    merge-up-review.jsonl during a suite run, and the resulting session
+    teardown ERROR was reported against whichever test pytest collected LAST
+    (`test_zoom.py::test_no_source_comment_cites_an_unresolvable_tier_node_id`
+    in one run, `schema_registry/test_validation.py::test_errors_do_not_abort`
+    in another) -- the "only inside the full suite" signature. The count
+    helper could not tell a concurrent seat's row from the suite's own.
+
+    Attribution is now per-PROCESS, not per-file: wrapping `_track_run`
+    records only writes made by this pytest process, and a concurrent seat
+    running in its own process can never enter the wrapper. A real leak to a
+    real root is still caught, and only a real leak.
+    """
+    import tempfile
+
+    import workflow as _wf
+
+    real_track = _wf._track_run
+    leaked: list[str] = []
+
+    def _watched(root, key, harness, view, run_key=None):
+        try:
+            sess = _wf._loc.shared_project_root(root) or root
+        except Exception:  # a test may stub the resolver to blow up
+            sess = None
+        if sess is not None:
+            wf_dir = Path(sess) / "sessions" / "workflows"
+            if not str(wf_dir).startswith(tempfile.gettempdir()):
+                leaked.append(str(wf_dir))
+        return real_track(root, key, harness, view, run_key)
+
+    _wf._track_run = _watched
+    try:
+        yield
+    finally:
+        _wf._track_run = real_track
+    assert not leaked, (
         "workflow tests leaked rows into the real sessions dir "
-        f"(changed/added: {sorted(changed)}); a non-dry workflow run test "
+        f"(changed/added: {sorted(leaked)}); a non-dry workflow run test "
         "must redirect tracking to a tmp root via _tmp_session_root, never "
         "run against the real project root."
     )
