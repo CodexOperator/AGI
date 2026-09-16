@@ -35,6 +35,17 @@ Usage:
               the resolved model/effort, WITHOUT spawning any agent
 
 Exit 0 on a successful resolve / green validation; 2 on a resolve failure.
+
+RUN exit codes (a live `run`; distinct codes so a caller can act on WHICH
+refusal happened without parsing stderr):
+    0  every stage completed (an `unstructured` return is not a failure)
+    2  resolve failure (bad --args, unknown workflow, harness/model refused)
+    3  a pi stage process exited non-zero
+    4  a stage's return could not be parsed as its schema (stage JSON error)
+    5  the run was REFUSED before any stage: a stage's `timeout_s` is not a
+       positive number of seconds (conjunct (4) of hypothesis:l4-sd06-residue-
+       renumber-notice-fixture-dry-run-parity-refused-run-key -- 4 was reused
+       for this and collided with the stage return-parse error above).
 """
 from __future__ import annotations
 
@@ -906,7 +917,7 @@ _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
 
 # The tree renders a HEAD of a stage's detail, never the whole thing
 # (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
-# conjunct (4)). An `unstructured` return is the entire model stdout by
+# conjunct (3)). An `unstructured` return is the entire model stdout by
 # design, so a multi-KB blob on one tree line buries every other stage.
 # BUDGET: 200 characters. Justification: a tree line is read by a human
 # watching a live run and by a parent harvesting it; 200 chars is about one
@@ -1024,7 +1035,7 @@ class RunView:
             # not truncated in STATE, and the tracking row keeps it whole) —
             # but the TREE shows a head-preview only, with the omitted size
             # named, so one multi-KB return cannot dominate the tree
-            # (conjunct (4) of hypothesis:l4-workflow-residue-sub-floor-
+            # (conjunct (3) of hypothesis:l4-workflow-residue-sub-floor-
             # marker-dead-code-and-truncation). `detail` itself is never cut.
             flat = _preview_detail(s["detail"]) if s["detail"] else ""
             detail = f" — {flat}" if flat else ""
@@ -1332,7 +1343,7 @@ def _effort_to_thinking(effort: str | None) -> str:
 
 
 # _parse_last_json was DELETED here (hypothesis:l4-workflow-residue-sub-floor-
-# marker-dead-code-and-truncation conjunct (3)). It had no production caller:
+# marker-dead-code-and-truncation conjunct (2)). It had no production caller:
 # the only hits in the tree were this definition and a unit test of it. Its
 # job — tolerant extraction of a JSON object from model stdout — is done by
 # `_balanced_brace_spans` / `_resolve_lenient_return` below, which are
@@ -1641,7 +1652,7 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     is present and not None, so a declared `0` is not silently replaced by the
     manifest value. The old `st.get("timeout_s") or manifest.get("timeout_s")`
     did exactly that (hypothesis:l4-workflow-residue-sub-floor-marker-dead-
-    code-and-truncation conjunct (6)).
+    code-and-truncation conjunct (5)).
 
     🔴 THE MEANING OF `0`, defined here and only here, is definition (a) from
     the brief: a zero-second budget is an INVALID budget, and the run is
@@ -1721,6 +1732,31 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             knobs[st["label"]]["model"] = _resolve_harness_model(
                 harness_cfg, st, args)
 
+    # Resolve EVERY stage's wall-clock budget BEFORE the dry-run return, so
+    # `--dry-run` and the live run agree on `timeout_s`: the credential
+    # decision the dry run already reflects is joined by the budget decision
+    # — ONE resolution, ONE refusal path, no second copy to drift
+    # (hypothesis:l4-sd06-residue-renumber-notice-fixture-dry-run-parity-
+    # refused-run-key conjunct (3)). A budget that is not a positive number of
+    # seconds is refused by NAME here, so `--dry-run` can no longer print OK
+    # for a manifest the live run would refuse, no stage is started under it,
+    # and no key is spent on it (conjunct (5) of hypothesis:l4-workflow-
+    # residue-sub-floor-marker-dead-code-and-truncation; see
+    # `_resolve_stage_timeout` for the definition of `0`). This also means a
+    # manifest-level `timeout_s: 0` can no longer reach
+    # `subprocess.run(timeout=0)` and silently kill every stage.
+    stage_timeouts: dict[str, int] = {}
+    for st in stages:
+        try:
+            stage_timeouts[st["label"]] = _resolve_stage_timeout(st, manifest)
+        except ValueError as exc:
+            print(f"workflow.py: workflow={key} refused: {exc}",
+                  file=sys.stderr)
+            # rc 5, NOT 4: 4 is the stage return-parse error below, and a
+            # caller must be able to tell a refused-before-any-stage run from
+            # a stage that returned garbage (conjunct (4)).
+            return 5
+
     if dry_run:
         # The credential decision BEFORE the dispatch lines, from the SAME
         # helper the live path mints through — reads only, never a mint.
@@ -1754,21 +1790,6 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # resolved knobs or the stage prompt, so a real run could not happen
     # (Belam VII, L3.28: three concrete defects).
     import subprocess
-    # Resolve EVERY stage's wall-clock budget before anything is dispatched or
-    # minted: a budget that is not a positive number of seconds is refused by
-    # name here, so no stage is started under it and no key is spent on it
-    # (conjunct (6) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
-    # code-and-truncation; see `_resolve_stage_timeout` for the definition of
-    # `0`). This also means a manifest-level `timeout_s: 0` can no longer
-    # reach `subprocess.run(timeout=0)` and silently kill every stage.
-    stage_timeouts: dict[str, int] = {}
-    for st in stages:
-        try:
-            stage_timeouts[st["label"]] = _resolve_stage_timeout(st, manifest)
-        except ValueError as exc:
-            print(f"workflow.py: workflow={key} refused: {exc}",
-                  file=sys.stderr)
-            return 4
     spawn_env, minted_key_hash = _resolve_workflow_spawn_env(
         root, cfg, run_key, harness, stages)
     # The minted key is revoked when the RUN ends, however it ends — success,
@@ -1793,7 +1814,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             # truthy) before anything was dispatched — see
             # `_resolve_stage_timeout` for the definition of `0` and the
             # refusal path (hypothesis:l4-workflow-residue-sub-floor-marker-
-            # dead-code-and-truncation conjunct (6)).
+            # dead-code-and-truncation conjunct (5)).
             stage_timeout = stage_timeouts[st["label"]]
             rc, value = _run_stage_pi(
                 cfg, st, knobs, args, out=out, view=view, prior=prior,
