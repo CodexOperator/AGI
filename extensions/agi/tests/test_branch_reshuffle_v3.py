@@ -144,8 +144,24 @@ def test_delete_plan_names_every_delete_and_nothing_else(repo: Path):
             in out, (name, out)
     # master is add-only, never a delete target — the standing notice names it
     assert "master: add-only" in out, out
-    for name in KEEP + FOREIGN:
+    # KEEP (trunks + town pairs) is remote-visible: never a delete target.
+    for name in KEEP:
         assert f"git push origin --delete {name}" not in out, (name, out)
+    # L5 (owner GO 09-12 18:4xZ, defaults accepted): the L4 foreign carve-out
+    # is RETIRED — collaborator-branch and copilot/* are grammar-KINDLESS
+    # non-remote-visible heads and, under an explicit FULL --kinds (the tidy
+    # pass name), plan as deletes (the owner ruled copilot deleted to close
+    # the Copilot PR). Only the default/partial kind sets keep them out.
+    for name in FOREIGN:
+        assert f"[DRY ] branch delete (remote): git push origin --delete " \
+            f"{name}" in out, (name, out)
+    # under the DEFAULT kinds (posts,towns) the kindless foreign heads are
+    # NOT planned (never unfiltered):
+    res_d = _run_cli(repo / ".agi", "--dry-run", "--delete-old")
+    assert res_d.returncode == 0, res_d.stdout + res_d.stderr
+    for name in FOREIGN:
+        assert f"git push origin --delete {name}" not in res_d.stdout, \
+            (name, res_d.stdout)
 
 
 # ---- test 2b: the DISCRIMINATING default-kinds test (L4.332) -----
@@ -1912,3 +1928,153 @@ def test_v3_apply_no_towns_ladder_list_proceeds_on_ladder(tmp_path: Path):
     assert res.returncode == 0, res.stdout + res.stderr
     assert "ladder fallback" in res.stdout, res.stdout
     assert "REFUSED" not in res.stderr, res.stderr
+
+
+# --------------------------------------------------------------------------
+# L5.01 (hypothesis:l5-branch-reshuffle-and-loop-prune-plan-exactly-todays-
+# delta): the SECOND reshuffle pass plans EXACTLY today's delta on the live
+# tree — the 12 branch deletes + the 4 town creates + the post mirrors, no
+# more and no less. This fixtures the 21-head state measured at L5 open
+# (goal:g19): 3 trunks + 6 town branches present + 4 towns missing + 12 to
+# delete (3 pre-v3 twins, 3 live v3 posts already mirrored, 3 stale loops,
+# genless-templates, and the two foreign branches the owner ruled deleted).
+# --------------------------------------------------------------------------
+L5_TOWNS = [("core", 2), ("streaming-suite", 1), ("web-app-suite", 1),
+            ("local-maxxing", 1), ("sanctuary", 2)]
+# present town branches (no create -> NO-OP); the 4 MISSING are
+# local-maxxing/main, local-maxxing/season1/main, sanctuary/season2/main,
+# web-app-suite/season1/main.
+L5_PRESENT_TOWNS = ["core/main", "core/season2/main", "sanctuary/main",
+                    "streaming-suite/main", "streaming-suite/season1/main",
+                    "web-app-suite/main"]
+L5_MISSING_TOWNS = ["local-maxxing/main", "local-maxxing/season1/main",
+                    "sanctuary/season2/main", "web-app-suite/season1/main"]
+L5_DELETE_12 = [
+    "core/season2/posts/sanctuary-director/main",
+    "core/season2/posts/sanctuary-helper/main",
+    "core/season2/posts/sensei-director/main",
+    "season2/posts/sanctuary-director",
+    "season2/posts/sanctuary-helper",
+    "season2/posts/sensei-director",
+    "season2/loops/l5-01-ag1",
+    "season2/loops/l5-01-ag2",
+    "season2/loops/l5-02-ag1",
+    "season2/sensei/genless-templates",
+    "collaborator-branch",
+    "copilot/add-open-source-license",
+]
+# mirror prerequisite (SM.92 pushed at L4 close): the 3 live post deletes are
+# admitted ONLY because refs/agi/posts/<post> is on origin — never refs/heads.
+L5_POST_MIRRORS = ["refs/agi/posts/sanctuary-director",
+                   "refs/agi/posts/sanctuary-helper",
+                   "refs/agi/posts/sensei-director"]
+
+
+def _build_l5_repo(tmp_path: Path) -> Path:
+    """The 21-head L5-open fixture: bare origin carrying today's exact state
+    (plus the pre-pushed SM.92 mirrors) and a graph root declaring all 5
+    towns."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    heads = ["season1/main", "season2/main"] + L5_PRESENT_TOWNS + L5_DELETE_12
+    for name in heads:
+        _git(r, "branch", name)
+        _git(r, "push", "-q", "origin", f"{name}:refs/heads/{name}")
+    _git(r, "push", "-q", "origin", "master:refs/heads/master")
+    for mir in L5_POST_MIRRORS + \
+            ["refs/agi/loops/l5-01-ag1", "refs/agi/loops/l5-01-ag2",
+             "refs/agi/loops/l5-02-ag1"]:
+        _git(r, "push", "-q", "origin", f"HEAD:{mir}")
+    _git(r, "fetch", "-q", "origin")
+    _write(r, ".agi/nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite, local-maxxing, sanctuary]\n---\n")
+    _write(r, ".agi/nodes/.geometry/posts.md",
+           "---\nposts:\n  - name: core\n  - name: streaming-suite\n"
+           "  - name: web-app-suite\n  - name: local-maxxing\n"
+           "  - name: sanctuary\n---\n")
+    for town, season in L5_TOWNS:
+        _write(r, f".agi/nodes/vision/{town}.md",
+               f"---\nid: vision:{town}\ntype: vision\ntitle: {town}\n---\n")
+        _write(r, f".agi/nodes/town/{town}.md",
+               f"---\nid: town:{town}\ntype: town\nvisions: "
+               f"[vision:{town}]\ncouncil: {town}\nseason: {season}\n---\n")
+    return r
+
+
+@pytest.fixture()
+def l5repo(tmp_path):
+    return _build_l5_repo(tmp_path)
+
+
+def test_l5_dry_run_plans_exactly_todays_delta(l5repo: Path):
+    """Claim (a): `--dry-run --kinds main,posts,towns,loops` plans the 4
+    MISSING town creates, NO-OPs the 6 present towns, never renames a pre-v3
+    twin onto an existing v3 name (0 post renames — the twins are deletes),
+    and plans exactly the 12 deletes via a later `--delete-old`."""
+    root = l5repo / ".agi"
+    res = _run_cli(root, "--dry-run", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr
+    out = res.stdout
+    # exactly the 4 missing towns get a create; the 6 present are NO-OPs
+    for name in L5_MISSING_TOWNS:
+        assert f"git branch {name} " in out, (name, out)
+    for name in L5_PRESENT_TOWNS:
+        assert "[NO-OP]" in out and f"{name} already on origin" in out, \
+            (name, out)
+    # no twin rename onto an existing v3 name (targets are LIVE origin heads)
+    assert "v3 post renames (local, no push, 0 branch(es))" in out, out
+    assert "season2/posts/sanctuary-director core/season2/posts" not in out
+
+    res_d = _run_cli(root, "--dry-run", "--delete-old", "--kinds",
+                     "main,posts,towns,loops")
+    assert res_d.returncode == 0, res_d.stdout + res_d.stderr
+    dout = res_d.stdout
+    for name in L5_DELETE_12:
+        assert f"[DRY ] branch delete (remote): git push origin --delete " \
+            f"{name}" in dout, (name, dout)
+    # nothing else: no delete line for master or any trunk/town pair
+    for name in ["master", "season1/main", "season2/main"] + \
+            L5_PRESENT_TOWNS + L5_MISSING_TOWNS:
+        assert f"git push origin --delete {name}" not in dout, (name, dout)
+
+
+def test_l5_delete_old_refuses_without_stamp_and_returns_12(l5repo: Path):
+    """Claim (b): `--delete-old` REFUSES without a fresh green stamp, then
+    (stamped) leases through _rs_lease_delete and deletes EXACTLY the 12,
+    leaving the 9 present heads (the Prime's --apply then creates the 4
+    missing -> the 13-name target)."""
+    root = l5repo / ".agi"
+    res = _run_cli(root, "--delete-old", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 3, res.stdout + res.stderr
+    assert "no green suite stamp" in res.stderr, res.stderr
+    # no branch may have moved
+    heads = _git(l5repo, "ls-remote", "--heads", "origin")
+    assert len(heads.stdout.splitlines()) == 21, heads.stdout
+
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    (root / "sessions/verified.stamp").write_text("fresh")
+    res2 = _run_cli(root, "--delete-old", "--kinds", "main,posts,towns,loops")
+    assert res2.returncode == 0, res2.stdout + res2.stderr
+    # the deletes went through the ONE lease helper (force-with-lease pinning
+    # the containment gate's sha), never a bare `git push --delete` site.
+    assert "--force-with-lease=refs/heads/season2/sensei/genless-templates:" \
+        in res2.stdout, res2.stdout
+    after = _git(l5repo, "ls-remote", "--heads", "origin").stdout
+    rem = {ln.split("\t")[1].replace("refs/heads/", "") for ln in
+           after.splitlines() if ln.strip()}
+    assert rem == {"master", "season1/main", "season2/main"} | \
+        set(L5_PRESENT_TOWNS), rem
+    for name in L5_DELETE_12:
+        assert name not in rem, (name, rem)

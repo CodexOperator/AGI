@@ -4006,6 +4006,11 @@ _RESHUFFLE_KIND_ALIASES = {"main": "main", "mains": "main", "post": "post",
 # here) and say so; a loop/* or main/master branch is a delete job ONLY when
 # --kinds names it explicitly.
 _RESHUFFLE_DEFAULT_KINDS = {"post", "town_main"}
+# L5: the tidy pass names the FULL kind set (`--kinds main,posts,towns,loops`)
+# — the ONE spelling under which a grammar-KINDLESS head (a stale sub-role
+# branch, a foreign collaborator/copilot branch the owner ruled deleted) is
+# planned as a delete. A partial/absent --kinds never reaches a kindless head.
+_RESHUFFLE_ALL_KINDS = set(_RESHUFFLE_KIND_ALIASES.values())
 
 
 def _reshuffle_kinds(spec: str) -> set[str]:
@@ -4091,16 +4096,18 @@ def _rs_delete_kind(name: str) -> str:
 
 def _reshuffle_delete_set(heads: list[str], kinds: set[str]) -> list[dict]:
     """The origin-head delete set for `--delete-old`, DERIVED from the ONE
-    remote-visibility predicate (branches.is_remote_visible) plus the two
-    never-delete carve-outs — never a hand-spelled stale-name list
+    remote-visibility predicate (branches.is_remote_visible) — never a
+    hand-spelled stale-name list
     (hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-
     trunk-pair-per-level-reaches-origin). `heads` is the live origin refs/heads
     listing from `_rs_origin_heads`. For every name, one job {old, new, kind}
     is returned when ALL hold:
       * not branches.is_remote_visible(name)            <- the rule
-      * not foreign (collaborator-branch, copilot/*)    <- untouched
       * not "master" — asserted, because master is already excluded by the
                        rule and no explicit exclusion may be what saves it
+      * a known grammar kind is in `kinds`, OR the head is grammar-KINDLESS
+        and `kinds` is the FULL set (L5 tidy pass: the L4 foreign carve-out is
+        retired; the owner ruled the foreign + stale branches deleted).
     `kinds` (already-resolved kind set) narrows the set exactly like it does
     the rename jobs. `new` is the canonical rename target for a legacy alias
     (so the B2 upstream gate still applies to migrated branches) and None for
@@ -4111,16 +4118,24 @@ def _reshuffle_delete_set(heads: list[str], kinds: set[str]) -> list[dict]:
     for name in heads:
         if branches.is_remote_visible(name):
             continue
-        if name == "collaborator-branch" or name.startswith("copilot/"):
-            continue
-        # master must already be excluded BY THE RULE above; if one ever
-        # reaches here the predicate regressed, never an explicit carve-out.
+        # L5: the L4 foreign carve-out is RETIRED — the owner ruled
+        # collaborator-branch and copilot/add-open-source-license deleted (the
+        # latter closes the Copilot PR); record in doc:l5-plan.
+        # master: asserted below (the rule excludes it first, by design).
         if name == "master":
             raise AssertionError(
                 f"master reached the delete set; expected is_remote_visible "
                 f"to exclude it first")
         k = _rs_delete_kind(name)
-        if k not in kinds:
+        if not k:
+            # A grammar-KINDLESS head is planable ONLY under the explicit FULL
+            # kind set (the tidy pass name) — a partial/absent --kinds (the
+            # posts,towns default) never reaches a branch naming no grammar
+            # kind (never unfiltered).
+            if kinds != _RESHUFFLE_ALL_KINDS:
+                continue
+            k = "other"
+        elif k not in kinds:
             continue
         jobs.append({"old": name, "new": _reshuffle_canonical(name, 0),
                      "kind": k})
@@ -4547,6 +4562,13 @@ def _rs_v3_posts_renames(repo: Path, tuples: list[dict]) -> list[tuple[str, str]
         except ValueError:
             continue  # reserved town / bad post — not this plan's name
         if target != b:
+            # L5: never rename a post onto an EXISTING v3 name. A pre-v3 twin
+            # whose derived post_main is ALREADY a live branch (local or
+            # origin) is a stale CLOBBER of the live v3 post — skip it here so
+            # it stays a plain --delete-old job (a duplicate, never a clobber).
+            if _post_rename_has_branch(repo, target) or \
+                    _post_rename_ls_remote(repo, f"refs/heads/{target}"):
+                continue
             out.append((b, target))
     # I-3a-3 (g15 yield): a legacy post/seat alias (an alias branch of a
     # post) folds into THIS v3 LOCAL rename — its fate is the v3 post rename, never
@@ -4714,6 +4736,16 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
+            # L5: the DRY-RUN plan is exactly today's delta — a town branch
+            # ALREADY on origin is a NO-OP, only the MISSING towns get a
+            # create. Dry-only; the apply arm keeps its own resume logic below
+            # (a wrong-tip trunk is still REFUSED by name on a real run, never
+            # silently no-op'd).
+            if dry and has_origin and _post_rename_remote_ref_state(
+                    repo, f"refs/heads/{town_name}") == "present":
+                print(f"    [NO-OP] {town_name} already on origin "
+                      f"(no create)")
+                continue
             # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-
             # posts-and-master-pushes-by-sha (claim c): the trunk-pair create
             # is RESUMABLE. Before planning/running the create, resolve the
