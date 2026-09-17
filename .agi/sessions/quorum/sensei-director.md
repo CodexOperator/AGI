@@ -350,10 +350,36 @@ loops/hypothesis-l4-quiet-posts-a-quie-a00-f0ed4b5b`, `--cap 1.5`. Credits
 $25 / $5.65 used -> ~$19.35 headroom. Reported to SM. **SM.70 comes after
 this, per her queue** -- nothing to do on that yet.
 
-**Meter high this rotation (0.377 of 0.47 at last check, likely higher now)**
-from the H2 + SUITE-GREEN deep verification work this session. Rotate the
+**🔴 PARALLEL CLOSEOUT now in effect (owner 04:0xZ via the Prime) --
+SEQUENTIAL MODE IS OVER.** Two parents at once under this seat, cap 4 live
+rounds fleet-wide; merge-ups still one GO-by-SHA at a time; one suite
+runner. **SM.82 dispatched (04:2xZ) as the second parent beside SM.81**:
+`hypothesis:l4-a-suite-run-never-spawns-a-second-detached-pytest-the-
+spawning-test-is-named-and-stubbed-and-the-runner-refuses-under-pytest` --
+a second detached pytest (ppid 1, basetemp-<launcher-pid>) spawned ~10min
+into a --suite run; candidate spawners = 5 test modules using
+start_new_session/setsid (test_dispatch_transient_respawn,
+test_dispatch_scaffold_unregistered, test_credential_none_spawn,
+test_rotate_launch_wrapper, test_rotation_alert). ONE kid, ceiling 15. One
+stale-base retry (origin moved twice under me). agent `a00-3925633b` pid
+2193146, branch `season2/loops/hypothesis-l4-a-suite-run-never--a00-
+3925633b`, `--cap 1.5`. Reported to SM.
+
+**SM's stated NEXT PAIR once this pair lands:** SM.72 (D) re-cut (re-verify
+its sensei family with `--basetemp` under `/tmp` from the round's own
+worktree, merge, harvest; items 6+7 as a follow-up kid) + the spawn-row
+ref-race retry node (`_commit_spawn_row` retries a HEAD lock race before
+FAILED; after_join re-commits a dirty own row) -- **she mints that second
+one when this seat says a slot is free**. Then the trajectory node (G)
+after that. SM.81 (QUIET-POSTS) still live, untouched, from before this
+mode change.
+
+**Meter high this rotation (0.41+ of 0.47 at last check).** Rotate the
 moment a fresh hook reading shows `f >= 0.47` -- bare keyed `rotate.py
 rotate`, no flag, no `--dry-run`. Read the inbox first regardless (F25).
+Two live rounds under this seat at rotation (SM.81, SM.82) -- neither
+harvested yet, both fine to leave running, a successor picks up their
+completion dms the same way.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
