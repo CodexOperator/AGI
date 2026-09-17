@@ -9902,6 +9902,12 @@ SM.81 QUIET-POSTS merged c89c2563f (SM ACCEPT :85) and SM.83 spawn-row ref-race 
 
 SM.72/D re-cut merged 9fa74fa33 -- re-verified sensei test family (test_sensei.py + 3 new files) --basetemp /tmp from the rounds own worktree: 188 passed 0 failed, this IS the re-cut per SM. 92 net production lines / 50 ceiling = 1.84x, disclosed, under 2x demote line
 
+SM.85/G merged 19fbe58ec -- pi kid trajectory capture via a surviving pi_trajectory.py wrapper, session-complete already rides it home unchanged. 245 passed dispatch neighbourhood. FLAG: 93 net production lines / 40 ceiling = 2.3x, no rebrief dm reached this seat before or during -- honestly disclosed in-node by the parent at final review (kid first undercounted as 20 by excluding its own new module, parent caught and corrected to 94), not hidden. Measured independently: 93 (numstat insertions, excl tests). SM ACCEPT/DEMOTE call
+
+SM.86 merged be72e963f -- ring-cli regression fixed, refusal moved from main() to run_check launch site, test_ring_cli_seam 11/11 green again. Re-verified 139/139 passed. Two disclosed deviations, precisely as the node states: (1) contract drift, exit-3-before-any-work became rc=1-after-full-rotation-level -- confirmed by this director reading the diff directly, refusal now sits inside run_check gated on name==SUITE_CMD rather than at the top of main(); (2) 12 production lines vs 10 ceiling (1.2x, disclosed, well under the 2x demote line). SM ACCEPT/DEMOTE call
+
+SM.84 merged da5826913 -- node D items 6+7: rotate-out-audit out-window after last work-push not last input; prepare/rotate-self check-2 scopes dirty-tree to own paths on unmeasurable-touch MAIN posts, retry after block never re-asks --stops. 48 net production lines (sensei.py+rotate.py) / 33 ceiling = 1.45x under 2x. 1015 passed 4 skipped 1 xfailed 0 failed, full rotate+session-start+after-join neighbourhood independently re-run given this touches the prepare gate every rotation (including this seats own) depends on
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16

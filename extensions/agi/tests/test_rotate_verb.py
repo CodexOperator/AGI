@@ -340,6 +340,38 @@ def test_rewritten_slot_delegates(tmp_path, monkeypatch):
         "hand off the round".encode()).hexdigest()
 
 
+# --- (12b) retry after a blocked rotate-out is NOT stale (SM.84 / F23) ---
+def test_retry_after_blocked_rotate_out_not_stale(tmp_path, monkeypatch,
+                                                  capsys):
+    """CLAIM (7) / F23 -- a rotation BLOCKED after its stop_commit (the
+    card+seats write+push rotate-self performs BEFORE the prepare checklist)
+    leaves a `rotate-out gen N->N+1` commit though no successor was spawned.
+    On retry the row's generation is STILL N (never advanced), so the slot is
+    NOT a completed predecessor's stale block: the bare retry DELEGATES, no
+    `--stops` demand, nothing refused."""
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    # the generation NEVER advanced: the row still reads 4 -> the rotate-out
+    # was aborted, this is a same-seating retry (not a predecessor stale).
+    hand = tmp_path / "sessions" / "seats"
+    hand.mkdir(parents=True, exist_ok=True)
+    (hand / "prime.handoff.md").write_text(
+        "seat: prime\ngeneration: 4\n", encoding="utf-8")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 0, (code, capsys.readouterr().err)
+    assert captured.get("ns") is not None, \
+        "a same-seating retry delegates, never re-asks for --stops"
+    assert captured["ns"].stops == "run the suite and report"
+
+
 # --- (12) no rotate-out commit (a first seating) -> delegated --------------
 def test_no_rotate_out_commit_delegates(tmp_path, monkeypatch):
     rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
