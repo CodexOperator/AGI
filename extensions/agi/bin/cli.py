@@ -4783,6 +4783,17 @@ def _rs_v3_loops_plan(repo: Path) -> int:
     return 1 if refused else 0
 
 
+def _rs_v3_town_origin_state(repo: Path, town_name: str) -> str:
+    """The ONE origin classification for a planned v3 town trunk, shared by
+    BOTH arms of the town-create leg (hypothesis:l5-reshuffle-dry-run-and-
+    apply-agree-on-an-existing-town-tip). Delegates to the rc-honest
+    three-valued `_post_rename_remote_ref_state`: 'present' -> NO-OP (a
+    create never force-moves a remote-visible trunk), 'absent' -> create/
+    resume leg, 'failed' -> UNKNOWN refused BY NAME. ONE copy of the
+    predicate, so the two arms cannot drift apart again."""
+    return _post_rename_remote_ref_state(repo, f"refs/heads/{town_name}")
+
+
 def _rs_v3_town_push(name: str, dry: bool) -> None:
     """The v3 town CREATE push line. branches.assert_remote_visible(name) is
     called FIRST and raises BY NAME when `name` is not remote-visible — the
@@ -4853,78 +4864,50 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     if "town_main" in kinds and town_tuples:
         print(f"  v3 town creates ({len(town_tuples)} towns):")
         for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
-            # L5: the DRY-RUN plan is exactly today's delta — a town branch
-            # ALREADY on origin is a NO-OP, only the MISSING towns get a
-            # create. Dry-only; the apply arm keeps its own resume logic below
-            # (a wrong-tip trunk is still REFUSED by name on a real run, never
-            # silently no-op'd).
-            if dry and has_origin and _post_rename_remote_ref_state(
-                    repo, f"refs/heads/{town_name}") == "present":
-                print(f"    [NO-OP] {town_name} already on origin "
-                      f"(no create)")
+            # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+            # town-tip: ONE shared classification drives BOTH arms: 'present'
+            # -> NO-OP (dry AND apply), 'absent' -> create/resume leg,
+            # 'failed' -> rc-honest UNKNOWN refused BY NAME. Pre-fix, apply
+            # tested only the LOCAL ref and re-pushed what dry called NO-OP.
+            ostate = (_rs_v3_town_origin_state(repo, town_name)
+                      if has_origin else "absent")
+            if ostate == "failed":
+                print(f"ERR: ls-remote origin {town_name} failed; cannot "
+                      f"confirm it is already pushed — NOT skipped",
+                      file=sys.stderr)
+                refused.append(town_name)
                 continue
-            # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-
-            # posts-and-master-pushes-by-sha (claim c): the trunk-pair create
-            # is RESUMABLE. Before planning/running the create, resolve the
-            # pre-existing-trunk state: a trunk that already exists AND
-            # already points at the planned tip is a FINISHED JOB on a
-            # resumed run (skip with a [SKIP] line, never an error); one that
-            # exists at a DIFFERENT tip is REFUSED BY NAME (a trunk is never
-            # force-moved). Read-only in dry mode and skipped there, so
-            # --dry-run output is byte-identical.
+            if ostate == "present":
+                cur = _rs_local_commit(repo, town_name) if not dry else ""
+                if cur and cur == _rs_local_commit(repo, tip):
+                    print(f"    [SKIP] {town_name} already at tip and on "
+                          f"origin (resumed run)")
+                else:
+                    print(f"    [NO-OP] {town_name} already on origin "
+                          f"(no create)")
+                continue
+            # hypothesis:l4-apply-runs-the-v3-tail (claim c): the trunk-pair
+            # create is RESUMABLE. origin is ABSENT here, so a local trunk AT
+            # the planned tip is a dead pass's LOCAL-ONLY leftover -- re-push
+            # it (mur-50 residue (c)); one at a DIFFERENT tip is REFUSED BY
+            # NAME (a trunk is never force-moved).
             resume_state = ""
             if not dry and has_origin and _post_rename_has_branch(
                     repo, town_name):
                 cur = _rs_local_commit(repo, town_name)
-                want = _rs_local_commit(repo, tip)
-                if cur and cur == want:
+                if cur and cur == _rs_local_commit(repo, tip):
                     resume_state = "skip"
                 else:
                     resume_state = "wrong"
             if resume_state == "skip":
-                # hypothesis:l4-trunk-create-resume-ls-remote-gates-push-if-
-                # remote-absent: a local trunk AT the planned tip is NOT by
-                # itself a finished job. A first pass that died between
-                # `git branch <town>` and `git push -u origin <town>` leaves
-                # the trunk LOCAL-ONLY, and the old unconditional skip then
-                # `continue`d past the push, stranding it until an operator
-                # pushed it (mur-50 residue (c), REAL). So GATE the skip on
-                # origin, reusing `_post_rename_remote_ref_state` exactly the
-                # way the delete-old resume leg does: 'present' = finished
-                # (skip); 'absent' = resume the push the dead pass never
-                # reached; 'failed' = rc-honest refusal (a failed probe is
-                # UNKNOWN and must never read as absent OR present).
-                rstate = _post_rename_remote_ref_state(
-                    repo, f"refs/heads/{town_name}")
-                if rstate == "failed":
-                    # rc-honest refusal COLLECTED, never an abort (mur-52
-                    # residue 2a): a failed probe is UNKNOWN (never 'absent'
-                    # or 'present'), so refuse this trunk BY NAME and
-                    # CONTINUE to the next planned pair -- exactly like the
-                    # wrong-tip branch below and like --delete-old. One
-                    # summary + non-zero exit at the very end of this
-                    # function, after the post section ran.
-                    print(f"ERR: ls-remote origin {town_name} failed; cannot "
-                          f"confirm it is already pushed — NOT skipped",
-                          file=sys.stderr)
-                    refused.append(town_name)
-                    continue
-                if rstate == "present":
-                    print(f"    [SKIP] {town_name} already at tip and on "
-                          f"origin (resumed run)")
-                    continue
-                # absent: the trunk is LOCAL-ONLY — this is the push the dead
-                # first pass never got to. rc-gated, exactly like the create
-                # leg's push.
+                # rc-gated like the create leg's push; a failed resume-push
+                # is COLLECTED, never an abort (mur-52 residue 2a).
                 print(f"    [APPLY] branch push (v3, resume): git push -u "
                       f"origin {town_name}")
                 pr = subprocess.run(["git", "push", "-u", "origin",
                                      town_name], cwd=repo, capture_output=True,
                                     text=True)
                 if pr.returncode != 0:
-                    # mur-52 residue 2a: a failed resume-push is COLLECTED
-                    # and the run CONTINUES, never an abort that skips the
-                    # post section. Reuse the in-scope `refused` list.
                     print(f"ERR: git push -u origin {town_name} failed: "
                           f"{pr.stderr.strip()}", file=sys.stderr)
                     refused.append(town_name)
