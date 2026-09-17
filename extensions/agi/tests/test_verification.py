@@ -319,7 +319,10 @@ def test_only_the_suite_check_gets_the_suite_ceiling(monkeypatch, tmp_path):
 def test_suite_check_gets_a_private_basetemp(monkeypatch, tmp_path):
     """The suite runner passes its OWN --basetemp dir (created then removed),
     never pytest's SHARED /tmp/pytest-of-<user> tree that a concurrent run
-    prunes to 3 and deleted this runner's tree mid-run (claim (4))."""
+    prunes to 3 and deleted this runner's tree mid-run (claim (2)). Since the
+    dee5b3221 in-repo placement, that private dir is `tempfile.mkdtemp(
+    prefix='agi-suite-')` under the SYSTEM tmp -- NEVER the repo (claim (2)):
+    a basetemp inside the live checkout makes git-escaping writers hit LIVE."""
     class _Proc:
         returncode = 0
         stdout = "1 passed\n"
@@ -327,9 +330,6 @@ def test_suite_check_gets_a_private_basetemp(monkeypatch, tmp_path):
     table = {verification.SUITE_CMD:
              type("C", (), {"argv": ["true"], "cwd": None})()}
     monkeypatch.setattr(verification.commands, "load", lambda groot: table)
-    sess = tmp_path / "sessions"
-    monkeypatch.setattr(verification.rotate, "_sessions_dir",
-                        lambda groot: sess)
     seen = {}
     def _run(argv, **kw):
         bt = [a for a in argv if a.startswith("--basetemp=")]
@@ -341,10 +341,10 @@ def test_suite_check_gets_a_private_basetemp(monkeypatch, tmp_path):
     assert r.status == "PASS"
     assert seen["arg"] is not None
     bt_path = Path(seen["arg"].split("=", 1)[1])
-    # the runner owns a UNIQUE dir directly under the sessions tree — not
-    # pytest's SHARED default basetemp root (pruned to 3 by a concurrent run).
-    assert bt_path.parent == sess
-    assert bt_path.name.startswith("pytest-basetemp-")
+    # the runner owns a UNIQUE dir directly under the SYSTEM tmp — never
+    # pytest's SHARED default basetemp root nor the live checkout.
+    assert bt_path.parent == Path(verification.tempfile.gettempdir()).resolve()
+    assert bt_path.name.startswith("agi-suite-")
     assert seen["present"] is True                # owned dir EXISTS during run
     assert not bt_path.exists()                    # removed after the run
 

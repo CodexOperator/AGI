@@ -474,6 +474,26 @@ def _suite_lock_guard():
             except OSError:
                 pass
 
+
+@pytest.fixture(scope="session", autouse=True)
+def _suite_basetemp_live_gate(tmp_path_factory):
+    """hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-
+    to-the-live-checkout... claim (1) -- the suite REFUSES TO START, before
+    any test, when its basetemp resolves to the live engine checkout.
+
+    The engine checkout this conftest ships from is the one a suite may never
+    write (a basetemp inside it makes every git-escaping writer land IN THE
+    LIVE tree). Compare `git_common_root(getbasetemp())` with the engine's
+    own checkout; equal => refuse with the SAME line verification.py --suite
+    prints, exit 3. Interim rule (--basetemp under /tmp) keeps the gate
+    silent; it only speaks when a run is (or was) rooted inside the repo.
+    """
+    base = Path(tmp_path_factory.getbasetemp()).resolve()
+    if locations.is_live_checkout(base):
+        pytest.exit(locations.live_checkout_refusal(
+            base, locations.git_common_root(Path(__file__).resolve())),
+            returncode=3)
+
 # --- real-judge (ModelJudge) opt-in gate (goal:g15, hypothesis:l4-real-judge-
 # tests-run-only-under-one-explicit-opt-in-env-flag-default-off-a-key-alone-
 # spends-nothing). Shared by test_stream_master_semantic_screen.py and
