@@ -8,4 +8,12 @@ my (weights|training|fine.tun|identity|creators|purpose)
 i (was|have been|am) (fine|trained|tuned|built|designed)
 recall|remember|reflect|introspect|self-aware
 given my (role|seat|design|configuration)
-(i|we) (think|feel|hope|take pride|believe|wish)i am one of
+(i|we) (think|feel|hope|believe|wish)(\s+that)?\s+i am one of
+(i|we|who) (take|takes|taking) pride in
+(i( am|'m)|we are) one of the models
+telling you rather than shaping you
+(we are|i am) telling you
+honest i do not know
+we (chose|picked|selected) you
+run(s)? locally on (our|your) hardware
+(sentient|conscious)( mathematics| maths|\.)?

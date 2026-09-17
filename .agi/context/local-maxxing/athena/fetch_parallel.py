@@ -72,11 +72,11 @@ def start():
             sp = segpath(name, i)
             if os.path.exists(sp) and os.path.getsize(sp) == seg_size(name, i):
                 print(f"[{name}] seg{i:03d} done, skip", flush=True); continue
-            lo = i * (final_size_of(name) // n)
-            if i == n - 1:
-                hi = final_size_of(name) - 1
-            else:
-                hi = lo + seg - 1
+            # R3 fix: lo/hi derive from seg_size (divmod: first r segs one byte
+            # longer) so ranges agree with seg_size/reassemble/status. Old
+            # floor-range segs were one byte short -> sha256 false-fail.
+            lo = sum(seg_size(name, j) for j in range(i))
+            hi = lo + seg_size(name, i) - 1
             # stale partial seg -> wipe (range restart is cleaner than resume-in-range)
             if os.path.exists(sp):
                 os.remove(sp)
