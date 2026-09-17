@@ -144,5 +144,16 @@
     "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn. The full output is in the rotation record.\n\n[join] exit 0\n[pin] exit 0\n[ack] exit 0\n[reap-proof] REFUSED\n\nfull output: /home/ubuntu/work/agi/.agi/sessions/rotations/sensei-director.20260912T182422Z.json",
     "dm_sender": "sensei-director",
     "dm_signed": true
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      593088,
+      593089,
+      593100,
+      593102
+    ],
+    "reap_source": "derived from own window @id @330 pane 593088: chain [593088, 593089, 593100, 593102] (deepest-first; authority row pid 593102)"
   }
 }

@@ -197,12 +197,17 @@ def test_count_first_run_records_and_passes(tmp_path, monkeypatch):
 def test_count_drop_is_a_failure_that_names_the_drop(tmp_path):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
+    # a NODE COUNT drop (active AND total below baseline) is still a FAIL;
+    # the baseline total is what the gate compares, so it must be set above
+    # the incoming total for the drop to register (SM.34/H0/H0b preserved).
     (groot / "sessions" / "verify-count.json").write_text(
-        json.dumps({"active": 9999, "deprecated": 0, "total": 0}))
+        json.dumps({"active": 9999, "deprecated": 0, "total": 9999}))
     r = verification.compare_count(groot, {"active": 1707,
                                            "deprecated": 194, "total": 1901})
     assert r.status == "FAIL"
-    assert "active=1707 below baseline=9999" in r.note
+    assert r.note.startswith("NODE COUNT DROPPED")
+    assert "total=1901 below baseline=9999" in r.note
+    assert "no committed manifest on record (counts only)" in r.note
 
 
 def test_count_steady_updates_baseline_and_passes(tmp_path, monkeypatch):
@@ -219,6 +224,285 @@ def test_count_steady_updates_baseline_and_passes(tmp_path, monkeypatch):
     assert state["active"] == newer["active"]
     assert state["sha"] == "bee"
 
+
+def _committed_repo(root: Path, files: dict[str, str], branch: str = "mb") -> None:
+    """Build a real git tree at `root` with the given committed node files,
+    HEAD pushed (a clean committed tree `_node_manifest`/`_committed_deprecated`
+    can answer, and `_stamp_context` stays mockable)."""
+    sp = subprocess.run
+    root.mkdir(parents=True, exist_ok=True)
+    sp(["git", "init", "-b", branch], cwd=root, check=True,
+       capture_output=True, text=True)
+    sp(["git", "config", "user.email", "t@t"], cwd=root, check=True)
+    sp(["git", "config", "user.name", "t"], cwd=root, check=True)
+    for rel, body in files.items():
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+    sp(["git", "add", "-A"], cwd=root, check=True, capture_output=True,
+       text=True)
+    sp(["git", "commit", "-m", "init"], cwd=root, check=True,
+       capture_output=True, text=True)
+
+
+NODE = lambda name: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: active\n---\n# {name}\n\n")
+DEP_NODE = lambda name: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: deprecated\n---\n# {name}\n\n")
+MINT_NODE = lambda name, mid: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: active\n"
+    f"mint_id: {mid}\n---\n# {name}\n\n")
+MINT_DEP = lambda name, mid: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: deprecated\n"
+    f"mint_id: {mid}\n---\n# {name}\n\n")
+
+
+def _baseline(groot: Path, doc: dict) -> None:
+    (groot / "sessions").mkdir(parents=True, exist_ok=True)
+    (groot / "sessions" / verification.STATE_FILE).write_text(
+        json.dumps(doc))
+
+
+def test_retire_move_passes_and_restamps(tmp_path, monkeypatch):
+    """Fixture (c): a retire pass — active -N, deprecated +N, total unchanged
+    — PASSes node-count and re-stamps the baseline. The missing baseline path
+    `nodes/experiment/move-me.md` is counted as a MOVE because the deprecated
+    twin at HEAD carries the SAME mint id the baseline recorded -- mint id
+    equality is the proof, never a basename match."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        # HEAD: move-me has RETIRED — it now lives under deprecated/ with its
+        # mint id intact. The stamped manifest (below) still lists it ACTIVE,
+        # so the absent baseline path must resolve as a MOVE by mint id.
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "PASS", r.note
+    assert "moved to deprecated: nodes/experiment/move-me.md" in r.note
+    assert "baseline updated" in r.note
+    st = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert st["active"] == 1 and st["deprecated"] == 1 and st["total"] == 2
+    assert st["manifest"]["nodes/deprecated/experiment/move-me.md"] == "X"
+
+
+def test_basename_collision_is_a_named_loss(tmp_path, monkeypatch):
+    """(b) The probe the fix exists for: the absent baseline path's deprecated
+    twin exists at the exact matching path but carries a DIFFERENT mint id, and
+    the compensating arithmetic keeps the total flat. Basename alone would pass
+    it; mint id equality makes it a LOSS, named, with the H0/H0b note."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("other", "Y"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/move-me.md" in r.note
+    assert "H0/H0b: 29k nodes lost to a silent drop" in r.note
+
+
+def test_absent_mint_id_is_a_loss(tmp_path, monkeypatch):
+    """(c) A deprecated twin with NO `mint_id` field proves nothing and is a
+    named LOSS, never a silent basename pass."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": DEP_NODE("move-me"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/move-me.md" in r.note
+
+
+def test_old_list_baseline_proves_nothing_and_is_migrated(tmp_path, monkeypatch):
+    """(e) A record written before mint ids (manifest is a LIST) does not
+    crash and does NOT silently pass a basename match as a PROVEN move: the
+    absent path is named `unprovable` (legacy list baseline proved nothing)
+    and the manifest is rewritten in dict form in ONE run. This test used to
+    assert FAIL -- that expectation WAS the landmine (an always-red gate with
+    no in-tool escape); the genuine-loss conjunct is (g) below."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "PASS", r.note
+    assert "unprovable" in r.note and "proved nothing" in r.note
+    assert "moved to deprecated" not in r.note
+    st = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert isinstance(st["manifest"], dict)
+
+
+def test_real_deletion_still_fails_by_name(tmp_path, monkeypatch):
+    """Fixture (c): a real deletion — the missing baseline path has no
+    deprecated home at HEAD — still FAILs node-count and names the file."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {".agi/nodes/hypothesis/h1.md": NODE("h1")})
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/gone.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 0, "total": 1})
+    assert r.status == "FAIL"
+    assert "missing committed file(s): nodes/experiment/gone.md" in r.note
+    assert "H0/H0b: 29k nodes lost to a silent drop" in r.note
+
+
+def _commit_delta(root: Path, files: dict[str, str], rm=()) -> None:
+    """A second (or later) commit on an already-initialised fixture repo."""
+    sp = subprocess.run
+    for rel in rm:
+        sp(["git", "rm", "-q", rel], cwd=root, check=True, capture_output=True)
+    for rel, body in files.items():
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+    sp(["git", "add", "-A"], cwd=root, check=True, capture_output=True)
+    sp(["git", "commit", "-m", "delta"], cwd=root, check=True,
+       capture_output=True)
+
+
+def test_legacy_list_baseline_migrates_a_legit_retire(tmp_path, monkeypatch):
+    """(f) A legacy LIST baseline plus a legitimate retire with a flat
+    total is NOT a permanent red: it PASSes, names the migrated path, and
+    stamps the manifest in the dict {path: mint_id} form in ONE run."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "PASS", r.note
+    assert ("migrated unprovable move(s) to mint-id baseline: "
+            "nodes/experiment/move-me.md" in r.note)
+    assert "legacy list baseline proved nothing" in r.note
+    st = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert isinstance(st["manifest"], dict)
+    assert st["manifest"]["nodes/deprecated/experiment/move-me.md"] == "X"
+    assert st["manifest"]["nodes/hypothesis/h1.md"] == "H1"
+
+
+def test_legacy_list_baseline_still_fails_a_genuine_deletion(tmp_path, monkeypatch):
+    """(g) The conjunct the migration must not swallow: with a legacy list
+    baseline a path with NO deprecated twin is a genuine loss, still FAILed
+    and named, H0/H0b intact."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1")})
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/gone.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 0, "total": 1})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/gone.md" in r.note
+    assert "H0/H0b: 29k nodes lost to a silent drop" in r.note
+
+
+def test_legacy_list_baseline_still_fails_a_dropped_total(tmp_path, monkeypatch):
+    """(h) A legacy list baseline whose committed total DROPPED is still a
+    FAIL, even when the only absent path has a deprecated twin: the total
+    gate takes precedence over the migration."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 0,
+                                           "deprecated": 1, "total": 1})
+    assert r.status == "FAIL", r.note
+    assert "NODE COUNT DROPPED" in r.note
+
+
+def test_migration_is_one_run_not_a_permanent_hole(tmp_path, monkeypatch):
+    """(i) After the migration stamps the dict baseline, a later run where an
+    absent path's twin carries a DIFFERENT mint id FAILs, named: the legacy
+    fail-open window is one run, never a standing hole."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "PASS", r.note
+    assert isinstance(json.loads(
+        (groot / "sessions" / verification.STATE_FILE).read_text())["manifest"],
+        dict)
+    # a later commit retires h1 too, but an unrelated node occupies its
+    # deprecated path: the stamped baseline now carries H1, so this is a LOSS.
+    _commit_delta(root, {
+        ".agi/nodes/deprecated/hypothesis/h1.md": MINT_DEP("other", "Z"),
+    }, rm=[".agi/nodes/hypothesis/h1.md"])
+    r2 = verification.compare_count(groot, {"active": 0,
+                                            "deprecated": 2, "total": 2})
+    assert r2.status == "FAIL", r2.note
+    assert "missing committed file(s): nodes/hypothesis/h1.md" in r2.note
 
 def test_suite_opt_in_appends_tests_only_when_requested(monkeypatch, tmp_path):
     groot = tmp_path / ".agi"

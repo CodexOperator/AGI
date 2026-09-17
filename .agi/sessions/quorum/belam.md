@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-Belam gen 26 -> 27 at ~0.41 (2026-09-17 00:3xZ): SL7.139 ruled GO-with-conditions, SM.69 remainder 982257cdd landed (stamp deferred to SM successor), account switched + workspace repointed, heal-watch/backtick/suite-leak g15 nodes routed; NEXT (a)-(h) on the card; nothing blocked
+L5 tidy pass RUNNING: HEAD 1 done (origin == 13, stamp 8115235d9), HEAD 2 half (director-belam @429 seated by recovery spawn, sensei-director rotation gated on the root-resolution fix), HEAD 3 wave live under director-belam (<=8 parents); next = GO merge-ups by SHA, then sensei-director re-stage + rotate, then close per goal:g19
 ```

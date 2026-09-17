@@ -510,7 +510,7 @@ def test_rotate_self_completes_pending_swap_before_minting(
     out = capsys.readouterr().out
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -606,7 +606,7 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -744,7 +744,7 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -6596,10 +6596,12 @@ def test_rotate_self_missing_rotations_node_refuses_before_side_effects(
 
 def test_rotate_self_consumes_template_brief_as_successor_prompt(
         fake_ladder, tmp_path, monkeypatch, capsys):
-    """L4.112 (C): when --prompt-file is NOT given, rotate-self hands the
-    template's brief_file (with `{seat}` substituted) to the successor as its
-    prompt. The director's brief is the seat's quorum scratchpad, so
-    `.agi/sessions/quorum/{seat}.md` becomes `.agi/sessions/quorum/adv-alive.md`."""
+    """L4.112 (C), updated L5.11: when --prompt-file is NOT given, rotate-self
+    hands the template's brief_file (with `{seat}` substituted) to the
+    successor as its prompt. The director's brief is the seat's quorum
+    scratchpad, so `.agi/sessions/quorum/{seat}.md` becomes the post's OWN
+    quorum card -- resolved through `_own_sessions_dir`, never CWD. This
+    MAIN-resident seat resolves to MAIN's absolute path."""
     tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
                           "steps": ["handoff", "spawn", "join"],
                           "telemetry": ["seed", "model"]}}
@@ -6619,7 +6621,9 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert seen["prompt_file"] == ".agi/sessions/quorum/adv-alive.md"
+    assert seen["prompt_file"] == str(
+        rotate._own_sessions_dir(tmp_path, "adv-alive")
+        / "quorum" / "adv-alive.md")
 
 
 def test_rotate_self_prompt_file_flag_overrides_template_brief(
@@ -8613,7 +8617,7 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED a (ed25519)" in out2, out2
+    assert "VERIFIED a (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("alllive hello")[0]
     assert "RETIRED" not in out2.split("alllive hello")[0]
 
