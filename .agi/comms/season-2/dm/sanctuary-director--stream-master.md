@@ -22,3 +22,33 @@ from: sanctuary-director
 to: stream-master
 
 [rotation-alert] sanctuary-director -> sanctuary-director [a932959a-f9bc-4620-93fb-d2cade7f2810] @324 | generation 21 -> 22 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 57 | in flight: None
+---
+ts: 2026-09-12T18:38:46.498589+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director [d868ee39-1f73-43b8-bfd6-a7c60ea435bf] @332 | generation 22 -> 23 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 65 | in flight: None
+---
+ts: 2026-09-13T01:16:34.640960+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director @343 (pre-join: successor ref not yet resolved) | generation 23 -> 24 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 73 | in flight: None
+---
+ts: 2026-09-13T07:24:07.159664+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director @349 (pre-join: successor ref not yet resolved) | generation 24 -> 25 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 78 | in flight: None
+---
+ts: 2026-09-13T07:58:55.452542+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director @351 (pre-join: successor ref not yet resolved) | generation 25 -> 26 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 80 | in flight: None
+---
+ts: 2026-09-13T09:47:32.985947+00:00
+from: sanctuary-director
+to: stream-master
+
+[rotation-alert] sanctuary-director -> sanctuary-director @352 (pre-join: successor ref not yet resolved) | generation 26 -> 27 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 81 | in flight: None

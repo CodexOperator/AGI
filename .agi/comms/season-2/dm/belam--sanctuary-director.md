@@ -52,3 +52,27 @@ from: belam
 to: sanctuary-director
 
 [rotation-alert] belam -> belam-S1-L4-XVII [c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2] @329 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 62 | in flight: None
+---
+ts: 2026-09-12T22:02:48.538194+00:00
+from: belam
+to: sanctuary-director
+
+[rotation-alert] belam -> belam-S1-L4-XVIII @335 (pre-join: successor ref not yet resolved) | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 68 | in flight: None
+---
+ts: 2026-09-13T19:36:24.991858+00:00
+from: belam
+to: sanctuary-director
+
+[rotation-alert] belam -> belam-S1-L4-XX @363 (pre-join: successor ref not yet resolved) | generation 19 -> 20 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 92 | in flight: None
+---
+ts: 2026-09-16T08:56:46.982715+00:00
+from: belam
+to: sanctuary-director
+
+[rotation-alert] belam -> belam-S1-L4-XXII @390 (pre-join: successor ref not yet resolved) | generation 21 -> 22 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 119 | in flight: None
+---
+ts: 2026-09-16T11:48:58.875433+00:00
+from: belam
+to: sanctuary-director
+
+[rotation-alert] belam -> belam-S1-L4-XXIII @395 (pre-join: successor ref not yet resolved) | generation 22 -> 23 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 124 | in flight: None

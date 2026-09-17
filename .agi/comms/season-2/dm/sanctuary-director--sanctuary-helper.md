@@ -118,3 +118,45 @@ from: sanctuary-director
 to: sanctuary-helper
 
 [rotation-alert] sanctuary-director -> sanctuary-director [a932959a-f9bc-4620-93fb-d2cade7f2810] @324 | generation 21 -> 22 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 57 | in flight: None
+---
+ts: 2026-09-12T18:38:45.893327+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director [d868ee39-1f73-43b8-bfd6-a7c60ea435bf] @332 | generation 22 -> 23 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 65 | in flight: None
+---
+ts: 2026-09-13T01:12:26.772228+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper @339 (pre-join: successor ref not yet resolved) | generation 8 -> 9 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 72 | in flight: None
+---
+ts: 2026-09-13T01:16:39.896330+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper @344 (pre-join: successor ref not yet resolved) | generation 9 -> 10 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 74 | in flight: None
+---
+ts: 2026-09-13T01:29:48.394001+00:00
+from: sanctuary-helper
+to: sanctuary-director
+
+[rotation-alert] sanctuary-helper -> sanctuary-helper @347 (pre-join: successor ref not yet resolved) | generation 10 -> 11 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.handoff.md | seq: 77 | in flight: None
+---
+ts: 2026-09-13T07:24:05.842429+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director @349 (pre-join: successor ref not yet resolved) | generation 24 -> 25 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 78 | in flight: None
+---
+ts: 2026-09-13T07:58:54.813672+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director @351 (pre-join: successor ref not yet resolved) | generation 25 -> 26 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 80 | in flight: None
+---
+ts: 2026-09-13T09:47:31.198489+00:00
+from: sanctuary-director
+to: sanctuary-helper
+
+[rotation-alert] sanctuary-director -> sanctuary-director @352 (pre-join: successor ref not yet resolved) | generation 26 -> 27 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 81 | in flight: None

@@ -118,3 +118,69 @@ from: sensei-director
 to: sanctuary-director
 
 [rotation-alert] sensei-director -> sensei-director [51051ef4-2f99-4e21-8651-3b487ca54470] @330 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 63 | in flight: None
+---
+ts: 2026-09-12T18:25:13.387981+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director [3685fa8c-9c5e-43ad-986e-bbdc56d63cad] @331 | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 64 | in flight: None
+---
+ts: 2026-09-12T18:38:46.058516+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director [d868ee39-1f73-43b8-bfd6-a7c60ea435bf] @332 | generation 22 -> 23 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 65 | in flight: None
+---
+ts: 2026-09-12T18:49:28.696732+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director [f0480d1f-891a-4299-a591-ea119f14716f] @333 | generation 15 -> 16 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 66 | in flight: None
+---
+ts: 2026-09-12T22:15:57.713481+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director @336 (pre-join: successor ref not yet resolved) | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 69 | in flight: None
+---
+ts: 2026-09-13T01:16:33.925568+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director @343 (pre-join: successor ref not yet resolved) | generation 23 -> 24 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 73 | in flight: None
+---
+ts: 2026-09-13T01:17:18.783855+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director @345 (pre-join: successor ref not yet resolved) | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 75 | in flight: None
+---
+ts: 2026-09-13T07:24:06.493271+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director @349 (pre-join: successor ref not yet resolved) | generation 24 -> 25 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 78 | in flight: None
+---
+ts: 2026-09-13T07:55:46.656213+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director @350 (pre-join: successor ref not yet resolved) | generation 18 -> 19 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 79 | in flight: None
+---
+ts: 2026-09-13T07:58:55.326786+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director @351 (pre-join: successor ref not yet resolved) | generation 25 -> 26 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 80 | in flight: None
+---
+ts: 2026-09-13T09:47:32.223591+00:00
+from: sanctuary-director
+to: sensei-director
+
+[rotation-alert] sanctuary-director -> sanctuary-director @352 (pre-join: successor ref not yet resolved) | generation 26 -> 27 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.handoff.md | seq: 81 | in flight: None
+---
+ts: 2026-09-13T10:45:14.561004+00:00
+from: sensei-director
+to: sanctuary-director
+
+[rotation-alert] sensei-director -> sensei-director @353 (pre-join: successor ref not yet resolved) | generation 19 -> 20 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md | seq: 82 | in flight: None

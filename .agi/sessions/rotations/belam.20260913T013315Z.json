@@ -1,0 +1,45 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-13T01:39:47.576203Z",
+  "result": "skipped",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "belam-S1-L4-XVIII",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "sanctuary-helper",
+        "belam-S1-L4-XVI",
+        "sensei-director",
+        "sanctuary-master",
+        "belam-S1-L4-XIV",
+        "master-sensei",
+        "belam-S1-L4-XV",
+        "sanctuary-director",
+        "belam-S1-L4-XIX"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 18,
+      "after": 19
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log"
+  },
+  "refusal_reason": "registry file for @348 not found in /home/ubuntu/.claude/sessions within the bounded join poll",
+  "handover": {
+    "own_window": {
+      "name": "belam-S1-L4-XVIII",
+      "id": "@335"
+    },
+    "successor_window": {
+      "name": "belam-S1-L4-XIX",
+      "id": "@348"
+    }
+  },
+  "swept_latches": [],
+  "inherited": true
+}

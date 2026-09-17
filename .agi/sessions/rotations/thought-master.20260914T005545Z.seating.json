@@ -1,0 +1,100 @@
+{
+  "rotation": "seating",
+  "seat": "thought-master",
+  "role": "director",
+  "source": "cmd_spawn",
+  "recorded_at": "2026-09-14T00:55:45.531822Z",
+  "gen_before": 0,
+  "gen_after": 1,
+  "trigger": "first-seating",
+  "box": {
+    "loadavg": [
+      16.394,
+      13.637,
+      10.311
+    ],
+    "cores": 4
+  },
+  "window_id": "@366",
+  "first_turn": [
+    {
+      "label": "rotation-record",
+      "cmd": "python3 extensions/agi/bin/rotate.py status --post thought-master --record latest",
+      "rc": 0,
+      "output": "(no rotation record for thought-master)\nsequence=94\nrow: thought-master\tgen=0\tfrac=?\nsession_ref: unset (awaits the ack)\nbehind origin/season2/main: 0\n\nbranches.py: deprecated alias used: season/s2 -> season2/main",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "facts",
+      "cmd": "python3 extensions/agi/bin/write.py config:rotations 'read body 37:64'",
+      "rc": 0,
+      "output": "## facts\n\n> Declared by `hypothesis:l4-startup-is-one-script-or-a-driven-prompt` (0b): the bootstrap facts a successor is handed instead of reading the handoff, printed by the `facts` first_turn entry under an 8000-byte cap (a guard test keeps this region under 90% of it). MEASURED facts only, tagged post + timestamp. Compacted 2026-09-13 17:1xZ; long form: `grid.py diff config:rotations`.\n\n> Staleness bound (L4.290): a fact the `fact_bounds:` map does not name defaults to `head` and is marked stale when its measured commit differs from HEAD; `permanent` is never marked. Written by `write.py`, never by hand.\n\n- F27 (director-point 16:20Z/16:40Z/17:08Z \u2014 three rotations at 0.32/0.23/0.22 of the window): the meter hook prints `<f> of the window = <r> of the line`; ONLY `f` is compared to `line=0.47` (`r = f/0.47` hits 1.0 at the line). Rotate when `[meter] post=<post> <f>` reads f \u2265 0.47, never on r.\n- F19+F8+F18 (OWNER 2026-09-12 03:2xZ; SL7.06/SL5.01/SL4.03): floor = wake 0 / out 1. The predecessor's rotate wrote your meter pin and your row (committed) and answered the ack `continue` for you. YOUR WAKE ACTS: NONE \u2014 no ListAgents, ack, push, status read, `ps` or `tmux`. Only an `ack \u2026 diff` line printed in STARTUP is one call. `posts row dirty before this ack` = someone else's row change in your tree: commit or drop THAT, never bundle.\n- F23 (helper + director-point, three sonnet rotate-outs 2026-09-13): the out-line is bare keyed `python3 extensions/agi/bin/rotate.py rotate` \u2014 every value from the row + key; no flag to verify, never `-h`; a stale where-it-stops slot is refused BY NAME (write the card, or `--stops '<one line>'`). Merge + prepare run inside it (F14): never merge origin by hand ahead of it, never rebase.\n- F26 (director-point 16:17Z, director-sanctuary 13:52Z, director-review 01:2xZ): your card is `.agi/sessions/quorum/<post>.md` in YOUR worktree (the row's prompt-file). `HANDOFF.md` at the repo root is the engine's own scratchpad \u2014 never ls/diff/Read it before rotating. Write the card wholesale (one Write), commit by exact path.\n- F25 (director-sanctuary 13:49-14:38Z, 8/8 nudges): a nudge is consumed by ONE `send.py read <post>`; `peek` never flips the marker (the nudge re-fires). Never peek before read. Phantom = `read` returns empty: one read, nothing else.\n- F24 (director-sanctuary 13:4xZ, 6 calls): write.py script = `<verb> <args>` units joined by ` && ` in ONE single-quoted script: `read body N:M` (range REQUIRED), `set <field> <rest of unit>`, `note <text>`, `thought <text>`, `replace body N:M <file>`; `--dry-run` shows the edit. `write.py -h` is in STARTUP [write-verbs]. Note verb: `write.py <node-id> \"note <text>\" --actor <post> --role director` (F4).\n- F22 (director-point 01:22Z, halted 68 s): the pane has NO interactive user \u2014 never `AskUserQuestion` or any tool that waits for a human. Decide under delegated authority, record the deviation in the node's THOUGHT or the card; bank owner-only questions in the card's BANKED section.\n- F21 (master-sensei 22:03Z, sanctuary-master 23:00Z): `config:*` nodes are files at `.agi/nodes/.geometry/<name>.md` (`config:rotations` \u2192 `rotations.md`, `config:posts` \u2192 `posts.md`); no `.agi/nodes/config/` dir. Read a section with `write.py config:<name> 'read body N:M'`; never ls/find for it.\n- F20 (SL7.55): a successor NEVER commits rotation records, `sequence.json` or `.agi/comms/**` at wake \u2014 the predecessor's rotate commits its own record; comms churn is cron-owned.\n- F17 (director-sanctuary first seating): node-type schemas are `.agi/context/schemas/[type].md` (brackets in the name); `write.py create <type> <slug> --parent <id>` runs the spawn gate against it.\n- F14 (director-review 15:25Z): rotate reads `config:rotations` + `config:posts` from the ROTATING POST'S WORKTREE and merges `origin/season2/main` into it itself \u2014 a post rotating unmerged seats its successor on a stale template (no facts, prime-authority NO-MATCH).\n- F13 (belam 14:03Z 2026-09-12): the `account` entry was dropped (executor has no `.env`; g15-18 is the open code half). Spend by hand, one command: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' .env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H \"Authorization: Bearer $K\"`.\n- F16 (director-point + director-review 2026-09-12 \u2014 every worktree post ran `rotate-self -h` then `--dry-run` by hand before rotating): superseded by F23's bare `rotate`; its pre-flight (`rotate-self --prepare`) runs inside \u2014 run it ONCE and emit the tokens it prints; never `-h`, never `--dry-run | head` (its head is the prayers).\n- F12 (belam 14:03Z): judge a first_turn entry in-process, never from source: `python3 - <<'EOF'` / `import sys; sys.path.insert(0,'extensions/agi/bin'); import rotate as r; print(r._producing_refusal(r._resolve_startup_placeholders(CMD, {'seat': S, 'worktree': W, 'repo': R}, refuse_empty=True)))` / `EOF` \u2014 `None` = allowed; positional revisions/paths and a leading bare sed/grep/cat refuse.\n- F10+F11 (2026-09-11): live-spawns, git-state, inbox and the record are ALREADY in STARTUP \u2014 re-running any in the first turn buys nothing. Channel to the Prime: `python3 extensions/agi/bin/send.py send belam \"<one line>\"` (nudges the pane; `SendMessage` costs a ToolSearch first). Only when necessary (owner 2026-09-10): merge-up numbers, a Prime-only decision, a rotation line, a red merge, a rule-changing finding.\n- F9 (2026-09-11): a dispatch from a post behind `origin/season2/main` refuses with exit 3 and names it \u2014 that refusal IS the behind check; `predecessor-log` shows main's tip; no fetch+rev-parse by hand.\n- F7 (belam 2026-09-11): the suite lock is `.agi/sessions/verify-suite.lock`; \"lock FREE\" for a merge-up window = absent in main AND every post worktree; the window reply is lock state + tip + baseline in one line.\n- F6 (belam 2026-09-11; F19): ack grammar `rotate.py ack --post <post> --ref <bare ref> continue|diff [--text -]` \u2014 run ONLY when STARTUP prints the diff line, or once as `continue` after a hand launch. The record turns `success` ~60 s later: ONE status read if needed, never a poll (`spawn_budget.py status --wait` exists; `sleep N && \u2026` is a poll).\n- F5 (2026-09-11): a round lands on branch `season2/loops/<hypothesis-prefix>-<agent>`, worktree `.agi/worktrees/<agent>/`; diff against the MERGE-BASE with the post branch, never a moved tip; kid experiment nodes under `.agi/nodes/experiment/` there; `cli.py session-complete <iter> --dry-run` first.\n- F3 (2026-09-11; SL7.96): the successor's row is joined by `session_name` (harness registry name, e.g. agi-d7); `send.py whois <token>` resolves session_ref OR session_name, never the uuid. A worktree post's row reaches main at its next merge-up \u2014 `whois` NO-MATCH before that is expected.\n- F1 (2026-09-11): the predecessor's wrapper reaps its own chain and writes the record `success` ~60 s after the join; STARTUP's record reads `started` by construction; the after_join `[reap-proof]` line proves the reap \u2014 never `ps`/`tmux` for it.\n- RETIRED (superseded, kept as numbers only): F2 (row back-fill \u2192 F3), F15 (bare ref \u2192 F6), F18 (\u2192 F19 line).\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "prime-authority",
+      "cmd": "python3 extensions/agi/bin/send.py whois --key f265eb56fe18a58b9022671f9e9d1fbbbf030f366563969ae582953a1bea6d69 --claim belam",
+      "rc": 0,
+      "output": "IS-AUTHORIZED: by key: f265eb56fe18a58b9022671f9e9d1fbbbf030f366563969ae582953a1bea6d69 vs claim 'belam' -> actual seat belam, role prime_director  window @363  (verified against origin/season2/main @ 6e5ededcd62c602b044abd11fdf2e7b7d4611493)\nUNSIGNED\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "git-state",
+      "cmd": "git -C /home/ubuntu/work/agi status -sb | head -5; git -C /home/ubuntu/work/agi status -sb | head -3",
+      "rc": 0,
+      "output": "## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n M .agi/comms/season-2/dm/belam--sanctuary-helper.md\n M .agi/comms/season-2/dm/belam--sensei-director.md\n\n## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "predecessor-log",
+      "cmd": "git -C /home/ubuntu/work/agi log --oneline -12; git -C /home/ubuntu/work/agi log --oneline -3",
+      "rc": 0,
+      "output": "6e5ededcd alerts matrix: thought-master <-> sanctuary-master edges (the new master post)\nf049ffcbb local-maxxing town seeded: ladder towns += local-maxxing; town:local-maxxing + vision:local-maxxing (Prime-minted); posts rows council-local-maxxing (idle) + thought-master (Opus, under SM, owning goal:g14) \u2014 owner 2026-09-13 23:32Z\na74adb9af merge-up SL2#31: SM.24 (non-prime posts drop generation, clauses 4/5/6-rows) + SM.26 (dispatch --orders channel, verdict demoted :85->:70 for a ceiling overage, code kept) + test_node_writer.py orders.md allowlist fix -- full suite already green in the seat worktree pre-merge (4774/0/15/1xfail, 495.8s)\n3a2924bf6 after_join record: sanctuary-helper sanctuary-helper.20260914T004948Z.json (performed by watch)\n01f1bc770 sensei audit: director-review 00:49Z \u2014 wake 0, out 10 (hand merge + Read + 4 Edits + reshuffle orientation + commit + FIRST bare rotate on this post), rotated at 0.4305\nd6f3c9295 after_join claim: sanctuary-helper sanctuary-helper.20260914T004948Z.json (performed by watch)\ne8d264487 SM card: town seed staged for the Prime; dry-run/role-gate residue\n1f5db5c43 local-maxxing town seed: Prime-run create lines (vision first, then town) \u2014 SM mint refused by name (schema written_by owner/prime, goal:g12)\n34698cc21 sanctuary-helper spawn row: gen 12, session_id aa106ecf-a359-422a-9e32-c056f659f756, window @365, pid 2763855\n74485a459 sensei audit: sanctuary-master first rotation \u2014 out 2 (rotate-self with five flags on a keyed row \u2192 card switched to bare rotate), wake 0, peek 0, rotated at 0.4194\n3800ad354 sanctuary-master card \u00a73: out-line = bare keyed rotate (her row is keyed; first rotation 00:45Z still ran rotate-self with five flags incl. --force and a 600-char --stops) + the meter's two-number rule\n05174125e after_join record: sanctuary-master sanctuary-master.20260914T004602Z.json (performed by watch)\n\n6e5ededcd alerts matrix: thought-master <-> sanctuary-master edges (the new master post)\nf049ffcbb local-maxxing town seeded: ladder towns += local-maxxing; town:local-maxxing + vision:local-maxxing (Prime-minted); posts rows council-local-maxxing (idle) + thought-master (Opus, under SM, owning goal:g14) \u2014 owner 2026-09-13 23:32Z\na74adb9af merge-up SL2#31: SM.24 (non-prime posts drop generation, clauses 4/5/6-rows) + SM.26 (dispatch --orders channel, verdict demoted :85->:70 for a ceiling overage, code kept) + test_node_writer.py orders.md allowlist fix -- full suite already green in the seat worktree pre-merge (4774/0/15/1xfail, 495.8s)\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "inbox",
+      "cmd": "python3 extensions/agi/bin/send.py read thought-master",
+      "rc": 2,
+      "output": "read: target 'thought-master' is not you ('belam'); to read your own inbox: send.py read belam; to look at thought-master's without consuming it: send.py peek thought-master; a dm is --dm thought-master",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "live-spawns",
+      "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4",
+      "rc": 0,
+      "output": "budget: 2/25 live  load 16.9/13.6/10.3  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget\n  a00-1ae4da07 tier=parent iter=SM.238 pid=2743063\n  a00-65e49dd1 tier=parent iter=SM.249 pid=2746982\n\nprovisioning: available  keys_visible=4  engine_minted=3\n  outstanding: agi-iterSM.249-parent-a00-65e49dd1 used=0.034191582 expires=2026-09-14T03:47:55.956Z\n  outstanding: agi-iterSM.238-parent-a00-1ae4da07 used=0.023060364 expires=2026-09-14T03:47:20.754Z\n  outstanding: agi-2 used=0.59690858 expires=None\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "write-verbs",
+      "cmd": "python3 extensions/agi/bin/write.py -h | sed -n 1,40p",
+      "rc": 0,
+      "output": "usage: write.py [-h] [--parent PARENTS] [--payload PAYLOAD] [--set SETS]\n                [--no-spawn-gate] [--root ROOT] [--actor ACTOR] [--role ROLE]\n                [--session SESSION] [--dry-run] [--ring-sig RING_SIGS]\n                [--ring-fresh TS|NONCE] [--ring-fields]\n                node_id [script] [slug]\n\nwrite.py \u2014 named node operations, drivable by a human or by an agent.\n\npositional arguments:\n  node_id               a node id, or \"create\" to mint one\n  script                verbs joined by \"&&\"; with `create`, the node type\n  slug                  with `create`: the new node's slug\n\noptions:\n  -h, --help            show this help message and exit\n  --parent PARENTS      with `create`: repeatable; the SCHEMA decides how many\n                        are legal, not argparse\n  --payload PAYLOAD     with `create`: source file to link, created if absent\n  --set SETS            with `create`: extra frontmatter, k=v, repeatable\n  --no-spawn-gate       bypass the spawn gate, loudly\n  --root ROOT           any path inside the project\n  --actor ACTOR         who is making this edit\n  --role ROLE           explicit role, resolved ahead of AGI_ROLE and the seat\n                        prefix (hypothesis:l4-role-resolution-longest-prefix)\n  --session SESSION     the session that produced it (thought_session)\n  --dry-run             print the accumulated edit and write nothing\n  --ring-sig RING_SIGS  repeatable; a `<post>:<scheme>:<sig_hex>` signature\n                        backing a config write that a `ring:`-declaring schema\n                        demands (rung 2, seatsig/rings.py)\n  --ring-fresh TS|NONCE\n                        rung 2 freshness seam (kid D): pin the EXACT\n                        '<ts>|<nonce>' this config write's `_fresh` field\n                        carries, so an out-of-process signer computes the SAME\n                        canonical bytes a `ring:`-declaring schema's gate\n                        verifies. Absent -> the gate mints fresh\n                        (unpredictable).\n  --ring-fields         rung 2 signer's view (kid D): print the exact config-\n                        write decision fields and canonical bytes the\n                        `ring:`-declaring gate will verify for this edit (+\n                        `--ring-fresh`), then exit 0 -- never writes or\n",
+      "truncated": false,
+      "byte_cap": 8000
+    },
+    {
+      "label": "send-verbs",
+      "cmd": "python3 extensions/agi/bin/send.py -h | sed -n 1,30p",
+      "rc": 0,
+      "output": "usage: send.py [-h] [--from FROM_ID] [--comms-root COMMS_ROOT]\n               {send,read,peek,rooms,audience,vote,prime-excluded,ask,report,whois,keygen,wake,escalate,veto}\n               ...\n\none-verb agent comms\n\npositional arguments:\n  {send,read,peek,rooms,audience,vote,prime-excluded,ask,report,whois,keygen,wake,escalate,veto}\n    send                send a message (inbox, dm, or room)\n    read                read a conversation / inbox\n    peek                peek without marking read\n    rooms               list rooms and dms with unread\n    audience            request an audience with the prime or quorum\n    vote                post one advisor quorum vote into a room\n    prime-excluded      exit 0 if the prime is excluded for a round, else 1\n    ask                 dm a Master seat, tagged [ask]\n    report              reply to a matching [ask] (dm or --room)\n    whois               resolve a claimed session_ref against the PUSHED\n                        config:seats (authority is the graph, never the\n                        message; hypothesis:l4-authority-verified-against-the-\n                        graph-not-the-message)\n    keygen              mint a seat signing key under\n                        <sessions>/seats/<seat>.key (mode 0600); prints and\n                        writes the row cells (pubkey, sig_scheme, enc_scheme:\n                        none) into the seat's own config:seats row -- or with\n                        --all-live, the prime keys every LIVE row that has no\n                        pubkey (hypothesis:l4-every-live-row-is-keyed...)\n    wake                re-check one seat: resubmit a stranded nudge by typing\n                        + Enter (never Enter-only), or wake an idle pane whose\n                        seat has unread; busy/no-op (hypothesis:l4-a-stranded-\n",
+      "truncated": false,
+      "byte_cap": 8000
+    }
+  ],
+  "announced_to": [
+    "master-sensei",
+    "sanctuary-master"
+  ],
+  "handover": {
+    "seating_row_commit": "spawn_row_commit: committed (sha 2e596d00b) -- own-row only: thought-master seating row: gen 1, session_id , window @366, pid \npush: push: OK -- season2/main"
+  }
+}
