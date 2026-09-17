@@ -1292,3 +1292,79 @@ def test_sigterm_emission_tolerates_a_closed_stdout():
     body = after.split("\ndef ", 1)[0]
     assert "os.kill(os.getpid(), signal.SIGTERM)" in body, \
         "the SIGTERM re-raise must stay unconditional after the guarded write"
+
+
+# --- claim: never reads the live checkout under pytest ----------------------
+# hypothesis:l4-the-done-tier-gate-resolves-its-sessions-root-through-the-
+# registered-resolver-and-never-reads-the-live-checkout-under-pytest. The
+# tier-gate's per-tree root resolves from the INVOKING TREE (cwd), never a
+# walk-up from the engine file (`Path(__file__)`), and the JOIN goes through
+# the registered `sessions_dir` resolver, so a run whose root is a throwaway
+# sees the throwaway's sessions and never reads live.
+
+def test_throwaway_nested_under_live_agi_never_reads_live_sessions():
+    """claim (1)+(3): the MEASURED leak -- a nested pytest launched with cwd
+    a THROWAWAY tree nested under the live `.agi/sessions`, basetemp under
+    /tmp. Before the fix the tier-gate resolved that cwd UP into the live
+    sessions and read+printed a dead phantom living there. After the fix the
+    resolution descends from cwd and the closure refuses (by name, silent on
+    the leaked path) before any scan, so the fixture under the live sessions
+    root is never read into the output.
+    """
+    import tempfile
+    sess = Path(gate._default_record_root())
+    assert sess, "live-tree sessions root must resolve"
+    # a dead phantom at the live root the OLD ascent-resolution would read.
+    phantom = sess / f"iter-probe-{uuid.uuid4().hex[:8]}"
+    _write_agent_record(phantom, "phantom", _some_dead_pid(), "kid",
+                        status="running")
+    throwaway = sess / f"iter-guard-{uuid.uuid4().hex[:8]}"
+    throwaway.mkdir(parents=True, exist_ok=True)
+    os.symlink(CONFTEST, str(throwaway / "conftest.py"))
+    (throwaway / "test_a.py").write_text(TEST_SRC)
+    bt = tempfile.mkdtemp(prefix="sm100-guard-")
+    try:
+        env = dict(os.environ)
+        env.pop("AGI_TIER", None)
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", str(throwaway / "test_a.py"),
+             "-q", f"--basetemp={bt}"],
+            cwd=str(throwaway), capture_output=True, text=True, env=env,
+            timeout=300)
+        out = proc.stdout + proc.stderr
+        # no phantom is named at all -- the closure refused before any scan.
+        assert str(phantom) not in out, out
+        assert "tier-gate: phantom" not in out, out
+    finally:
+        shutil.rmtree(throwaway, ignore_errors=True)
+        shutil.rmtree(bt, ignore_errors=True)
+        shutil.rmtree(phantom, ignore_errors=True)
+
+
+def test_plain_scratch_refusal_fires_only_under_the_live_graph(monkeypatch):
+    """claim (2): the narrowed closure refuses ONLY a genuine scratch -- a
+    real cwd that falls INSIDE the resolved live graph root -- and ONLY when
+    that join is live; a non-live join is silently returned. A real run from
+    the SOURCE tree (cwd a sibling of, or above, the graph) is never refused
+    -- that is the shape a nested differential subprocess has, which the
+    too-broad guard wrongly tripped (measured: 4 full-suite failures).
+    Refusal is by name and does not echo the leaked path."""
+    import tempfile
+    import pytest as _pytest
+    loc = gate.locations
+    sess_root = Path(gate._default_record_root())  # live sessions, guard silent
+    scratch = sess_root / f"iter-unit-{uuid.uuid4().hex[:8]}"
+    scratch.mkdir(parents=True, exist_ok=True)
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(scratch)                 # real cwd now nested under the graph
+        monkeypatch.setattr(loc, "is_live_checkout", lambda r: True)
+        with _pytest.raises(RuntimeError,
+                            match="scratch nested inside the live graph"):
+            loc.refuse_live_sessions_from_plain_scratch(sess_root)
+        # non-live join: silently returned, never refused.
+        monkeypatch.setattr(loc, "is_live_checkout", lambda r: False)
+        loc.refuse_live_sessions_from_plain_scratch(sess_root)
+    finally:
+        os.chdir(old_cwd)
+        shutil.rmtree(scratch, ignore_errors=True)
