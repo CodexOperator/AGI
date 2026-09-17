@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CARRIED to the next loop per belam [decision] 23:32Z: not a g19 done-state blocker, no live exposure (never merged to season2/main), L5 stays small -- no round dispatched. One-line fix stays: call _prepare_merge_target(root) instead of season_branch(root) in _spawn_behind_gate (rotate.py:15391). Untested seam to close when picked up: the demoted round own test suite monkeypatched season_branch itself, so a post or loop HEAD was never actually presented to the gate.
