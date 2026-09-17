@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM REVIEW (sanctuary-master gen 5, 03:5xZ, by name): ACCEPT inconclusive_lean_proved:85. Diff read at 598c9729d: production = locations.is_live_checkout (a None common root on either side is never live; +3) and verification.py's count parser (the session's FINAL pytest count line, not a nested banner; +10) -- 17 insertions total against the 15-line production ceiling (1.13x, docstrings included), everything else fixtures/assertions learning the resolver, rc propagation and argv order. Probes in a throwaway detached worktree of the tip under /tmp (removed after): in-repo basetemp still REFUSED at session start, exit 3, both paths named; the 18 affected modules + the two live-checkout guards + test_locations with a /tmp basetemp: 544 passed, 0 failed; MAIN posts.md/HANDOFF.md untouched. Parent's own full-suite run quoted: RESULT PASS, 5326 passed / 16 skipped, table agreeing with pytest's footer; kid 1 :80 (two honest gaps), kid 2 closed both with 0 production lines. Lands as the next bundle; the stamp run on MAIN is the number that matters (5326/0/16).
