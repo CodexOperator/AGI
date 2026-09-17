@@ -1242,7 +1242,7 @@ def _workflow_credential_tier(stages: list) -> str:
 
 
 def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
-                                stages: list) -> tuple[dict, str | None]:
+                                stages: list) -> tuple[dict | None, str | None]:
     """The env a pi stage is spawned under, plus the MINTED KEY HASH so the
     caller can revoke it when the run ends (hypothesis:l4-a-per-run-workflow-
     key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (2)).
@@ -1258,8 +1258,11 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
     Falls back to the inherited `_pi_env()` — ONE stderr line naming the
     reason — when provisioning is unavailable, the harness needs no
     credential, or `mint()` returns None. A `ProvisioningError` with a
-    provisioning key present is a real fault and is named (`ERR: ...`) before
-    the fallback, never swallowed."""
+    provisioning key present is a real fault: it is named (`ERR: ...`) and the
+    stage is REFUSED (rc 3, `(None, None)`) UNLESS the inherited key is proven
+    usable by `provisioning.check_runtime_key_usable`, which then runs the
+    stage on the inherited env with a `[credential] inherited env, verified`
+    line. Never a silent fallback onto a credential nothing verified."""
     would_mint, reason = _credential_decision(root, cfg, harness)
     if not would_mint:
         print(f"workflow.py: {_credential_line(False, reason)}",
@@ -1275,7 +1278,17 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
-        print(f"workflow.py: {_credential_line(False, f'mint failed: {exc}')}",
+        # A failed mint must REFUSE, never fall back onto a credential nothing
+        # verified — UNLESS the inherited key is proven usable by one
+        # authenticated check. Refusal returns (None, None): the caller turns
+        # that into rc 3 before any stage dispatches (the fatal falsifier was
+        # a stage spinning to its timeout on an owner-403'd key).
+        usable, _reason = provisioning.check_runtime_key_usable(cfg, root)
+        if not usable:
+            print(f"workflow.py: refusing stage: mint failed ({exc}) and the "
+                  f"inherited env key is not usable", file=sys.stderr)
+            return None, None
+        print("workflow.py: [credential] inherited env, verified",
               file=sys.stderr)
         return _pi_env(), None
     if minted is None:
@@ -1370,7 +1383,7 @@ def _effort_to_thinking(effort: str | None) -> str:
 # rfind("}")` was the naive version of the same idea and is superseded.
 
 
-_FENCED_JSON = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL)
+_FENCED_JSON = re.compile(r"```(?:json|yaml)?\s*(.*?)```", re.DOTALL)
 
 
 def _balanced_brace_spans(text: str):
@@ -1550,25 +1563,26 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                 env=(spawn_env if spawn_env is not None else _pi_env()),
                 timeout=(600 if timeout_s is None else timeout_s))
         except subprocess.TimeoutExpired:
+            # A timeout is reported as ELAPSED TIME FIRST, never as "could not
+            # start": TimeoutExpired IS a SubprocessError and the string it
+            # carries buries the whole argv -- prompt and all -- behind the
+            # one true fact that the process DID start and ran long before
+            # being cut. Caught before OSError/SubprocessError on purpose
+            # (except clauses are ordered). rc 2, one attempt, no retry.
+            # Landed independently by two rounds (SM.70 item 3 here; also
             # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
-            # timeout-says-timed-out-... item (3), from mur-sm-60: 30 min of
-            # pi spend, the refuter never ran, and the record said "could not
-            # start pi" because TimeoutExpired IS a SubprocessError and the
-            # string it carries buries the whole argv -- prompt and all --
-            # behind the one true fact. A timeout is its OWN outcome, named
-            # FIRST and named by the budget the caller resolved; the process
-            # DID start. Caught before OSError/SubprocessError on purpose
-            # (except clauses are ordered).
+            # timeout-says-timed-out-... from mur-sm-60) -- this is the
+            # merged shape, reconciled at a season2/main merge conflict.
             budget = 600 if timeout_s is None else timeout_s
             if view is not None:
-                view.stage_failed(
-                    stage["label"],
-                    f"stage {stage['label']} timed out after {budget:g} s")
+                view.stage_failed(stage["label"],
+                                   f"timed out after {budget:g} s")
             print(f"workflow.py: stage {stage['label']} timed out after "
                   f"{budget:g} s", file=sys.stderr)
             return 2, None
         except (OSError, subprocess.SubprocessError) as exc:
-            # An unrunnable binary is NOT transient: one attempt, rc 2.
+            # An unrunnable binary is NOT transient: one attempt, rc 2,
+            # byte-identical to before.
             if view is not None:
                 view.stage_failed(stage["label"], f"could not start pi: {exc}")
             print(f"workflow.py: stage {stage['label']} could not start pi: "
@@ -1828,6 +1842,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     import subprocess
     spawn_env, minted_key_hash = _resolve_workflow_spawn_env(
         root, cfg, run_key, harness, stages)
+    if spawn_env is None:
+        # A failed mint with no usable inherited key: refuse BY NAME, rc 3,
+        # before any stage dispatches — a stage must never start on a
+        # credential nothing verified (hypothesis:l4-pi-review-stages-...
+        # item 5). The mint error is already on stderr verbatim.
+        return 3
     # The minted key is revoked when the RUN ends, however it ends — success,
     # a stage failure (rc > 0) or a raised/timeout path — so the `finally` is
     # the whole point: a key that outlives its run is the falsifier this

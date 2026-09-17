@@ -115,7 +115,7 @@
     "parent_max_kids": 10
   },
   "provisioning": {
-    "min_key_remaining_usd": 0.25,
+    "min_key_remaining_usd": 1.0,
     "min_account_remaining_usd": 1.6
   },
   "agent_dispatch": {

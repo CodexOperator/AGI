@@ -1566,7 +1566,7 @@ def test_openrouter_preflight_prints_the_sub_floor_notice_before_the_account_ref
     monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
                         lambda cfg, root=None: (True, None))
     monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
-                        lambda cfg, root=None: (True, "M"))
+                        lambda cfg, root=None, iter_n=None: (True, "M"))
     monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
                         lambda cfg, root=None: (False, "X"))
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
@@ -2734,7 +2734,7 @@ def _cap_project(tmp_path, parallel=1):
 
 
 def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0),
-                      keys=(), parallel=1):
+                      keys=(), parallel=1, real_floor=False):
     """Drive dispatch.main() for one openrouter kid slot with the network and
     the child process stubbed. Returns (exit_code, [mint kwargs], captured)."""
     import json
@@ -2761,8 +2761,9 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
     monkeypatch.setattr(provisioning, "mint", _fake_mint)
     monkeypatch.setattr(provisioning, "check_runtime_key_usable",
                         lambda cfg, root=None: (True, None))
-    monkeypatch.setattr(provisioning, "check_key_floor",
-                        lambda cfg, root=None: (True, None))
+    if not real_floor:
+        monkeypatch.setattr(provisioning, "check_key_floor",
+                            lambda cfg, root=None, iter_n=None: (True, None))
     monkeypatch.setattr(provisioning, "check_account_floor",
                         lambda cfg, root=None: (True, None))
     monkeypatch.setattr(provisioning, "credit_balance",
@@ -2793,6 +2794,10 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
         return real_popen(argv, **kw)
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
+    # the startup-grace poll's sleep seam (dispatch.py:97-102): a stub child
+    # that never exits (poll() -> None) otherwise sleeps the real 20 s grace
+    # on every cap test that gets as far as spawning. Same seam as 1be791764.
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
               "AGI_ACTOR"):
         monkeypatch.delenv(k, raising=False)
@@ -2840,8 +2845,8 @@ def test_cap_over_pool_headroom_is_refused_by_name_and_mints_nothing(
     assert mints == [], "a refused cap must never mint"
     assert "round cap $5.00 exceeds pool headroom $1.50" in err, err
     assert "pool $6.00" in err and "floor $1.00" in err and "live $3.50" in err
-    # item 15: the refusal NAMES its own conservatism.
-    assert "live counts every agi- key's full limit" in err, err
+    # item 15 (built by a00-4a19ce42): live is limit minus usage on live keys.
+    assert "live counts each un-expired agi- key's limit minus usage" in err, err
 
 
 def test_cap_prices_every_slot_and_names_the_multiplier(
@@ -2884,3 +2889,38 @@ def test_non_positive_cap_is_refused_by_name_before_any_mint(
         assert code == 1, (bad, code)
         assert mints == [], (bad, "a refused cap must never mint")
         assert f"ERR: --cap must be > 0, got {bad}" in err, (bad, err)
+
+
+def test_l4p6_composition_real_check_key_floor_through_dispatch(
+        tmp_path, monkeypatch, capsys):
+    """hypothesis:l4-pi-review-stages-... item (6) COMPOSITION — the wiring
+    and the mechanism on ONE branch, driven through the dispatch pre-flight
+    with the REAL `provisioning.check_key_floor` (NOT a signature-compatible
+    stub). A wire passing iter_n to a real function that cannot accept it
+    raises TypeError; a wire that does not thread iter_n lets ANOTHER
+    iteration's drained key (a proxy for this spawn's FRESH mint) refuse the
+    spawn — the TM.20 freeze. FALSIFIER: the dispatch call site calls
+    check_key_floor without iter_n, or the mechanism never landed and the
+    call breaks."""
+    # CASE A — another iteration's drained below-floor key (cap 5.0 makes
+    # remaining 0.90 < floor 1.0, and cap > floor so it is NOT a sub-floor
+    # skip) must NOT refuse this spawn: threading iter_n=1 skips the other-
+    # iter proxy key and the round mints its own fresh key.
+    other = [{"name": "agi-iter9-kid-a00", "limit": 5.0, "usage": 4.1}]
+    code, mints, _p = _run_cap_dispatch(
+        tmp_path, monkeypatch, keys=other, real_floor=True)
+    err = capsys.readouterr().err
+    assert code == 0, \
+        f"another iter's drained key refused this spawn: {err}"
+    assert len(mints) == 1, "the spawn must mint its own fresh key"
+
+    # CASE B — the SAME iteration's drained key (iter 1 == this dispatch's
+    # iter) still refuses, and names the owning iteration.
+    same = [{"name": "agi-iter1-kid-a00", "limit": 5.0, "usage": 4.1}]
+    code2, mints2, _p2 = _run_cap_dispatch(
+        tmp_path / "same", monkeypatch, keys=same, real_floor=True)
+    err2 = capsys.readouterr().err
+    assert code2 == 1, f"same-iteration drain did not refuse: {err2}"
+    assert mints2 == [], "a refused pre-flight must never reach a spawn"
+    assert "iteration 1" in err2, \
+        f"refusal must name the owning iter: {err2}"
