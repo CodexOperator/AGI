@@ -107,7 +107,7 @@
         "model": "claude-opus-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
   },
@@ -129,8 +129,46 @@
     "reap_source": "derived from own window @id @406 pane 479486: chain [479486, 479491, 479504, 479505] (deepest-first; authority row pid 479505)"
   },
   "after_join": {
-    "claimed_at": "2026-09-17T00:37:49.055725+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-17T00:36:26.501789Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-master",
+        "rc": 0,
+        "output": "@417 sanctuary-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
+        "rc": 0,
+        "output": "0.0971\t97100/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(479486|479491|479504|479505)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(479486|479491|479504|479505)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-master --record latest\n",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-master",
+    "dm_signed": true,
+    "code_head": "f804070",
+    "claimed_at": "2026-09-17T00:37:49.055725+00:00",
+    "claim_key": "2026-09-17T00:36:26.501789Z",
+    "performed_after_s": 82.01167154312134
   }
 }
