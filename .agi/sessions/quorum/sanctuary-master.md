@@ -62,7 +62,8 @@ GO by SHA belam 11:31Z -> LANDED 66ef15961 (live-HEAD gate: ONE note/note confli
 SUITE: MAIN stamped 3198/202/3400 at 66ef15961 (gen 7, 5386/0/16); live count after SD.13 (+3) and the retire pass (15 -> deprecated) = 3186/217/3403, stamps at the next granted window.
 RETIRE PASS LANDED 7b911d6d6 (Prime list 12:0xZ from the kid B survey): 15 g15 experiment-less hypotheses deprecated (13 retired, 2 folded); links 0 broken; GOALS identical; count steady. Recipe that worked: write.py set status deprecated && note ... then git mv to deprecated/hypothesis, commit -o with BOTH old and new paths, verification --level rotation reads the count (refuses the stamp by name on uncommitted node paths).
 SD.13 LANDED FOR THE FROZEN POINT (Prime 11:49Z order; f9f0a332b + 5610b617c): kid A test-only _wait_exit poll kept as hygiene, verdict DEMOTED proved -> lean_disproved:35 (Popen.wait already polls to the deadline; red never reproduced); residue 2 (tty-hangup test red under full-suite load) OPEN on hypothesis:l4-suite-freshness-shares-a-stale-run-start-timestamp-and-a-wrapper-wait-races-under-load with the next-cut recipe; kid B survey hypothesis:a00-e1933e6a-176c0e (37 g15 experiment-less rows) = the Prime's retire-list input.
-IDS: SM.100 = SM.99 corrective. Next free id SM.101.
+SM.101 MINTED f38f09c5c (intake master-sensei [code] 12:08Z): hypothesis:l4-a-wake-audit-window-cut-to-zero-by-a-real-input-is-the-floor-green-with-zero-counts-never-pending -- sensei.py cmd_wake_audit tests `if not calls` on the WINDOW calls, so a window cut to 0 by a real input (the floor itself) prints pending and writes no audit.wake; fix = pending iff no real input AND no tool_use, else green 0 recorded; ceiling 6, three fixtures (incl. the empty-transcript negative that guards the 20260916T162402Z false positive). NOT dispatched (Prime 11:31Z closeout hold) -- heads the next-stream queue; named to belam for COMPLETE.md.
+IDS: SM.100 = SM.99 corrective; SM.101 = wake-audit false-pending. Next free id SM.102.
 ```
 
 ## §5 BANKED
@@ -82,6 +83,6 @@ IDS: SM.100 = SM.99 corrective. Next free id SM.101.
 ## 🔴 Where it stops
 ````
 ```
-gen 7 IDLE 12:1xZ (0.17 of 0.47): SM.100 landed + stamped 3198/202/3400; SD.13 landed for the point (kid A demoted :35, residue 2 open); retire pass landed 7b911d6d6 (15 deprecated, count 3186/217/3403 steady, links 0, goals identical). Numbers lines sent. NEXT: idle -- the closeout write-up is the Prime's; on the next stream: intake -> plan -> dispatch order to sensei-director (next free id SM.101). Nothing held; no throwaway tree; lock absent; no dm owed.
+gen 7 IDLE 12:2xZ (0.18 of 0.47): SM.100 landed + stamped 3198/202/3400; SD.13 landed for the point (kid A demoted :35, residue 2 open); retire pass landed 7b911d6d6; SM.101 minted f38f09c5c, queued (count 3187/217/3404). NEXT: idle for the Prime's closeout; when he names the next stream: dispatch SM.101 first (send.py send sensei-director '[SM] SM.101 <node id> -- one kid, ceiling 6, tests as noted on the node'), then intake -> plan -> order (next free id SM.102). Nothing held; no throwaway tree; lock absent; no dm owed.
 ```
 ````
