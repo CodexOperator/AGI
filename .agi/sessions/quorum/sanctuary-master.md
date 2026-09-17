@@ -60,7 +60,7 @@ DIRECTOR gen 35 (post branch core/season2/posts/sensei-director/main @4a3bc5df6)
 SUITE: stamped 3157/201/3358 at 68d1d4070 (gen 5). After bundle 1 (or 1+2) lands: window ask to belam [merge-up]; then `verification.py --level rotation --suite` and `--level rotation --stamp` as two calls (a cron-demoted dirty node: copy aside, checkout, stamp, restore + commit by path).
 SETTINGS QUIET (config half, the Prime's): once SM.81 is on MAIN, one line to belam so he writes settings: quiet on thought-master + director-thought.
 RESIDUES for the Prime's list (unchanged): SM.82 claim 1 (spawner unnamed); bin-suite-fresh reads FAIL inside the same --suite call; grid cron demotes nodes during a granted window; two-call stamp dies on any HEAD move; test_verify_suite_record.py argv-ordering assertion (pre-existing); launch-wrapper tty_hangup under load.
-Next free id SM.84. posts.md dirt in MAIN = other posts' cells -- never bundle (F19).
+SM.84 = the ring_cli_seam fix slice under the SM.82 node (ordered 06:3xZ). Next free id SM.85. posts.md dirt in MAIN = other posts' cells -- never bundle (F19).
 ```
 
 ## §5 BANKED
@@ -81,5 +81,5 @@ Next free id SM.84. posts.md dirt in MAIN = other posts' cells -- never bundle (
 
 ## 🔴 Where it stops
 ```
-gen 6 06:1xZ: GO ask for bundle 1 (408c8bd0b = SM.81+SM.82+SM.83, merge-tree clean on fe0021c52) sent to belam 06:0xZ, unanswered; D re-cut (SM.72, director tip 4a3bc5df6) REVIEWED ACCEPT :75, note on the node, not yet landed. NEXT: on the Prime's GO by SHA -> re-gate on the live HEAD (git merge-tree --write-tree HEAD <sha>), git merge --no-ff <sha>, push origin season2/main, ONE numbers line (+ GO ask for 4a3bc5df6 if only 408c8bd0b was granted); then the suite-window ask -> `verification.py --level rotation --suite` then `--level rotation --stamp`; then one line to belam: SM.81 landed, settings: quiet is his; then the director's D harvest line -> order items 6+7 as ONE kid under the SM.72 node (ceiling 33) + node G. Nothing held; the throwaway tree <scratchpad>/wt is removed after each review.
+gen 6 06:3xZ: bundle 1 LANDED 90dc3fb50 (SM.81+82+83, GO belam 05:58Z); suite on it 5346/3/16 -> STAMPED 3166/201/3367 at 90dc3fb50 (call 1 one-call stamp + call 2 --stamp PASS all 11). RED: 3x test_ring_cli_seam.py (A/B/D) from SM.82's PYTEST_CURRENT_TEST guard in main() :1506 (11/11 green at d2edaf570) -- SM.84 fix slice ORDERED to the director 06:3xZ (one kid under the SM.82 node, ceiling 10, move the guard to the tests launch site); [red] line to belam sent (HAND = he hand-fixes, I dm CUT to the director). NEXT: (1) director harvest lines by name -- SM.84 (probe: test_ring_cli_seam 11 green + test_suite_no_detached_spawn green in a throwaway tree at its tip; recipe §5) and items 6+7 (same SM.72 node) and node G; (2) next bundle by SHA when the Prime names it: D re-cut 4a3bc5df6 (ACCEPT :75) -- ask fold with SM.84's tip so ONE stamp covers both; (3) after each landing: suite-window ask -> two calls (`--level rotation --suite`, then `--level rotation --stamp`), numbers line. Nothing held; no throwaway tree.
 ```
