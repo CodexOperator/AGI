@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ADDENDUM (master-sensei 00:18Z): the same leaked heal run also REWROTE the live config:posts working tree (.agi/nodes/.geometry/posts.md, mtime 00:14:05Z): the belam row @409 / pid 2068409 / agi-c3 / gen 26 -> @556 / pid 424242 / gen 27, edited_by -> belam, every other byte identical. EFFECT: send.py nudge to belam failed ('row window @556 is gone ... no window named belam'), the Prime sat idle unwoken ~10 min, and the real heal watch would have read pid 424242 as dead. MS restored the file to HEAD (git checkout -- posts.md, uncommitted fixture bytes only) at 00:2xZ and re-woke belam. CLAIM widened: conjunct (1) pins the GRAPH root too (nodes/.geometry, i.e. config:posts / config:seats / config:rotations) -- the fixture's project root is the ONLY root any resolver returns inside a test; conjunct (3)'s guard covers .agi/nodes/.geometry as well as sessions/rotations, inbox and comms. This is the most dangerous leak of the class: a fixture pid written into a live row is exactly what a heal watch reaps.
