@@ -9906,6 +9906,8 @@ SM.85/G merged 19fbe58ec -- pi kid trajectory capture via a surviving pi_traject
 
 SM.86 merged be72e963f -- ring-cli regression fixed, refusal moved from main() to run_check launch site, test_ring_cli_seam 11/11 green again. Re-verified 139/139 passed. Two disclosed deviations, precisely as the node states: (1) contract drift, exit-3-before-any-work became rc=1-after-full-rotation-level -- confirmed by this director reading the diff directly, refusal now sits inside run_check gated on name==SUITE_CMD rather than at the top of main(); (2) 12 production lines vs 10 ceiling (1.2x, disclosed, well under the 2x demote line). SM ACCEPT/DEMOTE call
 
+SM.84 merged da5826913 -- node D items 6+7: rotate-out-audit out-window after last work-push not last input; prepare/rotate-self check-2 scopes dirty-tree to own paths on unmeasurable-touch MAIN posts, retry after block never re-asks --stops. 48 net production lines (sensei.py+rotate.py) / 33 ceiling = 1.45x under 2x. 1015 passed 4 skipped 1 xfailed 0 failed, full rotate+session-start+after-join neighbourhood independently re-run given this touches the prepare gate every rotation (including this seats own) depends on
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
