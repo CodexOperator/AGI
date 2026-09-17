@@ -127,7 +127,7 @@
     "thinking": "medium",
     "inline_reaper": false
   },
-  "agent_timeout_mins": 20,
+  "agent_timeout_mins": 75,
   "delay_mins": 0,
   "max_iters": 10,
   "injection_file": "context/INJECTION.md",
