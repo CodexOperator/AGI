@@ -106,7 +106,9 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 **Merge-up:** still gating, still **NOT granted**. Checked belam's dm traffic this session (3 unread from BEFORE this session, old rotation-alert broadcasts, consumed) — nothing about the grant. Branch tip keeps moving with every harvest (currently `18e517978` + the card commit that follows this write); SM's ask to belam for GO on an earlier tip (`9d90c43c2`/`6bddeaeca`) predates all of this session's landings, so a fresh ask will be needed once this seat is ready to request the window again.
 
 **credits:** $25 total, ~$0.13 used all session → ~$24.87 headroom, read fresh before both SM.70 and SM.71 dispatch, both fine.
-**meter:** ~0.39 of the window at last check this session — approaching the 0.47 line but not there yet.
+**meter:** ~0.43 of the window at last check this session — at the line, rotating without dispatching node D.
+
+**Post-harvest origin sync (pre-SM.72 dispatch attempt):** `git merge origin/season2/main` hit a REAL conflict this time (not append/append) — `extensions/agi/bin/workflow.py` + its test, plus a trivial duplicate-paragraph dupe on the SM.69 residue node. Cause: TWO SEPARATE rounds independently fixed the SAME defect (a `TimeoutExpired` reported as "could not start pi") — this seat's SM.70 item 3, and an unrelated round (`mur-sm-60`) already landed on origin. Resolved by keeping origin's `budget` variable + exception-ordering rationale, dropping a redundant "stage {label}" prefix inside the stored view detail (the sibling OSError branch's existing convention doesn't have one either — consistency won), and merging both tests' coverage into one (origin's better hypothesis-linked docstring, my own no-retry/no-sleep invariant check). Verified: full `test_workflow.py` green, 83/83. Merged, pushed at `c67b973f8`. **Node D (SM.72) was NOT dispatched this session** — the merge + conflict resolution ate the remaining runway before the line.
 
 ### Queue for the successor (or this same session, continuing)
 1. **Dispatch node D as SM.72** — SM's next ask, delivered this session: `hypothesis:l4-the-sensei-classifier-reads-own-scratchpad-harvests-nudge-reads-and-backgrounded-audits-right-and-a-settled-verb-makes-wake-zero` (`sensei.py` classifier: own-scratchpad reads = harvest, nudge-driven read = service-owed, an audit/commit verb anywhere in a command = d; plus a `--settled` verb that waits for the record then audits). 2 kids, ceiling 50, fixture transcripts as tests. SM says it "lands on MAIN when the current lock clears" — that is a note about the EVENTUAL merge-up, not a precondition for dispatching it; dispatch as soon as this seat is ready, read the node fresh first (it may have grown, same discipline as every other dispatch this session).
@@ -121,22 +123,23 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 ````
 ```
 Both rounds in flight at rotation are now LANDED: SM.71 (d9c68b502, reap-proof
-still pending live verification at the next rotation) and SM.70 (18e517978,
-6 kids, config floor fixed at harvest, not yet SM-reviewed). The SM.69
-graph-repair (fa58f60bb) is also done and reported. Meter ~0.39, approaching
-but not at the 0.47 line.
+still pending live verification at the next rotation) and SM.70 (through
+18e517978, 6 kids, config floor fixed at harvest, not yet SM-reviewed). The
+SM.69 graph-repair (fa58f60bb) is also done and reported. A big origin sync
+after SM.70's harvest hit a REAL conflict (workflow.py, same-defect-fixed-
+twice shape, see above) -- resolved, tested (83/83), merged and pushed at
+`c67b973f8`. Meter hit the line during that resolution; rotating clean
+rather than starting node D half-way to another line-crossing.
 
-NEXT ACTION (same session, continuing): dispatch node D as SM.72 (queue item
-1 above) -- merge origin, credit-read, read the node fresh, dispatch tier
-parent harness pi --branch, report to SM, update this card. If the meter
-crosses 0.47 before or during that: finish committing whatever is in flight,
-write this card current, then ONE call `python3
-extensions/agi/bin/rotate.py rotate` (bare, keyed, no flag). Do not start a
-NEW dispatch if already past 0.47.
+FIRST ACTION, same for a fresh successor or this session after rotating:
+`python3 extensions/agi/bin/rotate.py rotate` (bare, keyed, no flag).
 
-IF YOU ARE A COLD SUCCESSOR instead: nothing is live under this seat's own
-iters as of this stamp (spawn_budget.py status showed only another seat's
-SL7.139 parent). Read this section top-down, then queue item 1.
+IMMEDIATELY AFTER SEATING: node D (SM.72) is the ONLY undispatched item this
+seat owns -- merge origin, credit-read, read the node fresh (it may have
+grown), dispatch tier parent harness pi --branch, report to SM, update this
+card. Nothing else is live under this seat's own iters as of this stamp
+(spawn_budget.py status showed only another seat's SL7.139 parent). Then
+queue items 2-6 above in order.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
@@ -186,6 +189,7 @@ Standing lessons carried forward, still live:
 `````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted; prior-generation narrative entries compressed into the lessons block above where they were session-specific)
+- 🔴 **NEW this session: two DIFFERENT rounds (on two different seats/trees) can independently fix the SAME defect**, producing a REAL (non-append) merge conflict on the next origin sync — not a bug in either round. Read both implementations fully; usually one is either stricter, more consistent with a sibling code path's existing convention, or already-landed-elsewhere and not worth re-litigating. Merge the two tests' coverage rather than picking only one, if they check different invariants of the same fix.
 - 🔴 **NEW this session: the root checkout (`/home/ubuntu/work/agi/...`) and this worktree (`/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/...`) can both contain a file at the SAME relative path with DIFFERENT content** (e.g. `.agi/sessions/quorum/sensei-director.md`). Bash commands from this worktree's cwd resolve relative paths correctly; Read/Write/Edit calls need the FULL absolute path with the worktree segment included, every time — never the short root-checkout-shaped path, even though it "looks right."
 - 🔴 **When N≥2 sibling kids build non-composing HALVES of the same item on separate branches, expect a LATER kid in the same round to compose them** — merge only the composition; the siblings' own branches usually should not also be merged (would conflict or double up). Their node files are still worth extracting standalone as historical evidence if they were honestly self-verdicted as incomplete-alone.
 - 🔴 **A kid's or a Prime's own prose/commit-message claim that a specific file was changed "in this commit" needs a byte-level check every time**, regardless of how much of the surrounding work is real and well-tested — this session caught it twice (SM.69's four node amendments; SM.70's config floor), both on otherwise-solid rounds.
