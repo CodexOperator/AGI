@@ -16889,7 +16889,7 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     # HEAD's committed row is origin's row right now (the push just
     # succeeded): only a full match flips the key.
     _committed = send._seats_committed_rows(root)
-    _row = send._seat_row_in(_committed, seat) if _committed else None
+    _row = send._seat_row_for(root, _committed, seat) if _committed else None
     _row_pub = str((_row or {}).get("pubkey") or "")
     _gen = str(_obj.get("gen_after") or _obj.get("gen") or "?")
     if not _row or _row_pub != _pend_pub:
