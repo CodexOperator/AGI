@@ -11188,22 +11188,49 @@ def _successor_window_id(seat: str, tmux_session: str,
     return None
 
 
+def _record_names_prev_as_successor(rec: dict | None, new: str) -> bool:
+    """True ONLY when the record's OWN bytes name `<new>.prev` as its
+    successor window. `rotate-self` writes that fact at
+    `handover.successor_window.name` (rotate.py:18951); a crash-recovery
+    record carries the same shape top-level. Absent, malformed or a different
+    name -> False, so `.prev` is never a candidate on a guess."""
+    want = f"{new}.prev"
+    rec = rec if isinstance(rec, dict) else {}
+    hov = rec.get("handover")
+    cands = []
+    if isinstance(hov, dict):
+        cands.append(hov.get("successor_window"))
+    cands.append(rec.get("successor_window"))
+    for sw in cands:
+        nm = sw.get("name") if isinstance(sw, dict) else sw
+        if nm and str(nm) == want:
+            return True
+    return False
+
+
 def _rename_boundary_names(seat: str, rec: dict | None) -> list[str]:
     """The successor-window names a record's OWN `applied_rename` fact
-    licenses, in preference order: the renamed target, then the `.prev` window
-    the boundary leaves behind under that new name. Returns [] for a record
-    with no rename (absent, or old == new), so nothing is ever guessed.
+    licenses, in preference order: the renamed target first, then -- ONLY
+    when the record's own bytes name it the successor -- the `<new>.prev`
+    window. Returns [] for a record with no rename (absent, or old == new),
+    so nothing is ever guessed.
 
     The OLD name is deliberately NOT a candidate: after the boundary applied,
     no live window answers to it, so matching it could only join a foreign
-    window."""
+    window. `.prev` is the PREDECESSOR's own window carried aside by step (2)
+    of the boundary, NEVER the successor -- accepting it unconditionally
+    would turn an unresolved join into a WRONG one (the predecessor joined as
+    the successor). It is licensed only by `handover.successor_window.name`."""
     ar = (rec or {}).get("applied_rename")
     if not isinstance(ar, dict):
         return []
     old, new = ar.get("old"), ar.get("new")
     if not old or not new or str(old) == str(new):
         return []
-    return [str(new), f"{new}.prev"]
+    names = [str(new)]
+    if _record_names_prev_as_successor(rec, str(new)):
+        names.append(f"{new}.prev")
+    return names
 
 
 def transcript_from_registry(registry_json: Path) -> Path | None:
