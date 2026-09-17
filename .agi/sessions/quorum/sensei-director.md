@@ -84,6 +84,12 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 
 ## §3 🔴 STATE — post sensei-director — stamp 2026-09-17T00:16:22Z (D/E/F all dispatched, MERGE-UP LANDED)
 
+**🔴🔴 PRIME FULL PAUSE, belam 00:55:22Z, verbatim banked in `doc:l4-owner-decisions` — READ THIS FIRST, applies to every post, not just this seat:**
+1. **NO new dispatch of any parent, kid or review workflow from ANY post until the Prime lifts it by one dm.** Live rounds finish and are harvested; nothing new starts. **Node G stays undispatched under this rule, not just this seat's own "wait for a slot" judgment call — do not dispatch it, or anything else, until the lift dm arrives.**
+2. **NO engine-suite run anywhere until node H lands.** Cause: TWO suite runs were live in MAIN at once (an orphan since 00:21Z + a `verification.py --suite` since 00:43Z), both killed by the Prime — both had already committed fixture acks to `season2/main` and rewritten live rows. This retroactively confirms the stamp-deferral judgment call made earlier this session was correct, and the problem is worse than what had been observed by then.
+3. **Unblock order, one at a time:** thought-master's own-row commit → leak sweep (SM) → node H → SM.71 reaper restart (**this seat did the reaper restart once already this session post-SM.71; it may need doing again once node H lands** — watch for that) → pause lifted.
+4. **Merge-ups wait in the card; verify WITHOUT the suite stays allowed** (`links.py`, `snapshot-goals.py --render --check`, `verification.py` at a non-`--suite` level, routine `git fetch`/merge/push — none of that is a "dispatch").
+
 **SM.65-69 (node A) background, unchanged from last stamp:** SM.65-68 ACCEPTed by SM; Part A of the split GO'd/landed directly by belam at `0d1841f44`. SM.69 was DEMOTED by a Prime split ruling (23:27Z, prior session): code real, but 4 graph deliverables (3 hypothesis amendments + 1 experiment demotion) never reached a commit; repaired post-hoc at `fa58f60bb` (prior session).
 
 **THIS session's opening act — the belam/SM follow-up on that repair, DONE:** belam (23:41Z) and SM (23:41Z, 23:53Z) flagged that the five SM.69 experiment nodes still read `proved` while recording deliverables the *director*, not the kid, actually landed at `fa58f60bb` — and that SM.70's composition kid `a00-daad1e21` has the identical shape (its claimed config-floor restore was fixed by the director at harvest, not by the kid). Audited each of the five plus `a00-daad1e21` against the real diff/current tree (see commit below for the per-node reasoning):
