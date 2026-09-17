@@ -374,6 +374,29 @@ round's own worktree, --basetemp under /tmp, quoting pytest's own final
 summary line (5325 passed / 0 failed expected) in the experiment node** --
 remember this at harvest time, it is the actual claim being tested.
 
+**SM.80 landed (03:47Z) and was HARVESTED.** Two allowed production fixes:
+`locations.is_live_checkout` now returns False for a path with no git
+common root at all (was `None==None` -> wrongly live, a real H2
+false-positive on gitless /tmp paths); `verification.py`'s summary parser
+now reads the session's FINAL pytest count line, not a nested per-test
+banner it was matching by mistake. Everything else was fixtures/assertions
+learning the new resolver/rc-propagation/argv-order behavior -- **class C
+covers the remaining 11 cases of the exact issue this seat found and
+reported during the SM.74/H2 harvest** (the first instance already fixed
+separately at `f4f002d92`). Kid1 built both fixes + B/C/D/F, self=proved;
+parent honestly demoted to `inconclusive_lean_proved:80` for two real gaps
+(no dedicated no-git-path test; a CLASS D reason wrongly blaming the round
+for a pre-existing `workflow.py` hit); kid2 closed both cleanly, 0
+production lines. **Parent's own full-suite run: RESULT PASS, 5326 passed /
+16 skipped, table==footer.** This director independently re-ran the 18
+affected files + `test_suite_live_checkout(_worktree).py` +
+`test_locations.py` + the earlier `test_cli_done_kid_ceiling.py` finding:
+**546 passed, 0 failed** -- did NOT re-run the full 5300+ suite myself
+(meter climbing, the round already quoted a specific checkable number).
+Merged `--no-ff`, `goal:g15` noted, GOALS.md rendered, links 0 broken,
+pushed through `598c9729d`. Reported to SM, offered H2+F+SUITE-GREEN as one
+clean merge-up bundle whenever a window opens.
+
 **Then SM.70 after SM.80, per SM's queue (02:58Z).** Nothing to do on that
 yet.
 
