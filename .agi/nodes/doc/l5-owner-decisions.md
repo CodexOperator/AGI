@@ -38,3 +38,9 @@ RULED (as read by the Prime, belam gen 28, 13:3xZ):
 3. The single director is named director-belam -- nothing else -- once the rename lands; until then its code name stays sanctuary-director.
 4. No livestream: view-<post> sessions and the livestream repoint are not required; a missing view session is never a red.
 5. Defaults ACCEPTED: all 5 town nodes on remote (target 13 refs/heads); both foreign branches deleted (collaborator-branch, copilot/add-open-source-license -- deleting the latter closes the Copilot PR); director = today's sanctuary-director post; formation = Prime + ONE director + up to 4 live parents (<=5 kids each), every other post idle.
+
+### OWNER 2026-09-17, banked 13:45Z (date -u) — quiet every idle post, verbatim
+
+> "Can we archive all other posts fully? They keep getting nudge spammed. Or add them to quiet posts is fine so they get nothing at least"
+
+APPLIED by the Prime 13:45Z (f54c02af0), the reversible option: `config:posts` `settings=quiet` on every row except belam and the L5 director sanctuary-director (17 rows; `send.py` `_row_is_quiet` = the ONE nudge choke point, so send/wake/heal/stranded-retry all type nothing; the dm is still written to the inbox). Not archived: the idle windows stay (an idle session costs nothing) and sensei-director must stay alive to rotate once in L5.02 for its rename. Rewind = the same cell back to "".
