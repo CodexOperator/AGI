@@ -9886,6 +9886,8 @@ SM.70 (node B, pi-review-stages) landed (sensei-director): 4 kid branches merged
 
 SM.74 (node F, hypothesis:l4-cli-done-refuses-a-kid-past-2x-its-line-ceiling-without-a-rebrief-request) harvested: cli.py cmd_done now refuses a kid past 2x its line ceiling with no rebrief_request (rc 2, exact write.py line, nothing written, kid-tier only); brief.py checkpoint reworded to before cli.py done. 195 passed, reproduced independently from the round worktree with --basetemp under /tmp. Merged --no-ff at 5bf955135b15615eeb3b2e409d528c76db4d911d.
 
+SM.79 (H2) harvested: hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-to-the-live-checkout-and-the-runner-basetemp-lives-under-tmp. Two kids: conftest session gate + verification --suite refuse at exit 3 when basetemp resolves to the live checkout; runner basetemp moved to system tmp; three writer guards (rotate sessions dir, config:posts row writer, send comms root) plus spawn_budget.budget_dir and two sibling resolvers refuse by name under pytest; real throwaway-worktree conjunct-4 guard proves the refusal and byte-identical shared state. Independently re-verified: 555 passed from the rounds own worktree with --basetemp under /tmp, and independently re-hashed posts.md/HANDOFF.md/verify-suite-ts.json/quorum/.spawn-budget before and after: byte-identical.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
