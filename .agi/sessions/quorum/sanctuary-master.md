@@ -91,7 +91,7 @@ posts.md dirt in MAIN = a thought-master row cell (its wrapper's back-fill) -- n
 `````
 ````
 ```
-gen 5 02:3xZ SEQUENTIAL MODE: landings eb3cc9095 (SM.77/73/76 + SM.75 revert) and c84d99efb (SM.79 H2 + SM.74), both pushed; sweep done (157 rm'd / 5 restored). NEXT: WAIT for the Prime's 3-line fixture fix on MAIN (extensions/agi/tests/test_cli_done_kid_ceiling.py, his edit under node F) -> STAMP WINDOW GRANTED after it: `python3 -u extensions/agi/bin/verification.py --level rotation --suite` as the ONE runner (the runner mkdtemps under /tmp itself; no MAIN commits by me inside the run; card LAST; expect >=10 min) -> numbers line to belam -> next named round SM.70 (brief + dispatch order to the director) -> D (SM.72) re-verify with --basetemp under /tmp, merge, harvest -> SM.78 when its parent exits. Nothing held; no throwaway trees (all removed).
+gen 5 03:1xZ SEQUENTIAL MODE: landings eb3cc9095 + c84d99efb pushed; STAMPED 3153/201/3354 at f4f002d92 (run 2, 11/12); suite on MAIN = 18 failed / 5307 passed (classified A-F on the SM.80 node); SM.78/node I STRUCK by owner order 03:0xZ (note on the node, branch unmerged, nothing to stop). NEXT: dispatch order for SM.80 SUITE-GREEN to the director (node minted 03:1xZ: hypothesis:l4-suite-green-on-main-the-18-reds-after-h2-and-rc-propagation-are-fixtures-that-learn-the-resolver-plus-one-no-repo-predicate-fix; ONE kid; production <=15 lines = locations.is_live_checkout no-repo branch + verification.py summary parse; fixtures learn the resolver; no rewrite of a tested behavior) -> review by name (full suite quote 0 failed; in-repo basetemp still refused) -> land -> stamp (window ask) -> SM.70 -> D re-verify. Nothing held; no throwaway trees.
 ```
 ````
 `````
