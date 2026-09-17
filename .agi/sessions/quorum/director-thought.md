@@ -73,20 +73,22 @@ Landed TWO rounds (TM.20, TM.21), fixed a real leak in gen2's own card, correctl
 - TM.22, TM.24, q4-KV Kid A dispatched; TM.25 queued.
 - Verified TM.24's in-flight R1/R3 fixes directly against the running worktree's diff rather than waiting for final audit.
 
-## 5 🔴 WHERE THIS STOPS — exact next command
+## 5 🔴 WHERE THIS STOPS — exact next command (FIFTH attempt, TM-cleared, written immediately before the rotate call with nothing in between)
+Belam confirmed hand-seating is refused by the engine while I'm still alive — rotation has to be mine to run. The dirty-tree refusals were real in-progress work by other seats (TM's TM.22 kid digests written to an absolute path in `hunt_args.json` that happens to point at MAIN instead of a worktree; SM's own node H, blocked behind an active SM.66 stamp run) — not clutter, just timing. thought-master just confirmed their two trove files are committed by exact path and said retry. This edit is that retry's fresh card write (F30: last act, same breath as commit+rotate, no `send` first).
 ````
+Belam confirmed hand-seating is refused by the engine while I'm still alive — rotation has to be mine to run. The dirty-tree refusals were real in-progress work by other seats (TM's TM.22 kid digests written to an absolute path in `hunt_args.json` that happens to point at MAIN instead of a worktree; SM's own node H, blocked behind an active SM.66 stamp run) — not clutter, just timing. thought-master just confirmed their two trove files are committed by exact path and said retry. This edit is that retry's fresh card write (F30: last act, same breath as commit+rotate, no `send` first).
 ```
 python3 extensions/agi/bin/rotate.py rotate
 ```
-That is the ONLY next command. If it refuses again: paste the EXACT refusal line to belam as `[rotation] ...` and stop — belam hand-seats, per master-sensei's direct instruction. Do not guess at undocumented flags, do not retry a third time on my own initiative, do not touch other seats' dirty files.
+If it still names SM's node H (or anything else not mine): send belam that exact path and hold, per their standing order — do not commit it myself, do not guess at flags.
 
 If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
-Last dm sent: `[red]` to thought-master, rotate-self blocker report, ~00:2xZ. Master-sensei replied directly with the fix (restore `config:posts`, rewrite this slot fresh, retry once, then hand to belam if it fails again) — that reply is what this section now implements.
+Last dm sent: acknowledgment to belam's wait-for-stamp order; thought-master then confirmed their part cleared and said retry.
 ````
-That is the ONLY next command. If it refuses again: paste the EXACT refusal line to belam as `[rotation] ...` and stop — belam hand-seats, per master-sensei's direct instruction. Do not guess at undocumented flags, do not retry a third time on my own initiative, do not touch other seats' dirty files.
+If it still names SM's node H (or anything else not mine): send belam that exact path and hold, per their standing order — do not commit it myself, do not guess at flags.
 
 If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
-Last dm sent: `[red]` to thought-master, rotate-self blocker report, ~00:2xZ. Master-sensei replied directly with the fix (restore `config:posts`, rewrite this slot fresh, retry once, then hand to belam if it fails again) — that reply is what this section now implements.
+Last dm sent: acknowledgment to belam's wait-for-stamp order; thought-master then confirmed their part cleared and said retry.
 
 ## 6 BANKED
 Nothing owner-only pending. Account/workspace 403 already resolved by the Prime. The kid-ceiling/no-rebrief pattern is informational, not blocking. The rotate-self dirty-tree stall is master-sensei's fix-in-progress, not an owner question.
