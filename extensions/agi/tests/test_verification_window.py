@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -184,3 +185,105 @@ def test_window_reads_main_baseline_and_main_head_from_a_worktree(tmp_path):
     out_main = verification.render_window(main_graph)
     assert f"MAIN HEAD {main_head}" in out_main
     assert f"{sha0}" in out_main
+
+
+# ---------------------------------------------------------------------------
+# The lock line names WHO holds it. Measured cost: the master-sensei spent 17
+# calls before the first (d) on belam 181151Z -- 5 of them hand calls after
+# `window` on a HELD lock printed only `lock: held by <pid> since <ts>`, to
+# learn who that pid was. One line now carries pid, age, tree, command head,
+# and -- when any pid on the holder's ppid chain is a registered spawn-budget
+# runner -- that runner's agent id, tier and iter. A dead or unreadable
+# `/proc` entry degrades to `unresolved`; `lock: free` is untouched.
+#
+# The process table is a FAKE `PROC` (module constant), so none of this
+# depends on the box's real `proc` or a real spawned process.
+
+import spawn_budget  # noqa: E402
+
+
+def _fake_proc(tmp_path: Path, pid: int, *, cwd=None, ppid=None, cmd=None) -> Path:
+    """A minimal fake process table: `PROC/<pid>/{cwd,status,cmdline}`."""
+    proc = tmp_path / "proc"
+    d = proc / str(pid)
+    d.mkdir(parents=True, exist_ok=True)
+    if cwd is not None:
+        (d / "cwd").symlink_to(cwd)
+    if ppid is not None:
+        (d / "status").write_text(f"Name:\tx\nPPid:\t{ppid}\n", encoding="utf-8")
+    if cmd is not None:
+        (d / "cmdline").write_bytes(cmd)
+    return proc
+
+
+def _held(tmp_path, monkeypatch, pid):
+    """A fixture groot whose lock names the (live) `pid`, with `PROC` faked."""
+    _make_groot(tmp_path, lock=True)
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.write_text(str(pid), encoding="utf-8")
+    return tmp_path
+
+
+def test_window_names_tree_age_and_command_of_a_worktree_holder(tmp_path, monkeypatch):
+    """A live holder whose cwd is inside `.agi/worktrees/<name>` -> the post
+    name, an age in seconds, and the cmdline head, all on the one lock line."""
+    pid = os.getppid()                       # alive, and != os.getpid()
+    wt = tmp_path / ".agi" / "worktrees" / "a00-cafe1234"
+    wt.mkdir(parents=True)
+    proc = _fake_proc(tmp_path, pid, cwd=wt, ppid=1,
+                      cmd=b"python3\x00-m\x00pytest\x00extensions/agi/tests")
+    groot = _held(tmp_path, monkeypatch, pid)
+    monkeypatch.setattr(verification, "PROC", proc)
+    line = [l for l in verification.render_window(groot).splitlines()
+            if l.startswith("lock:")][0]
+    assert f"lock: held by {pid} since " in line
+    assert "tree a00-cafe1234" in line
+    assert re.search(r"age \d+s", line)
+    assert "cmd python3 -m pytest extensions/agi/tests" in line
+
+
+def test_window_names_main_when_the_holder_sits_in_the_main_checkout(tmp_path, monkeypatch):
+    """A holder whose cwd IS the main checkout prints `tree main`."""
+    pid = os.getppid()
+    proc = _fake_proc(tmp_path, pid, cwd=tmp_path, ppid=1, cmd=b"bash\x00run.sh")
+    groot = _held(tmp_path, monkeypatch, pid)
+    monkeypatch.setattr(verification, "PROC", proc)
+    out = verification.render_window(groot)
+    assert "tree main" in out
+
+
+def test_window_names_the_registered_runner_behind_the_holder(tmp_path, monkeypatch):
+    """A pid on the holder's ppid chain that matches a LIVE spawn-budget lease
+    appends that runner's agent id, tier and iter -- read through the budget
+    reader, not a second parse of the budget dir."""
+    holder, runner, grandparent = os.getppid(), 1, 1
+    # the holder's PARENT is the registered runner: 2 ppid hops from the pid
+    proc = _fake_proc(tmp_path, holder, cwd=tmp_path, ppid=runner,
+                      cmd=b"claude\x00--resume")
+    _fake_proc(tmp_path, runner, ppid=grandparent)
+    groot = _held(tmp_path, monkeypatch, holder)
+    lease_dir = spawn_budget.budget_dir(groot)
+    lease_dir.mkdir(parents=True, exist_ok=True)
+    (lease_dir / "a00-deadbeef123456.lease").write_text(json.dumps({
+        "agent_id": "a00-deadbeef123456", "tier": "kid", "iter": 7,
+        "agent_pid": runner, "holder_pid": runner,
+    }), encoding="utf-8")
+    monkeypatch.setattr(verification, "PROC", proc)
+    out = verification.render_window(groot)
+    assert "runner a00-deadbeef123456 tier=kid iter=7" in out
+
+
+def test_window_lock_line_degrades_and_free_is_byte_identical(tmp_path, monkeypatch):
+    """An unreadable `/proc` entry degrades to `unresolved` and never raises;
+    `lock: free` is byte-for-byte what it always was."""
+    pid = os.getppid()
+    groot = _held(tmp_path, monkeypatch, pid)
+    monkeypatch.setattr(verification, "PROC", tmp_path / "proc")  # empty table
+    out = verification.render_window(groot)   # must not raise
+    assert f"lock: held by {pid} " in out
+    assert "tree unresolved" in out and "cmd unresolved" in out
+    free = tmp_path / "free"
+    free.mkdir()
+    _make_groot(free)
+    assert [l for l in verification.render_window(free).splitlines()
+            if l.startswith("lock:")] == ["lock: free"]

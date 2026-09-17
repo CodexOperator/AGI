@@ -36,8 +36,10 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import commands  # noqa: E402
+import spawn_budget  # noqa: E402 -- the ONE budget-dir reader (never re-globbed)
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
 import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
 import schema_registry  # noqa: E402  -- the ONE schema reader the gates use
@@ -75,6 +78,9 @@ LEVELS: dict[str, list[str]] = {
 SUITE_CMD = "tests"
 
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
+#: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
+PROC = Path("/proc")
+
 SUITE_LOCK = "verify-suite.lock"        # under <groot>/sessions/
 #: The env marker a caller that ALREADY holds the suite lock exports into the
 #: suite it spawns, naming its own live pid. `_suite_lock_guard` reads it so
@@ -108,6 +114,29 @@ class CheckResult:
     durations: list = field(default_factory=list)
 
 
+def _cleanup_basetemp(path: Path | None) -> None:
+    """Best-effort removal of a runner-owned pytest basetemp. A removal
+    failure never fails the check (claim (4))."""
+    if path is None:
+        return
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        pass
+
+
+def _suite_basetemp_refusal(engine_root: Path,
+                            base: Path | None = None) -> int | None:
+    """Probe the runner's system-tmp basetemp before pytest (claims 1+2); a
+    live checkout prints the SAME line the conftest gate uses, exit 3."""
+    base = Path(base) if base is not None else Path(tempfile.gettempdir())
+    if not locations.is_live_checkout(base):
+        return None
+    print(locations.live_checkout_refusal(
+        base, locations.git_common_root(engine_root)))
+    return 3
+
+
 _PYTEST_COUNT_PATTERNS = (
     ("passed", r"(\d+)\s+passed"),
     ("skipped", r"(\d+)\s+skipped"),
@@ -117,7 +146,8 @@ _PYTEST_COUNT_PATTERNS = (
 
 
 def _parse_pytest_counts(output: str) -> dict:
-    """Counts from pytest's own summary line, in whatever order pytest emits.
+    """Counts from pytest's own FINAL summary line, in whatever order pytest
+    emits them.
 
     pytest writes `N passed, M skipped, K failed, E errors` with only the
     nonzero categories present, in a stable order of its own. We read each
@@ -125,10 +155,18 @@ def _parse_pytest_counts(output: str) -> dict:
     keys that actually appear. An empty dict means the output carried no
     countable line at all — a PASS that still must say so rather than print
     an empty bracket (hypothesis:l4-verification-counts-and-engine-root).
+    Only the session's FINAL count line counts (CLASS E): a nested banner in
+    captured stdout would otherwise win; pytest's footer is the LAST one.
     """
+    tail = ""
+    for line in output.splitlines():
+        if any(re.search(pat, line) for _, pat in _PYTEST_COUNT_PATTERNS):
+            tail = line
+    if not tail:
+        return {}
     counts: dict = {}
     for key, pat in _PYTEST_COUNT_PATTERNS:
-        m = re.search(pat, output)
+        m = re.search(pat, tail)
         if m:
             counts[key] = int(m.group(1))
     return counts
@@ -419,7 +457,9 @@ def _node_dirt(groot: Path) -> list[str] | None:
 
 
 def compare_count(groot: Path, current: dict | None,
-                  *, stamp: bool = False) -> CheckResult:
+                  *, stamp: bool = False,
+                  run_sha: str | None = None,
+                  suite_in_call: bool = False) -> CheckResult:
     """The node-count check: FAIL when active is below the recorded baseline.
 
     The baseline is STAMPED only on bytes that are KEPT (`_stamp_context`)
@@ -429,14 +469,41 @@ def compare_count(groot: Path, current: dict | None,
     (the falsifier: a red or dropped read that stamps). A recorded baseline
     whose `sha` is no longer an ancestor of HEAD is stale: REPORTED and
     treated as absent, never silently leaned on.
+
+    With `--stamp` the sha recorded is the one the last recorded `--suite`
+    actually RAN ON (`suite_ran_on`), and HEAD past it refuses by name. A tree
+    with NO suite record at all does not refuse: a first-ever stamp keeps its
+    old behaviour. A record written BEFORE `suite_ran_on` existed (has
+    `suite_ran_at` only) refuses by name -- never a fail-open stamp (SM.66
+    M1). `suite_in_call`: a `--suite` ran in THIS invocation, so its own start
+    sha (`run_sha`) is the authority and the previous record is ignored (a
+    combined `--suite --stamp`; main() writes the record after this closes).
     """
     start = time.monotonic()
     if current is None or current.get("active", -1) < 0:
         return CheckResult("node-count", "SKIP", time.monotonic() - start,
                            note="smoke did not report an active count")
     if stamp:
-        can_stamp, head_sha, why = (
-            True, _git(groot, ["rev-parse", "HEAD"]), "explicit --stamp")
+        can_stamp, why = True, "explicit --stamp"
+        head_sha = _git(groot, ["rev-parse", "HEAD"])
+        suite_ran_on = None if suite_in_call else _read_suite_ran_on(groot)
+        # old-format record (no suite_ran_on) refuses, never a fail-open
+        # stamp on a guessed HEAD (SM.66 M1).
+        if (suite_ran_on is None and not suite_in_call
+                and _read_suite_ts(groot) is not None):
+            return CheckResult(
+                "node-count", "FAIL", time.monotonic() - start, current,
+                note="suite record predates run-start tracking: "
+                     "re-run --suite")
+        if suite_ran_on and head_sha and head_sha != suite_ran_on:
+            return CheckResult(
+                "node-count", "FAIL", time.monotonic() - start, current,
+                note=f"HEAD {head_sha} moved past the run {suite_ran_on}: re-run")
+        if run_sha and head_sha and head_sha != run_sha:
+            return CheckResult(
+                "node-count", "FAIL", time.monotonic() - start, current,
+                note=f"HEAD {head_sha} moved past the run {run_sha}: re-run")
+        head_sha = suite_ran_on or run_sha or head_sha
     else:
         can_stamp, head_sha, why = _stamp_context(groot)
     manifest = _node_manifest(groot)
@@ -730,9 +797,20 @@ def _read_suite_ts(groot: Path) -> float | None:
         return None
 
 
+def _read_suite_ran_on(groot: Path) -> str | None:
+    """The sha the last recorded --suite actually RAN ON, or None."""
+    try:
+        return json.loads(_suite_ts_path(groot).read_text(
+            encoding="utf-8")).get("suite_ran_on")
+    except (OSError, ValueError, TypeError):
+        return None
+
+
 def _record_suite_ts(groot: Path, decision: dict | None = None, *,
                      wall_s: float | None = None,
-                     slowest_15: list | None = None) -> None:
+                     slowest_15: list | None = None,
+                     ran_at: float | None = None,
+                     ran_on: str | None = None) -> None:
     """Persist the suite-completed timestamp (same idiom as _write_state).
 
     Written to the SHARED sessions dir (see `_suite_ts_path`), so a first
@@ -745,7 +823,9 @@ def _record_suite_ts(groot: Path, decision: dict | None = None, *,
     WITHOUT argv, and a tampered record reads short-of-m by name."""
     path = _suite_ts_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
-    doc = {"suite_ran_at": time.time()}
+    doc = {"suite_ran_at": ran_at if ran_at is not None else time.time()}
+    if ran_on is not None:
+        doc["suite_ran_on"] = ran_on
     if decision is not None:
         doc["ring_decision"] = decision
     # Conjunct 4: the wall time is the CHECK's own `.seconds`, never a
@@ -966,6 +1046,50 @@ def check_seat_model(groot: Path) -> CheckResult:
 # that SENDS the reply is refused, not landed).
 
 
+def _lock_chain(pid: int) -> list[int]:
+    """`pid` and up to FOUR ancestors, from `PROC/<pid>/status`."""
+    chain: list[int] = []
+    for _ in range(5):
+        if pid <= 0 or pid in chain:
+            break
+        chain.append(pid)
+        try:
+            raw = (PROC / str(pid) / "status").read_text(encoding="utf-8")
+        except OSError:
+            break
+        m = re.search(r"^PPid:\s+(\d+)", raw, re.M)
+        pid = int(m.group(1)) if m else 0
+    return chain
+
+
+def _lock_tree(groot: Path, pid: int) -> str:
+    """The holder's tree: its worktree name, `main`, or `unresolved`."""
+    try:
+        cwd = os.readlink(PROC / str(pid) / "cwd")
+    except OSError:
+        return "unresolved"
+    main = str(locations.git_common_root(groot) or groot)
+    wt = os.path.join(main, ".agi", "worktrees") + "/"
+    if cwd.startswith(wt):
+        return cwd[len(wt):].split("/")[0] or "unresolved"
+    if cwd == main or cwd.startswith(main + "/"):
+        return "main"
+    return Path(cwd).name or "unresolved"
+
+
+def _lock_runner(groot: Path, chain: list[int]) -> str:
+    """The spawn-budget row for a pid on `chain`, through its own reader."""
+    try:
+        leases = spawn_budget.live_leases_readonly(groot)
+    except Exception:                    # a diagnostic reader never raises
+        return ""
+    for rec in leases:
+        if {rec.get("agent_pid"), rec.get("holder_pid")} & set(chain):
+            return (f" runner {rec.get('agent_id')} tier={rec.get('tier')}"
+                    f" iter={rec.get('iter')}")
+    return ""
+
+
 def render_window(groot: Path, grant: str | None = None) -> str:
     """The merge-up window reply: lock state + tip + baseline.
 
@@ -990,11 +1114,20 @@ def render_window(groot: Path, grant: str | None = None) -> str:
         holder = None
     if holder is not None and _pid_alive(holder) and holder != os.getpid():
         try:
-            since = time.strftime("%H:%M:%SZ",
-                                  time.gmtime(lock_path.stat().st_mtime))
+            mtime = lock_path.stat().st_mtime
+            since = time.strftime("%H:%M:%SZ", time.gmtime(mtime))
+            age = f"{int(time.time() - mtime)}s"
         except OSError:
-            since = "?"
-        lines.append(f"lock: held by {holder} since {since}")
+            since, age = "?", "unresolved"
+        try:                       # the holder's argv head (60 bytes, NULs
+            raw = (PROC / str(holder) / "cmdline").read_bytes()[:60]
+            cmd = raw.replace(b"\0", b" ").decode("utf-8", "replace").strip()
+        except OSError:            # as spaces) -- unreadable is not fatal
+            cmd = ""
+        lines.append(f"lock: held by {holder} since {since} "
+                     f"(age {age}, tree {_lock_tree(groot, holder)}, "
+                     f"cmd {cmd or 'unresolved'})"
+                     + _lock_runner(groot, _lock_chain(holder)))
     else:
         lines.append("lock: free")
     # tip: pick the FIRST candidate whose origin ref actually resolves, so a
@@ -1042,6 +1175,7 @@ def render_window(groot: Path, grant: str | None = None) -> str:
             f"deprecated={state.get('deprecated', '?')} "
             f"total={state.get('total', '?')} "
             f"stamped sha={state.get('sha', '?')} "
+            f"ran on {_read_suite_ran_on(groot) or '?'} "
             f"reason={state.get('reason', '?')}")
     reply = "\n".join(lines)
     if grant:
@@ -1069,11 +1203,23 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     cmd = table[name]
     ceiling = SUITE_TIMEOUT if name == SUITE_CMD else PER_CHECK_TIMEOUT
     argv = list(cmd.argv)
-    # The SUITE alone asks pytest for its slowest-15 table, so the next
-    # ceiling round measures from the record rather than a scratch log
-    # (claim (4)). Every other check's argv is untouched.
-    if name == SUITE_CMD and not any(a.startswith("--durations") for a in argv):
-        argv.append("--durations=15")
+    # The SUITE alone gets the slowest-15 table and a PRIVATE pytest basetemp.
+    # A concurrent pytest prunes the SHARED /tmp/pytest-of-<user> basetemp
+    # to 3, which deleted this runner's tree mid-run (SM stamp run 2). The
+    # runner owns a dir under the shared sessions tree and removes it best
+    # effort after the run (claim (4)). No shell habit; never a shared default.
+    basetemp: Path | None = None
+    if name == SUITE_CMD:
+        if not any(a.startswith("--durations") for a in argv):
+            argv.append("--durations=15")
+        if not any(a.startswith("--basetemp") for a in argv):
+            try:
+                # claim (2): private runner basetemp = system-tmp mkdtemp.
+                base = tempfile.mkdtemp(prefix="agi-suite-")
+                argv.append(f"--basetemp={base}")
+                basetemp = base
+            except OSError:
+                basetemp = None   # skip, never fail the check on create
     try:
         proc = subprocess.run(
             argv, capture_output=True, text=True,
@@ -1084,6 +1230,8 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     except OSError as exc:
         return CheckResult(name, "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
+    finally:
+        _cleanup_basetemp(basetemp)
     output = (proc.stdout or "") + (proc.stderr or "")
     durations = _parse_pytest_durations(output) if name == SUITE_CMD else []
     number = _parse_number(name, proc.returncode, output)
@@ -1105,7 +1253,8 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
 
 
 def run_level(groot: Path, level: str, suite: bool, verbose: bool,
-               stamp: bool = False) -> list[CheckResult]:
+               stamp: bool = False, run_ts: float | None = None,
+               run_sha: str | None = None) -> list[CheckResult]:
     """Execute a level: its checks in order, then the count comparison."""
     names = list(LEVELS[level])
     if suite:
@@ -1135,8 +1284,8 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
         # None and the guard reads the recorded stamp, untouched (L4.101
         # item 2 -- the ordering, never the judgement).
         suite_res = next((r for r in results if r.name == SUITE_CMD), None)
-        eff_ts = time.time() if (suite and suite_res is not None
-                                 and suite_res.status == "PASS") else None
+        eff_ts = ((run_ts or time.time()) if (suite and suite_res is not None
+                  and suite_res.status == "PASS") else None)
         results.append(check_bin_freshness(groot, effective_ts=eff_ts))
     # surface 2 of hypothesis:l4-a-seats-live-model-is-measured-not-assumed
     # -- the READER that turns the measured seat model into a verdict. Runs in
@@ -1161,7 +1310,9 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # never a silent no-op. Only a bare quick with no stamp stays without a
     # node-count result.
     if smoke is not None or stamp:
-        results.append(compare_count(groot, current, stamp=stamp))
+        results.append(compare_count(groot, current, stamp=stamp,
+                                     run_sha=run_sha,
+                                     suite_in_call=suite))
     return results
 
 
@@ -1392,6 +1543,9 @@ def main(argv: list[str] | None = None) -> int:
         if refusal is not None:
             print(refusal)
             return EXIT_SUITE_LOCKED
+        _base_refusal = _suite_basetemp_refusal(engine_root)
+        if _base_refusal is not None:
+            return _base_refusal
 
     # RUNG 2 suite-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
     # signatures). OPT-IN: only when `--suite-ring <name>` is given AND the
@@ -1439,15 +1593,21 @@ def main(argv: list[str] | None = None) -> int:
     else:
         _suite_decision = None
 
+    # The suite record names the RUN START: wall clock + sha BEFORE pytest.
+    _run_ts = _run_sha = None
+    if args.suite or args.stamp:
+        _run_ts = time.time()
+        _run_sha = _git(groot, ["rev-parse", "HEAD"])
     results = run_level(groot, args.level, args.suite, args.verbose,
-                        stamp=args.stamp)
+                        stamp=args.stamp, run_ts=_run_ts, run_sha=_run_sha)
     if args.suite:
         # A COMPLETED suite run records its timestamp, pass or fail. The
         # freshness check answers "has the suite run since this file
         # changed", not "did it pass" -- pass/fail is the suite's own
         # business (THOUGHT on hypothesis:l4-bin-suite-freshness-check).
         _suite_res = next((r for r in results if r.name == SUITE_CMD), None)
-        _record_suite_ts(groot, _suite_decision,
+        _record_suite_ts(groot, _suite_decision, ran_at=_run_ts,
+                         ran_on=_run_sha,
                          wall_s=_suite_res.elapsed if _suite_res else None,
                          slowest_15=(_suite_res.durations
                                      if _suite_res else None))

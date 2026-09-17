@@ -169,16 +169,48 @@
   "audit": {
     "out": {
       "calls": 10,
-      "a": 1,
-      "b": 3,
+      "pre": 1,
+      "a": 0,
+      "b": 4,
       "c": 1,
-      "d": 5,
+      "d": 4,
       "floor": 1,
-      "excess": 9,
+      "excess": 8,
       "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/e55ef12e-f004-400b-a40e-70713e1decad.jsonl",
-      "window_start": 1030,
-      "window_end": "2026-09-16T11:08:55.989691Z",
-      "audited_at": "2026-09-16T14:18:39Z",
+      "window_start": {
+        "call_index": null,
+        "line": 1030,
+        "ts": "2026-09-16T11:06:18.849Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-16T11:08:55.989691Z"
+      },
+      "audited_at": "2026-09-17T00:24:07Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 7,
+      "s": 0,
+      "a": 0,
+      "b": 4,
+      "c": 2,
+      "d": 1,
+      "floor": 0,
+      "excess": 6,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d98fb21a-e5aa-4072-94c8-048ab651fbef.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 7,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-17T00:24:07Z",
       "audited_by": "master-sensei"
     }
   }

@@ -506,10 +506,17 @@ def test_explicit_stops_on_card_with_no_slot_delegates(tmp_path, monkeypatch):
     assert code == 0                             # delegated, not refused
     assert captured.get("ns") is not None        # the stub WAS called
     assert captured["ns"].stops == "fresh one line"
-    # the write the delegation performs CREATES the missing slot.
-    import shutil
+    # the write the explicit --stops performs lands a TITLED `## ` slot on
+    # the card (SM.69 item 1a: a section the locator SCANS, so the next
+    # write REPLACES it instead of stacking a second block).
+    _pre, _secs = rotate._split_card_sections(
+        card.read_text(encoding="utf-8"))
+    assert rotate._locate_where_it_stops(_secs) == (0, -1)
+    assert "fresh one line" in card.read_text(encoding="utf-8")
+    # a card with NO slot at all still CREATES one (the delegated shape).
     copy = tmp_path / "copy.md"
-    shutil.copyfile(card, copy)
+    copy.write_text("# card\n\nlead only, no stops slot\n",
+                    encoding="utf-8")
     full, slot = rotate._write_stops_section(copy, "prime", "fresh one line")
     assert slot == "created"
     assert full is not None and "fresh one line" in full

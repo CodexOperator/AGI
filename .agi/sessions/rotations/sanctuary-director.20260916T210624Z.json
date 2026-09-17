@@ -161,10 +161,10 @@
     "out": {
       "calls": 9,
       "pre": 2,
-      "a": 1,
+      "a": 0,
       "b": 1,
       "c": 0,
-      "d": 5,
+      "d": 6,
       "floor": 1,
       "excess": 6,
       "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/fc748aad-b6ed-4afd-ae09-9fd0b0094b46.jsonl",
@@ -178,7 +178,30 @@
         "line": null,
         "ts": "2026-09-16T21:06:52.101846Z"
       },
-      "audited_at": "2026-09-16T21:09:12Z",
+      "audited_at": "2026-09-17T00:24:12Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 1,
+      "s": 0,
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "floor": 0,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/7f737309-3930-4318-98f7-4223aa8c38f5.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-17T00:24:18Z",
       "audited_by": "master-sensei"
     }
   }

@@ -433,10 +433,22 @@ def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
     subprocess`: the rename boundary must READ the real local refs
     (`for-each-ref`, read-only) to refuse a branch whose town segment
     disagrees with the row cell, and a blanket ban made that impossible.
+    SM.69 item 3d: the stub returns a REAL result object -- the old
+    `lambda: None` made the reader hit `None.stdout` inside a bare except,
+    so the test passed on a crashed read, not on the property it names.
     The safety property -- no real rename without --live -- is unchanged."""
     calls = []
-    monkeypatch.setattr(rotate.subprocess, "run",
-                        lambda *a, **k: calls.append(a))
+
+    def _fake(*a, **k):
+        calls.append(a)
+        if "for-each-ref" in a[0]:
+            return type("R", (), {
+                "stdout": "core/season2/posts/old/main\n", "stderr": "",
+                "returncode": 0})()
+        return type("R", (), {"stdout": "", "stderr": "",
+                               "returncode": 0})()
+
+    monkeypatch.setattr(rotate.subprocess, "run", _fake)
     _geo(tmp_path, rows=[{"name": "old"}])
     _session_files(tmp_path, "old")
     rc = rotate.cmd_rename_post(
@@ -445,7 +457,13 @@ def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
                            delete_old=False, live=False),
         tmp_path)
     assert rc == 0, rc
-    mutating = [a for a in calls if "for-each-ref" not in a[0]]
+    # Only MUTATING git calls count: read-only `for-each-ref` (the ref reader)
+    # and `git rev-parse --git-dir --git-common-dir` (the resolver's
+    # git_common_root, hypothesis:l4-suite-green-... CLASS B) are by design.
+    mutating = [a for a in calls
+                if "for-each-ref" not in a[0]
+                and not ("rev-parse" in a[0]
+                         and "--git-common-dir" in a[0])]
     assert mutating == [], f"default path must not mutate: {mutating}"
     assert calls, "the read-only ref reader must have run"
 
@@ -659,6 +677,31 @@ def test_no_real_branch_for_the_post_skips_the_branch_surfaces_by_name(
     assert "branch:" not in out and "branch (origin):" not in out, out
     assert "no real branch for old" in err and "nothing to rename" in err, err
     assert "season2/posts/old" not in out, out
+
+
+def test_every_leaf_under_a_posts_prefix_follows_the_rename(
+        tmp_path, monkeypatch):
+    """SM.69 item 3f: a post whose real refs include leaves beside `main`
+    (`.../posts/old/copilot-remote`) renames EVERY leaf -- the pre-fix
+    reader skipped each non-main leaf, renamed only `main` and reported
+    success, leaving refs under the OLD name. The origin/mirror row stays a
+    single post-level row (the post branch is LOCAL-ONLY), never one head
+    push per leaf."""
+    _geo(tmp_path, rows=[{"name": "old", "town": "core"}])
+    monkeypatch.setattr(rotate, "_local_branches", _reader(
+        "core/season2/posts/old/main",
+        "core/season2/posts/old/copilot-remote",
+        "core/season2/posts/old/slice-copilot-parity"))
+    out = _capture_stdout(lambda: rotate.cmd_rename_post(
+        _ns("old", "new", dry_run=True), tmp_path))
+    assert ("branch: core/season2/posts/old/main -> "
+            "core/season2/posts/new/main") in out, out
+    assert ("branch: core/season2/posts/old/copilot-remote -> "
+            "core/season2/posts/new/copilot-remote") in out, out
+    assert ("branch: core/season2/posts/old/slice-copilot-parity -> "
+            "core/season2/posts/new/slice-copilot-parity") in out, out
+    # exactly ONE origin/mirror row (the post's main), never one per leaf
+    assert out.count("branch (origin):") == 1, out
 
 
 def test_real_branches_that_disagree_with_each_other_refuse(

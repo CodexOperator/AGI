@@ -2491,6 +2491,31 @@ def _rotate_self_args(tmp_path, **over):
     return SimpleNamespace(**base)
 
 
+def test_rotate_self_model_differs_from_row_refused_by_name(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 re-cut (Prime XIX 07:28Z) SITE cmd_rotate_self -- a
+    --model DIFFERING from the row cell refuses BY NAME right after row
+    resolution, before any merge/bootstrap/window: exit 3, nothing launched,
+    the row stays the ONE source. A flag EQUAL to the row is a no-op (launch
+    proceeds on the row model)."""
+    import io as _io
+    import contextlib as _c
+    from agi.bin import write as _w
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "sonnet"}])
+    err = _io.StringIO()
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(
+            _rotate_self_args(tmp_path, model="opus"), tmp_path)
+    assert rc == 3, err.getvalue()
+    assert "--model opus differs from the row: model sonnet" in err.getvalue()
+    assert "the row changes only through write.py" in err.getvalue()
+    # the row was never rewritten
+    rows = _w._load_seats(tmp_path)
+    assert rows and rows[0]["model"] == "sonnet"
+
+
 def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
     """Below director_rotate_at: prints `hold <seat>` and sends NO dm."""
     seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"}]
@@ -2681,19 +2706,21 @@ def test_stops_block_refuses_empty(fake_ladder, tmp_path, capsys):
 
 
 def test_write_stops_section_created_and_replaced(tmp_path):
-    """The where-it-stops slot is CREATED at the card's end when absent and
-    REPLACED (up to the next heading) when it exists; --ask-diff gap rides the
-    body in both shapes. Only the slot changes, everything else verbatim."""
+    """The where-it-stops slot is CREATED at the card's end (SM.69 item 1a:
+    as a `## ` SECTION the locator scans, never a bare `### ` block in the
+    preamble) and REPLACED (up to the next heading) when it exists; --ask-diff
+    gap rides the body in both shapes. Only the slot changes, everything else
+    verbatim."""
     from agi.bin import rotate as _r
     card = tmp_path / "quorum" / "s.md"
     card.parent.mkdir(parents=True)
     card.write_text("# s card\n\n## Intro\nkeep this\n", encoding="utf-8")
     body, slot = _r._write_stops_section(card, "s", "fix seat-3")
     assert slot == "created"
-    assert "### 🔴 Where it stops\n```\nfix seat-3\n```" in body
+    assert "## 🔴 Where it stops\n```\nfix seat-3\n```" in body
     assert "keep this" in body          # carried verbatim
     txt = card.read_text(encoding="utf-8")
-    assert "### 🔴 Where it stops" in txt and "fix seat-3" in txt
+    assert "## 🔴 Where it stops" in txt and "fix seat-3" in txt
     # second write REPLACES, and the ask-diff gap rides the body
     body2, slot2 = _r._write_stops_section(card, "s", "now this",
                                            diff_gap="review the handoff")
@@ -3021,7 +3048,7 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0, capsys.readouterr().out
     body = card.read_text(encoding="utf-8")
-    assert "### 🔴 Where it stops" in body
+    assert "## 🔴 Where it stops" in body
     assert "fix the merge on seat-3" in body
     assert "carried" in body
     out = capsys.readouterr().out
@@ -3109,7 +3136,7 @@ def test_stops_replacer_keeps_prose_outside_fence_and_round_trips(tmp_path):
     _, slot3 = _r._write_stops_section(card3, "s", "fresh cmd")
     assert slot3 == "created"
     out3 = card3.read_text(encoding="utf-8")
-    assert "### 🔴 Where it stops\n```\nfresh cmd\n```" in out3
+    assert "## 🔴 Where it stops\n```\nfresh cmd\n```" in out3
 
 
 def test_rotate_self_stops_push_refused_leaves_commit_local(
@@ -3196,7 +3223,7 @@ def test_rotate_self_stops_file_writes_file_contents(
     assert rc == 0, capsys.readouterr().out
     body = card.read_text(encoding="utf-8")
     assert "read the file and fix seat-3" in body
-    assert "### 🔴 Where it stops" in body
+    assert "## 🔴 Where it stops" in body
     out = capsys.readouterr().out
     assert "rotation line:" in out
 
@@ -3232,7 +3259,7 @@ def test_rotate_self_stops_stdin_reads_text(
     assert rc == 0, capsys.readouterr().out
     body = card.read_text(encoding="utf-8")
     assert "from stdin, fix seat-3" in body
-    assert "### 🔴 Where it stops" in body
+    assert "## 🔴 Where it stops" in body
     out = capsys.readouterr().out
     assert "rotation line:" in out
 
@@ -3317,8 +3344,132 @@ def test_write_stops_section_stamps_rotating_header(tmp_path):
     pbody, _ = _r._write_stops_section(plain, "s", "fix", frac=0.5)
     assert "rotating at" not in pbody
     assert "carried" in pbody
-    assert plain.read_text(encoding="utf-8").count("### 🔴 Where it stops")\
-         == 1
+    # SM.69 item (1a): the CREATED slot is a `## ` SECTION, the shape the
+    # locator scans -- so a second write REPLACES it instead of appending a
+    # second block (the live six-stack).
+    assert plain.read_text(encoding="utf-8").count("Where it stops") == 1
+    assert "## 🔴 Where it stops" in pbody
+    _r._write_stops_section(plain, "s", "second cmd", frac=0.5)
+    assert plain.read_text(encoding="utf-8").count("Where it stops") == 1
+    assert "second cmd" in plain.read_text(encoding="utf-8")
+    assert "fix" not in plain.read_text(encoding="utf-8")
+
+
+def test_write_stops_section_headerless_card_round_trips(tmp_path):
+    """SM.69 item (1a) FALSIFIER: two successive `_write_stops_section`
+    calls on a HEADER-LESS card leave exactly ONE where-it-stops block. The
+    old writer appended a bare `### ` block into the PREAMBLE, which
+    `_locate_where_it_stops` never scans, so the second call created a
+    SECOND block (the live quorum/belam.md six-stack) and `rotate` refused
+    with 'card owns no where-it-stops slot'."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# Seat card\n\nsome prose, no sections at all\n",
+                    encoding="utf-8")
+    body, slot = _r._write_stops_section(card, "s", "first cmd")
+    assert slot == "created"
+    body2, slot2 = _r._write_stops_section(card, "s", "second cmd")
+    assert slot2 == "replaced", (body2, slot2)
+    txt = card.read_text(encoding="utf-8")
+    assert txt.count("Where it stops") == 1, txt
+    assert "second cmd" in txt and "first cmd" not in txt
+    # the locator the WRITER's next reader uses agrees: one titled `## ` slot
+    _pre, secs = _r._split_card_sections(txt)
+    assert _r._locate_where_it_stops(secs) == (0, -1)
+
+
+def test_write_stops_section_created_shape_is_a_hash_hash_section(tmp_path):
+    """SM.69 item (1) residue FALSIFIER: the CREATED stops slot is a `## `
+    SECTION at the card's end, never a bare `### ` block. The LEVEL is what
+    closes the write->locate round trip (`_split_card_sections` splits on
+    `## ` only), so a future change back to `### ` must fail HERE rather
+    than silently reopen the preamble hole (the live six-stack)."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# Seat card\n\nsome prose, no titled slot\n",
+                    encoding="utf-8")
+    _r._write_stops_section(card, "s", "first cmd")
+    _r._write_stops_section(card, "s", "second cmd")
+    lines = [ln for ln in card.read_text(encoding="utf-8").splitlines()
+             if "where it stops" in ln.lower()]
+    assert len(lines) == 1, lines
+    assert lines[0].startswith("## "), lines[0]
+    assert not lines[0].startswith("### "), lines[0]
+
+
+def test_rotate_self_closeout_dry_run_touches_no_card(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """SM.69 item (1b) FALSIFIER: `rotate-self --closeout --form F --dry-run`
+    leaves the seat's own card BYTE-IDENTICAL. `_closeout_apply` used to WRITE
+    the card unconditionally, before the dry-run branch was ever reached."""
+    import hashlib
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.write_text("# adv-alive card\n\n## §0 STATE\n| Meter | 0.4 |\n"
+                    "\n## §1 PLAN\n- old plan\n", encoding="utf-8")
+    _init_git_remote(tmp_path)
+    before = hashlib.sha256(card.read_bytes()).hexdigest()
+    form = tmp_path / "form.json"
+    form.write_text(json.dumps([
+        {"slot": "s0", "value": "- rewritten state"},
+        {"slot": "s1", "value": "- NEW PLAN from the form"},
+    ]), encoding="utf-8")
+    args = _rotate_self_args(tmp_path, dry_run=True, closeout=True,
+                             form=str(form))
+    rotate.cmd_rotate_self(args, tmp_path)
+    after = hashlib.sha256(card.read_bytes()).hexdigest()
+    assert before == after, "a dry run MUTATED the card"
+    assert "would apply the filled form" in capsys.readouterr().out
+
+
+def test_stops_stale_clock_grep_is_extended_regexp(tmp_path, monkeypatch):
+    """SM.69 item (1c) FALSIFIER: the harvest/merge-up clock passes
+    `--extended-regexp` to `git log --grep`. Without it `|` and the parens
+    are BRE-LITERAL, so the pattern matched the literal string
+    `(harvest|merge-up)` and never a commit (0 vs 1480 hits on this tree).
+    Also pins the honest scope: the three clocks only DECORATE the refusal
+    (the gate itself is byte-equality), so `newest work act` is named in the
+    message and never compared."""
+    from agi.bin import rotate as _r
+    card = tmp_path / "quorum" / "s.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("# s\n\n## §5 STATE\n\n### 🔴 Where it stops\n"
+                    "```\nold cmd\n```\n", encoding="utf-8")
+    _pre, _secs = _r._split_card_sections(card.read_text(encoding="utf-8"))
+    _idx, _sub = _r._locate_where_it_stops(_secs)
+    text = _r._stops_body_text(_secs[_idx][1], _sub)
+    monkeypatch.setattr(_r, "_git_toplevel", lambda root: tmp_path)
+    monkeypatch.setattr(_r, "_own_card_path", lambda root, seat: card)
+    monkeypatch.setattr(_r, "_rotations_dir", lambda root: tmp_path / "rot")
+    seen = []
+
+    class _P:
+        def __init__(self, out, rc=0):
+            self.stdout, self.returncode = out, rc
+
+    def fake_run(argv, **kw):
+        seen.append(list(argv))
+        if "--format=%H|%cs|%s" in argv:
+            return _P("deadbeef|2026-01-01|s rotate-out gen 1->2\n")
+        if "--format=%cs" in argv:
+            return _P("2026-01-03\n")
+        if "show" in argv:
+            return _P(card.read_text(encoding="utf-8"))
+        return _P("")
+
+    monkeypatch.setattr(_r.subprocess, "run", fake_run)
+    msg = _r._stops_slot_is_stale(tmp_path, "s", text)
+    assert msg and "STALE" in msg, msg
+    clk = [a for a in seen if "--grep" in a
+           and any("harvest" in x for x in a)]
+    assert clk, seen
+    assert "--extended-regexp" in clk[0], clk[0]
+    assert "newest work act" in msg
 
 
 def test_locate_where_it_stops_never_numeral(tmp_path):
@@ -3488,7 +3639,7 @@ def test_stops_write_fenced_heading_end_to_end(tmp_path):
 def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path):
     """goal:g15.25 (a) FALSIFIER — a card whose only §3 header is an untitled
     `## §3 FLOOR` followed by owner-verbatim: the numeral block stays
-    byte-identical and a TITLED `### 🔴 Where it stops` slot is CREATED at
+    byte-identical and a TITLED `## 🔴 Where it stops` slot is CREATED at
     the card end (never a replace of the untitled block)."""
     from agi.bin import rotate as _r
     card = tmp_path / "quorum" / "s.md"
@@ -3499,8 +3650,8 @@ def test_write_stops_section_numeral_slot_left_verbatim_titled_appended(tmp_path
     assert slot == "created"
     out = card.read_text(encoding="utf-8")
     assert "## §3 FLOOR\nowner verbatim line" in out   # byte-identical
-    assert out.index("## §3 FLOOR") < out.index("### 🔴 Where it stops")
-    assert "### 🔴 Where it stops\n```\nnew cmd\n```" in out
+    assert out.index("## §3 FLOOR") < out.index("## 🔴 Where it stops")
+    assert "## 🔴 Where it stops\n```\nnew cmd\n```" in out
 
 
 def test_write_stops_section_fenced_hash_line_not_a_heading(tmp_path):
@@ -3531,14 +3682,15 @@ def test_write_stops_section_fenced_hash_line_not_a_heading(tmp_path):
 def test_resolved_stops_slot_text_reports_replace_append_ambiguous(tmp_path):
     """goal:g15.25 (b) --dry-run — `_resolved_stops_slot_text` prints the
     resolved slot: a titled `###`-subheader reports its header + '(replace)';
-    a card with no titled slot reports 'none — will append at end'; an
+    a card with no titled slot reports 'none — will create at end' (SM.69
+    item 1a: the writer CREATES a `## ` section); an
     untitled `## §3` only never resolves to a replace (title-keyed)."""
     from agi.bin import rotate as _r
     card = tmp_path / "quorum" / "s.md"
     card.parent.mkdir(parents=True)
     card.write_text("# s card\n\n## Intro\nkeep\n", encoding="utf-8")
     assert _r._resolved_stops_slot_text(card) == \
-        "stops slot: none — will append at end"
+        "stops slot: none — will create at end"
     # a titled `## ` header slot reports that header + (replace)
     card.write_text("# s card\n\n## Where it stops\nnext\n",
                     encoding="utf-8")
@@ -3552,7 +3704,7 @@ def test_resolved_stops_slot_text_reports_replace_append_ambiguous(tmp_path):
     # an untitled `## §3 …` only never resolves to a replace (title-keyed)
     card.write_text("# s card\n\n## §3 FLOOR\nown\n", encoding="utf-8")
     assert _r._resolved_stops_slot_text(card) == \
-        "stops slot: none — will append at end"
+        "stops slot: none — will create at end"
     # two titled headers refuse as ambiguous
     card.write_text("# s card\n\n## Where it stops\na\n\n## Next command\nb\n",
                     encoding="utf-8")
@@ -4653,17 +4805,29 @@ def test_spawn_seat_row_is_the_model_source_flags_only_override(
     assert kw["settings"] is None          # "" -> no --settings flag (no ultracode)
     assert kw["tier"] == "director"        # the row's role, not prime_director
 
-    # explicit flags override the row
+    # goal:g15.25 re-cut (Prime XIX 07:28Z) -- a flag DIFFERING from the row
+    # cell is REFUSED by name (exit 3, nothing launched, no silent override);
+    # the row stays the ONE authority. An EQUAL flag is a no-op (the row
+    # wins). The pre-re-cut "explicit flags override the row" branch is
+    # superseded by the refusal contract.
+    n_before = len(calls)
     args2 = SimpleNamespace(name="stream-master", tier="prime_director",
                             prompt_file=None, model="claude-opus-5",
                             effort="high", settings='{"ultracode": true}',
                             tmux_session="agi-rc", window_path=None,
                             dry_run=True, successor_argv=None,
                             seat="stream-master")
-    assert rotate.cmd_spawn(args2, tmp_path) == 0
-    kw2 = calls[-1]
-    assert kw2["model"] == "claude-opus-5" and kw2["effort"] == "high"
-    assert kw2["settings"] == {"ultracode": True}
+    assert rotate.cmd_spawn(args2, tmp_path) == 3
+    assert len(calls) == n_before          # nothing launched
+    args2b = SimpleNamespace(name="stream-master", tier="prime_director",
+                             prompt_file=None, model="claude-sonnet-5",
+                             effort="max", settings=None,
+                             tmux_session="agi-rc", window_path=None,
+                             dry_run=True, successor_argv=None,
+                             seat="stream-master")
+    assert rotate.cmd_spawn(args2b, tmp_path) == 0
+    kw2b = calls[-1]
+    assert kw2b["model"] == "claude-sonnet-5" and kw2b["effort"] == "max"
 
     # seat-less generic spawn: nothing from any row, tier flag as before
     args3 = SimpleNamespace(name="belam-X", tier="kid", prompt_file=None,
