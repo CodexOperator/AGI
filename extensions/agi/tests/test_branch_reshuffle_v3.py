@@ -1809,3 +1809,106 @@ def test_rs_v3_gate_ref_keys_by_kind_and_never_returns_a_bare_name():
     assert cli._rs_v3_gate_ref(
         [], {"old": "not/a/grammar/name/@@", "new": None, "kind": "post"},
         2) is None
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-a-refused-town-set-is-never-reported-as-an-absent-one —
+# CLAUSES 4+5 (KID B): the two CALLERS consume a validation-refusal town set.
+# `_rs_town_set` (KID A) PROPAGATES a plain towns.TownError for a PRESENT-but-
+# BROKEN town:* node (never the ladder fallback, which is TownAbsentError-only).
+# Clause 4: --dry-run prints the refusal reason BY NAME and exits 0 (a plan
+# attempt is not a crash). Clause 5: --apply HARD-REFUSES non-zero — a broken
+# declared set must never be silently replaced by the ladder guess. A genuine
+# town-less graph (clause 3 / regression) stays byte-identical: --apply INERT
+# with no ladder list, and it proceeds on the ladder set when a list is present.
+# All fixture-rooted; never the real tree.
+# --------------------------------------------------------------------------
+
+_BROKEN_TOWN_NODE = (
+    "---\nid: town:broken\ntype: town\nvisions: [vision:ghost-broken]\n"
+    "council: core\nseason: 1\n---\nbody\n"
+)
+
+
+def _assert_broken_refusal(res) -> None:
+    """The shared shape of a validation-refusal consume: a named `town set
+    REFUSED` line naming the dangling vision, never the ladder fallback
+    message, never a traceback, and nothing watched silently proceed."""
+    assert "REFUSED" in res.stderr, res.stderr
+    assert "vision:ghost-broken" in res.stderr, res.stderr
+    assert "ladder fallback" not in res.stdout, res.stdout
+
+
+def test_v3_apply_broken_town_set_refuses_not_ladder(tmp_path: Path):
+    """Clause 5: a BROKEN town:* node (dangling vision id) + an explicit
+    ladder towns: list → --apply REFUSES non-zero with the named reason,
+    never silently proceeding on the ladder set. The head set is untouched."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _write(r, ".agi/nodes/town/broken.md", _BROKEN_TOWN_NODE)
+    before = _heads(r)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    _assert_broken_refusal(res)
+    assert _heads(r) == before, "a refused --apply must not reshape the tree"
+
+
+def test_v3_dry_run_broken_town_set_prints_reason_exits_zero(tmp_path: Path):
+    """Clause 4: a BROKEN town:* node under --dry-run → the refusal reason is
+    printed BY NAME (the TownError text) and the run exits 0 — a plan attempt
+    against a broken set is not a crash, and never a silent ladder guess."""
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    _write(r, ".agi/nodes/town/broken.md", _BROKEN_TOWN_NODE)
+    res = _run_cli(r / ".agi", "--dry-run", "--kinds", "towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    _assert_broken_refusal(res)
+
+
+def test_v3_apply_zero_legacy_broken_set_refuses_not_tail(tmp_path: Path):
+    """Clause 4 guard on the ZERO-legacy dry arm + Clause 5 on the zero-legacy
+    apply arm: even when there are no legacy rename jobs, the v3 tail calls
+    `_rs_town_set` again — a broken set must refuse there too (dry prints the
+    reason and exits 0; apply refuses non-zero), never reaching the tail."""
+    r = _v3_zero_legacy_repo(tmp_path)
+    _write(r, ".agi/nodes/town/broken.md", _BROKEN_TOWN_NODE)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "posts")
+    assert res.returncode != 0, res.stdout + res.stderr
+    _assert_broken_refusal(res)
+
+
+def _v3_ladder_only(repo: Path, towns_list: bool) -> None:
+    """Rewrite a fixture CHECKOUT's ladder (under .agi/) with OR without the
+    towns: list, so the two genuine-ABSENCE apply arms (no town:* node, list
+    present vs absent) are pinned against the same repo."""
+    lines = "---\nid: ladder:ladder\ncurrent_season: 2\n"
+    if towns_list:
+        lines += "towns: [core, streaming-suite, web-app-suite]\n"
+    lines += "---\nbody\n"
+    _write(repo, ".agi/nodes/.geometry/ladder.md", lines)
+
+
+def test_v3_apply_no_towns_no_ladder_list_is_inert(tmp_path: Path):
+    """Clause 3 regression pin: a graph with NO town:* nodes AND NO ladder
+    towns: list → --apply stays INERT exactly as today (only the v2 migration
+    surface applies). Zero behaviour change on the genuine town-less path."""
+    r = _v3_repo(tmp_path, with_town_nodes=False)
+    _v3_ladder_only(r, towns_list=False)
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "main,posts,towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "INERT" in res.stdout, res.stdout
+    # the v3 TOWN-FIRST tree is NOT drawn on a town-less graph: no v3 trunk-
+    # pair create line (the apply surface is exactly the v2 legacy
+    # master->season1/main rename — today's town-less path).
+    assert "branch create (v3)" not in res.stdout, res.stdout
+
+
+def test_v3_apply_no_towns_ladder_list_proceeds_on_ladder(tmp_path: Path):
+    """Clause 5 guard: no town:* nodes but the ladder carries an explicit
+    towns: list (a genuine ABSENCE, declared=True) → --apply PROCEEDS on the
+    ladder set exactly as today — only a VALIDATION refusal is hard, never a
+    genuine town-less graph. The ladder-fallback source line is printed."""
+    r = _v3_repo(tmp_path, with_town_nodes=False)  # ladder has towns: list
+    root = r / ".agi"
+    res = _run_cli(root, "--apply", "--kinds", "towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "ladder fallback" in res.stdout, res.stdout
+    assert "REFUSED" not in res.stderr, res.stderr
