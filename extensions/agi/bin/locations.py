@@ -280,10 +280,13 @@ def git_common_root(root: Path) -> Path:
 
 def is_live_checkout(root: Path) -> bool:
     """True when `root` sits inside this engine copy's own live checkout
-    (claim 1: a suite basetemp there makes git-escaping writers hit LIVE)."""
+    (claim 1: a suite basetemp there makes git-escaping writers hit LIVE).
+    A path with no git common root (None) is never the live checkout.
+    """
     try:
-        return git_common_root(Path(root).resolve()) == git_common_root(
-            Path(__file__).resolve())
+        g = git_common_root(Path(root).resolve())
+        e = git_common_root(Path(__file__).resolve())
+        return g is not None and e is not None and g == e
     except Exception:
         return False
 
