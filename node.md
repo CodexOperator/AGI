@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 brief addendum for the kid: rotate.py already carries _suite_lock_state_readonly(groot) (used by cmd_merge_up to name the lock state in its refusal line) -- the read-only judgement this node asks for may already exist there; REUSE or move it into verification.py beside acquire_suite_lock rather than writing a third reader, and make _suite_lock_guard and grid.py the callers. Ceiling unchanged.
