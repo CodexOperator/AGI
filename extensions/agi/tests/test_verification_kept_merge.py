@@ -196,7 +196,7 @@ def test_drop_on_kept_merge_still_fails_never_stamps(tmp_path, monkeypatch):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
     (groot / "sessions" / verification.STATE_FILE).write_text(json.dumps(
-        {"active": 9999, "deprecated": 0, "total": 0}))
+        {"active": 9999, "deprecated": 0, "total": 9999}))
     monkeypatch.setattr(verification, "_stamp_context",
                         lambda groot: (True, "abc", "kept"))
     r = verification.compare_count(groot, CURRENT)
@@ -213,7 +213,7 @@ def test_drop_still_fails_but_never_stamps(tmp_path):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
     (groot / "sessions" / verification.STATE_FILE).write_text(
-        json.dumps({"active": 9999, "deprecated": 0, "total": 0}))
+        json.dumps({"active": 9999, "deprecated": 0, "total": 9999}))
     r = verification.compare_count(groot, {"active": 1707,
                                            "deprecated": 194, "total": 1901})
     assert r.status == "FAIL"
@@ -315,7 +315,7 @@ def test_stamp_with_fresh_count_below_baseline_fails_never_writes(tmp_path, monk
     nc = next((r for r in results if r.name == "node-count"), None)
     assert nc is not None, "--stamp must emit a node-count check even on quick"
     assert nc.status == "FAIL", nc.note
-    assert "below baseline=1712" in nc.note
+    assert "below baseline=1908" in nc.note
     assert state_path.read_bytes() == before, (
         "a FAILING --stamp must not write the state file")
 

@@ -197,12 +197,17 @@ def test_count_first_run_records_and_passes(tmp_path, monkeypatch):
 def test_count_drop_is_a_failure_that_names_the_drop(tmp_path):
     groot = tmp_path / ".agi"
     (groot / "sessions").mkdir(parents=True)
+    # a NODE COUNT drop (active AND total below baseline) is still a FAIL;
+    # the baseline total is what the gate compares, so it must be set above
+    # the incoming total for the drop to register (SM.34/H0/H0b preserved).
     (groot / "sessions" / "verify-count.json").write_text(
-        json.dumps({"active": 9999, "deprecated": 0, "total": 0}))
+        json.dumps({"active": 9999, "deprecated": 0, "total": 9999}))
     r = verification.compare_count(groot, {"active": 1707,
                                            "deprecated": 194, "total": 1901})
     assert r.status == "FAIL"
-    assert "active=1707 below baseline=9999" in r.note
+    assert r.note.startswith("NODE COUNT DROPPED")
+    assert "total=1901 below baseline=9999" in r.note
+    assert "no committed manifest on record (counts only)" in r.note
 
 
 def test_count_steady_updates_baseline_and_passes(tmp_path, monkeypatch):
@@ -218,6 +223,86 @@ def test_count_steady_updates_baseline_and_passes(tmp_path, monkeypatch):
     state = json.loads((groot / "sessions" / "verify-count.json").read_text())
     assert state["active"] == newer["active"]
     assert state["sha"] == "bee"
+
+
+def _committed_repo(root: Path, files: dict[str, str], branch: str = "mb") -> None:
+    """Build a real git tree at `root` with the given committed node files,
+    HEAD pushed (a clean committed tree `_node_manifest`/`_committed_deprecated`
+    can answer, and `_stamp_context` stays mockable)."""
+    sp = subprocess.run
+    root.mkdir(parents=True, exist_ok=True)
+    sp(["git", "init", "-b", branch], cwd=root, check=True,
+       capture_output=True, text=True)
+    sp(["git", "config", "user.email", "t@t"], cwd=root, check=True)
+    sp(["git", "config", "user.name", "t"], cwd=root, check=True)
+    for rel, body in files.items():
+        p = root / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+    sp(["git", "add", "-A"], cwd=root, check=True, capture_output=True,
+       text=True)
+    sp(["git", "commit", "-m", "init"], cwd=root, check=True,
+       capture_output=True, text=True)
+
+
+NODE = lambda name: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: active\n---\n# {name}\n\n")
+DEP_NODE = lambda name: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: deprecated\n---\n# {name}\n\n")
+
+
+def _baseline(groot: Path, doc: dict) -> None:
+    (groot / "sessions").mkdir(parents=True, exist_ok=True)
+    (groot / "sessions" / verification.STATE_FILE).write_text(
+        json.dumps(doc))
+
+
+def test_retire_move_passes_and_restamps(tmp_path, monkeypatch):
+    """Fixture (c): a retire pass — active -N, deprecated +N, total unchanged
+    — PASSes node-count and re-stamps the baseline. The missing baseline path
+    `nodes/experiment/move-me.md` is counted as a MOVE (its basename exists
+    under `nodes/deprecated/experiment/` at HEAD), never as a loss."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        # HEAD: move-me has RETIRED — it now lives under deprecated/ and
+        # the active copy is gone. The stamped manifest (below) still lists
+        # it ACTIVE, so an absent baseline path must resolve as a MOVE.
+        ".agi/nodes/deprecated/experiment/move-me.md": DEP_NODE("move-me"),
+        ".agi/nodes/hypothesis/h1.md": NODE("h1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "PASS", r.note
+    assert "moved to deprecated: nodes/experiment/move-me.md" in r.note
+    assert "baseline updated" in r.note
+    st = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
+    assert st["active"] == 1 and st["deprecated"] == 1 and st["total"] == 2
+
+
+def test_real_deletion_still_fails_by_name(tmp_path, monkeypatch):
+    """Fixture (c): a real deletion — the missing baseline path has no
+    deprecated home at HEAD — still FAILs node-count and names the file."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {".agi/nodes/hypothesis/h1.md": NODE("h1")})
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/gone.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 0, "total": 1})
+    assert r.status == "FAIL"
+    assert "missing committed file(s): nodes/experiment/gone.md" in r.note
+    assert "H0/H0b: 29k nodes lost to a silent drop" in r.note
 
 
 def test_suite_opt_in_appends_tests_only_when_requested(monkeypatch, tmp_path):
