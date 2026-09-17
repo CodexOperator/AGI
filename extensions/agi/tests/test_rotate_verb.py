@@ -356,10 +356,13 @@ def test_retry_after_blocked_rotate_out_not_stale(tmp_path, monkeypatch,
     _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
     # the generation NEVER advanced: the row still reads 4 -> the rotate-out
     # was aborted, this is a same-seating retry (not a predecessor stale).
-    hand = tmp_path / "sessions" / "seats"
-    hand.mkdir(parents=True, exist_ok=True)
-    (hand / "prime.handoff.md").write_text(
-        "seat: prime\ngeneration: 4\n", encoding="utf-8")
+    # Seed the LATEST ROTATION RECORD at gen 4 -- the engine-written source
+    # `_generation_measured` falls back to (never the handoff header).
+    _rec = rotate._sessions_dir(tmp_path) / "rotations"
+    _rec.mkdir(parents=True, exist_ok=True)
+    (_rec / "prime.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": "prime",
+                    "gen_after": 4}), encoding="utf-8")
     monkeypatch.setenv("AGI_POST", "prime")
     monkeypatch.delenv("AGI_SEAT", raising=False)
     captured = {}
