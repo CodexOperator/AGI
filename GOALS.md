@@ -9930,6 +9930,8 @@ SM.98 harvested: suite-lock read-only holder judgement landed, both probe-only c
 
 SM.96 harvested: pi_trajectory.py --help exits 0 (3 net production lines), test_suite_no_detached_spawn.py ppid-1 matcher now requires a real pytest launch (argv0 basename or -m pytest) not a bare substring mention -- bundled with SM.95s stops-wording piggyback (production already said UNCHANGED since, only the test was stale) and an ack-cell-printer width fix scoped to cells not every printed line. accepted=4 proved, demoted=1 lean_disproved (a00-36dc69c9, superseded by a00-a702edb8). Verified all four fixes against actual bytes, not prose. Both previously-tracked pre-existing failures (pi_trajectory help smoke, stops-stale wording) are now green: 387 passed, 4 skipped, 0 failed on test_rotate+test_suite_no_detached_spawn+test_bin_help_smoke. Branch season2/loops/hypothesis-l4-the-trajectory-wra-a00-aba8ae4b merged.
 
+SM gen 6 ruling 10:0xZ: SM.93 (hypothesis:l4-a-posts-generation-is-measured-from-its-row-or-latest-record-never-from-a-handoff-header-it-can-hand-edit) SUPERSEDES the g15 invariant that non-prime posts rows carry no generation cell -- every row now persists one at the successor-row write, the handoff header is never a gate source; the inverted test is named on the node; the prior claim stays as prior art.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
