@@ -354,6 +354,27 @@ def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:
     return rounds
 
 
+#: hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-the-
+#: first — minutes between repeat OVERDUE dms (comms.overdue_repeat_min,
+#: default 30). Read the SAME `comms` block send.py owns.
+_OVERDUE_REPEAT_MIN_DEFAULT = 30
+
+
+def _overdue_repeat_s(root: Path) -> int:
+    """Seconds between repeat overdue dms: `comms.overdue_repeat_min` minutes
+    (default 30; absent/non-positive falls back, never a repeat storm)."""
+    mins = _OVERDUE_REPEAT_MIN_DEFAULT
+    try:
+        import send as _send  # noqa: PLC0415
+        comms = (locations.load_config(_send._main_graph_root(root))
+                 or {}).get("comms") or {}
+        if isinstance(comms, dict) and "overdue_repeat_min" in comms:
+            mins = int(float(comms["overdue_repeat_min"]))
+    except Exception:  # noqa: BLE001 -- a config problem never blocks the watch
+        mins = _OVERDUE_REPEAT_MIN_DEFAULT
+    return (mins if mins > 0 else _OVERDUE_REPEAT_MIN_DEFAULT) * 60
+
+
 def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
     """One watcher pass over one round: death reap (via `_reap_pass`), then a
     timeout check for every agent still `running`.
@@ -484,10 +505,25 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         # as still-working so no replacement is cut. The admin heap
         # path that actually TERMs a hung pid is the one place a `timeout`
         # verdict is legal; the watcher never derives it.
+        # hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-
+        # the-first: a live pid overdue past `comms.overdue_repeat_min` gets
+        # ONE more dm per window (a NEW event); status stays `running`.
         if rec.get("overdue_since"):
-            _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} STILL "
-                       f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; "
-                       f"pid {pid} alive)")
+            last = int(rec.get("overdue_last_alarm") or rec["overdue_since"])
+            now = int(time.time())
+            repeat_s = _overdue_repeat_s(root)
+            if now - last >= repeat_s:
+                rec["overdue_last_alarm"] = now
+                rec_path.write_text(json.dumps(rec, indent=2))
+                _alarm_dispatcher(rec, iter_dir.name, "overdue", root)
+                _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} "
+                           f"STILL OVERDUE repeat (elapsed {elapsed // 60}m > "
+                           f"{timeout_s // 60}m; pid {pid} alive; "
+                           f"{repeat_s // 60}m cadence)")
+            else:
+                _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} STILL "
+                           f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; "
+                           f"pid {pid} alive)")
             continue
         rec["overdue_since"] = int(time.time())
         rec["overdue_reason"] = (f"past manifest timeout_seconds={timeout_s} "
