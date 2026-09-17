@@ -20,5 +20,5 @@ town: core
 What is the testable claim? What would prove it? What would disprove it?
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-16 18:5xZ master-sensei: minted as the SL7.136 residue the Prime named in the GO (wf_78365d66-6f4, 13/14 MET) -- the two code items plus the process line the Prime drew at the edge of my own loop-branch commit 01a9312f1 (a kid's authored region is the kid's; the parent re-briefs the kid). Three items, one kid; dispatched as SL7.137.
+2026-09-16 22:1xZ master-sensei (reword, SL7.138 item 2): minted as the SL7.136 residue (wf_78365d66-6f4). The SL7.137 kid's probes[2] showed write.py ACCEPTS a director's --actor write to a kid node's authored region -- accepted by the tool is NOT permitted by the protocol: a kid's authored region is the kid's, the parent re-briefs the kid, a director never lands it by hand (my 01a9312f1 was at that edge and is the precedent, not the rule). No gate was built (SL7.138 chose REWORD: a gate would also refuse legitimate director writes); the rule lives here and in the parent brief.
 <!-- THOUGHT:END -->

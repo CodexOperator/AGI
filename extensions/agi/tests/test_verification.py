@@ -316,6 +316,57 @@ def test_only_the_suite_check_gets_the_suite_ceiling(monkeypatch, tmp_path):
     assert calls == [verification.SUITE_TIMEOUT, verification.PER_CHECK_TIMEOUT]
 
 
+def test_suite_check_gets_a_private_basetemp(monkeypatch, tmp_path):
+    """The suite runner passes its OWN --basetemp dir (created then removed),
+    never pytest's SHARED /tmp/pytest-of-<user> tree that a concurrent run
+    prunes to 3 and deleted this runner's tree mid-run (claim (2)). Since the
+    dee5b3221 in-repo placement, that private dir is `tempfile.mkdtemp(
+    prefix='agi-suite-')` under the SYSTEM tmp -- NEVER the repo (claim (2)):
+    a basetemp inside the live checkout makes git-escaping writers hit LIVE."""
+    class _Proc:
+        returncode = 0
+        stdout = "1 passed\n"
+        stderr = ""
+    table = {verification.SUITE_CMD:
+             type("C", (), {"argv": ["true"], "cwd": None})()}
+    monkeypatch.setattr(verification.commands, "load", lambda groot: table)
+    seen = {}
+    def _run(argv, **kw):
+        bt = [a for a in argv if a.startswith("--basetemp=")]
+        seen["arg"] = bt[0] if bt else None
+        seen["present"] = Path(bt[0].split("=", 1)[1]).is_dir() if bt else None
+        return _Proc()
+    monkeypatch.setattr(verification.subprocess, "run", _run)
+    r = verification.run_check(tmp_path, verification.SUITE_CMD, False)
+    assert r.status == "PASS"
+    assert seen["arg"] is not None
+    bt_path = Path(seen["arg"].split("=", 1)[1])
+    # the runner owns a UNIQUE dir directly under the SYSTEM tmp — never
+    # pytest's SHARED default basetemp root nor the live checkout.
+    assert bt_path.parent == Path(verification.tempfile.gettempdir()).resolve()
+    assert bt_path.name.startswith("agi-suite-")
+    assert seen["present"] is True                # owned dir EXISTS during run
+    assert not bt_path.exists()                    # removed after the run
+
+
+def test_non_suite_check_argv_untouched(monkeypatch, tmp_path):
+    """Only the SUITE gets a private basetemp; a regular check's argv is
+    unchanged (no --basetemp injected)."""
+    class _Proc:
+        returncode = 0
+        stdout = "links: 1 resolved, 0 broken\n"
+        stderr = ""
+    table = {"links": type("C", (), {"argv": ["true"], "cwd": None})()}
+    monkeypatch.setattr(verification.commands, "load", lambda groot: table)
+    seen = {}
+    monkeypatch.setattr(verification.subprocess, "run",
+                        lambda argv, **kw: (seen.__setitem__("argv", argv),
+                                            _Proc())[1])
+    verification.run_check(tmp_path, "links", False)
+    assert seen["argv"] == ["true"]
+    assert not any(a.startswith("--basetemp") for a in seen["argv"])
+
+
 def test_lock_acquire_returns_path_and_no_holder(tmp_path):
     """Success is `(path, None)`: a path to release and nobody to wait for."""
     path, holder = verification.acquire_suite_lock(tmp_path)

@@ -169,6 +169,19 @@ def test_kid_brief_names_its_production_line_ceiling():
     assert "re-brief" in kid, "what to do above 2x"
 
 
+def test_kid_brief_checkpoints_before_cli_done_not_at_first_commit():
+    """hypothesis:l4-cli-done-refuses-a-kid-past-2x-..., conjunct (2): the
+    kid's checkpoint is 'before `cli.py done`' -- the ONE checkpoint every
+    kid reaches -- never 'first commit' / 'first test run', which are dead
+    for a kid forbidden all git and never guaranteed a test run. The
+    ceiling number and measure semantics stay."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "Checkpoint before `cli.py done`: measure those lines." in kid
+    assert "FIRST commit" not in kid
+    assert "first test run" not in kid
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
 def test_kid_brief_reads_the_ceiling_from_config_not_a_constant(tmp_path):
     """The ceiling is READ, not hardcoded: a project that sets
     `spawn.production_line_ceiling` sees its own number and its own 2x.
@@ -2021,6 +2034,30 @@ def test_parent_brief_hands_the_diff_and_probe_duty_not_the_kid():
     # the kid brief must NOT acquire any of them
     assert "git diff merge-base" not in kid
     assert "one negative probe per claim conjunct" not in kid
+
+
+def test_parent_brief_checks_every_named_deliverable_against_the_diff():
+    """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
+    says-timed-out-and-the-done-tests-stay-hermetic item (4), from SM 20:33Z
+    director gen 29 and SL7.136 item 14 (a kid claimed a node edit its branch
+    never carried): the diff rule named the COMMAND but not the per-
+    deliverable duty. A claimed-but-absent deliverable demotes the kid, and is
+    never patched by the parent or the director.
+
+    The kid brief still must NOT acquire it.
+    """
+    parent = _text("parent", dispatch_py="/x/dispatch.py", target="hypothesis:y")
+    flat = " ".join(parent.split())
+    assert "CHECK EVERY DELIVERABLE THE KID NAMES AGAINST THAT DIFF" in flat, \
+        "parent brief must check each named deliverable against the diff"
+    assert "never against its thought or its summary" in flat.lower(), flat
+    assert "inconclusive_lean_disproved" in parent, \
+        "a claimed-but-absent deliverable must name the demotion"
+    assert "never silently patched by you and never by the director" in flat, \
+        "the parent and the director must not patch a missing deliverable"
+    kid = _text("kid", scaffold=SCAFFOLD)
+    assert "CHECK EVERY DELIVERABLE" not in kid, \
+        "the diff-per-deliverable duty is the PARENT's, never the kid's"
 
 
 def test_orders_render_on_the_survival_profile_and_never_on_a_kid(monkeypatch):

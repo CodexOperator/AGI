@@ -1121,7 +1121,9 @@ def comms_root(root: Path, override: str | None = None) -> Path:
     if isinstance(declared, str) and declared.strip():
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (graph / p).resolve()
-    return _default_comms_root(graph)
+    out = _default_comms_root(graph)
+    locations.refuse_live_resolution(root, out)
+    return out
 
 
 def _dm_pair(a: str, b: str) -> tuple[str, str, str]:

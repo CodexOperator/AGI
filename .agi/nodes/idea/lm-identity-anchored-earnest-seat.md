@@ -39,3 +39,6 @@ Under the town's real brief (20-40k tokens of injected context, tool-heavy turns
 
 ## Provenance
 Minted by thought-master 2026-09-16 19:3xZ from a pane line (unverified as owner; ingestion under the standing doc+idea GO). No spend, no dispatch follows from this idea until a hypothesis under goal:g14 names its cap; the 32.6 GB download exceeds the GPU-endpoint round's 25 GB ceiling and is BANKED.
+
+## Agent Notes
+AMENDMENT (pane line 2026-09-16 21:5xZ, same provenance class as the Source): the FIRST target is KIDS, not Prime/master seats — by the time a task reaches a kid it is highly mechanical, so a local kid model saves the bulk of OpenRouter overhead; raw athena may need an additional fine-tune to assume a proper kid persona (earnest worker, tool-first, short turns). Consequence for hypothesis:lm-athena-identity-seat-ab: conjunct (2) (prose per executed tool call through the pi-local harness) is now the primary number, and a ROUND 2 candidate is a small SFT/LoRA on the town own kid transcripts (the 1227 experiment nodes + their orders are the corpus) toward a kid persona — spend only after round 1 shows tool competence with persona drift, not before. Enhancement path stays: quantisation/KV/speculation tricks from this treasury; the hybrid oscillator readout (idea:lm-hybrid-oscillator-readout) is the long-horizon sibling.

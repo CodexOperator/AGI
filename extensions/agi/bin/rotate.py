@@ -316,7 +316,9 @@ def _sessions_dir(root: Path) -> Path:
     room resolver); both are one implementation so the plain join and the
     shared resolver can never disagree (falsifier g4 of hypothesis:l4-a-check-
     that-answers-a-question-it-is-not-asking)."""
-    return locations.shared_sessions_dir(root)
+    out = locations.shared_sessions_dir(root)
+    locations.refuse_live_resolution(root, out)
+    return out
 
 
 def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
@@ -1808,6 +1810,37 @@ def _seat_liveness_note(seat: str | None, *, row_pid, argv_pid,
     return None
 
 
+# goal:g15.25 re-cut (Prime XIX 07:28Z): the ROW is the ONE source for the
+# launch model/effort/settings -- a differing --model/--effort/--settings
+# refuses by name (exit 3 at the call site); equal flag = no-op. Returns
+# the refusal line, or None when clean.
+def _row_launch_refusal(args, row):
+    if row is None:
+        return None
+    def _line(name, flag, cell):
+        if flag is None or flag == (cell or ""):
+            return None
+        return (f"--{name} {flag} differs from the row: {name} {(cell or '')}; "
+                f"the row changes only through write.py by the Prime/owner "
+                f"ahead of the rotation")
+    for name, flag, cell in (
+            ("model", args.model, row.get("model")),
+            ("effort", args.effort, row.get("effort"))):
+        ln = _line(name, flag, cell)
+        if ln:
+            return ln
+    if args.settings:
+        try:
+            flag_s = json.loads(args.settings)
+        except json.JSONDecodeError:
+            flag_s = args.settings
+        if flag_s != _normalize_settings(row.get("settings")):
+            return (f"--settings {args.settings} differs from the row: "
+                    f"settings {row.get('settings') or ''}; row changes only "
+                    f"via write.py by the Prime/owner ahead of the rotation")
+    return None
+
+
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command."""
 
@@ -1931,6 +1964,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             print("[seating] no project root: template + bootstrap skipped")
         else:
             _srow = _find_seat(root, seat)
+            # re-cut: a differing flag refuses here, before any write/launch.
+            _rowref = _row_launch_refusal(args, _srow)
+            if _rowref:
+                print(_rowref, file=sys.stderr)
+                return 3
             if _srow is not None and _srow.get("role"):
                 _fs_role = _srow["role"]
             _rowgen = _seat_row_generation(root, seat)
@@ -3404,16 +3442,6 @@ class RenameTownRefusal(Exception):
     non-zero -- never a silent legacy fallback."""
 
 
-def _row_season(root: Path | None) -> int:
-    """The season NUMBER a town-first branch carries, from the SAME ladder
-    field `season_branch` reads; the pre-town-first literal 2 is the fallback."""
-    s = load_ladder_field(root, "current_season", None) if root else None
-    try:
-        return max(1, int(s))
-    except (TypeError, ValueError):
-        return 2
-
-
 def _row_town_or_refuse(root: Path | None, name: str) -> str:
     """The row's REAL town through `towns.row_town` -- a declared cell wins,
     the transitional map retires itself -- or a NAMED REFUSAL."""
@@ -3428,7 +3456,8 @@ def _row_town_or_refuse(root: Path | None, name: str) -> str:
 def _local_branches(root: Path | None) -> list[str] | None:
     """Every LOCAL branch short name under `refs/heads`, or None when git
     cannot answer (a gitless fixture). None means CANNOT ANSWER, never
-    `no refs`: the caller keeps the derived spelling."""
+    `no refs`: the caller prints the reason by name and skips the branch
+    surfaces -- since SM.62 it never keeps a derived spelling."""
     if root is None:
         return None
     try:
@@ -3438,14 +3467,33 @@ def _local_branches(root: Path | None) -> list[str] | None:
         return None
 
 
+def _post_leaf(ref: str, name: str) -> bool:
+    """True when `ref` is a LEAF under `name`'s post prefix
+    (`<prefix>/posts/<name>/<leaf>`), a ref branches.parse rejects because
+    the post grammar knows only its `main` (SM.69 item 3f)."""
+    i = ref.find(f"/posts/{name}/")
+    if i <= 0 or not ref[i + len(name) + 8:]:
+        return False
+    for cand in (ref[:i] + f"/posts/{name}/main", ref[:i] + f"/posts/{name}"):
+        try:
+            p = branches.parse(cand)
+        except ValueError:
+            continue
+        if p.get("kind") in ("post", "v3_post"):
+            return True
+    return False
+
+
 def _town_post_branch(root: Path | None, name: str,
-                      reader=None) -> str | None:
+                      reader=None) -> list[tuple[str, dict | None]] | None:
     """The REAL town-first post branch for `name`, read from local refs.
     SM.62: a post's HOME town (`towns.row_town`) and the PROJECT town its
     branch builds on (`core/`, `web-app-suite/`, ...) are SEPARATE axes, so
-    this NEVER derives a spelling from the row cell. Returns the real ref
-    spelling when the refs carry exactly one (town, town_season) tuple for
-    the post; a NAMED RenameTownRefusal when several real refs disagree;
+    this NEVER derives a spelling from the row cell. Returns EVERY real ref
+    for the post -- its `main` (paired with its parse record) AND every leaf
+    under the post's prefix (SM.69 item 3f: the rename follows the post name,
+    so every leaf moves with it); a NAMED RenameTownRefusal when the real
+    `main` refs disagree on (town, town_season);
     None when git cannot answer or the post has no real ref -- the branch
     surfaces are then SKIPPED BY NAME and the reason is printed here, the
     one place that knows whether git could answer at all."""
@@ -3459,6 +3507,8 @@ def _town_post_branch(root: Path | None, name: str,
         try:
             p = branches.parse(n)
         except ValueError:
+            if _post_leaf(n, name):
+                real.append((n, None))
             continue
         if p.get("kind") in ("post", "v3_post") and p.get("name") == name:
             real.append((n, p))
@@ -3468,6 +3518,8 @@ def _town_post_branch(root: Path | None, name: str,
         return None
     tuples = []
     for _ref, p in real:
+        if p is None:
+            continue
         t = (p.get("town"), p.get("town_season"))
         if t not in tuples:
             tuples.append(t)
@@ -3475,20 +3527,14 @@ def _town_post_branch(root: Path | None, name: str,
         raise RenameTownRefusal(
             f"rename-post REFUSED: {name} has real branches that disagree "
             f"({', '.join(ref for ref, _ in real)})")
-    return real[0][0]
+    return real
 
 
-def _rename_post_segment(branch: str, name: str) -> str:
-    """`branch`'s post segment renamed to `name`, keeping the SAME (town,
-    town_season) tuple -- a rename never moves a post's season. SM.62: a
-    legacy town-less post ref has no town segment, so its
-    shape is preserved verbatim by swapping the post segment alone (the
-    real ref is never re-spelled into a town-first one)."""
-    p = branches.parse(branch)
-    if p.get("town") is None:
-        return branch.replace(f"/posts/{p['name']}", f"/posts/{name}")
-    return branches.derive_names(p["town"], p["town_season"],
-                                 post=name)["post_main"]
+def _rename_post_segment(branch: str, old: str, name: str) -> str:
+    """`branch`'s `old` post segment renamed to `name`, keeping the SAME
+    (town, town_season) tuple and any leaf under it (SM.69 item 3f). The post
+    segment alone is swapped, so a legacy town-less ref keeps its shape."""
+    return branch.replace(f"/posts/{old}", f"/posts/{name}")
 
 
 def _rename_surfaces(root: Path, old: str, new: str,
@@ -3562,14 +3608,15 @@ def _rename_surfaces(root: Path, old: str, new: str,
             raise RenameTownRefusal(
                 f"rename-post REFUSED: {old} is in town {old_town}, the new "
                 f"name {new} is a row in town {new_town}")
-    old_branch = _town_post_branch(root, old, branches_reader)
+    old_branches = _town_post_branch(root, old, branches_reader)
     add("worktree dir", f".agi/worktrees/post-{old}",
         f".agi/worktrees/post-{new}", "seam-git")
-    if old_branch is not None:
-        new_branch = _rename_post_segment(old_branch, new)
-        add("branch", old_branch, new_branch, "seam-git")
-        add("branch (origin)", f"origin/{old_branch}",
-            f"origin/{new_branch}", "seam-git")
+    for _ob, _p in old_branches or []:
+        _nb = _rename_post_segment(_ob, old, new)
+        add("branch", _ob, _nb, "seam-git")
+        if _p is not None:  # the post's `main` carries the origin/mirror row
+            add("branch (origin)", f"origin/{_ob}", f"origin/{_nb}",
+                "seam-git")
     add("tmux window", old, new, "seam-tmux")
     add("tmux session", f"view-{old}", f"view-{new}", "seam-tmux")
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
@@ -4281,8 +4328,11 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
                   f"{exc}", file=sys.stderr)
             return 4
         print(f"merge-up: {line}")
-        # The seat's OWN last act (conjunct 1): a post merged up.
-        last_act.touch_env(root, post)
+        # The CALLER's own last act (conjunct 1, SM.48 residue 1): a merge-up
+        # is an act BY WHOEVER RAN IT. Stamping `post` (the TARGET) re-stales
+        # the merged post's own card -- the captive loop from the other side.
+        if caller_post:
+            last_act.touch_env(root, caller_post)
         return 0
     finally:
         try:
@@ -7461,9 +7511,10 @@ def _locate_where_it_stops(sections) -> tuple[int, int] | str | None:
 def _resolved_stops_slot_text(card_path: Path) -> str:
     """The rotate-self --stops --dry-run 'stops slot:' line for a card, read
     fresh and never written: the located header line + '(replace)', or
-    'none — will append at end' when no titled slot exists, or the ambiguous
-    refusal. Keys on TITLE only (the numeral fallback is deleted), so a card
-    carrying only `## §3 …` (no title) reports append-at-end."""
+    'none — will create at end' when no titled slot exists (the caller then
+    CREATES a `## 🔴 Where it stops` section at the card's end), or the
+    ambiguous refusal. Keys on TITLE only (the numeral fallback is deleted),
+    so a card carrying only `## §3 …` (no title) reads as create-at-end."""
     card_txt = (card_path.read_text(encoding="utf-8")
                 if card_path.exists() else "")
     _preamble, _secs = _split_card_sections(card_txt)
@@ -7474,7 +7525,7 @@ def _resolved_stops_slot_text(card_path: Path) -> str:
         _sec = _secs[_slot[0]]
         _hdr = _sec[0] if _slot[1] < 0 else _sec[1].splitlines()[_slot[1]]
         return f"stops slot: {_hdr.strip()} (replace)"
-    return "stops slot: none — will append at end"
+    return "stops slot: none — will create at end"
 
 
 def _locate_banked(sections) -> tuple[int, int] | str | None:
@@ -7985,7 +8036,8 @@ def _closeout_quote_refused(root: Path, value: str) -> str | None:
 
 
 def _closeout_apply(root: Path, seat: str, role: str,
-                    filled: dict[str, str], template: dict | None):
+                    filled: dict[str, str], template: dict | None,
+                    write: bool = True):
     """Apply a filled form to the seat's own card BY CODE. Non-§3 slots
     replace their section's BODY (header kept), `keep` carries the current
     value, and a missing section is appended; §3 is NOT written here — its
@@ -8043,8 +8095,9 @@ def _closeout_apply(root: Path, seat: str, role: str,
             f"composed card is {line_count} lines, over the "
             f"{HANDOFF_CARD_LIMIT_LINES}-line guard; cut the biggest "
             f"section ({biggest})")
-    card.parent.mkdir(parents=True, exist_ok=True)
-    card.write_text(full, encoding="utf-8")
+    if write:                     # `--dry-run` gets the composed bytes and
+        card.parent.mkdir(parents=True, exist_ok=True)   # touches nothing
+        card.write_text(full, encoding="utf-8")
     return full, s3_value, None
 
 
@@ -9023,6 +9076,7 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
     import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
+    locations.refuse_live_resolution(root, main_root)
     rows = write._load_seats(main_root)
     new_rows: list[dict] = []
     found = False
@@ -13072,6 +13126,18 @@ def _derive_pred_pids(root: Path, seat: str,
                 pid = c.get("pid") if isinstance(c, dict) else c
                 if pid is not None and str(pid).lstrip("-").isdigit():
                     pids.append(str(pid))
+            # (b) when the own chain is absent/empty, fall back to the
+            # Belam FIFO-cap reap evidence (s12_self_reap.belam_reap.chain)
+            # so the reap-proof greps the reaped OLDEST chain, never '{pred_pids}
+            # empty'. Both shapes are the same (e) `{pid}` list `_record_s12_self_reap`
+            # writes for the own chain.
+            if not pids:
+                belam = reap.get("belam_reap")
+                if isinstance(belam, dict):
+                    for c in belam.get("chain") or []:
+                        pid = c.get("pid") if isinstance(c, dict) else c
+                        if pid is not None and str(pid).lstrip("-").isdigit():
+                            pids.append(str(pid))
             if pids:
                 return _pred_pids_alternation(pids)
     try:
@@ -14308,6 +14374,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     # on-disk block — not just the returned dict — names the
                     # bytes that ran it.
                     "code_head": _code_head(root),
+                    "code_loaded": _LOADED_ROTATE_IDENTITY,
                 }
                 if isinstance(_prev_aj, dict):
                     for _k in ("claimed_at", "claim_key"):
@@ -14382,6 +14449,24 @@ def _code_head(root: Path) -> str:
     any git refusal, never raising."""
     lines = _git_maybe(root, "rev-parse", "HEAD")
     return (lines[0][:7] if lines and lines[0] else "")
+
+
+def _code_loaded_identity() -> str:
+    """The LOADED rotate.py identity, captured AT IMPORT so a stale image is
+    visible by name: `code_loaded` (rotate.py mtime:size at import -- the bytes
+    these functions actually run) sits BESIDE `code_head` (the HEAD that
+    committed those bytes). When the on-disk image diverges from the loaded
+    one (a process started before an uncommitted/mid-merge edit), the two
+    cells disagree by name in the rotation record. Best-effort: '' on stat
+    failure."""
+    try:
+        _st = Path(__file__).resolve().stat()
+        return f"{int(_st.st_mtime)}:{int(_st.st_size)}"
+    except OSError:
+        return ""
+
+
+_LOADED_ROTATE_IDENTITY = _code_loaded_identity()
 
 
 def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
@@ -14539,7 +14624,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                 pass  # best-effort: the skip still happened
         return {"skipped": "no live session", "age_s": age_s,
                 "late": bool(late), "record_path": str(path),
-                "code_head": _code_head(root)}
+                "code_head": _code_head(root),
+                "code_loaded": _LOADED_ROTATE_IDENTITY}
 
     # (goal:g15.25 SL7.8x) JOIN GATE with an upper bound. A record whose
     # successor join was ATTEMPTED (a window @id captured) but has not landed
@@ -14632,6 +14718,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         role=row_role,
         type_input=type_input)
     result["code_head"] = _code_head(root)
+    result["code_loaded"] = _LOADED_ROTATE_IDENTITY
     return result
 
 
@@ -14820,6 +14907,28 @@ def _git_count_maybe(root: Path, *args: str) -> int | None:
         return int(lines[0].strip())
     except (ValueError, IndexError):
         return None
+
+
+def _unpushed_by_author(root: Path, spec: str, label: str
+                        ) -> tuple[bool, str, str] | None:
+    """Check 1's verdict for `rev-list --count <spec>`, SCOPED BY AUTHOR
+    (SM.48 residue 2): a commit the acting checkout's OWN author identity did
+    not write -- a `grid_sync` cron commit on a shared trunk -- is not this
+    seat's unpushed work and must NOT captive its rotation. The unscoped
+    count is still NAMED (never a silent 'pushed'), `git push` stays the
+    clear, and an unmeasurable identity blocks exactly as before: this
+    narrows the gate, never widens it (P7)."""
+    raw = _git_count_maybe(root, "rev-list", "--count", spec)
+    if raw is None:
+        return None
+    me_lines = _git_maybe(root, "config", "user.email")
+    me = (me_lines[0].strip() if me_lines else "")
+    mine = (_git_count_maybe(root, "rev-list", "--count", f"--author={me}",
+                             spec) if me else raw)
+    if mine is not None and raw > 0 and mine <= 0:
+        return (False, f"{label} (other author: {raw}, not blocking)",
+                "git push")
+    return (raw > 0, label, "git push")
 
 
 def _git_unquote_path(s: str) -> str:
@@ -15143,18 +15252,17 @@ def _prepare_merge_target(root: Path) -> str:
     return season_branch(root)
 
 
-def _prepare_checks(root: Path, seat: str, perform: bool = False,
-                    stops_rotation: bool = False
+def _prepare_checks(root: Path, seat: str, perform: bool = False
                     ) -> list[tuple[bool, str, str]]:
     """The ordered captive rotate-out checklist for `seat`.
 
-    `stops_rotation` marks a `rotate-self --stops/--stops-file` run. Only such
-    a run exempts the seat's ack seats path (seats.md/posts.md) from check 4's
-    "last WORK commit" scan: a --stops run's OWN card+seats commit must not
-    re-age the card (goal:g15.25 line (3)). A plain `prepare`, or a
-    `rotate-self --prepare` which delegates to it, must NOT carry the
-    exclusion (SL7.30) — seating bookkeeping on a non-stops run is still WORK
-    worth ageing the card against (SL7.12 had applied it unconditionally).
+    The `stops_rotation` parameter is RETIRED (SM.68 residue 6): it gated the
+    SL7.30 seats/posts exclusion from check 4's scan, but check 4 then moved
+    to the seat-scoped `bin/last_act.py` clock, so the exclusion — and the
+    parameter nothing read — stopped meaning anything. The stoppable flow
+    keeps its own `_stops_has` branch; an unused parameter a docstring claims
+    changes behaviour is a lie the next reader believes, so it is gone by
+    name (a test asserts the signature, not the docstring).
 
     Returns `(blocker, name, clear_cmd)` tuples. This is THE ONE
     implementation: `cmd_prepare` prints it, `cmd_rotate_self` refuses on it.
@@ -15245,16 +15353,15 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
                            f"({rsha[:12]}: {mn})",
                     f"git push origin HEAD:{mirror}")
     else:
-        n = _git_count_maybe(root, "rev-list", "--count", "@{u}..HEAD")
-        if n is not None:
-            unpushed, pname, pclear = (n > 0, "unpushed commits", "git push")
+        scoped = _unpushed_by_author(root, "@{u}..HEAD", "unpushed commits")
+        if scoped is not None:
+            unpushed, pname, pclear = scoped
         else:
-            alt = _git_count_maybe(root, "rev-list", "--count",
-                                   f"origin/{branch}..HEAD")
-            if alt is not None:
-                unpushed, pname, pclear = \
-                    (alt > 0, f"unpushed commits vs origin/{branch}",
-                     "git push")
+            scoped = _unpushed_by_author(
+                root, f"origin/{branch}..HEAD",
+                f"unpushed commits vs origin/{branch}")
+            if scoped is not None:
+                unpushed, pname, pclear = scoped
             else:
                 unpushed, pname, pclear = \
                     (True, f"no upstream for {branch}",
@@ -15494,7 +15601,18 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False,
         card_stale, _last_ts = last_act.card_stale(root, seat, card)
     except Exception:  # noqa: BLE001
         card_stale = False   # unmeasurable reads NOT stale (P7)
-    checks.append((card_stale, "card older than last commit",
+        _last_ts = None
+    # SM.68 residue (5): NAME the unmeasurable state. `card_stale` returns
+    # `(False, None)` when NO own act is measurable (no stamp AND no card
+    # commit) -- the SAME False a measured-fresh seat returns, but with a
+    # real `_last_ts`. Both used to print `[ok] card older than last commit`,
+    # so a seat whose clock could not be read was indistinguishable from one
+    # read and found fresh. The measured-fresh and blocked labels stay
+    # byte-identical; only the no-clock case gains a suffix.
+    _card_label = "card older than last commit"
+    if card_stale is False and _last_ts is None:
+        _card_label += " (unmeasured: no own act)"
+    checks.append((card_stale, _card_label,
                    "write your card (a save is enough: the check reads mtime), "
                    "commit it, then rotate; fallback: rotate.py handoff "
                    f"--driven --seat {seat}"))
@@ -16714,15 +16832,18 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                          diff_gap: str | None = None,
                          frac: float | None = None):
     """goal:g15.25 line (3) -- write <stops_text> as the body of the seat's
-    own card's where-it-stops slot (the `### 🔴 Where it stops` section, or
-    any header whose title `_locate_where_it_stops` keys on -- 'where it
-    stops' / 'next command'), replacing only the slot's FENCED block (the
+    own card's where-it-stops slot (a `## 🔴 Where it stops` SECTION, or any
+    header whose title `_locate_where_it_stops` keys on -- 'where it stops' /
+    'next command' -- at `## ` level or as a `###` subheader inside one),
+    replacing only the slot's FENCED block (the
     fence + the stops text together, rendered by `_render_stops_block`) and
     carrying the slot's own prose OUTSIDE the fence -- before it and after
     it -- byte-identical. When the card has no where-it-stops slot at ALL,
-    the slot is CREATED at the card's end as `### 🔴 Where it stops` using
-    the SAME render function. When `--ask-diff <gap>` accompanies `--stops`,
-    the gap is ALSO written as `diff requested: <gap>` after the fence.
+    the slot is CREATED at the card's end as a `## 🔴 Where it stops`
+    SECTION -- never a bare `### ` block, which would land in the preamble
+    where the locator never looks -- using the SAME render function. When
+    `--ask-diff <gap>` accompanies `--stops`, the gap is ALSO written as
+    `diff requested: <gap>` after the fence.
     Returns `(body, slot)` on success (slot in {'replaced', 'created'})
     or `(None, error)` when the where-it-stops slot is AMBIGUOUS (refused,
     never guessed). Never raises."""
@@ -16734,10 +16855,17 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         return None, "ambiguous where-it-stops slot on the own card; " \
                      "refused (rotate-self --stops never guesses)"
     if stops is None:
-        extra = (f"### 🔴 Where it stops\n"
-                 + _render_stops_block(stops_text, diff_gap))
+        # CREATED as a `## ` SECTION, never appended as a bare `### ` block:
+        # a bare block lands in the PREAMBLE, which `_locate_where_it_stops`
+        # never scans, so the next write saw `None` again and appended a
+        # SECOND block (the live six-stack; SM.69 item 1a). A `## ` section
+        # is what the locator reads, so the write->locate round trip closes.
+        sections = list(sections) + [
+            ("## 🔴 Where it stops",
+             _render_stops_block(stops_text, diff_gap))]
+        if preamble:
+            preamble += "\n"      # keep the blank line before the new slot
         full = _render_card(preamble, sections)
-        full = full.rstrip("\n") + "\n\n" + extra + "\n"
         if frac is not None:
             full = _stamp_rotating_header(
                 full, frac, datetime.utcnow().strftime("%H:%MZ"))
@@ -17252,7 +17380,12 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return _o[0] if _o else ""
     _acts = [(_act("log", "-1", "--format=%cs", "--", rel),
               "the card's last commit"),
-             (_act("log", "-1", "--format=%cs", "--grep",
+             # `--extended-regexp`: without it `|` and the parens are
+             # BRE-literal, so this pattern matched the literal string
+             # `(harvest|merge-up)` and never a commit (0 vs 1480 hits;
+             # SM.69 item 1c).
+             (_act("log", "-1", "--format=%cs", "--extended-regexp",
+                   "--grep",
                    f"^{re.escape(seat)} .*(harvest|merge-up)"),
               "the post's newest harvest/merge-up commit")]
     try:
@@ -17473,6 +17606,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         row = {}  # default row; never consulted against seats.md
 
+    # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
+    # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
+    if row:
+        _rotref = _row_launch_refusal(args, row)
+        if _rotref:
+            print(_rotref, file=sys.stderr)
+            return 3
+
     # goal:g15.25 line (3) -- the rotate-OUT is ONE call. When `--stops`
     # (`--stops-file F`, `--stops -` reads stdin) is given, write the stops
     # text into the seat's OWN card's where-it-stops section, commit card +
@@ -17528,7 +17669,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             print(f"ERR: rotate-self --closeout: {_co_perr}", file=sys.stderr)
             return 2
         _co_full, _co_s3, _co_aerr = _closeout_apply(
-            cfg_root, seat, _co_role, _co_filled, _co_tmpl)
+            cfg_root, seat, _co_role, _co_filled, _co_tmpl,
+            write=not args.dry_run)
+        if args.dry_run:
+            print(f"(--closeout) would apply the filled form to "
+                  f"{_own_card_path(cfg_root, seat)} (dry-run, nothing "
+                  f"written)")
         if _co_aerr:
             print(f"ERR: rotate-self --closeout: {_co_aerr} "
                   f"(nothing rotated)", file=sys.stderr)
@@ -17679,8 +17825,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # 3 WRITES a commit during the checklist, so HEAD moving is exactly a
     # merge landing. Unmeasurable HEAD (None/empty) forces no merge-push.
     _head_before_checks = _git_maybe(root, "rev-parse", "--short", "HEAD")
-    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate,
-                                          stops_rotation=_stops_has)
+    _blocks = [c for c in _prepare_checks(root, seat, perform=_perform_gate)
                if c[0]]
     # the LISTING line, never a blocker -- the rotating seat sees its live
     # background tasks BEFORE it spawns, so it knows what to leave behind
@@ -19570,7 +19715,7 @@ def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
                         "if their round is orphaned")
     p.add_argument("--stops", default=None,
                    help="what the seat leaves behind: written into the "
-                        "seat's own card's `### 🔴 Where it stops` section "
+                        "seat's own card's `## 🔴 Where it stops` section "
                         "at rotate-out (`-` reads stdin); commits it with "
                         "the seat's own seats.md row in ONE pathspec "
                         "commit and pushes")

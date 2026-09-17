@@ -444,9 +444,14 @@ def test_enforce_on_disk_empty_tree_is_a_noop(tmp_path):
 def project(tmp_path, monkeypatch):
     (tmp_path / "agi-tree.config.json").write_text("{}")
     (tmp_path / "nodes" / "experiment").mkdir(parents=True)
-    sess = tmp_path / "sessions" / "iter-001" / "a1"
+    sess = tmp_path / "sessions" / "iter-001"
     sess.mkdir(parents=True)
-    (sess / "agent.json").write_text(json.dumps({"id": "a1", "status": "running"}))
+    (sess / "a1").mkdir(parents=True)
+    (sess / "a1" / "agent.json").write_text(
+        json.dumps({"id": "a1", "status": "running"}))
+    # CLASS C: `done` returns 1 (no harvest dm) without an iteration manifest
+    # holding this round's agent, and warns without a dispatcher stamp.
+    (sess / "manifest.json").write_text(json.dumps({"agents": [{"id": "a1"}]}))
     monkeypatch.chdir(tmp_path)
     return tmp_path
 

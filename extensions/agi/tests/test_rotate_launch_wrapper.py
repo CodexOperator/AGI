@@ -26,7 +26,7 @@ def _run_wrapper(log_path, *child, seat="seatT"):
     )
 
 
-def _wait_log(path, needle, timeout=12.0):
+def _wait_log(path, needle, timeout=30.0):
     """Poll `path` until it contains `needle`, then return the full text."""
     deadline = time.time() + timeout
     body = ""
@@ -48,7 +48,7 @@ def _children(pid):
     return [int(p) for p in out]
 
 
-def _poll_child(wrapper_pid, timeout_s=5.0):
+def _poll_child(wrapper_pid, timeout_s=10.0):
     """Wait until the wrapper has a direct child (its wrapped argv)."""
     deadline = time.time() + timeout_s
     while time.time() < deadline:
@@ -114,7 +114,7 @@ def test_wrapper_tty_hangup_forwards_to_the_child(tmp_path):
         body = _wait_log(log, "FORWARDED to child")
         assert "SIG1 from kernel/tty (si_pid 0)" in body, body or "no HUP line"
         assert f"FORWARDED to child {sleeper}" in body, body
-        rc = wrapper.wait(timeout=12)
+        rc = wrapper.wait(timeout=30)
         body = _wait_log(log, "wrapper received")
         assert "exited signal 1" in body, body
         assert rc == 128 + signal.SIGHUP

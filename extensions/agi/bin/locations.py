@@ -278,6 +278,34 @@ def git_common_root(root: Path) -> Path:
     return common_dir.parent
 
 
+def is_live_checkout(root: Path) -> bool:
+    """True when `root` sits inside this engine copy's own live checkout
+    (claim 1: a suite basetemp there makes git-escaping writers hit LIVE).
+    A path with no git common root (None) is never the live checkout.
+    """
+    try:
+        g = git_common_root(Path(root).resolve())
+        e = git_common_root(Path(__file__).resolve())
+        return g is not None and e is not None and g == e
+    except Exception:
+        return False
+
+
+def live_checkout_refusal(base: Path, live: Path) -> str:
+    """The ONE refusal line every gate prints (conftest, --suite, 3 writers)."""
+    return (f"refused: basetemp {base} resolves to the live checkout "
+            f"{live}; pass --basetemp under /tmp")
+
+
+def refuse_live_resolution(given: Path, resolved: Path) -> None:
+    """Under pytest, refuse a resolver given a non-live root that RESOLVES a
+    live-checkout path, naming the resolved path (claim 3). No-op outside it."""
+    if os.environ.get("PYTEST_CURRENT_TEST") and not is_live_checkout(given) \
+            and is_live_checkout(resolved):
+        raise RuntimeError(f"{Path(resolved).resolve()} resolves to the live "
+                           f"checkout; pass --basetemp under /tmp")
+
+
 def shared_project_root(start: Path | str | None = None) -> Path | None:
     """The project's ONE graph root across every git worktree, or None.
 
@@ -304,7 +332,9 @@ def shared_project_root(start: Path | str | None = None) -> Path | None:
         return None
     main = git_common_root(graph)
     main_graph = find_project_root(main) if main else None
-    return main_graph or graph
+    out = main_graph or graph
+    refuse_live_resolution(start or Path.cwd(), out)
+    return out
 
 
 def project_root_from_env(start: Path | str | None = None) -> Path | None:
@@ -665,11 +695,13 @@ def shared_sessions_dir(root: Path) -> Path:
         mg = find_project_root(main) or graph
         graph = mg
     if (graph / "nodes").is_dir():
-        return graph / "sessions"
-    if (graph / ".agi" / "nodes").is_dir():
-        return graph / ".agi" / "sessions"
-    # Unknown shape: default to the graph-dir reading, the production path.
-    return graph / "sessions"
+        out = graph / "sessions"
+    elif (graph / ".agi" / "nodes").is_dir():
+        out = graph / ".agi" / "sessions"
+    else:
+        out = graph / "sessions"  # unknown shape: graph-dir reading
+    refuse_live_resolution(root, out)
+    return out
 
 
 def iteration_dir(root: Path, iter_id: int | str) -> Path:

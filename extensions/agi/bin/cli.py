@@ -664,7 +664,44 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
     return notes
 
 
-def _session_manifest_holders(root: Path, iter_n) -> list[Path]:
+def _kid_done_refusal(root, node_id):
+    """Kid `done` past 2x its line ceiling with no `rebrief_request` gets
+    one refusal (rc 2, nothing written), else None -- the enforcement point
+    of hyp:l4-cli-done-refuses-a-kid-past-2x: the ONE command every kid runs.
+    Measures the kid's UNCOMMITTED production diff (`git diff --numstat HEAD`, the
+    same `_SOURCE_SUFFIXES`/never-`tests/` rule `_kid_measured_lines` uses) and
+    resolves the ceiling with the harvest's own `_kid_line_ceiling`."""
+    nf = _find_node_file(root, node_id) if node_id else None
+    if nf is None or not nf.exists():
+        return None
+    try:
+        fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    if not isinstance(fm, dict) or fm.get("rebrief_request"):
+        return None
+    try:
+        r = subprocess.run(["git", "-C", str(root), "diff", "--numstat",
+                            "HEAD"], capture_output=True, text=True,
+                           timeout=30)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    if r.returncode != 0:
+        return None
+    lines = sum(int(p[0]) for ln in r.stdout.splitlines()
+                if (p := ln.split("\t")) and len(p) >= 3 and p[0].isdigit()
+                and "tests" not in p[2] and p[2].endswith(_SOURCE_SUFFIXES))
+    ceiling = _kid_line_ceiling(root, fm, node_id)
+    if ceiling <= 0 or lines <= 2 * ceiling:
+        return None
+    return (f"done refused: production lines {lines} > 2x ceiling {ceiling} "
+            f"with no rebrief_request; NOTHING was written. Run:\n"
+            f"  write.py {node_id} \"set rebrief_request "
+            f"{lines}/{ceiling}: <why>\"\n"
+            f"then re-run done.")
+
+
+def _session_manifest_holders(root: Path, iter_n, extra_iters=()) -> list[Path]:
     """Every iteration dir that may hold THIS round's manifest, local first.
 
     hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
@@ -677,19 +714,26 @@ def _session_manifest_holders(root: Path, iter_n) -> list[Path]:
     behaviour) finds no parent row; reading only the shared one loses the
     kids. Return both, deduplicated by path -- a non-worktree root is the
     identity, so a main-checkout round still yields exactly one holder.
+
+    hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-from-the-
+    dispatching-seats-own-tree -- `extra_iters` carries the DISPATCHING
+    seat's OWN iteration dir(s), local then seat then MAIN: a seat running
+    from a linked worktree writes the round's manifest under its OWN tree.
     """
     seen: set[str] = set()
     holders: list[Path] = []
-    candidates: list[Path] = [root]
+    # (root, already-an-iteration-dir): the seat's dirs arrive resolved.
+    candidates: list[tuple[Path, bool]] = [(root, False)]
+    candidates.extend((Path(d), True) for d in extra_iters)
     try:
         shared = locations.shared_project_root(root)
     except (OSError, ValueError):
         shared = None
     if shared is not None and str(shared) != str(root):
-        candidates.append(shared)
-    for r in candidates:
+        candidates.append((shared, False))
+    for r, direct in candidates:
         try:
-            d = locations.iteration_dir(r, iter_n)
+            d = r if direct else locations.iteration_dir(r, iter_n)
         except (OSError, ValueError):
             continue
         key = str(d)
@@ -751,7 +795,8 @@ def _write_kid_report(holders: list[Path], agent_id: str, line: str) -> None:
         return
 
 
-def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
+def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
+                              record_path=None):
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
     ONE completion dm, sent with NO flag: the dispatcher was stamped into the
     manifest at spawn (`dispatched_by`), and a round that finishes alarms
@@ -760,6 +805,12 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
     dm is logged, never fatal to the round (this is called on the done: path,
     whose job is to record the verdict).
 
+    hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-from-the-
+    dispatching-seats-own-tree -- `record_path` is the agent record the done
+    path already resolved: the seat's OWN iter dir is `parents[1]`, and the
+    tree dispatch.py recorded at spawn is `dispatched_from_tree` on it. No
+    holder in any candidate tree -> ONE named stderr line and return 1, never
+    silent; `cmd_done` still exits 0 once the verdict is recorded.
     hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
     round -- the tier decides WHO hears, because every seat dm wakes a paid
     pane:
@@ -781,9 +832,32 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict):
         # -- measured at L4.369 as ZERO seat dms. `_merge_manifests` unions the
         # two by agent id, resolving a conflict with the SAME status rank every
         # other manifest reader uses.
-        holders = _session_manifest_holders(root, iter_n)
+        # the seat's OWN tree: where the record was found, and the tree
+        # dispatch.py recorded at spawn
+        extra_iters: list[Path] = []
+        seat_tree = None
+        if record_path is not None:
+            seat_iter = Path(record_path).parents[1]
+            extra_iters.append(seat_iter)
+            try:
+                seat_tree = json.loads(Path(record_path).read_text(
+                    encoding="utf-8")).get("dispatched_from_tree") or None
+            except (OSError, ValueError, AttributeError):
+                seat_tree = None
+            if seat_tree:
+                extra_iters.append(
+                    locations.iteration_dir(Path(seat_tree), iter_n))
+            # a round predating the field still names the tree it was found in
+            seat_tree = seat_tree or str(seat_iter.parents[1])
+        holders = _session_manifest_holders(root, iter_n, extra_iters)
         if not holders:
-            return
+            try:
+                other = str(locations.shared_project_root(root) or root)
+            except (OSError, ValueError):
+                other = str(root)
+            print("harvest dm NOT sent: no iter manifest under "
+                  f"{root} or {seat_tree or other}", file=sys.stderr)
+            return 1
         manifest = _merge_manifests(holders)
         row = next((a for a in manifest.get("agents", [])
                     if a.get("id") == agent_id), None)
@@ -1367,6 +1441,15 @@ def cmd_done(args: argparse.Namespace) -> int:
             print(f"[dry-run] tier-parent probe gate: not applicable ({_why})")
         return 0
 
+    # hyp:l4-cli-done-refuses-a-kid-...-conj(1): a KID done past 2x with
+    # no `rebrief_request` is refused (rc 2, nothing written) before any
+    # write. No-op for non-kid tiers and for kids with the request on file.
+    if rec.get("tier") == "kid" and args.node_id:
+        _refuse = _kid_done_refusal(root, args.node_id)
+        if _refuse:
+            print(f"ERR: {_refuse}", file=sys.stderr)
+            return 2
+
     rec["status"] = "done"
     rec["finished_at"] = int(time.time())
     rec["verdict"] = verdict
@@ -1487,11 +1570,13 @@ def cmd_done(args: argparse.Namespace) -> int:
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
     # no flag, right after the done: commit. Never fatal to the done path.
-    _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
-                              args.node_id, verdict)
+    _alarm_rc = _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
+                                          args.node_id, verdict, ap)
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
-    return 0
+    # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
+    # exit code AFTER the verdict is recorded; a clean round exits 0.
+    return _alarm_rc if _alarm_rc else 0
 
 
 def cmd_pending(args: argparse.Namespace) -> int:

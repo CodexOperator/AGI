@@ -118,6 +118,7 @@ def budget_dir(root: Path) -> Path:
     main = locations.git_common_root(graph)
     main_graph = locations.find_project_root(main) if main else None
     base = main_graph or graph
+    locations.refuse_live_resolution(root, base)
     return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
 
 
@@ -512,6 +513,11 @@ def live_iteration_ids(root: Path) -> set:
             if it is not None:
                 live.add(it)
     return live
+
+
+def live_leases_readonly(root: Path) -> list[dict]:
+    """Live leases, READ-ONLY (no sweep/unlink/lock), with their full rows."""
+    return [rec for _p, rec in _read_leases(root) if _lease_is_live(rec)]
 
 
 def live_agents(root: Path) -> list[dict]:
