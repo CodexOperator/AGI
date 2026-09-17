@@ -1,0 +1,65 @@
+{
+  "rotation": "rotate-self",
+  "seat": "adv-alive",
+  "recorded_at": "2026-09-17T00:17:23.709450Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "adv-alive",
+      "windows": [
+        "adv-alive.prev",
+        "adv-alive"
+      ],
+      "source": "window-path file /home/ubuntu/work/agi/.agi/sessions/pytest-basetemp-4108368/test_rotate_self_kills_own_win0/windows.txt"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/adv-alive.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 0,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "adv-alive.prev",
+      "windows": [
+        "adv-alive.prev",
+        "adv-alive"
+      ],
+      "source": "window-path file /home/ubuntu/work/agi/.agi/sessions/pytest-basetemp-4108368/test_rotate_self_kills_own_win0/windows.txt"
+    }
+  },
+  "seated_at": "2026-09-17T00:17:23.709450Z",
+  "window": "adv-alive",
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "adv-alive.prev",
+      "id": null
+    },
+    "successor_window": {
+      "name": "adv-alive",
+      "id": null
+    },
+    "button_down": "grid committed \u2014 record+row on branch season2/main",
+    "livestream_repoint": {
+      "session": "view-adv-alive",
+      "target": null,
+      "skipped": "no successor window @id captured to re-point view-adv-alive to"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/adv-alive.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "after_join": {
+    "claimed_at": "2026-09-17T00:17:23.739356+00:00",
+    "performer": "tail",
+    "claim_key": "2026-09-17T00:17:23.709450Z"
+  }
+}
