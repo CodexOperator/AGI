@@ -22,10 +22,28 @@ def _win(tmp_path, lines):
     return p
 
 
-def test_boundary_candidates_are_the_new_name_then_its_prev():
+def test_boundary_candidates_license_prev_only_from_the_records_own_fact():
+    """L5.15 (3): the renamed target is ALWAYS the first candidate; `<new>.prev`
+    is a candidate ONLY when the record's OWN bytes name it the successor.
+    Step (2) of the boundary carries the PREDECESSOR's window aside to
+    `<new>.prev`, so an unlicensed `.prev` could only join the predecessor."""
     rec = {"applied_rename": {"old": "sextest", "new": "sextest-new"}}
-    assert rotate._rename_boundary_names("sextest", rec) == [
+    assert rotate._rename_boundary_names("sextest", rec) == ["sextest-new"]
+    # rotate-self shape: handover.successor_window.name licenses it.
+    named = dict(rec, handover={"successor_window":
+                                {"name": "sextest-new.prev"}})
+    assert rotate._rename_boundary_names("sextest", named) == [
         "sextest-new", "sextest-new.prev"]
+    # crash-recovery shape: the same fact sits at the TOP level.
+    top = _rename_rec("sextest", "sextest-new",
+                      successor_window={"name": "sextest-new.prev"})
+    assert rotate._rename_boundary_names("sextest", top) == [
+        "sextest-new", "sextest-new.prev"]
+    # a DIFFERENT successor name does not license `.prev`
+    other = dict(rec, handover={"successor_window":
+                                {"name": "sextest-new"}})
+    assert rotate._rename_boundary_names("sextest", other) == [
+        "sextest-new"]
     # no record fact -> no candidates (never a guessed name)
     assert rotate._rename_boundary_names("sextest", {}) == []
     # old == new is not a rename
@@ -207,27 +225,26 @@ def test_wire_join_resolves_the_boundary_record_from_disk(
         captured
 
 
-def test_prev_only_window_still_resolves_through_the_boundary_record(
-        tmp_path, monkeypatch):
-    """With `.prev` the ONLY live window the join still resolves to it, via
-    the same discovered boundary record."""
+def _drive_watch(tmp_path, monkeypatch, win, rec, seen, captured, tmpl_cmd):
     rd = rotate._rotations_dir(tmp_path)
     rd.mkdir(parents=True)
     (rd / "sextest-new.20260101T000000Z.json").write_text(
-        json.dumps(_rename_rec("sextest", "sextest-new")), encoding="utf-8")
-    win = _win(tmp_path, ["@9 sextest-new.prev"])
-    seen = {}
+        json.dumps(rec), encoding="utf-8")
 
     def fake_join(*, root, seat, window_id, **kw):
+        seen.setdefault("calls", []).append(window_id)
+        if not window_id:
+            return {"found": False, "window_id": window_id,
+                    "note": "no successor window @id captured "
+                            "(window_id empty)"}
         seen["window_id"] = window_id
         return {"found": True, "window_id": window_id, "pid": 4242,
                 "session_id": "sess", "transcript": "/tmp/t.jsonl",
-                "name": "sextest-new.prev", "path": "/tmp/r.json",
+                "name": "sextest-new", "path": "/tmp/r.json",
                 "note": "live"}
 
-    captured = []
     tmpl = {"startup": {"after_join": [{"label": "join",
-            "cmd": "grep {succ_name}"}], "after_join_delay_s": 0}}
+            "cmd": tmpl_cmd}], "after_join_delay_s": 0}}
     monkeypatch.setattr(rotate, "_find_seat",
                         lambda root, name: {"role": "director", "pid": 1,
                                             "session_ref": "row-ref"})
@@ -240,9 +257,50 @@ def test_prev_only_window_still_resolves_through_the_boundary_record(
         lambda *a, **kw: (captured.append(kw) or {
             "delay_s": 0, "results": [], "dm": "", "appended": True,
             "sent": True, "record_path": kw.get("record_path")}))
-    out = rotate.run_after_join_for_seat(
+    return rotate.run_after_join_for_seat(
         tmp_path, "sextest", performer="watch",
         tmux_session="t", window_path=str(win))
+
+
+def test_prev_only_window_is_refused_when_the_record_does_not_name_it(
+        tmp_path, monkeypatch):
+    """SAFE CASE (L5.15). With `.prev` the ONLY live window and a boundary
+    record whose own bytes do NOT name it the successor, NO @id is fabricated
+    and the predecessor is NEVER joined as the successor: the unlicensed
+    `.prev` is not a candidate, so the join stays unresolved and takes the
+    existing NAMED refusal path. This REPLACES the old test that asserted the
+    predecessor-window join."""
+    seen, captured = {}, []
+    win = _win(tmp_path, ["@9 sextest-new.prev"])
+    rec = _rename_rec("sextest", "sextest-new")
+    out = _drive_watch(tmp_path, monkeypatch, win, rec, seen, captured,
+                       "grep {succ_name}")
+    # no alias resolved: `_join_successor` never saw a window @id.
+    assert seen.get("calls", []) == [], seen
+    assert "window_id" not in seen, seen
+    assert out is not None
+    vals = captured[-1]["values"]
+    assert vals["pid"] is None and vals["session_id"] is None, vals
+    # the refusal is the existing NAMED one, not a silent miss.
+    assert captured[-1]["join_unresolved_wait_s"] is not None, captured[-1]
+    miss = rotate._join_successor(
+        root=tmp_path, seat="sextest", window_id=None,
+        registry_dir=str(tmp_path / "reg"), poll_secs=0)
+    assert miss["found"] is False and "window_id empty" in miss["note"]
+
+
+def test_prev_only_window_resolves_when_the_record_names_it_successor(
+        tmp_path, monkeypatch):
+    """SAFE CASE (L5.15). When the record's OWN bytes name `<new>.prev` the
+    successor (handover.successor_window.name), it IS a candidate and the
+    join resolves @9 through the discovered boundary record."""
+    seen, captured = {}, []
+    win = _win(tmp_path, ["@9 sextest-new.prev"])
+    rec = _rename_rec("sextest", "sextest-new",
+                      handover={"successor_window":
+                                {"name": "sextest-new.prev"}})
+    out = _drive_watch(tmp_path, monkeypatch, win, rec, seen, captured,
+                       "grep {succ_name}")
     assert out is not None
     assert seen["window_id"] == "@9", seen
     assert captured and captured[-1]["values"]["succ_name"] == "sextest-new"
