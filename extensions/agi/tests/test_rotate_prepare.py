@@ -1933,3 +1933,105 @@ def test_prepare_check1_foreign_authors_unpushed_commit_never_blocks(tmp_path):
     assert blocker is True, (blocker, name)
     assert name == "unpushed commits", name
     assert clear == "git push", clear
+
+
+# =====================================================================
+# hypothesis:l4-prepare-performs-its-three-clears-itself-and-prints-
+# cleared-never-a-hand-step (g15.14 STEP 2). Under `--perform` (rotate-
+# self's pre-flight default) prepare PERFORMS the mechanical clears it can
+# -- the mirror push (check 1) and the meter re-pin (check 5) -- printing
+# `cleared: <step> (<measured result>)`, never a `clear:` hand command. A
+# clear that FAILS stays a BLOCK with the exact failing command (claim 2).
+# A second `--perform` in the same seating finds nothing to clear.
+# =====================================================================
+
+
+def _mirror_seam():
+    """A non-merge fixture: the checked-out branch IS a post (mirror-resolved)
+    with 3 unpushed commits vs the ORIGIN mirror ref, a clean tree, up to date
+    with season main, and a fresh card. Push/git-verb round trips route through
+    `_git_proc`."""
+    return {
+        ("status", "--porcelain"): [],
+        ("rev-parse", "--abbrev-ref", "HEAD"):
+            ["season2/core/season1/posts/p1"],
+        ("ls-remote", "origin", "refs/agi/posts/p1"):
+            ["deadbeef1234\trefs/agi/posts/p1"],
+        ("cat-file", "-e", "deadbeef1234^{commit}"): [""],
+        ("rev-list", "--count", "deadbeef1234..HEAD"): ["3"],
+        ("rev-list", "--count",
+         "HEAD..origin/season2/core/season1/main"): ["0"],
+        ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+         ":(exclude).agi/comms",
+         ":(exclude).agi/sessions/rotations"): ["1000000000"],
+        ("rev-parse", "--short", "HEAD"): ["abcdef1"],
+    }
+
+
+def test_prepare_perform_mirror_push_cleared(prep_root, capsys, monkeypatch):
+    """`--perform` on a post branch with unpushed mirror commits PERFORMS the
+    mirror push itself and prints the cleared line with the measured sha --
+    rc 0 never a `clear:` hand command for a step the tool just did."""
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(_mirror_seam()));
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] unpushed commits vs refs/agi/posts/p1" in out
+    assert "cleared: mirror push (abcdef1)" in out, out
+    assert "[BLOCK]" not in out
+
+
+def test_prepare_perform_failed_push_stays_block_exact_cmd(
+        prep_root, capsys, monkeypatch):
+    """A mirror push that git REFUSES (non-zero rc) is NOT reported cleared:
+    it stays a BLOCK naming the exact failing command, exit 3 (claim 2)."""
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(_mirror_seam()))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok(rc=1))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] unpushed commits vs refs/agi/posts/p1" in out
+    assert "clear: git push origin HEAD:refs/agi/posts/p1" in out, out
+    assert "cleared:" not in out
+
+
+def test_prepare_perform_repins_stale_meter_pin_cleared(
+        prep_root, capsys, monkeypatch):
+    """--perform re-points a stale meter pin itself (check 5) and prints the
+    cleared line; a SECOND --perform finds nothing to clear and says so."""
+    _stale_pin(prep_root)
+    pm = prep_root / "sessions" / "adv-alive.meter"
+    # NO other check can block: git degrades to ok (P7), only check 5 fires.
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    err = capsys.readouterr()
+    assert rc == 0, (err.out, err.err)
+    assert "cleared: meter re-pin" in err.out, err.out
+    assert pm.read_text(encoding="utf-8").startswith("3\t"), err.out
+    rc2 = rotate.cmd_prepare(_args(perform=True), prep_root)
+    err2 = capsys.readouterr()
+    assert rc2 == 0, (err2.out, err2.err)
+    assert "cleared:" not in err2.out
+    assert "no blockers" in err2.err
+
+
+def test_prepare_perform_never_repins_over_another_blocker(
+        prep_root, capsys, monkeypatch):
+    """Atomicity (P1-a): when an UNRELATED check blocks (a dirty tree), a
+    `--perform` prepare must NOT re-pin the meter as a side effect before the
+    refusal -- the stale pin stays visible as a blocker."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"): [" M rotate.py"]}))
+    _stale_pin(prep_root)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree" in out
+    assert "seat_pin-stale" in out
+    pm = prep_root / "sessions" / "adv-alive.meter"
+    assert pm.read_text(encoding="utf-8").startswith("2\t")  # untouched
