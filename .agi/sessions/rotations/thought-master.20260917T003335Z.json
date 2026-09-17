@@ -107,7 +107,7 @@
         "model": "claude-opus-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
   },
@@ -129,8 +129,46 @@
     "reap_source": "derived from own window @id @394 pane 691475: chain [691475, 691483, 691547, 691554] (deepest-first; authority row pid 691554)"
   },
   "after_join": {
-    "claimed_at": "2026-09-17T00:36:04.856014+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-17T00:35:13.463751Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep thought-master",
+        "rc": 0,
+        "output": "@415 thought-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/thought-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
+        "rc": 0,
+        "output": "0.0742\t74235/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(691475|691483|691547|691554)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(691475|691483|691547|691554)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post thought-master --record latest\n",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "thought-master",
+    "dm_signed": true,
+    "code_head": "e0388ef",
+    "claimed_at": "2026-09-17T00:36:04.856014+00:00",
+    "claim_key": "2026-09-17T00:35:13.463751Z",
+    "performed_after_s": 50.837191104888916
   }
 }
