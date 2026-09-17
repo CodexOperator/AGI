@@ -1,0 +1,37 @@
+{
+  "rotation": "rotate-self",
+  "seat": "adv-alive",
+  "recorded_at": "2026-09-17T00:51:35.998900Z",
+  "result": "started",
+  "steps_reached": [],
+  "box": {
+    "loadavg": [
+      11.869,
+      11.371,
+      8.666
+    ],
+    "cores": 4
+  },
+  "template_source": "worktree (geometry current)",
+  "closeout": [
+    {
+      "step": "g17_1_note",
+      "result": "ok",
+      "detail": "fake g17_1_note ran (seam)"
+    },
+    {
+      "step": "render",
+      "result": "ok",
+      "detail": "fake render ran (seam)"
+    },
+    {
+      "step": "push",
+      "result": "ok",
+      "detail": "fake push ran (seam)"
+    }
+  ],
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 318.1546092033386
+  }
+}
