@@ -1100,8 +1100,13 @@ def test_no_git_invocation_ever_targets_the_graph_dir(g11, monkeypatch, capsys):
     real_run = subprocess.run
 
     def spy(argv, *a, **kw):
-        if isinstance(argv, (list, tuple)) and argv and argv[0] == "git" and "-C" in argv:
-            seen.append(Path(argv[list(argv).index("-C") + 1]))
+        if isinstance(argv, (list, tuple)) and argv and argv[0] == "git" \
+                and "-C" in argv:
+            # The resolver's read-only rev-parse (git_common_root, H2) may
+            # target the engine checkout itself; every OTHER git call must
+            # point `-C` at the test fixture repo.
+            if not ("rev-parse" in argv and "--git-common-dir" in argv):
+                seen.append(Path(argv[list(argv).index("-C") + 1]))
         return real_run(argv, *a, **kw)
 
     monkeypatch.setattr(grid.subprocess, "run", spy)

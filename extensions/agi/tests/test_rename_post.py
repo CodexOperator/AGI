@@ -457,7 +457,13 @@ def test_default_apply_calls_subprocess_zero_times(tmp_path, monkeypatch):
                            delete_old=False, live=False),
         tmp_path)
     assert rc == 0, rc
-    mutating = [a for a in calls if "for-each-ref" not in a[0]]
+    # Only MUTATING git calls count: read-only `for-each-ref` (the ref reader)
+    # and `git rev-parse --git-dir --git-common-dir` (the resolver's
+    # git_common_root, hypothesis:l4-suite-green-... CLASS B) are by design.
+    mutating = [a for a in calls
+                if "for-each-ref" not in a[0]
+                and not ("rev-parse" in a[0]
+                         and "--git-common-dir" in a[0])]
     assert mutating == [], f"default path must not mutate: {mutating}"
     assert calls, "the read-only ref reader must have run"
 
