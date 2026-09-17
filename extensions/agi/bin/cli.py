@@ -26,6 +26,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import branches  # noqa: E402 -- hyp l4-deliverable-check: round-own fork base
 import evidence_gate  # noqa: E402
 import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
@@ -498,37 +499,103 @@ def _branch_tip(root, branch: str | None) -> str:
 
 # hypothesis:l4-the-harvest-demotes-a-claimed-but-absent-deliverable: the
 # rule existed only as PARENT-BRIEF PROSE; these are the code that enforces it.
+# hyp l4-the-deliverable-check-...-live-harvest: the fork base is the round's
+# OWN (recorded base_branch / season main), NEVER master -- master made every
+# real deliverable look already-carried on the season-shaped live repo, so the
+# demotion never fired.
+def _round_base(root, branch: str | None):
+    """The fork base this round's `branch` was actually cut from.
+
+    Mirror of heal.py `_sweep_worktree_base`: the `base_branch` dispatch wrote
+    into the worktree's OWN session records first (the tuple the loop branch
+    was cut from), else the season main derived from the loop branch name.
+    None when neither resolves -- the caller falls back to the tip tree. The
+    old master-based probe is the bug being fixed and is GONE."""
+    sess = root / "sessions"
+    if sess.is_dir():
+        for it in sorted(sess.glob("iter-*")):
+            # per-agent layout (`iter-*/<id>/agent.json`) and the heal.py
+            # flat spelling (`iter-*/agent.json`) both resolved, plus the
+            # manifest (the reliable production source dispatch writes).
+            for ap in (*it.glob("*/agent.json"), it / "agent.json"):
+                if ap.is_file():
+                    try:
+                        bb = json.loads(ap.read_text()).get("base_branch")
+                    except (json.JSONDecodeError, OSError):
+                        bb = None
+                    if bb:
+                        return bb
+            mp = it / "manifest.json"
+            if mp.exists():
+                try:
+                    man = json.loads(mp.read_text())
+                except (json.JSONDecodeError, OSError):
+                    man = {}
+                for e in man.get("agents") or []:
+                    bb = e.get("base_branch")
+                    if bb:
+                        return bb
+    if branch:
+        try:
+            parsed = branches.parse(branch)
+        except (ImportError, ValueError, AttributeError):
+            parsed = None
+        season = (parsed or {}).get("season") if isinstance(parsed, dict) else None
+        if season:
+            return f"origin/{branches.season_main(season)}"
+    return None
+
+
+def _resolve_candidates(base):
+    """Live-ref spellings to probe for the round base, canonical first
+    (mirror heal.py `_sweep_resolve_base`). Non-origin recorded bases pass
+    through unchanged; origin season-main bases accept every spelling a live
+    tree may carry."""
+    if not base.startswith("origin/"):
+        return [base]
+    local = base[len("origin/"):]
+    out = []
+    for name in branches.ref_candidates(local):
+        probe = f"origin/{name}"
+        if probe not in out:
+            out.append(probe)
+    return out
+
+
 def _branch_change_paths(root, branch: str | None) -> set:
-    """Path set the round's `branch` carries as changes, read from the MAIN
-    checkout like `_kid_measured_lines`: committed-vs-fork-base (the parent
-    brief's `diff merge-base..<kid-branch>`, falling back to the tip tree) plus
-    uncommitted + untracked work."""
+    """Path set the round's `branch` carries as changes: committed-vs-own-fork-
+    base plus uncommitted + untracked work read from the KID WORKTREE top
+    (`root.parent`), never the MAIN checkout (which carries foreign dirt that
+    would be counted as the round's work)."""
     if not branch:
         return set()
     main = locations.git_common_root(root) or root
+    wt = root.parent  # the KID WORKTREE top -- uncommitted work lives here
 
-    def g(*a):
+    def g(*a, cwd=None):
         try:
-            r = subprocess.run(["git", "-C", str(main), *a],
+            r = subprocess.run(["git", "-C", str(cwd or main), *a],
                                capture_output=True, text=True, timeout=30)
         except (subprocess.TimeoutExpired, OSError):
             return ""
         return r.stdout if r.returncode == 0 else ""
 
     out: set[str] = set()
-    base = ""
-    for ref in ("origin/master", "origin/main", "master", "main"):
-        if g("rev-parse", "--verify", "-q", ref).strip():
-            mb = g("merge-base", ref, branch).strip()
-            if mb:
-                base = mb
-                break
+    mb = ""
+    base = _round_base(root, branch)
     if base:
-        out.update(p for p in g("diff", "--name-only", f"{base}...{branch}").splitlines() if p)
+        for cand in _resolve_candidates(base):
+            if g("rev-parse", "--verify", "-q", cand).strip():
+                mb = g("merge-base", cand, branch).strip()
+                if mb:
+                    break
+    if mb:
+        out.update(p for p in g("diff", "--name-only", f"{mb}...{branch}").splitlines() if p)
     else:
         out.update(p for p in g("ls-tree", "-r", "--name-only", branch).splitlines() if p)
-    out.update(p for p in g("diff", "--name-only").splitlines() if p)
-    out.update(p for p in g("ls-files", "--others", "--exclude-standard").splitlines() if p)
+    # uncommitted + untracked read in the KID WORKTREE, not the MAIN checkout
+    out.update(p for p in g("diff", "--name-only", cwd=wt).splitlines() if p)
+    out.update(p for p in g("ls-files", "--others", "--exclude-standard", cwd=wt).splitlines() if p)
     return out
 
 
@@ -553,6 +620,22 @@ def _missing_claimed_deliverables(root, branch, declared) -> list:
         return []
     carried = _branch_change_paths(root, branch)
     return [d for d in declared if d and d not in carried]
+
+
+def _node_declared_deliverables(root, node_file) -> list:
+    """A `deliverables:` list the round wrote into its own node's frontmatter,
+    so the live kid `done` feeds the check from the node it resolves -- no
+    human passes the flag (hyp l4-deliverable-check ... rans-in-the-live-harvest)."""
+    try:
+        fm = frontmatter.read_frontmatter(Path(node_file).read_text(encoding="utf-8"))
+    except OSError:
+        return []
+    val = (fm or {}).get("deliverables")
+    if isinstance(val, str):
+        return [val]
+    if isinstance(val, list) and all(isinstance(x, str) for x in val):
+        return val
+    return []
 
 
 def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
@@ -1533,12 +1616,24 @@ def cmd_done(args: argparse.Namespace) -> int:
     if gate.bypassed:
         rec["evidence_gate"] = "bypassed"
     # claimed-but-absent deliverable: the round NAMES a file its diff lacks -> demote.
-    _declared = _parse_deliverables(getattr(args, "deliverables", None))
-    _missing = (_missing_claimed_deliverables(root, rec.get("branch"), _declared)
-                if _declared else [])
+    _declared = _parse_deliverables(getattr(args, "deliverables", None)) or []
+    # hyp l4-the-deliverable-check-runs-in-the-live-harvest: merge the node's own
+    # declared `deliverables:` list so the check is ON in live kid `done` even
+    # without a human passing the flag; either source alone must trip the demotion.
+    _node_del = (_node_declared_deliverables(root, node_file)
+                 if args.node_id and node_file and node_file.exists() else [])
+    if _declared or _node_del:
+        _union = list(dict.fromkeys(_declared + _node_del))
+        _missing = _missing_claimed_deliverables(root, rec.get("branch"), _union)
+    else:
+        _missing = []
     if _missing:
         _names = ", ".join(_missing)
-        rec["demoted_from"] = verdict
+        # hyp l4-deliverable-check-...-demoted_from: when the evidence gate ALSO
+        # demoted, keep its ORIGINAL verdict -- never overwrite it with the
+        # gate's already-demoted `verdict`.
+        if "demoted_from" not in rec:
+            rec["demoted_from"] = verdict
         rec["demote_reason"] = (f"claimed-but-absent deliverable(s) not carried "
                                  f"by the round diff: {_names}")
         rec["missing_deliverables"] = _missing
