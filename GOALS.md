@@ -9898,6 +9898,8 @@ SM.82 harvested: hypothesis:l4-a-suite-run-never-spawns-a-second-detached-pytest
 
 SM.81 QUIET-POSTS merged c89c2563f (SM ACCEPT :85) and SM.83 spawn-row ref-race merged d319bcb67 -- both clean, no conflicts, into sensei-director post branch
 
+SM.72/D re-cut merged 9fa74fa33 -- re-verified sensei test family (test_sensei.py + 3 new files) --basetemp /tmp from the rounds own worktree: 188 passed 0 failed, this IS the re-cut per SM. 92 net production lines / 50 ceiling = 1.84x, disclosed, under 2x demote line
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
