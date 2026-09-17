@@ -128,7 +128,15 @@ def test_flags_precede_the_prompt_arguments(tmp_path):
 
 def test_binary_is_still_first(tmp_path):
     args = build({"agent_dispatch": {"model": "qwen/qwen3.8-27b"}}, tmp_path)
-    assert args[0].endswith("pi")
+    # hypothesis:l4-every-pi-kid-keeps-its-full-tool-call-trajectory-at-
+    # spawn-never-pruned-never-rebuilt — the produced command now launches the
+    # trajectory wrapper, which in turn runs the real pi (the `--wrapper`
+    # segment's first value) under `--mode json`. The guard survives: the
+    # arcane pi binary is still IN the command, argv[0] is just its runner.
+    assert args[2] == "--wrapper"
+    assert args[3].endswith("pi"), f"real pi binary must be the wrapper target: {args}"
+    assert args[4].endswith("trajectory.jsonl")
+    assert args[5] == "--"
 
 
 # --- the scaffold prompt ---------------------------------------------------
