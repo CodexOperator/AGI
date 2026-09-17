@@ -814,6 +814,44 @@ def test_sweep_dirty_paths_rename_into_sessions_is_still_filtered(tmp_path):
     assert heal._sweep_dirty_paths(lines) == []
 
 
+def test_sweep_dirty_paths_rename_dest_containing_arrow(tmp_path):
+    """THE case that must never regress: a destination that itself contains
+    ` -> ` is C-quoted by git, so `split(" -> ")`/`parts[-1]` tears it and
+    yields a path that does not exist — the silent drop this node exists to
+    kill. Real git bytes, real `git mv`."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "b -> c.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "b -> c.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert got == ["b -> c.txt"], got
+    assert (repo / got[0]).is_file(), "the returned path must exist"
+
+
+def test_sweep_dirty_paths_quoted_orig_containing_arrow(tmp_path):
+    """Both sides quoted, both containing the separator: the ORIG side must
+    be consumed quote-awarely or the split tears the destination too."""
+    repo = _rename_repo(tmp_path)
+    (repo / "a -> b.txt").write_text("x\n")
+    _sh("git", "-C", str(repo), "add", "-A")
+    _sh("git", "-C", str(repo), "commit", "-qm", "add")
+    _sh("git", "-C", str(repo), "mv", "a -> b.txt", "c -> d.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  "a -> b.txt" -> "c -> d.txt"'], lines
+    assert heal._sweep_dirty_paths(lines) == ["c -> d.txt"]
+    assert (repo / "c -> d.txt").is_file()
+
+
+def test_sweep_dirty_paths_rename_dest_with_escaped_quote(tmp_path):
+    """A `"` in the destination is escaped (`\\"`) inside the C-quoted side;
+    unquoting must resolve the escape, not leave the backslash in the path."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", 'quote"name.txt')
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "quote\\"name.txt"'], lines
+    assert heal._sweep_dirty_paths(lines) == ['quote"name.txt']
+
+
 def test_sweep_dirty_paths_ordinary_entries_unchanged():
     """Non-rename entries keep their existing meaning — a copy entry takes
     the destination, an ordinary modification keeps the whole path."""

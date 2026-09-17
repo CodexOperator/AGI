@@ -931,6 +931,47 @@ def _sweep_iter_name(wt: Path) -> str:
     return dirs[0].name if dirs else "?"
 
 
+def _porcelain_unquote(field: str) -> str:
+    """Undo git's C-quoting for ONE porcelain path field: drop one enclosing
+    quote pair and resolve `\\`/`\"`. Unquoted fields pass through."""
+    if len(field) < 2 or not (field.startswith('"') and field.endswith('"')):
+        return field
+    body, out, i = field[1:-1], [], 0
+    while i < len(body):
+        if body[i] == "\\" and i + 1 < len(body) and body[i + 1] in ('"', "\\"):
+            out.append(body[i + 1])
+            i += 2
+            continue
+        out.append(body[i])
+        i += 1
+    return "".join(out)
+
+
+def _porcelain_rename_dest(path: str) -> str:
+    """The DESTINATION of an `ORIG -> DEST` porcelain v1 rename/copy field.
+    Git C-quotes each side independently, so an unquoted side never holds a
+    space: scan the ORIG side quote-awarely when quoted, else split on the
+    FIRST separator; unquote the DEST side. No separator -> unchanged."""
+    if path.startswith('"'):
+        i = 1
+        while i < len(path):
+            if path[i] == "\\":
+                i += 2
+                continue
+            if path[i] == '"':
+                i += 1
+                break
+            i += 1
+        if not path[i:].startswith(" -> "):
+            return path
+        dest = path[i + 4:]
+    else:
+        _orig, sep, dest = path.partition(" -> ")
+        if not sep:
+            return path
+    return _porcelain_unquote(dest)
+
+
 def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     """The `git status --porcelain` entries that are NOT under a worktree's
     own `.agi/sessions/` (per-worktree session scratch is the one tolerated
@@ -940,16 +981,14 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     for ln in status_lines:
         path = ln[3:].rstrip("\n")
         # Porcelain v1 rename/copy entries read `XY PATH` where PATH is
-        # `ORIG -> DEST` (each side quoted separately when it holds specials),
-        # never a single path. A naive `ln[3:]` returns the literal non-path
-        # string `ORIG -> DEST`, which the park's `(wt / rel).is_file()` filter
-        # drops silently. Take the DESTINATION: a rename's bytes live there.
-        # Split on the LAST ` -> ` so a quoted destination survives.
+        # `ORIG -> DEST`, never a single path. A naive `ln[3:]` returns the
+        # literal non-path string `ORIG -> DEST`, which the park's
+        # `(wt / rel).is_file()` filter drops silently. Take the DESTINATION:
+        # a rename's bytes live there.
         if "R" in ln[:2] or "C" in ln[:2]:
-            parts = path.split(" -> ")
-            if len(parts) > 1:
-                path = parts[-1]
-        path = path.strip().strip('"')
+            path = _porcelain_rename_dest(path)
+        else:
+            path = _porcelain_unquote(path)
         if path.startswith(".agi/sessions/"):
             continue
         dirty.append(path)
