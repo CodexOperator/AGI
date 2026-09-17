@@ -24,7 +24,7 @@ A SMALL loop. Three heads in a FIXED order, then close. No new goals, no relocat
 
 ```
 owner ──► belam (Prime, REVIEW not work; chain restarts belam-S1-L5-I at the next Prime rotation)
-            └──► director-belam (today's post sanctuary-director; the name lands in L5.02) ──► <=4 live parents (pi, ~deepseek/deepseek-v4-flash-latest), <=5 kids each
+            └──► director-belam (today's post sanctuary-director; the name lands in L5.02) ──► <=8 live parents (pi, ~deepseek/deepseek-v4-flash-latest), <=5 kids each
 IDLE, never woken in L5: sanctuary-master · master-sensei · sensei-director (rotates ONCE in L5.02 -> director-sanctuary, then idles) · sanctuary-helper · thought-master · director-thought · stream-master
 NO livestream: view-<post> sessions / livestream repoint NOT required; a missing view session is never a red (owner).
 ```
@@ -55,7 +55,7 @@ Staged 09-16 20:24Z and never applied: `rotate.py` defines `_apply_staged` (rota
 - **L5.02-live** (PRIME): the point rotates on my word -> comes up as director-belam (the L5 director from then on); sensei-director rotates -> director-sanctuary, idles. Verify: `tmux list-windows -t agi-rc` names · `send.py whois` · `send.py send director-belam` lands · both `.rename.json` consumed · `config:posts` rows carry the new names.
 
 ### HEAD 3 — EVERYTHING ELSE (third; owner): the stragglers, and every little gap surfaced in-loop, fixed in-loop
-The list at open: the 23 g15 hypotheses with no experiment node that survived the L4 retire pass (rows in hypothesis:a00-e1933e6a-176c0e) · SM.101 (wake-audit PENDING vs 0 = the floor) · node-count follows the MINT ID across a deprecation move (never "missing committed file" for a move) · the three rotation-audit code lines · the F23 fact fix · whatever L5.01/L5.02 surface. The director triages into waves of <=4 parents (retire + note anything already closed by landed bytes; never round a closed item); each round = one hypothesis, <=5 kids, review by name, merge-up by SHA.
+The list at open: the 23 g15 hypotheses with no experiment node that survived the L4 retire pass (rows in hypothesis:a00-e1933e6a-176c0e) · SM.101 (wake-audit PENDING vs 0 = the floor) · node-count follows the MINT ID across a deprecation move (never "missing committed file" for a move) · the three rotation-audit code lines · the F23 fact fix · whatever L5.01/L5.02 surface. The director triages into waves of <=8 parents (retire + note anything already closed by landed bytes; never round a closed item); each round = one hypothesis, <=5 kids, review by name, merge-up by SHA.
 
 ### CLOSE
 goal:g19 done-state holds (every claim measured on season2/main) -> COMPLETE.md L5 section as a WHOLE REPLACEMENT -> push -> the prayer. No other close step (no stream, no panic).
@@ -64,4 +64,4 @@ goal:g19 done-state holds (every claim measured on season2/main) -> COMPLETE.md 
 review by name on pi, never the Claude Workflow tool (F29) · ONE suite runner per tree, every pytest --basetemp under /tmp · stamp before any delete · `grid.py commit --all` on season2/main only · commit + push after every action · floor `provisioning.min_account_remaining_usd` 1.6, switch accounts at the gate's refusal (doc:l4-owner-decisions :882 + 2b) · directors dm the Prime only when necessary, tagged · message bodies backtick-free · never git add -A · never `git rm` under .agi/nodes · every finding -> a g15 node fixed in-loop, never residue prose.
 
 ## §3 The director's brief (dm'd by node id; this section IS the brief)
-You are the L5 single director (post sanctuary-director today; director-belam from L5.02). Read this node whole, then goal:g19 and doc:l5-owner-decisions. Work HEAD 1 -> HEAD 2 -> HEAD 3 in that order, one hypothesis per round, <=4 live parents, from your worktree, reviews by name on pi, merge-ups by SHA with a numbers-only `[merge-up]` line + one proposed g15 line per finding. Never touch HANDOFF.md, the L5 docs, goal:g19's body or briefs/. When HEAD 1's round lands, say so in the merge-up line; the Prime runs L5.01-live. Same for HEAD 2. Then the stragglers until the list is empty.
+You are the L5 single director (post sanctuary-director today; director-belam from L5.02). Read this node whole, then goal:g19 and doc:l5-owner-decisions. Work HEAD 1 -> HEAD 2 -> HEAD 3 in that order, one hypothesis per round, <=8 live parents, from your worktree, reviews by name on pi, merge-ups by SHA with a numbers-only `[merge-up]` line + one proposed g15 line per finding. Never touch HANDOFF.md, the L5 docs, goal:g19's body or briefs/. When HEAD 1's round lands, say so in the merge-up line; the Prime runs L5.01-live. Same for HEAD 2. Then the stragglers until the list is empty.
