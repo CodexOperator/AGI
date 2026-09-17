@@ -9908,6 +9908,8 @@ SM.86 merged be72e963f -- ring-cli regression fixed, refusal moved from main() t
 
 SM.84 merged da5826913 -- node D items 6+7: rotate-out-audit out-window after last work-push not last input; prepare/rotate-self check-2 scopes dirty-tree to own paths on unmeasurable-touch MAIN posts, retry after block never re-asks --stops. 48 net production lines (sensei.py+rotate.py) / 33 ceiling = 1.45x under 2x. 1015 passed 4 skipped 1 xfailed 0 failed, full rotate+session-start+after-join neighbourhood independently re-run given this touches the prepare gate every rotation (including this seats own) depends on
 
+SM.87 harvested: pi trajectory wire re-cut landed via composing kid experiment:a00-860e6dd5-c29186 (merge 2b1.. on top of a00-6e2cea33s work). Kid 2 falsified kid 1s own test fixture -- real pi tool_execution_end carries no args/timestamp, kid 1 fabricated both, masking a would-be args:null/ts:null ship. Kid 2 fixed the wrapper to stash args by toolCallId and stamp wall-clock ts, added a regression test for end-without-args. The wrapper-path fix itself (Path(__file__).resolve().parent.parent) is identical and correct in both kids. Superseded kid a00-6e2cea33 node kept whole as fixture-fidelity evidence, its code not merged. Independently verified: dispatch/cli/heal neighbourhood 247 passed 1 pre-existing failure (test_done_demotes_a_claimed_but_absent_deliverable, cli.py untouched by this round, tracked separately under SM.89 in flight). Execution test test_produced_command_wrapper_path_is_real_and_runs_end_to_end passed standalone; manually confirmed Path(cmd[1]).is_file() True against the merged tree.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
