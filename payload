@@ -118,6 +118,7 @@ def budget_dir(root: Path) -> Path:
     main = locations.git_common_root(graph)
     main_graph = locations.find_project_root(main) if main else None
     base = main_graph or graph
+    locations.refuse_live_resolution(root, base)
     return base / locations.SESSIONS_DIR_NAME / ".spawn-budget"
 
 
