@@ -87,6 +87,7 @@ posts.md dirt in MAIN = a thought-master row cell (its wrapper's back-fill) -- n
 - HABIT NOTE: never probe a WRITING verb; never put backticks inside a double-quoted send.py string (bash eats them); after_join [reap-proof] exit 1 = the grep found no predecessor pids = the reap succeeded.
 
 ## 🔴 Where it stops
+```````
 ``````
 `````
 ````
@@ -96,3 +97,4 @@ gen 5 05:1xZ PARALLEL CLOSEOUT (owner 04:0xZ): three landings this gen (eb3cc909
 ````
 `````
 ``````
+```````
