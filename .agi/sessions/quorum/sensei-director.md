@@ -84,7 +84,9 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 
 ## §3 🔴 STATE — post sensei-director — stamp 2026-09-17T00:16:22Z (D/E/F all dispatched, MERGE-UP LANDED)
 
-**🔴🔴 PRIME FULL PAUSE, belam 00:55:22Z, verbatim banked in `doc:l4-owner-decisions` — READ THIS FIRST, applies to every post, not just this seat:**
+**🔴🔴🔴 SEQUENTIAL MODE, owner order via SM 01:09Z — SUPERSEDES "finish-and-harvest is allowed" below. READ THIS FIRST:** "from the lift ONE round live at a time, each named by the Prime -- you brief+dispatch only the round I name, merge-up by name, then wait." **Do not harvest, merge, or act on SM.72/74/78 (or anything else) on your own initiative, even though they are live and finishing, until SM names the specific one by slug.** This seat harvested SM.73 and SM.77 correctly in substance just before this rule was announced (message-timing race, not a violation — SM's own SM.73 ACCEPT crossed with the order in the inbox) and told her so plainly rather than let the timing gap ride silently. **Going forward: wait for a named round, act on ONLY that one, report, wait again.**
+
+**🔴🔴 PRIME FULL PAUSE, belam 00:55:22Z, verbatim banked in `doc:l4-owner-decisions` — still the umbrella rule (no new dispatch tree-wide until lifted); SEQUENTIAL MODE above is the Prime/SM's chosen mechanism for un-pausing harvests one at a time, not a lifting of the pause itself:**
 1. **NO new dispatch of any parent, kid or review workflow from ANY post until the Prime lifts it by one dm.** Live rounds finish and are harvested; nothing new starts. **Node G stays undispatched under this rule, not just this seat's own "wait for a slot" judgment call — do not dispatch it, or anything else, until the lift dm arrives.**
 2. **NO engine-suite run anywhere until node H lands.** Cause: TWO suite runs were live in MAIN at once (an orphan since 00:21Z + a `verification.py --suite` since 00:43Z), both killed by the Prime — both had already committed fixture acks to `season2/main` and rewritten live rows. This retroactively confirms the stamp-deferral judgment call made earlier this session was correct, and the problem is worse than what had been observed by then.
 3. **Unblock order, one at a time:** thought-master's own-row commit → leak sweep (SM) → node H → SM.71 reaper restart (**this seat did the reaper restart once already this session post-SM.71; it may need doing again once node H lands** — watch for that) → pause lifted.
@@ -173,18 +175,21 @@ before this session also closed out). Outcomes as of this stamp:
     belam's 4-step unblock order; her verdict on it is what the pause is
     actually waiting on next, more than anything else in this file.
 
+🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
+on your own initiative even though they are live/finishing -- WAIT for SM to
+NAME the next one by slug, act on ONLY that one, report, wait again. This
+overrides the older "finish and harvest is allowed" reading below.
+
 FIRST ACTION for whoever reads this next (fresh successor or this session
-continuing): `send.py peek sensei-director` / read the inbox for SM's verdict
-on node H and any further unblock-order progress BEFORE doing anything else.
-Then `spawn_budget.py status` for SM.72/74/78 -- harvest whichever has
-exited, in the order they finish, following the SAME discipline used this
-session: check the KID's own branch if the parent's branch shows no diff
-(§4), run tests from the ROUND'S OWN worktree rather than this post's tree
-if the round touches heal.py/rotate.py/send.py/conftest.py (safer, and SM
-asked for this explicitly for H -- worth continuing even after the pause
-lifts, until proven unnecessary), note the goal, render, push, report to SM
-by slug. Do NOT dispatch anything -- not G, not backlog, not a re-brief kid
--- until an explicit Prime lift-dm is seen in the inbox.
+continuing): `send.py peek sensei-director` / read the inbox for (a) SM's
+answer on the SM.77 ceiling-math clarification + the skipped mur-round flag
+this seat sent her, (b) which round she names next. Only once she names one:
+follow the SAME harvest discipline used this session -- check the KID's own
+branch if the parent's branch shows no diff (§4), run tests from the ROUND'S
+OWN worktree rather than this post's tree if it touches
+heal.py/rotate.py/send.py/conftest.py, note the goal, render, push, report
+to SM by slug. Do NOT dispatch anything -- not G, not backlog, not a
+re-brief kid -- until an explicit Prime lift-dm is seen in the inbox.
 
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
