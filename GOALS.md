@@ -9926,6 +9926,8 @@ SM.94 harvested: prepare --perform now performs the post-head mirror push (check
 
 SM.97 died: pid 738421, fail_reason "pid 738421 died (detected by reaper)", no more specific cause captured. Confirmed nothing landed: branch tip identical to dispatch merge-base (zero diff), the one kid directory (a00-4e70d673) is empty, no kid branch anywhere. The parent log shows it was still deep in architecture investigation (how dispatch resolves session roots for kids) when it died, never reached writing code. Not a repeat infra pattern (first failure for this node). hypothesis:l4-the-done-tier-gate-resolves-its-sessions-root-through-the-registered-resolver-and-never-reads-the-live-checkout-under-pytest remains undispatched, ceiling 15, ready for re-dispatch.
 
+SM.98 harvested: suite-lock read-only holder judgement landed, both probe-only callers rewired through it (verification.suite_lock_holder), acquire_suite_lock stays sole writer. 18 net production lines, 0.9x of 20 ceiling. inconclusive_lean_proved:80 -- guard still breaks a dead-pid lock per the pinned stale test, the hypothesis own TESTS-permitted broken-stated arm. 54 green on the round own tests (test_verification+test_grid_evidence_gate_defer); test_rotate.py 316 passed 1 failed, the pre-existing tracked test_stops_stale_clock_grep_is_extended_regexp failure SM.96 is already fixing, not a new regression. Branch season2/loops/hypothesis-l4-the-suite-lock-has-a00-dd414289 merged, kid experiment:a00-a3f2be5b-1ec18a.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
