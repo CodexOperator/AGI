@@ -4142,7 +4142,7 @@ def _containment_proof(repo: Path, head_branch: str,
     if not cli._rs_ls_remote_sha(repo, head_branch):
         return False, (f"ls-remote {head} failed or absent -- UNKNOWN, "
                        f"refusing to delete")
-    state, tgt = cli._rs_containment_state(repo, head_branch, [mirror])
+    state, tgt, _old = cli._rs_containment_state(repo, head_branch, [mirror])
     if state != "contained":
         return False, (f"no containment proof for {head} in {mirror} "
                        f"({state})")
