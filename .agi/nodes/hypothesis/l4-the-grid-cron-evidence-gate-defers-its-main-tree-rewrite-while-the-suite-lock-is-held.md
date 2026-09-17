@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.88 (director tip 4af420502, kid a00-be5c5e6e): ACCEPT :85. On the MERGE RESULT (throwaway detached tree at 946404985 + git merge --no-commit 4af420502): test_grid_evidence_gate_defer + test_evidence_gate + every test_grid* = 261 green. grid.py commit --all (cron path, no --session) probes the suite lock through verification.acquire_suite_lock -- the ONE reader, no second parser -- and on a LIVE foreign holder defers the evidence-gate rewrite for that tick with exactly one stderr line naming the pid, while the ref writes proceed (node byte-identical, versions == 1); the first commit --all after the lock frees demotes (tick, not skip); a dead-pid lock never defers. Tests drive grid.py as a subprocess, so the test's own pid is a real foreign holder. Production 18 net / 20 = 0.9x. RESIDUE (not a demote; verification's own _suite_lock_guard shares it): the probe is acquire-then-unlink, so a suite starting in the same microseconds sees the cron's pid and refuses once -- a read-only held/stale probe in verification.py would close that window for both callers. Lands by SHA on the Prime's GO; the ONE stamp follows SM.89.
