@@ -1125,12 +1125,20 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     # loop -- pre-resolving here (hyp:l4-a-finished-rounds-session-dir-comes-
     # home-before-the-sweep-judges-it) keeps every tree's ancestry provable.
     base_pre: dict[str, str] = {}
+    iter_pre: dict[str, str] = {}
     for wt_p in sorted(wt_base.glob("a00-*")):
         if not wt_p.is_dir():
             continue
         b0, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt_p)
         base_pre[wt_p.name] = _sweep_worktree_base(
             root, wt_p, _sweep_season(b0[0] if b0 else ""))
+        # The iter NAME is pre-resolved with the base, for the same reason
+        # (hyp:l5-the-reaper-sweep-terminally-resolves-merged-kid-worktree-
+        # leftovers): a LIVE `cli._session_complete` REMOVES the iter dir from
+        # every worktree it homes, so reading it later with a bare
+        # `wt.glob` returns `?` and the park destination silently falls back
+        # to `_unhomed` even though the round's own iter home is known.
+        iter_pre[wt_p.name] = _sweep_iter_name(wt_p)
     for wt in sorted(wt_base.glob("a00-*")):
         if not wt.is_dir():
             continue
@@ -1219,7 +1227,11 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # itself refuses and leaves the tree standing.
         status_lines, _ = _git(["status", "--porcelain"], wt)
         dirty = _sweep_dirty_paths(status_lines)
-        iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
+        # The iter name comes from the PRE-PASS (like the base), never a
+        # live glob: the bring-home above has already freed a homed iter
+        # dir from this worktree. `_unhomed` remains only as the honest last
+        # resort for a worktree that carried no `iter-*` dir at all.
+        iter_name = iter_pre.get(agent_id, "?")
         iter_dir = iter_name if iter_name != "?" else "_unhomed"
         if dirty:
             target = main_sessions / iter_dir / "leftovers" / agent_id
