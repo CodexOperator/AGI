@@ -603,3 +603,49 @@ def _no_openrouter(monkeypatch):
     if not _patched:
         # no rotate module importable here; nothing to stub, delenv stands.
         return
+
+
+@pytest.fixture(autouse=True)
+def _pin_sessions_and_comms_roots_to_tmp(tmp_path, monkeypatch):
+    """goal:g15 (hypothesis:l4-the-suite-never-writes-the-live-sessions-or-
+    comms-root-heal-and-send-take-the-root-they-are-given) -- the suite NEVER
+    writes the LIVE sessions or comms root.
+
+    The four resolver leaves the engine reads are bound so that any resolution
+    landing OUTSIDE the running test's own tmp_path is rehomed under it. The
+    live escape this closes: the kid harness roots pytest's basetemp inside
+    the LIVE repo, so `locations.shared_sessions_dir` / `send.comms_root`
+    called on a test-constructed graph root re-resolve through
+    `locations.git_common_root` -> `git rev-parse --git-common-dir` to the
+    MAIN checkout's `.agi` -- and a heal that threads its given root then
+    lands rotation records, crash-recovery dms and pin-reap alarms in the
+    LIVE tree. Rebinding an escaping result under tmp_path makes the leak
+    impossible while leaving every resolver whose result is already inside
+    the test's tmp (all fixture roots) byte-for-byte unchanged -- so the
+    resolver-behaviour tests (comms season root, worktree-shared sessions)
+    stay green and the suite is made safe by construction, not by
+    hand-seaming each producer. No env var (a subprocess could drop it), the
+    production definitions are untouched.
+    """
+    tmp = tmp_path
+    try:
+        import locations as _loc    # shared module object every alias binds
+        import send as _send
+    except Exception:               # noqa: BLE001 -- nothing to pin without
+        return                      # the resolvers, so stay a silent no-op
+
+    def _bound(fn, bucket):
+        def wrapper(root, *args, **kwargs):
+            real = Path(fn(root, *args, **kwargs)).resolve()
+            if real == tmp or tmp in real.parents:
+                return real         # already a test-owned path: use as-is
+            return tmp / bucket     # escaped to the LIVE tree: rehome under tmp
+        return wrapper
+
+    monkeypatch.setattr(_loc, "shared_sessions_dir",
+                        _bound(_loc.shared_sessions_dir, "sessions"))
+    monkeypatch.setattr(_loc, "sessions_dir",
+                        _bound(_loc.sessions_dir, "sessions"))
+    monkeypatch.setattr(_send, "comms_root", _bound(_send.comms_root, "comms"))
+    monkeypatch.setattr(_send, "_default_comms_root",
+                        _bound(_send._default_comms_root, "comms"))
