@@ -159,6 +159,22 @@ def test_missing_view_session_is_skipped_not_a_red(tmp_path):
     assert not (tmp_path / "sessions" / "seats" / "old.rename.json").exists()
 
 
+def _graph_ready(tmp_path):
+    """Make `tmp_path` itself a graph root (a legacy config marker is enough:
+    write.py's API resolves root descend-only) and declare the config schema
+    so the `self_row` carve-out admits the seated row write."""
+    (tmp_path / "agi-tree.config.json").write_text(
+        '{"metric_primary": "x"}', encoding="utf-8")
+    schemas = tmp_path / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    (schemas / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner, prime_director]\n"
+        "self_row: {list_key: seats, match_key: name, fields: [session_ref, "
+        "session_name, session_id, generation, window, pid, pubkey, "
+        "sig_scheme, enc_scheme, key_history, session_label]}\n---\nbody\n",
+        encoding="utf-8")
+
+
 def _rotate_self_args(tmp_path, **over):
     base = dict(name="adv-alive", force=False, timeout=5, debug_file=None,
                 model=None, effort=None, settings=None, prompt_file=None,
@@ -207,6 +223,7 @@ def test_cmd_rotate_self_boundary_seats_new_name_and_consumes_stage(
     hands `spawn_window` the NEW name -- so the successor is seated under the
     new name, never the old one."""
     import send as _send
+    _graph_ready(tmp_path)
     _seats(tmp_path, [{"name": "adv-alive", "role": "parent",
                        "model": "x", "effort": "max", "settings": ""}])
     _sessions(tmp_path, "adv-alive")
@@ -248,3 +265,55 @@ def test_cmd_rotate_self_boundary_seats_new_name_and_consumes_stage(
     rec = json.loads(recs[-1].read_text(encoding="utf-8"))
     assert rec.get("applied_rename", {}).get("new") == "adv-new", rec
     assert rec["applied_rename"]["applied"] >= 0
+
+
+def test_rc_label_and_stored_row_cell_carry_the_new_name(tmp_path, monkeypatch):
+    """L5.02 CLOSE of the `--remote-control` label conjunct: after a boundary
+    rename the successor's app-GUI identity is the NEW name -- the exact
+    parent probe that FAILED (`rc_name == 'adv-alive'`). The stored row's
+    `session_label` cell must AGREE with it, because the seats ROW `name`
+    itself stays a printed `ship` line (the round never writes config); the
+    row lookup resolves through the `old -> new` `aliases:` bridge while the
+    label is passed explicitly."""
+    import send as _send
+    _graph_ready(tmp_path)
+    _seats(tmp_path, [{"name": "adv-alive", "role": "parent",
+                       "model": "x", "effort": "max", "settings": ""}])
+    _sessions(tmp_path, "adv-alive")
+    (tmp_path / "sessions" / "seats").mkdir(parents=True, exist_ok=True)
+    _send._seat_key_path(tmp_path, "adv-alive").write_text(
+        json.dumps({"scheme": "ed25519", "priv_hex": "00",
+                    "pub_hex": "00"}), encoding="utf-8")
+    _ladder(tmp_path, monkeypatch)
+    (tmp_path / "sessions" / "quorum").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "sessions" / "quorum" / "adv-alive.md").write_text(
+        "# card\n", encoding="utf-8")
+    _stage(tmp_path, "adv-alive", "adv-new")
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+    seen = {}
+
+    def fake_spawn(**kw):
+        seen["name"] = kw["name"]
+        seen["rc_name"] = kw.get("rc_name")
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-new\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    rc, err = _err(lambda: rotate.cmd_rotate_self(
+        _rotate_self_args(tmp_path, window_path=str(win),
+                          session_ref="adv-alive-9"), tmp_path))
+    assert rc == 0, err
+    # THE PROBE THAT FAILED: the --remote-control name is the NEW name.
+    assert seen.get("rc_name") == "adv-new", seen
+    assert seen.get("name") == "adv-new", seen
+    # the stored cell AGREES; the row `name` itself stays the old name.
+    rows = [r for r in rotate._load_seats(tmp_path) if r.get("name") == "adv-alive"]
+    assert rows and rows[0].get("session_label") == "adv-new", rows
+    assert not any(r.get("name") == "adv-new"
+                   for r in rotate._load_seats(tmp_path))

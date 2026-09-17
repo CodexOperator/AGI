@@ -9203,7 +9203,9 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_id: str | None = None,
                          session_name: str = "",
                          key_rotation: dict | None = None,
-                         first_key_cells: dict | None = None) -> str:
+                         first_key_cells: dict | None = None,
+                         row_seat: str | None = None,
+                         session_label: str | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
@@ -9267,9 +9269,25 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # first spawn write, beside session_name; the ack back-fill never passes
     # it, so it stays what the spawn row write set.
     import write as _w  # local: same dir (send.py pattern, no import cycle)
-    cells["session_label"] = _session_label(
-        next((r for r in _w._load_seats(_shared_graph_root(root))
-              if r.get("name") == seat), {}), generation) or ""
+    # L5.02 clause 2: after a boundary rename the seats ROW still carries the
+    # OLD name (the round never writes config), so the successor's row lookup
+    # keys on `row_seat` (the applied rename's old name) and resolves through
+    # the one `aliases:` table when the row itself was already renamed. The
+    # label is passed EXPLICITLY by the boundary caller (the same string the
+    # spawn passes as --remote-control), so the GUI label and the stored cell
+    # AGREE. `_write_identity_cells` writes the RESOLVED row, never a phantom
+    # new-named one; an unresolved row is the named skip below, never silent.
+    _rows = _w._load_seats(_shared_graph_root(root))
+    _want = row_seat or seat
+    _row = next((r for r in _rows if r.get("name") == _want), None)
+    if _row is None:
+        _alias = _rename_aliases(_shared_graph_root(root)).get(_want)
+        if _alias:
+            _row = next((r for r in _rows if r.get("name") == _alias), None)
+    _row_name = (_row or {}).get("name") or _want
+    cells["session_label"] = (
+        session_label if session_label is not None
+        else _session_label(_row or {}, generation)) or ""
 
     if pid is not None:
         cells["pid"] = pid
@@ -9297,8 +9315,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # never a second `_write_identity_cells` call, never a second commit.
     if first_key_cells:
         cells.update(first_key_cells)
-    if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
-                                 cells=cells):
+    if not _write_identity_cells(root, seat=_row_name, actor=_row_name,
+                                 role=role, cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
@@ -18508,7 +18526,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # at the successor generation, passed as the --remote-control NAME. The
     # tmux WINDOW name stays `spawn_name` (seat / numeral) — decoupled here,
     # never renames the window (pane addressing keys on the window name).
-    _rc_label = _session_label(row, gen)
+    # L5.02 clause 1 (hypothesis:l5-rotate-wires-apply-staged-into-the-
+    # rotation-boundary): after a boundary rename the successor's app-GUI
+    # identity is the NEW name. The rows row still reads the OLD name here
+    # (the round never writes config), so the label is derived from the NEW
+    # seat name the successor was actually seated under, never the stale
+    # pre-boundary row. No stage existed -> byte-identical to the old path.
+    if _applied_rename:
+        _rc_label = _session_label({"name": seat, "role": role}, gen)
+    else:
+        _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -18830,6 +18857,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 session_name=((joined or {}).get("name", "")
                               if (joined and joined.get("found")) else ""),
                 generation=gen,
+                # L5.02 clause 2: the row that EXISTS (old name) is the one
+                # the identity cells are written into; the label is the NEW
+                # name, passed explicitly so GUI and cell agree.
+                row_seat=(_applied_rename or {}).get("old"),
+                session_label=(_rc_label if _applied_rename else None),
                 # goal:g15.25 line (2): the successor pubkey + key_history
                 # cells ride this ONE spawn-row write (and the ONE
                 # `_commit_spawn_row` below) -- never a second submit.
