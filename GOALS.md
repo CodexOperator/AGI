@@ -6720,6 +6720,8 @@ SM.238 (SM.23b) harvested onto seat branch -- heal-wait semantics properly re-la
 
 SM.76 landed (merge fe460c5f6..HEAD): a --model/--effort/--settings differing from the row cell is refused by name at cmd_rotate_self and cmd_spawn (exit 3), never silently written or launched; row stays the one source. experiment:a00-02b4b957-5fdb49, proved, 44/45 lines against the stale frontmatter ceiling (the re-cut Agent Notes true ceiling is 25 -- flagged to SM as 1.76x, under 2x). 487 passed, 4 skipped, 0 failed on the rotate/spawn neighbourhood.
 
+SM.75 landed: cli.py cmd_done now stamps the director own where-it-stops slot at harvest via the shared rotate locator (fresh stamp + harvested line); dry-run and kid/missing-card/non-director no-write falsifiers all tested. experiment:a00-45e9e5ba-2043c3, inconclusive_lean_proved:70 -- honest partial, the separate landed-row-cell write and merge-sha7 field from the original claim are NOT done, left as a follow-up. 52/45 lines (1.16x, disclosed). 85 passed on test_cli.py + test_rotate_templates.py.
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
