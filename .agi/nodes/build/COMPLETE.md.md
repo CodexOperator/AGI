@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L3-XVI
+edited_by: belam
 origin: build-scan
 payload_ref: COMPLETE.md
 scaffold_hash: d8b43e6e0045d164
