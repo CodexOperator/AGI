@@ -221,3 +221,5 @@ SM.80 (SUITE-GREEN) harvested: hypothesis:l4-suite-green-on-main-the-18-reds-aft
 SM.82 harvested: hypothesis:l4-a-suite-run-never-spawns-a-second-detached-pytest-the-spawning-test-is-named-and-stubbed-and-the-runner-refuses-under-pytest. Built claims (2)+(3): verification.main refuses exit 3 when PYTEST_CURRENT_TEST is set before any work, 3 in-tree call sites stub rather than trip it, guard test confirms the ppid-1 watcher stays empty against a real setsid probe. Claim (1), naming the actual spawning test among the 5 candidates, was not delivered -- parent demoted proved to inconclusive_lean_proved:65, honest partial. 57 tests independently re-verified.
 
 SM.81 QUIET-POSTS merged c89c2563f (SM ACCEPT :85) and SM.83 spawn-row ref-race merged d319bcb67 -- both clean, no conflicts, into sensei-director post branch
+
+SM.72/D re-cut merged 9fa74fa33 -- re-verified sensei test family (test_sensei.py + 3 new files) --basetemp /tmp from the rounds own worktree: 188 passed 0 failed, this IS the re-cut per SM. 92 net production lines / 50 ceiling = 1.84x, disclosed, under 2x demote line

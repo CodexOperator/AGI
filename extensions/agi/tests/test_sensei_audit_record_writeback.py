@@ -48,6 +48,8 @@ import json
 import re
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -1037,3 +1039,45 @@ def test_resolve_wake_transcript_annotation_is_the_true_triple():
     src = inspect.getsource(sensei._resolve_wake_transcript)
     assert "-> tuple[Path | None, str, Path | None]" in src, \
         "the true 3-tuple annotation on _resolve_wake_transcript"
+
+
+# ── the --settled verb (conjunct 4) ─────────────────────────────────────
+
+def test_settled_wait_blocks_until_success_then_grace(tmp_path, monkeypatch):
+    """Falsifier of the --settled verb: it must NOT return before the rotation
+    record shows `result: success` AND the 240 s grace has elapsed. Driven by
+    a monkeypatched clock (never a real 240 s): flip the record, advance the
+    clock < grace -> still waiting; advance past grace -> it proceeds."""
+    rec = tmp_path / "rot.json"
+    rec.write_text(_canonical({"rotation": "rotate-self", "result": "started"}),
+                   encoding="utf-8")
+    holder = {"t": 1000.0}
+    monkeypatch.setattr(sensei.time, "monotonic", lambda: holder["t"])
+    release = threading.Event()
+
+    def gate(_s):                       # one released sleep = one poll iteration
+        release.wait()
+        release.clear()
+
+    done = []
+
+    def run():
+        sensei._settled_wait(str(rec), grace=240, sleep=gate)
+        done.append(True)
+
+    th = threading.Thread(target=run)
+    th.start()
+    time.sleep(0.05)                    # iteration 1: record still `started`
+    assert not done, "returned before the record showed success"
+    rec.write_text(_canonical({"rotation": "rotate-self", "result": "success"}),
+                   encoding="utf-8")
+    release.set()                       # iteration 2: observes success at t=1000
+    time.sleep(0.02)
+    holder["t"] += 100                  # 100 s of grace only
+    release.set()                       # iteration 3: 100 < 240 -> keeps waiting
+    time.sleep(0.02)
+    assert not done, "returned inside the 240 s grace"
+    holder["t"] += 200                  # 300 s total grace -> wait ends
+    release.set()                       # iteration 4: proceeds
+    th.join(5)
+    assert done and not th.is_alive(), "never returned past success + grace"

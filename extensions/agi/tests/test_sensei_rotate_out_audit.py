@@ -1032,3 +1032,21 @@ def test_rotate_out_a_bare_read_with_no_notification_is_a_poll(tmp_path):
     assert calls[0]["cat"] == "b" and calls[0]["label"] is None
     assert window["counted"] == 2
     assert counts == {"a": 0, "b": 1, "c": 0, "d": 1, "s": 0}
+
+
+def test_rotate_out_a_grep_of_the_notified_output_is_the_harvest(tmp_path):
+    """Conjunct 1 (hypothesis:l4-the-sensei-classifier-…): a GREP of the
+    notified <output-file> — not only a `cat` read — is that task's harvest
+    (pre), never a hand poll (b). A grep pattern carries `|` inside its quotes,
+    which must not end the same-pipe segment of the operand scan."""
+    graph, tr = _write_root(tmp_path, None)
+    _notified_transcript(tr, [
+        ("Bash", f"grep -E '^PASS|^FAIL|^RESULT' {OUT_FILE} | cut -c1-120"),
+        ("Bash", SEND),
+        ("Bash", ROTATE),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert calls[0]["label"] == "harvest of bpohvkj78"   # grep == harvest
+    assert [c["pre"] for c in calls] == [True, True, False]
+    assert window["counted"] == 1
