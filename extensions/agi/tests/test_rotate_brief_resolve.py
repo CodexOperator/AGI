@@ -11,6 +11,7 @@
 # through.
 import argparse
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -98,6 +99,70 @@ def test_main_post_brief_stays_main_rooted(tmp_path, monkeypatch):
         root / "sessions" / "quorum" / "old.md")
 
 
+# --- L5.14: the RELATIVE worktree cell, next to its absolute sibling ------
+# Every test above spells the seat row's `worktree` cell absolutely. Live
+# rows carry it RELATIVE (`"worktree": ".agi/worktrees/post-sensei-
+# director"`), a different branch of `_own_sessions_dir`:
+# `Path(locations.git_common_root(root) or root) / wt`. With `root` the main
+# graph dir, `git_common_root` is the MAIN checkout, and the cell is relative
+# to THAT -- only a real `git worktree` exercises it.
+
+
+def _git(path, *args):
+    res = subprocess.run(["git", *args], cwd=path, capture_output=True,
+                         text=True)
+    if res.returncode != 0:
+        raise RuntimeError(f"git {args}: {res.stderr}")
+    return res.stdout.strip()
+
+
+def _main_repo_with_relative_worktree(tmp_path):
+    """Main repo, graph at `main/.agi/`, linked `git worktree` at
+    `main/.agi/worktrees/post-old` (the live geometry), seat row carrying
+    the RELATIVE cell. Returns `(graph_root, wt)`."""
+    main = tmp_path / "main"
+    (main / ".agi" / "nodes").mkdir(parents=True)
+    _git(main, "init", "-q", "-b", "master")
+    _git(main, "config", "user.email", "t@t")
+    _git(main, "config", "user.name", "t")
+    (main / ".gitignore").write_text(".agi/worktrees/\n")
+    (main / "README").write_text("x")
+    (main / ".agi" / "nodes" / ".keep").write_text("x")
+    _git(main, "add", "-A")
+    _git(main, "commit", "-q", "-m", "init")
+    wt = main / ".agi" / "worktrees" / "post-old"
+    _git(main, "worktree", "add", "-q", str(wt), "-b", "old", "master")
+    graph_root = main / ".agi"
+    _seats(graph_root, [{"name": "old", "role": "parent",
+                         "worktree": ".agi/worktrees/post-old"}])
+    return graph_root, wt
+
+
+def test_relative_cell_brief_reroots_on_the_worktree_card(
+        tmp_path, monkeypatch):
+    """RELATIVE cell, REAL git: the `.agi/sessions`-prefixed template
+    re-roots on the worktree's own card through `git_common_root`, and the
+    ABSOLUTE spelling of the same cell re-roots to the identical file -- the
+    pairing the absolute-cell wire test above pins is preserved."""
+    graph_root, wt = _main_repo_with_relative_worktree(tmp_path)
+    card = wt / ".agi" / "sessions" / "quorum" / "old.md"
+    card.parent.mkdir(parents=True)
+    card.write_text("card\n")
+    monkeypatch.chdir(tmp_path)  # never the worktree, never the graph root
+    template = ".agi/sessions/quorum/old.md"
+    from_rel = rotate._resolve_brief_file(graph_root, "old", template)
+    assert from_rel == str(card)
+    # the SAME cell spelled absolutely resolves to the SAME file.
+    _seats(graph_root, [{"name": "old", "role": "parent",
+                         "worktree": str(wt)}])
+    assert rotate._resolve_brief_file(graph_root, "old", template) == from_rel
+
+
+def _name_args(old, new):
+    return argparse.Namespace(old_name=old, new_name=new, dry_run=False,
+                              now=False, apply=False, root=None)
+
+
 def test_absolute_and_non_session_briefs_pass_through(tmp_path, monkeypatch):
     """AUTH: an absolute path is unchanged; a non-`.agi/sessions` relative
     brief (`extensions/agi/briefs/...`) keeps its own root; an explicit
@@ -121,11 +186,6 @@ def test_absolute_and_non_session_briefs_pass_through(tmp_path, monkeypatch):
         _args(prompt_file=".agi/sessions/quorum/override.md"), root)
     assert "prompt_file" in seen
     assert seen["prompt_file"] == ".agi/sessions/quorum/override.md"
-
-
-def _name_args(old, new):
-    return argparse.Namespace(old_name=old, new_name=new, dry_run=False,
-                              now=False, apply=False, root=None)
 
 
 def _stage(root, old, new):
