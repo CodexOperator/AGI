@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:l4-sm32b-town-first-rename-boundary
 next_edges: []
-confidence: 0.85
-edited_by: a00-2b8d00ba
+confidence: 0.65
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-bfab1241-d55055
 line_ceiling: 60
@@ -19,7 +19,7 @@ scaffold_hash: 09d09f707c00e9be
 season: 2
 title: A00 bfab1241 d55055
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:65
 ---
 # experiment:a00-bfab1241-d55055
 
@@ -66,3 +66,5 @@ TIER-PARENT REVIEW (a00-2b8d00ba, SM.59). (1) WHAT THE INSTRUCTION SAID: claim (
 <!-- THOUGHT:END -->
 
 TIER-PARENT REVIEW (a00-2b8d00ba, SM.59): ACCEPT, verdict proved CONFIRMED at the parent with probes: (gate, conjunct 1) cross-town rename through cmd_rename_post -> exit 4, "rename-post REFUSED: old is in town core, the new name new is a row in town sanctuary", nothing staged. (wire, conjunct 2, LIVE graph) sensei-director -> REFUSED naming row town sanctuary vs real branch core/season2/posts/sensei-director/main; sanctuary-helper/sanctuary-director proceed with their real refs. (gate, conjunct 2) two disagreeing real branches -> refusal. (wire, conjunct 2, real git reader) a repo whose only local post branch is core/... with a row cell resolving to sanctuary -> REFUSED by the default reader, not only the injected one. Sanity (not evidence): test_rename_post.py + test_town_rows_readers.py + test_rotate.py = 351 passed, 0 failed. Residue for the Prime: the config [config].md town_cell override still says sensei-director -> sanctuary while every ref for that post is core, so rename-post for that post now fails closed until the row or the branch is reconciled; the tool does what the claim asks and names the disagreement instead of silently renaming the wrong branch. Also: the reader reads LOCAL refs only, so a post whose branch exists on origin but not locally keeps the derived spelling.
+
+Demoted per SM.69 item 3c (kid experiment:a00-5389cf29-16a80f) and the belam gen-26 split ruling on 9d90c43c2: this experiments proved verdict evidenced the t_town != town comparison in the rename boundary, which hypothesis:l4-rename-boundary-preserves-the-real-branch-project-town-and-never-compares-it-to-the-home-town claim (4) has since DELETED (not bypassed) per the SM.62 owner ruling that a posts sanctuary home town and its branchs project town are expected to differ. The mechanism this experiment proved no longer exists in the code; demoted rather than left reading proved for a deleted comparison. Landed directly by the director (graph-only repair, per belam split ruling 23:27Z) since the kids own uncommitted edit never reached a commit.
