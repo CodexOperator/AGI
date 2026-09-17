@@ -3579,7 +3579,13 @@ def _resolve_brief_file(root: Path, seat: str, brief_file: str) -> str:
     `extensions/agi/briefs/prime-director-successor.md` keep their own roots);
     a RELATIVE path whose first two parts are `.agi`/`sessions` re-roots on
     the post's own sessions dir (prefix dropped, tail rejoined); ANY other
-    relative path is returned unchanged (today's behaviour). L5.11."""
+    relative path is returned unchanged (today's behaviour).
+
+    `seat` is the name whose ROW locates the post's tree -- the PRE-rename
+    name at a rename boundary, never the substituted card name. The boundary
+    `_rename_surfaces` renames the card under the OLD row's tree, so the
+    successor must ask for the OLD row even though the card on disk carries
+    the NEW name. L5.11."""
     s = str(brief_file or "").strip()
     if not s:
         return s
@@ -18473,10 +18479,15 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             and tmpl is not None and tmpl.get("brief_file")):
         # L5.11: resolve the template brief through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
-        # CWD coincidence. `--prompt-file` still overrides (it never enters
-        # this branch) and is not re-rooted.
+        # CWD coincidence. At a rename boundary the card was renamed under
+        # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
+        # SUBSTITUTION stays the NEW name because that is the card's name on
+        # disk. `--prompt-file` still overrides (it never enters this branch)
+        # and is not re-rooted.
+        _brief_root_seat = (_applied_rename or {}).get("old") or seat
         prompt_file = _resolve_brief_file(
-            root, seat, str(tmpl["brief_file"]).replace("{seat}", seat))
+            root, _brief_root_seat,
+            str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
         # --ask-diff leg: the predecessor wrote `diff-requested`; the
         # successor's ONE wake call is the diff review, exactly one call
