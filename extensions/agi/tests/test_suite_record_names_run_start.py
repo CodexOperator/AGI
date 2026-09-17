@@ -173,3 +173,97 @@ def test_window_prints_the_sha_the_suite_ran_on(tmp_path):
     assert "baseline:" in out
     assert "stamped sha=cafef00d" in out
     assert "ran on deadbee" in out
+
+
+# --- hypothesis:l4-an-old-format-suite-record-refuses-the-stamp-and-cmd-
+# done-propagates-a-silent-dm-as-rc-1, SM.66 M1 / Agent-note item 3
+
+def _stamp_env(groot_path, monkeypatch):
+    """The live-stamp call-site scaffolding shared by the bridged tests."""
+    groot = groot_path / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    monkeypatch.setattr(verification.locations, "find_project_root",
+                        lambda p: groot)
+    monkeypatch.setattr(verification.commands, "engine_for", lambda g: str(groot))
+    monkeypatch.setattr(verification, "_suite_lock_guard", lambda g: None)
+    monkeypatch.setattr(verification, "_node_dirt", lambda g: [])
+    monkeypatch.setattr(verification, "check_seat_model",
+                        lambda g: verification.CheckResult(
+                            "seat-model", "PASS", 0.0, None))
+    monkeypatch.setattr(verification, "run_check", lambda g, name, verbose: (
+        verification.CheckResult(
+            "smoke", "PASS", 0.0,
+            {"active": 4, "deprecated": 0, "total": 4})
+        if name == "smoke" else verification.CheckResult(name, "PASS", 0.0, None)))
+    return groot
+
+
+def test_old_format_suite_record_refuses_the_stamp_by_name(tmp_path, monkeypatch,
+                                                          capsys):
+    """SM.66 M1: a suite record written BEFORE `suite_ran_on` existed (has
+    `suite_ran_at` only) must REFUSE the stamp by name -- never a fail-open
+    stamp on a guessed HEAD. Biose the old bytes, then a stamp-only call:
+    rc != 0 with the named line, and the baseline is untouched."""
+    groot = _stamp_env(tmp_path, monkeypatch)
+    # an OLD-format record: suite_ran_at, NO suite_ran_on.
+    sroot = groot / "sessions"
+    (sroot / verification.SUITE_TS_FILE).write_text(json.dumps(
+        {"suite_ran_at": 1.0}), encoding="utf-8")
+    state_p = sroot / verification.STATE_FILE
+    state_p.write_text(json.dumps({
+        "active": 4, "deprecated": 0, "total": 4, "sha": "base0",
+        "stamped_at": 1.0, "reason": "kept"}), encoding="utf-8")
+
+    monkeypatch.setattr(verification, "_git", lambda g, a: "somehead")
+    rc = verification.main(["--level", "quick", "--stamp",
+                            "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc != 0, out
+    assert "suite record predates run-start tracking: re-run --suite" in out
+    assert json.loads(state_p.read_text())["sha"] == "base0", (
+        "a refused stamp must leave the baseline untouched")
+
+
+def test_combined_suite_stamp_ignores_the_previous_record_but_stamp_only_refuses(
+        tmp_path, monkeypatch, capsys):
+    """Agent-note item 3: in a COMBINED `--suite --stamp` invocation the
+    record for THIS run is written only after compare_count closes -- so the
+    --stamp arm reads the PREVIOUS record's suite_ran_on and wrongly refuses
+    whenever HEAD moved since the last suite. A combined call must compare
+    HEAD to THIS run's start sha (run_sha) and ignore the previous record; a
+    stamp-only call keeps reading the record."""
+    groot = _stamp_env(tmp_path, monkeypatch)
+    sroot = groot / "sessions"
+    # PREVIOUS record: suite ran on shaA; HEAD is now at shaB.
+    verification._record_suite_ts(groot, ran_at=1.0, ran_on="shaA")
+    state_p = sroot / verification.STATE_FILE
+    state_p.write_text(json.dumps({
+        "active": 4, "deprecated": 0, "total": 4, "sha": "base0",
+        "stamped_at": 1.0, "reason": "kept"}), encoding="utf-8")
+    monkeypatch.setattr(verification, "_git", lambda g, a: "shaB")
+
+    # COMBINED --suite --stamp: this run starts at shaB (== HEAD), so the
+    # stamp compares HEAD to run_sha and STAMPS shaB despite the old record.
+    rc = verification.main(["--suite", "--level", "quick", "--stamp",
+                            "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "moved past the run shaA" not in out
+    assert json.loads(state_p.read_text())["sha"] == "shaB", (
+        "combined --suite --stamp must stamp THIS run's sha, not the old one")
+
+    # STAMP-ONLY (no suite this call), a FRESH tree still carrying the old
+    # record (prior suite shaA, HEAD shaB): reads the record, refuses by name.
+    groot2 = _stamp_env(tmp_path / "only", monkeypatch)
+    verification._record_suite_ts(groot2, ran_at=1.0, ran_on="shaA")
+    s2 = groot2 / "sessions" / verification.STATE_FILE
+    s2.write_text(json.dumps({
+        "active": 4, "deprecated": 0, "total": 4, "sha": "base0",
+        "stamped_at": 1.0, "reason": "kept"}), encoding="utf-8")
+    monkeypatch.setattr(verification, "_git", lambda g, a: "shaB")
+    rc2 = verification.main(["--level", "quick", "--stamp",
+                             "--root", str(tmp_path / "only")])
+    out2 = capsys.readouterr().out
+    assert rc2 != 0, out2
+    assert "HEAD shaB moved past the run shaA: re-run" in out2
+    assert json.loads(s2.read_text())["sha"] == "base0"
