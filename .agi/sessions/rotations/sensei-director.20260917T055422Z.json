@@ -94,7 +94,20 @@
       "target": "@421",
       "skipped": "view session view-sensei-director absent"
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-sonnet-5"
+      },
+      "live": {
+        "model": "claude-sonnet-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
   },
   "swept_latches": [],
@@ -115,8 +128,47 @@
     "reap_source": "derived from own window @id @420 pane 761571: chain [761571, 761575, 761597, 761598] (deepest-first; authority row pid 761598)"
   },
   "after_join": {
-    "claimed_at": "2026-09-17T05:55:11.879518+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-17T05:54:47.332760Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sensei-director",
+        "rc": 0,
+        "output": "@421 sensei-director\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/b7889337-5cc1-4a08-b696-613c72a1400e.jsonl",
+        "rc": 0,
+        "output": "0.0980\t97990/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(761571|761575|761597|761598)\\b'",
+        "rc": 0,
+        "output": " 761571  845418 ?        [bash] <defunct>\n",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sensei-director --record latest\n",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sensei-director",
+    "dm_signed": true,
+    "code_head": "24b075f",
+    "code_loaded": "1789611754:1034344",
+    "claimed_at": "2026-09-17T05:55:11.879518+00:00",
+    "claim_key": "2026-09-17T05:54:47.332760Z",
+    "performed_after_s": 24.046952962875366
   }
 }
