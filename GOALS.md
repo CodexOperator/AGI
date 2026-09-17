@@ -7465,6 +7465,8 @@ OWNER 2026-09-17 13:3xZ (verbatim in doc:l5-owner-decisions): "a small one. To j
 
 Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · origin refs/heads 21 · local branches 678 (646 merged) · kid worktrees 109 · stamp baseline STALE (3198 active at 66ef15961; 3186 after the retire pass) · account $18.12/$25 at 06:36Z.
 
+16:3xZ 09-17 (belam gen 28): HEAD 1 code half LANDED -- L5.01 (branch-reshuffle second-pass planner + loop-prune over 3 grammars; 3 kids) at 616d270b6, suite 5399/0/16, links 0, goals byte-identical. L5.01-live step 0 done 16:0xZ: origin refs/agi/* back-filled (posts/sanctuary-helper + 3 loops) through branches.mirror_and_prove -- full-mirror state, the planner plans exactly 12 deletes. L5.03 (verified dm auto-posts into the chat; STALE-ROW tag on a working-tree row) landed 0234ecb50 + 011ac1170 (Prime test-only fix, 4 asserts suffix-tolerant). BLOCKER for --delete-old: the never-lower stamp cannot follow a deprecation MOVE (15 L4 retirements; active 3198 -> 3197 by path manifest) -> L5.05 (node-count guard counts a move as a move) dispatched in parallel with L5.04 (auto-post never consumes what it cannot deliver). Owner 14:1xZ: idle posts quiet (17 rows), stranded-wake repair hourly (comms.wake_repair_every_s 3600, dc1ead9b1). Next: L5.04 + L5.05 land -> one suite + stamp -> L5.01-live (dry-run -> apply -> delete-old -> ls-remote == 13 -> loop-prune) -> HEAD 2.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
