@@ -146,7 +146,8 @@ _PYTEST_COUNT_PATTERNS = (
 
 
 def _parse_pytest_counts(output: str) -> dict:
-    """Counts from pytest's own summary line, in whatever order pytest emits.
+    """Counts from pytest's own FINAL summary line, in whatever order pytest
+    emits them.
 
     pytest writes `N passed, M skipped, K failed, E errors` with only the
     nonzero categories present, in a stable order of its own. We read each
@@ -154,10 +155,18 @@ def _parse_pytest_counts(output: str) -> dict:
     keys that actually appear. An empty dict means the output carried no
     countable line at all — a PASS that still must say so rather than print
     an empty bracket (hypothesis:l4-verification-counts-and-engine-root).
+    Only the session's FINAL count line counts (CLASS E): a nested banner in
+    captured stdout would otherwise win; pytest's footer is the LAST one.
     """
+    tail = ""
+    for line in output.splitlines():
+        if any(re.search(pat, line) for _, pat in _PYTEST_COUNT_PATTERNS):
+            tail = line
+    if not tail:
+        return {}
     counts: dict = {}
     for key, pat in _PYTEST_COUNT_PATTERNS:
-        m = re.search(pat, output)
+        m = re.search(pat, tail)
         if m:
             counts[key] = int(m.group(1))
     return counts
