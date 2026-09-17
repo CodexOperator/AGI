@@ -237,3 +237,113 @@ def test_transient_exhaustion_is_bounded_at_three_and_deprecates(
         f"expected exactly 3 spawns, got {len(spawned)}")
     assert _deprecated_files(project), (
         "an exhausted transient death must deprecate its orphan scaffold")
+
+
+def _read_fm(path: Path):
+    import graph_core.persistence.frontmatter as fm_reader
+    return dict(fm_reader.load_node_file(path).frontmatter)
+
+
+@pytest.fixture()
+def parent_project(project: Path) -> Path:
+    """A parent-capable variant of the scratch project: config carries a
+    parent model and the ladder a tier-1 parent row, so a `--tier parent
+    --orders` live spawn can write the orders copy the rc-5 exhaustion block
+    is now proven to unlink. Every existing kid-tier test keeps its row."""
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["harnesses"]["pi"]["models"]["parent"] = "glm-flash"
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+    (project / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 2\nroles:\n"
+        "  - {tier: 1, role: parent, harness: pi, model: glm-flash}\n"
+        "  - {tier: 0, role: kid, harness: pi, model: deepseek-v4}\n"
+        "---\nbody")
+    return project
+
+
+def test_rc5_exhaustion_issue_line_names_the_death_and_keeps_id(
+        project, monkeypatch, capsys):
+    """The rc-5 exhaustion block reports `_report_unregistered_scaffold`
+    (the died-transiently detail) BEFORE returning 5, and the deprecation
+    keeps the scaffolded node's id (goal:g15.25 SM.28 -- UNTESTED BY NAME:
+    the existing bounded test asserts rc 5 + deprecation but never reads the
+    JSON issue line). A KID-tier spawn that always dies transiently is
+    exhausted at 3 attempts; a scaffold exists (a kid's artefact is its own
+    node), so the report+deprecate seam fires."""
+    spawned = _fake_spawn(monkeypatch, [
+        {"bytes": CATALOGUE + DEAD_520, "rc": 1, "left": 0},
+    ])
+    monkeypatch.setattr(dispatch, "_GRACE_BACKOFF_S", (0, 0))
+    monkeypatch.setattr(sys, "argv", _argv(project))
+
+    code = dispatch.main()
+    assert code == 5, f"exhaustion must return rc 5, got {code}"
+    assert len(spawned) == dispatch._GRACE_MAX_ATTEMPTS == 3, (
+        f"expected exactly 3 attempts, got {len(spawned)}")
+
+    issue = [json.loads(l) for l in capsys.readouterr().out.splitlines()
+             if l.lstrip().startswith("{")]
+    assert issue, "rc-5 must emit the named JSON issue line"
+    assert issue[0]["issue"] == "scaffolded-but-unregistered", issue
+    assert "died transiently" in issue[0]["detail"], issue[0]["detail"]
+    node_id = issue[0]["node_id"]
+
+    moved = _deprecated_files(project)
+    assert moved, f"scaffold {node_id} not deprecated"
+    fm = _read_fm(moved[0])
+    assert fm.get("status") == "deprecated", fm
+    assert fm.get("id") == node_id, (
+        f"deprecated node must keep its own id (never re-minted): {fm}")
+
+
+def test_rc5_exhaustion_unlinks_the_orders_copy(
+        parent_project, tmp_path, monkeypatch, capsys):
+    """The rc-5 exhaustion block unlinks the orders copy before `return 5`
+    (goal:g15.25 SM.28 -- the OTHER UNTESTED-BY-NAME residue). The orders
+    copy only writes on the PARENT tier, and a parent scaffolds no node (a
+    parent's artefact is its kids' nodes, goal:s27) -- so the orders-unlink
+    branch is driven here by exhaustively transiently dying parent spawns,
+    and the issue-line/deprecate seam is driven by the kid test above."""
+    orders = tmp_path / "orders.md"
+    orders.write_text("SCOPE: touch only dispatch.py\n")
+
+    # capture whether the orders copy exists at the moment of the FIRST
+    # Popen: the copy is written BEFORE the spawn, so its presence there
+    # proves the later "no orders.* left" assert is about the UNLINK, not
+    # about a branch that skipped the write.
+    wrote_before_spawn = {}
+    spawned = []
+    real_popen = subprocess.Popen
+
+    def _patched(argv, **kwargs):
+        if not kwargs.get("start_new_session"):
+            return real_popen(argv, **kwargs)
+        if not spawned:
+            iter_dir = parent_project / ".agi" / "sessions" / "iter-001"
+            wrote_before_spawn["present"] = sorted(iter_dir.glob("orders.*"))
+        f = kwargs.get("stdout")
+        if f is not None:
+            f.write(CATALOGUE + DEAD_520)
+            f.flush()
+        spawned.append(argv)
+        return _StubProc(1000 + len(spawned), 1, 0)  # always-dying child
+
+    monkeypatch.setattr(subprocess, "Popen", _patched)
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch, "_GRACE_BACKOFF_S", (0, 0))
+    monkeypatch.setattr(sys, "argv", _argv(
+        parent_project, "--tier", "parent",
+        "--orders", str(orders), "--from", "sanctuary-director"))
+
+    code = dispatch.main()
+    assert code == 5, f"exhaustion must return rc 5, got {code}"
+    assert len(spawned) == dispatch._GRACE_MAX_ATTEMPTS == 3, (
+        f"expected exactly 3 attempts, got {len(spawned)}")
+    assert wrote_before_spawn.get("present"), (
+        "the orders copy was never written before the spawn; the unlink has "
+        "nothing to prove")
+
+    iter_dir = parent_project / ".agi" / "sessions" / "iter-001"
+    leftovers = sorted(iter_dir.glob("orders.*"))
+    assert leftovers == [], (
+        f"rc-5 exhaustion left an orders copy: {leftovers}")
