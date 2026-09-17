@@ -97,6 +97,15 @@ EXIT_SUITE_LOCKED = 2
 # --suite completion and read by the no-suite rotation check so "a new
 # bin/*.py needs the suite" is a CHECK, not a memo (goal:g15.10).
 SUITE_TS_FILE = "verify-suite-ts.json"  # under <groot>/sessions/
+#: The all-green --suite marker, read by `cli.py --delete-old`'s freshness
+#: gate (cli.py:5336) at exactly `<groot>/sessions/verified.stamp`. That gate
+#: tests EXISTENCE only, so this is a presence marker, not a ledger; its body
+#: names the sha the run executed and the wall clock so a human can date it.
+#: Before this, the only writers were test fixtures -- a real production
+#: `--suite` never created it, so the gate could never be satisfied by real
+#: work (hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-
+#: green-suite-run).
+VERIFIED_STAMP_FILE = "verified.stamp"  # under <groot>/sessions/
 
 
 @dataclass
@@ -866,6 +875,64 @@ def _suite_ts_path(groot: Path) -> Path:
     identity, so fixtures and the main checkout are byte-for-byte unchanged.
     """
     return rotate._sessions_dir(groot) / SUITE_TS_FILE
+
+
+def _verified_stamp_path(groot: Path) -> Path:
+    """The path `cli.py --delete-old` reads: `_find_root()/sessions/verified.stamp`.
+
+    `cli._find_root()` is `locations.find_project_root()` from the CALLER's
+    cwd, and the gate reads `root / "sessions/verified.stamp"` literally
+    (`cli.py:5336`). A seat running the gate from a linked worktree resolves
+    that worktree's graph, so the read is the LOCAL graph dir there -- not the
+    shared one `_suite_ts_path` resolves. This writer must land on the gate's
+    own expression exactly, or a green worktree run certifies nothing.
+    """
+    root = locations.find_project_root(groot) or groot
+    return root / "sessions" / VERIFIED_STAMP_FILE
+
+
+def _verified_stamp_paths(groot: Path) -> list[Path]:
+    """Every path a `--delete-old` gate can read, local graph first.
+
+    ONE all-green run must satisfy both the worktree it ran in (the local
+    join above) and the main checkout whose shared sessions dir the gate
+    reads when run from there. Duplicates collapse to one write.
+    """
+    out = [_verified_stamp_path(groot)]
+    shared = _suite_ts_path(groot).parent / VERIFIED_STAMP_FILE
+    if shared != out[0]:
+        out.append(shared)
+    return out
+
+
+def _write_verified_stamp(groot: Path, *, ran_at: float | None,
+                          ran_on: str | None) -> None:
+    """Certify an all-green `--suite` run where the freshness gate looks.
+
+    Called only when no result is FAIL (the same predicate main() returns on),
+    so a red run writes nothing and the stamp's absence is honest.
+    """
+    ts = ran_at if ran_at is not None else time.time()
+    stamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
+    body = f"green suite {stamp_utc} on {ran_on or 'unknown'}\n"
+    for path in _verified_stamp_paths(groot):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+
+
+def _retract_verified_stamp(groot: Path) -> None:
+    """Retract an earlier green certification after a RED `--suite` run.
+
+    `cli.py:5336`'s gate tests `stamp.exists()` and nothing else, so a stamp
+    left behind by a previous green run would certify a suite that has since
+    gone red -- the gate would pass `--delete-old` on red evidence. The
+    predicate here is the SAME one `main()` returns its rc on, so
+    "rc==0 iff certified" holds in both directions: green writes, red
+    retracts. Missing files are not an error (a first red run retracts
+    nothing).
+    """
+    for path in _verified_stamp_paths(groot):
+        path.unlink(missing_ok=True)
 
 
 def _read_suite_ts(groot: Path) -> float | None:
@@ -1703,6 +1770,19 @@ def main(argv: list[str] | None = None) -> int:
                          wall_s=_suite_res.elapsed if _suite_res else None,
                          slowest_15=(_suite_res.durations
                                      if _suite_res else None))
+        # An ALL-GREEN suite run certifies itself at the exact path
+        # `cli.py --delete-old` reads. The predicate is the SAME one the return
+        # code uses, so "green" and rc==0 can never disagree. A red run writes
+        # NOTHING -- the stamp is a pass marker, and absence is the correct
+        # state on FAIL (never a stale marker claiming a green run that did
+        # not happen).
+        if not any(r.status == "FAIL" for r in results):
+            _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
+        else:
+            # A RED run RETRACTS any earlier certification at every path the
+            # gate can read, so the stamp can never outlive the green run it
+            # recorded (cli.py:5336 tests existence only).
+            _retract_verified_stamp(groot)
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,
