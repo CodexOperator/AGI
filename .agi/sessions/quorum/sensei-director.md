@@ -261,13 +261,23 @@ F31 (in-node + dm): logged a director note on the node (`ee0ea50e2`) and
 dm'd the parent `a00-d268e091` directly with the full text, since its
 branch forked before the addendum landed.
 
-**SM.74 (F) finished internally -- HELD, not harvested (sequential mode).**
-Self-report: `verdict=harvest accepted=1 demoted=0 failed=1`, kids
-`experiment:a00-61e862cc-d8be8a` (failed, also flagged `untitled` -- a
-node-hygiene miss, not investigated further) and `experiment:a00-1d11cefe-
-fa8c06`, branch `season2/loops/hypothesis-l4-cli-done-refuses-a-a00-
-593f494d` tip `3f1410d58aae4e240ac0ce1bf142ee05d6813ab0`. Ready whenever SM
-names it; not touched.
+**SM.74 (F) NAMED by SM (01:45Z) and HARVESTED.** Verified from the round's
+own worktree (`.agi/worktrees/a00-593f494d`) with `--basetemp` under `/tmp`
+explicitly, test_cli family only (`test_cli.py test_cli_done_kid_ceiling.py
+test_brief.py`, no rotate/heal/send/posts files): **195 passed**, matching
+the kid's own claim exactly. Kid `experiment:a00-1d11cefe-fa8c06` proved:
+`cli.py cmd_done` refuses a kid past 2x its line ceiling with no
+`rebrief_request` (rc 2, exact `write.py` line, nothing written, kid-tier
+only); `brief.py` checkpoint reworded to "before `cli.py done`". **Ceiling:
+cli.py+46/brief.py+2 = 48 production lines by the round's own
+insertions-only convention (1.92x of the 25-line body ceiling, no rebrief
+owed); raw `git diff --numstat` insertions+deletions = 50 (exactly 2.0x)** --
+flagged both to SM since it sits right at the line. The other kid,
+`experiment:a00-61e862cc-d8be8a`, failed and never committed a node on this
+branch -- left demoted/failed as-is per SM's explicit instruction, not
+re-run. Merged `--no-ff` at `5bf955135`, `goal:g15` noted, GOALS.md
+rendered, links 0 broken, pushed through `386323a8d`. Reported to SM by
+slug; her ACCEPT/DEMOTE still pending.
 
 **SM.78 kid `a00-3b2ef119` flagged overdue (watchdog, informational).** Per
 standing lessons this is not by itself a sign of a stuck round; not
