@@ -1210,6 +1210,18 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     # effort after the run (claim (4)). No shell habit; never a shared default.
     basetemp: Path | None = None
     if name == SUITE_CMD:
+        # Refuse AT THE LAUNCH SITE, where pytest would actually spawn: a
+        # --suite runner launched from inside a test (PYTEST_CURRENT_TEST set)
+        # re-launches pytest nested inside a live --suite run (the detached
+        # second suite, ppid 1). Only when the argv IS pytest, so a stubbed
+        # fake suite under test still runs; a shell-driven runner has
+        # PYTEST_CURRENT_TEST unset and is unaffected.
+        if os.environ.get("PYTEST_CURRENT_TEST") and any(
+                os.path.basename(str(a)).startswith("pytest") for a in argv):
+            return CheckResult(name, "FAIL", time.monotonic() - start,
+                               note="a runner launched from inside a test "
+                                    "(PYTEST_CURRENT_TEST set) is not a "
+                                    "legitimate rotation check; refusing")
         if not any(a.startswith("--durations") for a in argv):
             argv.append("--durations=15")
         if not any(a.startswith("--basetemp") for a in argv):
@@ -1496,17 +1508,6 @@ def main(argv: list[str] | None = None) -> int:
                          "verify for this argv (+ `--ring-fresh`), then exit 0 -- "
                          "never runs the suite, records a nonce, or calls pytest.")
     args = ap.parse_args(argv)
-
-    # A --suite runner launched from inside a test is never a legitimate
-    # rotation check: it is the detached second suite nesting inside a live
-    # --suite run (the whole-tree pytest that appeared with ppid 1 ~10 min
-    # in, doubling wall time and holding the lock). Refuse by name, exit 3,
-    # before any work. A legitimate runner is driven from a shell, where
-    # PYTEST_CURRENT_TEST is unset.
-    if args.suite and os.environ.get("PYTEST_CURRENT_TEST"):
-        print("suite: a runner launched from inside a test (PYTEST_CURRENT_TEST "
-              "set) is not a legitimate rotation check; refusing")
-        return 3
 
     groot = locations.find_project_root(Path(args.root).resolve())
     if groot is None:
