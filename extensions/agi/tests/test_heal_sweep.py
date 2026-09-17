@@ -864,3 +864,46 @@ def test_sweep_dirty_paths_ordinary_entries_unchanged():
                    "src/copied.py", "malformed-no-arrow"], got
     assert not any(" -> " in p for p in got), \
         "no arrow literal may survive as a path"
+
+
+def test_sweep_dirty_paths_rename_nonascii_dest_round_trips(tmp_path):
+    """git C-quotes every byte >= 0x80 as an octal escape, so `git mv old.txt
+    'é.txt'` yields `R  old.txt -> "\\303\\251.txt"`. The unquote must resolve
+    the octal escapes back to the on-disk bytes; assert the PATH exists, not a
+    spelling, so this proves the path rather than the escape."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "é.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "\\303\\251.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert len(got) == 1, got
+    assert (repo / got[0]).is_file(), \
+        f"returned {got[0]!r} is not a file on disk"
+    assert (repo / got[0]).read_text() == "one\n"
+
+
+def test_sweep_dirty_paths_ordinary_nonascii_entry_round_trips(tmp_path):
+    """A plain untracked non-ASCII entry (`?? "\\303\\251.txt"`) takes the
+    non-rename branch and must also resolve to a path that is_file()."""
+    repo = _rename_repo(tmp_path)
+    (repo / "é.txt").write_text("hi\n")
+    lines = _porcelain(repo)
+    assert lines == ['?? "\\303\\251.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert len(got) == 1, got
+    assert (repo / got[0]).is_file(), \
+        f"returned {got[0]!r} is not a file on disk"
+
+
+def test_porcelain_unquote_full_escape_set_round_trips():
+    """The whole C escape set git can emit in one quoted field: the letter
+    escapes, the octal byte escapes (UTF-8 and an invalid byte), a literal
+    backslash and an escaped quote."""
+    # "\303\251" -> é (UTF-8), "\377" -> a raw 0xFF byte (surrogateescape).
+    field = '"a\\tb\\nc\\"d\\\\e\\303\\251\\377.txt"'
+    got = heal._porcelain_unquote(field)
+    expected = ("a\tb\nc\"d\\e" "é" "\udcff" ".txt")
+    assert got == expected, (got, expected)
+    # and it survives a UTF-8 re-encode as the original bytes
+    assert got.encode("utf-8", "surrogateescape") == \
+        b"a\tb\nc\"d\\e\xc3\xa9\xff.txt"
