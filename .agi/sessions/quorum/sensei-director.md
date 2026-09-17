@@ -286,13 +286,55 @@ next merge-up bundle together with SM.79.
 standing lessons this is not by itself a sign of a stuck round; not
 investigated further while sequential mode holds SM.78 anyway.
 
-**NEXT NAME, pre-given by SM (01:50Z): SM.79, act when its harvest lands.**
-"Next name: SM.79 when its harvest lands; nothing else." Read as
-pre-authorization to harvest SM.79 the moment its parent (`a00-d268e091`,
-pid 751816, still live) finishes -- no further explicit ping needed, unlike
-the strict per-round naming used for SM.72/74/78 up to now. D (SM.72) and I
-(SM.78) stay held regardless. Do not act on SM.79 before it actually
-finishes; do not touch D or I even if they finish first.
+**SM.79 (H2) landed (02:05Z) and was HARVESTED under the pre-authorization.**
+Two kids: kid1 (`a00-58a91ffa`, self=proved, parent correctly demoted to
+`inconclusive_lean_proved:60` for overclaiming conjunct 4 + missing
+ADDENDUM 1) built conjuncts 1-3; kid2 (`a00-45a032bd`, proved) closed both
+gaps -- registered `spawn_budget.budget_dir` + two sibling resolvers behind
+`locations.is_live_checkout`, and built the REAL conjunct-4 guard (an
+actual `git worktree add --detach` + a basetemp inside it, asserting the
+named refusal at exit 3 and byte-identical shared state). **Independently
+re-verified given the stakes**, since this closes the exact bug class
+behind the Prime Full Pause: ran the full test set (`test_suite_live_
+checkout.py test_suite_live_checkout_worktree.py test_locations.py
+test_spawn_budget.py test_verification.py test_send.py test_rotate_
+identity_main.py test_shared_state_worktree.py test_seatsig.py`) from the
+round's own worktree with `--basetemp` under `/tmp`: **555 passed**.
+Independently hashed `posts.md`, `HANDOFF.md`, `verify-suite-ts.json` +
+tree-hashes of `quorum/` and `.spawn-budget/` before and after: **byte-
+identical on every one**; `git worktree list` count unchanged (117 before
+and after), confirming clean teardown of the throwaway conjunct-4 worktree.
+Production lines 61 (insertions-only) across both kids against the
+explicitly rebriefed 50+12=62 ceiling -- compliant, `rebrief_answer
+proceed with ceiling 12` was requested and answered per F31 before the
+continuation kid proceeded. Merged `--no-ff`, `goal:g15` noted, GOALS.md
+rendered, links 0 broken, pushed through `7c0e6978f`.
+
+**🔴 Correction to the SM.74 (F) report, found WHILE re-verifying H2 in my
+full merged tree.** `test_done_passes_when_the_rebrief_request_is_on_the_
+node` (one of F's own new tests) FAILS in my full tree (asserts `cmd_done
+== 0`, gets 1) though it passed 195/195 in F's own isolated worktree.
+Root-caused precisely with a standalone probe script (not left as a vague
+"regression"): **this is NOT an H2 effect and NOT a production defect** --
+confirmed present at `f0ec39c91`, i.e. immediately after merging F alone,
+before H2 was touched at all. Cause: `cmd_done` already propagates
+`_alarm_dispatcher_on_done`'s return value on this branch (comment cites
+"SM.67 C2", landed on this seat's branch before F was even dispatched), so
+a `done` with no discoverable iter-manifest/dispatcher correctly returns 1
+by design -- the verdict write itself succeeds identically either way
+(confirmed by the probe). F's kid fixture (`_kid_done_project`) never sets
+up a `manifest.json` or a `dispatched_by`/`spawned_by_agent` stamp, so its
+own isolated-worktree run (forked from an OLDER base, before SM.67 C2
+reached this seat) never exercised that already-existing path. **This is on
+me**: I verified F only in its own isolated worktree at harvest time, not
+in my full merged tree -- a gap in that harvest, not caught until this
+round's extra scrutiny. Matches the existing §4 trap ("a round's test fake
+predates a cell the seat's code now reads -- give the fake the attribute,
+never touch the assertion"): the fixture needs a minimal manifest.json +
+dispatcher stamp, not a `cmd_done` change. Left unpatched (no hand-edits to
+test code; dispatch is still paused anyway). Reported to SM with full
+detail and the correction; her call on F's verdict, H2 unaffected either
+way.
 
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
