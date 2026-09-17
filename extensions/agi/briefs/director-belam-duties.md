@@ -7,7 +7,7 @@ Post `director-belam` (code name `sanctuary-director` until every surface rename
 read inbox (send.py read <self>, ONE read per nudge)
   └─► next head/round from doc:l5-plan §1 (HEAD 1 -> HEAD 2 -> HEAD 3) or the Prime's [decision] line
         └─► mint ONE hypothesis node (write.py create hypothesis <slug> --parent goal:g19 | goal:g15) with a testable_claim
-              └─► dispatch a parent from YOUR worktree: dispatch.py . L5.NN --target <node> --level small --tier parent --harness pi --branch   (<=4 live parents, <=5 kids each)
+              └─► dispatch a parent from YOUR worktree: dispatch.py . L5.NN --target <node> --level small --tier parent --harness pi --branch   (<=8 live parents, <=5 kids each)
                     └─► harvest -> review BY NAME on pi (workflow.py run merge-up-review ... --harness pi; NEVER the Claude Workflow tool) -> merge into your post branch -> re-run the touched tests yourself
                           └─► dm the Prime ONE line: [merge-up] <round> tip <sha> merge-base <sha> files/tests numbers + one proposed g15 line per finding -> wait for GO by SHA -> merge --no-ff into season2/main -> push -> light verify (links, goals round-trip) -> next round
 ```
