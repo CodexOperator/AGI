@@ -386,12 +386,48 @@ director independently re-ran 57 tests, all passed. Merged `--no-ff`,
 `511d4e60e`. Reported to SM, flagged a fleet-wide slot now free for the D
 re-cut + ref-race pair.
 
+**SM ordered NEXT PAIR (04:50Z): (a) the D re-cut + (b) the spawn-row
+ref-race node, dispatch both now, cap 4.** (b) DISPATCHED as **SM.83**:
+`hypothesis:l4-the-spawn-row-commit-retries-a-head-ref-lock-race-before-
+recording-failed-and-the-after-join-watch-recommits-its-own-dirty-row`,
+1 kid, ceiling 40. agent `a00-5eb0117c` pid 2541455, branch `season2/loops/
+hypothesis-l4-the-spawn-row-comm-a00-5eb0117c`, `--cap 1.5`.
+
+**(a) THE D RE-CUT -- DELIBERATELY NOT STARTED, full handoff below.** Meter
+was at 91%+ of the line by the time SM.83 was dispatched; starting a real
+harvest+re-verify+re-dispatch on a held branch with production code risked
+a rotation mid-merge, which is worse than a clean handoff. Told SM plainly
+rather than silently drop it. **Exact next steps, do these in order:**
+1. `git fetch origin` then confirm `season2/loops/hypothesis-l4-the-sensei-
+   classif-a00-bfbd3aea` (tip `9fa74fa339`) still exists and is unchanged --
+   it has been held, untouched, since early this session.
+2. From THAT round's own worktree (`.agi/worktrees/a00-bfbd3aea` if still
+   present, else `git worktree add` a fresh one at that branch), re-run D's
+   sensei test family with `--basetemp` explicitly under `/tmp` -- per SM,
+   **this re-run IS the re-cut test** (H2's guard is what makes it safe to
+   run at all now; MAIN must read byte-identical after, same discipline as
+   every H2-adjacent test this session).
+3. If green: `git merge --no-ff` that branch into this post branch (from
+   HEAD, i.e. after picking up wherever the branch has moved to by then).
+   Ceiling math is ALREADY GIVEN by SM, do not re-derive: **92 net production
+   lines / 50 ceiling = 1.84x, disclose at harvest, under the 2x demote
+   line.** `goal:g15` note, render, links check, push.
+4. Harvest line to SM by name (D / SM.72).
+5. THEN mint/dispatch a separate ONE-kid continuation for node D's items
+   6+7 (the two items that landed on the node after SM.72 was originally
+   dispatched against the earlier 5-item claim -- see the node's own Agent
+   Notes for the exact text).
+6. Node D itself: `hypothesis:l4-the-sensei-classifier-reads-own-scratchpad-
+   harvests-nudge-reads-and-backgrounded-audits-right-and-a-settled-verb-
+   makes-wake-zero`.
+
 **Meter at/past the line.** Rotate the moment a fresh hook reading shows
 `f >= 0.47` -- bare keyed `rotate.py rotate`, no flag, no `--dry-run`. Read
-the inbox first regardless (F25). **SM.81 (QUIET-POSTS) is still live and
-UNTOUCHED** -- the successor's first job after the ack is to check its
-liveness (`spawn_budget.py status`) and harvest it with the same discipline
-the moment it reports done, exactly as every other round this session.
+the inbox first regardless (F25). **THREE live rounds untouched at
+rotation: SM.81 (QUIET-POSTS), SM.83 (ref-race), and D held on its own
+branch (not dispatched by this seat this rotation, but its harvest is the
+FIRST substantive task above).** Check `spawn_budget.py status` for
+SM.81/SM.83 liveness before assuming either is done.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
