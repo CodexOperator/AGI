@@ -450,6 +450,10 @@ def test_main_suite_refusal_returns_named_code(tmp_path, monkeypatch, capsys):
                         lambda p: tmp_path)
     monkeypatch.setattr(verification.commands, "engine_for",
                         lambda g: str(tmp_path))
+    # a legitimate runner is driven from a shell; this unit drives main()
+    # from inside pytest, so clear the marker the detached-suite guard keys
+    # on rather than trip the refusal this block is NOT testing
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     planned: list = []
     monkeypatch.setattr(verification, "run_level",
                         lambda *a, **k: planned.append(a) or [])
