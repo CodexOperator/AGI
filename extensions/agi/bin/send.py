@@ -2987,6 +2987,12 @@ def _load_rows(root: Path) -> list | None:
         # guessing against an uncommitted local file.
         return None
     rows = _locally_loaded_rows(root)
+    if rows:
+        # hypothesis:l5 conjunct 1 -- origin unreachable; a WORKING-TREE row is
+        # a possibly-stale checkout, tagged STALE-ROW so a label never presents
+        # it as the current authority.
+        for r in rows:
+            r["_stale_row"] = True
     return rows or None
 
 
@@ -3316,6 +3322,12 @@ def _verify_block(root: Path, rows: list | None,
             label = label[:-1] + ", main-committed)"
         else:
             label += ", main-committed"
+    if row.get("_stale_row") and label.startswith("VERIFIED"):
+        # hypothesis:l5 conjunct 1 -- the row came from the WORKING-TREE
+        # fallback (origin unreachable); the VERIFIED label names it STALE-ROW,
+        # never silently the authority.
+        label = (label[:-1] + ", stale-row)") if label.endswith(")") \
+            else (label + ", stale-row")
     return label
 
 

@@ -7341,3 +7341,58 @@ def test_a_lone_opening_tag_is_quoted_refused_and_stripped(project, capsys):
         assert "refused: body contains unescaped harness text" in err
         assert "--quote-harness" in err
         assert not inbox.exists(), "nothing is stored on refusal"
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:l5 conjunct 1 — read-time pubkey from origin/season2/main, an
+# explicit STALE-ROW on the local (working-tree) fallback.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_l5_stale_local_fallback_names_verified_as_stale_row(
+        project, capsys, monkeypatch):
+    """hypothesis:l5 conjunct 1 — `_pushed_seats` unreachable (None) makes
+    `_load_rows` fall back to the WORKING-TREE rows; a sig that verifies there
+    reads `VERIFIED seat-a (ed25519, stale-row)` — the stale-checkout pubkey is
+    labelled STALE-ROW, never silently the authority (and never FORGED)."""
+    scheme = send_mod.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    monkeypatch.setattr(send_mod, "_pushed_seats", lambda r, ref, f: None)
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda root: [{"name": "seat-a",
+                                       "sig_scheme": "ed25519",
+                                       "pubkey": pub.hex()}])
+    _seat_key_write(project, "seat-a", _priv.hex())
+    send_mod.send(project, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519, stale-row)" in out, out
+    assert "stale-row" in out, out
+
+
+def test_l5_pushed_authority_wins_stale_local_is_inert(
+        project, capsys, monkeypatch):
+    """hypothesis:l5 conjunct 1 — with origin reachable the PUBLISHED row is
+    the authority: a pushed keyed row verifies `VERIFIED seat-a (ed25519)`,
+    and a DIFFERENT key in the working-tree row never changes the answer nor
+    adds stale-row (a stale checkout is inert, not the authority)."""
+    scheme = send_mod.seatsig.get("ed25519")
+    _priv, pub = scheme.keygen()
+    _privB, pubB = scheme.keygen()
+    monkeypatch.setattr(send_mod, "_pushed_seats",
+                        lambda r, ref, f: ([{"name": "seat-a",
+                                             "sig_scheme": "ed25519",
+                                             "pubkey": pub.hex()}],
+                                           "beef", "origin/season2/main"))
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda root: [{"name": "seat-a",
+                                       "sig_scheme": "ed25519",
+                                       "pubkey": pubB.hex()}])
+    _seat_key_write(project, "seat-a", _priv.hex())
+    send_mod.send(project, "recv", "hello", "seat-a")
+    capsys.readouterr()
+    send_mod.read(project, "recv", None)
+    out = capsys.readouterr().out
+    assert "VERIFIED seat-a (ed25519)" in out, out
+    assert "stale-row" not in out and "main-committed" not in out
