@@ -1765,3 +1765,170 @@ def test_e2_poisoned_rotate_import_still_prints_pin_only(agi_project, run_hook,
     assert after[:1].isdigit(), lines[-1]              # a real fraction, from the pin
     assert "no-pin" not in lines[-1], lines[-1]        # the pin was computable
     assert "no-post" not in lines[-1], lines[-1]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:l5 conjunct 2+3 — the [meter] hook auto-posts a nudge's verified
+# bodies into the chat IN THIS TURN when the prompt is the machine wake head
+# for `<self>`; an owner-typed prompt never consumes (the gate).
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct 2+3 — a prompt beginning with the machine wake
+    head for `<self>` (seat 'a' from cwd) runs the ONE `send.py read <self>`
+    (the `_run_send_read` seam, so no real subprocess) and appends the VERIFIED
+    body NAMED as delivered-in-this-turn, plus a do-not-read-again line (F25);
+    the [meter] line still prints last."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n  hello from sender\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)              # 0.12 -> below band
+    state_dir = tmp_path / "state-l5"
+    payload = _payload(agi_project, transcript, "sess-l5", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["a"], f"the ONE read must run for self: {calls}"
+    assert "DELIVERED IN THIS TURN" in out, out
+    assert "VERIFIED seat-a (ed25519)" in out, out
+    assert "Do NOT read again this turn (F25)." in out
+    assert "[meter]" in out, "the meter must still print"
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines[-1].startswith("[meter]"), "the meter must stay the LAST line"
+
+
+def test_l5_owner_typed_prompt_never_consumes(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct 2 GATE — a prompt that does NOT begin with the
+    machine wake head for `<self>` (an owner-typed message) must NOT run the
+    auto-read nor emit any delivery context (the inbox is never touched)."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-gate"
+    payload = _payload(agi_project, transcript, "sess-gate", cwd=str(cwd))
+    payload["prompt"] = "What is the current status of the rotation?"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == [], "owner-typed prompt must never run the auto-read"
+    assert "DELIVERED IN THIS TURN" not in out
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:l5 conjunct 1+3 — the auto-post never consumes what it cannot
+# deliver. (a) an empty body (timeout or a mail-less inbox) is NOT claimed as
+# delivered — no DELIVERED banner, no F25 suppression, ONE undelivered line, and
+# no consume; (b) a turn missing transcript_path never touches the inbox;
+# (c) committed fixtures for the byte-cap truncate branch and the NO_SPAWN
+# decline branch.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_l5_empty_body_is_not_delivered(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct (a) — `_run_send_read` returning an EMPTY body
+    (a timeout and a genuinely mail-less inbox both read back as '' from the
+    seam) must NOT be claimed as delivered: no DELIVERED banner, no F25
+    do-not-read-again suppression, exactly the ONE undelivered line, and the
+    inbox left unconsumed (nothing suppressed). Never raises (exit 0)."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return ""                       # timeout / mail-less inbox
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-empty"
+    payload = _payload(agi_project, transcript, "sess-empty", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["a"], "the ONE read must still run for self"
+    assert "DELIVERED IN THIS TURN" not in out, out
+    assert "Do NOT read again this turn (F25)." not in out, out
+    assert out.count("NOT delivered") == 1, f"exactly ONE undelivered line: {out}"
+    assert "[meter]" in out, "the meter must still print"
+
+
+def test_l5_missing_transcript_never_consumes(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct (b) — a turn MISSING transcript_path refuses at
+    rc-3 WITHOUT ever running the auto-post (the call now sits AFTER the
+    fail-closed required-field gate, so the inbox is untouched on a refusal)."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    state_dir = tmp_path / "state-missing"
+    payload = _payload(agi_project, tmp_path / "sess.jsonl",
+                       "sess-missing", cwd=str(cwd))
+    del payload["transcript_path"]     # the fail-closed field is absent
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 3, f"must refuse with rc-3: {err}"
+    assert calls == [], "a refusing turn must never run the auto-read"
+    assert "DELIVERED IN THIS TURN" not in out, out
+
+
+def test_l5_byte_cap_truncate_fixture(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct (c) committed fixture — a body big enough that
+    the assembled text exceeds `_AUTOPOST_BYTE_CAP` takes the truncate branch:
+    the delivered banner prints once plus a named 'exceeds byte cap' tail line."""
+    def _fake(bin_dir, seat):
+        return "VERIFIED seat-a (ed25519)\n" + "x" * (hook._AUTOPOST_BYTE_CAP + 5000)
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-cap"
+    payload = _payload(agi_project, transcript, "sess-cap", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert "exceeds byte cap" in out, out
+    assert "DELIVERED IN THIS TURN" in out, out
+
+
+def test_l5_no_spawn_declines_never_reads(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct (c) committed fixture — AGI_HOOK_NO_SPAWN set
+    makes a nudge print the 'NOT auto-read' decline and return without EVER
+    running the read (no subprocess path)."""
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-nospawn"
+    payload = _payload(agi_project, transcript, "sess-nospawn", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == [], "NO_SPAWN must decline BEFORE the read ever runs"
+    assert "NOT auto-read (AGI_HOOK_NO_SPAWN)" in out, out
+    assert "DELIVERED IN THIS TURN" not in out, out

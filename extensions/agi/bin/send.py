@@ -313,6 +313,11 @@ _COMMS_DEFAULTS = {
     # and the nudge re-fires (marker re-stamped) instead of suppressing. A
     # marker that is younger than this AND predating no read still suppresses.
     "nudge_stale_after_minutes": 30,
+    # owner 2026-09-17 14:1xZ (verbatim in doc:l5-owner-decisions): the heal
+    # watch's stranded-wake repair re-nudged a busy director every 30 s poll
+    # while its kids kept the unread digest moving. The repair runs on its OWN
+    # cadence, this many SECONDS apart (default hourly), never on the poll.
+    "wake_repair_every_s": 3600,
 }
 
 #: The one warning printed per send and per read/peek when `lockdown` is set.
@@ -2982,6 +2987,12 @@ def _load_rows(root: Path) -> list | None:
         # guessing against an uncommitted local file.
         return None
     rows = _locally_loaded_rows(root)
+    if rows:
+        # hypothesis:l5 conjunct 1 -- origin unreachable; a WORKING-TREE row is
+        # a possibly-stale checkout, tagged STALE-ROW so a label never presents
+        # it as the current authority.
+        for r in rows:
+            r["_stale_row"] = True
     return rows or None
 
 
@@ -3311,6 +3322,12 @@ def _verify_block(root: Path, rows: list | None,
             label = label[:-1] + ", main-committed)"
         else:
             label += ", main-committed"
+    if row.get("_stale_row") and label.startswith("VERIFIED"):
+        # hypothesis:l5 conjunct 1 -- the row came from the WORKING-TREE
+        # fallback (origin unreachable); the VERIFIED label names it STALE-ROW,
+        # never silently the authority.
+        label = (label[:-1] + ", stale-row)") if label.endswith(")") \
+            else (label + ", stale-row")
     return label
 
 

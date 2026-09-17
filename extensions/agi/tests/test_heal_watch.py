@@ -631,6 +631,211 @@ def test_watch_alive_past_deadline_is_overdue_not_timeout_not_death(
     assert "marked OVERDUE" in log.read_text()
 
 
+# --- hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes --------
+# The FIRST overdue dm is one per EVENT (hyp:l4-a-round-alarms-its-dispatcher-
+# by-default); a REPEAT is a NEW event on its own `comms.overdue_repeat_min`
+# cadence (default 30). A live pid that is STILL overdue past that window gets
+# ONE more dm, each repeat naming elapsed MINUTES and the pid, status never
+# leaving `running`; a repeat inside the window is silent and never double-sends.
+def _live_overdue_round(graph: Path, name: str, agent_id: str,
+                        started_ago_s: int) -> None:
+    """A round past its 1s deadline whose pid is genuinely LIVE and nonzero,
+    so the overdue branch (not the death branch) is exercised and the repeat
+    log line has a real pid to name."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 1,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago_s, "pid": 424242,
+    }, indent=2))
+
+
+def _backdate_overdue(graph: Path, name: str, agent_id: str,
+                     seconds: int) -> None:
+    """Move the overdue stamps back in time by `seconds` in BOTH the agent
+    record and the manifest entry, so the next pass sees a live agent whose
+    last firing is older than the configured repeat window."""
+    for path in (graph / "sessions" / f"iter-{name}" / agent_id / "agent.json",
+                 graph / "sessions" / f"iter-{name}" / "manifest.json"):
+        data = json.loads(path.read_text())
+        entries = data.get("agents", [data])
+        for e in entries:
+            if e.get("id") != agent_id:
+                continue
+            for key in ("overdue_since", "overdue_last_alarm"):
+                if e.get(key):
+                    e[key] = int(e[key]) - seconds
+        path.write_text(json.dumps(data, indent=2))
+
+
+def _set_comms(graph: Path, **comms) -> None:
+    cfg = json.loads((graph / "config.json").read_text())
+    cfg["comms"] = comms
+    (graph / "config.json").write_text(json.dumps(cfg))
+
+
+def test_overdue_alarm_re_fires_past_default_window_naming_minutes_and_pid(
+        graph_project, monkeypatch):
+    """DEFAULT (no config key) = 30 minutes: after the first overdue dm, an
+    agent still alive with its stamp moved 31 minutes back gets a SECOND dm;
+    the repeat log line names elapsed minutes and the pid; status stays
+    `running`; a third pass inside the fresh window sends nothing."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "R", "kid-r", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 1
+
+    _backdate_overdue(graph_project, "R", "kid-r", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 2, "a second event earns a second dm"
+
+    rec = json.loads((graph_project / "sessions" / "iter-R" / "kid-r"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running", "a live pid never gets a terminal word"
+    assert rec.get("overdue_last_alarm"), "the repeat firing is stamped"
+    assert _manifest_status(graph_project, "R", "kid-r") == "running"
+    repeat_lines = [ln for ln in log.read_text().splitlines()
+                    if "STILL OVERDUE repeat" in ln]
+    assert len(repeat_lines) == 1
+    assert "31m" in repeat_lines[0], repeat_lines[0]
+    assert "pid 424242" in repeat_lines[0], repeat_lines[0]
+
+    assert heal.main() == 0                       # third pass, inside window
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 2, "no second dm inside the repeat window"
+
+
+def test_overdue_alarm_quiet_inside_the_repeat_window(graph_project, monkeypatch):
+    """A pass whose overdue stamp is only 5 minutes old (inside the default
+    30) sends no repeat dm and writes no repeat log line."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "S", "kid-s", 40 * 60)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    _backdate_overdue(graph_project, "S", "kid-s", 5 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 1
+    assert "STILL OVERDUE repeat" not in log.read_text()
+
+
+def test_overdue_repeat_min_config_override_wins(graph_project, monkeypatch):
+    """`comms.overdue_repeat_min` overrides the default BOTH ways: 60 holds a
+    40-minute-old stamp silent, and 5 re-fires a 10-minute-old one."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    _set_comms(graph_project, overdue_repeat_min=60)
+    _live_overdue_round(graph_project, "T", "kid-t", 40 * 60)
+    assert heal.main() == 0
+    _backdate_overdue(graph_project, "T", "kid-t", 40 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 1, "60m window holds a 40m-old stamp silent"
+
+    _set_comms(graph_project, overdue_repeat_min=5)
+    _backdate_overdue(graph_project, "T", "kid-t", 10 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 2, "5m window re-fires a 10m-old stamp"
+    assert "STILL OVERDUE repeat" in log.read_text()
+
+
+def _dm_bodies(graph: Path, who: str) -> list[str]:
+    """The BODY text of each dm block in an inbox (`---\nts:/from:/to:/\n\n"
+    body`), so an assertion can land on what the RECIPIENT reads rather than
+    on the header or the reaper log line."""
+    bodies = []
+    for block in _inbox(graph, who).read_text().split("---\n"):
+        parts = block.split("\n\n", 1)
+        if len(parts) == 2 and parts[1].strip():
+            bodies.append(parts[1].strip())
+    return bodies
+
+
+def test_overdue_repeat_dm_body_names_minutes_and_pid(
+        graph_project, monkeypatch):
+    """hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-
+    the-first, C2: the REPEAT dm the recipient reads — not the log line —
+    names elapsed minutes and the pid, so a repeat is distinguishable from
+    the first firing. FAILS on the pre-fix bytes, where both dm bodies were
+    byte-identical `iter=... agent=... reason=overdue`; the FIRST firing's
+    body stays exactly that (negative control), and a third pass inside the
+    fresh window still sends nothing (one dm per window)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "U", "kid-u", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    _backdate_overdue(graph_project, "U", "kid-u", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    bodies = _dm_bodies(graph_project, "director")
+    assert len(bodies) == 2, bodies
+    # negative control: the first firing is untouched.
+    assert bodies[0] == "iter=iter-U agent=kid-u reason=overdue", bodies[0]
+    # the repeat names elapsed minutes + pid, keeping reason=overdue.
+    assert "reason=overdue" in bodies[1], bodies[1]
+    assert "elapsed_m=31" in bodies[1], bodies[1]
+    assert "pid=424242" in bodies[1], bodies[1]
+
+    assert heal.main() == 0                       # third pass, inside window
+    assert len(_dm_bodies(graph_project, "director")) == 2, \
+        "still exactly one repeat dm per window"
+
+
+def test_overdue_repeat_stamp_is_mirrored_onto_the_manifest(
+        graph_project, monkeypatch):
+    """A manifest-only reader must be able to see the repeat happened: the
+    `overdue_last_alarm` the repeat writes onto agent.json is mirrored onto
+    the manifest entry (pre-fix it was written to agent.json only), while the
+    live pid still never gets a terminal word."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "V", "kid-v", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    assert not _entry(graph_project, "V", "kid-v").get("overdue_last_alarm")
+    _backdate_overdue(graph_project, "V", "kid-v", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    rec = json.loads((graph_project / "sessions" / "iter-V" / "kid-v"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running"
+    assert rec.get("overdue_last_alarm")
+    entry = _entry(graph_project, "V", "kid-v")
+    assert entry.get("overdue_last_alarm") == rec["overdue_last_alarm"], \
+        "manifest mirrors the repeat stamp"
+    assert entry.get("status") == "running"
+
+
 # --- hypothesis:l4-the-manifest-mirrors-terminal-agent-status --------------
 # A TERMINAL agent.json (done/failed/timeout) whose manifest entry still reads
 # `running` — an agent that finished its work and exited but whose manifest was
@@ -2174,3 +2379,17 @@ def test_main_heal_stalled_dead_alarms_once_via_shared_predicate(
     assert text.count("reason=death") == 2, text
     assert "agent=kid-stl" in text
     assert "agent=kid-dead" in text
+
+
+def test_wake_repair_runs_on_its_own_hourly_cadence_not_the_poll(tmp_path, monkeypatch):
+    """owner 2026-09-17 14:1xZ: the stranded-wake repair re-nudged a busy
+    director every 30 s poll; it now runs `comms.wake_repair_every_s` apart
+    (default 3600) -- first pass due, then quiet until the interval elapses."""
+    import heal
+    monkeypatch.setattr(heal, "_LAST_WAKE_REPAIR_AT", None)
+    root = tmp_path  # no config.json -> the send.py default (3600) applies
+    assert heal._wake_repair_due(root, 1_000.0) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 30) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3599) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3600) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 3630) is False
