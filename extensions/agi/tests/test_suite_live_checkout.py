@@ -37,6 +37,17 @@ def test_conftest_gate_is_live_checkout(tmp_path):
     assert locations.is_live_checkout(_given_tmp(tmp_path)) is False
 
 
+def test_no_git_path_is_never_the_live_checkout(tmp_path):
+    """The claim's dedicated no-repo predicate test: a path with NO enclosing
+    git repo must read FALSE (never LIVE), while the real engine checkout
+    reads True. Covers the regression that could label a gitless /tmp basetemp
+    LIVE and trip the H2 refusal."""
+    import tempfile
+    gitless = Path(tempfile.mkdtemp())  # fresh dir under /tmp, no repo
+    assert locations.is_live_checkout(gitless) is False
+    assert locations.is_live_checkout(LIVE) is True
+
+
 def test_conftest_refusal_line_is_the_named_shared_line():
     """The SAME one-line refusal the conftest gate and verification --suite
     print: names both paths and the /tmp escape."""
