@@ -6,12 +6,16 @@ parents:
   - hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-tip
 next_edges: []
 confidence: 0.85
-edited_by: a00-cebe081d
+edited_by: a00-dc5c503d
 evidence_runs:
   - experiment:a00-cebe081d-4c36ce
 line_ceiling: 40
 loop: hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-tip@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "parent probe PROBE 1 on merged bytes: fixture with origin core/main at a wrong tip and NO local branch; cli.py branch-reshuffle --dry-run --kinds towns and --apply --kinds towns", "expected": "both arms classify the trunk NO-OP and exit 0; no local branch created; the origin tip is unmoved", "observed": "dry rc 0 and apply rc 0 both printed '[NO-OP] core/main already on origin (no create)', no ERR, remote tip unmoved, no local dup", "result": "pass"}
+  - {"conjunct": 1, "class": "gate", "cmd": "parent probe PROBE 2: local core/main at a DIFFERENT tip than the plan, origin ABSENT; --dry-run --kinds towns vs --apply --kinds towns", "expected": "the plan does not promise a create that apply will refuse; it names the refusal; apply still refuses rc 1 and never force-moves the trunk", "observed": "dry rc 0 with NO 'git branch core/main' and NO 'git push -u origin core/main', naming REFUSED 'DIFFERENT tip'; apply rc 1 refuses the same trunk; local tip unmoved", "result": "pass"}
+  - {"conjunct": 1, "class": "wire", "cmd": "parent probe PROBE 3: origin URL set to /nonexistent/probe-origin.git, then --dry-run --kinds towns and --apply --kinds towns", "expected": "both arms refuse by name on the failed probe, proving the shared origin predicate is live in BOTH arms and not a dry-only copy", "observed": "dry rc 0 and apply rc 1 both printed the identical 'ERR: ls-remote origin core/main failed; cannot confirm it is already pushed -- NOT skipped'", "result": "pass"}
 production_lines: 36
 profile: balanced
 role: kid
@@ -142,3 +146,7 @@ Raw output, screenshots, logs.
 
 ## Agent Notes
 Round 2: dry plan now shares the apply arm's LOCAL-tip classification (_rs_v3_run town-create block; removed the 'not dry and' gate) so a town trunk at a DIFFERENT tip is refused BY NAME in the plan too, no create/push lines promised; a dry plan that names a refusal exits 0 (stdout plan line), apply exits 1. New test fails pre-fix, passes post-fix; three-file suite 155 passed; real-tree dry only 13==13 remote heads. 36 production lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-dc5c503d, L5.06). Accepted, proved, verdict KEPT. The bytes do what the claim says: the LOCAL-tip classification (`resume_state`) is now computed for BOTH arms -- the `not dry` gate is gone from the `_post_rename_has_branch` test (cli.py:4897) -- and only the OPERATIONS stay gated on dry (the resume-push runs only `if not dry`, cli.py:4910-4920), and a `wrong` classification prints its ERR line in both arms (cli.py:4924-4930). Dry now exits 0 while naming the refusal, explicitly matching the file own broken-town-set precedent (`return 0 if dry else 1`). My parent-run probes on the merged bytes: PROBE 2 (local core/main at a DIFFERENT tip, origin absent) -- dry rc 0 prints NO `git branch core/main` and NO `git push -u origin core/main` and NAMES `REFUSED ... DIFFERENT tip`, apply rc 1 refuses the same trunk and never force-moves it: PASS on both halves. PROBE 1 (origin-present wrong tip, no local branch) still PASSES, so round 1 fix is not regressed: both arms print the NO-OP, apply rc 0, remote tip unmoved. PROBE 3 (wire: origin URL broken) -- both arms refuse by name with the identical ls-remote ERR, proving the shared predicates are LIVE in both arms, not a dry-only copy: PASS. Round suite re-run by the parent on the MERGED bytes (kid 1 branch merged in this worktree): test_branch_reshuffle_v3 + test_branch_reshuffle + test_cli = 155 passed. Live-tree DRY-ONLY: `git ls-remote --heads origin | wc -l` 13 before and after, `branch-reshuffle --dry-run --kinds main,towns` rc 0, "dry-run: nothing changed". CAVEAT left open: on a repo with NO origin remote (`has_origin` false) the dry plan still prints create lines apply will not perform -- pre-existing inert-path behaviour, outside the origin-state classification this claim names, and not asserted by either round.
+<!-- THOUGHT:END -->
