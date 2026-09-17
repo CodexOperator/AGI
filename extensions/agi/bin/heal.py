@@ -515,7 +515,20 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
             if now - last >= repeat_s:
                 rec["overdue_last_alarm"] = now
                 rec_path.write_text(json.dumps(rec, indent=2))
-                _alarm_dispatcher(rec, iter_dir.name, "overdue", root)
+                # hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-
+                # after-the-first, C2: a REPEAT must be distinguishable from the
+                # first firing in the dm the RECIPIENT reads — its body names
+                # the elapsed minutes and the pid, which the first firing's
+                # `iter=... agent=... reason=overdue` does not — and the stamp
+                # is MIRRORED onto the manifest entry, or a manifest-only
+                # reader cannot see the repeat happened at all.
+                for entry in manifest.get("agents", []):
+                    if entry.get("id") == agent_id:
+                        entry["overdue_last_alarm"] = rec["overdue_last_alarm"]
+                manifest_path.write_text(json.dumps(manifest, indent=2))
+                _alarm_dispatcher(rec, iter_dir.name, "overdue", root,
+                                  detail=f"elapsed_m={elapsed // 60} "
+                                         f"pid={pid}")
                 _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} "
                            f"STILL OVERDUE repeat (elapsed {elapsed // 60}m > "
                            f"{timeout_s // 60}m; pid {pid} alive; "
@@ -2877,10 +2890,14 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     return acted
 
 
-def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:
+def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
+                      detail: str = "") -> None:
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — a round that
     DIES or TIMES OUT sends the seat that dispatched it exactly ONE dm naming
-    the reason. ids/numbers plus a short reason token only. Absent stamp -> one
+    the reason. ids/numbers plus a short reason token only, and an optional
+    `detail` suffix (hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-
+    minutes-after-the-first uses it so a REPEAT overdue dm names elapsed
+    minutes + pid while the first firing's body stays unchanged). Absent stamp -> one
     stderr line, no crash; an undeliverable dm is logged, never fatal to a heal
     that is already handling a bad day. The dm must go to the ONE shared inbox
     (send.py resolves it through `locations.shared_sessions_dir`), never a
@@ -2895,9 +2912,10 @@ def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> 
         return
     try:
         import send as _send
-        _send.send(root, dispatcher,
-                   f"iter={iter_n} agent={agent_id} reason={reason}",
-                   agent_id)
+        body = f"iter={iter_n} agent={agent_id} reason={reason}"
+        if detail:
+            body = f"{body} {detail}"
+        _send.send(root, dispatcher, body, agent_id)
     except Exception as exc:
         print(f"warn: {reason} dm to {dispatcher} failed: {exc}",
               file=sys.stderr)

@@ -762,6 +762,80 @@ def test_overdue_repeat_min_config_override_wins(graph_project, monkeypatch):
     assert "STILL OVERDUE repeat" in log.read_text()
 
 
+def _dm_bodies(graph: Path, who: str) -> list[str]:
+    """The BODY text of each dm block in an inbox (`---\nts:/from:/to:/\n\n"
+    body`), so an assertion can land on what the RECIPIENT reads rather than
+    on the header or the reaper log line."""
+    bodies = []
+    for block in _inbox(graph, who).read_text().split("---\n"):
+        parts = block.split("\n\n", 1)
+        if len(parts) == 2 and parts[1].strip():
+            bodies.append(parts[1].strip())
+    return bodies
+
+
+def test_overdue_repeat_dm_body_names_minutes_and_pid(
+        graph_project, monkeypatch):
+    """hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-
+    the-first, C2: the REPEAT dm the recipient reads — not the log line —
+    names elapsed minutes and the pid, so a repeat is distinguishable from
+    the first firing. FAILS on the pre-fix bytes, where both dm bodies were
+    byte-identical `iter=... agent=... reason=overdue`; the FIRST firing's
+    body stays exactly that (negative control), and a third pass inside the
+    fresh window still sends nothing (one dm per window)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "U", "kid-u", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    _backdate_overdue(graph_project, "U", "kid-u", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    bodies = _dm_bodies(graph_project, "director")
+    assert len(bodies) == 2, bodies
+    # negative control: the first firing is untouched.
+    assert bodies[0] == "iter=iter-U agent=kid-u reason=overdue", bodies[0]
+    # the repeat names elapsed minutes + pid, keeping reason=overdue.
+    assert "reason=overdue" in bodies[1], bodies[1]
+    assert "elapsed_m=31" in bodies[1], bodies[1]
+    assert "pid=424242" in bodies[1], bodies[1]
+
+    assert heal.main() == 0                       # third pass, inside window
+    assert len(_dm_bodies(graph_project, "director")) == 2, \
+        "still exactly one repeat dm per window"
+
+
+def test_overdue_repeat_stamp_is_mirrored_onto_the_manifest(
+        graph_project, monkeypatch):
+    """A manifest-only reader must be able to see the repeat happened: the
+    `overdue_last_alarm` the repeat writes onto agent.json is mirrored onto
+    the manifest entry (pre-fix it was written to agent.json only), while the
+    live pid still never gets a terminal word."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "V", "kid-v", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    assert not _entry(graph_project, "V", "kid-v").get("overdue_last_alarm")
+    _backdate_overdue(graph_project, "V", "kid-v", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    rec = json.loads((graph_project / "sessions" / "iter-V" / "kid-v"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running"
+    assert rec.get("overdue_last_alarm")
+    entry = _entry(graph_project, "V", "kid-v")
+    assert entry.get("overdue_last_alarm") == rec["overdue_last_alarm"], \
+        "manifest mirrors the repeat stamp"
+    assert entry.get("status") == "running"
+
+
 # --- hypothesis:l4-the-manifest-mirrors-terminal-agent-status --------------
 # A TERMINAL agent.json (done/failed/timeout) whose manifest entry still reads
 # `running` — an agent that finished its work and exited but whose manifest was
