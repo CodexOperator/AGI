@@ -63,6 +63,8 @@ def _kid_done_project(tmp_path, *, rebrief=False):
         json.dumps({"id": "a00-x", "node_id": "experiment:e1",
                     "parent": "hypothesis:h1",
                     "status": "running", "tier": "kid"}))
+    (graph / "sessions" / "iter-001" / "manifest.json").write_text(json.dumps(
+        {"agents": [{"id": "a00-x", "status": "running", "dispatched_by": "seat"}]}))
     args = argparse.Namespace(
         iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
         node_id="experiment:e1", parent="hypothesis:h1", notes="",
