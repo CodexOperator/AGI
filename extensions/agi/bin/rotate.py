@@ -15498,6 +15498,19 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     if _touch is not None:
         _foreign = [p for p in dirty_paths if p not in _touch]
         _block_paths = [p for p in dirty_paths if p in _touch]
+    elif _main_post:
+        # SM.84 measurement 1 & 2 (master-sensei 00:19Z, belam 00:31Z): on a
+        # MAIN post whose merge touch-set cannot be MEASURED (`origin/<sb>`
+        # ref absent -- the gate runs NO fetch, so a MAIN checkout that has
+        # never fetched its retire target reads unmeasurable), the old
+        # all-dirt fallback REFUSED on FOREIGN dirt: cron churn's non-churn
+        # siblings, another post's card, HANDOFF.md, and another post's
+        # UNTRACKED node draft. Scope to the post's OWN paths here (the own
+        # card, extracted below), name the rest FOREIGN/info -- never a
+        # refusal, never a stop_commit. git's own overwrite refusal still
+        # protects a dirty tracked file a real merge would touch (claim 7).
+        _block_paths = []
+        _foreign = list(dirty_paths)
     # SM.40 own-card BLOCK: the rotating post's OWN card is dirty work a
     # rotation must not proceed over, even though the merge would not touch
     # it. Resolved from the path's OWNER guess, which needs only the seat
@@ -15526,7 +15539,7 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         suffix = (f", +{len(_block_paths) - 5} more"
                   if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
-        if _touch is None and _main_post:
+        if _touch is None and _main_post and _block_paths:
             dirty_name += " (touch-set unmeasured)"
     else:
         dirty_name = "dirty tree"
@@ -15534,13 +15547,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                    "git commit -m '<msg>' -- <the files you changed>"))
     # foreign dirt on a MAIN post: another post's uncommitted work the merge
     # would NOT touch — NAMED as one never-blocking line (capped at 5, then
-    # `+N more`), never a block, never a stop_commit (goal:g15.25).
+    # `+N more`), never a block, never a stop_commit (goal:g15.25). The note
+    # is truthful to the measurement basis: `(not in the merge)` when the
+    # touch-set resolved, `(merge target unmeasured)` when it could not.
     if _foreign:
         _fs = [f"{p} [owner: {_prepare_owner_guess(p)}]"
                for p in _foreign[:5]]
         _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
+        _merge_note = ("(not in the merge)" if _touch is not None
+                       else "(merge target unmeasured)")
         checks.append((False,
-                       "foreign dirt (not in the merge): "
+                       "foreign dirt " + _merge_note + ": "
                        + ", ".join(_fs) + _suf, ""))
     # SM.40 rotation churn: `_prepare_churn_path`'s paths, named on ONE
     # never-blocking line. Never a BLOCK (grid_sync commits them); named so
@@ -17442,6 +17459,20 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return None                       # rewritten during this generation
     _m = re.search(r"gen (\d+)->(\d+)", _subj)
     _gp = f" gen {_m.group(1)}->{_m.group(2)}" if _m else ""
+    if _m:
+        # SM.84 claim 7 / F23 (master-sensei 00:19Z): a retry after a
+        # prepare refusal must NOT re-age the stops slot -- a blocked
+        # rotation's stop_commit (rotate-self writes the card + commits
+        # `rotate-out gen N->N+1` BEFORE the checklist) lands even though
+        # the rotate-out never COMPLETED, so a bare retry used to read that
+        # commit as a fresh predecessor block and demand `--stops`. A slot
+        # is a PREDECESSOR's stale block only after the generation ADVANCED;
+        # when the seat's CURRENT measured generation is still the commit's
+        # starting `N`, no successor was ever spawned -- this seat is
+        # RESUMING, so the slot is not stale and the retry proceeds bare.
+        _cur, _measured, _ = _generation_measured(root, seat)
+        if _measured and _cur == int(_m.group(1)):
+            return None           # never completed: same-seating retry
     # (clause b2) name BOTH stamps and WHICH clock ran newer (newest act).
     def _act(*a: str) -> str:
         _o = _git_maybe(top, *a)

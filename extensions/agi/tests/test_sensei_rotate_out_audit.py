@@ -1050,3 +1050,72 @@ def test_rotate_out_a_grep_of_the_notified_output_is_the_harvest(tmp_path):
     assert calls[0]["label"] == "harvest of bpohvkj78"   # grep == harvest
     assert [c["pre"] for c in calls] == [True, True, False]
     assert window["counted"] == 1
+
+
+# ── SM.84 ITEM 6 (hypothesis:l4-the-sensei-classifier-…): the OUT window
+# ── starts AFTER the last round-closing WORK act (the last class-d `git push`
+# ── that delivered the round to origin), NEVER at the last real input. Hand
+# ── ruling for record 20260917T000151Z: last work act = the push at call 164
+# ── (00:00:41Z); out = the closing tail (165 own-card grep (b) + 166-168 the
+# ── card as three Edits + 169 commit + 170 rotate) = 6 calls, floor 1, excess
+# ── 5 — a 35-minute working turn must no longer read as out (d=86). ─────────
+
+def _out_after_work_transcript(tmp_path):
+    """The 20260917T000151Z hand-ruling shape: a round's real WORK ends with
+    the push (--cut); the closing tail after it is the out window."""
+    return _write_root(tmp_path, [
+        # the 35-min working turn, delivered by the push (call 164)
+        ("Bash", "python3 extensions/agi/bin/write.py .agi/nodes/handoff.md "
+                 "'replace body 5:9 -'"),
+        ("Bash", "python3 extensions/agi/bin/send.py send sanctuary-helper "
+                 "'[rotate] replay: point at the tmux pane'"),
+        ("Bash", "git commit -m 'round work' -q"),
+        ("Bash", "git push origin br"),
+        # the closing tail: verify own card (b), edit the card (d)x3,
+        # commit the card (d), rotate (d)
+        ("Bash", f"grep -c 'edited_by' sessions/rotations/{SEAT}.{PREV_STAMP}.json"),
+        ("Edit", ".agi/nodes/handoff.md"),
+        ("Edit", "HANDOFF.md"),
+        ("Edit", "AGENTS.md"),
+        ("Bash", "git commit -m 'card done'"),
+        ("Bash", "python3 extensions/agi/bin/rotate.py rotate-self "
+                 f"--seat {SEAT} --gen 15"),
+    ])
+
+
+def test_rotate_out_window_starts_after_the_last_work_push(tmp_path):
+    # the out window begins AFTER the push (the round-close WORK act), so the
+    # closing tail alone is out: 1 (b) + 5 (d) = 6 calls, floor 1, excess 5 —
+    # never the whole 35-minute working turn (which would be ~40+ calls, d=5).
+    graph, tr = _out_after_work_transcript(tmp_path)
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert [c["cat"] for c in calls] == ["b", "d", "d", "d", "d", "d"]
+    assert counts == {"a": 0, "b": 1, "c": 0, "d": 5, "s": 0}
+    assert window["counted"] == 6
+    # the push and every work call BEFORE it are cut OUT of the window
+    assert all("git push" not in c["cmd"] for c in calls)
+    assert all("round work" not in c["cmd"] for c in calls)
+    # the closing-tail commit stays counted (the rule is the PUSH, not commit)
+    assert any(c["cmd"] == "git commit -m 'card done'" for c in calls)
+    # the window starts strictly after the push's own line
+    push_line = next(i for i, l in enumerate(tr.read_text(
+        encoding="utf-8").splitlines()) if "git push" in l)
+    assert window["start_line"] == push_line + 1
+    # the audit result reads excess 5 over floor 1, exactly the hand ruling
+    line = sensei.audit_finding_line(SEAT, "out", OUT_STAMP, 6, 1, counts)
+    assert "FINDING" in line and "excess 5 over floor 1" in line
+
+
+def test_rotate_out_no_push_keeps_the_last_real_input_frame(tmp_path):
+    # a work turn with NO push has no work-act cut: the window stays the
+    # last-real-input frame (legacy behaviour), nothing regresses.
+    graph, tr = _write_root(tmp_path, [
+        ("Bash", "git commit -m 'round work'"),
+        ("Bash", "python3 extensions/agi/bin/rotate.py rotate"),
+    ])
+    code, calls, counts, window = sensei.rotate_out_audit(graph, SEAT, GEN, None)
+    assert code == 0
+    assert window["start_line"] == 0          # head input is the frame
+    assert len(calls) == 2
+    assert counts == {"a": 0, "b": 0, "c": 0, "d": 2, "s": 0}
