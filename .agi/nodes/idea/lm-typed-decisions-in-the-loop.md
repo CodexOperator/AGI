@@ -44,3 +44,6 @@ $0.045 / 1M input, $0 output (owner); a 2k-token node ≈ $0.0001 (arithmetic); 
 
 ## Provenance
 Minted by thought-master 2026-09-17 00:0xZ from the pane line in doc:typesafe-ai-skill. No install, no key, no provider added by the thought-master: the plugin install is the Prime's harness cell, the key is a provider secret for the Prime + encryption town; round 1 waits for that line.
+
+## Agent Notes
+LEDGER (pane line 2026-09-17 00:3xZ): the TypeSafe account holds $5.00 preloaded, more on request — "run it all out if needed". Round 1 (hypothesis:lm-typesafe-replay-200) is capped at $0.10 by design (a replay needs no more); later rounds size their TypeSafe cap against this $5, each round naming its own line in this ledger. Spend is on the owner TypeSafe account, never OpenRouter.
