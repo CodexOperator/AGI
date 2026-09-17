@@ -1606,6 +1606,9 @@ def test_done_demotes_a_claimed_but_absent_deliverable(tmp_path, monkeypatch):
     (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
         '{"id": "a00-x", "node_id": "experiment:e1", "parent": '
         '"hypothesis:h1", "status": "running", "branch": "round-1"}')
+    # SM.67: a round always has its iter manifest (dispatch writes one), so
+    # the completion-alarm resolves a holder and the clean round exits 0.
+    (graph / "sessions" / "iter-001" / "manifest.json").write_text('{"agents": []}')
     # a REAL git repo so the mechanism's git-diff read has a tree to read:
     # `a.py` is an untracked working-tree deliverable this round carries;
     # `gone.py` is NAMED but absent -- the claimed-but-absent shape.
@@ -1629,3 +1632,85 @@ def test_done_demotes_a_claimed_but_absent_deliverable(tmp_path, monkeypatch):
     assert "gone.py" in rec["demote_reason"], rec
     # the carried deliverable was NOT demoted for -- only the absent one.
     assert rec["demoted_from"] == "proved"
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-deliverable-check-diffs-against-the-round-base-in-the-kid-
+# worktree-and-runs-in-the-live-harvest
+# CONJUNCT 5: a SEASON-SHAPED repo where the round's true fork base (recorded
+# base_branch) is NOT master. The pre-fix master-based resolve would carry
+# season_thing.py (it lives in the season main, swept by a master diff) and so
+# would NOT demote it -- only the round-OWN base resolve names it missing.
+# Conjunct 3 (node frontmatter `deliverables:`) and conjunct 4 (a both-demote
+# keeps the evidence-gate ORIGINAL verdict) are asserted here too.
+# --------------------------------------------------------------------------
+
+def test_done_deliverable_diffs_against_round_base_in_season_repo(tmp_path, monkeypatch):
+    import argparse
+    import json
+    import subprocess
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "deliverables:\n- carried.py\n- gone.py\n- season_thing.py\n"
+        "parents:\n- hypothesis:h1\n---\n\n# experiment:e1\nbody\n")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    (graph / "sessions" / "iter-001" / "a00-x").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
+        '{"id": "a00-x", "node_id": "experiment:e1", "parent": '
+        '"hypothesis:h1", "status": "running", '
+        '"branch": "season2/loops/hyp-x-a00-y", "base_branch": "season2/main"}')
+    (graph / "sessions" / "iter-001" / "a00-y").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-y" / "agent.json").write_text(
+        '{"id": "a00-y", "node_id": "experiment:e1", "parent": '
+        '"hypothesis:h1", "status": "running", '
+        '"branch": "season2/loops/hyp-x-a00-y", "base_branch": "season2/main"}')
+    (graph / "sessions" / "iter-001" / "manifest.json").write_text('{"agents": []}')
+    # season-shaped live repo: master is REAL and its own fork point; the loop
+    # branch forks from season2/main (its recorded base_branch), NOT master.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    _git = lambda *a: subprocess.run(["git", "-c", "user.email=t@t",
+                                      "-c", "user.name=t", "-C", str(tmp_path),
+                                      *a], capture_output=True, text=True, check=True)
+    _git("checkout", "-q", "-b", "master")
+    (tmp_path / "base.py").write_text("x = 1\n")
+    _git("add", "-A"); _git("commit", "-qm", "master")
+    _git("checkout", "-q", "-b", "season2/main")
+    (tmp_path / "season_thing.py").write_text("x = 2\n")
+    _git("add", "-A"); _git("commit", "-qm", "season main")
+    _git("checkout", "-q", "-b", "season2/loops/hyp-x-a00-y")
+    (tmp_path / "carried.py").write_text("x = 3\n")
+    _git("add", "-A"); _git("commit", "-qm", "loop work")
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+        deliverables=None,  # node frontmatter carries them (conjunct 3)
+        salvage=False, dry_run=False,
+    )
+    assert cli.cmd_done(args) == 0
+    rec = json.loads((graph / "sessions" / "iter-001" / "a00-x" /
+                      "agent.json").read_text())
+    assert rec["verdict"] == "inconclusive_lean_disproved:50", rec
+    # season_thing.py is carried by a MASTER diff but NOT by the true base diff,
+    # so only the round-own base resolve demotes it; carried.py stays carried.
+    assert rec["missing_deliverables"] == ["gone.py", "season_thing.py"], rec
+    assert "carried.py" not in rec["missing_deliverables"]
+    assert "season_thing.py" in rec["demote_reason"], rec
+    assert rec["demoted_from"] == "proved"
+    # conjunct 4: a BOTH-demote (gate: no evidence + absent deliverable) keeps
+    # the evidence-gate ORIGINAL verdict, not the gate's demoted lean.
+    args2 = argparse.Namespace(**vars(args))
+    args2.agent_id = "a00-y"; args2.evidence_runs = []
+    assert cli.cmd_done(args2) == 0
+    rec2 = json.loads((graph / "sessions" / "iter-001" / "a00-y" /
+                       "agent.json").read_text())
+    assert rec2["verdict"] == "inconclusive_lean_disproved:50", rec2
+    assert rec2["demoted_from"] == "proved", rec2  # gate original survives
+    assert "gone.py" in rec2["demote_reason"], rec2
