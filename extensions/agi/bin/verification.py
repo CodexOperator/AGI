@@ -1497,6 +1497,17 @@ def main(argv: list[str] | None = None) -> int:
                          "never runs the suite, records a nonce, or calls pytest.")
     args = ap.parse_args(argv)
 
+    # A --suite runner launched from inside a test is never a legitimate
+    # rotation check: it is the detached second suite nesting inside a live
+    # --suite run (the whole-tree pytest that appeared with ppid 1 ~10 min
+    # in, doubling wall time and holding the lock). Refuse by name, exit 3,
+    # before any work. A legitimate runner is driven from a shell, where
+    # PYTEST_CURRENT_TEST is unset.
+    if args.suite and os.environ.get("PYTEST_CURRENT_TEST"):
+        print("suite: a runner launched from inside a test (PYTEST_CURRENT_TEST "
+              "set) is not a legitimate rotation check; refusing")
+        return 3
+
     groot = locations.find_project_root(Path(args.root).resolve())
     if groot is None:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
