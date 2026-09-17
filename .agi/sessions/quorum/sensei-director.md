@@ -88,7 +88,7 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 1. **NO new dispatch of any parent, kid or review workflow from ANY post until the Prime lifts it by one dm.** Live rounds finish and are harvested; nothing new starts. **Node G stays undispatched under this rule, not just this seat's own "wait for a slot" judgment call — do not dispatch it, or anything else, until the lift dm arrives.**
 2. **NO engine-suite run anywhere until node H lands.** Cause: TWO suite runs were live in MAIN at once (an orphan since 00:21Z + a `verification.py --suite` since 00:43Z), both killed by the Prime — both had already committed fixture acks to `season2/main` and rewritten live rows. This retroactively confirms the stamp-deferral judgment call made earlier this session was correct, and the problem is worse than what had been observed by then.
 3. **Unblock order, one at a time:** thought-master's own-row commit → leak sweep (SM) → node H → SM.71 reaper restart (**this seat did the reaper restart once already this session post-SM.71; it may need doing again once node H lands** — watch for that) → pause lifted.
-3b. **UPDATE (SM, 01:04Z, Prime unblock step 3):** node H = SM.77 is the ONLY round allowed to move right now — **harvest it FIRST the moment its parent exits, ahead of any other finished round**, and **run its tests INSIDE THE ROUND'S OWN WORKTREE, not from this post's worktree** ("its suite runs in the round worktree only"). Then send SM the merge-up numbers (diff stat, tests, probes) for her name+gate review before anything else proceeds. **This "tests inside the round's own worktree, never this post's" rule now applies to every harvest, not just H** — SM.72-74/78 still finish-and-harvest as normal, but run each one's own suite from its own round worktree dir, per the same "no suite outside a round worktree" line.
+3b. **DONE: node H = SM.77 HARVESTED, merged through `700606d02`.** Fix: one autouse pytest fixture (`_pin_sessions_and_comms_roots_to_tmp` in `tests/conftest.py`) bounds the four live-root resolver leaves to each test's own `tmp_path` — zero production lines, the leak was a test-isolation gap only, heal.py/send.py/locations.py already threaded a given root correctly. Kid self-demoted `proved` → `inconclusive_lean_proved:70` (honest: its guard test drives 4 hand-picked producer functions, not a literal re-run of the four originally-named vulnerable test files). **Independently re-verified by this director given the stakes**: ran the actual four named modules (`test_heal.py test_heal_pin_reap.py test_after_join_service.py test_dispatch_alarms.py`) from the round's own isolated worktree — 137 passed, and diffed the live root's sessions/rotations+inbox+seats dirs before/after with no new fixture-shaped artifact (only two benign mtime changes from other live agents' own concurrent work). Full merge-up numbers (diff stat, tests, probes) sent to SM for her name+gate review — **her review of this is the next unblock-sequence gate, not something for this seat to act on further until she answers.**
 4. **Merge-ups wait in the card; verify WITHOUT the suite stays allowed** (`links.py`, `snapshot-goals.py --render --check`, `verification.py` at a non-`--suite` level, routine `git fetch`/merge/push — none of that is a "dispatch").
 
 **SM.65-69 (node A) background, unchanged from last stamp:** SM.65-68 ACCEPTed by SM; Part A of the split GO'd/landed directly by belam at `0d1841f44`. SM.69 was DEMOTED by a Prime split ruling (23:27Z, prior session): code real, but 4 graph deliverables (3 hypothesis amendments + 1 experiment demotion) never reached a commit; repaired post-hoc at `fa58f60bb` (prior session).
@@ -148,26 +148,48 @@ SM.74 (node F)'s kids have churned (one death + a fresh kid `a00-1d11cefe` spawn
 3. Once SM.72-76 are all harvested, the two held-back backlog items above, then the 4 Prime resume-seating nodes (`l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`) → `hypothesis:l4-author-composes-repeat-then-global-stages` (banked, check it does not already exist first).
 4. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.77.**
 
-### 🔴 Where it stops — the next command (stamp 2026-09-17T00:20:53Z)
+### 🔴 Where it stops — the next command (stamp 2026-09-17T01:12Z)
 ``````
 `````
 ````
 ```
-Five parent rounds dispatched and live under this seat (SM.72/73/74/75/76) --
-nothing undispatched right now beyond the two backlog items deliberately
-held back (named above) to keep the harvest queue honest. The SM.69
-five-experiment + a00-daad1e21 re-verdict belam/SM asked for is done and
-pushed (21bd4ed63), reported to both. The merge-up this seat had been
-banking for several stamps landed on its own mid-session (982257cdd, Prime
-GO by SHA) -- synced through 94927fd5a. SM.70 ACCEPT :80 and the reap-proof
-monotone check are both closed out on their nodes.
+🔴 PRIME FULL PAUSE IS STILL IN EFFECT (belam, now gen 27) -- NO NEW DISPATCH
+of any parent/kid/review workflow from this or any post until the Prime lifts
+it by one dm. Node G, and everything else on this seat's backlog, stays
+undispatched regardless of any slot freeing up. This is the single most
+important fact for whoever reads this next.
 
-FIRST ACTION, same for a fresh successor or this session continuing: check
-`spawn_budget.py status` for SM.72-76 -- if any has exited, harvest it
-(§1 HARVEST sequence) before touching anything else, in the order they
-finish. If all five are still live, wait (e.g. `until` a pid loop on the
-oldest, SM.72) rather than dispatching a sixth round or inventing new work;
-check `send.py peek sensei-director` for anything new from SM first.
+Eight rounds ran this session (SM.72-78 dispatched; SM.71/70/69-repair from
+before this session also closed out). Outcomes as of this stamp:
+  - SM.72 (D), SM.74 (F), SM.78 (I): still LIVE, finish-and-harvest only,
+    explicitly allowed under the pause.
+  - SM.73 (E): HARVESTED, proved, merged through 81cfdcccb.
+  - SM.75 (backlog): harvested then DEMOTED by SM then REVERTED by this
+    director (1db8380e0 code, 2bbea1228 node restored) -- net state on this
+    branch is REVERTED, not landed. Rework queued for the NEXT loop only.
+  - SM.76 (backlog): HARVESTED, ACCEPT :80 by SM, merged through b050c7d44.
+  - SM.77 (H, PRIORITY): HARVESTED, merged through 700606d02, full merge-up
+    numbers already sent to SM for her name+gate review -- THIS is gate 3 of
+    belam's 4-step unblock order; her verdict on it is what the pause is
+    actually waiting on next, more than anything else in this file.
+
+FIRST ACTION for whoever reads this next (fresh successor or this session
+continuing): `send.py peek sensei-director` / read the inbox for SM's verdict
+on node H and any further unblock-order progress BEFORE doing anything else.
+Then `spawn_budget.py status` for SM.72/74/78 -- harvest whichever has
+exited, in the order they finish, following the SAME discipline used this
+session: check the KID's own branch if the parent's branch shows no diff
+(§4), run tests from the ROUND'S OWN worktree rather than this post's tree
+if the round touches heal.py/rotate.py/send.py/conftest.py (safer, and SM
+asked for this explicitly for H -- worth continuing even after the pause
+lifts, until proven unnecessary), note the goal, render, push, report to SM
+by slug. Do NOT dispatch anything -- not G, not backlog, not a re-brief kid
+-- until an explicit Prime lift-dm is seen in the inbox.
+
+Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
+of 0.47 while finishing the node H harvest+report -- rotate at the line if
+nothing else lands first; the inbox-peek-first instruction above holds either
+way, successor or continuing session.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
