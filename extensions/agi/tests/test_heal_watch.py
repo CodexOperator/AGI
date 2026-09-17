@@ -2174,3 +2174,17 @@ def test_main_heal_stalled_dead_alarms_once_via_shared_predicate(
     assert text.count("reason=death") == 2, text
     assert "agent=kid-stl" in text
     assert "agent=kid-dead" in text
+
+
+def test_wake_repair_runs_on_its_own_hourly_cadence_not_the_poll(tmp_path, monkeypatch):
+    """owner 2026-09-17 14:1xZ: the stranded-wake repair re-nudged a busy
+    director every 30 s poll; it now runs `comms.wake_repair_every_s` apart
+    (default 3600) -- first pass due, then quiet until the interval elapses."""
+    import heal
+    monkeypatch.setattr(heal, "_LAST_WAKE_REPAIR_AT", None)
+    root = tmp_path  # no config.json -> the send.py default (3600) applies
+    assert heal._wake_repair_due(root, 1_000.0) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 30) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3599) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3600) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 3630) is False
