@@ -1,0 +1,73 @@
+---
+id: hypothesis:a00-e1933e6a-176c0e
+mint_id: 4bbcff8eb9ea4b609c3623d082c736a2
+type: hypothesis
+parents:
+  - goal:g18.1
+next_edges: []
+confidence: 0.85
+edited_by: a00-96f7987e
+evidence_runs:
+  - hypothesis:a00-e1933e6a-176c0e
+loop: goal:g18.1@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: 9e0d75f85e86f17f
+season: 2
+testable_claim: Read-only survey classifies all 37 g15-experimentless hypotheses retire/keep/fold for the Prime; proved if every g15 hyp with zero evidence_runs and no experiment child appears once with an honest why-no-experiment, disproved if any is missed or a row goldens the truth
+title: Survey g15-experimentless hypotheses retire keep fold (37 rows)
+town: streaming-suite
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# hypothesis:a00-e1933e6a-176c0e
+
+## Survey: g15-experimentless hypotheses — retire / keep / fold
+
+Read-only survey of the 37 hypotheses parented to `goal:g15` that carry ZERO `evidence_runs` and have NO experiment node under them. The Prime decides from this doc; no surveyed node was touched. Sources cited per row are the nodes' own L4-close-triage notes and bodies.
+
+| id | claim (<=10 words) | why no experiment | recommendation | one-line reason |
+|---|---|---|---|---|
+| hypothesis:a00-b75ba88b-630d2d | Wave-3 gate round-2 director plan | director died pre-outcome; triage RETIRE | retire | superseded; sub-parts landed under other nodes |
+| hypothesis:copilot-cli-remote-control | Copilot posts expose remote control | fixed directly in-loop, bytes landed | retire | closed by landed --remote emissions |
+| hypothesis:copilot-cli-workflow-harness-parity | Copilot adapter/config parity | fixed in-loop, tests passed | retire | closed by landed bytes |
+| hypothesis:l3-alive-proprioception | Rotation self-state identity-owned | advisor measurement only, never rounded | keep | real safety observation; rotation changed since |
+| hypothesis:l3-oom-watchdog-kills-live-work | Watchdog kills live parents | named+remedied (Bun memoryPressure knob); triage RETIRE | retire | superseded and remedied |
+| hypothesis:l3-reaper-restarts-through-stop | Reaper restarts killed agent through stop | fixed in-loop (pause flag) | retire | closed by landed bytes |
+| hypothesis:l3-rotate-launch-window-silent-failure | tmux too-long + silent rc | fixed + proven live | retire | closed by landed bytes |
+| hypothesis:l3-test-import-convention-unpinned | Two suite invocations disagree on imports | triage KEEP; live class defect | keep | reproducible; no round |
+| hypothesis:l3-workflow-run-serial-and-unleased | Workflow stages serial, unleasened | D2 folded; D1 (concurrency) unnamed | fold-into hypothesis:workflow-stages-dispatch-as-kids | D1/D2 both live on workflow route |
+| hypothesis:l4-a-bare-kid-commits-before-merge-trusts-it | Bare kid work uncommitted, silent | Prime accepted; commit-check owed | keep | belongs in harvest/merge mechanism |
+| hypothesis:l4-a-branch-parents-kid-commits-in-the-parents-worktree | Branch parent kid commits in parent worktree | no triage marker; strand risk | keep | commit-safety claim, no round |
+| hypothesis:l4-a-commit-guard-refuses-stale-staged-bytes | Pre-commit refuses stale staged bytes | triage KEEP; guard extension | keep | guard extension live |
+| hypothesis:l4-a-post-branch-is-created-with-its-origin-upstream-set-after-the-first-push | Post branch upstream after first push | triage RETIRE; mechanism absent | retire | never pushed as heads per owner |
+| hypothesis:l4-every-pi-kid-keeps-its-full-tool-call-trajectory-at-spawn-never-pruned-never-rebuilt | Pi kid keeps full trajectory at spawn | empty scaffold, never rounded | keep | unclaimed brief; verify live |
+| hypothesis:l4-merge-up-gate-leaves-no-merge-in-progress | Red gate leaves no MERGE_HEAD | full brief, never rounded | keep | live high-value gate fix |
+| hypothesis:l4-message-bodies-are-files-never-argv-strings-every-free-text-cli-takes-file-or-stdin-and-refuses-backticks | Message bodies files, never argv | owner-cancelled, branch unmerged | keep | owner left hypothesis open for later stream |
+| hypothesis:l4-paid-stream-tests-need-an-explicit-opt-in | Paid tests run only on opt-in | triage RETIRE; falsifier closed | retire | real_judge_skip + no_openrouter close it |
+| hypothesis:l4-provisioning-absent-refuses-late | Fail-open when no provisioning key | fix landed on season/s2 | retire | closed by landed bytes |
+| hypothesis:l4-rotate-card-writes-the-post-card-wholesale-and-commits-it-by-path-in-one-call | Rotate card wholesale + commit path | empty scaffold, never rounded | keep | unclaimed brief; verify live |
+| hypothesis:l4-rotate-resolves-the-stops-slot-from-the-row-handoff-file-when-the-row-carries-one | Stops slot from row handoff file | triage KEEP; live defect | keep | _own_card_path only resolves seat |
+| hypothesis:l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name | Seating join keys on window id | triage KEEP; reproducible | keep | window_id None when name!=seat |
+| hypothesis:l4-spawn-cds-into-the-row-worktree-cell-when-set | Spawn cd's into row worktree | triage KEEP; reproducible | keep | launcher hard-codes cwd |
+| hypothesis:l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind | Worktree spawn merges origin first | triage KEEP; defect live | keep | cmd_spawn only warns, no merge |
+| hypothesis:l4-the-approaching-rotation-banner-prints-the-value-and-the-rule-never-a-runnable-meter-command | Banner prints value, not meter command | empty scaffold, never rounded | keep | unclaimed brief; verify live |
+| hypothesis:l4-the-audit-green-line-test-tolerates-the-floor-miss-fallback-suffix | Audit green-line tolerates floor-miss suffix | empty scaffold, never rounded | keep | unclaimed brief; verify live |
+| hypothesis:l4-the-copilot-harness-rotates-meters-trusts-and-sits-in-its-worktree-like-the-other-two | Copilot harness rotates fully | triage KEEP; falsifier reproduces | keep | rotate passes no harness=, falls to Claude |
+| hypothesis:l4-the-deliverable-check-diffs-against-the-round-base-in-the-kid-worktree-and-runs-in-the-live-harvest | Deliverable diffs against round base | minted this date, round in flight | keep | active in-flight round |
+| hypothesis:l4-the-harvest-demotes-a-claimed-but-absent-deliverable-in-code-and-the-strip-test-asserts-the-strip | Harvest demotes absent deliverable | deferred to next loop by owner | keep | deferred, still owed |
+| hypothesis:l4-the-kept-merge-stamp-has-the-real-falsifier | Kept-merge stamp real falsifier | LANDED by L4.153 at mint | retire | landing done in-loop |
+| hypothesis:l4-the-launch-wrapper-order-tests-anchor-on-the-binary-token-not-a-substring-of-the-checkout-path | Tests anchor on binary token | fixed in-loop by Prime | retire | fixed directly, no round |
+| hypothesis:l4-the-manifest-mirror-is-locked-and-terminal-only | Manifest mirror locked, terminal-only | triage KEEP; lock half live | keep | cli.py mirror still unlocked |
+| hypothesis:l4-the-never-lower-gate-names-a-deliberate-retirement | Never-lower gate names retirement | brief only, queued next stream | keep | prereq for retiring dead nodes |
+| hypothesis:l4-the-prime-hears-only-needed-comms | Prime hears only needed comms | fixed in-loop by Prime | retire | fixed by Prime directly |
+| hypothesis:l4-the-stale-base-gate-runs-its-own-sync-when-no-engine-file-differs-and-never-refuses-on-files-empty | Stale-base gate runs own sync | triage KEEP; overlaps sibling | fold-into hypothesis:l4-dispatch-performs-the-stale-base-sync-itself-when-the-merge-is-clean-instead-of-returning-the-merge-as-text | same --sync half as sibling |
+| hypothesis:l4-town-scoped-goal-numbering-the-address-carries-the-town-tag | Town-scoped goal numbering | triage KEEP; owner deferred | keep | deferred, not retired |
+| hypothesis:workflow-stage-context-write-surface | Workflow stages unified context/write surface | fixed in-loop, bytes landed | retire | closed by landed bytes |
+| hypothesis:workflow-stages-dispatch-as-kids | Workflow stages dispatch as kids | triage KEEP; docstring vs code | keep | live; fold target for serial D1 |
+
+## Agent Notes
+Read-only survey: 37 g15-experimentless hypotheses (zero evidence_runs, no exp child) tabled as retire/keep/fold for the Prime. 19 missing a round for a live reason (KEEP), 11 closed in-loop by landed bytes (RETIRE), 2 fold targets, 4 empty scaffolds, 1 in-flight round. No surveyed node touched.
+
+parent review a00-96f7987e: PROBE (wire, re-count against live graph) -- independently recomputed the g15-experimentless set (parents include goal:g15, zero evidence_runs, no experiment child) from the node files: 37 ids, EXACTLY the 37 the table lists, set-difference both ways = empty. No row missing, no extra row. Read-only verified: the kid commit touches only the new survey node (git show --stat: 1 file, 70 insertions); no surveyed hypothesis edited. SUBSTANCE HOLDS. CAVEATS (2 deliverable-shape deviations from the dispatch order): (1) the order required ONE DOC node under goal:g18.1 with slug g15-experimentless-retire-or-keep; the kid instead filled the hypothesis:a00-e1933e6a-176c0e scaffold dispatch minted -- the survey lives in a hypothesis node, not a doc, so the Prime-search-by-slug will not find it; (2) the order said "no verdict/experiment pipeline, review task only", but the kid emitted a self-verdict (inconclusive_lean_proved:85) via cli.py done because the highlight dispatch scaffold forced the hypothesis/verdict shape onto a goal target. Content is complete and usable; shape is wrong. Recommended: Prime reads this as the survey doc; a later round may re-file it as a doc node if retrievability by slug is wanted.
