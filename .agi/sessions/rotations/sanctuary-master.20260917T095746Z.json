@@ -1,0 +1,199 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-master",
+  "recorded_at": "2026-09-17T09:58:46.401016Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-master",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-master",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "belam-S1-L4-XXIV",
+        "sanctuary-master.prev",
+        "belam-S1-L4-XXIII",
+        "sensei-director",
+        "master-sensei",
+        "sanctuary-director",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-master.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 9151214,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-master.prev",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-master",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "belam-S1-L4-XXIV",
+        "sanctuary-master.prev",
+        "belam-S1-L4-XXIII",
+        "sensei-director",
+        "master-sensei",
+        "sanctuary-director",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -38.513
+  },
+  "seated_at": "2026-09-17T09:58:46.401016Z",
+  "window": "sanctuary-master",
+  "session_id": "139e860a-acb0-4ef6-8778-c6a00fa53008",
+  "pid": 1470215,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-master.prev",
+      "id": "@422"
+    },
+    "successor_window": {
+      "name": "sanctuary-master",
+      "id": "@426"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@426",
+      "pid": 1470215,
+      "session_id": "139e860a-acb0-4ef6-8778-c6a00fa53008",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/139e860a-acb0-4ef6-8778-c6a00fa53008.jsonl",
+      "name": "agi-4e",
+      "path": "/home/ubuntu/.claude/sessions/1470215.json",
+      "note": "joined by @426 in registry file 1470215.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-master': session_ref= session_name=agi-4e session_label=sanctuary-master session_id=139e860a-acb0-4ef6-8778-c6a00fa53008 pid=1470215 generation=1 window='@426' source=registry pubkey=97cd902ef16a24a7... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 313398156, retried 0) -- own-row only: sanctuary-master spawn row: gen 1, session_id 139e860a-acb0-4ef6-8778-c6a00fa53008, window @426, pid 1470215\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-master.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.ack.139e860a.json",
+    "own_authority_released": "generation 0 of seat 'sanctuary-master' retired; successor generation 1 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/main",
+    "livestream_repoint": {
+      "session": "view-sanctuary-master",
+      "target": "@426",
+      "skipped": "view session view-sanctuary-master absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-opus-5"
+      },
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "d63dae583511b2f95d7609397c9160cdebf2f022009c7152989b0fa1132cf40c",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3036221,
+      3036226,
+      3036230,
+      3036231
+    ],
+    "reap_source": "derived from own window @id @422 pane 3036221: chain [3036221, 3036226, 3036230, 3036231] (deepest-first; authority row pid 3036231)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-master",
+        "rc": 0,
+        "output": "@426 sanctuary-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/139e860a-acb0-4ef6-8778-c6a00fa53008.jsonl",
+        "rc": 0,
+        "output": "0.0685\t68475/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3036221|3036226|3036230|3036231)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3036221|3036226|3036230|3036231)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sanctuary-master --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post sanctuary-master --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sanctuary-master",
+    "dm_signed": true,
+    "code_head": "846f5fe",
+    "code_loaded": "1789639022:1041493",
+    "claimed_at": "2026-09-17T09:59:14.302563+00:00",
+    "claim_key": "2026-09-17T09:58:46.401016Z",
+    "performed_after_s": 27.34990167617798
+  },
+  "audit": {
+    "out": {
+      "calls": 1,
+      "pre": 0,
+      "a": 1,
+      "b": 0,
+      "c": 0,
+      "d": 0,
+      "floor": 1,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5c4938bc-2178-4139-a42d-e39302d5855c.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1897,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-17T09:58:46.401016Z"
+      },
+      "audited_at": "2026-09-17T10:04:01Z",
+      "audited_by": "master-sensei"
+    }
+  }
+}
