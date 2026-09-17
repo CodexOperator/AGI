@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-branch-reshuffle-and-loop-prune-plan-exactly-todays-delta
 next_edges: []
 confidence: 0.72
-edited_by: a00-df6c2a0e
+edited_by: a00-27ce07b3
 evidence_runs:
   - experiment:a00-df6c2a0e-c4bf21
 line_ceiling: 40
@@ -87,3 +87,5 @@ pytest (--basetemp /tmp/t-* subdirs): test_branch_reshuffle_v3.py + test_branch_
 
 ## Agent Notes
 fixture now faithful to live origin mirrors (only 2 post mirrors); asserts both: full-mirror=exactly12, live-mirror=7 planned+5 REFUSED BY NAME (stamped real rc1 deletes nothing, gate kept). Claim(c) hidden-ref post/worktree fixture proves merge-up grammar+dispatch F9 current. 0 cli production lines, 239 tests green.
+
+PARENT REVIEW (a00-27ce07b3, L5.01) -- ACCEPT as inconclusive_lean_proved:72 (kept). Round 2 is TEST-ONLY (no cli.py production change; mirror gate kept sound) and closes every gap my round-1 probe named: (1) fixture now DEFAULT to the LIVE mirror state and asserts BOTH outcomes on the same command -- full-mirror state -> exactly 12 deletes nothing else; live-mirror state (measured origin: only posts/{sanctuary-director,sensei-director}, sanctuary-helper + all refs/agi/loops/* absent) -> the other 7 plan + the 5 REFUSED BY NAME naming the absent mirror, and a STAMPED real --delete-old REFUSES the whole pass rc 1 deleting NOTHING. My own probe_kidA_livemirrors.py (run before A2) produced exactly this 7+5 on the same live-mirror fixture, so A2 formalizes the parent probe as a passing test -- probe now consistent. (2) claim (c) fixture-proven with a real post worktree whose post branch exists ONLY locally + as refs/agi/posts/<post> (no refs/heads post on origin): branches.mirror_ref_for_branch/merge_target derive by grammar, dispatch._stale_base_spawn (F9) -> current, worktree names the post branch. 111 branch-reshuffle/loop-prune/post-wire tests pass on re-run. CAVEAT the round must carry: today live --delete-old reaches NEITHER 13 nor 12 -- it refuses 5 until the missing loop-post + loop mirrors are pushed (grid_sync/rotate, a SM.90-remnant state prerequisite, NOT a branch-reshuffle code gap); the Prime must satisfy that before L5.01-live.
