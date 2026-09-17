@@ -11,11 +11,18 @@ import argparse
 import contextlib as _c
 import io
 import json
+import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
+
+# `rotate` imports `locations` from the `extensions/agi/bin` sys.path entry,
+# so the module the test must monkeypatch is `rotate.locations`, NOT
+# `agi.bin.locations` -- the two are distinct objects in `sys.modules` and a
+# patch on the latter is invisible to `_own_sessions_dir`.
+locations = rotate.locations
 
 
 def _seats(root, rows):
@@ -107,6 +114,179 @@ def test_boundary_and_brief_agree_on_the_worktree_card(tmp_path, monkeypatch):
     assert brief == wt / ".agi" / "sessions" / "quorum" / "new.md"
     assert brief.exists(), brief
     assert not (wt / ".agi" / "sessions" / "quorum" / "old.md").exists()
+
+
+# --- L5.14: the relative worktree CELL -------------------------------------
+# Every test above spells the seat row's `worktree` cell ABSOLUTELY
+# (`str(wt)`). Live seat rows carry it RELATIVE -- `config:seats` row
+# `director-sanctuary` holds `".agi/worktrees/post-sensei-director"` -- and
+# `_own_sessions_dir` runs a DIFFERENT branch for it:
+#     if not p.is_absolute():
+#         p = Path(locations.git_common_root(root) or root) / wt
+# With `root` = the rotating post's own graph dir, `git_common_root` returns
+# the MAIN checkout, so the cell is relative to THAT. A tmp_path-only test
+# with no git exercises only the `or root` fallback, which is NOT the live
+# branch -- hence a real linked `git worktree` fixture. Pinned to the shape
+# `rotate.py:3554` actually takes; see
+# hypothesis:l5-relative-worktree-cell-resolution-has-no-committed-test-
+# coverage.
+
+
+def _git(path, *args):
+    res = subprocess.run(["git", *args], cwd=path, capture_output=True,
+                         text=True)
+    if res.returncode != 0:
+        raise RuntimeError(f"git {args}: {res.stderr}")
+    return res.stdout.strip()
+
+
+def _main_repo_with_worktree(tmp_path, cell):
+    """A REAL main repo whose graph is `main/.agi/`, with a linked git
+    worktree at `main/.agi/worktrees/post-old` -- the live geometry (the
+    worktree lives UNDER the main checkout's `.agi`, so the relative cell
+    `.agi/worktrees/post-old` is relative to the MAIN root, not the graph
+    root). `cell` is the spelling the seat row carries. Returns
+    `(main, graph_root, worktree_path)`."""
+    main = tmp_path / "main"
+    (main / ".agi" / "nodes").mkdir(parents=True)
+    _git(main, "init", "-q", "-b", "master")
+    _git(main, "config", "user.email", "t@t")
+    _git(main, "config", "user.name", "t")
+    (main / ".gitignore").write_text(".agi/worktrees/\n")
+    (main / "README").write_text("x")
+    (main / ".agi" / "nodes" / ".keep").write_text("x")
+    _git(main, "add", "-A")
+    _git(main, "commit", "-q", "-m", "init")
+    wt_rel = ".agi/worktrees/post-old"
+    wt = main / wt_rel
+    _git(main, "worktree", "add", "-q", str(wt), "-b", "old", "master")
+    graph_root = main / ".agi"
+    spelling = wt_rel if cell == "relative" else str(wt)
+    _seats(graph_root, [{"name": "old", "role": "director",
+                         "worktree": spelling}])
+    return main, graph_root, wt
+
+
+def _quorum_in_wt(wt, name="old.md"):
+    q = wt / ".agi" / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    p = q / name
+    p.write_text("card\n", encoding="utf-8")
+    return p
+
+
+def test_own_sessions_dir_relative_cell_runs_git_common_root(tmp_path,
+                                                            monkeypatch):
+    """RELATIVE cell, REAL git: `_own_sessions_dir(graph_root, seat)` must
+    resolve through `git_common_root(graph_root)` (the MAIN checkout) and
+    find the worktree's own sessions dir. `graph_root` is the main graph dir,
+    the root a director on MAIN holds for a worktree post. WITHOUT git the
+    `or root` fallback would join the cell onto `graph_root/.agi`, a path
+    that does not exist, and fall back to MAIN's shared dir -- so this test
+    is the branch, not the fallback."""
+    main, graph_root, wt = _main_repo_with_worktree(tmp_path, "relative")
+    _quorum_in_wt(wt)
+    monkeypatch.chdir(tmp_path)  # never the worktree, never the graph root
+    assert locations.git_common_root(graph_root) == main.resolve()
+    expected = wt / ".agi" / "sessions"
+    assert rotate._own_sessions_dir(graph_root, "old") == expected
+    assert expected.is_dir()
+
+
+def test_own_sessions_dir_relative_and_absolute_cells_agree(tmp_path,
+                                                           monkeypatch):
+    """The two spellings of the SAME worktree cell resolve to the identical
+    Path -- the relative case cannot drift from the absolute one already
+    pinned above."""
+    monkeypatch.chdir(tmp_path)
+    rel_main, rel_graph, rel_wt = _main_repo_with_worktree(
+        tmp_path / "rel", "relative")
+    abs_main, abs_graph, abs_wt = _main_repo_with_worktree(
+        tmp_path / "abs", "absolute")
+    assert rotate._own_sessions_dir(rel_graph, "old") == rel_wt / ".agi" / "sessions"
+    assert rotate._own_sessions_dir(abs_graph, "old") == abs_wt / ".agi" / "sessions"
+    assert (rotate._own_sessions_dir(rel_graph, "old")
+            == Path(str(rel_wt)) / ".agi" / "sessions")
+
+
+def test_resolve_brief_file_reroots_on_the_relative_cell(tmp_path,
+                                                         monkeypatch):
+    """`_resolve_brief_file` re-roots the `.agi/sessions`-prefixed relative
+    template on the SAME dir `_own_sessions_dir` returns for a RELATIVE cell
+    -- the successor reads the card the boundary renames."""
+    main, graph_root, wt = _main_repo_with_worktree(tmp_path, "relative")
+    _quorum_in_wt(wt)
+    monkeypatch.chdir(tmp_path)
+    got = rotate._resolve_brief_file(
+        graph_root, "old", ".agi/sessions/quorum/{seat}.md".replace(
+            "{seat}", "old"))
+    assert got == str(wt / ".agi" / "sessions" / "quorum" / "old.md")
+    # ... exactly the file the rename boundary renames.
+    surf = _quorum_surfaces(rotate._rename_surfaces(graph_root, "old", "new"))
+    assert [s["src"] for s in surf] == [got]
+
+
+def test_rename_surfaces_relative_cell_names_the_worktree_card(tmp_path,
+                                                              monkeypatch):
+    """`_rename_surfaces` names the worktree quorum card as a
+    `session-file` surface for a RELATIVE cell -- the shape the live
+    `sensei-director.20260917T222602Z.json` `applied_rename.surfaces`
+    recorded."""
+    main, graph_root, wt = _main_repo_with_worktree(tmp_path, "relative")
+    wt_card = _quorum_in_wt(wt, "old.md")
+    _quorum(graph_root, "old.md", "stale main copy\n")
+    monkeypatch.chdir(tmp_path)
+    surf = _quorum_surfaces(rotate._rename_surfaces(graph_root, "old", "new"))
+    assert len(surf) == 1, surf
+    assert surf[0]["src"] == str(wt_card)
+    assert surf[0]["dst"] == str(wt / ".agi" / "sessions" / "quorum" / "new.md")
+
+
+def test_own_card_path_ignores_the_cell_and_keys_on_root(tmp_path,
+                                                        monkeypatch):
+    """HONEST RESIDUE, not a vacuous pass: `_own_card_path` (rotate.py:7586)
+    reads NO seat row at all -- it tries `root/sessions/quorum/<seat>.md`
+    then `root/.agi/sessions/quorum/<seat>.md` and falls back to MAIN's
+    shared dir. So it can only find a worktree post's card when `root` is
+    ALREADY the worktree's own graph dir (the rotating post's cwd, the live
+    case). Against that worktree graph root BOTH cell spellings give the
+    identical path -- which is exactly what the code guarantees (the cell is
+    inert) and NOT evidence that the cell is honoured. A caller holding the
+    MAIN graph root for a worktree post would get MAIN's stale copy; that is
+    the residue this test records rather than hides."""
+    main, graph_root, wt = _main_repo_with_worktree(tmp_path, "relative")
+    wt_card = _quorum_in_wt(wt, "old.md")
+    monkeypatch.chdir(tmp_path)
+    root_wt = wt / ".agi"
+    from_rel = rotate._own_card_path(root_wt, "old")
+    # re-spell the SAME row absolutely: the resolver never reads it, so the
+    # answer cannot move -- pinned, not asserted to be correct.
+    _seats(graph_root, [{"name": "old", "role": "director",
+                         "worktree": str(wt)}])
+    from_abs = rotate._own_card_path(root_wt, "old")
+    assert from_rel == from_abs == wt_card
+    # residue: from the MAIN graph root it resolves MAIN's shared copy, not
+    # the worktree card -- the cell is inert.
+    main_shared = rotate._own_card_path(graph_root, "old")
+    assert main_shared == rotate._sessions_dir(graph_root) / "quorum" / "old.md"
+    assert main_shared != wt_card
+
+
+def test_relative_cell_without_git_falls_back_not_into_the_worktree(
+        tmp_path, monkeypatch):
+    """FALSIFIER for the fixture itself: disable `git_common_root` (return
+    None = no enclosing repo) and the relative cell resolves onto
+    `graph_root/.agi/...`, which does not exist, so the resolver falls back
+    to MAIN's shared dir and MISSES the worktree card. This is why the
+    committed test needs a real `git worktree` and cannot be replaced by a
+    tmp_path-only probe."""
+    main, graph_root, wt = _main_repo_with_worktree(tmp_path, "relative")
+    _quorum_in_wt(wt)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(locations, "git_common_root", lambda root: None)
+    assert rotate._own_sessions_dir(graph_root, "old") == (
+        rotate._sessions_dir(graph_root))
+    assert rotate._own_sessions_dir(graph_root, "old") != wt / ".agi" / "sessions"
 
 
 def test_pre_fix_resolution_renamed_mains_card(tmp_path, monkeypatch):
