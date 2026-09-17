@@ -24,7 +24,6 @@ of the pi CLI, not of where the code sat:
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
 import adapters
@@ -164,12 +163,7 @@ def build_command(
     args += model_args(harness, tier)
     # Headless: process the prompt and exit. Without this flag the prompt is
     # fed to the interactive TUI, which hangs forever off a TTY (empty log).
-    # hypothesis:l4-every-pi-kid-keeps-its-full-tool-call-trajectory-at-
-    # spawn-never-pruned-never-rebuilt -- `--mode json` makes pi emit one
-    # ordered json event per tool call (parent-verified: tool_execution_
-    # start/update/end with args + result), the ONLY source that survives
-    # pi's session-store pruning of tool RESULTS.
-    args += ["-p", "--mode", "json"]
+    args += ["-p"]
     # pi loads a system-prompt file by PLAIN PATH: resolvePromptInput() is
     # `existsSync(input) ? readFileSync(input) : input`. An `@` prefix fails
     # the stat and pi appends the PATH STRING as literal text instead — so
@@ -203,20 +197,6 @@ def build_command(
     # `cli_py` reaches the closing line so a parent's self-check carries the
     # REAL command rather than a shape it has to reconstruct.
     args.append(brief.closing_line(_btier, agent_id, iter_n, cli_py=cli_py))
-    # hypothesis:l4-every-pi-kid-keeps-its-full-tool-call-trajectory-at-
-    # spawn-never-pruned-never-rebuilt -- dispatch.py exits after spawn (the
-    # inline reaper is off by default), so the trajectory cannot be teed by a
-    # parent process. Spawn pi_trajectory.py INSTEAD of pi: it runs the real
-    # pi (the argv above), tees output.log and parses trajectory.jsonl as the
-    # calls land. dispatch/restart are unchanged -- the wiring is just a
-    # different argv. AGI_PI_TRAJECTORY_BYPASS=1 reverts to a bare pi run.
-    if not os.environ.get("AGI_PI_TRAJECTORY_BYPASS"):
-        return [
-            sys.executable,
-            str(Path(__file__).resolve().with_name("pi_trajectory.py")),
-            "--wrapper", args[0], str(sess_dir / "trajectory.jsonl"),
-            "--", *args[1:],
-        ]
     return args
 
 
