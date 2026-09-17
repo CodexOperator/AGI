@@ -6,12 +6,19 @@ parents:
   - hypothesis:l4-the-spawn-row-commit-retries-a-head-ref-lock-race-before-recording-failed-and-the-after-join-watch-recommits-its-own-dirty-row
 next_edges: []
 confidence: 0.75
-edited_by: a00-2fdae2ff
+edited_by: a00-5eb0117c
 evidence_runs:
   - experiment:a00-2fdae2ff-32ec7b
 line_ceiling: 40
 loop: hypothesis:l4-the-spawn-row-commit-retries-a-head-ref-lock-race-before-recording-failed-and-the-after-join-watch-recommits-its-own-dirty-row@s2
 model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - "conj1-wire: shim git failing first 2 commits -> 3 real git-commit invocations"
+  - outcome "committed (sha ...
+  - retried 2)"
+  - MAIN seats.md clean -> real retry
+  - own-row pathspec only
+  - no git add -A
 production_lines: 56
 profile: balanced
 role: kid
@@ -74,3 +81,7 @@ if [ -n "$ISC" ]; then c=$(cat "$COUNT"...);
 
 ## Agent Notes
 Built + proved CLOSE 1&3: _commit_spawn_row retries the own-row commit up to 5x (re-read HEAD, re-stage exact pathspec, jittered sleep) before recording FAILED, with the retry count riding the outcome. 2 new hermetic PATH-shim tests (fails 2x->committed retried 2; fails 6x->FAILED retried 5). Suite green. CLAIM 2 (after_join/heal watch re-commit) NOT built - over ceiling, next port.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT(05eb0117c) review: claims 1+3 ACCEPTED after adversarial probe. My WIRE probe: a PATH-shim git failing the first 2 commits yielded 3 REAL git-commit invocations, outcome "spawn_row_commit: committed (sha ..., retried 2)", MAIN seats.md clean, own-row pathspec only (no git add -A, foreign never reverted into the commit). This confirms the loop genuinely retries (re-read HEAD, re-stage exact row pathspec, jittered sleep) rather than a single fast-path labelled retried. Conjunct 3: the retry count rides the outcome in both committed (retried N) and FAILED (retried N) forms; the FAILED prefix is preserved for the successor-key gate. NEAR MISS avoided: a naive retry that re-uses one GIT_INDEX_FILE seeded once would NOT re-read a moved HEAD; the kid rebuilds a fresh throwaway index seeded from CURRENT HEAD each attempt. Kid 2 (a00-d74a9c7c) built conjunct 2. Together all three conjuncts are built. ACCEPT.
+<!-- THOUGHT:END -->
