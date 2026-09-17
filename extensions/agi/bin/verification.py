@@ -36,6 +36,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -110,6 +111,17 @@ class CheckResult:
     #: The suite's slowest tests, parsed from pytest's --durations table.
     #: [] means the table was absent or unparsable -- never a fabricated one.
     durations: list = field(default_factory=list)
+
+
+def _cleanup_basetemp(path: Path | None) -> None:
+    """Best-effort removal of a runner-owned pytest basetemp. A removal
+    failure never fails the check (claim (4))."""
+    if path is None:
+        return
+    try:
+        shutil.rmtree(path)
+    except OSError:
+        pass
 
 
 _PYTEST_COUNT_PATTERNS = (
@@ -1156,11 +1168,23 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     cmd = table[name]
     ceiling = SUITE_TIMEOUT if name == SUITE_CMD else PER_CHECK_TIMEOUT
     argv = list(cmd.argv)
-    # The SUITE alone asks pytest for its slowest-15 table, so the next
-    # ceiling round measures from the record rather than a scratch log
-    # (claim (4)). Every other check's argv is untouched.
-    if name == SUITE_CMD and not any(a.startswith("--durations") for a in argv):
-        argv.append("--durations=15")
+    # The SUITE alone gets the slowest-15 table and a PRIVATE pytest basetemp.
+    # A concurrent pytest prunes the SHARED /tmp/pytest-of-<user> basetemp
+    # to 3, which deleted this runner's tree mid-run (SM stamp run 2). The
+    # runner owns a dir under the shared sessions tree and removes it best
+    # effort after the run (claim (4)). No shell habit; never a shared default.
+    basetemp: Path | None = None
+    if name == SUITE_CMD:
+        if not any(a.startswith("--durations") for a in argv):
+            argv.append("--durations=15")
+        if not any(a.startswith("--basetemp") for a in argv):
+            base = rotate._sessions_dir(groot) / f"pytest-basetemp-{os.getpid()}"
+            try:
+                base.mkdir(parents=True, exist_ok=True)
+                argv.append(f"--basetemp={base}")
+                basetemp = base
+            except OSError:
+                basetemp = None   # skip, never fail the check on create
     try:
         proc = subprocess.run(
             argv, capture_output=True, text=True,
@@ -1171,6 +1195,8 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     except OSError as exc:
         return CheckResult(name, "FAIL", time.monotonic() - start,
                            note=f"could not execute: {exc}")
+    finally:
+        _cleanup_basetemp(basetemp)
     output = (proc.stdout or "") + (proc.stderr or "")
     durations = _parse_pytest_durations(output) if name == SUITE_CMD else []
     number = _parse_number(name, proc.returncode, output)

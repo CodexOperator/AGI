@@ -1301,9 +1301,13 @@ def _head_touches_engine(root: Path, old_head: str, new_head: str) -> bool:
     returns True because we cannot prove the move was prose-only."""
     if not old_head or not new_head:
         return True
+    # ABSOLUTE pathspec (bin_dir, not a repo-relative spelling): git resolves
+    # pathspecs against `-C root`'s cwd, so `extensions/agi/bin/` mismatches
+    # when root is an .agi worktree dir and silently misses engine commits.
+    bin_dir = str(Path(__file__).resolve().parent)
     lines, rc = _git(
         ["diff", "--name-only", f"{old_head}..{new_head}",
-         "--", "extensions/agi/bin/"], root)
+         "--", bin_dir], root)
     if rc != 0:
         return True
     return bool(lines)
