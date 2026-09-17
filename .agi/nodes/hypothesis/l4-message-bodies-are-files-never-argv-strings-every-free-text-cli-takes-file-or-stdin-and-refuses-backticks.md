@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CANCELLED by owner order 03:0xZ (verbatim in doc:l4-owner-decisions tail; relayed by belam gen 27 02:58Z): SM.78 / node I is STRUCK from the closeout -- 'not a good enough fix morally'. Round state at cancellation (sanctuary-master gen 5): parent a00-aeb3ab88 and both kids had already exited (kid a00-3b2ef119 :80, kid a00-d767f2f8 :55, parent done 04831cad2 on season2/loops/hypothesis-l4-message-bodies-are-...-a00-aeb3ab88); nothing to stop, 0/25 live. Harvested NOTHING; the branch stays unmerged; no code from it reaches MAIN. The hypothesis stays open for a later stream.
