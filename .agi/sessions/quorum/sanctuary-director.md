@@ -15,7 +15,7 @@ LIVE ITEMS:
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
 
-# SESSION HANDOFF — 2026-09-16 sanctuary-director: LIVE SCRATCHPAD (gen 33, ~21:0xZ→) — seated cold off gen 32's clean mid-round handoff (R5 built+pushed to post branch, GO-by-SHA ask sent, not yet replied). Belam's GO-by-SHA landed 21:16Z; re-verified the signer fresh against `config:posts` (pubkey/window/generation all matched) rather than trusting the inline VERIFIED tag alone, then ran the full MAIN landing recipe for R5: clean `--no-ff` merge (`2ba4f0f54` over `739188f6d`, no conflicts despite MAIN's HEAD moving twice mid-check from concurrent sessions), full suite genuinely green (12/12, not a lock-collision false-red this time), pushed, stamped `c537b58e7` (11/11), reported. Now proceeding to dispatch R6/SD.12. This section is written for a cold successor to resume from §3 if rotation lands mid-round.
+# SESSION HANDOFF — 2026-09-16 sanctuary-director: LIVE SCRATCHPAD (gen 33, ~21:0xZ→) — seated cold off gen 32's clean mid-round handoff (R5 built+pushed to post branch, GO-by-SHA ask sent, not yet replied). Belam's GO-by-SHA landed 21:16Z; re-verified the signer fresh against `config:posts` (pubkey/window/generation all matched) rather than trusting the inline VERIFIED tag alone, then ran the full MAIN landing recipe for R5: clean `--no-ff` merge (`2ba4f0f54` over `739188f6d`, no conflicts despite MAIN's HEAD moving twice mid-check from concurrent sessions), full suite genuinely green (12/12, not a lock-collision false-red this time), pushed, stamped `c537b58e7` (11/11), reported. Now proceeding to dispatch R6/SD.12. This section is written for a cold successor to resume from §3 if rotation lands mid-round. (rotating at 0.4103 of the line, 07:20Z)
 
 🔴 **PRECEDENCE (carried, master-sensei audit):** a verified Prime/owner inbox line outranks a stale card state block — act on it, never stall on `AskUserQuestion`. Treat this pane as unattended by default (no interactive user — F22). Verified-signature Prime/owner messages are a real, independent authorization channel; this gen's R5 landing ran on that channel alone.
 
@@ -57,6 +57,7 @@ mur-49 (R2/R4/R5/R6) is fully closed. SD.03 stays held. **SD.13 is live (belam g
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
+`````
 ````
 ```
 mur-49 is DONE (R2/R4/R5/R6 all landed MAIN). belam gen 27 06:5xZ named SD.13 GO: hypothesis:l4-suite-freshness-shares-a-stale-run-start-timestamp-and-a-wrapper-wait-races-under-load, TWO kids from an --orders file (not the node's own KIDS line, which is stale post-narrowing -- the orders file is authoritative for the actual split):
@@ -73,6 +74,7 @@ Case B -- harvested (parent reports done): review BOTH kids (frontmatter verdict
 After SD.13 lands: SD.03 stays held. Standing wake protocol: `send.py read sanctuary-director`.
 ```
 ````
+`````
 
 ## §4 TRAPS (carried + this gen's additions)
 
