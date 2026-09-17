@@ -920,6 +920,21 @@ def _write_verified_stamp(groot: Path, *, ran_at: float | None,
         path.write_text(body, encoding="utf-8")
 
 
+def _retract_verified_stamp(groot: Path) -> None:
+    """Retract an earlier green certification after a RED `--suite` run.
+
+    `cli.py:5336`'s gate tests `stamp.exists()` and nothing else, so a stamp
+    left behind by a previous green run would certify a suite that has since
+    gone red -- the gate would pass `--delete-old` on red evidence. The
+    predicate here is the SAME one `main()` returns its rc on, so
+    "rc==0 iff certified" holds in both directions: green writes, red
+    retracts. Missing files are not an error (a first red run retracts
+    nothing).
+    """
+    for path in _verified_stamp_paths(groot):
+        path.unlink(missing_ok=True)
+
+
 def _read_suite_ts(groot: Path) -> float | None:
     """Epoch of the last recorded --suite completion, or None if never."""
     try:
@@ -1763,6 +1778,11 @@ def main(argv: list[str] | None = None) -> int:
         # not happen).
         if not any(r.status == "FAIL" for r in results):
             _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
+        else:
+            # A RED run RETRACTS any earlier certification at every path the
+            # gate can read, so the stamp can never outlive the green run it
+            # recorded (cli.py:5336 tests existence only).
+            _retract_verified_stamp(groot)
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,
