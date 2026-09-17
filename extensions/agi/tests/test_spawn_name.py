@@ -158,3 +158,50 @@ def test_spawn_explicit_name_wins_over_seat(monkeypatch, tmp_path, capsys):
     # explicit --name is trivial, so no `spawn name:` line is printed; the
     # resolved name shows up in the launch line itself
     assert "claude --remote-control explicit" in out
+
+
+def _spawn_row_refusal(tmp_path, monkeypatch, capsys, model):
+    """Run `spawn --seat director-post --dry-run` against a row whose model
+    cell reads `sonnet`, returning (rc, stdout, stderr)."""
+    root = tmp_path / "root"
+    _write_seats(root, [{"name": "director-post", "role": "director",
+                         "model": "sonnet"}])
+    prompt = root / "prompt.md"
+    prompt.write_text("Hello {name}")
+    windows = root / "windows.txt"
+    windows.write_text("belam-S1\n", encoding="utf-8")
+    base = dict(name=None, tier="director", model=model, effort=None,
+                settings=None, prompt_file=str(prompt), successor_argv=None,
+                seat="director-post", tmux_session="t",
+                window_path=str(windows), pid=None, no_autopsy=False,
+                ask_diff=False, dry_run=True)
+    rc = rotate.cmd_spawn(Namespace(**base), root)
+    cap = capsys.readouterr()
+    return rc, cap.out, cap.err
+
+
+def test_spawn_model_differs_from_row_refused_by_name(
+        tmp_path, monkeypatch, capsys):
+    # goal:g15.25 re-cut (Prime XIX 07:28Z) -- a --model DIFFERING from the
+    # row cell is REFUSED by name, nothing launched, exit 3; the row is the
+    # ONE source. --dry-run prints the same would-refuse line and touches
+    # nothing (the seats row model cell stays `sonnet`).
+    rc, out, err = _spawn_row_refusal(tmp_path, monkeypatch, capsys,
+                                      model="opus")
+    assert rc == 3, (out, err)
+    assert "--model opus differs from the row: model sonnet" in err, err
+    assert "the row changes only through write.py" in err, err
+    assert "claude --remote-control" not in out      # nothing launched
+    own = rotate._find_seat(tmp_path / "root", "director-post")
+    assert own is not None and own["model"] == "sonnet"  # row untouched
+
+
+def test_spawn_model_equal_to_row_proceeds_no_refusal(
+        tmp_path, monkeypatch, capsys):
+    # goal:g15.25 re-cut -- a --model EQUAL to the row cell is a no-op: the
+    # launch proceeds on the ROW model, no refusal line, exit 0.
+    rc, out, err = _spawn_row_refusal(tmp_path, monkeypatch, capsys,
+                                      model="sonnet")
+    assert rc == 0, (out, err)
+    assert "differs from the row" not in err, err
+    assert "claude --remote-control" in out           # launch proceeds

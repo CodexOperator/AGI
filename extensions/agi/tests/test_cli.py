@@ -142,6 +142,7 @@ def _cmd_done_project(tmp_path):
     (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
         '{"id": "a00-x", "node_id": "experiment:e1", '
         '"parent": "hypothesis:h1", "status": "running"}')
+    _write_holder(graph, "001", "a00-x")
     import argparse
     args = argparse.Namespace(
         iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
@@ -150,6 +151,23 @@ def _cmd_done_project(tmp_path):
         no_evidence_gate=False, owns=None, no_spawn_gate=False,
     )
     return graph, args
+
+
+def _write_holder(graph, iter_n, agent_id):
+    """A bookkept round: the iter manifest carries the agent's row, so
+    `_alarm_dispatcher_on_done` finds a holder and returns None (rc 0) -- a
+    legitimate round that alarms. A fixture WITHOUT this is a silent-dm round
+    and, since SM.67 C2, correctly makes cmd_done return rc 1. Returns the
+    manifest path."""
+    import json as _json
+    d = graph / "sessions" / f"iter-{iter_n}"
+    d.mkdir(parents=True, exist_ok=True)
+    mpath = d / "manifest.json"
+    if not mpath.exists():
+        mpath.write_text(_json.dumps({"agents": [{"id": agent_id,
+                                                    "status": "running"}]},
+                                     indent=2))
+    return mpath
 
 
 def test_done_adopts_a_node_written_outside_node_writer(tmp_path, monkeypatch):
@@ -176,6 +194,7 @@ def test_done_adopts_a_node_written_outside_node_writer(tmp_path, monkeypatch):
     (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
         '{"id": "a00-x", "node_id": "experiment:e1", '
         '"parent": "hypothesis:h1", "status": "running"}')
+    _write_holder(graph, "001", "a00-x")
     import argparse
     args = argparse.Namespace(
         iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
@@ -292,12 +311,11 @@ def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
     graph = main / ".agi"
     (graph / "nodes" / "experiment").mkdir(parents=True)
     (graph / "config.json").write_text("{}")
-    # The agent's session record lives in the MAIN checkout (shared across
-    # worktrees); the kid's node lives in the worktree.
     (graph / "sessions" / "iter-001" / "a00-p").mkdir(parents=True)
     (graph / "sessions" / "iter-001" / "a00-p" / "agent.json").write_text(
         '{"id": "a00-p", "node_id": "experiment:e1", '
         '"parent": "hypothesis:h1", "status": "running"}')
+    _write_holder(graph, "001", "a00-p")
 
     # git-init main on season/s1, one base commit.
     _ggit(main, "init", "-q")
@@ -380,6 +398,7 @@ def test_done_does_not_commit_main_checkout(tmp_path, monkeypatch):
     (graph / "sessions" / "iter-001" / "a00-p" / "agent.json").write_text(
         '{"id": "a00-p", "node_id": "experiment:e1", '
         '"parent": "hypothesis:h1", "status": "running"}')
+    _write_holder(graph, "001", "a00-p")
     (graph / "nodes" / "experiment" / "e1.md").write_text(
         "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
         "---\n\nbody\n")
@@ -457,6 +476,7 @@ def test_done_worktree_commit_scopes_to_the_rounds_own_paths(tmp_path,
     (wt_graph / "sessions" / "iter-001" / agent / "agent.json").write_text(
         '{"id": "%s", "node_id": "experiment:%s-own", '
         '"parent": "hypothesis:h1", "status": "running"}' % (agent, agent))
+    _write_holder(wt_graph, "001", agent)
 
     # IN SCOPE: the round's OWN node (basename carries its agent id).
     (wt_graph / "nodes" / "experiment" / f"{agent}-own.md").write_text(
@@ -545,6 +565,7 @@ def test_done_worktree_kid_commit_is_allowed_by_the_real_agent_git_hook(
     (wt_graph / "sessions" / "iter-001" / agent / "agent.json").write_text(
         '{"id": "%s", "node_id": "experiment:%s-own", '
         '"parent": "hypothesis:h1", "status": "running"}' % (agent, agent))
+    _write_holder(wt_graph, "001", agent)
     (wt_graph / "nodes" / "experiment" / f"{agent}-own.md").write_text(
         "---\nid: experiment:%s-own\ntype: experiment\nparents:\n"
         "- hypothesis:h1\n---\n\n# own\n" % agent)
@@ -599,6 +620,7 @@ def _hypothesis_schema_project(tmp_path):
     (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
         '{"id": "a00-x", "node_id": "hypothesis:hy", '
         '"parent": "goal:g1", "status": "running"}')
+    _write_holder(graph, "001", "a00-x")
     import argparse
     args = argparse.Namespace(
         iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
@@ -718,15 +740,21 @@ def test_done_does_not_downgrade_a_more_authoritative_manifest_entry(tmp_path):
 
 
 def test_done_succeeds_with_missing_or_corrupt_manifest(tmp_path, monkeypatch):
-    """A missing or corrupt manifest must not change cmd_done's exit code or
-    drop the agent record -- the round still ends, still writes the record."""
+    """The round still ends and still records its verdict on both a missing
+    and a corrupt manifest. A missing manifest means NO holder, so the
+    completion dm is silent -- and since SM.67 C2 that silent dm makes
+    cmd_done return rc 1 (the harness that ran done must SEE it); the record
+    still carries the verdict. A corrupt manifest is still a holder file, so
+    the alarm fails non-fatally and cmd_done exits 0."""
     cli = _load_cli()
     import json as _json
 
-    # missing manifest
+    # missing manifest -> no holder -> silent dm -> rc 1, verdict still written
     graph, args = _cmd_done_project(tmp_path)
+    (graph / "sessions" / "iter-001" / "manifest.json").unlink()
     monkeypatch.setattr(cli, "_find_root", lambda: graph)
-    assert cli.cmd_done(args) == 0
+    assert cli.cmd_done(args) == 1, \
+        "a silent done (no manifest holder) must surface as rc 1"
     agent = _json.loads(
         (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").read_text())
     assert agent["status"] == "done"
@@ -840,6 +868,7 @@ def _parent_probe_project(tmp_path, tier="parent"):
     rec = (graph / "sessions" / "iter-001" / "a00-p" / "agent.json")
     rec.write_text(_json.dumps({"id": "a00-p", "tier": tier,
                                 "status": "running"}))
+    _write_holder(graph, "001", "a00-p")
     return graph, rec
 
 
