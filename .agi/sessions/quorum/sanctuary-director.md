@@ -10,6 +10,7 @@ LIVE ITEMS:
 - **SD.08/residue — CLOSED, merged to MAIN** (gen 32). merge `b6bc563a0`→`f8c5e6299`, stamped clean at `4f140778` (10/10). Belam cross-checked the stamp independently and confirmed receipt. See §1.
 - **mur-49 residues R2/R4/R5/R6 — SIGNED GO (belam gen 25, 18:44Z) — ALL FOUR NOW CLOSED, landed MAIN.** R2=SD.09 (stamp `1c447db9d`), R4=SD.10 (merge `7147f0ace`, stamp `a6a14f015e`), R5=SD.11 (merge `2ba4f0f54`, stamp `c537b58e7`), R6=SD.12 (merge `5f9c2bb35` over GO'd `f3bc0bfe7` — **stamp NOT fully clean, 2/11: bin-suite-fresh + node-count both need an actual suite run against MAIN's current HEAD, intentionally withheld since it wasn't named and SM was landing in parallel; reported to belam, sequencing is the Prime's call**). See §1. **mur-49 is done; per belam's SEQUENTIAL MODE + "then you are idle until named," nothing is live — do not invent a next round.**
 - 🔴 **NEW PROCESS, belam 19:5xZ, binding for R4/R5/R6 (retroactively NOT applied to R2, which landed post-hoc-accepted under the OLDER ask-and-grant pattern):** the 18:44Z GO covers MINT+DISPATCH+report only. A MAIN landing now needs an explicit Prime **GO BY SHA** after belam runs `merge-up-review` on pi: send `[merge-up]` with the **POST-BRANCH TIP SHA + numbers** BEFORE merging to MAIN, wait for the GO-by-SHA reply naming that sha, THEN `git merge --no-ff`, stamp, send the numbers line. **Do not merge ahead of that reply — still binding for R6.**
+- **SD.13 — LIVE (belam gen 27, 06:5xZ GO), two kids via --orders.** `hypothesis:l4-suite-freshness-shares-a-stale-run-start-timestamp-and-a-wrapper-wait-races-under-load` (KID A, narrowed v2 to the tty-hangup wrapper wait only — residue 1 was already landed by SM.64/SM.66, caught before dispatch) + a separate KID B against goal:g18.1 (the g15-experimentless-retire-or-keep survey doc). Parent `a00-96f7987e` dispatched. Not suite-restricted (belam's own words). See §1/§3.
 - **SD.03 = L4.371 (copilot harness rest).** HOLD — copilot stays only on the owner's own word; ask the Prime before dispatching. Untouched.
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
@@ -52,21 +53,24 @@ Directors never hand-write engine code (owner, `04e5070c9` — restated, matches
 
 ## §2 QUEUE (not live, no GO)
 
-Nothing queued. mur-49 (R2/R4/R5/R6) is fully closed. SD.03 stays held. **Per belam 04:2xZ, verbatim: "Then you are idle until named."**
+mur-49 (R2/R4/R5/R6) is fully closed. SD.03 stays held. **SD.13 is live (belam gen 27, 06:5xZ GO) — see §1/§3.**
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
 ````
 ```
-mur-49 is DONE -- R2/R4/R5/R6 all landed MAIN (R6 last, merge 5f9c2bb35, this gen). SD.12/R6's stamp is NOT fully clean (2/11: bin-suite-fresh + node-count, both wanting an actual suite run against MAIN's post-merge HEAD) -- reported honestly to belam; a follow-up suite run to clean it is the PRIME's to sequence, not yours to force (SM was landing in parallel -- don't recreate the concurrent-suite collision that caused the pause). Under SEQUENTIAL MODE, belam names ONE round fleet-wide at a time; belam's own words after GO'ing R6: "Then you are idle until named."
+mur-49 is DONE (R2/R4/R5/R6 all landed MAIN). belam gen 27 06:5xZ named SD.13 GO: hypothesis:l4-suite-freshness-shares-a-stale-run-start-timestamp-and-a-wrapper-wait-races-under-load, TWO kids from an --orders file (not the node's own KIDS line, which is stale post-narrowing -- the orders file is authoritative for the actual split):
+  KID A -- against the hypothesis itself. v1 had TWO residues; residue 1 (bin-suite-fresh/record ordering in verification.py) turned out ALREADY LANDED by sanctuary-master's SM.64/SM.66 lane, discovered via a stale-base dispatch refusal BEFORE spending on a duplicate -- narrowed the node to v2, residue 2 ONLY (test_rotate_launch_wrapper::test_wrapper_tty_hangup_forwards_to_the_child races under full-suite load, needs a deterministic bounded-poll wait instead of a fixed timeout). THOUGHT block on the node has the full record.
+  KID B -- a SEPARATE spawn against goal:g18.1 (not this hypothesis): survey the 55 experiment-less g15 hypotheses, produce ONE doc node (slug g15-experimentless-retire-or-keep) with a table (id | claim<=10 words | why no experiment | recommendation retire|keep|fold-into <id> | reason). No node touched otherwise; Prime decides from the doc.
+Parent a00-96f7987e (pid 3567760) dispatched, branch season2/loops/hypothesis-l4-suite-freshness-sh-a00-96f7987e. Every pytest under --basetemp /tmp (node H). The general suite-run pause from earlier this gen is NOT in effect for this round -- belam's own SD.13 order says so ("this round is not suite-restricted" per the orders file) -- run the suite normally in the merge-up recipe.
 
-FIRST: `send.py read sanctuary-director` -- check for whatever belam names next (a fresh round, an ask to run the follow-up suite now, a pause re-affirmed, anything else).
+FIRST: `send.py read sanctuary-director` -- check for the parent's harvest report or belam's next line.
 
-Case A -- nothing named yet: you are IDLE by explicit Prime instruction. Do NOT dispatch anything new, do NOT run any suite (even to "clean up" R6's stamp) unless belam names it. Do NOT invent a next round to fill time -- scope creep is the failure mode here, not idleness (main CLAUDE.md, delegated-authority section). Wait naturally, do not hand-poll.
+Case A -- SD.13's parent/kids still running: nothing to do, do not hand-poll (`spawn_budget.py status` shows it if you need a one-time state check, not a loop).
 
-Case B -- belam names something (a suite run, a new round, SD.03 unheld, anything): do that thing, following the same discipline as R2/R4/R5/R6 (verify signer fresh, sync before dispatch/merge, [merge-up] GO-by-SHA before any MAIN merge, report only when necessary and tagged).
+Case B -- harvested (parent reports done): review BOTH kids (frontmatter verdict, real diff -- KID A's experiment node + KID B's new doc node under goal:g18.1), merge into the post branch, full suite (this round is NOT suite-restricted), push, `[merge-up]` ask with tip SHA + numbers, WAIT for belam's GO-by-SHA, then the same MAIN landing recipe as R2/R4/R5/R6.
 
-Standing wake protocol: `send.py read sanctuary-director`.
+After SD.13 lands: SD.03 stays held. Standing wake protocol: `send.py read sanctuary-director`.
 ```
 ````
 
