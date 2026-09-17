@@ -1766,7 +1766,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
-                print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+                print(f"ERR: prompt file not found: {prompt_file} "
+                      f"(resolved {pf}, root {root})", file=sys.stderr)
                 return 1, ""
             claude_cmd = _successor_command(
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
@@ -3550,6 +3551,25 @@ def _rename_post_segment(branch: str, old: str, name: str) -> str:
     return branch.replace(f"/posts/{old}", f"/posts/{name}")
 
 
+def _own_sessions_dir(root: Path, seat: str) -> Path:
+    """The sessions dir of the tree the POST ITSELF lives in: its worktree's
+    `.agi/sessions`, or MAIN's shared dir for a MAIN-resident post (the seat
+    row's `worktree` cell empty/absent). The root comes from the ROW CELL,
+    never from a path guess -- the same rule `_prepare_merge_target` uses to
+    tell a MAIN post from a worktree one. Used by every surface that IS the
+    post's own (the quorum card, which `_own_card_path` writes worktree-
+    first, hypothesis SL2.01 #3); shared-room surfaces (meter pins, inbox,
+    seat handoffs, budget) stay on `_sessions_dir`. L5.11."""
+    wt = str((_find_seat(root, seat) or {}).get("worktree") or "").strip()
+    if wt:
+        p = Path(wt)
+        if not p.is_absolute():
+            p = Path(locations.git_common_root(root) or root) / wt
+        if p.is_dir():
+            return p / ".agi" / "sessions"
+    return _sessions_dir(root)
+
+
 def _rename_surfaces(root: Path, old: str, new: str,
                      branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
@@ -3576,12 +3596,19 @@ def _rename_surfaces(root: Path, old: str, new: str,
         seen.setdefault(src, item)
 
     sessions = _sessions_dir(root)
+    own_sessions = _own_sessions_dir(root, old)
     # the rename PLAN file is not itself a rename surface: at staging time it
     # does not exist, at boundary-apply time it does, and including it would
     # make every re-derived table drift from the staged one (L5.02).
     _stage_self = sessions / "seats" / f"{old}.rename.json"
     for sub in ("", "seats", "quorum", "inbox"):
-        base = sessions if not sub else sessions / sub
+        # the quorum CARD is the post's own file (`_own_card_path`, worktree-
+        # first); seats/ (handoffs), inbox/ and the top-level pins/logs are
+        # the SHARED room and stay MAIN-rooted on `_sessions_dir`. L5.11.
+        if sub == "quorum":
+            base = own_sessions / "quorum"
+        else:
+            base = sessions if not sub else sessions / sub
         dirs = [base] if base.is_dir() else []
         if not dirs:
             continue
