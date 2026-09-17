@@ -1863,6 +1863,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         if guard:
             print(guard, file=sys.stderr)
             return 1
+        # A stale-branch spawn is the hazard, seat or not: merge origin first
+        # or refuse BY NAME, before any write or window.
+        _brc = _spawn_behind_gate(root, bool(getattr(args, "dry_run", False)))
+        if _brc != 0:
+            return _brc
 
     # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
     # name-for-every-non-prime-post): a NON-prime --seat names the window.
@@ -15373,6 +15378,42 @@ def _perform_season_merge(root: Path, sb: str) -> str | None:
     if not lines:
         return None                              # cannot verify HEAD advanced
     return lines[0].strip() or None
+
+
+def _spawn_behind_gate(root: Path, dry_run: bool) -> int:
+    """A spawn from a worktree behind `origin/<season>` MERGES it first or
+    REFUSES BY NAME, never launching a seat on a stale post branch -- the same
+    discipline rotate-self's `perform` gate has (hypothesis:l4-spawn-from-a-
+    worktree-merges-origin-first-or-refuses-when-behind). Reuses the ONE merge
+    path, `_merge_applies_clean` + `_perform_season_merge`; `--dry-run` does NO
+    fetch and NO merge -- a merge is a touch; the real path's fetch mirrors
+    rotate-self's `perform=True` fetch."""
+    sb = season_branch(root)
+    if not dry_run:
+        _git_proc(root, "fetch", "origin", sb)
+    behind = _git_count_maybe(root, "rev-list", "--count",
+                              f"HEAD..origin/{sb}")
+    if not behind:
+        return 0
+    if dry_run:
+        print(f"[spawn] would merge origin/{sb} ({behind}) "
+              f"(dry-run: no fetch, no merge)")
+        return 0
+    clear = f"git fetch origin {sb} && git merge --no-edit origin/{sb}"
+    cf = _merge_applies_clean(root, sb)
+    if cf is True:
+        merged = _perform_season_merge(root, sb)
+        if merged is not None:
+            print(f"[spawn] behind origin/{sb} ({behind}) — merged {merged}")
+            return 0
+        print(f"ERR: spawn refused: behind origin/{sb} {behind}, merge "
+              f"attempted, refused by git (aborted); clear with: {clear}",
+              file=sys.stderr)
+        return 3
+    paths = _merge_conflict_paths(root, sb) if cf is False else "<unmeasured>"
+    print(f"ERR: spawn refused: behind origin/{sb} {behind}, merge conflict "
+          f"({paths}); clear with: {clear}", file=sys.stderr)
+    return 3
 
 
 def _git_proc(cwd: Path, *args: str):
