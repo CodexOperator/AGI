@@ -180,6 +180,29 @@
       },
       "audited_at": "2026-09-16T21:09:12Z",
       "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 1,
+      "s": 0,
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "floor": 0,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/7f737309-3930-4318-98f7-4223aa8c38f5.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-16T22:36:13Z",
+      "audited_by": "master-sensei"
     }
   }
 }

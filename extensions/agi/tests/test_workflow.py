@@ -410,11 +410,19 @@ def test_timeout_is_one_attempt_no_retry(monkeypatch):
     assert sleeps == [], sleeps
 
 
-def test_timeout_reports_elapsed_not_could_not_start(monkeypatch, capsys):
-    """A TimeoutExpired reports 'timed out after N s' FIRST and never 'could
-    not start' (item 3): the stage ran long and was cut — different from a
-    binary that never started. rc stays 2, one attempt, no sleep, prompt never
-    echoed."""
+def test_a_timeout_says_timed_out_and_never_could_not_start(monkeypatch):
+    """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
+    says-timed-out-and-the-done-tests-stay-hermetic item (3), from mur-sm-60,
+    AND SM.70 item 3 here (landed independently, reconciled at a
+    season2/main merge conflict): 30 min of pi spend, the refuter never ran,
+    and the record said "could not start pi" because `TimeoutExpired` IS a
+    `SubprocessError` and the string it carries buries the whole argv --
+    prompt and all.
+
+    A timeout is its OWN outcome: the budget the CALLER resolved, named
+    first, and never the could-not-start wording. rc stays 2, one attempt,
+    no retry/sleep -- a timeout is not treated as the transient 5xx case.
+    """
     import subprocess as _sp
     from unittest import mock
     import workflow as _wf
@@ -423,24 +431,27 @@ def test_timeout_reports_elapsed_not_could_not_start(monkeypatch, capsys):
 
     def fake_run(cmd, **kw):
         calls.append(cmd)
-        raise _sp.TimeoutExpired(cmd, 600, output=None)
+        raise _sp.TimeoutExpired(cmd, 42)
 
     sleeps: list[float] = []
     monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
     cfg = {"harnesses": {"pi": {}}}
-    view = _wf.RunView("k", [_retry_stage()], "pi", out=io.StringIO())
-    with mock.patch("subprocess.run", side_effect=fake_run):
+    st = _retry_stage()
+    view = _wf.RunView("k", [st], "pi", out=io.StringIO())
+    err = io.StringIO()
+    with mock.patch("subprocess.run", side_effect=fake_run), \
+         mock.patch.object(sys, "stderr", err):
         rc, value = _run_stage_pi(
-            cfg, _retry_stage(), {"draft:a": {"model": "m", "effort": "x"}},
-            {}, view=view)
+            cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {},
+            view=view, timeout_s=42)
     assert rc == 2 and value is None, (rc, value)
     assert len(calls) == 1 and sleeps == [], (calls, sleeps)
-    reason = view.state["draft:a"]["detail"]
-    assert reason.startswith("timed out after 600 s"), reason
-    assert not reason.startswith("could not start"), reason
-    err = capsys.readouterr().err
-    assert "timed out after 600 s" in err
-    assert "could not start" not in err, err
+    msg = err.getvalue()
+    assert "stage draft:a timed out after 42 s" in msg, msg
+    assert "could not start pi" not in msg, msg
+    detail = view.state["draft:a"].get("detail", "")
+    assert detail.startswith("timed out after 42 s"), detail
+    assert "could not start pi" not in detail, detail
 
 
 def test_transient_5xx_exhausts_at_three_attempts(monkeypatch):
