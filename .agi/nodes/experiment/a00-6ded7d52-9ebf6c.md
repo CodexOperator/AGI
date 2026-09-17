@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sm25b-post-branches-mirror-lock-rename-delete-fixes
 next_edges: []
 confidence: 0.7
-edited_by: a00-4d31ec4c
+edited_by: a00-64eda9bb
 evidence_runs:
   - experiment:a00-6ded7d52-9ebf6c
 loop: hypothesis:l4-sm25b-post-branches-mirror-lock-rename-delete-fixes@s2
@@ -155,3 +155,5 @@ SM.25b: all four post-branch defects built and proved on the rebased SM.250 byte
 
 ## Agent Notes
 SM.25b ACCEPT: all four defects built and parent-probed on the rebased SM.250 bytes -- mirror helper resolves both v3 town-first seat spellings; the suite-lock marker arm proceeds only when the marker pid IS the holder (a live non-holder and a dead pid both still refuse); rename-apply proves the renamed branch's own tip, never HEAD; _drop_origin_post_head has one call site behind --delete-old + a containment proof, dry-run by default. Kid work reached me UNCOMMITTED: the kid-tier pre-commit hook refuses the auto-commit, so the parent adopted the 16 changed paths byte-for-byte.
+
+SM.90 parent probe review (a00-64eda9bb): I reviewed the MERGED bytes of this accepted re-cut on my base (fcb6ecddb in post main), not its result file. All six parent-claim clauses hold on the merged tree: (1) _stops_push routes post/loop to the additive mirror, never a refs/heads/season2/posts/* push -- grep finds no engine path pushing that head, test_seating_push_publishes_main_only_never_a_post_head green; (2) mirror_ref_for_branch resolves the v3 town-first spelling every live seat carries (confirmed by direct python call returning refs/agi/posts/sanctuary-director) and mirror_and_prove is rc-gated + ls-remote-proved; (3) cmd_merge_up takes the suite lock itself, runs the suite in MAIN, merges --no-ff, pushes MAIN, mirror+proves, drops the head only behind --delete-old + containment, releases lock in finally, sends the Prime ONE numbers line -- test_merge_up_locks_runs_suite_merges_pushes_mirrors_releases green; (4) --dry-run prints plan touches nothing (test_merge_up_without_delete_old_prints_plan_deletes_nothing); (6) kind-keyed reshuffle delete gates key on refs/agi/posts|loops mirrors, containment via _rs_containment_state -- test suite green (test_v3_delete_old_*, test_delete_old_*). 108 rotate/rename/reshuffle + 19 reshuffle-containment tests passed on my base in this review. The GRANT-window retirement residue is deliberately banked to the Prime per the SM.36 accept note (not this round). Verdict confirmed: inconclusive_lean_proved:85.
