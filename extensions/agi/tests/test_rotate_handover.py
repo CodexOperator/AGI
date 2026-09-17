@@ -176,10 +176,10 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     own = next(r for r in rows if r["name"] == "adv-alive")
     assert own["session_ref"] == ""
     assert own["session_id"] == "00000000-0000-4000-8000-000000000000"
-    # goal:g15.25 claim (6-rows): a NON-prime row is generation-less — the
-    # internal rotation generation resolves from the latest rotation record,
-    # never the off-header below.
-    assert "generation" not in own
+    # conjunct 1 (hypothesis:l4-a-posts-generation-is-measured-...): a
+    # NON-prime row now carries its MEASURED `generation` cell, written by the
+    # spawn-row writer — never read from the handoff header.
+    assert own["generation"] == 1
     assert own["window"] == "adv-alive"
 
     # meter pin: at ITS transcript, generation-tagged seat pin.
@@ -606,14 +606,15 @@ def test_join_matches_window_id_ignores_prefix(_fix, tmp_path, monkeypatch):
     assert join["session_id"] == "00000000-0000-4000-8000-000000000001"
     assert join["pid"] == 48123
     assert "48123.json" in join["note"]   # matched INSIDE `view-x:@9.%9`
-    # (b) row write carries session_id/pid/window, source=registry — and NO
-    # `generation` cell for this non-prime role (goal:g15.25 claim (6-rows)).
+    # (b) row write carries session_id/pid/window, source=registry — plus the
+    # post's MEASURED `generation` cell (conjunct 1, hypothesis:l4-a-posts-
+    # generation-is-measured-...; superseeds goal:g15.25 claim (6-rows)).
     assert "source=registry" in rec["handover"]["successor_row"]
     rows = rotate._load_seats(tmp_path)
     own = next(r for r in rows if r["name"] == "adv-alive")
     assert own["session_id"] == "00000000-0000-4000-8000-000000000001"
     assert own["pid"] == 48123
-    assert "generation" not in own
+    assert own["generation"] == 1
     # merge-up 24 residue (W): the row's `window` cell is the WINDOW @id, not
     # the name — so send.py `_nudge_window` can address it without the
     # L4.120 name-resolution hazard.
