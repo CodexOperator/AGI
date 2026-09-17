@@ -74,9 +74,15 @@ Landed TWO rounds (TM.20, TM.21), fixed a real leak in gen2's own card, correctl
 - Verified TM.24's in-flight R1/R3 fixes directly against the running worktree's diff rather than waiting for final audit.
 
 ## 5 🔴 WHERE THIS STOPS — exact next command
+````
 ```
 python3 extensions/agi/bin/rotate.py rotate
 ```
+That is the ONLY next command. If it refuses again: paste the EXACT refusal line to belam as `[rotation] ...` and stop — belam hand-seats, per master-sensei's direct instruction. Do not guess at undocumented flags, do not retry a third time on my own initiative, do not touch other seats' dirty files.
+
+If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
+Last dm sent: `[red]` to thought-master, rotate-self blocker report, ~00:2xZ. Master-sensei replied directly with the fix (restore `config:posts`, rewrite this slot fresh, retry once, then hand to belam if it fails again) — that reply is what this section now implements.
+````
 That is the ONLY next command. If it refuses again: paste the EXACT refusal line to belam as `[rotation] ...` and stop — belam hand-seats, per master-sensei's direct instruction. Do not guess at undocumented flags, do not retry a third time on my own initiative, do not touch other seats' dirty files.
 
 If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
