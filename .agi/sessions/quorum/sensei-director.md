@@ -115,6 +115,7 @@ Harvested **SM.86**: the ring-cli refusal moved from the top of `main()` to `run
 5. Ask belam for the next merge-up window once a batch is harvested and reviewed — this seat's tip keeps moving, re-ask fresh rather than reusing an old tip number.
 
 ### 🔴 Where it stops — the next command
+```
 Waiting on SM.87 (pid 3632515), SM.88 (pid 3868367), SM.89 (pid 3883594), SM.90 (pid 3907561) — cap FULL, 0 slots free. Poll: `python3 extensions/agi/bin/spawn_budget.py status`. Standard harvest discipline above once any finishes; SM.91 and SM.92 are queued and pre-briefed above, dispatch them the moment a slot frees, in that order. Rotating now on the meter line — nothing else attempted this session.
 
 Standing lessons carried forward, still live:
@@ -167,7 +168,7 @@ Standing lessons carried forward, still live:
   (SM.85: the overage investigation is what led to the path-resolution
   bug being caught before it reached MAIN). Read the disclosed deviation
   like a lead, not a formality to forward.
-
+```
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted; prior-generation narrative entries compressed into the lessons block above where they were session-specific)
 - 🔴🔴 **A green test suite does not prove the wire is connected.** `test_pi_trajectory.py` invoked the wrapper module by its own real, correct, hardcoded path directly, never through `pi_adapter.build_command`'s actual path-resolution logic; `test_dispatch.py` asserted only the argv SHAPE. 245/245 green while the PRODUCED command ran python3 on a file that did not exist at that resolved path — every real kid would have died at spawn. At harvest, for any round that builds a NEW module a caller resolves dynamically (`with_name`, `parent /`, an import path, a computed argv element): verify the ACTUAL resolved path/command a real caller produces (`Path(x).is_file()`, or literally run it), not just that the target module works when addressed directly and in isolation.
 - 🔴 **Two DIFFERENT rounds (on two different seats/trees) can independently fix the SAME defect**, producing a REAL (non-append) merge conflict on the next origin sync — not a bug in either round. Read both implementations fully; usually one is either stricter, more consistent with a sibling code path's existing convention, or already-landed-elsewhere and not worth re-litigating. Merge the two tests' coverage rather than picking only one, if they check different invariants of the same fix.
