@@ -1378,6 +1378,8 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
     """The persistent watcher loop. Discovers rounds, reaps each, sleeps. The
     UNIT runs this without `--once`; the tests drive `--once` (one pass, exit).
     """
+    global _LAST_WAKE_REPAIR_AT
+    _LAST_WAKE_REPAIR_AT = None  # every watch start begins with a due repair pass
     adapter = _WatcherAdapter()
     identity = _code_identity(root)
     _watch_log(f"watch: code {identity.get('head') or '?'} "
@@ -1409,7 +1411,8 @@ def _watch(root: Path, once: bool = False, poll_s: int = 30) -> None:
         # every configured seat row every pass costs nothing when nothing is
         # stranded and repairs a strand within ONE poll (30 s) with no
         # operator. The reaper logic above is untouched.
-        _repair_stranded_wakes(root)
+        if _wake_repair_due(root, _now()):
+            _repair_stranded_wakes(root)
         _run_pending_after_joins(root)
         _late_reap_skipped_pass(root)
         # hypothesis:l4-a-dead-seat-is-recovered-by-the-loop-not-by-a-human
@@ -1468,6 +1471,29 @@ def _main_sweep() -> int:
                                                        dry_run=args.dry_run)
     print(f"sweep: removed={removed} refused={refused} kept-live={kept}")
     return 0
+
+
+#: When the watch last ran the stranded-wake repair (wall clock from
+#: `_now()`); None = never, so the first pass after a watch start is due.
+_LAST_WAKE_REPAIR_AT: float | None = None
+
+
+def _wake_repair_due(root: Path, now: float) -> bool:
+    """True when `comms.wake_repair_every_s` (send.py `_COMMS_DEFAULTS`,
+    default 3600) has elapsed since the last repair pass -- owner 2026-09-17
+    14:1xZ: the repair re-nudged a busy director every poll while its kids
+    kept the digest moving; the reaper, after_join and round watch keep the
+    30 s poll untouched. Stamps the pass when it returns True."""
+    global _LAST_WAKE_REPAIR_AT
+    try:
+        import send as _send  # noqa: PLC0415
+        every = float(_send._comms_config(root).get("wake_repair_every_s", 3600))
+    except Exception:  # noqa: BLE001 -- a config problem never blocks the watch
+        every = 3600.0
+    if _LAST_WAKE_REPAIR_AT is not None and now - _LAST_WAKE_REPAIR_AT < every:
+        return False
+    _LAST_WAKE_REPAIR_AT = now
+    return True
 
 
 def _repair_stranded_wakes(root: Path) -> None:
