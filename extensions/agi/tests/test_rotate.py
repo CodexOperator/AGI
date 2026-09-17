@@ -7155,7 +7155,9 @@ def test_ack_cell_printer_names_only_changed_cells(
     assert not any(ln.startswith(("+", "-")) for ln in lines), lines
     assert "key_history" not in "\n".join(lines)   # unchanged, never printed
     assert lines[-1] == f"git -C {top} push"           # push line LAST
-    assert all(len(ln) <= 120 for ln in lines), [len(ln) for ln in lines]
+    # width check excludes the trailing push line (its exact content is pinned
+    # just above); it can exceed 120 on a long basetemp path and is not a cell.
+    assert all(len(ln) <= 120 for ln in lines[:-1]), [len(ln) for ln in lines[:-1]]
 
 
 def test_ack_cell_printer_summarises_key_history(tmp_path, capsys):
