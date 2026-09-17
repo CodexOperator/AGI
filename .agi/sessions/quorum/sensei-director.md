@@ -119,6 +119,7 @@ Rules: goal reports, node proposals, round questions, AND merge-up window asks a
 5. Once this batch is harvested and reviewed, tell SM the fresh tip (not belam) and let her sequence the actual landing.
 
 ### 🔴 Where it stops — the next command
+````
 ```
 Waiting on SM.93 (pid 4187277), SM.96 (pid 631633), SM.98 (pid 823919) -- 3/4, ONE SLOT FREE. FIRST ACTION: re-dispatch the died SM.97 node (hypothesis:l4-the-done-tier-gate-resolves-its-sessions-root-through-the-registered-resolver-and-never-reads-the-live-checkout-under-pytest, ceiling 15) as SM.99 into that free slot -- credit-read + merge-origin-first as usual. Then poll `python3 extensions/agi/bin/spawn_budget.py status` and harvest as each of the four finishes. SM's queue is otherwise fully dispatched -- once all four land, confirm with her before starting anything new.
 
@@ -186,6 +187,7 @@ Standing lessons carried forward, still live:
   sequences the actual MAIN landing with the Prime on her own channel; your
   job is only to hand her a reviewed branch tip.
 ```
+````
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted; prior-generation narrative entries compressed into the lessons block above where they were session-specific)
 - 🔴🔴 **A green test suite does not prove the wire is connected.** `test_pi_trajectory.py` invoked the wrapper module by its own real, correct, hardcoded path directly, never through `pi_adapter.build_command`'s actual path-resolution logic; `test_dispatch.py` asserted only the argv SHAPE. 245/245 green while the PRODUCED command ran python3 on a file that did not exist at that resolved path — every real kid would have died at spawn. At harvest, for any round that builds a NEW module a caller resolves dynamically (`with_name`, `parent /`, an import path, a computed argv element): verify the ACTUAL resolved path/command a real caller produces (`Path(x).is_file()`, or literally run it), not just that the target module works when addressed directly and in isolation.
 - 🔴 **A test that asserts a printed line length can fail SOLELY because of the `--basetemp` path YOU chose** — `test_ack_cell_printer_names_only_changed_cells` (and likely siblings) embeds the real `tmp_path` into a printed `git -C <path> push` line and asserts every line `<= 120` chars; a long scratchpad `--basetemp` pushes it over, reading as a fresh regression from a merge that touched zero related code. Confirmed this rotation (SM.90 harvest): failed with a long `--basetemp`, passed instantly with the pytest default. When a failure appears only under YOUR verification basetemp and the merge diff has no plausible causal path to it, re-run with the default tmp path (or a short one) before reporting a regression.
