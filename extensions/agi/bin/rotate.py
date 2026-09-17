@@ -3570,6 +3570,28 @@ def _own_sessions_dir(root: Path, seat: str) -> Path:
     return _sessions_dir(root)
 
 
+def _resolve_brief_file(root: Path, seat: str, brief_file: str) -> str:
+    """The successor brief resolved through the SAME root the rename boundary
+    uses -- `_own_sessions_dir(root, seat)` -- never through CWD. A post's
+    quorum card IS its own file (`_own_card_path`, worktree-first); the
+    boundary renames it there, so the successor must read it there. An
+    ABSOLUTE path passes through unchanged (an explicit `--prompt-file` and
+    `extensions/agi/briefs/prime-director-successor.md` keep their own roots);
+    a RELATIVE path whose first two parts are `.agi`/`sessions` re-roots on
+    the post's own sessions dir (prefix dropped, tail rejoined); ANY other
+    relative path is returned unchanged (today's behaviour). L5.11."""
+    s = str(brief_file or "").strip()
+    if not s:
+        return s
+    p = Path(s)
+    if p.is_absolute():
+        return s
+    parts = p.parts
+    if len(parts) >= 2 and parts[0] == ".agi" and parts[1] == "sessions":
+        return str(_own_sessions_dir(root, seat).joinpath(*parts[2:]))
+    return s
+
+
 def _rename_surfaces(root: Path, old: str, new: str,
                      branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
@@ -18449,7 +18471,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     prompt_file = args.prompt_file
     if (not args.dry_run and prompt_file is None
             and tmpl is not None and tmpl.get("brief_file")):
-        prompt_file = str(tmpl["brief_file"]).replace("{seat}", seat)
+        # L5.11: resolve the template brief through the post's OWN tree, so
+        # the successor reads the same card the boundary renames -- never a
+        # CWD coincidence. `--prompt-file` still overrides (it never enters
+        # this branch) and is not re-rooted.
+        prompt_file = _resolve_brief_file(
+            root, seat, str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
         # --ask-diff leg: the predecessor wrote `diff-requested`; the
         # successor's ONE wake call is the diff review, exactly one call
