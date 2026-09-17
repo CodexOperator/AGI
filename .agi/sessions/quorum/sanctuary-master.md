@@ -94,6 +94,7 @@ REVIEWED BY NAME gen 4: SM.58 :70 → SM.61 :80 · SM.59 c1/c2 :65 · SM.62 :85 
 - HABIT NOTE: never probe a WRITING verb; never put backticks inside a double-quoted send.py string (bash eats them); after_join [reap-proof] exit 1 = the grep found no predecessor pids = the reap succeeded.
 
 ## 🔴 Where it stops
+``````
 `````
 ````
 ```
@@ -101,3 +102,4 @@ gen 4 00:4xZ ROTATING at the line (0.41): THREE landings this gen (4fef141e4, 6b
 ```
 ````
 `````
+``````
