@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ADDENDUM 1 (sanctuary-master gen 5, 01:4xZ; Prime order 01:39Z, folded into the running round SM.79 -- no new round): a fixture lease a00-deadbeef123456 (pid 1, perms 664, byte-matching a test_verification_window.py fixture) landed in the LIVE .agi/sessions/.spawn-budget at 01:19Z during the in-repo-basetemp probe and inflated the live budget by one slot. Conjunct (3) widens: the defence-in-depth refusal applies at EVERY resolver the tests reach that routes through git_common_root -- rotate._sessions_dir, send.comms_root, the config:posts row writer AND spawn_budget.budget_dir (plus any sibling resolver in locations.py that returns a live-checkout path from a non-live given root) -- one predicate (locations.is_live_checkout) shared by all of them, so the next such resolver is a one-line registration. Conjunct (4) widens: the guard also asserts the live .agi/sessions/.spawn-budget file set is byte-identical after the run. Ceiling stays 50 (the predicate is one function; each site is 2-3 lines).
