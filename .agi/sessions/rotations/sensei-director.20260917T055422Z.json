@@ -1,0 +1,222 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-17T05:54:47.332760Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sensei-director",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-director",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "belam-S1-L4-XXIV",
+        "sensei-director.prev",
+        "belam-S1-L4-XXIII",
+        "sensei-director",
+        "master-sensei",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 754576,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sensei-director.prev",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-director",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "belam-S1-L4-XXIV",
+        "sensei-director.prev",
+        "belam-S1-L4-XXIII",
+        "sensei-director",
+        "master-sensei",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought",
+        "sanctuary-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -4.083
+  },
+  "seated_at": "2026-09-17T05:54:47.332760Z",
+  "window": "sensei-director",
+  "session_id": "b7889337-5cc1-4a08-b696-613c72a1400e",
+  "pid": 3007181,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sensei-director.prev",
+      "id": "@420"
+    },
+    "successor_window": {
+      "name": "sensei-director",
+      "id": "@421"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@421",
+      "pid": 3007181,
+      "session_id": "b7889337-5cc1-4a08-b696-613c72a1400e",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/b7889337-5cc1-4a08-b696-613c72a1400e.jsonl",
+      "name": "post-sensei-director-96",
+      "path": "/home/ubuntu/.claude/sessions/3007181.json",
+      "note": "joined by @421 in registry file 3007181.json"
+    },
+    "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-96 session_label=sensei-director session_id=b7889337-5cc1-4a08-b696-613c72a1400e pid=3007181 generation=(none: non-prime is generation-less) window='@421' source=registry pubkey=e511fa4841ed3a97... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha af70f5f25) -- own-row only: sensei-director spawn row: gen 35, session_id b7889337-5cc1-4a08-b696-613c72a1400e, window @421, pid 3007181\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.b7889337.json",
+    "own_authority_released": "generation 34 of seat 'sensei-director' retired; successor generation 35 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
+    "livestream_repoint": {
+      "session": "view-sensei-director",
+      "target": "@421",
+      "skipped": "view session view-sensei-director absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-sonnet-5"
+      },
+      "live": {
+        "model": "claude-sonnet-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "73bbdf4794b44f1f52837ef80f8fda11f94b4e4fec99c544e19fd079fe74a00b",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      761571,
+      761575,
+      761597,
+      761598
+    ],
+    "reap_source": "derived from own window @id @420 pane 761571: chain [761571, 761575, 761597, 761598] (deepest-first; authority row pid 761598)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sensei-director",
+        "rc": 0,
+        "output": "@421 sensei-director\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/b7889337-5cc1-4a08-b696-613c72a1400e.jsonl",
+        "rc": 0,
+        "output": "0.0980\t97990/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(761571|761575|761597|761598)\\b'",
+        "rc": 0,
+        "output": " 761571  845418 ?        [bash] <defunct>\n",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post sensei-director --record latest\n",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "sensei-director",
+    "dm_signed": true,
+    "code_head": "24b075f",
+    "code_loaded": "1789611754:1034344",
+    "claimed_at": "2026-09-17T05:55:11.879518+00:00",
+    "claim_key": "2026-09-17T05:54:47.332760Z",
+    "performed_after_s": 24.046952962875366
+  },
+  "audit": {
+    "out": {
+      "calls": 4,
+      "pre": 0,
+      "a": 2,
+      "b": 0,
+      "c": 0,
+      "d": 2,
+      "floor": 1,
+      "excess": 3,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1321,
+        "ts": "2026-09-17T05:53:32.194Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-17T05:54:47.332760Z"
+      },
+      "audited_at": "2026-09-17T06:00:03Z",
+      "audited_by": "master-sensei"
+    },
+    "wake": {
+      "calls": 1,
+      "s": 0,
+      "a": 0,
+      "b": 0,
+      "c": 0,
+      "d": 1,
+      "floor": 0,
+      "excess": 0,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/b7889337-5cc1-4a08-b696-613c72a1400e.jsonl",
+      "window_start": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "window_end": {
+        "call_index": 1,
+        "line": null,
+        "ts": null
+      },
+      "audited_at": "2026-09-17T06:00:04Z",
+      "audited_by": "master-sensei"
+    }
+  }
+}

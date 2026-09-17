@@ -563,6 +563,18 @@ def _run_pending_after_joins(root: Path) -> None:
                            f"record appended: {result.get('appended')}, "
                            f"dm sent: {result.get('sent')}, "
                            f"code_head={result.get('code_head') or '?'})")
+        # CLAIM (2) healing half: a ref-lock race may have left this seat's
+        # own spawn row dirty in MAIN; re-invoking `_commit_spawn_row`
+        # restages ONLY the own-row pathspec (foreign never touched) and
+        # SKIPs when already clean. Idempotent, best-effort, never raises.
+        if row:
+            try:
+                _heal = _rotate._commit_after_join_heal_spawn_row(root, seat)
+                if _heal and "SKIPPED" not in _heal:
+                    _watch_log(f"watch: healed own spawn row for {seat!r}: "
+                               f"{_heal.splitlines()[0]}")
+            except Exception:  # noqa: BLE001
+                pass
 
 
 def _registry_now_has(rot, succ_id, registry_dir):
@@ -1479,6 +1491,12 @@ def _repair_stranded_wakes(root: Path) -> None:
         seat = row.get("name") or row.get("seat")
         if not seat:
             continue
+        # a QUIET row is skipped BY NAME: the dm is written, never a wake.
+        try:
+            if _send._row_is_quiet(root, seat):
+                continue
+        except Exception:                                     # noqa: BLE001
+            pass
         try:
             _send.wake(root, seat)
         except Exception as exc:                          # noqa: BLE001
