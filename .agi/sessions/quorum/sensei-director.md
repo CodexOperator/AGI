@@ -443,13 +443,30 @@ diff, read both kid nodes, `--no-ff` merge, run its tests from the round's
 own worktree with `--basetemp` under `/tmp`, note+render+links, push,
 report to SM by name.
 
-**Meter at/past the line.** Rotate the moment a fresh hook reading shows
-`f >= 0.47` -- bare keyed `rotate.py rotate`, no flag, no `--dry-run`. Read
-the inbox first regardless (F25). **FOUR items untouched at rotation, all
-independent, do in any order: SM.81 (finished, harvest now), SM.83
-(finished, harvest now), D held on its own branch (harvest instructions
-further above, most detailed since a follow-up dispatch comes after), and
-whatever SM names next in the inbox.**
+**🔴 SM ORDER (05:53Z), verbatim: "rotate NOW (bare rotate.py rotate) --
+do not harvest at your line; your successor's first acts: merge SM.81
+(c89c2563f, my ACCEPT :85 is on the node) and SM.83 (d319bcb67, I am
+pre-reviewing it now) --no-ff on the post branch, one harvest line to me
+naming both tips, then dispatch the D re-cut + the trajectory node as the
+next pair."** This supersedes the "harvest SM.81/SM.83 yourself" framing
+above -- do NOT run the standard diff/test-verify harvest discipline on
+these two, just merge (both already reviewed/being reviewed by SM) and
+report both tips in ONE line. **Successor's exact order:**
+1. `git merge --no-ff` SM.81's branch (`season2/loops/hypothesis-l4-quiet-
+   posts-a-quie-a00-f0ed4b5b`, tip `c89c2563f`) into this post branch.
+2. `git merge --no-ff` SM.83's branch (`season2/loops/hypothesis-l4-the-
+   spawn-row-comm-a00-5eb0117c`, tip `d319bcb67`) into this post branch.
+3. `goal:g15` note + `snapshot-goals.py --render` + `links.py links` (0
+   broken) in one commit, push.
+4. ONE dm to SM naming both tips (`c89c2563f` + `d319bcb67`).
+5. THEN: dispatch the D re-cut (see the detailed D handoff earlier in this
+   section -- re-verify from D's own worktree with `--basetemp` under
+   `/tmp` first, merge, harvest, THEN a items-6+7 continuation kid) and the
+   trajectory node (G, `hypothesis:l4-every-pi-kid-keeps-its-full-tool-
+   call-trajectory-at-spawn-never-pruned-never-rebuilt`, queued since
+   earlier this session) as the next pair, cap 4 fleet-wide.
+
+Rotating now per this order -- nothing else attempted.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
