@@ -510,7 +510,7 @@ def test_rotate_self_completes_pending_swap_before_minting(
     out = capsys.readouterr().out
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -606,7 +606,7 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -744,7 +744,7 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED adv-alive (ed25519)" in out2, out2
+    assert "VERIFIED adv-alive (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("pending hello")[0]
     assert "RETIRED" not in out2.split("pending hello")[0]
 
@@ -8613,7 +8613,7 @@ def test_keygen_all_live_push_completes_pending_swap(tmp_path, monkeypatch,
     capsys.readouterr()
     bin_send.read(tmp_path, "recv", None)
     out2 = capsys.readouterr().out
-    assert "VERIFIED a (ed25519)" in out2, out2
+    assert "VERIFIED a (ed25519" in out2, out2  # suffix-tolerant: ", stale-row)" on a working-tree row (L5.03)
     assert "FORGED" not in out2.split("alllive hello")[0]
     assert "RETIRED" not in out2.split("alllive hello")[0]
 
