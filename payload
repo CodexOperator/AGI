@@ -1808,6 +1808,37 @@ def _seat_liveness_note(seat: str | None, *, row_pid, argv_pid,
     return None
 
 
+# goal:g15.25 re-cut (Prime XIX 07:28Z): the ROW is the ONE source for the
+# launch model/effort/settings -- a differing --model/--effort/--settings
+# refuses by name (exit 3 at the call site); equal flag = no-op. Returns
+# the refusal line, or None when clean.
+def _row_launch_refusal(args, row):
+    if row is None:
+        return None
+    def _line(name, flag, cell):
+        if flag is None or flag == (cell or ""):
+            return None
+        return (f"--{name} {flag} differs from the row: {name} {(cell or '')}; "
+                f"the row changes only through write.py by the Prime/owner "
+                f"ahead of the rotation")
+    for name, flag, cell in (
+            ("model", args.model, row.get("model")),
+            ("effort", args.effort, row.get("effort"))):
+        ln = _line(name, flag, cell)
+        if ln:
+            return ln
+    if args.settings:
+        try:
+            flag_s = json.loads(args.settings)
+        except json.JSONDecodeError:
+            flag_s = args.settings
+        if flag_s != _normalize_settings(row.get("settings")):
+            return (f"--settings {args.settings} differs from the row: "
+                    f"settings {row.get('settings') or ''}; row changes only "
+                    f"via write.py by the Prime/owner ahead of the rotation")
+    return None
+
+
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
     """Build and (unless --dry-run) run a `claude --remote-control` command."""
 
@@ -1931,6 +1962,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             print("[seating] no project root: template + bootstrap skipped")
         else:
             _srow = _find_seat(root, seat)
+            # re-cut: a differing flag refuses here, before any write/launch.
+            _rowref = _row_launch_refusal(args, _srow)
+            if _rowref:
+                print(_rowref, file=sys.stderr)
+                return 3
             if _srow is not None and _srow.get("role"):
                 _fs_role = _srow["role"]
             _rowgen = _seat_row_generation(root, seat)
@@ -17566,6 +17602,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+
+    # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
+    # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
+    if row:
+        _rotref = _row_launch_refusal(args, row)
+        if _rotref:
+            print(_rotref, file=sys.stderr)
+            return 3
 
     # goal:g15.25 line (3) -- the rotate-OUT is ONE call. When `--stops`
     # (`--stops-file F`, `--stops -` reads stdin) is given, write the stops
