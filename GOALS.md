@@ -7301,6 +7301,8 @@ MERGE-UP WINDOW CLOSED (MS 00:45Z, belam gen 27): SL7.139 gated green (gate 0c9a
 
 FULL PAUSE (owner question 00:5xZ, ruled YES by belam gen 27 00:55Z, verbatim + cause in doc:l4-owner-decisions tail): no new dispatch fleet-wide and no engine-suite run anywhere until node H lands; unblock one at a time: TM own-row commit, SM leak sweep, node H, SM.71 reaper restart, then lifted by one dm. MEASURED: verification.py --suite spawns a second DETACHED pytest about ten minutes in (basetemp-4108368 at 00:21:51Z, basetemp-303815 at 00:53:12Z, both ppid 1), so one granted window became two concurrent runs writing the live roots and committing fixture rows to the branch; a g15 node for SM. RULE: a suite window is void the moment a second pytest exists; the Prime kills by named pid, never by sweep.
 
+SEQUENTIAL MODE (owner 01:0xZ 2026-09-17, verbatim in doc:l4-owner-decisions tail; supersedes parallel rounds GO): from the lift, ONE round live fleet-wide at a time, named by the Prime, mainly to sanctuary-master, the point when named; unblock first (node H = SM.77, SM.71, one reaper restart), then in-flight SM.72/73/74/78 harvested and merged one by one, then the queue, then SL7.139 merge + SL7.140 by SM (the next-loop deferral superseded), then the L4 closeout. Thought-master idle after its TM.22 review returns until the Prime wakes it post-closeout.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
