@@ -10102,6 +10102,34 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
             f"own-row only: {msg}\npush: {_push}")
 
 
+def _commit_after_join_heal_spawn_row(root: Path, *, seat: str) -> str:
+    """hypothesis:...-after-join-watch-recommits-its-own-dirty-row CLAIM (2)
+    -- the HEALING half. When a spawn ref-lock race exhausted its 5
+    retries, the spawn wrote the successor's identity cells into MAIN's
+    seats.md but left them UNCOMMITTED (dirty) -- and an unrelated restore
+    then erased them. This watch-side pass re-commits the seat's OWN row, so
+    the race still HEALS within one watch pass.
+
+    re-invoking `_commit_spawn_row` (the SAME own-row commit) with the seat's
+    identity cells read from the row, inheriting its CLAIM (1) semantics:
+    fresh throwaway index from re-read HEAD, own-row pathspec only, retry
+    loop, byte-identical SKIP (a clean row commits nothing), and the
+    own-row-only guarantee (a FOREIGN dirty row is reverted to HEAD and
+    never touched). Idempotent and best-effort; never raises."""
+    row = _find_seat(root, seat)
+    if not row:
+        return f"spawn_row_commit heal: SKIPPED — no row for seat {seat!r}"
+    try:
+        gen = int(row.get("generation") or 0)
+    except (TypeError, ValueError):
+        gen = 0
+    return _commit_spawn_row(
+        root, seat=seat, generation=gen,
+        session_id=row.get("session_id"),
+        window=str(row.get("window") or ""),
+        pid=row.get("pid"))
+
+
 def _commit_after_join_record(root: Path, *, record: dict,
                              record_path: str,
                              seat: str, performer: str = "service",
