@@ -175,6 +175,25 @@ before this session also closed out). Outcomes as of this stamp:
     belam's 4-step unblock order; her verdict on it is what the pause is
     actually waiting on next, more than anything else in this file.
 
+🔴🔴 STOP-PRESS (01:23Z, last thing this session did): SM DEMOTED node H further
+to inconclusive_lean_proved:60 (her OWN falsifier, not this director's) --
+the 4-leaf conftest pin only closes the leak with a /tmp basetemp; with an
+IN-REPO basetemp (the actually-dangerous case that caused the original
+incident) MAIN's posts.md is STILL rewritten and fixture acks STILL commit.
+Conjunct 4 (heal.py/rotate.py refuse by name under pytest when root==the
+live repo) was never built and is the real remaining gap. belam's own GO by
+SHA on tip 700606d02 is still pending regardless (lands as a partial fix,
+follow-up re-cut to come). belam personally KILLED a live pytest subprocess
+(pid 534744) belonging to this seat's own SM.72 (node D) round -- likely the
+PARENT's own post-kid verification run, since both of SM.72's kids had
+ALREADY self-completed (verdict=proved each) and committed before that pid
+existed. STANDING RULE until further notice: NO kid or parent on ANY post
+runs a test touching rotate.py/heal.py/send.py/posts.md -- SM.72/74/78 stay
+held exactly as they are; SM.72 specifically must NOT be merged (its two
+kids' real work is sitting on branch season2/loops/hypothesis-l4-the-sensei-
+classif-a00-bfbd3aea, tip 86178050c, reported to SM factually, untouched) --
+wait for SM's re-cut brief on node D before doing anything with that branch.
+
 🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
 on your own initiative even though they are live/finishing -- WAIT for SM to
 NAME the next one by slug, act on ONLY that one, report, wait again. This
