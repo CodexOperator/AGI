@@ -6720,6 +6720,8 @@ SM.238 (SM.23b) harvested onto seat branch -- heal-wait semantics properly re-la
 
 SM.76 landed (merge fe460c5f6..HEAD): a --model/--effort/--settings differing from the row cell is refused by name at cmd_rotate_self and cmd_spawn (exit 3), never silently written or launched; row stays the one source. experiment:a00-02b4b957-5fdb49, proved, 44/45 lines against the stale frontmatter ceiling (the re-cut Agent Notes true ceiling is 25 -- flagged to SM as 1.76x, under 2x). 487 passed, 4 skipped, 0 failed on the rotate/spawn neighbourhood.
 
+SM.73 landed: verification.py compare_count now refuses --stamp by name on an old-format suite record (suite_ran_at, no suite_ran_on) instead of failing open; a combined --suite --stamp compares HEAD to THIS runs own start sha (run_sha), ignoring the previous record, while a stamp-only call still reads the record and refuses a moved HEAD by name; cli.py cmd_done propagates a silent-dm rc 1 after the verdict is recorded. experiment:a00-9590fc38-50d912, proved, 19/28 lines. 145 passed running the neighbourhood from the rounds own isolated worktree (per the Prime pause: no suite-vulnerable modules run from this posts own tree while node H is in flight).
+
 ### G15.26 — signature verification flips to ENFORCING — a reader refuses a FORGED block under comms.verify=enforcing; the flip of the value follows a named review — status: active
 
 <!-- BODY:BEGIN -->
