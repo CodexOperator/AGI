@@ -53,21 +53,25 @@ def _make_seats_node(groot: Path, rows: list[str]) -> None:
 
 def _make_pin(groot: Path, seat: str, transcript: Path,
                generation: int = 4) -> None:
-    """Write `<seat>.meter` pin (gen N) plus a MATCHING seat handoff (gen N)
-    so the generation guard -- the stale-pin compare, mirroring
-    rotate.resolve_transcript step 3 -- sees the pin as the seat's OWN live,
-    not a predecessor's. `_read_generation` reads `generation:` from
-    `<graph>/sessions/seats/<seat>.handoff.md`, so a gen-bearing pin needs a
-    matching handoff or the guard reads 0 and calls it stale. Default gen 4
-    keeps the historical meter format these tests already used."""
+    """Write `<seat>.meter` pin (gen N) plus a MATCHING latest rotation
+    record (gen N) so the generation guard -- the stale-pin compare,
+    mirroring rotate.resolve_transcript step 3 -- sees the pin as the seat's
+    OWN live, not a predecessor's. `_read_generation` reads the config:seats
+    row, else the LATEST rotation record's `gen_after` (hypothesis:l4-a-
+    posts-generation-is-measured-from-its-row-or-latest-record-never-from-
+    a-handoff-header-it-can-hand-edit) -- never the handoff header -- so a
+    gen-bearing pin needs a matching RECORD or the guard reads 0 and calls
+    it stale. Default gen 4 keeps the historical meter format these tests
+    already used."""
     sess = groot / "sessions"
     sess.mkdir(parents=True, exist_ok=True)
     (sess / f"{seat}.meter").write_text(
         f"{generation}\t{transcript}\n", encoding="utf-8")
-    hands = sess / "seats"
-    hands.mkdir(parents=True, exist_ok=True)
-    (hands / f"{seat}.handoff.md").write_text(
-        f"generation: {generation}\n", encoding="utf-8")
+    rec = sess / "rotations"
+    rec.mkdir(parents=True, exist_ok=True)
+    (rec / f"{seat}.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": seat,
+                    "gen_after": generation}), encoding="utf-8")
 
 
 def _no_drift_transcript(tmp_path: Path) -> Path:
