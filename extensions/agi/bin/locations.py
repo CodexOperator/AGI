@@ -278,6 +278,31 @@ def git_common_root(root: Path) -> Path:
     return common_dir.parent
 
 
+def is_live_checkout(root: Path) -> bool:
+    """True when `root` sits inside this engine copy's own live checkout
+    (claim 1: a suite basetemp there makes git-escaping writers hit LIVE)."""
+    try:
+        return git_common_root(Path(root).resolve()) == git_common_root(
+            Path(__file__).resolve())
+    except Exception:
+        return False
+
+
+def live_checkout_refusal(base: Path, live: Path) -> str:
+    """The ONE refusal line every gate prints (conftest, --suite, 3 writers)."""
+    return (f"refused: basetemp {base} resolves to the live checkout "
+            f"{live}; pass --basetemp under /tmp")
+
+
+def refuse_live_resolution(given: Path, resolved: Path) -> None:
+    """Under pytest, refuse a resolver given a non-live root that RESOLVES a
+    live-checkout path, naming the resolved path (claim 3). No-op outside it."""
+    if os.environ.get("PYTEST_CURRENT_TEST") and not is_live_checkout(given) \
+            and is_live_checkout(resolved):
+        raise RuntimeError(f"{Path(resolved).resolve()} resolves to the live "
+                           f"checkout; pass --basetemp under /tmp")
+
+
 def shared_project_root(start: Path | str | None = None) -> Path | None:
     """The project's ONE graph root across every git worktree, or None.
 
