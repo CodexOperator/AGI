@@ -3351,17 +3351,42 @@ def _find_seat(root: Path | None, name: str) -> dict | None:
     return None
 
 
+def _dm_season_rooms(root: Path) -> list[Path]:
+    """Every season room under the SHARED comms root, never the caller's
+    own checkout. `send.comms_root` resolves ONE room per season on the MAIN
+    checkout (`<base>/season-<N>`); a declared bare comms base contributes
+    its `season-*` children. The resolved room is always included even
+    before it exists, so its dm files are found on the first write.
+
+    Pre-fix `_dm_participants` walked `Path(root)/"comms"` -- the CALLER's
+    checkout -- so a stage taken from MAIN and a boundary applied from the
+    post's own worktree (whose comms/ is a stale/partial checkout) derived
+    different dm paths and the boundary refused the stage as drift
+    (hypothesis:l5-rename-post-staged-from-main-root-derives-main-comms-
+    paths-for-a-worktree-post)."""
+    import send  # local: same dir, no import cycle (send.py pattern)
+    croot = send.comms_root(root)
+    if croot.name.startswith(send.SEASON_DIR_PREFIX):
+        rooms = sorted(p for p in croot.parent.glob(
+            f"{send.SEASON_DIR_PREFIX}*") if p.is_dir())
+        if croot not in rooms:
+            rooms.append(croot)
+        return rooms
+    rooms = sorted(p for p in croot.glob(
+        f"{send.SEASON_DIR_PREFIX}*") if p.is_dir())
+    return rooms or [croot]
+
+
 def _dm_participants(root: Path, old: str, new: str):
     """(log, sidecar) paths + the sidecar's JSON top-level keys that carry
-    `old`, for every dm in comms/season-*/dm/ whose participant pair names
-    `old`. Yields (kind, src, dst, extra) for the surface table."""
+    `old`, for every dm in the season rooms' dm/ whose participant pair names
+    `old`. Yields (kind, src, dst, extra) for the surface table. The rooms
+    come from the SHARED resolver (`_dm_season_rooms`), so stage and boundary
+    agree no matter which checkout runs each."""
     out = []
-    seasons = Path(root) / "comms"
-    if not seasons.is_dir():
-        return out
     if "/" in old or "\\" in old:
         return out
-    for season in sorted(seasons.glob("season-*")):
+    for season in _dm_season_rooms(root):
         ddir = season / "dm"
         if not ddir.is_dir():
             continue
@@ -3695,7 +3720,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
 
     # prose mentions the round NEVER writes (config / prime brief): ship lines
     for path in (_rotations_node_path(root),
-                 Path(root) / "sessions" / "quorum" / "belam.md"):
+                 _sessions_dir(root) / "quorum" / "belam.md"):
         if not path.exists():
             continue
         for n, line in enumerate(path.read_text(
