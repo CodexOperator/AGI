@@ -1115,6 +1115,32 @@ def _current_branch(root: Path) -> str | None:
     return name or None
 
 
+def _dirty_worktree(root: Path, branch: str):
+    """hyp:l4-a-bare-kid-commits-before-merge-trusts-it (2): return
+    (worktree_path, [changed paths]) when a LINKED worktree on `branch` holds
+    uncommitted bytes, else None. The main checkout is skipped by name (shared
+    tree, goal:g4.1). Read-only.
+    """
+    common = locations.git_common_root(root)
+    wt: Path | None = None
+    out = _git(root, "worktree", "list", "--porcelain").stdout
+    for line in out.splitlines():
+        if line.startswith("worktree "):
+            wt = Path(line[len("worktree "):].strip())
+        elif line.startswith("branch "):
+            if line[len("branch "):].strip() != f"refs/heads/{branch}":
+                wt = None
+                continue
+            if common is not None and wt.resolve() == Path(common).resolve():
+                return None
+            st = _git(wt, "status", "--porcelain", "--no-renames", "-uall")
+            if st.returncode != 0:
+                return None
+            paths = [ln[3:] for ln in st.stdout.splitlines() if len(ln) > 3]
+            return (wt, paths) if paths else None
+    return None
+
+
 def _recorded_field(record_path: Path | None, key: str) -> str | None:
     """Read `key` from a JSON lease / agent record, if present."""
     if record_path is None:
@@ -1549,6 +1575,13 @@ def cmd_merge_kids(root: Path, args) -> int:
                   f"{ahead.stderr.strip()}", file=sys.stderr)
             return 1
         if ahead.stdout.strip() == "0":
+            dirty = _dirty_worktree(work_root, branch)
+            if dirty is not None:
+                print(f"REFUSED: {branch} is zero commits ahead of {cur}, "
+                      f"but its own worktree {dirty[0]} still carries "
+                      f"uncommitted bytes: {', '.join(dirty[1])} -- NOT "
+                      f"nothing to merge", file=sys.stderr)
+                return 1
             print(f"REFUSED: {branch} is zero commits ahead of {cur} -- "
                   f"nothing to merge", file=sys.stderr)
             return 1
@@ -1649,6 +1682,13 @@ def cmd_merge_up(root: Path, args) -> int:
         return 1
     n_ahead = ahead.stdout.strip()
     if n_ahead == "0":
+        dirty = _dirty_worktree(git_root, branch)
+        if dirty is not None:
+            print(f"REFUSED: {branch} is zero commits ahead of {base}, but "
+                  f"its own worktree {dirty[0]} still carries uncommitted "
+                  f"bytes: {', '.join(dirty[1])} -- NOT nothing to merge",
+                  file=sys.stderr)
+            return 1
         print(f"REFUSED: {branch} is zero commits ahead of {base} -- "
               f"nothing to merge", file=sys.stderr)
         return 1
