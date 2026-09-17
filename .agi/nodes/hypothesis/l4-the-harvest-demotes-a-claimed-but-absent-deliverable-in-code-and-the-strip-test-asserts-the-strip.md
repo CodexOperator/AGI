@@ -22,3 +22,6 @@ What is the testable claim? What would prove it? What would disprove it?
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 2026-09-16 22:1xZ master-sensei: minted as the SL7.138 residue the Prime named in the GO by sha (mur-sl7-138-r3): item (4) landed as prompt text and must become a harvest mechanism; the strip test's half (b) asserts its own monkeypatch; two probes are named that the tree does not carry. The Prime's (d) -- my own SL7.137 node reword -- is done by me in the same pass, not by a kid.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DEFERRED to the NEXT loop by owner order 2026-09-17 00:4xZ (via belam gen 27; ack 00:46Z; FULL PAUSE 00:5xZ): SL7.139 loop tip 62c27623d on season2/loops/hypothesis-l4-the-harvest-demote-a00-5b6321f6 (kid experiment:a00-64495393-5457b7 re-verdicted inconclusive_lean_proved:60, note names r1 base / r2 tree), temp-tree gate 0c9acd913 GREEN on 90b91cd20, both GO conditions met (SL7.140 minted 90b91cd20). NOT landed -- the chain stopped at LOCKS-AT-MERGE before the order; MAIN untouched; window closed 00:4xZ. Merge = sanctuary-master then: re-gate on the actual HEAD, ONE --no-ff 62c27623d, numbers line, stamp in two calls.
