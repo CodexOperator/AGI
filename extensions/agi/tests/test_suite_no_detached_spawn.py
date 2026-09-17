@@ -30,6 +30,18 @@ sys.path.insert(0, str(SRC))
 import verification  # noqa: E402
 
 
+def _is_pytest_argv(argv: list[str]) -> bool:
+    """True only when the cmdline IS a pytest launch, never a mere mention:
+    argv[0] basename starts with pytest, or argv[1:3] == ['-m', 'pytest']
+    (python -m pytest). A live pi trajectory wrapper (ppid 1) carries pi's
+    argv with the word pytest inside, so it must NOT match."""
+    if not argv or not argv[0]:
+        return False
+    if os.path.basename(argv[0]).startswith("pytest"):
+        return True
+    return argv[1:3] == ["-m", "pytest"]
+
+
 def _detached_pytest_ppid1() -> list[int]:
     """Pids of any pytest whose parent is init (ppid 1) — the detached second
     suite, read-only /proc scan. Empty on non-Linux."""
@@ -45,7 +57,7 @@ def _detached_pytest_ppid1() -> list[int]:
             status = (p / "status").read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        if "pytest" not in cmd:
+        if not _is_pytest_argv(cmd.split("\0")):
             continue
         ppid: int | None = None
         for line in status.splitlines():
@@ -129,3 +141,19 @@ def test_suite_run_never_leaves_a_detached_pytest(tmp_path, monkeypatch):
     assert r.status == "PASS", r.note
     assert r.number == {"passed": 1, "failed": 0}, r.number
     assert _detached_pytest_ppid1() == []
+
+
+def test_matcher_is_pytest_launch_not_a_mention():
+    """The ppid-1 watcher matches only a real pytest launch: python -m pytest
+    and a pytest binary, never a pi trajectory wrapper whose argv merely
+    MENTIONS pytest inside the pi command line."""
+    assert _is_pytest_argv(["python3", "-m", "pytest", "tests/"]) is True
+    assert _is_pytest_argv(["/usr/bin/pytest", "-q"]) is True
+    assert _is_pytest_argv(["pytest-x", "-q"]) is True  # binary starts w/ pytest
+    wrapper = ["/home/pi/bin/pi", "-p", "--mode", "json",
+               "run a test with pytest please"]
+    assert _is_pytest_argv(wrapper) is False
+    assert _is_pytest_argv(["/home/pi/bin/pi_trajectory.py", "--wrapper",
+                            "/usr/bin/python3", "traj.json", "--",
+                            "-p", "--mode", "json", "pytest"]) is False
+    assert _is_pytest_argv([]) is False

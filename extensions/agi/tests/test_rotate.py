@@ -3464,7 +3464,7 @@ def test_stops_stale_clock_grep_is_extended_regexp(tmp_path, monkeypatch):
 
     monkeypatch.setattr(_r.subprocess, "run", fake_run)
     msg = _r._stops_slot_is_stale(tmp_path, "s", text)
-    assert msg and "STALE" in msg, msg
+    assert msg and "UNCHANGED since" in msg and "STALE" not in msg, msg
     clk = [a for a in seen if "--grep" in a
            and any("harvest" in x for x in a)]
     assert clk, seen
@@ -7155,7 +7155,10 @@ def test_ack_cell_printer_names_only_changed_cells(
     assert not any(ln.startswith(("+", "-")) for ln in lines), lines
     assert "key_history" not in "\n".join(lines)   # unchanged, never printed
     assert lines[-1] == f"git -C {top} push"           # push line LAST
-    assert all(len(ln) <= 120 for ln in lines), [len(ln) for ln in lines]
+    # width check is scoped to the CELL lines only (the `cells` list above);
+    # path-bearing status/push lines legitimately exceed 120 on a long
+    # basetemp (the ack line embeds the repo/card path) and are not cells.
+    assert all(len(ln) <= 120 for ln in cells), [len(ln) for ln in cells]
 
 
 def test_ack_cell_printer_summarises_key_history(tmp_path, capsys):

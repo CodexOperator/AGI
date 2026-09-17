@@ -4142,7 +4142,7 @@ def _containment_proof(repo: Path, head_branch: str,
     if not cli._rs_ls_remote_sha(repo, head_branch):
         return False, (f"ls-remote {head} failed or absent -- UNKNOWN, "
                        f"refusing to delete")
-    state, tgt = cli._rs_containment_state(repo, head_branch, [mirror])
+    state, tgt, _old = cli._rs_containment_state(repo, head_branch, [mirror])
     if state != "contained":
         return False, (f"no containment proof for {head} in {mirror} "
                        f"({state})")
@@ -15788,6 +15788,33 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                         f"written={_written}, row gen={cur_gen}")
     checks.append((stale_ack, ack_line, f"rm {ack}"))
 
+    # g15.14 STEP 2 (hyp:l4-prepare-performs-its-three-clears-itself-and-
+    # prints-cleared-never-a-hand-step): under `--perform` prepare performs
+    # the mechanical clears it can -- the mirror push (check 1) and the meter
+    # re-pin (check 5) -- printing `cleared: <step> (<result>)`, never a
+    # `clear:` hand command (check 3 already performs, F14); a FAILED clear
+    # stays a BLOCK with the exact command. ONLY when every other check is
+    # clean (no side effect before a refusal).
+    if perform:
+        _mirror_u = checks[0][0] and bool(mirror)
+        _pin_u = checks[4][0] and bool(pin) and bool(known_transcript)
+        _ob = any(b for i, (b, _n, _c) in enumerate(checks)
+                  if b and not ((i == 0 and _mirror_u) or (i == 4 and _pin_u)))
+        if not _ob:
+            if _mirror_u:
+                _mp = _git_proc(root, "push", "origin", f"HEAD:{mirror}")
+                if _mp is not None and _mp.returncode == 0:
+                    _h = (_git_maybe(root, "rev-parse", "--short", "HEAD")
+                          or [""])[0].strip()
+                    checks[0] = (False, f"{checks[0][1]} — cleared: mirror "
+                                 f"push ({_h})", checks[0][2])
+            if _pin_u:
+                _ng = (written_gen if written_gen is not None
+                       and written_gen > cur_gen else cur_gen)
+                _seat_pin_path(root, seat).write_text(
+                    f"{_ng}\t{known_transcript}\n", encoding="utf-8")
+                checks[4] = (False, f"{checks[4][1]} — cleared: meter re-pin "
+                             f"({known_transcript})", checks[4][2])
     return checks
 
 
@@ -17495,10 +17522,10 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         pass
     _wd, _wsrc = max((a for a in _acts if a[0]), key=lambda a: a[0],
                      default=("", "none"))
-    return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
-            f"{_gp} @ {_sha[:8]} {_date}; newest work act {_wd or '?'} from "
-            f"{_wsrc}): the slot still holds the predecessor's stop block; "
-            f"write the card where-it-stops section or pass --stops")
+    return (f"where-it-stops slot UNCHANGED since your predecessor's {seat} "
+            f"rotate-out{_gp} @ {_sha[:8]} {_date}; newest work act "
+            f"{_wd or '?'} from {_wsrc}: it is their card, not yours -- "
+            f"write the slot, or pass --stops")
 
 
 def _rotate_human_gate(root: Path, seat: str,
