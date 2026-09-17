@@ -1,0 +1,423 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-sanctuary",
+  "recorded_at": "2026-09-17T22:26:24.916681Z",
+  "result": "started",
+  "steps_reached": [
+    "2",
+    "4",
+    "4.5",
+    "handoff",
+    "spawn"
+  ],
+  "box": {
+    "loadavg": [
+      2.146,
+      1.231,
+      1.23
+    ],
+    "cores": 4
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "26a8b90a883124f48b8dd95b22f8919ee2dcb5a66ed7fc86364dd14fa28e1df4",
+  "seated_at": "2026-09-17T22:26:24.916681Z",
+  "swept_latches": [],
+  "inherited": true,
+  "applied_rename": {
+    "old": "sensei-director",
+    "new": "director-sanctuary",
+    "applied": 54,
+    "skipped": 10,
+    "surfaces": [
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.log",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log.1",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.log.1",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.meter",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.007d03e3.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.007d03e3.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.4a2699fa.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.4a2699fa.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.6e12111e.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.6e12111e.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.8e405075.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.8e405075.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.9da25c06.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.9da25c06.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.a8891a3d.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.a8891a3d.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.b43443bf.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.b43443bf.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.b7889337.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.b7889337.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.bf7f657f.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.bf7f657f.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.c59217a7.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.c59217a7.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.d6231fa7.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.d6231fa7.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.f72ebabc.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.f72ebabc.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.fa66e386.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.fa66e386.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen10.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen10.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen11.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen11.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen12.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen12.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen13.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen13.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen14.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen14.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen15.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen15.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen16.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen16.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen17.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen17.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen18.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen18.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen19.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen19.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen20.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen20.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen21.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen21.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen22.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen22.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen23.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen23.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen24.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen24.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen9.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.gen9.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.bootstrap.json",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.handoff.md",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.handoff.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.key",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.last-act",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.last-act",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.wrapper.log",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.wrapper.log",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/quorum/sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/quorum/director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.nudge",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-sanctuary.nudge",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.nudge.lastread",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-sanctuary.nudge.lastread",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.nudge.pending",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-sanctuary.nudge.pending",
+        "action": "rename-file"
+      },
+      {
+        "kind": "session-file",
+        "src": "/home/ubuntu/work/agi/.agi/sessions/inbox/sensei-director.nudge.pending.lock",
+        "dst": "/home/ubuntu/work/agi/.agi/sessions/inbox/director-sanctuary.nudge.pending.lock",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/a00-65e49dd1--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/a00-65e49dd1--director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/a00-d268e091--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/a00-d268e091--director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/belam--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/belam--director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-belam--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-belam--director-sanctuary.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/master-sensei--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-sanctuary--master-sensei.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/sanctuary-helper--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-sanctuary--sanctuary-helper.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/sanctuary-master--sensei-director.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-sanctuary--sanctuary-master.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "dm log",
+        "src": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/sensei-director--stream-master.md",
+        "dst": "/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/comms/season-2/dm/director-sanctuary--stream-master.md",
+        "action": "rename-file"
+      },
+      {
+        "kind": "row name",
+        "src": "row sensei-director name",
+        "dst": "row director-sanctuary name",
+        "action": "ship"
+      },
+      {
+        "kind": "worktree dir",
+        "src": ".agi/worktrees/post-sensei-director",
+        "dst": ".agi/worktrees/post-director-sanctuary",
+        "action": "seam-git"
+      },
+      {
+        "kind": "branch",
+        "src": "core/season2/posts/sensei-director/copilot-remote",
+        "dst": "core/season2/posts/director-sanctuary/copilot-remote",
+        "action": "seam-git"
+      },
+      {
+        "kind": "branch",
+        "src": "core/season2/posts/sensei-director/main",
+        "dst": "core/season2/posts/director-sanctuary/main",
+        "action": "seam-git"
+      },
+      {
+        "kind": "branch (origin)",
+        "src": "origin/core/season2/posts/sensei-director/main",
+        "dst": "origin/core/season2/posts/director-sanctuary/main",
+        "action": "seam-git"
+      },
+      {
+        "kind": "branch",
+        "src": "core/season2/posts/sensei-director/slice-copilot-parity",
+        "dst": "core/season2/posts/director-sanctuary/slice-copilot-parity",
+        "action": "seam-git"
+      },
+      {
+        "kind": "tmux window",
+        "src": "sensei-director",
+        "dst": "director-sanctuary",
+        "action": "seam-tmux"
+      },
+      {
+        "kind": "tmux session",
+        "src": "view-sensei-director",
+        "dst": "view-director-sanctuary",
+        "action": "seam-tmux"
+      },
+      {
+        "kind": "stream-follow",
+        "src": "#stream:sensei-director",
+        "dst": "#stream:director-sanctuary",
+        "action": "seam-tmux"
+      },
+      {
+        "kind": "rotations.md mention",
+        "src": "rotations.md:82",
+        "dst": "rotations.md:82(edited)",
+        "action": "ship"
+      },
+      {
+        "kind": "belam.md mention",
+        "src": "belam.md:15",
+        "dst": "belam.md:15(edited)",
+        "action": "ship"
+      },
+      {
+        "kind": "belam.md mention",
+        "src": "belam.md:25",
+        "dst": "belam.md:25(edited)",
+        "action": "ship"
+      },
+      {
+        "kind": "belam.md mention",
+        "src": "belam.md:45",
+        "dst": "belam.md:45(edited)",
+        "action": "ship"
+      }
+    ]
+  },
+  "after_join": {
+    "claimed_at": "2026-09-17T22:36:31.202993+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-17T22:26:24.916681Z"
+  }
+}
