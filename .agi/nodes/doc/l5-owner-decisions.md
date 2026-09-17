@@ -62,3 +62,9 @@ APPLIED by the Prime as a direct write on this order (hypothesis:l5-the-stranded
 > "Feel free to lift concurrent parent cap to 8, parents get each their own worktree right?"
 
 APPLIED by the Prime: the L5 cap on live parents is 8 (was 4, the L4 04:0xZ 09-17 load ruling) in doc:l5-plan, the director duties brief, the successor brief and the card. Yes: every parent round lands on its own branch season2/loops/<hypothesis-prefix>-<agent> in its own worktree .agi/worktrees/<agent>/ (kids branch under it); the tree-wide bound stays spawn.max_live 25 agents (parents + kids together) and parent_max_kids 10 -- with 8 parents live that leaves 17 kid slots fleet-wide; the 4-core box measured 1800 s review timeouts at load 10+, so reviews stay one mur per kid slice.
+
+### OWNER 2026-09-17, banked 20:18Z (date -u) — parent overdue reminder 20 -> 75 min, verbatim
+
+> "can we up the automated parent overdue reminder up from 20 minutes to 45 for the directors? Our parents have been pretty robust and the failures informative, so the context savings would be worth it imo. Or maybe even 70-80 minutes then every 30 after?"
+
+APPLIED by the Prime (config only): `.agi/config.json` `agent_timeout_mins` 20 -> 75 -- it is the ONE knob: dispatch writes it into the round manifest as timeout_seconds, the heal watch sends the director exactly ONE overdue dm when a still-running parent passes it (a live pid is never replaced; a DEAD pid is detected by liveness, not by this timeout, so crash recovery is unchanged). "Then every 30 after" needs code (the dm is once-only by design, hypothesis:l4-a-round-alarms-its-dispatcher-by-default) -> a g15 line for the director: the overdue alarm re-fires every comms.overdue_repeat_min (30) after the first, each dm naming elapsed minutes, still no replacement cut for a live pid.
