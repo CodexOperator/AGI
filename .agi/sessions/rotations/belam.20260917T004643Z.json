@@ -1,0 +1,39 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "belam",
+  "recorded_at": "2026-09-17T00:46:43.767046Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "belam-S1-L4-XXVIII",
+  "gen": 28,
+  "gen_after": 28,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@556",
+  "pred_pids": [
+    248104
+  ],
+  "row": {
+    "name": "belam",
+    "role": "prime_director",
+    "model": null,
+    "pid": 248104,
+    "window": "@418",
+    "session_id": "3aaf9314-6d7b-433c-9e5a-d7ac99222371",
+    "generation": 27,
+    "worktree": null
+  },
+  "respawn_outcome": {
+    "name": "belam-S1-L4-XXVIII",
+    "generation": 28,
+    "pid": 424242,
+    "window": "@556",
+    "reason": "",
+    "row": "config:seats row 'belam': session_ref= session_name= session_label= session_id= pid=424242 generation=28 window='@556' source=registry"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-17T00:56:53.447688+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-17T00:46:43.767046Z"
+  }
+}
