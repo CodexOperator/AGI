@@ -142,7 +142,7 @@ def test_parent_probe_inflated_worktree_count_cannot_mask_a_drop(tmp_path):
     assert r.status == "FAIL", (
         "an untracked filler masked a committed drop: " + r.note)
     assert "missing committed file(s)" in r.note and "b.md" in r.note, r.note
-    assert "committed active=2" in r.note, r.note
+    assert "committed total=2" in r.note, r.note
 
 
 def test_a_drop_names_the_missing_committed_file(tmp_path):
@@ -254,7 +254,7 @@ def test_committed_non_md_file_cannot_offset_the_count_and_mask_a_drop(
     assert r.status == "FAIL", (
         "a committed non-.md file offset the count and masked the drop: "
         + r.note)
-    assert "committed active=3" in r.note, r.note
+    assert "committed total=3" in r.note, r.note
     assert "b.md" in r.note, r.note
     assert "scratch_notes.py" not in r.note.split("missing committed")[-1], (
         "the report must not name a non-node as a lost node: " + r.note)
@@ -410,6 +410,6 @@ def test_a_stale_manifest_yields_no_drop_verdict_rather_than_a_wrong_one(
     r = verification.compare_count(groot, {"active": 2, "deprecated": 1,
                                            "total": 3})
     assert r.status == "FAIL", r.note
-    assert "committed active=" not in r.note, (
+    assert "committed total=" not in r.note, (
         "the gate compared a truncated committed count: " + r.note)
-    assert "active=2 below baseline=3" in r.note, r.note
+    assert "total=3 below baseline=4" in r.note, r.note

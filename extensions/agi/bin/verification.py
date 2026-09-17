@@ -456,6 +456,36 @@ def _node_dirt(groot: Path) -> list[str] | None:
     return [ln[3:].strip() for ln in out.splitlines() if ln.strip()]
 
 
+def _moved_deprecated(prior: list | None, manifest: list | None
+                       ) -> tuple[list[str], list[str]]:
+    """Partition baseline-manifest paths absent at HEAD into MOVEs and
+    LOSSes, so a deprecation is counted as a move, never as a node lost.
+
+    A retire moves a node from `nodes/<type>/<name>.md` to
+    `nodes/deprecated/<type>/<name>.md`: active falls and deprecated rises
+    while the TOTAL (active+deprecated) is unchanged. A baseline path absent
+    at HEAD whose basename exists under `nodes/deprecated/<type>/` at HEAD is
+    a MOVE; any other missing path is a genuine LOSS the H0/H0b gate must
+    name. `prior` not a list, or `manifest` None (not a git tree), yields no
+    classifier: nothing is nameable and reads fall back to counts-only.
+    """
+    if not isinstance(prior, list) or manifest is None:
+        return [], []
+    have = set(manifest)
+    moves, losses = [], []
+    for p in prior:
+        if p in have:
+            continue
+        parts = p.split("/")
+        if len(parts) == 3 and parts[0] == "nodes" and parts[1] != "deprecated":
+            moved = f"nodes/deprecated/{parts[1]}/{parts[2]}"
+            if moved in have:
+                moves.append(p)
+                continue
+        losses.append(p)
+    return moves, losses
+
+
 def compare_count(groot: Path, current: dict | None,
                   *, stamp: bool = False,
                   run_sha: str | None = None,
@@ -539,31 +569,61 @@ def compare_count(groot: Path, current: dict | None,
     # real committed-node drop (SM.34 conjunct 3). On a clean tree the metric
     # already IS the committed number, so `current` is used unchanged.
     using_committed = bool(committed and dirt)
-    measured = committed["active"] if using_committed else current["active"]
-    label = "committed active" if using_committed else "active"
-    if measured < state["active"]:
-        prior = state.get("manifest")
-        missing = (sorted(set(prior) - set(manifest))
-                   if isinstance(prior, list) and manifest is not None else [])
-        lost = (("missing committed file(s): " + ", ".join(missing[:5]))
-                if missing else "no committed manifest on record (counts only)")
+    # A deprecation MOVES a node from `nodes/<type>/` to
+    # `nodes/deprecated/<type>/`: the active count falls and the deprecated
+    # count rises while the TOTAL (active+deprecated) is unchanged. The gate
+    # therefore FAILs on the committed total against the baseline total, and
+    # names a genuine LOSS (an absent baseline path that did not move to the
+    # deprecated tree) before ever blaming a move. The H0/H0b protection is
+    # deliberate: a node quietly gone is still named and still red.
+    measured_active = (committed["active"] if using_committed
+                       else current.get("active", 0))
+    measured_dep = (committed["deprecated"] if using_committed
+                    else current.get("deprecated", 0))
+    measured_total = measured_active + measured_dep
+    label = "committed total" if using_committed else "total"
+    prior = state.get("manifest")
+    baseline_total = state.get("total")
+    if not isinstance(baseline_total, int):
+        # a baseline written before totals were stamped, or without one
+        baseline_total = (len(prior) if isinstance(prior, list)
+                          else int(state.get("active", 0))
+                          + int(state.get("deprecated", 0)))
+    moves, losses = _moved_deprecated(prior, manifest)
+    if measured_total < baseline_total or losses:
+        parts = []
+        if losses:
+            parts.append("missing committed file(s): " + ", ".join(losses[:5]))
+        elif moves:
+            parts.append("moved to deprecated: " + ", ".join(moves[:5]))
+        elif measured_total < baseline_total:
+            parts.append(
+                "no committed manifest on record (counts only)"
+                if not isinstance(prior, list)
+                else "total dropped without an explanation")
+        detail = "; ".join(parts)
         return CheckResult(
             "node-count", "FAIL", time.monotonic() - start, current,
-            note=("ACTIVE COUNT DROPPED: "
-                  f"{label}={measured} below baseline={state['active']}; "
-                  f"(working tree reported active={current['active']}) {lost} "
-                  "(H0/H0b: 29k nodes lost to a silent drop)"),
-            message=("committed active below recorded baseline: "
-                     f"{measured} < {state['active']}; {lost}"))
+            note=("NODE COUNT DROPPED: "
+                  f"{label}={measured_total} below baseline={baseline_total}; "
+                  f"(working tree reported active={current.get('active')}, "
+                  f"deprecated={current.get('deprecated')}) {detail} "
+                  + ("(H0/H0b: 29k nodes lost to a silent drop)"
+                     if losses else "")),
+            message=("committed node total below recorded baseline: "
+                     f"{measured_total} < {baseline_total}; {detail}"))
     if can_stamp and head_sha:
         _write_state(groot, current, head_sha, why, manifest)
-        note = f"active steady; baseline updated (sha={head_sha}){stale}"
+        note = f"node total steady; baseline updated (sha={head_sha}){stale}"
     else:
-        note = f"active steady; NOT STAMPED: {why}{stale}"
+        note = f"node total steady; NOT STAMPED: {why}{stale}"
+    if moves:
+        note += "; moved to deprecated: " + ", ".join(moves[:5])
+    message = f"{label} steady: {measured_total} >= baseline {baseline_total}"
+    if moves:
+        message += "; moved to deprecated: " + ", ".join(moves[:5])
     return CheckResult("node-count", "PASS", time.monotonic() - start, current,
-                       note=note, message=(f"{label} steady: "
-                                           f"{measured} >= baseline "
-                                           f"{state['active']}"))
+                       note=note, message=message)
 
 
 def _write_state(groot: Path, current: dict, sha: str | None,
