@@ -177,7 +177,8 @@ def test_handover_writes_row_pin_identity_ack(_fix, tmp_path,
     assert own["session_ref"] == ""
     assert own["session_id"] == "00000000-0000-4000-8000-000000000000"
     # goal:g15.25 claim (6-rows): a NON-prime row is generation-less — the
-    # internal rotation generation lives only in the handoff header below.
+    # internal rotation generation resolves from the latest rotation record,
+    # never the off-header below.
     assert "generation" not in own
     assert own["window"] == "adv-alive"
 

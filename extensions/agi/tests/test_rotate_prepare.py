@@ -37,6 +37,20 @@ sys.path.insert(0, str(_BIN))  # so the lazy `import verification` resolves
 from agi.bin import rotate  # noqa: E402
 
 
+def _seed_gen_record(root, name, gen_after):
+    """Seed ONE latest rotation record carrying `gen_after` -- the
+    engine-written source `_generation_measured` falls back to when the
+    config:seats row carries no generation cell (hypothesis:l4-a-posts-
+    generation-is-measured-from-its-row-or-latest-record-never-from-a-
+    handoff-header-it-can-hand-edit). The handoff header is never read as a
+    gate, so fixtures seed a record, not a header."""
+    rot = rotate._rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / f"{name}.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": name,
+                    "gen_after": gen_after}), encoding="utf-8")
+
+
 @pytest.fixture
 def prep_root(tmp_path):
     """A fixture GRAPH root (`nodes/` marks it a graph dir) with a seat that
@@ -49,6 +63,7 @@ def prep_root(tmp_path):
     (sess / "quorum").mkdir(parents=True)     # the card rotate-self briefs
     (sess / "seats" / "adv-alive.handoff.md").write_text(
         "seat: adv-alive\ngeneration: 3\n", encoding="utf-8")
+    _seed_gen_record(tmp_path, "adv-alive", 3)  # seat OWNS gen 3 (record)
     # a CURRENT pin: written_gen matches the seat's generation, so it is not
     # stale — a seat at gen 3 that owns a gen-3 transcript pins gen 3.
     (sess / "adv-alive.meter").write_text("3\t/some/transcript.jsonl\n",
@@ -401,9 +416,9 @@ def test_prepare_names_behind_captive_and_card_stale(prep_root, capsys,
 
 def _seat_row(prep_root, gen, pid=None):
     """Write a config:seats row for adv-alive carrying an explicit
-    `generation` — the AUTHORITY the check reads FIRST (the handoff header
-    is only the fallback). `pid` pins a process-id the background-tasks line
-    counts descendants under, when set."""
+    `generation` — the AUTHORITY the check reads FIRST (the latest rotation
+    record is only the fallback). `pid` pins a process-id the background-
+    tasks line counts descendants under, when set."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
     row = {"name": "adv-alive", "role": "parent",
@@ -534,18 +549,18 @@ def test_prepare_blocks_when_ack_is_from_older_generation(
 
 def test_prepare_generation_unmeasured_is_said_not_silent(
         prep_root, capsys, monkeypatch):
-    """A seat with NEITHER a config:seats row generation NOR a handoff header
-    prints both captives as ok + a plain `generation unmeasured` note, never
-    silently passing with cur_gen=0 (the old `cur_gen`-truthiness gate made
-    them inert on exactly that seat)."""
+    """A seat with NEITHER a config:seats row generation NOR a latest
+    rotation record prints both captives as ok + a plain `generation
+    unmeasured` note, never silently passing with cur_gen=0 (the old
+    `cur_gen`-truthiness gate made them inert on exactly that seat)."""
     _no_git(monkeypatch)
     rc = rotate.cmd_prepare(_args(seat="ghost"), prep_root)
     out = capsys.readouterr().out
     assert rc == 0
     assert ("[ok] meter pin stale (seat_pin-stale) generation unmeasured: "
-            "no config:seats row, no handoff") in out
+            "no config:seats row, no record") in out
     assert ("[ok] stale ack (ghost.ack.json) generation unmeasured: "
-            "no config:seats row, no handoff") in out
+            "no config:seats row, no record") in out
 
 
 def test_rotate_self_still_refuses_with_window_path_set(

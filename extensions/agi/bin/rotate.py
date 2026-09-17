@@ -4919,8 +4919,8 @@ def _seat_hands(root: Path) -> Path:
 #: less-on-every-surface-...): a non-prime seating is keyed on session_id +
 #: pid + window + timestamp, and its seat row never carries a `generation`
 #: cell. The internal rotation generation survives the row only in the
-#: handoff header (the `_generation_measured` fallback), never on a surface a
-#: human or model reads as identity.
+#: latest rotation record (`_generation_measured` fallback), never on a
+#: surface a human or model reads as identity.
 PRIME_ROLES = ("prime", "prime_director")
 
 
@@ -5006,37 +5006,49 @@ def _seat_row_generation(root: Path | None, name: str) -> int | None:
         return None
 
 
-def _generation_measured(root: Path, name: str) -> tuple[int, bool, str]:
-    """The seat's CURRENT generation (row FIRST, handoff header as fallback)
-    and whether it is measured at all.
+def _report_generation_header_info(root: Path, name: str, measured: int) -> None:
+    """INFO-ONLY: name a handoff header generation that disagrees with the
+    measured value -- never a gate (the post can hand-edit it)."""
+    hp = _seat_hands(root) / f"{name}.handoff.md"
+    if not hp.exists():
+        return
+    try:
+        for line in hp.read_text(encoding="utf-8",
+                                 errors="replace").splitlines():
+            ls = line.strip()
+            if ls.startswith("generation:"):
+                try:
+                    if int(ls.split(":", 1)[1].strip()) != measured:
+                        print(f"info: {name}.handoff.md header generation "
+                              f"{ls.split(':', 1)[1].strip()} ignored -- "
+                              f"measured {measured} (header is hand-editable, "
+                              f"never a gate)", file=sys.stderr)
+                except ValueError:
+                    pass
+                return
+    except OSError:
+        pass
 
-    Returns (gen, measured, source). source is a short label for the check
-    line. measured=False when NEITHER the config:seats row nor the handoff
-    header carries a generation — an unmeasurable seat the prepare captive
-    prints as `ok (generation unmeasured: no row, no handoff)`, never
-    silently passes with cur_gen=0."""
+
+def _generation_measured(root: Path, name: str) -> tuple[int, bool, str]:
+    """The seat's CURRENT generation from what the engine writes -- the
+    config:seats row `generation` cell FIRST, else the LATEST rotation
+    record's `gen_after`. The handoff header is NEVER a gate source (a
+    disagreeing header is info-only). measured=False when NEITHER presents."""
     g = _seat_row_generation(root, name)
     if g is not None:
         return g, True, "config:seats row"
-    hp = _seat_hands(root) / f"{name}.handoff.md"
-    if not hp.exists():
-        return 0, False, ""
-    try:
-        txt = hp.read_text(encoding="utf-8", errors="replace")
-        for line in txt.splitlines():
-            ls = line.strip()
-            if ls.startswith("generation:"):
-                v = ls.split(":", 1)[1].strip()
-                return max(0, int(v)), True, "handoff header"
-    except (OSError, ValueError):
-        pass
+    ga = _latest_record_dict(root, name).get("gen_after")
+    if isinstance(ga, int):
+        _report_generation_header_info(root, name, ga)
+        return ga, True, "latest rotation record"
     return 0, False, ""
 
 
 def _read_generation(root: Path, name: str) -> int:
     """The seat's generation, or 0 when unmeasurable (no config:seats row
-    generation, no handoff header). Row-first; the handoff is only the
-    fallback."""
+    generation, no record gen_after). Row-first; the latest rotation record
+    is the only fallback -- never the handoff header."""
     gen, measured, _ = _generation_measured(root, name)
     return gen if measured else 0
 
@@ -5072,11 +5084,11 @@ def _first_seating_handoff_write(root: Path, seat: str,
     goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-handoff-
     generation-header). rotate-self rewrites the header at step (1); a FIRST
     seating (`rotate.py spawn --seat S`) never did, so the header sat at
-    whatever an EARLIER rotation stamped it and a reader that falls back to
-    the header when the seat row carries no `generation:` cell
-    (`_generation_measured` / `_read_generation`) read an older rotation's
-    number. This writes the SAME `_spawn_gen` the spawn's meter pin, ack and
-    seating row already use, through the ONE writer `_write_handoff`.
+    whatever an EARLIER rotation stamped it. The header is now INFO-ONLY
+    (never a gate — hypothesis:l4-a-posts-generation-is-measured-from-its-
+    row-or-latest-record...), kept coherent with the SAME `_spawn_gen` the
+    spawn's meter pin, ack and seating row already use, through the ONE
+    writer `_write_handoff`.
 
     IDEMPOTENT: a header already reading `generation` is left byte-identical
     -- no `rotated_at` churn, no needless diff. Returns True when the file
@@ -9125,7 +9137,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
     for a PRIME role only — `generation` (goal:g15.25 claim (6-rows): a
     non-prime row is generation-less, so the cell is skipped and
-    `_read_generation` resolves through the handoff header instead).
+    `_read_generation` resolves through the latest rotation record instead;
+    never the handoff header, which is info-only).
     L4.114 (s6): the source of the identity is the registry JOIN —
     `source: registry` is recorded in the handover (the row itself carries no
     `source` field; the L4.110/r3 self_row declaration admits exactly
@@ -9155,11 +9168,12 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-every-
     # surface-...), claim (6-rows): the spawn/ack row writers never write a
     # `generation` cell for a NON-prime row. A non-prime seating is keyed on
-    # session_id + pid + window; the internal rotation generation stays in the
-    # handoff header (`_generation_measured` falls back to it when the row
-    # carries no cell), so `_read_generation` still resolves. The prime chain
-    # is byte-identical: `_is_prime_role("prime_director")` is True and the
-    # cell is written exactly as before.
+    # session_id + pid + window; the internal rotation generation resolves
+    # from the LATEST rotation record's `gen_after` (`_generation_measured`
+    # fallback) so `_read_generation` still counts while the row stays
+    # generation-less -- never the handoff header, which is info-only. The
+    # prime chain is byte-identical: `_is_prime_role("prime_director")` is
+    # True and the cell is written exactly as before.
     cells: dict = {"session_ref": session_ref, "window": window}
     if _is_prime_role(role):
         cells["generation"] = generation
@@ -15704,15 +15718,14 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
 
     # 5 meter pin missing or stale (seat_pin-stale). The check needs the
     # seat's CURRENT generation — which now comes from the config:seats ROW
-    # first (the authority), the handoff header only as fallback. When
-    # NEITHER is measurable the line prints ok + a plain `generation
-    # unmeasured` note, never silently passing with cur_gen=0 (the old code
-    # gated on `cur_gen` TRUTHINESS, so a seat whose handoff copy carried no
-    # generation got cur_gen=0 and both captives went INERT).
+    # first (the authority), the latest rotation record only as fallback
+    # (never the handoff header); when NEITHER is measurable the line prints
+    # ok + a plain `generation unmeasured` note, never silently passing with
+    # cur_gen=0 (the old `cur_gen`-truthiness gate made the captives inert).
     pin = find_pin_log(root, seat)
     cur_gen, gen_measured, gen_src = _generation_measured(root, seat)
     gen_note = (f"cur={cur_gen} ({gen_src})" if gen_measured else
-                "generation unmeasured: no config:seats row, no handoff")
+                "generation unmeasured: no config:seats row, no record")
     stale_pin = False
     # The clear line must print the ONE command that actually clears, both
     # halves right (hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-
