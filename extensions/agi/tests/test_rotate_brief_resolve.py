@@ -123,6 +123,90 @@ def test_absolute_and_non_session_briefs_pass_through(tmp_path, monkeypatch):
     assert seen["prompt_file"] == ".agi/sessions/quorum/override.md"
 
 
+def _name_args(old, new):
+    return argparse.Namespace(old_name=old, new_name=new, dry_run=False,
+                              now=False, apply=False, root=None)
+
+
+def _stage(root, old, new):
+    assert rotate.cmd_rename_post(_name_args(old, new), root) == 0
+
+
+def _quorum(base, name, text="card\n"):
+    q = base / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    p = q / name
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+def test_rename_boundary_brief_resolves_on_the_old_rows_tree(
+        tmp_path, monkeypatch):
+    """RED (rename transient): at a rename boundary the card is renamed under
+    the PRE-rename row's tree. With ONLY the old row present, the successor
+    brief must resolve there -- under the old row -- even though the card on
+    disk carries the NEW name. Pre-fix the root seat stayed `seat` (the new
+    name), `_find_seat` found no new row, and the brief fell back to MAIN's
+    `<root>/sessions/quorum/new.md`, which does not exist: the 19:08Z
+    `prompt file not found`. cwd == the worktree, the real spawn cwd."""
+    root = _root(tmp_path)
+    wt = tmp_path / "post-old"
+    _quorum(wt / ".agi", "old.md")
+    _seats(root, [{"name": "old", "role": "parent", "worktree": str(wt)}])
+    _rotations(root, ".agi/sessions/quorum/{seat}.md")
+    monkeypatch.chdir(wt)
+    seen = _capture(monkeypatch)
+    seen["root"] = root
+
+    _stage(root, "old", "new")
+    rotate.cmd_rotate_self(_args(), root)
+    assert "prompt_file" in seen
+    boundary = rotate._own_sessions_dir(root, "old") / "quorum" / "new.md"
+    assert Path(seen["prompt_file"]) == boundary
+    assert Path(seen["prompt_file"]).exists(), seen["prompt_file"]
+
+
+def test_no_rename_brief_still_resolves_the_own_card(tmp_path, monkeypatch):
+    """GATE: without a rename boundary the root seat is the row name; a cwd
+    that is NOT the worktree must still resolve the worktree card."""
+    root = _root(tmp_path)
+    wt = tmp_path / "post-old"
+    (wt / ".agi" / "sessions" / "quorum").mkdir(parents=True)
+    _seats(root, [{"name": "old", "role": "parent", "worktree": str(wt)}])
+    _rotations(root, ".agi/sessions/quorum/{seat}.md")
+    elsewhere = tmp_path / "not-the-worktree"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    seen = _capture(monkeypatch)
+    seen["root"] = root
+
+    rotate.cmd_rotate_self(_args(), root)
+    assert "prompt_file" in seen
+    assert seen["prompt_file"] == str(
+        wt / ".agi" / "sessions" / "quorum" / "old.md")
+
+
+def test_rename_boundary_main_resident_row_stays_main_rooted(
+        tmp_path, monkeypatch):
+    """GATE: a MAIN-resident row (empty `worktree` cell) has no worktree
+    card; the boundary renames MAIN's card and the brief must follow it
+    there, not fall into a worktree."""
+    root = _root(tmp_path)
+    _quorum(root, "old.md")
+    _seats(root, [{"name": "old", "role": "parent", "worktree": ""}])
+    _rotations(root, ".agi/sessions/quorum/{seat}.md")
+    monkeypatch.chdir(tmp_path)
+    seen = _capture(monkeypatch)
+    seen["root"] = root
+
+    _stage(root, "old", "new")
+    rotate.cmd_rotate_self(_args(), root)
+    assert "prompt_file" in seen
+    assert seen["prompt_file"] == str(
+        root / "sessions" / "quorum" / "new.md")
+    assert Path(seen["prompt_file"]).exists()
+
+
 def test_pre_fix_brief_stays_cwd_relative(tmp_path, monkeypatch):
     """RED evidence: with the resolver disabled the captured brief is the
     CWD-relative `.agi/sessions/quorum/<seat>.md` -- the coincidence the
