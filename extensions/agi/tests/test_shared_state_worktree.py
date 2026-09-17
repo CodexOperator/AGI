@@ -305,6 +305,21 @@ _AGENT_JSON = ('{"id": "a00-x", "node_id": "experiment:e1", '
                '"parent": "hypothesis:h1", "status": "running"}')
 
 
+def _holder(graph, iter_n="001"):
+    """A bookkept round: the iter manifest carries the agent's row so the
+    completion dm finds a holder and cmd_done exits 0 (SM.67 C2: a round
+    with NO holder surfaces a silent dm as rc 1)."""
+    import json as _json
+    d = graph / ".agi" / "sessions" / f"iter-{iter_n}"
+    d.mkdir(parents=True, exist_ok=True)
+    mpath = d / "manifest.json"
+    if not mpath.exists():
+        mpath.write_text(_json.dumps({"agents": [{"id": "a00-x",
+                                                    "status": "running"}]},
+                                     indent=2))
+    return mpath
+
+
 def test_cli_done_from_a_worktree_resolves_the_main_session_record(tmp_path, monkeypatch):
     """Red-first for hypothesis:l3-cli-done-worktree-manifest.
 
@@ -330,6 +345,7 @@ def test_cli_done_from_a_worktree_resolves_the_main_session_record(tmp_path, mon
     main_sess = repo / ".agi" / "sessions" / "iter-001" / "a00-x"
     main_sess.mkdir(parents=True)
     (main_sess / "agent.json").write_text(_AGENT_JSON, encoding="utf-8")
+    _holder(repo)
     assert not (wt / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
 
     args = argparse.Namespace(
@@ -398,6 +414,7 @@ def test_cli_done_from_a_parent_reaches_the_seat_dispatched_sibling_record(
     seat_sess = seat / ".agi" / "sessions" / "iter-001" / "a00-x"
     seat_sess.mkdir(parents=True)
     (seat_sess / "agent.json").write_text(_AGENT_JSON, encoding="utf-8")
+    _holder(seat)
     # Deliberately NOT in the parent worktree NOR in main.
     assert not (parent / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
     assert not (repo / ".agi" / "sessions" / "iter-001" / "a00-x").exists()
