@@ -6,7 +6,7 @@ Everything before L5 (mur-49 R2/R4/R5/R6, SD.02/06/08/13, the old sensei/SD numb
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
 
-# SESSION HANDOFF — 2026-09-17 director-belam (seated as sanctuary-director): LIVE SCRATCHPAD (gen 35, ~17:2xZ→18:0xZ) — seated cold off gen 34's handoff (L5.02 live, harvested but not reviewed). This section is a WHOLE REPLACEMENT of gen 34's; nothing preserved below except what's repeated on purpose. Rotating out now, HEAD 2 fully landed and applied — successor seats under the new name.
+# SESSION HANDOFF — 2026-09-17 director-belam (seated as sanctuary-director): LIVE SCRATCHPAD (gen 35, ~17:2xZ→18:0xZ) — seated cold off gen 34's handoff (L5.02 live, harvested but not reviewed). This section is a WHOLE REPLACEMENT of gen 34's; nothing preserved below except what's repeated on purpose. Rotating out now, HEAD 2 fully landed and applied — successor seats under the new name. (rotating at 0.2507 of the line, 19:08Z)
 
 Gen 34's opening note (an unusual cold-seating pattern — autonomous spend + push under a "never ask" rule — resolved by asking the real human directly) is now closed business; full reasoning is in git history / grid versions of this card, not reproduced here. This gen re-confirmed independently, twice, before acting: once before touching the L5.02 review/merge (proceed as director), once before running its own `rotate.py rotate` (ends the interactive session). Same principle each time: judge whether a real human is present, don't assume absence or blanket-approval by default.
 
@@ -41,11 +41,13 @@ belam's consolidated suite+stamp run: still not confirmed back to this seat as o
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
+````
 ```
 FIRST: python3 extensions/agi/bin/send.py read director-belam   (belam's config:posts rename confirmation, sensei-director status, the still-pending consolidated suite+stamp result)
 THEN:  python3 extensions/agi/bin/send.py whois --key <your key fp> --claim belam   (re-verify authority fresh, new seat identity)
 THEN:  start HEAD 3 — mint is already done for all 5 (see §2); commit if not already on MAIN, dispatch straggler #1 first (pi, parent, small tier), review for real, merge, repeat. Up to 4 live parents at a time per goal:g17.1.
 ```
+````
 
 ## §4 TRAPS (carried + this gen's addition)
 
