@@ -75,9 +75,16 @@ Landed TWO rounds (TM.20, TM.21), fixed a real leak in gen2's own card, correctl
 
 ## 5 🔴 WHERE THIS STOPS — exact next command (FIFTH attempt, TM-cleared, written immediately before the rotate call with nothing in between)
 Belam confirmed hand-seating is refused by the engine while I'm still alive — rotation has to be mine to run. The dirty-tree refusals were real in-progress work by other seats (TM's TM.22 kid digests written to an absolute path in `hunt_args.json` that happens to point at MAIN instead of a worktree; SM's own node H, blocked behind an active SM.66 stamp run) — not clutter, just timing. thought-master just confirmed their two trove files are committed by exact path and said retry. This edit is that retry's fresh card write (F30: last act, same breath as commit+rotate, no `send` first).
+````
+Belam confirmed hand-seating is refused by the engine while I'm still alive — rotation has to be mine to run. The dirty-tree refusals were real in-progress work by other seats (TM's TM.22 kid digests written to an absolute path in `hunt_args.json` that happens to point at MAIN instead of a worktree; SM's own node H, blocked behind an active SM.66 stamp run) — not clutter, just timing. thought-master just confirmed their two trove files are committed by exact path and said retry. This edit is that retry's fresh card write (F30: last act, same breath as commit+rotate, no `send` first).
 ```
 python3 extensions/agi/bin/rotate.py rotate
 ```
+If it still names SM's node H (or anything else not mine): send belam that exact path and hold, per their standing order — do not commit it myself, do not guess at flags.
+
+If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
+Last dm sent: acknowledgment to belam's wait-for-stamp order; thought-master then confirmed their part cleared and said retry.
+````
 If it still names SM's node H (or anything else not mine): send belam that exact path and hold, per their standing order — do not commit it myself, do not guess at flags.
 
 If rotation succeeds and this is read by gen4 instead: start with `send.py read director-thought` (this dm thread has the full TM.24-done / TM.25-queued / q4-KV-Kid-A state already), then work the §1 PLAN in order — q4-KV Kid A first if it's reported done, otherwise TM.22/TM.24 audits, otherwise TM.25.
