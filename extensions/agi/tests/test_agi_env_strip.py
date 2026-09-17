@@ -13,6 +13,7 @@ verification independent of its spawn env:
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -111,6 +112,35 @@ def test_inherited_hookspath_really_runs_a_hook_and_the_strip_removes_it(
     monkeypatch.delenv("GIT_CONFIG_COUNT", raising=False)
     monkeypatch.delenv("GIT_CONFIG_KEY_0", raising=False)
     monkeypatch.delenv("GIT_CONFIG_VALUE_0", raising=False)
+    # Half (b) with TEETH. The old tail asserted the absence of the same three
+    # keys the test JUST delenv'd a line above -- vacuous, and proof of nothing
+    # about the strip (SL7.138 named the hole). Prove the STRIP itself: spawn a
+    # real child whose env INITIALLY INHERITS the three GIT_CONFIG_ keys set
+    # (a freshly-dispatched process that never ran a strip), have that child
+    # run the REAL conftest `_strip_agi_env`, and require it to report clean.
+    # If the strip ever stops removing GIT_CONFIG_*, this child reports LEFT
+    # and the test fails -- its pass/fail depends on `_strip_agi_env`, not on
+    # this test's own monkeypatch.
+    turnkey = (
+        "import os,sys;"
+        "sys.path.insert(0, %r);"
+        "from conftest import _strip_agi_env;"
+        "_strip_agi_env();"
+        "left=[k for k in ('GIT_CONFIG_COUNT','GIT_CONFIG_KEY_0',"
+        "'GIT_CONFIG_VALUE_0') if k in os.environ];"
+        "print('LEFT='+','.join(left) if left else 'CLEAN')"
+    ) % str(ENGINE)
+    child_env = {**os.environ,
+                 "GIT_CONFIG_COUNT": "1",
+                 "GIT_CONFIG_KEY_0": "core.hooksPath",
+                 "GIT_CONFIG_VALUE_0": str(ENGINE / "hooks" / "agent-git")}
+    child = subprocess.run([sys.executable, "-c", turnkey], env=child_env,
+                           capture_output=True, text=True)
+    assert child.returncode == 0, child.stderr
+    assert child.stdout.strip() == "CLEAN", (
+        f"the REAL conftest strip left {child.stdout.strip()} in a child that "
+        f"inherited the GIT_CONFIG_* channel -- every git call in the suite "
+        f"would run the agent-git hook")
     for var in GIT_CONFIG_SPAWN_VARS:
         assert os.environ.get(var) is None, (
             f"conftest left {var!r} set -- every git call in the suite would "
