@@ -80,6 +80,23 @@ def test_red_suite_writes_no_stamp(tmp_path, monkeypatch):
     assert not (groot / "sessions/verified.stamp").exists()
 
 
+def test_red_retracts_a_prior_green_stamp(tmp_path, monkeypatch):
+    """GREEN then RED: the certification must not outlive the green run.
+
+    cli.py:5336's gate tests EXISTS only, so a stale stamp would pass
+    --delete-old on red evidence. The predicate that writes must be the one
+    that retracts.
+    """
+    groot = _arm(tmp_path, monkeypatch, [_result("PASS")])
+    assert verification.main(["--suite", "--root", str(tmp_path)]) == 0
+    gate = cli._find_root() / "sessions/verified.stamp"
+    assert gate.exists()
+
+    _arm(tmp_path, monkeypatch, [_result("FAIL")])
+    assert verification.main(["--suite", "--root", str(tmp_path)]) == 1
+    assert not gate.exists(), "red run left a green certification standing"
+
+
 # --- the worktree arm: real resolvers, NO find_project_root monkeypatch -----
 # Kid 1's _arm() monkeypatches verification.locations.find_project_root, which
 # collapses the writer's resolver and the gate's resolver onto ONE scratch
@@ -155,3 +172,21 @@ def test_worktree_green_run_satisfies_the_gate_run_from_that_worktree(
     _arm_real(wt, monkeypatch, "FAIL")
     assert verification.main(["--suite", "--root", str(wt)]) == 1
     assert not any(p.exists() for p in verification._verified_stamp_paths(wt_graph))
+
+
+def test_worktree_red_retracts_a_prior_green_stamp(tmp_path, monkeypatch):
+    """GREEN then RED in a REAL worktree: no path the gate can read survives."""
+    repo = _make_project_repo(tmp_path)
+    wt = _make_worktree(repo, tmp_path)
+    monkeypatch.chdir(wt)
+    wt_graph = locations.find_project_root(wt)
+    paths = verification._verified_stamp_paths(wt_graph)
+
+    _arm_real(wt, monkeypatch, "PASS")
+    assert verification.main(["--suite", "--root", str(wt)]) == 0
+    assert all(p.exists() for p in paths), paths
+
+    _arm_real(wt, monkeypatch, "FAIL")
+    assert verification.main(["--suite", "--root", str(wt)]) == 1
+    assert not any(p.exists() for p in paths), [p for p in paths if p.exists()]
+    assert cli._find_root() / "sessions/verified.stamp" == paths[0]
