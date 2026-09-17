@@ -57,21 +57,59 @@ def _detached_pytest_ppid1() -> list[int]:
     return pids
 
 
-def test_suite_refuses_when_launched_from_inside_a_test(tmp_path, monkeypatch,
-                                                       capsys):
-    """Claim (2): --suite with PYTEST_CURRENT_TEST set refuses by name, exit 3,
-    before any work — the level never runs, so no second pytest can spawn."""
+def test_suite_refuses_when_launched_from_inside_a_test(tmp_path, monkeypatch):
+    """Claim (2): at the REAL launch site the suite REFUSES when it would
+    launch pytest while already inside a test (PYTEST_CURRENT_TEST set) — one
+    refusal line in the note, nothing spawned. A stubbed fake-suite (non-
+    pytest argv) is NOT refused (the guard test below proves that leg)."""
     monkeypatch.setenv("PYTEST_CURRENT_TEST",
                        "test_suite_no_detached_spawn.py::t ()")
-    planned: list = []
+    groot = tmp_path / ".agi"
+    (groot / "sessions").mkdir(parents=True)
+    real = {"tests": verification.commands.Command(
+        name="tests", argv=["python3", "-m", "pytest", str(tmp_path)],
+        raw_argv=["python3", "-m", "pytest", str(tmp_path)],
+        cwd=str(groot))}
+    monkeypatch.setattr(verification.commands, "load", lambda g: real)
+    r = verification.run_check(groot, verification.SUITE_CMD, verbose=False)
+    assert r.status == "FAIL", r.note
+    assert r.note.count("refusing") == 1  # exactly one refusal line
+    assert _detached_pytest_ppid1() == []  # nothing launched
+
+
+def test_ring_fields_under_pytest_exits_zero(tmp_path, monkeypatch):
+    """Claim (2) carve-out: an in-process `--suite --ring-fields` reads/prints
+    the grant bytes and exits 0 even while running under pytest, because it
+    never reaches the launch site the refusal guards. This is the RED the
+    main()-level refusal caused (test_ring_cli_seam broke); the refusal must
+    NOT sit on the print-only path."""
+    monkeypatch.setenv("PYTEST_CURRENT_TEST",
+                       "test_suite_no_detached_spawn.py::t ()")
+    root = tmp_path / ".agi"
+    root.mkdir(parents=True)
+    (root / "config.json").write_text("{}", encoding="utf-8")
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "context" / "schemas" / "[config].md").write_text(
+        "---\ntype: config\n", encoding="utf-8")
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "rings.md").write_text(
+        "---\ntype: cell\nrings:\n  - name: approval\n    m: 2\n"
+        "    members: [alice, bob, carol]\n---\n", encoding="utf-8")
+    (root / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\ntype: config\nposts:\n  - name: alice\n    pubkey: "
+        + ("6b" * 32) + "\n---\n", encoding="utf-8")
+    (root / "nodes").mkdir(parents=True, exist_ok=True)
+    (root / "nodes" / "posts.md").write_text(
+        "---\nid: config:posts\ntype: config\nmint_id: cfgtst002\n"
+        "title: posts\n---\n\nbody\n", encoding="utf-8")
     monkeypatch.setattr(verification, "run_level",
-                        lambda *a, **k: planned.append(a) or [])
-    rc = verification.main(["--suite", "--root", str(tmp_path)])
-    assert rc == 3, rc
-    assert planned == []  # the level never ran -> no second pytest
-    out = capsys.readouterr().out
-    assert "refusing" in out
-    assert out.count("refusing") == 1  # exactly one refusal line
+                        lambda *a, **k: [])
+    fresh = "1970-01-01T00:00:00Z|t"
+    # --ring-fields returns before run_level AND before the launch site.
+    rc = verification.main(["--root", str(tmp_path), "--suite",
+                            "--suite-ring", "approval",
+                            "--ring-fresh", fresh, "--ring-fields"])
+    assert rc == 0, rc
 
 
 def test_suite_run_never_leaves_a_detached_pytest(tmp_path, monkeypatch):
