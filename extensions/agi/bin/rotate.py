@@ -9165,18 +9165,16 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     the cells ride `_write_identity_cells` like every other identity cell,
     so they land in MAIN too). `pubkey`/`key_history`/`sig_scheme` are
     declared self_row fields, so admission holds."""
-    # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-every-
-    # surface-...), claim (6-rows): the spawn/ack row writers never write a
-    # `generation` cell for a NON-prime row. A non-prime seating is keyed on
-    # session_id + pid + window; the internal rotation generation resolves
-    # from the LATEST rotation record's `gen_after` (`_generation_measured`
-    # fallback) so `_read_generation` still counts while the row stays
-    # generation-less -- never the handoff header, which is info-only. The
-    # prime chain is byte-identical: `_is_prime_role("prime_director")` is
-    # True and the cell is written exactly as before.
+    # conjunct 1 of hypothesis:l4-a-posts-generation-is-measured-from-its-
+    # row-or-latest-record-never-from-a-handoff-header-it-can-hand-edit: a
+    # POST's generation is MEASURED (measured=True), from its OWN row. The
+    # spawn/ack row writer now persists the `generation` cell for EVERY role
+    # (goal:g15.25 claim (6-rows) "non-prime never carries a gen" is
+    # SUPERSEDED: a non-prime post no longer needs the record fallback, and
+    # the hand-editable handoff header is never a gate). `_generation_measured`
+    # reads the row FIRST, so the cell alone delivers the measured number.
     cells: dict = {"session_ref": session_ref, "window": window}
-    if _is_prime_role(role):
-        cells["generation"] = generation
+    cells["generation"] = generation
     # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
     # cell...): the row's `session_name` is the harness registry NAME the
     # registry JOIN resolved (join['name'], e.g. agi-d7), '' when the join
@@ -9234,8 +9232,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
-    _gen_field = (f"generation={generation}" if _is_prime_role(role)
-                  else "generation=(none: non-prime is generation-less)")
+    _gen_field = f"generation={generation}"
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_name={session_name} "
             f"session_label={cells.get('session_label', '')} "

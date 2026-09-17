@@ -853,11 +853,13 @@ def test_successor_row_write_stores_session_label(tmp_path):
     assert own["session_label"] == "s1"
 
 
-def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
-    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
-    every-surface-...), claim (6-rows): the spawn row write NEVER writes a
-    `generation` cell for a non-prime role, and the prime chain is untouched
-    (a prime_director row still carries its numeral generation)."""
+def test_successor_row_write_writes_generation_for_non_prime(tmp_path):
+    """conjunct 1 (hypothesis:l4-a-posts-generation-is-measured-from-its-row-
+    or-latest-record-...): the spawn row write NOW persists the `generation`
+    cell for a non-prime role too, so `_generation_measured` reads the post's
+    real number from its OWN row (measured=True). This SUPERSEDES goal:g15.25
+    claim (6-rows) ("non-prime never carries a gen"); the prime chain is
+    untouched."""
     rows = [{"name": "s1", "role": "director"},
             {"name": "belam", "role": "prime_director"}]
     graph = _seed_key_history_graph(tmp_path, rows)
@@ -866,8 +868,8 @@ def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
         session_ref="x", generation=2, window="w")
     import write as w
     own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
-    assert "generation" not in own, own
-    assert "generation=(none" in out
+    assert own["generation"] == 2, own
+    assert "generation=2" in out
 
     out_p = rotate._successor_row_write(
         graph, actor="belam", seat="belam", role="prime_director",
@@ -895,6 +897,33 @@ def test_read_generation_resolves_through_record_when_row_is_generation_less(
     assert rotate._read_generation(graph, "s1") == 3
     _g, measured, source = rotate._generation_measured(graph, "s1")
     assert measured is True and source == "latest rotation record"
+
+
+def test_real_genless_record_resolves_from_row_cell_measured_true(tmp_path):
+    """conjunct 1 (hypothesis:l4-a-posts-generation-is-measured-from-its-row-
+    or-latest-record-...): a REAL-SHAPED post's latest rotation record carries
+    NO `gen_after` (the non-prime naming/rotate-self records are genless by
+    the old goal:g15.25 design) -- but the post's OWN row now carries a
+    `generation` cell, so `_generation_measured` reads the row FIRST and
+    resolves the real number with measured=True, never (0, False). The
+    genless-looking record is not the authority; the row cell is."""
+    rows = [{"name": "s1", "role": "director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    # the real-shaped record the claim's own probe observed: rotate-self
+    # success with NO gen_before/gen_after for a non-prime post.
+    rot = rotate._rotations_dir(graph)
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / "s1.20260917T072853Z.rotation.json").write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s1", "result": "success",
+        "seated_at": "2026-09-17T07:28:53Z",
+        "session_id": "sess-1"}), encoding="utf-8")
+    rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=33, window="w")
+    assert rotate._seat_row_generation(graph, "s1") == 33
+    g, measured, source = rotate._generation_measured(graph, "s1")
+    assert (g, measured, source) == (33, True, "config:seats row")
+    assert rotate._read_generation(graph, "s1") == 33
 
 
 def test_header_disagreement_reported_as_info_never_trusted(tmp_path, capsys):
