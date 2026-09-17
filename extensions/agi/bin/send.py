@@ -313,6 +313,11 @@ _COMMS_DEFAULTS = {
     # and the nudge re-fires (marker re-stamped) instead of suppressing. A
     # marker that is younger than this AND predating no read still suppresses.
     "nudge_stale_after_minutes": 30,
+    # owner 2026-09-17 14:1xZ (verbatim in doc:l5-owner-decisions): the heal
+    # watch's stranded-wake repair re-nudged a busy director every 30 s poll
+    # while its kids kept the unread digest moving. The repair runs on its OWN
+    # cadence, this many SECONDS apart (default hourly), never on the poll.
+    "wake_repair_every_s": 3600,
 }
 
 #: The one warning printed per send and per read/peek when `lockdown` is set.
