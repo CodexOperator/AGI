@@ -39,6 +39,29 @@ def _wait_log(path, needle, timeout=30.0):
     return body
 
 
+def _wait_exit(proc, timeout=30.0):
+    """Poll `proc` until it exits or the deadline passes.
+
+    Under full-suite load a process can take longer than a fixed wall-clock
+    window to get SCHEDULED after it forwards a signal, independent of whether
+    the forwarding is correct. A bare `Popen.wait(timeout=N)` raises
+    `TimeoutExpired` outright instead of retrying, so we loop on `wait(0)`
+    against a deadline -- the same polling shape as `_wait_log`. Returns the
+    exit code; kills and fails loudly if the deadline passes.
+    """
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            return proc.wait(timeout=0)
+        except subprocess.TimeoutExpired:
+            time.sleep(0.05)
+    if proc.poll() is None:
+        proc.kill()
+        proc.wait()
+    raise AssertionError(
+        f"process did not exit within {timeout:.1f}s: {proc.args!r}")
+
+
 def _children(pid):
     try:
         out = subprocess.check_output(["pgrep", "-P", str(pid)],
@@ -74,7 +97,7 @@ def test_wrapper_termed_forwards_and_names_sender(tmp_path):
         # so the child dies too.
         body = _wait_log(log, "from pid")
         assert f"from pid {os.getpid()}" in body, body or "no sender line"
-        rc = child.wait(timeout=12)
+        rc = _wait_exit(child, timeout=12)
         body = _wait_log(log, "wrapper received")
         assert "exited signal 15" in body
         assert "wrapper received 15" in body
@@ -114,7 +137,7 @@ def test_wrapper_tty_hangup_forwards_to_the_child(tmp_path):
         body = _wait_log(log, "FORWARDED to child")
         assert "SIG1 from kernel/tty (si_pid 0)" in body, body or "no HUP line"
         assert f"FORWARDED to child {sleeper}" in body, body
-        rc = wrapper.wait(timeout=30)
+        rc = _wait_exit(wrapper, timeout=30)
         body = _wait_log(log, "wrapper received")
         assert "exited signal 1" in body, body
         assert rc == 128 + signal.SIGHUP
@@ -139,7 +162,7 @@ def test_wrapper_child_termed_directly_has_no_sender(tmp_path):
         grandkid = _poll_child(child.pid)
         assert grandkid, "wrapper child (sleep) never appeared"
         os.kill(grandkid, signal.SIGTERM)
-        rc = child.wait(timeout=12)
+        rc = _wait_exit(child, timeout=12)
         body = _wait_log(log, "exited signal 15")
         assert "exited signal 15" in body
         assert "wrapper received none" in body
@@ -155,7 +178,7 @@ def test_wrapper_child_termed_directly_has_no_sender(tmp_path):
 def test_wrapper_child_self_teardown(tmp_path):
     log = tmp_path / "seat.log"
     child = _run_wrapper(log, sys.executable, "-c", "raise SystemExit(0)")
-    rc = child.wait(timeout=12)
+    rc = _wait_exit(child, timeout=12)
     body = _wait_log(log, "exited status 0")
     assert "exited status 0" in body
     assert "wrapper received none" in body

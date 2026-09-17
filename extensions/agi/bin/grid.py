@@ -68,6 +68,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import evidence_gate  # noqa: E402
 import branches  # noqa: E402
 import locations  # noqa: E402
+import verification  # noqa: E402 -- acquire_suite_lock: the ONE suite-lock reader
 
 ID_RE = re.compile(r'^id:\s*"?([^"\n]+?)"?\s*$', re.MULTILINE)
 # goal:g2.5 "Tension resolved 2026-08-25" — the permanent identifier grid.py
@@ -902,8 +903,21 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         # accepted one, and the gate belongs on acceptance.
         demoted = 0
         if not session:
-            demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
-                          if d.written)
+            # hypothesis:l4-the-grid-cron-evidence-gate-defers-... — on the
+            # cron path (--all, never --session) do not rewrite node FILES in
+            # MAIN by the gate while the suite holds its window. Probe the
+            # suite lock with verification's OWN held/stale judgement (ONE
+            # reader, never a second lock parser). A LIVE foreign pid defers
+            # this tick's rewrite — the ref-write loop below proceeds unchanged;
+            # a lock we took (or a stale dead pid, broken inside) unlinks back
+            # to a pid-free probe state and the gate runs as today.
+            holder = verification.suite_lock_holder(root)
+            if holder is not None:
+                print(f"evidence gate deferred: suite lock held by pid {holder}",
+                      file=sys.stderr)
+            else:
+                demoted = sum(1 for d in evidence_gate.enforce_on_disk(root, paths)
+                              if d.written)
         id_index = None if session else build_id_index(root)
         engine_root = engine_root or default_engine_root()
         written = 0

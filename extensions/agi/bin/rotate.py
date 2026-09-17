@@ -4142,7 +4142,7 @@ def _containment_proof(repo: Path, head_branch: str,
     if not cli._rs_ls_remote_sha(repo, head_branch):
         return False, (f"ls-remote {head} failed or absent -- UNKNOWN, "
                        f"refusing to delete")
-    state, tgt = cli._rs_containment_state(repo, head_branch, [mirror])
+    state, tgt, _old = cli._rs_containment_state(repo, head_branch, [mirror])
     if state != "contained":
         return False, (f"no containment proof for {head} in {mirror} "
                        f"({state})")
@@ -4919,8 +4919,8 @@ def _seat_hands(root: Path) -> Path:
 #: less-on-every-surface-...): a non-prime seating is keyed on session_id +
 #: pid + window + timestamp, and its seat row never carries a `generation`
 #: cell. The internal rotation generation survives the row only in the
-#: handoff header (the `_generation_measured` fallback), never on a surface a
-#: human or model reads as identity.
+#: latest rotation record (`_generation_measured` fallback), never on a
+#: surface a human or model reads as identity.
 PRIME_ROLES = ("prime", "prime_director")
 
 
@@ -5006,37 +5006,49 @@ def _seat_row_generation(root: Path | None, name: str) -> int | None:
         return None
 
 
-def _generation_measured(root: Path, name: str) -> tuple[int, bool, str]:
-    """The seat's CURRENT generation (row FIRST, handoff header as fallback)
-    and whether it is measured at all.
+def _report_generation_header_info(root: Path, name: str, measured: int) -> None:
+    """INFO-ONLY: name a handoff header generation that disagrees with the
+    measured value -- never a gate (the post can hand-edit it)."""
+    hp = _seat_hands(root) / f"{name}.handoff.md"
+    if not hp.exists():
+        return
+    try:
+        for line in hp.read_text(encoding="utf-8",
+                                 errors="replace").splitlines():
+            ls = line.strip()
+            if ls.startswith("generation:"):
+                try:
+                    if int(ls.split(":", 1)[1].strip()) != measured:
+                        print(f"info: {name}.handoff.md header generation "
+                              f"{ls.split(':', 1)[1].strip()} ignored -- "
+                              f"measured {measured} (header is hand-editable, "
+                              f"never a gate)", file=sys.stderr)
+                except ValueError:
+                    pass
+                return
+    except OSError:
+        pass
 
-    Returns (gen, measured, source). source is a short label for the check
-    line. measured=False when NEITHER the config:seats row nor the handoff
-    header carries a generation — an unmeasurable seat the prepare captive
-    prints as `ok (generation unmeasured: no row, no handoff)`, never
-    silently passes with cur_gen=0."""
+
+def _generation_measured(root: Path, name: str) -> tuple[int, bool, str]:
+    """The seat's CURRENT generation from what the engine writes -- the
+    config:seats row `generation` cell FIRST, else the LATEST rotation
+    record's `gen_after`. The handoff header is NEVER a gate source (a
+    disagreeing header is info-only). measured=False when NEITHER presents."""
     g = _seat_row_generation(root, name)
     if g is not None:
         return g, True, "config:seats row"
-    hp = _seat_hands(root) / f"{name}.handoff.md"
-    if not hp.exists():
-        return 0, False, ""
-    try:
-        txt = hp.read_text(encoding="utf-8", errors="replace")
-        for line in txt.splitlines():
-            ls = line.strip()
-            if ls.startswith("generation:"):
-                v = ls.split(":", 1)[1].strip()
-                return max(0, int(v)), True, "handoff header"
-    except (OSError, ValueError):
-        pass
+    ga = _latest_record_dict(root, name).get("gen_after")
+    if isinstance(ga, int):
+        _report_generation_header_info(root, name, ga)
+        return ga, True, "latest rotation record"
     return 0, False, ""
 
 
 def _read_generation(root: Path, name: str) -> int:
     """The seat's generation, or 0 when unmeasurable (no config:seats row
-    generation, no handoff header). Row-first; the handoff is only the
-    fallback."""
+    generation, no record gen_after). Row-first; the latest rotation record
+    is the only fallback -- never the handoff header."""
     gen, measured, _ = _generation_measured(root, name)
     return gen if measured else 0
 
@@ -5072,11 +5084,11 @@ def _first_seating_handoff_write(root: Path, seat: str,
     goal:g15 (hypothesis:l4-cmd-spawn-first-seating-rewrites-the-handoff-
     generation-header). rotate-self rewrites the header at step (1); a FIRST
     seating (`rotate.py spawn --seat S`) never did, so the header sat at
-    whatever an EARLIER rotation stamped it and a reader that falls back to
-    the header when the seat row carries no `generation:` cell
-    (`_generation_measured` / `_read_generation`) read an older rotation's
-    number. This writes the SAME `_spawn_gen` the spawn's meter pin, ack and
-    seating row already use, through the ONE writer `_write_handoff`.
+    whatever an EARLIER rotation stamped it. The header is now INFO-ONLY
+    (never a gate — hypothesis:l4-a-posts-generation-is-measured-from-its-
+    row-or-latest-record...), kept coherent with the SAME `_spawn_gen` the
+    spawn's meter pin, ack and seating row already use, through the ONE
+    writer `_write_handoff`.
 
     IDEMPOTENT: a header already reading `generation` is left byte-identical
     -- no `rotated_at` churn, no needless diff. Returns True when the file
@@ -9125,7 +9137,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
     for a PRIME role only — `generation` (goal:g15.25 claim (6-rows): a
     non-prime row is generation-less, so the cell is skipped and
-    `_read_generation` resolves through the handoff header instead).
+    `_read_generation` resolves through the latest rotation record instead;
+    never the handoff header, which is info-only).
     L4.114 (s6): the source of the identity is the registry JOIN —
     `source: registry` is recorded in the handover (the row itself carries no
     `source` field; the L4.110/r3 self_row declaration admits exactly
@@ -9152,17 +9165,16 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     the cells ride `_write_identity_cells` like every other identity cell,
     so they land in MAIN too). `pubkey`/`key_history`/`sig_scheme` are
     declared self_row fields, so admission holds."""
-    # goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-every-
-    # surface-...), claim (6-rows): the spawn/ack row writers never write a
-    # `generation` cell for a NON-prime row. A non-prime seating is keyed on
-    # session_id + pid + window; the internal rotation generation stays in the
-    # handoff header (`_generation_measured` falls back to it when the row
-    # carries no cell), so `_read_generation` still resolves. The prime chain
-    # is byte-identical: `_is_prime_role("prime_director")` is True and the
-    # cell is written exactly as before.
+    # conjunct 1 of hypothesis:l4-a-posts-generation-is-measured-from-its-
+    # row-or-latest-record-never-from-a-handoff-header-it-can-hand-edit: a
+    # POST's generation is MEASURED (measured=True), from its OWN row. The
+    # spawn/ack row writer now persists the `generation` cell for EVERY role
+    # (goal:g15.25 claim (6-rows) "non-prime never carries a gen" is
+    # SUPERSEDED: a non-prime post no longer needs the record fallback, and
+    # the hand-editable handoff header is never a gate). `_generation_measured`
+    # reads the row FIRST, so the cell alone delivers the measured number.
     cells: dict = {"session_ref": session_ref, "window": window}
-    if _is_prime_role(role):
-        cells["generation"] = generation
+    cells["generation"] = generation
     # goal:g15.25 FIX-ONLY (hypothesis:l4-a-post-row-carries-a-session-name-
     # cell...): the row's `session_name` is the harness registry NAME the
     # registry JOIN resolved (join['name'], e.g. agi-d7), '' when the join
@@ -9220,8 +9232,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
-    _gen_field = (f"generation={generation}" if _is_prime_role(role)
-                  else "generation=(none: non-prime is generation-less)")
+    _gen_field = f"generation={generation}"
     return (f"config:seats row {seat!r}: session_ref={session_ref} "
             f"session_name={session_name} "
             f"session_label={cells.get('session_label', '')} "
@@ -15498,6 +15509,19 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
     if _touch is not None:
         _foreign = [p for p in dirty_paths if p not in _touch]
         _block_paths = [p for p in dirty_paths if p in _touch]
+    elif _main_post:
+        # SM.84 measurement 1 & 2 (master-sensei 00:19Z, belam 00:31Z): on a
+        # MAIN post whose merge touch-set cannot be MEASURED (`origin/<sb>`
+        # ref absent -- the gate runs NO fetch, so a MAIN checkout that has
+        # never fetched its retire target reads unmeasurable), the old
+        # all-dirt fallback REFUSED on FOREIGN dirt: cron churn's non-churn
+        # siblings, another post's card, HANDOFF.md, and another post's
+        # UNTRACKED node draft. Scope to the post's OWN paths here (the own
+        # card, extracted below), name the rest FOREIGN/info -- never a
+        # refusal, never a stop_commit. git's own overwrite refusal still
+        # protects a dirty tracked file a real merge would touch (claim 7).
+        _block_paths = []
+        _foreign = list(dirty_paths)
     # SM.40 own-card BLOCK: the rotating post's OWN card is dirty work a
     # rotation must not proceed over, even though the merge would not touch
     # it. Resolved from the path's OWNER guess, which needs only the seat
@@ -15526,7 +15550,7 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
         suffix = (f", +{len(_block_paths) - 5} more"
                   if len(_block_paths) > 5 else "")
         dirty_name = "dirty tree: " + ", ".join(shown) + suffix
-        if _touch is None and _main_post:
+        if _touch is None and _main_post and _block_paths:
             dirty_name += " (touch-set unmeasured)"
     else:
         dirty_name = "dirty tree"
@@ -15534,13 +15558,17 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                    "git commit -m '<msg>' -- <the files you changed>"))
     # foreign dirt on a MAIN post: another post's uncommitted work the merge
     # would NOT touch — NAMED as one never-blocking line (capped at 5, then
-    # `+N more`), never a block, never a stop_commit (goal:g15.25).
+    # `+N more`), never a block, never a stop_commit (goal:g15.25). The note
+    # is truthful to the measurement basis: `(not in the merge)` when the
+    # touch-set resolved, `(merge target unmeasured)` when it could not.
     if _foreign:
         _fs = [f"{p} [owner: {_prepare_owner_guess(p)}]"
                for p in _foreign[:5]]
         _suf = (f", +{len(_foreign) - 5} more" if len(_foreign) > 5 else "")
+        _merge_note = ("(not in the merge)" if _touch is not None
+                       else "(merge target unmeasured)")
         checks.append((False,
-                       "foreign dirt (not in the merge): "
+                       "foreign dirt " + _merge_note + ": "
                        + ", ".join(_fs) + _suf, ""))
     # SM.40 rotation churn: `_prepare_churn_path`'s paths, named on ONE
     # never-blocking line. Never a BLOCK (grid_sync commits them); named so
@@ -15687,15 +15715,14 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
 
     # 5 meter pin missing or stale (seat_pin-stale). The check needs the
     # seat's CURRENT generation — which now comes from the config:seats ROW
-    # first (the authority), the handoff header only as fallback. When
-    # NEITHER is measurable the line prints ok + a plain `generation
-    # unmeasured` note, never silently passing with cur_gen=0 (the old code
-    # gated on `cur_gen` TRUTHINESS, so a seat whose handoff copy carried no
-    # generation got cur_gen=0 and both captives went INERT).
+    # first (the authority), the latest rotation record only as fallback
+    # (never the handoff header); when NEITHER is measurable the line prints
+    # ok + a plain `generation unmeasured` note, never silently passing with
+    # cur_gen=0 (the old `cur_gen`-truthiness gate made the captives inert).
     pin = find_pin_log(root, seat)
     cur_gen, gen_measured, gen_src = _generation_measured(root, seat)
     gen_note = (f"cur={cur_gen} ({gen_src})" if gen_measured else
-                "generation unmeasured: no config:seats row, no handoff")
+                "generation unmeasured: no config:seats row, no record")
     stale_pin = False
     # The clear line must print the ONE command that actually clears, both
     # halves right (hypothesis:l4-meter-pin-refuses-a-target-that-is-not-a-
@@ -15771,6 +15798,33 @@ def _prepare_checks(root: Path, seat: str, perform: bool = False
                         f"written={_written}, row gen={cur_gen}")
     checks.append((stale_ack, ack_line, f"rm {ack}"))
 
+    # g15.14 STEP 2 (hyp:l4-prepare-performs-its-three-clears-itself-and-
+    # prints-cleared-never-a-hand-step): under `--perform` prepare performs
+    # the mechanical clears it can -- the mirror push (check 1) and the meter
+    # re-pin (check 5) -- printing `cleared: <step> (<result>)`, never a
+    # `clear:` hand command (check 3 already performs, F14); a FAILED clear
+    # stays a BLOCK with the exact command. ONLY when every other check is
+    # clean (no side effect before a refusal).
+    if perform:
+        _mirror_u = checks[0][0] and bool(mirror)
+        _pin_u = checks[4][0] and bool(pin) and bool(known_transcript)
+        _ob = any(b for i, (b, _n, _c) in enumerate(checks)
+                  if b and not ((i == 0 and _mirror_u) or (i == 4 and _pin_u)))
+        if not _ob:
+            if _mirror_u:
+                _mp = _git_proc(root, "push", "origin", f"HEAD:{mirror}")
+                if _mp is not None and _mp.returncode == 0:
+                    _h = (_git_maybe(root, "rev-parse", "--short", "HEAD")
+                          or [""])[0].strip()
+                    checks[0] = (False, f"{checks[0][1]} — cleared: mirror "
+                                 f"push ({_h})", checks[0][2])
+            if _pin_u:
+                _ng = (written_gen if written_gen is not None
+                       and written_gen > cur_gen else cur_gen)
+                _seat_pin_path(root, seat).write_text(
+                    f"{_ng}\t{known_transcript}\n", encoding="utf-8")
+                checks[4] = (False, f"{checks[4][1]} — cleared: meter re-pin "
+                             f"({known_transcript})", checks[4][2])
     return checks
 
 
@@ -17442,6 +17496,20 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         return None                       # rewritten during this generation
     _m = re.search(r"gen (\d+)->(\d+)", _subj)
     _gp = f" gen {_m.group(1)}->{_m.group(2)}" if _m else ""
+    if _m:
+        # SM.84 claim 7 / F23 (master-sensei 00:19Z): a retry after a
+        # prepare refusal must NOT re-age the stops slot -- a blocked
+        # rotation's stop_commit (rotate-self writes the card + commits
+        # `rotate-out gen N->N+1` BEFORE the checklist) lands even though
+        # the rotate-out never COMPLETED, so a bare retry used to read that
+        # commit as a fresh predecessor block and demand `--stops`. A slot
+        # is a PREDECESSOR's stale block only after the generation ADVANCED;
+        # when the seat's CURRENT measured generation is still the commit's
+        # starting `N`, no successor was ever spawned -- this seat is
+        # RESUMING, so the slot is not stale and the retry proceeds bare.
+        _cur, _measured, _ = _generation_measured(root, seat)
+        if _measured and _cur == int(_m.group(1)):
+            return None           # never completed: same-seating retry
     # (clause b2) name BOTH stamps and WHICH clock ran newer (newest act).
     def _act(*a: str) -> str:
         _o = _git_maybe(top, *a)
@@ -17464,10 +17532,10 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         pass
     _wd, _wsrc = max((a for a in _acts if a[0]), key=lambda a: a[0],
                      default=("", "none"))
-    return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
-            f"{_gp} @ {_sha[:8]} {_date}; newest work act {_wd or '?'} from "
-            f"{_wsrc}): the slot still holds the predecessor's stop block; "
-            f"write the card where-it-stops section or pass --stops")
+    return (f"where-it-stops slot UNCHANGED since your predecessor's {seat} "
+            f"rotate-out{_gp} @ {_sha[:8]} {_date}; newest work act "
+            f"{_wd or '?'} from {_wsrc}: it is their card, not yours -- "
+            f"write the slot, or pass --stops")
 
 
 def _rotate_human_gate(root: Path, seat: str,

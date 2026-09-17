@@ -938,6 +938,28 @@ def test_delete_old_lease_delete_succeeds_without_a_race(tmp_path: Path):
         r"season/s2", res.stdout), res.stdout
 
 
+def test_all_delete_sites_resolve_to_one_lease_helper(tmp_path: Path):
+    """(C') GREP-STYLE. The claim's falsifiers are 'a second lease helper'
+    and 'any --delete site still pushing bare'. Read cli.py and assert:
+    exactly ONE `_rs_lease_delete` definition, all THREE delete sites (the v3
+    head delete, post-rename --delete-old, loop-prune) call it, and no
+    production line runs a bare `push origin --delete` anywhere outside the
+    helper."""
+    import re
+    src = (BIN / "cli.py").read_text(encoding="utf-8")
+    assert src.count("def _rs_lease_delete(") == 1, \
+        "exactly one lease helper"
+    calls = [l for l in src.splitlines()
+             if "_rs_lease_delete(repo," in l
+             and "def _rs_lease_delete" not in l]
+    assert len(calls) >= 3, calls  # v3 head delete + delete-old + loop-prune
+    bare = [l for l in src.splitlines()
+            if re.search(r'\[\s*"git",\s*"push",\s*"origin",\s*"--delete"',
+                         l)
+            and "def _rs_lease_delete" not in l]
+    assert not bare, bare  # no bare --delete push outside the one helper
+
+
 def test_delete_old_lease_probe_is_rc_honest_and_never_a_garbage_sha(
         tmp_path: Path):
     """(C) FAILED-PROBE REGRESSION GUARD. The state+sha probe must never hand

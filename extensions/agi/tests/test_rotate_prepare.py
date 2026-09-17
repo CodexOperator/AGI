@@ -37,6 +37,20 @@ sys.path.insert(0, str(_BIN))  # so the lazy `import verification` resolves
 from agi.bin import rotate  # noqa: E402
 
 
+def _seed_gen_record(root, name, gen_after):
+    """Seed ONE latest rotation record carrying `gen_after` -- the
+    engine-written source `_generation_measured` falls back to when the
+    config:seats row carries no generation cell (hypothesis:l4-a-posts-
+    generation-is-measured-from-its-row-or-latest-record-never-from-a-
+    handoff-header-it-can-hand-edit). The handoff header is never read as a
+    gate, so fixtures seed a record, not a header."""
+    rot = rotate._rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / f"{name}.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": name,
+                    "gen_after": gen_after}), encoding="utf-8")
+
+
 @pytest.fixture
 def prep_root(tmp_path):
     """A fixture GRAPH root (`nodes/` marks it a graph dir) with a seat that
@@ -49,6 +63,7 @@ def prep_root(tmp_path):
     (sess / "quorum").mkdir(parents=True)     # the card rotate-self briefs
     (sess / "seats" / "adv-alive.handoff.md").write_text(
         "seat: adv-alive\ngeneration: 3\n", encoding="utf-8")
+    _seed_gen_record(tmp_path, "adv-alive", 3)  # seat OWNS gen 3 (record)
     # a CURRENT pin: written_gen matches the seat's generation, so it is not
     # stale — a seat at gen 3 that owns a gen-3 transcript pins gen 3.
     (sess / "adv-alive.meter").write_text("3\t/some/transcript.jsonl\n",
@@ -364,7 +379,7 @@ def test_rotate_self_refuses_on_dirty_with_same_line(
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **unpushed, **ok}))
     _stale_pin(prep_root)
-    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
+    _seat_row_wt(prep_root, 3)   # own dirt blocks even when touch unmeasured
     rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
     err = capsys.readouterr().err
     assert rc == 3
@@ -401,15 +416,29 @@ def test_prepare_names_behind_captive_and_card_stale(prep_root, capsys,
 
 def _seat_row(prep_root, gen, pid=None):
     """Write a config:seats row for adv-alive carrying an explicit
-    `generation` — the AUTHORITY the check reads FIRST (the handoff header
-    is only the fallback). `pid` pins a process-id the background-tasks line
-    counts descendants under, when set."""
+    `generation` — the AUTHORITY the check reads FIRST (the latest rotation
+    record is only the fallback). `pid` pins a process-id the background-
+    tasks line counts descendants under, when set."""
     g = prep_root / "nodes" / ".geometry"
     g.mkdir(parents=True, exist_ok=True)
     row = {"name": "adv-alive", "role": "parent",
            "generation": gen, "worktree": ""}
     if pid is not None:
         row["pid"] = pid
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        encoding="utf-8")
+
+
+def _seat_row_wt(prep_root, gen):
+    """A WORKTREE seat row (worktree non-empty): its dirt is its own, ALL of
+    it blocks even when the merge touch-set is unmeasurable. Used by the
+    rotate-self same-line refusal tests whose intent is 'own dirt blocks'
+    WITHOUT depending on the SM.84 MAIN-post foreign-dirt scoping."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    row = {"name": "adv-alive", "role": "parent",
+           "generation": gen, "worktree": "/some/wt"}
     (g / "seats.md").write_text(
         "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
@@ -520,18 +549,18 @@ def test_prepare_blocks_when_ack_is_from_older_generation(
 
 def test_prepare_generation_unmeasured_is_said_not_silent(
         prep_root, capsys, monkeypatch):
-    """A seat with NEITHER a config:seats row generation NOR a handoff header
-    prints both captives as ok + a plain `generation unmeasured` note, never
-    silently passing with cur_gen=0 (the old `cur_gen`-truthiness gate made
-    them inert on exactly that seat)."""
+    """A seat with NEITHER a config:seats row generation NOR a latest
+    rotation record prints both captives as ok + a plain `generation
+    unmeasured` note, never silently passing with cur_gen=0 (the old
+    `cur_gen`-truthiness gate made them inert on exactly that seat)."""
     _no_git(monkeypatch)
     rc = rotate.cmd_prepare(_args(seat="ghost"), prep_root)
     out = capsys.readouterr().out
     assert rc == 0
     assert ("[ok] meter pin stale (seat_pin-stale) generation unmeasured: "
-            "no config:seats row, no handoff") in out
+            "no config:seats row, no record") in out
     assert ("[ok] stale ack (ghost.ack.json) generation unmeasured: "
-            "no config:seats row, no handoff") in out
+            "no config:seats row, no record") in out
 
 
 def test_rotate_self_still_refuses_with_window_path_set(
@@ -546,7 +575,7 @@ def test_rotate_self_still_refuses_with_window_path_set(
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **ok}))
-    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
+    _seat_row_wt(prep_root, 3)  # own dirt blocks on a worktree seat
     rc = rotate.cmd_rotate_self(_rotate_self_args(window_path="/tmp/fake.txt"),
                                 prep_root)
     err = capsys.readouterr().err
@@ -1210,7 +1239,7 @@ def test_rotate_self_unpushed_plus_dirty_refuses_no_push(
     """SL7.113 claim (3): TWO or more blockers (unpushed + dirty) -> the
     refusal is byte-identical to today (all names, exit 3) and NO push runs —
     the push seam is never called."""
-    _seat_row(prep_root, 3)          # registry gate
+    _seat_row_wt(prep_root, 3)   # own dirt blocks on a worktree seat
     gm = {("status", "--porcelain"): [" M rotate.py"],
           ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
           ("rev-list", "--count", "@{u}..HEAD"): ["1"],
@@ -1353,19 +1382,69 @@ def test_prepare_check2_main_post_dirty_outside_touch_is_foreign_no_block(
     assert "[ok] foreign dirt (not in the merge): other.py" in out, out
 
 
-def test_prepare_check2_main_post_touch_unmeasured_falls_back_to_today(
+def test_prepare_check2_main_post_touch_unmeasured_scopes_own_paths(
         prep_root, capsys, monkeypatch):
-    """CLAIM (1)(2) — touch-set None (unmeasurable) on a MAIN post falls back
-    to TODAY: every dirty path blocks, named with `(touch-set unmeasured)`."""
+    """CLAIM (7) / SM.84 measurement 1 & 2 — touch-set None (unmeasurable)
+    on a MAIN post NO LONGER falls back to 'every dirty path blocks' (the
+    old fallback REFUSED on foreign dirt: another post's card, HANDOFF.md,
+    an untracked node draft). It scopes to the post's OWN paths: a foreign
+    path is named `foreign dirt (merge target unmeasured)` on a never-
+    blocking line (exit 0); the rotating post's OWN card still BLOCKS."""
     _seat_row(prep_root, 3)   # worktree "" -> a MAIN post, no touch answer
-    gm = {("status", "--porcelain"): [" M a.py"],
+    gm = {("status", "--porcelain"):
+              [" M HANDOFF.md",
+               "?? .agi/nodes/hypothesis/other-post-draft.md"],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
-    assert rc == 3, out
-    assert "[BLOCK] dirty tree: a.py" in out, out
-    assert "touch-set unmeasured" in out, out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert "[ok] dirty tree" in out, out
+    assert ("[ok] foreign dirt (merge target unmeasured): HANDOFF.md "
+            "[owner: unknown]" in out), out
+    # the rotating post's OWN card still blocks on an unmeasurable MAIN post
+    gm2 = {("status", "--porcelain"):
+               [" M .agi/sessions/quorum/adv-alive.md"],
+           ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm2))
+    rc2 = rotate.cmd_prepare(_args(), prep_root)
+    out2 = capsys.readouterr().out
+    assert rc2 == 3, out2
+    assert "[BLOCK] dirty tree: .agi/sessions/quorum/adv-alive.md" in out2, out2
+    assert "your own card" in out2, out2
+
+
+def test_prepare_check2_sm84_dt_foreign_dirt_and_untracked_draft_pass(
+        prep_root, capsys, monkeypatch):
+    """SM.84 fixtures DT 00:18Z + DT 00:26Z on a MAIN post with an
+    UNMEASURABLE merge target (the origin ref the gate never fetched): cron-
+    owned comms + a rotation record (the churn class) plus HANDOFF.md, another
+    post's card and another post's UNTRACKED node draft all PASS prepare and
+    are NAMED -- the churn on the rotation-churn line, the rest as foreign
+    dirt -- never a dirty-tree BLOCK (the old all-dirt fallback refused them)."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post, no touch answer
+    gm = {("status", "--porcelain"): [
+              " M .agi/comms/season-2/dm/other2.md",
+              " M .agi/sessions/rotations/adv-alive.20260916T000000Z.json",
+              " M HANDOFF.md",
+              " M .agi/sessions/quorum/other-post.md",
+              "?? .agi/nodes/hypothesis/other-post-draft.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK] dirty tree" not in out, out
+    assert ("[ok] rotation churn: .agi/comms/season-2/dm/other2.md, "
+            ".agi/sessions/rotations/adv-alive.20260916T000000Z.json"
+            in out), out
+    assert ("[ok] foreign dirt (merge target unmeasured): "
+            "HANDOFF.md [owner: unknown]" in out), out
+    assert ".agi/sessions/quorum/other-post.md [owner: post other-post]" \
+        in out, out
+    assert ".agi/nodes/hypothesis/other-post-draft.md [owner: unknown]" \
+        in out, out
 
 
 def test_prepare_check2_worktree_post_dirt_blocks_even_outside_touch(
@@ -1869,3 +1948,105 @@ def test_prepare_check1_foreign_authors_unpushed_commit_never_blocks(tmp_path):
     assert blocker is True, (blocker, name)
     assert name == "unpushed commits", name
     assert clear == "git push", clear
+
+
+# =====================================================================
+# hypothesis:l4-prepare-performs-its-three-clears-itself-and-prints-
+# cleared-never-a-hand-step (g15.14 STEP 2). Under `--perform` (rotate-
+# self's pre-flight default) prepare PERFORMS the mechanical clears it can
+# -- the mirror push (check 1) and the meter re-pin (check 5) -- printing
+# `cleared: <step> (<measured result>)`, never a `clear:` hand command. A
+# clear that FAILS stays a BLOCK with the exact failing command (claim 2).
+# A second `--perform` in the same seating finds nothing to clear.
+# =====================================================================
+
+
+def _mirror_seam():
+    """A non-merge fixture: the checked-out branch IS a post (mirror-resolved)
+    with 3 unpushed commits vs the ORIGIN mirror ref, a clean tree, up to date
+    with season main, and a fresh card. Push/git-verb round trips route through
+    `_git_proc`."""
+    return {
+        ("status", "--porcelain"): [],
+        ("rev-parse", "--abbrev-ref", "HEAD"):
+            ["season2/core/season1/posts/p1"],
+        ("ls-remote", "origin", "refs/agi/posts/p1"):
+            ["deadbeef1234\trefs/agi/posts/p1"],
+        ("cat-file", "-e", "deadbeef1234^{commit}"): [""],
+        ("rev-list", "--count", "deadbeef1234..HEAD"): ["3"],
+        ("rev-list", "--count",
+         "HEAD..origin/season2/core/season1/main"): ["0"],
+        ("log", "-1", "--no-merges", "--format=%ct", "--", ".",
+         ":(exclude).agi/comms",
+         ":(exclude).agi/sessions/rotations"): ["1000000000"],
+        ("rev-parse", "--short", "HEAD"): ["abcdef1"],
+    }
+
+
+def test_prepare_perform_mirror_push_cleared(prep_root, capsys, monkeypatch):
+    """`--perform` on a post branch with unpushed mirror commits PERFORMS the
+    mirror push itself and prints the cleared line with the measured sha --
+    rc 0 never a `clear:` hand command for a step the tool just did."""
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(_mirror_seam()));
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok())
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[ok] unpushed commits vs refs/agi/posts/p1" in out
+    assert "cleared: mirror push (abcdef1)" in out, out
+    assert "[BLOCK]" not in out
+
+
+def test_prepare_perform_failed_push_stays_block_exact_cmd(
+        prep_root, capsys, monkeypatch):
+    """A mirror push that git REFUSES (non-zero rc) is NOT reported cleared:
+    it stays a BLOCK naming the exact failing command, exit 3 (claim 2)."""
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(_mirror_seam()))
+    monkeypatch.setattr(rotate, "_git_proc", _git_proc_ok(rc=1))
+    monkeypatch.setattr(rotate, "_merge_applies_clean",
+                        lambda root, sb: True)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] unpushed commits vs refs/agi/posts/p1" in out
+    assert "clear: git push origin HEAD:refs/agi/posts/p1" in out, out
+    assert "cleared:" not in out
+
+
+def test_prepare_perform_repins_stale_meter_pin_cleared(
+        prep_root, capsys, monkeypatch):
+    """--perform re-points a stale meter pin itself (check 5) and prints the
+    cleared line; a SECOND --perform finds nothing to clear and says so."""
+    _stale_pin(prep_root)
+    pm = prep_root / "sessions" / "adv-alive.meter"
+    # NO other check can block: git degrades to ok (P7), only check 5 fires.
+    _no_git(monkeypatch)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    err = capsys.readouterr()
+    assert rc == 0, (err.out, err.err)
+    assert "cleared: meter re-pin" in err.out, err.out
+    assert pm.read_text(encoding="utf-8").startswith("3\t"), err.out
+    rc2 = rotate.cmd_prepare(_args(perform=True), prep_root)
+    err2 = capsys.readouterr()
+    assert rc2 == 0, (err2.out, err2.err)
+    assert "cleared:" not in err2.out
+    assert "no blockers" in err2.err
+
+
+def test_prepare_perform_never_repins_over_another_blocker(
+        prep_root, capsys, monkeypatch):
+    """Atomicity (P1-a): when an UNRELATED check blocks (a dirty tree), a
+    `--perform` prepare must NOT re-pin the meter as a side effect before the
+    refusal -- the stale pin stays visible as a blocker."""
+    monkeypatch.setattr(rotate, "_git_maybe",
+                        _git_map({("status", "--porcelain"): [" M rotate.py"]}))
+    _stale_pin(prep_root)
+    rc = rotate.cmd_prepare(_args(perform=True), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "[BLOCK] dirty tree" in out
+    assert "seat_pin-stale" in out
+    pm = prep_root / "sessions" / "adv-alive.meter"
+    assert pm.read_text(encoding="utf-8").startswith("2\t")  # untouched

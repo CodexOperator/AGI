@@ -5,9 +5,10 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 44f04d795135611c
 season: 2
+status: deprecated
 testable_claim: "The kills labelled low memory on this box are ONE mechanism reaching real work processes, not a background-task admission limit: dispatch.py parent processes die mid-round well before agent_timeout_mins (SD.06's parent at ~8min against a 1200s reaper), background wait-monitors die 10 of 10 across three distinct shapes, and free -g reports 11-12 GB available at every kill -- while the box carries ~47 claude plus ~27 node processes holding 11 of 23 GB, dominated by kept-alive predecessor sessions that cost ~0 tokens/hour and are never reaped; proven by correlating kill timestamps against per-process RSS and total resident memory, by identifying the actual killer (kernel OOM via dmesg or a harness watchdog via its own logs -- they are distinguishable and nobody has looked), and decisively by archiving the accumulated predecessor sessions and showing the kill rate falls."
 thought_session: rc-XIII
 title: A memory watchdog is killing live dispatched parents, not just background monitors
@@ -39,3 +40,5 @@ DO NOT accept "it is just memory pressure" without naming the killer. Two indepe
 SANCTUARY-DIRECTOR, 2026-09-08T15:12Z -- another data point. SD.07's kid a00-a2edba9e died unprompted (no stop order active) and the reaper correctly auto-restarted it as a00-a2edba9e-r1 (iter=0). Benign, self-healed, not intervened on -- but the crash itself is one more unexplained process death on this box while free -g showed nothing alarming, same shape as the watcher kills. Logged for the timestamp, not because the restart needed handling.
 
 L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): RETIRE decided -- Superseded AND remedied, stronger than the reader stated: the killer was named (experiment:a00-e31bda4e-6023ff:36 -- Bun `process.on("memoryPressure")` armed on system-wide /proc/pressure/memory PSI `some 150000 2000000`, not kernel OOM; goal:g17.1:113 causal correction) and the knob that disables it is exported UNCONDITIONALLY on every spawn path (MEASURED dispatch.py:2384 `spawn_env["CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"]="1"`, :1227 dry mirror; rotate.py:153 `REAPER_ENV_EXPORT`; tests test_rotate.py:6165,6187, test_dispatch_dry_run.py:419, test_rotate_launch_wrapper.py:170; shas df7419d9b, f6061d2f1 in HEAD; node hypothesis:l4-spawn-paths-export-the-reaper-knob). Note goal:g15.7 bod EVIDENCE: a00-e31bda4e-6023ff.md:36,48; g17.1.md:113; dispatch.py:1227,2384; rotate.py:153 The status flip + move to deprecated/ is HELD by name: verification.py's never-lower node-count gate keys on ACTIVE and has no path for a deliberate retirement (a hand-lowered baseline would be a disarmed guard); it moves when hypothesis:l4-the-never-lower-gate-names-a-deliberate-retirement lands.
+
+Retired at the L4 closeout (Prime retire list 2026-09-17 12:0xZ from survey hypothesis:a00-e1933e6a-176c0e, executed by sanctuary-master gen 7, status deprecated + moved under deprecated/hypothesis, mint id unchanged): superseded and remedied (the Bun memoryPressure knob).
