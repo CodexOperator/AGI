@@ -5,7 +5,14 @@ type: config
 parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
-alerts: "{audit:[master-sensei],edges:{},silent:[stream-master]}"
+alerts:
+  audit:
+    - master-sensei
+  edges: {}
+  silent:
+    - stream-master
+    - thought-master
+    - director-thought
 edited_by: belam
 fact_bounds:
   model: permanent
