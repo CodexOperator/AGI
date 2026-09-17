@@ -1,0 +1,176 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sanctuary-director",
+  "recorded_at": "2026-09-12T18:38:00.576024Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "sanctuary-director",
+      "windows": [
+        "master-sensei",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "sensei-director",
+        "belam-S1-L4-XVI",
+        "sanctuary-director",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director.gen23"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 22,
+      "after": 23
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2257751,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "sanctuary-director.gen23",
+      "windows": [
+        "master-sensei",
+        "belam-S1-L4-XVII",
+        "stream-master",
+        "sensei-director",
+        "belam-S1-L4-XVI",
+        "sanctuary-director",
+        "belam-S1-L4-XIV",
+        "belam-S1-L4-XIII",
+        "belam-S1-L4-XV",
+        "sanctuary-helper",
+        "sanctuary-director.gen23"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "sanctuary-director.gen23",
+      "id": "@324"
+    },
+    "successor_window": {
+      "name": "sanctuary-director",
+      "id": "@332"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@332",
+      "pid": 1076980,
+      "session_id": "d868ee39-1f73-43b8-bfd6-a7c60ea435bf",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/d868ee39-1f73-43b8-bfd6-a7c60ea435bf.jsonl",
+      "name": "post-sanctuary-director-b8",
+      "path": "/home/ubuntu/.claude/sessions/1076980.json",
+      "note": "joined by @332 in registry file 1076980.json"
+    },
+    "successor_row": "config:seats row 'sanctuary-director': session_ref= session_id=d868ee39-1f73-43b8-bfd6-a7c60ea435bf pid=1076980 generation=23 window='@332' source=registry pubkey=33e5d644aa560d6f... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 38076ef64) -- own-row only: sanctuary-director spawn row: gen 23, session_id d868ee39-1f73-43b8-bfd6-a7c60ea435bf, window @332, pid 1076980\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen23.json",
+    "own_authority_released": "generation 22 of seat 'sanctuary-director' retired; successor generation 23 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch season2/posts/sanctuary-director",
+    "livestream_repoint": {
+      "session": "view-sanctuary-director",
+      "target": "@332",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-sanctuary-director:@332"
+      ],
+      "active_windows": [
+        "@327 0",
+        "@329 0",
+        "@312 0",
+        "@331 0",
+        "@326 0",
+        "@332 1",
+        "@314 0",
+        "@311 0",
+        "@317 0",
+        "@307 0",
+        "@324 0"
+      ]
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5",
+        "effort": "max"
+      },
+      "requested": {},
+      "live": {
+        "model": "claude-opus-5"
+      },
+      "verdict": "mismatch",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
+    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json"
+  },
+  "after_join": {
+    "performer": "tail",
+    "performed_by": "tail",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep sanctuary-director",
+        "rc": 0,
+        "output": "@332 sanctuary-director\n@324 sanctuary-director.gen23\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/d868ee39-1f73-43b8-bfd6-a7c60ea435bf.jsonl",
+        "rc": 0,
+        "output": "0.0790\t79040/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "ack",
+        "cmd": "python3 extensions/agi/bin/rotate.py ack --post sanctuary-director --gen 23 --ref d868ee39-1f73-43b8-bfd6-a7c60ea435bf continue",
+        "rc": 0,
+        "output": "ack written: /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json\nback-filled session_ref=d868ee39-1f73-43b8-bfd6-a7c60ea435bf into own row (source: ack, joined by @332)\nmeter pin present (untouched): /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter\nack: committed own row write (.agi/nodes/.geometry/posts.md):\n-  - {\"name\": \"sanctuary-director\", \"role\": \"director\", \"tier\": 1, \"harness\": \"claude-code\", \"model\": \"claude-opus-5\", \"effort\": \"max\", \"settings\": \"\", \"session_kind\": \"remote-control\", \"personality_ref\": \"\", \"handoff_file\": \"\", \"pin_ref\": \".agi/sessions/sanctuary-director.meter\", \"rotated_by\": \"sanctuary-master\", \"owning_goal\": \"\", \"worktree\": \".agi/worktrees/post-sanctuary-director\", \"session_ref\": \"\", \"session_id\": \"d868ee39-1f73-43b8-bfd6-a7c60ea435bf\", \"generation\": 23, \"window\": \"@332\", \"pid\": 1076980, \"town\": \"all\", \"pubkey\": \"33e5d644aa560d6ffd105ff02915d37a5bb2c37b5d0c787858770596a4b8e795\", \"sig_scheme\": \"ed25519\", \"enc_scheme\": \"none\", \"key_history\": [{\"pub\": \"310a45d58322c4c363f8366d0bb0a04393db7183154615b6385fc8baf6f75058\", \"fp\": \"7be65ab8bb068738\", \"from\": 20, \"to\": 21, \"rotated_by_sig\": \"eb706c3769d993f3ee1ee73ac21cdda20c309f5ed9154f4be6926b36964cfb76e66a331a1f094ff0b024799459db173fcf02050056db604501783bff2ed2c902\"}, {\"pub\": \"8ca7f3552b5a07384c2480636fc7d3d5282c37aaafde8a50f085fbe09e56dff5\", \"fp\": \"15712a822fe220f2\", \"from\": 21, \"to\": 22, \"rotated_by_sig\": \"1bbcee56ee3a11df92f35589be4a5a376dc1539ba67a3ed640a3162c01ad1fd4249a7ffc8de76645385415e6919197b22c6e69982c4ae50d8fc3f6bf935f1b0b\"}, {\"pub\": \"a9fc154f495598373e888dbdda2f92eebbe1a67fd72cdc72aa40aa2d08879cbf\", \"fp\": \"acf281568b8d3d7e\", \"from\": 22, \"to\": 23, \"rotated_by_sig\": \"cce46714e76b893f7a4ca8f2d99724f57d0cd81ffcee650358abbd8b948a9d3632134c2f5a89144d418a40328cd24b970b0fd740458e6e6df40581988a58650c\"}]}\n+  - {\"name\": \"sanctuary-director\", \"role\": \"director\", \"tier\": 1, \"harness\": \"claude-code\", \"model\": \"claude-opus-5\", \"effort\": \"max\", \"settings\": \"\", \"session_kind\": \"remote-control\", \"personality_ref\": \"\", \"handoff_file\": \"\", \"pin_ref\": \".agi/sessions/sanctuary-director.meter\", \"rotated_by\": \"sanctuary-master\", \"owning_goal\": \"\", \"worktree\": \".agi/worktrees/post-sanctuary-director\", \"session_ref\": \"d868ee39-1f73-43b8-bfd6-a7c60ea435bf\", \"session_id\": \"d868ee39-1f73-43b8-bfd6-a7c60ea435bf\", \"generation\": 23, \"window\": \"@332\", \"pid\": 1076980, \"town\": \"all\", \"pubkey\": \"33e5d644aa560d6ffd105ff02915d37a5bb2c37b5d0c787858770596a4b8e795\", \"sig_scheme\": \"ed25519\", \"enc_scheme\": \"none\", \"key_history\": [{\"pub\": \"310a45d58322c4c363f8366d0bb0a04393db7183154615b6385fc8baf6f75058\", \"fp\": \"7be65ab8bb068738\", \"from\": 20, \"to\": 21, \"rotated_by_sig\": \"eb706c3769d993f3ee1ee73ac21cdda20c309f5ed9154f4be6926b36964cfb76e66a331a1f094ff0b024799459db173fcf02050056db604501783bff2ed2c902\"}, {\"pub\": \"8ca7f3552b5a07384c2480636fc7d3d5282c37aaafde8a50f085fbe09e56dff5\", \"fp\": \"15712a822fe220f2\", \"from\": 21, \"to\": 22, \"rotated_by_sig\": \"1bbcee56ee3a11df92f35589be4a5a376dc1539ba67a3ed640a3162c01ad1fd4249a7ffc8de76645385415e6919197b22c6e69982c4ae50d8fc3f6bf935f1b0b\"}, {\"pub\": \"a9fc154f495598373e888dbdda2f92eebbe1a67fd72cdc72aa40aa2d08879cbf\", \"fp\": \"acf281568b8d3d7e\", \"from\": 22, \"to\": 23, \"rotated_by_sig\": \"cce46714e76b893f7a4ca8f2d99724f57d0cd81ffcee650358abbd8b948a9d3632134c2f5a89144d418a40328cd24b970b0fd740458e6e6df40581988a58650c\"}]}\ngit -C /home/ubuntu/work/agi push\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'",
+        "refused": "placeholder {pred_pids} empty: no predecessor chain \u2014 skipped by name"
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn. The full output is in the rotation record.\n\n[join] exit 0\n[pin] exit 0\n[ack] exit 0\n[reap-proof] REFUSED\n\nfull output: /home/ubuntu/work/agi/.agi/sessions/rotations/sanctuary-director.20260912T183732Z.json",
+    "dm_sender": "sanctuary-director",
+    "dm_signed": true
+  },
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      743590,
+      743596,
+      743647,
+      743649
+    ],
+    "reap_source": "derived from own window @id @324 pane 743590: chain [743590, 743596, 743647, 743649] (deepest-first; authority row pid 743649)"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-16T06:38:55.699881Z",
+  "result": "detected",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "sensei-director",
+  "gen": 24,
+  "gen_after": 24,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "",
+  "pred_pids": [
+    1845593
+  ],
+  "row": {
+    "name": "sensei-director",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 1845593,
+    "window": "@379",
+    "session_id": "d7ea4dc9-93a7-44a6-b4f7-c406e592f55f",
+    "generation": 23,
+    "worktree": ".agi/worktrees/post-sensei-director"
+  },
+  "respawn_outcome": {
+    "name": "sensei-director",
+    "generation": 24,
+    "pid": null,
+    "window": null,
+    "reason": "launcher reported no successor process",
+    "row": "skipped"
+  }
+}

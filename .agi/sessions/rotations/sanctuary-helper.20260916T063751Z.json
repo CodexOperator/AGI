@@ -1,0 +1,34 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "sanctuary-helper",
+  "recorded_at": "2026-09-16T06:37:51.275148Z",
+  "result": "detected",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "sanctuary-helper",
+  "gen": 13,
+  "gen_after": 13,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "",
+  "pred_pids": [
+    1851136
+  ],
+  "row": {
+    "name": "sanctuary-helper",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 1851136,
+    "window": "@381",
+    "session_id": "3b0ba931-2370-4aaf-9270-60af9517b359",
+    "generation": 12,
+    "worktree": ".agi/worktrees/post-sanctuary-helper"
+  },
+  "respawn_outcome": {
+    "name": "sanctuary-helper",
+    "generation": 13,
+    "pid": null,
+    "window": null,
+    "reason": "successor window 'sanctuary-helper' already exists",
+    "row": "skipped"
+  }
+}
