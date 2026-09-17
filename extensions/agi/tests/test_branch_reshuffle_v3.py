@@ -2279,3 +2279,53 @@ def test_l5_post_via_hidden_ref_only_resolves_mergeup_and_behind(tmp_path):
     # to the surviving hidden mirror (the wired-identity the seat reads).
     assert _git(r, "-C", str(r / "wt"), "branch",
                 "--show-current").stdout.strip() == post
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-tip —
+# round 2 (kid a00-cebe081d). Round 1 made the two arms share the ORIGIN
+# predicate; this round makes them share the LOCAL-tip classification too, so
+# a trunk the apply arm REFUSES (local branch at a DIFFERENT tip, origin
+# absent) is refused by the PLAN as well instead of promised as a create.
+# --------------------------------------------------------------------------
+
+def test_v3_dry_plan_classifies_a_wrong_tip_local_trunk_like_apply(
+        tmp_path: Path):
+    # The residual the parent proved: with local core/main at a DIFFERENT tip
+    # and origin ABSENT, apply refuses BY NAME (a trunk is never force-moved)
+    # while dry printed `branch create (v3)` + `branch push (new)` it could
+    # never perform. Both arms must ask the SAME classification; only the
+    # OPERATIONS are gated on dry.
+    r = _v3_apply_repo(tmp_path)
+    wrong_sha = _wrong_tip_trunk(r, "core/main")
+    assert "core/main" in _heads(r), "premise: local trunk at the wrong tip"
+    assert "core/main" not in _remote_heads(r), "premise: origin absent"
+    before_remote = _remote_heads(r)
+
+    dry = _run_cli(r / ".agi", "--dry-run", "--kinds", "towns")
+    both = dry.stdout + dry.stderr
+    # a plan that names a refusal is not a crash: exit 0 (the apply arm
+    # exits 1). Precedent: the broken-town-set plan also exits 0.
+    assert dry.returncode == 0, both
+    # the plan does NOT promise a create or a push it cannot perform ...
+    assert "git branch core/main" not in dry.stdout, dry.stdout
+    assert "git push -u origin core/main" not in dry.stdout, dry.stdout
+    # ... it NAMES the refusal, the branch and its state
+    assert "REFUSED" in both and "core/main" in both, both
+    assert "DIFFERENT tip" in both, both
+    # a plan writes nothing
+    assert _git(r, "rev-parse", "core/main^{commit}").stdout.strip() == \
+        wrong_sha, "dry must not move the local trunk"
+    assert _remote_heads(r) == before_remote, "dry must not touch origin"
+    # every OTHER trunk is still planned as a create by the dry arm
+    for target, _tip in _planned_trunks():
+        if target == "core/main":
+            continue
+        assert f"git branch {target} " in dry.stdout, (target, dry.stdout)
+
+    # the apply arm still refuses the same trunk and never force-moves it
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "towns")
+    assert res.returncode != 0, res.stdout + res.stderr
+    assert "REFUSED" in res.stderr and "core/main" in res.stderr, res.stderr
+    assert _git(r, "rev-parse", "core/main^{commit}").stdout.strip() == \
+        wrong_sha, "apply must never force-move a refused trunk"

@@ -4891,9 +4891,13 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
             # the planned tip is a dead pass's LOCAL-ONLY leftover -- re-push
             # it (mur-50 residue (c)); one at a DIFFERENT tip is REFUSED BY
             # NAME (a trunk is never force-moved).
+            # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+            # town-tip (round 2): this LOCAL-tip classification is computed
+            # for BOTH arms -- only the OPERATIONS below are gated on `dry`.
+            # Pre-fix the `not dry` gate made the plan promise a create that
+            # apply refuses, the two arms disagreeing in the other direction.
             resume_state = ""
-            if not dry and has_origin and _post_rename_has_branch(
-                    repo, town_name):
+            if has_origin and _post_rename_has_branch(repo, town_name):
                 cur = _rs_local_commit(repo, town_name)
                 if cur and cur == _rs_local_commit(repo, tip):
                     resume_state = "skip"
@@ -4901,21 +4905,25 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
                     resume_state = "wrong"
             if resume_state == "skip":
                 # rc-gated like the create leg's push; a failed resume-push
-                # is COLLECTED, never an abort (mur-52 residue 2a).
-                print(f"    [APPLY] branch push (v3, resume): git push -u "
-                      f"origin {town_name}")
-                pr = subprocess.run(["git", "push", "-u", "origin",
-                                     town_name], cwd=repo, capture_output=True,
-                                    text=True)
-                if pr.returncode != 0:
-                    print(f"ERR: git push -u origin {town_name} failed: "
-                          f"{pr.stderr.strip()}", file=sys.stderr)
-                    refused.append(town_name)
-                    continue
+                # is COLLECTED, never an abort (mur-52 residue 2a). Under
+                # --dry-run NOTHING runs: the plan prints the same line with
+                # [DRY ] so it still says what apply would do.
+                print(f"    [{'DRY ' if dry else 'APPLY'}] branch push "
+                      f"(v3, resume): git push -u origin {town_name}")
+                if not dry:
+                    pr = subprocess.run(["git", "push", "-u", "origin",
+                                         town_name], cwd=repo,
+                                        capture_output=True, text=True)
+                    if pr.returncode != 0:
+                        print(f"ERR: git push -u origin {town_name} failed: "
+                              f"{pr.stderr.strip()}", file=sys.stderr)
+                        refused.append(town_name)
+                        continue
                 continue
             if resume_state == "wrong":
                 # refused BY NAME, but NEVER force-moved and NEVER an abort:
-                # collect and continue to the next planned pair.
+                # collect and continue to the next planned pair. Printed in
+                # BOTH arms -- a plan reader sees exactly what apply refuses.
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
                       f"already exists at a DIFFERENT tip than the planned "
                       f"{tip}; a trunk-pair create never force-moves a trunk",
@@ -5016,9 +5024,20 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     # town block, so `--apply --kinds main,posts,towns` on a moved tip never
     # reached the post section on ANY retry.
     if refused:
-        print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
-              f"{', '.join(refused)}", file=sys.stderr)
-        return 1
+        # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+        # town-tip (round 2): a --dry-run PLAN is not a crash, so it NAMES
+        # every refusal on stdout and exits 0 -- exactly like the broken-
+        # town-set plan (cli.py `_rs_v3_run` above). --apply is rc-honest and
+        # exits 1. Same classification, different consequence: a plan
+        # proposes, an apply answers for it.
+        if dry:
+            print(f"plan: v3 town creates: {len(refused)} trunk(s) refused "
+                  f"(a plan is not a crash; --apply exits 1): "
+                  f"{', '.join(refused)}")
+        else:
+            print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
+                  f"{', '.join(refused)}", file=sys.stderr)
+            return 1
     return 0
 
 
