@@ -4249,9 +4249,11 @@ def _rs_ladder_towns(root: Path) -> list[str]:
 def _rs_town_set(root: Path) -> tuple[list[dict], str, bool]:
     """I-3a-2 (1): the TOWN SET the v3 plan derives from. Prefers
     towns.town_tuples(root) when a town:* node exists; falls back to the
-    ladder.md towns: table ONLY on towns.TownError — any other exception
-    re-raises (a wrong root or a corrupt geometry is never silently read as
-    'the ladder fallback'). Fallback town_season: core=2, every other town=1
+    ladder.md towns: table ONLY on towns.TownAbsentError (the ONE TRUE
+    ABSENCE — no town:* node at all) — any OTHER towns.TownError (a
+    present-but-broken town set, a VALIDATION REFUSAL) PROPAGATES BY NAME,
+    and any non-town exception re-raises too (a wrong root or a corrupt
+    geometry is never silently read as 'the ladder fallback'). Fallback town_season: core=2, every other town=1
     (the ruling), global_season from the ladder's current_season. Returns
     (tuples, source_label, declared); tuples carry {town, season,
     global_season, council} exactly like town_tuples. `declared` is True when
@@ -4264,7 +4266,9 @@ def _rs_town_set(root: Path) -> tuple[list[dict], str, bool]:
     try:
         tuples = towns.town_tuples(root)
         return tuples, f"town:* nodes ({len(tuples)} towns)", True
-    except towns.TownError:
+    except towns.TownAbsentError:
+        # the ONE TRUE ABSENCE (no town:* node at all) falls back to the
+        # ladder — BYTE-IDENTICAL to today, ZERO behaviour change.
         names = _rs_ladder_towns(root)
         declared = bool(names)
         if not names:
@@ -4285,6 +4289,14 @@ def _rs_town_set(root: Path) -> tuple[list[dict], str, bool]:
         if declared:
             return tuples, f"ladder fallback ({len(tuples)} towns; no town:* node)", True
         return tuples, "no town config (degenerate core floor; plan only)", False
+    except towns.TownError:
+        # a PRESENT-BUT-BROKEN town set is a VALIDATION REFUSAL, never an
+        # absence — it must NOT be swallowed into the ladder fallback. It
+        # propagates to the caller BY NAME. (The TownAbsentError except above
+        # must come FIRST: it is a subclass, and the order keeps its
+        # specificity from being lost.) Callers: a broken town:* node refuses
+        # rather than reporting the graph never declared one.
+        raise
 
 
 
@@ -4468,7 +4480,17 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
     if not (kinds & {"town_main", "main", "post", "loop"}):
         return 0
-    town_tuples, town_src, town_declared = _rs_town_set(root)
+    import towns  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        town_tuples, town_src, town_declared = _rs_town_set(root)
+    except towns.TownError as exc:
+        # clauses 4+5 — a PRESENT-but-BROKEN town:* node is a VALIDATION
+        # REFUSAL, never an absence and never a silent ladder guess. The
+        # reason is printed BY NAME; a --dry-run plan exits 0 (a plan attempt
+        # is not a crash) while --apply HARD-REFUSES non-zero (a broken
+        # declared set is never silently replaced by the ladder fallback).
+        print(f"town set REFUSED: {exc}", file=sys.stderr)
+        return 0 if dry else 1
     print(f"  town set: {town_src}")
     # The v3 TOWN-FIRST tree is DERIVED from the town tuples (I-3a-2): a graph
     # that declares NO town set at all (no town:* node and no ladder towns:
@@ -4833,7 +4855,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     # with no town:* node and no ladder towns: list), the old season-first-
     # only stream stays and the header says the yield is inert.
     import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
-    _rs_tuples, _rs_town_src, _rs_town_declared = _rs_town_set(root)
+    import towns  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        _rs_tuples, _rs_town_src, _rs_town_declared = _rs_town_set(root)
+    except towns.TownError as exc:
+        # clauses 4+5 (same consume-shape as _rs_v3_run): a present-but-
+        # broken town set is a VALIDATION REFUSAL reported BY NAME — a dry
+        # pass exits 0 (a plan attempt is not a crash), a real pass
+        # HARD-REFUSES non-zero (never silently guess from the ladder).
+        print(f"town set REFUSED: {exc}", file=sys.stderr)
+        return 0 if dry else 1
     _v3_on = bool(kinds & {"town_main", "main", "post", "loop"}) and \
         _rs_town_declared
     _yield_note = ("; v3 YIELD active (declared town set)" if _v3_on
