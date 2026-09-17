@@ -1213,6 +1213,52 @@ def _salvage_preserve(worktree: Path | None, agent_id: str,
     return (sha, subject)
 
 
+def _stamp_director_card(root: Path, rec: dict, iter_n: str, verdict: str,
+                         dry_run: bool) -> str:
+    """hyp:l4-the-harvest-stamps-the-directors-card-itself... -- the harvest
+    close (`done`, PARENT tier) rewrites the DIRECTOR seat's own card
+    where-it-stops slot with a FRESH stamp + `harvested <iter> <verdict> <ts>`
+    and `next:` from the card `queue:` line or `ask SM`, through the SHARED
+    rotate locator (`_write_stops_section`), never a second regex. Kid / no
+    own card / no slot = NO write, one line; dry-run = two lines, nothing
+    written; committed via the existing pathspec `_commit_stops_row`. Never
+    raises."""
+    seat = rec.get("dispatched_by") or ""
+    if not seat or (rec.get("tier") or "").strip() == "kid":
+        return (f"card: SKIPPED (kid tier or no dispatcher seat {seat!r})"
+                " -- no write")
+    import rotate  # lazy: rotate.py imports cli at runtime
+    card = rotate._own_card_path(root, seat)
+    if not card.exists():
+        return f"card: SKIPPED no own card for {seat} -- no write"
+    text = card.read_text(encoding="utf-8")
+    _p, _secs = rotate._split_card_sections(text)
+    if rotate._locate_where_it_stops(_secs) in (None, "ambiguous"):
+        return (f"card: SKIPPED {seat} card has no where-it-stops slot"
+                " -- no write")
+    ts = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
+    nxt = "ask SM"
+    for _ln in text.splitlines():
+        _k, _sep, _v = _ln.partition(":")
+        if _sep and _k.strip().lower() == "queue" and _v.strip():
+            nxt = _v.strip()
+            break
+    stop = (f"harvested {iter_n} {verdict} {ts}; "
+            f"next: {nxt} (stamp {ts})")
+    if dry_run:
+        print(f"[dry-run] would append `{iter_n} {verdict} {ts}` to "
+              f"{card.name} where-it-stops/queue region")
+        print(f"[dry-run] would rewrite where-it-stops body to: {stop}")
+        return "card: dry-run -- no write"
+    _full, _err = rotate._write_stops_section(card, seat, stop)
+    if _err:
+        print(f"warn: done card stamp: {_err}", file=sys.stderr)
+        return f"card: SKIPPED ({_err}) -- no write"
+    _out = rotate._commit_stops_row(
+        root, seat, card, f"{seat} harvest stamp {iter_n}")
+    return f"card: stamped {card} ({_out})"
+
+
 def cmd_done(args: argparse.Namespace) -> int:
     if not VERDICT_RE.match(args.verdict):
         print(f"ERR: invalid verdict '{args.verdict}'. Allowed: {VERDICT_HELP}",
@@ -1402,6 +1448,8 @@ def cmd_done(args: argparse.Namespace) -> int:
             else:
                 _why = "target hypothesis has no claim conjuncts to count"
             print(f"[dry-run] tier-parent probe gate: not applicable ({_why})")
+        print(_stamp_director_card(root, rec, args.iter_n, verdict,
+                                   dry_run=True))
         return 0
 
     rec["status"] = "done"
@@ -1520,6 +1568,10 @@ def cmd_done(args: argparse.Namespace) -> int:
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+    _card_line = _stamp_director_card(root, rec, args.iter_n, verdict,
+                                      dry_run=False)
+    if "card: " in _card_line and "SKIPPED" not in _card_line:
+        print(_card_line)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
