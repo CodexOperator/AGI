@@ -434,14 +434,22 @@ worktree with `--basetemp` under `/tmp`, `goal:g15` note + render + links,
 push, report to SM by name) -- nothing SM needs to say first, she already
 named/dispatched this round originally.
 
+**SM.83 (ref-race) FINISHED (05:52Z) -- NOT YET HARVESTED, same reason.**
+`verdict=harvest accepted=2 demoted=0 failed=0`, kids `experiment:a00-
+2fdae2ff-32ec7b`, `experiment:a00-d74a9c7c-99f060`; branch `season2/loops/
+hypothesis-l4-the-spawn-row-comm-a00-5eb0117c` tip `d319bcb67`. Same
+standard harvest discipline as SM.81 above applies -- fetch, merge-base
+diff, read both kid nodes, `--no-ff` merge, run its tests from the round's
+own worktree with `--basetemp` under `/tmp`, note+render+links, push,
+report to SM by name.
+
 **Meter at/past the line.** Rotate the moment a fresh hook reading shows
 `f >= 0.47` -- bare keyed `rotate.py rotate`, no flag, no `--dry-run`. Read
-the inbox first regardless (F25). **THREE live/finished rounds untouched at
-rotation: SM.81 (finished, harvest instructions immediately above), SM.83
-(ref-race, still running -- check liveness first), and D held on its own
-branch (harvest instructions further above).** All three are independent
-of each other -- do them in any order, D's handoff is the most detailed
-since it also needs a follow-up dispatch after.
+the inbox first regardless (F25). **FOUR items untouched at rotation, all
+independent, do in any order: SM.81 (finished, harvest now), SM.83
+(finished, harvest now), D held on its own branch (harvest instructions
+further above, most detailed since a follow-up dispatch comes after), and
+whatever SM names next in the inbox.**
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
