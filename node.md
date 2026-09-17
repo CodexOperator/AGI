@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 7 (2026-09-17 10:3xZ) on the director HOLD of SM.99 (kid 2 a00-d65792f8 closes the leak; the new refuse_live_sessions_from_plain_scratch guard reds 4 full-suite tests that spawn nested pytest from a fixture under an in-tree basetemp): corrective re-cut ordered as SM.100, ceiling 10, base 7d2d3cfc4. Judgement: the false positive is the PREDICATE is_live_checkout(out) = shares the git common root, not the call site; narrow to root identity (find_project_root(cwd) == the live project root / out == live .agi/sessions), never an ancestor-conftest or pytest-rootdir whitelist -- the live rootdir contains .agi/ so the P1 bare-scratch probe would pass it. Tests: the 4 named green under /tmp and in-tree basetemp; P1 negative still refuses; own-config fixture in-tree allowed. The 4 tests and the conftest call site stay untouched.
