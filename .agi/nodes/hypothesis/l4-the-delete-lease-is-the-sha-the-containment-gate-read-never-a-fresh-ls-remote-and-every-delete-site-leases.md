@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.92 (director tip 351ab479f): ACCEPT :85 (parent self-verdicted :90 for 60 raw-added lines vs 30; by numstat net = cli.py +59 -44 = 15 plus rotate.py ~5 = ~20/30, under the line). On the MERGE RESULT: test_branch_reshuffle + test_rotate_verb + test_cli* = 120 green (short basetemp). Read on the bytes: the ONLY git push --delete in cli.py is inside _rs_lease_delete (:3431), pinned with --force-with-lease=refs/heads/<ref>:<sha> to the sha the containment gate read (_rs_containment_state now returns old_sha); the three delete sites (post-rename --delete-old, loop-prune, the merge-up head drop) resolve to that one helper -- proved by test_all_delete_sites_resolve_to_one_lease_helper; a ref moved between the gate read and the push is refused by name (ref, gate sha, live sha) and stays. The parent reproduced the gate-to-probe race with its own counter-file git shim and self-falsified once before the fix. Lands bundled with SM.95 + SM.96 by one director SHA (fewer landings before the one stamp).
