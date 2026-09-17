@@ -52,14 +52,29 @@
       "target": null,
       "skipped": "no successor window @id captured to re-point view-adv-alive to"
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 0s) \u2014 successor has not answered",
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/adv-alive.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
   "after_join": {
-    "claimed_at": "2026-09-17T00:19:11.985619+00:00",
     "performer": "tail",
-    "claim_key": "2026-09-17T00:19:11.790688Z"
+    "performed_by": "tail",
+    "committed_by": "tail",
+    "delay_s": 20,
+    "results": [],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post adv-alive --record latest\n",
+    "delivery": {
+      "mode": "dm+nudge",
+      "nudge": "kept",
+      "typing_refused": "could not resolve the successor pane (tmux absent or no addressable window) or the typed chunk failed"
+    },
+    "dm_sender": "adv-alive",
+    "dm_signed": true,
+    "code_head": "ab9a018",
+    "code_loaded": "1789603798:1032376",
+    "claimed_at": "2026-09-17T00:19:11.985619+00:00",
+    "claim_key": "2026-09-17T00:19:11.790688Z",
+    "performed_after_s": 0.1948390007019043
   }
 }
