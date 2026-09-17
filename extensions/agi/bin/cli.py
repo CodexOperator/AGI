@@ -4181,6 +4181,87 @@ def _v3_loop_post_main(name: str) -> str | None:
         return None
 
 
+def _loop_merge_target(name: str) -> str | None:
+    """The main a KNOWN loop branch merges up into, else None. Covers the
+    three loop grammars in use on THIS tree, each derived through branches
+    -- never a hand-spelled name list:
+      * the v3 town-first `<town>/season<m>/posts/<post>/loops/<round>/<agent>`
+        -> its POST MAIN (`_v3_loop_post_main`, derive_names from the SAME
+        tuple -- the historical loop-prune target, kept);
+      * the season-first `season<n>/loops/<slug>-<agent>` and its legacy
+        one-season alias `loop/<slug>-<agent>@s<n>` -> season<n>/main
+        (branches.merge_target over branches.parse).
+    None for every other shape; the caller NAMES the branch and leaves it
+    alone rather than guessing a merge target."""
+    v3 = _v3_loop_post_main(name)
+    if v3 is not None:
+        return v3
+    import branches  # noqa: PLC0415  (same dir; keeps cli.py's import list)
+    try:
+        p = branches.parse(name)
+    except ValueError:
+        return None
+    if p.get("kind") == "alias":
+        canonical = p.get("canonical")
+        if not canonical:
+            return None
+        try:
+            cp = branches.parse(canonical)
+        except ValueError:
+            return None
+    else:
+        canonical = name
+        cp = p
+    if cp.get("kind") != "loop":
+        return None
+    return branches.merge_target(canonical)
+
+
+def _dead_kid_worktrees(repo: Path) -> list[Path]:
+    """The DEAD KID worktrees at `repo`, enumerated from `git worktree list
+    --porcelain` — a linked worktree whose checkout path sits under
+    `.agi/worktrees/a00-*` AND whose registration is stale (its checkout rest
+    directory is GONE from disk, or it carries no resolvable head ref). A
+    live worktree (post/main) is never returned: its path exists and its
+    branch resolves, and `git worktree prune` clears only dangling
+    registrations regardless. Read-only enumeration; the prune itself is a
+    separate `git worktree prune` call."""
+    wt_root = repo / ".agi" / "worktrees" if (repo / ".agi").is_dir() \
+        else None
+    out: list[Path] = []
+    r = subprocess.run(
+        ["git", "worktree", "list", "--porcelain"],
+        cwd=repo, capture_output=True, text=True)
+    if r.returncode != 0:
+        return out
+    entries: list[dict] = []
+    ent: dict = {}
+    for ln in r.stdout.splitlines():
+        if not ln.strip():
+            if ent:
+                entries.append(ent)
+                ent = {}
+            continue
+        key, _, val = ln.partition(" ")
+        if key == "worktree":
+            ent["path"] = val
+        elif key == "branch":
+            ent["branch"] = val
+        elif key == "detached":
+            ent["detached"] = True
+    if ent:
+        entries.append(ent)
+    for e in entries:
+        path = Path(e.get("path") or "").resolve()
+        if wt_root is None or not str(path).startswith(str(wt_root)) \
+                or "a00-" not in path.name:
+            continue  # never a kid worktree; a post/worktree is not ours
+        stale = not path.is_dir() or bool(e.get("detached"))
+        if stale:
+            out.append(path)
+    return out
+
+
 def _loop_refs(repo: Path) -> tuple[set[str], set[str]]:
     """(local, origin) short branch names at `repo` — the two ref-namespace
     views a prune can act on, split so a delete lands in the right namespace
@@ -4214,23 +4295,33 @@ def _loop_sha(repo: Path, is_local: bool, name: str) -> str:
 
 def cmd_loop_prune(args: argparse.Namespace) -> int:
     """hypothesis:l4-every-branch-name-derives-from-one-tuple-and-only-the-
-    trunk-pair-per-level-reaches-origin — prune a v3 town-first loop branch
-    `<town>/season<m>/posts/<post>/loops/<round>/<agent>` iff it is MERGED
-    into its post main `<town>/season<m>/posts/<post>/main` (derived through
-    branches.derive_names — never hand-spelled a second time).
+    trunk-pair-per-level-reaches-origin — prune loop branches iff MERGED
+    into their season main, plus dead kid worktrees, listing every skip by
+    name. Covers ALL THREE loop grammars in use on this tree through
+    branches (`_loop_merge_target` — never a hand-spelled name list):
+      * the v3 town-first `<town>/season<m>/posts/<post>/loops/<round>/<agent>`
+        -> its POST MAIN `.../posts/<post>/main` (derive_names);
+      * the season-first `season<n>/loops/<slug>-<agent>` and its legacy
+        alias `loop/<slug>-<agent>@s<n>` -> season<n>/main (merge_target).
+    Every NAME not recognised as one of those grammars is printed as a
+    left-alone skip — never a silent pass.
 
     The rule, exactly:
-      * a loop branch's post branch is the post_main of the SAME tuple;
-      * `git merge-base --is-ancestor <loop-sha> <post-sha>` rc 0 => merged
-        => PRUNE;
-      * rc 1 (unmerged) => NEVER prune, and say so per branch;
-      * rc > 1 / probe failure => refuse, never guess.
+      * `git merge-base --is-ancestor <loop-sha> <merge-main-sha>` rc 0
+        => merged => PRUNE;
+      * rc 1 (unmerged) => NEVER prune, say so per branch;
+      * rc > 1 / probe failure => refuse, never guess;
+      * `git worktree prune`s dead KID worktrees under `.agi/worktrees/a00-*`
+        (a post/main worktree is never touched);
+      * every skip — unmerged, refused and every non-loop branch left alone
+        — is named in the output.
 
     Dry-run (the DEFAULT when --apply is absent) prints the plan and WRITES
-    NOTHING — no `git branch -d`, no `push --delete`, no ref change. --apply
-    performs the deletes, always non-force (`git branch -d` for a local,
-    `git push origin --delete` for an origin leg), and never a delete of
-    master or any remote-visible name (branches.is_remote_visible over the
+    NOTHING — no `git branch -d`, no `push --delete`, no `worktree prune`,
+    no ref change. --apply performs the deletes, always non-force (`git
+    branch -d` for a local, `git push origin --delete` for an origin leg,
+    `git worktree prune` for the dead kid registrations), and never a delete
+    of master or any remote-visible name (branches.is_remote_visible over the
     surviving refs is asserted in the tests). --root points at a fixture .agi
     so --apply is hermetic; the live tree prunes only when --root is omitted
     (the Prime's job, mirroring branch-reshuffle)."""
@@ -4242,14 +4333,16 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
 
     local, origin = _loop_refs(repo)
     all_names = sorted(local | origin)
-    merged: list[tuple[str, str]] = []      # (name, post_main) may prune
-    unmerged: list[tuple[str, str, str]] = []  # (name, post_main, state)
+    merged: list[tuple[str, str]] = []      # (name, merge_main) may prune
+    unmerged: list[tuple[str, str, str]] = []  # (name, merge_main, state)
     refused: list[tuple[str, str]] = []     # (name, reason)
+    left_alone: list[str] = []              # non-loop names left untouched
 
     for name in all_names:
-        post = _v3_loop_post_main(name)
+        post = _loop_merge_target(name)
         if post is None:
-            continue  # not a v3 town-first loop branch — not this verb's job
+            left_alone.append(name)  # not a known loop grammar — named, never silent
+            continue
         is_loc = name in local
         is_org = name in origin
         # sha resolution: local leg -> local ref, origin leg -> origin/<name>;
@@ -4280,8 +4373,8 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
             refused.append((name, f"merge-base --is-ancestor rc "
                                   f"{r.returncode}: {r.stderr.strip()}"))
 
-    # plan, one line per branch — the falsifier: unmerged/refused branches
-    # are NAMED and never touched.
+    # plan, one line per branch + one per skip — the falsifier: every
+    # unmerged/refused/left-alone branch is NAMED and never touched.
     for name, post in merged:
         is_loc = name in local
         is_org = name in origin
@@ -4295,6 +4388,17 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
         print(f"unmerged: {name} -> NOT pruned: {why}")
     for name, reason in refused:
         print(f"REFUSE: {name} -> {reason}", file=sys.stderr)
+    for name in left_alone:
+        print(f"left alone: {name} -> not a known loop grammar")
+
+    # dead KID worktrees under .agi/worktrees/a00-* — the registrations
+    # `git worktree prune` clears. A post/main worktree is never listed (its
+    # registration is live) and the prune verb only removes dangling
+    # registrations, so a post worktree is untouchable by construction.
+    dead_kids = _dead_kid_worktrees(repo)
+    for p in dead_kids:
+        print(f"[{'DRY ' if not apply else 'APPLY'}] worktree prune "
+              f"(dead kid): git worktree prune {p.name}")
 
     if not apply:
         print("dry-run: nothing changed")
@@ -4307,6 +4411,18 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
     # reached: the only delete targets are v3 loop-shaped branches, which
     # is_remote_visible excludes by construction (asserted in the tests).
     failed: list[str] = []
+    # dead kid worktree registrations FIRST: one `git worktree prune` clears
+    # every dangling registration, and it must run BEFORE the branch deletes
+    # so a merged loop a dead kid held is no longer considered checked out
+    # (a live post/main worktree is never touched; an unmerged branch is
+    # never reached -- its worktree is live by definition).
+    if dead_kids:
+        r = subprocess.run(["git", "worktree", "prune"], cwd=repo,
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"ERR: git worktree prune failed: {r.stderr.strip()}",
+                  file=sys.stderr)
+            failed.append("worktree-prune")
     for name, post in merged:
         if name in local:
             r = subprocess.run(["git", "branch", "-d", name], cwd=repo,
@@ -4335,7 +4451,8 @@ def cmd_loop_prune(args: argparse.Namespace) -> int:
         print(f"loop-prune: {len(failed)} prune(s) failed, "
               f"{len(refused)} refused", file=sys.stderr)
         return 1
-    print("loop-prune: merged loop branches pruned")
+    print(f"loop-prune: {len(merged)} merged loop branch(es) pruned, "
+          f"{len(dead_kids)} dead kid worktree(s) pruned")
     return 0
 
 
