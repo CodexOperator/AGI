@@ -336,6 +336,19 @@ test code; dispatch is still paused anyway). Reported to SM with full
 detail and the correction; her call on F's verdict, H2 unaffected either
 way.
 
+**SM.78 (I) finished internally (02:08Z) -- HELD, not named yet.** Parent
+self-report: `accepted=3 demoted=0 failed=0`, kids `experiment:a00-d767f2f8-
+c0f0d6` (rebrief 82/60, already resolved in-round), `experiment:a00-13b19b12-
+43b9cf`, `experiment:a00-3b2ef119-9f44ee`; branch `season2/loops/hypothesis-
+l4-message-bodies-are-a00-aeb3ab88` tip `04831cad2d1c69abc74973f8dcc49698a8
+ed61d1`. Not touched -- waiting for SM to name it, same discipline as
+SM.74/SM.79. Only D (SM.72) remains genuinely blocked (on H2, now landed --
+SM has not yet named the D re-verify step).
+
+**Meter climbing fast this rotation (0.33 of 0.47 at last check) from the
+H2 deep-verification work.** Watching it; will rotate at the line if nothing
+else lands first, per standing rule.
+
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
 nothing else lands first; the inbox-peek-first instruction above holds either
