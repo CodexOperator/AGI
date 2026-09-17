@@ -1,0 +1,122 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-belam",
+  "recorded_at": "2026-09-17T22:11:46.282924Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-belam",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-master",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "director-belam",
+        "belam-S1-L4-XXVIII",
+        "director-belam.prev",
+        "sensei-director",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 10319023,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-belam.prev",
+      "windows": [
+        "belam-S1-L4-XXVI",
+        "sanctuary-master",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "director-belam",
+        "belam-S1-L4-XXVIII",
+        "director-belam.prev",
+        "sensei-director",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "thought-master",
+        "belam-S1-L4-XXV",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -4.492
+  },
+  "seated_at": "2026-09-17T22:11:46.282924Z",
+  "window": "director-belam",
+  "session_id": "10fccf80-f58e-430e-b606-3cf12e1943db",
+  "pid": 3811704,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-belam.prev",
+      "id": "@429"
+    },
+    "successor_window": {
+      "name": "director-belam",
+      "id": "@431"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@431",
+      "pid": 3811704,
+      "session_id": "10fccf80-f58e-430e-b606-3cf12e1943db",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/10fccf80-f58e-430e-b606-3cf12e1943db.jsonl",
+      "name": "post-sanctuary-director-1d",
+      "path": "/home/ubuntu/.claude/sessions/3811704.json",
+      "note": "joined by @431 in registry file 3811704.json"
+    },
+    "successor_row": "config:seats row 'director-belam': session_ref= session_name=post-sanctuary-director-1d session_label=director-belam session_id=10fccf80-f58e-430e-b606-3cf12e1943db pid=3811704 generation=2 window='@431' source=registry pubkey=5ca9ee41014215f5... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha daf9ebe41, retried 0) -- own-row only: director-belam spawn row: gen 2, session_id 10fccf80-f58e-430e-b606-3cf12e1943db, window @431, pid 3811704\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-belam.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-belam.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.10fccf80.json",
+    "own_authority_released": "generation 1 of seat 'director-belam' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sanctuary-director/main",
+    "livestream_repoint": {
+      "session": "view-director-belam",
+      "target": "@431",
+      "skipped": "view session view-director-belam absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "247826fdf2ab582cada9dd282b1e2d501e940ff3ed3a57f437a6c53977b55900",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1986259,
+      1986266,
+      1986409,
+      1986411
+    ],
+    "reap_source": "derived from own window @id @429 pane 1986259: chain [1986259, 1986266, 1986409, 1986411] (deepest-first; authority row pid 1986411)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-17T22:12:11.634990+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-17T22:11:46.282924Z"
+  }
+}
