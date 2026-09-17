@@ -39,3 +39,8 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 ```
 Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped 074f58395 (3090/201/3291); SL7.137 + SD.10 GO'd by SHA after pi reviews (run outputs in sessions/workflows/runs/<run_key>/, seam 98eeae2fd); BOTH owner renames STAGED (apply at each post's next boundary); owner rulings banked (two town axes; workflows on pi except TM ingestion; flash-latest for parents + kids); gate every MAIN commit on grep -q '^lock: free' -- never inside a granted stamp window; NEXT (a)-(h) in HANDOFF.md section 0.7
 ```
+
+## 🔴 Where it stops
+```
+Belam gen 26 -> 27 at ~0.41 (2026-09-17 00:3xZ): SL7.139 ruled GO-with-conditions, SM.69 remainder 982257cdd landed (stamp deferred to SM successor), account switched + workspace repointed, heal-watch/backtick/suite-leak g15 nodes routed; NEXT (a)-(h) on the card; nothing blocked
+```
