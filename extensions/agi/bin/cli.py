@@ -1524,11 +1524,13 @@ def cmd_done(args: argparse.Namespace) -> int:
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
     # no flag, right after the done: commit. Never fatal to the done path.
-    _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
-                              args.node_id, verdict, ap)
+    _alarm_rc = _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
+                                          args.node_id, verdict, ap)
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
-    return 0
+    # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
+    # exit code AFTER the verdict is recorded; a clean round exits 0.
+    return _alarm_rc if _alarm_rc else 0
 
 
 def cmd_pending(args: argparse.Namespace) -> int:
