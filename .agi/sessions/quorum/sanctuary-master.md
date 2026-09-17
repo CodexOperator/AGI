@@ -58,8 +58,8 @@ MAIN gen 7: seated 09:57Z at c5295e50b; row/record read gen 0->1 (SM.93 resolver
 STREAM: QUEUE EMPTY per the Prime (09:38Z/09:56Z); closeout (COMPLETE.md) is his; I idle between director lines until he names the next stream.
 SM.99 (director re-dispatch of SM.97 tier-gate, kids a00-99dec2b6 parent / a00-d65792f8 kid): HELD by the director 10:32Z, not merged, origin untouched, branch season2/loops/hypothesis-l4-the-done-tier-gate-a00-99dec2b6 @7d2d3cfc4. Kid 2 closes the leak; the new locations.refuse_live_sessions_from_plain_scratch guard reds 4 full-suite tests (test_dispatch sub_floor_notice, test_evidence_gate out_of_range_lean, test_rotate real_judge_optin_stands_the_stub_down, test_stream_master_real_judge_optin survives_conftest_strip) -- each spawns nested pytest from a fixture under an in-tree basetemp; is_live_checkout(out) = shares the git common root, so the fixture reads as live.
 SM.100 ORDERED 10:4xZ (a57c7f15f) -> HARVESTED 11:26Z (director tip 52e07e438) -> REVIEWED by name on the merge result 11:4xZ: ACCEPT :80 (note 2f8a23bf6): predicate = refuse iff cwd strictly inside the live .agi/ with no closer config; 6/6 probes (P1 refused, no path; engine subdirs + root + own-config fixture allowed); 47 green (4 named + tier-gate family); GOALS round-trip ok; 9/10 lines. Real SM.99 seam = nested pytest launched with cwd = an engine SUBDIR (not an in-tree basetemp -- claim 1 refuses those at session start). Residue disclosed: bare scratch in-repo OUTSIDE .agi/ is allowed (pytest cannot reach it).
-GO ASKED 11:4xZ [merge-up] by SHA 52e07e438 (merge-base = HEAD 95028d041, merge-tree clean). ON GO: lock absent + no MERGE_HEAD + merge-tree again on the live HEAD -> git merge --no-ff 52e07e438 -> push -> ONE numbers line -> window ask -> stamp as two calls (--level rotation --suite, then --stamp; a cron-demoted dirty node: copy aside, checkout, stamp, restore + commit by path).
-SUITE: MAIN stamped 3195/202/3397 at 6a6467829 (gen 6); SM.93 (nodes/rotate only) + SM.100 fold into the next stamp.
+GO by SHA belam 11:31Z -> LANDED 66ef15961 (live-HEAD gate: ONE note/note conflict on the hypothesis node, my ACCEPT note vs the director's -> union in a throwaway tree via git merge-file --union, GOALS round-trip, ff, pushed). Window GRANTED after the landing -> suite 5386/0/16 in 655 s, all 12 green -> --stamp PASS: MAIN STAMPED 3198/202/3400 at 66ef15961 (baseline = .agi/sessions/verify-count.json, untracked, nothing to commit). Numbers line sent 11:5xZ; the director's 1x red named (malformed verdict a00-6e4cec62-f1256a, fixed in-branch).
+SUITE: MAIN stamped 3198/202/3400 at 66ef15961 (gen 7, 5386/0/16).
 IDS: SM.100 = SM.99 corrective. Next free id SM.101.
 ```
 
@@ -80,6 +80,6 @@ IDS: SM.100 = SM.99 corrective. Next free id SM.101.
 ## 🔴 Where it stops
 ````
 ```
-gen 7 LIVE 11:4xZ (0.13 of 0.47): SM.100 ACCEPT :80 on the merge result (2f8a23bf6); GO ASKED by SHA 52e07e438 to belam [merge-up]. ON GO: gate on live HEAD (lock absent, no MERGE_HEAD, merge-tree clean) -> merge --no-ff 52e07e438 -> push -> one numbers line -> window ask -> two-call stamp. Director told: nothing more until the Prime names the next stream. Queue otherwise EMPTY. Nothing held; throwaway tree removed; no dm owed.
+gen 7 IDLE 11:5xZ (0.14 of 0.47): SM.100 LANDED 66ef15961 (note/note union-resolved), MAIN STAMPED 3198/202/3400, suite 5386/0/16, numbers line sent. Prime 11:31Z: nothing else under me before the closeout (SD.13 is the point's). NEXT: idle until the Prime names the next stream; then intake -> plan -> dispatch order to sensei-director (next free id SM.101). Nothing held; no throwaway tree; lock absent; no dm owed.
 ```
 ````
