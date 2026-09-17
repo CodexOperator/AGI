@@ -110,20 +110,14 @@ def _running_record_tiers(root) -> dict:
 
 
 def _default_record_root():
-    """The ONE production root, always tree-derived. The agent.json dispatch
-    writes per run lives under the graph's sessions dir:
-    `<graph>/.agi/sessions/iter-*/<agent>/agent.json`. locations.
-    find_project_root resolves the `.agi` DIRECTORY itself (the one holding
-    config.json), so the sessions dir is `root / "sessions"` -- NOT
-    `root /.agi / sessions`, which doubles the dotdir and scans nothing.
-    There is deliberately NO env override (hypothesis:l4-the-kid-tier-gate-
-    has-no-env-seam): a production env var a kid can set must not point the
-    scan elsewhere.
-    """
-    root = locations.find_project_root(Path(__file__).resolve())
+    """Resolve `<graph>/.agi/sessions` from the invoking tree via the
+    registered `sessions_dir` resolver (claim 1); refuse a scratch (claim 2)."""
+    root = locations.find_project_root(Path.cwd())
     if root is None:
         return None
-    return str(Path(root) / "sessions")
+    out = _PROD_SESSIONS_DIR(root)
+    locations.refuse_live_sessions_from_plain_scratch(out)
+    return str(out)
 
 
 def _record_root():
@@ -413,6 +407,10 @@ if str(_BIN) not in sys.path:
     sys.path.insert(0, str(_BIN))
 import locations  # noqa: E402
 import verification  # noqa: E402
+
+#: PROD `sessions_dir`, captured BEFORE the autouse fixture rebinds it under
+#: tmp (a WRITE-rehome); the tier-gate's READ goes through the real join.
+_PROD_SESSIONS_DIR = locations.sessions_dir
 
 #: Whether the provisioning mutation guard (hypothesis:l4-mint-refuses-under-
 #: pytest-unless-mocked) is engaged for this suite. When True, the `@live`
