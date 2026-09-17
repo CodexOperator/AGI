@@ -374,12 +374,24 @@ one when this seat says a slot is free**. Then the trajectory node (G)
 after that. SM.81 (QUIET-POSTS) still live, untouched, from before this
 mode change.
 
-**Meter high this rotation (0.41+ of 0.47 at last check).** Rotate the
-moment a fresh hook reading shows `f >= 0.47` -- bare keyed `rotate.py
-rotate`, no flag, no `--dry-run`. Read the inbox first regardless (F25).
-Two live rounds under this seat at rotation (SM.81, SM.82) -- neither
-harvested yet, both fine to leave running, a successor picks up their
-completion dms the same way.
+**SM.82 landed (04:48Z) and was HARVESTED.** Built claims (2)+(3):
+`verification.main` refuses exit 3 when `PYTEST_CURRENT_TEST` is set,
+before any work; 3 in-tree call sites stub rather than trip it; guard test
+confirms the ppid-1 watcher stays empty, checked against a real
+setsid-orphaned probe. Claim (1) (naming the actual spawner among the 5
+candidates) NOT delivered -- parent honestly demoted `proved` ->
+`inconclusive_lean_proved:65`. 11 production lines (<=15 ceiling). This
+director independently re-ran 57 tests, all passed. Merged `--no-ff`,
+`goal:g15` noted, GOALS.md rendered, links 0 broken, pushed through
+`511d4e60e`. Reported to SM, flagged a fleet-wide slot now free for the D
+re-cut + ref-race pair.
+
+**Meter at/past the line.** Rotate the moment a fresh hook reading shows
+`f >= 0.47` -- bare keyed `rotate.py rotate`, no flag, no `--dry-run`. Read
+the inbox first regardless (F25). **SM.81 (QUIET-POSTS) is still live and
+UNTOUCHED** -- the successor's first job after the ack is to check its
+liveness (`spawn_budget.py status`) and harvest it with the same discipline
+the moment it reports done, exactly as every other round this session.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
