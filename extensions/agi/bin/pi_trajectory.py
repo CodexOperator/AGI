@@ -26,6 +26,9 @@ _NAMED = "trajectory: not captured: {}\n"
 
 def main(argv):
     a = argv[1:]
+    if a and a[0] in ("-h", "--help"):
+        sys.stdout.write(__doc__)
+        return 0
     if len(a) < 5 or a[0] != "--wrapper" or a[3] != "--":
         return 2
     pi_bin, traj_path, pi_args = a[1], a[2], a[4:]
