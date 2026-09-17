@@ -3576,13 +3576,17 @@ def _rename_surfaces(root: Path, old: str, new: str,
         seen.setdefault(src, item)
 
     sessions = _sessions_dir(root)
+    # the rename PLAN file is not itself a rename surface: at staging time it
+    # does not exist, at boundary-apply time it does, and including it would
+    # make every re-derived table drift from the staged one (L5.02).
+    _stage_self = sessions / "seats" / f"{old}.rename.json"
     for sub in ("", "seats", "quorum", "inbox"):
         base = sessions if not sub else sessions / sub
         dirs = [base] if base.is_dir() else []
         if not dirs:
             continue
         for p in sorted(base.glob(f"{old}*")):
-            if not p.is_file():
+            if not p.is_file() or p == _stage_self:
                 continue
             dst = p.parent / (p.name.replace(old, new, 1))
             add("session-file", str(p), str(dst), "rename-file")
@@ -3895,20 +3899,36 @@ def newk_present_in(data: dict, newk: str) -> bool:
     return newk in data
 
 
+def _refusal_names(names, limit: int = 5) -> str:
+    """`a, b, c (+N more)` -- a refusal names the offending surfaces/paths,
+    capped at `limit` so a large drift never floods the line."""
+    shown = ", ".join(str(n) for n in names[:limit])
+    return shown + (f" (+{len(names) - limit} more)"
+                    if len(names) > limit else "")
+
+
 def _apply_staged(root: Path, old: str, delete_old: bool = False,
-                  run_git=None, run_tmux=None, live: bool = False) -> int:
+                  run_git=None, run_tmux=None, live: bool = False,
+                  boundary: bool = False, record: dict | None = None) -> int:
     """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
     apply EVERY appliable surface in ONE pass. This is what the next
     rotate-self of `old` runs between the predecessor rotate-out and the
     successor spawn, so the successor seats under the NEW name (never
-    mid-generation). The rotating predecessor IS the live holder of the
-    pid when it runs this, so there is deliberately NO liveness refusal
-    here (that gate lives on the --now/--apply operator path in
-    cmd_rename_post). A privileged caller (the Prime, at merge-up) may pass
-    run_git=lambda *a: rotate._live_git(root, *a) (and the tmux analog) to
-    run the boundary apply for REAL; the default (None) keeps the print-only
-    seams. Returns 0 when applied or already applied (stage gone -> no-op),
-    1 on a malformed stage."""
+    mid-generation). The rotating predecessor IS the live holder of the pid
+    when it runs this, so there is deliberately NO liveness refusal here
+    (that gate lives on the --now/--apply operator path in cmd_rename_post).
+
+    The json is a PLAN, never trusted stale: the fresh table is RE-DERIVED
+    from `_rename_surfaces(root, old, new)` at apply time and compared
+    keyed on `(kind, src, dst)`; any surface present on one side only, or
+    with a differing `action`, is DRIFT -- refused by NAME, nothing applied,
+    the stage left intact. With `boundary=True` a non-churn dirty tree is
+    refused first (cron churn excluded by `_prepare_dirty_paths`).
+
+    Returns 0 applied/already-applied (stage gone -> no-op), 1 malformed or
+    nameless stage, 2 drift or dirty-tree refusal. `record` (optional dict)
+    receives `applied_rename` so the boundary caller can carry the applied
+    surfaces into the rotation record."""
     stage = _sessions_dir(root) / "seats" / f"{old}.rename.json"
     if not stage.exists():
         return 0  # already applied / never staged -> no-op
@@ -3917,19 +3937,51 @@ def _apply_staged(root: Path, old: str, delete_old: bool = False,
     except Exception:  # noqa: BLE001
         print(f"rename-post: malformed stage {stage}", file=sys.stderr)
         return 1
-    surfaces = data.get("surfaces") or []
-    # The boundary apply runs inside the rotating predecessor's OWN rotate-
-    # self, between its rotate-out and the successor spawn -- i.e. always on
-    # a LIVE pid (the caller's own). A live-pid refusal therefore refuses
-    # exactly the window this function exists to serve. The liveness gate
-    # belongs to the --now/--apply OPERATOR verb (cmd_rename_post), not
-    # here: this path applies the staged table UNCONDITIONALLY and consumes
-    # it on success (a second call, stage gone, is a no-op).
-    _apply_surfaces(root, surfaces, delete_old=delete_old,
-                    run_git=run_git, run_tmux=run_tmux, live=live)
+    new = str(data.get("new") or "").strip()
+    if not new:
+        print(f"rename-post: stage {stage} names no new name",
+              file=sys.stderr)
+        return 1
+    if boundary:
+        dirty = _prepare_dirty_paths(
+            _git_maybe(root, "status", "--porcelain"), root,
+            _git_toplevel(root))
+        if dirty:
+            print("rename-post REFUSED: dirty tree -- "
+                  + _refusal_names(dirty), file=sys.stderr)
+            return 2
+
+    def _tbl(rows: list[dict]) -> dict:
+        return {(str(s.get("kind")), str(s.get("src")), str(s.get("dst"))):
+                s.get("action") for s in rows}
+
+    try:
+        fresh = _rename_surfaces(root, old, new)
+    except RenameTownRefusal as exc:
+        print(f"rename-post REFUSED: {exc}", file=sys.stderr)
+        return 2
+    staged_t, fresh_t = _tbl(data.get("surfaces") or []), _tbl(fresh)
+    drift = sorted(k for k in set(staged_t) | set(fresh_t)
+                   if staged_t.get(k) != fresh_t.get(k))
+    if drift:
+        print("rename-post REFUSED: staged plan drifted -- "
+              + _refusal_names([f"{k[0]}: {k[1]} -> {k[2]}" for k in drift]),
+              file=sys.stderr)
+        print("rename-post REFUSED: staged plan drifted", file=sys.stderr)
+        return 2
+
+    applied, skipped = _apply_surfaces(
+        root, fresh, delete_old=delete_old, run_git=run_git,
+        run_tmux=run_tmux, live=live)
     # consume the stage once applied so the next boundary call is a no-op
     if stage.exists():
         stage.unlink()
+    if record is not None:
+        record["applied_rename"] = {
+            "old": old, "new": new, "applied": applied, "skipped": skipped,
+            "surfaces": [{"kind": s["kind"], "src": str(s["src"]),
+                          "dst": str(s["dst"]), "action": s["action"]}
+                         for s in fresh]}
     return 0
 
 
@@ -5277,6 +5329,8 @@ def _write_rotation_record(root: Path, record: dict,
     _preserve_audit(record, path)
     # (clause a) nor the OUTCOME rewrite: 0 of 18 records carried the seal.
     _preserve_stops_sha(record, path)
+    # (L5.02) nor the boundary rename's applied-surface table.
+    _preserve_applied_rename(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -5376,6 +5430,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     # (SL7.134) nor the Sensei's `audit` block, written on this same file
     #     between the join and the outcome rewrite (mechanism (A)).
     _preserve_audit(rec, path)
+    # (L5.02) nor the boundary rename's applied-surface table.
+    _preserve_applied_rename(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
@@ -5391,6 +5447,22 @@ def _preserve_stops_sha(rec: dict, existing_path: Path | None) -> None:
             _old = json.loads(existing_path.read_text(encoding="utf-8"))
             if _old.get("stops_sha256"):
                 rec["stops_sha256"] = _old["stops_sha256"]
+    except Exception:                        # noqa: BLE001
+        pass
+
+
+def _preserve_applied_rename(rec: dict, existing_path: Path | None) -> None:
+    """(L5.02) merge the boundary `applied_rename` fact back from the
+    on-disk rotation record, so a later rewrite of the SAME file never drops
+    the surfaces the rename boundary applied (mechanism (A), same as
+    `_preserve_stops_sha`). Absent on disk -> leaves `rec` unchanged."""
+    if "applied_rename" in rec or existing_path is None:
+        return
+    try:
+        if existing_path.exists():
+            _old = json.loads(existing_path.read_text(encoding="utf-8"))
+            if _old.get("applied_rename"):
+                rec["applied_rename"] = _old["applied_rename"]
     except Exception:                        # noqa: BLE001
         pass
 
@@ -9131,7 +9203,9 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_id: str | None = None,
                          session_name: str = "",
                          key_rotation: dict | None = None,
-                         first_key_cells: dict | None = None) -> str:
+                         first_key_cells: dict | None = None,
+                         row_seat: str | None = None,
+                         session_label: str | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
@@ -9195,9 +9269,25 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # first spawn write, beside session_name; the ack back-fill never passes
     # it, so it stays what the spawn row write set.
     import write as _w  # local: same dir (send.py pattern, no import cycle)
-    cells["session_label"] = _session_label(
-        next((r for r in _w._load_seats(_shared_graph_root(root))
-              if r.get("name") == seat), {}), generation) or ""
+    # L5.02 clause 2: after a boundary rename the seats ROW still carries the
+    # OLD name (the round never writes config), so the successor's row lookup
+    # keys on `row_seat` (the applied rename's old name) and resolves through
+    # the one `aliases:` table when the row itself was already renamed. The
+    # label is passed EXPLICITLY by the boundary caller (the same string the
+    # spawn passes as --remote-control), so the GUI label and the stored cell
+    # AGREE. `_write_identity_cells` writes the RESOLVED row, never a phantom
+    # new-named one; an unresolved row is the named skip below, never silent.
+    _rows = _w._load_seats(_shared_graph_root(root))
+    _want = row_seat or seat
+    _row = next((r for r in _rows if r.get("name") == _want), None)
+    if _row is None:
+        _alias = _rename_aliases(_shared_graph_root(root)).get(_want)
+        if _alias:
+            _row = next((r for r in _rows if r.get("name") == _alias), None)
+    _row_name = (_row or {}).get("name") or _want
+    cells["session_label"] = (
+        session_label if session_label is not None
+        else _session_label(_row or {}, generation)) or ""
 
     if pid is not None:
         cells["pid"] = pid
@@ -9225,8 +9315,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # never a second `_write_identity_cells` call, never a second commit.
     if first_key_cells:
         cells.update(first_key_cells)
-    if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
-                                 cells=cells):
+    if not _write_identity_cells(root, seat=_row_name, actor=_row_name,
+                                 role=role, cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
@@ -18199,6 +18289,62 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             gen_before=gen_before, gen_after=gen,
             template_source=geom_src, stops_sha256=_ss, role=role)
 
+    # (0.9) RENAME BOUNDARY (hypothesis:l5-rotate-wires-apply-staged-into-
+    # the-rotation-boundary): a staged `seats/<seat>.rename.json` is
+    # RE-DERIVED and applied HERE -- before the handoff, the bootstrap and
+    # the spawn -- so the successor is seated under the NEW name. A refusal
+    # (drift / dirty tree / malformed) returns WITHOUT spawning. The
+    # boundary NEVER writes config: the row name and prose mentions stay
+    # PRINTED `ship` lines, so the seats row still reads the OLD name here
+    # and `--rc-label` keeps that row's label (documented deviation).
+    _stage_path = _sessions_dir(root) / "seats" / f"{seat}.rename.json"
+    _applied_rename = None
+    # which name the own window will ACTUALLY carry at step (2): the boundary
+    # renames tmux only under real seams; with the default print-only seam the
+    # window keeps the OLD name.
+    _own_from = seat
+    if _stage_path.exists():
+        if args.dry_run:
+            print(f"(0.9) rename boundary: {_stage_path.name} staged; would "
+                  f"re-derive and apply before the spawn (dry-run, nothing "
+                  f"touched)")
+        else:
+            _bnd_rec: dict = {}
+            _live_seams = bool(getattr(args, "live", False))
+            _old_seat = seat
+            _brc = _apply_staged(
+                root, seat, boundary=True, live=_live_seams,
+                run_git=(lambda *a: _live_git(root, *a)) if _live_seams
+                else None,
+                run_tmux=(lambda *a: _live_tmux(root, *a)) if _live_seams
+                else None,
+                record=_bnd_rec)
+            if _brc != 0:
+                print(f"ERR: rename boundary refused (rc={_brc}); no "
+                      f"successor spawned", file=sys.stderr)
+                return _brc
+            _applied_rename = _bnd_rec.get("applied_rename") or {}
+            seat = _applied_rename.get("new") or seat
+            spawn_name = seat
+            _own_from = seat if _live_seams else _old_seat
+            if not is_chain_seat:
+                # the own-window rename must target the name the window
+                # ACTUALLY carries: with real tmux seams the boundary already
+                # renamed `old` -> `new`; with the default print-only seam the
+                # window is untouched, so rename the OLD name aside.
+                new_name = f"{seat if _live_seams else _old_seat}.prev"
+                pred_name = new_name
+            dbg = args.debug_file or str(_sessions_dir(root) /
+                                         f"{seat}.log")
+            if rec_path is not None:
+                _rec0 = json.loads(Path(rec_path).read_text())
+                _rec0["applied_rename"] = _applied_rename
+                Path(rec_path).write_text(
+                    json.dumps(_rec0, indent=2) + "\n", encoding="utf-8")
+            print(f"(0.9) rename boundary: {_applied_rename.get('old')} -> "
+                  f"{seat}: {_applied_rename.get('applied')} applied, "
+                  f"{_applied_rename.get('skipped')} skipped; stage consumed")
+
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
     if not args.dry_run:
@@ -18233,14 +18379,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         if not args.dry_run:
             _renamed_own_id = _rename_own_window(
-                seat, new_name, tmux_session, args.window_path)
+                _own_from, new_name, tmux_session, args.window_path)
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
                                        template_source=geom_src,
                                        stops_sha256=_ss, role=role)
-        print(f"(2) rename own window {seat!r} -> {new_name!r}")
+        print(f"(2) rename own window {_own_from!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
     #     driven-prompt, 0b round) — resolve and (unless dry-run) RUN each
@@ -18380,7 +18526,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # at the successor generation, passed as the --remote-control NAME. The
     # tmux WINDOW name stays `spawn_name` (seat / numeral) — decoupled here,
     # never renames the window (pane addressing keys on the window name).
-    _rc_label = _session_label(row, gen)
+    # L5.02 clause 1 (hypothesis:l5-rotate-wires-apply-staged-into-the-
+    # rotation-boundary): after a boundary rename the successor's app-GUI
+    # identity is the NEW name. The rows row still reads the OLD name here
+    # (the round never writes config), so the label is derived from the NEW
+    # seat name the successor was actually seated under, never the stale
+    # pre-boundary row. No stage existed -> byte-identical to the old path.
+    if _applied_rename:
+        _rc_label = _session_label({"name": seat, "role": role}, gen)
+    else:
+        _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -18702,6 +18857,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 session_name=((joined or {}).get("name", "")
                               if (joined and joined.get("found")) else ""),
                 generation=gen,
+                # L5.02 clause 2: the row that EXISTS (old name) is the one
+                # the identity cells are written into; the label is the NEW
+                # name, passed explicitly so GUI and cell agree.
+                row_seat=(_applied_rename or {}).get("old"),
+                session_label=(_rc_label if _applied_rename else None),
                 # goal:g15.25 line (2): the successor pubkey + key_history
                 # cells ride this ONE spawn-row write (and the ONE
                 # `_commit_spawn_row` below) -- never a second submit.
