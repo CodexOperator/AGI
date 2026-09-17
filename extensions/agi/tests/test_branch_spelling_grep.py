@@ -137,6 +137,9 @@ PINNED = {
     'verification.py': [
         'season/s<N',
     ],
+    'workflow.py': [
+        'season2/m',
+    ],
 }
 
 
