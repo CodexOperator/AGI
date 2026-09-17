@@ -316,7 +316,9 @@ def _sessions_dir(root: Path) -> Path:
     room resolver); both are one implementation so the plain join and the
     shared resolver can never disagree (falsifier g4 of hypothesis:l4-a-check-
     that-answers-a-question-it-is-not-asking)."""
-    return locations.shared_sessions_dir(root)
+    out = locations.shared_sessions_dir(root)
+    locations.refuse_live_resolution(root, out)
+    return out
 
 
 def find_pin_log(root: Path, seat: str | None = None) -> Path | None:
@@ -9074,6 +9076,7 @@ def _write_identity_cells(root: Path, *, seat: str, actor: str, role: str,
     import geometry_config  # noqa: PLC0415  (local: same dir, no cycle)
     import write  # local: same dir (send.py pattern, no import cycle)
     main_root = _shared_graph_root(root)
+    locations.refuse_live_resolution(root, main_root)
     rows = write._load_seats(main_root)
     new_rows: list[dict] = []
     found = False
