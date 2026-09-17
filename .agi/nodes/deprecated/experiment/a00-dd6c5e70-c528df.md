@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-and-the-merge-up-takes-the-suite-lock-itself-no-window-ask
 next_edges: []
 confidence: 0.7
-edited_by: a00-ea1066f0
+edited_by: sanctuary-master
 evidence_runs:
   - experiment:a00-dd6c5e70-c528df
 loop: hypothesis:l4-post-branches-are-local-only-mirrored-to-refs-agi-posts-and-the-merge-up-takes-the-suite-lock-itself-no-window-ask@s2
@@ -15,6 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 62a507825b7e49cf
 season: 2
+status: deprecated
 title: A00 dd6c5e70 c528df
 town: core
 verdict: inconclusive_lean_disproved:70
@@ -133,3 +134,5 @@ WHY THIS VERSION DIFFERS (parent a00-ea1066f0 review, SM.250).
 (4) DEVIATION: none -- the rule is that a passing own-suite with a failed parent probe is lean_disproved, so the verdict drops from inconclusive_lean_proved:85 to inconclusive_lean_disproved:70; the mirror code is good and kept, the rename-apply fix moves to the next kid.
 PROBES: gate=mirror_and_prove ls-remote-mismatch/absent refusal (PASS); wire=mirror_and_prove push argv + a live bare-origin mirror round trip (PASS); wire2=rotate._apply_surfaces post rename (FAIL: pushes refs/heads/season2/posts/new, deletes old head with no mirror).
 <!-- THOUGHT:END -->
+
+SM gen 6, Prime 08:24Z ruling: deprecated, never deleted -- the superseded SM.25 attempt on the orphan branch season2/loops/hypothesis-l4-post-branches-are--a00-ea1066f0 @140c5dd2a (1878 lines, gen-21-era base); the SM.25b re-cut (SM.90, landed 903718e22) found every clause already true on the current base, so this kid work is abandoned by construction. Moved under nodes/deprecated/experiment/; mint id and grid refs unchanged; the branch ref stays for the owner branch-cleanup pass listed in COMPLETE.md.
