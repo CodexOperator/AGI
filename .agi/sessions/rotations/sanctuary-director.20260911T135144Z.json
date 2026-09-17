@@ -129,5 +129,30 @@
       3096987
     ],
     "reap_source": "derived from own window @id @278 pane 3096981: chain [3096981, 3096986, 3096987] (deepest-first)"
+  },
+  "audit": {
+    "out": {
+      "calls": 11,
+      "pre": 0,
+      "a": 0,
+      "b": 2,
+      "c": 4,
+      "d": 5,
+      "floor": 1,
+      "excess": 10,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/914d302a-b33f-4c5f-b78d-a8b7320df6c5.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1315,
+        "ts": "2026-09-11T13:48:39.478Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-11T13:52:15.779888Z"
+      },
+      "audited_at": "2026-09-17T00:24:15Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
