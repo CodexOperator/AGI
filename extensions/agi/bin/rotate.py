@@ -3325,6 +3325,27 @@ def _rename_aliases(root: Path | None) -> dict:
     return out
 
 
+def _shared_seat_rows(root: Path | None) -> list[dict]:
+    """The `config:posts` rows as the SHARED graph reads them (MAIN).
+
+    `_load_seats` is caller-root derived, so a rename stage taken from MAIN
+    and its boundary re-derived from the post's own (stale) worktree read two
+    different `posts.md` files: a row NAME or a `rotated_by`/`pin_ref`/
+    `worktree`/`handoff_file` cell MAIN commits between stage and apply then
+    reads as a surface on one side only and the boundary refuses the stage as
+    drift (hypothesis:l5-rename-post-staged-from-main-root-derives-main-
+    comms-paths-for-a-worktree-post). The rename surface enumeration -- and
+    the town check inside it -- must read ONE row table, so stage and boundary
+    agree.
+
+    SCOPED to `_rename_surfaces`/`_row_town_or_refuse`: every other
+    `_load_seats` caller keeps the caller-root rows, because a worktree
+    seat's registry for the rest of the command is legitimately the tree it
+    was handed."""
+    shared = locations.shared_project_root(root)
+    return _load_seats(Path(shared) if shared is not None else Path(root))
+
+
 def _seat_by_name(root: Path | None, name: str) -> dict | None:
     if root is None:
         return None
@@ -3678,9 +3699,13 @@ def _rename_surfaces(root: Path, old: str, new: str,
         else:
             add(kind, src, dst, "rename-file")
 
-    # names in the row surface (ONE row write, never in-set here)
+    # names in the row surface (ONE row write, never in-set here). The row
+    # table comes from the SHARED graph (MAIN) so a worktree whose posts.md
+    # is stale w.r.t. MAIN cannot split stage from boundary -- the brief's
+    # `rotated_by`/`pin_ref`/`worktree`/`handoff_file` cell axis.
+    sroot = locations.shared_project_root(root) or root
     cols = ("rotated_by", "pin_ref", "worktree", "handoff_file")
-    for row in _load_seats(root):
+    for row in _load_seats(sroot):
         nm = row.get("name")
         if nm == old:
             add("row name", f"row {old} name", f"row {new} name", "ship",
@@ -3697,10 +3722,10 @@ def _rename_surfaces(root: Path, old: str, new: str,
                         f"row {new}.{k}->{new}", "ship",
                         print_line=f"write.py {nm} 'replace {k} -- {new}'")
 
-    old_town = _row_town_or_refuse(root, old)
-    new_row = _find_seat(root, new)
+    old_town = _row_town_or_refuse(sroot, old)
+    new_row = _find_seat(sroot, new)
     if new_row is not None:
-        new_town = towns.row_town(root, new_row)
+        new_town = towns.row_town(sroot, new_row)
         if new_town != old_town:
             raise RenameTownRefusal(
                 f"rename-post REFUSED: {old} is in town {old_town}, the new "

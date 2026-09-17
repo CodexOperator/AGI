@@ -154,3 +154,62 @@ def test_gate_still_refuses_a_genuinely_new_mention_after_staging(tmp_path):
     rot.write_text(rot.read_text() + "and old again\n", encoding="utf-8")
     assert rotate._apply_staged(wt_graph, "old", "new") == 2
     assert (graph / "sessions" / "seats" / "old.rename.json").exists()
+
+
+def _set_row_cell(graph, cell, value):
+    """Rewrite `old`'s row in the committed seats.md with an extra cell."""
+    p = graph / "nodes" / ".geometry" / "seats.md"
+    row = {"name": "old", "role": "kid", cell: value}
+    p.write_text('---\nid: config:seats\nseats:\n  - '
+                 + json.dumps(row, sort_keys=True) + '\n---\n# body\n',
+                 encoding="utf-8")
+
+
+def test_boundary_apply_from_worktree_agrees_on_main_committed_row_cell(tmp_path):
+    """L5.18 kid 3: the `config:posts` row surface (`row name`, `row cell
+    <col>`) must resolve from the SHARED graph root. The worktree is cut
+    FIRST, then MAIN commits a `rotated_by: old` cell on the `old` row; the
+    stage from MAIN lists that cell, the boundary re-derived from the
+    worktree's stale seats.md does not, and pre-fix `_apply_staged` refuses
+    the stage as drift (rc 2). Post-fix both read MAIN's row table."""
+    repo, graph = _main_repo(tmp_path)
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "--detach", str(wt), "master")
+    wt_graph = wt / ".agi"
+    assert "rotated_by" not in (wt_graph / "nodes" / ".geometry"
+                                / "seats.md").read_text(encoding="utf-8")
+
+    _set_row_cell(graph, "rotated_by", "old")  # MAIN commits it afterwards
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "row cell")
+
+    ns = argparse.Namespace(old_name="old", new_name="new", dry_run=False,
+                            now=False, apply=False, root=None)
+    assert rotate.cmd_rename_post(ns, graph) == 0
+    assert (graph / "sessions" / "seats" / "old.rename.json").exists()
+    assert rotate._apply_staged(wt_graph, "old", "new") == 0
+    assert not (graph / "sessions" / "seats" / "old.rename.json").exists()
+
+
+def test_gate_still_refuses_a_genuinely_new_row_cell_after_staging(tmp_path):
+    """Falsifier guard for the kid-3 fix: routing the row table through the
+    shared root must NOT weaken the drift gate. A row CELL MAIN commits AFTER
+    the stage was written is a genuinely new surface and must still be
+    refused (rc 2), stage left intact."""
+    repo, graph = _main_repo(tmp_path)
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "--detach", str(wt), "master")
+    wt_graph = wt / ".agi"
+    _set_row_cell(graph, "rotated_by", "old")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "row cell")
+
+    ns = argparse.Namespace(old_name="old", new_name="new", dry_run=False,
+                            now=False, apply=False, root=None)
+    assert rotate.cmd_rename_post(ns, graph) == 0
+    # MAIN gains a SECOND cell on the row after the stage was written
+    _set_row_cell(graph, "pin_ref", "old")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "second cell")
+    assert rotate._apply_staged(wt_graph, "old", "new") == 2
+    assert (graph / "sessions" / "seats" / "old.rename.json").exists()
