@@ -918,6 +918,9 @@ def _greps_a_source(low: str) -> bool:
     return False
 
 
+_AUDIT_VERB = re.compile(r"\bsensei\.py[^;&|\n]{0,60}audit\b|\bwrite\.py\b|"
+                         r"\bsend\.py send\b|\brotate\.py rotate\b|\bgit (commit|push)\b", re.I)
+
 def _is_byhand_read(cmd: str, tool: str) -> bool:
     """Category b: a read/action the seat does BY HAND that a template entry
     (first_turn or after_join) already covers — ps/tmux process-tree checks,
@@ -926,8 +929,9 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
     The `rotate.py ack` / `meter --pin` steps are owned by category `s`
     (service-owed), handled before this rule is ever reached."""
     nc = _norm_cmd(cmd).lower()
-    if re.search(r"\bps(\s|$)", nc) or re.search(r"\btmux\b", nc):
-        return True
+    if _AUDIT_VERB.search(cmd):
+        return False
+    if re.search(r"\bps(\s|$)", nc) or re.search(r"\btmux\b", nc):        return True
     if re.search(r"sessions/rotations|claude/projects", nc):
         return True
     # clause (3): the session-keyed ack spell `seats/<seat>.ack.<sid8>.json`
@@ -1318,6 +1322,31 @@ def _is_row_commit(cmd: str) -> bool:
         sp in nc for sp in _CFG_FILE_SPELLINGS)
 
 
+_REAL_WAKE = re.compile(r"^\[(?:agi-nudge|(?:kid|overdue|dead)[^\]]*)\]", re.M)
+def _wake_inputs(path):
+    """(nudge_lines, first_real_line, user_lines) over the live wake, ONE scan."""
+    nudge, user, first = set(), [], None
+    for ln, l in enumerate(open(path, encoding="utf-8", errors="replace")):
+        try:
+            ev = json.loads(l)
+        except json.JSONDecodeError:
+            continue
+        if ev.get("type") != "user":
+            continue
+        c = ev.get("message", {}).get("content")
+        ts = [c] if isinstance(c, str) else [b.get("text") or "" for b in c
+              if isinstance(b, dict) and b.get("type") == "text"]
+        t = " ".join(ts)
+        if not t.strip():
+            continue
+        user.append(ln)
+        if "[agi-nudge]" in t:
+            nudge.add(ln)
+        if first is None and _REAL_WAKE.search(t):
+            first = ln
+    return nudge, first, user
+
+
 def wake_audit(root: Path, seat: str, gen: int | None,
                transcript_path: Path | None,
                record: str | None = None) -> tuple[int, list[dict], dict]:
@@ -1376,9 +1405,18 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     # calls scanned (before the window cut).
     ack_idx: int | None = None
     first_d_idx: int | None = None
-    for tool, inp in _iter_tool_uses(log_path):
+    nudge_lines, first_input, user_lines = _wake_inputs(log_path)
+    first_input_idx = None
+    for ln, tool, inp, _ts in _iter_assistant_tool_uses(log_path):
         cat, label, cmd = classify_tool_use(
             tool, inp, seat, entries, facts, hand_paths, after_join)
+        # conjunct 2: a send.py read answering an [agi-nudge] is service-owed.
+        if cat in ("a", "b") and re.search(r"\bsend\.py read\b", cmd):
+            prev = next((l for l in reversed(user_lines) if l < ln), None)
+            if prev is not None and prev in nudge_lines:
+                cat, label = "s", "nudge"
+        if first_input_idx is None and first_input is not None and ln >= first_input:
+            first_input_idx = len(calls) + 1
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "source": source})
@@ -1421,6 +1459,9 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     elif first_d_idx is not None:
         window_end = first_d_idx
         reason = f"first (d) at {first_d_idx}"
+
+    if first_input_idx and first_input_idx - 1 < window_end:
+        window_end, reason = first_input_idx - 1, f"first real input at {first_input_idx}"
 
     window_calls = calls[:window_end]
     window_counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
@@ -2156,10 +2197,12 @@ def _read_verb_operand_is(cmd: str, path: str) -> bool:
     body, an `echo`) is not a read."""
     if not path:
         return False
-    for m in re.finditer(r"(?<![\w-])(?:cat|head|tail|less|more|sed)(?![\w-])",
-                         cmd):
-        seg = re.split(r"[|;&]", cmd[m.end():])[0]
-        for tok in seg.split():
+    for m in re.finditer(
+            r"(?<![\w-])(?:cat|head|tail|less|more|sed|grep|rg)(?![\w-])",
+            cmd):
+        # neutralize quoted spans so a `|` inside quotes stays in-segment.
+        seg = re.sub(r"['\"][^'\"]*['\"]", " ", cmd[m.end():])
+        for tok in re.split(r"[|;&]", seg)[0].split():
             if tok.strip("'\"") == path:
                 return True
     return False
