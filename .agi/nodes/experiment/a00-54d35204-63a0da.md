@@ -1,0 +1,104 @@
+---
+id: experiment:a00-54d35204-63a0da
+mint_id: c50a18a3d3a841bd8088da68d0af28a8
+type: experiment
+parents:
+  - hypothesis:l4-a-refused-town-set-is-never-reported-as-an-absent-one
+next_edges: []
+confidence: 0.9
+edited_by: a00-e15e05ba
+evidence_runs:
+  - experiment:a00-54d35204-63a0da
+line_ceiling: 40
+loop: hypothesis:l4-a-refused-town-set-is-never-reported-as-an-absent-one@s2
+model: ~deepseek/deepseek-v4-flash-latest
+production_lines: 27
+profile: balanced
+role: kid
+scaffold_hash: 43852eaba549d165
+season: 2
+title: A refused town set raises a distinct TownAbsentError from any validation refusal and rs_town_set propagates not falls back
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-54d35204-63a0da
+
+## Experiment
+
+SD.12 mur-49 R6 implementer A — clauses 1+2+3 of
+`hypothesis:l4-a-refused-town-set-is-never-reported-as-an-absent-one` (g15
+fix-only round; KID B owns the two CALLERS, clauses 4+5). Shape chosen:
+**(a) PROPAGATE** — a present-but-broken town set is a validation REFUSAL
+that must reach the caller BY NAME, never the `ladder fallback` message.
+
+Clause 1 (`extensions/agi/bin/towns.py`): added `class TownAbsentError(TownError)`
+next to `TownError` (:46). The one TRUE absence raise at :249 (`no town:*
+nodes found under nodes/town...`) now raises `TownAbsentError`; every other
+raise site (validation refusals :135, :185, :195, :201, :217, :219, :223,
+:243) keeps raising plain `TownError`, message text untouched. Same shape
+R2 used for the ledger (`_ABSENT_LEDGER_ERRORS` vs `LedgerReadError`,
+rings.py:326-340): absence vs present-but-broken by TYPE, never message text.
+`TownAbsentError` subclasses `TownError`, so existing `except
+TownError:` callers (incl. the old fallback) still catch the absence —
+deliberate, the fallback path stays intact. Added `TownAbsentError` to
+`__all__`.
+
+Clause 2 (`_rs_town_set`, cli.py): the absence path is ZERO behaviour change.
+`except towns.TownAbsentError:` runs the exact prior fallback (ladder
+`towns:` list → `declared`; else degenerate `["core"]` floor, `declared`
+False) with byte-identical message strings and tuple construction —
+regression-pinned by two new tests. Docstring updated to name the split.
+
+Clause 3 (`_rs_town_set`, cli.py): a separate `except towns.TownError:
+raise` (AFTER the `TownAbsentError` clause — order matters, the subclass
+must catch first or specificity is lost) re-raises every validation
+refusal, so `_rs_town_set` NEVER falls back to the ladder on a broken
+set, even when the ladder lists the broken town.
+
+**CONTRACT FOR KID B (the callers, cli.py ~:4386 and ~:4751 — NOT touched):**
+`_rs_town_set` now returns `(tuples, src, declared)` on absence just as
+before, and RAISES a plain `towns.TownError` (a `TownAbsentError`-sibling,
+NEVER the absent subclass) on a validation refusal. B must catch that
+non-absent `TownError` at each caller and report the refusal BY NAME (the
+exact `str(e)` names the offending town/vision) instead of proceeding on
+the ladder set. Both `load_towns`/`town_tuples` raise the same split.
+
+Tests (all `extensions/agi/tests/test_towns.py`, fixture-rooted, never the
+live tree): the absent subclass is a subclass-not-the-base and town_tuples
+raises it on a genuinely town-less graph; a dangling vision id raises plain
+(non-absent) TownError; `_rs_town_set` on a town-less graph + no ladder
+list → unchanged degenerate floor (`declared` False, source label exact);
+town-less + ladder list → unchanged ladder fallback (`declared` True);
+`_rs_town_set` on a broken town (dangling vision) → raises plain TownError
+naming the id, never the fallback message. `cli` is imported via
+`spec_from_file_location` so the `_rs_town_set` boundary is tested
+directly, independent of B's caller wiring.
+
+Searched the existing suites for tests asserting fallback-on-a-broken
+config: the only tower-cli fallback tests use `with_town_nodes=False`
+(the ABSENCE path — still falls back, correct); no test constructs a
+BROKEN town and asserts `ladder fallback`, so no old test was flipped.
+
+LIVE INVARIANT: the real tree's town set is VALID (prints `town set:
+town:* nodes (5 towns)`), so `_rs_town_set` takes the town_tuples branch —
+`branch-reshuffle --dry-run --kinds main,towns,posts,loops` output is
+byte-identical (change is invisible on a valid set; it only alters the
+a broken-set path).
+
+Changed test files all green: `test_towns.py` 17 passed, plus
+`test_branch_reshuffle_v3.py` + `test_cli.py` 104 passed. Production diff:
+27 lines added / 6 removed across `towns.py`+`cli.py` (ceiling 40, 2x=80).
+
+## Evidence
+
+- `git diff --numstat` prod (towns.py+cli.py): 16/4 + 11/2 = 27 added.
+- `python3 -m pytest extensions/agi/tests/test_towns.py -q` → 17 passed.
+- `python3 -m pytest ... test_branch_reshuffle_v3.py test_cli.py -q` → 104 passed.
+- live `branch-reshuffle --dry-run --kinds main,towns,posts,loops` →
+  `town set: town:* nodes (5 towns)` (valid path, unchanged).
+
+## Agent Notes
+Clauses 1+2+3 landed: TownAbsentError(TownError) raised only at the true-absence site; _rs_town_set absence path byte-identical (regression pinned); validation refusals now propagate BY NAME, never ladder fallback. 5 new fixture tests green (test_towns 17, cli+reshuffle 104). Prod diff 27 added. Live tree valid: output byte-identical. Contract for kid B documented in node: callers must catch the non-absent TownError and name the refusal.
+
+probes: 5/5 PASS (parent a00-e15e05ba) -- gate(1) broken town (dangling vision:ghost) => _rs_town_set raises plain TownError naming it, NOT fallback; gate(1b) town_tuples raises plain TownError not TownAbsentError; gate(2) town-less => TownAbsentError; wire(3) town-less no ladder list => degenerate core floor declared=False src="no town config (degenerate core floor; plan only)"; wire(4) town-less + ladder towns:[core] => declared=True "ladder fallback (1 towns; no town:* node)". LIVE: real-tree dry-run differs by 0 town-set bytes; 2 HELD BY NAME lines drifted from live loop/post branch state (env, not this diff).
