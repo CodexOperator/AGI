@@ -858,6 +858,38 @@ def test_v3_apply_resume_remote_present_is_a_noop(tmp_path: Path):
     assert _remote_heads(r) == before, "a present-trunk resume moved a tip"
 
 
+def test_v3_apply_town_on_origin_but_not_local_agrees_with_dry(
+        tmp_path: Path):
+    # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-tip:
+    # the FALSIFYING state. A planned town trunk exists on origin (at a
+    # DIFFERENT tip than the plan) but is NOT a local branch. Pre-fix the dry
+    # arm called this a NO-OP while the apply arm tested only the LOCAL ref,
+    # fell into the create leg, and its `git push -u origin core/main` was a
+    # non-fast-forward refusal that exited non-zero -- the two passes
+    # disagreeing over the SAME input. One shared origin classification must
+    # make both arms NO-OP it.
+    r = _v3_apply_repo(tmp_path)
+    tree = _git(r, "rev-parse", "master^{tree}").stdout.strip()
+    wrong = _git(r, "commit-tree", tree, "-m", "wrong tip").stdout.strip()
+    _git(r, "push", "-q", "origin", f"{wrong}:refs/heads/core/main")
+    assert "core/main" not in _heads(r), "premise: not a local branch"
+    before = _remote_heads(r)
+    assert before["core/main"] == wrong, before
+
+    dry = _run_cli(r / ".agi", "--dry-run", "--kinds", "towns")
+    assert dry.returncode == 0, dry.stdout + dry.stderr
+    assert "[NO-OP] core/main already on origin" in dry.stdout, dry.stdout
+
+    res = _run_cli(r / ".agi", "--apply", "--kinds", "towns")
+    assert res.returncode == 0, res.stdout + res.stderr
+    assert "[NO-OP] core/main already on origin" in res.stdout, res.stdout
+    assert "ERR" not in res.stderr, res.stderr
+    # the present trunk was neither force-moved nor pushed, and apply did NOT
+    # create a local duplicate it was told to NO-OP
+    assert _remote_heads(r)["core/main"] == wrong, "present trunk moved"
+    assert "core/main" not in _heads(r), "apply created a local dup"
+
+
 def test_v3_apply_resume_ls_remote_failure_refuses_by_name(tmp_path: Path):
     # rc-honesty: a FAILED ls-remote is UNKNOWN, never read as absent. The
     # resume must refuse BY NAME, exit non-zero, and push nothing. A fixture
