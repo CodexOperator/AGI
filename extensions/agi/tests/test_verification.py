@@ -522,6 +522,49 @@ def test_suite_lock_guard_free_proceeds(tmp_path, monkeypatch):
     assert not (tmp_path / "sessions" / verification.SUITE_LOCK).exists()
 
 
+# --- the read-only holder judgement (hypothesis:l4-the-suite-lock-has-one-
+# --- read-only-holder-judgement-...): the ONE reader the probe-only callers
+# --- share, READ-ONLY, never creating or unlinking ------------------------
+
+
+def test_suite_lock_holder_live_foreign_pid_readonly(tmp_path, monkeypatch):
+    """A LIVE foreign holder returns its pid and the READ touches nothing:
+    same bytes, same mtime. The probe that used to poke the lock (planting a
+    live pid for microseconds) now only reads it."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("424242")
+    before_mtime = lock.stat().st_mtime_ns
+    import time as _t
+    _t.sleep(0.01)  # force a distinct mtime if the probe ever rewrote it
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: pid == 424242)
+
+    assert verification.suite_lock_holder(tmp_path) == 424242
+    # the file is byte-identical and never rewritten
+    assert lock.read_text().strip() == "424242"
+    assert lock.stat().st_mtime_ns == before_mtime
+
+
+def test_suite_lock_holder_absent_creates_nothing(tmp_path):
+    """Absent lock: None returned, NEVER a file created by the probe."""
+    assert verification.suite_lock_holder(tmp_path) is None
+    assert not (tmp_path / "sessions" / verification.SUITE_LOCK).exists()
+
+
+def test_suite_lock_holder_dead_pid_left_for_the_acquirer(tmp_path,
+                                                          monkeypatch):
+    """A dead pid reads as None and the probe leaves the file for the
+    acquirer (claim 3: stale-breaking is the acquirer's job, never the
+    probe's). Opposite of the guard's own stale-break, stated as the choice."""
+    lock = tmp_path / "sessions" / verification.SUITE_LOCK
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text("999999")
+    monkeypatch.setattr(verification, "_pid_alive", lambda pid: False)
+
+    assert verification.suite_lock_holder(tmp_path) is None
+    assert lock.exists() and lock.read_text().strip() == "999999"
+
+
 # --- the bin freshness guard (goal:g15.10 / L4.81) -------------------------
 
 
