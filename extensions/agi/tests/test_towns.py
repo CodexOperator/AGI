@@ -270,3 +270,107 @@ def test_cli_imports_outside_pytest_and_accepts_either_root(tmp_path):
         assert r.returncode == 0, r.stderr
         assert "'town': 'core'" in r.stdout and "'season': 2" in r.stdout
     assert towns.town_tuples(tmp_path) == towns.town_tuples(g)
+
+
+# ---------------------------------------------------------------------------
+# mur-49 R6 clauses 1+2+3 — the TownAbsentError type split (hypothesis:l4-a-
+# refused-town-set-is-never-reported-as-an-absent-one). Absence vs
+# present-but-broken are distinguished by TYPE, never by message text: a
+# graph with NO town:* node at all raises TownAbsentError (the ONE TRUE
+# ABSENCE) and `_rs_town_set` falls back to the ladder; a graph with a
+# BROKEN town:* node raises plain TownError (a VALIDATION REFUSAL) and
+# `_rs_town_set` PROPAGATES it BY NAME rather than swallowing it into the
+# ladder fallback message.
+# ---------------------------------------------------------------------------
+
+
+def _rs_town_set_cli():
+    """Import cli.py from its bin dir so `_rs_town_set` can be tested at its
+    OWN boundary. The CLI callers are kid B's clause 4+5 — this round proves
+    the refusal shape here, direct, never through a fallback message."""
+    import importlib.util
+    import sys as _sys
+    from pathlib import Path as _P
+    _BIN = _P(__file__).resolve().parents[1] / "bin"
+    if str(_BIN) not in _sys.path:
+        _sys.path.insert(0, str(_BIN))
+    import locations  # noqa: E402,F401  (resolves through BIN)
+    spec = importlib.util.spec_from_file_location("cli", _BIN / "cli.py")
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    return cli
+
+
+def test_town_absent_error_is_a_subclass_not_the_base(tmp_path):
+    """Clause 1: the one TRUE absence raises the NEW subclass, so callers
+    can tell 'no town:* node' from 'town present but broken' by TYPE while
+    the pre-existing `except towns.TownError` still catches the absence."""
+    assert towns.TownAbsentError is not towns.TownError
+    assert issubclass(towns.TownAbsentError, towns.TownError)
+    g = _graph(tmp_path)  # ladder + posts + visions, but ZERO town:* nodes
+    with pytest.raises(towns.TownAbsentError) as e:
+        towns.town_tuples(g)
+    assert "no town:* nodes" in str(e.value)
+    assert isinstance(e.value, towns.TownError)  # still catchable by base
+
+
+def test_validation_refusal_is_plain_town_error_not_absent(tmp_path):
+    """Every NON-absent town failure keeps raising plain TownError (never
+    TownAbsentError) — a dangling vision id is a broken set, not absence."""
+    g = _graph(tmp_path, visions=("vision:a",))  # fixture has no vision:ghost
+    _write(g, "nodes/town/core.md",
+           _town_node("core", ["vision:a", "vision:ghost"], "council-core", 2))
+    with pytest.raises(towns.TownError) as e:
+        towns.town_tuples(g)
+    assert not isinstance(e.value, towns.TownAbsentError)
+    assert "vision:ghost" in str(e.value)
+
+
+def test_rs_absent_floor_byte_identical(tmp_path):
+    """Clause 2: a genuinely town-less graph (no town:* nodes, no ladder
+    towns list) → the same degenerate core floor, `declared` False, same
+    source label — ZERO behaviour change on the absence path."""
+    g = tmp_path / ".agi"
+    _write(g, "nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\n---\n")  # no `towns:` list
+    cli = _rs_town_set_cli()
+    tuples, src, declared = cli._rs_town_set(g)
+    assert declared is False
+    assert src == "no town config (degenerate core floor; plan only)"
+    assert tuples == [{"town": "core", "season": 2,
+                       "global_season": 2, "council": "core"}]
+
+
+def test_rs_absent_with_ladder_list_falls_back_declared(tmp_path):
+    """Clause 2: no town:* nodes but ladder carries an explicit towns list →
+    absence STILL falls back to the ladder set, `declared` True (unchanged)."""
+    g = tmp_path / ".agi"
+    _write(g, "nodes/.geometry/ladder.md",
+           "---\ncurrent_season: 2\ntowns: [core, streaming-suite, "
+           "web-app-suite]\n---\n")
+    cli = _rs_town_set_cli()
+    tuples, src, declared = cli._rs_town_set(g)
+    assert declared is True
+    assert src == "ladder fallback (3 towns; no town:* node)"
+    assert tuples == [
+        {"town": "core", "season": 2, "global_season": 2, "council": "core"},
+        {"town": "streaming-suite", "season": 1, "global_season": 2,
+         "council": "streaming-suite"},
+        {"town": "web-app-suite", "season": 1, "global_season": 2,
+         "council": "web-app-suite"},
+    ]
+
+
+def test_rs_broken_town_refuses_never_falls_back(tmp_path):
+    """Clause 3: a PRESENT-but-BROKEN town:* node (dangling vision id) makes
+    `_rs_town_set` PROPAGATE the plain TownError BY NAME — never the ladder
+    fallback message, and non-absent even though the ladder lists that town."""
+    g = _graph(tmp_path, visions=("vision:a",))
+    _write(g, "nodes/town/core.md",
+           _town_node("core", ["vision:a", "vision:ghost"], "council-core", 2))
+    cli = _rs_town_set_cli()
+    with pytest.raises(towns.TownError) as e:
+        cli._rs_town_set(g)
+    assert not isinstance(e.value, towns.TownAbsentError)
+    assert "vision:ghost" in str(e.value)
+
