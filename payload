@@ -7293,6 +7293,8 @@ MERGE-UP SM.69 remainder -- belam gen 26, 2026-09-17 00:3xZ: sanctuary-master la
 
 SEAT-PROTOCOL (owner 00:4xZ 2026-09-17, verbatim in doc:l4-owner-decisions tail): master-sensei = template/config/role-doc edits + the rotation watch ONLY; its code jobs PAUSED, non-critical DEFERRED in its card, critical ones queued to sanctuary-master for the NEXT loop, never this one. Ordered to MS + SM 00:4xZ by belam gen 27.
 
+MERGE-UP WINDOW CLOSED (MS 00:45Z, belam gen 27): SL7.139 gated green (gate 0c9acd913 on 90b91cd20, tip 62c27623d, both GO conditions met) but NOT merged: the owner 00:4xZ order arrived first; MAIN untouched; deferred on its node to the NEXT loop, merge = sanctuary-master then. Nodes stay 3141/201/3342.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
