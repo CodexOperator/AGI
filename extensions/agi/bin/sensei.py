@@ -30,6 +30,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
@@ -1347,9 +1348,31 @@ def _wake_inputs(path):
     return nudge, first, user
 
 
+def _settled_wait(rec_path, grace: int = 240,
+                  clock=None, sleep=time.sleep) -> None:
+    """Block till the rotation record shows `result: success` AND the grace
+    has elapsed since success was first observed. Clock- and sleep-abstracted
+    (unittest can drive the 240 s by monkeypatching `time.monotonic`, never a
+    real wait); re-reads the record each poll so a --settled first call cannot
+    return before the rotation settled."""
+    clock = clock or time.monotonic  # resolved at CALL time -> monkeypatchable
+    success_at = None
+    while True:
+        try:
+            rec = json.loads(Path(rec_path).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            rec = {}
+        if success_at is None and rec.get("result") == "success":
+            success_at = clock()
+        if success_at is not None and clock() - success_at >= grace:
+            return
+        sleep(1)
+
+
 def wake_audit(root: Path, seat: str, gen: int | None,
                transcript_path: Path | None,
-               record: str | None = None) -> tuple[int, list[dict], dict]:
+               record: str | None = None,
+               settled: bool = False) -> tuple[int, list[dict], dict]:
     """Run the classification over the seat's wake transcript.
 
     Returns `(exit_code, per_call_rows, counts)` so the CLI body and the tests
@@ -1397,6 +1420,8 @@ def wake_audit(root: Path, seat: str, gen: int | None,
         print(f"ERR: transcript {log_path} does not exist ({source})",
               file=sys.stderr)
         return 2, [], {}
+    if settled:
+        _settled_wait(rec_path)
 
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
@@ -1852,7 +1877,8 @@ def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
 def cmd_wake_audit(root: Path, args) -> int:
     code, calls, counts = wake_audit(root, args.seat, args.gen,
                                      Path(args.transcript) if args.transcript else None,
-                                     record=getattr(args, "record", None))
+                                     record=getattr(args, "record", None),
+                                     settled=getattr(args, "settled", False))
     if code != 0:
         return code
     redact = getattr(args, "redact", True)
@@ -2225,7 +2251,8 @@ def _harvest_read_of(path: str, tool: str, inp, cmd: str) -> bool:
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
                      transcript_path: Path | None,
                      registry_dir: str | None = None,
-                     record: str | None = None
+                     record: str | None = None,
+                     settled: bool = False
                      ) -> tuple[int, list[dict], dict, dict]:
     """Classify the outgoing predecessor's calls from its last real input to
     the record's `recorded_at` (mirror of `wake_audit`).
@@ -2288,6 +2315,8 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
     if rec_path is None:
         print(f"ERR: {basis}", file=sys.stderr)
         return 2, [], {}, {}
+    if settled:
+        _settled_wait(rec_path)
     out_rec = out_rec or {}
     record_stamp = _record_stamp(rec_path, seat)
     # `window['gen']` is kept for readers that already hold it; it is the
@@ -2356,7 +2385,8 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         root, args.seat, args.gen,
         Path(args.transcript) if args.transcript else None,
         registry_dir=args.registry_dir,
-        record=getattr(args, "record", None))
+        record=getattr(args, "record", None),
+        settled=getattr(args, "settled", False))
     if code != 0:
         return code
     row = seat_row(load_seats(root), args.seat)
@@ -2566,6 +2596,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-record", action="store_true",
                    help="dry read: print the audit line and write NOTHING "
                         "into the rotation record")
+    p.add_argument("--settled", action="store_true",
+                   help="wait INSIDE the verb (record success + 240 s grace) "
+                        "before auditing, so a first call is the audit and no "
+                        "background timer shape survives")
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
@@ -2589,6 +2623,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-record", action="store_true",
                    help="dry read: print the audit line and write NOTHING "
                         "into the rotation record")
+    p.add_argument("--settled", action="store_true",
+                   help="wait INSIDE the verb (record success + 240 s grace) "
+                        "before auditing, so a first call is the audit and no "
+                        "background timer shape survives")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
