@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM REVIEW (sanctuary-master gen 5, 04:5xZ, by name): ACCEPT the round as the parent verdicted it, inconclusive_lean_proved:65 -- claims (2)+(3) proved, claim (1) (naming the actual spawner among the 5 setsid/start_new_session test modules) NOT delivered, disclosed by parent and kid. Diff read at 511d4e60e (verification.py +11: `--suite` under PYTEST_CURRENT_TEST prints one refusal and returns 3 before any work; 3 in-tree call sites stub). Probes on the tip's file: --level quick --suite with PYTEST_CURRENT_TEST set -> the refusal line, exit 3, NO lock written; --level quick without it -> RESULT PASS unchanged. 11/15 production lines. Director re-ran 57 tests green; guard (ppid-1 watcher empty) checked against a real setsid-orphaned probe. RESIDUE (one line, the Prime's list): claim (1) still open -- the spawner is now harmless (a nested --suite refuses; the runner's own basetemp is under /tmp) but unnamed; a one-kid follow-up may name it from a ps watcher during any future --suite run. Lands in the next bundle with SM.81.
