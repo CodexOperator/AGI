@@ -531,9 +531,13 @@ def _run_cli(project, *args):
 @pytest.fixture
 def wired_project(project):
     """`project` plus what cli.py needs: an agent record and a goal parent."""
-    ad = project / "sessions" / "iter-001" / "a1"
-    ad.mkdir(parents=True)
-    (ad / "agent.json").write_text(json.dumps({"id": "a1", "status": "run"}))
+    it = project / "sessions" / "iter-001"
+    (it / "a1").mkdir(parents=True)
+    (it / "a1" / "agent.json").write_text(
+        json.dumps({"id": "a1", "status": "run"}))
+    # `done` returns 1 with no harvest dm unless an iteration manifest holds
+    # the round's agent (hypothesis:l4-suite-green-... CLASS C).
+    (it / "manifest.json").write_text(json.dumps({"agents": [{"id": "a1"}]}))
     return project
 
 

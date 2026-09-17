@@ -57,7 +57,13 @@ def test_suite_argv_gains_durations_and_parses_the_table(tmp_path, monkeypatch):
     seen: dict = {}
     _stub_suite(monkeypatch, "print(%r)" % TABLE, seen)
     r = verification.run_check(groot, "tests", verbose=False)
-    assert seen["argv"][-1] == "--durations=15", seen["argv"]
+    # The suite argv GAINS `--durations=15`; the runner's private basetemp is
+    # appended AFTER it (verification.py: durations first, then the runner-
+    # owned --basetemp). Both are present, in that order (CLASS E).
+    assert "--durations=15" in seen["argv"], seen["argv"]
+    assert seen["argv"].index("--durations=15") < \
+        len(seen["argv"]) - 1, seen["argv"]
+    assert seen["argv"][-1].startswith("--basetemp="), seen["argv"]
     assert r.durations == [
         {"test": "extensions/agi/tests/test_rotation_alerts.py::test_slow",
          "seconds": 20.0},
@@ -77,6 +83,24 @@ def test_no_durations_table_records_empty_never_invented(tmp_path, monkeypatch):
     r = verification.run_check(groot, "tests", verbose=False)
     assert r.status == "PASS"
     assert r.durations == []
+
+
+def test_counts_parse_the_final_summary_line_not_a_nested_one():
+    """CLASS E: a nested pytest banner inside a test's captured output must
+    not win the count — pytest's own footer is the LAST count line, and that
+    line is the one the runner reads (an `18 failed, 5307 passed` run whose
+    table and footer agree)."""
+    out = (
+        "tests/test_slow.py::test_slow ... ok\n"
+        "reproducer printed: nested summary 12 passed in 519.42s\n"
+        "================ slowest 15 durations ================\n"
+        "20.00s call tests/test_slow.py::test_slow\n"
+        "============ 18 failed, 5307 passed, 16 skipped in 600.00s =====\n"
+    )
+    assert verification._parse_pytest_counts(out) == {
+        "failed": 18, "passed": 5307, "skipped": 16}
+    # A run with NO footer at all still reports no count, never a phantom.
+    assert verification._parse_pytest_counts("nothing countable here") == {}
 
 
 def test_non_suite_check_argv_untouched(tmp_path, monkeypatch):
