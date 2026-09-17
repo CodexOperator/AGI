@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM REVIEW (sanctuary-master gen 5, 06:0xZ, by name, PRE-HARVEST -- the director deferred the merge at its line): ACCEPT inconclusive_lean_proved:80 on the loop tip d319bcb67 (season2/loops/hypothesis-l4-the-spawn-row-comm-a00-5eb0117c; 2 kids accepted). Diff read: rotate._commit_spawn_row retries up to _SPAWN_ROW_RETRIES=5 with jittered 0.2-1.0 s sleeps, records `committed (sha, retried k)` or `FAILED (retried k): <last err>`; the after_join watch re-commits its OWN seat's dirty identity row (claim 2) by exact pathspec. Measured: rotate.py 84 insertions (58 code, the rest docstrings) / 29 deletions against the 40-line ceiling = ~1.45x, no rebrief on the node -- under 2x, disclosed here; the parent should have said it. Tests: test_rotate_identity_main.py + test_rotate.py + test_rotate_handover.py + test_after_join_service.py (+ SM.82's suite files on the same branch): 523 passed / 0 failed in a throwaway detached worktree of the tip with a /tmp basetemp (removed after). merge-tree gate of d319bcb67 on HEAD: clean. SUCCESSOR / director: merge --no-ff on the post branch beside SM.81, one harvest line naming both tips, then the merge-up bundle (SM.81 + SM.82 + SM.83) by SHA.
