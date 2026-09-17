@@ -108,15 +108,26 @@ def test_boundary_drift_refuses_and_leaves_stage(tmp_path):
     _seats(tmp_path)
     _sessions(tmp_path, "old")
     stage = _stage(tmp_path, "old", "new")
-    # a NEW old-named file appears AFTER staging: the fresh table carries a
-    # surface the staged plan never did -- drift, refused by name.
-    (tmp_path / "sessions" / "inbox" / "old.extra").write_text("x",
-                                                               encoding="utf-8")
+    # TWO new old-named files appear AFTER staging: the fresh table carries
+    # surfaces the staged plan never did -- drift, refused by name.
+    for extra in ("old.extra", "old.second"):
+        (tmp_path / "sessions" / "inbox" / extra).write_text(
+            "x", encoding="utf-8")
     rc, err = _err(lambda: rotate._apply_staged(tmp_path, "old",
                                                 boundary=True))
     assert rc == 2, err
     assert "staged plan drifted" in err
-    assert "old.extra" in err
+    assert err.count("rename-post REFUSED: staged plan drifted") == 1, err
+    # the claim is a count of LINES, not of one substring: a future edit
+    # that split the refusal across two stderr lines would fool the
+    # substring count above.
+    refusal_lines = [ln for ln in err.splitlines()
+                     if "rename-post REFUSED" in ln]
+    assert len(refusal_lines) == 1, err
+    # and "once" must not be bought by gutting the message: both drifted
+    # surfaces are still named in that single line.
+    assert "old.extra" in refusal_lines[0], err
+    assert "old.second" in refusal_lines[0], err
     assert stage.exists(), "stage must stay intact on drift"
     assert (tmp_path / "sessions" / "seats" / "old.key").exists()
     assert not (tmp_path / "sessions" / "seats" / "new.key").exists()
