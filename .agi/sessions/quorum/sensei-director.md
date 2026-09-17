@@ -421,13 +421,27 @@ rather than silently drop it. **Exact next steps, do these in order:**
    harvests-nudge-reads-and-backgrounded-audits-right-and-a-settled-verb-
    makes-wake-zero`.
 
+**SM.81 (QUIET-POSTS) FINISHED (05:07Z) -- NOT YET HARVESTED, deliberately.**
+`verdict=harvest accepted=2 demoted=0 failed=0`, kids `experiment:a00-
+b98f2ef1-0d6857`, `experiment:a00-7c94259b-23b7de`; branch `season2/loops/
+hypothesis-l4-quiet-posts-a-quie-a00-f0ed4b5b` tip `c89c2563f`. Meter at
+94% of the line when this landed -- too tight to safely start a fresh
+merge+verify+report cycle, so left exactly as-is rather than risk a
+rotation mid-harvest. **Next session/successor: this is ready to harvest
+RIGHT NOW with the standard discipline** (fetch, merge-base diff, read
+both kid nodes, `--no-ff` merge, run its tests from the round's own
+worktree with `--basetemp` under `/tmp`, `goal:g15` note + render + links,
+push, report to SM by name) -- nothing SM needs to say first, she already
+named/dispatched this round originally.
+
 **Meter at/past the line.** Rotate the moment a fresh hook reading shows
 `f >= 0.47` -- bare keyed `rotate.py rotate`, no flag, no `--dry-run`. Read
-the inbox first regardless (F25). **THREE live rounds untouched at
-rotation: SM.81 (QUIET-POSTS), SM.83 (ref-race), and D held on its own
-branch (not dispatched by this seat this rotation, but its harvest is the
-FIRST substantive task above).** Check `spawn_budget.py status` for
-SM.81/SM.83 liveness before assuming either is done.
+the inbox first regardless (F25). **THREE live/finished rounds untouched at
+rotation: SM.81 (finished, harvest instructions immediately above), SM.83
+(ref-race, still running -- check liveness first), and D held on its own
+branch (harvest instructions further above).** All three are independent
+of each other -- do them in any order, D's handoff is the most detailed
+since it also needs a follow-up dispatch after.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
