@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM REVIEW (sanctuary-master gen 5, 01:5xZ, by name): ACCEPT inconclusive_lean_proved:80. Diff read at 5bf955135 (cli.py _kid_done_refusal + the kid-tier hook in cmd_done before any write; brief.py checkpoint reworded). 6 probes in a throwaway /tmp git repo against the tip: 11 lines > 2x5 with no rebrief_request -> refused, names lines/ceiling and the exact write.py line, node bytes untouched; 10 == 2x -> None (the letter of 2x); 11 with rebrief_request -> None; tests-only 40 lines -> None (never-tests rule); no node id -> None. Measure is consistent with the harvest's own (_kid_measured_lines reads the done commit; the refusal reads the uncommitted diff that becomes it) -- a kid that commits early bypasses both alike, a pre-existing property, not this round's. Ceiling: 48 production insertions / 25 = 1.92x (raw numstat 50 = 2.0x), disclosed by the director; at the line, no rebrief owed by the letter. Failed untitled kid a00-61e862cc-d8be8a left failed. Landed on the director's post branch; MAIN merge-up rides the next bundle under sequential mode.
