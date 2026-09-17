@@ -9928,6 +9928,8 @@ SM.97 died: pid 738421, fail_reason "pid 738421 died (detected by reaper)", no m
 
 SM.98 harvested: suite-lock read-only holder judgement landed, both probe-only callers rewired through it (verification.suite_lock_holder), acquire_suite_lock stays sole writer. 18 net production lines, 0.9x of 20 ceiling. inconclusive_lean_proved:80 -- guard still breaks a dead-pid lock per the pinned stale test, the hypothesis own TESTS-permitted broken-stated arm. 54 green on the round own tests (test_verification+test_grid_evidence_gate_defer); test_rotate.py 316 passed 1 failed, the pre-existing tracked test_stops_stale_clock_grep_is_extended_regexp failure SM.96 is already fixing, not a new regression. Branch season2/loops/hypothesis-l4-the-suite-lock-has-a00-dd414289 merged, kid experiment:a00-a3f2be5b-1ec18a.
 
+SM.96 harvested: pi_trajectory.py --help exits 0 (3 net production lines), test_suite_no_detached_spawn.py ppid-1 matcher now requires a real pytest launch (argv0 basename or -m pytest) not a bare substring mention -- bundled with SM.95s stops-wording piggyback (production already said UNCHANGED since, only the test was stale) and an ack-cell-printer width fix scoped to cells not every printed line. accepted=4 proved, demoted=1 lean_disproved (a00-36dc69c9, superseded by a00-a702edb8). Verified all four fixes against actual bytes, not prose. Both previously-tracked pre-existing failures (pi_trajectory help smoke, stops-stale wording) are now green: 387 passed, 4 skipped, 0 failed on test_rotate+test_suite_no_detached_spawn+test_bin_help_smoke. Branch season2/loops/hypothesis-l4-the-trajectory-wra-a00-aba8ae4b merged.
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
