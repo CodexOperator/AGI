@@ -169,6 +169,19 @@ def test_kid_brief_names_its_production_line_ceiling():
     assert "re-brief" in kid, "what to do above 2x"
 
 
+def test_kid_brief_checkpoints_before_cli_done_not_at_first_commit():
+    """hypothesis:l4-cli-done-refuses-a-kid-past-2x-..., conjunct (2): the
+    kid's checkpoint is 'before `cli.py done`' -- the ONE checkpoint every
+    kid reaches -- never 'first commit' / 'first test run', which are dead
+    for a kid forbidden all git and never guaranteed a test run. The
+    ceiling number and measure semantics stay."""
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "Checkpoint before `cli.py done`: measure those lines." in kid
+    assert "FIRST commit" not in kid
+    assert "first test run" not in kid
+    assert "PRODUCTION-LINE CEILING: 40 lines" in kid
+
+
 def test_kid_brief_reads_the_ceiling_from_config_not_a_constant(tmp_path):
     """The ceiling is READ, not hardcoded: a project that sets
     `spawn.production_line_ceiling` sees its own number and its own 2x.
