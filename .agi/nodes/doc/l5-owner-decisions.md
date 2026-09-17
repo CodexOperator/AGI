@@ -56,3 +56,9 @@ MEASURED (Prime): the director's worktree was 200 commits behind season2/main an
 > "can we increase the watchdog nudge interval to every hour as the director is getting nudged constantly and parents and kids are still active of course."
 
 APPLIED by the Prime as a direct write on this order (hypothesis:l5-the-stranded-wake-repair-runs-hourly-on-its-own-cadence, goal:g15): heal.py's stranded-wake repair now runs on `comms.wake_repair_every_s` (default 3600, set explicitly in .agi/config.json) instead of every 30 s poll; the reaper, after_join and round watch keep the 30 s poll; `comms.nudge_stale_after_minutes` 30 -> 60. Deviation recorded on the node: 11 production lines by the Prime, not a round -- the owner asked for it now and the one director was loaded.
+
+### OWNER 2026-09-17, banked 20:03Z (date -u) — parent cap 8, verbatim
+
+> "Feel free to lift concurrent parent cap to 8, parents get each their own worktree right?"
+
+APPLIED by the Prime: the L5 cap on live parents is 8 (was 4, the L4 04:0xZ 09-17 load ruling) in doc:l5-plan, the director duties brief, the successor brief and the card. Yes: every parent round lands on its own branch season2/loops/<hypothesis-prefix>-<agent> in its own worktree .agi/worktrees/<agent>/ (kids branch under it); the tree-wide bound stays spawn.max_live 25 agents (parents + kids together) and parent_max_kids 10 -- with 8 parents live that leaves 17 kid slots fleet-wide; the 4-core box measured 1800 s review timeouts at load 10+, so reviews stay one mur per kid slice.
