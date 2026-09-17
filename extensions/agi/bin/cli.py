@@ -664,6 +664,43 @@ def _kid_budget_notes(root: Path, kids: list[dict]) -> list[str]:
     return notes
 
 
+def _kid_done_refusal(root, node_id):
+    """Kid `done` past 2x its line ceiling with no `rebrief_request` gets
+    one refusal (rc 2, nothing written), else None -- the enforcement point
+    of hyp:l4-cli-done-refuses-a-kid-past-2x: the ONE command every kid runs.
+    Measures the kid's UNCOMMITTED production diff (`git diff --numstat HEAD`, the
+    same `_SOURCE_SUFFIXES`/never-`tests/` rule `_kid_measured_lines` uses) and
+    resolves the ceiling with the harvest's own `_kid_line_ceiling`."""
+    nf = _find_node_file(root, node_id) if node_id else None
+    if nf is None or not nf.exists():
+        return None
+    try:
+        fm = frontmatter.read_frontmatter(nf.read_text(encoding="utf-8"))
+    except OSError:
+        return None
+    if not isinstance(fm, dict) or fm.get("rebrief_request"):
+        return None
+    try:
+        r = subprocess.run(["git", "-C", str(root), "diff", "--numstat",
+                            "HEAD"], capture_output=True, text=True,
+                           timeout=30)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    if r.returncode != 0:
+        return None
+    lines = sum(int(p[0]) for ln in r.stdout.splitlines()
+                if (p := ln.split("\t")) and len(p) >= 3 and p[0].isdigit()
+                and "tests" not in p[2] and p[2].endswith(_SOURCE_SUFFIXES))
+    ceiling = _kid_line_ceiling(root, fm, node_id)
+    if ceiling <= 0 or lines <= 2 * ceiling:
+        return None
+    return (f"done refused: production lines {lines} > 2x ceiling {ceiling} "
+            f"with no rebrief_request; NOTHING was written. Run:\n"
+            f"  write.py {node_id} \"set rebrief_request "
+            f"{lines}/{ceiling}: <why>\"\n"
+            f"then re-run done.")
+
+
 def _session_manifest_holders(root: Path, iter_n, extra_iters=()) -> list[Path]:
     """Every iteration dir that may hold THIS round's manifest, local first.
 
@@ -1403,6 +1440,15 @@ def cmd_done(args: argparse.Namespace) -> int:
                 _why = "target hypothesis has no claim conjuncts to count"
             print(f"[dry-run] tier-parent probe gate: not applicable ({_why})")
         return 0
+
+    # hyp:l4-cli-done-refuses-a-kid-...-conj(1): a KID done past 2x with
+    # no `rebrief_request` is refused (rc 2, nothing written) before any
+    # write. No-op for non-kid tiers and for kids with the request on file.
+    if rec.get("tier") == "kid" and args.node_id:
+        _refuse = _kid_done_refusal(root, args.node_id)
+        if _refuse:
+            print(f"ERR: {_refuse}", file=sys.stderr)
+            return 2
 
     rec["status"] = "done"
     rec["finished_at"] = int(time.time())
