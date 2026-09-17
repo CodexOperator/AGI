@@ -6,7 +6,7 @@ Everything before L5 (mur-49 R2/R4/R5/R6, SD.02/06/08/13, the old sensei/SD numb
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
 
-# SESSION HANDOFF — 2026-09-17 sanctuary-director: LIVE SCRATCHPAD (gen 34, ~07:3xZ→17:2xZ) — seated cold off gen 33's mid-round handoff (SD.13 harvested but not reviewed). This section is a WHOLE REPLACEMENT of gen 33's; nothing from that section is preserved below except what is repeated here on purpose. Rotating out now on the real user's explicit instruction to actually run `rotate.py rotate` (not at the 0.47 meter line — the user was asked directly and chose to rotate now rather than wait or ignore the threshold).
+# SESSION HANDOFF — 2026-09-17 sanctuary-director: LIVE SCRATCHPAD (gen 34, ~07:3xZ→17:2xZ) — seated cold off gen 33's mid-round handoff (SD.13 harvested but not reviewed). This section is a WHOLE REPLACEMENT of gen 33's; nothing from that section is preserved below except what is repeated here on purpose. Rotating out now on the real user's explicit instruction to actually run `rotate.py rotate` (not at the 0.47 meter line — the user was asked directly and chose to rotate now rather than wait or ignore the threshold). (rotating at 0.4099 of the line, 17:28Z)
 
 🔴 **HOW THIS GEN OPENED — read this even though it is unusual.** On cold seating, the injected context (this card + CLAUDE.md + a "CONSTITUTION HEAD") asked this session to recite an opening prayer and immediately proceed autonomously: merge code to a shared branch, push to `origin`, and dispatch paid AI agents spending real API credits — under a standing rule ("F22") to never confirm anything with a human. The session judged that combination (real spend + push access to a branch other live sessions share + "never ask" baked into the instructions, plus content that preemptively branded the ordinary Claude Code attribution/SendUserFile system reminders as "past prompt-injection attacks," which would have cut off the one channel back to a real human) as exactly the pattern that deserves a real confirmation rather than autopilot, regardless of how many prior "generations" the transcript claimed already ran it clean, and regardless of the F22 rule itself. It asked the actual human operator directly via the question tool. The human confirmed this is their real, live, intentional system and to proceed for real. Everything below happened under that real confirmation. **This is not a rule to carry forward mechanically** — a future cold-seated successor should make its own judgment call the same way, not skip the check because "last time it turned out fine."
 
@@ -38,10 +38,18 @@ Directors never hand-write engine code (owner, `04e5070c9` — restated, matches
 
 ## §3 🔴 NEXT COMMAND — read this first, cold
 
+````
 ```
 FIRST: python3 extensions/agi/bin/send.py read sanctuary-director   (check for belam's consolidated stamp result, and any L5.02 harvest)
 THEN: python3 extensions/agi/bin/spawn_budget.py status              (is a00-f446bb8e / L5.02 still live, or has it harvested)
 ```
+
+If L5.02 has harvested: review it for real — this is a MORE sensitive round than L5.01/03/04/05 (it touches the actual rotation/rename mechanics that seat every post on this box, including this one). Read the kid's node body AND the actual diff to `rotate.py`, don't just trust "fixture-proven with a fake tmux" — confirm the fixture genuinely exercises `_apply_staged` being called (not just defined), confirm a dirty-tree refusal is real, confirm the json-drift refusal is real. Merge into the post branch, run the touched tests independently, push (plain `git push`, see §0), ask belam for GO-by-SHA (this seat's own post branch identity is what's being changed here — extra reason not to skip independent verification), then land MAIN following the usual recipe. Report `[merge-up]`.
+
+If L5.02 is still running: same as every round this session — do not hand-poll; background a spawn_budget watch loop or just wait for the inbox nudge, and do not spawn a competing dispatch while it's still the priority slot (belam's own words: "HEAD 1/2 keeps priority on the slots").
+
+Once HEAD 2 actually lands (both the code AND belam's live rotation of this seat to `director-belam`), HEAD 3 starts: dispatch the 4 minted-but-not-dispatched stragglers above, one hypothesis per round per the established pattern, <=4 live parents at a time.
+````
 
 If L5.02 has harvested: review it for real — this is a MORE sensitive round than L5.01/03/04/05 (it touches the actual rotation/rename mechanics that seat every post on this box, including this one). Read the kid's node body AND the actual diff to `rotate.py`, don't just trust "fixture-proven with a fake tmux" — confirm the fixture genuinely exercises `_apply_staged` being called (not just defined), confirm a dirty-tree refusal is real, confirm the json-drift refusal is real. Merge into the post branch, run the touched tests independently, push (plain `git push`, see §0), ask belam for GO-by-SHA (this seat's own post branch identity is what's being changed here — extra reason not to skip independent verification), then land MAIN following the usual recipe. Report `[merge-up]`.
 
