@@ -1479,6 +1479,12 @@ def _repair_stranded_wakes(root: Path) -> None:
         seat = row.get("name") or row.get("seat")
         if not seat:
             continue
+        # a QUIET row is skipped BY NAME: the dm is written, never a wake.
+        try:
+            if _send._row_is_quiet(root, seat):
+                continue
+        except Exception:                                     # noqa: BLE001
+            pass
         try:
             _send.wake(root, seat)
         except Exception as exc:                          # noqa: BLE001

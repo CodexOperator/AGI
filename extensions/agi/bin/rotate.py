@@ -134,6 +134,7 @@ DEFAULT_CC_ROLES = {
 #: claude adapter passes as `--settings '{"ultracode":true}'`.
 SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
+    "quiet": {"quiet": True},
 }
 
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
@@ -155,18 +156,30 @@ REAPER_ENV_EXPORT = "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1"
 
 
 def _normalize_settings(val):
-    """Coerce a roles-table settings cell to a dict, or None.
-
-    Accepts a dict (use as-is), a bare known word (resolve via
-    SETTINGS_ALIASES), or empty/absent (None => no --settings flag).
-    """
+    """A settings cell -> dict or None: dict as-is, or a space-separated
+    token list / JSON object string resolved via SETTINGS_ALIASES (words
+    MERGE, so `quiet` composes with `ultracode`)."""
     if val is None or val == "":
         return None
     if isinstance(val, dict):
         return val if val else None
-    if isinstance(val, str):
-        return SETTINGS_ALIASES.get(val.strip().lower())
-    return None
+    if not isinstance(val, str):
+        return None
+    s = val.strip()
+    if not s:
+        return None
+    if s.startswith("{"):
+        try:
+            parsed = json.loads(s)
+        except Exception:                                     # noqa: BLE001
+            return None
+        return parsed if isinstance(parsed, dict) and parsed else None
+    out: dict = {}
+    for tok in s.lower().split():
+        alias = SETTINGS_ALIASES.get(tok)
+        if alias:
+            out.update(alias)
+    return out or None
 
 
 # --- helpers ---------------------------------------------------------------
