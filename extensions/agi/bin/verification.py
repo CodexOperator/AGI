@@ -654,6 +654,22 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def suite_lock_holder(groot: Path) -> int | None:
+    """READ-ONLY: the suite lock's LIVE FOREIGN holder pid, else None. Never
+    creates, never unlinks, never plants a probe pid (closes the SM.88
+    acquire-then-unlink window). Dead/absent/corrupt read as None: a probe
+    refuses only on a LIVE foreign owner; stale-breaking stays in
+    acquire_suite_lock, the single WRITER."""
+    path = Path(groot) / "sessions" / SUITE_LOCK
+    try:
+        holder = int(path.read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return None
+    if holder == os.getpid() or not _pid_alive(holder):
+        return None
+    return holder
+
+
 def acquire_suite_lock(groot: Path) -> tuple[Path | None, int | None]:
     """A plain lock file holding the holder's pid, stale-broken by a dead pid.
 
@@ -728,8 +744,8 @@ def _suite_lock_guard(groot: Path) -> str | None:
                 _holder = None
             if _holder == _mpid:
                 return None  # our own caller holds it: proceed, do not touch
-    lock_path, holder = acquire_suite_lock(groot)
-    if lock_path is None and holder is not None:
+    holder = suite_lock_holder(groot)
+    if holder is not None:
         try:
             since = time.strftime(
                 "%H:%M:%SZ",
@@ -739,11 +755,15 @@ def _suite_lock_guard(groot: Path) -> str | None:
             since = "?"
         return (f"suite: lock held by {holder} since {since}"
                 " — refusing, not spawning")
-    if lock_path is not None:
-        # We took the window only to probe it. Hand it back so conftest -- the
-        # one live acquirer -- owns it across the spawned suite.
+    # Dead pid broken here (pinned stale test) so conftest starts clean.
+    try:
+        pid = int((Path(groot) / "sessions" / SUITE_LOCK)
+                  .read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        pid = None
+    if pid is not None and not _pid_alive(pid):
         try:
-            lock_path.unlink(missing_ok=True)
+            (Path(groot) / "sessions" / SUITE_LOCK).unlink(missing_ok=True)
         except OSError:
             pass
     return None
