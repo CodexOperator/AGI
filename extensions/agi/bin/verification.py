@@ -880,14 +880,29 @@ def _suite_ts_path(groot: Path) -> Path:
 def _verified_stamp_path(groot: Path) -> Path:
     """The path `cli.py --delete-old` reads: `_find_root()/sessions/verified.stamp`.
 
-    `cli._find_root()` is `locations.find_project_root()` -- the GRAPH dir --
-    so the read is `<graph>/sessions/verified.stamp`. This is the parent
-    `_suite_ts_path` already resolves through `rotate._sessions_dir` ->
-    `locations.shared_sessions_dir`, so a worktree seat's green run lands on
-    the main checkout where the gate runs. Write path and read path are the
-    same join on purpose: that agreement IS the claim.
+    `cli._find_root()` is `locations.find_project_root()` from the CALLER's
+    cwd, and the gate reads `root / "sessions/verified.stamp"` literally
+    (`cli.py:5336`). A seat running the gate from a linked worktree resolves
+    that worktree's graph, so the read is the LOCAL graph dir there -- not the
+    shared one `_suite_ts_path` resolves. This writer must land on the gate's
+    own expression exactly, or a green worktree run certifies nothing.
     """
-    return _suite_ts_path(groot).parent / VERIFIED_STAMP_FILE
+    root = locations.find_project_root(groot) or groot
+    return root / "sessions" / VERIFIED_STAMP_FILE
+
+
+def _verified_stamp_paths(groot: Path) -> list[Path]:
+    """Every path a `--delete-old` gate can read, local graph first.
+
+    ONE all-green run must satisfy both the worktree it ran in (the local
+    join above) and the main checkout whose shared sessions dir the gate
+    reads when run from there. Duplicates collapse to one write.
+    """
+    out = [_verified_stamp_path(groot)]
+    shared = _suite_ts_path(groot).parent / VERIFIED_STAMP_FILE
+    if shared != out[0]:
+        out.append(shared)
+    return out
 
 
 def _write_verified_stamp(groot: Path, *, ran_at: float | None,
@@ -897,12 +912,12 @@ def _write_verified_stamp(groot: Path, *, ran_at: float | None,
     Called only when no result is FAIL (the same predicate main() returns on),
     so a red run writes nothing and the stamp's absence is honest.
     """
-    path = _verified_stamp_path(groot)
-    path.parent.mkdir(parents=True, exist_ok=True)
     ts = ran_at if ran_at is not None else time.time()
     stamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
-    path.write_text(f"green suite {stamp_utc} on {ran_on or 'unknown'}\n",
-                    encoding="utf-8")
+    body = f"green suite {stamp_utc} on {ran_on or 'unknown'}\n"
+    for path in _verified_stamp_paths(groot):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
 
 
 def _read_suite_ts(groot: Path) -> float | None:
