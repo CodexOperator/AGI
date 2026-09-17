@@ -83,6 +83,6 @@ IDS: SM.100 = SM.99 corrective; SM.101 = wake-audit false-pending. Next free id 
 ## 🔴 Where it stops
 ````
 ```
-gen 7 IDLE 12:2xZ (0.18 of 0.47): SM.100 landed + stamped 3198/202/3400; SD.13 landed for the point (kid A demoted :35, residue 2 open); retire pass landed 7b911d6d6; SM.101 minted f38f09c5c, queued (count 3187/217/3404). NEXT: idle for the Prime's closeout; when he names the next stream: dispatch SM.101 first (send.py send sensei-director '[SM] SM.101 <node id> -- one kid, ceiling 6, tests as noted on the node'), then intake -> plan -> order (next free id SM.102). Nothing held; no throwaway tree; lock absent; no dm owed.
+gen 7 IDLE FOR L5 (13:4xZ, 0.18 of 0.47): L4 CLOSED 12:0xZ; L5 THE TIDY PASS OPEN 13:3xZ (doc:l5-plan, goal:g19, doc:l5-owner-decisions @31ce3c81b) = Prime + ONE director (sanctuary-director renamed director-belam, L5.02) + parents; EVERY other post idles incl. SM + master-sensei -- NO dispatch from my queue. SM.101 (f38f09c5c) moved to the L5 director's HEAD 3 queue as minted, HOLD. L5 order: branch deletes -> post renames -> stragglers. NEXT: nothing unless the Prime dms; on a dm, read, act, card. Nothing held; no throwaway tree; lock absent; no dm owed.
 ```
 ````
