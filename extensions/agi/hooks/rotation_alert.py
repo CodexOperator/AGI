@@ -1048,6 +1048,16 @@ def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
               f"run `send.py read {seat}` yourself.")
         return False
     body = _run_send_read(Path(__file__).resolve().parents[1] / "bin", seat)
+    if not body:
+        # l5 (a) — nothing could actually be delivered (a timeout and a
+        # genuinely mail-less inbox both read back as '' from the seam): print
+        # exactly ONE undelivered line, NEVER the DELIVERED banner nor the F25
+        # do-not-read-again suppression, and leave the inbox marker untouched.
+        # The model must read it manually. Never raises (P7).
+        print(f"[ack] nudge for {seat} NOT delivered: `send.py read {seat}` "
+              f"came back empty (timeout or an empty inbox); please read it "
+              f"manually.")
+        return False
     text = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
             f"for {seat}); the ONE `send.py read {seat}` ran. Do NOT read "
             f"again this turn (F25).\n{body}")
@@ -1093,10 +1103,6 @@ def main(argv: list[str] | None = None) -> int:
     if root is None:
         return 0
 
-    # l5 — a `[agi-nudge]` wake for `<self>` auto-posts its verified bodies
-    # into the chat IN THIS TURN, BEFORE the meter so the meter stays last.
-    _auto_post(root, cwd, payload.get("prompt"))
-
     # Fail closed with a NAMED error if the field we depend on is missing
     # (P2), and ONLY inside a project (P7 came first, above). Never emit a
     # fraction we cannot trace to a handed transcript.
@@ -1113,6 +1119,13 @@ def main(argv: list[str] | None = None) -> int:
     # ---- P7: silent on an unreadable transcript -----------------------------
     if not tp.is_file():
         return 0
+
+    # l5 — a `[agi-nudge]` wake for `<self>` auto-posts its verified bodies
+    # into the chat IN THIS TURN, BEFORE the meter so the meter stays last.
+    # Runs AFTER the fail-closed transcript_path gate above (b): a turn that
+    # refused at rc-3 (or is silent on an unreadable transcript under P7)
+    # never consumes the inbox.
+    _auto_post(root, cwd, payload.get("prompt"))
 
     # ---- P6: denominator — read the ladder, FAIL CLOSED if unmeasurable -----
     ladder = _load_ladder(root)
