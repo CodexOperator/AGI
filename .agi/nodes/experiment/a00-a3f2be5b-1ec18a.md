@@ -6,12 +6,13 @@ parents:
   - hypothesis:l4-the-suite-lock-has-one-read-only-holder-judgement-for-its-probe-only-callers-and-one-writer
 next_edges: []
 confidence: 0.8
-edited_by: a00-a3f2be5b
+edited_by: a00-dd414289
 evidence_runs:
   - experiment:a00-a3f2be5b-1ec18a
 line_ceiling: 20
 loop: hypothesis:l4-the-suite-lock-has-one-read-only-holder-judgement-for-its-probe-only-callers-and-one-writer@s2
 model: ~deepseek/deepseek-v4-flash-latest
+probes: "parent a00-dd414289 ran 9 adversarial probes on the built bytes (one per falsifier): P1 holder returns live foreign pid 424242 HOLDS; P2 live-foreign read leaves bytes+mtime identical HOLDS; P3 absent returns None no file created HOLDS; P4 dead-pid lock left for acquirer FAILS guard unlinks a dead pid (the hypothesis TESTS-permitted broken arm, chosen and stated in the node, not a silent defect); P5 grid dead-pid gate reads None and never unlinks HOLDS; P6 guard refuses a live foreign holder by name HOLDS; P7 grid defers on a live foreign holder HOLDS; P8 wire grid.py:914 calls verification.suite_lock_holder live HOLDS; P9 wire the old acquire+unlink line is gone from grid.py HOLDS. 8/9 hold; the single miss is the explicitly permitted and stated stale-break, so the node stays at its honest inconclusive_lean_proved:80."
 production_lines: 18
 profile: balanced
 role: kid
@@ -46,3 +47,9 @@ Landing (verification.py + grid.py only, 18 net production lines = 0.9x of the 2
 
 ## Agent Notes
 Built the read-only suite_lock_holder(groot)->live-foreign-pid judgement in verification.py; rewired _suite_lock_guard and grid.py cron gate through it so neither probe ever plants a live pid (SM.88 window closed); acquire_suite_lock stays single writer. 3 new tests + 54 pass on test_verification+test_grid_evidence_gate_defer incl SM.88 grid tests unchanged. 18 net production lines (0.9x). Caveat: guard still breaks a dead pid per pinned stale test so 'never unlinks' not literal — 'broken' arm stated. One foreign pre-existing red in test_rotate (stops-stale msg wording), not mine.
+
+PARENT a00-dd414289 review: ACCEPT as inconclusive_lean_proved:80. Core g15 fix (ONE read-only suite_lock_holder; grid gate fully read-only; guard never plants a live pid) proven on built bytes by 8/9 independent probes plus 54 tests pass incl SM.88 grid tests unchanged. Not raised to proved because claim-1/3 literal never-unlinks and stale-stays-in-acquirer are unmet on the guard dead-pid path; that arm is the hypothesis TESTS-permitted broken arm, stated in-node, so not lean_disproved. Self-citation evidence_runs acceptable for an experiment node
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT review edit: this version differs by adding the parent adversarial probes field and review note onto the kid node. The build lands the hypothesis intent (no probe plants a live pid) with the ONE permitted and stated deviation. No rebrief_request outstanding; the kid owed no answer and left none.
+<!-- THOUGHT:END -->
