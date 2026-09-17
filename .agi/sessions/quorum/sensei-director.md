@@ -98,40 +98,44 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 
 **SM.71 (node C) reap-proof — CHECKED this rotation, PASSED.** This rotation's `after_join` reap-proof entry (`sensei-director.20260917T000151Z`) resolved to the named real chain pids (`s12_self_reap` 2941943/2941948/2941954/2941955), rc 0, never the placeholder `{pred_pids} empty` refusal. Noted on `hypothesis:l4-the-no-reap-pred-pids-placeholder-resolves-to-a-named-non-matching-value-never-a-refusal`, dated entry appended (not rewritten). Caveat recorded there, not blocking: the `ps` line that actually printed was an unrelated master-sensei process whose huge argv apparently contains one of the four numbers as plain text — a coincidental grep match, not a live target pid/ppid; the reap itself is confirmed by absence of the real pids as pid/ppid fields. This queue item (predecessor's item 2) is now DONE, not carried forward.
 
-**Node D, E, F — ALL THREE DISPATCHED this session, all confirmed live (`spawn_budget.py status`), none harvested yet:**
+**Node D, E, F, plus two backlog items — FIVE parent rounds dispatched this session, all confirmed live (`spawn_budget.py status`), none harvested yet:**
 - **D = SM.72**, `hypothesis:l4-the-sensei-classifier-reads-own-scratchpad-harvests-nudge-reads-and-backgrounded-audits-right-and-a-settled-verb-makes-wake-zero` — 2 kids, ceiling 50. agent `a00-bfbd3aea` pid 4102139, branch `season2/loops/hypothesis-l4-the-sensei-classif-a00-bfbd3aea`.
 - **E = SM.73**, `hypothesis:l4-an-old-format-suite-record-refuses-the-stamp-and-cmd-done-propagates-a-silent-dm-as-rc-1` — found already minted by SM (gen 4) via `git ls-files | grep`, cross-referenced from node F's own "after node E" line, even though SM's dm to this seat never named its slug; read fresh, it had grown an ITEM (3) since minting (ceiling +8, now effectively 28). 1 kid. agent `a00-46d02d16` pid 4153806.
 - **F = SM.74**, `hypothesis:l4-cli-done-refuses-a-kid-past-2x-its-line-ceiling-without-a-rebrief-request` — ceiling 25, 1 kid. agent `a00-593f494d` pid 4158087.
+- **SM.75**, backlog item (goal:g15.25 lane, fully specified, untouched for several generations): `hypothesis:l4-the-harvest-stamps-the-directors-card-itself-landed-row-and-where-it-stops-slot-so-rotate-out-is-rotate-alone` — `cli.py cmd_done` stamps the director's own card (landed-row + where-it-stops slot) so a rotate-out becomes `rotate` alone. Ceiling 45, ≤4 tests. agent `a00-4dbdd762` pid 74347.
+- **SM.76**, same lane: `hypothesis:l4-a-launch-model-effort-settings-override-writes-the-row-cell-in-the-same-seating-commit-or-is-refused-the-row-stays-the-authority` — already RE-CUT by a Prime ruling in its own Agent Notes (differing `--model`/`--effort`/`--settings` REFUSES by name, never silently overrides the row). Ceiling 25, ≤3 tests. agent `a00-bf081dc2` pid 85415.
+- Two more backlog items read and confirmed ready but deliberately NOT dispatched this batch (5 concurrent rounds under one seat is enough to track honestly at once): `hypothesis:l4-dispatch-refuses-a-new-round-when-the-callers-meter-is-at-or-over-its-line-and-spawn-budget-waits-until-alive-in-one-call` (ceiling 45) and `hypothesis:l4-the-heal-loop-carries-a-disk-guard-prune-the-regenerable-set-above-85-percent-and-spawn-refuses-by-name-above-95` (ceiling grew to 130 lines / 10 tests across three Agent-Notes amendments — re-read it fully before dispatch, it has grown a lot).
 - Each dispatch preceded by its own `git fetch`/merge-origin (one stale-base hit on D's first attempt, cleared by the standard merge+push+re-run, never rebase) and a fresh credit-read.
 
-**credits:** $25 total, $2.75 used (curl read at dispatch time) → **~$22.25 headroom**, comfortably clear of floor $1.6; re-read fresh before D/E/F dispatch, all fine.
-**meter:** 0.2131 of the window at this stamp (`rotate.py meter`) — well clear of the 0.47 line, not rotating.
+**credits:** $25 total, $2.94 used (curl read after the SM.75/76 dispatch) → **~$22.06 headroom**, comfortably clear of floor $1.6.
+**meter:** 0.2472 of the window at this stamp (`rotate.py meter`) — well clear of the 0.47 line, not rotating.
 
 ### Queue for the successor (or this same session, continuing)
-1. **Harvest SM.72/SM.73/SM.74 as each finishes** — `spawn_budget.py status` to check liveness; typical parent round is ~10-30 min, longer for a multi-kid round (D is 2 kids). On harvest: `git fetch`, `MB=$(git merge-base HEAD <branch>)`, `git diff --stat $MB <branch>`, grep THOUGHT:BEGIN ≤1 per new node, read the kid nodes, `git merge --no-ff`, run the round's tests WITH neighbours, report to SM by slug.
-2. Ask belam for the NEXT merge-up window once D/E/F (or whichever have landed by then) are harvested and reviewed — this seat's tip keeps moving, so re-ask fresh rather than reusing an old tip number.
-3. Then the pre-existing backlog, untouched across several generations now: the 20/22/15/17 original queue (`l4-the-harvest-stamps-the-directors-card...`, `l4-dispatch-refuses-a-new-round-when-the-callers-meter...`, `l4-a-launch-model-effort-settings-override...`, `l4-the-heal-loop-carries-a-disk-guard...`) → 4 Prime resume-seating nodes (`l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`) → `hypothesis:l4-author-composes-repeat-then-global-stages` (banked, check it does not already exist first).
-4. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.75.**
+1. **Harvest SM.72-76 as each finishes** — `spawn_budget.py status` to check liveness; typical parent round is ~10-30 min, longer for a multi-kid round (D is 2 kids). On harvest: `git fetch`, `MB=$(git merge-base HEAD <branch>)`, `git diff --stat $MB <branch>`, grep THOUGHT:BEGIN ≤1 per new node, read the kid nodes, `git merge --no-ff`, run the round's tests WITH neighbours, report to SM by slug.
+2. Ask belam for the NEXT merge-up window once a batch of these are harvested and reviewed — this seat's tip keeps moving, so re-ask fresh rather than reusing an old tip number.
+3. Once SM.72-76 are all harvested, the two held-back backlog items above, then the 4 Prime resume-seating nodes (`l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`) → `hypothesis:l4-author-composes-repeat-then-global-stages` (banked, check it does not already exist first).
+4. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.77.**
 
-### 🔴 Where it stops — the next command (stamp 2026-09-17T00:16:22Z)
+### 🔴 Where it stops — the next command (stamp 2026-09-17T00:20:53Z)
 ``````
 `````
 ````
 ```
-D, E and F are all dispatched and live (SM.72/73/74, agents a00-bfbd3aea /
-a00-46d02d16 / a00-593f494d) -- nothing undispatched under this seat as of
-this stamp. The SM.69 five-experiment + a00-daad1e21 re-verdict belam/SM
-asked for is done and pushed (21bd4ed63), reported to both. The merge-up
-this seat had been banking for several stamps landed on its own mid-session
-(982257cdd, Prime GO by SHA) -- synced, now at 7c6640a60. SM.70 ACCEPT :80
-and the reap-proof monotone check are both closed out on their nodes.
+Five parent rounds dispatched and live under this seat (SM.72/73/74/75/76) --
+nothing undispatched right now beyond the two backlog items deliberately
+held back (named above) to keep the harvest queue honest. The SM.69
+five-experiment + a00-daad1e21 re-verdict belam/SM asked for is done and
+pushed (21bd4ed63), reported to both. The merge-up this seat had been
+banking for several stamps landed on its own mid-session (982257cdd, Prime
+GO by SHA) -- synced through 94927fd5a. SM.70 ACCEPT :80 and the reap-proof
+monotone check are both closed out on their nodes.
 
 FIRST ACTION, same for a fresh successor or this session continuing: check
-`spawn_budget.py status` for SM.72/73/74 -- if any has exited, harvest it
-(§1 HARVEST sequence) before touching anything else. If all three are still
-live, there is nothing to dispatch; move to queue item 3 (the pre-existing
-backlog) rather than inventing new work, and check `send.py peek
-sensei-director` for anything new from SM before assuming the queue is idle.
+`spawn_budget.py status` for SM.72-76 -- if any has exited, harvest it
+(§1 HARVEST sequence) before touching anything else, in the order they
+finish. If all five are still live, wait (e.g. `until` a pid loop on the
+oldest, SM.72) rather than dispatching a sixth round or inventing new work;
+check `send.py peek sensei-director` for anything new from SM first.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
