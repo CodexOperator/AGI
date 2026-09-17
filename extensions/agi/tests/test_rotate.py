@@ -853,11 +853,13 @@ def test_successor_row_write_stores_session_label(tmp_path):
     assert own["session_label"] == "s1"
 
 
-def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
-    """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
-    every-surface-...), claim (6-rows): the spawn row write NEVER writes a
-    `generation` cell for a non-prime role, and the prime chain is untouched
-    (a prime_director row still carries its numeral generation)."""
+def test_successor_row_write_writes_generation_for_non_prime(tmp_path):
+    """conjunct 1 (hypothesis:l4-a-posts-generation-is-measured-from-its-row-
+    or-latest-record-...): the spawn row write NOW persists the `generation`
+    cell for a non-prime role too, so `_generation_measured` reads the post's
+    real number from its OWN row (measured=True). This SUPERSEDES goal:g15.25
+    claim (6-rows) ("non-prime never carries a gen"); the prime chain is
+    untouched."""
     rows = [{"name": "s1", "role": "director"},
             {"name": "belam", "role": "prime_director"}]
     graph = _seed_key_history_graph(tmp_path, rows)
@@ -866,8 +868,8 @@ def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
         session_ref="x", generation=2, window="w")
     import write as w
     own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
-    assert "generation" not in own, own
-    assert "generation=(none" in out
+    assert own["generation"] == 2, own
+    assert "generation=2" in out
 
     out_p = rotate._successor_row_write(
         graph, actor="belam", seat="belam", role="prime_director",
@@ -878,33 +880,96 @@ def test_successor_row_write_never_writes_generation_for_non_prime(tmp_path):
     assert "generation=7" in out_p
 
 
-def test_read_generation_resolves_through_handoff_when_row_is_generation_less(
+def test_read_generation_resolves_through_record_when_row_is_generation_less(
         tmp_path):
-    """goal:g15.25 claim (6-rows) coherence: once a non-prime row carries no
-    `generation` cell, `_read_generation` still resolves the internal
-    rotation generation through the handoff HEADER fallback — the machinery
-    keeps counting while the row stays generation-less."""
+    """goal:g15.25 claim (6-rows) coherence + hypothesis:l4-a-posts-
+    generation-is-measured-from-its-row-or-latest-record-...: once a
+    non-prime row carries no `generation` cell, `_read_generation` resolves
+    the internal rotation generation through the LATEST ROTATION RECORD's
+    `gen_after` — the machinery keeps counting while the row stays
+    generation-less. The handoff header is INFO-ONLY: a stray header never
+    gates."""
     rows = [{"name": "s1", "role": "director"}]
     graph = _seed_key_history_graph(tmp_path, rows)
     assert rotate._seat_row_generation(graph, "s1") is None
-    rotate._write_handoff(graph, "s1", 3)
+    rotate._write_handoff(graph, "s1", 12)     # a stray header -- never a gate
+    _seed_gen_record(graph, "s1", 3)
     assert rotate._read_generation(graph, "s1") == 3
     _g, measured, source = rotate._generation_measured(graph, "s1")
-    assert measured is True and source == "handoff header"
+    assert measured is True and source == "latest rotation record"
 
 
-def test_respawn_genless_row_pins_handoff_generation_not_first_seating(
+def test_real_genless_record_resolves_from_row_cell_measured_true(tmp_path):
+    """conjunct 1 (hypothesis:l4-a-posts-generation-is-measured-from-its-row-
+    or-latest-record-...): a REAL-SHAPED post's latest rotation record carries
+    NO `gen_after` (the non-prime naming/rotate-self records are genless by
+    the old goal:g15.25 design) -- but the post's OWN row now carries a
+    `generation` cell, so `_generation_measured` reads the row FIRST and
+    resolves the real number with measured=True, never (0, False). The
+    genless-looking record is not the authority; the row cell is."""
+    rows = [{"name": "s1", "role": "director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    # the real-shaped record the claim's own probe observed: rotate-self
+    # success with NO gen_before/gen_after for a non-prime post.
+    rot = rotate._rotations_dir(graph)
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / "s1.20260917T072853Z.rotation.json").write_text(json.dumps({
+        "rotation": "rotate-self", "seat": "s1", "result": "success",
+        "seated_at": "2026-09-17T07:28:53Z",
+        "session_id": "sess-1"}), encoding="utf-8")
+    rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=33, window="w")
+    assert rotate._seat_row_generation(graph, "s1") == 33
+    g, measured, source = rotate._generation_measured(graph, "s1")
+    assert (g, measured, source) == (33, True, "config:seats row")
+    assert rotate._read_generation(graph, "s1") == 33
+
+
+def test_header_disagreement_reported_as_info_never_trusted(tmp_path, capsys):
+    """hypothesis:l4-a-posts-generation-is-measured-from-its-row-or-latest-
+    record-never-from-a-handoff-header-it-can-hand-edit, test (3): a handoff
+    header that says 12 while the latest rotation record says 33 resolves to
+    33 AS the measured generation, and the disagreeing header is named as
+    INFO on stderr -- never a gate source the post hand-edited."""
+    rows = [{"name": "s1", "role": "director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    rotate._write_handoff(graph, "s1", 12)
+    _seed_gen_record(graph, "s1", 33)
+    gen, measured, source = rotate._generation_measured(graph, "s1")
+    assert (gen, measured, source) == (33, True, "latest rotation record")
+    err = capsys.readouterr().err
+    assert "header generation 12 ignored" in err and "measured 33" in err
+    assert rotate._read_generation(graph, "s1") == 33
+
+
+def test_generation_unmeasured_when_no_row_cell_and_no_record(tmp_path):
+    """hypothesis:...-measured-from-its-row-or-latest-record-..., test (3):
+    a row with no generation cell AND no rotation record is measured=False,
+    named as such -- never silently passed as cur_gen=0."""
+    rows = [{"name": "s2", "role": "director"}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    g, measured, _src = rotate._generation_measured(graph, "s2")
+    assert (g, measured) == (0, False)
+    assert rotate._read_generation(graph, "s2") == 0
+
+
+def test_respawn_genless_row_pins_record_generation_not_first_seating(
         tmp_path, monkeypatch, capsys):
     """clause (0a) (hypothesis:l4-non-prime-genless-clauses-0-2-7-records-
-    readers-migration): a RE-spawn of an existing seat whose config:seats row
-    carries NO `generation` cell but whose handoff header is at gen 12 pins
-    `_spawn_gen` through `_read_generation` -- 12, NEVER FIRST_SEATING_GEN=1.
-    A pin at 1 is exactly what makes the seat's own `meter --seat` read
-    `seat_pin-stale:1:12`; after the fix the same read is clean."""
+    readers-migration) + hypothesis:l4-a-posts-generation-is-measured-from-
+    its-row-or-latest-record-...: a RE-spawn of an existing seat whose
+    config:seats row carries NO `generation` cell but whose LATEST ROTATION
+    RECORD `gen_after` is 12 pins `_spawn_gen` through `_read_generation` --
+    12, NEVER FIRST_SEATING_GEN=1. A pin at 1 is exactly what makes the
+    seat's own `meter --seat` read `seat_pin-stale:1:12`; after the fix the
+    same read is clean. (A handoff header alone is never the source -- it is
+    hand-editable; the record is the engine-written authority.)"""
     seat = "np-post"
     root = _proj(tmp_path)
     _write_seats_sheet(root, [{"name": seat, "role": "director"}])
     rotate._write_handoff(root, seat, 12)
+    _seed_gen_record(root, seat, 12)
     assert rotate._seat_row_generation(root, seat) is None
     assert rotate._read_generation(root, seat) == 12
 
@@ -1636,14 +1701,14 @@ def test_seat_pin_refuses_predecessors_generation(monkeypatch, tmp_path, fake_la
     # must be a loud refusal, never a silent stale number.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     # generation 1 (the predecessor) pins its own transcript...
-    rotate._write_handoff(tmp_path, "belam", 1)
+    _seed_gen_record(tmp_path, "belam", 1)
     code = rotate.main(["meter", "--seat", "belam", "--pin",
                         str(tmp_path / "sessions" / "belam.meter"),
                         "--session-log", str(pinned)])
     assert code == 0
     # ...then rotation advances the seat to generation 2 (the successor)
     # without ever re-pointing the pin -- the exact gap the hypothesis names.
-    rotate._write_handoff(tmp_path, "belam", 2)
+    _seed_gen_record(tmp_path, "belam", 2)
     code = rotate.main(["meter", "--seat", "belam"])
     err = capsys.readouterr().err
     assert code == 1, err
@@ -1655,7 +1720,7 @@ def test_seat_pin_same_generation_reads_clean(monkeypatch, tmp_path, fake_ladder
     # The matching case must NOT regress into a refusal: the generation that
     # wrote the pin reading its own pin back still works.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
-    rotate._write_handoff(tmp_path, "belam", 1)
+    _seed_gen_record(tmp_path, "belam", 1)
     code = rotate.main(["meter", "--seat", "belam", "--pin",
                         str(tmp_path / "sessions" / "belam.meter"),
                         "--session-log", str(pinned)])
@@ -1784,7 +1849,7 @@ def test_c_pin_with_explicit_session_log_still_writes_stamps_and_prints(monkeypa
     # still writes, still stamps the caller's generation, and still prints the
     # fraction.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
-    rotate._write_handoff(tmp_path, "belam", 7)
+    _seed_gen_record(tmp_path, "belam", 7)
     p = _sessions_dir_of(tmp_path) / "belam.meter"
     code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(pinned)])
@@ -1823,7 +1888,7 @@ def test_ga_pin_gen_kept_when_row_reads_lower(monkeypatch, tmp_path,
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     p = _pin_write(tmp_path, "belam", 15, pinned)
     before = p.read_bytes()
-    rotate._write_handoff(tmp_path, "belam", 14)   # the lagging row
+    _seed_gen_record(tmp_path, "belam", 14)   # the lagging row
     code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(pinned)])
     out = capsys.readouterr().out
@@ -1841,7 +1906,7 @@ def test_gb_pin_raised_when_row_reads_higher(monkeypatch, tmp_path,
     # advance must never regress into keeping a stale gen).
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     p = _pin_write(tmp_path, "belam", 14, pinned)
-    rotate._write_handoff(tmp_path, "belam", 15)
+    _seed_gen_record(tmp_path, "belam", 15)
     code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(pinned)])
     out = capsys.readouterr().out
@@ -1857,7 +1922,7 @@ def test_gc_different_transcript_claims_with_row_gen(monkeypatch, tmp_path,
     # gen -- a new session taking over the seat is untouched by the guard.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
     p = _pin_write(tmp_path, "belam", 15, pinned)   # pinned != foreign
-    rotate._write_handoff(tmp_path, "belam", 14)
+    _seed_gen_record(tmp_path, "belam", 14)
     code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(foreign)])
     out = capsys.readouterr().out
@@ -1872,7 +1937,7 @@ def test_gd_no_pin_written_with_row_gen(monkeypatch, tmp_path,
                                         fake_ladder, capsys):
     # (d) No pin -> written '<row gen><TAB>T' exactly as today.
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
-    rotate._write_handoff(tmp_path, "belam", 14)
+    _seed_gen_record(tmp_path, "belam", 14)
     p = _sessions_dir_of(tmp_path) / "belam.meter"
     code = rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(pinned)])
@@ -1893,14 +1958,14 @@ def test_ge_meter_output_identical_across_lag_and_control(monkeypatch,
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
 
     p = _pin_write(tmp_path, "belam", 15, pinned)
-    rotate._write_handoff(tmp_path, "belam", 14)
+    _seed_gen_record(tmp_path, "belam", 14)
     assert rotate.main(["meter", "--seat", "belam", "--pin", str(p),
                         "--session-log", str(pinned)]) == 0
     out_lag = capsys.readouterr().out
     frac_lag = next(l for l in out_lag.splitlines() if "source=" in l)
 
     p2 = _pin_write(tmp_path, "belam", 14, pinned)
-    rotate._write_handoff(tmp_path, "belam", 14)
+    _seed_gen_record(tmp_path, "belam", 14)
     assert rotate.main(["meter", "--seat", "belam", "--pin", str(p2),
                         "--session-log", str(pinned)]) == 0
     out_ctrl = capsys.readouterr().out
@@ -1939,7 +2004,7 @@ def test_f_seat_named_correct_gen_pin_still_reads(monkeypatch, tmp_path, fake_la
     # generation pin still reads and returns the fraction, and never consults
     # other agents' pins. (The helper's live pin is the working fixture.)
     proj, pinned, foreign = _fake_cc_projects(tmp_path, monkeypatch)
-    rotate._write_handoff(tmp_path, "belam", 4)
+    _seed_gen_record(tmp_path, "belam", 4)
     seg = _sessions_dir_of(tmp_path)
     (seg / "belam.meter").write_text(f"4\t{pinned}\n", encoding="utf-8")
     code = rotate.main(["meter", "--seat", "belam"])
@@ -2466,6 +2531,20 @@ def _write_seats_sheet(root, rows):
         body += "  - " + json.dumps(r) + "\n"
     body += "---\n"
     (nodes / "seats.md").write_text(body, encoding="utf-8")
+
+
+def _seed_gen_record(root, name, gen_after):
+    """Seed ONE latest rotation record carrying `gen_after` -- the
+    engine-written source `_generation_measured` falls back to when the
+    config:seats row carries no generation cell (hypothesis:l4-a-posts-
+    generation-is-measured-from-its-row-or-latest-record-never-from-a-
+    handoff-header-it-can-hand-edit). The handoff header is never read as a
+    gate, so fixtures seed a record, not a header."""
+    rot = rotate._rotations_dir(root)
+    rot.mkdir(parents=True, exist_ok=True)
+    (rot / f"{name}.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": name,
+                    "gen_after": gen_after}), encoding="utf-8")
 
 
 def _pin_seat_transcript(root, name, tokens):
@@ -3464,7 +3543,7 @@ def test_stops_stale_clock_grep_is_extended_regexp(tmp_path, monkeypatch):
 
     monkeypatch.setattr(_r.subprocess, "run", fake_run)
     msg = _r._stops_slot_is_stale(tmp_path, "s", text)
-    assert msg and "STALE" in msg, msg
+    assert msg and "UNCHANGED since" in msg and "STALE" not in msg, msg
     clk = [a for a in seen if "--grep" in a
            and any("harvest" in x for x in a)]
     assert clk, seen
@@ -3988,7 +4067,11 @@ def test_rotate_self_refused_when_merge_push_fails(fake_ladder, tmp_path,
 
 def test_seat_handoff_generation_bumps_on_rotation(fake_ladder, tmp_path,
                                                    capsys, monkeypatch):
-    """A seat whose handoff says generation 3 rotates onto generation 4."""
+    """A seat whose latest rotation records generation 3 rotates onto
+    generation 4. The handoff header also says 3 (kept coherent by the one
+    writer), but the generation the rotation measures comes from the latest
+    record -- never a hand-editable header (hypothesis:l4-a-posts-
+    generation-is-measured-from-its-row-or-latest-record-...)."""
     _write_seats_sheet(tmp_path,
                        [{"name": "adv-alive", "role": "parent",
                          "model": "x", "effort": "max", "settings": ""}])
@@ -3996,6 +4079,7 @@ def test_seat_handoff_generation_bumps_on_rotation(fake_ladder, tmp_path,
     hand.mkdir(parents=True, exist_ok=True)
     (hand / "adv-alive.handoff.md").write_text(
         "seat: adv-alive\ngeneration: 3\n", encoding="utf-8")
+    _seed_gen_record(tmp_path, "adv-alive", 3)
     seen = []
     def fake_spawn(**kw):
         seen.append(kw["name"])
@@ -7155,7 +7239,10 @@ def test_ack_cell_printer_names_only_changed_cells(
     assert not any(ln.startswith(("+", "-")) for ln in lines), lines
     assert "key_history" not in "\n".join(lines)   # unchanged, never printed
     assert lines[-1] == f"git -C {top} push"           # push line LAST
-    assert all(len(ln) <= 120 for ln in lines), [len(ln) for ln in lines]
+    # width check is scoped to the CELL lines only (the `cells` list above);
+    # path-bearing status/push lines legitimately exceed 120 on a long
+    # basetemp (the ack line embeds the repo/card path) and are not cells.
+    assert all(len(ln) <= 120 for ln in cells), [len(ln) for ln in cells]
 
 
 def test_ack_cell_printer_summarises_key_history(tmp_path, capsys):
@@ -8917,13 +9004,12 @@ def test_ack_diff_accepted_on_diff_requested_pending(tmp_path,
 
 def _seat_cur_gen_fixture(tmp_path, name, generation):
     """A minimal graph root whose seat's generation is measured from the
-    handoff header (the config:seats-row fallback path in
-    `_generation_measured`), so check 6's row-vs-ack comparison is live."""
+    LATEST ROTATION RECORD's `gen_after` (the config:seats-row fallback path
+    in `_generation_measured`), so check 6's row-vs-ack comparison is live.
+    Seeded via a record, never the handoff header (which is info-only)."""
     root = _proj(tmp_path)
-    seats = rotate._seat_hands(root)
-    seats.mkdir(parents=True, exist_ok=True)
-    (seats / f"{name}.handoff.md").write_text(
-        f"seat: {name}\ngeneration: {generation}\n", encoding="utf-8")
+    rotate._seat_hands(root).mkdir(parents=True, exist_ok=True)
+    _seed_gen_record(root, name, generation)
     return root
 
 

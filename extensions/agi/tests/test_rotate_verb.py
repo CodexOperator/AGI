@@ -312,9 +312,10 @@ def test_stale_stops_slot_refuses_by_name_not_delegated(tmp_path, monkeypatch,
     code = rotate.cmd_rotate(_parse([]), tmp_path)
     assert code == 2
     err = capsys.readouterr().err
-    assert "STALE" in err
+    assert "UNCHANGED since" in err
     assert "rotate-out gen 4->5" in err        # the gen pair is named
-    assert "write the card where-it-stops section or pass --stops" in err
+    assert "it is their card, not yours" in err
+    assert "STALE" not in err                   # F23: never called stale
     assert called == []                         # NOTHING delegated
 
 
@@ -338,6 +339,41 @@ def test_rewritten_slot_delegates(tmp_path, monkeypatch):
     import hashlib
     assert captured["ns"].stops_sha256 == hashlib.sha256(
         "hand off the round".encode()).hexdigest()
+
+
+# --- (12b) retry after a blocked rotate-out is NOT stale (SM.84 / F23) ---
+def test_retry_after_blocked_rotate_out_not_stale(tmp_path, monkeypatch,
+                                                  capsys):
+    """CLAIM (7) / F23 -- a rotation BLOCKED after its stop_commit (the
+    card+seats write+push rotate-self performs BEFORE the prepare checklist)
+    leaves a `rotate-out gen N->N+1` commit though no successor was spawned.
+    On retry the row's generation is STILL N (never advanced), so the slot is
+    NOT a completed predecessor's stale block: the bare retry DELEGATES, no
+    `--stops` demand, nothing refused."""
+    rows = _keyed_posts(tmp_path, [("prime", "prime_director")])
+    _write_geo(tmp_path, rows)
+    _git_init(tmp_path)
+    _stops_card(tmp_path, "prime", "run the suite and report")
+    _commit_all(tmp_path, "prime rotate-out gen 4->5: run the suite")
+    # the generation NEVER advanced: the row still reads 4 -> the rotate-out
+    # was aborted, this is a same-seating retry (not a predecessor stale).
+    # Seed the LATEST ROTATION RECORD at gen 4 -- the engine-written source
+    # `_generation_measured` falls back to (never the handoff header).
+    _rec = rotate._sessions_dir(tmp_path) / "rotations"
+    _rec.mkdir(parents=True, exist_ok=True)
+    (_rec / "prime.20260917T000000Z.rotation.json").write_text(
+        json.dumps({"rotation": "rotate-self", "seat": "prime",
+                    "gen_after": 4}), encoding="utf-8")
+    monkeypatch.setenv("AGI_POST", "prime")
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+    captured = {}
+    monkeypatch.setattr(rotate, "cmd_rotate_self",
+                        lambda ns, root: (captured.update(ns=ns), 0)[1])
+    code = rotate.cmd_rotate(_parse([]), tmp_path)
+    assert code == 0, (code, capsys.readouterr().err)
+    assert captured.get("ns") is not None, \
+        "a same-seating retry delegates, never re-asks for --stops"
+    assert captured["ns"].stops == "run the suite and report"
 
 
 # --- (12) no rotate-out commit (a first seating) -> delegated --------------
@@ -454,8 +490,8 @@ def test_stale_refusal_names_both_stamps_and_source(tmp_path, monkeypatch,
     assert err.count(day) >= 2                  # the slot stamp AND the act
     assert "newest work act" in err
     assert "the card's last commit" in err      # WHICH source ran newer
-    # the fix text is unchanged (the byte comparison is still the gate).
-    assert "write the card where-it-stops section or pass --stops" in err
+    assert "not yours -- write the slot, or pass --stops" in err
+    assert "STALE" not in err                   # F23: never called stale
 
 
 # --- (18) clause (c): check 4 names the one-line exit FIRST -----------------

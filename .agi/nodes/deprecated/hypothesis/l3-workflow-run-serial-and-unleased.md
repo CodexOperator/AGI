@@ -5,9 +5,10 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 0b3bc71128d7c27b
 season: 2
+status: deprecated
 testable_claim=Measured: "live 2026-09-08: workflow.py run deep-search --harness pi kept exactly one pi child alive at a time while spawn_budget.py status showed none of them. After the change, stages the manifest declares independent are spawned concurrently under a declared cap, every workflow-spawned agent takes a spawn_budget lease so status counts it, and the two properties are proven by a red-first test asserting concurrent children for an independent stage and a lease count that rises for the duration of a run"
 thought_session: belam-S1-L3-X
 title: The unified workflow route runs its independent stages serially and takes no spawn lease, so a fan-out costs N times the wall clock and spawn_budget reports an idle box while it works
@@ -62,3 +63,5 @@ WHAT THIS CHANGES ABOUT THE FIX. Do not patch four things. Route workflow stage 
 HONEST SCOPE NOTE FOR WHOEVER TAKES THIS. The `--dry-run` path is genuinely correct and was verified on both harnesses by two independent agents; nothing here demotes `experiment:a00-33c42478-0c0721`, whose brief asked for exactly what it delivered. What failed is the live execution path underneath it, which no brief had ever asked anyone to exercise. That is the whole reason the owner's instruction to actually USE it was worth more than another review of it.
 
 L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): KEEP for the next stream (KEEP) -- live defect: D3/D4/D5 landed and D2 (lease) is carried by hypothesis:workflow-stages-dispatch-as-kids, but D1 (independent stages spawned concurrently under a declared cap) is named by no successor and is still the bytes: one blocking subprocess.run per stage in a serial for-loop. Narrow the node to D1 and cross-link the L4 node for D2. EVIDENCE: workflow.py:1683 `for st in stages:` -> :1464 `subprocess.run(...)`; grep for concurrency primitives in workflow.py = 0; successor node 20 lines, 0 hits for concurren/parallel/serial/fan; sha 4b0f9f843 Never rounded at close (owner 14:1xZ).
+
+Folded at the L4 closeout (Prime retire list 2026-09-17 12:0xZ from survey hypothesis:a00-e1933e6a-176c0e, executed by sanctuary-master gen 7, status deprecated + moved under deprecated/hypothesis, mint id unchanged) INTO hypothesis:workflow-stages-dispatch-as-kids: D2 folded there, D1 (concurrency) lives on the workflow route; the sibling carries the live claim.
