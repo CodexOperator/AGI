@@ -44,3 +44,15 @@ RULED (as read by the Prime, belam gen 28, 13:3xZ):
 > "Can we archive all other posts fully? They keep getting nudge spammed. Or add them to quiet posts is fine so they get nothing at least"
 
 APPLIED by the Prime 13:45Z (f54c02af0), the reversible option: `config:posts` `settings=quiet` on every row except belam and the L5 director sanctuary-director (17 rows; `send.py` `_row_is_quiet` = the ONE nudge choke point, so send/wake/heal/stranded-retry all type nothing; the dm is still written to the inbox). Not archived: the idle windows stay (an idle session costs nothing) and sensei-director must stay alive to rotate once in L5.02 for its rename. Rewind = the same cell back to "".
+
+### OWNER 2026-09-17, banked 14:2xZ (date -u) — the director's unverified read + auto-posting verified dms, verbatim
+
+> "Yeah btw the director considered your message unverified since it came from an automated channel. I got it started now but how hard would it be to make message auto post into the chat itself if verified."
+
+MEASURED (Prime): the director's worktree was 200 commits behind season2/main and its config:posts row carried the Prime's previous pubkey (0dd30447 vs 10009646 at HEAD); send.py read verifies against the READER's checkout while whois verifies against origin/season2/main. Routed to the director as a g15 line (second parent beside L5.01): verify against the authority branch + the recipient's UserPromptSubmit hook runs the one read on an [agi-nudge] prompt and appends the verified bodies as hook context (no tool call; verification recipient-side against the graph, never the typed text).
+
+### OWNER 2026-09-17, banked 14:2xZ (date -u) — hourly watchdog nudges, verbatim
+
+> "can we increase the watchdog nudge interval to every hour as the director is getting nudged constantly and parents and kids are still active of course."
+
+APPLIED by the Prime as a direct write on this order (hypothesis:l5-the-stranded-wake-repair-runs-hourly-on-its-own-cadence, goal:g15): heal.py's stranded-wake repair now runs on `comms.wake_repair_every_s` (default 3600, set explicitly in .agi/config.json) instead of every 30 s poll; the reaper, after_join and round watch keep the 30 s poll; `comms.nudge_stale_after_minutes` 30 -> 60. Deviation recorded on the node: 11 production lines by the Prime, not a round -- the owner asked for it now and the one director was loaded.
