@@ -157,5 +157,30 @@
     "claimed_at": "2026-09-17T01:33:08.690399+00:00",
     "claim_key": "2026-09-17T01:32:35.055308Z",
     "performed_after_s": 33.07996416091919
+  },
+  "audit": {
+    "out": {
+      "calls": 12,
+      "pre": 0,
+      "a": 2,
+      "b": 2,
+      "c": 1,
+      "d": 7,
+      "floor": 1,
+      "excess": 11,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/c59217a7-911e-4e98-b175-fba4af66b92b.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 1597,
+        "ts": "2026-09-17T01:29:50.290Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-17T01:32:35.055308Z"
+      },
+      "audited_at": "2026-09-17T01:37:50Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
