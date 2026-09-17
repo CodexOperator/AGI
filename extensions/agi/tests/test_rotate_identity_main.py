@@ -10,6 +10,7 @@ byte-identical to before. The send/heal READERS that resolve a live @id/pid
 must also read MAIN (the same copy the writer wrote), never the worktree copy.
 """
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 import subprocess
@@ -469,3 +470,101 @@ def test_rotate_self_record_commit_failure_is_best_effort(
     assert out.startswith("rotation_record_commit: FAILED"), out
     err = capsys.readouterr().err
     assert "rotation_record_commit: FAILED" in err, err
+
+
+# ---- l4-the-spawn-row-commit-retries-a-head-ref-lock-race ----------------
+def _ref_lock_shim(tmp_path, fails):
+    """A PATH shim for `git` that fails the first `fails` `git commit`
+    invocations with the HEAD ref-lock race error, then passes through to the
+    real git. Counted on-disk so it persists across the retry's subprocesses.
+    """
+    import shutil
+    shim = tmp_path / "refshim"
+    shim.mkdir(exist_ok=True)
+    count = shim / "count"
+    count.write_text("0")
+    real = shutil.which("git")
+    g = shim / "git"
+    g.write_text(
+        "#!/bin/sh\n"
+        "for a in \"$@\"; do [ \"$a\" = commit ] && { ISC=1; break; }; done\n"
+        "if [ -n \"$ISC\" ]; then\n"
+        "  c=$(cat \"$COUNT\" 2>/dev/null || echo 0); c=$((c+1))\n"
+        "  echo \"$c\" > \"$COUNT\"\n"
+        "  if [ \"$c\" -le \"$FAILS\" ]; then\n"
+        "    echo \"fatal: cannot lock ref 'HEAD': is at deadbeef but expected "
+        "c0ffee\" >&2\n"
+        "    exit 1\n"
+        "  fi\n"
+        "fi\n"
+        f"exec {real} \"$@\"\n")
+    g.chmod(0o755)
+    return shim, count, real
+
+
+def test_commit_spawn_row_retries_ref_lock_race(tmp_path, monkeypatch):
+    """CLAIM (1) -- `_commit_spawn_row` retries the own-row commit when a
+    HEAD ref-lock race (a peer post's commit landing in the same second
+    moves HEAD) makes `git commit` fail with ``cannot lock ref 'HEAD'``.
+    FALSIFIER: a shim git that fails the first 2 commits then succeeds must
+    still produce a COMMITTED spawn row, with the retry count (2) recorded,
+    leaving MAIN's seats.md committed and clean."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    out = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="ref-1", generation=4, window="@NEW")
+    assert out.startswith("config:seats row")
+    shim, _count, _real = _ref_lock_shim(tmp_path, fails=2)
+    monkeypatch.setenv("PATH", str(shim) + os.pathsep +
+                       os.environ.get("PATH", ""))
+    monkeypatch.setenv("FAILS", "2")
+    monkeypatch.setenv("COUNT", str(_count))
+    outcome = rotate._commit_spawn_row(
+        wt / ".agi", seat=seat, generation=4, session_id="sess-r1",
+        window="@NEW", pid=5151)
+
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+    assert "retried 2" in outcome, outcome
+    st = subprocess.run(
+        ["git", "-C", str(main), "status", "--porcelain", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.strip()
+    assert st == "", "the retried commit must leave MAIN's seats.md clean"
+    log = subprocess.run(
+        ["git", "-C", str(main), "log", "--format=%h %s", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.splitlines()
+    assert log[0].endswith(f"{seat} spawn row: gen 4, session_id sess-r1, "
+                           "window @NEW, pid 5151"), log
+
+
+def test_commit_spawn_row_records_failed_after_retries_exhausted(
+        tmp_path, monkeypatch):
+    """CLAIM (1) -- when every retry hits the ref-lock race, the outcome
+    RECORDS FAILED and NAMES the retry count, and the real index is unstaged
+    (the row stays only in the working tree) exactly like the pre-retry
+    failure path. FALSIFIER: a shim git failing 6 commits must produce
+    ``spawn_row_commit: FAILED`` containing ``retried 5`` and the lock
+    error, with nothing staged under MAIN."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    out = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="", generation=4, window="@NYET")
+    assert out.startswith("config:seats row")
+    shim, _count, _real = _ref_lock_shim(tmp_path, fails=6)
+    monkeypatch.setenv("PATH", str(shim) + os.pathsep +
+                       os.environ.get("PATH", ""))
+    monkeypatch.setenv("FAILS", "6")
+    monkeypatch.setenv("COUNT", str(_count))
+    outcome = rotate._commit_spawn_row(
+        wt / ".agi", seat=seat, generation=4, session_id="sess-x1",
+        window="@NYET", pid=6161)
+
+    assert outcome.startswith("spawn_row_commit: FAILED"), outcome
+    assert "retried 5" in outcome, outcome
+    assert "cannot lock ref 'HEAD'" in outcome, outcome
+    staged = subprocess.run(
+        ["git", "-C", str(main), "diff", "--cached", "--",
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout.strip()
+    assert staged == "", "the failed retry must leave the row unstaged"
