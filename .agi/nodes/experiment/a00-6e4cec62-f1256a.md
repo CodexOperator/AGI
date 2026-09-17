@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-posts-generation-is-measured-from-its-row-or-latest-record-never-from-a-handoff-header-it-can-hand-edit
 next_edges: []
 confidence: 0.5
-edited_by: a00-76d8789e
+edited_by: sensei-director
 evidence_runs:
   - experiment:a00-6e4cec62-f1256a
 line_ceiling: 20
@@ -22,7 +22,7 @@ scaffold_hash: a2089e0c4eda4639
 season: 2
 title: posts generation measured from row or latest rotation record, never the handoff header
 town: core
-verdict: inconclusive_lean_disproved
+verdict: inconclusive_lean_disproved:80
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-6e4cec62-f1256a

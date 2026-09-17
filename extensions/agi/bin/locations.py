@@ -306,6 +306,18 @@ def refuse_live_resolution(given: Path, resolved: Path) -> None:
                            f"checkout; pass --basetemp under /tmp")
 
 
+def refuse_live_sessions_from_plain_scratch(sessions_root: Path) -> None:
+    """Refuse only a scratch invocation nested inside the live graph root."""
+    if not is_live_checkout(sessions_root):
+        return
+    cwd = Path.cwd().resolve()
+    graph = find_project_root(cwd)
+    if graph is not None and cwd.is_relative_to(graph) and cwd != graph:
+        raise RuntimeError("refused: tier-gate invoked from a scratch nested "
+                           "inside the live graph; run pytest from the source "
+                           "tree, or pass --basetemp under /tmp")
+
+
 def shared_project_root(start: Path | str | None = None) -> Path | None:
     """The project's ONE graph root across every git worktree, or None.
 
