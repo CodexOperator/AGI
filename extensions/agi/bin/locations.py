@@ -329,7 +329,9 @@ def shared_project_root(start: Path | str | None = None) -> Path | None:
         return None
     main = git_common_root(graph)
     main_graph = find_project_root(main) if main else None
-    return main_graph or graph
+    out = main_graph or graph
+    refuse_live_resolution(start or Path.cwd(), out)
+    return out
 
 
 def project_root_from_env(start: Path | str | None = None) -> Path | None:
@@ -690,11 +692,13 @@ def shared_sessions_dir(root: Path) -> Path:
         mg = find_project_root(main) or graph
         graph = mg
     if (graph / "nodes").is_dir():
-        return graph / "sessions"
-    if (graph / ".agi" / "nodes").is_dir():
-        return graph / ".agi" / "sessions"
-    # Unknown shape: default to the graph-dir reading, the production path.
-    return graph / "sessions"
+        out = graph / "sessions"
+    elif (graph / ".agi" / "nodes").is_dir():
+        out = graph / ".agi" / "sessions"
+    else:
+        out = graph / "sessions"  # unknown shape: graph-dir reading
+    refuse_live_resolution(root, out)
+    return out
 
 
 def iteration_dir(root: Path, iter_id: int | str) -> Path:

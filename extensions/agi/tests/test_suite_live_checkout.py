@@ -14,6 +14,7 @@ import pytest
 import locations
 import rotate
 import send
+import spawn_budget
 import verification
 
 #: The live engine checkout this conftest ships from -- the tree a suite may
@@ -84,3 +85,25 @@ def test_refuse_live_resolution_is_noop_outside_pytest(tmp_path, monkeypatch):
     correct production behaviour -- never a refusal."""
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     locations.refuse_live_resolution(_given_tmp(tmp_path), LIVE)
+
+
+# --- claim (3) ADDENDUM: the budget_dir resolver refuses live too -----------
+
+
+def test_budget_dir_refuses_live_resolution(tmp_path, monkeypatch):
+    """spawn_budget.budget_dir routes through git_common_root like the other
+    writers; a given non-live root that resolves LIVE is refused by name."""
+    monkeypatch.setattr(locations, "find_project_root",
+                        lambda root: LIVE if root else None)
+    with pytest.raises(RuntimeError, match="resolves to the live checkout"):
+        spawn_budget.budget_dir(_given_tmp(tmp_path))
+
+
+def test_locations_sibling_resolvers_refuse_live(tmp_path, monkeypatch):
+    """The sibling resolvers in locations.py that route through git_common_root
+    register behind the SAME is_live_checkout predicate -- one-line additions."""
+    for fn in (locations.shared_sessions_dir, locations.shared_project_root):
+        monkeypatch.setattr(locations, "find_project_root",
+                            lambda root: LIVE)
+        with pytest.raises(RuntimeError, match="resolves to the live checkout"):
+            fn(_given_tmp(tmp_path))
