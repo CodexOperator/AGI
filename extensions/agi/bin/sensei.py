@@ -30,6 +30,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:  # runs from extensions/agi/bin/ as part of the package
@@ -918,6 +919,9 @@ def _greps_a_source(low: str) -> bool:
     return False
 
 
+_AUDIT_VERB = re.compile(r"\bsensei\.py[^;&|\n]{0,60}audit\b|\bwrite\.py\b|"
+                         r"\bsend\.py send\b|\brotate\.py rotate\b|\bgit (commit|push)\b", re.I)
+
 def _is_byhand_read(cmd: str, tool: str) -> bool:
     """Category b: a read/action the seat does BY HAND that a template entry
     (first_turn or after_join) already covers — ps/tmux process-tree checks,
@@ -926,8 +930,9 @@ def _is_byhand_read(cmd: str, tool: str) -> bool:
     The `rotate.py ack` / `meter --pin` steps are owned by category `s`
     (service-owed), handled before this rule is ever reached."""
     nc = _norm_cmd(cmd).lower()
-    if re.search(r"\bps(\s|$)", nc) or re.search(r"\btmux\b", nc):
-        return True
+    if _AUDIT_VERB.search(cmd):
+        return False
+    if re.search(r"\bps(\s|$)", nc) or re.search(r"\btmux\b", nc):        return True
     if re.search(r"sessions/rotations|claude/projects", nc):
         return True
     # clause (3): the session-keyed ack spell `seats/<seat>.ack.<sid8>.json`
@@ -1318,9 +1323,56 @@ def _is_row_commit(cmd: str) -> bool:
         sp in nc for sp in _CFG_FILE_SPELLINGS)
 
 
+_REAL_WAKE = re.compile(r"^\[(?:agi-nudge|(?:kid|overdue|dead)[^\]]*)\]", re.M)
+def _wake_inputs(path):
+    """(nudge_lines, first_real_line, user_lines) over the live wake, ONE scan."""
+    nudge, user, first = set(), [], None
+    for ln, l in enumerate(open(path, encoding="utf-8", errors="replace")):
+        try:
+            ev = json.loads(l)
+        except json.JSONDecodeError:
+            continue
+        if ev.get("type") != "user":
+            continue
+        c = ev.get("message", {}).get("content")
+        ts = [c] if isinstance(c, str) else [b.get("text") or "" for b in c
+              if isinstance(b, dict) and b.get("type") == "text"]
+        t = " ".join(ts)
+        if not t.strip():
+            continue
+        user.append(ln)
+        if "[agi-nudge]" in t:
+            nudge.add(ln)
+        if first is None and _REAL_WAKE.search(t):
+            first = ln
+    return nudge, first, user
+
+
+def _settled_wait(rec_path, grace: int = 240,
+                  clock=None, sleep=time.sleep) -> None:
+    """Block till the rotation record shows `result: success` AND the grace
+    has elapsed since success was first observed. Clock- and sleep-abstracted
+    (unittest can drive the 240 s by monkeypatching `time.monotonic`, never a
+    real wait); re-reads the record each poll so a --settled first call cannot
+    return before the rotation settled."""
+    clock = clock or time.monotonic  # resolved at CALL time -> monkeypatchable
+    success_at = None
+    while True:
+        try:
+            rec = json.loads(Path(rec_path).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            rec = {}
+        if success_at is None and rec.get("result") == "success":
+            success_at = clock()
+        if success_at is not None and clock() - success_at >= grace:
+            return
+        sleep(1)
+
+
 def wake_audit(root: Path, seat: str, gen: int | None,
                transcript_path: Path | None,
-               record: str | None = None) -> tuple[int, list[dict], dict]:
+               record: str | None = None,
+               settled: bool = False) -> tuple[int, list[dict], dict]:
     """Run the classification over the seat's wake transcript.
 
     Returns `(exit_code, per_call_rows, counts)` so the CLI body and the tests
@@ -1368,6 +1420,8 @@ def wake_audit(root: Path, seat: str, gen: int | None,
         print(f"ERR: transcript {log_path} does not exist ({source})",
               file=sys.stderr)
         return 2, [], {}
+    if settled:
+        _settled_wait(rec_path)
 
     calls: list[dict] = []
     counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
@@ -1376,9 +1430,18 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     # calls scanned (before the window cut).
     ack_idx: int | None = None
     first_d_idx: int | None = None
-    for tool, inp in _iter_tool_uses(log_path):
+    nudge_lines, first_input, user_lines = _wake_inputs(log_path)
+    first_input_idx = None
+    for ln, tool, inp, _ts in _iter_assistant_tool_uses(log_path):
         cat, label, cmd = classify_tool_use(
             tool, inp, seat, entries, facts, hand_paths, after_join)
+        # conjunct 2: a send.py read answering an [agi-nudge] is service-owed.
+        if cat in ("a", "b") and re.search(r"\bsend\.py read\b", cmd):
+            prev = next((l for l in reversed(user_lines) if l < ln), None)
+            if prev is not None and prev in nudge_lines:
+                cat, label = "s", "nudge"
+        if first_input_idx is None and first_input is not None and ln >= first_input:
+            first_input_idx = len(calls) + 1
         calls.append({"tool": tool, "cmd": cmd, "cat": cat,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "source": source})
@@ -1421,6 +1484,9 @@ def wake_audit(root: Path, seat: str, gen: int | None,
     elif first_d_idx is not None:
         window_end = first_d_idx
         reason = f"first (d) at {first_d_idx}"
+
+    if first_input_idx and first_input_idx - 1 < window_end:
+        window_end, reason = first_input_idx - 1, f"first real input at {first_input_idx}"
 
     window_calls = calls[:window_end]
     window_counts = {"a": 0, "b": 0, "c": 0, "d": 0, "s": 0}
@@ -1811,7 +1877,8 @@ def finish_audit(root: Path, seat: str, side: str, calls: int, counts: dict,
 def cmd_wake_audit(root: Path, args) -> int:
     code, calls, counts = wake_audit(root, args.seat, args.gen,
                                      Path(args.transcript) if args.transcript else None,
-                                     record=getattr(args, "record", None))
+                                     record=getattr(args, "record", None),
+                                     settled=getattr(args, "settled", False))
     if code != 0:
         return code
     redact = getattr(args, "redact", True)
@@ -2156,10 +2223,12 @@ def _read_verb_operand_is(cmd: str, path: str) -> bool:
     body, an `echo`) is not a read."""
     if not path:
         return False
-    for m in re.finditer(r"(?<![\w-])(?:cat|head|tail|less|more|sed)(?![\w-])",
-                         cmd):
-        seg = re.split(r"[|;&]", cmd[m.end():])[0]
-        for tok in seg.split():
+    for m in re.finditer(
+            r"(?<![\w-])(?:cat|head|tail|less|more|sed|grep|rg)(?![\w-])",
+            cmd):
+        # neutralize quoted spans so a `|` inside quotes stays in-segment.
+        seg = re.sub(r"['\"][^'\"]*['\"]", " ", cmd[m.end():])
+        for tok in re.split(r"[|;&]", seg)[0].split():
             if tok.strip("'\"") == path:
                 return True
     return False
@@ -2182,7 +2251,8 @@ def _harvest_read_of(path: str, tool: str, inp, cmd: str) -> bool:
 def rotate_out_audit(root: Path, seat: str, gen: int | None,
                      transcript_path: Path | None,
                      registry_dir: str | None = None,
-                     record: str | None = None
+                     record: str | None = None,
+                     settled: bool = False
                      ) -> tuple[int, list[dict], dict, dict]:
     """Classify the outgoing predecessor's calls from its last real input to
     the record's `recorded_at` (mirror of `wake_audit`).
@@ -2245,6 +2315,8 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
     if rec_path is None:
         print(f"ERR: {basis}", file=sys.stderr)
         return 2, [], {}, {}
+    if settled:
+        _settled_wait(rec_path)
     out_rec = out_rec or {}
     record_stamp = _record_stamp(rec_path, seat)
     # `window['gen']` is kept for readers that already hold it; it is the
@@ -2313,7 +2385,8 @@ def cmd_rotate_out_audit(root: Path, args) -> int:
         root, args.seat, args.gen,
         Path(args.transcript) if args.transcript else None,
         registry_dir=args.registry_dir,
-        record=getattr(args, "record", None))
+        record=getattr(args, "record", None),
+        settled=getattr(args, "settled", False))
     if code != 0:
         return code
     row = seat_row(load_seats(root), args.seat)
@@ -2523,6 +2596,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-record", action="store_true",
                    help="dry read: print the audit line and write NOTHING "
                         "into the rotation record")
+    p.add_argument("--settled", action="store_true",
+                   help="wait INSIDE the verb (record success + 240 s grace) "
+                        "before auditing, so a first call is the audit and no "
+                        "background timer shape survives")
 
     p = sub.add_parser("rotate-out-audit",
                         help="classify the outgoing predecessor's rotate-out calls")
@@ -2546,6 +2623,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--no-record", action="store_true",
                    help="dry read: print the audit line and write NOTHING "
                         "into the rotation record")
+    p.add_argument("--settled", action="store_true",
+                   help="wait INSIDE the verb (record success + 240 s grace) "
+                        "before auditing, so a first call is the audit and no "
+                        "background timer shape survives")
 
     p = sub.add_parser("apply", help="apply once both threads reply")
     p.add_argument("--target", required=True)
