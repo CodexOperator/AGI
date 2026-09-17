@@ -151,6 +151,7 @@ SM.74 (node F)'s kids have churned (one death + a fresh kid `a00-1d11cefe` spawn
 4. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.77.**
 
 ### 🔴 Where it stops — the next command (stamp 2026-09-17T01:12Z)
+````````
 ```````
 ``````
 `````
@@ -516,6 +517,7 @@ Standing lessons carried forward, still live:
 `````
 ``````
 ```````
+````````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted; prior-generation narrative entries compressed into the lessons block above where they were session-specific)
 - 🔴 **Two DIFFERENT rounds (on two different seats/trees) can independently fix the SAME defect**, producing a REAL (non-append) merge conflict on the next origin sync — not a bug in either round. Read both implementations fully; usually one is either stricter, more consistent with a sibling code path's existing convention, or already-landed-elsewhere and not worth re-litigating. Merge the two tests' coverage rather than picking only one, if they check different invariants of the same fix.
