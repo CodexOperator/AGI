@@ -9352,8 +9352,16 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # (MAIN's), so the append is against the live list, not a worktree copy.
     if key_rotation:
         import write  # local: same dir (send.py pattern, no import cycle)
+        # goal:g15.25 line (2) + hypothesis:l5-key-rotation-at-a-rename-
+        # boundary-clobbers-key-history-instead-of-carrying-it: the history
+        # READ must resolve the SAME row the ONE writer below updates, i.e.
+        # `_row_name` (the row that EXISTS -- the OLD name after a boundary
+        # rename, resolved above through `row_seat` / the `aliases:` bridge),
+        # NOT `seat`. Keying the read on `seat` (the post-rename name) found
+        # no row at read time, so `_cur == {}` and `_hist == []` and the
+        # cell-replace below destroyed every prior entry.
         _cur = next((r for r in write._load_seats(_shared_graph_root(root))
-                     if r.get("name") == seat), {})
+                     if r.get("name") == _row_name), {})
         _ret = key_rotation.get("retired")
         cells["pubkey"] = key_rotation.get("successor_pub")
         cells["sig_scheme"] = (_cur.get("sig_scheme")
