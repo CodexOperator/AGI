@@ -938,7 +938,18 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     without `--force`)."""
     dirty: list[str] = []
     for ln in status_lines:
-        path = ln[3:].strip().strip('"')
+        path = ln[3:].rstrip("\n")
+        # Porcelain v1 rename/copy entries read `XY PATH` where PATH is
+        # `ORIG -> DEST` (each side quoted separately when it holds specials),
+        # never a single path. A naive `ln[3:]` returns the literal non-path
+        # string `ORIG -> DEST`, which the park's `(wt / rel).is_file()` filter
+        # drops silently. Take the DESTINATION: a rename's bytes live there.
+        # Split on the LAST ` -> ` so a quoted destination survives.
+        if "R" in ln[:2] or "C" in ln[:2]:
+            parts = path.split(" -> ")
+            if len(parts) > 1:
+                path = parts[-1]
+        path = path.strip().strip('"')
         if path.startswith(".agi/sessions/"):
             continue
         dirty.append(path)
