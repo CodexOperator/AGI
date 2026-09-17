@@ -1562,15 +1562,23 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                 cmd, capture_output=True, text=True,
                 env=(spawn_env if spawn_env is not None else _pi_env()),
                 timeout=(600 if timeout_s is None else timeout_s))
-        except subprocess.TimeoutExpired as exc:
+        except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
-            # start": the stage ran long and was cut, which reads differently
-            # from a binary that never started. rc 2, one attempt, byte-
-            # compatible with the old timeout branch.
-            msg = f"timed out after {exc.timeout} s"
+            # start": TimeoutExpired IS a SubprocessError and the string it
+            # carries buries the whole argv -- prompt and all -- behind the
+            # one true fact that the process DID start and ran long before
+            # being cut. Caught before OSError/SubprocessError on purpose
+            # (except clauses are ordered). rc 2, one attempt, no retry.
+            # Landed independently by two rounds (SM.70 item 3 here; also
+            # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
+            # timeout-says-timed-out-... from mur-sm-60) -- this is the
+            # merged shape, reconciled at a season2/main merge conflict.
+            budget = 600 if timeout_s is None else timeout_s
             if view is not None:
-                view.stage_failed(stage["label"], msg)
-            print(f"workflow.py: stage {stage['label']} {msg}", file=sys.stderr)
+                view.stage_failed(stage["label"],
+                                   f"timed out after {budget:g} s")
+            print(f"workflow.py: stage {stage['label']} timed out after "
+                  f"{budget:g} s", file=sys.stderr)
             return 2, None
         except (OSError, subprocess.SubprocessError) as exc:
             # An unrunnable binary is NOT transient: one attempt, rc 2,
