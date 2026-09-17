@@ -249,6 +249,12 @@ NODE = lambda name: (  # noqa: E731
     f"---\nid: node:{name}\ntype: experiment\nstatus: active\n---\n# {name}\n\n")
 DEP_NODE = lambda name: (  # noqa: E731
     f"---\nid: node:{name}\ntype: experiment\nstatus: deprecated\n---\n# {name}\n\n")
+MINT_NODE = lambda name, mid: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: active\n"
+    f"mint_id: {mid}\n---\n# {name}\n\n")
+MINT_DEP = lambda name, mid: (  # noqa: E731
+    f"---\nid: node:{name}\ntype: experiment\nstatus: deprecated\n"
+    f"mint_id: {mid}\n---\n# {name}\n\n")
 
 
 def _baseline(groot: Path, doc: dict) -> None:
@@ -260,20 +266,22 @@ def _baseline(groot: Path, doc: dict) -> None:
 def test_retire_move_passes_and_restamps(tmp_path, monkeypatch):
     """Fixture (c): a retire pass — active -N, deprecated +N, total unchanged
     — PASSes node-count and re-stamps the baseline. The missing baseline path
-    `nodes/experiment/move-me.md` is counted as a MOVE (its basename exists
-    under `nodes/deprecated/experiment/` at HEAD), never as a loss."""
+    `nodes/experiment/move-me.md` is counted as a MOVE because the deprecated
+    twin at HEAD carries the SAME mint id the baseline recorded -- mint id
+    equality is the proof, never a basename match."""
     root = tmp_path / "repo"
     groot = root / ".agi"
     _committed_repo(root, {
-        # HEAD: move-me has RETIRED — it now lives under deprecated/ and
-        # the active copy is gone. The stamped manifest (below) still lists
-        # it ACTIVE, so an absent baseline path must resolve as a MOVE.
-        ".agi/nodes/deprecated/experiment/move-me.md": DEP_NODE("move-me"),
-        ".agi/nodes/hypothesis/h1.md": NODE("h1"),
+        # HEAD: move-me has RETIRED — it now lives under deprecated/ with its
+        # mint id intact. The stamped manifest (below) still lists it ACTIVE,
+        # so the absent baseline path must resolve as a MOVE by mint id.
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
     })
     _baseline(groot, {
         "active": 2, "deprecated": 0, "total": 2,
-        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
     })
     monkeypatch.setattr(verification, "_stamp_context",
                         lambda groot: (True, "abc123", "kept"))
@@ -284,6 +292,75 @@ def test_retire_move_passes_and_restamps(tmp_path, monkeypatch):
     assert "baseline updated" in r.note
     st = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
     assert st["active"] == 1 and st["deprecated"] == 1 and st["total"] == 2
+    assert st["manifest"]["nodes/deprecated/experiment/move-me.md"] == "X"
+
+
+def test_basename_collision_is_a_named_loss(tmp_path, monkeypatch):
+    """(b) The probe the fix exists for: the absent baseline path's deprecated
+    twin exists at the exact matching path but carries a DIFFERENT mint id, and
+    the compensating arithmetic keeps the total flat. Basename alone would pass
+    it; mint id equality makes it a LOSS, named, with the H0/H0b note."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("other", "Y"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/move-me.md" in r.note
+    assert "H0/H0b: 29k nodes lost to a silent drop" in r.note
+
+
+def test_absent_mint_id_is_a_loss(tmp_path, monkeypatch):
+    """(c) A deprecated twin with NO `mint_id` field proves nothing and is a
+    named LOSS, never a silent basename pass."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": DEP_NODE("move-me"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": {"nodes/experiment/move-me.md": "X",
+                     "nodes/hypothesis/h1.md": "H1"},
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/move-me.md" in r.note
+
+
+def test_old_list_baseline_cannot_prove_a_move(tmp_path, monkeypatch):
+    """(e) A record written before mint ids (manifest is a LIST) does not crash
+    and does NOT silently pass a basename match: the absent path is a LOSS."""
+    root = tmp_path / "repo"
+    groot = root / ".agi"
+    _committed_repo(root, {
+        ".agi/nodes/deprecated/experiment/move-me.md": MINT_DEP("move-me", "X"),
+        ".agi/nodes/hypothesis/h1.md": MINT_NODE("h1", "H1"),
+    })
+    _baseline(groot, {
+        "active": 2, "deprecated": 0, "total": 2,
+        "manifest": ["nodes/experiment/move-me.md", "nodes/hypothesis/h1.md"],
+    })
+    monkeypatch.setattr(verification, "_stamp_context",
+                        lambda groot: (True, "abc123", "kept"))
+    r = verification.compare_count(groot, {"active": 1,
+                                           "deprecated": 1, "total": 2})
+    assert r.status == "FAIL", r.note
+    assert "missing committed file(s): nodes/experiment/move-me.md" in r.note
 
 
 def test_real_deletion_still_fails_by_name(tmp_path, monkeypatch):
