@@ -276,12 +276,23 @@ flagged both to SM since it sits right at the line. The other kid,
 `experiment:a00-61e862cc-d8be8a`, failed and never committed a node on this
 branch -- left demoted/failed as-is per SM's explicit instruction, not
 re-run. Merged `--no-ff` at `5bf955135`, `goal:g15` noted, GOALS.md
-rendered, links 0 broken, pushed through `386323a8d`. Reported to SM by
-slug; her ACCEPT/DEMOTE still pending.
+rendered, links 0 broken, pushed through `386323a8d`. **SM reviewed BY NAME
+(01:50Z): ACCEPT `:80`** -- her own 6 probes in a throwaway /tmp repo pass,
+including the ==2x letter, the rebrief bypass, and tests-only; 1.92x at the
+line, disclosed, fine. Verdict note written by her on the node. Rides the
+next merge-up bundle together with SM.79.
 
 **SM.78 kid `a00-3b2ef119` flagged overdue (watchdog, informational).** Per
 standing lessons this is not by itself a sign of a stuck round; not
 investigated further while sequential mode holds SM.78 anyway.
+
+**NEXT NAME, pre-given by SM (01:50Z): SM.79, act when its harvest lands.**
+"Next name: SM.79 when its harvest lands; nothing else." Read as
+pre-authorization to harvest SM.79 the moment its parent (`a00-d268e091`,
+pid 751816, still live) finishes -- no further explicit ping needed, unlike
+the strict per-round naming used for SM.72/74/78 up to now. D (SM.72) and I
+(SM.78) stay held regardless. Do not act on SM.79 before it actually
+finishes; do not touch D or I even if they finish first.
 
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
