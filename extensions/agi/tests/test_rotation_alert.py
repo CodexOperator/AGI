@@ -1765,3 +1765,63 @@ def test_e2_poisoned_rotate_import_still_prints_pin_only(agi_project, run_hook,
     assert after[:1].isdigit(), lines[-1]              # a real fraction, from the pin
     assert "no-pin" not in lines[-1], lines[-1]        # the pin was computable
     assert "no-post" not in lines[-1], lines[-1]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# hypothesis:l5 conjunct 2+3 — the [meter] hook auto-posts a nudge's verified
+# bodies into the chat IN THIS TURN when the prompt is the machine wake head
+# for `<self>`; an owner-typed prompt never consumes (the gate).
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+def test_l5_nudge_prompt_auto_posts_delivered_in_this_turn(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct 2+3 — a prompt beginning with the machine wake
+    head for `<self>` (seat 'a' from cwd) runs the ONE `send.py read <self>`
+    (the `_run_send_read` seam, so no real subprocess) and appends the VERIFIED
+    body NAMED as delivered-in-this-turn, plus a do-not-read-again line (F25);
+    the [meter] line still prints last."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n  hello from sender\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)              # 0.12 -> below band
+    state_dir = tmp_path / "state-l5"
+    payload = _payload(agi_project, transcript, "sess-l5", cwd=str(cwd))
+    payload["prompt"] = "[agi-nudge] unread for a: send.py read a"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == ["a"], f"the ONE read must run for self: {calls}"
+    assert "DELIVERED IN THIS TURN" in out, out
+    assert "VERIFIED seat-a (ed25519)" in out, out
+    assert "Do NOT read again this turn (F25)." in out
+    assert "[meter]" in out, "the meter must still print"
+    lines = [ln for ln in out.splitlines() if ln.strip()]
+    assert lines[-1].startswith("[meter]"), "the meter must stay the LAST line"
+
+
+def test_l5_owner_typed_prompt_never_consumes(
+        agi_project, run_hook, tmp_path, monkeypatch, capsys):
+    """hypothesis:l5 conjunct 2 GATE — a prompt that does NOT begin with the
+    machine wake head for `<self>` (an owner-typed message) must NOT run the
+    auto-read nor emit any delivery context (the inbox is never touched)."""
+    calls = []
+    def _fake(bin_dir, seat):
+        calls.append(seat)
+        return "VERIFIED seat-a (ed25519)\n"
+    monkeypatch.setattr(hook, "_run_send_read", _fake)
+    cwd = agi_project.parent / "worktrees" / "seat-a"
+    cwd.mkdir(parents=True)
+    transcript = tmp_path / "sess.jsonl"
+    _write_transcript(transcript, 12_000)
+    state_dir = tmp_path / "state-gate"
+    payload = _payload(agi_project, transcript, "sess-gate", cwd=str(cwd))
+    payload["prompt"] = "What is the current status of the rotation?"
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert calls == [], "owner-typed prompt must never run the auto-read"
+    assert "DELIVERED IN THIS TURN" not in out

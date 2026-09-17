@@ -1015,6 +1015,51 @@ def _meter_refusal(post_label: str, reason: str) -> str:
     return f"[meter] post={post_label} {reason}"
 
 
+#: l5 — the machine wake head for `<self>` (send.py NUDGE_TOKEN_TEMPLATE)
+#: and the byte cap on the delivered bodies this hook appends.
+_NUDGE_READ_HEAD = "[agi-nudge] unread for "
+_AUTOPOST_BYTE_CAP = 6000
+
+
+def _run_send_read(bin_dir: Path, seat: str) -> str:
+    """`send.py read <seat>` stdout, else '' — the ONE seam a fixture
+    replaces so no real subprocess fires under pytest (P7)."""
+    try:
+        out, _ = _Popen(["python3", str(bin_dir / "send.py"), "read", seat],
+                        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                        text=True).communicate(timeout=20)
+    except Exception:  # noqa: BLE001
+        return ""
+    return out or ""
+
+
+def _auto_post(root: Path, cwd: str, prompt: object) -> bool:
+    """l5 c2+c3 — prompt is the machine wake head for `<self>` (seat from
+    cwd): run the ONE `send.py read <self>` and append the verified bodies+
+    labels IN THIS TURN, named delivered so the model does not read again
+    (F25). Gated so an owner-typed prompt never consumes; NO_SPAWN declines;
+    never raises (P7)."""
+    seat = _seat_from_cwd(cwd)
+    if not (seat and isinstance(prompt, str)
+            and prompt.startswith(f"{_NUDGE_READ_HEAD}{seat}")):
+        return False
+    if os.environ.get("AGI_HOOK_NO_SPAWN"):
+        print(f"[ack] nudge for {seat} NOT auto-read (AGI_HOOK_NO_SPAWN); "
+              f"run `send.py read {seat}` yourself.")
+        return False
+    body = _run_send_read(Path(__file__).resolve().parents[1] / "bin", seat)
+    text = (f"---\nMail DELIVERED IN THIS TURN by this hook (`[agi-nudge]` "
+            f"for {seat}); the ONE `send.py read {seat}` ran. Do NOT read "
+            f"again this turn (F25).\n{body}")
+    if len(text.encode()) > _AUTOPOST_BYTE_CAP:
+        print(text.encode()[:_AUTOPOST_BYTE_CAP].decode("utf-8", "replace"))
+        print(f"\n[acked] {seat}: exceeds byte cap; run `send.py read {seat}` "
+              f"for the rest.")
+    else:
+        print(text)
+    return True
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
 
@@ -1047,6 +1092,10 @@ def main(argv: list[str] | None = None) -> int:
     root = _project_root(cwd)
     if root is None:
         return 0
+
+    # l5 — a `[agi-nudge]` wake for `<self>` auto-posts its verified bodies
+    # into the chat IN THIS TURN, BEFORE the meter so the meter stays last.
+    _auto_post(root, cwd, payload.get("prompt"))
 
     # Fail closed with a NAMED error if the field we depend on is missing
     # (P2), and ONLY inside a project (P7 came first, above). Never emit a
