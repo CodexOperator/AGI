@@ -412,22 +412,29 @@ def test_timeout_is_one_attempt_no_retry(monkeypatch):
 
 def test_a_timeout_says_timed_out_and_never_could_not_start(monkeypatch):
     """hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-timeout-
-    says-timed-out-and-the-done-tests-stay-hermetic item (3), from mur-sm-60:
-    30 min of pi spend, the refuter never ran, and the record said "could not
-    start pi" because `TimeoutExpired` IS a `SubprocessError` and the string
-    it carries buries the whole argv -- prompt and all.
+    says-timed-out-and-the-done-tests-stay-hermetic item (3), from mur-sm-60,
+    AND SM.70 item 3 here (landed independently, reconciled at a
+    season2/main merge conflict): 30 min of pi spend, the refuter never ran,
+    and the record said "could not start pi" because `TimeoutExpired` IS a
+    `SubprocessError` and the string it carries buries the whole argv --
+    prompt and all.
 
     A timeout is its OWN outcome: the budget the CALLER resolved, named
-    first, and never the could-not-start wording. The view's failure line is
-    the same sentence (one surface, two readers).
+    first, and never the could-not-start wording. rc stays 2, one attempt,
+    no retry/sleep -- a timeout is not treated as the transient 5xx case.
     """
     import subprocess as _sp
     from unittest import mock
     import workflow as _wf
 
+    calls = []
+
     def fake_run(cmd, **kw):
+        calls.append(cmd)
         raise _sp.TimeoutExpired(cmd, 42)
 
+    sleeps: list[float] = []
+    monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
     cfg = {"harnesses": {"pi": {}}}
     st = _retry_stage()
     view = _wf.RunView("k", [st], "pi", out=io.StringIO())
@@ -438,11 +445,12 @@ def test_a_timeout_says_timed_out_and_never_could_not_start(monkeypatch):
             cfg, st, {"draft:a": {"model": "m", "effort": "x"}}, {},
             view=view, timeout_s=42)
     assert rc == 2 and value is None, (rc, value)
+    assert len(calls) == 1 and sleeps == [], (calls, sleeps)
     msg = err.getvalue()
     assert "stage draft:a timed out after 42 s" in msg, msg
     assert "could not start pi" not in msg, msg
     detail = view.state["draft:a"].get("detail", "")
-    assert "timed out after 42 s" in detail, detail
+    assert detail.startswith("timed out after 42 s"), detail
     assert "could not start pi" not in detail, detail
 
 
@@ -527,6 +535,9 @@ def _fake_pi_bin(tmp_path: Path) -> Path:
         "elif mode == 'fenced':\n"
         "    sys.stdout.write('Here is the review:\\n```json\\n'"
         "                     + " + repr(_REVIEW_BOTH_JSON) + " + '\\n```\\nthanks')\n"
+        "elif mode == 'yaml-fenced':\n"
+        "    sys.stdout.write('Review:\\n```yaml\\n'"
+        "                     + " + repr(_REVIEW_BOTH_JSON) + " + '\\n```\\nbyebye')\n"
         "else:\n"
         "    sys.stdout.write(" + repr(_REVIEW_BOTH_JSON) + ")\n",
         encoding="utf-8")
@@ -583,6 +594,19 @@ def test_pi_fenced_json_stage_is_ok_with_prose_around_it(tmp_path_factory,
     assert rc == 0, text
     assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
     # fenced parse resolves EXACTLY the same object the bare case did
+    assert rows[0]["stages"] == {"global-checks": "ok", "review:t1": "ok"}, rows
+
+
+def test_pi_yaml_fenced_json_stage_is_ok(tmp_path_factory, tmp_path, monkeypatch):
+    """hypothesis:l4-pi-review-stages-return-structured-reports item (2): a
+    ```yaml fence whose payload is JSON bytes is lifted like a ```json fence.
+    The model tagged the block `yaml` but the block holds JSON, which is the
+    residue that used to read `unstructured`."""
+    fake = _fake_pi_bin(tmp_path)
+    rc, text, rows, _tmp = _run_review_pi(tmp_path_factory, fake, "yaml-fenced",
+                                          monkeypatch)
+    assert rc == 0, text
+    assert "[summary] workflow=review stages=2 ok=2 unstructured=0 failed=0" in text
     assert rows[0]["stages"] == {"global-checks": "ok", "review:t1": "ok"}, rows
 
 
@@ -1926,10 +1950,37 @@ def test_pi_fallback_prints_one_named_line_when_provisioning_absent(
         restore()
 
 
-def test_pi_mint_error_is_named_then_falls_back(tmp_path_factory, monkeypatch,
-                                                capsys):
-    """A ProvisioningError with the key present is a REAL fault: it is printed
-    (`ERR: ...`) before the ONE named fallback line, never swallowed."""
+def test_prose_stage_persists_whole_return(tmp_path_factory, monkeypatch):
+    """(item 1) a pi stage that returns prose persists its WHOLE return to
+    `runs/<run_key>/<label>.json` (rc 0), and the jsonl row records the run_key
+    plus the unstructured full return — never the 200-char tree view."""
+    import workflow as _wf
+    fake = _fake_pi_bin(tmp_path_factory.mktemp("pi"))
+    rc, buf, rows, tmp = _run_review_pi(
+        tmp_path_factory, fake, "prose", monkeypatch)
+    assert rc == 0, rc
+    assert rows, "no jsonl row tracked"
+    run_key = rows[0].get("run_key")
+    assert run_key, rows[0]
+    assert rows[0].get("unstructured", 0) >= 1, rows[0]
+    runs = tmp / "sessions" / "workflows" / "runs" / run_key
+    persisted = sorted(p for p in runs.iterdir() if p.suffix == ".json")
+    assert persisted, f"no persisted stage files under {runs}"
+    text = persisted[0].read_text(encoding="utf-8")
+    assert _PROSE_TAIL in text, "prose tail missing (persist truncated)"
+    assert len(text) > 200, f"persisted return is flat ({len(text)} chars)"
+    # the reading side records the unstructured full prose too, not a stub
+    rets = {lb: d for lb, d in rows[0].get("returns", {}).items()}
+    assert rets, rows[0]
+    assert any(_PROSE_TAIL in (d or "") for d in rets.values()), rets
+
+
+def test_pi_mint_error_refuses_when_inherited_key_unusable(tmp_path_factory,
+                                                              monkeypatch,
+                                                              capsys):
+    """(item 5a) a failed mint REFUSES rc 3 naming the mint error verbatim
+    when the inherited key is NOT usable — no stage runs, no silent fallback
+    onto a credential nothing verified."""
     import subprocess as _sp
     from unittest import mock
     import workflow as _wf
@@ -1941,6 +1992,40 @@ def test_pi_mint_error_is_named_then_falls_back(tmp_path_factory, monkeypatch,
         raise _wf.provisioning.ProvisioningError("HTTP 401 nope")
 
     monkeypatch.setattr(_wf.provisioning, "mint", boom)
+    monkeypatch.setattr(_wf.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (False, "dead key"))
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run") as run:
+            rc = run_workflow(REPO / ".agi", "review", "pi",
+                              {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 3, rc
+        assert not run.called, run.call_args_list
+        err = capsys.readouterr().err
+        assert "ERR: could not mint a workflow credential: HTTP 401 nope" in err
+        assert "refusing stage" in err
+    finally:
+        restore()
+
+
+def test_pi_mint_error_runs_inherited_env_when_verified(tmp_path_factory,
+                                                        monkeypatch,
+                                                        capsys):
+    """(item 5b) a failed mint RUNS the stage on the inherited env when it is
+    proven usable, with the named `[credential] inherited env, verified` line."""
+    import subprocess as _sp
+    from unittest import mock
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: True)
+
+    def boom(**kw):
+        raise _wf.provisioning.ProvisioningError("HTTP 401 nope")
+
+    monkeypatch.setattr(_wf.provisioning, "mint", boom)
+    monkeypatch.setattr(_wf.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
     try:
         buf = io.StringIO()
         with mock.patch("subprocess.run",
@@ -1950,8 +2035,7 @@ def test_pi_mint_error_is_named_then_falls_back(tmp_path_factory, monkeypatch,
                               {"targets": [{"window": "t1"}]}, False, out=buf)
         assert rc == 0, buf.getvalue()
         err = capsys.readouterr().err
-        assert "ERR: could not mint a workflow credential: HTTP 401 nope" in err
-        assert "workflow.py: [credential] inherited env (mint failed:" in err
+        assert "[credential] inherited env, verified" in err, err
     finally:
         restore()
 
