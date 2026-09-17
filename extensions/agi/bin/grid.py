@@ -911,9 +911,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
             # this tick's rewrite — the ref-write loop below proceeds unchanged;
             # a lock we took (or a stale dead pid, broken inside) unlinks back
             # to a pid-free probe state and the gate runs as today.
-            gate_path, holder = verification.acquire_suite_lock(root)
-            if gate_path is not None:
-                gate_path.unlink(missing_ok=True)  # probe only, never plant ours
+            holder = verification.suite_lock_holder(root)
             if holder is not None:
                 print(f"evidence gate deferred: suite lock held by pid {holder}",
                       file=sys.stderr)
