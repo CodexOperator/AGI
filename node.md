@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ITEM (6), master-sensei [code] 00:10Z (SD record 20260917T000151Z, eca3ac288): the rotate-out-audit OUT WINDOW starts at the LAST REAL INPUT (23:27:47Z) and runs to the rotate (00:02Z) = 109 calls, d=86, 'excess 107' -- a 35-minute working turn counted as out. CLAIM (6): the out window starts AFTER the last WORK act (the last class-d call: harvest dm / commit / push), never at the last input; hand ruling for that record: last work act = the push at call 164 (00:00:41Z); out = 165 own-card grep (b) + 166-168 the card as three Edits + 169 commit + 170 rotate = 6 calls, floor 1, excess 5 (3 if the card were ONE Write folded with its commit) -- the fixture for the test. Same kid as the classifier items 1-3+5 (the window is the classifier's frame), ceiling +8. SM ruling 00:1xZ: it lives here, not on node F.
