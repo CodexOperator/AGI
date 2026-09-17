@@ -912,6 +912,34 @@ def _sweep_refusal_reason(text: str) -> str:
     return "home failed"
 
 
+def _sweep_park_leftovers(wt: Path, target: Path, dirty: list[str]) -> int:
+    """hypothesis:l5-the-reaper-sweep-terminally-resolves-merged-kid-worktree-
+leftovers.
+
+    Park a MERGED round's uncommitted bytes under its own home dir so the
+    dirty class is TERMINAL instead of a permanent refusal: every dirty path
+    that still exists under `wt` is copied to `target/<rel>` and re-read to
+    prove the copy byte-equal. Returns the number of FILES parked, or -1 when
+    any file cannot be copied (the tree is then refused and NEVER cleaned or
+    removed -- a park that cannot prove itself is not a park). A `D` entry has
+    no bytes to park (they are in the base history); it counts as 0 files.
+    """
+    files = [rel for rel in dirty if (wt / rel).is_file()]
+    if any((wt / rel).exists() and not (wt / rel).is_file() for rel in dirty):
+        return -1  # a directory or special entry: not parkable by this copy
+    try:
+        for rel in files:
+            src = wt / rel
+            dst = target / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(src.read_bytes())
+            if dst.read_bytes() != src.read_bytes():
+                return -1
+    except OSError:
+        return -1
+    return len(files)
+
+
 def _sweep_iter_home(wt_iter: Path, target: Path) -> bool:
     """Is THIS worktree's copy of the round's session dir genuinely HOME —
     its own contribution byte-equal under the main target?
@@ -1135,14 +1163,6 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: unmerged")
             continue
-        # (3) a dirty tree is REFUSED by name, never forced.
-        status_lines, _ = _git(["status", "--porcelain"], wt)
-        dirty = _sweep_dirty_paths(status_lines)
-        if dirty:
-            refused += 1
-            _watch_log(f"[sweep] refused {agent_id}: dirty "
-                       f"({len(dirty)} paths)")
-            continue
         # (4)/(5) A finished round's session dir comes home before the sweep
         # judges condition (4): for a leaseless+merged+clean round, the GRACE
         # check moves AHEAD of the bring-home step, so a director's hand
@@ -1191,7 +1211,32 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                     _watch_log(f"[sweep] refused {agent_id}: session dir not "
                                f"home ({','.join(rejected)})")
                     continue
+        # (3) TERMINAL (hyp:l5-the-reaper-sweep-terminally-resolves-merged-kid-
+        # worktree-leftovers): the round is MERGED here, so its uncommitted
+        # bytes are parked under the round's own home dir, then the tree is
+        # cleaned and removed. An UNMERGED tree never reaches this line
+        # (condition 2 keeps it, listed by name). A park that cannot prove
+        # itself refuses and leaves the tree standing.
+        status_lines, _ = _git(["status", "--porcelain"], wt)
+        dirty = _sweep_dirty_paths(status_lines)
         iter_name = _sweep_iter_name(wt)  # read BEFORE the dir is freed
+        iter_dir = iter_name if iter_name != "?" else "_unhomed"
+        if dirty:
+            target = main_sessions / iter_dir / "leftovers" / agent_id
+            if dry_run:
+                _watch_log(f"[sweep] parked {agent_id} "
+                           f"({len(dirty)} paths, dry-run)")
+            else:
+                parked = _sweep_park_leftovers(wt, target, dirty)
+                if parked < 0:
+                    refused += 1
+                    _watch_log(f"[sweep] refused {agent_id}: dirty "
+                               f"({len(dirty)} paths, park failed)")
+                    continue
+                _watch_log(f"[sweep] parked {agent_id}: {parked} files "
+                           f"-> sessions/{iter_dir}/leftovers/{agent_id}")
+                _git(["reset", "--hard", "HEAD"], wt)
+                _git(["clean", "-fd"], wt)
         if dry_run:
             _watch_log(f"[sweep] removed {agent_id} "
                        f"iter={iter_name} base={base} (dry-run)")

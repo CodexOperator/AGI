@@ -173,14 +173,16 @@ def four_worktrees(repo_root: Path):
 
 def test_sweep_removes_merged_clean_homed_and_refuses_others(
         repo_root, four_worktrees, monkeypatch):
-    """A finished round's (merged, clean, homed) worktree is removed and its
-    loop branch survives; the dirty / live / unlanded ones are refused by
-    name, never forced, their bytes untouched."""
+    """A finished round's worktree is removed: the merged+clean+homed one (A)
+    and the merged+DIRTY+homed one (B), whose uncommitted bytes are PARKED
+    under the round's own home dir before the tree is cleaned and removed. The
+    live (C) and the unlanded (D) ones are kept by name, never forced, their
+    bytes untouched."""
     log = _graph(repo_root) / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, refused, kept = heal._sweep_finished_worktrees(_graph(repo_root))
-    assert removed == 1
-    assert refused == 2   # dirty (B) + unmerged (D); live (C) is kept, not refused
+    assert removed == 2   # A (clean) + B (dirty, parked)
+    assert refused == 1   # unmerged (D); live (C) is kept, not refused
     assert kept == 1      # the live worktree
 
     # A removed, its loop BRANCH kept.
@@ -190,21 +192,27 @@ def test_sweep_removes_merged_clean_homed_and_refuses_others(
         capture_output=True, text=True).stdout
     assert "loop/n-A@2" in branches, "the loop/ branch is the history, keep it"
 
-    # B refused dirty: dir still there, modified node bytes untouched.
-    assert four_worktrees["a00-bbbb22"].exists()
-    assert "modified" in four_worktrees["a00-bbbb22"].joinpath(
-        "base.txt").read_text()
+    # B was DIRTY: its uncommitted bytes are parked byte-equal under the
+    # round's own home dir, the tree is removed, its bytes are not lost.
+    assert not four_worktrees["a00-bbbb22"].exists(), \
+        "a merged dirty round is terminal: parked then removed"
+    parked = _graph(repo_root) / "sessions" / "iter-002" / "leftovers" / \
+        "a00-bbbb22" / "base.txt"
+    assert parked.read_text() == "base\nmodified\n", \
+        "the dirty byte is parked byte-equal before the tree is freed"
 
-    # C kept live; D kept unmerged.
+    # C kept live; D kept unmerged (its dirty-or-not is irrelevant: unlanded).
     assert four_worktrees["a00-cccc33"].exists()
     assert four_worktrees["a00-dddd44"].exists()
 
     text = log.read_text()
     assert "[sweep] removed a00-aaaa11 iter=iter-001 base=season/s2" in text
-    assert "[sweep] refused a00-bbbb22: dirty (1 paths)" in text
+    assert "[sweep] parked a00-bbbb22: 1 files -> " \
+        "sessions/iter-002/leftovers/a00-bbbb22" in text
+    assert "[sweep] removed a00-bbbb22 iter=iter-002 base=season/s2" in text
     assert "[sweep] kept a00-cccc33: live" in text
     assert "[sweep] refused a00-dddd44: unmerged" in text
-    assert "sweep: removed=1 refused=2 kept-live=1" in text
+    assert "sweep: removed=2 refused=1 kept-live=1" in text
 
 
 def _raise_budget(*args, **kwargs):
@@ -244,10 +252,14 @@ def test_sweep_dry_run_removes_nothing_but_logs(repo_root, four_worktrees,
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
     removed, _, _ = heal._sweep_finished_worktrees(_graph(repo_root),
                                                    dry_run=True)
-    assert removed == 1
+    assert removed == 2
     assert four_worktrees["a00-aaaa11"].exists(), "dry-run removes nothing"
+    assert four_worktrees["a00-bbbb22"].exists(), "dry-run removes nothing"
+    assert not (_graph(repo_root) / "sessions" / "iter-002" /
+                "leftovers").exists(), "dry-run parks NOTHING"
     assert "removed a00-aaaa11 iter=iter-001 base=season/s2 (dry-run)" in \
         log.read_text()
+    assert "parked a00-bbbb22 (1 paths, dry-run)" in log.read_text()
 
 
 def test_sweep_help_exits_zero(repo_root):
@@ -279,7 +291,8 @@ def test_watch_once_calls_sweep_exactly_once(repo_root, four_worktrees,
                          "--once"])
     assert heal.main() == 0
     assert not four_worktrees["a00-aaaa11"].exists()
-    assert four_worktrees["a00-bbbb22"].exists()
+    assert not four_worktrees["a00-bbbb22"].exists(), \
+        "the merged dirty round is parked then removed"
     assert four_worktrees["a00-cccc33"].exists()
     assert four_worktrees["a00-dddd44"].exists()
     # one summary line => the sweep ran once.
@@ -747,3 +760,102 @@ def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     text = log.read_text()
     assert "removed a00-3333cc iter=iter-701" in text
     assert "refused a00-4444dd: session dir not home" in text
+
+
+# ---------------------------------------------------------------------------
+# TERMINAL resolution of the merged-dirty class
+# (hypothesis:l5-the-reaper-sweep-terminally-resolves-merged-kid-worktree-leftovers)
+#
+# A MERGED round's uncommitted bytes are parked byte-exact under the round's
+# own home dir (sessions/<iter>/leftovers/<agent>/<rel>), then the tree is
+# cleaned and removed without --force. An UNMERGED tree never reaches the
+# park: it is kept and listed by name. A park that cannot prove itself
+# refuses and leaves the tree standing.
+# ---------------------------------------------------------------------------
+
+def test_sweep_parks_merged_dirty_leftovers_byte_exact(repo_root,
+                                                       monkeypatch):
+    """Every kind of dirt on a MERGED round is terminal: a modified tracked
+    file, a staged-added file, an untracked file and an uncommitted deletion
+    are all cleared after the bytes are parked byte-equal, and the worktree is
+    removed with its loop branch kept."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-7777ee", "loop/7-E@2", "season/s2")
+    _land(repo, wt, "loop/7-E@2")
+    _stamp_round(wt, "iter-801", "a00-7777ee", "season/s2")
+    _home(repo, wt, "iter-801")
+    (wt / "base.txt").write_text("parked modification\n")   # M
+    (wt / "added.md").write_text("parked addition\n")       # A (staged)
+    _sh("git", "-C", str(wt), "add", "added.md")
+    (wt / "loose.md").write_text("parked untracked\n")      # ??
+    (wt / "nodeX.md").unlink()                              # D (no bytes)
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (1, 0, 0)
+    parked = graph / "sessions" / "iter-801" / "leftovers" / "a00-7777ee"
+    assert (parked / "base.txt").read_text() == "parked modification\n"
+    assert (parked / "added.md").read_text() == "parked addition\n"
+    assert (parked / "loose.md").read_text() == "parked untracked\n"
+    assert not (parked / "nodeX.md").exists(), "a deletion has no bytes"
+    assert not wt.exists(), "the parked tree is removed"
+    branches = subprocess.run(
+        ["git", "-C", str(repo), "branch", "--list", "loop/7-E@2"],
+        capture_output=True, text=True).stdout
+    assert "loop/7-E@2" in branches, "the loop/ branch is the history, keep it"
+    text = log.read_text()
+    assert "parked a00-7777ee: 3 files -> sessions/iter-801/leftovers/" \
+        "a00-7777ee" in text
+    assert "removed a00-7777ee iter=iter-801 base=season/s2" in text
+
+
+def test_sweep_unmerged_dirty_is_kept_never_parked(repo_root, monkeypatch):
+    """The merged gate is the discriminator: an UNMERGED dirty worktree is
+    kept and listed by name, its bytes untouched and NO leftovers dir written
+    (a round that never landed is never swept)."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-8888ff", "loop/8-F@2", "season/s2")
+    (wt / "nodeU.md").write_text("never landed\n")
+    _sh("git", "-C", str(wt), "add", "-A")
+    _sh("git", "-C", str(wt), "commit", "-q", "-m", "unmerged")
+    _stamp_round(wt, "iter-802", "a00-8888ff", "season/s2")
+    _home(repo, wt, "iter-802")
+    (wt / "base.txt").write_text("unlanded dirt\n")  # dirty but HEAD unmerged
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (0, 1, 0)
+    assert wt.exists(), "an unmerged round is never swept"
+    assert (wt / "base.txt").read_text() == "unlanded dirt\n"
+    assert not (graph / "sessions" / "iter-802" / "leftovers").exists()
+    text = log.read_text()
+    assert "refused a00-8888ff: unmerged" in text
+    assert "parked a00-8888ff" not in text
+
+
+def test_sweep_park_failure_refuses_and_keeps_bytes(repo_root, monkeypatch):
+    """FALSIFIER: a park that cannot prove itself is not a park. When the
+    copy helper reports failure the tree is REFUSED by name, nothing is
+    cleaned, and the dirty bytes stay exactly where they were."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-999900", "loop/9-G@2", "season/s2")
+    _land(repo, wt, "loop/9-G@2")
+    _stamp_round(wt, "iter-803", "a00-999900", "season/s2")
+    _home(repo, wt, "iter-803")
+    (wt / "base.txt").write_text("must survive\n")
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_sweep_park_leftovers",
+                        lambda *a, **k: -1)
+
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (0, 1, 0)
+    assert wt.exists(), "an unproven park must not open a removal window"
+    assert (wt / "base.txt").read_text() == "must survive\n"
+    assert "refused a00-999900: dirty (1 paths, park failed)" in \
+        log.read_text()
