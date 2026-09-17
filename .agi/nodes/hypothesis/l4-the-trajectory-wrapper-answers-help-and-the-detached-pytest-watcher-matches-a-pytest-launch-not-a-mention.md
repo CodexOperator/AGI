@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.96 (director tip 18698e27e; accepted 4 proved, 1 demoted lean_disproved a00-36dc69c9 superseded by a00-a702edb8): ACCEPT :85. On the MERGE RESULT: pi_trajectory.py --help exits 0 (3 net lines); the ppid-1 watcher matches a real pytest launch only (argv[0] pytest* or -m pytest), so the live kids detached pi_trajectory wrappers are no longer counted; the two piggybacked one-assert fixes (STALE -> UNCHANGED wording in test_rotate.py, ack-cell-printer width asserted on cell lines only) ride here; test_bin_help_smoke + test_suite_no_detached_spawn + test_rotate + test_pi_trajectory + test_rotate_verb = 413 passed / 0 failed under a LONG basetemp (the width artefact is gone). Lands as the one-SHA bundle with SM.92 + SM.94 + SM.95 + SM.98; the suite + stamp follow at 0 failed.
