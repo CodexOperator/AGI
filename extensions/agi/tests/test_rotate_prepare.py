@@ -364,7 +364,7 @@ def test_rotate_self_refuses_on_dirty_with_same_line(
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **unpushed, **ok}))
     _stale_pin(prep_root)
-    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
+    _seat_row_wt(prep_root, 3)   # own dirt blocks even when touch unmeasured
     rc = rotate.cmd_rotate_self(_rotate_self_args(), prep_root)
     err = capsys.readouterr().err
     assert rc == 3
@@ -410,6 +410,20 @@ def _seat_row(prep_root, gen, pid=None):
            "generation": gen, "worktree": ""}
     if pid is not None:
         row["pid"] = pid
+    (g / "seats.md").write_text(
+        "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
+        encoding="utf-8")
+
+
+def _seat_row_wt(prep_root, gen):
+    """A WORKTREE seat row (worktree non-empty): its dirt is its own, ALL of
+    it blocks even when the merge touch-set is unmeasurable. Used by the
+    rotate-self same-line refusal tests whose intent is 'own dirt blocks'
+    WITHOUT depending on the SM.84 MAIN-post foreign-dirt scoping."""
+    g = prep_root / "nodes" / ".geometry"
+    g.mkdir(parents=True, exist_ok=True)
+    row = {"name": "adv-alive", "role": "parent",
+           "generation": gen, "worktree": "/some/wt"}
     (g / "seats.md").write_text(
         "---\ntype: config\nseats:\n  - " + json.dumps(row) + "\n---\n",
         encoding="utf-8")
@@ -546,7 +560,7 @@ def test_rotate_self_still_refuses_with_window_path_set(
           ("rev-list", "--count", "HEAD..origin/season/s2"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe",
                         _git_map({**dirty, **branch, **ok}))
-    _seat_row(prep_root, 3)          # P1-c: registry gate runs first; seat must exist
+    _seat_row_wt(prep_root, 3)  # own dirt blocks on a worktree seat
     rc = rotate.cmd_rotate_self(_rotate_self_args(window_path="/tmp/fake.txt"),
                                 prep_root)
     err = capsys.readouterr().err
@@ -1210,7 +1224,7 @@ def test_rotate_self_unpushed_plus_dirty_refuses_no_push(
     """SL7.113 claim (3): TWO or more blockers (unpushed + dirty) -> the
     refusal is byte-identical to today (all names, exit 3) and NO push runs —
     the push seam is never called."""
-    _seat_row(prep_root, 3)          # registry gate
+    _seat_row_wt(prep_root, 3)   # own dirt blocks on a worktree seat
     gm = {("status", "--porcelain"): [" M rotate.py"],
           ("rev-parse", "--abbrev-ref", "HEAD"): ["seat/x"],
           ("rev-list", "--count", "@{u}..HEAD"): ["1"],
@@ -1353,19 +1367,69 @@ def test_prepare_check2_main_post_dirty_outside_touch_is_foreign_no_block(
     assert "[ok] foreign dirt (not in the merge): other.py" in out, out
 
 
-def test_prepare_check2_main_post_touch_unmeasured_falls_back_to_today(
+def test_prepare_check2_main_post_touch_unmeasured_scopes_own_paths(
         prep_root, capsys, monkeypatch):
-    """CLAIM (1)(2) — touch-set None (unmeasurable) on a MAIN post falls back
-    to TODAY: every dirty path blocks, named with `(touch-set unmeasured)`."""
+    """CLAIM (7) / SM.84 measurement 1 & 2 — touch-set None (unmeasurable)
+    on a MAIN post NO LONGER falls back to 'every dirty path blocks' (the
+    old fallback REFUSED on foreign dirt: another post's card, HANDOFF.md,
+    an untracked node draft). It scopes to the post's OWN paths: a foreign
+    path is named `foreign dirt (merge target unmeasured)` on a never-
+    blocking line (exit 0); the rotating post's OWN card still BLOCKS."""
     _seat_row(prep_root, 3)   # worktree "" -> a MAIN post, no touch answer
-    gm = {("status", "--porcelain"): [" M a.py"],
+    gm = {("status", "--porcelain"):
+              [" M HANDOFF.md",
+               "?? .agi/nodes/hypothesis/other-post-draft.md"],
           ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
     monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
     rc = rotate.cmd_prepare(_args(), prep_root)
     out = capsys.readouterr().out
-    assert rc == 3, out
-    assert "[BLOCK] dirty tree: a.py" in out, out
-    assert "touch-set unmeasured" in out, out
+    assert rc == 0, out
+    assert "[BLOCK]" not in out, out
+    assert "[ok] dirty tree" in out, out
+    assert ("[ok] foreign dirt (merge target unmeasured): HANDOFF.md "
+            "[owner: unknown]" in out), out
+    # the rotating post's OWN card still blocks on an unmeasurable MAIN post
+    gm2 = {("status", "--porcelain"):
+               [" M .agi/sessions/quorum/adv-alive.md"],
+           ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm2))
+    rc2 = rotate.cmd_prepare(_args(), prep_root)
+    out2 = capsys.readouterr().out
+    assert rc2 == 3, out2
+    assert "[BLOCK] dirty tree: .agi/sessions/quorum/adv-alive.md" in out2, out2
+    assert "your own card" in out2, out2
+
+
+def test_prepare_check2_sm84_dt_foreign_dirt_and_untracked_draft_pass(
+        prep_root, capsys, monkeypatch):
+    """SM.84 fixtures DT 00:18Z + DT 00:26Z on a MAIN post with an
+    UNMEASURABLE merge target (the origin ref the gate never fetched): cron-
+    owned comms + a rotation record (the churn class) plus HANDOFF.md, another
+    post's card and another post's UNTRACKED node draft all PASS prepare and
+    are NAMED -- the churn on the rotation-churn line, the rest as foreign
+    dirt -- never a dirty-tree BLOCK (the old all-dirt fallback refused them)."""
+    _seat_row(prep_root, 3)   # worktree "" -> a MAIN post, no touch answer
+    gm = {("status", "--porcelain"): [
+              " M .agi/comms/season-2/dm/other2.md",
+              " M .agi/sessions/rotations/adv-alive.20260916T000000Z.json",
+              " M HANDOFF.md",
+              " M .agi/sessions/quorum/other-post.md",
+              "?? .agi/nodes/hypothesis/other-post-draft.md"],
+          ("rev-list", "--count", "@{u}..HEAD"): ["0"]}
+    monkeypatch.setattr(rotate, "_git_maybe", _git_map(gm))
+    rc = rotate.cmd_prepare(_args(), prep_root)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "[BLOCK] dirty tree" not in out, out
+    assert ("[ok] rotation churn: .agi/comms/season-2/dm/other2.md, "
+            ".agi/sessions/rotations/adv-alive.20260916T000000Z.json"
+            in out), out
+    assert ("[ok] foreign dirt (merge target unmeasured): "
+            "HANDOFF.md [owner: unknown]" in out), out
+    assert ".agi/sessions/quorum/other-post.md [owner: post other-post]" \
+        in out, out
+    assert ".agi/nodes/hypothesis/other-post-draft.md [owner: unknown]" \
+        in out, out
 
 
 def test_prepare_check2_worktree_post_dirt_blocks_even_outside_touch(
