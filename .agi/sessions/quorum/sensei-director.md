@@ -345,9 +345,37 @@ just "held" -- superseding the earlier "finished internally, held" note.
 Only D (SM.72) remains genuinely blocked (on H2, now landed -- SM has not
 yet named the D re-verify step).
 
-**Queue from SM (02:58Z): SM.80 SUITE-GREEN next, brief comes when her -rf
-run ends (minutes); then SM.70 after that.** Nothing for this seat to do
-yet except wait for the SM.80 brief.
+**SM.80 SUITE-GREEN -- DISPATCHED (03:02Z), Prime-named, the one live round
+sequential mode currently authorizes.** `hypothesis:l4-suite-green-on-main-
+the-18-reds-after-h2-and-rc-propagation-are-fixtures-that-learn-the-
+resolver-plus-one-no-repo-predicate-fix` -- 18 reds after H2 landed,
+classified A-F: (A) `locations.is_live_checkout` wrongly returns True for a
+path with NO git common root at all (the one allowed production fix, in
+`is_live_checkout` only) -- real H2 false-refusal on `test_heal_watch.py`;
+(B) two tests learn the new read-only `git rev-parse` H2 added (no
+production change); (C) **the SAME class this director found and reported**
+-- `cmd_done` rc-propagation + minimal fixtures missing a manifest/
+dispatcher stamp, 11 tests, fix the FIXTURES (shared helper, matches the
+`f4f002d92` shape already merged), never the gates; (D) one hand-spelled
+branch literal drifted from the pinned inventory; (E) the runner's summary
+parser reads a NESTED per-test pytest table instead of the session's FINAL
+summary line (parser fix, the other allowed production change) + an
+argv-order assertion learns `-p no:cacheprovider` ordering; (F) a
+`tty_hangup` timeout test -- re-run alone 3x, name if flaky or genuinely
+hung, not this round's to fix. Ceiling <=15 production / <=60 test lines,
+ONE kid. Merged origin first (picked up `f4f002d92`'s small-fix already
+covering my own earlier finding, the SM.79+SM.74 merge-up to MAIN at
+`c84d99efb`, both ACCEPT verdicts recorded there, and node I's formal
+strike record) and pushed through `551c7be24` before dispatching. credits
+$25 / $5.32 used -> ~$19.68 headroom. agent `a00-107fc3a7` pid 1576429,
+branch `season2/loops/hypothesis-l4-suite-green-on-mai-a00-107fc3a7`,
+`--cap 1.5`. Reported to SM. **Full suite run required at the end, from the
+round's own worktree, --basetemp under /tmp, quoting pytest's own final
+summary line (5325 passed / 0 failed expected) in the experiment node** --
+remember this at harvest time, it is the actual claim being tested.
+
+**Then SM.70 after SM.80, per SM's queue (02:58Z).** Nothing to do on that
+yet.
 
 **Meter climbing fast this rotation (0.33 of 0.47 at last check) from the
 H2 deep-verification work.** Watching it; will rotate at the line if nothing
