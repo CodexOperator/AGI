@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-predecessor-hands-over-authority
 next_edges: []
 alerts: "{audit:[master-sensei],edges:{},silent:[stream-master]}"
-edited_by: master-sensei
+edited_by: belam
 fact_bounds:
   model: permanent
   effort: permanent
@@ -115,6 +115,8 @@ templates:
         - {"label": "suite-lock", "cmd": "python3 extensions/agi/bin/verification.py window", "why": "master-sensei XVII->XVIII wake audit 22:12Z: the Prime paid 2 calls reading the lock pid + pgrep by hand at wake; `window` PRINTS lock holder + tip + baseline in one read, never sends (verification.py:1057)"}
         - {"label": "verify", "cmd": "python3 extensions/agi/bin/commands.py run verify", "why": "the prime's first duty is the tree's health; 26 s, no suite"}
         - {"label": "since-last-rotation", "cmd": "git diff --stat", "why": "belam calls 13-15: what changed in the tree since the last wake, read by hand (master-sensei draft, judged None; the inbox half was already the inbox entry)"}
+        - {"label": "landed-since-stamp", "cmd": "python3 extensions/agi/bin/verification.py window | grep -oE 'stamped sha=[0-9a-f]+'; git -C {repo} log --oneline -30 | grep -v 'after_join\\|cron:\\|spawn row\\|audit record'", "why": "belam 003610Z wake call 1 (00:38Z): landed-since-last-verify read by hand from a hardcoded sha; the stamp baseline is the tree-health anchor and the 30-line non-noise log answers it (master-sensei draft, owner-approved 01:01Z, F12 None)."}
+        - {"label": "owner-decisions-tail", "cmd": "python3 extensions/agi/bin/write.py doc:l4-owner-decisions 'read body 860:'", "why": "belam 003610Z wake calls 3+6 (00:42-43Z): the owner-decisions node ls-hunted then tail-read by hand; the Prime appends an owner quote every session, so its tail is owed at wake (owner-approved 01:01Z). The open range clamps to the end; bump 860 as the doc grows."}
       after_join:
         - {"label": "join", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep {succ_name}", "why": "(the ListAgents name<->ref join is the service's registry read, not a shell stage — judge-cleaned by the Prime L4-X 15:4xZ so the WHOLE templates value passes the L4.234 gate) call 4-5: the name<->ref<->@id join, derived by rotate-self at spawn (L4.114)"}
         - {"label": "pin", "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}", "why": "call 5: the pin claim on the successor's own transcript, path derived from ~/.claude/sessions/<pid>.json"}
