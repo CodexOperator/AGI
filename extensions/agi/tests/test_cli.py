@@ -383,6 +383,65 @@ def test_done_auto_commits_parent_worktree(tmp_path, monkeypatch):
     assert "verdict=proved" in merged or "base" in merged
 
 
+def test_refused_kid_worktree_is_still_committed(tmp_path, monkeypatch):
+    """hypothesis:l4-a-bare-kid-commits-before-merge-trusts-it conjunct (1):
+    the kid-tier `done` REFUSAL returns before the worktree commit, so a
+    refused kid's real production bytes used to sit uncommitted and unnamed --
+    a later merge then called the branch 'zero commits ahead'. The refusal
+    still stands (rc 2) but the round's own scoped paths are committed first."""
+    import argparse
+    from pathlib import Path
+
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/slug-abc12345@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "experiment").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    (wt_graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\nparents:\n- hypothesis:h1\n"
+        "line_ceiling: 1\n---\n\n# experiment:e1\nbody\n")
+    (wt_graph / "sessions" / "iter-001" / "a00-k").mkdir(parents=True)
+    (wt_graph / "sessions" / "iter-001" / "a00-k" / "agent.json").write_text(
+        '{"id": "a00-k", "tier": "kid", "node_id": "experiment:e1", '
+        '"parent": "hypothesis:h1", "status": "running"}')
+    # a tracked production file on the kid branch, then the kid's real
+    # UNCOMMITTED change (5 lines > 2x ceiling 1)
+    (wt / "src.py").write_text("zero = 0\n")
+    _ggit(wt, "add", "src.py")
+    _ggit(wt, "-c", "user.email=t@t", "-c", "user.name=t",
+          "commit", "-qm", "src base")
+    (wt / "src.py").write_text("a = 1\nb = 2\nc = 3\nd = 4\ne = 5\n")
+    assert _ggit(wt, "status", "--porcelain").stdout.strip()
+
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-k", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=[], no_evidence_gate=False, owns=None,
+        no_spawn_gate=False,
+    )
+    assert cli.cmd_done(args) == 2
+
+    # the refusal still stands, but the kid's bytes are now a real commit
+    ahead = _ggit(main, "rev-list", "--count", f"season/s1..{br}").stdout
+    assert ahead.strip() == "2", "refused kid's worktree must be committed"
+    assert not _ggit(wt, "status", "--porcelain").stdout.strip(), \
+        "worktree must be clean after the refusal-path commit"
+
+
 def test_done_does_not_commit_main_checkout(tmp_path, monkeypatch):
     """The goal:g4.1 guard — a parent running in the MAIN checkout (not a
     linked worktree) must NOT `git add -A` the shared tree on its own `done`.

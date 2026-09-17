@@ -240,6 +240,48 @@ def test_zero_ahead_branch_refused(repo):
     assert after == before
 
 
+def test_dirty_kid_worktree_zero_ahead_is_named_not_silent(repo, tmp_path):
+    """hypothesis:l4-a-bare-kid-commits-before-merge-trusts-it (2): a merge
+    that would report `zero commits ahead` against a kid branch whose OWN
+    linked worktree still carries uncommitted bytes refuses LOUDLY, naming
+    the worktree and the uncommitted paths -- never a silent 'nothing to
+    merge'. The bytes are the bare kid's real work (no parent ever committed
+    them)."""
+    wt = tmp_path / "kid-dirty-wt"
+    _git(repo, "worktree", "add", "-b", "kid-dirty", str(wt),
+         ROUND_BRANCH).check_returncode()
+    (wt / "src.py").write_text((wt / "src.py").read_text() +
+                               "DIRTY_KID = True\n")
+    assert _git(wt, "status", "--porcelain").stdout.strip()
+
+    before = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    r = _run_merge_kids(repo, "kid-dirty")
+    assert r.returncode != 0
+    assert "REFUSED" in r.stderr
+    assert "kid-dirty" in r.stderr
+    assert str(wt) in r.stderr, r.stderr
+    assert "src.py" in r.stderr, r.stderr
+    assert "NOT nothing to merge" in r.stderr
+    assert _git(repo, "rev-parse", "HEAD").stdout.strip() == before
+    assert _git(repo, "rev-parse", "--verify", "MERGE_HEAD").returncode != 0
+
+
+def test_clean_zero_ahead_kid_worktree_keeps_ordinary_refusal(repo, tmp_path):
+    """CONTROL (hypothesis:l4-a-bare-kid-commits-before-merge-trusts-it): a
+    genuinely clean, genuinely zero-ahead kid worktree still produces the
+    ordinary zero-ahead refusal -- the dirty-worktree branch above did not
+    swallow the existing message."""
+    wt = tmp_path / "kid-clean-wt"
+    _git(repo, "worktree", "add", "-b", "kid-clean", str(wt),
+         ROUND_BRANCH).check_returncode()
+    assert not _git(wt, "status", "--porcelain").stdout.strip()
+
+    r = _run_merge_kids(repo, "kid-clean")
+    assert r.returncode != 0
+    assert "zero commits ahead" in r.stderr
+    assert "NOT nothing to merge" not in r.stderr
+
+
 def test_multiple_branches_merged_in_order(repo):
     """Two clean branches merge one at a time, in the order given, both suite-
     gated and both landed."""

@@ -1590,6 +1590,10 @@ def cmd_done(args: argparse.Namespace) -> int:
         _refuse = _kid_done_refusal(root, args.node_id)
         if _refuse:
             print(f"ERR: {_refuse}", file=sys.stderr)
+            # hyp:l4-a-bare-kid-commits-before-merge-trusts-it conj (1): a
+            # refused kid must still have its scoped bytes committed.
+            _auto_commit_worktree(root, args.agent_id, args.node_id,
+                                  args.owns, verdict)
             return 2
 
     rec["status"] = "done"
