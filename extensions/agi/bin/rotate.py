@@ -14665,11 +14665,49 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             "record_path": str(record_path) if record_path else None}
 
 
+#: L5.15 -- files the rename-boundary fallback will read from the FRONT of
+#: the recency-ordered listing before giving up. A record matching by NAME is
+#: never affected; this bounds only the no-name-match scan.
+_RENAME_FALLBACK_SCAN_MAX = 200
+
+
+def _record_accepted(rec) -> bool:
+    """A rotation record's acceptance rules, in ONE place so the named lookup
+    and the rename-boundary fallback can never drift apart."""
+    if not isinstance(rec, dict):
+        return False
+    ok_result = rec.get("result") in ("started", "success")
+    # A crash-recovery `result: respawned` record is a rotation the service
+    # must pick up too (L4.292): the recovered seat's after_join (join ->
+    # pin -> pending ack) runs exactly as a rotated seat's does.
+    crash_ok = (rec.get("rotation") == "crash-recovery"
+                and rec.get("result") == "respawned")
+    return bool(ok_result or crash_ok)
+
+
+def _record_stamp_key(path: Path) -> str:
+    """The `<stamp>` token of `<name>.<stamp>.json`, so recency ordering works
+    across DIFFERENT seat names (a filename sort orders by name FIRST).
+    Unparseable -> '' so it sorts last."""
+    stem = path.name[:-5] if path.name.endswith(".json") else path.name
+    return stem.rsplit(".", 1)[-1] if "." in stem else ""
+
+
 def _latest_rotate_record(root: Path, seat: str):
     """The seat's newest recorded rotation document ({..}.json) whose result
     marks a rotation that happened (started/success), or None. Best-effort
     discovery for the SERVICE: a rotation's after_join runs against the records
-    rotate-self wrote."""
+    rotate-self wrote.
+
+    (L5.15) RENAME BOUNDARY. `_apply_staged` renames the seat BEFORE
+    `_rotate_self_started_path` names its record, so the record file is
+    `<NEW>.<stamp>.json` -- while the watch loop still asks by the seats ROW
+    name (it iterates rows, which the boundary never renames). A
+    `<seat>.*.json`-only glob returns None and the changed join bytes are never
+    reached. So when nothing matches by NAME, fall back to a record whose OWN
+    `applied_rename.old == seat` -- the record's measured fact, never a guessed
+    name -- newest-first and bounded. A name match means the fallback never
+    runs, so existing behaviour is byte-for-byte unchanged."""
     try:
         pat = _rotations_dir(root) / f"{seat}.*.json"
         files = sorted(pat.parent.glob(pat.name))
@@ -14680,14 +14718,25 @@ def _latest_rotate_record(root: Path, seat: str):
             rec = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        # A crash-recovery `result: respawned` record is a rotation the service
-        # must pick up too (L4.292): the recovered seat's after_join (join ->
-        # pin -> pending ack) runs exactly as a rotated seat's does. One-line
-        # widening of the accepted results for that rotation only.
-        ok_result = rec.get("result") in ("started", "success")
-        crash_ok = (rec.get("rotation") == "crash-recovery"
-                    and rec.get("result") == "respawned")
-        if isinstance(rec, dict) and (ok_result or crash_ok):
+        if _record_accepted(rec):
+            return rec, f
+    # No record answers to this seat's NAME. The rename-boundary fallback: the
+    # record the boundary wrote under the NEW name still carries
+    # `applied_rename.old == seat` in its own bytes.
+    try:
+        all_files = [p for p in pat.parent.glob("*.json")]
+    except OSError:
+        return None
+    all_files.sort(key=_record_stamp_key, reverse=True)
+    for f in all_files[:_RENAME_FALLBACK_SCAN_MAX]:
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        ar = rec.get("applied_rename") if isinstance(rec, dict) else None
+        if not isinstance(ar, dict) or str(ar.get("old") or "") != str(seat):
+            continue
+        if _record_accepted(rec):
             return rec, f
     return None
 
