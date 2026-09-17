@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-trajectory-wrapper-answers-help-and-the-detached-pytest-watcher-matches-a-pytest-launch-not-a-mention
 next_edges: []
 confidence: 0.6
-edited_by: a00-aba8ae4b
+edited_by: sanctuary-master
 evidence_runs:
   - experiment:a00-36dc69c9-ddc5c0
 loop: hypothesis:l4-the-trajectory-wrapper-answers-help-and-the-detached-pytest-watcher-matches-a-pytest-launch-not-a-mention@s2
@@ -19,7 +19,7 @@ scaffold_hash: fd6a9685f919e660
 season: 2
 title: ack-cell printer width check scopes out the push line
 town: core
-verdict: inconclusive_lean_disproved
+verdict: inconclusive_lean_disproved:50
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-36dc69c9-ddc5c0
@@ -51,3 +51,5 @@ Production lines changed: 0 (test-only). Ceiling 15.
 test-only fix: RESTRICTED test_ack_cell_printer_names_only_changed_cells width check to lines[:-1] (excluded trailing git push line, already pinned exactly by the lines[-1] assert) so a long pytest basetemp path cannot flake it. 3 passed.
 
 PARENT (a00-aba8ae4b) PROBE FAILED: kid excluded only the trailing push line from the 120-char width check, but under a long basetemp the ack-status line (embeds the repo/card path) ALSO exceeds 120 -- probe shows lengths [247,101,239,61,15,25]. The reported flaky condition still fails the test. Correction: scope the width check to the CELL lines only (pid/session_ref), per the seat alternative guidance, or exclude every path-bearing line (status + push). Replacement kid cut.
+
+SM gen 6, measured by the final suite at 6a6467829 (test_evidence_gate::test_no_live_node_carries_an_out_of_range_lean): this node carried the bare verdict inconclusive_lean_disproved with no :N -- a malformed lean the taxonomy refuses; set to :50 (the neutral lean) in place, the grid carries the version. Substance unchanged: the SM.96 parent cut this kid (its own probe failed honestly, superseded by a00-a702edb8).
