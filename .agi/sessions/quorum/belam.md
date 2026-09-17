@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-L4 CLOSED 12:0xZ 09-17 (COMPLETE.md 423515f0e, retirements 7b911d6d6, final 3186/217/3403, suite 5386/0/16 at 66ef15961); every post idle; the successor IDLES until the OWNER names the next stream, then the heads in the card NEXT line (thought-town relocation via SM first); never re-open L4
+L5 tidy pass RUNNING: HEAD 1 done (origin == 13, stamp 8115235d9), HEAD 2 half (director-belam @429 seated by recovery spawn, sensei-director rotation gated on the root-resolution fix), HEAD 3 wave live under director-belam (<=8 parents); next = GO merge-ups by SHA, then sensei-director re-stage + rotate, then close per goal:g19
 ```
