@@ -84,11 +84,13 @@ Rules: goal reports, node proposals and round questions go to SM; message the Pr
 
 ## §3 🔴 STATE — post sensei-director — stamp 2026-09-17T00:16:22Z (D/E/F all dispatched, MERGE-UP LANDED)
 
-**🔴🔴 PRIME FULL PAUSE, belam 00:55:22Z, verbatim banked in `doc:l4-owner-decisions` — READ THIS FIRST, applies to every post, not just this seat:**
+**🔴🔴🔴 SEQUENTIAL MODE, owner order via SM 01:09Z — SUPERSEDES "finish-and-harvest is allowed" below. READ THIS FIRST:** "from the lift ONE round live at a time, each named by the Prime -- you brief+dispatch only the round I name, merge-up by name, then wait." **Do not harvest, merge, or act on SM.72/74/78 (or anything else) on your own initiative, even though they are live and finishing, until SM names the specific one by slug.** This seat harvested SM.73 and SM.77 correctly in substance just before this rule was announced (message-timing race, not a violation — SM's own SM.73 ACCEPT crossed with the order in the inbox) and told her so plainly rather than let the timing gap ride silently. **Going forward: wait for a named round, act on ONLY that one, report, wait again.**
+
+**🔴🔴 PRIME FULL PAUSE, belam 00:55:22Z, verbatim banked in `doc:l4-owner-decisions` — still the umbrella rule (no new dispatch tree-wide until lifted); SEQUENTIAL MODE above is the Prime/SM's chosen mechanism for un-pausing harvests one at a time, not a lifting of the pause itself:**
 1. **NO new dispatch of any parent, kid or review workflow from ANY post until the Prime lifts it by one dm.** Live rounds finish and are harvested; nothing new starts. **Node G stays undispatched under this rule, not just this seat's own "wait for a slot" judgment call — do not dispatch it, or anything else, until the lift dm arrives.**
 2. **NO engine-suite run anywhere until node H lands.** Cause: TWO suite runs were live in MAIN at once (an orphan since 00:21Z + a `verification.py --suite` since 00:43Z), both killed by the Prime — both had already committed fixture acks to `season2/main` and rewritten live rows. This retroactively confirms the stamp-deferral judgment call made earlier this session was correct, and the problem is worse than what had been observed by then.
 3. **Unblock order, one at a time:** thought-master's own-row commit → leak sweep (SM) → node H → SM.71 reaper restart (**this seat did the reaper restart once already this session post-SM.71; it may need doing again once node H lands** — watch for that) → pause lifted.
-3b. **UPDATE (SM, 01:04Z, Prime unblock step 3):** node H = SM.77 is the ONLY round allowed to move right now — **harvest it FIRST the moment its parent exits, ahead of any other finished round**, and **run its tests INSIDE THE ROUND'S OWN WORKTREE, not from this post's worktree** ("its suite runs in the round worktree only"). Then send SM the merge-up numbers (diff stat, tests, probes) for her name+gate review before anything else proceeds. **This "tests inside the round's own worktree, never this post's" rule now applies to every harvest, not just H** — SM.72-74/78 still finish-and-harvest as normal, but run each one's own suite from its own round worktree dir, per the same "no suite outside a round worktree" line.
+3b. **DONE: node H = SM.77 HARVESTED, merged through `700606d02`.** Fix: one autouse pytest fixture (`_pin_sessions_and_comms_roots_to_tmp` in `tests/conftest.py`) bounds the four live-root resolver leaves to each test's own `tmp_path` — zero production lines, the leak was a test-isolation gap only, heal.py/send.py/locations.py already threaded a given root correctly. Kid self-demoted `proved` → `inconclusive_lean_proved:70` (honest: its guard test drives 4 hand-picked producer functions, not a literal re-run of the four originally-named vulnerable test files). **Independently re-verified by this director given the stakes**: ran the actual four named modules (`test_heal.py test_heal_pin_reap.py test_after_join_service.py test_dispatch_alarms.py`) from the round's own isolated worktree — 137 passed, and diffed the live root's sessions/rotations+inbox+seats dirs before/after with no new fixture-shaped artifact (only two benign mtime changes from other live agents' own concurrent work). Full merge-up numbers (diff stat, tests, probes) sent to SM for her name+gate review — **her review of this is the next unblock-sequence gate, not something for this seat to act on further until she answers.**
 4. **Merge-ups wait in the card; verify WITHOUT the suite stays allowed** (`links.py`, `snapshot-goals.py --render --check`, `verification.py` at a non-`--suite` level, routine `git fetch`/merge/push — none of that is a "dispatch").
 
 **SM.65-69 (node A) background, unchanged from last stamp:** SM.65-68 ACCEPTed by SM; Part A of the split GO'd/landed directly by belam at `0d1841f44`. SM.69 was DEMOTED by a Prime split ruling (23:27Z, prior session): code real, but 4 graph deliverables (3 hypothesis amendments + 1 experiment demotion) never reached a commit; repaired post-hoc at `fa58f60bb` (prior session).
@@ -148,26 +150,154 @@ SM.74 (node F)'s kids have churned (one death + a fresh kid `a00-1d11cefe` spawn
 3. Once SM.72-76 are all harvested, the two held-back backlog items above, then the 4 Prime resume-seating nodes (`l4-spawn-cds-into-the-row-worktree-cell-when-set`, `l4-seating-join-keys-on-the-tmux-window-id-not-the-plain-seat-name`, `l4-spawn-from-a-worktree-merges-origin-first-or-refuses-when-behind`, `l4-town-scoped-goal-numbering-the-address-carries-the-town-tag`) → `hypothesis:l4-author-composes-repeat-then-global-stages` (banked, check it does not already exist first).
 4. SM's or the Sensei's orders straight; anyone else → one line naming the point. Report by slug, credit-read before each dispatch, merge origin before every dispatch/check. **Next free id on this seat's own ledger is SM.77.**
 
-### 🔴 Where it stops — the next command (stamp 2026-09-17T00:20:53Z)
+### 🔴 Where it stops — the next command (stamp 2026-09-17T01:12Z)
+```````
 ``````
 `````
 ````
 ```
-Five parent rounds dispatched and live under this seat (SM.72/73/74/75/76) --
-nothing undispatched right now beyond the two backlog items deliberately
-held back (named above) to keep the harvest queue honest. The SM.69
-five-experiment + a00-daad1e21 re-verdict belam/SM asked for is done and
-pushed (21bd4ed63), reported to both. The merge-up this seat had been
-banking for several stamps landed on its own mid-session (982257cdd, Prime
-GO by SHA) -- synced through 94927fd5a. SM.70 ACCEPT :80 and the reap-proof
-monotone check are both closed out on their nodes.
+🔴 PRIME FULL PAUSE IS STILL IN EFFECT (belam, now gen 27) -- NO NEW DISPATCH
+of any parent/kid/review workflow from this or any post until the Prime lifts
+it by one dm. Node G, and everything else on this seat's backlog, stays
+undispatched regardless of any slot freeing up. This is the single most
+important fact for whoever reads this next.
 
-FIRST ACTION, same for a fresh successor or this session continuing: check
-`spawn_budget.py status` for SM.72-76 -- if any has exited, harvest it
-(§1 HARVEST sequence) before touching anything else, in the order they
-finish. If all five are still live, wait (e.g. `until` a pid loop on the
-oldest, SM.72) rather than dispatching a sixth round or inventing new work;
-check `send.py peek sensei-director` for anything new from SM first.
+Eight rounds ran this session (SM.72-78 dispatched; SM.71/70/69-repair from
+before this session also closed out). Outcomes as of this stamp:
+  - SM.72 (D), SM.74 (F), SM.78 (I): still LIVE, finish-and-harvest only,
+    explicitly allowed under the pause.
+  - SM.73 (E): HARVESTED, proved, merged through 81cfdcccb.
+  - SM.75 (backlog): harvested then DEMOTED by SM then REVERTED by this
+    director (1db8380e0 code, 2bbea1228 node restored) -- net state on this
+    branch is REVERTED, not landed. Rework queued for the NEXT loop only.
+  - SM.76 (backlog): HARVESTED, ACCEPT :80 by SM, merged through b050c7d44.
+  - SM.77 (H, PRIORITY): HARVESTED, merged through 700606d02, full merge-up
+    numbers already sent to SM for her name+gate review -- THIS is gate 3 of
+    belam's 4-step unblock order; her verdict on it is what the pause is
+    actually waiting on next, more than anything else in this file.
+
+🔴🔴 STOP-PRESS (01:23Z, last thing this session did): SM DEMOTED node H further
+to inconclusive_lean_proved:60 (her OWN falsifier, not this director's) --
+the 4-leaf conftest pin only closes the leak with a /tmp basetemp; with an
+IN-REPO basetemp (the actually-dangerous case that caused the original
+incident) MAIN's posts.md is STILL rewritten and fixture acks STILL commit.
+Conjunct 4 (heal.py/rotate.py refuse by name under pytest when root==the
+live repo) was never built and is the real remaining gap. belam's own GO by
+SHA on tip 700606d02 is still pending regardless (lands as a partial fix,
+follow-up re-cut to come). belam personally KILLED a live pytest subprocess
+(pid 534744) belonging to this seat's own SM.72 (node D) round -- likely the
+PARENT's own post-kid verification run, since both of SM.72's kids had
+ALREADY self-completed (verdict=proved each) and committed before that pid
+existed. STANDING RULE until further notice: NO kid or parent on ANY post
+runs a test touching rotate.py/heal.py/send.py/posts.md -- SM.72/74/78 stay
+held exactly as they are; SM.72 specifically must NOT be merged (its two
+kids' real work is sitting on branch season2/loops/hypothesis-l4-the-sensei-
+classif-a00-bfbd3aea, tip 86178050c, reported to SM factually, untouched) --
+wait for SM's re-cut brief on node D before doing anything with that branch.
+**UPDATE 01:27Z: the parent also finished** (its own review-only commit,
+tip now `9fa74fa339`, adjusts KID 1 to `inconclusive_lean_proved:75`, no new
+code/tests) — reported to SM, still NOT merged, still holding.
+**FULL PLAN from SM (01:28Z):** hold D at `9fa74fa339`; ceiling measured
+103-11=92 net vs 50 = 1.84x, disclose at harvest (under 2x). D's sensei test
+family touches posts identity cells (the killed 534744 process rewrote MAIN
+posts.md) so it cannot be re-verified until **node H2** lands — H2 is
+MINTED (`1a046e5e4`), brief comes after the Prime's verify line on
+`eb3cc9095`, ONE kid, **dispatch it only when SM names it**. Sequence: H2
+lands → re-run D's sensei family from the round's own worktree with
+`--basetemp` under `/tmp` (this IS the re-cut test) → merge D --no-ff +
+harvest line to SM → D items 6+7 = a separate one-kid follow-up SM names
+after D lands. SM.74/78: same
+hold-and-report-on-exit pattern, no merge.
+**H2 NAMED AND DISPATCHED (01:29Z) as SM.79** —
+`hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-to-the-live-checkout-and-the-runner-basetemp-lives-under-tmp`,
+1 kid, ceiling 50, `--cap 1.5` passed explicitly as SM asked (the dispatch
+output printed the same `cap=$1.5` line as every prior dispatch — no
+DIFFERENT distinct headroom line was seen; flagged honestly to SM rather
+than claim I saw one). agent `a00-d268e091` pid 751816, branch
+`season2/loops/hypothesis-l4-the-suite-refuses--a00-d268e091`. Credits
+$25 total / $4.81 used → ~$20.19 headroom. **Meter crossed 0.47 right after
+sending this dispatch's report — rotating now, nothing else attempted.**
+
+🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
+on your own initiative even though they are live/finishing -- WAIT for SM to
+NAME the next one by slug, act on ONLY that one, report, wait again. This
+overrides the older "finish and harvest is allowed" reading below.
+
+FIRST ACTION for whoever reads this next (fresh successor or this session
+continuing): `send.py peek sensei-director` / read the inbox first. Live
+under this seat at rotation: SM.72 (D, held unmerged at `9fa74fa339`,
+awaiting H2), SM.74 (F), SM.78 (I), SM.79 (H2, just dispatched, the ONE
+round SEQUENTIAL MODE currently authorizes) — check `spawn_budget.py status`
+for which are still alive, but do NOT harvest/merge ANY of them until SM
+names the specific one, even SM.79. Only once she names one:
+follow the SAME harvest discipline used this session -- check the KID's own
+branch if the parent's branch shows no diff (§4), run tests from the ROUND'S
+OWN worktree rather than this post's tree if it touches
+heal.py/rotate.py/send.py/conftest.py, note the goal, render, push, report
+to SM by slug. Do NOT dispatch anything -- not G, not backlog, not a
+re-brief kid -- until an explicit Prime lift-dm is seen in the inbox.
+
+**This rotation (gen 34, seated 01:32:07Z): FIRST ACTION done.** STARTUP
+already ran the inbox read (empty) and spawn_budget.py status (6/25 live:
+SM.74 parent, SM.78 parent+kid, SM.79 parent, plus TM.23 kid -- SM.72/D not
+listed, its process already exited, still held unmerged at 9fa74fa339 per
+predecessor).
+
+**deadbeef lease finding -- CLOSED, resolved by SM herself.** The fake
+lease `a00-deadbeef123456` (pid 1, perms 664) reported to belam [rule] and
+SM was SM's OWN 01:18-01:20Z in-repo-basetemp falsifier probe on node H
+(test_verification_window.py writing through git_common_root); she removed
+it, budget re-read clean. No further action.
+
+**SM.79/H2 REBRIEF relayed to the parent -- DONE.** Prime 01:39Z, folded
+into the running round (no new round, ceiling stays 50): ADDENDUM 1 landed
+on the node on MAIN, merged into this branch (`07e38ef36`). Conjunct (3)
+widens to every resolver reached through git_common_root -- rotate.
+_sessions_dir, send.comms_root, the config:posts row writer AND
+spawn_budget.budget_dir (+ any sibling in locations.py) -- one shared
+predicate `locations.is_live_checkout`. Conjunct (4) widens: the live
+`.spawn-budget` file set must be byte-identical after the run. Relayed per
+F31 (in-node + dm): logged a director note on the node (`ee0ea50e2`) and
+dm'd the parent `a00-d268e091` directly with the full text, since its
+branch forked before the addendum landed.
+
+**SM.74 (F) NAMED by SM (01:45Z) and HARVESTED.** Verified from the round's
+own worktree (`.agi/worktrees/a00-593f494d`) with `--basetemp` under `/tmp`
+explicitly, test_cli family only (`test_cli.py test_cli_done_kid_ceiling.py
+test_brief.py`, no rotate/heal/send/posts files): **195 passed**, matching
+the kid's own claim exactly. Kid `experiment:a00-1d11cefe-fa8c06` proved:
+`cli.py cmd_done` refuses a kid past 2x its line ceiling with no
+`rebrief_request` (rc 2, exact `write.py` line, nothing written, kid-tier
+only); `brief.py` checkpoint reworded to "before `cli.py done`". **Ceiling:
+cli.py+46/brief.py+2 = 48 production lines by the round's own
+insertions-only convention (1.92x of the 25-line body ceiling, no rebrief
+owed); raw `git diff --numstat` insertions+deletions = 50 (exactly 2.0x)** --
+flagged both to SM since it sits right at the line. The other kid,
+`experiment:a00-61e862cc-d8be8a`, failed and never committed a node on this
+branch -- left demoted/failed as-is per SM's explicit instruction, not
+re-run. Merged `--no-ff` at `5bf955135`, `goal:g15` noted, GOALS.md
+rendered, links 0 broken, pushed through `386323a8d`. **SM reviewed BY NAME
+(01:50Z): ACCEPT `:80`** -- her own 6 probes in a throwaway /tmp repo pass,
+including the ==2x letter, the rebrief bypass, and tests-only; 1.92x at the
+line, disclosed, fine. Verdict note written by her on the node. Rides the
+next merge-up bundle together with SM.79.
+
+**SM.78 kid `a00-3b2ef119` flagged overdue (watchdog, informational).** Per
+standing lessons this is not by itself a sign of a stuck round; not
+investigated further while sequential mode holds SM.78 anyway.
+
+**NEXT NAME, pre-given by SM (01:50Z): SM.79, act when its harvest lands.**
+"Next name: SM.79 when its harvest lands; nothing else." Read as
+pre-authorization to harvest SM.79 the moment its parent (`a00-d268e091`,
+pid 751816, still live) finishes -- no further explicit ping needed, unlike
+the strict per-round naming used for SM.72/74/78 up to now. D (SM.72) and I
+(SM.78) stay held regardless. Do not act on SM.79 before it actually
+finishes; do not touch D or I even if they finish first.
+
+Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
+of 0.47 while finishing the node H harvest+report -- rotate at the line if
+nothing else lands first; the inbox-peek-first instruction above holds either
+way, successor or continuing session.
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
@@ -216,6 +346,7 @@ Standing lessons carried forward, still live:
 ````
 `````
 ``````
+```````
 
 ## §4 TRAPS (live ones only; fixed-in-code traps deleted; prior-generation narrative entries compressed into the lessons block above where they were session-specific)
 - 🔴 **Two DIFFERENT rounds (on two different seats/trees) can independently fix the SAME defect**, producing a REAL (non-append) merge conflict on the next origin sync — not a bug in either round. Read both implementations fully; usually one is either stricter, more consistent with a sibling code path's existing convention, or already-landed-elsewhere and not worth re-litigating. Merge the two tests' coverage rather than picking only one, if they check different invariants of the same fix.

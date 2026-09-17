@@ -39,6 +39,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -122,6 +123,18 @@ def _cleanup_basetemp(path: Path | None) -> None:
         shutil.rmtree(path)
     except OSError:
         pass
+
+
+def _suite_basetemp_refusal(engine_root: Path,
+                            base: Path | None = None) -> int | None:
+    """Probe the runner's system-tmp basetemp before pytest (claims 1+2); a
+    live checkout prints the SAME line the conftest gate uses, exit 3."""
+    base = Path(base) if base is not None else Path(tempfile.gettempdir())
+    if not locations.is_live_checkout(base):
+        return None
+    print(locations.live_checkout_refusal(
+        base, locations.git_common_root(engine_root)))
+    return 3
 
 
 _PYTEST_COUNT_PATTERNS = (
@@ -1191,9 +1204,9 @@ def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
         if not any(a.startswith("--durations") for a in argv):
             argv.append("--durations=15")
         if not any(a.startswith("--basetemp") for a in argv):
-            base = rotate._sessions_dir(groot) / f"pytest-basetemp-{os.getpid()}"
             try:
-                base.mkdir(parents=True, exist_ok=True)
+                # claim (2): private runner basetemp = system-tmp mkdtemp.
+                base = tempfile.mkdtemp(prefix="agi-suite-")
                 argv.append(f"--basetemp={base}")
                 basetemp = base
             except OSError:
@@ -1521,6 +1534,9 @@ def main(argv: list[str] | None = None) -> int:
         if refusal is not None:
             print(refusal)
             return EXIT_SUITE_LOCKED
+        _base_refusal = _suite_basetemp_refusal(engine_root)
+        if _base_refusal is not None:
+            return _base_refusal
 
     # RUNG 2 suite-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
     # signatures). OPT-IN: only when `--suite-ring <name>` is given AND the
