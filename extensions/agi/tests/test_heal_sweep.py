@@ -859,3 +859,43 @@ def test_sweep_park_failure_refuses_and_keeps_bytes(repo_root, monkeypatch):
     assert (wt / "base.txt").read_text() == "must survive\n"
     assert "refused a00-999900: dirty (1 paths, park failed)" in \
         log.read_text()
+
+
+def test_sweep_park_destination_survives_live_bring_home(repo_root,
+                                                        monkeypatch):
+    """FALSIFIER: the round's iter name must be PRE-RESOLVED like its base, or
+    a LIVE bring-home frees it before the park destination is computed.
+
+    Fixture: a merged+dirty round whose session dir exists ONLY in the
+    worktree (main has no `sessions/iter-901`), so `cli._session_complete`
+    genuinely MIGRATES and then REMOVES the source iter dir from the worktree.
+    Reading the iter name AFTER that block (a bare `wt.glob`) returns `?`, and
+    the park falls back to the literal `_unhomed` -- bytes are not lost, but
+    the round is no longer findable by its iter id. The parked path must be
+    `sessions/iter-901/leftovers/<agent>/<rel>`, byte-equal, and NO
+    `sessions/_unhomed/` dir may exist anywhere."""
+    repo = repo_root
+    graph = _graph(repo)
+    wt = _cut(repo, "a00-7f3a11", "loop/p-P@2", "season/s2")
+    _land(repo, wt, "loop/p-P@2")
+    _stamp_complete_round(wt, "iter-901", "a00-7f3a11")
+    assert not (graph / "sessions" / "iter-901").exists(), \
+        "fixture: the round session dir exists ONLY in the worktree"
+    (wt / "base.txt").write_text("UNCOMMITTED BYTES THAT MUST BE PARKED\n")
+    log = graph / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    removed, refused, kept = heal._sweep_finished_worktrees(graph)
+    assert (removed, refused, kept) == (1, 0, 0)
+    parked = graph / "sessions" / "iter-901" / "leftovers" / "a00-7f3a11"
+    assert (parked / "base.txt").read_text() == \
+        "UNCOMMITTED BYTES THAT MUST BE PARKED\n", \
+        "the dirty bytes are parked under the round's own iter home"
+    assert not list(graph.glob("sessions/_unhomed*")), \
+        "the iter name was resolvable; there must be NO _unhomed bucket"
+    assert not wt.exists(), "the parked tree is removed"
+    text = log.read_text()
+    assert "parked a00-7f3a11: 1 files -> sessions/iter-901/leftovers/" \
+        "a00-7f3a11" in text
+    assert "removed a00-7f3a11 iter=iter-901 base=season/s2" in text
+    assert "iter=?" not in text
