@@ -48,6 +48,7 @@ def test_main_records_the_run_start_not_the_write_time(tmp_path, monkeypatch):
     seen: dict = {}
     monkeypatch.setattr(verification, "run_level",
                         lambda *a, **k: seen.update(k) or [])
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     before = time.time()
     assert verification.main(["--suite", "--root", str(tmp_path)]) == 0
     after = time.time()
@@ -244,6 +245,7 @@ def test_combined_suite_stamp_ignores_the_previous_record_but_stamp_only_refuses
 
     # COMBINED --suite --stamp: this run starts at shaB (== HEAD), so the
     # stamp compares HEAD to run_sha and STAMPS shaB despite the old record.
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
     rc = verification.main(["--suite", "--level", "quick", "--stamp",
                             "--root", str(tmp_path)])
     out = capsys.readouterr().out

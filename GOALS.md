@@ -9894,6 +9894,10 @@ SM.79 (H2) harvested: hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp
 
 SM.80 (SUITE-GREEN) harvested: hypothesis:l4-suite-green-on-main-the-18-reds-after-h2-and-rc-propagation-are-fixtures-that-learn-the-resolver-plus-one-no-repo-predicate-fix. All 18 reds after H2 fixed: locations.is_live_checkout now returns False for a path with no git common root (was a real H2 false-positive on gitless tmp paths); verification.py summary parser reads the session FINAL pytest count line instead of a nested per-test banner. Everything else was fixtures/assertions learning the new resolver, rc-propagation and argv-order behavior. Parent full-suite run: RESULT PASS, 5326 passed/16 skipped, table agreeing with pytest footer. This director independently re-ran the 18 affected files plus test_suite_live_checkout(_worktree).py, test_locations.py, and the earlier test_cli_done_kid_ceiling.py finding: 546 passed, 0 failed.
 
+SM.82 harvested: hypothesis:l4-a-suite-run-never-spawns-a-second-detached-pytest-the-spawning-test-is-named-and-stubbed-and-the-runner-refuses-under-pytest. Built claims (2)+(3): verification.main refuses exit 3 when PYTEST_CURRENT_TEST is set before any work, 3 in-tree call sites stub rather than trip it, guard test confirms the ppid-1 watcher stays empty against a real setsid probe. Claim (1), naming the actual spawning test among the 5 candidates, was not delivered -- parent demoted proved to inconclusive_lean_proved:65, honest partial. 57 tests independently re-verified.
+
+SM.81 QUIET-POSTS merged c89c2563f (SM ACCEPT :85) and SM.83 spawn-row ref-race merged d319bcb67 -- both clean, no conflicts, into sensei-director post branch
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
