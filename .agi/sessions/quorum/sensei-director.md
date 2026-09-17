@@ -241,24 +241,37 @@ re-brief kid -- until an explicit Prime lift-dm is seen in the inbox.
 already ran the inbox read (empty) and spawn_budget.py status (6/25 live:
 SM.74 parent, SM.78 parent+kid, SM.79 parent, plus TM.23 kid -- SM.72/D not
 listed, its process already exited, still held unmerged at 9fa74fa339 per
-predecessor). No new order from SM or belam yet -- still waiting per
-SEQUENTIAL MODE, nothing dispatched/harvested/merged this rotation.
-**New finding, reported not acted on:** a real lease file
-/home/ubuntu/work/agi/.agi/sessions/.spawn-budget/a00-deadbeef123456.lease
-sits in the LIVE spawn-budget dir (checked at the CORRECT root-checkout
-path, not this worktree's shadow copy -- see the root-vs-worktree trap in
-§4), content byte-identical to the test_verification_window.py fixture
-test_window_names_the_registered_runner_behind_the_holder (agent_pid 1,
-holder_pid 1, tier kid, iter 7), but file perms are 664 group-writable vs
-600 on every real lease -- proving the test's raw write_text landed in the
-live dir instead of its intended tmp_path. mtime 2026-09-16T21:19:40-04:00
-(about 12 min before this seat rotated in). pid 1 never dies, so
-spawn_budget.py status will count this as permanently live until someone
-deletes it -- a second instance of the H/H2 bug class, in
-spawn_budget.budget_dir() root resolution, a component NOT named in H2's
-conjuncts 1-5. Left untouched as evidence (same pattern as the earlier
-garbage-inbox finding). Reported to belam tagged [rule] (full detail) and
-to SM (short form); neither has answered yet.
+predecessor).
+
+**deadbeef lease finding -- CLOSED, resolved by SM herself.** The fake
+lease `a00-deadbeef123456` (pid 1, perms 664) reported to belam [rule] and
+SM was SM's OWN 01:18-01:20Z in-repo-basetemp falsifier probe on node H
+(test_verification_window.py writing through git_common_root); she removed
+it, budget re-read clean. No further action.
+
+**SM.79/H2 REBRIEF relayed to the parent -- DONE.** Prime 01:39Z, folded
+into the running round (no new round, ceiling stays 50): ADDENDUM 1 landed
+on the node on MAIN, merged into this branch (`07e38ef36`). Conjunct (3)
+widens to every resolver reached through git_common_root -- rotate.
+_sessions_dir, send.comms_root, the config:posts row writer AND
+spawn_budget.budget_dir (+ any sibling in locations.py) -- one shared
+predicate `locations.is_live_checkout`. Conjunct (4) widens: the live
+`.spawn-budget` file set must be byte-identical after the run. Relayed per
+F31 (in-node + dm): logged a director note on the node (`ee0ea50e2`) and
+dm'd the parent `a00-d268e091` directly with the full text, since its
+branch forked before the addendum landed.
+
+**SM.74 (F) finished internally -- HELD, not harvested (sequential mode).**
+Self-report: `verdict=harvest accepted=1 demoted=0 failed=1`, kids
+`experiment:a00-61e862cc-d8be8a` (failed, also flagged `untitled` -- a
+node-hygiene miss, not investigated further) and `experiment:a00-1d11cefe-
+fa8c06`, branch `season2/loops/hypothesis-l4-cli-done-refuses-a-a00-
+593f494d` tip `3f1410d58aae4e240ac0ce1bf142ee05d6813ab0`. Ready whenever SM
+names it; not touched.
+
+**SM.78 kid `a00-3b2ef119` flagged overdue (watchdog, informational).** Per
+standing lessons this is not by itself a sign of a stuck round; not
+investigated further while sequential mode holds SM.78 anyway.
 
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
