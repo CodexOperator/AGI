@@ -62,6 +62,16 @@ def test_missing_row_falls_back_to_hint_then_raises_on_no_model():
 
 # ---------- config maxxed end-to-end: row flips the model, no script edit ---
 
+
+def _live_pi_kid_model() -> str:
+    """The model the LIVE config dispatches for a pi kid (`harnesses.pi.models`
+    kid cell, aligned with the ladder rows by the owner's one-write rule).
+    Read, never pinned: the literal alias here went red the day the owner moved
+    both tiers to `deepseek/deepseek-v4.1-flash` (55699759b, 09-17) and a test
+    that pins a config cell is a config edit's hidden second suite run."""
+    cfg = workflow._load_config(REPO / ".agi") or {}
+    return ((cfg.get("harnesses") or {}).get("pi") or {})["models"]["kid"]
+
 def test_config_flip_changes_dispatched_model():
     """The pi harness resolves its model from harnesses.pi.models, NOT from
     workflows.review.model — that field is claude-code's namespace
@@ -74,7 +84,7 @@ def test_config_flip_changes_dispatched_model():
     assert rc == 0
     txt = buf.getvalue()
     assert "model=sonnet" not in txt, txt  # never a claude-code alias on pi
-    assert "model=~deepseek/deepseek-v4-flash-latest" in txt, txt
+    assert f"model={_live_pi_kid_model()}" in txt, txt
     saved = workflow._load_config
     try:
         # flipping the harness-agnostic row does nothing on the pi path
@@ -139,7 +149,7 @@ def test_runner_pi_harness_dry_run_prints_one_dispatch_per_stage():
     assert len(lines) == 3, lines  # global-checks + review:t1 + review:t2
     # pi harness: model comes from harnesses.pi.models, never workflows.review
     assert "model=sonnet" not in lines[0], lines
-    assert "model=~deepseek/deepseek-v4-flash-latest" in lines[0], lines
+    assert f"model={_live_pi_kid_model()}" in lines[0], lines
     assert any("global-checks" in l for l in lines), lines
     assert any("review:t1" in l for l in lines), lines
     assert any("review:t2" in l for l in lines), lines
