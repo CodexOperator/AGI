@@ -502,10 +502,24 @@ def _stamped_manifest(groot: Path, manifest: list[str] | None):
     return ids if ids is not None else manifest
 
 
+def _legacy_baseline(prior: list | dict | None) -> bool:
+    """A baseline that carries no mint-id identity: the old path LIST, or a
+    dict whose values are all empty (a defensive read of a malformed record).
+    A legacy baseline can PROVE no move; it proves nothing at all, so it is
+    MIGRATED to the dict form, never trusted for one more run."""
+    if isinstance(prior, list):
+        return True
+    if isinstance(prior, dict):
+        return not any(isinstance(v, str) and v for v in prior.values())
+    return True
+
+
 def _moved_deprecated(groot: Path, prior: list | dict | None,
-                      manifest: list | None) -> tuple[list[str], list[str]]:
-    """Partition baseline-manifest paths absent at HEAD into MOVEs and
-    LOSSes, so a deprecation is counted as a move, never as a node lost.
+                      manifest: list | None,
+                      ) -> tuple[list[str], list[str], list[str]]:
+    """Partition baseline-manifest paths absent at HEAD into MOVEs, LOSSes
+    and UNPROVABLE candidates, so a deprecation is counted as a move, never as
+    a node lost.
 
     A retire moves a node from `nodes/<type>/<name>.md` to
     `nodes/deprecated/<type>/<name>.md`: active falls and deprecated rises
@@ -513,13 +527,16 @@ def _moved_deprecated(groot: Path, prior: list | dict | None,
     at HEAD is a MOVE only when its deprecated twin exists at HEAD AND its
     frontmatter `mint_id` EQUALS the one the baseline recorded -- mint id
     equality is the proof, so an unrelated new file at the matching deprecated
-    path is a LOSS, named. An old list-form baseline carries no mint ids and
-    proves nothing: every absent path is a LOSS, never a silent basename pass.
+    path is a LOSS, named. A LEGACY baseline (`_legacy_baseline`: path list,
+    or a dict of only empty ids) carries no identity, so a basename twin
+    CANNOT be proven a move -- but it cannot be called a LOSS either, since
+    the total is what H0/H0b gates on. Those go to `unprovable`, which
+    `compare_count` migrates in ONE visible run instead of failing forever.
     `prior` not a list/dict, or `manifest` None (not a git tree), yields no
     classifier: nothing is nameable and reads fall back to counts-only.
     """
     if not isinstance(prior, (list, dict)) or manifest is None:
-        return [], []
+        return [], [], []
     have = set(manifest)
     absent = [p for p in prior if p not in have]
     cand = {}
@@ -529,18 +546,22 @@ def _moved_deprecated(groot: Path, prior: list | dict | None,
             moved = f"nodes/deprecated/{parts[1]}/{parts[2]}"
             if moved in have:
                 cand[p] = moved
+    legacy = _legacy_baseline(prior)
     ids = (_manifest_mint_ids(groot, sorted(set(cand.values())))
-           if cand and isinstance(prior, dict) else {})
-    moves, losses = [], []
+           if cand and not legacy else {})
+    moves, losses, unprovable = [], [], []
     for p in absent:
-        if p in cand and isinstance(prior, dict):
+        if p in cand:
+            if legacy:
+                unprovable.append(p)
+                continue
             base = prior.get(p)
             if (isinstance(base, str) and base and ids is not None
                     and ids.get(cand[p]) == base):
                 moves.append(p)
                 continue
         losses.append(p)
-    return moves, losses
+    return moves, losses, unprovable
 
 
 def compare_count(groot: Path, current: dict | None,
@@ -647,7 +668,7 @@ def compare_count(groot: Path, current: dict | None,
         baseline_total = (len(prior) if isinstance(prior, list)
                           else int(state.get("active", 0))
                           + int(state.get("deprecated", 0)))
-    moves, losses = _moved_deprecated(groot, prior, manifest)
+    moves, losses, unprovable = _moved_deprecated(groot, prior, manifest)
     if measured_total < baseline_total or losses:
         parts = []
         if losses:
@@ -670,6 +691,28 @@ def compare_count(groot: Path, current: dict | None,
                      if losses else "")),
             message=("committed node total below recorded baseline: "
                      f"{measured_total} < {baseline_total}; {detail}"))
+    if unprovable:
+        # A legacy baseline proves nothing, so each basename twin is
+        # UNPROVABLE, not lost. The total is steady and every absent path has
+        # a deprecated home -- H0/H0b is untouched because a genuine loss (no
+        # twin) is in `losses` and a dropped total already FAILed above. The
+        # one-run fail-open window is unavoidable (the baseline carries no
+        # identity) and is bounded: this stamp rewrites the manifest in dict
+        # form, so from the next run the strict mint-id rule applies.
+        kind = ("legacy list baseline" if isinstance(prior, list)
+                else "legacy baseline")
+        migrated = ("migrated unprovable move(s) to mint-id baseline: "
+                    + ", ".join(unprovable[:5]) + f" ({kind} proved nothing)")
+        if can_stamp and head_sha:
+            _write_state(groot, current, head_sha, why,
+                         _stamped_manifest(groot, manifest))
+            note = f"{migrated}; baseline updated (sha={head_sha}){stale}"
+        else:
+            note = f"{migrated}; NOT STAMPED: {why}{stale}"
+        message = (f"{label} steady: {measured_total} >= baseline "
+                   f"{baseline_total}; {migrated}")
+        return CheckResult("node-count", "PASS", time.monotonic() - start,
+                           current, note=note, message=message)
     if can_stamp and head_sha:
         _write_state(groot, current, head_sha, why,
                      _stamped_manifest(groot, manifest))
