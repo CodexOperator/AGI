@@ -17495,10 +17495,10 @@ def _stops_slot_is_stale(root: Path, seat: str, text: str) -> str | None:
         pass
     _wd, _wsrc = max((a for a in _acts if a[0]), key=lambda a: a[0],
                      default=("", "none"))
-    return (f"where-it-stops slot is STALE (unchanged since {seat} rotate-out"
-            f"{_gp} @ {_sha[:8]} {_date}; newest work act {_wd or '?'} from "
-            f"{_wsrc}): the slot still holds the predecessor's stop block; "
-            f"write the card where-it-stops section or pass --stops")
+    return (f"where-it-stops slot UNCHANGED since your predecessor's {seat} "
+            f"rotate-out{_gp} @ {_sha[:8]} {_date}; newest work act "
+            f"{_wd or '?'} from {_wsrc}: it is their card, not yours -- "
+            f"write the slot, or pass --stops")
 
 
 def _rotate_human_gate(root: Path, seat: str,
