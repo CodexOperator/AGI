@@ -1582,3 +1582,50 @@ def test_died_no_work_scaffold_moved_to_deprecated_and_never_deleted():
     text = dead.read_text(encoding="utf-8")
     assert "status: deprecated" in text
     assert "SPAWN DIED NO-WORK" in text, "Agent Notes were not kept verbatim"
+
+
+# hypothesis:l4-the-harvest-demotes-a-claimed-but-absent-deliverable-in-code-
+# and-the-strip-test-asserts-the-strip -- the parent brief used to carry the
+# rule as PROSE. `_missing_claimed_deliverables` is the CODE: a round that
+# names a deliverable (`--deliverables`) its branch diff does not carry is
+# demoted to inconclusive_lean_disproved naming the missing path.
+def test_done_demotes_a_claimed_but_absent_deliverable(tmp_path, monkeypatch):
+    import argparse
+    import json
+    import subprocess
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / "experiment" / "e1.md").write_text(
+        "---\nid: experiment:e1\ntype: experiment\n"
+        "parents:\n- hypothesis:h1\n---\n\n# experiment:e1\nbody\n")
+    (graph / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\nparents:\n"
+        "- hypothesis:h1\n---\n\nbody\n")
+    (graph / "sessions" / "iter-001" / "a00-x").mkdir(parents=True)
+    (graph / "sessions" / "iter-001" / "a00-x" / "agent.json").write_text(
+        '{"id": "a00-x", "node_id": "experiment:e1", "parent": '
+        '"hypothesis:h1", "status": "running", "branch": "round-1"}')
+    # a REAL git repo so the mechanism's git-diff read has a tree to read:
+    # `a.py` is an untracked working-tree deliverable this round carries;
+    # `gone.py` is NAMED but absent -- the claimed-but-absent shape.
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "a.py").write_text("x = 1\n")
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+    args = argparse.Namespace(
+        iter_n=1, agent_id="a00-x", verdict="proved", confidence=0.9,
+        node_id="experiment:e1", parent="hypothesis:h1", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+        deliverables=json.dumps(["a.py", "gone.py"]),
+        salvage=False, dry_run=False,
+    )
+    assert cli.cmd_done(args) == 0
+    rec = json.loads((graph / "sessions" / "iter-001" / "a00-x" /
+                      "agent.json").read_text())
+    assert rec["verdict"] == "inconclusive_lean_disproved:50", rec
+    assert rec["missing_deliverables"] == ["gone.py"], rec
+    assert "gone.py" in rec["demote_reason"], rec
+    # the carried deliverable was NOT demoted for -- only the absent one.
+    assert rec["demoted_from"] == "proved"
