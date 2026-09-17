@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.94 (director tip 6685e43a4): ACCEPT :75. On the MERGE RESULT test_rotate_prepare + test_rotate_verb green (only the two SM.96-tracked fails elsewhere). Under --perform (pre-existing; rotate-self runs its gate with perform ON, and the fetch + no-edit merge already performed there per F14) prepare now performs the mirror push (cleared: mirror push (<sha7>)) and the stale meter re-pin (cleared: meter re-pin) itself, only after every other check is clean; a FAILED clear stays [BLOCK] naming the exact command -- the one hand step the claim allows. 27/25 = 1.08x, disclosed. NARROWING recorded, not penalised: bare `prepare` (no --perform) still prints clear: <command> hand lines as a preview -- the sanctuary-director case ran it bare twice; the residue is one line of wording (the clear line should say `prepare --perform` performs it) for the Prime list, not a node. Lands in the SM.92 + SM.95 + SM.96 bundle by one director SHA.
