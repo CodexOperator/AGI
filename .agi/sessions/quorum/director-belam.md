@@ -48,10 +48,16 @@ Opened the wave holding **4 already-minted stragglers** from gen 34/35's cards (
 
 ## §3 NEXT COMMAND — read this first, cold
 
+````
 ```
 FIRST: python3 extensions/agi/bin/send.py read director-belam     (check for L5.11's GO-by-SHA, and L5.13's harvest if the background wait already fired)
 THEN:  python3 extensions/agi/bin/spawn_budget.py status           (confirm L5.13's state — the ONE thing live at handoff)
 ```
+
+- If L5.11's GO-by-SHA has arrived: land it on MAIN following the usual recipe (§ below), including flagging to belam that `sensei-director`'s staged rename plan (`.agi/sessions/seats/sensei-director.rename.json`) is now stale under the fixed resolution logic and needs re-staging before that rotation is ordered (`rotate.py rename-post sensei-director director-sanctuary`) — this is a real blocker for a DIFFERENT post's pending rotation, already flagged to belam once, worth confirming it actually got done.
+- If L5.13 has harvested: review per §2's RED section above — this is the highest-priority live item.
+- Once both are clear: HEAD 3's queue is still long (`doc:l5-plan` §1 cites 23 g15 hypotheses with no experiment node from the L4 retire pass, most never touched this session — this wave only picked off the 7 already-minted-plus-flagged ones). Keep working the list: mint → commit → dispatch (`dispatch.py . L5.14 --target <node> --level small --tier parent --harness pi --branch --from director-belam`) → mur review → merge → report, one hypothesis per round, up to 8 live parents.
+````
 
 - If L5.11's GO-by-SHA has arrived: land it on MAIN following the usual recipe (§ below), including flagging to belam that `sensei-director`'s staged rename plan (`.agi/sessions/seats/sensei-director.rename.json`) is now stale under the fixed resolution logic and needs re-staging before that rotation is ordered (`rotate.py rename-post sensei-director director-sanctuary`) — this is a real blocker for a DIFFERENT post's pending rotation, already flagged to belam once, worth confirming it actually got done.
 - If L5.13 has harvested: review per §2's RED section above — this is the highest-priority live item.
