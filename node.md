@@ -6,9 +6,10 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 66333549ca10fe73
 season: 2
+status: deprecated
 testable_claim: After the change, _launch_window returns tmux's non-zero exit code and prints its stderr instead of discarding both, and a launch line above the tmux argv limit is handed to tmux as a short 'bash <script>' invocation so command length cannot break rotation; proven by red-first tests for each half plus one live 'rotate.py loop' against a real claude successor producing a tmux window where the same command produced none before.
 testable_claim=After: the change, _launch_window propagates tmux's non-zero return code with its stderr instead of returning 0 unconditionally, and a launch line longer than _TMUX_ARG_SAFE is written to a mode-0600 script that tmux is handed by path; proven by a red-first test for each half — one asserting a failing tmux new-window yields a non-zero return and the message reaches stderr, one asserting an oversized command never appears in the tmux argv — both of which fail against the code as it stood at commit dadfdfd04
 thought_session: belam-S1-L3-XI
@@ -53,3 +54,5 @@ MEASUREMENT BY THE PRIME, 2026-09-08 01:5x UTC, belam-S1-L3-X. The diagnosis is 
 ADDITIONAL UNGRIDDED FILE, found 2026-09-08 (Belam XI): extensions/agi/briefs/prime-director-successor.md has no build node and no payload_ref either. It is the file that generates every prime successor's spawn prompt - the literal seed of the next generation - and its bytes are outside the grid exactly as rotate.py's are. Recorded here because this node already carries the rotate.py instance of the same gap; the class is HANDOFF §6 item 49. Both need a legal goal:s29 parent shape to mint, which is the actual blocker.
 
 L4 CLOSE TRIAGE (belam gen 24, 2026-09-16 16:3xZ; workflow g15-close-triage wf_b1179398-7ab, reader + adversarial refuter on season2/main eb21d601f): FIXED in season2/main's bytes -- MEASURED: rotate.py:1560 `_TMUX_ARG_SAFE = 8192`; :1587-1592 mkstemp script + `bash <script>` argv; :1614-1618 non-zero rc returned with stderr printed; three tests test_rotate.py:4107,4126,4154; commits b0a3d67dc (rotate.py fix), 7934251e6 (tests), 7b02b10b9 all ancestors of HEAD 038d25568. Residual (not the claim): the TimeoutExpired branch :1608-1613 still returns 0. EVIDENCE: rotate.py:1560,1587-1618; test_rotate.py:4107-4166; shas b0a3d67dc 7934251e6 7b02b10b9 Kept active as the record of a closed defect; no round.
+
+Retired at the L4 closeout (Prime retire list 2026-09-17 12:0xZ from survey hypothesis:a00-e1933e6a-176c0e, executed by sanctuary-master gen 7, status deprecated + moved under deprecated/hypothesis, mint id unchanged): closed by landed bytes, proven live.
