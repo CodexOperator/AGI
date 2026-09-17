@@ -372,6 +372,40 @@ def test_v3_planned_town_names_equal_derive_names_output(tmp_path: Path):
                 f"planned push of a NON-remote-visible name: {name!r}"
 
 
+# --------------------------------------------------------------------------
+# hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-tip
+# (round 3): the town-create legs are gated `not dry and has_origin`, so on a
+# tree with NO origin remote they perform NOTHING while --apply prints SIX
+# `[APPLY] branch create` lines and creates zero branches (rc 0). The verb is
+# a claim about work that did not happen. Chosen shape (a): with no origin the
+# origin state is UNKNOWN (round 1's 'failed' shape), so the WHOLE town
+# section is REFUSED BY NAME in BOTH arms -- same line, same trunk names, no
+# create and no push in either, and --apply stays rc-honest.
+# --------------------------------------------------------------------------
+def test_v3_no_origin_remote_refuses_the_town_section_in_both_arms(
+        tmp_path: Path):
+    r = _v3_repo(tmp_path, with_town_nodes=True)
+    root = r / ".agi"
+    _git(r, "remote", "remove", "origin")
+    heads_before = _heads(r)
+
+    # the plan arm: names the refusal, proposes NO operation
+    plan = _run_cli(root, "--dry-run", "--kinds", "towns")
+    assert plan.returncode == 0, plan.stdout + plan.stderr
+    assert "need an origin remote" in plan.stderr, plan.stderr
+    assert "git branch " not in plan.stdout, plan.stdout
+    assert "git push " not in plan.stdout, plan.stdout
+
+    # the apply arm: the SAME refusal line, and NOTHING performed
+    res = _run_cli(root, "--apply", "--kinds", "towns")
+    assert "need an origin remote" in res.stderr, res.stderr
+    assert "[APPLY]" not in res.stdout, res.stdout
+    assert "git branch " not in res.stdout, res.stdout
+    assert res.returncode != 0, (res.stdout, res.stderr)
+    assert _heads(r) == heads_before, \
+        f"no-origin --apply created branches: {_heads(r) - heads_before}"
+
+
 def test_v3_planned_post_renames_are_local_and_derive_names_targets(
         tmp_path: Path):
     r = _v3_repo(tmp_path, with_town_nodes=True)
