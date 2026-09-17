@@ -436,7 +436,8 @@ def _node_dirt(groot: Path) -> list[str] | None:
 
 def compare_count(groot: Path, current: dict | None,
                   *, stamp: bool = False,
-                  run_sha: str | None = None) -> CheckResult:
+                  run_sha: str | None = None,
+                  suite_in_call: bool = False) -> CheckResult:
     """The node-count check: FAIL when active is below the recorded baseline.
 
     The baseline is STAMPED only on bytes that are KEPT (`_stamp_context`)
@@ -450,7 +451,11 @@ def compare_count(groot: Path, current: dict | None,
     With `--stamp` the sha recorded is the one the last recorded `--suite`
     actually RAN ON (`suite_ran_on`), and HEAD past it refuses by name. A tree
     with NO suite record at all does not refuse: a first-ever stamp keeps its
-    old behaviour.
+    old behaviour. A record written BEFORE `suite_ran_on` existed (has
+    `suite_ran_at` only) refuses by name -- never a fail-open stamp (SM.66
+    M1). `suite_in_call`: a `--suite` ran in THIS invocation, so its own start
+    sha (`run_sha`) is the authority and the previous record is ignored (a
+    combined `--suite --stamp`; main() writes the record after this closes).
     """
     start = time.monotonic()
     if current is None or current.get("active", -1) < 0:
@@ -459,7 +464,15 @@ def compare_count(groot: Path, current: dict | None,
     if stamp:
         can_stamp, why = True, "explicit --stamp"
         head_sha = _git(groot, ["rev-parse", "HEAD"])
-        suite_ran_on = _read_suite_ran_on(groot)
+        suite_ran_on = None if suite_in_call else _read_suite_ran_on(groot)
+        # old-format record (no suite_ran_on) refuses, never a fail-open
+        # stamp on a guessed HEAD (SM.66 M1).
+        if (suite_ran_on is None and not suite_in_call
+                and _read_suite_ts(groot) is not None):
+            return CheckResult(
+                "node-count", "FAIL", time.monotonic() - start, current,
+                note="suite record predates run-start tracking: "
+                     "re-run --suite")
         if suite_ran_on and head_sha and head_sha != suite_ran_on:
             return CheckResult(
                 "node-count", "FAIL", time.monotonic() - start, current,
@@ -1276,7 +1289,8 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # node-count result.
     if smoke is not None or stamp:
         results.append(compare_count(groot, current, stamp=stamp,
-                                     run_sha=run_sha))
+                                     run_sha=run_sha,
+                                     suite_in_call=suite))
     return results
 
 
