@@ -2362,10 +2362,23 @@ def rotate_out_audit(root: Path, seat: str, gen: int | None,
         elif (cat == "d" and label is None and _READ_PATHS.search(cmd)
               and not re.search(r"\bsed\b[^|;&]*\s-i", cmd)):
             cat = "b"   # P3: a bare read of an unnotified path is a poll (b)
-        calls.append({"tool": tool, "cmd": cmd, "cat": cat,
+        calls.append({"tool": tool, "cmd": cmd, "cat": cat, "idx": idx,
                       "summary": _summarize_tool_input(inp), "label": label,
                       "pre": bool(tid) or label == "send=output"})
         counts[cat] += 1
+    # ITEM 6: the OUT window starts AFTER the last round-closing WORK act --
+    # the last class-d `git push` (ruling 20260917T000151Z: push at call 164
+    # cut a 35-min turn); own-card edits/commit are closing tail, never work.
+    push_at = max((c["idx"] for c in calls if c["cat"] == "d"
+                   and re.search(r"\bgit\b[^;&|\n]{0,80}\bpush\b",
+                                 c["cmd"].lower())),
+                  default=start_idx - 1)
+    if push_at >= start_idx:
+        calls = [c for c in calls if c["idx"] > push_at]
+        counts = dict.fromkeys(("a", "b", "c", "d", "s"), 0)
+        for c in calls:
+            counts[c["cat"]] += 1
+        start_idx, start_ts = push_at + 1, None
     floors = _audit_floors(fm)
     window = {"gen": gen_out, "record": record_stamp, "basis": basis,
               "counted": len([c for c in calls if not c["pre"]]),
