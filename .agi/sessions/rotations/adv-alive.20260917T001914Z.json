@@ -76,5 +76,14 @@
     "claimed_at": "2026-09-17T00:19:51.643537+00:00",
     "claim_key": "2026-09-17T00:19:51.613844Z",
     "performed_after_s": 0.029597759246826172
-  }
+  },
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [],
+    "reap_source": "REFUSED: PYTEST_CURRENT_TEST set with no --own-chain seam \u2014 the $TMUX_PANE / window-@id derive would reach a LIVE pane from inside the test runtime (L4.155 mirror; a probe reaped the host prime) \u2014 the live predecessor chain is reaped externally by PID (Belam cap / prime)",
+    "skipped": "REFUSED: PYTEST_CURRENT_TEST set with no --own-chain seam \u2014 the $TMUX_PANE / window-@id derive would reach a LIVE pane from inside the test runtime (L4.155 mirror; a probe reaped the host prime) \u2014 the live predecessor chain is reaped externally by PID (Belam cap / prime)"
+  },
+  "committed_by": "rotate-self"
 }
