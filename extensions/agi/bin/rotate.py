@@ -9925,6 +9925,12 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
+# g15 retry budget: the spawn-row commit re-reads HEAD and re-stages the
+# own-row pathspec up to `_SPAWN_ROW_RETRIES` times before recording FAILED
+# (a peer commit may move HEAD mid-rotation: `cannot lock ref 'HEAD'`).
+_SPAWN_ROW_RETRIES = 5
+
+
 def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                       session_id: str | None = None,
                       window: str = "",
@@ -10006,35 +10012,56 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                               capture_output=True, text=True, env=env, **kw)
 
     blob_sha = ""
-    try:
-        seed = _tmp_git(["read-tree", "HEAD"])
-        if seed.returncode != 0:
-            return (f"spawn_row_commit: FAILED — git commit: "
-                    f"{seed.stderr.strip()}")
-        blob = _tmp_git(["hash-object", "-w", "--stdin"],
-                        input=new_content)
-        if blob.returncode != 0 or not blob.stdout.strip():
-            return (f"spawn_row_commit: FAILED — git commit: "
-                    f"{blob.stderr.strip()}")
-        blob_sha = blob.stdout.strip()
-        upd = _tmp_git(["update-index", "--add", "--cacheinfo",
-                        f"100644,{blob_sha},{rel}"])
-        if upd.returncode != 0:
-            return (f"spawn_row_commit: FAILED — git commit: "
-                    f"{upd.stderr.strip()}")
-        rc = _tmp_git(["commit", "-q", "-m", msg])
-    finally:
+    retried = 0
+    last_err = ""
+    ok = False
+    import random  # noqa: PLC0415  (retry jitter)
+    for _att in range(_SPAWN_ROW_RETRIES):
+        # each attempt is a FRESH throwaway index seeded from the CURRENT
+        # HEAD, so a ref-lock race (a peer commit moved HEAD between reads)
+        # is re-read, and the exact own-row pathspec is re-staged, on the
+        # retry -- never `git add -A`, never a foreign row.
+        fd, tmp_index = tempfile.mkstemp(prefix="spawnrow-idx-")
+        os.close(fd)
+        env["GIT_INDEX_FILE"] = tmp_index
         try:
-            os.unlink(tmp_index)
-        except OSError:
-            pass
-    if rc.returncode != 0:
-        # the own-row commit FAILED: unstage so the next write's own-row
-        # gate finds seats.md clean again, exactly like the ack.
+            seed = _tmp_git(["read-tree", "HEAD"])
+            if seed.returncode == 0:
+                blob = _tmp_git(["hash-object", "-w", "--stdin"],
+                                input=new_content)
+                if blob.returncode == 0 and blob.stdout.strip():
+                    _bsha = blob.stdout.strip()
+                    upd = _tmp_git(["update-index", "--add", "--cacheinfo",
+                                    f"100644,{_bsha},{rel}"])
+                    if upd.returncode == 0:
+                        rc = _tmp_git(["commit", "-q", "-m", msg])
+                        if rc.returncode == 0:
+                            blob_sha, ok = _bsha, True
+                        else:
+                            last_err = rc.stderr.strip()
+                    else:
+                        last_err = upd.stderr.strip()
+                else:
+                    last_err = blob.stderr.strip()
+            else:
+                last_err = seed.stderr.strip()
+        finally:
+            try:
+                os.unlink(tmp_index)
+            except OSError:
+                pass
+        if ok:
+            break
+        retried = _att + 1
+        if _att < _SPAWN_ROW_RETRIES - 1:
+            time.sleep(random.uniform(0.2, 1.0))
+    if not ok:
+        # failed: unstage so the next write's own-row gate finds seats.md
+        # clean again, exactly like the ack.
         subprocess.run(["git", "-C", str(top), "reset", "-q", "--", rel],
                        capture_output=True, text=True)
-        return (f"spawn_row_commit: FAILED — git commit: "
-                f"{rc.stderr.strip()}")
+        return (f"spawn_row_commit: FAILED — git commit "
+                f"(retried {retried}): {last_err or 'retries exhausted'}")
     # point the REAL index's seats.md entry at the committed blob so the own
     # row no longer shows staged/unstaged; only foreign hunks remain.
     subprocess.run(["git", "-C", str(top), "update-index", "--add",
@@ -10069,9 +10096,9 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # pending swap to complete).
     _done = _finish_pending_swap_on_push(root, seat, _push)
     if _done:
-        return (f"spawn_row_commit: committed (sha {sha}) -- seats.md "
-                f"own-row only: {msg}\npush: {_push}\n{_done}")
-    return (f"spawn_row_commit: committed (sha {sha}) -- "
+        return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
+                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}")
+    return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) -- "
             f"own-row only: {msg}\npush: {_push}")
 
 
