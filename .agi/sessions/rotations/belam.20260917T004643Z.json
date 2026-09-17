@@ -83,5 +83,30 @@
   },
   "handover": {
     "model_confirm": "skipped: no assistant turn within 120s (after_join poll waited 0s) \u2014 successor has not answered"
+  },
+  "audit": {
+    "out": {
+      "calls": 14,
+      "pre": 2,
+      "a": 0,
+      "b": 5,
+      "c": 3,
+      "d": 4,
+      "floor": 1,
+      "excess": 11,
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/3aaf9314-6d7b-433c-9e5a-d7ac99222371.jsonl",
+      "window_start": {
+        "call_index": null,
+        "line": 52,
+        "ts": "2026-09-17T00:40:18.400Z"
+      },
+      "window_end": {
+        "call_index": null,
+        "line": null,
+        "ts": "2026-09-17T00:46:43.767046Z"
+      },
+      "audited_at": "2026-09-17T00:57:10Z",
+      "audited_by": "master-sensei"
+    }
   }
 }
