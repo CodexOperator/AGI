@@ -156,86 +156,16 @@ SM.74 (node F)'s kids have churned (one death + a fresh kid `a00-1d11cefe` spawn
 `````
 ````
 ```
-🔴 PRIME FULL PAUSE IS STILL IN EFFECT (belam, now gen 27) -- NO NEW DISPATCH
-of any parent/kid/review workflow from this or any post until the Prime lifts
-it by one dm. Node G, and everything else on this seat's backlog, stays
-undispatched regardless of any slot freeing up. This is the single most
-important fact for whoever reads this next.
-
-Eight rounds ran this session (SM.72-78 dispatched; SM.71/70/69-repair from
-before this session also closed out). Outcomes as of this stamp:
-  - SM.72 (D), SM.74 (F), SM.78 (I): still LIVE, finish-and-harvest only,
-    explicitly allowed under the pause.
-  - SM.73 (E): HARVESTED, proved, merged through 81cfdcccb.
-  - SM.75 (backlog): harvested then DEMOTED by SM then REVERTED by this
-    director (1db8380e0 code, 2bbea1228 node restored) -- net state on this
-    branch is REVERTED, not landed. Rework queued for the NEXT loop only.
-  - SM.76 (backlog): HARVESTED, ACCEPT :80 by SM, merged through b050c7d44.
-  - SM.77 (H, PRIORITY): HARVESTED, merged through 700606d02, full merge-up
-    numbers already sent to SM for her name+gate review -- THIS is gate 3 of
-    belam's 4-step unblock order; her verdict on it is what the pause is
-    actually waiting on next, more than anything else in this file.
-
-🔴🔴 STOP-PRESS (01:23Z, last thing this session did): SM DEMOTED node H further
-to inconclusive_lean_proved:60 (her OWN falsifier, not this director's) --
-the 4-leaf conftest pin only closes the leak with a /tmp basetemp; with an
-IN-REPO basetemp (the actually-dangerous case that caused the original
-incident) MAIN's posts.md is STILL rewritten and fixture acks STILL commit.
-Conjunct 4 (heal.py/rotate.py refuse by name under pytest when root==the
-live repo) was never built and is the real remaining gap. belam's own GO by
-SHA on tip 700606d02 is still pending regardless (lands as a partial fix,
-follow-up re-cut to come). belam personally KILLED a live pytest subprocess
-(pid 534744) belonging to this seat's own SM.72 (node D) round -- likely the
-PARENT's own post-kid verification run, since both of SM.72's kids had
-ALREADY self-completed (verdict=proved each) and committed before that pid
-existed. STANDING RULE until further notice: NO kid or parent on ANY post
-runs a test touching rotate.py/heal.py/send.py/posts.md -- SM.72/74/78 stay
-held exactly as they are; SM.72 specifically must NOT be merged (its two
-kids' real work is sitting on branch season2/loops/hypothesis-l4-the-sensei-
-classif-a00-bfbd3aea, tip 86178050c, reported to SM factually, untouched) --
-wait for SM's re-cut brief on node D before doing anything with that branch.
-**UPDATE 01:27Z: the parent also finished** (its own review-only commit,
-tip now `9fa74fa339`, adjusts KID 1 to `inconclusive_lean_proved:75`, no new
-code/tests) — reported to SM, still NOT merged, still holding.
-**FULL PLAN from SM (01:28Z):** hold D at `9fa74fa339`; ceiling measured
-103-11=92 net vs 50 = 1.84x, disclose at harvest (under 2x). D's sensei test
-family touches posts identity cells (the killed 534744 process rewrote MAIN
-posts.md) so it cannot be re-verified until **node H2** lands — H2 is
-MINTED (`1a046e5e4`), brief comes after the Prime's verify line on
-`eb3cc9095`, ONE kid, **dispatch it only when SM names it**. Sequence: H2
-lands → re-run D's sensei family from the round's own worktree with
-`--basetemp` under `/tmp` (this IS the re-cut test) → merge D --no-ff +
-harvest line to SM → D items 6+7 = a separate one-kid follow-up SM names
-after D lands. SM.74/78: same
-hold-and-report-on-exit pattern, no merge.
-**H2 NAMED AND DISPATCHED (01:29Z) as SM.79** —
-`hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-to-the-live-checkout-and-the-runner-basetemp-lives-under-tmp`,
-1 kid, ceiling 50, `--cap 1.5` passed explicitly as SM asked (the dispatch
-output printed the same `cap=$1.5` line as every prior dispatch — no
-DIFFERENT distinct headroom line was seen; flagged honestly to SM rather
-than claim I saw one). agent `a00-d268e091` pid 751816, branch
-`season2/loops/hypothesis-l4-the-suite-refuses--a00-d268e091`. Credits
-$25 total / $4.81 used → ~$20.19 headroom. **Meter crossed 0.47 right after
-sending this dispatch's report — rotating now, nothing else attempted.**
-
-🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
-on your own initiative even though they are live/finishing -- WAIT for SM to
-NAME the next one by slug, act on ONLY that one, report, wait again. This
-overrides the older "finish and harvest is allowed" reading below.
-
-FIRST ACTION for whoever reads this next (fresh successor or this session
-continuing): `send.py peek sensei-director` / read the inbox first. Live
-under this seat at rotation: SM.72 (D, held unmerged at `9fa74fa339`,
-awaiting H2), SM.74 (F), SM.78 (I), SM.79 (H2, just dispatched, the ONE
-round SEQUENTIAL MODE currently authorizes) — check `spawn_budget.py status`
-for which are still alive, but do NOT harvest/merge ANY of them until SM
-names the specific one, even SM.79. Only once she names one:
-follow the SAME harvest discipline used this session -- check the KID's own
-branch if the parent's branch shows no diff (§4), run tests from the ROUND'S
-OWN worktree rather than this post's tree if it touches
-heal.py/rotate.py/send.py/conftest.py, note the goal, render, push, report
-to SM by slug. Do NOT dispatch anything -- not G, not backlog, not a
-re-brief kid -- until an explicit Prime lift-dm is seen in the inbox.
+SUPERSEDED (was: PRIME FULL PAUSE narrative from 01:12Z-01:29Z, the SM.72-79
+dispatch wave, and the original H2 dispatch). Full detail deleted here per
+the continuous-trim rule -- git history + the grid carry it; the SHORT
+version: the pause held while SM.72/74/77/78/79 finished, node H was
+demoted to :60 pending H2, H2 was minted+dispatched as SM.79. Everything
+that happened AFTER that point is the accurate, current log starting at
+the next paragraph below and running to the end of this fence -- read
+forward from here, not from any stamp date in a sub-heading (several are
+stale timestamps left over from mid-session edits and were not worth the
+risk of hand-fixing under a high meter).
 
 **This rotation (gen 34, seated 01:32:07Z): FIRST ACTION done.** STARTUP
 already ran the inbox read (empty) and spawn_budget.py status (6/25 live:
@@ -397,17 +327,33 @@ Merged `--no-ff`, `goal:g15` noted, GOALS.md rendered, links 0 broken,
 pushed through `598c9729d`. Reported to SM, offered H2+F+SUITE-GREEN as one
 clean merge-up bundle whenever a window opens.
 
-**Then SM.70 after SM.80, per SM's queue (02:58Z).** Nothing to do on that
-yet.
+**SM.80 LANDED + STAMPED on MAIN (03:5xZ, via belam/SM): merge-up `68d1d4070`,
+ACCEPT `:85`, stamp numbers 3157/201/3358.** This seat's own merge (`598c9729d`)
+went up clean. Synced (fetch/merge/push) through `ceb81713b`. Side effect:
+kid2 `experiment:a00-9608da10-ec05af`'s verdict auto-demoted `proved` ->
+`inconclusive_lean_proved:50` by the evidence gate (`evidence_runs=0`) --
+expected automatic behavior, not an error, nothing for this seat to do.
 
-**Meter climbing fast this rotation (0.33 of 0.47 at last check) from the
-H2 deep-verification work.** Watching it; will rotate at the line if nothing
-else lands first, per standing rule.
+**SM.81 QUIET-POSTS -- DISPATCHED (04:1xZ), Prime-named 03:51Z, the next
+live round after SM.80.** `hypothesis:l4-quiet-posts-a-quiet-settings-
+token-on-a-row-writes-the-dm-but-types-no-nudge-never-refires-a-stale-
+marker-and-wake-repair-skips-the-row` -- a `quiet` settings token on a
+row: `send.py` still writes the dm/inbox but types no send-keys/nudge, never
+re-fires a stale marker by name, `heal._repair_stranded_wakes` +
+`send.wake` skip a quiet row by name, `status`/`whois` print `quiet`,
+non-quiet rows byte-for-byte unchanged. ONE kid, ceiling 35. **The Prime
+writes the actual quiet cell on thought-master/director-thought after this
+lands -- never the kid**, note that at harvest time, it is not this round's
+job. Relabeled SM's unnumbered name to SM.81 (next free id on this seat's
+ledger) and told her. agent `a00-f0ed4b5b` pid 2157675, branch `season2/
+loops/hypothesis-l4-quiet-posts-a-quie-a00-f0ed4b5b`, `--cap 1.5`. Credits
+$25 / $5.65 used -> ~$19.35 headroom. Reported to SM. **SM.70 comes after
+this, per her queue** -- nothing to do on that yet.
 
-Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
-of 0.47 while finishing the node H harvest+report -- rotate at the line if
-nothing else lands first; the inbox-peek-first instruction above holds either
-way, successor or continuing session.
+**Meter high this rotation (0.377 of 0.47 at last check, likely higher now)**
+from the H2 + SUITE-GREEN deep verification work this session. Rotate the
+moment a fresh hook reading shows `f >= 0.47` -- bare keyed `rotate.py
+rotate`, no flag, no `--dry-run`. Read the inbox first regardless (F25).
 
 Standing lessons carried forward, still live:
 - The provisioning account can switch mid-session with no warning beyond the
