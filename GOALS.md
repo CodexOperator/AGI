@@ -9900,6 +9900,8 @@ SM.81 QUIET-POSTS merged c89c2563f (SM ACCEPT :85) and SM.83 spawn-row ref-race 
 
 SM.72/D re-cut merged 9fa74fa33 -- re-verified sensei test family (test_sensei.py + 3 new files) --basetemp /tmp from the rounds own worktree: 188 passed 0 failed, this IS the re-cut per SM. 92 net production lines / 50 ceiling = 1.84x, disclosed, under 2x demote line
 
+SM.85/G merged 19fbe58ec -- pi kid trajectory capture via a surviving pi_trajectory.py wrapper, session-complete already rides it home unchanged. 245 passed dispatch neighbourhood. FLAG: 93 net production lines / 40 ceiling = 2.3x, no rebrief dm reached this seat before or during -- honestly disclosed in-node by the parent at final review (kid first undercounted as 20 by excluding its own new module, parent caught and corrected to 94), not hidden. Measured independently: 93 (numstat insertions, excl tests). SM ACCEPT/DEMOTE call
+
 ### G16 — Telemetry per node, propagated up the ladder
 
 # goal:g16
