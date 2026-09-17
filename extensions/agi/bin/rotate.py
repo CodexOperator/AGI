@@ -3967,7 +3967,6 @@ def _apply_staged(root: Path, old: str, delete_old: bool = False,
         print("rename-post REFUSED: staged plan drifted -- "
               + _refusal_names([f"{k[0]}: {k[1]} -> {k[2]}" for k in drift]),
               file=sys.stderr)
-        print("rename-post REFUSED: staged plan drifted", file=sys.stderr)
         return 2
 
     applied, skipped = _apply_surfaces(

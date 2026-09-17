@@ -116,6 +116,7 @@ def test_boundary_drift_refuses_and_leaves_stage(tmp_path):
                                                 boundary=True))
     assert rc == 2, err
     assert "staged plan drifted" in err
+    assert err.count("rename-post REFUSED: staged plan drifted") == 1, err
     assert "old.extra" in err
     assert stage.exists(), "stage must stay intact on drift"
     assert (tmp_path / "sessions" / "seats" / "old.key").exists()
