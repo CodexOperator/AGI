@@ -1968,12 +1968,49 @@ L5_DELETE_12 = [
 L5_POST_MIRRORS = ["refs/agi/posts/sanctuary-director",
                    "refs/agi/posts/sanctuary-helper",
                    "refs/agi/posts/sensei-director"]
+L5_LOOP_MIRRORS = ["refs/agi/loops/l5-01-ag1", "refs/agi/loops/l5-01-ag2",
+                   "refs/agi/loops/l5-02-ag1"]
+# THE LIVE ORIGIN MIRROR STATE (measured at L5 open): only sanctuary-director
+# and sensei-director have their refs/agi/posts/* mirror pushed; sanctuary-
+# helper's post mirror and ALL refs/agi/loops/* are ABSENT (the mirrors are a
+# grid_sync/rotate push — branches.mirror_and_prove, called only by rotate.py —
+# NOT branch-reshuffle's).
+L5_LIVE_MIRRORS = ["refs/agi/posts/sanctuary-director",
+                   "refs/agi/posts/sensei-director"]
+# With only the LIVE mirrors on origin, the mirror safety gate admits exactly
+# these 7 deletes (their mirror/successor is present) and refuses 5 BY NAME.
+L5_PLAN_7 = [
+    "core/season2/posts/sanctuary-director/main",
+    "core/season2/posts/sensei-director/main",
+    "season2/posts/sanctuary-director",
+    "season2/posts/sensei-director",
+    "season2/sensei/genless-templates",
+    "collaborator-branch",
+    "copilot/add-open-source-license",
+]
+L5_REFUSE_5 = [
+    ("core/season2/posts/sanctuary-helper/main",
+     "refs/agi/posts/sanctuary-helper"),
+    ("season2/posts/sanctuary-helper", "refs/agi/posts/sanctuary-helper"),
+    ("season2/loops/l5-01-ag1", "refs/agi/loops/l5-01-ag1"),
+    ("season2/loops/l5-01-ag2", "refs/agi/loops/l5-01-ag2"),
+    ("season2/loops/l5-02-ag1", "refs/agi/loops/l5-02-ag1"),
+]
 
 
-def _build_l5_repo(tmp_path: Path) -> Path:
-    """The 21-head L5-open fixture: bare origin carrying today's exact state
-    (plus the pre-pushed SM.92 mirrors) and a graph root declaring all 5
-    towns."""
+def _build_l5_repo(tmp_path: Path, mirrors: str = "live") -> Path:
+    """The 21-head L5-open fixture and a graph root declaring all 5 towns.
+
+    `mirrors` selects which SM.92 mirror refs are PRE-PUSHED to origin:
+      * "live" (DEFAULT — FAITHFUL to TODAY's origin): only
+        refs/agi/posts/sanctuary-director + sensei-director; sanctuary-helper's
+        post mirror and all refs/agi/loops/* are ABSENT (the measured live
+        state). The gate then must plan 7 and refuse the other 5 by name — a
+        fixture that pre-pushes a mirror the live tree does not have would mask
+        the refusals.
+      * "full": all 3 post mirrors + all 3 loop mirrors (the round-1 fixture,
+        the SM.92-prerequisite-met state under which exactly 12 plan).
+    """
     r = tmp_path / "repo"
     r.mkdir()
     bare = tmp_path / "origin.git"
@@ -1992,9 +2029,9 @@ def _build_l5_repo(tmp_path: Path) -> Path:
         _git(r, "branch", name)
         _git(r, "push", "-q", "origin", f"{name}:refs/heads/{name}")
     _git(r, "push", "-q", "origin", "master:refs/heads/master")
-    for mir in L5_POST_MIRRORS + \
-            ["refs/agi/loops/l5-01-ag1", "refs/agi/loops/l5-01-ag2",
-             "refs/agi/loops/l5-02-ag1"]:
+    pushset = (L5_POST_MIRRORS + L5_LOOP_MIRRORS) if mirrors == "full" \
+        else L5_LIVE_MIRRORS
+    for mir in pushset:
         _git(r, "push", "-q", "origin", f"HEAD:{mir}")
     _git(r, "fetch", "-q", "origin")
     _write(r, ".agi/nodes/.geometry/ladder.md",
@@ -2015,15 +2052,22 @@ def _build_l5_repo(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def l5repo(tmp_path):
-    return _build_l5_repo(tmp_path)
+    return _build_l5_repo(tmp_path)  # default LIVE mirror state (faithful)
 
 
-def test_l5_dry_run_plans_exactly_todays_delta(l5repo: Path):
+@pytest.fixture()
+def l5repo_full(tmp_path):
+    return _build_l5_repo(tmp_path, "full")
+
+
+def test_l5_dry_run_plans_exactly_todays_delta(l5repo_full: Path):
     """Claim (a): `--dry-run --kinds main,posts,towns,loops` plans the 4
     MISSING town creates, NO-OPs the 6 present towns, never renames a pre-v3
     twin onto an existing v3 name (0 post renames — the twins are deletes),
-    and plans exactly the 12 deletes via a later `--delete-old`."""
-    root = l5repo / ".agi"
+    and plans exactly the 12 deletes via a later `--delete-old`. RULES on the
+    FULL-mirror state (all 3 post + all 3 loop mirrors present — the SM.92
+    prereq met): exactly 12 and nothing else."""
+    root = l5repo_full / ".agi"
     res = _run_cli(root, "--dry-run", "--kinds", "main,posts,towns,loops")
     assert res.returncode == 0, res.stdout + res.stderr
     out = res.stdout
@@ -2050,17 +2094,18 @@ def test_l5_dry_run_plans_exactly_todays_delta(l5repo: Path):
         assert f"git push origin --delete {name}" not in dout, (name, dout)
 
 
-def test_l5_delete_old_refuses_without_stamp_and_returns_12(l5repo: Path):
+def test_l5_delete_old_refuses_without_stamp_and_returns_12(l5repo_full: Path):
     """Claim (b): `--delete-old` REFUSES without a fresh green stamp, then
     (stamped) leases through _rs_lease_delete and deletes EXACTLY the 12,
     leaving the 9 present heads (the Prime's --apply then creates the 4
-    missing -> the 13-name target)."""
-    root = l5repo / ".agi"
+    missing -> the 13-name target). RULES on the FULL-mirror state where all
+    12 gate open."""
+    root = l5repo_full / ".agi"
     res = _run_cli(root, "--delete-old", "--kinds", "main,posts,towns,loops")
     assert res.returncode == 3, res.stdout + res.stderr
     assert "no green suite stamp" in res.stderr, res.stderr
     # no branch may have moved
-    heads = _git(l5repo, "ls-remote", "--heads", "origin")
+    heads = _git(l5repo_full, "ls-remote", "--heads", "origin")
     assert len(heads.stdout.splitlines()) == 21, heads.stdout
 
     (root / "sessions").mkdir(parents=True, exist_ok=True)
@@ -2071,10 +2116,134 @@ def test_l5_delete_old_refuses_without_stamp_and_returns_12(l5repo: Path):
     # the containment gate's sha), never a bare `git push --delete` site.
     assert "--force-with-lease=refs/heads/season2/sensei/genless-templates:" \
         in res2.stdout, res2.stdout
-    after = _git(l5repo, "ls-remote", "--heads", "origin").stdout
+    after = _git(l5repo_full, "ls-remote", "--heads", "origin").stdout
     rem = {ln.split("\t")[1].replace("refs/heads/", "") for ln in
            after.splitlines() if ln.strip()}
     assert rem == {"master", "season1/main", "season2/main"} | \
         set(L5_PRESENT_TOWNS), rem
     for name in L5_DELETE_12:
         assert name not in rem, (name, rem)
+
+
+def test_l5_live_mirror_plans_7_and_refuses_5_by_name(l5repo: Path):
+    """Claim (a) on the LIVE mirror state (the DEFAULT fixture): today's
+    origin has only refs/agi/posts/{sanctuary-director,sensei-director};
+    sanctuary-helper's post mirror and ALL refs/agi/loops/* are ABSENT. The
+    mirror safety gate is SOUND — it must NOT be weakened or masked: the same
+    `--dry-run --delete-old` plans the OTHER 7 deletes and NAMES the 5 whose
+    mirror is missing (never a silent drop, never a false 'exactly 12 today'
+    on a tree whose mirrors are incomplete)."""
+    root = l5repo / ".agi"
+    res = _run_cli(root, "--dry-run", "--delete-old", "--kinds",
+                   "main,posts,towns,loops")
+    assert res.returncode == 0, res.stdout + res.stderr  # a dry run is a preview
+    out = res.stdout + res.stderr
+    # the 7 whose gate ref (mirror / successor) is present plan as deletes
+    for name in L5_PLAN_7:
+        assert f"[DRY ] branch delete (remote): git push origin --delete " \
+            f"{name}" in out, (name, out)
+    # the 5 whose mirror is ABSENT are REFUSED BY NAME, naming the missing ref
+    for name, gate in L5_REFUSE_5:
+        assert f"[DRY ] REFUSE branch delete (remote, v3 successor absent " \
+            f"on origin): {name} -> would need {gate}" in out, (name, out)
+        # never advertised as a delete — the ordinary delete line is absent
+        assert f"git push origin --delete {name}" not in \
+            "\n".join(ln for ln in out.splitlines()
+                      if "REFUSE" not in ln), (name, out)
+    # quality: the tree has NOT been silently treated as 'full' — a full
+    # mirror that was never pushed must keep sanctuary-helper refused.
+    assert "refs/agi/posts/sanctuary-helper" in out
+
+
+def test_l5_live_mirror_delete_old_refuses_nonzero_deletes_nothing(l5repo: Path):
+    """Claim (b) on the LIVE state. A REAL (stamped) --delete-old on a tree
+    whose mirrors are incomplete REFUSES the WHOLE pass non-zero, NAMES the 5
+    missing-mirror jobs, and deletes NOTHING (the all-or-nothing wall) — the
+    Prime's L5.01-live cannot reach the 13-name target until the loop-post and
+    loop mirrors exist; the gate is the state prerequisite made honest."""
+    root = l5repo / ".agi"
+    (root / "sessions").mkdir(parents=True, exist_ok=True)
+    (root / "sessions/verified.stamp").write_text("fresh")
+    res = _run_cli(root, "--delete-old", "--kinds", "main,posts,towns,loops")
+    assert res.returncode == 1, (res.returncode, res.stdout + res.stderr)
+    assert "REFUSES 5 branch(es)" in res.stderr, res.stderr
+    for name, _gate in L5_REFUSE_5:
+        assert name in res.stderr, (name, res.stderr)
+    # nothing moved: all 12 heads still on origin, plus present towns + trunks
+    after = _git(l5repo, "ls-remote", "--heads", "origin").stdout
+    rem = {ln.split("\t")[1].replace("refs/heads/", "") for ln in
+           after.splitlines() if ln.strip()}
+    assert set(L5_DELETE_12) <= rem, \
+        set(L5_DELETE_12) - rem
+    assert {"master", "season1/main", "season2/main"} | \
+        set(L5_PRESENT_TOWNS) <= rem, rem
+
+
+def _hidden_ref_post_repo(tmp_path: Path) -> Path:
+    """A live v3 post that exists ONLY as the local branch in its worktree +
+    its clause-(2) hidden mirror `refs/agi/posts/<post>` on a throwaway origin
+    — NO `refs/heads/<post-main>` head on origin (the post-main was one of the
+    12 L5 deletes). This is the exact live post state after L5.01's deletes —
+    the resolution the merge-up path, the dispatch F9 behind-check and the
+    seat-branch wire all rely on."""
+    r = tmp_path / "repo"
+    r.mkdir()
+    bare = tmp_path / "origin.git"
+    bare.mkdir()
+    _git(bare, "init", "-q", "--bare")
+    _git(r, "init", "-q")
+    _git(r, "config", "user.email", "t@t")
+    _git(r, "config", "user.name", "t")
+    _write(r, "README", "hi\n")
+    _write(r, ".gitignore", ".agi/sessions/\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "seed")
+    _git(r, "remote", "add", "origin", str(bare))
+    _git(r, "push", "-q", "origin", "master:refs/heads/master")
+    _git(r, "push", "-q", "origin", "master:refs/heads/season2/main")
+    _git(r, "push", "-q", "origin", "master:refs/heads/core/season2/main")
+    post = "core/season2/posts/sanctuary-director/main"
+    _git(r, "checkout", "-q", "-b", post)
+    _write(r, "post.md", "post\n")
+    _git(r, "add", "-A")
+    _git(r, "commit", "-qm", "post1")
+    wt = r / "wt"
+    wt.mkdir()
+    _git(r, "worktree", "add", "-q", "-B", post, str(wt))
+    tip = _git(r, "rev-parse", post).stdout.strip()
+    _git(r, "push", "-q", "origin", f"{tip}:refs/agi/posts/sanctuary-director")
+    _git(r, "fetch", "-q", "origin")
+    return r
+
+
+def test_l5_post_via_hidden_ref_only_resolves_mergeup_and_behind(tmp_path):
+    """Claim (c), now FIXTURE-PROVEN with a real post worktree: a post branch
+    that lives ONLY as the local branch in its worktree + its hidden
+    refs/agi/posts/<post> mirror (no refs/heads post on origin) still resolves
+    for the merge-up path (`branches.mirror_ref_for_branch` + `merge_target`),
+    the dispatch F9 behind-check (`_stale_base_spawn` measures the season
+    trunk, not the deleted post head) and the worktree's own branch name."""
+    r = _hidden_ref_post_repo(tmp_path)
+    import branches  # conftest puts bin/ on sys.path
+    import dispatch
+    post = "core/season2/posts/sanctuary-director/main"
+    mirror = "refs/agi/posts/sanctuary-director"
+    # the origin HEAD is GONE (one of the 12 deletes); the mirror alone holds
+    # the tip — exactly the state a live post is in after L5.01.
+    assert not _git(r, "ls-remote", "origin",
+                    f"refs/heads/{post}").stdout.strip()
+    assert _git(r, "ls-remote", "origin", mirror).stdout.strip()
+    # (c)-1 merge-up path: mirror + v3 town-season trunk, grammar-derived from
+    # the branch NAME (never the deleted origin head).
+    assert branches.mirror_ref_for_branch(post) == mirror
+    assert branches.merge_target(post) == \
+        branches.derive_names("core", 2)["town_season_main"]
+    # (c)-2 the dispatch behind-check (F9) fetches the SEASON trunk — with the
+    # post head gone it still reaches origin and measures -> current, never an
+    # 'unchecked' whitelist (a false stale claim or a network-unknown).
+    st = dispatch._stale_base_spawn(r, 2)
+    assert st["status"] == "current", st
+    # (c)-3 the worktree still names the post branch; its own branch resolves
+    # to the surviving hidden mirror (the wired-identity the seat reads).
+    assert _git(r, "-C", str(r / "wt"), "branch",
+                "--show-current").stdout.strip() == post
