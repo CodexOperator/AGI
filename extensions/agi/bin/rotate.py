@@ -1766,7 +1766,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
-                print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+                print(f"ERR: prompt file not found: {prompt_file} "
+                      f"(resolved {pf}, root {root})", file=sys.stderr)
                 return 1, ""
             claude_cmd = _successor_command(
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
@@ -3550,6 +3551,53 @@ def _rename_post_segment(branch: str, old: str, name: str) -> str:
     return branch.replace(f"/posts/{old}", f"/posts/{name}")
 
 
+def _own_sessions_dir(root: Path, seat: str) -> Path:
+    """The sessions dir of the tree the POST ITSELF lives in: its worktree's
+    `.agi/sessions`, or MAIN's shared dir for a MAIN-resident post (the seat
+    row's `worktree` cell empty/absent). The root comes from the ROW CELL,
+    never from a path guess -- the same rule `_prepare_merge_target` uses to
+    tell a MAIN post from a worktree one. Used by every surface that IS the
+    post's own (the quorum card, which `_own_card_path` writes worktree-
+    first, hypothesis SL2.01 #3); shared-room surfaces (meter pins, inbox,
+    seat handoffs, budget) stay on `_sessions_dir`. L5.11."""
+    wt = str((_find_seat(root, seat) or {}).get("worktree") or "").strip()
+    if wt:
+        p = Path(wt)
+        if not p.is_absolute():
+            p = Path(locations.git_common_root(root) or root) / wt
+        if p.is_dir():
+            return p / ".agi" / "sessions"
+    return _sessions_dir(root)
+
+
+def _resolve_brief_file(root: Path, seat: str, brief_file: str) -> str:
+    """The successor brief resolved through the SAME root the rename boundary
+    uses -- `_own_sessions_dir(root, seat)` -- never through CWD. A post's
+    quorum card IS its own file (`_own_card_path`, worktree-first); the
+    boundary renames it there, so the successor must read it there. An
+    ABSOLUTE path passes through unchanged (an explicit `--prompt-file` and
+    `extensions/agi/briefs/prime-director-successor.md` keep their own roots);
+    a RELATIVE path whose first two parts are `.agi`/`sessions` re-roots on
+    the post's own sessions dir (prefix dropped, tail rejoined); ANY other
+    relative path is returned unchanged (today's behaviour).
+
+    `seat` is the name whose ROW locates the post's tree -- the PRE-rename
+    name at a rename boundary, never the substituted card name. The boundary
+    `_rename_surfaces` renames the card under the OLD row's tree, so the
+    successor must ask for the OLD row even though the card on disk carries
+    the NEW name. L5.11."""
+    s = str(brief_file or "").strip()
+    if not s:
+        return s
+    p = Path(s)
+    if p.is_absolute():
+        return s
+    parts = p.parts
+    if len(parts) >= 2 and parts[0] == ".agi" and parts[1] == "sessions":
+        return str(_own_sessions_dir(root, seat).joinpath(*parts[2:]))
+    return s
+
+
 def _rename_surfaces(root: Path, old: str, new: str,
                      branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
@@ -3576,12 +3624,19 @@ def _rename_surfaces(root: Path, old: str, new: str,
         seen.setdefault(src, item)
 
     sessions = _sessions_dir(root)
+    own_sessions = _own_sessions_dir(root, old)
     # the rename PLAN file is not itself a rename surface: at staging time it
     # does not exist, at boundary-apply time it does, and including it would
     # make every re-derived table drift from the staged one (L5.02).
     _stage_self = sessions / "seats" / f"{old}.rename.json"
     for sub in ("", "seats", "quorum", "inbox"):
-        base = sessions if not sub else sessions / sub
+        # the quorum CARD is the post's own file (`_own_card_path`, worktree-
+        # first); seats/ (handoffs), inbox/ and the top-level pins/logs are
+        # the SHARED room and stay MAIN-rooted on `_sessions_dir`. L5.11.
+        if sub == "quorum":
+            base = own_sessions / "quorum"
+        else:
+            base = sessions if not sub else sessions / sub
         dirs = [base] if base.is_dir() else []
         if not dirs:
             continue
@@ -18421,7 +18476,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     prompt_file = args.prompt_file
     if (not args.dry_run and prompt_file is None
             and tmpl is not None and tmpl.get("brief_file")):
-        prompt_file = str(tmpl["brief_file"]).replace("{seat}", seat)
+        # L5.11: resolve the template brief through the post's OWN tree, so
+        # the successor reads the same card the boundary renames -- never a
+        # CWD coincidence. At a rename boundary the card was renamed under
+        # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
+        # SUBSTITUTION stays the NEW name because that is the card's name on
+        # disk. `--prompt-file` still overrides (it never enters this branch)
+        # and is not re-rooted.
+        _brief_root_seat = (_applied_rename or {}).get("old") or seat
+        prompt_file = _resolve_brief_file(
+            root, _brief_root_seat,
+            str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
         # --ask-diff leg: the predecessor wrote `diff-requested`; the
         # successor's ONE wake call is the diff review, exactly one call
