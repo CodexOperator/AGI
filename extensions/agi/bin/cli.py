@@ -4862,8 +4862,23 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     # blocking the rest of the migration.
     refused: list[str] = []
     if "town_main" in kinds and town_tuples:
-        print(f"  v3 town creates ({len(town_tuples)} towns):")
-        for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
+        # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-
+        # tip (round 3): the create/push legs below are gated `not dry and
+        # has_origin`, so on a tree with NO origin remote they perform
+        # NOTHING while printing [APPLY] -- a verb claiming work that did not
+        # happen. With no remote the origin state is UNKNOWN (the round-1
+        # 'failed' shape), so the WHOLE section is REFUSED BY NAME in BOTH
+        # arms, naming every planned trunk: nothing to classify, nothing to
+        # create, nothing to push, same line either way.
+        planned = _rs_v3_towns_plan(repo, town_tuples)
+        if has_origin:
+            print(f"  v3 town creates ({len(town_tuples)} towns):")
+        else:
+            print(f"ERR: v3 town creates need an origin remote; "
+                  f"{len(planned)} planned trunk(s) not created and not "
+                  f"pushed", file=sys.stderr)
+            refused.extend(name for name, _tip in planned)
+        for town_name, tip in (planned if has_origin else []):
             # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
             # town-tip: ONE shared classification drives BOTH arms: 'present'
             # -> NO-OP (dry AND apply), 'absent' -> create/resume leg,
