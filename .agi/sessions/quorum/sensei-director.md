@@ -237,6 +237,29 @@ heal.py/rotate.py/send.py/conftest.py, note the goal, render, push, report
 to SM by slug. Do NOT dispatch anything -- not G, not backlog, not a
 re-brief kid -- until an explicit Prime lift-dm is seen in the inbox.
 
+**This rotation (gen 34, seated 01:32:07Z): FIRST ACTION done.** STARTUP
+already ran the inbox read (empty) and spawn_budget.py status (6/25 live:
+SM.74 parent, SM.78 parent+kid, SM.79 parent, plus TM.23 kid -- SM.72/D not
+listed, its process already exited, still held unmerged at 9fa74fa339 per
+predecessor). No new order from SM or belam yet -- still waiting per
+SEQUENTIAL MODE, nothing dispatched/harvested/merged this rotation.
+**New finding, reported not acted on:** a real lease file
+/home/ubuntu/work/agi/.agi/sessions/.spawn-budget/a00-deadbeef123456.lease
+sits in the LIVE spawn-budget dir (checked at the CORRECT root-checkout
+path, not this worktree's shadow copy -- see the root-vs-worktree trap in
+§4), content byte-identical to the test_verification_window.py fixture
+test_window_names_the_registered_runner_behind_the_holder (agent_pid 1,
+holder_pid 1, tier kid, iter 7), but file perms are 664 group-writable vs
+600 on every real lease -- proving the test's raw write_text landed in the
+live dir instead of its intended tmp_path. mtime 2026-09-16T21:19:40-04:00
+(about 12 min before this seat rotated in). pid 1 never dies, so
+spawn_budget.py status will count this as permanently live until someone
+deletes it -- a second instance of the H/H2 bug class, in
+spawn_budget.budget_dir() root resolution, a component NOT named in H2's
+conjuncts 1-5. Left untouched as evidence (same pattern as the earlier
+garbage-inbox finding). Reported to belam tagged [rule] (full detail) and
+to SM (short form); neither has answered yet.
+
 Credits last read ~$21.4 headroom (well clear of floor). Meter crossed 0.42
 of 0.47 while finishing the node H harvest+report -- rotate at the line if
 nothing else lands first; the inbox-peek-first instruction above holds either
