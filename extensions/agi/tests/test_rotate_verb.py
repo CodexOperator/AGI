@@ -312,9 +312,10 @@ def test_stale_stops_slot_refuses_by_name_not_delegated(tmp_path, monkeypatch,
     code = rotate.cmd_rotate(_parse([]), tmp_path)
     assert code == 2
     err = capsys.readouterr().err
-    assert "STALE" in err
+    assert "UNCHANGED since" in err
     assert "rotate-out gen 4->5" in err        # the gen pair is named
-    assert "write the card where-it-stops section or pass --stops" in err
+    assert "it is their card, not yours" in err
+    assert "STALE" not in err                   # F23: never called stale
     assert called == []                         # NOTHING delegated
 
 
@@ -486,8 +487,8 @@ def test_stale_refusal_names_both_stamps_and_source(tmp_path, monkeypatch,
     assert err.count(day) >= 2                  # the slot stamp AND the act
     assert "newest work act" in err
     assert "the card's last commit" in err      # WHICH source ran newer
-    # the fix text is unchanged (the byte comparison is still the gate).
-    assert "write the card where-it-stops section or pass --stops" in err
+    assert "not yours -- write the slot, or pass --stops" in err
+    assert "STALE" not in err                   # F23: never called stale
 
 
 # --- (18) clause (c): check 4 names the one-line exit FIRST -----------------
