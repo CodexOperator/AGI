@@ -193,6 +193,9 @@ held exactly as they are; SM.72 specifically must NOT be merged (its two
 kids' real work is sitting on branch season2/loops/hypothesis-l4-the-sensei-
 classif-a00-bfbd3aea, tip 86178050c, reported to SM factually, untouched) --
 wait for SM's re-cut brief on node D before doing anything with that branch.
+**UPDATE 01:27Z: the parent also finished** (its own review-only commit,
+tip now `9fa74fa339`, adjusts KID 1 to `inconclusive_lean_proved:75`, no new
+code/tests) — reported to SM, still NOT merged, still holding.
 
 🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
 on your own initiative even though they are live/finishing -- WAIT for SM to
