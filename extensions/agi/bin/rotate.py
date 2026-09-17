@@ -1576,8 +1576,14 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
-def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
+def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
+                   cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success.
+
+    `cwd` (hypothesis:l4-spawn-cds-into-the-row-worktree-cell-when-set) is
+    the directory the launch line cds into. Absent/None is byte-for-byte
+    today's line (`os.getcwd()`, the spawner process cwd); a seated spawn
+    passes the seat row's resolved `worktree` cell instead.
 
     Two failures were live here until 2026-09-08 and both were silent, which
     is why three primes in a row saw `loop` report a rotation that had not
@@ -1599,7 +1605,7 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
-    launch_cmd = f"cd {shlex.quote(os.getcwd())} && {shell_cmd}"
+    launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
     if len(launch_cmd) > _TMUX_ARG_SAFE:
         fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
                                       suffix=".sh")
@@ -1644,7 +1650,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  seat: str | None = None,
                  rc_name: str | None = None,
                  successor_argv: str | None = None,
-                 harness: str | None = None) -> tuple[int, str]:
+                 harness: str | None = None,
+                 cwd: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1790,7 +1797,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
               file=sys.stderr)
         return 1, ""
 
-    rc = _launch_window(tmux_session, name, shell_cmd)
+    # `cwd` is passed ONLY when set: the default call keeps today's exact
+    # three-positional shape, so callers/tests that stub `_launch_window`
+    # with a 3-arg fake stay valid (hypothesis:l4-spawn-cds-into-the-row-
+    # worktree-cell-when-set).
+    if cwd:
+        rc = _launch_window(tmux_session, name, shell_cmd, cwd=cwd)
+    else:
+        rc = _launch_window(tmux_session, name, shell_cmd)
     return rc, shell_cmd
 
 
@@ -1853,6 +1867,33 @@ def _row_launch_refusal(args, row):
                     f"settings {row.get('settings') or ''}; row changes only "
                     f"via write.py by the Prime/owner ahead of the rotation")
     return None
+
+
+def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
+    """The cwd a seated `cmd_spawn` launches in: the row's `worktree` cell.
+
+    The cell is RELATIVE to graph_root (schemas/[config].md); an absolute
+    cell is used as-is. Resolution mirrors `_own_sessions_dir` -- relative
+    cells resolve against `locations.git_common_root(root) or root`, NEVER
+    `os.getcwd()`.
+
+    Empty/absent cell -> None: today's spawner cwd, byte-identical. A cell
+    that does not resolve to a directory is ALSO None, with a
+    `[seating]`-tagged warning: a `cd` into a missing dir would kill the
+    tmux window instantly and silently (this hypothesis, decision 4).
+    """
+    wt = str((row or {}).get("worktree") or "").strip()
+    if not wt or root is None:
+        return None
+    p = Path(wt)
+    if not p.is_absolute():
+        p = Path(locations.git_common_root(root) or root) / wt
+    if not p.is_dir():
+        print(f"[seating] worktree cell {wt!r} does not resolve to a "
+              f"directory ({p}); launching in {os.getcwd()}",
+              file=sys.stderr)
+        return None
+    return str(p)
 
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
@@ -2085,6 +2126,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         seat=seat,
         extra=startup_block,
         harness=getattr(args, "harness", None),
+        cwd=_seat_worktree_cwd(root, _srow),
     )
     if rc != 0:
         # A FAILED spawn removes the pre-window first-seating bootstrap record
