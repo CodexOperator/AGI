@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CARRIED to the next loop per belam [decision] 23:34Z: not a g19 done-state blocker, no live exposure (never merged to season2/main), L5 stays small -- no round dispatched. Re-check shape named: persist the pre-commit line count before the refusal-path commit runs, or re-measure the ceiling against the round own base branch tip rather than HEAD, or record that this kid was already refused so a retry re-checks it rather than reading a now-clean diff as compliant. A committed test calling cmd_done TWICE against the same over-ceiling kid is the proof this needs.
