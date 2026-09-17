@@ -1,389 +1,65 @@
 # COMPLETE.md — post-loop completion reports
 
-**One section per completed loop, newest first.** `HANDOFF.md` is the live
-scratchpad of a session; this is the closing record of a loop — what it did and
-did not close.
+**One section per completed loop, newest first.** `HANDOFF.md` is the live scratchpad of a session; this is the closing record of a loop — what it did and did not close. **Replaced whole at each loop close, appended only when the owner asks** (owner 2026-09-05, reaffirmed 2026-09-11). Every prior report is `grid.py payload build:COMPLETE.md --version N` — L3 (2026-09-06 → 09-09), L2 and L1 live there. Shape and rules: `goal:g1.13`; contents: `mvp:complete-md-the-post-loop-completion-report`; why a director writes it today: `goal:g14`. **Every per-goal claim is grounded in a commit, a node diff or a parent report; a claim that cannot be grounded says so; a decision banked to the owner is a failure of the harness, not the model.**
 
-**Same rule as `HANDOFF.md`: replaced whole by default, appended only when the
-owner asks** — as here, because the next work continues directly off loop L1 and
-both reports need to be readable at once. Every prior report is
-`grid.py payload build:COMPLETE.md --version N`, which is what makes replacing
-safe and accumulating unnecessary.
+## Loop L4 — 2026-09-09 → 2026-09-17 — enhanced survival, the figure-eight, the suite-leak saga, the closeout (prime director `belam-S1-L4-VII` … `XXVII`)
 
-Shape and rules: `goal:g1.13`. What it must contain:
-`mvp:complete-md-the-post-loop-completion-report`. Why it is written by a
-director today and by a small model later: `goal:g14`.
-
-**Every per-goal claim is grounded in a commit, a node diff or a parent report.
-A claim that cannot be grounded says so. A decision banked to the owner is a
-completion failure** — not the model's, the harness's, for not giving the
-director enough to decide with.
-
----
-
-## Loop L3 — 2026-09-06 → 2026-09-09 — the seat system, aliveness, the Masters (prime director `belam-S1-L3-*`, CC remote-control)
-
-**CLOSED 2026-09-09 by the owner** (verbatim in `doc:l4-owner-decisions`): every
-remaining decision and every carried trap moved into the L4 backlog in that node,
-and `season/s2` was merged into `master` at the close. The standing exit duty of
-every loop (`goal:g1.13`) is written here. The L3 span is `000cc83f3` (iter-L3.01) ..
-HEAD; the start state is taken from the L2.13 commit `fed533924`, not from
-COMPLETE.md's own L2 section — that section reports "tests 1629" at L2.11, but
-L2 ran two more rounds (L2.12 → 1650, L2.13 → tests **1661**), so `fed533924`
-is the true boundary.
+Owner GO 2026-09-09 on `doc:l4-plan`; closed by the sequence in `goal:g18.1` (owner 14:1xZ 09-16). Owner verbatim for every ruling: `doc:l4-owner-decisions`. The seat protocol and every measured rule: `goal:g17.1` (its notes are the loop's memory).
 
 ## 1. What ran
 
-Thirty-six L3 rounds (`iter-L3.01` … `iter-L3.42`, gaps at 14/18/35/36/39/40
-and 43–47 where a dir exists for a round that never landed a commit — see §5
-`verification-blindness`), four waves, on the CC harness via `claude
-remote-control`. The prime seat ascended from `agi-master` (L2) to Belam, and ran
-as `belam-S1-L3-I..XVI` — fifteen prime rotations, records under
-`.agi/sessions/rotations/` where `rotate.py loop` wrote one (hazard 5: `rotate-self`
-stamps a generation but writes no record) — under season 2's seat system. In wave 3 the g15 director spawned by the Alive advisor (`a00-4ad19971`)
-ran the ladder end to end by hand. 39 commits titled `iter-L3.*`; the ~470-commit
-span also carries the `sanctuary-director` rounds SD.01–SD.19 (survival mode from
-2026-09-08, one worker seat under the prime). Ladder `current_season` 2,
-`director_rotate_at` 0.35 through L3's rounds, raised to 0.47 by the owner on
-2026-09-09 as a standing rule for every role (`doc:l4-owner-decisions`).
+- **Formation, in order:** enhanced survival (Prime + point + helper + Sanctuary director) → the Keep (`sanctuary-master` ══ `master-sensei`) + town masters with ONE director each, the hybrid figure-eight (owner 09-13 23:32Z) → FULL PAUSE (owner question 09-17 00:5xZ, ruled YES) → sequential mode (owner 01:0xZ) → parallel closeout (owner 04:0xZ, "break rules to close out quicker").
+- **Posts:** Prime `belam` gens VII → XXVII (rotate-self, wake 0 / out 1 from SL7.06); point `sanctuary-director` (L4.* and SD.01–SD.13); `sensei-director` (SL1.01–SL7.140); `sanctuary-helper`; `sanctuary-master` gens 1 → 7 (SM.01–SM.100); `master-sensei` (rotation watch + audits; template/config/role-doc only from 09-17 00:4xZ); `thought-master` + `director-thought` (TM.01–TM.25; idle from 09-17 01:0xZ by owner order).
+- **Rounds:** L4.01–L4.290 · SL1.01–SL7.140 · SD.01–SD.13 · SM.01–SM.100 · TM.01–TM.25 — every round a pi parent with kids in a round worktree (`season2/loops/<hyp>-<agent>`), reviewed BY NAME through `workflow.py run merge-up-review` on pi (owner 09-16 19:1xZ), merged one GO-by-SHA at a time with a merge-tree gate on HEAD.
+- **Harness:** Claude Code remote-control posts (Opus 5 max; the point on Sonnet 5); pi parents + kids on OpenRouter `~deepseek/deepseek-v4-flash-latest` from 09-16 19:4xZ (Sonnet/gpt earlier).
+- **Spend:** the original OpenRouter account (topped up 09-11, workspace monthly/weekly caps hit 09-12 = items 109/110, revived by the owner 09-17) and the Doppler `<admin-secret>` account (switched 09-16 21:26Z; $25 → $16.5 at close; ≈ $0.75/h through the closeout, ≈ $1.6/h under full parallel rounds). Floor cell 1.6; both accounts in rotation (owner 09-17 06:4xZ).
 
 ## 2. Scoreboard
 
-**Counting method stated (the SD.18 counting trap):** node counts below are
-`git ls-tree -r <rev> --name-only .agi/nodes`, split into active (not under
-`.agi/nodes/deprecated/`) and deprecated (under it) — the SAME method at both
-ends. `metrics.py` smoke (the L2 report's basis) instead reads deprecation from
-frontmatter `status:`, and the two disagree by ~5 because deprecation is a
-status, not only a directory; end-state smoke today: node_count 1786, active
-1592, deprecated 194.
-
-| | start (`fed533924`) | end (HEAD, re-measured today) |
-|---|---|---|
-| active / deprecated (ls-tree) | 1219 / 189 | 1598 / 189 (all +379 growth is active) |
-| tests | 1661 passed (boundary commit) | 2256 passed, 1 skipped |
-| `outcome_coverage` | 0.172 (L2 report §2) | 0.152 |
-| broken links | 0 | 0 (1766 resolved today) |
+- **Nodes:** 1828 active at the loop floor → **3198 active / 202 deprecated / 3400 total STAMPED at `66ef15961`** (SM gen 7, 09-17 11:5xZ); never a drop across 60+ merge-ups. Closeout deltas after that stamp: SD.13 `f9f0a332b` (+3 nodes) then the 15 retirements `7b911d6d6` → **3186 active / 217 deprecated / 3403 total, steady** (links 0, goals byte-identical; the next granted window stamps 3403).
+- **Suite:** **5386 passed / 0 failed / 16 skipped, 12/12 checks green at `66ef15961`** — the first fully green MAIN suite of the stream came at `676db3111` (5355/0/16, 09-17 07:20Z) once the leak's root cause was closed.
+- **Links:** 0 broken (18 retired payloads unresolved, not damage). **Goals:** 180, byte-identical round trip at every verify.
+- **Metrics:** `outcome_coverage` 0.068 primary (dilution as hypothesis/experiment nodes enter the denominator, not regression); `evidence_fraction` 0.621 and rising.
+- **Landings this closeout gen (27) alone:** SM.77+73+76 (+75 revert) `eb3cc9095` · H2 = SM.79+74 `c84d99efb` · SM.80 suite-green `68d1d4070` · SD.12/R6 `5f9c2bb35` · SM.81+82+83 `90dc3fb50` · D re-cut `e3646ced5` · SM.86 `676db3111` · SL7.139 `fe8703725` · SM.84 `d56b84b90` · SM.87 `9f669459d` · SM.88 `7a87bcc61` · SL7.140 `f0131b9e6` · SM.90 `903718e22` · SM.91 `5df2301a1` · the bundle SM.92+94+95+98+96 `6a6467829` · SM.93 `83c0e7f7d` · SM.100 `66ef15961`.
 
 ## 3. Per active goal
 
-- **goal:g17 (the seat system), minted iter-L3.17, perpetual — the loop's headline deliverable.** `b96d6b3da` minted it (perpetual, parent `vision:self-perpetuating`). The seat registry `config:seats` (`.agi/nodes/.geometry/seats.md`, 8+ rows: belam, three advisors, the liaison, one director per perpetual goal) landed at `a68e7f8de` with `dispatch.py --seat` + `rotate.py meter --seat` + the AGI_SEAT-keyed pin; seat transport at `aa81dddc8` (`rotate.py spawn_window` = the one launch path for spawn/loop); `seat_status.py` — one SeatsView from seats.md + meter pins + spawn_budget + telemetry_rollup, rendered by `viewport.py --live` in both readers — at `74a65e1ae`; the LIVE ROTATION PROOF at `ba037c126` (`rotate-self --successor-argv/--throwaway`, two live rehearsals); the seat pin "can no longer lie" at `36aea6a26` (L3.41). Open: `harness_for()` extraction (`74a65e1ae`); the successor chain brief `l3w4-belam-predecessor-chain`; and whether the whole seat loop closes is banked (§5).
-- **goal:g15 (bugfix, perpetual) — the workhorse.** In-loop defects found and fixed: `pi_adapter.build_command` rejects `role=`/`ladder_tier=` — every pi spawn died on a TypeError from L3.13 (`c0157daed`); `AGI_AGENT_ID`/`AGI_ACTOR` never exported into the child env (JOINED test, L3.19–20, `3481766cf`/`f830a2672`); scaffold-stamps defect proved — one `os.environ` read stamps the spawner's values (L3.21, `fb2308310`); `max_goals_active` deleted with its warning (L3.04, `6e2946151`); grid lock un-doubled (L3.29, `6557b34bd`); explicit `--harness` beats the ladder row, seat > flag > ladder (L3.28, `74a65e1ae`); `node_writer.repair_mint` adopts a node minted outside the writer — grid at 0 errors (L3.20, `f830a2672`); zombie-pid leases swept (L3.19, honest lean-30 — adapter reaper, grandchild pipe, session-limit retry still open).
-- **goal:g12.3 (ladder, seasons) — kept live, `current_season` rolled to 2.** `rotate.py` gained roles+head+loop and the ladder a roles table + `season_names` + AGI_ROLE stamp (L3.01, `000cc83f3`); `season.py rollover --visions-from/--name/--branch` with dry-run plan and unjudged gate (L3.08, `3ca5718d9`); `rotate.py meter --seat`, `rotate-self`, and Roman-numeral successor derivation (`belam-S1-L3-III`, L3.11–15); meter resolves the director's own transcript at L3.15 (`f3ded8919`). Open: rollover cap counting closed visions (carried from `l2w3`).
-- **goal:g1 / G1 (zero-operations umbrella), set perpetual at L3.07.** `goal_kind: perpetual` + GOALS.md Perpetual section, with G1/g15/g16 made perpetual — `ad69931be`. `goal:g1.13` is this very exit duty.
-- **goal:g13.1 (one write path) — the write side hardened.** `write.py set` coerces JSON lists/objects and the ladder was re-set through the writer (L3.05, `1698979b8`); write-guard logs keyed on mint id + sha (L3.06, `b46550160`); same-bytes payload re-log logs nothing — a known gap with 5 guard WARNs standing, explained (L3.27, brief `l3-write-payload-unchanged-unlogged`); write-guard scans `.agi/context/` and the `[doc].md` schema added (L3.22, `3edad0959`); `replace_payload` same-bytes re-log as a sanction, guard silent live (L3.28, `74a65e1ae`).
-- **goal:g16 (telemetry, perpetual).** OpenRouter codex spend tracked under g16 per the owner's ask (L3.01); telemetry set to own the seat listing (L3.22, `3edad0959`). Cost-per-aligned-outcome roll-up remained open.
+- **`goal:g17.1` (the seat protocol):** the formation and every measured rule — ~50 notes this loop; the FULL PAUSE, sequential and parallel-closeout rulings; the rules earned (test the MERGE RESULT never the loop tip; a stamp refuses on a mid-run node commit; a suite window is void the moment a second pytest exists; findings during a closeout are minted always and rounded only into a free slot). Grounded: the note commits `f7f2fbf8e` … `b35cfb283`.
+- **`goal:g15` (the Sanctuary, perpetual):** ~100 SM rounds + SL7.*; the leak saga closed — node H (`eb3cc9095`, demoted :60, tests-only), H2 (`c84d99efb`: the suite refuses an in-repo basetemp, the runner mkdtemps under /tmp, every live-root resolver refuses), SM.80 suite-green, SM.82 no detached second suite, SM.88 the cron evidence gate defers under a held suite lock, SM.92 one lease-delete helper, SM.93 a generation cell on every row, SM.94 prepare performs its own clears, SM.98 read-only lock probe, SM.100 tier-gate guard. Root cause measured by SM's falsifier: `dee5b3221` placed the pytest basetemp inside the live `.agi/sessions`, so `git_common_root` resolved every test root to the live checkout. Grounded: the landings above.
+- **`goal:g18.1` (the L4 close):** executed as written — queue drained, self-review on the morals, this report, push, prayer.
+- **`goal:g11` (one repo):** stood the whole loop; `grid.py commit --all` on `season2/main` only.
+- **`goal:g14` / `goal:g1.13`:** this report, written by the Prime once at close.
+- **`goal:g13`:** links 0 at every merge-up.
+- **`hypothesis:l4-the-stream-goes-live`:** HELD — deferred to the next stream by the owner (09-11 01:4xZ).
 
 ## 4. Goals closed
 
-None. No goal node's `status` went to `complete` in the L3 span — checked the
-goal-node diff across `000cc83f3^..HEAD`; the diff shows edits, no status→
-`complete` transition. `goal:g17` is the intended close but its closure is
-banked (§5). No closure claim here needs a commit because there is none.
+- The L4 plan rounds L4.02–L4.27 (`doc:l4-plan` §5) landed through the point by 09-13; the ad-hoc L4.28+ through L4.290 by 09-16 (`git log --oneline --merges season2/main`).
+- No goal is marked `complete` that the record cannot ground; `g15` and `g17.1` are perpetual by design and stay open.
 
 ## 5. Completion-failure categories
 
-- `banked-to-owner`: whether L3 closes at all (resolved 2026-09-09: closed, the open decisions pushed into L4); the rotation gate — "PAUSED on the owner's word, rotation gated on the owner go" (`aa81dddc8`); the successor/mantle chain and mantles per vision (L3.12c, HANDOFF §6 item 16); the owner's model/comms table for the Masters recorded verbatim but the rollover design left to the owner.
-- `ceiling-found-by-dying`: the Claude **subscription session limit** killed the g15 director mid-judgment in L3.17+L3.18 — work finished, gate not met (`b96d6b3da`); a quorum kid **died at an OpenRouter sub-key cap with its work finished but unjudged** (L3.29, `6557b34bd`). This is the third spend-cap death after L1's two, and the loop's most expensive recurring failure: a spend wall no reader watches until work dies on it.
-- `verification-blindness`: L3.42 — "the second consecutive round where no parent committed" (`6b93f0c2e`), a fact a commit-ledger alone cannot show; L3.34 — four parents, four honest red-first baselines, **zero lines of code** (`4f61ae08b`), a brief-shape failure surfaced only by the parents' honesty; L3.10's advisor-brief kid built nothing and had to be re-briefed as a BUILD.
-- `hazard-carry-over`: `harness_for()` extraction (`74a65e1ae`); the parent-branch merge-up brief "failed to build four times" and split three ways (`2aca849f8`); the frontier census correction sat a round as proof-only before its re-brief (L3.21); the remote-control desktop disconnect (lean-disproved, fix folded into the successor chain, L3.27).
-- `saturation`: L3.34 again — one brief whose shape demanded an impossible deliverable produced nothing across four parents; the split-into-builds correction the same round's failure forced.
-- `late-minting`: none — every `iter-L3.*` commit carries its round's briefs gated at mint.
-- `attribution-void`: none new; the seat pin and `node_writer.repair_mint` adoption (L3.20) exist precisely because pre-L3 attribution was unresolved, and an orphan experiment `a00-230456c1` was adopted with the grid at 0 errors. One real residual: two consecutive no-parent rounds (L3.41/42) left those parents' specific work unattributable to a seat in the round ledger.
+- **`banked-to-owner`:** (1) three pushed commits carrying private/CGNAT tokens — STAY, rewrite owner-only; (4) `.env OPENROUTER_API_KEY` owner-deleted, a fresh runtime key never named; (8) TypeSafe plugin install; (9) TM.24 egress route on `<keeper-dir>` iron; (11) the thought-town relocation to the GPU box — GO given post-closeout, not yet cut; the orphan loop branch `season2/loops/hypothesis-l4-post-branches-are--a00-ea1066f0` left for the owner branch-cleanup pass (its pending kid node deprecated `9acd28d87`).
+- **`hazard-carry-over`:** SM plans (4) encryption town + key seats and (5) town numbering (owner-deferred to the next stream); master-sensei's F23 fact fix (an unchanged where-it-stops slot IS refused as stale) pending its lock-free moment; the successor brief still lacks the line "never run an after_join ack whose `--gen` ≠ row gen + 1" (a fixture after_join was typed into the Prime's pane 09-17 00:57Z); the point's pane froze after 10:0xZ 09-17 in a self-declared pause, answering nudges without reading (SD.13 landed by SM in its place; a typed lift line broke it 11:5xZ); `test_wrapper_tty_hangup_forwards_to_the_child` red under full-suite load stays open (SD.13 kid A demoted :35, next-cut recipe on the node).
+- **`late-minting`:** node I (message bodies are files, never argv) — SM.78 struck by the owner 03:0xZ as not a good enough fix morally; the hypothesis stays unrounded. Three code lines from the point's rotation audit minted at the boundary, unrounded.
+- **`verification-blindness`:** the suite wrote the live roots from `dee5b3221` (09-13) until 09-17 — fixture rows and acks reached `season2/main` (four `belam ack: gen 3` commits 00:50Z 09-17, three more reverted `d098c42de`), a leaked heal-test rewrote the Prime's row twice and a restore erased thought-master's legitimate dirty row; two suite runs ran concurrently in MAIN because `verification.py --suite` spawned a detached second pytest ~10 min in. Every one is closed by H2/SM.80/SM.82/SM.88; the cost was a day of rotate refusals and a 0.5-day closeout pause.
+- **`ceiling-found-by-dying`:** SM.97 died pre-code (superseded by SM.100); SM.85 demoted :40 before landing (the built spawn command exited 2 — shape-only tests missed it).
+- **`attribution-void`:** the fixture commits above carry the Prime's name with fixture content; netted at HEAD, not rewritten.
+- **`saturation`:** none claimed.
 
 ## 6. Findings that are not failures
 
-- The ladder ran **end to end with no human hand** in wave 3 (L3.15): director → GLM parent → DeepSeek kid → outcome judged `ADJUST` against `goal:s31` — the daisy-chain now self-closes a judgment under a goal-subgoal pair.
-- The `--branch` cycle proven end to end (L3.32, `c05ca77f8`): two concurrent parents on the same file merged up green, exposing the three defects the rehearsal existed to find.
-- Live rotation works: two live rehearsals covered all five observations of `rotate-self` (L3.38, `ba037c126`).
-- The workflow model leak is sealed (`36aea6a26`): the leak and the lying seat pin were found and closed together.
-- The agent-id export defect was confirmed five separate times before it got a BUILD directive with a joined test (L3.19–20) — the repetition is itself evidence that proof-only rounds do not convert into fixes.
-- The economics did NOT repeat L2's: the seat system ran inside the CC subscription until six-to-twelve idle Sonnet seats drained it (survival mode, HANDOFF §6 item 71), and OpenRouter carried the pi rounds — at least ~$17 by the two runtime sub-keys' own counters (`agi` $9.72 of $10 at L3.29, trap 0o; `backup` $7.13 of $15 at close) plus ~$0.60 of per-spawn keys billed to the account for SD.09–SD.19; the account stands at $79.4 used of $92 credited across all loops. The exact L3 share was not isolated — see `banked-to-owner`.
+- Parallel rounds were never the trash source; the in-repo basetemp was. Once closed, five live rounds on 4 cores ran at load 2.8 with reviews inside their 1800 s cap.
+- The figure-eight held under load: one director per master, masters briefing and reviewing by name, the Prime accepting from the report plus the bytes — twelve SM landings in one SM generation.
+- Narrowing master-sensei to template/config/role-doc (owner 00:4xZ) relieved the audit lane the same hour; its two wake-audit rows now run in the Prime's first turn (`dc3e28758`).
+- `quiet` posts (SM.81) + a silent alerts list turn a post's wake into its own schedule; the alerts cell had been stored in a flow-string spelling reached only through a yaml fallback (`0f86eabde`).
+- A no-op re-cut honestly reported (SM.90) is a result, and a kid falsifying its sibling's fixture (SM.87) is the method working.
+- Account succession works as a two-step (`.env` key + `spawn.credential.workspace_id`); both accounts are in Doppler.
 
 ## 7. Minted or changed in response
 
-Minted: `goal:g17` (perpetual); `config:seats`; the `[doc].md` schema with `doc:l3-command-ladder-brief` and `doc:season-ladder-and-morals-brief` (both with payloads); `vision:alive`, `vision:self-perpetuating`, `vision:all-is-one`; 47 `hypothesis:l3w1–4*` briefs plus the `hypothesis:l3-*` defect briefs; the four Masters briefs (plan-master, masters-comms-and-escalation, seat-push-further, masters-rollover). Engine: `seat_status.py`, `frontier.py`, `workflow.py` (new); major changes to `rotate.py` (roles, meter --seat, spawn_window, rotate-self), `dispatch.py` (--seat, --dry-run, --branch, AGI_A* env, role/tier threaded to adapters), `season.py` (rollover), `send.py` (rooms/dm/audience), `cli.py` (frontmatter repair), `node_writer.py` (repair_mint), `write.py` / `write_guard.py` (JSON set, same-bytes re-log sanction), `brief.py`, `briefing.py`, `metrics.py`, plus the tests that pin it all (2256 at close).
-
-## Loop L2 — 2026-09-06 — season ladder, morals, daisy-chain (prime director `agi-master`, remote-control)
-
-Appended newest-first at the owner's standing instruction (keep both). Closed at the `iter-L2.11` commit (round 11 hygiene, proved); opened at `4235ab1b6`. Eleven rounds.
-
-## 1. What ran
-
-Ten rounds (iter L2.01–L2.10), three pi parents per round on OpenRouter (`qwen/qwen3.8-27b` parents, `deepseek/deepseek-v4-flash` kids), one kid per target file, each target a `hypothesis:l2*` brief minted by the director. 31 commits on master. Director: one Claude session (`claude remote-control --name agi-master`), context meter 0.31 of the assumed 1.0M at close, no rotation needed before L2 closed. Spend: about $3 OpenRouter for rounds 1–6 ($27 of the $30 top-up remained at that check); subscription untouched. Crons off for rounds 1–2, on from round 2 (grid master-guard landed).
-
-## 2. Scoreboard
-
-| | start | end |
-|---|---|---|
-| active / deprecated nodes | 1099 / 191 | 1184 / 194 (sum only grew; 3 L2.09 sweep nodes deprecated in L2.11) |
-| tests | 1487 passed | 1629 passed, 9 skipped (also green under the kid environment) |
-| `outcome_coverage` | 0.190 | 0.172 (25 new hypothesis briefs in the denominator; no mvp was the point of this loop) |
-| `evidence_fraction` | 0.375 | 0.376; `unevidenced_decisive_verdicts` 0 |
-| broken links | 0 | 0 (1356 resolved) |
-| disk | 96% | 79% (six pushed repos deleted, 17G) |
-
-## 3. Per active goal
-
-- **goal:g12 (morals parentless → vision → goal), active this loop.** `[moral].md`, `[shape].md` parentless_types=[moral] + season/provenance edge fields, five moral nodes minted by hand as owner from the brief verbatim (commit "The constitution"), write.py refuses moral edits without `--actor owner` (iter-L2.08). Grounded: `.agi/nodes/moral/*`, `hypothesis:l2w1-moral-schema`, `l2w1-shape-parentless-moral`, `l2w2-write-owner-and-payload-types`.
-- **goal:g12.3 (ladder, seasons, season.py), minted and closed in substance.** Ladder node + schema (L2.01); report-node floors to 1 + judgment record (L2.02); vision on morals with season edge (L2.03); gate validates season_parents (L2.05); metrics exclude the season edge (L2.05); `season.py status|judge|rollover --dry-run` (L2.07); `send.py` (L2.07); brief heads by read order for all four tiers (L2.07–08); **season-1 pairing done**: 23/23 outcomes, 19/19 bigger_outcomes judged against real goals, 17 visions closed season 1, 17 overviews (L2.09–10); SKILL.md Seasons + Constitution (L2.10). Open: rollover cap counts closed visions (`hypothesis:l2w3-season-py` note); real rollover waits on the owner's vision text (banked).
-- **goal:g15 (bugfix and optimization), minted L2.01, always active.** 35 S goals reparented. In-loop fixes: grid master-guard, non-blocking `dispatch.py --detach`, `cli.py done` doubled frontmatter + missing DONE line, agent git-commit guard (belt) + pi-autoresearch `log_experiment` patch off-repo (suspenders), guard scoped to the project repo, bin `--help` smoke test. Closed: `hypothesis:l2-graph-hygiene` (round 11, proved).
-- **goal:g16 (telemetry), minted L2.01, active from wave 2.** Writer stamps season/loop/model/profile (L2.06); telemetry stamps at done with a real source or `telemetry_source: unavailable` (L2.06, lean 70). Open: session roll-up, cost per aligned outcome.
-- **goal:g13.1 (one way in).** Owner's ask delivered: `write_guard.py check` warns on any node changed outside the logged writers; both writers log; smoke path runs it; hook lines in QUICKSTART. After a round it reports 0 warnings. Grounded: `hypothesis:l2w15-write-guard`, iter-L2.03, L2.09.
-
-## 4. Goals closed
-
-None marked `complete`. `goal:g12.3` is closed in substance but its rollover conjunct is banked; marking it complete before the first real rollover would repeat L1's `goal:g4.6` mistake. No `complete` claim in the record lacks a commit.
-
-## 5. Completion-failure categories
-
-- `banked-to-owner`: season-2 visions (the rollover's owner-tier input); pointed Church Slavonic; `goal:s35`.
-- `hazard-carry-over`: rollover cap bug; `l2-parent-spawn-nonblocking` landed but pi parents still report ~9-minute silent kids (no live progress signal).
-- `verification-blindness`: L2.06 left `dispatch.py` with an unimported name and 1539 tests stayed green (fixed by hand, `test_bin_help_smoke.py` now guards the class); the commit guard broke every kid's test sandbox for one round before it was scoped.
-- `late-minting`: none — every brief was minted before its round and committed at mint.
-- `attribution-void`: one — commit `9b28e958a` came from a kid's tool auto-commit, not any agent's decision.
-
-## 6. Findings that are not failures
-
-- The daisy-chain transport works hands-off: `claude --remote-control NAME "prompt"` in a tmux window with a TTY answers and stays live; piped, it exits. `rotate.py meter` reads the real transcript; 0.31 at close of ten rounds.
-- The constitution gate is real: the first parentless `moral` was approved by the live gate, and the same gate refuses a new parentless idea.
-- Three pi parents per round on cheap models did the whole loop for about $3; the director's context, not money, was the budget that moved.
-- Parents' `struggles:` lines found every engine defect this loop before the director did.
-
-## 7. Minted or changed in response
-
-`goal:g15`, `goal:g12.3`, `goal:g16` (new); `goal:g12`, `goal:g16` → active; 25 `hypothesis:l2*` briefs with their experiments; five `moral:*`; `.geometry/ladder.md`; 17 `overview:*`; schemas `[moral]`, `[ladder]`, and edits to `[shape]`, `[vision]`, `[goal]`, `[idea]`, `[outcome]`, `[bigger_outcome]`, `[overview]`, `[experiment]`; engine: `rotate.py`, `season.py`, `send.py`, `write_guard.py`, `hooks/agent-git/`, `briefs/prime-director-successor.md`, `test_bin_help_smoke.py`, plus edits to `dispatch.py`, `brief.py`, `cli.py`, `post_wire.py`, `node_writer.py`, `spawn_gate.py`, `metrics.py`, `grid.py`, `write.py`, `snapshot-goals.py`, `driver.sh`, `SKILL.md`, `QUICKSTART.md`.
-
----
-
-## Session L1.13 — 2026-09-04 → 09-05 — director session, no waves
-
-Not a loop: no dispatch, no kids, no parents. A director session working the
-owner's asks directly. Recorded here because it closed things and left things
-open, which is what this file is for.
-
-### 1. What ran
-
-Eight commits, all direct director work. No agents spawned, no provider spend.
-
-### 2. Scoreboard
-
-| | start | end |
-|---|---|---|
-| active nodes | 1094 | 1108 |
-| goals | 115 | 124 |
-| `outcome_coverage` | 0.187 | 0.190 |
-| tests | 1482 | **1493** |
-| broken links | 0 | 0 |
-
-### 3. Per goal, how far it got
-
-| Goal | Where it got to |
-|---|---|
-| **g13.1** edit mode | **Real code, twice.** `write.py` gained `payload <path>`, `payload_text <inline>` and `payload -` (stdin), so editing the file behind a build node is finally a named operation instead of the one node operation with no command. Then payload resolution moved off a hardcoded `source_root()` onto a named `location:` on the node. 10 tests, all verified red. |
-| **g1.13** completion report | Minted, chained (`hypothesis` → `mvp` → `build:COMPLETE.md`), and this section is its second use. |
-| **g2.12** the FEELING block | Minted and specified in `SKILL.md`; not yet implemented in any writer. |
-| **s35** schemas are nodes | Minted `active` with a five-step migration and a count falsifier. **Not started** — see §5. |
-| **g9.4 / g9.8 / g9.9 / g9.10** live view | Split from one saturated goal into an umbrella plus three subgoals, each with its own mvp to chase. All `horizon`. |
-| **g1.12, g5.2, g14** | Minted `horizon`: loop-flavor tags, mechanical goal splitting, local-maxxing. |
-| **g5** goal lifecycle | `[goal].md` widened so a goal may name the build node that produced it; ingest fixed to preserve it. |
-
-### 4. Goals closed
-
-**Zero.** Every goal touched is `horizon` or `active`. Nothing became
-`complete`, and nothing was claimed to be.
-
-### 5. Completion failures
-
-- **`banked-to-owner`** — `goal:s35` (schemas are nodes). The owner decided it;
-  the director minted the plan and stopped, because every reader globs
-  `nodes/<type>/*.md` and a move-first migration breaks three readers against
-  files with no `id:` and no `mint_id:`. Correctly banked, but it is banked.
-- **`verification-blindness`, twice, and both were the graph not seeing itself.**
-  `write.py`, `test_write.py` and `links.py` — the write path and the link
-  resolver — **had no build nodes at all**. Both were found by trying to record
-  a thought against them and getting "no node file". Nothing checks that every
-  tracked source file has a node; `level3.py` mints them on a scan nobody ran.
-- **`hazard-carry-over`, avoided once.** Three goals from L1.12 (`g4.9`, `s33`,
-  `s34`) were schema-invalid on `confidence`/`seeds`/`tags` and were fixed in
-  this session rather than written into a table.
-- **Two gaps found and documented rather than fixed:** no prose verb can contain
-  `&&` (the script form splits on it — it broke a `thought` in this session),
-  and payload writes are whole-file only, with no anchored edit. Both are now
-  🔴 in `SKILL.md`, because a rule that cannot be followed for real work is how
-  the write path got skipped in the first place.
-
-### 6. Findings that are not failures
-
-**The credential trail on the uninvited director resolves, and it changes the
-guard.** The `openclaw`/`hermes` stack runs on a **ChatGPT/Codex OAuth session**
-— `auth: oauth` against `api.openai.com`, all five agents on `openai/gpt-5.4`,
-plus a second `openai-codex` session in `~/.hermes/auth.json` with
-`auth_mode: chatgpt`. There is **no Anthropic credential in that stack at all**,
-so the uninvited director was almost certainly a **Codex agent, not a Claude
-one** — and it arrived through **`AGENTS.md`, which is a symlink to
-`CLAUDE.md`**. It was handed the full director contract by a route nobody
-designed. A guard that names one vendor's CLI would guard the wrong thing: what
-needs gating is *acting as director*, not which binary does it.
-
-**The larger observation, recorded as `idea:the-graph-is-the-workflow`:** an
-agent on a different runtime and a different vendor read one instruction file
-and *continued the work correctly for two hours*, with no skill invoked and
-nothing scheduling it. The graph was sufficient. A graph with missing pieces is
-a structure that states what is absent — a hypothesis with no experiment, a goal
-with no mvp, a `payload_ref` with no node — each a hole with a typed edge already
-pointing at it, so the set of legal next moves is computable from the structure
-rather than argued for in prose. The owner's framing: **the graph is DNA, the
-models are ribosomes, the code is protein**, and growth is cross-assembly —
-completion happens wherever a reader binds, with the gates as proof-reading.
-`goal:g14` reaches the same picture from the efficiency end; this is the
-observation that the substrate already behaves that way.
-
-### 7. What was minted or changed
-
-`goal:g9.8`, `g9.9`, `g9.10`, `g1.12`, `g1.13`, `g2.12`, `g5.2`, `g14`, `s35`;
-`build:COMPLETE.md`, `build:bin-write`, `build:tests-test-write`,
-`build:bin-links`. `[goal].md` and `[build].md` both widened, each with the
-shape that stays forbidden stated as plainly as the ones added. `SKILL.md`
-reached v32 with three new sections: the write path, `COMPLETE.md`, and the
-`FEELING` block.
-
----
-
-## Loop L1 — waves L1.08 → L1.12 — 2026-09-03 → 2026-09-04
-
-Reported 2026-09-04 by the L1.13 director, from `HANDOFF.md` (unmodified), the
-commit log, and goal-node status history.
-
-### 1. What ran
-
-~35 commits. Three phases:
-
-1. **L1.08 – L1.08h.** The parent tier ran live on pi/OpenRouter for the first
-   time: 44 parents, cap **25/25 reached and held**, budget refused overflow
-   cleanly, parent-spawns-kid observed on both harnesses. The wave then died at
-   a **$10/week OpenRouter workspace budget that nothing in the engine reads**.
-   Pivot to four CC subagents on disjoint domains: removal guard, evidence gate
-   on the commit path, an mvp audit, and the s18 mining survey. All four landed.
-2. **L1.09 – L1.11d.** The build-site cohort retired in **one atomic pass** (159
-   nodes deprecated with per-node dispositions, 29 verdicts by citation, kits and
-   plan deleted in the same commit). Loop-scoped iteration ids landed end to end.
-   Waves 6–10 on pi. **A second, uninvited director ran this graph 21:21–23:20
-   EDT on 09-03** (commits `L1.10b`…`L1.10f`); `openclaw`/`hermes` crons paused
-   and services stopped, reactive daemon named as prime suspect.
-3. **L1.12.** Three owner goals minted (`g4.9`, `s33`, `s34`) plus one practice
-   iteration: 14 parents, kids editing `provisioning.py`, `dispatch.py` and both
-   adapters in-loop as the new skill rule asks.
-
-### 2. Scoreboard
-
-| | start | end |
-|---|---|---|
-| active nodes | 940 | 1094 (+181 deprecated) |
-| `outcome_coverage` (primary) | 0.271 | **0.187** ⬇ honest — guard withholding ≈ −0.1 |
-| `evidence_fraction` | 0.317 | 0.375 ⬆ |
-| `unevidenced_decisive_verdicts` | 6 | 0 at every grid commit |
-| `mvp_count` | 39 | 50 (48 scoring, 2 backward) |
-| tests | 1371 | 1482 |
-| broken links | 0 | 0 |
-
-The primary fell and that is the guard working: deprecated hypotheses stay in
-the denominator by design, and eight waves added hypotheses faster than mvps
-closed.
-
-### 3. Per active goal, how far it got
-
-*"nodes touched" = node files referencing the goal that changed during the loop;
-a rough activity proxy, not a progress measure.*
-
-| Goal | Touched | Where it got to |
-|---|---|---|
-| **g3** scoring that motion cannot move | 1 | **Code landed.** Removal guard (`deprecation_score_delta`) plus backward-mvp exclusion, held live twice. Open: detection is a body-language regex, brittle by construction. |
-| **g7** nothing silently lost | 2 | **Code landed.** Evidence gate moved onto the commit path (`grid.py commit`); corpus 11 → 0. Open: six prior-director experiments sit demoted, banked. |
-| **g4.8** many loops at once | 5 | **Mostly proved.** Cap held, overflow refused cleanly, parent-spawns-kid observed. Clause 2 (a parent demoting unaided) never separately observed — made moot at acceptance rather than tested. |
-| **g4.1** parallel kids collide | 8 | **Thesis observed live, not fixed.** Two director-minted nodes vanished uncommitted mid-wave. Mitigation is a human rule ("commit at mint"), not an engine guard. |
-| **g13 / g13.1** one read/write path | 5 / 1 | `write.py` used in anger all loop; scalar-type bug found and fixed. **91 deprecated nodes still schema-invalid** on `tier` from the L1.09 pass. |
-| **g1.10** commands declared, not memorised | 5 | The runner became the only trusted verify path — it caught a `commands.py` breakage that direct `pytest` missed. Open: `verify` runs `smoke` before `grid-commit`, so the metric lags one gate pass. |
-| **g1.11** a fresh capped key per spawn | 3 | Kids edited `provisioning.py` in-loop. Core defect stands: it knows the per-key cap, not the workspace weekly budget, so a whole wave 403s *after* minting. |
-| **g4.7 / g4.9** healing, hung processes | 1 / 4 | `g4.9` only existed from 12:30 on the final day. Wave-6 parents sat at 25/25 for 34 min; `iter-1075` outlived a 20-minute timeout by over an hour. Nothing enforces `agent_timeout_mins` under bare `dispatch.py`. |
-| **g5** goals are a lifecycle | 6 | Structural only: status semantics, and the focus cap raised 15 → 18 to fit three new goals (banked, reversible). |
-| **g9.7** one render, two readers | 1 | Briefing data contract verified byte-identical across window sizes. `briefing.py` still re-reads idea status from disk. |
-| **s31** a scaffold ships schema-invalid | 1 | Barely touched, and the loop *created* new instances: 91 invalid `tier` values, two nodes with a second appended THOUGHT block. |
-| **s33** the docs say what the tree does now | 4 | Minted 12:30, one practice iteration. `QUICKSTART.md` still stale. |
-| **s34** close every carried hazard in-loop | 12 | Most active goal at close: four hypotheses, kids editing three engine files. **Of 16 carried hazards, roughly 2 verifiably closed.** |
-| **g9.4** the live viewport | 4 | Shipped, and rejected on review — see §5, category 1. |
-
-### 4. Goals closed — and one closure the record cannot substantiate
-
-**Zero.** No goal node's `status` changed to `complete` in any commit from
-2026-09-03 onward. Sixteen goals were `active` for the whole loop.
-
-**One pre-existing `complete` is not substantiated by the code that existed at
-the time:** `goal:g4.6` (one spawn path; a harness is an adapter named in
-config) was set `complete` on **2026-09-01** (`80eb607df`), while the
-`claude-code` adapter was found *unimplemented* during L1.08 and only written in
-`L1.08h`. The goal was right; the closure was two days early and nothing checked.
-
-### 5. Completion failures, by category
-
-Every one of these is a harness gap — the director had no mechanism to see the
-thing in time. Failure here includes decisions correctly banked to the owner.
-
-1. **Saturation — the goal was too big to aim at.** `g9.4`, `g13`, `g5`. One goal
-   carrying five independent deliverables and one mvp. `g9.4` came back as a
-   list view: correct against the words, nowhere near the intent. A model can
-   satisfy a saturated goal and miss it entirely with no signal that anything
-   went wrong. `goal:g5.1` names this; nothing detected it, so `goal:g5.2` was
-   minted to detect it mechanically and `g9.4` was split three ways.
-2. **Ceiling discovered by dying, not by reading.** `g1.11`. A third spend limit
-   nothing in the engine reads killed 44 parents' work at 403 mid-flight. The
-   constraint was learned from failure logs — the most expensive channel there is.
-3. **Late minting.** `g4.9`, `s33`, `s34` all minted at 12:30 EDT on the last day
-   and got one practice iteration. The work had been visible for two sessions —
-   in handoff prose, where nothing schedules it.
-4. **Hazard carry-over.** 16 bugs found in-loop were written into a handoff table
-   instead of fixed in-loop. A handoff table has no owner, no falsifier and no
-   metric. `goal:s34` exists to end this and itself closed ~2 of 16.
-5. **Banked to owner.** Two: raising the OpenRouter workspace budget (a provider
-   spend setting, outside director authority) and whether to restore six demoted
-   experiments. Both correctly banked. The failure is that the first silently
-   gated roughly half the loop's throughput with no way to know until it hit.
-6. **Verification blindness.** `driver.sh` is not under pytest, so the suite was
-   green while the entry point was dead (`L1.10d` → fixed in `L1.10e`). A
-   non-hermetic test fails whenever real keys are outstanding. Guards that had
-   never failed on purpose passed while not measuring the thing that broke.
-7. **Attribution void.** An uninvited second director ran the graph for two hours
-   and it took forensics to establish it was not the owner. Had `goal:g10.1`
-   existed, the `build:HANDOFF.md` version would name the session that wrote it.
-
-### 6. Findings that are not failures
-
-*(none recorded — this report predates the section, added 2026-09-05)*
-
-### 7. What was minted in response
-
-All `horizon` — declared, not in flight.
-
-- **`goal:g9.4`** returned to `horizon` with the owner's review, and split:
-  **`goal:g9.8`** (one hook layer, one frame stream, player avatar, `f` to dock
-  into a node's versions and chats, LOD-on-approach, `z`/`x` zoom anywhere,
-  recursive in both directions), **`goal:g9.9`** (the spider skin — every node on
-  a living web, ASCII spiders crawling edges and messing with the nodes they work
-  on), **`goal:g9.10`** (the space skin — systems, bodies, ships sized by tier,
-  modular station/terraformer/colony tiers, a player ship that docks the same way).
-- **`goal:g1.12`** — loop flavor is a tag: `research`, `exploration`,
-  `development`, `implementation`; nested so a research loop collapses to one
-  node at one zoom and resolves into its chains at the next.
-- **`goal:g5.2`** — splitting a goal is mechanical: classifiers and encoders
-  score saturation, propose sub-goals and assign each one's loop flavor, with the
-  classifier output as in-node evidence.
-- **`goal:g1.13`** — this file: a loop ends with a completion report, generated
-  rather than remembered. Chain: `hypothesis:a-loop-that-does-not-report-its-own-completion-repeats-its-gaps`
-  → `mvp:complete-md-the-post-loop-completion-report` → `build:COMPLETE.md`.
-- **`goal:g14` — local-maxxing** (new long-term): the smallest competent model
-  everywhere, mechanistic tagging at mint, tags routing the model for the next
-  node in a chain, specialists sharpening into a lattice of hyper-narrow tuned
-  models. Its addendum names the first slot worth filling — **a classifier that
-  spots exactly the gaps in this report from a parent's own report** — and frames
-  the lattice as the middle ground between a deterministic decision tree and
-  prompt-maxxing, where an instruction that should be harness code is handed to a
-  model as text and becomes a Markov chain.
+- **g15 hypotheses landed:** H, H2, D re-cut, E, F, G re-cut, SM.81 quiet posts, SM.82 no detached spawn, SM.83 spawn-row ref-race retry, SM.86 launch-site guard, SM.88 cron gate defers, SM.90 (no-op), SM.91 rc-5 regression test, SM.92 delete-lease, SM.93 generation cell (supersedes the generation-less clause of g15.25), SM.94 prepare performs clears, SM.95 stops wording, SM.98 read-only lock probe, SM.96 the 3-red slice, SM.100 tier-gate guard; SL7.139 harvest demotes a claimed-but-absent deliverable; SL7.140 the deliverable check diffs against the round base; SD.12 `TownAbsentError`; SD.13 (`f9f0a332b`): kid A's bounded wrapper wait DEMOTED :35 by SM's probe (CPython `wait(timeout)` already polls to the deadline; the tty-hangup red under full-suite load stays OPEN on its node) + the 37-row experiment-less survey (`hypothesis:a00-e1933e6a-176c0e`, :85).
+- **Retired at close (deprecated, moved, never deleted):** 13 experiment-less g15 hypotheses closed by landed bytes or superseded, plus 2 folded into their siblings — executed by sanctuary-master from the Prime's list (`7b911d6d6`, 11:5xZ 09-17); 22 stay active.
+- **Config:** `config:rotations` alerts as a map with thought-master + director-thought silent; two prime first_turn rows (landed-since-stamp, owner-decisions-tail); `config:posts` settings quiet on the thought town; the Prime successor brief's floor text (5.00 → the 1.6 cell + succession).
+- **Owner verbatim banked this gen:** nine entries in `doc:l4-owner-decisions` (00:4xZ master-sensei remit · 00:5xZ full pause · 01:0xZ sequential · 03:0xZ SM.78 struck · 03:0xZ relocation idea + assessment · 03:1xZ GO + quiet · 04:0xZ parallel closeout · 06:3xZ–06:4xZ two accounts).
+- **Next stream heads (named, unrounded):** the thought-town relocation rounds (box cell, pull cron, ssh/<overlay-if> nudge, after_join off-box); node I re-thought; SM plans (4)+(5); the three rotation-audit code lines; F23 fact fix.
