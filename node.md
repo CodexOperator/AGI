@@ -19,3 +19,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.91 (director tip 3b90a8c0b): ACCEPT :85. Test-only as briefed: numstat over bin/src/lib EMPTY; test_dispatch_transient_respawn.py (110 lines, two tests -- kid tier asserts rc 5 + the scaffolded-but-unregistered issue line with the died-transiently detail + the scaffold deprecated with its id kept; parent tier asserts rc 5 + the orders copy unlinked, non-vacuously) on the MERGE RESULT: the whole test_dispatch* family = 195 green. MUTATION PROBE: neutering the rc-5 _report_unregistered_scaffold call at dispatch.py:2648 in the throwaway tree makes 2 of the 8 tests fail -- the tests bite the production path they claim to cover (a first mutation at an unrelated rc-4 call site left them green, as it should). 110 test lines over the 60 guidance, disclosed; the enforceable ceiling (0 production) met. Lands by SHA on the Prime GO.
