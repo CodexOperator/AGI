@@ -1566,6 +1566,15 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
     return None
 
 
+def _row_is_quiet(root: Path, to: str) -> bool:
+    """True when the row's `settings` carries the `quiet` token (a list or
+    JSON object). A quiet row still WRITES the dm but types no nudge."""
+    import rotate  # noqa: PLC0415  (same bin dir, already imported many paths)
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    s = rotate._normalize_settings((row or {}).get("settings"))
+    return bool(s and s.get("quiet"))
+
+
 def _nudge_marker_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge"
 
@@ -2171,6 +2180,13 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     raises. read-only (capture-pane) only — never send-keys into a pane a
     test has not faked.
     """
+    # A quiet post (settings token `quiet`) types NO nudge through this ONE
+    # choke point, so every entry (send, send_dm, wake, heal, stranded
+    # retry) honors it by construction: the caller already WRITES the dm;
+    # we compose none of the nudge side effects — no send-keys, no copy-
+    # mode cancel, no marker, no pending/deferred write.
+    if _row_is_quiet(root, to):
+        return True
     if resolved is not None:
         target, pid, tmux_session = resolved
     else:
@@ -2597,6 +2613,10 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     something actually reached the pane (so `main()` exits 0 only on a
     delivery). heal.py/rotate.py ignore the return value by design.
     """
+    if _row_is_quiet(root, to):
+        # quiet: never re-fire a stale marker, never type (skip by name).
+        print(f"wake {to}: quiet-skip")
+        return False
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -2685,7 +2705,8 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     """ONE line naming a seat's nudge state: marker age, pending count,
     `in_mode`, and last-read age -- so a director sees a stalled post in one
     line (hypothesis:l4-a-nudge-cancels-copy-mode-and-re-fires-on-a-stale-
-    marker, clause (3)). READ-ONLY: never types, never cancels, never stamps."""
+    marker, clause (3)). A `quiet` row prints `quiet` so an operator sees why
+    no nudge ever came. READ-ONLY: never types, never cancels, never stamps."""
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         in_mode: str = "no-target"
@@ -2695,7 +2716,8 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     def _age(x: float | None) -> str:
         return "none" if x is None else f"{int(x)}s"
 
-    return (f"status {to}: marker={_age(_last_nudge_age(root, to))} "
+    quiet = " quiet" if _row_is_quiet(root, to) else ""
+    return (f"status {to}:{quiet} marker={_age(_last_nudge_age(root, to))} "
             f"pending={_pending_more(root, to)} in_mode={in_mode} "
             f"lastread={_age(_lastread_age(root, to))}")
 
@@ -2807,7 +2829,7 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # a read the successor never needs (hypothesis:l4-the-after-join-second-
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
-    if nudge:
+    if nudge and not _row_is_quiet(root, to):
         _nudge_window(root, to)
 
     print(inbox.resolve())
