@@ -2491,6 +2491,31 @@ def _rotate_self_args(tmp_path, **over):
     return SimpleNamespace(**base)
 
 
+def test_rotate_self_model_differs_from_row_refused_by_name(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """goal:g15.25 re-cut (Prime XIX 07:28Z) SITE cmd_rotate_self -- a
+    --model DIFFERING from the row cell refuses BY NAME right after row
+    resolution, before any merge/bootstrap/window: exit 3, nothing launched,
+    the row stays the ONE source. A flag EQUAL to the row is a no-op (launch
+    proceeds on the row model)."""
+    import io as _io
+    import contextlib as _c
+    from agi.bin import write as _w
+    _write_seats_sheet(tmp_path,
+                       [{"name": "adv-alive", "role": "parent",
+                         "model": "sonnet"}])
+    err = _io.StringIO()
+    with _c.redirect_stderr(err):
+        rc = rotate.cmd_rotate_self(
+            _rotate_self_args(tmp_path, model="opus"), tmp_path)
+    assert rc == 3, err.getvalue()
+    assert "--model opus differs from the row: model sonnet" in err.getvalue()
+    assert "the row changes only through write.py" in err.getvalue()
+    # the row was never rewritten
+    rows = _w._load_seats(tmp_path)
+    assert rows and rows[0]["model"] == "sonnet"
+
+
 def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
     """Below director_rotate_at: prints `hold <seat>` and sends NO dm."""
     seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"}]
@@ -4780,17 +4805,29 @@ def test_spawn_seat_row_is_the_model_source_flags_only_override(
     assert kw["settings"] is None          # "" -> no --settings flag (no ultracode)
     assert kw["tier"] == "director"        # the row's role, not prime_director
 
-    # explicit flags override the row
+    # goal:g15.25 re-cut (Prime XIX 07:28Z) -- a flag DIFFERING from the row
+    # cell is REFUSED by name (exit 3, nothing launched, no silent override);
+    # the row stays the ONE authority. An EQUAL flag is a no-op (the row
+    # wins). The pre-re-cut "explicit flags override the row" branch is
+    # superseded by the refusal contract.
+    n_before = len(calls)
     args2 = SimpleNamespace(name="stream-master", tier="prime_director",
                             prompt_file=None, model="claude-opus-5",
                             effort="high", settings='{"ultracode": true}',
                             tmux_session="agi-rc", window_path=None,
                             dry_run=True, successor_argv=None,
                             seat="stream-master")
-    assert rotate.cmd_spawn(args2, tmp_path) == 0
-    kw2 = calls[-1]
-    assert kw2["model"] == "claude-opus-5" and kw2["effort"] == "high"
-    assert kw2["settings"] == {"ultracode": True}
+    assert rotate.cmd_spawn(args2, tmp_path) == 3
+    assert len(calls) == n_before          # nothing launched
+    args2b = SimpleNamespace(name="stream-master", tier="prime_director",
+                             prompt_file=None, model="claude-sonnet-5",
+                             effort="max", settings=None,
+                             tmux_session="agi-rc", window_path=None,
+                             dry_run=True, successor_argv=None,
+                             seat="stream-master")
+    assert rotate.cmd_spawn(args2b, tmp_path) == 0
+    kw2b = calls[-1]
+    assert kw2b["model"] == "claude-sonnet-5" and kw2b["effort"] == "max"
 
     # seat-less generic spawn: nothing from any row, tier flag as before
     args3 = SimpleNamespace(name="belam-X", tier="kid", prompt_file=None,
