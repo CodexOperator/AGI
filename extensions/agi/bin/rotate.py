@@ -3719,7 +3719,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
     add("stream-follow", f"#stream:{old}", f"#stream:{new}", "seam-tmux")
 
     # prose mentions the round NEVER writes (config / prime brief): ship lines
-    for path in (_rotations_node_path(root),
+    for path in (_shared_rotations_node_path(root),
                  _sessions_dir(root) / "quorum" / "belam.md"):
         if not path.exists():
             continue
@@ -3733,7 +3733,7 @@ def _rename_surfaces(root: Path, old: str, new: str,
 
     # alerts.edges keys AND values (read-time rewrite in _load_alerts, not a
     # config write here). audit/silent are name lists too.
-    alerts = _load_alerts_raw(root)
+    alerts = _load_alerts_raw(root, _shared_rotations_node_path(root))
     edges = alerts.get("edges")
     if isinstance(edges, dict):
         for k, v in edges.items():
@@ -4496,6 +4496,25 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
 
 def _rotations_node_path(root: Path) -> Path:
     return Path(root) / "nodes" / ".geometry" / "rotations.md"
+
+
+def _shared_rotations_node_path(root: Path) -> Path:
+    """`config:rotations` as the SHARED graph reads it (the MAIN checkout).
+
+    `_rotations_node_path` is caller-root derived, so a rename stage taken
+    from MAIN and its boundary re-derived from the post's own (stale)
+    worktree read two different `rotations.md` files; a mention MAIN
+    committed between stage and apply then looks like drift
+    (hypothesis:l5-rename-post-staged-from-main-root-derives-main-comms-paths-
+    for-a-worktree-post). The rename surface enumeration must read ONE node --
+    the shared one -- so stage and boundary agree.
+
+    SCOPED to the rename surface enumeration: `_load_templates` and every
+    other template/spawn reader keep `_rotations_node_path(root)`, because a
+    worktree seat's rotation config is its own graph fork and MAIN's copy is
+    not automatically what it should run."""
+    shared = locations.shared_project_root(root)
+    return _rotations_node_path(Path(shared) if shared is not None else Path(root))
 
 
 def _load_templates(root: Path) -> dict:
@@ -5776,7 +5795,7 @@ def _compose_announcement(*, seat, successor, gen_before, gen_after,
             f"trigger: {trigger} | handoff: {handoff_path} | "
             f"seq: {seq} | in flight: {in_flight}")
 
-def _load_alerts_raw(root: Path) -> dict:
+def _load_alerts_raw(root: Path, path: Path | None = None) -> dict:
     """config:rotations frontmatter top-level `alerts:` -- the ONE routing
     matrix the Prime writes once at merge-up as a single write.py `set alerts
     {\u2026}` line (the round never writes it); {} when absent or not a map. A
@@ -5790,7 +5809,8 @@ def _load_alerts_raw(root: Path) -> dict:
     matrix AS STORED (no alias rewrite) -- the enumeration uses this so it can
     SEE the old names before `_load_alerts` resolves them.
     """
-    path = _rotations_node_path(root)
+    if path is None:
+        path = _rotations_node_path(root)
     val = None
     if path.exists():
         try:

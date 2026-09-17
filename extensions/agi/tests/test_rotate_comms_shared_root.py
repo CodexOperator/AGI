@@ -97,3 +97,60 @@ def test_dm_walk_is_rooted_at_the_shared_comms_resolver(tmp_path, monkeypatch):
     (stale / "buddy--old.md").write_text("stale wt copy\n", encoding="utf-8")
 
     assert [s for s in rotate._dm_participants(wt_graph, "old", "new")] == []
+
+
+def test_stage_main_apply_worktree_agrees_on_rotations_prose_and_alerts(tmp_path):
+    """L5.18 kid 2: the rename surface table's rotations.md-derived rows (the
+    prose `mention` rows AND the alerts.edges/audit/silent rows) must resolve
+    from the SHARED graph root, so a worktree whose rotations.md is stale
+    (cut BEFORE MAIN committed the line) can no longer split stage from
+    boundary. Pre-fix the boundary re-derives zero rotations/alerts rows and
+    refuses the stage as drift (rc 2)."""
+    from agi.bin import locations
+    repo, graph = _main_repo(tmp_path)
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "--detach", str(wt), "master")
+    wt_graph = wt / ".agi"
+    # MAIN commits a rotations.md mentioning `old` AFTER the worktree was cut
+    geo = graph / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\n"
+        'alerts: {"audit": ["old"], "edges": {"old": ["old"]}, "silent": []}\n'
+        "---\n# body\nrotate old post\n", encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "rotations mention")
+    assert not (wt_graph / "nodes" / ".geometry" / "rotations.md").exists()
+
+    ns = argparse.Namespace(old_name="old", new_name="new", dry_run=False,
+                            now=False, apply=False, root=None)
+    assert rotate.cmd_rename_post(ns, graph) == 0
+    assert (graph / "sessions" / "seats" / "old.rename.json").exists()
+    assert rotate._apply_staged(wt_graph, "old", "new") == 0
+    assert not (graph / "sessions" / "seats" / "old.rename.json").exists()
+
+
+def test_gate_still_refuses_a_genuinely_new_mention_after_staging(tmp_path):
+    """Falsifier guard for the L5.18 kid-2 fix: routing rotations.md through
+    the shared root must NOT weaken the drift gate. A mention MAIN adds
+    AFTER the stage was written is a genuinely new surface and must still be
+    refused (rc 2), stage left intact."""
+    repo, graph = _main_repo(tmp_path)
+    wt = tmp_path / "wt"
+    _git(repo, "worktree", "add", "--detach", str(wt), "master")
+    wt_graph = wt / ".agi"
+    geo = graph / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    rot = geo / "rotations.md"
+    rot.write_text("---\nid: config:rotations\n---\n# body\nrotate old post\n",
+                   encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "rotations mention")
+
+    ns = argparse.Namespace(old_name="old", new_name="new", dry_run=False,
+                            now=False, apply=False, root=None)
+    assert rotate.cmd_rename_post(ns, graph) == 0
+    # MAIN gains a SECOND mention after the stage was written
+    rot.write_text(rot.read_text() + "and old again\n", encoding="utf-8")
+    assert rotate._apply_staged(wt_graph, "old", "new") == 2
+    assert (graph / "sessions" / "seats" / "old.rename.json").exists()
