@@ -11146,37 +11146,64 @@ ACK_JOIN_POLL_S = 3
 
 
 def _successor_window_id(seat: str, tmux_session: str,
-                         window_path: str | None = None) -> str | None:
+                         window_path: str | None = None,
+                         aliases: list[str] | None = None) -> str | None:
     """The successor window's tmux @id (the `@<N>` token), or None.
 
     With `window_path` (test seam, s3) the @id comes from a window-path line
     of the form `@<N> <name>`; a plain `<name>` line yields None, so existing
     plain-name fixtures never trip the JOIN. Real tmux parses
     `list-windows -F '#{window_id} #{window_name}'` and name-matches. The @id
-    (never the session prefix) is what the registry JOIN keys on."""
+    (never the session prefix) is what the registry JOIN keys on.
+
+    `aliases` (L5.15) is an ORDERED list of ADDITIONAL names tried after
+    `seat`, by the SAME exact equality -- never a substring. A rename boundary
+    supplies them from the record's OWN `applied_rename` fact (`<new>` first,
+    then the `<new>.prev` window the boundary leaves behind). Absent/empty
+    aliases is byte-for-byte the old behaviour."""
+    wanted = [seat] + [str(a) for a in (aliases or ())
+                       if a and str(a) != seat]
+    plain: list[str] = []
     if window_path is not None:
         p = Path(window_path)
         if p.exists():
-            for ln in p.read_text(encoding="utf-8").splitlines():
-                ln = ln.strip()
-                if not ln.startswith("@"):
-                    continue
-                ident, _, name = ln.partition(" ")
-                if name.strip() == seat:
-                    return ident.strip()
-        return None
-    try:
-        out = subprocess.run(
-            ["tmux", "list-windows", "-t", tmux_session,
-             "-F", "#{window_id} #{window_name}"],
-            capture_output=True, text=True, timeout=5).stdout
-        for ln in out.splitlines():
+            plain = [ln.strip() for ln in
+                     p.read_text(encoding="utf-8").splitlines()
+                     if ln.strip().startswith("@")]
+    else:
+        try:
+            plain = subprocess.run(
+                ["tmux", "list-windows", "-t", tmux_session,
+                 "-F", "#{window_id} #{window_name}"],
+                capture_output=True, text=True, timeout=5
+            ).stdout.splitlines()
+        except Exception:  # noqa: BLE001
+            plain = []
+    # name preference order (identical to the old first-match when no aliases)
+    for want in wanted:
+        for ln in plain:
             ident, _, name = ln.partition(" ")
-            if name.strip() == seat:
+            if name.strip() == want:
                 return ident.strip()
-    except Exception:  # noqa: BLE001
-        pass
     return None
+
+
+def _rename_boundary_names(seat: str, rec: dict | None) -> list[str]:
+    """The successor-window names a record's OWN `applied_rename` fact
+    licenses, in preference order: the renamed target, then the `.prev` window
+    the boundary leaves behind under that new name. Returns [] for a record
+    with no rename (absent, or old == new), so nothing is ever guessed.
+
+    The OLD name is deliberately NOT a candidate: after the boundary applied,
+    no live window answers to it, so matching it could only join a foreign
+    window."""
+    ar = (rec or {}).get("applied_rename")
+    if not isinstance(ar, dict):
+        return []
+    old, new = ar.get("old"), ar.get("new")
+    if not old or not new or str(old) == str(new):
+        return []
+    return [str(new), f"{new}.prev"]
 
 
 def transcript_from_registry(registry_json: Path) -> Path | None:
@@ -14696,6 +14723,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
                             type_input=None,
                             performer: str = "watch",
+                            tmux_session: str | None = None,
+                            window_path: str | None = None,
                             _rec_pair=None, _row=None, _joined=None,
                             _values=None, _force_due=False,
                             _delay_override=None) -> dict | None:
@@ -14801,6 +14830,19 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # @id does NO join and behaves as before.
     join = _record_join(rec)
     window_id = str(join.get("window_id") or "")
+    # (L5.15) RENAME BOUNDARY. The watch loop discovers seats by the seats ROW,
+    # which the boundary never renames, so it asks for the OLD name; the live
+    # successor window answers to the NEW name the record's OWN `applied_rename`
+    # fact measured. Resolve both halves from that fact -- never a guess, never
+    # a second rename: `succ_name` (the template `join` grep) becomes the
+    # renamed target, and an empty captured @id is resolved to the live renamed
+    # window (then its `.prev`) so the code JOIN and the pin still fire.
+    _bnd_names = _rename_boundary_names(seat, rec)
+    succ_name = _bnd_names[0] if _bnd_names else seat
+    if _bnd_names and not window_id:
+        window_id = (_successor_window_id(
+            succ_name, tmux_session or DEFAULT_TMUX_SESSION, window_path,
+            aliases=_bnd_names[1:]) or "")
     # (SL7.98) the own tail injects its OWN join result (_joined) so the
     # dead-seat skip cannot fire for the seat rotating ITSELF; the watch path
     # re-joins through the same `_join_successor` as before.
@@ -14912,7 +14954,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
             root, seat=seat, gen=gen_str,
-            succ_name=seat, succ_ref=str(sref),
+            succ_name=succ_name, succ_ref=str(sref),
             succ_transcript=str(transcript),
             pred_pids=_derive_pred_pids(root, seat, rec))
         # pid/from the live join (never the stale record), informational on
