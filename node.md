@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-athena-identity-seat-ab
 next_edges: []
 confidence: 0.3
-edited_by: a00-b05ebfd7
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-2f2ef897-4211e2
 line_ceiling: 40
@@ -15,7 +15,7 @@ model: ~deepseek/deepseek-v4-flash-latest
 probes:
   - {"kind": "gate", "claim": "parallel 40-seg fetch does not beat ~1 MB/s egress cap; 51GB ~14-28h impossible in 10h wall", "result": "CONFIRMED", "evidence": "cumulative avg ~0.5-1 MB/s (athena 606MB base 1.74GB/30min); parent 120s window caught 107.5 MB/s fat burst (rate bursts, average holds)"}
   - {"kind": "wire", "claim": "sha256+size logged from HF API", "result": "CONFIRMED", "evidence": "parent re-probed HF API tree/main live: athena size/sha and base Q4_K_M size/sha match exactly"}
-production_lines: 200
+production_lines: 168
 profile: balanced
 role: kid
 scaffold_hash: 9a93fd5dbe6e0205
