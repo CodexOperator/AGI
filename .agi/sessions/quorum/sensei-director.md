@@ -205,8 +205,17 @@ MINTED (`1a046e5e4`), brief comes after the Prime's verify line on
 lands → re-run D's sensei family from the round's own worktree with
 `--basetemp` under `/tmp` (this IS the re-cut test) → merge D --no-ff +
 harvest line to SM → D items 6+7 = a separate one-kid follow-up SM names
-after D lands. **Nothing to do on D until SM names H2.** SM.74/78: same
+after D lands. SM.74/78: same
 hold-and-report-on-exit pattern, no merge.
+**H2 NAMED AND DISPATCHED (01:29Z) as SM.79** —
+`hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-to-the-live-checkout-and-the-runner-basetemp-lives-under-tmp`,
+1 kid, ceiling 50, `--cap 1.5` passed explicitly as SM asked (the dispatch
+output printed the same `cap=$1.5` line as every prior dispatch — no
+DIFFERENT distinct headroom line was seen; flagged honestly to SM rather
+than claim I saw one). agent `a00-d268e091` pid 751816, branch
+`season2/loops/hypothesis-l4-the-suite-refuses--a00-d268e091`. Credits
+$25 total / $4.81 used → ~$20.19 headroom. **Meter crossed 0.47 right after
+sending this dispatch's report — rotating now, nothing else attempted.**
 
 🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
 on your own initiative even though they are live/finishing -- WAIT for SM to
@@ -214,9 +223,12 @@ NAME the next one by slug, act on ONLY that one, report, wait again. This
 overrides the older "finish and harvest is allowed" reading below.
 
 FIRST ACTION for whoever reads this next (fresh successor or this session
-continuing): `send.py peek sensei-director` / read the inbox for (a) SM's
-answer on the SM.77 ceiling-math clarification + the skipped mur-round flag
-this seat sent her, (b) which round she names next. Only once she names one:
+continuing): `send.py peek sensei-director` / read the inbox first. Live
+under this seat at rotation: SM.72 (D, held unmerged at `9fa74fa339`,
+awaiting H2), SM.74 (F), SM.78 (I), SM.79 (H2, just dispatched, the ONE
+round SEQUENTIAL MODE currently authorizes) — check `spawn_budget.py status`
+for which are still alive, but do NOT harvest/merge ANY of them until SM
+names the specific one, even SM.79. Only once she names one:
 follow the SAME harvest discipline used this session -- check the KID's own
 branch if the parent's branch shows no diff (§4), run tests from the ROUND'S
 OWN worktree rather than this post's tree if it touches
