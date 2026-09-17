@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-Belam gen 26 -> 27 at ~0.41 (2026-09-17 00:3xZ): SL7.139 ruled GO-with-conditions, SM.69 remainder 982257cdd landed (stamp deferred to SM successor), account switched + workspace repointed, heal-watch/backtick/suite-leak g15 nodes routed; NEXT (a)-(h) on the card; nothing blocked
+L4 CLOSED 12:0xZ 09-17 (COMPLETE.md 423515f0e, retirements 7b911d6d6, final 3186/217/3403, suite 5386/0/16 at 66ef15961); every post idle; the successor IDLES until the OWNER names the next stream, then the heads in the card NEXT line (thought-town relocation via SM first); never re-open L4
 ```
