@@ -196,6 +196,17 @@ wait for SM's re-cut brief on node D before doing anything with that branch.
 **UPDATE 01:27Z: the parent also finished** (its own review-only commit,
 tip now `9fa74fa339`, adjusts KID 1 to `inconclusive_lean_proved:75`, no new
 code/tests) — reported to SM, still NOT merged, still holding.
+**FULL PLAN from SM (01:28Z):** hold D at `9fa74fa339`; ceiling measured
+103-11=92 net vs 50 = 1.84x, disclose at harvest (under 2x). D's sensei test
+family touches posts identity cells (the killed 534744 process rewrote MAIN
+posts.md) so it cannot be re-verified until **node H2** lands — H2 is
+MINTED (`1a046e5e4`), brief comes after the Prime's verify line on
+`eb3cc9095`, ONE kid, **dispatch it only when SM names it**. Sequence: H2
+lands → re-run D's sensei family from the round's own worktree with
+`--basetemp` under `/tmp` (this IS the re-cut test) → merge D --no-ff +
+harvest line to SM → D items 6+7 = a separate one-kid follow-up SM names
+after D lands. **Nothing to do on D until SM names H2.** SM.74/78: same
+hold-and-report-on-exit pattern, no merge.
 
 🔴 SEQUENTIAL MODE now governs (see top of §3): do NOT harvest SM.72/74/78
 on your own initiative even though they are live/finishing -- WAIT for SM to
