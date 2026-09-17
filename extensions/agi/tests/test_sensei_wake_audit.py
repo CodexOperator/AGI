@@ -1481,3 +1481,90 @@ def test_wake_audit_resolves_the_rotation_record_once(tmp_path, monkeypatch,
     out = capsys.readouterr().out
     assert "--record 20260911T120000Z (role director)" in out
     assert len(seen) == 1, f"record resolved {len(seen)} times, want 1"
+
+
+# ── conjuncts 2, 3, 5 (hypothesis:l4-the-sensei-classifier-…): a nudge read
+# ── is service-owed (s); an audit/commit verb ANYWHERE is real work (d),
+# ── never a by-hand read; and the wake window ends at the first real input.
+
+
+def _wake_blocks(*blocks):
+    """Serialize tool_use + user-turn blocks into a CC JSONL transcript
+    string (an assistant tool_use or a plain-string user turn)."""
+    out = []
+    for b in blocks:
+        if isinstance(b, str):          # a plain-string user turn (nudge)
+            out.append(json.dumps({"type": "user",
+                                   "message": {"role": "user", "content": b}}))
+        else:
+            out.append(json.dumps({"type": "assistant",
+                                   "message": {"role": "assistant",
+                                               "content": [b]}}))
+    return "\n".join(out) + "\n"
+
+
+def test_wake_nudge_read_is_service_owed(tmp_path):
+    # conjunct 2: a `send.py read <post>` whose immediately preceding user
+    # turn is an `[agi-nudge]` is service-owed (s), never an inbox (a) act.
+    # The nudge is embedded after a prefix so it ISN'T the window-ending
+    # real input (conjunct 5) — isolating conjunct 2's classification rule
+    # from the window boundary so the s-read stays visible inside the window.
+    graph, tr = _write_root(tmp_path, [])
+    tr.write_text(_wake_blocks(
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "python3 extensions/agi/bin/rotate.py status "
+                  f"--seat {SEAT} --record latest"}},
+        f"rotated-out [agi-nudge] unread for {SEAT}: send.py read {SEAT}",
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": f"python3 extensions/agi/bin/send.py read {SEAT}"}},
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "python3 -m pytest "
+                  "extensions/agi/tests/test_sensei.py -q"}}),
+        encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert calls[1]["cat"] == "s" and calls[1]["label"] == "nudge"
+
+
+def test_wake_audit_verb_anywhere_is_d_not_b(tmp_path):
+    # conjunct 3: a Bash command carrying an audit/commit verb ANYWHERE
+    # (sensei.py *-audit, write.py, git commit) is real work (d), never a
+    # by-hand read (b) — even behind a sleep/grep wait loop that reads a
+    # rotation record.
+    cmd = ("for i in $(seq 1 8); do grep -q '\"result\": \"success\"' "
+           ".agi/sessions/rotations/master-sensei.json && break; sleep 15; "
+           "done\n"
+           "python3 extensions/agi/bin/sensei.py wake-audit --post "
+           f"{SEAT}\n"
+           "git commit -q -m x && python3 extensions/agi/bin/write.py "
+           ".agi/nodes/x.md 'set title y'")
+    graph, tr = _write_root(tmp_path, [("Bash", cmd)])
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    assert calls[0]["cat"] == "d" and calls[0]["label"] is None
+
+
+def test_wake_window_ends_at_first_real_input(tmp_path):
+    # conjunct 5: the wake window ends at the FIRST real input after seating
+    # (an [agi-nudge]); a call ANSWERING that input is work on it, never wake,
+    # even though it is only a hand read (b) not (d).
+    graph, tr = _write_root(tmp_path, [])
+    tr.write_text(_wake_blocks(
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "python3 extensions/agi/bin/rotate.py status "
+                  f"--seat {SEAT} --record latest"}},
+        f"[agi-nudge] unread for {SEAT}: kid a00-1234 died",
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "grep -H '' .agi/sessions/master-sensei.log | "
+                  "tail -20"}},
+        {"type": "tool_use", "name": "Bash",
+         "input": {"command": "python3 -m pytest "
+                  "extensions/agi/tests/test_sensei.py -q"}}),
+        encoding="utf-8")
+    code, calls, counts = sensei.wake_audit(graph, SEAT, None, tr)
+    assert code == 0
+    # the window holds ONLY call 1 (a): the answering read (b, but work on the
+    # message) is cut at the first real input, never counted as wake.
+    assert len(calls) == 1 and calls[0]["cat"] == "a"
+    assert counts["window_reason"] == "first real input at 2"
+    assert counts["a"] == 1 and counts["b"] == 0
