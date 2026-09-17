@@ -3464,7 +3464,7 @@ def test_stops_stale_clock_grep_is_extended_regexp(tmp_path, monkeypatch):
 
     monkeypatch.setattr(_r.subprocess, "run", fake_run)
     msg = _r._stops_slot_is_stale(tmp_path, "s", text)
-    assert msg and "STALE" in msg, msg
+    assert msg and "UNCHANGED since" in msg and "STALE" not in msg, msg
     clk = [a for a in seen if "--grep" in a
            and any("harvest" in x for x in a)]
     assert clk, seen
