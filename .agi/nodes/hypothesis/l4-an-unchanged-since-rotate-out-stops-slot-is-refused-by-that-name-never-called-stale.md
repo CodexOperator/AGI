@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM gen 6 REVIEW BY NAME of SM.95 (director tip 9c21582f3): ACCEPT :80. The refusal now reads "where-it-stops slot UNCHANGED since your predecessor rotate-out ... it is their card, not yours -- write the slot, or pass --stops"; the word STALE is gone from the slot gate; 4/10 production lines; on the MERGE RESULT test_rotate_verb + test_rotate = 336 green with two fails: (1) test_rotate.py::test_stops_stale_clock_grep_is_extended_regexp -- an older SM.69-era assertion hardcoding STALE, outside the claim TESTS (test_rotate_verb.py only) -- a one-line test fix already piggybacked on SM.96; (2) test_ack_cell_printer_names_only_changed_cells -- fails on MAIN alone under a LONG pytest basetemp (the git -C <tmp_path> push line exceeds the 120-char width assert; passes with the default /tmp basetemp, passed in the f0131b9e6 suite) -- an artefact of the test asserting width on a line that embeds a path, not a regression; one-assert fix (exclude the push line) added to the SM.96 addendum. LANDS BUNDLED with SM.96 by one SHA so MAIN never carries the STALE-wording red.
