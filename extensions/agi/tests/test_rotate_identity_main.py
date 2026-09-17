@@ -568,3 +568,55 @@ def test_commit_spawn_row_records_failed_after_retries_exhausted(
          ".agi/nodes/.geometry/seats.md"],
         capture_output=True, text=True).stdout.strip()
     assert staged == "", "the failed retry must leave the row unstaged"
+
+
+def test_after_join_watch_heals_own_dirty_row_never_foreign(tmp_path):
+    """CLAIM (2) -- the after_join watch's heal (`_commit_after_join_heal_
+    spawn_row`) re-commits the seat's OWN spawn row when a ref-lock race left
+    it dirty in MAIN, and NEVER touches a FOREIGN dirty row. FALSIFIER: a
+    scenario where MAIN's seats.md carries BOTH the seat's own uncommitted
+    spawn row AND a foreign row's dirt — the heal must commit the own row
+    (its identity cells land at HEAD) while the foreign hunk stays BYTE-
+    PRESERVED, uncommitted, in the working tree. Also: a CLEAN row (already
+    committed) must be SKIPPED, not re-committed."""
+    main, wt, seat = _make_main_and_worktree(tmp_path)
+    seats_path = main / ".agi" / "nodes" / ".geometry" / "seats.md"
+
+    # (1) the spawn row the race left DIRTY in MAIN: write the successor row
+    # (identity cells) but do NOT commit it — the exhausted-retry leftover.
+    out = rotate._successor_row_write(
+        wt / ".agi", actor=seat, seat=seat, role="parent",
+        session_ref="", generation=4, window="@NEW")
+    assert out.startswith("config:seats row")
+
+    # (2) a FOREIGN row's DIRT in MAIN's seats.md working tree (unstaged).
+    text = seats_path.read_text(encoding="utf-8")
+    other_hunk = ("  - {\"name\": \"other-seat\", \"role\": \"parent\", "
+                  "\"window\": \"@FOREIGN\", \"pid\": 999, "
+                  "\"generation\": 9}")
+    seats_path.write_text(text.rstrip() + "\n" + other_hunk + "\n",
+                          encoding="utf-8")
+
+    # ensure the OWN row is genuinely dirty vs HEAD before the heal.
+    assert '"window": "@NEW"' not in subprocess.run(
+        ["git", "-C", str(main), "show", "HEAD:"
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout, "own row must start uncommitted"
+
+    outcome = rotate._commit_after_join_heal_spawn_row(wt / ".agi", seat=seat)
+    assert outcome.startswith("spawn_row_commit: committed"), outcome
+
+    head_out = subprocess.run(
+        ["git", "-C", str(main), "show", "HEAD:"
+         ".agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert '"window": "@NEW"' in head_out          # own row healed -> committed
+    assert '"window": "@FOREIGN"' not in head_out  # foreign NOT committed
+    # the foreign hunk stays byte-preserved in the working tree.
+    work = seats_path.read_text(encoding="utf-8")
+    assert '"window": "@FOREIGN"' in work, \
+        "the foreign dirt must stay byte-preserved in the working tree"
+
+    # (3) idempotent: a second heal on the now-clean row SKIPs, no re-commit.
+    second = rotate._commit_after_join_heal_spawn_row(wt / ".agi", seat=seat)
+    assert "SKIPPED" in second, second
