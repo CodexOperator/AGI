@@ -159,3 +159,46 @@ job wall started->finished = 251 s; created->finished = 483 s
 ```
 camber job list --output json   # -> no RUNNING job (27689 COMPLETED; 27649 step-1 COMPLETED)
 ```
+
+# UNO retry — one-shot GPU XSMALL (job 27711): commands and result
+
+Run 2026-09-18 17:22:19–17:26:07Z by kid a00-79309500. Aliases only; no host/IP/GPU model names.
+Whole remote script base64'd into one `--cmd`; nothing uploaded to any shared place.
+
+## Submit (ONE job, one-shot, internal timeout 840 s)
+```
+export CAMBER_API_KEY="$CAMBER_CLOUD_API_KEY"
+B64=$(base64 -w0 work.sh)
+yes | camber job create --cmd "echo $B64 | base64 -d > \$HOME/uno-work.sh && timeout -s TERM 840 bash \$HOME/uno-work.sh" \
+  --engine base --gpu --size xsmall --num-nodes 1 --path "stash://jsualsiialls/"
+# -> Job 27711
+```
+## Fixes this round (vs job 27689)
+- ONE subprocess per arm (`run_arm.py` per arm), so a failed arm cannot poison the next.
+- `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`; `max_model_len 4096`, `max_num_batched_tokens 1024`.
+- PATCH `nano_vllm_uno/engine/model_runner.py`: wrap `load_model` with `torch.set_default_device("cpu")` then restore `"cuda"`.
+- Always-fits fallback arm downloaded: `IFM/K2-Horizon-0.9B` + `IFM/K2-Horizon-0.9B-Uno`.
+## Timings observed
+```
+MARK torch_ready 52s ; fa2_ready 68s ; deps_ready 71s ; repo_ready 126s ; patch_applied
+MARK download_exit 0 158s ; 8B 136s ; K2 base 16s ; K2 Uno 3s
+MARK base8 weight_load_device cpu pre_alloc_gib=15.28 ; weight_load_done alloc_gib=15.28 peak_gib=15.28
+MARK k2base weight_load_done alloc_gib=2.04 peak_gib=2.04
+```
+The 8B base OOM is FIXED: peak 15.28 GiB (was 21.69 of 22.03 GiB in job 27689).
+## Where it stopped
+Both arms died in `ModelRunner.warmup_model` -> `@torch.compile` RMSNorm -> inductor -> triton builds
+`cuda_utils.c` and fails: `/usr/include/python3.10/Python.h: No such file or directory`.
+The `engine=base` image has no Python 3.10 headers; uv's 3.10 lives under `~/.local/share/uv/python`.
+```
+MARK base8_exit 1 s=34 ; MARK k2base_exit 1 s=44
+MARK nvsmi_max_mib 15886
+```
+No token, no METRIC tok_s, no IDENT — rows null, never fabricated.
+## Teardown
+```
+camber job list --output json   # -> total 3, running [] (27649, 27689, 27711 all COMPLETED)
+```
+## Next-round one-liner
+`export C_INCLUDE_PATH="$(dirname "$(find $HOME/.local/share/uv/python -name Python.h | head -1)")"`
+before the arms; then the same job returns base-vs-Uno tok/s and the identical check.
