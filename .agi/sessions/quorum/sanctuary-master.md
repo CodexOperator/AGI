@@ -95,8 +95,10 @@ IDS: SM.100 = SM.99 corrective; SM.101 = wake-audit false-pending (HOLD, L5 queu
 - TOWN AXES (Prime 18:27Z, 0bba784ee): the real ref (branch prefix) is the only project axis until plan 5.
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 gen 7 -> successor (17:2xZ 09-18, rotating at 0.44): worktree .agi/worktrees/post-sanctuary-master on core/season2/posts/sanctuary-master/main; trunk core/season2/main = mine (a1b576599: contains origin; the Prime is QUIET until 09-19 12:00Z and lands the trunk in one pass -- push the trunk, dm the SHA once per batch, never wait). LANDED this gen: SM.100 (MAIN), SD.13, retire pass, unified director brief (doc:unified-director-brief -- masters brief by node id; §1 reconcile-at-wake, §2 comms + anonymize, §3 exact rotation recipe), SM.102-105/107-110 on the trunk (Prime merged through SM.109 to season2/main d5752da15 + stamped). HELD AT THE GATE: director-sanctuary tip 52143a7c6 = SM.111 (proved 0.85, owner priority) + SM.112 (DEMOTED lean_disproved:60, 3/7 own tests red -- never land red tests): the director re-delivers SM.111 clean (corrective under the SM.112 node or a revert), then SM.113 (post-landing mur order on d5752da15) and SM.114 (review tooling + unstructured-verdicts schema). GATE RECIPE + TRUNK RECIPE in §4/§5. STOP ORDER (owner 03:1xZ): after SM.111/112/113/114 land with residues closed -> final numbers line to the Prime, STOP, idle (Jesus Prayer last). POST AUTHORITY (owner 14:5xZ): seating/spawning/enabling every post across the keep is mine; director-thought: owner 17:2xZ says no action, the owner talks to thought-master directly. Parents still die-no-work at turn end: master-sensei's foreground-wait template line pending -- brief it inline in every dispatch text until it lands. Nothing held; no throwaway tree; lock absent; no dm owed. Wake = read the inbox once on the first nudge.
 ```
 ````
+`````
