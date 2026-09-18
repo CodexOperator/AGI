@@ -7,7 +7,9 @@ range. Reassemble with `cat seg_* > final` in order. Holds exact sizes + the
 OFFICIAL sha256 from the HF API per file (curl writes lfs oid + size).
 Run: python3 fetch_parallel.py start | status | reassemble <model>
 """
-import subprocess, sys, os, json, time, urllib.request, urllib.parse
+import subprocess, sys, os, json, time, shutil, urllib.request, urllib.parse
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 WORK = "/data/ml/models"
 FILES = {
@@ -25,6 +27,23 @@ FILES = {
   },
 }
 URLBASE = "https://huggingface.co/"
+
+# TM.33 schedule (owner 2026-09-18 03:2xZ): the aggregate cap is a time-of-day
+# schedule on America/New_York wall clock -- 1.5 MB/s inside [02:00, 06:00),
+# else 0.5 MB/s. zoneinfo zone NAME, never a fixed UTC offset, so DST is right.
+# per-curl rate = aggregate // total segments (~40 run concurrently). A set
+# FETCH_LIMIT_RATE is a manual per-curl override / rollback and wins.
+DEFAULT_AGG = 0.5 * 1_000_000
+PEAK_AGG = 1.5 * 1_000_000
+PEAK_START, PEAK_END = 2, 6
+NY = ZoneInfo("America/New_York")
+PAUSE_FILE = os.path.join(WORK, "fetch.pause")
+CURL_RATE = os.environ.get("FETCH_LIMIT_RATE")
+
+def aggregate_limit(now=None):
+    """Aggregate bytes/s allowed right now; `now` (aware) is for tests."""
+    t = (now or datetime.now(NY)).astimezone(NY)
+    return PEAK_AGG if PEAK_START <= t.hour < PEAK_END else DEFAULT_AGG
 
 def api_meta(repo, file):
     # HF API tree returns an entry with lfs oid (sha256) and size per file.
@@ -51,46 +70,6 @@ def segpath(name, i):
     f = FILES[name]
     return os.path.join(WORK, f"{f['file']}.seg{i:03d}")
 
-def run(cur):
-    cmd = ["python3", os.path.abspath(__file__)] + cur
-    for name in FILES:
-        _, final_size = api_meta(FILES[name]["repo"], FILES[name]["file"])
-        if not final_size:
-            print(f"[ERR] no size for {name}", flush=True); continue
-        FILES[name]["size"] = final_size
-        print(f"[{name}] final_size={final_size}", flush=True)
-    return 0
-
-def start():
-    procs = []
-    for name, f in FILES.items():
-        n = segs_of(name)
-        base = n // segs_of(name) * 0  # noop
-        seg = final_size_of(name) // n
-        url = resolve_url(f["repo"], f["file"])
-        for i in range(n):
-            sp = segpath(name, i)
-            if os.path.exists(sp) and os.path.getsize(sp) == seg_size(name, i):
-                print(f"[{name}] seg{i:03d} done, skip", flush=True); continue
-            # R3 fix: lo/hi derive from seg_size (divmod: first r segs one byte
-            # longer) so ranges agree with seg_size/reassemble/status. Old
-            # floor-range segs were one byte short -> sha256 false-fail.
-            lo = sum(seg_size(name, j) for j in range(i))
-            hi = lo + seg_size(name, i) - 1
-            # stale partial seg -> wipe (range restart is cleaner than resume-in-range)
-            if os.path.exists(sp):
-                os.remove(sp)
-            cmd = ["nohup", "curl", "-sL", "-C", "-", "--range", f"{lo}-{hi}",
-                   "-o", sp, url]
-            # -C - overrides --range start; keep both: -C - lets a mid-range resume,
-            # --range binds the upper bound so a finished seg never overruns.
-            p = subprocess.Popen(cmd, stdout=subprocess.DEVNULL,
-                                 stderr=subprocess.DEVNULL, start_new_session=True)
-            procs.append((name, i, sp, lo, hi, p.pid))
-            print(f"[{name}] seg{i:03d} pid={p.pid} [{lo}-{hi}]", flush=True)
-            time.sleep(0.6)  # stagger so a burst is not all grabbed by one file's first segs
-    print(f"Spawned {len(procs)} segment curls. Poll with 'status'.", flush=True)
-
 def seg_size(name, i):
     f = FILES[name]
     n = segs_of(name)
@@ -101,7 +80,159 @@ def seg_size(name, i):
 
 def final_size_of(name): return FILES[name].get("size")
 
+def total_segments():
+    return sum(segs_of(n) for n in FILES)
+
+def per_segment_rate(now=None):
+    return int(max(1, aggregate_limit(now) // max(1, total_segments())))
+
+def seg_lo(name, i):
+    return sum(seg_size(name, j) for j in range(i))
+
+def commit_rem(sp, rem, start, end):
+    """Append a .rem range to its segment, then drop it. A short .rem is a valid
+    contiguous prefix (curl -f writes no body on HTTP errors), so appending it is
+    byte-exact and nothing downloaded is ever discarded. sp only grows."""
+    n = min(_have(rem), end - start + 1)
+    if n > 0 and os.path.exists(rem):
+        with open(rem, "rb") as s, open(sp, "ab") as d:
+            while n > 0:
+                b = s.read(min(n, 1 << 20))
+                if not b: break
+                d.write(b); n -= len(b)
+    if os.path.exists(rem):
+        os.remove(rem)
+    return 0
+
+def resume_range(lo, hi, have):
+    """Byte-exact resume: (start,end) still to fetch, or None if [lo,hi] complete."""
+    if have >= hi - lo + 1:
+        return None
+    return (lo + max(0, have), hi)
+
+def _have(sp):
+    return os.path.getsize(sp) if os.path.exists(sp) else 0
+
+def _totals():
+    have = tot = 0
+    for name in FILES:
+        for i in range(segs_of(name)):
+            sp = segpath(name, i)
+            have += _have(sp) + _have(sp + ".rem"); tot += seg_size(name, i)
+    return have, tot
+
+def supervise(poll=15, progress=60.0):
+    """Restart dead segment curls (remaining bytes -> .rem, appended on success);
+    one progress line per `progress` s to fetch.log. Never deletes segment bytes."""
+    handles, last, prev = {}, 0.0, _totals()[0]
+    rate0 = int(CURL_RATE) if CURL_RATE else per_segment_rate()
+    print("supervise: cap=%.2f MB/s per_curl=%d B/s segments=%d tz=America/New_York" % (
+        rate0 * total_segments() / 1e6, rate0, total_segments()), flush=True)
+    rate = None
+    while True:
+        paused = os.path.exists(PAUSE_FILE)
+        want = int(CURL_RATE) if CURL_RATE else per_segment_rate()
+        if paused or want != rate:
+            for p, rem, s, e in list(handles.values()):
+                p.terminate()
+            if not paused and rate is not None:
+                print("rate %d -> %d B/s/curl (agg %.2f MB/s)" % (
+                    rate, want, aggregate_limit() / 1e6), flush=True)
+            rate = want
+        for name in FILES:
+            url = resolve_url(FILES[name]["repo"], FILES[name]["file"])
+            for i in range(segs_of(name)):
+                sp = segpath(name, i); want_sz = seg_size(name, i)
+                h = handles.get((name, i))
+                if h:
+                    p, rem, s, e = h
+                    if p.poll() is None:
+                        continue
+                    commit_rem(sp, rem, s, e); handles.pop((name, i))
+                elif os.path.exists(sp + ".rem"):
+                    # orphan .rem from a supervisor restart: bytes are a valid prefix
+                    commit_rem(sp, sp + ".rem", seg_lo(name, i) + _have(sp),
+                               seg_lo(name, i) + want_sz - 1)
+                if paused:
+                    continue
+                r = resume_range(seg_lo(name, i), seg_lo(name, i) + want_sz - 1, _have(sp))
+                if r is None:
+                    continue
+                rem = sp + ".rem"
+                if os.path.exists(rem):
+                    os.remove(rem)
+                logf = open(sp + ".log", "ab")
+                handles[(name, i)] = (subprocess.Popen(
+                    ["curl", "-fsL", "--limit-rate", str(rate), "--range", f"{r[0]}-{r[1]}", "-o", rem, url],
+                    stdout=logf, stderr=subprocess.STDOUT, start_new_session=True),
+                    rem, r[0], r[1])
+        now = time.time()
+        if now - last >= progress:
+            have, tot = _totals()
+            rate = (have - prev) / max(1.0, now - last) / 1e6
+            eta = (tot - have) / (rate * 1e6) / 3600 if rate > 0 else float("inf")
+            line = "%s have=%d/%d (%.1f%%) %.2f MB/s eta=%.1fh" % (
+                time.strftime("%H:%M:%S", time.gmtime()), have, tot,
+                100.0 * have / tot, rate, eta)
+            print(line, flush=True)
+            with open(os.path.join(WORK, "fetch.log"), "a") as fl:
+                fl.write(line + "\n")
+            last, prev = now, have
+        if _totals()[0] >= _totals()[1]:
+            print("supervise: all segments complete", flush=True); return
+        time.sleep(poll)
+
+def _athena_bytes():
+    return sum(_have(segpath(n, i)) + _have(segpath(n, i) + ".rem")
+               for n in FILES for i in range(segs_of(n)))
+
+def _egress_bytes():
+    try:
+        iface = subprocess.run(["ip", "route", "get", "1.1.1.1"], capture_output=True,
+                               text=True).stdout.split()[4]
+        for line in open("/proc/net/dev"):
+            if line.split(":")[0].strip() == iface:
+                return int(line.split(":")[1].split()[8])
+    except Exception:
+        return None
+    return None
+
+def cmd_pause(window=60, noise=1 << 16, poll=5.0):
+    """Issue the pause (sentinel the supervisor honours), then measure athena's
+    own segment-byte growth for `window` s. PASS iff it grew <= noise bytes
+    (floor 64 KiB over the window, ~1 KiB/s). The interface total is printed
+    for context only: a second fetch (bonsai) shares the box, so the
+    athena-attributable number is the one this command certifies."""
+    open(PAUSE_FILE, "w").close()
+    print("pause: sentinel written; waiting for athena segments to quiesce", flush=True)
+    prev = _athena_bytes()
+    for _ in range(12):
+        time.sleep(poll)
+        cur = _athena_bytes()
+        if cur == prev:
+            break
+        prev = cur
+    a0, t0, e0 = _athena_bytes(), time.time(), _egress_bytes()
+    time.sleep(window)
+    dt = time.time() - t0
+    grew, e1 = _athena_bytes() - a0, _egress_bytes()
+    print("pause: athena egress %.0fs = %d B (%.0f B/s)" % (dt, grew, grew / dt), flush=True)
+    if e0 is not None and e1 is not None:
+        print("pause: interface egress = %.0f B/s" % ((e1 - e0) / dt), flush=True)
+    ok = grew <= noise
+    print("pause: %s (noise floor %d B over %.0fs)" % ("PASS" if ok else "FAIL", noise, dt), flush=True)
+    return 0 if ok else 1
+
+def cmd_resume():
+    if os.path.exists(PAUSE_FILE):
+        os.remove(PAUSE_FILE)
+    print("resume: sentinel removed; run `python3 fetch_parallel.py supervise` if not running", flush=True)
+    return 0
+
 def status():
+    print("effective cap=%.2f MB/s per_curl=%d tz=America/New_York" % (
+        (int(CURL_RATE) * total_segments() / 1e6) if CURL_RATE else aggregate_limit() / 1e6,
+        int(CURL_RATE) if CURL_RATE else per_segment_rate()), flush=True)
     for name, f in FILES.items():
         n = segs_of(name)
         done = 0; have = 0
@@ -154,16 +285,20 @@ if __name__ == "__main__":
             FILES[name]["size"] = sz
             FILES[name]["sha256"] = oid
             print(f"[{name}] size={sz} sha256={oid}", flush=True)
-        start()
-        # persist meta for status/reassemble
         json.dump({k: {"size": v["size"], "segs": v["segs"], "final": v["final"],
                        "sha256": v.get("sha256")} for k, v in FILES.items()},
                   open(META, "w"))
         print("meta -> " + META, flush=True)
-        print("reassemble with: python3 fetch_parallel.py reassemble <athena|base>", flush=True)
+        supervise()
+    elif cmd == "supervise":
+        load_meta(); supervise()
     elif cmd == "status":
         load_meta(); status()
     elif cmd == "reassemble":
         load_meta(); reassemble(sys.argv[2])
+    elif cmd == "pause":
+        load_meta(); sys.exit(cmd_pause(*map(int, sys.argv[2:4])))
+    elif cmd == "resume":
+        load_meta(); sys.exit(cmd_resume())
     else:
-        print("usage: start|status|reassemble <model>")
+        print("usage: start|supervise|status|reassemble <model>|pause [window] [noise]|resume")
