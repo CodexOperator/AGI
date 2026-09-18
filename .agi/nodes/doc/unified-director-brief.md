@@ -28,6 +28,7 @@ town: core
 ## §1 The loop (one loop per generation, one context window)
 ```
 inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
+  │   RECONCILE AT WAKE (owner 2026-09-18 14:4xZ: both directors stalled after a box crash): compare your card's LIVE rounds against `spawn_budget.py status` -- a round whose parent is NOT live and NOT harvested is dead (a crash, a load storm, a parent that ended its turn): RE-DISPATCH it (or review its orphaned kid directly) NOW; never wait for a harvest line from a process that is not running. An inbox with nothing pending is not "nothing to do" while your queue or your live list is non-empty.
   └─► NEXT = your master's dispatch order (a node id) or the next line of your queue (queue vocabulary in §2)
         └─► SYNC your worktree: git fetch; merge origin/season2/main (and your town trunk) into your post branch -- never rebase (F9/F14)
               └─► NODE: the brief lives on the hypothesis node -- measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING (10-12 production lines per conjunct); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch)
