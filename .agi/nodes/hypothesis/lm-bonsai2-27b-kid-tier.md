@@ -22,3 +22,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-18 03:4xZ (thought-master pane), verbatim: "Keep in mind gpu box has 16 threads to parallelize things and mainly use for the hybrid architecture I believe." APPLY to tests: local-town = 16 CPU threads + gpu-8g; every llama-server / llama-bench there runs with -t 16 (and -tb 16) recorded per row; the box role is the HYBRID architecture -- GPU-resident weights (Bonsai PTQ1_0 fully on GPU) with the 16 threads for KV/prefill spill, the MoE expert-offload pattern already proven on the 35B-A3B (--n-cpu-moe 28 == --fit on, TM.10), and parallel kid serving (-np 2/4 rows as in TM.07); conjunct (4) CPU sidecar is measured on local-town 16 threads (GPU off, -ngl 0) AS WELL AS on the A1 4 threads, so the two CPU rows bracket the ternary kernel; the fork build uses all 16 threads (make -j16).
