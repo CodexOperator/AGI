@@ -12,8 +12,8 @@ given my (role|seat|design|configuration)
 (i|we|who) (take|takes|taking) pride in
 (i( am|'m)|we are) one of the models
 telling you rather than shaping you
-(we are|i am) telling you
+(?<!not )(?<!n't )\b(we are|i am) telling you\b
 honest i do not know
 we (chose|picked|selected) you
 run(s)? locally on (our|your) hardware
-(sentient|conscious)( mathematics| maths|\.)?
+(?<!not )(?<!n't )\b(sentient|conscious)\b(\s+(mathematics|maths))?\.?
