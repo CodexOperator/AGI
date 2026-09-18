@@ -248,3 +248,70 @@ def test_legacy_master_sensei_row_still_refuses_prime_director(project):
     with pytest.raises(write.EditError) as ei:
         write.submit(project, _templates_edit(new), actor="master-sensei")
     assert "prime_director" in str(ei.value)
+
+
+# --- 6. SM.108 corrective: the three residues, each with its twin -----------
+
+def test_chained_list_edit_plus_ungranted_top_level_key_refused(project):
+    """Defect (2): a legal posts-list edit that ALSO sets a top-level key
+    outside the grant (`owning_goal`) is refused BY NAME."""
+    rows = _clone_rows()
+    rows[2]["town"] = "sanctuary"          # a legal row edit on its own
+    e = _posts_edit(rows)
+    write.verb_set(e, "owning_goal", "goal:g99")   # the smuggled top-level key
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, e, actor="sanctuary-master")
+    msg = str(ei.value)
+    assert "owning_goal" in msg and "actor_rows" in msg
+    assert "owning_goal" not in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_chained_list_edit_alone_still_written(project):
+    """Twin of defect (2): the SAME legal list edit without the smuggled
+    top-level key is still written."""
+    rows = _clone_rows()
+    rows[2]["town"] = "sanctuary"
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+
+
+def test_create_row_with_ungranted_field_refused(project):
+    """Defect (4): a `create` row carrying `pubkey` (outside the grant's
+    fields) is refused BY NAME, not silently admitted."""
+    rows = _clone_rows()
+    rows.append({"name": "new-post", "role": "director", "town": "core",
+                 "pubkey": "deadbeef" * 8})
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    msg = str(ei.value)
+    assert "pubkey" in msg and "actor_rows" in msg
+    assert "pubkey" not in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_create_row_with_only_granted_fields_still_written(project):
+    """Twin of defect (4): a `create` row using only granted fields stands."""
+    rows = _clone_rows()
+    rows.append({"name": "new-post", "role": "director", "town": "core"})
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+
+
+def test_unrecognised_actor_rows_entry_refused_by_name(project):
+    """Defect (3b): the live `[config].md` declares the master-sensei entry
+    with `role_field` and no `match_key`; a master-sensei write that reaches
+    the generic resolver is refused BY NAME, never silently falls through."""
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(_clone_rows()), actor="master-sensei")
+    msg = str(ei.value)
+    assert "actor_rows" in msg and "no shape" in msg
+
+
+def test_well_formed_entry_unaffected(project):
+    """Twin of defect (3b): the well-formed sanctuary-master entry on the
+    same schema is unaffected by the unrecognised-shape refusal."""
+    rows = _clone_rows()
+    rows[2]["town"] = "sanctuary"
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED

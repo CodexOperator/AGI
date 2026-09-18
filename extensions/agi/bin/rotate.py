@@ -820,6 +820,55 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
     return f"{best_base}-{_int_to_roman(best_val + 1)}"
 
 
+_CHAIN_TOKEN_RE = re.compile(r"-S(\d+)-L(\d+)(?:$|[-.])")
+
+
+def _chain_token(name: str | None) -> tuple[int, int] | None:
+    """The (season, loop) token of a prime chain window, or None.
+
+    `belam-S2-L5-III` -> (2, 5); a plain `belam` or a pre-token window such
+    as `belam-S1-L3` -> None. ONE reader, so the name resolver, the chain
+    grep and the reap order can never disagree on what a token is."""
+    if not name:
+        return None
+    m = _CHAIN_TOKEN_RE.search(name)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def prime_window_name(root: Path | None, predecessor: str | None,
+                      prefix: str = "belam") -> str:
+    """The Prime successor window name: `<prefix>-S<season>-L<loop>-<ROM>`.
+
+    Season and loop come from the LIVE cells (ladder `current_season` +
+    `current_loop`), never by copying the predecessor's prefix. The numeral
+    CONTINUES from the predecessor ONLY when the predecessor carries the
+    SAME S/L token; on a token change it restarts at I, so a season or loop
+    rollover never inherits the old name (hypothesis:l4-the-prime-successor-
+    window-name-derives-from-the-season-and-loop-cells-...). When the ladder
+    has no cells (a fixture root) the predecessor's own token is kept, so a
+    pre-cell root stays byte-identical."""
+    season = load_ladder_field(root, "current_season", None) if root else None
+    loop = load_ladder_field(root, "current_loop", None) if root else None
+    ptok = _chain_token(predecessor)
+    if season is None or loop is None:
+        tok = ptok or (1, 1)
+    else:
+        tok = (int(season), int(loop))
+    val = 1
+    if predecessor and ptok == tok:
+        val = _split_roman_suffix(predecessor)[1] + 1
+    return f"{prefix}-S{tok[0]}-L{tok[1]}-{_int_to_roman(val)}"
+
+
+def _window_seniority(w: str) -> tuple:
+    """Reap sort key, OLDEST first: (S/L token, then numeral).
+
+    Sorting by numeral ALONE reaps the NEWEST window after a season/loop
+    token change (`belam-S2-L5-I`, numeral 1, outranks `belam-S1-L4-V`). A
+    pre-token window sorts before any token window."""
+    return (_chain_token(w) or (0, 0), _split_roman_suffix(w)[1])
+
+
 def _session_label(row: dict | None, gen: int) -> str | None:
     """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
     every-surface-seatings-key-on-session-id-and-the-label-is-the-post-name-
@@ -11060,9 +11109,9 @@ def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
         return None
     if not live_belam:
         return None
-    # oldest = lowest line value; a bare base (no Roman) is line 1
-    by_line = sorted(live_belam,
-                     key=lambda w: _split_roman_suffix(w)[1])
+    # oldest = lowest (S/L token, numeral); across prefixes too, so a
+    # season/loop token change never reaps the newest window.
+    by_line = sorted(live_belam, key=_window_seniority)
     return by_line[0]
 
 
@@ -18456,7 +18505,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # the counter only when no chain window is live yet (a fresh prime).
         gen_before = (_split_roman_suffix(own_chain_name)[1]
                       if own_chain_name else _read_generation(root, seat))
-        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
+        spawn_name = prime_window_name(root, own_chain_name, prefix=seat)
         _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
         new_name = None   # the own-window rename is plain-seat only
     else:

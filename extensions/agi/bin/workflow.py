@@ -53,10 +53,17 @@ import argparse
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# The unpatched dispatch primitives, captured once: `_run_stage_proc` resumes a
+# live child across a wall extension, which needs the real `Popen`; a caller
+# that injected only `subprocess.run` (the legacy test seam) still gets it.
+_REAL_POPEN = subprocess.Popen
+_REAL_RUN = subprocess.run
 
 import yaml
 
@@ -1111,13 +1118,14 @@ class RunView:
         self._set(label, "skipped", reason.replace("\n", " ")[:120])
 
     def stage_extension(self, label: str, extension_s: float,
-                        n: int = 1) -> None:
+                        n: int = 1, pid: int | None = None) -> None:
         """Name a granted wall extension: the stage was producing at the
-        wall and got `extension_s` more seconds (the n-th extension). Lands in
-        `_track_run`'s row so the extension is part of the run status."""
+        wall and got `extension_s` more seconds (the n-th extension). `pid` is
+        the SAME live process the wall was moved under -- recorded so the run
+        status proves the extension was in place, not a re-dispatch."""
         if label in self.state:
             self.state[label]["extensions"].append(
-                {"n": n, "extension_s": extension_s})
+                {"n": n, "extension_s": extension_s, "pid": pid})
         self.out.write(f"[extension] {label} +{extension_s:g}s (n={n})\n")
         self.out.flush()
 
@@ -1551,31 +1559,41 @@ def _stage_is_producing(stage: dict) -> bool:
 
 def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     spawn_env: dict | None, view: "RunView | None"):
-    """`subprocess.run` plus the SM.105 optional wall extension: a producing
-    stage gets one `extension_s` (default = its budget) more, up to
-    `max_extensions` (default 1), named on the view and recorded in the run
-    status; a silent stage raises TimeoutExpired at the wall.
+    """Run ONE stage command with the SM.105 optional wall extension, on a
+    live `Popen` so an extension is the SAME process and the SAME output file.
 
-    NOTE: `subprocess.run` kills its child on timeout, so an extension
-    RE-DISPATCHES the same command under the extended budget. The observable
-    contract holds (the stage is not failed at the wall) and the re-run is
-    what a real pi stage pays; recorded in the node THOUGHT."""
-    import subprocess
+    A producing stage at the wall keeps its pid: the deadline moves and the
+    poll loop keeps waiting on the process it already started -- no kill, no
+    re-dispatch, no second run. A silent stage (or a stage out of extensions)
+    is killed at the wall and raises TimeoutExpired, the exact contract
+    `subprocess.run` had. A caller that injected only `subprocess.run` (the
+    legacy test seam) owns dispatch and cannot hand back a resumable child, so
+    it gets the single deadline it was given."""
+    env = spawn_env if spawn_env is not None else _pi_env()
+    if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
+        return subprocess.run(cmd, capture_output=True, text=True, env=env,
+                              timeout=budget)
     grants = max(0, int(stage.get("max_extensions", 1) or 0))
     n = 0
+    deadline = time.monotonic() + budget
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, env=env)
     while True:
         try:
-            return subprocess.run(
-                cmd, capture_output=True, text=True,
-                env=(spawn_env if spawn_env is not None else _pi_env()),
-                timeout=budget)
+            out, err = proc.communicate(
+                timeout=max(0.0, deadline - time.monotonic()))
+            return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
         except subprocess.TimeoutExpired:
             if n >= grants or not _stage_is_producing(stage):
-                raise
+                proc.kill()
+                out, err = proc.communicate()
+                raise subprocess.TimeoutExpired(cmd, deadline, output=out,
+                                                stderr=err)
             n += 1
             budget = stage.get("extension_s") or budget
+            deadline = time.monotonic() + budget
             if view is not None:
-                view.stage_extension(stage["label"], budget, n)
+                view.stage_extension(stage["label"], budget, n, pid=proc.pid)
 
 
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
