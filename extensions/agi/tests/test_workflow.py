@@ -2281,11 +2281,13 @@ def test_manifest_timeout_s_reaches_the_stage_subprocess(
     assert seen == [7], seen
 
 
-def test_no_manifest_timeout_keeps_the_600_default(tmp_path_factory,
-                                                   monkeypatch):
+def test_no_manifest_timeout_keeps_the_3600_default(tmp_path_factory,
+                                                    monkeypatch):
+    """SM.105: the undeclared default wall is 3600 s (was 600), so a stage
+    that declares no timeout_s anywhere gets 60 minutes."""
     seen = _capture_timeouts(tmp_path_factory, monkeypatch,
                              _manifest_with_timeout())
-    assert seen == [600], seen
+    assert seen == [3600], seen
 
 
 def test_per_stage_timeout_overrides_the_manifest(tmp_path_factory,
