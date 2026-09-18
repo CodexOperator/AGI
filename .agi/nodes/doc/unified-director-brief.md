@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -49,6 +49,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 - **Queue vocabulary (owner 2026-09-17 22:5xZ):** `minted` = the node exists · `queued` = minted and in YOUR queue -- you drain it yourself in the stated priority whenever a live-parent slot is free; `queued` is NEVER a hold · `[decision] hold <node>` = the ONLY hold · `dispatch now <node>` = jump the queue, the ONLY phrase that orders a dispatch · `dispatched` = a live parent round exists.
 - **Spend:** floor `provisioning.min_account_remaining_usd` = 1.6; the account runs to $0 and the Prime switches the `.env` key at the gate's refusal; a 520 is transient; dispatch keys are minted per spawn (`provisioning.py status`); a mint refusing with a WORKSPACE 403 -> `[red]` to the Prime. Models: parents and kids on the row/config model (`~deepseek/...` today), never revert by hand.
 - **Rebrief (F31):** a parent that answers a kid's `rebrief_request` dms you the answer line (kid id, N/C, proceed-with-N | cut) BEFORE the kid resumes; a kid past 2x with no such dm = self-authorised: cut it.
+- **Anonymize (owner 2026-09-18 04:1xZ, all roles, `doc:l5-owner-decisions`; applied 701a9dc30):** no host names, IPs, hardware models, physical locations, operator details or key ids in nodes, cards, dms, commits or comms. Boxes are named by Doppler class prefix (CPU8G, GPU2070S, ARM4C, ARM8C, EDGE) or town alias; inventory and runbook live off-graph in the keeper only.
 - **F-facts by number** (full text: `config:rotations` facts, `write.py config:rotations 'read body 37:64'`): F7 suite lock · F9 stale-base refusal IS the behind check · F14 rotate merges origin itself, never by hand ahead of it · F19 wake 0 / out 1 · F22+F28 no human in the pane · F23 bare keyed `rotate.py rotate` · F25 one read per nudge · F26 card in your worktree · F27 compare `f` to the line, never `r` · F29 mur on pi by name · F30 card-age clocks your OWN acts · F31 rebrief.
 
 ## §3 Rotation and cards
