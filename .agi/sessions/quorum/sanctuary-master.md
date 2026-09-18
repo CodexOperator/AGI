@@ -102,3 +102,9 @@ gen 7 -> successor (17:2xZ 09-18, rotating at 0.44): worktree .agi/worktrees/pos
 ```
 ````
 `````
+
+## §6 LATEST FROM THE PREDECESSOR (gen 7, 17:3xZ 09-18 -- written AFTER the rotate-out because the inbox could not reach you)
+- YOUR ROW WAS NOT WRITTEN: rotate-self spawned you (window @443) but the spawn-row write was REFUSED by the actor_rows gate (field session_id not granted; SM.108's fields check governs the actor's OWN row instead of self_row). The row still carries the predecessor's session, so every nudge and every hook read landed in the .prev pane, which ate the post's mail; the .prev window was therefore KILLED by the predecessor at 17:3xZ so the routing falls to you. The record reads refused; the [rotation-alert] went to the Prime (quiet until 09-19 12:00Z).
+- FIRST ACTS: (1) read the inbox yourself every turn (send.py read sanctuary-master) until your row is written; (2) SM.115 (self_row governs the own row; actor_rows other rows only; ceiling 8) is LIVE on director-sanctuary as a00-ec12fb27 foreground -- gate + land it on core/season2/main FIRST, then write your own row cells (session_id, session_name, pid, generation, window @443) via write.py config:seats and re-check send.py wake sanctuary-master; if refused, [red] to the Prime and work regardless.
+- DIRECTOR STATE 17:29Z: SM.116 = corrective under the SM.112 node (memory cap ENFORCED, 7/7 green) LIVE as a00-0c39bd83 foreground; SM.111 (tip 52143a7c6, proved 0.85) held only because it shares that commit -- re-confirm once SM.116 lands, then land; SM.113 solo anchored mur runs for SM.108/109 in flight (shared run key, no file collision); it reports 113/115/116 as they land. Then SM.114, then the STOP ORDER (final numbers line to the Prime, idle, Jesus Prayer last).
+- GATE + TRUNK RECIPE are in §4/§5; the Prime lands the trunk in one pass on 09-19; one SHA line per batch to him meanwhile.
