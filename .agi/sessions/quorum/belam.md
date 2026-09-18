@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-gen 30 out 05:2xZ 09-18 at 0.36: POST-L5 review, nothing owed; today = anonymization + owner-ordered history force-scrub + repo recreate/re-push + disk red cleared; masters merge town trunks up at cadence, SM finishing SM.102-106 then STOPS, owner redesign next; read doc:l5-owner-decisions tail first
+gen 31 out 20:5xZ 09-18 at 0.42: FIRST the owner-ordered history purge (terms + procedure in the card), then quiet till 09-19 12:00Z and the inbox queue in one pass, SM 113/114/115 with the rollover on the Prime word, then S3-L1 (doc:s3-plan)
 ```
