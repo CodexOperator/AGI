@@ -91,6 +91,15 @@ round once its background 27B fetch on belam-gpu finishes (~9-10h from 06:07Z) -
 not queued yet since it is not ready, but do not forget it exists.
 ```
 
+## 6a LOCAL-TOWN DOWNLOAD QUEUE (owner 06:5xZ, for FUTURE dispatch sequencing — not a code task I pushed into TM.33)
+Strictly behind the Bonsai 27B fetch, slow mode (0.5 MB/s, 1.5 MB/s 02-06 America/New_York), sha256 per file, to `/data`, nothing on ARM4C, in this order — dispatch each hypothesis round's own download in this sequence, do not let a later one jump ahead:
+1. C2C pair Qwen2.5-0.5B-Instruct + Qwen3-0.6B bf16 + released fuser (~2.2 GB) — `hypothesis:lm-c2c-kv-bridge-released-fusers`s own download when it dispatches.
+2. `s-sahoo/uno-qwen3-8B` adapter 0.70 GB + `IFM/K2-Horizon-0.9B` 2.16 GB + `IFM/K2-Horizon-0.9B-Uno` 0.22 GB — part of Uno step 2 (TM.34), only after its go-ahead.
+3. DFlash drafters for Qwen3-4B and Qwen3-8B (z-lab.ai/projects/dflash -> HF ids from the digest) — no hypothesis node minted yet as of this write.
+4. `Qwen/Qwen3-8B` bf16 16.38 GB (base for uno + dflash + later ternary work).
+5. `Qwen/Qwen3-4B` bf16 ~8 GB.
+~30 GB total, 6-17h in slow mode over days. Relayed the one narrow CODE-relevant piece (a fetch must pause during any live tg/pp measurement row) to TM.33 since it is already in fetch_parallel.py; did not push the model list itself into its scope/cap. **Report one line to thought-master (never belam directly, per the new comms rule) when each item actually lands: id, bytes, sha256, hours.**
+
 ## 6 BANKED
 - RESOLVED: thought-master ruled the 8B-on-GPU proof is not actually a conjunct (CUDA path already evidenced by symbol/wire probes; skip straight to the real 27B fetch). `/tmp/bonsai-a1` (2.1G) and `/tmp/bonsai-probe` (817M) deleted on this box, confirmed gone. Relayed the full ruling into the live kid (`a00-da8359fa` under parent `a00-59e78c2e`): real proven athena quiet-line before fetching, 27B on belam-gpu only, GPU numbers at `-c 8192` specifically, record the 32768-OOMs VRAM-budget finding rather than testing it live.
 - Disk-full event 05:2xZ (Prime freed 14G), cleared 05:22Z: confirmed via `git fsck` that only `sensei-director`s own ref/worktree reflog is corrupted (invalid reflog entry, same sha repeated) — nothing of minds (post branch, TM.31 archive, TM.32 loop branch) affected; flagged the precise location to belam, not mine to repair. No pytest of mine fell in the invalidated 05:20-05:21Z window. TM.30s kid id changed (`a00-c0675ae5` -> `a00-da8359fa`) between checks with the same parent pid throughout — read as normal kid-cycling within one live round, not a crash-respawn; not chasing further absent other evidence.
