@@ -1293,7 +1293,9 @@ def cmd_rollover_global(root: Path, args) -> int:
     print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
     print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
     trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
-    if apply:
+    # A cell write happens ONLY with --delete-old (without it every cell is HELD),
+    # so admission is owed only then: a no-delete run must not be pre-flighted.
+    if apply and delete_old:
         cells = [(cell_id, "current_season" if slug is None else "season", ng)
                  for slug, cell_id, _h in trunks]
         if _preflight_cells(root, cells, actor):
