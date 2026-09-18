@@ -5346,6 +5346,12 @@ def main(argv: list[str] | None = None) -> int:
                     continue
                 if boxes.row_is_local(root, r):
                     read(root, nm, sender, wrap=wrap)
+                    # clause (1) for the SERVICE reader too: mail_poll must
+                    # sweep the same row's dm channels, or a dm pushed from
+                    # another box lands in a file this reader never opens
+                    # (hypothesis:l4-one-read-returns-everything-addressed-
+                    # to-a-post...). Same per-row loop, same box gate.
+                    read_dms(croot, nm, wrap=wrap)
                 else:
                     print(f"mail_poll: skipped foreign-box post {nm} "
                           f"(box {r.get('box') or '(default)'})",
