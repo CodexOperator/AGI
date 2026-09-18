@@ -71,3 +71,70 @@ threads (1.11e6 vs 2.32e7), so conjunct (3)'s "within 2x" is falsified.
 
 Load note: the box is shared (loadavg 1.9–3.3 during runs), so the LIF 4-thread
 run used ~2.0 cores (user/wall) and its 1.99x speedup is contention-limited.
+
+# Bend 2.0.5 on GPU2070S (x86-64) — CUDA lane half
+
+Host: GPU2070S (x86-64, 16 vCPU, 15 GB RAM, 8192 MiB GPU, driver 595.84), Ubuntu 24.04.
+Bend in a user prefix; sudo only for the toolchain. Rollback = `rm -rf ~/.bend ~/.bun`.
+
+## 7. Install + toolchain (clang 19 + CUDA 12)
+
+    curl -fsSL https://bend-lang.com/install.sh | sh   # FAILED first: "unzip is
+    # required to install bun" -> sudo apt-get install -y unzip; rerun -> bend 2.0.5
+    sudo apt-get install -y clang-19 nvidia-cuda-toolkit   # ~1.9 GB of .deb
+    nvcc --version          # Cuda compilation tools, release 12.0, V12.0.140
+    clang-19 --version      # clang version 19.1.1
+    # nvrtc.h -> /usr/include/nvrtc.h, libs -> /usr/lib/x86_64-linux-gnu
+    sudo mkdir -p /usr/local/cuda
+    sudo ln -sfn /usr/include              /usr/local/cuda/include
+    sudo ln -sfn /usr/lib/x86_64-linux-gnu /usr/local/cuda/lib64
+    sudo ln -sfn /usr/bin                  /usr/local/cuda/bin
+    export CC=clang-19 CUDA_HOME=/usr/local/cuda BEND_NO_TELEMETRY=1
+
+clang 19 is REQUIRED for any `!` program (its `#embed` carries the device
+program); clang 14+ is enough for a CPU-only build.
+
+## 8. Game of Life — same fixture
+
+    bend gameoflife.bend -o gol
+    ./gol --threads 1     # 0.15 s wall, checksum 2016151040
+    ./gol --threads 16    # 0.15 s wall, checksum 2016151040
+
+Startup-dominated on this box; no scaling shape to read.
+
+## 9. LIF — same workload, Bend CPU and Bend CUDA
+
+    bend lif.bend -o lif
+    ./lif --threads 1     # 52.94 s wall (user 52.91), spikes 19983
+    ./lif --threads 16    # 26.96 s wall (user 53.71), spikes 19983   (1.96x)
+
+`lif_gpu.bend` = `lif.bend` with the parallel call marked: the base case of
+`batch` becomes `net!(s)` — the same 4 independent nets the CPU fork-join
+parallelizes; only the `!` marker differs (Bend needs it for the GPU lane).
+
+    bend lif_gpu.bend -o lifgpu      # emits lifgpu + lifgpu.gpu (76 KB) — succeeds
+    ./lifgpu --threads 1   # 47.98 s wall (user 47.85), spikes 19983
+    ./lifgpu --threads 16  # 48.12 s wall (user 47.94), spikes 19983   (1.00x)
+    ./lifgpu --gpu 2GB     # 47.77 s wall (user 47.59), spikes 19983
+    ./lifgpu --gpu 512MB   # 48.03 s wall (user 47.86), spikes 19983
+
+CUDA lane engaged: during `--gpu 2GB` the process shows in
+`nvidia-smi --query-compute-apps` at 104 MiB, and a control `pow2!(24n)` build
+moves `utilization.gpu`. But for the LIF, `utilization.gpu` sampled every 2 s
+for the whole 48 s run reads 0%, and wall == user: the CPU executes the loop.
+
+## 10. Reference — lif_baseline.py (C, OpenMP) on GPU2070S
+
+    python3 lif_baseline.py 16       # C/f64  1.264 s, 19983 spikes
+    python3 lif_baseline.py 16 f32   # C/f32  1.057 s, 19983 spikes
+    python3 lif_baseline.py 1        # C/f64  4.824 s, 19983 spikes
+
+## DECIDING NUMBER
+
+Bend-CUDA LIF 47.77 s / OpenMP-C f64 16-thread baseline 1.264 s = 37.8x slower;
+vs the 1-thread baseline 9.9x slower. The ACCEPT falsifier allowed at most 5x ->
+the node closes DISPROVED. Spike-count drift vs f64 = 0 (19983 everywhere).
+
+Timing hygiene: `fetch_parallel.py pause` takes window in SECONDS and noise in
+BYTES, so the working call is `pause 60 65536`; `pause 1800 2` waits 1800 s
+(it was killed). Loadavg outside timed windows <= 0.5.
