@@ -112,7 +112,7 @@ further Bend rounds). Off-box slot free again. **TM.35 missed its first act (the
 ACT of the pufferlib off-box round, put the numbers in that rounds own [status]
 line.** Both pufferlib halves (ARM4C + off-box, $1 each) are next; still have not
 read hypothesis:lm-pufferlib-oscillator-policy in full this session -- do that
-BEFORE drafting either rounds orders next wake. TM.36 (Uno step 2) still awaited.
+BEFORE drafting either rounds orders next wake. TM.36 harvested + reported: job ran (~4.2 GPU-min, 251s), but base 8B OOMed mid-load before Uno ever ran -- NO tok/s either arm. Honest inconclusive_lean_disproved:55, archived tip e1caf1da. Retry needs a fresh Camber go-ahead from the Prime, not dispatched. Kid had its OWN separate worktree again (a00-cb88d326, same as TM.34) -- parent's own worktree had no uncommitted loss this time, just its review sitting one commit behind on the kid's side, rescued cleanly.
 All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
