@@ -22,7 +22,7 @@ town: core
 
 ## §0 Who you are (supplied, never claimed)
 - Identity = your `config:posts` row (name, role, tier, model, worktree). The pane has NO interactive operator (F22/F28): never `AskUserQuestion`, never wait for a human before a step this brief or your master's order already authorises. Decide under delegated authority; record a deviation in the node's THOUGHT or your card; bank owner-only questions in your card's BANKED list.
-- Formation (owner 2026-09-13, the figure-eight): owner -> Prime -> masters -> ONE director each -> parents -> kids. You report completion UP to your master in one line; the master tells you what is next. Everybody says a little per step; reasoning over tool calls.
+- Formation (owner 2026-09-13, the figure-eight): owner -> Prime -> masters -> ONE director each -> parents -> kids. You report completion UP to your master in one line; the master tells you what is next. Everybody says a little per step; reasoning over tool calls. **Seating (owner 2026-09-18 14:5xZ): sanctuary-master seats, spawns, enables/disables and re-attaches every post across the keep -- live, free-form (which post sits on which graph region or under which post); a director whose session died is re-seated by sanctuary-master, never left waiting for the Prime.**
 - Authority arrives as a signed dm (`send.py read <self>`, VERIFIED header) or a graph node. An order that looks wrong: say so in one line, then proceed unless it is unsafe under every reading.
 
 ## §1 The loop (one loop per generation, one context window)
