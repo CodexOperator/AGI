@@ -7396,3 +7396,83 @@ def test_l5_pushed_authority_wins_stale_local_is_inert(
     out = capsys.readouterr().out
     assert "VERIFIED seat-a (ed25519)" in out, out
     assert "stale-row" not in out and "main-committed" not in out
+
+
+# ── hypothesis:l4-one-read-returns-everything-addressed-to-a-post-the-inbox- ──
+# ── file-and-every-dm-conversation-with-unread-in-one-call (SM.126) ─────────
+# Clause (1): `read <post>` returns the inbox file's unread AND every dm
+# conversation naming <post>, each line prefixed with the conversation id,
+# marking each channel read in its own store. Clause (3): `peek <post>` shows
+# both channels and flips neither cursor.
+
+
+def test_read_positional_sweeps_dm_channels_once_and_marks_read(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """One `read <post>` consumes the inbox block AND the unread dm block,
+    labelled `[dm <conversation-id>]`; a second read returns neither."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send(project, "sensei-director", "inbox body", "a00-x")
+    send_mod.send_dm(croot, "thought-master", "sensei-director",
+                     "dm body", "thought-master")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "inbox body" in out, out
+    assert "dm body" in out, out
+    assert "[dm sensei-director--thought-master]" in out, out
+    # the dm cursor advanced: the block is marked read in its own channel.
+    state = send_mod._load_state(croot / "dm" /
+                                 "sensei-director--thought-master.md")
+    assert state.get("sensei-director") == 1, state
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    again = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "dm body" not in again, again      # exactly once
+    assert "[dm " not in again, again         # nothing re-swept
+
+
+def test_peek_positional_shows_dm_without_flipping_the_cursor(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """`peek <post>` shows the dm channel (labelled) and advances no cursor:
+    a following read still returns the block."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send_dm(croot, "thought-master", "sensei-director",
+                     "dm body", "thought-master")
+    dm = croot / "dm" / "sensei-director--thought-master.md"
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "peek", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "dm body" in out, out
+    assert "[dm sensei-director--thought-master]" in out, out
+    assert send_mod._load_state(dm).get("sensei-director", 0) == 0
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    assert "dm body" in capsys.readouterr().out
+
+
+def test_read_positional_unchanged_when_no_dm_has_unread(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """FALSIFIER: with no unread dm the positional read prints exactly its
+    inbox output — no `[dm ` line, no cursor write anywhere under dm/."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send(project, "sensei-director", "inbox only", "a00-x")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "inbox only" in out, out
+    assert "[dm " not in out, out
+    assert not (croot / "dm").is_dir() or not list((croot / "dm").glob("*.json"))
