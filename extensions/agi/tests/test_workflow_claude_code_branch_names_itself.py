@@ -32,7 +32,14 @@ def _tmp_session_root(tmp_path_factory, wf_mod):
 
 
 def test_claude_code_branch_names_itself_and_pi_path_is_silent(
-        tmp_path_factory, capsys):
+        tmp_path_factory, capsys, monkeypatch):
+    # SM.121 landed the same-harness seam: inside a live Claude Code session
+    # the branch prints the native Workflow() call instead of the SM.120
+    # notice, so this test clears the seam to keep asserting the seam-ABSENT
+    # path (the gate found it red inside an interactive session, 21:5xZ).
+    import workflow as _wf
+    for _v in _wf.CLAUDE_CODE_SEAM_VARS:
+        monkeypatch.delenv(_v, raising=False)
     tmp, restore = _tmp_session_root(tmp_path_factory, workflow)
     try:
         # claude-code run: exits 0, resolves both "review" stages, tracks
