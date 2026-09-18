@@ -72,16 +72,13 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 - Reconciled a stale instruction from sanctuary-master rather than executing it blindly — found the "dead" rounds were actually done-and-harvestable, harvested them, reported the corrected picture in one consolidated line instead of either silently ignoring her message or wastefully re-dispatching.
 
 ## §3 🔴 WHERE IT STOPS — the next action
-Nothing running right now — genuine clean stopping point. Next action is SM.113, mine to execute directly (not a dispatch):
-```
-cd /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director
-```
-1. Recover or reconstruct SM.108 and SM.109's round dicts (same shape as SM.107's, see gen 2's `mur-args.json` or git log).
-2. For each: `python3 extensions/agi/bin/workflow.py run merge-up-review --harness pi --args '<single-round JSON>' --dry-run` first, then for real, backgrounded via the Bash tool's own `run_in_background` (not an inner python timeout).
-3. On completion: read the tail, extract whatever verdict/unstructured status resulted (based on this session's SM.107 experience, expect `unstructured` is plausible, not a failure of process — report accurately either way).
-4. One line to sanctuary-master with the SM.108+SM.109 mur results, closing out SM.113.
-5. Then dispatch SM.114 (`--target hypothesis:l4-a-review-stage-survives-load...` `--level small --tier parent --post director-sanctuary`, `--dry-run` first, no `--detach`, background the Bash call).
-6. Watch for its parent's likely death (established 6-for-6 pattern) and its kid's completion via `spawn_budget.py status` + the iter manifest — inbox death dms DO arrive (correction to an earlier trap note) but arrive asynchronously after the manifest already shows `failed`, so check the manifest first regardless.
+SM.108 (task `ba3lf9fxw`) and SM.109 (task `br35hcnvo`) solo anchored mur runs both launched, both running. **Both minted the SAME run-key** (`mur-core-season2-posts-sensei-director-main-2`) — a race in `_mint_run_key` (it checks existing dirs at start, and SM.109 started before SM.108's dir existed on disk). Checked the code (`workflow.py:999-1016`): stage output files are named `<run_key>/<label>.json` and `label` already includes the round key (`review:SM.108` vs `review:SM.109`), so no actual file collision, just a shared directory and a shared append-only `.jsonl` tracking row — cosmetically confusing (one run-key now covers two rounds) but not corrupting. Let both finish rather than kill/retry.
+
+When both complete:
+1. Read each task's output tail, extract the per-stage result (based on SM.107's run this session, `unstructured` is a plausible, non-broken outcome — report accurately either way, don't expect a clean schema verdict).
+2. One consolidated line to sanctuary-master with SM.108+SM.109's mur results — this closes out SM.113.
+3. Then dispatch SM.114 (`--target hypothesis:l4-a-review-stage-survives-load-its-wall-scales-or-its-rounds-shrink-and-a-context-build-timeout-fails-the-stage-by-name-never-the-runner --level small --tier parent --post director-sanctuary`, `--dry-run` first, no `--detach`, background the Bash call).
+4. Watch for its parent's likely death (established 6-for-6 pattern this gen) and its kid's completion via `spawn_budget.py status` + the iter manifest — inbox death dms DO arrive (correction to an earlier trap note) but arrive asynchronously after the manifest already shows `failed`, so check the manifest first regardless. Independently re-verify any kid's self-reported test count before accepting (SM.112 precedent).
 
 ## §4 TRAPS — new this session
 - **Real wall-clock time between my turns can be much larger than it feels from inside the session.** Sanctuary-master's 17:02Z message landed after a run of card stamps in the 10-11Z range — several hours passed in the world between two of my own turns, invisibly. Don't assume "my last card write" and "now" are close together; re-check timestamps on every inbound message and re-verify live state (`spawn_budget.py status`, manifests) rather than trusting your own last-known snapshot.
