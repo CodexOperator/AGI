@@ -96,7 +96,8 @@ def child_env(*, harness: dict, base: dict[str, str],
     # rule lives in ONE place (`adapters.drop_unneeded_credential`) and every
     # child_env calls it, so this spawn path -- and the restart path that
     # funnels through here -- applies the same rule as main dispatch.
-    return adapters.drop_unneeded_credential(env, harness)
+    return adapters.forward_named_env(
+        adapters.drop_unneeded_credential(env, harness), harness)
 
 
 def build_command(
