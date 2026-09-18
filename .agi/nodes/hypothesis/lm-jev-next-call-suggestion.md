@@ -22,3 +22,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-18 04:59Z (thought-master pane), verbatim: "I was thinking we could use the DB mirror to dynamically build jev prompts since it’s basically multiple choice and graph is the choice limiting engine." APPLY (thought-master): R2 prompts are BUILT FROM THE SQL MIRROR (hypothesis:lm-graph-sql-mirror, TM.31), not from raw transcripts alone: the roster + the graph-legal next acts (schema parents/verbs, open hypotheses under the goal, in-scope node ids) rendered as a numbered multiple choice; jev returns an index + confidence. Add to the measurement: choice-set size per decision point as a covariate -- the owner claim is that accuracy rises as the graph limits the choices; report top-1 by choice-set-size bucket (<= 5, 6-15, > 15) beside the pooled number. The rest of the claim (200 decision points, 0.70 top-1, precision 0.90 band, 300 ms, per-decision cost) is unchanged.

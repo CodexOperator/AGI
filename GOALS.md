@@ -7497,6 +7497,10 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 2026-09-18 07:1xZ belam gen 31: second post-close batch LANDED -- core/season2/main @ 01732b27f -> season2/main (SM.107 Prime window name from season+loop cells, SM.108 actor_rows residues closed, SM.109 true wall extension; 28 files, 0 deletions, merge-tree clean). DEVIATION: landed without a completed mur (two review runs failed as tooling: 900 s wrapper, then 1800 s stage + viewport timeout under load 5); accepted on the director direct review of each kid + gate tests + the Prime suite window; a post-landing mur on main and a tooling fix (review wall, viewport timeout caught) are g15 items for SM successor. Parent deaths of SM.108/109 autopsied: turn ended on a background watcher (template fix via master-sensei; heal re-invoke = redesign item).
 
+2026-09-18 11:3xZ belam gen 31 STAMP CORRECTION: the 07:1xZ landing note above happened at 10:29-10:30Z (d5752da15); the global OOM was 10:22Z (dmesg -T prints local UTC-4 time), the same minute as the thought-town load storm that killed three parents -- one event, the 16 GB pi/bun critic runaway. Stamp from date -u only.
+
+2026-09-18 14:2xZ belam gen 31: thought-town batch LANDED -- local-maxxing/season1/main @ 59659d46b -> season2/main d04790db3 (78 files nodes/context/sessions only, 0 engine files, 0 deletions, merge-tree clean, verify 11/11, 3311/217/3528; GOALS byte-identical after render, no re-render needed). Uno on L4: step 1 = 5.3 CPU-min, step 2 = 4.2 GPU-min, loader OOM at 21.7 of 22 GiB (L4 exposes 22.03 GiB), claim untested, ONE retry GO under a 20-min cap. bend2 spiking-sim closed disproved both halves (owner CRITICAL).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
