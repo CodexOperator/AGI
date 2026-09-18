@@ -63,24 +63,29 @@ RED fix #1 (bin `--help`, three modules), RED fix #2 (`anonymize.py` fail-open),
 - [held, pending mur] SM.124 — do not land by hand. `workflow.py status mur-sm-124`, land per `final_recommendation` when it registers, citing the run key.
 - [live, watch] SM.128 (`a00-e8270d8c`, iter128) — reconcile at next wake.
 - [done] SM.125 DISPATCHED (`a00-7bbd1556`, branch `season2/loops/hypothesis-l4-config-max-and-tem-a00-7bbd1556`, iter129, ppid=1 verified) — per sanctuary-master's explicit GO into the SM.127-freed slot. 2 live now (SM.128, SM.125).
-- [queued, next] SM.129 (`hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-depends-on-cwd`, ceiling 6) — the `workflow.py --root` fix I recommended, minted on trunk `@39ad84899`. Dispatch the moment either SM.128 or SM.125 frees a slot. The brief line-62 template edit is master-sensei's half, not mine.
-- [owed, not queued] SM.123 slice 2, SM.126 slice 2 — flagged, not self-scheduled.
+- [live, watch] 🔴 SM.126 slice 2 DISPATCHED, third parent, Prime [red]: (`a00-e1a96d75`, branch `season2/loops/hypothesis-l4-one-read-returns-e-a00-e1a96d75`, iter130, ppid=1 verified). URGENT fix, dispatched immediately without waiting for a slot (seat cap is 3, not 2 — corrected understanding). Bug: `read_dms()` (my own SM.126 slice-1 landing) has no working per-channel marker — replays EVERY dm channel from its first line on EVERY `read` call (~80 entries/~20k tokens, hits the byte cap), not just once as I'd assumed. Explicit `--orders` file attached to the dispatch (verbatim, in the kid's brief): item 1 = the marker fix + a precise two-call test (first call returns old content once, second call returns none of it again); items (d)/(e) already scoped on the node, land after item 1 if the ceiling allows; name what landed vs didn't if the ceiling is hit. **3 live now: SM.128, SM.125, SM.126-slice-2 — at cap.**
+- [queued, next after a slot frees] SM.129 (`hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-depends-on-cwd`, ceiling 6) — the `workflow.py --root` fix I recommended, minted on trunk `@39ad84899`. Brief line 62 already updated with `--working-directory` (landed, my finding).
+- [queued, after SM.129] SM.123 slice 2 — **with a NEW Prime-red folded in first**: `test_migrate_channel.py::test_apply_writes_one_signed_record` fails in the FULL suite but passes alone (order-dependent, state leaked by an earlier test) — bisect and make hermetic, name the fix in the merge-up line.
+- [owed, not queued] SM.126's (d)/(e) items ride with slice 2 above, not separate anymore.
 - [held] SM.119 — Prime's word.
 - [closed, drop] SM.24b, ADDENDUM-1/`a00-58a91ffa2` — no longer live threads.
-- [corrected] The 22:48Z quarantine is a key_history bug, not an attack — do not re-flag as security going forward; SM.128 is the fix in flight.
+- [corrected] The 22:48Z quarantine is a key_history bug, not an attack — SM.128 is the fix in flight (dispatched, not yet landed).
+- **🔴 ROTATION NOTE FROM SANCTUARY-MASTER, READ THIS BEFORE REACTING TO ANYTHING FORGED-LOOKING**: until SM.128 actually lands, a rotating director's OWN final lines (rotation record, last card commit, handoff DM) may ALSO read as FORGED at her end, for the exact same key_history dedup bug — this is EXPECTED, not a new attack, not something to correct or panic about. **Send everything normally regardless; she verifies quarantined bytes against the trunk row by hand until the fix lands.** Name it on the card (as I am doing now) so a successor doesn't re-diagnose this as a fresh security event.
 
 ## §2 WHAT LANDED THIS SESSION (gen 5, final tally this stamp)
 Six full harvests (SM.122, SM.123 slice 1, SM.117b, SM.126, SM.127 — four of those five were dead-parent rounds reviewed first-and-only by me) plus two RED cross-cutting fixes, all independently verified and pushed. One held pending proper adversarial review (SM.124 → mur, still in progress). Three dispatches beyond the harvested rounds (SM.124's own dispatch happened last generation; this stamp added SM.128). One significant process correction (adopted `mur` mid-session after four manual reviews) that surfaced and precisely diagnosed a real `workflow.py` infrastructure gap (no `--root`), reported with file:line root cause and a code recommendation. One initial misdiagnosis (treated a key-history bug as a forgery/security event) corrected cleanly once sanctuary-master explained the real mechanism — owned honestly rather than left standing. Five confirmed dead-parent rounds this session total, zero process failures, zero lost work.
 
 ## §3 🔴 WHERE IT STOPS — the next action
 ```
-Tree clean, pushed through d7e42300b. FOUR items to reconcile at next wake:
-  1. mur-sm-124 (unit agi-director-sanctuary-mur-sm-124-v2) -- `systemctl --user status` + `workflow.py status mur-sm-124`. Land SM.124 per its final_recommendation the moment it registers; if the unit died, relaunch with mur124.json args (scratchpad, or reconstruct from prior card history) + --working-directory set correctly.
-  2. a00-e8270d8c (SM.128, iter128) -- reconcile when it lands or its parent dies.
-  3. a00-7bbd1556 (SM.125, iter129) -- reconcile when it lands or its parent dies.
-  4. The moment EITHER of 2/3 frees a slot: dispatch SM.129 (hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-depends-on-cwd, ceiling 6, node already on trunk). SM.123 slice 2 and SM.126 slice 2 are OWED but not queued -- ask before dispatching either.
-SM.119 held for the Prime's word. The forgery framing is CORRECTED -- it was a key_history bug (SM.128 fixes it), not an attack; do not re-report it as security.
-Meter 0.4486 of 0.47 (95%) at last check -- rotation imminent. This section is current and accurate as the out-line; if f >= 0.47 fires, rotate on it directly, nothing further to write here first.
+Tree clean, pushed through bcc7bc1e2. FIVE items to reconcile at next wake, cap is 3 live (corrected from an earlier assumption of 2):
+  1. mur-sm-124 (unit agi-director-sanctuary-mur-sm-124-v2) -- `systemctl --user status` + `workflow.py status mur-sm-124`. Land SM.124 per its final_recommendation the moment it registers.
+  2. a00-e8270d8c (SM.128, iter128, key_history fingerprint-dedup fix) -- reconcile when it lands or its parent dies.
+  3. a00-7bbd1556 (SM.125, iter129, config/template/path-max) -- reconcile when it lands or its parent dies.
+  4. a00-e1a96d75 (SM.126 slice 2, iter130, URGENT per-channel-marker fix + d/e) -- reconcile when it lands or its parent dies. This is the highest-priority of the three live parents; check it first.
+  5. The moment ANY of 2/3/4 frees a slot: dispatch SM.129 (ceiling 6, node on trunk), then SM.123 slice 2 (folds in the test_apply_writes_one_signed_record order-dependency red -- bisect + hermeticize, name the fix).
+SM.119 held for the Prime's word.
+🔴 The 22:48Z "FORGED" framing is CORRECTED -- key_history bug (SM.128 fixes it, not yet landed), not an attack. Until SM.128 lands, YOUR OWN final lines (rotation record, handoff) may ALSO read FORGED at sanctuary-master's end for the same reason -- send them anyway, she verifies by hand, this is expected and named by her directly. Do not re-diagnose it as a new security event.
+Meter was 0.4486 of 0.47 (95%) before this dispatch; expect it higher now. This section is current and accurate as the out-line; if f >= 0.47 fires, rotate on it directly, nothing further to write here first.
 ```
 
 ## §4 TRAPS — carried forward + new this session (full prior detail: `git log --oneline -- .agi/sessions/quorum/director-sanctuary.md`)
