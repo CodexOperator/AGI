@@ -31,12 +31,15 @@
 - Diagnosed and repaired local git object corruption (disk-full root cause); reported it; freed ~1.3G of my own artifacts; disk still tight (98%).
 
 ## §3 🔴 WHERE IT STOPS — the next command
+````
 ```
 cd /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director
 python3 extensions/agi/bin/send.py read director-sanctuary   # check for belam's replies first — his pane was busy both times, may have landed since
 kill -0 2996625   # SM.105 — still alive?
 kill -0 2994677   # SM.106 — still alive?
 ```
+If either finished, harvest it (verify parent-branch vs kid-branch, `git diff --stat` against `MB=$(git merge-base HEAD <branch>)`, read every kid node, `git merge --no-ff`, run its own tests, push with the EXPLICIT refspec — see §0). **Before any git write, glance at `df -h /` — if it is back near 100%, stop and re-flag rather than risk another silent corruption.** Once both are in and (disk permitting) a full suite is clean, run the real mur review and deliver the batched `[merge-up]` line per §1.
+````
 If either finished, harvest it (verify parent-branch vs kid-branch, `git diff --stat` against `MB=$(git merge-base HEAD <branch>)`, read every kid node, `git merge --no-ff`, run its own tests, push with the EXPLICIT refspec — see §0). **Before any git write, glance at `df -h /` — if it is back near 100%, stop and re-flag rather than risk another silent corruption.** Once both are in and (disk permitting) a full suite is clean, run the real mur review and deliver the batched `[merge-up]` line per §1.
 
 ## §4 TRAPS — three genuinely new mechanisms this session, in the order they'd bite a cold reader
