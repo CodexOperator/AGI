@@ -34,15 +34,15 @@ Tag legend: MEASURED = quoted from a page/file read here; ESTIMATE = inference.
 - Runtime caveats (MEASURED, bend2.dev): released runtime is **BendRT**, "compiles functions into a **flat C evaluator**", "**does not execute interaction nets**", scheduler "assigns tasks once, **without work stealing**; an uneven split can leave workers idle". GPU = Metal or CUDA, enabled with `--gpu`.
 
 ## 4. Town chain it touches
-- **GPU-less compute** (primary): BendRT emits plain C; the parallel-CPU path is the one available on this box (arm-cloud, no Metal, no CUDA). The M4 benchmark is the first place the town has a **measured case where parallel CPU beats the GPU**.
+- **GPU-less compute** (primary): BendRT emits plain C; the parallel-CPU path is the one available on this box (ARM4C, no Metal, no CUDA). The M4 benchmark is the first place the town has a **measured case where parallel CPU beats the GPU**.
 - **Local inference / lighter hardware** (secondary): "fast like C, parallel like CUDA" targets everyday hardware; "100x on 16 cores" is a CPU claim, not a GPU-only claim.
 - **Oscillators/metronome** (tertiary/weak): affine types + `a b = f(x) g(y)` parallel-call scheduling is a deterministic join model, adjacent to coupled-oscillator scheduling but not the same thing — note as a possible **scheduling primitive** for many tiny workers.
 - Not a model/weights post: it is a **language + runtime**, so it touches the "smarter way to infer on lighter hardware" vision only via execution efficiency, not learning.
 
 ## 5. Hypothesis seeds (smallest experiment)
-- **B1 (THIS box, 4-core arm-cloud, 23 GB, no GPU) — install Bend 2.0.5 and measure the CPU-parallel speedup.** Requires Bun + a C compiler (no GPU backend on ARM Linux ⇒ Metal/CUDA paths unavailable). Run the shipped `pow2` / Game-of-Life fixture at 1 thread vs 4 threads; report wall-clock and the CPU-only speedup. Est cost **$0.00**, **~20–30 min**. Falsifier: 4-core ARM speedup ≪ the "100x/16-core" headline, or install needs a GPU/Bun the box lacks.
+- **B1 (ARM4C, 4-core arm-cloud, 23 GB, no GPU) — install Bend 2.0.5 and measure the CPU-parallel speedup.** Requires Bun + a C compiler (no GPU backend on ARM Linux ⇒ Metal/CUDA paths unavailable). Run the shipped `pow2` / Game-of-Life fixture at 1 thread vs 4 threads; report wall-clock and the CPU-only speedup. Est cost **$0.00**, **~20–30 min**. Falsifier: 4-core ARM speedup ≪ the "100x/16-core" headline, or install needs a GPU/Bun the box lacks.
 - **B2 (THIS box) — proof-checker latency.** Run `bend PROOF.bend` on the bundled `app_win_is_bug_2d` demo; time it. Tests "checker under a second" on 4-core ARM. Est cost **$0.00**, **~10 min**.
-- **B3 (local-town, ssh alias, gpu-8g + 15 GB RAM) — GPU vs parallel-CPU crossover.** Reproduce the Game-of-Life and lexer comparison to see whether the "GPU loses on lexer" result holds on a GPU2070S. Est cost **$0.00** (own box), **~30–45 min**. Camber XS (24 GB) NOT needed and NOT authorised here.
+- **B3 (local-town, ssh alias, 8 GB GPU + 15 GB RAM) — GPU vs parallel-CPU crossover.** Reproduce the Game-of-Life and lexer comparison to see whether the "GPU loses on lexer" result holds on a local-town GPU. Est cost **$0.00** (own box), **~30–45 min**. Camber XS (24 GB) NOT needed and NOT authorised here.
 - Explicitly **not** proposed: renting Camber for this — 3 GPU-h/month is spend, and the interesting Bend result is the CPU path.
 
 ## 6. Open questions
