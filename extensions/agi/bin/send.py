@@ -3762,6 +3762,26 @@ def peek(root: Path, me: str, wrap: int = 160) -> None:
         _print_blocks_with_labels(root, me, blocks, wrap=wrap)
 
 
+def read_dms(croot: Path, me: str, *, commit: bool = True,
+             wrap: int = 160) -> int:
+    """Sweep every dm conversation naming `me`: print its unread blocks,
+    each line prefixed with its conversation id, marking the conversation
+    read when `commit` (hypothesis:l4-one-read-returns-everything-addressed-
+    to-a-post... clauses 1 and 3). Returns the block count shown."""
+    n = 0
+    d = croot / "dm"
+    for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
+        if me not in path.stem.split("--"):
+            continue
+        blocks = _conv_blocks(path)
+        shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
+                      commit=commit)
+        for line in render_transcript(shown, wrap=wrap):
+            print(f"[dm {path.stem}] {line}")
+        n += len(shown)
+    return n
+
+
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
 
 
@@ -5344,6 +5364,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         read(root, _alias_canon(root, args.target) or args.target, sender,
              wrap=wrap)
+        # clause (1): the same call also consumes every dm naming the post.
+        read_dms(croot, resolved, wrap=wrap)
         return 0
 
     if args.verb == "peek":
@@ -5365,6 +5387,9 @@ def main(argv: list[str] | None = None) -> int:
                   file=sys.stderr)
             return 1
         peek(root, _alias_canon(root, args.target) or args.target, wrap=wrap)
+        # clause (3): peek shows the dm channels too, flipping no cursor.
+        read_dms(croot, _alias_canon(root, args.target) or args.target,
+                 commit=False, wrap=wrap)
         return 0
 
     if args.verb == "rooms":
