@@ -21,3 +21,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 2026-09-18 04:59Z (thought-master pane), verbatim: "I was thinking we could use the DB mirror to dynamically build jev prompts since it’s basically multiple choice and graph is the choice limiting engine." APPLY (thought-master): the mirror gets its FIRST CONSUMER -- a jev prompt builder. The graph is the choice-limiting engine: for an act, the mirror enumerates the LEGAL choice set (schema-legal parents and verbs for the node type, in-scope node ids, open hypotheses under the goal, the tool roster of that kid, the six verdict words), the builder renders it as a numbered multiple-choice prompt, and jev answers with an index + confidence -- generation becomes selection, which is what a small local model does well. For TM.31 (live now): a sixth standing query, choices-for-act (children of a goal by status, allowed parents from the schema, open hypotheses under a goal, kids by round) -- added by in-node rebrief if the parent can take it, else it is the first line of the R2 brief. Measured claim for R2 (hypothesis:lm-jev-next-call-suggestion): top-1 agreement rises as the graph shrinks the choice set; choice-set size is recorded per decision as the covariate.
