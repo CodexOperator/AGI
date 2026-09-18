@@ -328,3 +328,140 @@ def test_rc_label_and_stored_row_cell_carry_the_new_name(tmp_path, monkeypatch):
     assert rows and rows[0].get("session_label") == "adv-new", rows
     assert not any(r.get("name") == "adv-new"
                    for r in rotate._load_seats(tmp_path))
+
+
+# ---- L5.16: the successor key is minted UNDER the NEW name ----------------
+# hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-not-the-
+# renamed-seat. Before the fix the successor key was written to the ROW's
+# pre-rename path while the successor process ran with AGI_SEAT=<new>, so
+# `send` resolved `<new>.key` and found the PREDECESSOR key (or nothing) and
+# could not sign as the renamed seat. The Prime patched it by hand at 22:43Z.
+
+
+def _mk_real_key(root, seat):
+    """A REAL ed25519 seat key at `<sessions>/seats/<seat>.key` (0600)."""
+    from agi.bin import send
+    d = send._seats_dir(root)
+    d.mkdir(parents=True, exist_ok=True)
+    sch = send.seatsig.get("ed25519")
+    priv, pub = sch.keygen()
+    p = d / f"{seat}.key"
+    p.write_text(json.dumps({"scheme": "ed25519",
+                             "priv_hex": priv.hex()}), encoding="utf-8")
+    os.chmod(p, 0o600)
+    return p, priv.hex(), pub.hex()
+
+
+def test_rotate_successor_key_mints_under_new_name_and_preserves_old(tmp_path):
+    """UNIT: `key_seat` targets the successor file at the NEW name while the
+    PREDECESSOR is read from the seat's own (old-name) key file; the
+    predecessor bytes are PRESERVED beside it, never destroyed by the
+    replace. A no-rename mint is byte-identical to before (no backup)."""
+    from agi.bin import send
+    old_key, pred_priv, pred_pub = _mk_real_key(tmp_path, "old")
+    row = {"pubkey": pred_pub, "role": "parent", "sig_scheme": "ed25519"}
+    out = rotate._rotate_successor_key(tmp_path, "old", row, key_seat="new",
+                                       gen_before=3, gen_after=4)
+    assert out is not None and out["pending_key"]["path"] == str(
+        send._seat_key_path(tmp_path, "new"))
+    # DEFERRED: the predecessor file is untouched by the mint alone.
+    assert old_key.read_text() == json.dumps(
+        {"scheme": "ed25519", "priv_hex": pred_priv})
+    # the boundary's rename-file action moves old -> new; then the gated apply.
+    os.replace(old_key, send._seat_key_path(tmp_path, "new"))
+    applied = rotate._apply_successor_key_pending(out["pending_key"])
+    new_key = send._seat_key_path(tmp_path, "new")
+    assert str(new_key) in applied
+    assert oct(os.stat(new_key).st_mode & 0o777) == oct(0o600)
+    assert json.loads(new_key.read_text())["priv_hex"] == (
+        out["pending_key"]["priv_hex"])
+    bak = tmp_path / "sessions" / "seats" / "new.key.gen3-pre-rename"
+    assert bak.is_file(), "predecessor key must be preserved"
+    assert json.loads(bak.read_text())["priv_hex"] == pred_priv
+    assert oct(os.stat(bak).st_mode & 0o777) == oct(0o600)
+
+
+def test_rotate_successor_key_no_rename_is_unchanged(tmp_path):
+    """The fix is a NO-OP without a rename: the successor lands at
+    `<seat>.key` exactly as before and NO `-pre-rename` sibling appears."""
+    from agi.bin import send
+    key, pred_priv, pred_pub = _mk_real_key(tmp_path, "solo")
+    out = rotate._rotate_successor_key(
+        tmp_path, "solo", {"pubkey": pred_pub, "role": "helper"},
+        gen_before=0, gen_after=1)
+    assert out["pending_key"]["path"] == str(key)
+    assert not out["pending_key"].get("pred_path")
+    rotate._apply_successor_key_pending(out["pending_key"])
+    assert json.loads(key.read_text())["priv_hex"] != pred_priv
+    assert not list((tmp_path / "sessions" / "seats").glob(
+        "*pre-rename")), "a no-rename rotation writes no backup"
+
+
+def test_rename_rotation_successor_signs_as_the_new_seat(
+        tmp_path, monkeypatch, capsys):
+    """WIRE PROOF, the whole chain through `cmd_rotate_self`: a keyed seat
+    with a staged rename mints its successor key at `<new>.key`, the row's
+    `pubkey` cell names that successor, and a signing call as
+    `AGI_SEAT=<new>` (send._sign_line resolves `<new>.key`) VERIFIES under
+    the row's pubkey. Fails on the unfixed code, where `<new>.key` holds the
+    predecessor key moved there by the boundary."""
+    from agi.bin import send
+    _graph_ready(tmp_path)
+    _sessions(tmp_path, "adv-alive")
+    # AFTER `_sessions` (which lays down a throwaway `adv-alive.key`): a REAL
+    # key, so the successor half actually mints.
+    _, pred_priv, pred_pub = _mk_real_key(tmp_path, "adv-alive")
+    _seats(tmp_path, [{"name": "adv-alive", "role": "parent",
+                       "model": "x", "effort": "max", "settings": "",
+                       "pubkey": pred_pub, "sig_scheme": "ed25519"}])
+    _ladder(tmp_path, monkeypatch)
+    (tmp_path / "sessions" / "quorum").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "sessions" / "quorum" / "adv-alive.md").write_text(
+        "# card\n", encoding="utf-8")
+    stage = _stage(tmp_path, "adv-alive", "adv-new")
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-new\n")
+        return 0, "echo hi"
+
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(rotate, "_read_ack",
+                        lambda *a, **k: {"seat": "s", "gen_after": 1,
+                                         "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    rc, err = _err(lambda: rotate.cmd_rotate_self(
+        _rotate_self_args(tmp_path, window_path=str(win),
+                          session_ref="adv-alive-9"), tmp_path))
+    assert rc == 0, err
+    assert not stage.exists()
+    new_key = send._seat_key_path(tmp_path, "adv-new")
+    assert new_key.is_file(), "successor key must land under the NEW name"
+    assert oct(os.stat(new_key).st_mode & 0o777) == oct(0o600)
+    new_priv = json.loads(new_key.read_text())["priv_hex"]
+    sch = send.seatsig.get("ed25519")
+    new_pub = sch.public_from_secret(bytes.fromhex(new_priv)).hex()
+    assert new_pub != pred_pub
+    # the signing path AGREES with the row's pubkey cell.
+    rows = rotate._load_seats(tmp_path)
+    row = next(r for r in rows if r.get("name") == "adv-alive")
+    assert row.get("pubkey") == new_pub, row
+    # the predecessor key was preserved, not destroyed.
+    baks = list((tmp_path / "sessions" / "seats").glob(
+        "adv-new.key.gen*-pre-rename"))
+    assert len(baks) == 1, baks
+    assert json.loads(baks[0].read_text())["priv_hex"] == pred_priv
+    # a process running as AGI_SEAT=adv-new can sign as that seat.
+    ts, to, text = "2026-09-17T00:00:00Z", "belam", "hello"
+    sig_line = send._sign_line(tmp_path, "adv-new", ts, to, text)
+    assert sig_line and sig_line.startswith("sig: ed25519:"), sig_line
+    sig_hex = sig_line.rsplit(":", 1)[1]
+    assert sch.verify(bytes.fromhex(new_pub),
+                      send._canonical_msg(ts, "adv-new", to, text).encode(),
+                      bytes.fromhex(sig_hex))
+    # the successor is NOT addressed by the old name any more.
+    old_path = send._seat_key_path(tmp_path, "adv-alive")
+    assert not old_path.exists() or json.loads(
+        old_path.read_text())["priv_hex"] != new_priv
