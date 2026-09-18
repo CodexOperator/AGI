@@ -104,6 +104,12 @@ MARKER_TAG = "agi-crons"
 #: know where our own managed region starts and ends).
 AGI_BLOCK_RE = re.compile(r"^#\s*(?:>>>|<<<)\s+agi-crons\s+([0-9a-f]{12})\b")
 
+#: Any agi-owned unit filename, hash-AGNOSTIC — `audit` matches this first so a
+#: unit belonging to ANOTHER project's hash is recognised as declared-elsewhere
+#: (silence), never as "not declared by this node". The hash is
+#: `project_hash(...)[:8]`, the same 8 hex chars `unit_filename` writes.
+AGI_UNIT_RE = re.compile(r"^agi-(.+)-([0-9a-f]{8})\.service$")
+
 
 class CronsError(Exception):
     """A problem with the node, the config, or a repo's state.
@@ -1041,12 +1047,16 @@ def cmd_audit(root: Path, crontab_file: Path | str | None = None,
         ud = Path(unit_dir)
         declared = set(node["services"])
         for p in (sorted(ud.glob("*.service")) if ud.is_dir() else []):
-            m = re.match(rf"^agi-(.+)-{ours[:8]}\.service$", p.name)
+            m = AGI_UNIT_RE.match(p.name)
             if m:
-                if m.group(1) not in declared:
-                    found.append(f"unit: {p.name} (service {m.group(1)!r} is "
-                                 f"not in the node's services:)")
-            elif p.name.startswith("agi-"):
+                if m.group(2) == ours[:8]:
+                    if m.group(1) not in declared:
+                        found.append(f"unit: {p.name} (service {m.group(1)!r} "
+                                     f"is not in the node's services:)")
+                # else: another project's own unit — not ours to judge, silent.
+            else:
+                # No agi unit shape at all (ordinary name, or a malformed
+                # agi-* name): always undeclared by this node.
                 found.append(f"unit: {p.name} (not declared by this node)")
     return found
 
