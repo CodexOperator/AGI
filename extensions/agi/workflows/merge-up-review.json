@@ -112,7 +112,8 @@
           "prime_step"
         ]
       },
-      "timeout_s": 1800
+      "timeout_s": 1800,
+      "load_factor": 0.5
     },
     {
       "label": "verify",
@@ -179,7 +180,8 @@
           "summary"
         ]
       },
-      "timeout_s": 1800
+      "timeout_s": 1800,
+      "load_factor": 0.5
     }
   ],
   "type": "merge-up-review"
