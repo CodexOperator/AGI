@@ -7,6 +7,7 @@ parents:
 next_edges: []
 council: council-web-app-suite
 edited_by: belam
+master:
 scaffold_hash: 7bdf5c8b8c4b3ed3
 season: 1
 town: core
