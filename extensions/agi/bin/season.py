@@ -1163,10 +1163,13 @@ def _fold(repo, head, old, sha, apply, tag, step):
 
 def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
                          apply, delete_old, actor, session, tag, base=2,
-                         cell_field="season"):
+                         cell_field="season", defer=None):
     """ARCHIVE -> DELETE -> CELL for one trunk. The delete is only with
     --delete-old and only after the archive ref is proved; the cell bump is
-    gated on the old head being proved GONE from origin."""
+    gated on the old head being proved GONE from origin. With `defer` (a list)
+    the cell is NOT written here: the descriptor is collected and the caller
+    writes every cell in a second pass, only after ALL trunks verified -- a
+    partial rollover must bump no cell anywhere."""
     import cli
     R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
     a, d = base, base + 1
@@ -1191,11 +1194,15 @@ def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
         now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         hist = [h for h in (history or []) if isinstance(h, dict)] + [
             {"season": g, "global_season": g, "opened": now, "closed": None}]
-        fm = ({"season": g, "season_history": json.dumps(hist)}
-              if cell_field == "season" else {cell_field: g})
-        print(f"[{tag}] {d + 1} CELL {cell_id} {m} -> {g}")
-        if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
-            return _stop(d + 1, "cell", "write.py refused (see stderr above)")
+        if defer is not None:
+            defer.append((cell_id, m, g, hist, cell_field))
+            print(f"[{tag}] {d + 1} CELL DEFERRED {cell_id} {m} -> {g} (written only after every trunk verifies)")
+        else:
+            fm = ({"season": g, "season_history": json.dumps(hist)}
+                  if cell_field == "season" else {cell_field: g})
+            print(f"[{tag}] {d + 1} CELL {cell_id} {m} -> {g}")
+            if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+                return _stop(d + 1, "cell", "write.py refused (see stderr above)")
     else:
         print(f"[{tag}] {d + 1} CELL HELD {cell_id} stays {m} — old head {old} remains on origin (bump gated on the verified delete)")
     return 0
@@ -1263,6 +1270,7 @@ def cmd_rollover_global(root: Path, args) -> int:
     print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
     print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
     trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
+    pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
     for slug, cell_id, history in trunks:
         old = branches.season_main(g) if slug is None else branches.derive_names(slug, g)["town_season_main"]
         new = branches.season_main(ng) if slug is None else branches.derive_names(slug, ng)["town_season_main"]
@@ -1272,8 +1280,16 @@ def cmd_rollover_global(root: Path, args) -> int:
         if _fold(repo, head, old, sha, apply, tag, 2): return 1
         field = "current_season" if slug is None else "season"
         if _archive_delete_cell(root, repo, old, new, sha, cell_id, g, ng, history,
-                                apply, delete_old, actor, session, tag, base=3, cell_field=field):
+                                apply, delete_old, actor, session, tag, base=3,
+                                cell_field=field, defer=pending):
             return 1
+    # PASS 2: every trunk cut, folded, archived and deleted -- now write every cell.
+    for cell_id, m, gg, hist, cell_field in pending:
+        fm = ({"season": gg, "season_history": json.dumps(hist)}
+              if cell_field == "season" else {cell_field: gg})
+        print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified)")
+        if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+            return _stop(5, "cell", f"write.py refused for {cell_id}")
     print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
     return 0
 
