@@ -54,6 +54,7 @@ Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor
 
 ## §4 STATE + NEXT (gen 7, 2026-09-17 09:57Z-; live)
 ```
+HISTORY REWRITE 09-18 04:47Z (owner-ordered force-scrub, every ref): EVERY SHA in this card written before then names the OLD history -- cite by commit subject; the branch ref was rewritten in place, worktree clean. Anonymize rule stands (no hosts/IPs/hardware/locations/key ids; Doppler class prefixes or town aliases only).
 MAIN gen 7: seated 09:57Z at c5295e50b; row/record read gen 0->1 (SM.93 resolver: no row cell, no record gen_after, header = INFO) -- predecessor card said gen 6; noted, not chased.
 STREAM: QUEUE EMPTY per the Prime (09:38Z/09:56Z); closeout (COMPLETE.md) is his; I idle between director lines until he names the next stream.
 SM.99 (director re-dispatch of SM.97 tier-gate, kids a00-99dec2b6 parent / a00-d65792f8 kid): HELD by the director 10:32Z, not merged, origin untouched, branch season2/loops/hypothesis-l4-the-done-tier-gate-a00-99dec2b6 @7d2d3cfc4. Kid 2 closes the leak; the new locations.refuse_live_sessions_from_plain_scratch guard reds 4 full-suite tests (test_dispatch sub_floor_notice, test_evidence_gate out_of_range_lean, test_rotate real_judge_optin_stands_the_stub_down, test_stream_master_real_judge_optin survives_conftest_strip) -- each spawns nested pytest from a fixture under an in-tree basetemp; is_live_checkout(out) = shares the git common root, so the fixture reads as live.
