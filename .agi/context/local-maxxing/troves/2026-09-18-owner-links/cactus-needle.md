@@ -28,7 +28,7 @@ ios-arm64, watchos-arm64, tvos-arm64, wasm, wasm-component (WASI P2).
 - Native folders ship `needle` CLI + `libneedle.a` + `needle.h`; `--serve` HTTP.
 - "pip install cactus-needle covers macOS on Apple Silicon, Linux x86-64 and
   ARM64 (glibc and musl)".
-=> ARM64 CPU target exists and is first-class. THIS box (arm-cloud aarch64) is
+=> ARM64 CPU target exists and is first-class. THIS box (ARM4C aarch64) is
    `linux-arm64`. Second headless box is `linux-x86_64`.
 
 ## 3. QUANTISATION — Cactus Quants (CQ), rotation + codebook, 1-4 bit
@@ -89,7 +89,7 @@ deployable model from ONE checkpoint; 2L=25M, 4L=29M, 8L=52M, 16L=98M, 20L=121M.
 
 ## 8. GAPS / NOT YET VERIFIED
 - No A1/ARM-Linux measured tok/s found on public pages (ESTIMATE ~ hundreds
-  decode, based on RPi5 Cortex-A76 being same core class as arm64).
+  decode, based on RPi5 Cortex-A76 being same core class as arm-cloud).
 - `cactus run` runtime bundle generation "unavailable while the graph builder
   is being rewritten" (docs/cactus_quants) — conversion path may be rough now.
 - Needle3 HF repo (Cactus-Compute/needle3) not fetched (time); weights+engines

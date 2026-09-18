@@ -181,7 +181,7 @@ MEASURED local box (read-only probes, 2026-09-17):
   => the 27B PTQ1_0 (5.95 GB) does NOT fit our disk without freeing space; 8B (2.2 GB) and
      1.7B (0.46 GB) do. Disk is a harder wall here than RAM.
 ESTIMATE (method stated, not measured): M5 Pro measured 28.1 tg/s at ~204 GB/s weight traffic,
-  so tok/s ~= BW_effective / model_GB. arm-cloud 4-core: BW_effective ESTIMATE 15-40 GB/s
+  so tok/s ~= BW_effective / model_GB. ARM4C 4-core: BW_effective ESTIMATE 15-40 GB/s
   (no A1 STREAM number read; flagged as the one number to measure first).
   => 27B: 2.5-6.7 tg/s ESTIMATE | 8B: 7-18 tg/s ESTIMATE | 1.7B: 32-86 tg/s ESTIMATE
   Decode-only reasoning: a reasoning model spends 5-50x more tokens than the visible answer,

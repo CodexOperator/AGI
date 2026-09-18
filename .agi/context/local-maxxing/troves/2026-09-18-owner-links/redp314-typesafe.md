@@ -34,7 +34,7 @@ Tag legend: MEASURED = quoted from a page/file read here; ESTIMATE = my arithmet
 ## 5. Hypothesis seeds (smallest experiment)
 - **S1 (THIS box, 4-core arm-cloud, no GPU) — replicate the escalation router offline.** Take 14 atomic `noul`-style checks over a diff; substitute a local tiny model for Jev (no paid API), emit probabilities, apply the 0.35–0.65 → escalate rule, and measure (a) coverage, (b) how often it escalates, (c) agreement with a hand label. Est cost **$0.00**, **~30–45 min**. Falsifier: tiny-model probabilities are uncalibrated so the band escalates ~everything or ~nothing.
 - **S2 (THIS box) — list-price arithmetic audit.** 1,000 synthetic PR-review calls at list price ⇒ **$0.07 ESTIMATE** (1,667 tok × $0.042/Mtok × 1,000). Do NOT spend: TypeSafe has no public free tier (town trove §3), so this stays an ESTIMATE unless the owner authorises paid keys.
-- **S3 (local-town, ssh alias, gpu-8g) — Jev vs local tiny model on the same 14 checks.** Same prompts, two deciders, compare verdicts. Est cost **$0.00** (local only) + optional ~$0.07 API. **~45 min**.
+- **S3 (local-town, ssh alias, 8 GB GPU) — Jev vs local tiny model on the same 14 checks.** Same prompts, two deciders, compare verdicts. Est cost **$0.00** (local only) + optional ~$0.07 API. **~45 min**.
 
 ## 6. Open questions
 - Is `@typesafeai` a public repo/SDK? Town trove found Python/JS SDKs (sdk.md) but no PR-review wrapper repo (MEASURED absence).

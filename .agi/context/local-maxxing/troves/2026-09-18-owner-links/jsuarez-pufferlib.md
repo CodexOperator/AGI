@@ -30,9 +30,9 @@ Tag legend: MEASURED = quoted from a page/file read here; ESTIMATE = inference.
 - Not typed decisions, not oscillators — this thread is compute/RL, not the decision or oscillator chains.
 
 ## 5. Hypothesis seeds (smallest experiment)
-- **P1 (THIS box, 4-core arm-cloud, 23 GB, no GPU) — CPU-only breakout.** Shallow-clone PufferLib, `puffer train breakout` with CPU vectorisation (`--vec.num-threads 4`), no CUDA; measure wall-clock to a scoring agent and compare against "under a second". Est cost **$0.00**, **~30–60 min**. Falsifier: CPU-only never reaches the claim (release body predicts this).
+- **P1 (ARM4C, 4-core arm-cloud, 23 GB, no GPU) — CPU-only breakout.** Shallow-clone PufferLib, `puffer train breakout` with CPU vectorisation (`--vec.num-threads 4`), no CUDA; measure wall-clock to a scoring agent and compare against "under a second". Est cost **$0.00**, **~30–60 min**. Falsifier: CPU-only never reaches the claim (release body predicts this).
 - **P2 (THIS box) — eval-only timing.** Load a shipped 5.0 tiny policy (`puffer5_models.zip`) and time one eval/rollout pass on CPU. Isolates "under a second" as *eval* vs *train*. Est cost **$0.00**, **~20 min**.
-- **P3 (local-town, ssh alias, gpu-8g + 15 GB RAM) — GPU repro of the 5.0 claim.** `puffer train breakout` on the GPU2070S; measure seconds-to-train and peak VRAM. Est cost **$0.00** (own box), **~30–45 min**. Camber XS (24 GB) NOT needed.
+- **P3 (local-town, ssh alias, 8 GB GPU + 15 GB RAM) — GPU repro of the 5.0 claim.** `puffer train breakout` on the local-town GPU; measure seconds-to-train and peak VRAM. Est cost **$0.00** (own box), **~30–45 min**. Camber XS (24 GB) NOT needed.
 - All seeds are $0: PufferLib is free/open-source; no paid API anywhere in this thread.
 
 ## 6. Open questions
