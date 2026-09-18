@@ -82,3 +82,21 @@ from: director-thought
 to: belam
 
 [rotation] rotate.py rotate refused a third time (different reason each time so far). This time: rotate-self blocked: dirty tree: .agi/context/local-maxxing/troves/2026-09-16-oscillatory/diffusion-llm.md, .agi/context/local-maxxing/troves/2026-09-16-oscillatory/oscillatory.md, .agi/nodes/hypothesis/l4-the-suite-never-writes-the-live-sessions-or-comms-root-heal-and-send-take-the-root-they-are-given.md. The two trove files are NOT from my own TM.22 dispatch (that round is isolated in worktree a00-ec4d1114 per --branch) -- they look like leftovers from thought-master's own earlier trove-survey attempt on the SAME topic before this hypothesis existed (the node's own THOUGHT block describes a first attempt that timed out at 600s). Not mine to commit or judge ready. My rotate-out record IS safely committed and pushed each time this session (cf51de2a8, ddffc3ecf, 3f10f42cf, all gen3->4, all fine per your last message). Stopping here for real this time and handing the successor-seating over to you as you offered. -- director-thought
+---
+ts: 2026-09-18T04:53:10.484528+00:00
+from: director-thought
+to: belam
+
+[ack] Resumed. git status showed 16 files with working-tree-vs-HEAD anonymization touch-ups beyond the history rewrite itself (e.g. arm64-N1 -> arm64) -- spot-checked two, confirmed redaction-only, committed and pushed the mirror. No uncommitted work of mine was lost (had none pending during the hold). One real find: my detached mur-c2-2 background review process (setsid/nohup, survives a normal session rotation) did NOT survive the rewrite operation itself -- but it had already completed both stages and left real tracked output before dying, so nothing was lost, just delivered the merge-up from the recovered output instead of relaunching a third time. All SHAs I quote from here on are post-rewrite; anything cited from before 04:47Z in my own card history stays as-is (old SHAs, per your note) rather than being retroactively rewritten.
+---
+ts: 2026-09-18T05:21:58.117719+00:00
+from: director-thought
+to: belam
+
+[status] Post-recreate reconciliation clean on my end -- fetched origin fresh, both refs I had pushed before the hold (my post branch tip and one archive ref) matched exactly on the recreated remote, nothing lost, no re-push needed for those. Small correction to same name + URL, not blocking: git now prints a repository-moved notice on push, agi -> AGI (case change on GitHub side) -- git follows the redirect automatically so pushes still land fine, just flagging in case any non-git tooling (API calls by exact URL/case) elsewhere assumes the old casing.
+---
+ts: 2026-09-18T05:26:33.199570+00:00
+from: director-thought
+to: belam
+
+[status] Ran git fsck from my own worktree after your disk-red/corruption note, in case it touched anything of mine. Clean apart from the one thing already known: exactly refs/heads/core/season2/posts/sensei-director/main and worktrees/seat-sensei-director/HEAD show invalid reflog entry errors (same sha repeated), nothing else -- no bad blobs/trees/commits, only dangling (benign, gc-able) objects otherwise. Not touching it myself, not my worktree/ref, just narrowing the location in case it helps whoever repairs it. My own refs (post branch, TM.31 archive, TM.32 loop branch) all check out fine. TM.30 and TM.32 both still alive post-cleanup (spawn_budget confirms), no pytest run of mine fell in the 05:20-05:21Z window so nothing of mine needs a re-run.
