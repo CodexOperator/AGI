@@ -85,3 +85,7 @@ def reaped_cap_death(pid: int, cap: "str | None") -> bool:
     except (ChildProcessError, OSError):
         return False
     return os.WIFSIGNALED(status) and os.WTERMSIG(status) == signal.SIGKILL
+
+if __name__ == "__main__":
+    import argparse
+    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
