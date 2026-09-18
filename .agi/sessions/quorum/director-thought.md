@@ -63,19 +63,28 @@ Role doc: `doc:unified-director-brief` (§4 "thought" is this seat) + `doc:lm-di
 - Read `hypothesis:lm-bend2-spiking-sim` fresh and dispatched its A1-light half as TM.32 (parent `a00-f29e25f2`), with tightly scoped orders and an explicit, flagged judgment call on splitting its `$1` ceiling across two rounds.
 - Reported both actions to thought-master in two DMs.
 
+## 4b TM.30 harvested, closed; TM.33 (schedule-fix) dispatched into the freed off-box slot (06:2xZ)
+TM.30 (`hypothesis:lm-bonsai2-27b-kid-tier`) harvested honestly incomplete: kernel-path proven for real on belam-gpu (Ternary-Bonsai-1.7B-PQ2_0, CUDA, ngl 99, coherent output, pp512 6892.82 / tg128 317.94 tok/s), 27B GGUF header range-fetched and parsed into a VRAM budget (6183/7786 MiB at `-c 8192` fits, 32768 OOMs) independently reproduced by the parent, a resumable sha256-pinned 27B fetch STARTED but still running in the background on belam-gpu (~9-10h, not complete) — verdict kept honestly at `inconclusive_lean_proved:65`, hypothesis stays OPEN, a future round picks up the actual 27B bench once the bytes land. Verified directly (read both experiment nodes in full, confirmed the bench row is real), isolated the real 8 files from ~120 files of incidental drift (same pattern as TM.31), committed (`2d776e898`), archived to `refs/agi/archive/season2/loops/hypothesis-lm-bonsai2-27b-kid-ti-a00-59e78c2e`, merge-up sent. **Gap found and flagged, not hidden:** no evidence the proven-quiet-line athena pause I relayed earlier was ever executed before this fetch started — the round only cites the old 0.48 MB/s reading and a bare "supervisor is on the box." Recommended (and now dispatched) the schedule-fix round also add a real 60s-quiet-line proof, not just a stop command.
+Off-box slot freed by TM.30 closing -> dispatched **TM.33** (schedule-fix), parent `a00-79adf24c`, pid 3675707, cap $0.30, target `hypothesis:lm-athena-identity-seat-ab`: zoneinfo time check (1.5 MB/s 02:00-06:00 America/New_York else 0.5) + the proven-quiet-line supervisor check. Dispatched while ACTUALLY INSIDE the 1.5 MB/s window (06:24Z = 02:24 EDT), so this is live-relevant immediately.
+
 ## 5 🔴 WHERE IT STOPS — exact next action
 ```
-Poll `python3 extensions/agi/bin/spawn_budget.py status` for TM.30 (a00-59e78c2e / a00-c0675ae5)
-and TM.32 (a00-f29e25f2). On either dropping off the live list, FIRST check that
-worktree directly (git -C .agi/worktrees/<parent-id> status -sb && git diff --cached
---stat) for staged-but-uncommitted real work before trusting a clean-harvest or
-dead-end read -- do not assume the rewrite-orphan pattern was a one-off. Verify
-whatever it claims yourself (re-run its own probes), then merge-up + archive.
-Off-box queue (behind Bonsai, still running): schedule-fix -> bend2 off-box half
-($1 cap now, ceiling clarified) -> pufferlib off-box half -> dead-head-prune ->
-spec-decode -> kv-slot-save.
+Poll `python3 extensions/agi/bin/spawn_budget.py status` for TM.33 (a00-79adf24c,
+schedule-fix) and TM.32 (a00-f29e25f2, bend2 A1-half). On either dropping off the
+live list, FIRST check that worktree directly (git -C .agi/worktrees/<parent-id>
+status -sb && git diff --cached --stat) for staged-but-uncommitted real work before
+trusting a clean-harvest or dead-end read -- this has now hit on EVERY closed round
+this session (TM.31, TM.30), not a one-off. Verify whatever it claims yourself, then
+merge-up + archive.
+Off-box queue (behind TM.33 schedule-fix, running): bend2 off-box half ($1 cap) ->
+pufferlib off-box half ($1 cap) -> lm-c2c-kv-bridge-released-fusers (new, $1, local-
+town downloads only, behind the still-running bonsai 27B fetch) -> dead-head-prune
+-> spec-decode -> kv-slot-save. A 2609.04010 digest may add more candidates after.
 A1-light queue (behind TM.32): pufferlib A1-half ($1 cap) -> lm-mirror-choices-
-for-act ($0.50 cap, new) -> c2-flip-as-phase-jump-vs-sign-inversion (C2.03).
+for-act ($0.50 cap) -> c2-flip-as-phase-jump-vs-sign-inversion (C2.03).
+Also watch for: TM.30s hypothesis (lm-bonsai2-27b-kid-tier) needs a FUTURE follow-up
+round once its background 27B fetch on belam-gpu finishes (~9-10h from 06:07Z) --
+not queued yet since it is not ready, but do not forget it exists.
 ```
 
 ## 6 BANKED
