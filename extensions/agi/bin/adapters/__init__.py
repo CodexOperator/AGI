@@ -27,6 +27,7 @@ is `mvp:unified-spawn-path`'s first falsifier, stated as code.
 from __future__ import annotations
 
 import importlib
+import sys
 from pathlib import Path
 from types import ModuleType
 
@@ -288,6 +289,46 @@ def drop_unneeded_credential(env: dict[str, str], harness: dict) -> dict[str, st
         return env
     import provisioning  # lazy: keeps this package import-light
     env.pop(provisioning.RUNTIME_KEY_VAR, None)
+    return env
+
+
+#: Names injected from `.env` by forwarding in THIS process, for the scrubber
+#: (`dispatch._looks_like_secret`): a forwarded name need not carry a
+#: KEY/TOKEN/SECRET/PASSWORD substring, so the name half alone would leak it.
+_FORWARDED_NAMES: set[str] = set()
+
+#: Test seam -- when set, forwarded names are read from this `.env`.
+_FORWARD_ENV_FILE: Path | None = None
+
+
+def forward_named_env(env: dict[str, str], harness: dict) -> dict[str, str]:
+    """Inject `harness['forward_env']` NAMES from the MAIN-root `.env`.
+
+    ADDS, never removes: a name already in `env` (the dispatcher environ, or a
+    `harness['env']` literal) is left exactly as it was. A listed name absent
+    from `.env` is skipped with ONE named notice, never an exception and never
+    a partial environment. Every adapter's `child_env` calls this, so main
+    dispatch, the dry-run mirror and adapter `restart` all reach it.
+    """
+    names = harness.get("forward_env") or []
+    if not names:
+        return env
+    import envfile  # lazy: keeps this package import-light
+    try:
+        path = _FORWARD_ENV_FILE or envfile.resolve().env_file
+    except Exception:  # noqa: BLE001 -- no project, no .env, malformed node
+        path = None
+    from_env = envfile.read_env(path) if path else {}
+    for name in names:
+        name = str(name)
+        if name in env:
+            continue
+        if from_env.get(name):
+            env[name] = from_env[name]
+            _FORWARDED_NAMES.add(name)
+        else:
+            print(f"[adapters] forward_env: {name} not in "
+                  f"{path or '.env'}; skipped", file=sys.stderr)
     return env
 
 
