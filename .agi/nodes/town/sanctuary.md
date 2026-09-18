@@ -3,6 +3,7 @@ id: town:sanctuary
 mint_id: 49485cd3546d4087bf134a4984f4fd62
 type: town
 parents:
+  - vision:the-living-being
   - ladder:ladder
 next_edges: []
 council: council-sanctuary
