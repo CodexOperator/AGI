@@ -315,3 +315,92 @@ def test_well_formed_entry_unaffected(project):
     rows[2]["town"] = "sanctuary"
     res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
     assert res.status == node_writer.UPDATED
+
+
+# --- 7. SM.115 corrective: the actor's OWN row is self_row's, not actor_rows'
+
+def test_own_row_spawn_write_admitted(project):
+    """SM.115: `sanctuary-master` sets its OWN row's `session_id`/`pid`/
+    `generation` (all self_row fields) on a `config:posts` node whose schema
+    ALSO carries the sanctuary-master actor_rows grant on `posts` -> ADMITTED.
+    Before the fix the actor_rows fields check refused `session_id` first."""
+    rows = _clone_rows()
+    rows[0]["session_id"] = "abcd-1234"
+    rows[0]["pid"] = 4242
+    rows[0]["generation"] = 5
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+    assert "abcd-1234" in text and "4242" in text and '"generation": 5' in text
+
+
+def test_other_row_still_limited_to_actor_rows_grant(project):
+    """SM.115 regression guard: the SAME actor, SAME list, but the row being
+    changed is a DIFFERENT post -- `session_id` is a self_row field generally
+    but NOT in sanctuary-master's actor_rows grant, so actor_rows must still
+    see it and refuse BY NAME. The fix must not widen the grant."""
+    rows = _clone_rows()
+    rows[2]["session_id"] = "dead-beef"   # director-belam's row, not the actor's
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    msg = str(ei.value)
+    assert "session_id" in msg and "actor_rows" in msg
+    assert "dead-beef" not in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_rotate_identity_writer_own_row_admitted(project):
+    """SM.115 is wired to the REAL caller: rotate.py's `_write_identity_cells`
+    (the one writer `_successor_row_write`/`_backfill_session_ref` drive) writes
+    the seat's identity cells under a schema carrying BOTH a self_row and an
+    actor_rows entry for the same seat/list -> ADMITTED and landed."""
+    import rotate as rotate_mod  # noqa: PLC0415
+    out = rotate_mod._write_identity_cells(
+        project, seat="sanctuary-master", actor="sanctuary-master",
+        role="director",
+        cells={"session_id": "beef-5678", "pid": 777, "generation": 3})
+    assert out, "the real caller returned an empty outcome (skipped)"
+    text = (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+    assert "beef-5678" in text and "777" in text
+
+
+# --- 8. SM.115b corrective: field-level exemption on the own row ------------
+
+def test_own_row_town_field_alone_still_admitted(project):
+    """SM.115b falsifier made permanent: `sanctuary-master` sets ONLY its own
+    row's `town` cell (an actor_rows field), touching no self_row field. The
+    ENTRY-level skip of SM.115 is gone; the field-level exemption must keep
+    this admitted, as it was before the SM.115 round."""
+    rows = _clone_rows()
+    rows[0]["town"] = "core"   # rows[0] is the actor's OWN row
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+    assert '"town": "core"' in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_own_row_town_plus_identity_cells_admitted(project):
+    """SM.115b mixed own-row edit: the actor's own row sets `town` (an
+    actor_rows field) AND `session_id` (a self_row field) in the SAME edit —
+    the real rotate.py shape — and both cells land."""
+    rows = _clone_rows()
+    rows[0]["town"] = "core"
+    rows[0]["session_id"] = "cafe-9999"
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+    text = (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+    assert '"town": "core"' in text and "cafe-9999" in text
+
+
+def test_own_row_field_in_neither_list_still_refused(project):
+    """SM.115b bound: a field granted to NEITHER `actor_rows.fields` NOR
+    `self_row.fields` on the actor's OWN row (`owning_goal`) still REFUSES by
+    name — the exemption must not become 'anything on my own row is fine'."""
+    rows = _clone_rows()
+    rows[0]["owning_goal"] = "goal:g99"
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    msg = str(ei.value)
+    assert "owning_goal" in msg and "actor_rows" in msg
+    assert "owning_goal" not in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
