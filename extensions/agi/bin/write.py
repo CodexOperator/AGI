@@ -1067,6 +1067,15 @@ def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
             old = old if isinstance(old, list) else []
             old_by = {r.get(mk): r for r in old if isinstance(r, dict)}
             new_by = {r.get(mk): r for r in rows if isinstance(r, dict)}
+            # SM.115 + SM.115b: the actor's OWN row is co-governed by
+            # `self_row`. A field the type's `self_row` declares (its identity
+            # cells) is not THIS grant's to refuse, so it is exempted
+            # FIELD-LEVEL below; every other own-row field still goes through
+            # the grant's `fields` check, and non-self_row fields (town, ...)
+            # stay admitted exactly as on any other row.
+            _sr = schema.frontmatter.get("self_row")
+            self_row_fields = ([str(f) for f in (_sr.get("fields") or [])]
+                               if isinstance(_sr, dict) else [])
             fields = [str(f) for f in (entry.get("fields") or [])]
             ops = [str(o) for o in (entry.get("ops") or ["set"])]
             deny = [str(r) for r in (entry.get("deny_roles") or [])]
@@ -1087,7 +1096,9 @@ def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
                     old_r = o or {}
                     for f in set(old_r) | set(n):
                         if (f != mk and old_r.get(f) != n.get(f)
-                                and f not in fields):
+                                and f not in fields
+                                and not (str(name) == seat
+                                         and f in self_row_fields)):
                             return (f"field {f!r} is not granted on `{key}` "
                                     f"rows (fields {fields})")
             return ""
