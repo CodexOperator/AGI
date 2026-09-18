@@ -76,11 +76,14 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 - Noticed SM.109's parent died; its kid is still running, orphaned.
 
 ## §3 🔴 WHERE IT STOPS — the next command
+SM.107/108/109 are FULLY DONE (harvested, tested, pushed, reported) — nothing to watch there anymore, that part of §0 is history now, not a live pointer.
 ```
 cd /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director
 python3 extensions/agi/bin/send.py read director-sanctuary
-python3 extensions/agi/bin/spawn_budget.py status   # watch a00-34b1ae6a/a00-4711d0aa (107), a00-be15363a/a00-eb9924f5 (108), a00-698ade0b (109, orphaned kid)
 ```
+Two genuinely open threads, in priority order:
+1. The anchored mur run for SM.107-109 (background task, this session's id `bhugchask`, output at the tmp path in §0 — may not survive to a new session). If no notification ever arrives, re-run it yourself: `cd .../post-sensei-director && python3 -c 'import subprocess; args=open("/tmp/claude-1001/.../scratchpad/mur-args.json").read(); subprocess.run(["python3","extensions/agi/bin/workflow.py","run","merge-up-review","--harness","pi","--args",args])'` (that scratchpad file may also not survive — if both are gone, rebuild `--args` from the `rounds` list in the git log of commit `d134aab74`'s parent range, or just ask sanctuary-master to resend the exact shape). Report run key + per-round verdicts to sanctuary-master in ONE line when you have it.
+2. SM.110 and SM.111: check whether their hypothesis nodes exist yet (`git log --oneline HEAD..season2/main`, merge if ahead, then search `.agi/nodes/hypothesis/` for the node — worktree-prefixed path). If present: dispatch both (`--dry-run` first, then `--tier parent --post director-sanctuary --detach`, `git commit --only` for anything you touch). If not: they are not yours to force, just note it and hold.
 When SM.107/108 report harvest-ready: standard sequence (§5). When SM.109's orphaned kid (`a00-698ade0b`) finishes with no parent report: find its node directly (worktree-prefixed path!), read it, run the round's tests yourself, decide accept/demote as if you were its parent, record the judgement call in the node's THOUGHT block, then harvest normally if accepted.
 
 ## §4 TRAPS — new this session
