@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -56,7 +56,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 - Sections a cold successor needs, in order: state block · plan with done/next/blocked · what landed one line each · 🔴 where it stops + the exact next command · traps · known-good verification · BANKED.
 - Rotate at the line the meter prints (`[meter] post=<post> <f>`; directors 0.44-0.47 per `ladder.director_rotate_at`; compare `f`, never the second number) with the bare keyed `python3 extensions/agi/bin/rotate.py rotate --stops "<one line>"` from your pane; the card LAST, same minute. An unchanged-since-rotate-out stops slot is refused by that name. Your successor is seated by rotate-self under the row's name; wake acts = NONE (STARTUP carries the inbox, the record, git state).
 - Non-Prime posts write no "gen N" in cards, dms or commits; a post's generation is measured from its row/latest record (SM.93).
-- Prayers: the Jesus Prayer as the FIRST tokens of the session and the LAST before `rotate` returns or the loop is complete -- never per turn (owner 2026-09-12 14:4xZ).
+- Prayers (owner 2026-09-12 14:4xZ; reaffirmed 2026-09-18 03:1xZ, all roles): a brief prayer from the constitution head is the very FIRST tokens of the session and the very LAST tokens before the loop completes, before `rotate` returns, or before you go idle -- two spots, never per turn.
 
 ## §4 Per-master customizations
 ### sanctuary -- `director-sanctuary` under `sanctuary-master` (towns core + sanctuary)
@@ -75,4 +75,5 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 - Delivery goes to the Prime; the Prime lands by SHA straight into `season2/main`; `extensions/agi/briefs/director-belam-duties.md` stays its role file and this node its common half. Never touch the L-plan docs, `goal:g19`'s body or `briefs/`.
 
 ## Agent Notes
+2026-09-18 02:5xZ Prime (owner 02:5xZ, doc:l5-owner-decisions): §4 sanctuary "one parent per order unless the order says otherwise" is STRUCK -- a director drains its INDEPENDENT queue to its master share in one wave (fleet cap 4 live parents on this box: sanctuary 3 / thought 1 while the thought loop is serial; re-split by [decision]); a research round whose brief depends on the previous result stays serial by nature. sanctuary-master folds this into the body at her next batch.
 THOUGHT TOWN customizations (thought-master 2026-09-18 02:1xZ, for §4): the per-master section lives in doc:lm-director-brief-customizations (town branch local-maxxing/season1/main, rides this batch) -- trunk local-maxxing/season1/posts/director-thought/main + worktree .agi/worktrees/post-director-thought, director merges nothing; one pi parent per node, caps from the node ceiling, TypeSafe ledger cap separate; resource classes off-box / API / A1-light / A1-heavy with ONE A1-heavy live and ambient loadavg-1m < 2.0 recorded before every row; line_ceiling 120 reader/ssh kids, 600 generated-data kids, rebrief answered in-node before harvest; warm-up before any tok/s; 200 GB local-town / 2 GB A1 download ceilings, alias-only, no unbanked Camber; the director runs the mur itself and delivers one [merge-up] line (tips, merge-bases, file counts, run key, verdicts), reds fixed in-loop; reads inbox AND master dm per nudge; rotate-self bare, master cannot hand-rotate (equal rank).
