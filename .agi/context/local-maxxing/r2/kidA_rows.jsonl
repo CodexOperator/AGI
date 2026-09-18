@@ -1,0 +1,17 @@
+# Kid A decisive rows - q4_0 KV cache - tm.23 r2
+# Source: .agi/context/local-maxxing/bench/20260917T014901Z.jsonl (the COMPLETED d4096 run, ret 0)
+# + 20260917T005931Z, 20260917T012718Z (timed-out partials, tenancy-corrupt, kept for provenance)
+# Each line: one llama-bench streamed row at n_depth=4096, samples_ts rep-level tg (tok/s).
+# Box: 4-core arm-cloud, ~15 resident agents; load during rows 4.5-4.8 (ABOVE the 4.0 gate).
+{"n_depth":4096,"type_k":"f16","type_v":"f16","avg_ts":4.36,"stddev_ts":2.466,"samples_ts":[7.207,2.992,2.88]}
+{"n_depth":4096,"type_k":"f16","type_v":"f16","avg_ts":7.061,"stddev_ts":1.177,"samples_ts":[5.703,7.704,7.776]}
+{"n_depth":4096,"type_k":"q4_0","type_v":"q4_0","avg_ts":10.079,"stddev_ts":1.361,"samples_ts":[8.521,11.041,10.673]}
+{"n_depth":4096,"type_k":"q4_0","type_v":"q4_0","avg_ts":10.374,"stddev_ts":2.502,"samples_ts":[7.504,12.089,11.531]}
+# AGGREGATE (6 samples each):
+# f16  tg: mean 5.71  median 6.46  range 2.88-7.78
+# q4_0 tg: mean 10.23 median 10.86  range 7.50-12.09
+# RATIO q4_0/f16 AT DEPTH 4096: mean 1.79x, median 1.68x (CLAIM budget >=1.2x -> MEETS)
+# pessimistic floor (q4 min / f16 max): 7.50/7.78 = 0.96x
+# optimistic (q4 mean / f16 min): 10.23/2.88 = 3.55x
+# QUALITY: f16 within-cell spread 2.7x (tenancy); loadavg during rows 4.5-4.8 > 4.0 gate;
+# full ladder (d0/2048/8192) and q8_0 point DID NOT complete cleanly (20min budget, box contention).
