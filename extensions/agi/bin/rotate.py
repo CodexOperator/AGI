@@ -11146,37 +11146,91 @@ ACK_JOIN_POLL_S = 3
 
 
 def _successor_window_id(seat: str, tmux_session: str,
-                         window_path: str | None = None) -> str | None:
+                         window_path: str | None = None,
+                         aliases: list[str] | None = None) -> str | None:
     """The successor window's tmux @id (the `@<N>` token), or None.
 
     With `window_path` (test seam, s3) the @id comes from a window-path line
     of the form `@<N> <name>`; a plain `<name>` line yields None, so existing
     plain-name fixtures never trip the JOIN. Real tmux parses
     `list-windows -F '#{window_id} #{window_name}'` and name-matches. The @id
-    (never the session prefix) is what the registry JOIN keys on."""
+    (never the session prefix) is what the registry JOIN keys on.
+
+    `aliases` (L5.15) is an ORDERED list of ADDITIONAL names tried after
+    `seat`, by the SAME exact equality -- never a substring. A rename boundary
+    supplies them from the record's OWN `applied_rename` fact (`<new>` first,
+    then the `<new>.prev` window the boundary leaves behind). Absent/empty
+    aliases is byte-for-byte the old behaviour."""
+    wanted = [seat] + [str(a) for a in (aliases or ())
+                       if a and str(a) != seat]
+    plain: list[str] = []
     if window_path is not None:
         p = Path(window_path)
         if p.exists():
-            for ln in p.read_text(encoding="utf-8").splitlines():
-                ln = ln.strip()
-                if not ln.startswith("@"):
-                    continue
-                ident, _, name = ln.partition(" ")
-                if name.strip() == seat:
-                    return ident.strip()
-        return None
-    try:
-        out = subprocess.run(
-            ["tmux", "list-windows", "-t", tmux_session,
-             "-F", "#{window_id} #{window_name}"],
-            capture_output=True, text=True, timeout=5).stdout
-        for ln in out.splitlines():
+            plain = [ln.strip() for ln in
+                     p.read_text(encoding="utf-8").splitlines()
+                     if ln.strip().startswith("@")]
+    else:
+        try:
+            plain = subprocess.run(
+                ["tmux", "list-windows", "-t", tmux_session,
+                 "-F", "#{window_id} #{window_name}"],
+                capture_output=True, text=True, timeout=5
+            ).stdout.splitlines()
+        except Exception:  # noqa: BLE001
+            plain = []
+    # name preference order (identical to the old first-match when no aliases)
+    for want in wanted:
+        for ln in plain:
             ident, _, name = ln.partition(" ")
-            if name.strip() == seat:
+            if name.strip() == want:
                 return ident.strip()
-    except Exception:  # noqa: BLE001
-        pass
     return None
+
+
+def _record_names_prev_as_successor(rec: dict | None, new: str) -> bool:
+    """True ONLY when the record's OWN bytes name `<new>.prev` as its
+    successor window. `rotate-self` writes that fact at
+    `handover.successor_window.name` (rotate.py:18951); a crash-recovery
+    record carries the same shape top-level. Absent, malformed or a different
+    name -> False, so `.prev` is never a candidate on a guess."""
+    want = f"{new}.prev"
+    rec = rec if isinstance(rec, dict) else {}
+    hov = rec.get("handover")
+    cands = []
+    if isinstance(hov, dict):
+        cands.append(hov.get("successor_window"))
+    cands.append(rec.get("successor_window"))
+    for sw in cands:
+        nm = sw.get("name") if isinstance(sw, dict) else sw
+        if nm and str(nm) == want:
+            return True
+    return False
+
+
+def _rename_boundary_names(seat: str, rec: dict | None) -> list[str]:
+    """The successor-window names a record's OWN `applied_rename` fact
+    licenses, in preference order: the renamed target first, then -- ONLY
+    when the record's own bytes name it the successor -- the `<new>.prev`
+    window. Returns [] for a record with no rename (absent, or old == new),
+    so nothing is ever guessed.
+
+    The OLD name is deliberately NOT a candidate: after the boundary applied,
+    no live window answers to it, so matching it could only join a foreign
+    window. `.prev` is the PREDECESSOR's own window carried aside by step (2)
+    of the boundary, NEVER the successor -- accepting it unconditionally
+    would turn an unresolved join into a WRONG one (the predecessor joined as
+    the successor). It is licensed only by `handover.successor_window.name`."""
+    ar = (rec or {}).get("applied_rename")
+    if not isinstance(ar, dict):
+        return []
+    old, new = ar.get("old"), ar.get("new")
+    if not old or not new or str(old) == str(new):
+        return []
+    names = [str(new)]
+    if _record_names_prev_as_successor(rec, str(new)):
+        names.append(f"{new}.prev")
+    return names
 
 
 def transcript_from_registry(registry_json: Path) -> Path | None:
@@ -14638,11 +14692,49 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             "record_path": str(record_path) if record_path else None}
 
 
+#: L5.15 -- files the rename-boundary fallback will read from the FRONT of
+#: the recency-ordered listing before giving up. A record matching by NAME is
+#: never affected; this bounds only the no-name-match scan.
+_RENAME_FALLBACK_SCAN_MAX = 200
+
+
+def _record_accepted(rec) -> bool:
+    """A rotation record's acceptance rules, in ONE place so the named lookup
+    and the rename-boundary fallback can never drift apart."""
+    if not isinstance(rec, dict):
+        return False
+    ok_result = rec.get("result") in ("started", "success")
+    # A crash-recovery `result: respawned` record is a rotation the service
+    # must pick up too (L4.292): the recovered seat's after_join (join ->
+    # pin -> pending ack) runs exactly as a rotated seat's does.
+    crash_ok = (rec.get("rotation") == "crash-recovery"
+                and rec.get("result") == "respawned")
+    return bool(ok_result or crash_ok)
+
+
+def _record_stamp_key(path: Path) -> str:
+    """The `<stamp>` token of `<name>.<stamp>.json`, so recency ordering works
+    across DIFFERENT seat names (a filename sort orders by name FIRST).
+    Unparseable -> '' so it sorts last."""
+    stem = path.name[:-5] if path.name.endswith(".json") else path.name
+    return stem.rsplit(".", 1)[-1] if "." in stem else ""
+
+
 def _latest_rotate_record(root: Path, seat: str):
     """The seat's newest recorded rotation document ({..}.json) whose result
     marks a rotation that happened (started/success), or None. Best-effort
     discovery for the SERVICE: a rotation's after_join runs against the records
-    rotate-self wrote."""
+    rotate-self wrote.
+
+    (L5.15) RENAME BOUNDARY. `_apply_staged` renames the seat BEFORE
+    `_rotate_self_started_path` names its record, so the record file is
+    `<NEW>.<stamp>.json` -- while the watch loop still asks by the seats ROW
+    name (it iterates rows, which the boundary never renames). A
+    `<seat>.*.json`-only glob returns None and the changed join bytes are never
+    reached. So when nothing matches by NAME, fall back to a record whose OWN
+    `applied_rename.old == seat` -- the record's measured fact, never a guessed
+    name -- newest-first and bounded. A name match means the fallback never
+    runs, so existing behaviour is byte-for-byte unchanged."""
     try:
         pat = _rotations_dir(root) / f"{seat}.*.json"
         files = sorted(pat.parent.glob(pat.name))
@@ -14653,14 +14745,25 @@ def _latest_rotate_record(root: Path, seat: str):
             rec = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        # A crash-recovery `result: respawned` record is a rotation the service
-        # must pick up too (L4.292): the recovered seat's after_join (join ->
-        # pin -> pending ack) runs exactly as a rotated seat's does. One-line
-        # widening of the accepted results for that rotation only.
-        ok_result = rec.get("result") in ("started", "success")
-        crash_ok = (rec.get("rotation") == "crash-recovery"
-                    and rec.get("result") == "respawned")
-        if isinstance(rec, dict) and (ok_result or crash_ok):
+        if _record_accepted(rec):
+            return rec, f
+    # No record answers to this seat's NAME. The rename-boundary fallback: the
+    # record the boundary wrote under the NEW name still carries
+    # `applied_rename.old == seat` in its own bytes.
+    try:
+        all_files = [p for p in pat.parent.glob("*.json")]
+    except OSError:
+        return None
+    all_files.sort(key=_record_stamp_key, reverse=True)
+    for f in all_files[:_RENAME_FALLBACK_SCAN_MAX]:
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        ar = rec.get("applied_rename") if isinstance(rec, dict) else None
+        if not isinstance(ar, dict) or str(ar.get("old") or "") != str(seat):
+            continue
+        if _record_accepted(rec):
             return rec, f
     return None
 
@@ -14696,6 +14799,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
                             type_input=None,
                             performer: str = "watch",
+                            tmux_session: str | None = None,
+                            window_path: str | None = None,
                             _rec_pair=None, _row=None, _joined=None,
                             _values=None, _force_due=False,
                             _delay_override=None) -> dict | None:
@@ -14801,6 +14906,19 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # @id does NO join and behaves as before.
     join = _record_join(rec)
     window_id = str(join.get("window_id") or "")
+    # (L5.15) RENAME BOUNDARY. The watch loop discovers seats by the seats ROW,
+    # which the boundary never renames, so it asks for the OLD name; the live
+    # successor window answers to the NEW name the record's OWN `applied_rename`
+    # fact measured. Resolve both halves from that fact -- never a guess, never
+    # a second rename: `succ_name` (the template `join` grep) becomes the
+    # renamed target, and an empty captured @id is resolved to the live renamed
+    # window (then its `.prev`) so the code JOIN and the pin still fire.
+    _bnd_names = _rename_boundary_names(seat, rec)
+    succ_name = _bnd_names[0] if _bnd_names else seat
+    if _bnd_names and not window_id:
+        window_id = (_successor_window_id(
+            succ_name, tmux_session or DEFAULT_TMUX_SESSION, window_path,
+            aliases=_bnd_names[1:]) or "")
     # (SL7.98) the own tail injects its OWN join result (_joined) so the
     # dead-seat skip cannot fire for the seat rotating ITSELF; the watch path
     # re-joins through the same `_join_successor` as before.
@@ -14912,7 +15030,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
             root, seat=seat, gen=gen_str,
-            succ_name=seat, succ_ref=str(sref),
+            succ_name=succ_name, succ_ref=str(sref),
             succ_transcript=str(transcript),
             pred_pids=_derive_pred_pids(root, seat, rec))
         # pid/from the live join (never the stale record), informational on
