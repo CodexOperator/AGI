@@ -93,4 +93,6 @@ NEXT    (after the lift, in order)
 Camber XS spend (3 GPU-h/MONTH on record, ~$1.50-3/h): (a) athena hour only if the A/B leans positive; (b) kid-persona QLoRA 2-4 h + $2 only after SM's trajectory-capture node + TM.21 numbers · HF-direct egress route on local-town (policy-route via enp5s0) · TypeSafe INFERENCE key + plugin install (Prime harness cell) · ai-local repo URL · HF token + ssh path for farm-box downloads · per-kid endpoint keys (g14.4) · TM.22 refuter re-run (needs the lift).
 
 ## 🔴 Where it stops
+```
 01:2xZ IDLE BY OWNER ORDER (01:08Z via Prime): TM.22 recorded on its node (e8fbeac16, pushed); TM.24 judged, note text above, NOT landed (pause); nothing dispatched; the Prime wakes me after the L4 closeout. ON WAKE: one `send.py read thought-master --from thought-master`; if the lift is in it → NEXT 1-6 above in order, each MAIN commit lock-gated by exact path; if not lifted → stay idle. Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare; card write LAST.
+```
