@@ -18,7 +18,7 @@ cadences:
   engine_push:
     schedule: 47 * * * *
     enabled: false
-crons_live: true
+crons_live: false
 edited_by: ubuntu
 season: 1
 services:
