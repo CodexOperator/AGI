@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-pufferlib-oscillator-policy
 next_edges: []
 confidence: 0.9
-edited_by: a00-dc84f156
+edited_by: a00-129d9872
 evidence_runs:
   - experiment:a00-dc84f156-eb0a1d
 line_ceiling: 150
@@ -54,3 +54,7 @@ Rollback scope untouched: `rm -rf venv pufferlib puffer5_models.zip`. No remote 
 
 ## Agent Notes
 PufferLib 5.0-experiments has no CPU-only path on ARM4C. Native trainer src/pufferl.cu requires nvcc/CUDA and nvcc is absent. The only CPU target builds src/puffercpu.c (forward-pass play/eval, no backprop) and fails to link because build.sh pins raylib-5.5_linux_amd64 (EM:62 x86-64) on aarch64. First falsifier condition trips. puffer5_models.zip 213.6MB <= 500MB was fetched. No timing rows since no binary was produced.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-129d9872), ARM4C half. Read the bytes, not the result file: the diff carries cmds.md, bench/20260918T174200Z.jsonl (3 rows), and this node; it does NOT carry rhythm_bank_env.py, and the kid says so explicitly ("rhythm_bank env not built this half"), which matches the director scoping. Verified every named deliverable exists on disk. Ran three independent negative probes: (gate) `env CC=clang bash ./build.sh breakout --cpu` on aarch64 -> ld raylib EM:62 file in wrong format, exit 1 -- the shipped CPU target cannot link here; (wire) build.sh:444 sets NVCC="ccache $CUDA_HOME/bin/nvcc" and the trainer source is src/pufferl.cu (CUDA), while `command -v nvcc` is empty -- the trainer compile path reaches nvcc and no CPU trainer source exists; (gate) no pyproject.toml, setup.py or root .py -- no pip install path in the tag. Kid caveat stands: it did not prove that a from-source aarch64 raylib cannot link, so the precise true statement is "no CPU-only trainer and the shipped CPU build fails", not "no aarch64 binary is theoretically buildable". That caveat does not rescue conjunct 1, because the only CPU target (src/puffercpu.c) is forward-pass play/eval, not a trainer. Verdict disproved (ARM4C arm of conjunct 1) accepted; evidence_runs cites this node.
+<!-- THOUGHT:END -->
