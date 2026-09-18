@@ -76,6 +76,7 @@ import adapters  # noqa: E402  -- owns the model/provider namespace guard,
 import provisioning  # noqa: E402  -- the ONE mint seam dispatch.py uses
 import spawn_gate  # noqa: E402  -- reads ladder roles for the same resolver
 import locations as _loc  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
 from frontmatter import split_frontmatter  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
@@ -913,6 +914,37 @@ def validate_return(schema: dict | None, value) -> list[str]:
     return errors
 
 
+def _result_file_value(stage: dict, run_args: dict,
+                       view: "RunView | None") -> "dict | None":
+    """A stage's declared `result_file`, read back as its structured return.
+
+    Read the rendered `result_file` as JSON and return it ONLY when it
+    validates against the stage schema; the stage is then marked
+    `resolved-from-digest`. Absent, unparseable or schema-invalid: None, and
+    the caller fails the stage as today (hypothesis:l4-a-research-stage-whose-
+    digest-file-is-complete-returns-it-as-its-structured-result-never-fails-
+    the-run-at-the-structured-return)."""
+    tmpl = stage.get("result_file")
+    if not tmpl:
+        return None
+    ctx = _SafeDict(run_args)
+    for k, v in (stage.get("_repeat_item") or {}).items():
+        ctx[k] = v
+    p = Path(_PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl))
+    try:
+        value = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if validate_return(stage.get("schema"), value):
+        return None
+    if view is not None:
+        view.stage_resolved(stage["label"], f"resolved-from-digest: {p}")
+    else:
+        print(f"workflow.py: stage {stage['label']} resolved from digest {p}",
+              file=sys.stderr)
+    return value
+
+
 def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
     lines = []
     for st in stages:
@@ -1028,6 +1060,10 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             # name conjunct (3)).
             "violations": {lb: st["violations"] for lb, st in view.state.items()
                            if st.get("violations")},
+            # A resolved-from-digest stage NAMES the file it stood in for.
+            "resolved_from_digest": {
+                lb: st["detail"] for lb, st in view.state.items()
+                if st["detail"].startswith("resolved-from-digest:")},
             # Every transient retry is NAMED in the record: stage label,
             # attempt n, matched signature, sleep seconds.
             "attempts": {lb: st["attempts"] for lb, st in view.state.items()
@@ -1096,7 +1132,9 @@ class RunView:
 
     def stage_resolved(self, label: str, detail: str = "") -> None:
         """claude-code path: the script is the runner there, so a stage can
-        only be RESOLVED here, never observed to completion."""
+        only be RESOLVED here, never observed to completion. Also the pi
+        path's digest fallback: a stage with no schema-valid stdout whose
+        declared `result_file` validates is resolved from that file."""
         self._set(label, "resolved", detail)
 
     def stage_started(self, label: str, detail: str = "") -> None:
@@ -1558,7 +1596,8 @@ def _stage_is_producing(stage: dict) -> bool:
 
 
 def _run_stage_proc(cmd, *, budget: float, stage: dict,
-                    spawn_env: dict | None, view: "RunView | None"):
+                    spawn_env: dict | None, view: "RunView | None",
+                    cap: "str | None" = None):
     """Run ONE stage command with the SM.105 optional wall extension, on a
     live `Popen` so an extension is the SAME process and the SAME output file.
 
@@ -1570,6 +1609,10 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
     legacy test seam) owns dispatch and cannot hand back a resumable child, so
     it gets the single deadline it was given."""
     env = spawn_env if spawn_env is not None else _pi_env()
+    # SM.112 -- one cap for the stage child. Only on a REAL launch: a test
+    # that injected the Popen seam owns its own child.
+    if cap is not None and subprocess.Popen is _REAL_POPEN:
+        cmd = mem_cap.wrap_argv(cmd, cap)
     if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
         return subprocess.run(cmd, capture_output=True, text=True, env=env,
                               timeout=budget)
@@ -1626,6 +1669,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     miss-keeps-its-name conjunct (5)). None means the module default."""
     import subprocess
     budget = _DEFAULT_STAGE_TIMEOUT_S if timeout_s is None else timeout_s
+    cap = mem_cap.resolve_memory_cap(cfg)
     k = knobs[stage["label"]]
     prompt = render_stage_prompt(stage, run_args, prior=prior)
     if context_text:
@@ -1654,7 +1698,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         try:
             proc = _run_stage_proc(
                 cmd, budget=budget, stage=stage, spawn_env=spawn_env,
-                view=view)
+                view=view, cap=cap)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
@@ -1666,6 +1710,10 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
             # timeout-says-timed-out-... from mur-sm-60) -- this is the
             # merged shape, reconciled at a season2/main merge conflict.
+            # A wall-cut stage whose result_file is complete resolves.
+            digest = _result_file_value(stage, run_args, view)
+            if digest is not None:
+                return 0, digest
             if view is not None:
                 view.stage_failed(stage["label"],
                                    f"timed out after {budget:g} s")
@@ -1691,6 +1739,16 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             break
         signature = _pi_failure_is_transient(output, proc.stderr or "", stage)
         if signature is None:
+            # SM.112 -- the cap's kill is NAMED, never the generic rc: the
+            # cap predicate is checked FIRST, the wall timeout raised above.
+            if mem_cap.is_cap_death(proc.returncode, cap,
+                                    output + (proc.stderr or "")):
+                if view is not None:
+                    view.stage_failed(stage["label"],
+                                      f"memory-cap (rc={proc.returncode})")
+                print(f"workflow.py: stage {stage['label']} killed by memory-cap "
+                      f"rc={proc.returncode}", file=sys.stderr)
+                return 3, None
             # rc != 0 WITHOUT the transient signature is a real failure, never
             # retried (falsifier: a stage retried on a failure without it).
             if view is not None:
@@ -1744,6 +1802,18 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               file=sys.stderr)
         return 4, None
     if value is None:
+        # No valid block in stdout: a declared result_file may still hold it.
+        digest = _result_file_value(stage, run_args, view)
+        if digest is not None:
+            return 0, digest
+        if stage.get("result_file"):
+            if view is not None:
+                view.stage_failed(stage["label"], "no schema-valid JSON and "
+                                  "no complete result_file")
+            print(f"workflow.py: stage {stage['label']} declared result_file "
+                  f"but neither stdout nor the file carried a schema-valid "
+                  f"return", file=sys.stderr)
+            return 2, None
         # The pi process SUCCEEDED and returned prose with no schema-valid
         # JSON. That is `unstructured`, never a failure: the run continues,
         # the stage's whole text rides the value so the next stage's `prior`
