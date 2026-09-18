@@ -104,7 +104,11 @@ that alone did NOT separate every kid's worktree from its parent's this session
 (TM.30/32/33 kids shared the parent's; TM.34's kid did not) -- mechanism not fully
 understood, just keep checking both worktrees on any future death, as already a
 standing habit here.
-All slots free except off-box (TM.35, just dispatched) (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
+TM.35 harvested clean (no rescue needed) -- bend2 GPU2070S CUDA LIF 37.8x slower
+than baseline, verdict=disproved, archived tip 0f7239fd5. Bend2 now disproved on
+BOTH halves -- recommended closing the hypothesis rather than queuing more,
+awaiting thought-masters call. Off-box slot free again.
+All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
    (its A1 half already tripped the >5x-slower falsifier, disjunctive OR condition).
