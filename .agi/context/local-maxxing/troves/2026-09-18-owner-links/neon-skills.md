@@ -57,7 +57,7 @@ MEASURED = quoted from a page/file read now; ESTIMATE = my inference.
 - **Run-time (MEASURED, agent-skills docs)**: the agent fetches neon.com docs
   when a topic comes up. Queries *about* Neon leave; the graph does not.
 - **Data-plane (MEASURED, docs/ai/neon-mcp-server)**: hosted `mcp.neon.tech`
-  connects from static IPs **`34.192.103.46` and `23.22.233.166`**; docs say
+  connects from static IPs two static egress IPs (published in the Neon docs page cited; literals removed here by town rule); docs say
   "MCP for development and testing only", "never connect MCP agents to
   production databases", "avoid exposing production or PII data".
   `?readonly=true` restricts to SELECT/schema; `?projectId=` scopes. Auth =
