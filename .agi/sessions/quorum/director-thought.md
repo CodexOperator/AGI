@@ -82,7 +82,24 @@ All three verified independently before committing (ran real tests myself, read 
 
 ## 5 🔴 WHERE IT STOPS — exact next action
 ```
-All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
+All three (TM.32/33/34) ACCEPTED and landed on trunk (thought-master 11:33Z) --
+tips: TM.33 b6baafd13 proved, TM.34 cb9b0375e lean_disproved:65, TM.32 eea005dd4
+lean_disproved:60. Bend2 RE-SCOPED after my flag (new falsifier: GPU2070S Bend/HVM
+CUDA LIF within 5x of a CUDA/OpenMP-C baseline on the SAME rig, not compared back
+to the ARM4C number) -- dispatched as TM.35, parent a00-6fe6b293, cap $1, first
+act = confirm the 27B fetch survived the storm + df report (still not directly
+confirmed by me -- this dispatch is what answers it). **NEXT: pufferlib ARM4C
+half ($1) -- read hypothesis:lm-pufferlib-oscillator-policy properly first (not
+done yet this session), check loadavg (gate: 1m<2.0, 15m<8) before dispatching.**
+Use "ARM4C" not "A1" in all future writing -- caught in a scrub this lap (not
+mine, but the same alias-discipline applies everywhere).
+NEW STANDING RISK NOTE FROM STORM: forwarded to thought-master, "until fixed give
+every kid its own worktree" -- already passing --branch on every dispatch, but
+that alone did NOT separate every kid's worktree from its parent's this session
+(TM.30/32/33 kids shared the parent's; TM.34's kid did not) -- mechanism not fully
+understood, just keep checking both worktrees on any future death, as already a
+standing habit here.
+All slots free except off-box (TM.35, just dispatched) (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
    (its A1 half already tripped the >5x-slower falsifier, disjunctive OR condition).

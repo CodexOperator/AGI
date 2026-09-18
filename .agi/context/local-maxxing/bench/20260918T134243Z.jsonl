@@ -1,0 +1,5 @@
+{"ts_utc":"20260918T134243Z","key":"uno_job_wall_s","value":251,"created_to_finished_s":483,"note":"one XS GPU job, 22.03 GiB device, install+download+OOM"}
+{"ts_utc":"20260918T134243Z","key":"uno_gpu_minutes","value":4.18,"note":"billed wall started->finished; 8.05 min including pending"}
+{"ts_utc":"20260918T134243Z","key":"uno_install_s","value":134,"note":"uv+py3.10+torch cu128+FA2 wheel+deps+repo editable"}
+{"ts_utc":"20260918T134243Z","key":"uno_download_s","value":154,"note":"16 GiB uno-qwen3-8B bundle, timed on the rental"}
+{"ts_utc":"20260918T134243Z","key":"uno_base_batch1_tok_s","value":null,"note":"OOM at weight load, 21.69 GiB allocated of 22.03 GiB"}

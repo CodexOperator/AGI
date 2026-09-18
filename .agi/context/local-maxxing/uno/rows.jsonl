@@ -1,0 +1,3 @@
+{"ts_utc":"20260918T134243Z","key":"uno_base_batch1_tok_s","value":null,"note":"arm failed at model load: CUDA OOM during weight load; no measurement"}
+{"ts_utc":"20260918T134243Z","key":"uno_batch8_tok_s","value":null,"note":"never reached; second arm could not init (default process group already initialized)"}
+{"ts_utc":"20260918T134243Z","key":"uno_identical_prompts","value":"0/20","note":"no outputs produced"}
