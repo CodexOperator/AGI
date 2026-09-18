@@ -49,3 +49,6 @@ Monero stealth payouts · CLSAG anon votes · RandomX idle mining · zk · confi
 ## Gates (every loop, unchanged from L5) + one addition
 merge-base · merge-tree clean vs live HEAD · no node deletions · read the bytes · verify · one suite window per landing · push · one [go] line · goal note in the same commit as the render · PLUS: no root custodian, no hub write hook, no real value without the human security-review gate on the loop's goal.
 # doc:l6-plan
+
+## Agent Notes
+seed source = .agi/context/l6-redesign-seed.md (the council plan copied verbatim, overlay addresses scrubbed to aliases per the anonymization rule); the live file ~/agi-side/redesign-plan.md stays the council side seat only writable file
