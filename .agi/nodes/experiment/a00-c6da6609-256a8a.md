@@ -29,7 +29,7 @@ verdict: inconclusive_lean_proved:70
 
 ## Experiment
 
-KID A (CP0 + chain 1 A1), 2026-09-14. Every number below tagged MEASURED with its command. Box at start: 4x arm64-N1 aarch64, flags `asimd asimddp` and **no i8mm**, 24 GB RAM, MemAvailable 20.2 GB, SwapFree 2.50 GB, disk 35 GB free, loadavg 0.85 (tenants paused).
+KID A (CP0 + chain 1 A1), 2026-09-14. Every number below tagged MEASURED with its command. Box at start: 4x arm64 aarch64, flags `asimd asimddp` and **no i8mm**, 24 GB RAM, MemAvailable 20.2 GB, SwapFree 2.50 GB, disk 35 GB free, loadavg 0.85 (tenants paused).
 
 ### 1. Clone
 

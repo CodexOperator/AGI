@@ -141,7 +141,7 @@ to 1M at 34T tokens (`§4.2.2`).
 
 ## 4. What transfers to a ≤4 B model on CPU — and what does not
 
-Frame: the town's boxes are **4-core ARM arm64-N1, no i8mm, 23 GB**; **8 GB Intel**;
+Frame: the town's boxes are **4-core ARM arm64, no i8mm, 23 GB**; **8 GB Intel**;
 **M3 Air 16 GB**; one **gpu-8g** soon; **Camber GPU 3 h/month**. Everything must
 fit CPU + ordinary RAM. So the question is not "is this a good trick at 552B" but "does it still
 pay at ≤4B and ≤a few thousand context tokens, where **decode is memory-bandwidth-bound on
@@ -188,7 +188,7 @@ CPU** and **prefill over short prompts is nearly free**".
 - **T4 FP4 KV cache.** The storage win (½ of FP8) is real and device-independent; the *speed* win
   is not: the paper explicitly lets FP4 be dequantized before attention, and CPUs lack FP4 matmul.
   To get the RAM win the town must (a) train QAT or accept post-hoc quantization error, and
-  (b) pay a dequant cost per attention. On **arm64-N1 without i8mm**, even INT8 dots are weak;
+  (b) pay a dequant cost per attention. On **arm64 without i8mm**, even INT8 dots are weak;
   FP4 KV is a *capacity* trick on CPU, likely a *net slowdown* for speed unless KV reads dominate.
 - **T1 CED.** Concept transfers (project decoder KV from encoder hidden state, halve prefill
   layers) but **only if you train your own small model** — CED is baked into pre-training; you
@@ -441,7 +441,7 @@ prediction is falsifiable to within the run-to-run noise the town already knows)
   prize at ≤8K, and the effort belongs to T9 (loop count as effort) and T5 instead.
 - **first falsifier:** on the swarm box, `llama-bench` Qwen3-0.6B Q8_0, `-fa 1`, `-d 4096`,
   `-ctk/-ctv` ∈ {f16, q8_0, q4_0}, `-r 3`: if `q4_0` tg is **not ≥ 1.2× f16 tg at depth 4,096**
-  (or if depth-0 tg *drops* under q4_0, meaning dequant cost dominates on this 4-core Ampere with
+  (or if depth-0 tg *drops* under q4_0, meaning dequant cost dominates on this 4-core arm-cloud with
   no fast int4 dot), KV bytes are not the CPU bottleneck at this context and the lever is dead.
 - **cheapest test on our iron:** one `llama-bench` sweep on the swarm box (3 KV types × depths
   0/2,048/4,096/8,192 × 3 reps), ~30–45 min wall-clock, **$0**, no GPU, no training; repeat once
@@ -523,8 +523,8 @@ in `~/.cache/lm-models/`, `lscpu`, and `llama-bench --help` from the local llama
    "tokens/s ∝ 1/(weights + KV bytes)" is one bound, not a prediction. The falsifier's depth-0
    clause partly covers this; the "predicts ~1.4×" should read "≤ ~1.4× if purely
    bandwidth-bound".
-8. **Iron claim wrong in the seed's falsifier and in §4.3.** "4-core Ampere with no fast int4
-   dot" / "arm64-N1 without i8mm, even INT8 dots are weak": `lscpu` on the swarm box shows
+8. **Iron claim wrong in the seed's falsifier and in §4.3.** "4-core arm-cloud with no fast int4
+   dot" / "arm64 without i8mm, even INT8 dots are weak": `lscpu` on the swarm box shows
    `asimddp` (NEON SDOT, the int8 dot-product instruction) **present**, `i8mm` absent, `asimdhp`
    (fp16 arithmetic) present. llama.cpp's CPU flash-attention path for q4_0 K uses
    `vec_dot_q4_0_q8_0`, which is SDOT-accelerated on this flag set. No CPU has an int4 dot; the
