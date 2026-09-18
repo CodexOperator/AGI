@@ -387,7 +387,8 @@ def child_env(*, harness: dict, base: dict[str, str],
     # every adapter; `needs_credential` is False for claude-code today, so this
     # drops nothing it did not drop before, but the restart path reaches the
     # rule through the same `child_env` and the rule stays true if that changes.
-    return adapters.drop_unneeded_credential(env, harness)
+    return adapters.forward_named_env(
+        adapters.drop_unneeded_credential(env, harness), harness)
 
 
 def needs_credential(harness: dict) -> bool:
