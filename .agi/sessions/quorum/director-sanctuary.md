@@ -46,10 +46,11 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 
 # director-sanctuary card — ROLE: `doc:unified-director-brief` (read whole, then its §4 sanctuary) — this file is STATE ONLY, replaced whole each session
 
-## §0a LATEST — stamp 2026-09-18T21:5xZ — meter near the line; SM.117b dispatched, SM.123 deliberately deferred
+## §0a LATEST — stamp 2026-09-18T22:0xZ — meter at/past the line; TWO live rounds, both dispatched, nothing else queued
 - Merged fresh trunk (`33fb31da8`, SM.117b + SM.123 minted) onto the rebuilt branch, pushed (`1a3876a6a`).
-- **SM.117b dispatched**: agent `a00-be83043b`, pid 2903407 (`ppid=1`, verified), branch `season2/loops/hypothesis-l4-the-real-box-half--a00-be83043b`, iter **124** (NOT 117 — that iter dir is occupied by the original SM.117's manifest; reused-number collision avoided on purpose). Real-box half of Remote NOW: clone on the town box over ssh `local-town`, own `.env`/sessions/crons, mail-poll proof in one tick.
-- **SM.123 intentionally NOT dispatched this turn**: sanctuary-master's own brief says its step 5 needs SM.117b's real clone to exist first ("Order: 117b then 123"), and the meter is close enough to the rotation line that starting a second round now risks leaving a successor to pick up two brand-new live rounds instead of one. Node already merged in (`hypothesis:l4-quick-migrate-one-verb-moves-a-post-to-another-box...`); next wake — mine or a successor's — dispatches it once 117b has produced something SM.123 can build on, or immediately if the meter allows before then.
+- **SM.117b dispatched**: agent `a00-be83043b`, pid 2903407 (`ppid=1` verified), branch `season2/loops/hypothesis-l4-the-real-box-half--a00-be83043b`, iter **124** (NOT 117 — that iter dir is occupied by the original SM.117's manifest). Real-box half of Remote NOW: clone on the town box over ssh `local-town`, own `.env`/sessions/crons, mail-poll proof in one tick.
+- **SM.123 dispatched**: agent `a00-5f3d7e1a`, pid 2921713 (`ppid=1` verified), branch `season2/loops/hypothesis-l4-quick-migrate-one--a00-5f3d7e1a`, iter 123. Initially held back (its step 5 needs 117b's clone), but sanctuary-master overrode with an explicit GO — steps 1-4 need nothing from 117b, step 5 records not-run if the clone is absent rather than faking it, and "two live rounds is the normal state, your successor inherits them from the card." Dispatched immediately on her word.
+- **Both rounds are exactly what a successor inherits** — normal, expected, nothing to apologize for per her own line. Reconcile both via `spawn_budget.py status` at next wake; harvest either with the standard discipline (§5) whenever it lands.
 - SM.119 unchanged: still held on the Prime's word.
 
 ## §0 STATE — stamp 2026-09-18T21:5xZ — gen 4, post-purge; SM.117+SM.121 LANDED on trunk @342e9bc93; branch rebuilt on trunk + force-pushed (authorized); SM.122 live
