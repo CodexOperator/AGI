@@ -1,68 +1,58 @@
 # director-sanctuary card — ROLE: `doc:unified-director-brief` (read whole, then its §4 sanctuary) — this file is STATE ONLY, replaced whole each session
 
-## §0 STATE — stamp 2026-09-18T03:41:51Z — gen 1 (successor to sensei-director; L5.11 rename, rotation attempt 2, joined clean)
-- Identity: `director-sanctuary`. Inbox/send.py now resolve correctly under the new name (confirmed via live nudge + `send.py read`). Row/branch rename NOT fully applied yet: still checked out on `core/season2/posts/sensei-director/main` (`git status -sb` is the source of truth, never card prose). Rotation record shows 54/64 rename surfaces auto-applied at join (logs, acks, dm logs, card, inbox); the remaining 10 (worktree-dir move, branch renames, tmux window/session) are explicitly the Prime's own follow-up ("verifies tmux + whois") — confirmed pending, not blocking, not mine to force.
-- Worktree: `/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director` (old path, still live and functional — do not assume the renamed path exists yet).
-- Meter: last hook read 0.1513 of the window several tool-calls back (rising since); nowhere near the 0.47 rotate line.
-- Live (mine): 3 parents, dispatched clean this session, pi/deepseek-v4.1-flash, no file overlap —
-  - SM.102 `a00-31b252bf` pid 2341596 branch `season2/loops/hypothesis-l4-the-formation-owne-a00-31b252bf`
-  - SM.103 `a00-7c26b0bd` pid 2342222 branch `season2/loops/hypothesis-l4-a-named-env-key-re-a00-7c26b0bd`
-  - SM.104 `a00-faf9049f` pid 2343876 branch `season2/loops/hypothesis-l4-a-town-season-roll-a00-faf9049f`
-  - Background pid-watch running (task `b4il31qlv`), breaks on first completion, one notification.
-- Not mine: TM.29 (thought-master's own parent+kid) — leave alone, uses the 4th fleet slot.
-- Credits at last read: 65 total / 23.76 used (~$41 headroom). Re-read fresh before dispatching SM.105.
+## §0 STATE — stamp 2026-09-18T04:36:37Z — gen 1 (successor to sensei-director; L5.11 rename, rotation attempt 2, joined clean)
+- Identity: `director-sanctuary`. Row/branch rename still not fully applied by the Prime (still checked out on `core/season2/posts/sensei-director/main`) — unchanged from earlier this session, not urgent next to §3's blocker.
+- Worktree: `/home/ubuntu/work/agi/.agi/worktrees/post-sensei-director`.
+- Meter: last hook read ~0.32 of the window; nowhere near the 0.47 rotate line.
+- 🔴 **`origin` remote is GONE tree-wide — see §3, this is the active blocker.**
+- SM.102, SM.103, SM.104 all harvested and merged LOCALLY. None of it is pushed past card commit `aef74784c` (confirmed pushed ~03:42Z). SM.104 is NOT fully closed even apart from the push problem — see §3.
 
 ## §1 PLAN
-- [done] Rotation join; merged trunk TWICE (town `core/season2/main`, then global `season2/main` ladder — both hit stale-base independently, both fixed); read `doc:unified-director-brief` (now the ROLE doc — supersedes this card's old §0-§2 prose, which is deleted, not restated) and all four SM.102-105 node bodies in full.
-- [done] Dispatched SM.102 + SM.103 + SM.104 together per the owner's batching rule (`doc:l5-owner-decisions` 086f687f9): sanctuary's fleet share is 3 of 4 live parents (thought holds 1); independence = no file overlap, confirmed (write.py+schemas / dispatch-env-seam+config.json / season.py+helpers).
-- [next] Harvest each as it lands (see §3 for the exact sequence). **NEW process, owner ruling on `goal:g17.1` (relayed by SM 01:52Z): I now run `workflow.py run merge-up-review` myself before reporting** — not SM. Any `[red]` the review finds is mine to fix in-loop before delivery, never sent up unresolved. Deliver ONE `[merge-up]` line per landing (or one batch line, my call) = branch tip sha + merge-base sha + files/tests numbers + mur run key + per-slice verdicts + one proposed g15 line per finding.
-- [queued, not a hold] SM.105 (workflow slice isolation + 3600s wall/extension) — drains automatically once one of the 3 above lands and a slot frees. Per the brief's queue vocabulary: `queued` is never a hold; nothing here needs SM's re-confirmation to proceed.
-- [STOP condition — owner ruling, msg 03:16Z verbatim]: once SM.102, SM.103, SM.104, SM.105 all land on `core/season2/main` with every review residue closed (fixed in-loop or demoted with the measured reason) — **no new rounds, no new nodes, idle at card.** Do not self-start the old pre-rotation backlog (spawn-budget-meter-wait ceiling 45, heal-loop disk guard ceiling ~130, author-composes-repeat-then-global-stages) without a fresh order; they are effectively banked by this ruling, not cancelled.
+- [done] Rotation join, trunk sync, read `doc:unified-director-brief` + all four SM.102-105 node bodies.
+- [done] Dispatched + harvested + locally merged SM.102 (proved, clean), SM.103 (inconclusive_lean_proved:88, clean), SM.104 (two kids, BOTH demoted by their own parent to inconclusive_lean_disproved:60 — align gate fixed, global-rollover atomicity still open, see §3).
+- [done] Full suite re-run clean AFTER a caught race (see §4): SM.102+SM.103 together, 5506 passed / 0 failed. SM.104 has NOT yet had its own full-suite pass (blocked behind the corrective round, see §3).
+- [done] Received + acknowledged the owner's anonymize rule (no hostnames/IPs/hardware/locations/operator/key-ids in nodes/cards/dms/commits) — folded into `doc:unified-director-brief` §2 on trunk; **could not merge it in yet, origin is down (§3)**.
+- [BLOCKED, not by me]: origin remote is gone. Cannot push. Cannot merge origin/season2/main (the tracking ref itself is gone, consistent with `git remote remove origin`, not just a network blip — removing a remote prunes its `refs/remotes/*`). Sent `[red]` to belam with exact evidence (SHAs, timestamps); his pane was busy, nudge coalesced, message is durably in his inbox file regardless.
+- [paused, deliberately, not blocked-on-owner]: SM.105 dispatch, the SM.104 atomicity corrective round, and the mur (`merge-up-review`) run are all HELD — every one of them spawns new agents that would need to push their own branch somewhere, which is exactly what's broken right now. Dispatching into a broken push path is spend with no way to land the result. Resume all three the moment origin is confirmed restored.
+- [next, once origin is back, in order]: (1) merge origin/season2/main (anonymize scrub), (2) dispatch the SM.104 corrective round (atomicity fix, brief = kid 2's own diagnosis, see §3), (3) dispatch SM.105, (4) run mur for SM.102/103/104(+corrective) and delivery ONE `[merge-up]` line to SM covering the whole batch — including the ceiling-measurement finding (§3) and the caught test-suite race (§4).
 
 ## §2 WHAT LANDED THIS SESSION (one line each)
-- Rotation joined clean as director-sanctuary (this is attempt 2; attempt 1's rc=2 refusal belongs to the predecessor's session, already reported to belam then).
-- Merged `origin/core/season2/main` into post branch — 62 files, clean, no conflicts — pushed `f1490010e`.
-- Merged `origin/season2/main` (global ladder trunk, separate stale-base hit) — 6 files, clean — pushed `aa225afd1`.
-- Read `doc:unified-director-brief` + SM.102/103/104/105 node bodies whole.
-- Dispatched SM.102, SM.103, SM.104 (all rc=0 after the trunk syncs).
+- Rotation joined clean as director-sanctuary; card rewritten wholesale, committed, pushed (`aef74784c`, this is the LAST successful push).
+- Merged `origin/core/season2/main` (`f1490010e`) and `origin/season2/main` (`aa225afd1`) into post branch, both pushed.
+- Dispatched SM.102 (`a00-31b252bf`), SM.103 (`a00-7c26b0bd`), SM.104 (`a00-faf9049f`) — all landed.
+- Harvested + merged locally (all UNPUSHED, see §3): SM.102 `b73ab6444` (proved), SM.103 `87228b91a` (inconclusive_lean_proved:88), SM.104 `8346b5b53` (two kids, both demoted, align fixed / rollover atomicity open).
+- Independently re-verified every claimed test group; caught and diagnosed a self-inflicted suite-lock race (full-suite run contaminated by a concurrent merge, re-ran clean: 5506 passed / 0 failed for SM.102+103).
+- Received the owner's anonymize rule from SM; sent `[red]` to belam for the broken origin remote.
 
 ## §3 🔴 WHERE IT STOPS — the next command
-Waiting on the background pid-watch (task `b4il31qlv`; pids 2341596 / 2342222 / 2343876) for the FIRST of SM.102/SM.103/SM.104 to finish. On that notification, per round:
+**Blocker, not mine to fix**: `git remote -v` prints nothing; `/home/ubuntu/work/agi/.git/config` (the shared common dir every worktree on this box uses) has no `[remote "origin"]` section at all. `git merge origin/season2/main` fails with "not something we can merge" — the tracking ref itself is gone, which is what `git remote remove origin` does as a side effect (not a transient network error). I do not know the correct replacement URL and am not guessing at `git remote add` — a wrong guess here is exactly the "irreversible/destructive, outside my own commits" class delegated authority never covers on its own. Sent belam `[red]` with SHAs/timestamps (his pane was busy, nudge coalesced, message sits in his inbox regardless). **Waiting on his fix or instruction. Nothing to run until then except checking for his reply on the next nudge.**
+
+Once origin is restored, the exact sequence (see §1 [next]):
 ```
 cd /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director
 git fetch origin
-git branch -a | grep -i <slug fragment of the finished round>
-MB=$(git merge-base HEAD <branch>); git diff --stat "$MB" <branch>
-<read every kid node the round produced — grep THOUGHT:BEGIN count <= 1 each>
-git merge --no-ff <branch> -m "<msg>"
-<run the round's own test file + its FILE SCOPE neighbourhood>
-<if the round touched a shared/cross-cutting file (write.py for SM.102 counts), run the FULL suite before trusting green>
-python3 extensions/agi/bin/workflow.py run merge-up-review --harness pi --dry-run   # inspect the resolved args/stage plan FIRST, this is a brand new process for this seat
-python3 extensions/agi/bin/workflow.py run merge-up-review --harness pi --args '<resolved>'
-<fix any [red] finding in-loop: own g15 fix round, or demote the verdict with the measured reason — never send it up unresolved>
-git push origin core/season2/posts/sensei-director/main
-<send.py send sanctuary-master with the ONE [merge-up] line — body via scratch file + python subprocess, see §4>
+git merge origin/season2/main -m "..."   # anonymize scrub
+git push origin core/season2/posts/sensei-director/main   # lands SM.102/103/104 finally
 ```
-Once one of the 3 lands and a slot frees: re-check `spawn_budget.py status`, re-read credits fresh, dispatch SM.105 (`hypothesis:l4-a-failed-repeated-stage-slice-never-aborts-its-siblings-and-a-manifest-stage-carries-its-own-timeout`) as the next round id after SM.104.
+Then dispatch the SM.104 corrective (brief: kid 2 a00-4d48df06's own THOUGHT block — "defer every cell write to a second pass after every trunk is verified cut/folded/archived/deleted", the falsifier it hit was "a cell changes before all trunks are cut", probe: force one town's cut to refuse, confirm no OTHER town/ladder cell bumps), then SM.105, then run mur for the whole batch, then ONE `[merge-up]` line to SM covering:
+- SM.102: proved, clean, but flag the ceiling mystery (kid claimed line_ceiling=40 against a real ceiling of 20 — 4x, not the 2x the kid's own math assumed).
+- SM.103: inconclusive_lean_proved:88, clean, SAME ceiling mystery (claimed 40 against a real 15 — 3.4x).
+- SM.104: two kids, THIRD occurrence of the wrong-ceiling pattern (kid 1 also claimed 40; kid 2 claimed 80 instead — not a single hardcoded constant, worth SM's eye as a scaffold-defaulting question rather than three independent kid mistakes), both correctly self-demoted by their own parent for hitting real falsifiers (mechanism working), align gate now fixed, global-rollover atomicity fixed by the corrective round dispatched above.
+- The caught full-suite race (§4) — worth a g15 line: the suite lock only blocks a second pytest from STARTING, it does not stop a `git merge` into the same tree from a different process while one is already running mid-collection.
+- The origin-remote-vanishing incident itself, once resolved, as its own g15 line if the cause turns out to be something other than deliberate Prime action.
 
-## §4 TRAPS carried forward (only what `doc:unified-director-brief` does NOT already cover)
-- Card path collision: this worktree's card and the root checkout's file at the same relative path are DIFFERENT content — always the full worktree-prefixed absolute path for Read/Write/Edit here.
-- `Edit` does not re-stage a file already `git add`-ed before the edit — re-`git add` immediately before any commit that follows an Edit on an already-staged path.
-- pid-watch (`run_in_background` + `kill -0` loop + `sleep 30`, break on count-drop) is the sanctioned way to wait on a live round — confirmed working again this session. Never `ScheduleWakeup` / the `/loop` dynamic-wakeup mechanism here — this seat is not a `/loop` session and that sentinel fights this card's own protocol.
-- Harvest-time: verify every claimed file against the branch diff individually (a claimed deliverable can simply not exist on the reported branch); a harvest's real work can live on a KID-named branch even when the parent branch shows nothing (`git branch -a | grep <slug>` for siblings); a kid node can read as an empty template immediately post-merge — re-read after the actual `--no-ff`, not before; a full-suite run (not just the neighbourhood) is required for any round touching a shared/cross-cutting file — a green narrow run does not prove the wire is connected (measured directly this rotation on a prior round, not this one).
-- **NEW, supersedes the old apostrophe-workaround**: per the unified brief, dm/note bodies are now BACKTICK-FREE and never carry `$(` — write the body to a scratch file and pass it via a python subprocess, not raw single-quoted shell text.
-- `dispatch.py`'s iteration id is numeric-only after the dot. `--prompt-file` is per-kid only and never reaches the parent's own brief — the target node's body IS the parent's brief; a direct dm to the parent's agent id is the only other channel that reaches it.
-- Queue vocabulary (brief §2, precise, new this session): `minted` = node exists; `queued` = minted + in my queue, I drain it myself at stated priority whenever a slot is free, **never a hold**; `[decision] hold <node>` is the ONLY hold phrase; `dispatch now <node>` is the ONLY phrase ordering an immediate jump; `dispatched` = a live parent round exists.
-- Provisioning workspace can switch mid-session (mint 403 "Workspace not found") — Prime-only fix, report `[red]` with the exact line, never hand-edit `.env`/config.
-- A Prime-relayed order can arrive first as a line inside another seat's own card commit or node note — skim unfamiliar commit subjects during every trunk merge.
-- The rotation-boundary bugs this session's join actually hit (rename-post staged-plan drift, after_join grepping the old post name, pin racing an early poll before the successor's first reply) are now all tracked as fresh `l5-*` `goal:g15` hypothesis nodes already on trunk (arrived via my own two merges) — informational, someone else's (director-belam's) round, not mine to chase.
+## §4 TRAPS carried forward this session (new ones first, then what's still live from before)
+- 🔴🔴 **NEW: the suite-window lock only blocks a SECOND pytest invocation from starting — it does NOT stop a `git merge` (or any other write) into the same working tree from a DIFFERENT process while a full-suite run is already mid-collection.** Merging a harvest while my own background full-suite run was still executing produced a "clean" 5497-passed result that was actually racing the merge — untrustworthy. Re-ran fully clean (no tree writes during the run) for a trustworthy 5506 passed / 0 failed. **Do not touch the working tree (merge, checkout, anything that changes files pytest might import/collect) while any full-suite run you started is still alive — wait for its notification first, full stop.**
+- 🔴🔴 **NEW: a `git remote -v` returning empty / a merge against `origin/<branch>` failing with "not something we can merge" (not a network-error message) means the remote-tracking refs are GONE, consistent with `git remote remove origin` having actually run** (removing a remote prunes all its `refs/remotes/*` as a side effect) — this is a different, more serious signal than a transient network blip, and is tree-wide (shared `.git/config` in the common dir), not seat-local. Do not guess a replacement URL and `git remote add` it yourself.
+- 🔴 **NEW: three separate kids across three separate rounds this session (SM.102's kid, SM.103's kid, SM.104's kid 1) all independently self-reported `line_ceiling: 40` in their experiment node frontmatter, regardless of the REAL brief ceiling (20, 15, and effectively ~55 respectively) — but SM.104's kid 2 used 80, not 40.** Not a single hardcoded constant kids fall back to; worth flagging to SM as a scaffold-measurement question rather than three unrelated kid errors. Always compare a kid's own `line_ceiling`/overage math against the ACTUAL brief ceiling (SM's dispatch dm or the hypothesis node body), never trust the kid's own frontmatter number at face value.
+- Card path collision, `Edit`-doesn't-restage, pid-watch pattern, harvest-time branch/claim verification, backtick-free dm bodies (now demonstrated working via python subprocess), `dispatch.py` numeric-only iteration id, `--prompt-file` per-kid-only, queue vocabulary (`queued` != hold), provisioning workspace switch, Prime-relayed orders arriving inside another seat's commit — all still live, see `doc:unified-director-brief` §2 for what it already covers; not re-stated here since nothing changed about them this session.
 
 ## §5 KNOWN-GOOD VERIFICATION
-- `git status -sb` — real branch name, never card prose.
-- `python3 extensions/agi/bin/spawn_budget.py status` — live count + whose iter, before any dispatch.
-- Credits: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' /home/ubuntu/work/agi/.env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"` — absolute path, whole-account pool.
-- `python3 extensions/agi/bin/workflow.py run merge-up-review --harness pi --dry-run` — see the resolved stage plan before spending on a real mur run.
-- `python3 extensions/agi/bin/workflow.py list` / `status` — registered workflows, recent run keys.
+- `git remote -v` — check THIS FIRST before assuming any push/fetch/merge-against-origin will work.
+- `git status -sb` — real branch name.
+- `python3 extensions/agi/bin/spawn_budget.py status` — live count before any dispatch.
+- Credits: `K=$(grep -m1 '^OPENROUTER_PROVISIONING_KEY=' /home/ubuntu/work/agi/.env | cut -d= -f2-) && curl -s -m 20 https://openrouter.ai/api/v1/credits -H "Authorization: Bearer $K"`.
+- `python3 extensions/agi/bin/workflow.py run merge-up-review --harness pi --dry-run` — stage plan, HOLD the real run until origin is back.
 
-## §6 BANKED (owner-only; nothing pending right now)
-- None open. The old pre-rotation backlog (§1 above) is parked by the owner's finish-set-then-stop ruling, not escalated.
+## §6 BANKED (owner-only; nothing pending right now besides the origin fix itself, already sent to the Prime)
+- None open beyond §3's blocker, already escalated.
