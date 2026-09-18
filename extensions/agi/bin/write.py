@@ -1047,6 +1047,15 @@ def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
             continue
         key, mk = entry.get("list_key"), entry.get("match_key")
         if key and mk:
+            # (SM.108 defect 2) A grant on a row list grants ONLY that list: a
+            # chained edit that also touches any other top-level key is refused
+            # whole, exactly as `self_row` refuses `touched_top - {list_key}`.
+            bad_top = (set(set_fm or {}) | set(unset_fm or {})) - {key}
+            if bad_top:
+                return (f"the actor grant on `{key}` may write ONLY that "
+                        f"list (touched top-level field(s) "
+                        f"{', '.join(sorted(bad_top))}); those declarations "
+                        "are outside the grant")
             if key not in (set_fm or {}):
                 continue
             rows = set_fm[key]
@@ -1071,9 +1080,14 @@ def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
                     "retire" if n is None else "create")
                 if op not in ops:
                     return f"op {op!r} is not granted on `{key}` (ops {ops})"
-                if op == "set":
-                    for f in set(o) | set(n):
-                        if f != mk and o.get(f) != n.get(f) and f not in fields:
+                if op in ("set", "create"):
+                    # (SM.108 defect 4) a CREATE row is field-checked exactly
+                    # like a SET row: every key on a brand-new row except
+                    # `match_key` must be in the grant's `fields`.
+                    old_r = o or {}
+                    for f in set(old_r) | set(n):
+                        if (f != mk and old_r.get(f) != n.get(f)
+                                and f not in fields):
                             return (f"field {f!r} is not granted on `{key}` "
                                     f"rows (fields {fields})")
             return ""
@@ -1087,6 +1101,14 @@ def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
                         f"this write touches "
                         f"{', '.join(sorted(touched)) or 'nothing'}")
             return ""
+        # (SM.108 defect 3) the actor MATCHED but the entry's shape is one
+        # this resolver does not read (no list_key+match_key, no field) --
+        # refuse BY NAME rather than silently falling through to "no entry
+        # applies". A no-op write is left to the caller's written_by refusal.
+        if set_fm or unset_fm:
+            return (f"actor_rows entry for {seat!r} declares no shape this "
+                    f"resolver reads (need list_key+match_key or field; "
+                    f"entry keys {sorted(entry)})")
     return None
 
 
