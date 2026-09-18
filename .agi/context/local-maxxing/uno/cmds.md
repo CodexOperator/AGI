@@ -119,3 +119,43 @@ Job lifecycle + wall-clock are readable via CLI. Credits charged are NOT. The
 0.03 USD cap was respected (job ran, one-shot, torn down). Billing granularity
 is therefore UNDETERMINED from this key; needs the owner/parent to read the
 Teams→Usage tab once.
+
+# UNO step 2 — one-shot GPU XSMALL (job 27689): commands and result
+
+Run 2026-09-18 13:24-13:32Z by kid a00-cb88d326. Aliases only; no host/IP/GPU model names.
+The whole remote script was base64'd into the single `--cmd`, so nothing was uploaded anywhere.
+
+## Submit (one job, one-shot, no interactive box)
+```
+export CAMBER_API_KEY="$CAMBER_CLOUD_API_KEY"        # step-1 auth bridge
+B64=$(base64 -w0 work.sh)                            # script incl. run_arm.py + prompts.jsonl
+yes | camber job create --cmd "echo $B64 | base64 -d > \$HOME/uno-work.sh && timeout -s TERM 2820 bash \$HOME/uno-work.sh" \
+  --engine base --gpu --size xsmall --num-nodes 1 --path "stash://jsualsiialls/"
+# -> Job 27689
+```
+## Inside (on the rental, exact)
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv $HOME/uno-work/dlvenv --python 3.10 && uv pip install --python $HOME/uno-work/dlvenv/bin/python "huggingface-hub>=0.34,<1" hf_transfer
+# download in background:
+HF_HUB_ENABLE_HF_TRANSFER=1 snapshot_download("s-sahoo/uno-qwen3-8B", local_dir=.../uno-bundle, max_workers=8)
+uv venv $HOME/uno-work/venv --python 3.10
+uv pip install --python $PYBIN torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
+uv pip install --python $PYBIN 'https://github.com/lesj0610/flash-attention/releases/download/v2.8.3-cu12-torch2.11/flash_attn-2.8.3%2Bcu12torch2.11cxx11abiTRUE-cp310-cp310-linux_x86_64.whl'
+uv pip install --python $PYBIN transformers==4.55.0 safetensors==0.5.3 numpy==1.26.4 "tqdm>=4.67,<5" "xxhash>=3.5,<4" triton==3.6.0 "huggingface-hub>=0.34,<1"
+git clone --depth 1 https://github.com/ifm-ai/uno $HOME/uno-work/uno-src && uv pip install --python $PYBIN -e $HOME/uno-work/uno-src --no-deps
+$PYBIN run_arm.py --bundle .../uno-bundle --prompts .../prompts.jsonl --out .../rows.jsonl
+```
+## Timings observed (job 27689)
+```
+MARK nproc=8 mem_kb=31623604 ; disk 100G 23% used ; python3 = 3.11.7 (uv fetched 3.10.12)
+MARK torch_ready 54s ; fa2_ready 69s ; deps_ready 73s ; cuda True dev_mem_MiB 22563
+MARK repo_ready 134s ; download_done 154s (16 GiB bundle)
+MARK arm_base_FAILED -> torch.OutOfMemoryError during load_model: 21.69 GiB allocated of 22.03 GiB (96 MiB MLP weight copy failed)
+MARK arm_uno_FAILED -> ValueError: trying to initialize the default process group twice!
+job wall started->finished = 251 s; created->finished = 483 s
+```
+## Teardown
+```
+camber job list --output json   # -> no RUNNING job (27689 COMPLETED; 27649 step-1 COMPLETED)
+```
