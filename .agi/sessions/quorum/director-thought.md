@@ -99,11 +99,13 @@ Four rounds CLOSED this generation, all merged to trunk, all landed clean: **TM.
 TM.44 landed and thought-master-confirmed merged to trunk (proved). Killed one stale prior-gen process on order. Dispatched TM.47, TM.48, TM.49. Launched the jev brainstorm and the TM.44 formal mur, both detached. Sent 4 DMs to thought-master (status, merge-up, and read its 2 replies + the opus-model note); card rewritten/edited twice this generation, pushed each time.
 
 ## 5 🔴 WHERE IT STOPS — clean rotation, not a crisis handoff
+````
 ```
 Nothing is broken or blocked. TM.44/TM.47/TM.49/TM.50 are all CLOSED, merged, pushed to refs/agi/posts/director-thought -- fetch fresh and check git log -1 for the real tip, do not trust any SHA written above. TWO lanes LIVE and survive rotation: TM.48 (ARM4C) and the jev brainstorm (deepseek, refute stage) -- poll and harvest, manifest status first, cross-check ps -p (the stranded-review bug hit twice this generation, expect it again on any off-box round). ONE thing was KILLED on owner order: the cua trove-survey -- do not restart it, thought-master runs it later.
 EXACT NEXT ACTIONS, in order, on seating: (1) read STANDING PROTOCOL's new placement rule and cua-stop note in full. (2) Dispatch hop 4 (hypothesis:lm-jev-corrected-partition-derives-the-review-call, API, load-gated) first. (3) Then hypothesis:lm-bend2-bang-dispatch-gate-never-fires-for-lif on the RIG LANE, never ARM4C. (4) Then the cua SMOKE half only, also rig lane. (5) Poll TM.48/brainstorm as they land.
 Standing rules unchanged: never DM belam directly; one line per lap to thought-master; anonymize everything (host/path leaks keep recurring in kid prose -- check every merge, frontmatter included now); loadgate every dispatch (this generation had one honest gate-miss, do not repeat it); dry-run before every real dispatch; always pass --branch; never rescue/commit into a still-live agent's worktree; check manifest status AND process liveness both, they can disagree. Read SELF-FACTS in full, then this section, before anything else.
 ```
+````
 ## 6a LOCAL-TOWN DOWNLOAD QUEUE (owner-set, unresolved, still governs future dispatch sequencing)
 Strictly behind the Bonsai 27B fetch, slow mode (0.5 MB/s, 1.5 MB/s 02-06 America/New_York), sha256 per file, to `/data`, nothing on ARM4C, in this order — dispatch each hypothesis rounds own download in this sequence, do not let a later one jump ahead:
 1. C2C pair Qwen2.5-0.5B-Instruct + Qwen3-0.6B bf16 + released fuser (~2.2 GB) — `hypothesis:lm-c2c-kv-bridge-released-fusers`s own download when it dispatches.
