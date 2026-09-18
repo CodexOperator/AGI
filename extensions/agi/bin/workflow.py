@@ -50,6 +50,7 @@ refusal happened without parsing stderr):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -1035,6 +1036,22 @@ def _preview_detail(text: str) -> str:
 
 
 
+def _run_key_path_component(run_key: str) -> str:
+    """Filesystem-safe form of `run_key` for use as a directory name. Most
+    filesystems cap one path component at 255 bytes, and a run_key slugged
+    from a long `why`/args blob can exceed that -- measured: `brainstorm`'s
+    run_key (idea id + whole `why` string + max_hypotheses) tripped `File
+    name too long` on mkdir, which `_persist_stage_value`'s broad except
+    swallowed, so the stage's structured return was never written and the
+    chained stage read back only the 200-char preview (director gen 6,
+    commit 453445d60). Truncated keys keep a digest of the FULL key so two
+    long keys sharing a prefix still land in different directories."""
+    if len(run_key.encode("utf-8")) <= 200:
+        return run_key
+    digest = hashlib.sha256(run_key.encode("utf-8")).hexdigest()[:8]
+    return f"{run_key[:190]}-{digest}"
+
+
 def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
     """Write a pi stage's WHOLE return to
     `<sessions>/workflows/runs/<run_key>/<label>.json` -- the view keeps 200
@@ -1044,7 +1061,7 @@ def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
     Best effort: a persistence failure never fails the run."""
     try:
         sess = _loc.shared_project_root(root) or root
-        d = Path(sess) / "sessions" / "workflows" / "runs" / run_key
+        d = Path(sess) / "sessions" / "workflows" / "runs" / _run_key_path_component(run_key)
         d.mkdir(parents=True, exist_ok=True)
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", label)
         (d / f"{safe}.json").write_text(
