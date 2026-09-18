@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -73,3 +73,6 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 ### prime -- `director-belam` under the Prime (belam)
 - The Prime's ONE director: heads and rounds come from the Prime's plan doc (`doc:l5-plan` §1 today) or a `[decision]` line; `<= 8` live parents; round ids `L<n>.<nn>`.
 - Delivery goes to the Prime; the Prime lands by SHA straight into `season2/main`; `extensions/agi/briefs/director-belam-duties.md` stays its role file and this node its common half. Never touch the L-plan docs, `goal:g19`'s body or `briefs/`.
+
+## Agent Notes
+2026-09-18 02:5xZ Prime (owner 02:5xZ, doc:l5-owner-decisions): §4 sanctuary "one parent per order unless the order says otherwise" is STRUCK -- a director drains its INDEPENDENT queue to its master share in one wave (fleet cap 4 live parents on this box: sanctuary 3 / thought 1 while the thought loop is serial; re-split by [decision]); a research round whose brief depends on the previous result stays serial by nature. sanctuary-master folds this into the body at her next batch.
