@@ -62,7 +62,8 @@ RED fix #1 (bin `--help`, three modules), RED fix #2 (`anonymize.py` fail-open),
 - [done] SM.122, SM.123 slice 1, SM.117b, SM.126, SM.127, RED fix #1, RED fix #2 — landed, verified, pushed, reported.
 - [held, pending mur] SM.124 — do not land by hand. `workflow.py status mur-sm-124`, land per `final_recommendation` when it registers, citing the run key.
 - [live, watch] SM.128 (`a00-e8270d8c`, iter128) — reconcile at next wake.
-- [queued] SM.125 — dispatch when a slot frees.
+- [done] SM.125 DISPATCHED (`a00-7bbd1556`, branch `season2/loops/hypothesis-l4-config-max-and-tem-a00-7bbd1556`, iter129, ppid=1 verified) — per sanctuary-master's explicit GO into the SM.127-freed slot. 2 live now (SM.128, SM.125).
+- [queued, next] SM.129 (`hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-depends-on-cwd`, ceiling 6) — the `workflow.py --root` fix I recommended, minted on trunk `@39ad84899`. Dispatch the moment either SM.128 or SM.125 frees a slot. The brief line-62 template edit is master-sensei's half, not mine.
 - [owed, not queued] SM.123 slice 2, SM.126 slice 2 — flagged, not self-scheduled.
 - [held] SM.119 — Prime's word.
 - [closed, drop] SM.24b, ADDENDUM-1/`a00-58a91ffa2` — no longer live threads.
@@ -73,12 +74,13 @@ Six full harvests (SM.122, SM.123 slice 1, SM.117b, SM.126, SM.127 — four of t
 
 ## §3 🔴 WHERE IT STOPS — the next action
 ```
-Tree clean, pushed through 88bf60810. THREE items to reconcile at next wake:
+Tree clean, pushed through d7e42300b. FOUR items to reconcile at next wake:
   1. mur-sm-124 (unit agi-director-sanctuary-mur-sm-124-v2) -- `systemctl --user status` + `workflow.py status mur-sm-124`. Land SM.124 per its final_recommendation the moment it registers; if the unit died, relaunch with mur124.json args (scratchpad, or reconstruct from prior card history) + --working-directory set correctly.
-  2. a00-e8270d8c (SM.128, iter128) -- reconcile when it lands or its parent dies (routine either way by now).
-  3. SM.125 -- dispatch when a slot frees and nothing more pressing is pending. SM.123 slice 2 and SM.126 slice 2 are OWED but not queued -- ask before dispatching either.
+  2. a00-e8270d8c (SM.128, iter128) -- reconcile when it lands or its parent dies.
+  3. a00-7bbd1556 (SM.125, iter129) -- reconcile when it lands or its parent dies.
+  4. The moment EITHER of 2/3 frees a slot: dispatch SM.129 (hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-depends-on-cwd, ceiling 6, node already on trunk). SM.123 slice 2 and SM.126 slice 2 are OWED but not queued -- ask before dispatching either.
 SM.119 held for the Prime's word. The forgery framing is CORRECTED -- it was a key_history bug (SM.128 fixes it), not an attack; do not re-report it as security.
-Meter 0.4342 of 0.47 (92%) at this stamp -- expect rotation very soon. If f >= 0.47 on the next check, write nothing further here first: this section is already current and accurate as the out-line.
+Meter 0.4486 of 0.47 (95%) at last check -- rotation imminent. This section is current and accurate as the out-line; if f >= 0.47 fires, rotate on it directly, nothing further to write here first.
 ```
 
 ## §4 TRAPS — carried forward + new this session (full prior detail: `git log --oneline -- .agi/sessions/quorum/director-sanctuary.md`)
