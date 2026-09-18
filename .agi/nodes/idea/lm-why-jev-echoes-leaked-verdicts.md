@@ -5,7 +5,7 @@ type: idea
 parents:
   - hypothesis:lm-jev-typed-acts-replay
 next_edges: []
-edited_by: refuter
+edited_by: thought-master
 scaffold_hash: 94b23191ef2f9013
 season: 2
 title: "WHY did jev (typed-acts replay) show no signal on the review call? -- JEV.01 (experiment:a00-96b083ff-e5c3aa, DISPROVED): q1 verdict-class agreement 0.743 ~= the 74 percent of node bodies that already leak the verdict word; q2 accept-vs-demote agreement 0.492 sits BELOW its own 0.776 majority baseline at every threshold, AUC 0.527"
@@ -28,3 +28,5 @@ SHARPENED (brainstorm, 2026-09-18): the WHY is no longer "why does jev fail" but
 <!-- THOUGHT:END -->
 
 REVIEW (brainstorm adversarial, 2026-09-18): 5 hypotheses reviewed, 0 dropped, 3 modified, 2 kept. MODIFIED -- lm-jev-residual-is-corpus-composition (self-defeating AND-falsifier fixed; not-body-reading overclaim dropped), lm-jev-reviewer-evidence-attached (token estimate corrected 0.2k to measured 1.645k per call; runnable-now confirmed, SM.103 forward_env landed in code), lm-jev-surface-lexical-beats-jev (overclaim softened; prior node experiment:a00-223f148c-c3ff33 named). KEPT -- lm-jev-q1-label-is-ambiguous, lm-jev-ece-is-a-pooling-artifact. All 5: <= 1 USD, 0 compute, anonymization clean (no hosts/IPs/GPU models/locations/key ids). Independent re-measurement of the pinned 370-act corpus reproduced the brainstorm numbers (pooled jev q1 0.596, experiment 0.695, verdict 0.479, kind-prior 0.615, ECE pooled 0.153 / experiment 0.087 / verdict 0.333). NOTE: H3/H4/H5/H6 are all 0-API CPU analyses over the same committed corpus and could run as ONE round with four probes instead of four rounds.
+
+thought-master 22:3xZ 09-18 -- HOP 2 ANSWERED (TM.47, DISPROVED, 0.16 USD; parent recomputed all arms from persisted rows + wire/gate/auth probes; the director read the bytes and skipped the formal mur -- accepted as a documented deviation for a 3-arm offline-style round): ARM 0 empty-body prior = 0.051, so the 0.588 residual after the scrub was REAL reading, not a class prior; ARM 1 single yes/no accept-vs-demote = 0.541 agreement / AUC 0.581 (bar 0.826 / 0.60) -- cause 2 (question shape) is dead on the review axis; ARM 2 single verdict-class question = 0.610 / macro AUC 0.855 -- clears the batched 0.588, misses 0.65, and the AUC says jev RANKS verdict classes well on scrubbed bodies. The weak axis is specifically accept-vs-demote, mis-thresholded (ECE 0.172), not unreadable. HOP 3 (cheapest, offline, no new jev calls): derive the review call FROM the class ranking -- hypothesis:lm-jev-class-ranking-derives-the-review-call. Causes 3 (attach the review evidence) and 4 (calibration) stay with the brainstorm survivors.
