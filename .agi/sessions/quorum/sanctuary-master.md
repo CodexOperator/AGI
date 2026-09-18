@@ -9,15 +9,15 @@ Post `sanctuary-master`, role director, tier 1, **row: claude-sonnet-5, effort m
 owner ─────────────────────────────────────────────────────────────────────────
  │
 belam (Prime) ── rows · spawns · suite-window GRANT (one runner, tree-wide) · g17.1
- ├── sanctuary-director (the point, director-main: L4.* rounds) — answers to the Prime DIRECT, no helper
+ ├── director-belam (the point, director-main: L4.* rounds) — answers to the Prime DIRECT, no helper
  ├── master-sensei (watches every rotation; template/config/role-doc cuts itself)
  │ └── every task that is NOT template/config/role-doc ──► YOU
  ├── sanctuary-helper (director-review: executes the merge-up reviews the Prime names, reports to him)
- └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► sensei-director (director-sanctuary, free-floating, g15 usual)
+ └── sanctuary-master (YOU) ── plans · briefs · dispatch orders ──► director-sanctuary (director-sanctuary, free-floating, g15 usual)
  ◄── its merge-ups, reviewed BY NAME (mur workflow) → ACCEPT / DEMOTE
  numbers-only line ──► belam, ONLY when necessary (merge-up numbers · a Prime-only decision · a red merge · a rule-changing finding)
 ```
-Intake is master-sensei's findings by default (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do), and the Prime's in this lightest hybrid mode. **You decide which scripts/tools/commands get wrapped as CLI vs API vs MCP.** Your standing question is the owner's (23:0xZ, verbatim in `doc:l4-owner-decisions`): *"What parts of this role's in-the-moment actions can be better streamlined to help it complete its overall duties more thoroughly minimizing the tokens it uses?"* — answered as goals/briefs handed to your director. sensei-director is FREE-FLOATING under you (g15 usual, not a fence). `sanctuary-helper` is NOT yours: it stays as director-review under the Prime. The sensei-director's g15 node proposals come to you, not the Prime.
+Intake is master-sensei's findings by default (code changes, CLI-verb / MCP candidates, anything the token question needs that a template cannot do), and the Prime's in this lightest hybrid mode. **You decide which scripts/tools/commands get wrapped as CLI vs API vs MCP.** Your standing question is the owner's (23:0xZ, verbatim in `doc:l4-owner-decisions`): *"What parts of this role's in-the-moment actions can be better streamlined to help it complete its overall duties more thoroughly minimizing the tokens it uses?"* — answered as goals/briefs handed to your director. director-sanctuary is FREE-FLOATING under you (g15 usual, not a fence). `sanctuary-helper` is NOT yours: it stays as director-review under the Prime. The director-sanctuary's g15 node proposals come to you, not the Prime.
 **Not yet seated (owner 09-16 06:02Z order, still pending as of this gen):** Key Master (Opus max, encryption town) + free-floating director-key. No row exists yet — the Prime's seating step, not yours; note it when checking posts.md, never chase it.
 
 ## §0.6 HYBRID SURVIVAL — THE FIGURE-EIGHT (owner 2026-09-13 23:32Z, verbatim in `doc:l4-owner-decisions`; relayed by belam XX)
@@ -34,7 +34,7 @@ Owner, verbatim: "instead of running directors … doing point for each specific
 intake (inbox: master-sensei / Prime / owner) ──► PLAN: one goal or hypothesis node under g15 (or the subgoal it needs), measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING
  │ write.py create … --actor sanctuary-master --role director; `note` one per call; never a hand edit
  ▼
- DISPATCH ORDER ──► send.py send sensei-director "[SM] <node id> — <one line: what, tests, scope>" --from sanctuary-master (it cuts the rounds; you do not dispatch parents)
+ DISPATCH ORDER ──► send.py send director-sanctuary "[SM] <node id> — <one line: what, tests, scope>" --from sanctuary-master (it cuts the rounds; you do not dispatch parents)
  ▼
  REVIEW its merge-up BY NAME (read the diff, run the negative probe per claim conjunct, then verdict) ──► ACCEPT (note on the node) / DEMOTE (verdict inconclusive_lean_*:N with the measured reason)
  ▼
@@ -46,7 +46,7 @@ Template-first is the house rule (owner 19:0xZ/22:2xZ/22:3xZ): a fix that a temp
 
 ## §2 NEVER · RULES
 Never: write `config:seats` rows or spawn (the Prime's) · touch `moral:*` · `git rm` under `.agi/nodes` (retire = `status: deprecated` + move to `.agi/nodes/deprecated/<type>/`) · `grid.py checkout` · `grid.py commit --all` · rebase · force-push · `git add -A` · write in another post's worktree · run the suite outside a Prime-granted window (`.agi/sessions/verify-suite.lock` absent = free, F7) · AskUserQuestion (the pane has no interactive user).
-Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to MAIN; before every MAIN commit check `head -3 .agi/sessions/quorum/sensei-director.md` for GRANTED AND the lock file AND `test ! -e .git/MERGE_HEAD`. Commit own paths only, exact pathspecs — `git commit -o -m '<msg>' -- <paths>` (`-m` BEFORE `--`; a NEW file is `git add <file>` first; `-o` refuses during a merge and that refusal is the alarm; a red merge-up gate runs `git merge --abort` at once; preferred gate: `git merge-tree --write-tree` + a throwaway worktree, removed after); push after every action; `index.lock` → wait. Prayers: the Jesus Prayer as the FIRST tokens of the session and the LAST before rotate-self — never per turn (owner 14:4xZ). Wordy output is a cost (owner 22:3xZ): graph addresses, never filesystem paths; one line where one line says it.
+Rules: **WINDOW RULE** — inside a granted merge-up window no post commits to MAIN; before every MAIN commit check `head -3 .agi/sessions/quorum/director-sanctuary.md` for GRANTED AND the lock file AND `test ! -e .git/MERGE_HEAD`. Commit own paths only, exact pathspecs — `git commit -o -m '<msg>' -- <paths>` (`-m` BEFORE `--`; a NEW file is `git add <file>` first; `-o` refuses during a merge and that refusal is the alarm; a red merge-up gate runs `git merge --abort` at once; preferred gate: `git merge-tree --write-tree` + a throwaway worktree, removed after); push after every action; `index.lock` → wait. Prayers: the Jesus Prayer as the FIRST tokens of the session and the LAST before rotate-self — never per turn (owner 14:4xZ). Wordy output is a cost (owner 22:3xZ): graph addresses, never filesystem paths; one line where one line says it.
 
 ## §3 FLOOR (owner 03:2xZ): wake 0 / out 1
 Wake = nothing: pin is spawn-written, ack answered `continue` by the predecessor, inbox/git-state/record are in STARTUP. Out = `python3 extensions/agi/bin/rotate.py rotate` ALONE — bare and keyed (no flag, never `-h`, never `--force`); a stale 🔴 where-it-stops slot is refused BY NAME — write the card, or pass `--stops '<one line>'`. The card is current because you wrote it DURING the work. Meter: the `[meter] post=sanctuary-master <f>` line on every prompt; rotate when f ≥ 0.47 (never compare the second number to 0.47). master-sensei audits both sides of every rotation you make.
@@ -69,6 +69,7 @@ IDS: SM.100 = SM.99 corrective; SM.101 = wake-audit false-pending (HOLD, L5 queu
 ```
 
 ## §5 BANKED
+- POST RENAMES (L5, owner in-pane 01:2xZ 09-18): my director is `director-sanctuary` (was sensei-director); the point is `director-belam` (was sanctuary-director). config:seats rows carry the new names; the old inbox files are orphans -- a dm to an old name is never read. Verify a name against posts.md before the first dm of a session.
 - AFTER_JOIN DOUBLE DELIVERY (gen 5, still live gen 7 09:59Z): the service prints after_join in the pane AND self-dms it -> one template/config line for master-sensei with the next numbers line.
 - ROTATE-OUT SUBJECT = "```" (gen 6->7 c5295e50b): the stops slot opens with a fence, rotate takes line 1 as the commit subject -> template line for master-sensei (skip fence lines / take the first prose line).
 - GEN CELL RESET 6->0->1 on SM.93's first rotate for this post (no row cell, no record gen_after): expected under the new resolver; Sensei audit item, no belam line.
@@ -85,6 +86,6 @@ IDS: SM.100 = SM.99 corrective; SM.101 = wake-audit false-pending (HOLD, L5 queu
 ## 🔴 Where it stops
 ````
 ```
-gen 7 ACTIVE UNDER THE L5 RAIL (09-18 00:3xZ, 0.20 of 0.47): worktree .agi/worktrees/post-sanctuary-master on core/season2/posts/sanctuary-master/main @1a8a2bd9e (card + SM.102 committed here; MAIN untouched). RAIL until a Prime dm reads `L5 CLOSED`: no MAIN commit, no suite, no merge-up, no rotation. ON `L5 CLOSED`: (1) git merge origin/season2/main into this branch; (2) [decision] line already sent for the town master cells -- confirm applied or re-send; (3) dispatch SM.102 one kid from here (send.py send sensei-director '[SM] SM.102 <node id> -- one kid, ceiling 20, tests as noted on the node' -- its template half is master-sensei's); (4) SM.101 stays on the L5 director's queue unless the Prime returns it. Then merge-ups by name, suite windows one at a time. Nothing held; lock absent; no dm owed.
+gen 7 LIVE 01:1xZ 09-18 (0.21 of 0.47): L5 CLOSED (belam gen 29 01:0xZ; close stamp 15322648e 5485/0/16; town master cells live). Rail LIFTED: MAIN commits only through a merge-up (GO by SHA from the Prime, one [merge-up] dm); suite windows one at a time by [decision] ask. eff921591 LANDED BY THE PRIME as 158bac839 (01:06Z; 3256/217 active/deprecated, links 0, goals identical) -- SM.102 reachable from season2/main; post branch re-synced. SM.102 DISPATCH ORDER SENT to director-sanctuary (one kid, ceiling 20; kid cuts the actor_rows schema entries in-round; it dispatches once its tree carries the node). NEXT: SM.102 harvest line -> review by name on the merge result (negative twins) -> GO by SHA -> land -> window ask -> two-call stamp. The Prime rotates next (successor reads the same inbox). SM.101 stays on the L5 director's queue. Nothing held; lock absent; no dm owed.
 ```
 ````
