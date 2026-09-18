@@ -34,7 +34,7 @@ Read-only hunt on one-bit/ternary quantisation and whether it applies to a diffu
 1. **Ternary dLLM exists? NO.** arXiv searches 2025-2026 for "ternary masked diffusion", "1-bit diffusion" (cat:cs), "BitNet diffusion" all return zero entries. Closest work (MDM-Prime-v2, arXiv 2603.16077) uses binary ENCODING of the subtokenizer, not binary/ternary WEIGHTS. Greenfield for the owner.
 2. **Ternary substrate is solid on LLM side.** BitNet b1.58 (arXiv 2402.17764) = {-1,0,1} weights matching fp16 at equal size+tokens; BitNet-b1.58-2B-4T open weights MIT (HF); bitnet.cpp CPU inference (arXiv 2410.16144/2502.11880): 1.37-5.07x ARM / 2.37-6.17x x86 speedup, 100B on ONE CPU at 5-7 tok/s (MEASURED).
 3. **Open dLLM to QAT: LLaDA-8B**, Apache-2.0, on par with LLaMA3-8B (arXiv 2502.09992 + HF). Mercury (arXiv 2506.17298) is commercial-scale diffusion LLM but weights NOT open-released.
-4. **Fit:** ternary 7-8B ~1.6-1.9 GB (ESTIMATE) fits A1 CPU 23 GB and 8 GB GPU; measured arm64-N1 4-core tok/s not published -> ESTIMATE 15-35 tok/s for ternary 2B, verify on A1.
+4. **Fit:** ternary 7-8B ~1.6-1.9 GB (ESTIMATE) fits A1 CPU 23 GB and 8 GB GPU; measured arm64 4-core tok/s not published -> ESTIMATE 15-35 tok/s for ternary 2B, verify on A1.
 5. **$0 first step:** build+run bitnet.cpp BitNet-b1.58-2B-4T on the A1 (MIT, no pip) and measure tok/s; then numpy-probe a ternary matmul on a LLaDA linear block. QAT of full LLaDA-8B to ternary would exceed the 3 GPU-hr/month Camber budget (ESTIMATE 4-10 hr); PTQ-small (BiLLM/PTQTP) fits in 1-3 hr.
 
 ## Evidence
