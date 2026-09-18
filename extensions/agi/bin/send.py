@@ -219,7 +219,7 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
             _pobj = None
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
             _committed = _seats_committed_rows(root)
-            _row = _seat_row_in(_committed, seat) if _committed else None
+            _row = _seat_row_for(root, _committed, seat)
             _row_pub = str((_row or {}).get("pubkey") or "")
             if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
                 return _pobj
@@ -2958,6 +2958,25 @@ def _alias_canon(root: Path, name: str) -> str | None:
     if canon and str(canon) != name:
         print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
         return str(canon)
+    return None
+
+
+def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
+    """The identity row for ``seat``, resolving the ONE `aliases:` table
+    (old -> new) in the REVERSE direction. At a rename boundary the seats ROW
+    keeps the OLD name while the successor runs as the NEW one (rotate.py's
+    boundary never writes config), so `_seat_row_in(rows, new)` finds nothing
+    -- and a row whose OWN name is an alias OF ``seat`` IS that seat's row.
+    Falls straight through to `_seat_row_in` when no alias matches, so a seat
+    with no rename resolves byte-identically to before (and prints nothing).
+    Reused by `_signing_key_obj` and rotate's `_complete_pending_key_swap`"""
+    row = _seat_row_in(rows, seat)
+    if row is not None:
+        return row
+    for r in rows or ():
+        rn = str(r.get("name") or "")
+        if rn and rn != seat and _alias_canon(root, rn) == seat:
+            return r
     return None
 
 

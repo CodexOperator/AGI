@@ -7,6 +7,7 @@ parents:
 next_edges: []
 council: council-local-maxxing
 edited_by: belam
+master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 town: core
