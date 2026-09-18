@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal
 next_edges: []
 confidence: 0.9
-edited_by: a00-eb9924f5
+edited_by: a00-ec12fb27
 evidence_runs:
   - experiment:a00-eb9924f5-5a5d16
 line_ceiling: 40
@@ -14,6 +14,7 @@ loop: hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-ma
 model: deepseek/deepseek-v4.1-flash
 production_lines: 25
 profile: balanced
+rebrief_answer: "proceed with ceiling 40 (confirmed: write.py diff is 25 added/3 removed, independently verified via git show d5752da15 --numstat; the 116 figure summed rotate.py +53 and workflow.py +38 from other concurrent kids in the shared worktree, not this kid file; no ceiling change, no replacement needed)"
 rebrief_request: "116/40 shared worktree overcounts: my write.py diff is 25 added (3 removed) under the 40 ceiling; the 116 is git diff HEAD across the tree and includes OTHER agents uncommitted rotate.py (+53) and workflow.py (+38) work that is not mine. Nothing here needs a higher ceiling - the gate counts the worktree not the round. Please answer with rebrief_answer so harvest does not read this as an unanswered request."
 role: kid
 scaffold_hash: f53526b34fbfa19a

@@ -1,0 +1,25 @@
+---
+id: hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order
+mint_id: c4b35cf5268e4da887e9ebdbc1f48433
+type: hypothesis
+parents:
+  - goal:g15
+next_edges: []
+edited_by: sanctuary-master
+scaffold_hash: fdf03c4759f10cb6
+season: 2
+testable_claim: "(1) merge-up-review.json: the review stage schema REQUIRES `config_max` and `template_max`, each {answer: yes|no, where: <cell or template line named when yes>}, the review prompt asks both questions in the owner's words, and the verify stage's `verdicts` carry them through; a return missing either is schema-invalid (the existing validate_return path names the missing field). (2) the dispatch-order template (config:rotations / the director brief §1 order shape) carries ONE named line the kid answers first: \"config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>\"; the kid's experiment node records the three answers. (3) a test proves a review return without the two fields is refused by name and one with them validates; a second test proves the brief/template text carries the line. (4) mur runs on pi keep the same wall/load behaviour byte-identical apart from the two new fields. CEILING 10 production lines + manifest/template/brief text."
+title: "SM.125 (owner 22:0xZ + 22:1xZ in the sanctuary-master pane): config_max + template_max + path_max are REQUIRED fields of every merge-up-review verdict and a named line of every dispatch order, paths.py audit lists every hardcoded path or box literal, and the measured baseline moves to config cells + placeholders -- a change that belongs in a cell, a template line or a placeholder is returned by name, never accepted as code"
+town: core
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SM.125 BRIEF (sanctuary-master 22:1xZ 09-18). Standing rule already landed in doc:unified-director-brief §2 (f39a661b6): build direction + review direction, every round. This round makes the rule MECHANICAL: merge-up-review.json review + verify stage schemas (required lists at the stages labelled review / verify) gain config_max + template_max; the dispatch order shape gains the named line; tests as in the claim. Template/config half: the manifest + rotations template text are DATA -- the director cuts them in the same round (master-sensei informed by sanctuary-master, per the formation), code = the 10-line schema/validation seam only if validate_return does not already refuse a missing required field (measured: it does -- workflow.py validate_return names missing required fields; so code may be ZERO lines). FILE SCOPE: workflows/merge-up-review.json, .geometry/rotations.md (order template line), brief §1 one line, one test file. Queue: after SM.124 or in the first free slot (cap 3). Deliver batch + review in ONE line -- and that review itself must carry the two fields (the round proves its own rule).
+
+SCOPE ADDED (owner in the sanctuary-master pane 22:1xZ: "Can we also add config and template maxing all hardcoded path names while we're at it? It slots right into the round"): a THIRD check, path_max, in the same verdict fields and the same dispatch-order line -- any absolute path, home-relative path (~/, $HOME, expanduser) or box-specific literal (user name, log dir, tmux session name) in a diff's code, node, template or brief is a yes = returned with the config cell or placeholder named. MEASURED BASELINE 22:1xZ on this tree: /home/<user> literals in bin/*.py = 7 files / 10 lines (8 outside comments), ~/.claude / $HOME literals = 6 bin files, .geometry crons.md 3 + rotations.md 1, .agi/config.json 5, briefs+hooks+workflows 21 files, tests 8 files. THE ROUND SHIPS: (a) the check (fields + line + the review prompt wording), (b) `paths.py audit` -- a read-only lister of every such literal by file:line with its class (home, logs, tmux, user, box), exit 1 when any exists outside the allowlist, (c) the RESOLVER seam the literals move to: `.agi/config.json` cells under `box` (root, logs_dir, tmux_session, user) read through locations/boxes.py (config:box in S3-L1 replaces the cells, not the seam), with placeholders {root} {logs} {tmux} {user} for node/template text (SM.124's renderer resolves the same names), (d) the MIGRATION of the measured baseline to the seam, file by file, byte-identical behaviour proved on this box (rendered crontab, hook lines, brief text unchanged after resolution); tests: audit exits 1 on a fixture literal and 0 on the migrated tree, the 21 brief/hook/workflow files render the same bytes on this box, every bin literal gone (the audit run in the suite = the standing gate). CEILING raised to 40 production lines for the seam + audit; the migration is text moves counted by the audit, not by the ceiling. Tests may keep fixture paths under tmp only.

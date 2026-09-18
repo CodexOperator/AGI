@@ -517,7 +517,12 @@ def test_suite_opt_in_appends_tests_only_when_requested(monkeypatch, tmp_path):
     results = verification.run_level(groot, "quick", suite=False, verbose=False)
     assert "tests" not in seen
     saw_names = [r.name for r in results]
-    assert saw_names == verification.LEVELS["quick"], "no count compare without smoke"
+    # SM.122: the anonymize guard is a built-in appended at every level (it is
+    # the pre-commit write seam), so the declared names are a prefix of the
+    # results and no count compare appears without smoke.
+    assert saw_names[:len(verification.LEVELS["quick"])] == verification.LEVELS["quick"]
+    assert "anonymize" in saw_names
+    assert "node-count" not in saw_names
 
     monkeypatch.setattr(verification, "run_check", fake_run)
     results = verification.run_level(groot, "quick", suite=True, verbose=False)
