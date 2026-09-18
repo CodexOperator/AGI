@@ -21,8 +21,10 @@ no-slice-isolation shape in merge-up-review). The claim built here:
       status; a SILENT stage is killed at the wall; once max_extensions is
       reached the stage is killed and named.
 
-Every timing test uses a 1-2 s wall and a stubbed `subprocess.run` — no real
-minutes, no network, no tmux/systemd/crontab, no spawned agent.
+Every timing test uses a 1-2 s wall and a stubbed dispatch primitive
+(`subprocess.run` for the isolation tests, `subprocess.Popen` for the wall
+extension tests, which count constructions and pids) — no real minutes, no
+network, no tmux/systemd/crontab, no spawned agent.
 """
 from __future__ import annotations
 
@@ -269,6 +271,58 @@ def _row(tmp):
     return json.loads(lines[-1])
 
 
+def _drive_popen(monkeypatch, manifest, args, popen_cls, tmp_factory):
+    """Like `_drive`, but the stage dispatch primitive is `subprocess.Popen`
+    (SM.109): the context helpers keep the `subprocess.run` seam, and every
+    stage process goes through the injected `Popen`, whose constructions are
+    counted -- a re-dispatch would show a SECOND construction."""
+    from unittest import mock as _mock
+    tmp, restore = _tmp_session_root(tmp_factory, _wf)
+    saved = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: manifest
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    try:
+        buf = io.StringIO()
+        with _mock.patch("subprocess.run", side_effect=_ctx_or_stage), \
+             _mock.patch("subprocess.Popen", popen_cls):
+            rc = run_workflow(REPO / ".agi", "review", "pi", args, False,
+                              out=buf)
+        return rc, buf.getvalue(), tmp
+    finally:
+        _wf._load_manifest = saved
+        restore()
+
+
+class _FakePopen:
+    """A `Popen` stand-in whose first `WALL_HITS` communicate calls hit the
+    wall; each construction is recorded so a re-dispatch is visible, and the
+    `pid` is per-instance (a fresh process would carry a different one)."""
+    built: list = []
+    WALL_HITS: int = 1
+
+    def __init__(self, cmd, **kw):
+        type(self).built.append(self)
+        self.cmd = cmd
+        self.pid = 9000 + len(type(self).built)
+        self.returncode = None
+        self.calls = 0
+
+    def communicate(self, timeout=None):
+        self.calls += 1
+        if self.calls <= type(self).WALL_HITS:
+            raise _sp.TimeoutExpired(self.cmd, timeout)
+        self.returncode = 0
+        return _OK, ""
+
+    def kill(self):
+        self.returncode = -9
+
+
+def _popen_cls(wall_hits):
+    return type("_FakePopenX", (_FakePopen,),
+                {"built": [], "WALL_HITS": wall_hits})
+
+
 def test_producing_stage_gets_one_extension_then_completes(
         tmp_path_factory, monkeypatch):
     prog = tmp_path_factory.mktemp("prog") / "out.txt"
@@ -277,44 +331,64 @@ def test_producing_stage_gets_one_extension_then_completes(
     m = {"name": "review", "type": "review", "script": "s.js",
          "stages": [_sl("only", "ONLY", timeout_s=1, extension_s=1,
                         max_extensions=1, progress_file=str(prog))]}
-    calls = []
-
-    def fake_run(cmd, **kw):
-        base = _ctx_or_stage(cmd, **kw)
-        if base is not None:
-            return base
-        calls.append(kw.get("timeout"))
-        if len(calls) == 1:
-            raise _sp.TimeoutExpired(cmd, kw.get("timeout"))
-        return _sp.CompletedProcess(cmd, 0, stdout=_OK, stderr="")
-
-    rc, text, tmp = _drive(monkeypatch, m, {}, fake_run, tmp_path_factory)
+    cls = _popen_cls(1)
+    rc, text, tmp = _drive_popen(monkeypatch, m, {}, cls, tmp_path_factory)
     assert rc == 0, text
-    assert calls == [1, 1], calls
     assert "[extension] only +1s (n=1)" in text, text
     assert "[stage] only ok" in text, text
+    # ONE process across the extension -- not a re-dispatch -- and the run row
+    # records the pid the wall was moved under (SM.109).
+    assert len(cls.built) == 1, cls.built
     row = _row(tmp)
-    assert row["extensions"]["only"] == [{"n": 1, "extension_s": 1}], row
+    assert row["extensions"]["only"] == [
+        {"n": 1, "extension_s": 1, "pid": cls.built[0].pid}], row
+
+
+def test_counter_keeps_counting_through_the_extension(tmp_path):
+    """The positive twin, verbatim from the SM.109 residue note: a stage that
+    writes a counter keeps counting through the extension without restarting
+    from zero -- a REAL process, the SAME pid, the SAME output file."""
+    counter = tmp_path / "count"
+    script = tmp_path / "tick.sh"
+    script.write_text(
+        "i=0\nwhile [ $i -lt 20 ]; do\n"
+        f"  i=$((i+1)); echo $i >> {counter}\n  sleep 0.1\ndone\n")
+    built = []
+    real = _sp.Popen
+
+    def spy(cmd, **kw):
+        p = real(cmd, **kw)
+        built.append(p)
+        return p
+
+    view = _wf.RunView("review", [{"label": "only"}], "pi", out=io.StringIO())
+    stage = {"label": "only", "timeout_s": 1, "extension_s": 3,
+             "max_extensions": 1, "progress_file": str(counter)}
+    with mock.patch("subprocess.Popen", side_effect=spy):
+        proc = _wf._run_stage_proc(["bash", str(script)], budget=1,
+                                   stage=stage, spawn_env=os.environ.copy(),
+                                   view=view)
+    assert proc.returncode == 0
+    assert len(built) == 1, [p.pid for p in built]
+    ticks = [int(x) for x in counter.read_text().split()]
+    # 1,2,3,... with no reset and no restart-from-zero after the wall
+    assert ticks == list(range(1, len(ticks) + 1)), ticks
+    assert ticks[-1] >= 10, ticks          # it ran on past the 1 s wall
+    ext = view.state["only"]["extensions"]
+    assert ext == [{"n": 1, "extension_s": 3, "pid": built[0].pid}], ext
 
 
 def test_silent_stage_is_killed_at_the_wall(tmp_path_factory, monkeypatch):
     m = {"name": "review", "type": "review", "script": "s.js",
          "stages": [_sl("only", "ONLY", timeout_s=1, extension_s=5)]}
-    calls = []
-
-    def fake_run(cmd, **kw):
-        base = _ctx_or_stage(cmd, **kw)
-        if base is not None:
-            return base
-        calls.append(kw.get("timeout"))
-        raise _sp.TimeoutExpired(cmd, kw.get("timeout"))
-
-    rc, text, tmp = _drive(monkeypatch, m, {}, fake_run, tmp_path_factory)
+    cls = _popen_cls(99)                 # always at the wall, never producing
+    rc, text, tmp = _drive_popen(monkeypatch, m, {}, cls, tmp_path_factory)
     assert rc == 2, text
-    assert calls == [1], calls          # no extension on a silent stage
     assert "[stage] only failed" in text, text
     assert "[extension]" not in text, text
+    assert len(cls.built) == 1, cls.built           # one process, then killed
     assert _row(tmp)["failed"] == 1
+    assert cls.built[0].returncode == -9, cls.built[0].returncode
 
 
 def test_max_extensions_reached_still_kills_and_names(
@@ -325,20 +399,13 @@ def test_max_extensions_reached_still_kills_and_names(
     m = {"name": "review", "type": "review", "script": "s.js",
          "stages": [_sl("only", "ONLY", timeout_s=1, extension_s=1,
                         max_extensions=1, progress_file=str(prog))]}
-    calls = []
-
-    def fake_run(cmd, **kw):
-        base = _ctx_or_stage(cmd, **kw)
-        if base is not None:
-            return base
-        calls.append(kw.get("timeout"))
-        raise _sp.TimeoutExpired(cmd, kw.get("timeout"))
-
-    rc, text, tmp = _drive(monkeypatch, m, {}, fake_run, tmp_path_factory)
+    cls = _popen_cls(99)                 # one extension, then still at the wall
+    rc, text, tmp = _drive_popen(monkeypatch, m, {}, cls, tmp_path_factory)
     assert rc == 2, text
-    assert calls == [1, 1], calls       # exactly one extension, then killed
     assert "[extension] only +1s (n=1)" in text, text
     assert "[stage] only failed" in text, text
+    assert len(cls.built) == 1, cls.built
     row = _row(tmp)
     assert row["failed"] == 1
-    assert row["extensions"]["only"] == [{"n": 1, "extension_s": 1}], row
+    assert row["extensions"]["only"] == [
+        {"n": 1, "extension_s": 1, "pid": cls.built[0].pid}], row
