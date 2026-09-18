@@ -1,0 +1,18 @@
+{
+  "rotation": "rotate-self",
+  "seat": "sensei-director",
+  "recorded_at": "2026-09-17T22:23:59.999976Z",
+  "result": "started",
+  "steps_reached": [],
+  "box": {
+    "loadavg": [
+      0.553,
+      0.726,
+      1.103
+    ],
+    "cores": 4
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "0bdc52feb6a680fb3a716d4257950d2d3155cf902d6894180068c4ce8f94638a",
+  "seated_at": "2026-09-17T22:23:59.999976Z"
+}
