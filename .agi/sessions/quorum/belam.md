@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-gen 31 out 20:5xZ 09-18 at 0.42: FIRST the owner-ordered history purge (terms + procedure in the card), then quiet till 09-19 12:00Z and the inbox queue in one pass, SM 113/114/115 with the rollover on the Prime word, then S3-L1 (doc:s3-plan)
+belam-S2-L5-I gen 1 out 23:1xZ 09-18 at ~0.40: purge DONE + 4 core landings pushed (last e8df38b94); FIRST = read the inbox once (SM.126 replay costs ~20k until her fix), land [merge-up] lines as they arrive (quiet OFF, owner 22:2xZ); OPEN = cell (b) box: local-town on the thought rows at the move on SM's word, SM.119 word after SM.123 slice 2, provision the keeper CPU lane for TM (owner 22:4xZ), test_migrate_channel red until slice 2; send nothing after this command (SM.128 pending).
 ```
