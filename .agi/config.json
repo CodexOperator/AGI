@@ -57,6 +57,10 @@
       "allowed_extra": [
         "deepseek/deepseek-v4.1-flash",
         "~z-ai/glm-flash-latest"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "pi-local": {
@@ -70,6 +74,10 @@
       },
       "allowed_extra": [
         "Qwen3.5-9B-Q4_K_M"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "claude-code": {
