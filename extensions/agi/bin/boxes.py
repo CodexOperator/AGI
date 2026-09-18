@@ -60,3 +60,7 @@ def row_is_local(root: Path, row: dict) -> bool:
     if not own:
         own = default_box(root)
     return own == here
+
+if __name__ == "__main__":
+    import argparse
+    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
