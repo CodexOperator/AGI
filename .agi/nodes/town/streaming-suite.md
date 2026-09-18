@@ -7,6 +7,7 @@ parents:
 next_edges: []
 council: council-streaming-suite
 edited_by: belam
+master: stream-master
 scaffold_hash: c8877d1072e7301a
 season: 1
 town: core
