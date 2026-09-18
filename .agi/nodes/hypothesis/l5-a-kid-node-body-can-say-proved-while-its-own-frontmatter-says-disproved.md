@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CARRIED to the next loop per belam [go] dm on the L5.13 merge-up (23:0xZ): accepted as queued. No round this loop.
