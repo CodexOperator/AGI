@@ -1240,3 +1240,204 @@ def test_kill_switch_with_unit_present_runs_disable(tmp_path, fake_systemctl):
     calls = fake_systemctl.read_text().splitlines()
     assert calls[0].startswith("--user disable --now ")
     assert calls[1] == "--user daemon-reload"
+
+
+# --- generic cadence entries, placeholders, and audit (this round's claim) --
+
+
+GENERIC_ONLY = {
+    "grid_sync": {"every_mins": 5, "enabled": False},
+}
+
+
+def test_generic_job_renders_the_managed_shape(tmp_path):
+    """Any name outside KNOWN_JOBS that carries a `cmd` renders one line in
+    the SAME shape a built-in uses: `cd {root} && <cmd> >> <log> 2>&1`."""
+    root = make_project(tmp_path, cadences={
+        **GENERIC_ONLY,
+        "nightly_digest": {"schedule": "12 3 * * *",
+                           "cmd": "python3 bin/digest.py"},
+    })
+    node = crons.load_crons_node(root)
+    assert node["jobs"]["nightly_digest"]["cmd"] == "python3 bin/digest.py"
+    lines = crons.render_managed_lines(root, root, root, node)
+    assert lines == [
+        f"12 3 * * * cd {root} && python3 bin/digest.py >> "
+        f"{crons._log_path(root)} 2>&1"
+    ]
+
+
+def test_generic_job_log_override_and_deterministic_order(tmp_path):
+    """`log:` overrides the project log; two generics render sorted by name so
+    a second apply is byte-identical regardless of YAML key order."""
+    root = make_project(tmp_path, cadences={
+        **GENERIC_ONLY,
+        "zeta": {"every_mins": 30, "cmd": "true", "log": "/tmp/zeta.log"},
+        "alpha": {"every_mins": 30, "cmd": "true"},
+    })
+    node = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, root, root, node)
+    assert str(crons._log_path(root)) in lines[0]
+    assert ">> /tmp/zeta.log 2>&1" in lines[1]
+
+
+def test_unknown_job_without_cmd_still_refused_by_name(tmp_path):
+    """The regression pin: an unknown name with no `cmd` is refused exactly
+    as before, naming the job."""
+    root = tmp_path / "proj"
+    write_crons_node(root, cadences={"totally_made_up": {"every_mins": 1}})
+    with pytest.raises(crons.CronsError, match="unknown job 'totally_made_up'"):
+        crons.load_crons_node(root)
+
+
+def test_generic_job_box_gate_matches_builtin_behaviour(tmp_path):
+    """A generic job with `box:` is gated by the SAME `_on_this_box` a
+    built-in uses: absent renders everywhere, a string restricts."""
+    root = make_project(tmp_path, cadences={
+        **GENERIC_ONLY,
+        "boxed_job": {"schedule": "0 1 * * *", "cmd": "true",
+                      "box": "local-town"},
+    })
+    node = crons.load_crons_node(root)
+    assert crons.render_managed_lines(root, root, root, node,
+                                      box_name="local-town")
+    assert crons.render_managed_lines(root, root, root, node,
+                                      box_name="core-town") == []
+
+
+def test_placeholders_resolve_by_literal_replacement(tmp_path):
+    """`{root}` / `{repo_root}` / `{logs}` / `{box}` resolve from the
+    resolver's own values; non-strings and shell braces pass untouched (never
+    `str.format()`)."""
+    root = tmp_path / "proj"
+    repo = tmp_path / "repo"
+    out = crons._substitute("{root}|{repo_root}|{logs}|{box}",
+                            root, repo, "core-town")
+    assert out == (f"{root}|{repo}|{Path.home() / 'logs'}|core-town")
+    assert crons._substitute(None, root, repo, "core-town") is None
+    assert crons._substitute("awk '{print $1}'", root, repo,
+                             "core-town") == "awk '{print $1}'"
+
+
+def test_service_placeholders_render_the_same_bytes_as_absolute_paths(tmp_path,
+                                                                       fake_systemctl):
+    """The live node's `services.agi-reaper` paths became `{repo_root}` /
+    `{logs}`; resolving them must reproduce the old absolute unit byte for
+    byte."""
+    abs_svc = {
+        "enabled": True, "restart": "on-failure",
+        "exec_start": "/usr/bin/python3 /box/work/agi/extensions/agi/bin/"
+                      "heal.py watch --root /box/work/agi --poll-s 30",
+        "working_directory": "/box/work/agi",
+        "environment": {"AGI_REAPER_LOG": "/box/logs/reaper.log"},
+    }
+    ph_svc = {
+        "enabled": True, "restart": "on-failure",
+        "exec_start": "/usr/bin/python3 {repo_root}/extensions/agi/bin/"
+                      "heal.py watch --root {repo_root} --poll-s 30",
+        "working_directory": "{repo_root}",
+        "environment": {"AGI_REAPER_LOG": "{logs}/reaper.log"},
+    }
+    repo = tmp_path / "box" / "work" / "agi"
+    repo.mkdir(parents=True)
+    abs_svc = {
+        "enabled": True, "restart": "on-failure",
+        "exec_start": f"/usr/bin/python3 {repo}/extensions/agi/bin/"
+                      f"heal.py watch --root {repo} --poll-s 30",
+        "working_directory": str(repo),
+        "environment": {"AGI_REAPER_LOG": str(Path.home() / "logs" / "reaper.log")},
+    }
+    resolved = dict(ph_svc)
+    resolved["exec_start"] = crons._substitute(
+        ph_svc["exec_start"], repo.parent, repo, "")
+    resolved["working_directory"] = crons._substitute(
+        ph_svc["working_directory"], repo.parent, repo, "")
+    resolved["environment"] = {
+        k: crons._substitute(v, repo.parent, repo, "")
+        for k, v in ph_svc["environment"].items()}
+    assert crons.render_unit_file("agi-reaper", resolved, repo) == \
+        crons.render_unit_file("agi-reaper", abs_svc, repo)
+
+
+def test_audit_flags_a_foreign_agi_block_and_extra_unit(tmp_path, capsys):
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    foreign = ["# >>> agi-crons deadbeefcafe >>> project=/elsewhere",
+               "0 0 * * * /elsewhere/run.sh",
+               "# <<< agi-crons deadbeefcafe <<<"]
+    fixture.write_text(fixture.read_text() + "\n".join(foreign) + "\n")
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "agi-ghost-99.service").write_text("[Unit]\n")
+
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture), "--unit-dir", str(ud)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "deadbeefcafe" in out
+    assert "agi-ghost-99.service" in out
+
+
+def test_audit_clean_fixture_exits_zero(tmp_path, capsys):
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file", str(fixture)])
+    assert rc == 0
+    assert "clean" in capsys.readouterr().out
+
+
+def test_audit_accepts_this_projects_declared_unit(tmp_path, fake_systemctl):
+    """A unit whose filename carries OUR hash and whose service IS in the
+    node's `services:` is declared, not flagged."""
+    cad = {"grid_sync": {"every_mins": 5, "enabled": True}}
+    root = make_project(tmp_path, cadences=cad)
+    write_crons_node(root, crons_live=True, cadences=cad, services=SER_REAPER)
+    ud = tmp_path / "units"
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
+    assert list(ud.glob("agi-*.service"))
+    assert crons.cmd_audit(root, crontab_file=fixture, unit_dir=ud) == []
+
+
+def test_audit_flags_an_ordinary_named_unit(tmp_path, capsys):
+    """A `.service` with NO agi shape at all (`some-other-tool.service`) is
+    undeclared by this node however long it sits there — the false negative
+    the `startswith("agi-")` gate caused (a real box carries
+    `hermes-gateway.service`, `streamer-stub.service`, ...)."""
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "some-other-tool.service").write_text("[Unit]\n")
+
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture), "--unit-dir", str(ud)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "some-other-tool.service" in out
+
+
+def test_audit_is_silent_on_another_projects_unit(tmp_path, capsys):
+    """An agi-shaped unit for a DIFFERENT project's hash is not ours to judge
+    — the same treatment the crontab side gives a foreign `agi-crons <hash>`
+    block. It must NOT be flagged as undeclared (the false positive the old
+    `elif p.name.startswith("agi-")` branch produced)."""
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "agi-something-deadbeef.service").write_text("[Unit]\n")
+
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture), "--unit-dir", str(ud)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "deadbeef" not in out
