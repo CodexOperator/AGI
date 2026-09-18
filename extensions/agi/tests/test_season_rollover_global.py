@@ -274,3 +274,30 @@ def test_partial_cut_refusal_bumps_no_cell(repo: Path):
     assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
     for slug, _c, _v in TOWNS:
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+
+
+# ---- (8) SM.106 auth defect: the DEFAULT actor refuses before any step ---
+def test_global_default_actor_refuses_before_any_step(repo: Path):
+    """SM.106 auth defect: the documented command with NO --actor defaults to
+    `season.py`, which is not admitted for town cells (written_by
+    [prime_director, owner]). The pre-fix code performed all five steps,
+    pushed every origin ref, and only then had write.py refuse the FIRST town
+    cell -- leaving ladder=G+1 and towns=G. PASS 0 must now refuse by name
+    with NOTHING performed: every origin ref and every node byte unchanged,
+    and the ladder and every town cell still agreeing at G."""
+    g = _graph(repo)
+    before = _heads(repo)
+    paths = [g / "nodes" / ".geometry" / "ladder.md"] + [
+        g / "nodes" / "town" / f"{slug}.md" for slug, _c, _v in TOWNS]
+    nbytes = {p: p.read_bytes() for p in paths}
+    res = _run(g, "--global", "--apply", "--delete-old")  # NO --actor
+    assert res.returncode != 0
+    assert "REFUSED" in res.stderr and "not admitted" in res.stderr
+    assert "nothing performed" in res.stderr
+    assert _heads(repo) == before                     # no origin push happened
+    for p, b in nbytes.items():
+        assert p.read_bytes() == b                    # no node byte changed
+    # the ladder and every town cell AGREE at G
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
