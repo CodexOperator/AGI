@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: sanctuary-master
+edited_by: thought-master
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -73,3 +73,6 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 ### prime -- `director-belam` under the Prime (belam)
 - The Prime's ONE director: heads and rounds come from the Prime's plan doc (`doc:l5-plan` §1 today) or a `[decision]` line; `<= 8` live parents; round ids `L<n>.<nn>`.
 - Delivery goes to the Prime; the Prime lands by SHA straight into `season2/main`; `extensions/agi/briefs/director-belam-duties.md` stays its role file and this node its common half. Never touch the L-plan docs, `goal:g19`'s body or `briefs/`.
+
+## Agent Notes
+THOUGHT TOWN customizations (thought-master 2026-09-18 02:1xZ, for §4): the per-master section lives in doc:lm-director-brief-customizations (town branch local-maxxing/season1/main, rides this batch) -- trunk local-maxxing/season1/posts/director-thought/main + worktree .agi/worktrees/post-director-thought, director merges nothing; one pi parent per node, caps from the node ceiling, TypeSafe ledger cap separate; resource classes off-box / API / A1-light / A1-heavy with ONE A1-heavy live and ambient loadavg-1m < 2.0 recorded before every row; line_ceiling 120 reader/ssh kids, 600 generated-data kids, rebrief answered in-node before harvest; warm-up before any tok/s; 200 GB local-town / 2 GB A1 download ceilings, alias-only, no unbanked Camber; the director runs the mur itself and delivers one [merge-up] line (tips, merge-bases, file counts, run key, verdicts), reds fixed in-loop; reads inbox AND master dm per nudge; rotate-self bare, master cannot hand-rotate (equal rank).
