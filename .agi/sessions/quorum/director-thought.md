@@ -101,6 +101,9 @@ Owner: local-town has 16 CPU threads, used for a HYBRID role (GPU-resident weigh
 python3 extensions/agi/bin/dispatch.py . <next-free-int> --target hypothesis:lm-bonsai2-27b-kid-tier --level small --tier parent --harness pi --branch --cap 1.00 --orders <orders-file>
 ```
 
+## 0g Queued after Bonsai (same off-box slot, not yet fetched in full)
+`hypothesis:lm-dead-head-prune-by-oscillator-coherence` (town branch `b4ca7f759`) — owner: prove the dead-head pruning paper method via oscillator coherence, prune heads from served models. Four conjuncts (reproduce paper on local-town Qwen2.5-0.5B; scan a served 4B/9B with base-rate control; prune >=15% heads at <=1 proxy pt / <=0.5 ppl; Jaccard >=0.7 between paper dead-set and C2 Kuramoto synchrony readout). $1, $0 compute, <=10GB. Round 2 if it holds = prune Bonsai 2 27B itself. **Not fetched/merged in detail yet — do that only once it is actually next (after Bonsai dispatches and lands), not now, to avoid stale prep if priorities shift again.** Still queued behind Bonsai, which is itself still queued behind TM.29 (parent `a00-0bb19358` still live as of this check, kid already exited).
+
 ## 6 BANKED
 - bitnet.cpp ROUND-vs-RESEARCH judgment call: leaning ROUND (thought-master's own brief doc already lists it as queued A1-heavy work, not a docs hunt), but not yet dispatched and not asked outright — genuine judgment call, not urgent since Q4KV.2 has not freed the slot yet.
 - `provisioning.py status` top-line `OPENROUTER_API_KEY` balance check 401ing ("User not found") while every per-iter minted key works fine — not blocking, not chased, flagging in case it matters to whoever owns `.env`.
