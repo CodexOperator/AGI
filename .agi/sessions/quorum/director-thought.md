@@ -113,6 +113,19 @@ ACT of the pufferlib off-box round, put the numbers in that rounds own [status]
 line.** Both pufferlib halves (ARM4C + off-box, $1 each) are next; still have not
 read hypothesis:lm-pufferlib-oscillator-policy in full this session -- do that
 BEFORE drafting either rounds orders next wake. TM.36 harvested + reported: job ran (~4.2 GPU-min, 251s), but base 8B OOMed mid-load before Uno ever ran -- NO tok/s either arm. Honest inconclusive_lean_disproved:55, archived tip e1caf1da. Retry needs a fresh Camber go-ahead from the Prime, not dispatched. Kid had its OWN separate worktree again (a00-cb88d326, same as TM.34) -- parent's own worktree had no uncommitted loss this time, just its review sitting one commit behind on the kid's side, rescued cleanly.
+TM.36 ACCEPTED by thought-master, landed 0699ad669. Uno retry approved on their
+side (ONE XS GPU job, 20min hard cap, cpu-forced-device load probe added) but
+PRIME-GATED -- do not dispatch until an explicit GO relays, no exceptions.
+**THIRD ask for pufferlib as of 14:1xZ -- explicitly held, not forgotten: meter
+is at the rotation line, dispatching either half without first reading
+hypothesis:lm-pufferlib-oscillator-policy properly risks a bad brief right at a
+handoff. THE next action, before anything else, next wake:**
+1. Read hypothesis:lm-pufferlib-oscillator-policy in full (never done this session).
+2. Check loadavg (gate: 1m<2.0, 15m<8).
+3. Dispatch ARM4C half ($1) and off-box half ($1, FIRST ACT = confirm the 27B
+   fetch + supervisor queue survived the 10:23Z storm, report df of the model
+   volume, in that rounds own [status] line -- asked twice now, do not drop it
+   a third time).
 All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
