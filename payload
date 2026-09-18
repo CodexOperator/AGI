@@ -1053,7 +1053,23 @@ def _pi_live_run_body(_sp, mock, run_workflow):
     assert "[claude-code]" not in text and "[ok]" not in text
 
 
-def test_claude_code_path_feeds_the_same_view(tmp_path_factory):
+def _clear_cc_seam(monkeypatch):
+    """Clear the three live Claude Code seam vars for the duration of a test.
+
+    The Bash tool that runs pytest inherits `CLAUDECODE=1`,
+    `CLAUDE_CODE_SESSION_ID` and `CLAUDE_CODE_MESSAGING_SOCKET`, so a test that
+    calls `run_workflow(..., "claude-code", ...)` directly and means to test the
+    seam-ABSENT path must clear them explicitly — otherwise detection silently
+    reroutes it onto the native-handback branch.
+    """
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        monkeypatch.delenv(var, raising=False)
+
+
+def test_claude_code_path_feeds_the_same_view(tmp_path_factory, monkeypatch):
+    # Seam-ABSENT path: clear the ambient Claude Code markers the pytest Bash
+    # tool exports, or this test hits the native-handback branch instead.
+    _clear_cc_seam(monkeypatch)
     # This test predated the tmp-path tracking seam its neighbours use and
     # ran a NON-dry claude-code workflow against the REAL project root, so
     # `_track_run` appended one phantom row to the production
@@ -1101,7 +1117,8 @@ def _tmp_session_root(tmp_path_factory, wf_mod):
     return tmp, lambda: setattr(wf_mod._loc, "shared_project_root", saved)
 
 
-def test_real_cc_run_appends_exactly_one_row(tmp_path_factory):
+def test_real_cc_run_appends_exactly_one_row(tmp_path_factory, monkeypatch):
+    _clear_cc_seam(monkeypatch)
     import workflow as _wf
     from workflow import run_workflow
     tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
@@ -2053,6 +2070,7 @@ def test_pi_mint_error_runs_inherited_env_when_verified(tmp_path_factory,
 def test_claude_code_path_mints_nothing(tmp_path_factory, monkeypatch):
     """(e): the claude-code branch never touches the credential seam and its
     emitted lines are unchanged."""
+    _clear_cc_seam(monkeypatch)
     import workflow as _wf
     from workflow import run_workflow
     tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
@@ -2599,3 +2617,239 @@ def test_tree_previews_a_multi_kb_detail_while_tracking_keeps_it_whole(
     assert rows, "the run must be tracked"
     assert rows[0]["returns"]["only"] == output
     assert len(rows[0]["returns"]["only"]) == len(output)
+
+
+# ---------- native handback: the seam, the one call, the link, the hook ------
+# hypothesis:l4-same-harness-handback-a-claude-code-caller-gets-one-exact-native-
+# workflow-call-every-engine-js-is-registered-and-a-hook-closes-the-record
+
+def _set_cc_seam(monkeypatch):
+    """Export the three live Claude Code seam markers so run_workflow takes the
+    native-handback branch."""
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        monkeypatch.setenv(var, "test-value")
+
+
+def test_cc_seam_helper_reads_an_explicit_env():
+    assert workflow._claude_code_seam_present({}) is False
+    full = {v: "x" for v in workflow.CLAUDE_CODE_SEAM_VARS}
+    assert workflow._claude_code_seam_present(full) is True
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        partial = dict(full)
+        partial.pop(var)
+        assert workflow._claude_code_seam_present(partial) is False, var
+
+
+def test_native_seam_prints_one_call_with_the_script_stem(tmp_path_factory,
+                                                          monkeypatch, capsys):
+    """A native session gets ONE exact Workflow call whose `name` is the
+    REGISTERED script stem, never the config key. review -> agi-round-review,
+    drafting -> agi-brief-drafting: a key-formatted name would not resolve as a
+    `.claude/workflows/` link and the caller's copy-paste would fail."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _set_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        err = capsys.readouterr().err
+        assert rc == 0
+        calls = [l for l in buf.getvalue().splitlines()
+                 if l.startswith("Workflow(")]
+        assert len(calls) == 1, calls
+        parsed = json.loads(calls[0][len("Workflow("):-1])
+        assert parsed["name"] == "agi-round-review", parsed
+        assert parsed["args"] == {"targets": [{"window": "t1"}]}, parsed
+        # the SM.120 stderr notice belongs to the headless path only
+        assert "no stage executed by workflow.py" not in err, err
+        # and the row is still tracked, still unnoted
+        lines = (tmp / "sessions" / "workflows" / "review.jsonl")\
+            .read_text(encoding="utf-8").splitlines()
+        assert json.loads(lines[0])["harness_id"] == []
+    finally:
+        restore()
+
+
+def test_native_seam_key_and_stem_diverge_for_drafting(tmp_path_factory,
+                                                       monkeypatch):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _set_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "drafting", "claude-code",
+                          {"briefs": [{"slug": "x"}]}, False, out=buf)
+        assert rc == 0
+        calls = [l for l in buf.getvalue().splitlines()
+                 if l.startswith("Workflow(")]
+        assert len(calls) == 1, calls
+        assert json.loads(calls[0][len("Workflow("):-1])["name"] == \
+            "agi-brief-drafting", calls
+    finally:
+        restore()
+
+
+def test_no_seam_still_prints_the_stderr_notice(tmp_path_factory, monkeypatch,
+                                                capsys):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _clear_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        assert "no stage executed by workflow.py" in capsys.readouterr().err
+        assert "Workflow(" not in buf.getvalue()
+    finally:
+        restore()
+
+
+def test_link_creates_every_registered_script_and_is_idempotent(tmp_path,
+                                                               monkeypatch):
+    """After `link`, every real manifest's `script` resolves to a live symlink
+    in the fixture's `.claude/workflows/`, and a second run creates 0."""
+    from workflow import link_workflows
+    scripts = set()
+    for mf in sorted(WF_DIR.glob("*.json")):
+        m = json.loads(mf.read_text(encoding="utf-8"))
+        scripts.add(m["script"])
+        (tmp_path / "extensions" / "agi" / "workflows" / mf.name).parent\
+            .mkdir(parents=True, exist_ok=True)
+        (tmp_path / "extensions" / "agi" / "workflows" / mf.name)\
+            .write_text(json.dumps(m), encoding="utf-8")
+        src = tmp_path / "extensions" / "agi" / "workflows" / m["script"]
+        if not src.exists():
+            src.write_text("// fixture\n", encoding="utf-8")
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    buf = io.StringIO()
+    assert link_workflows(graph, out=buf) == 0
+    assert "[linked] 12 workflow link(s) created" in buf.getvalue(), \
+        buf.getvalue()
+    for script in scripts:
+        link = tmp_path / ".claude" / "workflows" / script
+        assert link.is_symlink(), f"{link} not a symlink"
+        assert link.resolve().is_file(), f"{link} does not resolve"
+    buf2 = io.StringIO()
+    assert link_workflows(graph, out=buf2) == 0
+    assert "[linked] 0 workflow link(s) created" in buf2.getvalue()
+
+
+def test_link_refuses_a_non_symlink_by_name(tmp_path, monkeypatch, capsys):
+    from workflow import link_workflows
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "review.json").write_text(json.dumps(
+        {"name": "review", "script": "agi-round-review.js"}))
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    links = tmp_path / ".claude" / "workflows"
+    links.mkdir(parents=True)
+    blocker = links / "agi-round-review.js"
+    blocker.write_text("not a link\n", encoding="utf-8")
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    assert link_workflows(graph, out=io.StringIO()) == 2
+    assert "link refused" in capsys.readouterr().err
+    assert not blocker.is_symlink()
+    assert blocker.read_text() == "not a link\n"
+
+
+# ---------- the hook: reverse-map, last open row, note seam ------------------
+
+def _load_hook():
+    import importlib.util
+    p = Path(__file__).resolve().parents[1] / "hooks" / "workflow_note.py"
+    spec = importlib.util.spec_from_file_location("workflow_note", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _hook_fixture(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "sessions" / "workflows").mkdir(parents=True)
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "review.json").write_text(json.dumps(
+        {"name": "review", "script": "agi-round-review.js"}))
+    return graph
+
+
+def test_hook_plans_the_run_key_from_the_registered_name(tmp_path):
+    """The reverse map is a manifest `script` read: a name formatted from the
+    config key would not match `agi-round-review.js`."""
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-1",
+                    "harness_id": ["wf_old"]}) + "\n" +
+        json.dumps({"workflow": "review", "run_key": "mur-2",
+                    "harness_id": []}) + "\n")
+    payload = {"tool_name": "Workflow",
+               "tool_input": {"name": "agi-round-review", "args": {}},
+               "tool_response": {"runId": "wf_new"}}
+    assert hook.plan_note(payload, graph) == ("mur-2", "wf_new")
+
+
+def test_hook_accepts_the_ordered_id_keys(tmp_path):
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-1",
+                    "harness_id": []}) + "\n")
+    for key in ("runId", "run_id", "id"):
+        payload = {"tool_name": "Workflow",
+                   "tool_input": {"name": "agi-round-review"},
+                   "tool_response": {key: "wf_x"}}
+        assert hook.plan_note(payload, graph) == ("mur-1", "wf_x"), key
+
+
+def test_hook_skips_named_on_everything_it_does_not_understand():
+    hook = _load_hook()
+    for payload in (
+        {"tool_name": "Bash", "tool_input": {"name": "agi-round-review"}},
+        {"tool_name": "Workflow", "tool_input": {"args": {}}},
+        {"tool_name": "Workflow", "tool_input": {"name": "not-a-wf"}},
+        {"tool_name": "Workflow", "tool_input": {"name": "agi-round-review"},
+         "tool_response": {"nope": 1}},
+    ):
+        try:
+            hook.plan_note(payload, Path("/nonexistent"))
+            raise AssertionError(f"expected HookSkip for {payload}")
+        except hook.HookSkip as exc:
+            assert str(exc)
+
+
+def test_hook_main_notes_once_and_never_raises(tmp_path, monkeypatch, capsys):
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-9",
+                    "harness_id": []}) + "\n")
+    calls = []
+    monkeypatch.setattr(hook, "_note", lambda rk, hid: calls.append((rk, hid)))
+    payload = {"cwd": str(tmp_path), "hook_event_name": "PostToolUse",
+               "tool_name": "Workflow",
+               "tool_input": {"name": "agi-round-review", "args": {}},
+               "tool_response": {"runId": "wf_zzz"}}
+    assert hook.main(json.dumps(payload)) == 0
+    assert calls == [("mur-9", "wf_zzz")]
+    # malformed stdin: named, exit 0, no note
+    assert hook.main("{not json") == 0
+    assert calls == [("mur-9", "wf_zzz")]
+    # unrelated project (no .agi from cwd): refused by name, exit 0
+    other = tmp_path / "elsewhere"
+    other.mkdir()
+    payload["cwd"] = str(other)
+    assert hook.main(json.dumps(payload)) == 0
+    err = capsys.readouterr().err
+    assert "workflow_note:" in err
