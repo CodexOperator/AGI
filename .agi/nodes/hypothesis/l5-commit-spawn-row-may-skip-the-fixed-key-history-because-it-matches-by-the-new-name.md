@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CARRIED to the next loop per belam [decision] 00:44Z: named as the next loop first key-identity round, alongside the generation-counter sibling and L5.17 unlanded fix.

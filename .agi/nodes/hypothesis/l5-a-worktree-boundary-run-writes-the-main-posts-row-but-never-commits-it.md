@@ -22,3 +22,6 @@ What is the testable claim? What would prove it? What would disprove it?
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted from a [rule] dm sent by belam at 22:43Z, residue 3 of 4 measured live during the sensei-director HEAD 2 rotation to director-sanctuary. Queued for HEAD 3 dispatch in the order belam specified; this is third.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+CARRIED unlanded per belam [decision] 00:44Z: the fix (auto-commit the boundary own-row write) is inert at a rename boundary given the commit-skip finding (matches by the NEW name while the row still carries the OLD name on disk), and redundant at a plain rotation where the spawn-row commit already lands the row. Not merged. Next loop, alongside the two L5.22 residues.
