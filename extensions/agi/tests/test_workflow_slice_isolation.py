@@ -210,7 +210,10 @@ def test_stage_timeout_overrides_only_that_stage(tmp_path_factory,
 
 
 # ---------- (5) merge-up-review: a red round leaves its sibling in place ---
-
+# REGRESSION (SM.105 key-axis falsifier): the REAL manifest args name the
+# slice `key`, never `window`. With a fixed window/slug probe every slice's
+# _repeat_key was None, so `review:r1` failing skipped `verify:r2` too. This
+# test uses the key-only shape on purpose and FAILS on that code.
 def test_merge_up_review_red_round_leaves_sibling_slices(
         tmp_path_factory, monkeypatch):
     manifest = json.loads((WF_DIR / "merge-up-review.json").read_text())
@@ -238,10 +241,10 @@ def test_merge_up_review_red_round_leaves_sibling_slices(
             stderr="")
 
     args = {"rounds": [
-        {"key": "r1", "window": "r1", "hypothesis": "h1",
+        {"key": "r1", "hypothesis": "h1",
          "experiments": "e1", "files": "f1", "focus": "x1",
          "merge_up": "m1", "old_tip": "o1", "new_tip": "n1"},
-        {"key": "r2", "window": "r2", "hypothesis": "h2",
+        {"key": "r2", "hypothesis": "h2",
          "experiments": "e2", "files": "f2", "focus": "x2",
          "merge_up": "m2", "old_tip": "o2", "new_tip": "n2"}]}
     rc, text, tmp = _drive(monkeypatch, manifest, args, fake_run,

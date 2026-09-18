@@ -767,9 +767,20 @@ def _expand_stages(manifest: dict, args: dict) -> list[dict]:
             out.append(dict(st))
             continue
         tmpl = rep.get("label_template", st["label"] + ":{?}")
+        # The slice identity is the field the stage's OWN template names
+        # ({key}->key, {slug}->slug, {window}->window); window/slug are only a
+        # template-agnostic fallback. The old fixed window/slug probe made
+        # _repeat_key None for every {key}-axis manifest, so one failed slice
+        # matched all its siblings (SM.105 key-axis falsifier).
+        key_fields = re.findall(r"\{(\w+)\}", tmpl)
         for item in pool:
             sub = dict(st)
-            key = item.get("window") or item.get("slug") if isinstance(item, dict) else item
+            if not isinstance(item, dict):
+                key = item
+            else:
+                key = next((item[f] for f in key_fields if f in item), None)
+                if key is None:
+                    key = item.get("window") or item.get("slug")
             try:
                 sub["label"] = tmpl.format(**item) if isinstance(item, dict) else tmpl
             except (KeyError, IndexError):
