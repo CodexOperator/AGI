@@ -8,6 +8,7 @@ import os
 import shutil
 import signal
 import subprocess
+import sys
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -31,16 +32,21 @@ def _as_bytes(spec: str) -> int:
 
 
 def systemd_run_usable() -> bool:
-    """Probe ONCE per process: PATH presence is not usability (bare `--scope`
-    needs interactive auth; `--user --scope` works headlessly)."""
+    """Probe ONCE per process: launchability is not enforcement. Launch a REAL
+    allocation past a REAL tiny cap and require the observed SIGKILL -- on
+    boxes whose swap absorbs the overage, or that swallow the property, the
+    probe must say False so `wrap_argv` falls through to prlimit."""
     global _PROBE
     if _PROBE is None:
         _PROBE = False
         if shutil.which("systemd-run"):
             try:
                 _PROBE = subprocess.run(
-                    ["systemd-run", "--user", "--scope", "-q", "--", "true"],
-                    capture_output=True, timeout=20).returncode == 0
+                    ["systemd-run", "--user", "--scope", "-q",
+                     "--property=MemoryMax=64M",
+                     "--property=MemorySwapMax=0", "--", sys.executable,
+                     "-c", "x=bytearray(256*1024*1024)"],
+                    capture_output=True, timeout=30).returncode == -signal.SIGKILL
             except (OSError, subprocess.SubprocessError):
                 _PROBE = False
     return _PROBE
@@ -53,7 +59,8 @@ def wrap_argv(argv: list, cap: "str | None") -> list:
         return argv
     if systemd_run_usable():
         return ["systemd-run", "--user", "--scope", "-q",
-                "-p", f"MemoryMax={cap}", "--", *argv]
+                f"--property=MemoryMax={cap}",
+                "--property=MemorySwapMax=0", "--", *argv]
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
 
 
