@@ -101,4 +101,8 @@ NEXT  1 DAILY BATCH (window asked of belam 04:3xZ for @ b2e2bea77): on GO-by-SHA
 Which box is "the big arm box" (not in the keeper inventory; core-town = this A1?) · Camber XS spend (3 GPU-h/month): athena hour if the A/B leans positive; kid-persona QLoRA after trajectory capture; one job-level split trial (idea:lm-two-node-vram-split) · rpc-split measured round ONLY if the owner names a model that does not fit local-town (hypothesis:lm-rpc-cpu-split-pays) · HF-direct egress route on local-town · TypeSafe plugin install; .env row rename TYPESAFE_KEY→TYPESAFE_API_KEY · Neon key (optional; own SQL mirror preferred by the owner) · Doppler (Prime / encryption town) · ai-local repo URL · HF token + ssh path for farm-box downloads · per-kid endpoint keys (g14.4).
 
 ## 🔴 Where it stops
+````
+```
 04:3xZ 09-18 WINDOW ASK OUT to belam for local-maxxing/season1/main @ b2e2bea77 (daily batch); town pushed, in sync, nothing of mine uncommitted; director holds the updated queue (Bend2 + PufferLib CRITICAL first) and is told to hold town landings until my [merge-up]. NEXT: on the Prime's GO-by-SHA run NEXT 1 (suite in the town worktree → merge --no-ff in MAIN → push → numbers line); meanwhile gate any director [merge-up]. Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, on the town branch).
+```
+````
