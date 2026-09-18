@@ -77,9 +77,10 @@ Six full harvests (SM.122, SM.123 slice 1, SM.117b, SM.126, SM.127 — four of t
 
 ## §3 🔴 WHERE IT STOPS — the next action
 ```
-Tree clean, pushed through bcc7bc1e2. FIVE items to reconcile at next wake, cap is 3 live (corrected from an earlier assumption of 2):
+Tree clean, syncing to push now (session rotating at the line, 101%+). SIX items to reconcile at next wake, cap is 3 live (corrected from an earlier assumption of 2):
+  0. 🔴 SM.128 HARVEST DM ALREADY IN INBOX, NOT YET REVIEWED: a00-e8270d8c, verdict=harvest accepted=1, kids=[experiment:a00-2b5a17d0-83768b], branch season2/loops/hypothesis-l5-key-history-retire-a00-e8270d8c, tip 5a2b2ac2ac222815ee272d39856e059d7f0244b1. Arrived right as this session hit the rotation line -- deliberately NOT reviewed by me (hand off cleanly, don't start new work past the line). First thing to pick up: merge-base, diff, read the node, independently test, then land -- this is the key_history fingerprint-dedup fix, worth real scrutiny since it touches signature verification.
   1. mur-sm-124 (unit agi-director-sanctuary-mur-sm-124-v2) -- `systemctl --user status` + `workflow.py status mur-sm-124`. Land SM.124 per its final_recommendation the moment it registers.
-  2. a00-e8270d8c (SM.128, iter128, key_history fingerprint-dedup fix) -- reconcile when it lands or its parent dies.
+  2. SM.128 above once reviewed -- reconcile when it lands or its parent dies (it already sent its harvest DM, so likely just needs review+merge, not a liveness check).
   3. a00-7bbd1556 (SM.125, iter129, config/template/path-max) -- reconcile when it lands or its parent dies.
   4. a00-e1a96d75 (SM.126 slice 2, iter130, URGENT per-channel-marker fix + d/e) -- reconcile when it lands or its parent dies. This is the highest-priority of the three live parents; check it first.
   5. The moment ANY of 2/3/4 frees a slot: dispatch SM.129 (ceiling 6, node on trunk), then SM.123 slice 2 (folds in the test_apply_writes_one_signed_record order-dependency red -- bisect + hermeticize, name the fix).
