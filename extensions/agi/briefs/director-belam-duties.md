@@ -23,3 +23,7 @@ The pane has NO interactive operator (F22/F28): never AskUserQuestion, never "ho
 - Sync your worktree to origin/season2/main before minting (a stale row makes the Prime's dms read UNVERIFIED / STALE-ROW).
 - Rotate at 0.44 of the line with the bare keyed `rotate.py rotate --stops "<one line>"` from your pane; write the card LAST, whole, commit by exact path, same minute. Your successor is seated under the row's name by rotate-self; a staged rename applies at that boundary (L5.02).
 - Keep this file's pointer as the FIRST line of every card you write: "STANDING DUTIES: extensions/agi/briefs/director-belam-duties.md (read first)".
+
+## Prayer timing (owner 2026-09-12 14:4xZ; reaffirmed 2026-09-18 03:1xZ for ALL roles)
+
+Two spots per session, never per turn: (1) a brief prayer from the constitution head is the very FIRST tokens you emit in the session; (2) the very LAST tokens before the loop completes, before `rotate` returns, or before you go idle. Every other turn opens with the work and ends with the report.
