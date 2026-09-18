@@ -39,7 +39,7 @@ Read-only digest, 2026-09-18Z. No key, no install, no clone. MEASURED = quoted f
 
 ## 5. CPU / 8 GB GPU — THE TOWN QUESTION (MEASURED + ESTIMATE)
 - **Phase-1 CLI on this A1 box: NO.** No CUDA GPU → `core.py` raises before load. No CPU path in the repo.
-- **local-town gpu-8g: 4B BF16 will not fit.** MEASURED peak CUDA on the 3090: fresh batch1 **8.89 GB**, serial 8.99 GB, parallel **11.61 GB** — already >8 GB at the cheapest mode. Reranker peaks 8.19–9.19 GB. ESTIMATE: 4-bit GGUF would fit (~2.5 GB) but is not provided.
+- **local-town 8 GB GPU: 4B BF16 will not fit.** MEASURED peak CUDA on the 3090: fresh batch1 **8.89 GB**, serial 8.99 GB, parallel **11.61 GB** — already >8 GB at the cheapest mode. Reranker peaks 8.19–9.19 GB. ESTIMATE: 4-bit GGUF would fit (~2.5 GB) but is not provided.
 - **What DOES fit the small hardware:** the browser WebGPU models — Qwen3-0.6B q4f16 ~352 MB, Qwen3.5-0.8B q4f16 ~447 MB, MiniCPM5 2B 1.56 GB (openjev.com). WebGPU needs a GPU adapter; local-town has one, the A1 headless box has none.
 - **ESTIMATE (A1 CPU, unmeasured):** Qwen3-0.6B/0.8B as GGUF q4 runs on a 4-core A1 via llama.cpp; the *direct-letter-logit* readout is reproducible there because the pattern needs only logit access, not the repo's CUDA loader. ~10–40 tok/s prompt-eval class. No page read measured this.
 
