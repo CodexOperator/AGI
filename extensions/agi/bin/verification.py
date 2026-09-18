@@ -12,7 +12,7 @@ THROUGH `commands.py` from `command:commands`
 (`.agi/nodes/.geometry/commands.md`) — never argv written literally here.
 
 Levels (`--level quick|rotation|full`, default `rotation`):
-  quick    = links + goals-check + write-guard        (pre-commit set, <15s)
+  quick    = links + goals-check + write-guard + anonymize   (pre-commit set)
   rotation = quick + smoke + viewport-verify + dispatch-help + budget
   full     = rotation + schema + credentials + secrets + crons
 NO level runs pytest. `--suite` is OPT-IN and ORTHOGONAL to level: it adds the
@@ -1240,6 +1240,23 @@ def _seat_transcript(groot: Path, seat: str) -> tuple[Path | None, str]:
     return lp, ""
 
 
+def check_anonymize(groot: Path) -> CheckResult:
+    """SM.122 — FAIL when staged text carries a token read from this box."""
+    start = time.monotonic()
+    argv = [sys.executable,
+            str(Path(__file__).resolve().parent / "anonymize.py"),
+            "check", "--root", str(groot)]
+    try:
+        proc = subprocess.run(argv, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return CheckResult("anonymize", "FAIL", time.monotonic() - start,
+                           note=f"could not execute: {exc}")
+    tail = (proc.stdout + proc.stderr).strip().splitlines()
+    return CheckResult("anonymize", "PASS" if proc.returncode == 0 else "FAIL",
+                       time.monotonic() - start,
+                       note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
+
+
 def check_seat_model(groot: Path) -> CheckResult:
     """FAIL when any config:seats row's live transcript model drifted from its
     declared model; PASS otherwise. Detect, never repair. (Surface 2 of
@@ -1533,6 +1550,8 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
         # explicit --stamp the recorded baseline is never re-stamped.
         names.append("smoke")
     results = [run_check(groot, n, verbose) for n in names]
+    # SM.122 — the write-seam guard, appended at EVERY level, as a built-in.
+    results.append(check_anonymize(groot))
     if level in ("rotation", "full"):
         # A fresh bin/*.py needs the suite, and needs it seen at rotation, not
         # only under --suite. Before the count compare so node-count stays the
