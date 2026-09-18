@@ -1,0 +1,30 @@
+==9383== NVPROF is profiling process 9383, command: ./pow2g
+16777216
+==9383== Profiling application: ./pow2g
+==9383== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:   73.81%  14.427ms         1  14.427ms  14.427ms  14.427ms  [CUDA memset]
+                   26.19%  5.1203ms         4  1.2801ms  9.1840us  2.3996ms  bend_dev
+      API calls:   64.24%  72.350ms         1  72.350ms  72.350ms  72.350ms  cuDevicePrimaryCtxRetain
+                   18.00%  20.271ms         1  20.271ms  20.271ms  20.271ms  cuMemAllocManaged
+                   12.83%  14.452ms         1  14.452ms  14.452ms  14.452ms  cuMemsetD8
+                    4.54%  5.1149ms         2  2.5574ms  5.4810us  5.1094ms  cuCtxSynchronize
+                    0.33%  373.82us         1  373.82us  373.82us  373.82us  cuModuleLoadData
+                    0.03%  33.874us         4  8.4680us  3.5670us  20.569us  cuLaunchKernel
+                    0.01%  12.203us         1  12.203us  12.203us  12.203us  cuMemAdvise
+                    0.01%  5.9810us         1  5.9810us  5.9810us  5.9810us  cuDeviceGetPCIBusId
+                    0.00%  2.3940us         5     478ns     270ns  1.0520us  cuDeviceGetAttribute
+                    0.00%  2.3040us         2  1.1520us     641ns  1.6630us  cuDeviceGetCount
+                    0.00%  1.1420us         1  1.1420us  1.1420us  1.1420us  cuCtxSetCurrent
+                    0.00%  1.1010us         2     550ns     290ns     811ns  cuDeviceGet
+                    0.00%     832ns         1     832ns     832ns     832ns  cuModuleGetFunction
+                    0.00%     601ns         1     601ns     601ns     601ns  cuDeviceTotalMem
+
+==9383== Unified Memory profiling result:
+Device "NVIDIA GeForce RTX 2070 SUPER (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+       6  4.0000KB  4.0000KB  4.0000KB  24.00000KB  11.61600us  Host To Device
+       7  4.0000KB  4.0000KB  4.0000KB  28.00000KB  9.247000us  Device To Host
+      50         -         -         -           -  17.06117ms  Gpu page fault groups
+Total CPU Page faults: 9
+rc=0

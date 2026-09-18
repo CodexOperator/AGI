@@ -1,0 +1,26 @@
+=== date -u ===
+2026-09-18T21:28:29Z
+=== uptime ===
+ 21:28:29 up 53 min,  3 users,  load average: 0.91, 0.31, 0.10
+=== boot ===
+         system boot  2026-09-18 20:35
+=== nvidia-smi ===
+name, utilization.gpu [%], memory.used [MiB], memory.total [MiB]
+NVIDIA GeForce RTX 2070 SUPER, 0 %, 6688 MiB, 8192 MiB
+=== df -h /data ===
+Filesystem                   Size  Used Avail Use% Mounted on
+/dev/mapper/ubuntu--vg-data  339G   56G  266G  18% /data
+=== tmux ===
+fetch_parallel: 1 windows (created Fri Sep 18 21:27:50 2026)
+=== ps fetch ===
+6468 tmux new-session -d -s fetch_parallel python3 /data/ml/models/fetch_parallel.py supervise >> /data/ml/models/fetch_parallel_round6_capped.log 2>&1
+6469 bash -c python3 /data/ml/models/fetch_parallel.py supervise >> /data/ml/models/fetch_parallel_round6_capped.log 2>&1
+=== fetch.log tail ===
+21:27:51 have=21340481467/50959409984 (41.9%) 0.00 MB/s eta=infh
+rate 0 -> 12500 B/s/curl (agg 0.50 MB/s)
+=== bonsai status ===
+[bonsai27b] 5946648928/5946648928 bytes (100.00%), segs_done=12/12
+=== fetch_parallel status ===
+effective cap=0.50 MB/s per_curl=12500 tz=America/New_York
+[athena] 12448205239/32635676544 bytes (38.1%), segs_done=0/24
+[base] 8899816964/18323733440 bytes (48.6%), segs_done=1/16
