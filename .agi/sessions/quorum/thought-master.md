@@ -83,22 +83,31 @@ LANDED (this seating; now in MAIN via the Prime's merge-up)  4 hypotheses + owne
                builds jev prompts as multiple choice, graph = the choice-limiting engine -> TM.31 gets a choices-for-act query, R2 measures top-1 by choice-set size;
                relayed to the Prime [owner] for banking · kv-compression survey LANDED + JUDGED by hand (5 digests, 7 pages; llama.cpp q8_0 1.88x / q4_0 3.56x today,
                6x research methods have no CPU path; upstream slot restore 1,745 tok in 43 ms; notes on idea:lm-nodes-as-kv-caches + claim refinement on lm-kv-slot) ·
+               ROUND 0 DELIVERED: doc:lm-round0-table under goal:g14.3 (no qwen3.8-50b -> the line is Qwen3.8-27B / Bonsai 2 27B; Camber XS = 1x L4 24 GB 1.50 USD/h,
+               granularity unpublished; the XS does not pay for kid inference, 16x deepseek-v4-flash at 8 slots; GPU2070S 448 GB/s beats the L4 300 GB/s) -> Prime told,
+               recommendation no XS hour for inference · OWNER 05:25Z verbatim on lm-bonsai2-27b-kid-tier ("are we downloading it here not on the gpu box") -> TM.30 finding
+               (8B probed on ARM4C, 27B never fetched on local-town) -> standing rule: model bytes land on local-town only; TM.30 continues with kid 2 (8B GPU proof skipped
+               by my ruling; straight to the real athena pause + the 27B fetch + GPU numbers at -c 8192) · disk: 4.6 GB of 09-14 GGUFs freed from ~/.cache/lm-models ·
+               OWNER 06:1xZ vision (KV comms protocol stitching multiple-choice models, LLMs, diffusion-augmented LLMs, the spiking oscillator readout; tiniest Qwen
+               models) verbatim on 3 ideas -> hypothesis:lm-c2c-kv-bridge-released-fusers minted (released C2C fusers, Qwen2.5-0.5B -> Qwen3-0.6B, no training, menu-model
+               sharer); downloads queued on local-town behind the 27B; 2609.04010 ingest LIVE (troves/2026-09-18-owner-papers/, log trove-p2609-*.log) ·
                TM.31 SQL mirror LANDED (proved; graph2sql.py + schema + tests under context/local-maxxing/sql/; director rescued the parent commit lost under the
                rewrite, accepted) + hypothesis:lm-mirror-choices-for-act minted (menu recall >= 95% / median menu <= 12 on 200 replayed acts; hardening folded in).
-LIVE (director-thought, worktree post-director-thought, runs its own mur)  TM.30 Bonsai 2 27B kid tier (off-box, cap $1) · A1-light slot FREE (TM.31 done) · TM.27b/TM.29 harvested clean (0.476 MB/s sustained; NO time-of-day logic yet -> 1.5 MB/s 02-06
+LIVE (director-thought, worktree post-director-thought, runs its own mur)  TM.30 LANDED (lean_proved:65, node OPEN: kernel path proven on the GPU with a 1.7B ternary
+               pp512 6893 / tg128 318; 27B budget 6183/7786 MiB at 8k fits, 32k OOMs; 27B bytes still fetching ~9 h at 0.2 MB/s) · schedule-fix round dispatching
+               (off-box; ORDER on the node: 1.5 MB/s 02-06 ET + proven athena quiet line + 10-min re-measure to split HF cap from athena competition + anonymization
+               in kid briefs) · TM.32 bend2 ARM4C half (parent a00-f29e25f2, cap 0.55) · TM.27b/TM.29 harvested clean (0.476 MB/s sustained; NO time-of-day logic yet -> 1.5 MB/s 02-06
                America/New_York fix = next small round) · athena fetch paused for Bonsai · mur-c2-2. Director held through the scrub; resume came from the Prime directly.
 DIRECTOR QUEUE (sent 04:2xZ)  OFF-BOX after TM.30: schedule fix -> lm-bend2-spiking-sim (16t + --gpu) -> lm-pufferlib-oscillator-policy (16t + rhythm_bank env) ->
                dead-head (+openjev r3) -> spec-decode -> lm-kv-slot-save-beats-reprefill. A1-LIGHT (sent 05:1xZ): bend2 A1 half -> pufferlib A1 half -> lm-mirror-choices-for-act -> C2.03 (all minted).
                rpc-split: no round (feasibility says no).
-NEXT  1 RESEARCH (mine) LIVE: Round-0 trove-survey (charter §1.5 (a)-(c): qwen3.8-50b model card / Camber XS instance + price / OpenRouter price today + the
-        fits-one-XS / USD-per-1M / quality-proxy panels) under setsid, log .agi/sessions/trove-r0-*.log, digests -> troves/2026-09-18-round0/ (NOT excluded: plain
-        git add). When it lands: judge by hand -> write the Round-0 table as a doc: node under goal:g14.3 (write.py create doc lm-round0-table --parent goal:g14.3)
-        -> that node decides the banked Camber-hour ask (numbers to the Prime). Then the kv chain: prefix-cache -np round after the kv-slot verdict; C2C fuser later.
+NEXT  1 RESEARCH (mine): no survey live; both landed + judged. Next research acts only when a verdict opens them: prefix-cache -np round after the kv-slot verdict;
+        C2C fuser after that; the kv-compression CPU-implementation opportunity stays banked. Do NOT invent rounds to fill the budget (scope creep is the failure mode).
+        trove-survey on pi still dies at the structured return (rc=2, unstructured) even when every digest is complete -> judge by hand until SM.105 lands.
       2 Director laps: gate each [merge-up] (merge-base live, merge-tree clean vs town HEAD, no deletions, bytes, ANONYMIZATION grep) + land on the town branch + note;
         relay owner lines verbatim. Next DAILY BATCH in a day or two (window ask to belam with the then-tip; GO-by-SHA; suite in this worktree).
       3 After SM.105: trove-survey at 3600 s wall; rollover only when season.py gains `align` (SM), at a batch boundary.
-      4 KEY: the director saw two of my dms verify against a RETIRED key (rotate's key handoff) — if the next dm still reads RETIRED at the recipient, ONE line to
-        the Prime (rows/keys are his); no self-keygen (that is only for the 'unkeyed' refusal).
+      4 KEY: resolved — the director confirms my dms verify VERIFIED again after the Prime's re-push (05:21Z).
       5 Banked (§5).
 ```
 - **Traps this seating:** the box clock — `date -u` before writing any timestamp (I wrote 04:5xZ for acts that happened 04:2x-04:3xZ) · a rewrite drops upstream tracking (`git branch --set-upstream-to=origin/<branch>`) and invalidates every quoted SHA · `.git/info/exclude` (shared by all worktrees) hides `troves/2026-09-18-kv-nodes/` — predecessor's MAIN-clutter guard; landing a digest needs `git add -f` on the exact files · a rotation kills a background trove-survey too → `setsid nohup` · `$0.50` in a double-quoted send = `/bin/bash.50` → single quotes · bare `send.py read` never shows dm threads (`--dm <post>`) · ugrep chokes on long alternations with `.{0,60}` context → python for scrubs · `write.py --root .` from the town worktree for every node edit; `git commit` by exact path; push after every action · the primary cwd flips between MAIN and the worktree across turns — always `cd` explicitly.
@@ -107,4 +116,4 @@ NEXT  1 RESEARCH (mine) LIVE: Round-0 trove-survey (charter §1.5 (a)-(c): qwen3
 ARM8C answered (the owner's laptop; experiments later) · Camber XS spend (3 GPU-h/month): athena hour if the A/B leans positive; kid-persona QLoRA after trajectory capture; one job-level split trial (idea:lm-two-node-vram-split) · rpc-split measured round ONLY if the owner names a model that does not fit local-town (hypothesis:lm-rpc-cpu-split-pays) · HF-direct egress route on local-town · TypeSafe plugin install; .env row rename TYPESAFE_KEY→TYPESAFE_API_KEY · Neon key (optional; own SQL mirror preferred by the owner) · Doppler (Prime / encryption town) · ai-local repo URL · HF token + ssh path for farm-box downloads · per-kid endpoint keys (g14.4).
 
 ## 🔴 Where it stops
-05:1xZ 09-18 trunk pushed (C2.2 + TM.31 landed; C2.03 + mirror-choices minted; kv survey judged; owner-line notes), in sync, nothing of mine uncommitted; Round-0 trove-survey LIVE (setsid; judge + doc node under goal:g14.3 when it lands: troves/2026-09-18-round0/, log .agi/sessions/trove-r0-*.log in this worktree); director laps as they arrive; next batch in a day or two (window ask with the then-tip). Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, on the town branch).
+06:3xZ 09-18 trunk pushed (TM.30 landed; C2C bridge minted; Round 0 doc; C2.2 + TM.31 landed; owner lines on nodes), in sync, nothing of mine uncommitted; 2609.04010 ingest LIVE (judge by hand when its digest lands: note on idea:lm-nodes-as-kv-caches + queue any <= 4 GB Qwen-based model with the director); suite lock in MAIN = someone's window, no MAIN merge from me until it clears; director laps as they arrive; next batch in a day or two (window ask with the then-tip). Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, on the town branch).
