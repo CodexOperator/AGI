@@ -44,7 +44,11 @@ parentless_types:
 # 2 outcome floor its `min_parents_by_type` now declares. Nothing else in the
 # corpus uses more than 2; raising the ceiling licenses a budget, it does not
 # hand one out.
-max_parents_ceiling: 4
+# Third deliberate edit: raised 4 -> 5 on 2026-09-18 so `vision` can carry the
+# five morals as parents (owner 15:0xZ, vision:the-living-being = the parent of
+# every town); [vision].md declared max_parents: 5 at 15:0xZ without this line,
+# which made every shipped-schema load fail (test_spawn_gate) until 22:4xZ.
+max_parents_ceiling: 5
 
 # Which frontmatter fields are EDGES, and which of those a traversal may
 # follow. `parents` is lineage: it is what chain depth, outcome_coverage and
