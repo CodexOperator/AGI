@@ -913,7 +913,8 @@ def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
 # summary render from the same events, so no presentation detail can appear
 # on one harness and not the other — there is only one source.
 _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
-          "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]"}
+          "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]",
+          "skipped": "[»]"}
 
 # The tree renders a HEAD of a stage's detail, never the whole thing
 # (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
@@ -1013,6 +1014,10 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             # attempt n, matched signature, sleep seconds.
             "attempts": {lb: st["attempts"] for lb, st in view.state.items()
                          if st.get("attempts")},
+            # A wall extension is part of the run status: which stage, how
+            # many, how many seconds (SM.105).
+            "extensions": {lb: st["extensions"] for lb, st in view.state.items()
+                           if st.get("extensions")},
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -1040,7 +1045,8 @@ class RunView:
         self.out = out
         self.order = [st["label"] for st in stages]
         self.state = {lb: {"status": "pending", "detail": "",
-                           "violations": [], "attempts": []}
+                           "violations": [], "attempts": [],
+                           "extensions": []}
                       for lb in self.order}
 
     def _tree(self) -> None:
@@ -1087,6 +1093,22 @@ class RunView:
 
     def stage_failed(self, label: str, reason: str) -> None:
         self._set(label, "failed", reason.replace("\n", " ")[:120])
+
+    def stage_skipped(self, label: str, reason: str) -> None:
+        """A stage skipped BY NAME because the slice it depends on failed
+        (SM.105 isolation). Its own status, never `failed`: nothing was run."""
+        self._set(label, "skipped", reason.replace("\n", " ")[:120])
+
+    def stage_extension(self, label: str, extension_s: float,
+                        n: int = 1) -> None:
+        """Name a granted wall extension: the stage was producing at the
+        wall and got `extension_s` more seconds (the n-th extension). Lands in
+        `_track_run`'s row so the extension is part of the run status."""
+        if label in self.state:
+            self.state[label]["extensions"].append(
+                {"n": n, "extension_s": extension_s})
+        self.out.write(f"[extension] {label} +{extension_s:g}s (n={n})\n")
+        self.out.flush()
 
     def stage_attempts(self, label: str, attempts: list) -> None:
         """Record the named retry rows (attempt n, signature, sleep_s) for a
@@ -1503,6 +1525,48 @@ def _pi_failure_is_transient(output_text: str, stderr_text: str,
     return m.group(0)
 
 
+def _stage_is_producing(stage: dict) -> bool:
+    """A stage is PRODUCING at the wall when its declared `progress_file`
+    (alias `output_file` / `heartbeat_file`) was touched within `silence_s`
+    (default 300 s); otherwise it is silent and the wall kills it."""
+    path = (stage.get("progress_file") or stage.get("output_file")
+            or stage.get("heartbeat_file"))
+    try:
+        mtime = os.stat(path).st_mtime
+    except (OSError, TypeError):
+        return False
+    return (time.time() - mtime) <= stage.get("silence_s", 300)
+
+
+def _run_stage_proc(cmd, *, budget: float, stage: dict,
+                    spawn_env: dict | None, view: "RunView | None"):
+    """`subprocess.run` plus the SM.105 optional wall extension: a producing
+    stage gets one `extension_s` (default = its budget) more, up to
+    `max_extensions` (default 1), named on the view and recorded in the run
+    status; a silent stage raises TimeoutExpired at the wall.
+
+    NOTE: `subprocess.run` kills its child on timeout, so an extension
+    RE-DISPATCHES the same command under the extended budget. The observable
+    contract holds (the stage is not failed at the wall) and the re-run is
+    what a real pi stage pays; recorded in the node THOUGHT."""
+    import subprocess
+    grants = max(0, int(stage.get("max_extensions", 1) or 0))
+    n = 0
+    while True:
+        try:
+            return subprocess.run(
+                cmd, capture_output=True, text=True,
+                env=(spawn_env if spawn_env is not None else _pi_env()),
+                timeout=budget)
+        except subprocess.TimeoutExpired:
+            if n >= grants or not _stage_is_producing(stage):
+                raise
+            n += 1
+            budget = stage.get("extension_s") or budget
+            if view is not None:
+                view.stage_extension(stage["label"], budget, n)
+
+
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
                   prior: dict | None = None,
@@ -1527,11 +1591,12 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     `_resolve_workflow_spawn_env()`.
 
     `timeout_s` is the stage's wall-clock budget, resolved by the CALLER from
-    the manifest (`stage["timeout_s"]` > `manifest["timeout_s"]` > 600) —
-    this function never re-reads a manifest (hypothesis:l4-a-per-run-workflow-
-    key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (5)).
-    None means 600, byte-identical to the old hardcoded literal."""
+    the manifest (`stage["timeout_s"]` > `manifest["timeout_s"]` >
+    `_DEFAULT_STAGE_TIMEOUT_S`) — this function never re-reads a manifest
+    (hypothesis:l4-a-per-run-workflow-key-is-revoked-at-run-end-and-a-schema-
+    miss-keeps-its-name conjunct (5)). None means the module default."""
     import subprocess
+    budget = _DEFAULT_STAGE_TIMEOUT_S if timeout_s is None else timeout_s
     k = knobs[stage["label"]]
     prompt = render_stage_prompt(stage, run_args, prior=prior)
     if context_text:
@@ -1558,10 +1623,9 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     # most 3 attempts, sleeping 15 then 45 s through the injectable seam.
     while True:
         try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True,
-                env=(spawn_env if spawn_env is not None else _pi_env()),
-                timeout=(600 if timeout_s is None else timeout_s))
+            proc = _run_stage_proc(
+                cmd, budget=budget, stage=stage, spawn_env=spawn_env,
+                view=view)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
@@ -1573,7 +1637,6 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
             # timeout-says-timed-out-... from mur-sm-60) -- this is the
             # merged shape, reconciled at a season2/main merge conflict.
-            budget = 600 if timeout_s is None else timeout_s
             if view is not None:
                 view.stage_failed(stage["label"],
                                    f"timed out after {budget:g} s")
@@ -1688,11 +1751,13 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     return 0, value
 
 
-# The historical, undeclared default wall-clock budget for one stage. Named
-# here so the resolver is the ONE place the default lives; `_run_stage_pi`
-# still guards its own `timeout_s is None` for legacy callers, and that guard
-# resolves to this same number.
-_DEFAULT_STAGE_TIMEOUT_S = 600
+# The undeclared default wall-clock budget for one stage, raised 600 -> 3600
+# by the SM.105 owner verbatim (2026-09-18: "increase the timeout ... like 60
+# mins to be safe with optional extension"). Named here so the resolver is
+# the ONE place the default lives; `_run_stage_pi` still guards its own
+# `timeout_s is None` for legacy callers, and that guard resolves to this
+# same number.
+_DEFAULT_STAGE_TIMEOUT_S = 3600
 
 
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
@@ -1716,7 +1781,7 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     from a hung stage until it has already hung.
 
     An absent value anywhere falls through to the manifest value and then to
-    `_DEFAULT_STAGE_TIMEOUT_S` (600), byte-behaviour-identical to before.
+    `_DEFAULT_STAGE_TIMEOUT_S` (3600 since SM.105).
     """
     label = stage.get("label")
     if "timeout_s" in stage and stage["timeout_s"] is not None:
@@ -1733,6 +1798,23 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
             f"of 0 (or less, or non-numeric) is not a request to wait "
             f"forever — the run is refused before any stage is dispatched")
     return raw
+
+
+def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
+    """The base label this stage depends on that has a failed slice, or None.
+    A repeated slice depends on the SAME `_repeat_key` of its base; a simple
+    stage depends on the whole base. A repeated stage never consults its own
+    base label, so a failed slice never skips a sibling slice (SM.105)."""
+    deps = stage.get("chained_from") or stage.get("depends_on")
+    if not deps:
+        return None
+    deps = [deps] if isinstance(deps, str) else deps
+    for d in deps:
+        keys = failed_keys.get(d)
+        if keys and ("_repeat_key" not in stage
+                     or stage["_repeat_key"] in keys):
+            return d
+    return None
 
 
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
@@ -1855,22 +1937,28 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # a-schema-miss-keeps-its-name conjunct (2)).
     try:
         prior_by_key: dict[tuple, dict] = {}
+        # SM.105 isolation: `failed_keys` maps a base label (or a simple
+        # stage's own label) to its failed repeat keys. The loop NEVER returns
+        # on the first failure -- it marks THAT slice failed and continues,
+        # skipping only stages that depend on a failed slice.
+        failed_keys: dict[str, set] = {}
+        first_rc: int | None = None
         for st in stages:
+            dep = _failed_dependency(st, failed_keys)
+            if dep is not None:
+                view.stage_skipped(st["label"], f"dependency {dep!r} failed")
+                print(f"workflow.py: workflow={key} skipped stage "
+                      f"{st['label']} (dependency {dep!r} failed)",
+                      file=sys.stderr)
+                continue
             prior = None
             if "_repeat_key" in st and st.get("chained_from"):
-                # The chain mechanism: a repeated stage whose manifest names a
-                # `chained_from` base label renders with the PRIOR stage's
-                # validated return for the SAME repeat key merged into its prompt
-                # context (so it can name the finding's schema fields —
-                # {answer}, {still_live}, ...). Nothing else on pi crosses stage
-                # boundaries; run_args only otherwise.
+                # `chained_from` over the same repeat key: the prior stage's
+                # validated return merged into this stage's prompt context.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
             context_text = _stage_context(repo, root, st)
-            # The stage's wall-clock budget was resolved (declared, never
-            # truthy) before anything was dispatched — see
-            # `_resolve_stage_timeout` for the definition of `0` and the
-            # refusal path (hypothesis:l4-workflow-residue-sub-floor-marker-
-            # dead-code-and-truncation conjunct (5)).
+            # The budget was resolved (declared, never truthy) before any
+            # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
             stage_timeout = stage_timeouts[st["label"]]
             rc, value = _run_stage_pi(
                 cfg, st, knobs, args, out=out, view=view, prior=prior,
@@ -1879,16 +1967,21 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
             if rc != 0:
-                print(f"workflow.py: workflow={key} failed at stage "
-                      f"{st['label']} (rc={rc})", file=sys.stderr)
-                view.summary()
-                _track_run(root, key, harness, view, run_key)
-                return rc
+                # MARK AND CONTINUE: this slice failed; siblings and every
+                # independent stage still run. The run ends non-zero below.
+                if first_rc is None:
+                    first_rc = rc
+                failed_keys.setdefault(
+                    st.get("_base_label", st["label"]), set()).add(
+                        st.get("_repeat_key"))
+                print(f"workflow.py: workflow={key} stage {st['label']} "
+                      f"failed (rc={rc}); continuing", file=sys.stderr)
+                continue
             if "_repeat_key" in st and value is not None:
                 prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
         view.summary()
         _track_run(root, key, harness, view, run_key)
-        return 0
+        return first_rc or 0
     finally:
         _revoke_run_credential(minted_key_hash, root)
 
