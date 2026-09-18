@@ -255,3 +255,68 @@ def test_cut_only_run_is_resumed_by_a_later_delete_old(repo: Path):
     assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 3
     for slug, _c, _v in TOWNS:
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 3
+
+
+# ---- (7) a partial rollover bumps NO cell anywhere (SM.106 residue fix) ---
+def test_partial_cut_refusal_bumps_no_cell(repo: Path):
+    """SM.104 residue: with one town's CUT forced to refuse, the OLD bug wrote
+    the ladder and town cells inside the per-trunk loop. The fix defers every
+    cell write to a second pass, so a failure anywhere leaves every cell at G."""
+    g = _graph(repo)
+    # a conflicting sanc/season3/main at a DIFFERENT sha forces that CUT to refuse
+    _git(repo, "checkout", "-q", "master")
+    _commit(repo, "conflict")
+    _git(repo, "push", "-q", "origin", "master:refs/heads/sanc/season3/main")
+    res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
+    assert res.returncode != 0
+    assert "STOP at step 1: cut" in res.stderr
+    # no cell anywhere changed: ladder and every town stay at G
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+
+
+# ---- (7b) SM.106b: no-delete mode writes no cell, so no admission is owed --
+def test_global_default_actor_without_delete_old_performs(repo: Path):
+    """SM.106 residue (a00-4323cedc): the pre-flight was gated on `apply`
+    ALONE. Cells are written ONLY with --delete-old; without it every cell is
+    HELD, no write.py call happens, and no admission is needed. Gating the
+    pre-flight on `apply and delete_old` restores the documented no-delete
+    mode for the DEFAULT actor: rc 0, heads +3, cells stay at G."""
+    g = _graph(repo)
+    before = _heads(repo)
+    res = _run(g, "--global", "--apply")          # no --delete-old, no --actor
+    assert res.returncode == 0, res.stdout + res.stderr
+    after = _heads(repo)
+    assert len(after) == len(before) + 3
+    assert "CELL HELD" in res.stdout
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+
+
+# ---- (8) SM.106 auth defect: the DEFAULT actor refuses before any step ---
+def test_global_default_actor_refuses_before_any_step(repo: Path):
+    """SM.106 auth defect: the documented command with NO --actor defaults to
+    `season.py`, which is not admitted for town cells (written_by
+    [prime_director, owner]). The pre-fix code performed all five steps,
+    pushed every origin ref, and only then had write.py refuse the FIRST town
+    cell -- leaving ladder=G+1 and towns=G. PASS 0 must now refuse by name
+    with NOTHING performed: every origin ref and every node byte unchanged,
+    and the ladder and every town cell still agreeing at G."""
+    g = _graph(repo)
+    before = _heads(repo)
+    paths = [g / "nodes" / ".geometry" / "ladder.md"] + [
+        g / "nodes" / "town" / f"{slug}.md" for slug, _c, _v in TOWNS]
+    nbytes = {p: p.read_bytes() for p in paths}
+    res = _run(g, "--global", "--apply", "--delete-old")  # NO --actor
+    assert res.returncode != 0
+    assert "REFUSED" in res.stderr and "not admitted" in res.stderr
+    assert "nothing performed" in res.stderr
+    assert _heads(repo) == before                     # no origin push happened
+    for p, b in nbytes.items():
+        assert p.read_bytes() == b                    # no node byte changed
+    # the ladder and every town cell AGREE at G
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
