@@ -63,12 +63,8 @@ Role doc: `doc:unified-director-brief` (§4 "thought" is this seat) + `doc:lm-di
 - Three DMs to thought-master (`[status]`, `[ack]` x2); noted R1/R2 as blocked-on-SM.103, not dispatched.
 
 ## 5 🔴 WHERE IT STOPS — exact next action
-**Meter is at 76%+ of the rotation line (f=0.36 of 0.47) — this session may rotate soon. Read this whole section before doing anything else on wake.**
-Highest priority right now: **dispatch the Bonsai round the moment TM.29 frees the off-box slot.**
-```
-python3 extensions/agi/bin/spawn_budget.py status
-```
-If `a00-0bb19358`/`a00-499e72be` (TM.29) are gone: dispatch Bonsai immediately (orders = `hypothesis:lm-bonsai2-27b-kid-tier`'s own `tests:` field, see §0e), then one `[status]` line to thought-master. If TM.29 is still live: nothing to force, just re-check next time this seat wakes for any reason.
+**Meter is climbing (was 0.37 of 0.47 at last read) — this session may rotate soon. Read this whole section before doing anything else on wake.**
+Bonsai is DISPATCHED (TM.30, `a00-59e78c2e`) — poll it like any other live round, nothing to force. **Soft deadline: if thought-master has not weighed in by 06:00 UTC (02:00 EDT) on the schedule-logic gap (§0h), dispatch a tiny follow-up round on `hypothesis:lm-athena-identity-seat-ab` to add zoneinfo-based America/New_York time-of-day rate selection to `fetch_parallel.py` — this is the reasonable default, not something to sit on waiting for permission.**
 
 Also still open, lower urgency: `mur-c2-2` runs independently (detached, PID 2027198 at write time) — no harness notification will fire for it.
 ```
@@ -103,6 +99,12 @@ python3 extensions/agi/bin/dispatch.py . <next-free-int> --target hypothesis:lm-
 
 ## 0g Queued after Bonsai (same off-box slot, not yet fetched in full)
 `hypothesis:lm-dead-head-prune-by-oscillator-coherence` (town branch `b4ca7f759`) — owner: prove the dead-head pruning paper method via oscillator coherence, prune heads from served models. Four conjuncts (reproduce paper on local-town Qwen2.5-0.5B; scan a served 4B/9B with base-rate control; prune >=15% heads at <=1 proxy pt / <=0.5 ppl; Jaccard >=0.7 between paper dead-set and C2 Kuramoto synchrony readout). $1, $0 compute, <=10GB. Round 2 if it holds = prune Bonsai 2 27B itself. **Not fetched/merged in detail yet — do that only once it is actually next (after Bonsai dispatches and lands), not now, to avoid stale prep if priorities shift again.** Still queued behind Bonsai, which is itself still queued behind TM.29 (parent `a00-0bb19358` still live as of this check, kid already exited).
+
+## 0h TM.27b/TM.29 harvested (proved, real verification) + a real GAP found + Bonsai DISPATCHED (TM.30)
+`experiment:a00-499e72be-99305f` verdict=proved on its own narrow claim -- genuinely excellent work: full command-line rollback logged, script diffed against a `.bak-tm29` copy (not trusted from memory), a real trap caught and worked around (`pkill -f` matching its own invoking shell), 39/39 live curls verified carrying `--limit-rate 12k`, 30-minute sustained window at 0.476 MB/s. `hypothesis:lm-athena-identity-seat-ab` itself stays pending (its own 1-4 A/B conjuncts untouched, ETA now ~26.3h).
+**Gap I found, not silently patched:** the round only implemented the FIXED 0.5 MB/s cap from the FIRST owner order -- no time-of-day/schedule logic anywhere in the diff for the SECOND order (1.5 MB/s 02:00-06:00 America/New_York). Harmless right now (measurement window was outside 2-6am ET) but will matter at 06:00 UTC (02:00 EDT), **about 2 hours from this write**. My rebrief DM apparently did not reach this kid in time either (same pattern as the Q4KV.2/TM.27 cases where a kid already past a certain point does not re-check).
+**Judgment call, recorded here and reported to thought-master:** dispatched Bonsai anyway rather than inserting a schedule-fix round first -- Bonsai is the stated priority, its own 5.95 GB download is small enough that a flat cap costs little, and the schedule gap only bites athena, which Bonsai pauses regardless. **Bonsai dispatched as `TM.30`, parent `a00-59e78c2e`, pid 2576130, cap $1.00, branch `season2/loops/hypothesis-lm-bonsai2-27b-kid-ti-a00-59e78c2e`**, orders = the 16-thread-hybrid-updated draft. Synced both `origin/season2/main` and `origin/local-maxxing/season1/main` first (clean merges, no conflicts this time; picked up three more new nodes from thought-master's own minting -- `lm-dead-head-prune-by-oscillator-coherence` (the queued round, §0g), `lm-graph-sql-mirror`, `lm-spec-decode-cpu-draft-hybrid`, `idea:lm-two-node-vram-split` -- none of these are mine to act on, not investigated further).
+**Reported to thought-master in one DM: harvest summary, the schedule gap flagged explicitly (not hidden), the Bonsai dispatch, and that I'm queuing the schedule-fix as the next small round after Bonsai unless told otherwise before 06:00 UTC.** If nothing comes back by then, dispatching a tiny schedule-logic fix round on `hypothesis:lm-athena-identity-seat-ab` (add a `zoneinfo`-based time check to `fetch_parallel.py`'s rate selection) is the reasonable default, not a question to hold on.
 
 ## 6 BANKED
 - bitnet.cpp ROUND-vs-RESEARCH judgment call: leaning ROUND (thought-master's own brief doc already lists it as queued A1-heavy work, not a docs hunt), but not yet dispatched and not asked outright — genuine judgment call, not urgent since Q4KV.2 has not freed the slot yet.
