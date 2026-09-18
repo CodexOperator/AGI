@@ -1,0 +1,124 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-thought",
+  "recorded_at": "2026-09-18T17:27:10.377335Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-thought",
+      "windows": [
+        "thought-master",
+        "sanctuary-master.prev",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "director-belam",
+        "belam-S1-L4-XXVIII",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "director-thought.prev",
+        "director-sanctuary",
+        "sanctuary-master",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-thought.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 4678701,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-thought.prev",
+      "windows": [
+        "thought-master",
+        "sanctuary-master.prev",
+        "belam-S1-L4-XXVII",
+        "sanctuary-helper",
+        "director-belam",
+        "belam-S1-L4-XXVIII",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "director-thought.prev",
+        "director-sanctuary",
+        "sanctuary-master",
+        "director-thought"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -2.978
+  },
+  "seated_at": "2026-09-18T17:27:10.377335Z",
+  "window": "director-thought",
+  "session_id": "5715db2b-30ce-4c84-9052-264bad66a7dd",
+  "pid": 1595637,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-thought.prev",
+      "id": "@437"
+    },
+    "successor_window": {
+      "name": "director-thought",
+      "id": "@444"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@444",
+      "pid": 1595637,
+      "session_id": "5715db2b-30ce-4c84-9052-264bad66a7dd",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/5715db2b-30ce-4c84-9052-264bad66a7dd.jsonl",
+      "name": "post-director-thought-e7",
+      "path": "/home/ubuntu/.claude/sessions/1595637.json",
+      "note": "joined by @444 in registry file 1595637.json"
+    },
+    "successor_row": "config:seats row 'director-thought': session_ref= session_name=post-director-thought-e7 session_label=director-thought session_id=5715db2b-30ce-4c84-9052-264bad66a7dd pid=1595637 generation=4 window='@444' source=registry pubkey=383a1fa5cbfa666f... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha ab777e645, retried 0) -- own-row only: director-thought spawn row: gen 4, session_id 5715db2b-30ce-4c84-9052-264bad66a7dd, window @444, pid 1595637\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-thought.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.ack.5715db2b.json",
+    "own_authority_released": "generation 3 of seat 'director-thought' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season1/posts/director-thought/main",
+    "livestream_repoint": {
+      "session": "view-director-thought",
+      "target": "@444",
+      "skipped": "view session view-director-thought absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "09d0d190a33af1ebd42ab694173710a499021b2977d2f89db7e31da2f4d6f137",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3047956,
+      3047957,
+      3047973,
+      3047974
+    ],
+    "reap_source": "derived from own window @id @437 pane 3047956: chain [3047956, 3047957, 3047973, 3047974] (deepest-first; authority row pid 3047974)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-18T17:27:54.067791+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-18T17:27:10.377335Z"
+  }
+}
