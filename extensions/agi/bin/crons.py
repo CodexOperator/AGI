@@ -73,6 +73,7 @@ import argparse
 import difflib
 import hashlib
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -97,6 +98,11 @@ KNOWN_JOBS = ("grid_sync", "branch_push", "publish_engine", "engine_push",
 CRONS_NODE_REL = Path("nodes") / ".geometry" / "crons.md"
 
 MARKER_TAG = "agi-crons"
+
+#: Any agi-owned managed-block marker, for ANY project hash — `audit` uses it
+#: to see a block on this box that is not ours (and, matching ours too, to
+#: know where our own managed region starts and ends).
+AGI_BLOCK_RE = re.compile(r"^#\s*(?:>>>|<<<)\s+agi-crons\s+([0-9a-f]{12})\b")
 
 
 class CronsError(Exception):
@@ -144,6 +150,65 @@ def _parse_frontmatter(path: Path) -> dict:
     return fm
 
 
+def _resolve_cadence(path: Path, name: str, job: dict) -> dict:
+    """Validate one `cadences.<name>` entry's shared shape — schedule
+    (`every_mins` XOR `schedule`), `enabled`, and the optional `box` gate —
+    and return it normalized. Shared by KNOWN_JOBS and by generic (`cmd`)
+    entries so an arbitrary job obeys exactly the same rules and the same
+    `_on_this_box` gate; a second copy would drift from this one."""
+    if not isinstance(job, dict):
+        raise CronsError(f"{path}: cadences.{name} must be a mapping")
+
+    enabled = job.get("enabled", True)
+    if not isinstance(enabled, bool):
+        raise CronsError(f"{path}: cadences.{name}.enabled must be true/false")
+
+    every_mins = job.get("every_mins")
+    schedule = job.get("schedule")
+    if every_mins is not None and schedule is not None:
+        raise CronsError(
+            f"{path}: cadences.{name} declares both `every_mins` and "
+            f"`schedule` — a job takes exactly one"
+        )
+    if enabled and every_mins is None and schedule is None:
+        raise CronsError(
+            f"{path}: cadences.{name} is enabled but declares neither "
+            f"`every_mins` nor `schedule`"
+        )
+    if every_mins is not None and (
+        isinstance(every_mins, bool)
+        or not isinstance(every_mins, int)
+        or every_mins <= 0
+    ):
+        raise CronsError(
+            f"{path}: cadences.{name}.every_mins must be a positive integer"
+        )
+    if schedule is not None and (
+        not isinstance(schedule, str) or len(schedule.split()) != 5
+    ):
+        raise CronsError(
+            f"{path}: cadences.{name}.schedule must be a 5-field cron "
+            f"expression, got {schedule!r}"
+        )
+    entry: dict = {"enabled": enabled, "every_mins": every_mins,
+                   "schedule": schedule}
+    # Optional `box` (hypothesis:l4-remote-thought-town): a job with NO `box`
+    # key renders on EVERY box; an explicit string or list of strings
+    # RESTRICTS the job to exactly those boxes. Refused BY NAME when
+    # malformed (same pattern as mirror_towns).
+    raw_box = job.get("box")
+    if raw_box is not None:
+        vals = raw_box if isinstance(raw_box, list) else [raw_box]
+        if not vals or not all(isinstance(v, str) and v.strip() for v in vals):
+            raise CronsError(
+                f"{path}: cadences.{name}.box must be a non-empty string "
+                f"or list of non-empty strings, got {raw_box!r}"
+            )
+        entry["box"] = ([v.strip() for v in vals]
+                        if isinstance(raw_box, list) else vals[0].strip())
+    return entry
+
+
 def load_crons_node(root: Path) -> dict:
     """Parse and fully validate the crons node. Returns
     `{"crons_live": bool, "jobs": {name: {"enabled", "every_mins", "schedule"}}}`
@@ -168,68 +233,24 @@ def load_crons_node(root: Path) -> dict:
     if not isinstance(cadences, dict):
         raise CronsError(f"{path}: `cadences` must be a mapping of job -> settings")
 
-    unknown = sorted(set(cadences) - set(KNOWN_JOBS))
-    if unknown:
-        raise CronsError(
-            f"{path}: cadences declares unknown job(s) {unknown} — known jobs "
-            f"are {list(KNOWN_JOBS)}"
-        )
+    known = set(KNOWN_JOBS)
+    generic = sorted(set(cadences) - known)
+    for name in generic:
+        job = cadences[name]
+        cmd = job.get("cmd") if isinstance(job, dict) else None
+        if not (isinstance(cmd, str) and cmd.strip()):
+            raise CronsError(
+                f"{path}: cadences declares unknown job {name!r} with no `cmd` "
+                f"— known jobs are {list(KNOWN_JOBS)}; any other name needs a "
+                f"non-empty `cmd` to run an arbitrary command"
+            )
 
     jobs: dict = {}
     for name in KNOWN_JOBS:
         job = cadences.get(name)
         if job is None:
             continue  # never declared: never rendered, distinct from enabled:false
-        if not isinstance(job, dict):
-            raise CronsError(f"{path}: cadences.{name} must be a mapping")
-
-        enabled = job.get("enabled", True)
-        if not isinstance(enabled, bool):
-            raise CronsError(f"{path}: cadences.{name}.enabled must be true/false")
-
-        every_mins = job.get("every_mins")
-        schedule = job.get("schedule")
-        if every_mins is not None and schedule is not None:
-            raise CronsError(
-                f"{path}: cadences.{name} declares both `every_mins` and "
-                f"`schedule` — a job takes exactly one"
-            )
-        if enabled and every_mins is None and schedule is None:
-            raise CronsError(
-                f"{path}: cadences.{name} is enabled but declares neither "
-                f"`every_mins` nor `schedule`"
-            )
-        if every_mins is not None and (
-            isinstance(every_mins, bool)
-            or not isinstance(every_mins, int)
-            or every_mins <= 0
-        ):
-            raise CronsError(
-                f"{path}: cadences.{name}.every_mins must be a positive integer"
-            )
-        if schedule is not None and (
-            not isinstance(schedule, str) or len(schedule.split()) != 5
-        ):
-            raise CronsError(
-                f"{path}: cadences.{name}.schedule must be a 5-field cron "
-                f"expression, got {schedule!r}"
-            )
-        jobs[name] = {"enabled": enabled, "every_mins": every_mins, "schedule": schedule}
-        # Optional `box` (hypothesis:l4-remote-thought-town): a job with NO
-        # `box` key renders on EVERY box; an explicit string or list of
-        # strings RESTRICTS the job to exactly those boxes. Refused BY NAME
-        # when malformed (same pattern as mirror_towns below).
-        raw_box = job.get("box")
-        if raw_box is not None:
-            vals = raw_box if isinstance(raw_box, list) else [raw_box]
-            if not vals or not all(
-                    isinstance(v, str) and v.strip() for v in vals):
-                raise CronsError(
-                    f"{path}: cadences.{name}.box must be a non-empty string "
-                    f"or list of non-empty strings, got {raw_box!r}"
-                )
-            jobs[name]["box"] = ([v.strip() for v in vals]
-                                 if isinstance(raw_box, list) else vals[0].strip())
+        jobs[name] = _resolve_cadence(path, name, job)
         if name == "grid_sync":
             # The town MIRROR flag (item 2 of the I-3a-2 order): when true,
             # `render_managed_lines` appends one GUARDED push per declared
@@ -244,6 +265,21 @@ def load_crons_node(root: Path) -> dict:
                     f"true/false, got {mirror!r}"
                 )
             jobs[name]["mirror_towns"] = mirror
+
+    # Generic entries: any name outside KNOWN_JOBS that carries a `cmd`. Same
+    # schedule rules and same box gate as a built-in; rendered by the same
+    # generic block in `render_managed_lines`. Deterministic order (sorted by
+    # name) so `apply` stays byte-identical across runs regardless of how the
+    # node's YAML happened to order its keys.
+    for name in generic:
+        entry = _resolve_cadence(path, name, cadences[name])
+        entry["cmd"] = cadences[name]["cmd"]
+        log = cadences[name].get("log")
+        if log is not None and (not isinstance(log, str) or not log.strip()):
+            raise CronsError(
+                f"{path}: cadences.{name}.log must be a non-empty string path")
+        entry["log"] = log
+        jobs[name] = entry
 
     # Optional `services:` table — systemd unit files rendered from the graph
     # the way the crontab is (hypothesis:l4-the-reaper-is-one-persistent-
@@ -407,6 +443,35 @@ def _on_this_box(job: dict, own: str) -> bool:
     return own in b if isinstance(b, list) else own == b
 
 
+def _this_box(root: Path, box_name: str | None = None) -> str:
+    """The box this checkout is on, for the `box` gate and the `{box}`
+    placeholder. Unresolved (no `AGI_BOX`, no `default_box` cell) is the empty
+    string, which gates nothing in `_on_this_box` and substitutes to nothing."""
+    if box_name:
+        return box_name
+    try:
+        import boxes
+        return boxes.this_box(root) or ""
+    except Exception:  # noqa: BLE001 -- no box declared: gate/substitute nothing
+        return ""
+
+
+def _substitute(text, root: Path, repo_root: Path, own: str):
+    """Resolve the four portable placeholders by LITERAL token replacement —
+    `{root}`, `{repo_root}`, `{logs}`, `{box}` — from the same values the
+    renderers already compute. Never `str.format()`: a cron `cmd` is an
+    arbitrary shell string that may carry stray `{`/`}` from shell syntax
+    `format` would choke on or mis-substitute. Non-strings pass through."""
+    if not isinstance(text, str):
+        return text
+    for token, value in (("{repo_root}", str(repo_root)),
+                         ("{root}", str(root)),
+                         ("{logs}", str(_log_path(repo_root).parent)),
+                         ("{box}", own)):
+        text = text.replace(token, value)
+    return text
+
+
 def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
                          box_name: str | None = None) -> list[str]:
     """The job lines this project's node describes, in `KNOWN_JOBS` order.
@@ -428,11 +493,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         return []
 
     jobs = node["jobs"]
-    import boxes
-    try:
-        own = box_name or boxes.this_box(root)
-    except Exception:  # noqa: BLE001 -- no box declared: gate nothing
-        own = box_name or ""
+    own = _this_box(root, box_name)
     log = _log_path(repo_root)
     lines: list[str] = []
 
@@ -518,6 +579,22 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
             f"python3 {send_py} read --box-local >> {log} 2>&1"
         )
+
+    # Generic entries last, sorted by name: KNOWN_JOBS keep their own
+    # special-cased renderers above (unchanged), and any other declared name
+    # carrying a `cmd` renders in one fixed shape through the SAME
+    # `_on_this_box` gate and the same `cd {root} && … >> log 2>&1` shape as a
+    # built-in.
+    for name in sorted(jobs):
+        if name in KNOWN_JOBS:
+            continue
+        job = jobs[name]
+        if not (job["enabled"] and _on_this_box(job, own)):
+            continue
+        sched = _schedule_expr(job)
+        cmd = _substitute(job["cmd"], root, repo_root, own)
+        glog = Path(job["log"]) if job.get("log") else _log_path(repo_root)
+        lines.append(f"{sched} cd {root} && {cmd} >> {glog} 2>&1")
 
     return lines
 
@@ -644,12 +721,27 @@ def reconcile_units(root: Path, repo_root: Path, node: dict,
     actions: list[str] = []
     if not node["services"]:
         return actions
+    own = _this_box(root)
+
+    def _sub_svc(svc: dict) -> dict:
+        """Resolve the four placeholders in every string-valued service
+        field BEFORE it reaches the unit file, so the node carries no box
+        path and a fresh box renders its own."""
+        out = dict(svc)
+        out["exec_start"] = _substitute(svc["exec_start"], root, repo_root, own)
+        out["working_directory"] = _substitute(
+            svc["working_directory"], root, repo_root, own)
+        out["environment"] = {
+            k: _substitute(v, root, repo_root, own)
+            for k, v in (svc["environment"] or {}).items()}
+        return out
+
     for name, svc in node["services"].items():
         target = unit_filename(repo_root, name, ud)
         service_arg = target.name
         wanted = node["crons_live"] and svc["enabled"]
         if wanted:
-            desired = "\n".join(render_unit_file(name, svc, repo_root)) + "\n"
+            desired = "\n".join(render_unit_file(name, _sub_svc(svc), repo_root)) + "\n"
             up_to_date = (target.is_file()
                           and target.read_text(encoding="utf-8") == desired)
             # Make systemd SEE and START the unit (idempotent in systemd).
@@ -923,6 +1015,42 @@ def cmd_remove(root: Path, crontab_file: Path | str | None = None) -> dict:
     return {"root": root, "repo_root": repo_root, "removed_lines": removed}
 
 
+def cmd_audit(root: Path, crontab_file: Path | str | None = None,
+              unit_dir: Path | str | None = None) -> list[str]:
+    """Read-only: every agi-owned thing this box runs that THIS node does not
+    declare. Three sources: another project's `agi-crons` block in the
+    crontab, drift inside our own managed block, and any `agi-*` systemd unit
+    not named by the node's `services:` table (`--unit-dir` doubles as the
+    listing seam, so no test touches the real user manager). Writes nothing;
+    the caller decides the exit code."""
+    root, cfg, repo_root, engine_root, node = _resolve(root)
+    require_common_root(root, repo_root)
+    begin, end = block_markers(repo_root)
+    ours = project_hash(repo_root)
+    current = read_crontab(crontab_file)
+    _, managed, _ = split_managed_block(current, begin, end)
+    found: list[str] = []
+    for line in current:
+        m = AGI_BLOCK_RE.match(line)
+        if m and m.group(1) != ours:
+            found.append(f"crontab: agi block from another project: {line}")
+    if managed != render_managed_lines(root, repo_root, engine_root, node):
+        found.append("crontab: this project's managed block drifts from the "
+                     "node (run `crons.py apply`)")
+    if unit_dir is not None:
+        ud = Path(unit_dir)
+        declared = set(node["services"])
+        for p in (sorted(ud.glob("*.service")) if ud.is_dir() else []):
+            m = re.match(rf"^agi-(.+)-{ours[:8]}\.service$", p.name)
+            if m:
+                if m.group(1) not in declared:
+                    found.append(f"unit: {p.name} (service {m.group(1)!r} is "
+                                 f"not in the node's services:)")
+            elif p.name.startswith("agi-"):
+                found.append(f"unit: {p.name} (not declared by this node)")
+    return found
+
+
 # --- cli ---------------------------------------------------------------
 
 
@@ -950,6 +1078,9 @@ def main(argv: list[str] | None = None) -> int:
                    help="print installed vs desired, and their diff")
     sub.add_parser("remove", parents=[common],
                    help="drop this project's managed block only")
+    sub.add_parser("audit", parents=[common],
+                   help="report agi cron lines/units the node does not declare "
+                        "(read-only; exit 1 when anything is undeclared)")
 
     args = ap.parse_args(argv)
 
@@ -988,6 +1119,15 @@ def main(argv: list[str] | None = None) -> int:
             result = cmd_remove(root, args.crontab_file)
             print(f"crons: removed {len(result['removed_lines'])} line(s) "
                   f"for {result['repo_root']}")
+        elif args.cmd == "audit":
+            found = cmd_audit(root, args.crontab_file, args.unit_dir)
+            if found:
+                print(f"crons: audit found {len(found)} undeclared item(s):")
+                for item in found:
+                    print(f"  {item}")
+                return 1
+            print("crons: audit clean — every agi cron line and unit this box "
+                  "runs is declared by the node")
     except CronsError as exc:
         print(f"ERR: crons.py: {exc}", file=sys.stderr)
         return 1
