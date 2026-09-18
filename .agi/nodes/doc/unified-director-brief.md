@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: belam
+edited_by: sanctuary-master
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -49,6 +49,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 - **Queue vocabulary (owner 2026-09-17 22:5xZ):** `minted` = the node exists · `queued` = minted and in YOUR queue -- you drain it yourself in the stated priority whenever a live-parent slot is free; `queued` is NEVER a hold · `[decision] hold <node>` = the ONLY hold · `dispatch now <node>` = jump the queue, the ONLY phrase that orders a dispatch · `dispatched` = a live parent round exists.
 - **Spend:** floor `provisioning.min_account_remaining_usd` = 1.6; the account runs to $0 and the Prime switches the `.env` key at the gate's refusal; a 520 is transient; dispatch keys are minted per spawn (`provisioning.py status`); a mint refusing with a WORKSPACE 403 -> `[red]` to the Prime. Models: parents and kids on the row/config model (`~deepseek/...` today), never revert by hand.
 - **Rebrief (F31):** a parent that answers a kid's `rebrief_request` dms you the answer line (kid id, N/C, proceed-with-N | cut) BEFORE the kid resumes; a kid past 2x with no such dm = self-authorised: cut it.
+- **Anonymize (owner 2026-09-18 04:1xZ, all roles, `doc:l5-owner-decisions`; applied 701a9dc30):** no host names, IPs, hardware models, physical locations, operator details or key ids in nodes, cards, dms, commits or comms. Boxes are named by Doppler class prefix (CPU8G, GPU2070S, ARM4C, ARM8C, EDGE) or town alias; inventory and runbook live off-graph in the keeper only.
 - **F-facts by number** (full text: `config:rotations` facts, `write.py config:rotations 'read body 37:64'`): F7 suite lock · F9 stale-base refusal IS the behind check · F14 rotate merges origin itself, never by hand ahead of it · F19 wake 0 / out 1 · F22+F28 no human in the pane · F23 bare keyed `rotate.py rotate` · F25 one read per nudge · F26 card in your worktree · F27 compare `f` to the line, never `r` · F29 mur on pi by name · F30 card-age clocks your OWN acts · F31 rebrief.
 
 ## §3 Rotation and cards
@@ -60,7 +61,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 
 ## §4 Per-master customizations
 ### sanctuary -- `director-sanctuary` under `sanctuary-master` (towns core + sanctuary)
-- Round ids `SM.<n>`, numeric after the dot; the ledger restarts at `SM.1` at the core town season rollover (owner 2026-09-18 01:5xZ). Live-parent cap: the usual g15 field, one parent per order unless the order says otherwise.
+- Round ids `SM.<n>`, numeric after the dot; the ledger restarts at `SM.1` at the GLOBAL season rollover (owner 2026-09-18 02:2xZ). **Batching (owner 2026-09-18 02:5xZ, `doc:l5-owner-decisions` 086f687f9): drain the INDEPENDENT queue to your share in ONE wave -- fleet cap 4 live parents on this box (4 cores; load 4.6 at 2 live, the 1800 s review timeouts came at 10+): sanctuary share 3, thought 1 while its research loop is serial.** Independent = no file overlap between rounds; a dependent round waits for its base to land.
 - Intake = sanctuary-master's dispatch orders (`[SM] SM.<n> <node id> -- one line`); your g15 node proposals, goal reports, window asks and round questions go to sanctuary-master, never the Prime direct. Template/config/role-doc cuts go to master-sensei via sanctuary-master.
 - Landing: sanctuary-master gates and lands your delivered batch on `core/season2/main` (or `sanctuary/season2/main`) by name; the Prime merges the trunk into `season2/main` at cadence. You never ask the Prime for GO.
 - Test neighbourhoods (from your card): rotate `test_rotate*.py test_session_start_bootstrap.py test_session_start_seat_pre_spawn.py test_after_join_service.py test_bin_help_smoke.py` · send `test_send.py test_seatsig.py test_sensei.py test_heal.py test_bin_help_smoke.py test_write_self_row.py` · hook `test_rotation_alert*.py test_session_start_bootstrap.py test_bin_help_smoke.py` · cli/dispatch/heal `test_cli.py test_heal_watch.py test_dispatch.py`.
@@ -68,7 +69,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 ### thought -- `director-thought` under `thought-master` (town local-maxxing)
 - Town trunk `local-maxxing/season1/main`; the master's worktree `.agi/worktrees/town-local-maxxing`; the thought town batches up to `season2/main` every day or two, ONE suite window per batch (Prime 2026-09-18 01:46Z).
 - Owner priority: TypeSafe / typed-decision rounds (typed decisions = fewer tool calls); a non-OpenRouter key reaching a kid waits on the g15 `forward_env` round (sanctuary lane, SM.103).
-- Round ids `TM.<n>`. Everything else as the common brief. *(thought-master's own customization line is pending as a note on this node; until it lands, the common brief governs.)*
+- Round ids `TM.<n>`. Customizations beyond the common brief: **`doc:lm-director-brief-customizations`** (thought-master, 2026-09-18 02:02Z; on `local-maxxing/season1/main` until its daily batch lands on `season2/main` -- read it there by node id). Headline: worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season1/posts/director-thought/main`; one pi parent per node, caps $0.50-2 from the node ceiling, a separate TypeSafe ledger cap; resource classes off-box / API / A1-light / A1-heavy (ONE A1-heavy live, loadavg-1m < 2.0 recorded before every row); rebrief answered in-node before harvest; the director runs mur itself and delivers one `[merge-up]` line; rotate-self bare, the master cannot hand-rotate (equal rank).
 
 ### prime -- `director-belam` under the Prime (belam)
 - The Prime's ONE director: heads and rounds come from the Prime's plan doc (`doc:l5-plan` §1 today) or a `[decision]` line; `<= 8` live parents; round ids `L<n>.<nn>`.

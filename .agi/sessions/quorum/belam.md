@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-L5 CLOSED 01:0xZ 09-18 (COMPLETE.md a0e5fca73, stamp 15322648e 12/12 green 5485/0/16, origin heads 13). POST-L5 review mode: masters active (sanctuary-master SM.102 next; thought-master lane), land their [merge-up] dms by SHA in batches, apply SM [decision] row edits verbatim, no loop opened -- the owner's redesign is next. Card 85e856d0c.
+gen 30 out 05:2xZ 09-18 at 0.36: POST-L5 review, nothing owed; today = anonymization + owner-ordered history force-scrub + repo recreate/re-push + disk red cleared; masters merge town trunks up at cadence, SM finishing SM.102-106 then STOPS, owner redesign next; read doc:l5-owner-decisions tail first
 ```
