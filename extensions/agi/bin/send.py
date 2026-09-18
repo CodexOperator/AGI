@@ -65,6 +65,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -2147,6 +2148,13 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
+    if row is not None and not boxes.row_is_local(root, row):
+        # A foreign box's row window/pid are NOT addressable here. Refuse by
+        # name, exactly like the stale-@id and name-window refusals below.
+        print(f"nudge: {to} is a FOREIGN box row "
+              f"(box {row.get('box') or '(default)'}); refusing as a target",
+              file=sys.stderr)
+        return None
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
@@ -4362,7 +4370,8 @@ WHOIS_MIN_SESSION_ID_PREFIX = 6
 WHOIS_MIN_KEY_PREFIX = 8
 
 
-def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int, str]:
+def _whois_answer(who: dict, match_display: str, claim: str | None,
+                  root: Path | None = None) -> tuple[int, str]:
     """Build the IS-AUTHORIZED/SEAT answer line for one matched row.
     ``match_display`` is the text that stands where the session_ref would
     because the row was found by key prefix or by seat name (``by key: <p>`` /
@@ -4373,7 +4382,13 @@ def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int
     name = who.get("name", "?")
     role = who.get("role", "?")
     win = who.get("window") or ""
-    winpart = f"  window {win}" if win else ""
+    if win and root is not None and not boxes.row_is_local(root, who):
+        # A foreign-box row's @id is another box's tmux; never assert it as
+        # this box's dial-able truth -- name the box instead.
+        winpart = (f"  box {who.get('box') or '(default)'} "
+                   f"(foreign: window {win} not this box's)")
+    else:
+        winpart = f"  window {win}" if win else ""
     if claim:
         ok = (claim == name) or (claim == role)
         verdict = "IS-AUTHORIZED" if ok else "IS-NOT-AUTHORIZED"
@@ -4384,7 +4399,8 @@ def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int
 
 
 def _resolve_rows(rows: list, session_ref: str,
-                  claim: str | None, target: tuple | None = None) -> tuple[int, str]:
+                  claim: str | None, target: tuple | None = None,
+                  root: Path | None = None) -> tuple[int, str]:
     """Answer the is-this-who-they-say question for one ref. Two directions:
     with no --claim, name the seat + role the ref belongs to; with
     --claim NAME, answer whether this ref IS that row (a ref present in the
@@ -4407,7 +4423,7 @@ def _resolve_rows(rows: list, session_ref: str,
         if mode == "seat":
             hits = [r for r in rows if r.get("name") == val]
             if hits:
-                return _whois_answer(hits[0], f"by name: {val}", claim)
+                return _whois_answer(hits[0], f"by name: {val}", claim, root)
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by name: {val!r} belongs to no seat row")
         # mode == "key": a UNIQUE pubkey-prefix match, min 8 chars.
@@ -4425,7 +4441,7 @@ def _resolve_rows(rows: list, session_ref: str,
         if not hits:
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
-        return _whois_answer(hits[0], f"by key: {val}", claim)
+        return _whois_answer(hits[0], f"by key: {val}", claim, root)
     hits = [r for r in rows if (r.get("session_ref") == session_ref
                                 or r.get("session_name") == session_ref)]
     if not hits:
@@ -4658,7 +4674,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # tree: answer, but label it UNVERIFIED and exit non-zero. An
         # unauthoritative answer must never exit 0.
         local = _locally_loaded_rows(root)
-        _code, answer = _resolve_rows(local, session_ref, claim, target)
+        _code, answer = _resolve_rows(local, session_ref, claim, target, root)
         # hypothesis:l4-whois-names-the-ref-it-read: name the CANDIDATES the
         # resolver tried (canonical first, legacy fallback) -- never a single
         # unresolved name a reader cannot act on.
@@ -4686,7 +4702,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # negative one.
         return WHOIS_UNVERIFIED, text
     rows, sha, live_ref = seeded
-    code, answer = _resolve_rows(rows, session_ref, claim, target)
+    code, answer = _resolve_rows(rows, session_ref, claim, target, root)
     # hypothesis:l4-whois-names-the-ref-it-read: name the ref that ACTUALLY
     # resolved, never the unresolved canonical candidate.
     text = f"{answer}  (verified against {live_ref} @ {sha})"
@@ -5017,6 +5033,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="participant id for read positions (default: sender)")
     p_read.add_argument("--wrap", type=int, default=160,
                         help="wrap message bodies at N columns (0 = raw)")
+    p_read.add_argument("--box-local", dest="box_local", action="store_true",
+                        help="service read: every LOCAL box row's inbox")
 
     p_peek = sub.add_parser("peek", parents=[common], help="peek without marking read")
     p_peek.add_argument("target", nargs="?", default=None,
@@ -5297,6 +5315,21 @@ def main(argv: list[str] | None = None) -> int:
             for line in read_dm(croot, me, _alias_canon(root, args.dm) or args.dm,
                                 args.since, sender, all_, wrap=wrap):
                 print(line)
+            return 0
+        if getattr(args, "box_local", False):
+            # mail_poll's one service reader: consume every LOCAL row's inbox,
+            # naming each foreign-box row it skips rather than reading it.
+            import boxes
+            for r in _locally_loaded_rows(root):
+                nm = (r.get("name") or "").strip()
+                if not nm:
+                    continue
+                if boxes.row_is_local(root, r):
+                    read(root, nm, sender, wrap=wrap)
+                else:
+                    print(f"mail_poll: skipped foreign-box post {nm} "
+                          f"(box {r.get('box') or '(default)'})",
+                          file=sys.stderr)
             return 0
         if not args.target:
             print("ERR: read needs a target (inbox) or --room/--dm",
