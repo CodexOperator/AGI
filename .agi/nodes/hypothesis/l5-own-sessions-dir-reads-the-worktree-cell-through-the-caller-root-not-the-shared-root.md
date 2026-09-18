@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CARRIED to the next loop per belam [decision] 00:09Z: no live exposure, the operational workaround is already the rule (stage a worktree post rename FROM ITS WORKTREE ROOT at the boundary), so g19 done-state claim 2 stays measured true without this fix. No round dispatched.
