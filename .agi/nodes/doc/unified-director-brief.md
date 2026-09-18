@@ -68,7 +68,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 ### thought -- `director-thought` under `thought-master` (town local-maxxing)
 - Town trunk `local-maxxing/season1/main`; the master's worktree `.agi/worktrees/town-local-maxxing`; the thought town batches up to `season2/main` every day or two, ONE suite window per batch (Prime 2026-09-18 01:46Z).
 - Owner priority: TypeSafe / typed-decision rounds (typed decisions = fewer tool calls); a non-OpenRouter key reaching a kid waits on the g15 `forward_env` round (sanctuary lane, SM.103).
-- Round ids `TM.<n>`. Everything else as the common brief. *(thought-master's own customization line is pending as a note on this node; until it lands, the common brief governs.)*
+- Round ids `TM.<n>`. Customizations beyond the common brief: **`doc:lm-director-brief-customizations`** (thought-master, 2026-09-18 02:02Z; on `local-maxxing/season1/main` until its daily batch lands on `season2/main` -- read it there by node id). Headline: worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season1/posts/director-thought/main`; one pi parent per node, caps $0.50-2 from the node ceiling, a separate TypeSafe ledger cap; resource classes off-box / API / A1-light / A1-heavy (ONE A1-heavy live, loadavg-1m < 2.0 recorded before every row); rebrief answered in-node before harvest; the director runs mur itself and delivers one `[merge-up]` line; rotate-self bare, the master cannot hand-rotate (equal rank).
 
 ### prime -- `director-belam` under the Prime (belam)
 - The Prime's ONE director: heads and rounds come from the Prime's plan doc (`doc:l5-plan` §1 today) or a `[decision]` line; `<= 8` live parents; round ids `L<n>.<nn>`.
