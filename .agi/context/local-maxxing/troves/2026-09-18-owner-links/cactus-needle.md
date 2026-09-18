@@ -89,7 +89,7 @@ deployable model from ONE checkpoint; 2L=25M, 4L=29M, 8L=52M, 16L=98M, 20L=121M.
 
 ## 8. GAPS / NOT YET VERIFIED
 - No A1/ARM-Linux measured tok/s found on public pages (ESTIMATE ~ hundreds
-  decode, based on RPi5 Cortex-A76 being same core class as arm64-N1).
+  decode, based on RPi5 Cortex-A76 being same core class as arm64).
 - `cactus run` runtime bundle generation "unavailable while the graph builder
   is being rewritten" (docs/cactus_quants) — conversion path may be rough now.
 - Needle3 HF repo (Cactus-Compute/needle3) not fetched (time); weights+engines
