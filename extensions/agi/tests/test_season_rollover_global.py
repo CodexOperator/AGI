@@ -255,3 +255,22 @@ def test_cut_only_run_is_resumed_by_a_later_delete_old(repo: Path):
     assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 3
     for slug, _c, _v in TOWNS:
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 3
+
+
+# ---- (7) a partial rollover bumps NO cell anywhere (SM.106 residue fix) ---
+def test_partial_cut_refusal_bumps_no_cell(repo: Path):
+    """SM.104 residue: with one town's CUT forced to refuse, the OLD bug wrote
+    the ladder and town cells inside the per-trunk loop. The fix defers every
+    cell write to a second pass, so a failure anywhere leaves every cell at G."""
+    g = _graph(repo)
+    # a conflicting sanc/season3/main at a DIFFERENT sha forces that CUT to refuse
+    _git(repo, "checkout", "-q", "master")
+    _commit(repo, "conflict")
+    _git(repo, "push", "-q", "origin", "master:refs/heads/sanc/season3/main")
+    res = _run(g, "--global", "--apply", "--delete-old", "--actor", "owner")
+    assert res.returncode != 0
+    assert "STOP at step 1: cut" in res.stderr
+    # no cell anywhere changed: ladder and every town stay at G
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
