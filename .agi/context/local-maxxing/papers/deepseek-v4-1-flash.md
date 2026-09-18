@@ -141,7 +141,7 @@ to 1M at 34T tokens (`§4.2.2`).
 
 ## 4. What transfers to a ≤4 B model on CPU — and what does not
 
-Frame: the town's boxes are **4-core ARM arm64-N1, no i8mm, 23 GB**; **8 GB Intel**;
+Frame: the town's boxes are **4-core ARM arm64, no i8mm, 23 GB**; **8 GB Intel**;
 **M3 Air 16 GB**; one **gpu-8g** soon; **Camber GPU 3 h/month**. Everything must
 fit CPU + ordinary RAM. So the question is not "is this a good trick at 552B" but "does it still
 pay at ≤4B and ≤a few thousand context tokens, where **decode is memory-bandwidth-bound on
@@ -188,7 +188,7 @@ CPU** and **prefill over short prompts is nearly free**".
 - **T4 FP4 KV cache.** The storage win (½ of FP8) is real and device-independent; the *speed* win
   is not: the paper explicitly lets FP4 be dequantized before attention, and CPUs lack FP4 matmul.
   To get the RAM win the town must (a) train QAT or accept post-hoc quantization error, and
-  (b) pay a dequant cost per attention. On **arm64-N1 without i8mm**, even INT8 dots are weak;
+  (b) pay a dequant cost per attention. On **arm64 without i8mm**, even INT8 dots are weak;
   FP4 KV is a *capacity* trick on CPU, likely a *net slowdown* for speed unless KV reads dominate.
 - **T1 CED.** Concept transfers (project decoder KV from encoder hidden state, halve prefill
   layers) but **only if you train your own small model** — CED is baked into pre-training; you
@@ -524,7 +524,7 @@ in `~/.cache/lm-models/`, `lscpu`, and `llama-bench --help` from the local llama
    clause partly covers this; the "predicts ~1.4×" should read "≤ ~1.4× if purely
    bandwidth-bound".
 8. **Iron claim wrong in the seed's falsifier and in §4.3.** "4-core Ampere with no fast int4
-   dot" / "arm64-N1 without i8mm, even INT8 dots are weak": `lscpu` on the swarm box shows
+   dot" / "arm64 without i8mm, even INT8 dots are weak": `lscpu` on the swarm box shows
    `asimddp` (NEON SDOT, the int8 dot-product instruction) **present**, `i8mm` absent, `asimdhp`
    (fp16 arithmetic) present. llama.cpp's CPU flash-attention path for q4_0 K uses
    `vec_dot_q4_0_q8_0`, which is SDOT-accelerated on this flag set. No CPU has an int4 dot; the
