@@ -56,7 +56,8 @@
       },
       "allowed_extra": [
         "deepseek/deepseek-v4.1-flash",
-        "~z-ai/glm-flash-latest"
+        "~z-ai/glm-flash-latest",
+        "anthropic/claude-opus-5"
       ],
       "forward_env": [
         "TYPESAFE_KEY",
