@@ -7509,6 +7509,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 23:0xZ 09-18 Prime landing: core/season2/main @8dcc0876a -> season2/main ec3310e04 (SM.126 s1 read <post> sweeps every dm channel, SM.128 minted; 6 files +238/-24, 0 deletions, merge-tree clean, verify 11/12, bin-suite-fresh chases send.py). Suite at 1c8c77e77+cells: 5637 passed / 1 failed (test_migrate_channel::test_apply_writes_one_signed_record, SM.123 slice 1 own test, green in her tree, red in MAIN full run -> [red] to SM) / 16 skipped; stamp 191c28247. Owner 23:0xZ GO: local-town llama-server -np 1 applied (one ~47k slot).
 
+23:2xZ 09-18 Prime landing: core/season2/main @39ad84899 -> season2/main (SM.127: the continue-ack own-row gate claim DISPROVED by design, 4 tests; SM.129 minted; 5 files +344/-53, 0 deletions, merge-tree clean, verify 11/12). [red] to SM on SM.126 s1 as landed: read <post> replays every dm channel from its first line (no per-channel read marker) -- ~20k tokens on one Prime read; fix in-loop under SM.126.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
