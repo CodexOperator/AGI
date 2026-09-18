@@ -1032,6 +1032,46 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
     assert own["key_history"][-1]["pub"] == pred_pub.hex()
 
 
+def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
+        tmp_path):
+    """hypothesis:l5-key-history-retires-a-key-by-fingerprint-never-by-
+    generation-pair: the retired entry's IDENTITY is its fingerprint, never
+    the (from, to) generation pair. After a generation-count reset a fresh
+    rotation re-offers a pair an EARLIER epoch already used; the old
+    (from,to) predicate dropped it silently and the outgoing key never
+    entered key_history, so the retired key's last lines read FORGED at an
+    enforcing reader.
+
+    Two assertions: (a) a DIFFERENT fp under an already-present (2,3) pair
+    is APPENDED (len+1); (b) re-offering the SAME fp is still a no-op
+    (len unchanged) -- history never duplicates a key."""
+    existing_hist = [{"pub": "aa" * 32, "fp": "fp-old", "from": 2,
+                      "to": 3, "rotated_by_sig": "sig-old"}]
+    rows = [{"name": "s1", "role": "director",
+             "session_ref": "x", "generation": 3, "window": "",
+             "key_history": list(existing_hist)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    fresh = {"successor_pub": "aa" * 32, "scheme": "ed25519",
+             "retired": {"pub": "bb" * 32, "fp": "fp-new", "from": 2,
+                         "to": 3, "rotated_by_sig": "sig-new"}}
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=fresh)
+    assert "config:seats row" in out, out
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert own["key_history"] == existing_hist + [fresh["retired"]]
+    assert own["key_history"][-1]["fp"] == "fp-new"
+    # (b) idempotence on the fp: the deliberate retry is a no-op.
+    again = dict(fresh, retired=dict(fresh["retired"],
+                                     rotated_by_sig="sig-retry"))
+    rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=again)
+    own2 = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert len(own2["key_history"]) == len(own["key_history"])
+
+
 def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
     """hypothesis:l5-key-rotation-at-a-rename-boundary-clobbers-key-history-
     instead-of-carrying-it: at a RENAME-plus-key-rotation boundary the row
