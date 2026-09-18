@@ -7503,6 +7503,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 22:2xZ 09-18 Prime landing (post-L5, owner rule 22:2xZ: cadence yields to a needed merge): core/season2/main @8c99bb83e -> season2/main 5f3c91e34 -- SM.117 box guard, SM.118 naming cells, SM.120, SM.121 same-harness handback, SM.122 box rails, brief §3 rotation lines; 77 files +4319/-151, 0 node deletions, merge-tree clean, verify 11/12 (bin-suite-fresh = suite window opened, stamp follows), active 3337 (floor 3313, never dropped), links 0, goals byte-identical.
 
+22:4xZ 09-18 suite after the @8c99bb83e landing: 6 failed / 5623 passed / 16 skipped (15:30 min). MAIN-own 2 (the 15:0xZ [vision] max_parents 5 above the [shape] ceiling 4, red since then, unstamped): fixed 3b42e23c2, ceiling 4 -> 5 as a deliberate third raise. SM 4 (boxes.py + mem_cap.py --help empty stdout; verification quick exits 1 in a fresh temp project since the landing, test_suite_record_names_run_start:160/252): [red] sent, fix on her trunk, named in her next [merge-up]. DEVIATION from revert-on-red, reasoned: hygiene-level failures, nothing runtime-red, the landing stays; the MAIN suite stamp stays at the last green (0554deffb) until her fix lands. Also 22:4xZ: the keeper RC entry (belam-prime) restored by the owner login through a two-hop tmux window from this box; unit auto-restarts as designed.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
