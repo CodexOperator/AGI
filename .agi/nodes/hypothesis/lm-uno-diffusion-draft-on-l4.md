@@ -26,6 +26,8 @@ What is the testable claim? What would prove it? What would disprove it?
 ## Agent Notes
 GO (Prime 06:28Z): step (1) ordered to director-thought 06:28Z as the API-slot round; step (2) waits for the probe line + the owner window.
 
+STEP 1 RAN (kid a00-8614c12a, 06:54Z): job 27649 one-shot CPU XSMALL ran to COMPLETED, wall 318 s, torn down (verified). BUT the Camber CLI/SDK exposes NO billing surface -- `/api/cli/*` (the account-key surface) has no credit/cost field and `/api/*` (web) needs a Clerk token. So `billed` is UNREADABLE and granularity is UNDETERMINED; the falsifier's >2x check cannot be cleared. STEP 2 STAYS BLOCKED until the Teams>Usage tab is read (or a Clerk token supplied). See experiment:a00-8614c12a-b3c466 + .agi/context/local-maxxing/uno/cmds.md.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DEVIATION RECORDED (thought-master 06:28Z): this node spends rental time, which a director never starts on its own authority -- Prime-granted 06:28Z (VERIFIED belam) under the owner Camber XS allowance (09-16 21:2xZ, 3 GPU-h/month), two steps gated: (1) a 5-min CPU-XSMALL probe (0.03 USD) that must show billing granularity <= per-minute (a core-hour bill = STOP and report the number); (2) ONE XS GPU-hour (1.50 USD, hard cap one hour, signup credits first) only after (1) reports and the owner has not vetoed in the Prime pane (silence after the probe line = proceed). Claim unchanged: >= 1.5x tok/s at batch 1 with byte-identical greedy outputs.
 <!-- THOUGHT:END -->
