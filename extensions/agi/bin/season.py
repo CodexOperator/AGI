@@ -1250,6 +1250,29 @@ def cmd_rollover_align(root: Path, args) -> int:
     return 0
 
 
+def _preflight_cells(root: Path, cells: list, actor: str) -> int:
+    """PASS 0 (SM.106 auth defect): reach the SAME written_by admission rule
+    write.py enforces, once per cell, BEFORE any step is performed -- so a run
+    whose default actor would be refused at the deferred cell pass refuses by
+    name with NOTHING done, instead of pushing every origin ref and then
+    leaving the ladder and town cells disagreeing. Returns 0 when every cell
+    admits, 1 on the first refusal (already printed)."""
+    import write as _w
+    for cell_id, field, value in cells:
+        decision = {}
+        try:
+            _w._enforce_written_by(
+                root, cell_id.split(":", 1)[0], actor, cell_id, "",
+                set_fm={field: value}, allow_self_row=True,
+                out_decision=decision, preview=True)
+        except Exception as exc:  # noqa: BLE001  (a broken gate refuses, never admits)
+            decision["refusal"] = f"{exc}"
+        if decision.get("refusal"):
+            print(f"REFUSED: {decision['refusal']}", file=sys.stderr)
+            return 1
+    return 0
+
+
 def cmd_rollover_global(root: Path, args) -> int:
     """GLOBAL rollover G -> G+1: the global trunk AND every town trunk in ONE
     command (cut, fold --no-ff into the ladder head, archive, delete-old, cell,
@@ -1270,6 +1293,12 @@ def cmd_rollover_global(root: Path, args) -> int:
     print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
     print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
     trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
+    if apply:
+        cells = [(cell_id, "current_season" if slug is None else "season", ng)
+                 for slug, cell_id, _h in trunks]
+        if _preflight_cells(root, cells, actor):
+            print("nothing performed", file=sys.stderr)
+            return 1
     pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
     for slug, cell_id, history in trunks:
         old = branches.season_main(g) if slug is None else branches.derive_names(slug, g)["town_season_main"]
