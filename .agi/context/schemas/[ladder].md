@@ -6,6 +6,7 @@ derived_from: authored-2026-09-06 for G12.3 — no prior corpus to survey; this
 fields:
   tiers: {type: list}              # four dicts: tier (int), plan_types (list), report_type (str|None), judged_against (str), lens (str), cadence (str)
   current_season: {type: int}      # the active season number
+  current_loop: {type: int}        # the active loop number within the season (rotate.py prime_window_name)
   caps: {type: dict}               # type -> max count, e.g. {moral: 5, vision: 3}
   caps_apply_from_season: {type: int}  # season from which caps are enforced
   budget_usd_week: {type: int}     # weekly budget in USD
@@ -68,6 +69,9 @@ against the budget.
   - `cadence` (str): how often this tier closes (e.g. `the loop (weekly)`).
 - `current_season` — the active season number. All newly-minted nodes are
   stamped with this value.
+- `current_loop` — the active loop number within the season. The Prime
+  successor window name's `S<season>` / `L<loop>` token is read from here
+  (`rotate.py prime_window_name`), never copied from the predecessor window.
 - `caps` — a dict mapping node type name to the maximum count allowed. Applied
   from `caps_apply_from_season` onward.
 - `caps_apply_from_season` — the season at which caps start being enforced.
