@@ -20,7 +20,7 @@ town: core
 ---
 # The Living Being — the one unifying vision, parent of every town, child of the five morals
 
-OWNER 2026-09-18 15:0xZ, in the Prime pane (belam gen 31), verbatim: "the chakra vision node shouldn't be something that is like individually applied per town. It should be something that is applied as a vision for all the towns as a whole. Almost like a unifying vision. Or even, I feel like maybe it belongs more as like a moral. Like a six moral for the whole graph as a whole. But, I don't know, maybe six morals just sounds like a weird number of morals to have, so instead, also as you said, it's kind of like a good way to like split things operationally, not so much like a choice as far as like emotions or how I should feel about things. And because it is operational, it feels more like a vision. So maybe it's a unified vision node that sort of captures and encapsulates the five morals into a single vision. that is a parent vision node for every single town node that exists in our graph today are all essentially children of this root parent node that is a vision node that is itself a child of all five morals as its parents."
+OWNER 2026-09-18 19:4xZ, in the Prime pane (belam gen 31), verbatim: "the chakra vision node shouldn't be something that is like individually applied per town. It should be something that is applied as a vision for all the towns as a whole. Almost like a unifying vision. Or even, I feel like maybe it belongs more as like a moral. Like a six moral for the whole graph as a whole. But, I don't know, maybe six morals just sounds like a weird number of morals to have, so instead, also as you said, it's kind of like a good way to like split things operationally, not so much like a choice as far as like emotions or how I should feel about things. And because it is operational, it feels more like a vision. So maybe it's a unified vision node that sort of captures and encapsulates the five morals into a single vision. that is a parent vision node for every single town node that exists in our graph today are all essentially children of this root parent node that is a vision node that is itself a child of all five morals as its parents."
 
 ## The map (operational, not emotional: how the whole graph is split into organs; the morals say how to feel and choose, this says where a thing lives)
 ```
@@ -50,5 +50,5 @@ Which overviews assemble into this (>=2)?
 What goals does it propose for the next season (`proposes_goals:`)?
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-09-18 15:0xZ: one unifying vision for all towns, child of the five morals; [vision].md max_parents 4 -> 5 for exactly this node (a vision may rest on all five morals at once)
+owner 2026-09-18 19:4xZ: one unifying vision for all towns, child of the five morals; [vision].md max_parents 4 -> 5 for exactly this node (a vision may rest on all five morals at once)
 <!-- THOUGHT:END -->
