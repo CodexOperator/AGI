@@ -69,6 +69,7 @@ import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -135,6 +136,8 @@ DEFAULT_CC_ROLES = {
 SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
     "quiet": {"quiet": True},
+    # a row that keeps post dm nudges but never a service-class one
+    "quiet-system": {"quiet_system": True},
 }
 
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
@@ -3315,6 +3318,12 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         for row in _load_seats(root):
             seat = row.get("name") or "?"
+            if not boxes.row_is_local(root, row):
+                # A foreign box's row: its pin log is that box's file, not
+                # this one's. Name the seat and the box, never a false age=?.
+                print(f"{seat}\tbox={row.get('box') or '(default)'}\t"
+                      f"skipped: foreign box")
+                continue
             gen = _read_generation(root, seat)
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
