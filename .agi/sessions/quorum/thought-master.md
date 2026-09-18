@@ -81,12 +81,13 @@ LANDED (this seating; now in MAIN via the Prime's merge-up)  4 hypotheses + owne
                update · origin merged in + lane anonymized · C2.2 mur LANDED (gated; disproved stands; review note on the node) + C2.03 minted
                (hypothesis:c2-flip-as-phase-jump-vs-sign-inversion) · OWNER 04:59Z (pane, verbatim on lm-graph-sql-mirror + lm-jev-next-call-suggestion): the DB mirror
                builds jev prompts as multiple choice, graph = the choice-limiting engine -> TM.31 gets a choices-for-act query, R2 measures top-1 by choice-set size;
-               relayed to the Prime [owner] for banking · trove-survey kv-compression slice LIVE (pid 2989739, setsid; digests -> troves/2026-09-18-kv-nodes/).
-LIVE (director-thought, worktree post-director-thought, runs its own mur)  TM.30 Bonsai 2 27B kid tier (off-box, cap $1) · TM.31 graph-sql-mirror (A1-light, cap $1,
-               dispatched 04:16Z before my queue update) · TM.27b/TM.29 harvested clean (0.476 MB/s sustained; NO time-of-day logic yet -> 1.5 MB/s 02-06
+               relayed to the Prime [owner] for banking · trove-survey kv-compression slice LIVE (pid 2989739, setsid; digests -> troves/2026-09-18-kv-nodes/) ·
+               TM.31 SQL mirror LANDED (proved; graph2sql.py + schema + tests under context/local-maxxing/sql/; director rescued the parent commit lost under the
+               rewrite, accepted) + hypothesis:lm-mirror-choices-for-act minted (menu recall >= 95% / median menu <= 12 on 200 replayed acts; hardening folded in).
+LIVE (director-thought, worktree post-director-thought, runs its own mur)  TM.30 Bonsai 2 27B kid tier (off-box, cap $1) · A1-light slot FREE (TM.31 done) · TM.27b/TM.29 harvested clean (0.476 MB/s sustained; NO time-of-day logic yet -> 1.5 MB/s 02-06
                America/New_York fix = next small round) · athena fetch paused for Bonsai · mur-c2-2. Director held through the scrub; resume came from the Prime directly.
 DIRECTOR QUEUE (sent 04:2xZ)  OFF-BOX after TM.30: schedule fix -> lm-bend2-spiking-sim (16t + --gpu) -> lm-pufferlib-oscillator-policy (16t + rhythm_bank env) ->
-               dead-head (+openjev r3) -> spec-decode -> lm-kv-slot-save-beats-reprefill. A1-LIGHT after TM.31: bend2 A1 half -> pufferlib A1 half -> C2.03 (minted).
+               dead-head (+openjev r3) -> spec-decode -> lm-kv-slot-save-beats-reprefill. A1-LIGHT (sent 05:1xZ): bend2 A1 half -> pufferlib A1 half -> lm-mirror-choices-for-act -> C2.03 (all minted).
                rpc-split: no round (feasibility says no).
 NEXT  1 RESEARCH (mine): re-run the kv-compression slice as a trove-survey under setsid nohup (survives my rotation; 600 s wall until SM.105): TurboQuant/KIVI/KVQuant +
         llama.cpp -ctk/-ctv + slot-save + the 4k/32k byte table for the served 9B/27B configs; judge by hand; note on idea:lm-nodes-as-kv-caches; extend the chain
@@ -104,4 +105,4 @@ NEXT  1 RESEARCH (mine): re-run the kv-compression slice as a trove-survey under
 ARM8C answered (the owner's laptop; experiments later) · Camber XS spend (3 GPU-h/month): athena hour if the A/B leans positive; kid-persona QLoRA after trajectory capture; one job-level split trial (idea:lm-two-node-vram-split) · rpc-split measured round ONLY if the owner names a model that does not fit local-town (hypothesis:lm-rpc-cpu-split-pays) · HF-direct egress route on local-town · TypeSafe plugin install; .env row rename TYPESAFE_KEY→TYPESAFE_API_KEY · Neon key (optional; own SQL mirror preferred by the owner) · Doppler (Prime / encryption town) · ai-local repo URL · HF token + ssh path for farm-box downloads · per-kid endpoint keys (g14.4).
 
 ## 🔴 Where it stops
-05:0xZ 09-18 trunk pushed (C2.2 landed + C2.03 + owner-line notes), in sync, nothing of mine uncommitted; kv-compression trove-survey LIVE (pid 2989739; judge + note when it lands: digests in troves/2026-09-18-kv-nodes/, log .agi/sessions/trove-kv2-*.log in this worktree); director laps as they arrive; next batch in a day or two (window ask with the then-tip). Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, on the town branch).
+05:1xZ 09-18 trunk pushed (C2.2 + TM.31 landed; C2.03 + mirror-choices minted; owner-line notes), in sync, nothing of mine uncommitted; kv-compression trove-survey LIVE (pid 2989739; judge + note when it lands: digests in troves/2026-09-18-kv-nodes/, log .agi/sessions/trove-kv2-*.log in this worktree); director laps as they arrive; next batch in a day or two (window ask with the then-tip). Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, on the town branch).
