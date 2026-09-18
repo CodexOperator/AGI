@@ -48,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
@@ -2591,10 +2592,12 @@ def main() -> int:
         # warning and a 5xx signature is a dead round nobody re-runs. The
         # lease is held by THIS process here, so a re-spawn lands under the
         # SAME lease, agent id, worktree and log.
+        _mem_cap = mem_cap.resolve_memory_cap(cfg)
+
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    spawn_args,
+                    mem_cap.wrap_argv(spawn_args, _mem_cap),
                     stdout=logf,
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
@@ -2703,6 +2706,9 @@ def main() -> int:
             "harness_spec": dict(dispatch_harness),
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
+            # SM.112 -- the cap this round was launched under (None = no
+            # wrapper), so a capped death can be NAMED from the record.
+            "memory_max": _mem_cap,
             # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
             # WHO must be alarmed when this round finishes, stamped at spawn
             # with NO flag. The dispatcher is the resolved seat (-x-exported
@@ -3344,11 +3350,13 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
     # the reason it failed). The inline reaper (restart_ok=True) keeps the
     # full paused/restart/budget decision below.
     if not restart_ok:
+        _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+            pid, rec.get("memory_max")) else "")
         return {
             "record": {
                 "status": "failed",
                 "finished_at": int(time.time()),
-                "fail_reason": f"pid {pid} died (detected by reaper)",
+                "fail_reason": f"pid {pid} died (detected by reaper){_cap}",
                 # hypothesis:l4-a-reaped-parent-record-names-its-death-class-
                 # and-staged-work… — the class rides BESIDE fail_reason; the
                 # fail_reason text is deliberately unchanged.
@@ -3381,10 +3389,13 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
 
     restarts = int(rec.get("restart_count", 0))
     max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
+    _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+        pid, rec.get("memory_max")) else "")
     failed = {
         "status": "failed",
         "finished_at": int(time.time()),
-        "fail_reason": f"pid {pid} disappeared (detected by inline reaper)",
+        "fail_reason": (f"pid {pid} disappeared (detected by inline "
+                        f"reaper){_cap}"),
     }
     if restarts >= max_restarts:
         return {"record": failed,
