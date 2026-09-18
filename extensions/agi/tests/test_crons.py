@@ -1373,3 +1373,43 @@ def test_audit_accepts_this_projects_declared_unit(tmp_path, fake_systemctl):
     crons.cmd_apply(root, crontab_file=fixture, unit_dir=ud)
     assert list(ud.glob("agi-*.service"))
     assert crons.cmd_audit(root, crontab_file=fixture, unit_dir=ud) == []
+
+
+def test_audit_flags_an_ordinary_named_unit(tmp_path, capsys):
+    """A `.service` with NO agi shape at all (`some-other-tool.service`) is
+    undeclared by this node however long it sits there — the false negative
+    the `startswith("agi-")` gate caused (a real box carries
+    `hermes-gateway.service`, `streamer-stub.service`, ...)."""
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "some-other-tool.service").write_text("[Unit]\n")
+
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture), "--unit-dir", str(ud)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "some-other-tool.service" in out
+
+
+def test_audit_is_silent_on_another_projects_unit(tmp_path, capsys):
+    """An agi-shaped unit for a DIFFERENT project's hash is not ours to judge
+    — the same treatment the crontab side gives a foreign `agi-crons <hash>`
+    block. It must NOT be flagged as undeclared (the false positive the old
+    `elif p.name.startswith("agi-")` branch produced)."""
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "agi-something-deadbeef.service").write_text("[Unit]\n")
+
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture), "--unit-dir", str(ud)])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "deadbeef" not in out
