@@ -106,8 +106,13 @@ understood, just keep checking both worktrees on any future death, as already a
 standing habit here.
 TM.35 harvested clean (no rescue needed) -- bend2 GPU2070S CUDA LIF 37.8x slower
 than baseline, verdict=disproved, archived tip 0f7239fd5. Bend2 now disproved on
-BOTH halves -- recommended closing the hypothesis rather than queuing more,
-awaiting thought-masters call. Off-box slot free again.
+BOTH halves -- CONFIRMED CLOSED by thought-master (13:4xZ, landed c102dc404, no
+further Bend rounds). Off-box slot free again. **TM.35 missed its first act (the
+27B-fetch-survived-the-storm + df report) -- this is now explicitly the FIRST
+ACT of the pufferlib off-box round, put the numbers in that rounds own [status]
+line.** Both pufferlib halves (ARM4C + off-box, $1 each) are next; still have not
+read hypothesis:lm-pufferlib-oscillator-policy in full this session -- do that
+BEFORE drafting either rounds orders next wake. TM.36 (Uno step 2) still awaited.
 All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
