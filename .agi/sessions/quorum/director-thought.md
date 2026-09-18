@@ -77,6 +77,8 @@ for-act ($0.50 cap, new) -> c2-flip-as-phase-jump-vs-sign-inversion (C2.03).
 ```
 
 ## 6 BANKED
+- **ACTION OWED AT TM.30 HARVEST (thought-master 05:24Z, do not forget):** TM.30 left artifacts on this box at `/tmp/bonsai-a1` (2.1G) and `/tmp/bonsai-probe` (0.8G), untouched during the disk-emergency sweep because the round was live. At harvest: confirm `bench_a1.jsonl` rows are copied onto the kid node / `bench/` first, THEN `rm` both dirs (reproducible from HF + git, safe to delete), and log the cleanup in the merge-up.
+- Disk-full event 05:2xZ (Prime freed 14G), cleared 05:22Z: confirmed via `git fsck` that only `sensei-director`s own ref/worktree reflog is corrupted (invalid reflog entry, same sha repeated) — nothing of minds (post branch, TM.31 archive, TM.32 loop branch) affected; flagged the precise location to belam, not mine to repair. No pytest of mine fell in the invalidated 05:20-05:21Z window. TM.30s kid id changed (`a00-c0675ae5` -> `a00-da8359fa`) between checks with the same parent pid throughout — read as normal kid-cycling within one live round, not a crash-respawn; not chasing further absent other evidence.
 - bitnet.cpp ROUND-vs-RESEARCH judgment call: leaning ROUND, not yet dispatched, not urgent (no slot free for it specifically named in the current queue).
 - `provisioning.py status` top-line `OPENROUTER_API_KEY` balance check 401ing ("User not found") while every per-iter minted key works fine — not blocking, not chased.
 - R1/R2 (jev typed-acts-replay / next-call-suggestion): minted, queued, blocked on SM.103. Not this seats call to unblock.
