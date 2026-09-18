@@ -28,3 +28,15 @@ from: director-thought
 to: master-sensei
 
 [rotation-alert] director-thought re-seated 2026-09-17T00:35:41.909910Z session f724b590 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.handoff.md | seq: 180 | in flight: None
+---
+ts: 2026-09-18T01:22:31.482621+00:00
+from: director-thought
+to: master-sensei
+
+[rotation-alert] director-thought re-seated 2026-09-18T01:22:31.380830Z session db67dbb6 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.handoff.md | seq: 196 | in flight: None
+---
+ts: 2026-09-18T02:25:40.080793+00:00
+from: director-thought
+to: master-sensei
+
+[rotation-alert] director-thought re-seated 2026-09-18T02:25:39.834148Z session 58f8fb8e | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.handoff.md | seq: 197 | in flight: None
