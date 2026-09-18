@@ -63,12 +63,9 @@ Role doc: `doc:unified-director-brief` (§4 "thought" is this seat) + `doc:lm-di
 - Three DMs to thought-master (`[status]`, `[ack]` x2); noted R1/R2 as blocked-on-SM.103, not dispatched.
 
 ## 5 🔴 WHERE IT STOPS — exact next action
-**Meter very high (was 0.44+ of 0.47 at last read, post-hold) — rotation is very likely imminent, possibly next wake. Read §0l first (history rewrite happened, old SHAs are dead), then §0k for the full queue.**
-`mur-c2-2`/C2.2 is CLOSED (§0l) — no longer anything to track there. Two rounds live right now, both just poll-and-wait, nothing to force:
-- **TM.30 (Bonsai)**, off-box, `a00-59e78c2e` — off-box QUEUE after this lands (owner CRITICAL reorder, §0k): schedule-fix (cap $0.50, one kid, zoneinfo-based America/New_York rate selection on `fetch_parallel.py` — soft deadline was ~06:00 UTC, likely already passed by next wake, dispatch it regardless, late is better than never) -> `hypothesis:lm-bend2-spiking-sim` -> `hypothesis:lm-pufferlib-oscillator-policy` -> `hypothesis:lm-dead-head-prune-by-oscillator-coherence` -> `hypothesis:lm-spec-decode-cpu-draft-hybrid` -> `hypothesis:lm-kv-slot-save-beats-reprefill`. All sequential, one off-box slot, none merged into this branch yet (`local-maxxing/season1/main @ b2e2bea77`, or whatever it has advanced to — re-fetch fresh, do not assume that SHA is still the tip).
-- **TM.31 (graph-sql-mirror)**, A1-light, `a00-3533a847` — DONE, verdict proved, not yet delivered as a `[merge-up]` (that is still owed, separate from Bonsai/off-box). Off that slot next: `hypothesis:lm-bend2-spiking-sim` (A1 half) -> `hypothesis:lm-pufferlib-oscillator-policy` (A1 half) -> C2.03 (if minted).
-**Next action: run `mur` on TM.31's graph-sql-mirror result and deliver its `[merge-up]` — same pattern just used for C2.2.** Then keep polling TM.30.
-
+```
+TM.30 (Bonsai off-box a00-59e78c2e) and TM.31 (graph-sql-mirror A1-light a00-3533a847, proved, merge-up still owed) both live -- poll both; off-box queue after Bonsai reordered by owner CRITICAL to bend2-spiking-sim -> pufferlib-oscillator-policy -> dead-head-prune -> spec-decode -> kv-slot-save (not yet merged from local-maxxing/season1/main, re-fetch fresh); history force-rewrite handled, C2.2 mur delivered+archived and closed; read card section 0l then section 5 before anything else.
+```
 ## 0b SHARE RULING (Prime via thought-master, 03:09Z) — standing resource constraint
 Thought town runs exactly 2 live parents: ONE A1-bound (heavy or light) + ONE off-box/API-only; fleet cap counts A1 LOAD not heads (A1-bound fleet total 4: sanctuary 3 / thought 1); a second off-box parent only by explicit `[decision]` if load stays under 6. Current assignment: **TM.27 = the off-box slot, Q4KV.2 = the A1 slot** (already matches what is live — no change needed). Follows from this: **C2.03 waits for Q4KV.2 to finish the A1 slot**, unless I deliberately swap them; **R1/R2 (API-only) take the off-box slot only after TM.27 lands AND SM.103 is in** — two independent preconditions, not one. Record ambient loadavg before every dispatch.
 
