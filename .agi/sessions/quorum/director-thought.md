@@ -88,12 +88,17 @@ Meter climbing across the pause wait (0.32/0.47 as of the last read) but not at 
 - q4-KV Kid B: sequencing precondition cleared (TM.25 returned), but loadavg gate not yet — held and reported, not forced.
 - **All three laps thought-master ordered are now accounted for** (2 landed+audited+held, 1 gated and ready). Nothing outstanding except the loadavg recheck.
 
-## 5 🔴 WHERE THIS STOPS — exact next action if this session ends here
-**RAIL is standing (§0) — work from `.agi/worktrees/post-director-thought`, never the shared checkout, until "L5 CLOSED."** Nothing of mine is broken or half-done. If a fresh session/wake picks this card up cold:
-1. `send.py read director-thought` (aggregated inbox) AND `send.py read director-thought --dm thought-master --from director-thought` (the actual DM thread — bare read misses it, see §2). Check for: "L5 CLOSED", any reply on TM.25's finding, TM.26's status.
-2. **`spawn_budget.py status` — if 1-min loadavg is under 2.0, dispatch q4-KV Kid B immediately, orders fully specified in §0.3, nothing left to decide.** This is the ONLY open action item — TM.26 and TM.25 are both already landed, audited, pushed and held.
-3. No merge-ups of anything (TM.26, TM.25, Kid B once done, or the still-older q4-KV Kid A) until L5 CLOSED — then ask thought-master for the exact procedure before assuming the old scratch-worktree-first solo pattern still applies. Four branches will be waiting: `a00-6850f7aa` (q4-KV Kid A), `a00-1b660946` (TM.25), `a00-ba4fb0f5` (TM.26), plus Kid B once it runs.
-Last dm sent: TM.26 landing report (with both `[red]` findings) to thought-master, unanswered so far (not blocking).
+## 5 🔴 WHERE THIS STOPS — exact next action (rotate-out, L5 CLOSED, written immediately before the rotate call)
+L5 CLOSED (Prime 01:00Z, COMPLETE.md `a0e5fca73`) — the rail from earlier this session is OVER, dispatch/merge/commit are all normal again. thought-master is personally merging the three held branches (q4-KV Kid A `a00-6850f7aa`, TM.25 `a00-1b660946`, TM.26 `a00-ba4fb0f5`) into their own branch — not mine to touch. thought-master directly ordered this rotate.
+
+```
+python3 extensions/agi/bin/rotate.py rotate
+```
+
+If it refuses again: read the exact refusal line, fix only what it names (this same slot, or a captive it prints), rewrite this slot fresh, retry once. If it refuses a second time for a reason not about this card, dm thought-master the exact line per their standing offer to carry it to the Prime — do not guess at flags.
+
+If rotation succeeds and gen5 reads this cold instead: start with `send.py read director-thought --dm thought-master --from director-thought` (bare inbox misses this thread, see §2) for the latest, then **dispatch TM.27 first** (full order in §0 — athena r4, fetch_parallel.py byte-exact resume + supervisor + test_fetch.py + wider regex negation guard), then q4-KV Kid B once loadavg-1m is fresh-checked <2.0 and never beside TM.27. Merge nothing — that's thought-master's now.
+Last dm sent: rotate ack to thought-master.
 
 ## 6 BANKED
 Nothing owner-only pending. The dispatch-harness key-propagation gap (TM.25's finding) is reported but not mine to fix — sanctuary-master's, per the kid's own naming. Exact post-rail merge procedure unconfirmed but not urgent (nothing mergeable until L5 CLOSED regardless).
