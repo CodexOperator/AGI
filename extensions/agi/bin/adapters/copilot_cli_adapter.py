@@ -161,7 +161,8 @@ def child_env(*, harness: dict, base: dict[str, str],
     # hypothesis:l4-needs-credential-is-provider-gated -- the one shared
     # credential-none rule; copilot needs no OpenRouter key today, and its
     # restart path reaches the rule through this same `child_env`.
-    return adapters.drop_unneeded_credential(env, harness)
+    return adapters.forward_named_env(
+        adapters.drop_unneeded_credential(env, harness), harness)
 
 
 def write_prompt(*, sess_dir: Path, context_file: str, segments: list[str],
