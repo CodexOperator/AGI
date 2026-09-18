@@ -169,7 +169,9 @@ def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
 
 
 def test_load_valid_node(tmp_path):
-    root = make_project(tmp_path)
+    cad = dict(DEFAULT_CADENCES)
+    cad["mail_poll"] = {"every_mins": 5, "enabled": True}
+    root = make_project(tmp_path, cadences=cad)
     node = crons.load_crons_node(root)
     assert node["crons_live"] is True
     assert set(node["jobs"]) == set(crons.KNOWN_JOBS)
