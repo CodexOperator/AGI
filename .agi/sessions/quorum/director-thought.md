@@ -63,7 +63,7 @@ Role doc: `doc:unified-director-brief` (§4 "thought" is this seat) + `doc:lm-di
 - Three DMs to thought-master (`[status]`, `[ack]` x2); noted R1/R2 as blocked-on-SM.103, not dispatched.
 
 ## 5 🔴 WHERE IT STOPS — exact next action
-**Meter is climbing (was 0.39 of 0.47 at last read) — this session may rotate soon. Read this whole section before doing anything else on wake.**
+**Meter at 0.4158 of 0.47 (88.5% of the line) at last read — rotation is very likely imminent, possibly next wake. Read this whole section, and §0k for the full queue, before doing anything else.**
 Two rounds live right now, both just poll-and-wait, nothing to force:
 - **TM.30 (Bonsai)**, off-box, `a00-59e78c2e` — off-box QUEUE after this lands: schedule-fix (cap $0.50, one kid, zoneinfo-based America/New_York rate selection on `fetch_parallel.py`, per thought-master's explicit sequencing — do NOT dispatch early, wait for TM.30's harvest) -> `hypothesis:lm-dead-head-prune-by-oscillator-coherence` -> `hypothesis:lm-spec-decode-cpu-draft-hybrid` (two-arm, see §0h/§0j). All sequential, one off-box slot.
 - **TM.31 (graph-sql-mirror)**, A1-light, `a00-3533a847` — independent slot, runs in parallel, no other queue behind it yet.
@@ -116,6 +116,14 @@ Confirmed queue (properly VERIFIED message): **Bonsai (TM.30, running) -> schedu
 Two more stale-base refusals hit while dispatching (season2/main moved twice in a few minutes) plus one more merge conflict — this time on **thought-master's own card** (`.agi/sessions/quorum/thought-master.md`), resolved the obvious way (took theirs entirely, not mine to touch, same as any other post's card). All routine friction from a very active session, not a problem, just costing real turns — **always `git fetch origin season2/main --quiet && git merge origin/season2/main --no-edit` immediately before a dispatch that just got refused, never assume yesterday's sync still holds two dispatches later.**
 Two other new nodes seen in passing (`idea:lm-nodes-as-kv-caches`, plus earlier `lm-spec-decode...`, `idea:lm-two-node-vram-split`) — thought-master's own minting, not investigated, not mine to act on unless it shows up in an explicit queue line.
 Reported all of the above (queue confirmation, TM.31 dispatch, the RETIRED-key note, the friction) to thought-master in one DM.
+
+## 0k QUEUE UPDATE 04:3xZ — Bend2 + PufferLib jump the queue (owner: CRITICAL), full queue now on both slots
+Four new nodes minted on `local-maxxing/season1/main @ b2e2bea77` (NOT yet merged into this branch — brief by node id when it is actually time to dispatch, per thought-master's instruction, rather than pre-merging now with the meter this high). **Nothing to dispatch immediately — TM.30 and TM.31 are both still running and both queues are strictly behind them.**
+- **OFF-BOX, after TM.30 Bonsai:** schedule-fix (unchanged) -> `hypothesis:lm-bend2-spiking-sim` (16 threads + --gpu half) -> `hypothesis:lm-pufferlib-oscillator-policy` (16-thread half + rhythm_bank env) -> dead-head-prune (+ openjev r3) -> spec-decode -> `hypothesis:lm-kv-slot-save-beats-reprefill` (new, not read yet).
+- **A1-LIGHT, after Q4KV.2 (already free, but TM.31/graph-sql-mirror is occupying it right now):** `hypothesis:lm-bend2-spiking-sim` (A1 half: install + fixture + LIF on 4 threads) -> `hypothesis:lm-pufferlib-oscillator-policy` (A1 half: install + breakout CPU timing) -> graph-sql-mirror (already dispatched, TM.31) -> C2.03.
+- Each CRITICAL node (bend2, pufferlib) may run as ONE mur with two kid slices (A1 half + off-box half) OR two separate rounds — director's call, `rounds[]` is the parallel axis. Caps/file scopes are on the nodes ($1 OpenRouter, $0 compute, no rental) — read them fresh when it is actually time, do not assume these numbers without reading the real node.
+- `hypothesis:lm-rpc-cpu-split-pays` = the Prime's feasibility gate: arithmetic says NO ROUND (encryption-town caps the pipeline at ~2-3 tok/s) — **do not queue this one at all** unless a future owner line names a model that does not fit local-town.
+- **Standing instruction: land nothing on the town branch until thought-master's own `[merge-up]` line goes out from `b2e2bea77`, then resume syncing.** (This is about landing/merging ONTO the town trunk, which I never do anyway — my own `git merge origin/local-maxxing/season1/main` pulls FROM it, which stays fine and necessary; do not confuse the two.)
 
 ## 6 BANKED
 - bitnet.cpp ROUND-vs-RESEARCH judgment call: leaning ROUND (thought-master's own brief doc already lists it as queued A1-heavy work, not a docs hunt), but not yet dispatched and not asked outright — genuine judgment call, not urgent since Q4KV.2 has not freed the slot yet.
