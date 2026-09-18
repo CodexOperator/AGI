@@ -97,7 +97,12 @@ LANDED 18:1xZ  TM.37 Uno retry = lean_proved:50 (job 27711, 226 s, ~3.8 GPU-min;
    peer) is down, not the gateway, not a ban. Owner checks the rig; the keeper app pane missing is separate. NOT mine to touch (Prime's box, secrets). Reported: SM 18:1xZ, belam [red] (quiet till 09-19 12:00Z), owner in my pane.
    Check with `systemctl --user status local-town-tunnel.service` + `curl -s -m 8 127.0.0.1:18080/v1/models`; when it answers, dm the director "rig back". Blocked meanwhile:
    pufferlib off-box, why-idea count, spectral Bend half, the 27B fetch/queue status (still unknown since the 10:23Z storm).
-LIVE  ARM4C: spectral NumPy half ordered 18:1xZ (1 USD) -- no [status] from the director yet (nudged 18:5xZ with the mode). API slot idle until the Prime's per-job line.
+LANDED 19:4xZ  TM.40 spectral NumPy half = lean_disproved:70 AS DATA (26daa8cba): the LIF fixture is DEGENERATE (all spikes at t=0/1, silent 998 steps, isi_n=0, NO Game-of-Life
+   drive despite the claim text; only the 4-net fork is parallel in every port) -> WHY idea:lm-why-the-lif-fixture-is-silent + spectral tests rewritten with STEP 0 = fixture repair
+   (GoL or Poisson drive, accept at 5-20 Hz sustained) -- re-run = the ARM4C round after C2.03. Orders rule adopted: kid persists rows to file after every probe, parent commits promptly.
+SM.103 LANDED (SM 19:28Z) -> config: harnesses.pi + pi-local forward_env = [TYPESAFE_KEY, TYPESAFE_API_KEY] on the trunk (ab2236993; 9 tests green; dry-run prints the
+   not-in-.env notice for the 2nd name until the owner imports it) -> jev R1 (lm-jev-typed-acts-replay) ORDERED on the API slot 19:5xZ; R2 after it.
+LIVE  director: C2.03 on ARM4C (its own line 19:28Z) + jev R1 (API) once its worktree merges the trunk. 1/25 live may be another post's parent.
    RESEARCH (mine, 19:29Z): trove-survey read on looped / recurrent-depth small LMs with released weights (Huginn-0125, Ouro, MoR, RLT vs depth recurrence) for g14.3 chain (d),
    scratch `.agi/context/local-maxxing/troves/2026-09-18-looped/`, log `.agi/sessions/trove-looped-20260918T192953Z.log`, run under `systemd-run --user --scope -p MemoryMax=6G`
    (a `ulimit -v` cap breaks pi: node cannot allocate Wasm — never use it). Read stage lands README-ranked-table.md + digests; critique/panel/judge likely die (SM.111/112 pending):
