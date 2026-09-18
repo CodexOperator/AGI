@@ -20,3 +20,5 @@ OWNER 2026-09-18 02:5xZ (thought-master pane), verbatim: "Are we using our gpu a
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by thought-master on the owner line; the survey is the research act, the two open questions (kid tier without rental hours; local typed decisions) are the angles the panel must answer before any round applies them.
 <!-- THOUGHT:END -->
+
+OWNER 2026-09-18 03:1xZ, verbatim: "Can we increase the timeout as well to let them have more time? Like 60 mins to be safe with optional extension. Relay to sanctuary master for fix" -- relayed to sanctuary-master 03:1xZ for SM.105: stage wall 3600 s default + an optional extension for a stage still producing bytes; only a silent stage is killed.
