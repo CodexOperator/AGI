@@ -855,6 +855,12 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
     root, cfg, repo_root, engine_root, node = _resolve(root)
     require_common_root(root, repo_root)
     managed = render_managed_lines(root, repo_root, engine_root, node)
+    # Every managed line redirects `>> {log} 2>&1`, and `_log_path` lives in
+    # `~/logs/` which nothing else creates: on a fresh box the first tick
+    # wrote NOTHING and no error anywhere. Create it where the lines are
+    # installed, never on a dry run.
+    if managed and not dry_run:
+        _log_path(repo_root).parent.mkdir(parents=True, exist_ok=True)
     begin, end = block_markers(repo_root)
 
     current = read_crontab(crontab_file)

@@ -598,6 +598,34 @@ def test_apply_dry_run_writes_nothing(tmp_path):
     assert len(result["managed_lines"]) == 4
 
 
+def test_apply_creates_the_log_directory_the_lines_redirect_into(
+        tmp_path, monkeypatch):
+    """ITEM (d): every managed line redirects `>> {_log_path} 2>&1`, so a
+    fresh box whose `~/logs/` does not exist would write nothing and show no
+    error. `cmd_apply` must create that directory as it installs the lines."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    log = crons._log_path(crons.locations.repo_root(root))
+    assert not log.parent.exists(), "fixture HOME must start with no ~/logs"
+
+    crons.cmd_apply(root, crontab_file=fixture)
+    assert log.parent.is_dir(), "apply left the redirect target dir missing"
+
+
+def test_apply_dry_run_creates_no_log_directory(tmp_path, monkeypatch):
+    """A dry run installs nothing, so it must not create the log dir either."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    root = make_project(tmp_path)
+    fixture = tmp_path / "crontab.fixture"
+    fixture.write_text("")
+    log = crons._log_path(crons.locations.repo_root(root))
+
+    crons.cmd_apply(root, crontab_file=fixture, dry_run=True)
+    assert not log.parent.exists(), "--dry-run created ~/logs"
+
+
 def test_two_projects_coexist_in_one_crontab(tmp_path):
     """The other non-negotiable safety property: a second project's block
     must be untouched by this project's apply/remove."""
