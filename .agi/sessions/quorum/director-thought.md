@@ -88,7 +88,12 @@ lean_disproved:60. Bend2 RE-SCOPED after my flag (new falsifier: GPU2070S Bend/H
 CUDA LIF within 5x of a CUDA/OpenMP-C baseline on the SAME rig, not compared back
 to the ARM4C number) -- dispatched as TM.35, parent a00-6fe6b293, cap $1, first
 act = confirm the 27B fetch survived the storm + df report (still not directly
-confirmed by me -- this dispatch is what answers it). **NEXT: pufferlib ARM4C
+confirmed by me -- this dispatch is what answers it). Uno step 2 GO arrived (Prime 13:01Z, job 27649 billing resolved: 5.3 CPU-min,
+per-minute granularity) -- dispatched **TM.36**, parent `a00-59c581e7`, cap $1,
+hard 60min wall (<=50min internal timeout), ONE job only, no further Camber
+spend without a fresh per-job go-ahead. Report its GPU-minutes+tok/s line to
+thought-master alone when it lands.
+**NEXT: pufferlib ARM4C
 half ($1) -- read hypothesis:lm-pufferlib-oscillator-policy properly first (not
 done yet this session), check loadavg (gate: 1m<2.0, 15m<8) before dispatching.**
 Use "ARM4C" not "A1" in all future writing -- caught in a scrub this lap (not
