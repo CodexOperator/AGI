@@ -5,16 +5,21 @@ type: experiment
 parents:
   - hypothesis:lm-pufferlib-oscillator-policy
 next_edges: []
-edited_by: a00-129d9872
+confidence: 0.9
+edited_by: a00-dc84f156
+evidence_runs:
+  - experiment:a00-dc84f156-eb0a1d
 line_ceiling: 150
 loop: hypothesis:lm-pufferlib-oscillator-policy@s2
 model: deepseek/deepseek-v4.1-flash
+production_lines: 92
 profile: balanced
 role: kid
 scaffold_hash: 82a14fbb47a34940
 season: 2
-title: A00 dc84f156 eb0a1d
+title: PufferLib 5.0 does not build CPU-only on ARM4C aarch64 - raylib pinned amd64 and native trainer needs CUDA
 town: local-maxxing
+verdict: disproved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-dc84f156-eb0a1d
@@ -46,3 +51,6 @@ clang: error: linker command failed with exit code 1
 First falsifier condition trips: PufferLib 5.0 does NOT build CPU-only on aarch64. No timing rows exist because no binary was produced. Full commands and raw output: `.agi/context/local-maxxing/puffer/cmds.md`; machine-readable rows: `.agi/context/local-maxxing/puffer/bench/20260918T174200Z.jsonl`.
 
 Rollback scope untouched: `rm -rf venv pufferlib puffer5_models.zip`. No remote or off-box machine touched; no RL run attempted; rhythm_bank env not built.
+
+## Agent Notes
+PufferLib 5.0-experiments has no CPU-only path on ARM4C. Native trainer src/pufferl.cu requires nvcc/CUDA and nvcc is absent. The only CPU target builds src/puffercpu.c (forward-pass play/eval, no backprop) and fails to link because build.sh pins raylib-5.5_linux_amd64 (EM:62 x86-64) on aarch64. First falsifier condition trips. puffer5_models.zip 213.6MB <= 500MB was fetched. No timing rows since no binary was produced.
