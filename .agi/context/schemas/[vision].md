@@ -22,7 +22,7 @@ validation:
 spawn:
   allowed_parents: [moral]
   min_parents: 1
-  max_parents: 4
+  max_parents: 5
   min_parents_by_type: {moral: 1}
   season_parents_allowed: [overview]
 ---
@@ -68,7 +68,7 @@ different, earlier version than the vision that goal eventually feeds.
 
 ## Spawn rule — PRESCRIPTIVE (L2 wave 1)
 
-`allowed_parents: [moral]`, `min_parents: 1`, `max_parents: 4`,
+`allowed_parents: [moral]`, `min_parents: 1`, `max_parents: 5`,
 `min_parents_by_type: {moral: 1}`.
 
 A vision is now grounded in at least one moral (the constitution). The

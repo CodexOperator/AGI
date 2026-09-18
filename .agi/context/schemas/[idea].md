@@ -5,7 +5,7 @@ fields:
   title: {type: str}
   scale: {type: str}       # "big" | "small"
   authors: {type: list}    # list of agent ids; for co-authored memo ideas every listed author is required (goal:g12.2, section 2 Ideas as memos)
-  parents: {type: list}    # goal or vision ids, or empty -- idea was once parentless-legal
+  parents: {type: list}    # goal, vision or hypothesis ids (a why on a disproved hypothesis), or empty -- idea was once parentless-legal
   next_edges: {type: list}
   tags: {type: list}
   confidence: {type: float}
@@ -22,7 +22,11 @@ validation:
     scale: '^(big|small)$'
     status: '^(open|active|extended|abandoned|deprecated)$'
 spawn:
-  allowed_parents: [goal, vision]
+  # `hypothesis` added 2026-09-18 (owner rule, relayed by thought-master 18:00Z:
+  # "hang a new idea on a disproved hypothesis, starting from a why"); the
+  # first such idea, idea:lm-why-no-gpu-load-bend2-cuda, had to carry the edge
+  # as notes both ways because this list refused it.
+  allowed_parents: [goal, vision, hypothesis]
   # No longer parentless-legal (parentless_types is now [moral]; the 42
   # pre-existing parentless ideas are season 1, grandfathered).
   # A co-authored memo idea names every author and lists every goal/vision
