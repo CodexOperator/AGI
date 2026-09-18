@@ -135,6 +135,8 @@ DEFAULT_CC_ROLES = {
 SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
     "quiet": {"quiet": True},
+    # a row that keeps post dm nudges but never a service-class one
+    "quiet-system": {"quiet_system": True},
 }
 
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
