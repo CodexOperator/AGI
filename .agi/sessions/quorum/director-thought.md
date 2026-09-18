@@ -88,7 +88,7 @@ Meter climbing across the pause wait (0.32/0.47 as of the last read) but not at 
 - q4-KV Kid B: sequencing precondition cleared (TM.25 returned), but loadavg gate not yet — held and reported, not forced.
 - **All three laps thought-master ordered are now accounted for** (2 landed+audited+held, 1 gated and ready). Nothing outstanding except the loadavg recheck.
 
-## 5 🔴 WHERE THIS STOPS — exact next action (rotate-out, L5 CLOSED, written immediately before the rotate call)
+## 5 🔴 WHERE IT STOPS — exact next action (rotate-out, L5 CLOSED, written immediately before the rotate call)
 L5 CLOSED (Prime 01:00Z, COMPLETE.md `a0e5fca73`) — the rail from earlier this session is OVER, dispatch/merge/commit are all normal again. thought-master is personally merging the three held branches (q4-KV Kid A `a00-6850f7aa`, TM.25 `a00-1b660946`, TM.26 `a00-ba4fb0f5`) into their own branch — not mine to touch. thought-master directly ordered this rotate.
 
 ```
