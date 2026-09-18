@@ -11,9 +11,9 @@ season: 2
 title: L6 plan
 town: core
 ---
-# SEASON 3 — THE CHAIN OF THOUGHT, split into closeable loops (S3-L1 … S3-L5; a fresh season restarts the loop count at 1 — owner 15:0xZ) (Prime, belam gen 31, 2026-09-18 14:5xZ; seed = the council's redesign plan v3.1 + addenda 1-8 + the no-exploit ruling, delivered by the owner 14:4xZ)
+# SEASON 3 — THE CHAIN OF THOUGHT, split into closeable loops (S3-L1 … S3-L5; a fresh season restarts the loop count at 1 — owner 19:4xZ) (Prime, belam gen 31, 2026-09-18 19:4xZ; seed = the council's redesign plan v3.1 + addenda 1-8 + the no-exploit ruling, delivered by the owner 19:3xZ)
 
-Owner rulings at delivery (verbatim in doc:l5-owner-decisions 14:4xZ/14:5xZ): all Prime notes adopted (g20 narrowed; Remote NOW first; custodian one dry loop before root; Goodhart simulation before any live mint; in-graph name `codex`, "Sanctuary" only in doc text; parents_at backfill; deterministic renders; suite green throughout; chakras as vision text; USDC behind the human gate) · split into loops, START NOTHING until a season rollover (core + Prime branches; thought-master independent till the 09-19 check-in) and the Prime naming fix · every pay/incentive rule a config cell, including the equations · the byte round-trip becomes a plain check, never a cross-file coordination event · the chakra map = ONE unifying vision (vision:the-living-being, child of the five morals, parent of every town), not per-town text and not a sixth moral (owner 15:0xZ).
+Owner rulings at delivery (verbatim in doc:l5-owner-decisions 19:3xZ/19:4xZ): all Prime notes adopted (g20 narrowed; Remote NOW first; custodian one dry loop before root; Goodhart simulation before any live mint; in-graph name `codex`, "Sanctuary" only in doc text; parents_at backfill; deterministic renders; suite green throughout; chakras as vision text; USDC behind the human gate) · split into loops, START NOTHING until a season rollover (core + Prime branches; thought-master independent till the 09-19 check-in) and the Prime naming fix · every pay/incentive rule a config cell, including the equations · the byte round-trip becomes a plain check, never a cross-file coordination event · the chakra map = ONE unifying vision (vision:the-living-being, child of the five morals, parent of every town), not per-town text and not a sixth moral (owner 19:4xZ).
 
 ## PRE-S3 (this stream, season 2, sanctuary-master rounds, no loop opened)
 ```
@@ -44,7 +44,7 @@ the git service behind an MCP face (Forgejo first, Radicle-shaped later) · agi 
 capsule record (public id/owner/commitment/terms; sealed body) · rotate-on-transfer · rent = expiring capability block · GPU-time listings + receipts · prohibited_kinds enforced at mint and transfer · NO exploit lane (owner ruling 10:0xZ).
 
 ## LATER (no goal yet)
-Monero stealth payouts · CLSAG anon votes · RandomX idle mining · zk · confidential compute · TIER 2 convertibility · DUNA at 100 members · session name folded into the auth chain (owner 14:5xZ).
+Monero stealth payouts · CLSAG anon votes · RandomX idle mining · zk · confidential compute · TIER 2 convertibility · DUNA at 100 members · session name folded into the auth chain (owner 19:4xZ).
 
 ## Gates (every loop, unchanged from L5) + one addition
 merge-base · merge-tree clean vs live HEAD · no node deletions · read the bytes · verify · one suite window per landing · push · one [go] line · goal note in the same commit as the render · PLUS: no root custodian, no hub write hook, no real value without the human security-review gate on the loop's goal.
