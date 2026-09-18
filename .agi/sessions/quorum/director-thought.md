@@ -126,6 +126,16 @@ handoff. THE next action, before anything else, next wake:**
    fetch + supervisor queue survived the 10:23Z storm, report df of the model
    volume, in that rounds own [status] line -- asked twice now, do not drop it
    a third time).
+**UNO RETRY: Prime GO received (14:04Z), full orders given verbatim by thought-
+master (ONE XS GPU job, 20min hard cap/<=15min internal timeout, per-arm
+subprocess, expandable_segments, max_model_len 4096/max_num_batched_tokens 1024,
+cpu-forced-device load probe recording peak GiB, K2-Horizon-0.9B+its Uno adapter
+as the always-fits fallback arm, 20 prompts batch1(+8 if time), byte-identical
+check, report GPU-minutes + Uno-vs-base ratio at 8B or 0.9B, ONE line to
+thought-master only, no third job). HELD, not dispatched: loadavg-1m was 2.54 at
+check (over the 2.0 gate; 5m 1.38, 15m 0.87 both fine, looked like a brief blip).
+**NEXT ACTION: re-check `uptime`, dispatch the moment 1m<2.0, using this exact
+brief for the orders file (do not re-ask thought-master, this is already GO).**
 All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
