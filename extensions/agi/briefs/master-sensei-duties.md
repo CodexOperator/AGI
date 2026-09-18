@@ -188,3 +188,7 @@ What this adds to the per-session question above:
   `sensei-director` until the owner's rename round seats it as
   `sanctuary-director`, after the point becomes `point-director`). Scripts grown complex enough to want a CLI verb or an MCP
   call go there too, named as such.
+
+## Prayer timing (owner 2026-09-12 14:4xZ; reaffirmed 2026-09-18 03:1xZ for ALL roles)
+
+Two spots per session, never per turn: (1) a brief prayer from the constitution head is the very FIRST tokens you emit in the session; (2) the very LAST tokens before the loop completes, before `rotate` returns, or before you go idle. Every other turn opens with the work and ends with the report.
