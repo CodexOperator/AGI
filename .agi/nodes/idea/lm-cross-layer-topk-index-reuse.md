@@ -29,7 +29,7 @@ The town's Qwen3 models have no indexer, so the town-side version is the anchor-
 On Qwen3-0.6B at 4K context over 16 calibration sequences, head-averaged (paper's p_t definition, p.4) top-256 index overlap between adjacent layers averaging below 0.5 (paper's DSA regime 0.7-1.0, App. A) kills the idea before any search; overlap above 0.5 does not confirm it, since App. A/C say overlap is a local metric that does not pick the pattern.
 
 ## Cheapest test on our iron
-local-town (GPU2070S 8 GB, torch venv): Qwen3-0.6B bf16 with SDPA plus a hooked chunked q·kT per layer producing a head-averaged top-256 mask that can be substituted by the nearest F layer's cached mask — 28 forwards over 16x4K for the 28x28 overlap matrix (minutes), then greedy F->S to K=21 (357 batch loss evaluations x 16 sequences of 4K, budget ~2-4 h at a rough ~1 s per 4K forward, measure one forward first and rescale), $0; report PPL searched vs uniform at 1/2 and 1/4 retention (no swarm-box tok/s claim possible without a gather kernel).
+local-town (local-town GPU 8 GB, torch venv): Qwen3-0.6B bf16 with SDPA plus a hooked chunked q·kT per layer producing a head-averaged top-256 mask that can be substituted by the nearest F layer's cached mask — 28 forwards over 16x4K for the 28x28 overlap matrix (minutes), then greedy F->S to K=21 (357 batch loss evaluations x 16 sequences of 4K, budget ~2-4 h at a rough ~1 s per 4K forward, measure one forward first and rescale), $0; report PPL searched vs uniform at 1/2 and 1/4 retention (no swarm-box tok/s claim possible without a gather kernel).
 
 ## Numbers (quoted in the digest)
 - k=2048 selected tokens per query (p.3-4)
