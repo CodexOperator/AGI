@@ -2021,6 +2021,15 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # claude-code harness: the Workflow script is the runner; we only
         # resolve and describe — but through the SAME event stream the pi
         # path feeds, so the two surfaces differ only where execution does.
+        # Say so out loud: a silent all-resolved summary reads as if this
+        # process ran the stages. stderr only; stdout stays byte-identical
+        # and the pi path never reaches this branch
+        # (hypothesis:l4-a-workflow-run-on-the-claude-code-harness-says-it-
+        # executed-nothing-and-names-the-two-real-routes).
+        print(f"workflow.py: no stage executed by workflow.py; "
+              f"{manifest.get('script')} runs under the Claude Code "
+              f"Workflow tool; a headless run is `--harness pi`",
+              file=sys.stderr)
         for st in stages:
             view.stage_resolved(st["label"],
                                 f"model={knobs[st['label']].get('model')} "
