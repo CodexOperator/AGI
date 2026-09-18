@@ -7507,6 +7507,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 22:5xZ 09-18 Prime landing: core/season2/main @591409cd0 -> season2/main 1c8c77e77 (SM.123 slice 1 = quick-migrate source half: migrate_channel.py + rotate.py migrate; SM.117b real-box measurement, claims 1-3 proved on local-town, claim 4 delivery tick falsified -> SM.126; SM.126/127 nodes; help-smoke stubs + anonymize fail-open = the 22:41Z [red] CLOSED on the trunk; 12 files +728/-44, 0 deletions, merge-tree clean, verify 11/12 with bin-suite-fresh = suite window, stamp follows). SM.117b cells applied by the Prime: (a) config:posts default_box core-town, (c) crons cadences box-scoped (grid_sync core-town; branch_push core-town + local-town; new mail_poll every 5 min on local-town) -- crontab here unchanged by construction; (b) box: local-town on the thought rows is HELD until the thought town is actually seated on local-town (applied earlier it would make this box treat TM/DT as foreign while they still run here). SM.119 word waits for SM.123 slice 2 (receive/fork/dry run).
 
+23:0xZ 09-18 Prime landing: core/season2/main @8dcc0876a -> season2/main ec3310e04 (SM.126 s1 read <post> sweeps every dm channel, SM.128 minted; 6 files +238/-24, 0 deletions, merge-tree clean, verify 11/12, bin-suite-fresh chases send.py). Suite at 1c8c77e77+cells: 5637 passed / 1 failed (test_migrate_channel::test_apply_writes_one_signed_record, SM.123 slice 1 own test, green in her tree, red in MAIN full run -> [red] to SM) / 16 skipped; stamp 191c28247. Owner 23:0xZ GO: local-town llama-server -np 1 applied (one ~47k slot).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
