@@ -79,8 +79,8 @@ LANDED THIS SEATING (trunk)  owner 07:00Z line (too-big-for-the-rig downloads) b
    the node) · [decision] line to belam 11:4xZ: owner must read the Camber web Teams>Usage page for job 27649 (fraction of an hour = GO step 2; full hour = STOP).
 DEAD 10:23Z (box load storm, 15-min loadavg 372, swap near full): all 3 parents + kids; rescued by the director from surviving worktrees. TM.34's PARENT WORKTREE WAS DELETED
    with zero harvest dm (recovered only via the kid's separate worktree) -> forwarded to the Prime/SM (redesign item 12 class); director told: every kid its OWN worktree.
-LIVE  nothing dispatched at 11:4xZ (all slots free); director ordered: OFF-BOX = bend2 16t+gpu (re-scoped; first act = confirm the 27B fetch + supervisor queue survived the
-   storm, report df) · ARM4C = pufferlib ARM4C half · API slot idle until the owner's Camber read. Rig download queue (unverified since the storm): C2C pair -> Uno adapter +
+LIVE  TM.35 = bend2 GPU half (parent a00-6fe6b293, cap 1 USD, dispatched 11:35Z at loadavg 0.63/0.50/4.35; re-scoped; first act = confirm the 27B fetch + supervisor queue survived the
+   storm, report df) · ARM4C = pufferlib ARM4C half BANKED by the director for its next wake (it is rotating at its line) · API slot idle until the owner Camber read. Rig download queue (unverified since the storm): C2C pair -> Uno adapter +
    K2-Horizon -> DFlash -> Qwen3-8B bf16 -> Qwen3-4B bf16 -> Qwen3.8-27B bf16 -> Qwen3.5-35B-A3B Q4; ~160 GB ≈ 3 days slow mode.
 DIRECTOR QUEUE  OFF-BOX after TM.33: bend2 16t+gpu -> pufferlib 16t + rhythm_bank -> lm-c2c-kv-bridge-released-fusers -> dead-head (+openjev r3) -> spec-decode -> kv-slot ->
    lm-eagle3-drafter-on-frozen-qwen3-4b (only after the Qwen3-4B bytes land). ARM4C-LIGHT after TM.32: pufferlib ARM4C half -> lm-mirror-choices-for-act -> C2.03. API: TM.34 then
