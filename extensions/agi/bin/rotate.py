@@ -18503,8 +18503,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # numeral in the chain (its numeral is the successor's minus one line)
         _chain_live = [w for w in _existing_for_chain
                        if w == seat or w.startswith(seat + "-")]
+        # numeral ALONE ranks `belam-S1-L4-XXXI` above `belam-S2-L5-I` after a
+        # season/loop token change, so the successor restarted at `-I` and
+        # collided with the live window (belam-S2-L5-I rotate, 2026-09-18
+        # 23:1xZ). Rank by (token, numeral) -- the reap key, one reader.
         own_chain_name = max(
-            _chain_live, key=lambda w: _split_roman_suffix(w)[1],
+            _chain_live, key=_window_seniority,
             default=None)
         # L4.122 merge-up 24 residue (G): gen_before for a CHAIN seat comes
         # from the ROW/numeral — the predecessor's own window's line value —
