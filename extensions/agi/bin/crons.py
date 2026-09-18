@@ -84,11 +84,12 @@ import yaml
 
 from frontmatter import split_frontmatter  # noqa: E402
 
-# The four jobs this project runs today. Order here is the order every
+# The jobs this project runs today. Order here is the order every
 # rendered block and every diff uses — fixed rather than dict/YAML-key order,
 # which is what makes "running apply twice is byte-identical" true regardless
 # of how the node happens to order its `cadences:` mapping.
-KNOWN_JOBS = ("grid_sync", "branch_push", "publish_engine", "engine_push")
+KNOWN_JOBS = ("grid_sync", "branch_push", "publish_engine", "engine_push",
+              "mail_poll")
 
 #: Relative to the project root `locations.find_project_root` resolves.
 #: `rglob("*.md")` traverses dot-directories (confirmed against `level3.py`),
@@ -214,6 +215,21 @@ def load_crons_node(root: Path) -> dict:
                 f"expression, got {schedule!r}"
             )
         jobs[name] = {"enabled": enabled, "every_mins": every_mins, "schedule": schedule}
+        # Optional `box` (hypothesis:l4-remote-thought-town): a job with NO
+        # `box` key renders on EVERY box; an explicit string or list of
+        # strings RESTRICTS the job to exactly those boxes. Refused BY NAME
+        # when malformed (same pattern as mirror_towns below).
+        raw_box = job.get("box")
+        if raw_box is not None:
+            vals = raw_box if isinstance(raw_box, list) else [raw_box]
+            if not vals or not all(
+                    isinstance(v, str) and v.strip() for v in vals):
+                raise CronsError(
+                    f"{path}: cadences.{name}.box must be a non-empty string "
+                    f"or list of non-empty strings, got {raw_box!r}"
+                )
+            jobs[name]["box"] = ([v.strip() for v in vals]
+                                 if isinstance(raw_box, list) else vals[0].strip())
         if name == "grid_sync":
             # The town MIRROR flag (item 2 of the I-3a-2 order): when true,
             # `render_managed_lines` appends one GUARDED push per declared
@@ -380,7 +396,19 @@ def _log_path(repo_root: Path) -> Path:
     return Path.home() / "logs" / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
 
 
-def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict) -> list[str]:
+def _on_this_box(job: dict, own: str) -> bool:
+    """The job's `box` gate: absent = every box; a string/list restricts it.
+
+    An empty `own` (a graph that declares no box anywhere) gates nothing.
+    """
+    b = job.get("box")
+    if not b or not own:
+        return True
+    return own in b if isinstance(b, list) else own == b
+
+
+def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
+                         box_name: str | None = None) -> list[str]:
     """The job lines this project's node describes, in `KNOWN_JOBS` order.
 
     Every line starts with `cd {root} &&` — a cd-less cron line is a named
@@ -400,10 +428,15 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         return []
 
     jobs = node["jobs"]
+    import boxes
+    try:
+        own = box_name or boxes.this_box(root)
+    except Exception:  # noqa: BLE001 -- no box declared: gate nothing
+        own = box_name or ""
     log = _log_path(repo_root)
     lines: list[str] = []
 
-    if "grid_sync" in jobs and jobs["grid_sync"]["enabled"]:
+    if "grid_sync" in jobs and jobs["grid_sync"]["enabled"] and _on_this_box(jobs["grid_sync"], own):
         _require_git_repo(repo_root, "grid_sync's grid-ref push")
         grid_py = Path(engine_root) / "extensions" / "agi" / "bin" / "grid.py"
         # Deliberately NOT `Path(__file__)`. This path is persisted into a cron
@@ -452,7 +485,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
                     _mirror_push_line(tn, root, repo_root, log, sched)
                 )
 
-    if "branch_push" in jobs and jobs["branch_push"]["enabled"]:
+    if "branch_push" in jobs and jobs["branch_push"]["enabled"] and _on_this_box(jobs["branch_push"], own):
         _require_git_repo(repo_root, "branch_push")
         branch = resolve_branch(repo_root)
         sched = _schedule_expr(jobs["branch_push"])
@@ -460,18 +493,30 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
             f"{sched} cd {root} && git -C {repo_root} push -q origin {branch} >> {log} 2>&1"
         )
 
-    if "publish_engine" in jobs and jobs["publish_engine"]["enabled"]:
+    if "publish_engine" in jobs and jobs["publish_engine"]["enabled"] and _on_this_box(jobs["publish_engine"], own):
         _require_dir(engine_root, "publish_engine")
         publisher = Path(engine_root) / "extensions" / "agi" / "bin" / "publish-engine.sh"
         sched = _schedule_expr(jobs["publish_engine"])
         lines.append(f"{sched} cd {root} && bash {publisher} >> {log} 2>&1")
 
-    if "engine_push" in jobs and jobs["engine_push"]["enabled"]:
+    if "engine_push" in jobs and jobs["engine_push"]["enabled"] and _on_this_box(jobs["engine_push"], own):
         _require_git_repo(engine_root, "engine_push")
         engine_branch = resolve_branch(engine_root)
         sched = _schedule_expr(jobs["engine_push"])
         lines.append(
             f"{sched} cd {root} && git -C {engine_root} push -q origin {engine_branch} >> {log} 2>&1"
+        )
+
+    if "mail_poll" in jobs and jobs["mail_poll"]["enabled"] and _on_this_box(jobs["mail_poll"], own):
+        _require_git_repo(repo_root, "mail_poll's hub fetch")
+        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        sched = _schedule_expr(jobs["mail_poll"])
+        # Fetch the hub, then read every LOCAL row's inbox. `read --box-local`
+        # is the one service reader that is allowed to consume more than its
+        # own inbox; every foreign-box row is skipped inside it by name.
+        lines.append(
+            f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
+            f"python3 {send_py} read --box-local >> {log} 2>&1"
         )
 
     return lines

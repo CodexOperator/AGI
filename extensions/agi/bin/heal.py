@@ -62,6 +62,7 @@ from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid toler
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 
 
 def _pi_model_args(root: Path, tier: str = "kid",
@@ -2956,7 +2957,14 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     pins, _skipped = _pin_table(root, rows)
     seat_sess = _seat_sessions(registry_dir, windows) if pins else []
     pid_rows = [r for r in rows
-                if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()]
+                if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()
+                and boxes.row_is_local(root, r)]
+    foreign = sorted((r.get("name") or "?").strip() for r in rows
+                     if (r.get("name") or "").strip()
+                     and not boxes.row_is_local(root, r))
+    if foreign:
+        _watch_log("watch: skipped foreign-box seat(s) by name: "
+                   + ", ".join(foreign))
     acted: list[dict] = []
     for row in pid_rows:
         summary = _watch_one_seat(root, row, windows, _rotate,
