@@ -116,3 +116,7 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
                                   bytes.fromhex(sig_hex)))
     except Exception:  # noqa: BLE001 -- any failure is a non-verification
         return False
+
+if __name__ == "__main__":
+    import argparse
+    argparse.ArgumentParser(description=__doc__.splitlines()[0]).parse_args()
