@@ -126,7 +126,11 @@ handoff. THE next action, before anything else, next wake:**
    fetch + supervisor queue survived the 10:23Z storm, report df of the model
    volume, in that rounds own [status] line -- asked twice now, do not drop it
    a third time).
-**UNO RETRY: Prime GO received (14:04Z), full orders given verbatim by thought-
+**UNO RETRY DISPATCHED as TM.37, parent a00-fd9cd776, once the load gate cleared
+(0.64/0.64/0.53).** Pufferlib STILL not dispatched -- reported the honest blocker
+(never read the node, at the rotation line) rather than force two $1 rounds blind.
+[orig GO detail retained below for reference]
+Prime GO received (14:04Z), full orders given verbatim by thought-
 master (ONE XS GPU job, 20min hard cap/<=15min internal timeout, per-arm
 subprocess, expandable_segments, max_model_len 4096/max_num_batched_tokens 1024,
 cpu-forced-device load probe recording peak GiB, K2-Horizon-0.9B+its Uno adapter
