@@ -16759,6 +16759,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
 
 def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
                           gen_before: int, gen_after: int,
+                          key_seat: str | None = None,
                           dry_run: bool = False) -> dict | None:
     """goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
     is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-
@@ -16796,14 +16797,19 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
     ``--dry-run`` mints nothing, replaces nothing, writes nothing: it
     returns a ``{dry_run: True, note}`` dict that names the retirement it
     would perform.
+
+    L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
+    not-the-renamed-seat): ``key_seat`` is the name the successor key is
+    written UNDER on a RENAME; the PREDECESSOR is still read from ``seat``.
     """
     if not row or not row.get("pubkey"):
         return None
     import send  # local: same dir (send.py pattern, no import cycle)
     scheme_name = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
     scheme = send.seatsig.get(scheme_name)  # KeyError names an unknown scheme
-    key_path = send._seat_key_path(root, seat)
-    if not key_path.is_file():
+    key_path = send._seat_key_path(root, key_seat or seat)
+    pred_path = send._seat_key_path(root, seat)
+    if not pred_path.is_file():
         return None
     if dry_run:
         _fp = send.seatsig.fingerprint(
@@ -16820,7 +16826,7 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
     # (a) read the PREDECESSOR private key (to sign the retirement) BEFORE
     #     the atomic replace destroys the file on disk.
     try:
-        _obj = json.loads(key_path.read_text())
+        _obj = json.loads(pred_path.read_text())
         _pred_priv = bytes.fromhex(str(_obj.get("priv_hex") or ""))
         _pred_pub = scheme.public_from_secret(_pred_priv)
     except (ValueError, OSError, TypeError):
@@ -16860,6 +16866,9 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
             "path": str(key_path),
             "scheme": scheme_name,
             "priv_hex": _succ_priv.hex(),
+            # L5.16 (set ONLY on a rename): the apply preserves these bytes.
+            "pred_path": (str(pred_path) if pred_path != key_path else ""),
+            "gen_from": gen_before,
         },
         "note": (f"retired seat {seat!r}'s key {_retired['fp']} "
                  f"(gen {gen_before}->{gen_after}); successor key minted "
@@ -16882,6 +16891,20 @@ def _apply_successor_key_pending(pending: dict) -> str:
                           "priv_hex": pending["priv_hex"]})
     _dir = key_path.parent
     _dir.mkdir(parents=True, exist_ok=True)
+    # L5.16: on a RENAME rotation the boundary already MOVED `<old>.key` into
+    # `<key_path>` -- MOVE it aside before the replace (the Prime's 22:43Z
+    # hand name, `.gen<from>-pre-rename`) so it is never destroyed.
+    if pending.get("pred_path"):
+        _pred = Path(str(pending["pred_path"]))
+        _src = _pred if _pred.is_file() else key_path
+        _bak = _dir / (f"{key_path.name}.gen"
+                       f"{pending.get('gen_from', '?')}-pre-rename")
+        try:
+            os.replace(_src, _bak)
+        except OSError:
+            if _src.is_file():  # cross-device move: copy, never drop bytes
+                _bak.write_bytes(_src.read_bytes())
+                os.chmod(_bak, send.SEAT_KEY_MODE)
     _tmp = _dir / f".{key_path.name}.tmp"
     _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
                   send.SEAT_KEY_MODE)
@@ -16984,7 +17007,7 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     # HEAD's committed row is origin's row right now (the push just
     # succeeded): only a full match flips the key.
     _committed = send._seats_committed_rows(root)
-    _row = send._seat_row_in(_committed, seat) if _committed else None
+    _row = send._seat_row_for(root, _committed, seat) if _committed else None
     _row_pub = str((_row or {}).get("pubkey") or "")
     _gen = str(_obj.get("gen_after") or _obj.get("gen") or "?")
     if not _row or _row_pub != _pend_pub:
@@ -18438,8 +18461,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _done = _complete_pending_key_swap(root, seat)
         if _done:
             print(_done, file=sys.stderr)
+    # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
+    # not-the-renamed-seat): the successor runs as AGI_SEAT=<new> and resolves
+    # `<new>.key`, but the boundary (0.9) applies the rename AFTER this mint
+    # -- so PEEK the staged plan's `new` (the same field `_apply_staged`
+    # reads) and mint under it. A later refusal returns before any write.
+    _key_seat = seat
+    _peek_stage = _sessions_dir(root) / "seats" / f"{seat}.rename.json"
+    if not getattr(args, "dry_run", False) and _peek_stage.exists():
+        try:
+            _key_seat = (str(json.loads(_peek_stage.read_text()).get("new")
+                             or "").strip() or seat)
+        except Exception:  # noqa: BLE001 -- a malformed stage is refused by
+            _key_seat = seat  # the boundary, never a crash in the mint
     _key_rotation = _rotate_successor_key(
         root, seat, row, gen_before=gen_before, gen_after=gen,
+        key_seat=_key_seat,
         dry_run=bool(getattr(args, "dry_run", False)))
     if _key_rotation:
         _kn = _key_rotation.get("note")
