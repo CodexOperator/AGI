@@ -102,4 +102,8 @@ NEXT (in order)
 Reproduce the Bonsai ternary recipe from the PrismML whitepaper on Qwen3-8B (the "qwen reduction trick" is not a released quantizer; the 27B bf16 is now queued as its input) · the oscillator readout on C2C-fused KV (after Bend2/PufferLib give a readout) · a llama.cpp block-diffusion drafter (Uno/DFlash have none; research) · per-channel-K 2-bit KV in ggml-cpu (no CPU implementation of KIVI/KVQuant/TurboQuant exists) · rpc-split measured round only if the owner names a model that does not fit local-town · kid-persona QLoRA on an XS hour after trajectory capture · a coupled-oscillator readout / SNN C2C fuser trained against a frozen LLM trunk (OPEN in the literature per the 09-18 slice) · should the mirror menu BE the spawn gate (illegal acts unrepresentable)? · TypeSafe plugin + .env rename · Neon key (own SQL mirror preferred and proved) · Doppler (Prime / encryption town) · per-kid endpoint keys (g14.4).
 
 ## 🔴 Where it stops
+````
+```
 13:4xZ 09-18 LIVE at 0.21: trunk `b39616425`+card pushed + in sync, nothing uncommitted. TM.35 landed + bend2 closed disproved; TM.36 Uno step 2 live (the only spend); director rotating. NEXT 1 = gate the TM.36 line (GPU-minutes + tok/s) -> land -> ONE [merge-up] line to belam batching TM.35 (bend2 closed) + TM.36. Rig fetch + queue unverified since the storm (first act of the next off-box round). Successor: one inbox read + the dm archive tail; NEXT 1 only on the owner's number; laps; batch ~09-19. Rotate at 0.47 with `python3 extensions/agi/bin/rotate.py rotate` bare from MAIN; card write LAST (this file, town branch).
+```
+````
