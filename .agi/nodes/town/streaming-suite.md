@@ -3,6 +3,7 @@ id: town:streaming-suite
 mint_id: 5f77008014e94bfe9acd42adcd457b6a
 type: town
 parents:
+  - vision:the-living-being
   - ladder:ladder
 next_edges: []
 council: council-streaming-suite
