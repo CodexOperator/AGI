@@ -353,6 +353,10 @@ def _looks_like_secret(name: str, value: str) -> bool:
     upper = str(name).upper()
     if any(p in upper for p in _SECRET_NAME_PATTERNS):
         return True
+    # A forwarded `.env` value is registered by NAME in `adapters` -- the name
+    # need not carry a KEY/TOKEN substring, so the name half alone would leak.
+    if str(name) in adapters._FORWARDED_NAMES:
+        return True
     v = str(value)
     return v.startswith("sk-") or v.startswith("sk-or-v1-")
 
