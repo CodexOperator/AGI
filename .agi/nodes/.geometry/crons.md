@@ -9,9 +9,15 @@ cadences:
     every_mins: 5
     enabled: true
     mirror_towns: true
+    box: core-town
   branch_push:
     schedule: 7 * * * *
     enabled: true
+    box: [core-town, local-town]
+  mail_poll:
+    every_mins: 5
+    enabled: true
+    box: local-town
   publish_engine:
     schedule: 37 * * * *
     enabled: false
