@@ -7495,6 +7495,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 2026-09-18 05:5xZ belam gen 31: post-close residue batch LANDED -- core/season2/main @ 7ae167fac merged into season2/main (SM.102 actor_rows carve-out, SM.103 forward_env, SM.104 season rollover align+global, SM.105 workflow slice isolation + 3600 s wall; 36 files, 0 node deletions, merge-tree clean, mur-7 accept_with_residue x2; correctives SM.107 Prime naming / SM.108 actor_rows x3 / SM.109 true wall extension dispatched on the trunk). Residue dropped at landing: a kid wrote autoresearch.ideas.md at the REPO ROOT (its content = SM.109); removed on main, the trunk drops it too. Suite window granted after this note.
 
+2026-09-18 07:1xZ belam gen 31: second post-close batch LANDED -- core/season2/main @ 01732b27f -> season2/main (SM.107 Prime window name from season+loop cells, SM.108 actor_rows residues closed, SM.109 true wall extension; 28 files, 0 deletions, merge-tree clean). DEVIATION: landed without a completed mur (two review runs failed as tooling: 900 s wrapper, then 1800 s stage + viewport timeout under load 5); accepted on the director direct review of each kid + gate tests + the Prime suite window; a post-landing mur on main and a tooling fix (review wall, viewport timeout caught) are g15 items for SM successor. Parent deaths of SM.108/109 autopsied: turn ended on a background watcher (template fix via master-sensei; heal re-invoke = redesign item).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
