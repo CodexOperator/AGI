@@ -2,6 +2,8 @@
 name: town
 written_by: [prime_director, owner]   # list-shaped; links.parse_written_by reads a list (L4.50 flip) — town rows are prime/owner-written, like config:vetoes and config:rotations
 derived_from: owner ruling 2026-09-12 (doc:l4-owner-decisions body 697-717 @e6d090a77, Prime XVII 18:48Z)
+actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: the town `master` cell (the config:posts row that owns this town's branch pair until council activation) is settable by the RESOLVED sanctuary-master seat through write.py's generic `actor_rows` grant. The DERIVED `branches:` cell stays refused BY NAME at mint (create field-level `refuse:`) and at read (towns.load_towns).
+  - {actor: sanctuary-master, field: master}
 structural: true
 fields:
   visions: {type: list}          # vision node ids this town owns. `core` may spell the list or the literal `auto`, meaning "every vision node no other town claims" — `auto` is RESOLVED BY THE LOADER, never hardcoded.
