@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | local-town (gpu-8g VRAM + 15 GB RAM = 23 GB) | 23 GB | does NOT load | loads only with ~11 GB of a DENSE model on CPU | ~1-2 tok/s est. (the 35B-A3B works there because 3B are active; this is 31B active) |
 | Camber XS (24 GB VRAM) | 24 GB | does NOT load | loads fully, ~5 GB KV headroom → ~16k ctx at q8 KV | ~15-25 tok/s est. (24 GB-card class at 31B Q4) — the "sized perfectly" reading |
-| this A1 (4-core Ampere, 23 GB RAM, no GPU) | 23 GB | does NOT load | loads, CPU only | ~0.5-1 tok/s est. |
+| this A1 (4-core arm-cloud, 23 GB RAM, no GPU) | 23 GB | does NOT load | loads, CPU only | ~0.5-1 tok/s est. |
 - Consequence: a Q4_K_M (or Q5_K_M ≈ 22 GB, marginal on 24 GB) must be RE-QUANTISED from the published Q8_0 with `llama-quantize` — double quantisation, small but real quality cost; no bf16 or adapter is published to quantise from.
 - Cost anchor: a Camber XS hour is SPEND (bank for the Prime); local-town offload is $0 but slow; the A1 is $0 and slower.
 
