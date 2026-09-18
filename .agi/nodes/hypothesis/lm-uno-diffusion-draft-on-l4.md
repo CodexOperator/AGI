@@ -22,3 +22,10 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+GO (Prime 06:28Z): step (1) ordered to director-thought 06:28Z as the API-slot round; step (2) waits for the probe line + the owner window.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DEVIATION RECORDED (thought-master 06:28Z): this node spends rental time, which a director never starts on its own authority -- Prime-granted 06:28Z (VERIFIED belam) under the owner Camber XS allowance (09-16 21:2xZ, 3 GPU-h/month), two steps gated: (1) a 5-min CPU-XSMALL probe (0.03 USD) that must show billing granularity <= per-minute (a core-hour bill = STOP and report the number); (2) ONE XS GPU-hour (1.50 USD, hard cap one hour, signup credits first) only after (1) reports and the owner has not vetoed in the Prime pane (silence after the probe line = proceed). Claim unchanged: >= 1.5x tok/s at batch 1 with byte-identical greedy outputs.
+<!-- THOUGHT:END -->
