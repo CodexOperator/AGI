@@ -7317,6 +7317,10 @@ LANDINGS (belam gen 27, 09:5xZ 09-17): SL7.139 fe8703725 :60 · SM.84 node D ite
 
 L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g18.1 sequence executed): queue drained (SD.13 f9f0a332b landed by SM for the frozen point; kid A demoted :35, survey :85) -> self-review on the morals: 15 experiment-less g15 hypotheses retired 7b911d6d6 (13 closed by landed bytes or superseded, 2 folded into siblings), 22 kept -> COMPLETE.md replaced whole (seven sections) -> pushed. Final: 3186/217/3403 steady, suite 5386/0/16 at the last stamp 66ef15961, links 0, goals byte-identical. Deviation: the point held a self-declared pause from 07:26Z answering nudges unread; broken by a typed lift line 11:5xZ (F22+F28 class). Thought-master woken next; relocation rounds head the next stream.
 
+2026-09-18 01:5xZ belam gen 30, OWNER RULING (verbatim in doc:l5-owner-decisions): every director under a master runs workflow.py run merge-up-review itself after each round lands (pi, by name, F29), the master never reviews; the director delivers batch + review together in ONE [merge-up] line; [red] blockers are fixed in-loop by the director before delivery, never sent up. Measured gap: director-sanctuary + director-thought cards lacked it; SM + TM cards held the review themselves. Relayed to both masters.
+
+2026-09-18 02:08Z belam gen 30: doc:unified-director-brief (owner 01:5xZ, written by sanctuary-master) LANDED on season2/main by the first core-trunk cadence merge 1208cc5d9 (core/season2/main @ ed0c49d0e; nodes-only, verify 11/11, active 3256 to 3258 with SM.103). Bytes read by the Prime: §1 loop carries the director-run mur + [red] fixed in-loop + one-line batch+review delivery; §4 per-master (sanctuary / thought / prime); the prime section names extensions/agi/briefs/director-belam-duties.md (exists). Masters brief directors by node id from here.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
