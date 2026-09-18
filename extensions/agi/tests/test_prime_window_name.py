@@ -11,6 +11,8 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
 
@@ -29,20 +31,24 @@ def _ladder(root, season=None, loop=None):
     (g / "ladder.md").write_text("\n".join(fm), encoding="utf-8")
 
 
-def test_prime_window_name_restarts_on_token_change(tmp_path):
-    """season 2 / loop 5 + predecessor belam-S1-L4-XXXI -> belam-S2-L5-I."""
-    _ladder(tmp_path, season=2, loop=5)
+@pytest.mark.parametrize("season,loop", [(2, 5), (3, 1)])
+def test_prime_window_name_restarts_on_token_change(tmp_path, season, loop):
+    """LIVE cells + an older-token predecessor -> S<season>-L<loop>-I."""
+    _ladder(tmp_path, season=season, loop=loop)
     assert rotate.prime_window_name(
-        tmp_path, "belam-S1-L4-XXXI") == "belam-S2-L5-I"
+        tmp_path, "belam-S1-L4-XXXI") == f"belam-S{season}-L{loop}-I"
 
 
-def test_prime_window_name_continues_same_token(tmp_path):
-    """season 2 / loop 5 + predecessor belam-S2-L5-III -> belam-S2-L5-IV."""
-    _ladder(tmp_path, season=2, loop=5)
+@pytest.mark.parametrize("season,loop", [(2, 5), (3, 1)])
+def test_prime_window_name_continues_same_token(tmp_path, season, loop):
+    """LIVE cells + a same-token predecessor -> the next numeral."""
+    _ladder(tmp_path, season=season, loop=loop)
     assert rotate.prime_window_name(
-        tmp_path, "belam-S2-L5-III") == "belam-S2-L5-IV"
+        tmp_path, f"belam-S{season}-L{loop}-III"
+    ) == f"belam-S{season}-L{loop}-IV"
     assert rotate.prime_window_name(
-        tmp_path, "belam-S2-L5") == "belam-S2-L5-II"   # bare base is line 1
+        tmp_path, f"belam-S{season}-L{loop}"
+    ) == f"belam-S{season}-L{loop}-II"   # bare base is line 1
 
 
 def test_prime_window_name_keeps_token_without_cells(tmp_path):

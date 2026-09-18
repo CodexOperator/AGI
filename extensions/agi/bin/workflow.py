@@ -609,6 +609,45 @@ def _row_matches_key(r: dict, key: str) -> bool:
     return any(key == i for i in _row_harness_ids(r))
 
 
+def link_workflows(root: Path, out=sys.stdout) -> int:
+    """Create the `.claude/workflows/<script>` -> `../../extensions/agi/
+    workflows/<script>` RELATIVE symlink for every registered manifest script
+    that has none, matching the four already there. Idempotent (a second run
+    creates 0). Refuses BY NAME, never silently skips, when a path already
+    exists and is not a symlink pointing at the right target. Returns 2 on any
+    such refusal, else 0."""
+    repo = _repo_root(root)
+    wf = repo.joinpath(*WORKFLOWS_DIR_REL)
+    links = repo / ".claude" / "workflows"
+    links.mkdir(parents=True, exist_ok=True)
+    made = 0
+    for mf in sorted(wf.glob("*.json")):
+        try:
+            manifest = json.loads(mf.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        script = manifest.get("script")
+        if not script:
+            continue
+        dest = links / script
+        target = Path("..") / ".." / Path(*WORKFLOWS_DIR_REL) / script
+        if dest.is_symlink():
+            if os.readlink(dest) == str(target):
+                continue
+            print(f"workflow.py: link refused: {dest} is a symlink to "
+                  f"{os.readlink(dest)!r}, not {str(target)!r}",
+                  file=sys.stderr)
+            return 2
+        if dest.exists():
+            print(f"workflow.py: link refused: {dest} exists and is not a "
+                  f"symlink to {str(target)!r}", file=sys.stderr)
+            return 2
+        dest.symlink_to(target)
+        made += 1
+    out.write(f"[linked] {made} workflow link(s) created\n")
+    return 0
+
+
 def note_workflow(root: Path, run_key: str, harness_id: str,
                   out=sys.stdout) -> int:
     """Record the claude-code harness's `wf_<id>` beside the tracked row a
@@ -1932,6 +1971,27 @@ def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
     return None
 
 
+#: The three env markers a LIVE Claude Code session exports. Their presence
+#: is what tells a native Workflow tool call (the caller IS Claude Code) apart
+#: from a headless `workflow.py run --harness claude-code` invocation, which
+#: must keep printing the SM.120 stderr notice and execute nothing
+#: (hypothesis:l4-same-harness-handback-...).
+CLAUDE_CODE_SEAM_VARS = (
+    "CLAUDECODE", "CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_MESSAGING_SOCKET",
+)
+
+
+def _claude_code_seam_present(env: dict | None = None) -> bool:
+    """True when the caller IS a live Claude Code session (all three seam
+    vars exported), False for any other caller. `env` defaults to
+    `os.environ`, and a test passes an explicit mapping so BOTH branches are
+    assertable without forking a session — the three shipped tests that call
+    `run_workflow(..., "claude-code", ...)` directly inherit the ambient
+    seam and must clear it to keep testing the seam-ABSENT path."""
+    e = os.environ if env is None else env
+    return all(e.get(v) for v in CLAUDE_CODE_SEAM_VARS)
+
+
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                  out=sys.stdout) -> int:
     repo = _repo_root(root)
@@ -2017,10 +2077,31 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
 
     view = RunView(key, stages, harness, out=out)
     view.run_started()
-    if harness != "pi":
+    if harness == "claude-code":
         # claude-code harness: the Workflow script is the runner; we only
         # resolve and describe — but through the SAME event stream the pi
         # path feeds, so the two surfaces differ only where execution does.
+        # TWO callers reach here: (a) a NATIVE Claude Code session, whose
+        # tool call we hand back exactly — the ONE registered name and the
+        # resolved args — so the caller copy-pastes a call that runs; and
+        # (b) a headless `--harness claude-code` run, which must say out loud
+        # that it executed nothing (hypothesis:l4-a-workflow-run-on-the-
+        # claude-code-harness-says-it-executed-nothing-and-names-the-two-real-
+        # routes). The seam distinguishes them; the pi path never reaches here.
+        if _claude_code_seam_present():
+            # The registered workflow NAME is the script stem (`script` minus
+            # `.js`), NEVER the config key: `review` -> `agi-round-review.js`
+            # and `drafting` -> `agi-brief-drafting.js`, so formatting the key
+            # would print two names that do not exist as `.claude/workflows/`
+            # links and the copy-pasted call would fail.
+            script = str(manifest.get("script") or "")
+            wf_name = script[:-3] if script.endswith(".js") else script
+            out.write(f"Workflow({json.dumps({'name': wf_name, 'args': args})})\n")
+        else:
+            print(f"workflow.py: no stage executed by workflow.py; "
+                  f"{manifest.get('script')} runs under the Claude Code "
+                  f"Workflow tool; a headless run is `--harness pi`",
+                  file=sys.stderr)
         for st in stages:
             view.stage_resolved(st["label"],
                                 f"model={knobs[st['label']].get('model')} "
@@ -2420,6 +2501,8 @@ def main(argv: list[str] | None = None) -> int:
     stt = sub.add_parser("status", help="resolve recent workflow runs by descriptive run key")
     stt.add_argument("key", nargs="?", default=None,
                      help="run key or workflow key to filter to (e.g. mur-39)")
+    lk = sub.add_parser("link",
+                        help="create the .claude/workflows/<script> symlinks for every registered workflow (idempotent)")
     nt = sub.add_parser("note",
                         help="record the claude-code harness's wf_ id beside a tracked run key")
     nt.add_argument("run_key",
@@ -2467,6 +2550,8 @@ def main(argv: list[str] | None = None) -> int:
             return list_workflows(root)
         if args.cmd == "status":
             return status_workflow(root, args.key)
+        if args.cmd == "link":
+            return link_workflows(root)
         if args.cmd == "validate":
             return validate_registry(root)
         try:
