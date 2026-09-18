@@ -1032,6 +1032,55 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
     assert own["key_history"][-1]["pub"] == pred_pub.hex()
 
 
+def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
+    """hypothesis:l5-key-rotation-at-a-rename-boundary-clobbers-key-history-
+    instead-of-carrying-it: at a RENAME-plus-key-rotation boundary the row
+    that EXISTS carries the OLD name (the round never writes config:seats;
+    L5.02), so the key_history READ must resolve the SAME row the ONE writer
+    updates -- `_row_name`, resolved from `row_seat` -- never `seat`, the
+    post-rename name that has no row yet.
+
+    FALSIFIER (the assertion that fails on the unfixed read keyed on
+    `seat`): `_cur` comes back {}, `_hist` comes back [], and the full
+    cell-replace in `_write_identity_cells` leaves the row carrying exactly
+    ONE entry (the fresh retirement), so the equality below sees
+    len(prior)+1 vs 1 and fails. Measured on the live graph: 31 entries -> 1
+    at the sensei-director -> director-sanctuary boundary.
+
+    Fixture: the OLD-named row already carries a prior history whose
+    generations run 5..9 (max prior `to` == 9); the boundary call passes
+    `row_seat=<old>` and `key_rotation` together, exactly as the live
+    callsite does (rotate.py:~18927).
+    """
+    prior = [{"pub": f"{g:02x}" * 4, "fp": f"fp{g}", "from": g - 1,
+              "to": g, "rotated_by_sig": "sig-prev"}
+             for g in range(5, 10)]
+    rows = [{"name": "sensei-director", "role": "director",
+             "session_ref": "ref-old", "generation": 9,
+             "window": "@OLD", "key_history": list(prior)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    kr = {"successor_pub": "aa" * 32, "scheme": "ed25519",
+          "retired": {"pub": "bb" * 32, "fp": "fp10", "from": 9,
+                      "to": 10, "rotated_by_sig": "sig-new"}}
+    out = rotate._successor_row_write(
+        graph, actor="sensei-director", seat="director-sanctuary",
+        role="director", session_ref="", generation=10, window="@NEW",
+        row_seat="sensei-director", key_rotation=kr)
+    assert "config:seats row" in out, out
+    import write as w
+    rows_after = w._load_seats(graph)
+    # the boundary never renames the seats row; no phantom new-named row.
+    assert not [r for r in rows_after
+                if r.get("name") == "director-sanctuary"], rows_after
+    own = next(r for r in rows_after if r.get("name") == "sensei-director")
+    assert own["pubkey"] == kr["successor_pub"]
+    # EVERY prior entry, in order, PLUS the new retired entry.
+    assert own["key_history"] == prior + [kr["retired"]], own["key_history"]
+    # the generation counter continues; it never resets below the max prior.
+    assert max(h["to"] for h in own["key_history"]) == 10
+    assert min(h["from"] for h in own["key_history"]) == 4  # prior kept
+
+
 @pytest.fixture
 def fake_ladder(tmp_path, monkeypatch):
     root = tmp_path
