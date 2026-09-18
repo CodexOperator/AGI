@@ -1,6 +1,6 @@
 # Bend 2.0.5 on the A1 (aarch64) — install, build, run
 
-Host: Linux aarch64 (Oracle/Ampere), 4 cores, Ubuntu 24.04, kernel 6.17.
+Host: ARM4C (arm-cloud aarch64), 4 cores, Ubuntu 24.04, kernel 6.17.
 User prefix only — no sudo, nothing system-wide. Rollback = `rm -rf ~/.bend ~/.bun`.
 
 ## 1. Install (succeeds)
