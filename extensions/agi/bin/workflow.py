@@ -1858,6 +1858,14 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
 # same number.
 _DEFAULT_STAGE_TIMEOUT_S = 3600
 
+# A load-scaled wall is capped at this multiple of the declared budget.
+_LOAD_CAP_MULT = 2.0
+
+
+def _current_load() -> float:
+    """The ONE load source a wall may scale on; tests patch THIS seam."""
+    return os.getloadavg()[0]
+
 
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     """The stage's wall-clock budget in seconds, DECLARED — never truthy.
@@ -1896,7 +1904,15 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
             f"{where}={raw!r} is not a positive number of seconds; a budget "
             f"of 0 (or less, or non-numeric) is not a request to wait "
             f"forever — the run is refused before any stage is dispatched")
-    return raw
+    # Opt-in load scaling (absent key = byte-for-byte today's number).
+    lf = (stage["load_factor"] if "load_factor" in stage
+          else manifest.get("load_factor"))
+    if lf is None:
+        return raw
+    if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
+        raise ValueError(
+            f"stage {label!r} load_factor={lf!r} is not a positive number")
+    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
 
 
 def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
@@ -2055,7 +2071,22 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # `chained_from` over the same repeat key: the prior stage's
                 # validated return merged into this stage's prompt context.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
-            context_text = _stage_context(repo, root, st)
+            try:
+                context_text = _stage_context(repo, root, st)
+            except (subprocess.TimeoutExpired, RuntimeError) as exc:
+                # Fail THIS stage by name; siblings proceed under SM.105.
+                reason = (f"context-build-timeout after {exc.timeout:g} s"
+                          if isinstance(exc, subprocess.TimeoutExpired)
+                          else f"context-build-failed: {exc}")
+                view.stage_failed(st["label"], reason)
+                print(f"workflow.py: workflow={key} stage {st['label']} "
+                      f"{reason}", file=sys.stderr)
+                if first_rc is None:
+                    first_rc = 3
+                failed_keys.setdefault(
+                    st.get("_base_label", st["label"]), set()).add(
+                        st.get("_repeat_key"))
+                continue
             # The budget was resolved (declared, never truthy) before any
             # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
             stage_timeout = stage_timeouts[st["label"]]
