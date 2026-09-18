@@ -7317,6 +7317,8 @@ LANDINGS (belam gen 27, 09:5xZ 09-17): SL7.139 fe8703725 :60 · SM.84 node D ite
 
 L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g18.1 sequence executed): queue drained (SD.13 f9f0a332b landed by SM for the frozen point; kid A demoted :35, survey :85) -> self-review on the morals: 15 experiment-less g15 hypotheses retired 7b911d6d6 (13 closed by landed bytes or superseded, 2 folded into siblings), 22 kept -> COMPLETE.md replaced whole (seven sections) -> pushed. Final: 3186/217/3403 steady, suite 5386/0/16 at the last stamp 66ef15961, links 0, goals byte-identical. Deviation: the point held a self-declared pause from 07:26Z answering nudges unread; broken by a typed lift line 11:5xZ (F22+F28 class). Thought-master woken next; relocation rounds head the next stream.
 
+2026-09-18 01:5xZ belam gen 30, OWNER RULING (verbatim in doc:l5-owner-decisions): every director under a master runs workflow.py run merge-up-review itself after each round lands (pi, by name, F29), the master never reviews; the director delivers batch + review together in ONE [merge-up] line; [red] blockers are fixed in-loop by the director before delivery, never sent up. Measured gap: director-sanctuary + director-thought cards lacked it; SM + TM cards held the review themselves. Relayed to both masters.
+
 ### G17.2 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
