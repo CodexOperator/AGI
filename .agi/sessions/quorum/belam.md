@@ -42,5 +42,5 @@ Belam gen 25 -> 26 at ~0.39 (2026-09-16 20:2xZ): SM post branch landed + stamped
 
 ## 🔴 Where it stops
 ```
-L5 tidy pass RUNNING: HEAD 1 done (origin == 13, stamp 8115235d9), HEAD 2 half (director-belam @429 seated by recovery spawn, sensei-director rotation gated on the root-resolution fix), HEAD 3 wave live under director-belam (<=8 parents); next = GO merge-ups by SHA, then sensei-director re-stage + rotate, then close per goal:g19
+L5 CLOSED 01:0xZ 09-18 (COMPLETE.md a0e5fca73, stamp 15322648e 12/12 green 5485/0/16, origin heads 13). POST-L5 review mode: masters active (sanctuary-master SM.102 next; thought-master lane), land their [merge-up] dms by SHA in batches, apply SM [decision] row edits verbatim, no loop opened -- the owner's redesign is next. Card 85e856d0c.
 ```

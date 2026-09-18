@@ -7,6 +7,7 @@ parents:
 next_edges: []
 council: council-core
 edited_by: belam
+master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
 town: core
