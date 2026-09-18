@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g17.1
 next_edges: []
-edited_by: a00-2bb3a903
+edited_by: a00-a2fdcdc5
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -31,7 +31,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
   │   RECONCILE AT WAKE (owner 2026-09-18 14:4xZ: both directors stalled after a box crash): compare your card's LIVE rounds against `spawn_budget.py status` -- a round whose parent is NOT live and NOT harvested is dead (a crash, a load storm, a parent that ended its turn): RE-DISPATCH it (or review its orphaned kid directly) NOW; never wait for a harvest line from a process that is not running. An inbox with nothing pending is not "nothing to do" while your queue or your live list is non-empty.
   └─► NEXT = your master's dispatch order (a node id) or the next line of your queue (queue vocabulary in §2)
         └─► SYNC your worktree: git fetch; merge origin/season2/main (and your town trunk) into your post branch -- never rebase (F9/F14)
-              └─► NODE: the brief lives on the hypothesis node -- measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING (10-12 production lines per conjunct); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch)
+              └─► NODE: the brief lives on the hypothesis node -- measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING (10-12 production lines per conjunct); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch). The kid answers this named line FIRST, before any code: config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>.
                     └─► DISPATCH a parent from YOUR worktree: dispatch.py . <PREFIX>.<nn> --target <node> --level small --tier parent --harness pi --branch  (exit 3 = stale base: merge origin, push, re-run; live-parent cap per your master; kids <= 5 per parent)
                           └─► HARVEST: MB=$(git merge-base HEAD <loop branch>); git diff --stat $MB <loop branch>; THOUGHT:BEGIN <= 1 per new node; read the kid nodes; git merge --no-ff into your post branch; run the touched tests WITH their neighbourhood, --basetemp under /tmp
                                 └─► REVIEW IT YOURSELF (owner 2026-09-18 01:5xZ, goal:g17.1): workflow.py run merge-up-review ... --harness pi -- by name, one round per KID slice (rounds[] is the parallel axis; a 15-item round timed out at 1800 s), NEVER the Claude Workflow tool (F29)
@@ -83,3 +83,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 ## Agent Notes
 2026-09-18 02:5xZ Prime (owner 02:5xZ, doc:l5-owner-decisions): §4 sanctuary "one parent per order unless the order says otherwise" is STRUCK -- a director drains its INDEPENDENT queue to its master share in one wave (fleet cap 4 live parents on this box: sanctuary 3 / thought 1 while the thought loop is serial; re-split by [decision]); a research round whose brief depends on the previous result stays serial by nature. sanctuary-master folds this into the body at her next batch.
 THOUGHT TOWN customizations (thought-master 2026-09-18 02:1xZ, for §4): the per-master section lives in doc:lm-director-brief-customizations (town branch local-maxxing/season1/main, rides this batch) -- trunk local-maxxing/season1/posts/director-thought/main + worktree .agi/worktrees/post-director-thought, director merges nothing; one pi parent per node, caps from the node ceiling, TypeSafe ledger cap separate; resource classes off-box / API / A1-light / A1-heavy with ONE A1-heavy live and ambient loadavg-1m < 2.0 recorded before every row; line_ceiling 120 reader/ssh kids, 600 generated-data kids, rebrief answered in-node before harvest; warm-up before any tok/s; 200 GB local-town / 2 GB A1 download ceilings, alias-only, no unbanked Camber; the director runs the mur itself and delivers one [merge-up] line (tips, merge-bases, file counts, run key, verdicts), reds fixed in-loop; reads inbox AND master dm per nudge; rotate-self bare, master cannot hand-rotate (equal rank).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+SM.125 makes the §2 CONFIG-MAX / TEMPLATE-MAX standing rule mechanical: until now it was prose a director could read past. This version adds the named first-answer line to the §1 NODE bullet -- config-max / template-max / code -- so every kid answers the two ownership questions BEFORE writing code, and the merge-up-review manifest (same round, extensions/agi/workflows/merge-up-review.json) now REQUIRES config_max and template_max as {answer: yes|no, where: exact cell or line} on both the review and verify stage schemas, with validate_return already refusing a missing field or a bad enum by name. Zero production code lines: the rule lives in schema data, prompt text and this brief, shaped so the NEXT such change is a template edit.
+<!-- THOUGHT:END -->
