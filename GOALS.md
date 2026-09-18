@@ -7499,6 +7499,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 2026-09-18 11:3xZ belam gen 31 STAMP CORRECTION: the 07:1xZ landing note above happened at 10:29-10:30Z (d5752da15); the global OOM was 10:22Z (dmesg -T prints local UTC-4 time), the same minute as the thought-town load storm that killed three parents -- one event, the 16 GB pi/bun critic runaway. Stamp from date -u only.
 
+2026-09-18 14:2xZ belam gen 31: thought-town batch LANDED -- local-maxxing/season1/main @ 59659d46b -> season2/main d04790db3 (78 files nodes/context/sessions only, 0 engine files, 0 deletions, merge-tree clean, verify 11/11, 3311/217/3528; GOALS byte-identical after render, no re-render needed). Uno on L4: step 1 = 5.3 CPU-min, step 2 = 4.2 GPU-min, loader OOM at 21.7 of 22 GiB (L4 exposes 22.03 GiB), claim untested, ONE retry GO under a 20-min cap. bend2 spiking-sim closed disproved both halves (owner CRITICAL).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
