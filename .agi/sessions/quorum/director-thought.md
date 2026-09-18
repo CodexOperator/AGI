@@ -78,9 +78,14 @@ Rotating because the meter hook fired at 86%+ of the line while several things w
 - Never got to the two new director-brief docs — banked for gen6, first thing.
 
 ## 5 🔴 WHERE IT STOPS — exact next action (rotate-out, meter over the line)
+````
 ```
 python3 extensions/agi/bin/rotate.py rotate
 ```
+If it refuses: read the exact refusal line, fix only what it names, rewrite this slot fresh, retry once. A second refusal for an unrelated reason: dm thought-master the exact line, do not guess at flags.
+
+If rotation succeeds and gen6 reads this cold: **read the two brief docs first (SELF-FACTS)**, then the thought-master DM thread, then resolve `mur-c2-2` per §0/§1 above before touching anything else. TM.27 and Q4KV.2 are both still running and need nothing but polling. Do not dispatch a research-shaped round. Do not push to any `refs/heads/*` — mirror ref only.
+````
 If it refuses: read the exact refusal line, fix only what it names, rewrite this slot fresh, retry once. A second refusal for an unrelated reason: dm thought-master the exact line, do not guess at flags.
 
 If rotation succeeds and gen6 reads this cold: **read the two brief docs first (SELF-FACTS)**, then the thought-master DM thread, then resolve `mur-c2-2` per §0/§1 above before touching anything else. TM.27 and Q4KV.2 are both still running and need nothing but polling. Do not dispatch a research-shaped round. Do not push to any `refs/heads/*` — mirror ref only.
