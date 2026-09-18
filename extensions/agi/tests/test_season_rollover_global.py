@@ -276,6 +276,25 @@ def test_partial_cut_refusal_bumps_no_cell(repo: Path):
         assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
 
 
+# ---- (7b) SM.106b: no-delete mode writes no cell, so no admission is owed --
+def test_global_default_actor_without_delete_old_performs(repo: Path):
+    """SM.106 residue (a00-4323cedc): the pre-flight was gated on `apply`
+    ALONE. Cells are written ONLY with --delete-old; without it every cell is
+    HELD, no write.py call happens, and no admission is needed. Gating the
+    pre-flight on `apply and delete_old` restores the documented no-delete
+    mode for the DEFAULT actor: rc 0, heads +3, cells stay at G."""
+    g = _graph(repo)
+    before = _heads(repo)
+    res = _run(g, "--global", "--apply")          # no --delete-old, no --actor
+    assert res.returncode == 0, res.stdout + res.stderr
+    after = _heads(repo)
+    assert len(after) == len(before) + 3
+    assert "CELL HELD" in res.stdout
+    assert _fm(g / "nodes" / ".geometry" / "ladder.md")["current_season"] == 2
+    for slug, _c, _v in TOWNS:
+        assert _fm(g / "nodes" / "town" / f"{slug}.md")["season"] == 2
+
+
 # ---- (8) SM.106 auth defect: the DEFAULT actor refuses before any step ---
 def test_global_default_actor_refuses_before_any_step(repo: Path):
     """SM.106 auth defect: the documented command with NO --actor defaults to
