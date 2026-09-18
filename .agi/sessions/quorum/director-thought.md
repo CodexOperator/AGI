@@ -71,24 +71,44 @@ Off-box slot freed by TM.30 closing -> dispatched **TM.33** (schedule-fix), pare
 ## 4c TM.34 dispatched: Uno-diffusion step 1 (Prime-approved rental spend, gated)
 Prime GO 06:28Z on `hypothesis:lm-uno-diffusion-draft-on-l4` (a THIRD, independent "API slot" — runs alongside the A1-light and off-box slots, not competing with TM.32/TM.33). Dispatched **TM.34**, parent `a00-2e4630f1`, pid 3707743, cap $1 OpenRouter / $0.03 Camber. Orders are STEP-1-ONLY with a hard stop before step 2: one 5-min CPU-XSMALL Camber job (sleep 300 + hostname-free echo), then read real billing to learn the granularity (core-hour bill = STOP). Must report `[decision] uno step 1: job <id> wall <s> billed <credits> => granularity <x>` — **CORRECTED (owner rule 06:4xZ, arrived after I first wrote this note): relay it to thought-master ONLY, never belam directly — thought-master batches it to the Prime themselves.** Then WAIT for an explicit go-ahead before ever considering step 2 — do not treat silence as consent even though the node text allows that reading. If the kid cannot reach `CAMBER_CLOUD_API_KEY`, it DMs the exact refusal line — do not let anyone build around that.
 
+## 4d PARENT-DEATH INCIDENT: all three live rounds died pre-harvest, all three rescued (10:2xZ)
+Woke after a long idle gap (last activity ~07:00Z, this nudge 10:23Z) to `spawn_budget.py status` showing **0/25 live** and box load spiked to 372 (15-min avg, swap nearly full, now subsiding) — TM.32, TM.33 AND TM.34 had all died pre-harvest, zero harvest DMs from any of them. Matches a "parent-death autopsy... headless exit" bug class I saw named in a REDESIGN LIST commit that rode through one of my merges — likely already known/being fixed, reported as data points anyway (see the merge-up DM sent, full detail there, not reproduced here).
+- **TM.34's entire PARENT worktree was deleted outright** — only rescued because its kid (`a00-8614c12a`) happened to have its OWN separate worktree this dispatch. TM.30/32/33's kids shared the parent's worktree; the same failure there would have lost the work permanently. **This is the real risk to flag/remember: a shared parent+kid worktree has no redundancy against this failure mode.**
+- **TM.32** (bend2 A1-half): rescued from `a00-f29e25f2`. Kid 1s LIF loop measured **13.0x slower** than the C/f64 baseline — trips the hypothesis's own falsifier (`> 5x slower`) outright. `verdict=inconclusive_lean_disproved:60`, parent independently rebuilt both fixtures from committed source and reproduced the numbers. **Judgment call, not yet acted on: the off-box (16-thread+GPU) half of this SAME hypothesis may now be moot — the falsifier is written as an OR, and one arm has already tripped it. Flagged the raw number to thought-master; NOT dispatching the off-box half until that lands one way or the other, rather than assume either reading.** A second kid started, left only an empty untitled scaffold — correctly not committed (no real content, unlike TM.33's case below).
+- **TM.33** (schedule-fix): rescued from `a00-79adf24c`. Code was genuinely complete and good (zoneinfo schedule + a real measured proven-quiet-line pause/resume, live-rate-without-restart) but its node was a never-filled scaffold — wrote the account myself from the diff + my own independent test run (9/9 passing), clearly marked as director-written, not fabricated as a kid self-report. `verdict=proved`.
+- **TM.34** (uno step 1): rescued from the kids own worktree (already self-committed). Real, careful work — installed the Camber CLI, ran job 27649 to completion, verified teardown — but **the billing/credits surface is unreadable via the account API key** (CLI/SDK exposes no cost endpoint; the web usage page needs a human Clerk-token login, no agent can do this headlessly). Decision line sent verbatim to thought-master (not belam, per the DM rule). **Step 2 (the GPU hour) stays hard-gated until a human checks Camber's web Teams>Usage page by hand — this is not something any future round can resolve on its own; bank it as a standing owner-side action item, do not re-dispatch hoping for a different answer.**
+All three verified independently before committing (ran real tests myself, read real diffs, did not trust any report blind), isolated real content from noise where present, archived to `refs/agi/archive/season2/loops/*`. One consolidated `[merge-up]`+red DM sent to thought-master (not belam) covering all three plus the systemic finding.
+**All three slots (A1-light, off-box, API) are free again as of this write.** Holding on dispatching anything further this lap pending: (a) thought-masters read on the bend2-off-box-moot question, (b) a natural next wake rather than immediately piling more spend on top of this incident report.
+
 ## 5 🔴 WHERE IT STOPS — exact next action
 ```
-Poll `python3 extensions/agi/bin/spawn_budget.py status` for TM.33 (a00-79adf24c,
-schedule-fix) and TM.32 (a00-f29e25f2, bend2 A1-half). On either dropping off the
-live list, FIRST check that worktree directly (git -C .agi/worktrees/<parent-id>
-status -sb && git diff --cached --stat) for staged-but-uncommitted real work before
-trusting a clean-harvest or dead-end read -- this has now hit on EVERY closed round
-this session (TM.31, TM.30), not a one-off. Verify whatever it claims yourself, then
-merge-up + archive.
-Off-box queue (behind TM.33 schedule-fix, running): bend2 off-box half ($1 cap) ->
-pufferlib off-box half ($1 cap) -> lm-c2c-kv-bridge-released-fusers (new, $1, local-
-town downloads only, behind the still-running bonsai 27B fetch) -> dead-head-prune
--> spec-decode -> kv-slot-save. A 2609.04010 digest may add more candidates after.
-A1-light queue (behind TM.32): pufferlib A1-half ($1 cap) -> lm-mirror-choices-
-for-act ($0.50 cap) -> c2-flip-as-phase-jump-vs-sign-inversion (C2.03).
+All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
+archived already, nothing further owed on them). Before dispatching anything new:
+1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
+   (its A1 half already tripped the >5x-slower falsifier, disjunctive OR condition).
+   If no answer yet, use judgment: either skip straight to pufferlib (both slots
+   free it up) or dispatch bend2 off-box anyway if the GPU arm seems worth checking
+   despite the CPU-arm falsifier hit -- genuinely undecided, do not default to
+   silence-means-proceed here, this is real spend on a likely-answered question.
+2. **ON EVERY FUTURE ROUND FROM NOW ON: the moment spawn_budget shows a parent
+   gone with NO harvest DM, immediately check BOTH the parents worktree AND (if
+   the parent's is gone) whether a same-named kid worktree under
+   `.agi/worktrees/<kid-id>/` survived separately** -- this is not a one-off, it
+   hit 3/3 live rounds in a single lap. Never assume a missing worktree means lost
+   work until both are checked.
+Off-box queue: pufferlib off-box half ($1) -> lm-c2c-kv-bridge-released-fusers ($1,
+local-town only, behind the still-running bonsai 27B fetch) -> dead-head-prune ->
+spec-decode -> kv-slot-save. (bend2 off-box half: see judgment call above.)
+A1-light queue: pufferlib A1-half ($1) -> lm-mirror-choices-for-act ($0.50) ->
+c2-flip-as-phase-jump-vs-sign-inversion (C2.03).
+API slot: free; Uno step 2 stays gated on a human Camber web-usage check (4d) --
+do not re-dispatch step 1 hoping for a different billing answer, and do not attempt
+step 2 without an explicit new go-ahead.
 Also watch for: TM.30s hypothesis (lm-bonsai2-27b-kid-tier) needs a FUTURE follow-up
-round once its background 27B fetch on belam-gpu finishes (~9-10h from 06:07Z) --
-not queued yet since it is not ready, but do not forget it exists.
+round once its background 27B fetch on belam-gpu finishes (~9-10h from 06:07Z).
+Local-town download queue (owner order, banked in full at 6a): athena pair -> C2C
+pair -> Uno adapter+K2-Horizon -> DFlash -> Qwen3-8B bf16 -> Qwen3-4B bf16 -> (added
+this lap, see 6a) Qwen3.8-27B bf16 55.6GB -> Qwen3.5-35B-A3B GGUF Q4_K_M ~20GB.
 ```
 
 ## 6a LOCAL-TOWN DOWNLOAD QUEUE (owner 06:5xZ, for FUTURE dispatch sequencing — not a code task I pushed into TM.33)
@@ -98,7 +118,10 @@ Strictly behind the Bonsai 27B fetch, slow mode (0.5 MB/s, 1.5 MB/s 02-06 Americ
 3. DFlash drafters for Qwen3-4B and Qwen3-8B (z-lab.ai/projects/dflash -> HF ids from the digest) — no hypothesis node minted yet as of this write.
 4. `Qwen/Qwen3-8B` bf16 16.38 GB (base for uno + dflash + later ternary work).
 5. `Qwen/Qwen3-4B` bf16 ~8 GB.
-~30 GB total, 6-17h in slow mode over days. Relayed the one narrow CODE-relevant piece (a fetch must pause during any live tg/pp measurement row) to TM.33 since it is already in fetch_parallel.py; did not push the model list itself into its scope/cap. **Report one line to thought-master (never belam directly, per the new comms rule) when each item actually lands: id, bytes, sha256, hours.**
+6. (added 06:5xZ, "too big to fit but might optimize our way there") `Qwen/Qwen3.8-27B` bf16 55.6 GB — input for our own dead-head-prune/requant/ternary-recipe reproduction + KV rows.
+7. (same order) `Qwen/Qwen3.5-35B-A3B` GGUF Q4_K_M ~20 GB — MoE, experts in host RAM + attention on GPU (`llama.cpp -ot exps=CPU` / `--n-cpu-moe`).
+Items 6-7: same terms plus a free-disk floor of 20% checked before EACH fetch (report `df` of the model volume with that items first landing line).
+~30 GB (items 1-5) + ~76 GB (items 6-7) total, spread over many days in slow mode. Relayed the one narrow CODE-relevant piece (a fetch must pause during any live tg/pp measurement row) to TM.33 since it is already in fetch_parallel.py; did not push the model list itself into its scope/cap. **Report one line to thought-master (never belam directly, per the new comms rule) when each item actually lands: id, bytes, sha256, hours.**
 
 ## 6 BANKED
 - RESOLVED: thought-master ruled the 8B-on-GPU proof is not actually a conjunct (CUDA path already evidenced by symbol/wire probes; skip straight to the real 27B fetch). `/tmp/bonsai-a1` (2.1G) and `/tmp/bonsai-probe` (817M) deleted on this box, confirmed gone. Relayed the full ruling into the live kid (`a00-da8359fa` under parent `a00-59e78c2e`): real proven athena quiet-line before fetching, 27B on belam-gpu only, GPU numbers at `-c 8192` specifically, record the 32768-OOMs VRAM-budget finding rather than testing it live.
