@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SCOPE ADDED from SM.117b (experiment:a00-4922be82-9f3b11, lean_disproved:70 on the delivery tick): the untracked sessions/inbox store can never be the cross-box channel; the git-tracked comms dm transcript is. So this round also (d) makes crons.py apply mkdir the log dir before rendering, and (e) makes mail_poll on a remote box consume the tracked dm transcript (send.py read --dm <peer> --me <post>) -- or re-points read --box-local at it -- with a test on a second clone that a dm pushed from one clone is returned by read <post> on the other after one tick. Ceiling 15 -> 25 for the two additions.
