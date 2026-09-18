@@ -6,7 +6,7 @@ derived_from: authored-2026-08-29 for G10.2 -- no prior corpus to survey; this
   the reader that consumes it rather than a census of existing nodes
 fields:
   crons_live: {type: bool}   # master switch; false means every managed line is removed
-  cadences: {type: dict}     # job name -> {every_mins: int, schedule: str, enabled: bool}
+  cadences: {type: dict}     # job name -> {every_mins|schedule, enabled, cmd?, box?, log?}
   services: {type: dict}     # OPTIONAL: service name -> systemd unit settings; absent = no units
 validation:
   required: [crons_live, cadences]
@@ -39,6 +39,14 @@ gets a managed line, `enabled: false` or an absent job gets none, and
 `.geometry` node is allowed to exist — the node is not documentation about
 scheduling, it is the input the applier resolves against.
 
+`crons.py audit` is the read-only counterpart: it names every agi-owned
+crontab line (another project's `agi-crons` block included) and every
+`agi-*` systemd unit this box runs that this node does not declare, plus any
+drift between the installed managed block and what the node renders today.
+It writes nothing and exits 1 when anything is undeclared — the detector for
+a schedule that slipped in outside the graph, which is what the owner meant
+by "some slipped through the cracks".
+
 ## Field meanings
 
 - `crons_live` — the kill-switch. One boolean gates the whole set, because
@@ -61,6 +69,26 @@ scheduling, it is the input the applier resolves against.
 - `enabled` — per-job, independent of `crons_live`. A job can be declared
   and turned off without deleting its cadence, the same way a node is
   retired by status change rather than removal.
+- `cmd` — **what makes an entry generic.** A job name that is not one of the
+  applier's built-ins (`grid_sync`, `branch_push`, `publish_engine`,
+  `engine_push`, `mail_poll`) is accepted only when it carries a non-empty
+  `cmd`: an arbitrary shell command, rendered as
+  `<schedule> cd {root} && <cmd> >> <log> 2>&1` through the same
+  `cd`/log/`box`/`enabled` rules a built-in obeys, and in a deterministic
+  order (sorted by name) so a second `apply` is byte-identical. A built-in
+  never carries `cmd`; an unknown name *without* one is still refused by
+  name. Optional `log` overrides the per-project crontab log the applier
+  otherwise derives.
+- `box` — optional on ANY entry, built-in or generic: absent renders on
+  every box, a string or list of strings restricts the job to exactly those
+  boxes, so one graph can declare a job for one box without installing it
+  everywhere.
+- placeholders — `{root}`, `{repo_root}`, `{logs}`, `{box}` are resolved by
+  literal token replacement at apply/render time from the resolver
+  (`locations.py` / `boxes.py`), never stored in the node: a fresh box runs
+  `crons.py apply` and gets working crontab lines and unit files with no
+  absolute path copied from another box. `{logs}` is the directory the
+  applier's own log lives in.
 - `services` — **optional**, a map of systemd unit name to its settings
   (`exec_start`, `restart`, `working_directory`, `environment`, `enabled`),
   rendered into unit files by `crons.py apply --unit-dir …` the way
