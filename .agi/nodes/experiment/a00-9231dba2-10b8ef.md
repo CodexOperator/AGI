@@ -5,13 +5,19 @@ type: experiment
 parents:
   - hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal
 next_edges: []
-confidence: 0.9
-edited_by: a00-9231dba2
+confidence: 0.7
+edited_by: a00-be15363a
 evidence_runs:
   - experiment:a00-9231dba2-10b8ef
 line_ceiling: 40
 loop: hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "any other seat (a kid, a parent, the sensei-director) is refused by name", "class": "auth", "cmd": "write.submit(fixture, posts_edit(rows_with_director-belam.rotated_by=sensei-director), actor=sensei-director)", "expected": "refused by name; sensei-director is not a declared actor_rows actor and this is not its own row", "observed": "EditError: a seated role may update only its OWN row and only the declared fields (L4.110 prime ruling B)", "result": "refused"}
+  - {"conjunct": "the declared actor lands a within-row field outside the grant is refused by name, whole", "class": "gate", "cmd": "write.submit(fixture, posts_edit(rows_with_kid-worker.settings=quiet_AND_.worktree=evil), actor=sanctuary-master)", "expected": "whole write refused, file unchanged; message names the ungranted field", "observed": "EditError naming field worktree is not granted on posts rows; posts.md byte-identical before/after", "result": "refused"}
+  - {"conjunct": "write.py resolves the grant from the schema-DECLARED actor_rows list at runtime, never a hardcoded table", "class": "wire", "cmd": "same sanctuary-master edit (settings=quiet) run twice: once against the live [config].md fixture copy, once against a fixture copy with settings removed from the sanctuary-master fields list", "expected": "live copy admits the write; schema-mutated copy refuses the SAME write, proving the enforcement reads the schema file live", "observed": "live: updated. mutated: EditError naming field settings is not granted on posts rows", "result": "wired live to the schema file"}
+  - {"conjunct": "FALSIFIED (confirms hypothesis-node residue 4, director-sanctuary mur-7): a CREATE-op row carrying a field outside the grant is refused by name", "class": "gate", "cmd": "write.submit(fixture, posts_edit(rows_plus_new_row{name:new-post,...,pubkey:deadbeef...}), actor=sanctuary-master)  # create op, pubkey not in the grants fields list", "expected": "refused by name -- pubkey is not in the posts grant fields list", "observed": "ADMITTED: node_writer.UPDATED; pubkey landed on disk in posts.md. _actor_rows_refusal only runs the per-field check when op==set (write.py ~1074), so create/retire rows skip the fields check entirely", "result": "ADMITTED -- claim FALSIFIED for the create path"}
+  - {"conjunct": "FALSIFIED (confirms hypothesis-node residue 2, director-sanctuary mur-7): a chained legal posts-list edit plus an ungranted TOP-LEVEL key on the same config:posts node is refused by name", "class": "gate", "cmd": "write.Edit(config:posts); verb_set(posts, <legal rows>); verb_set(owning_goal, goal:g99); write.submit(..., actor=sanctuary-master)", "expected": "refused by name -- owning_goal is not part of the sanctuary-master posts grant", "observed": "ADMITTED: node_writer.UPDATED; owning_goal landed on disk. The list_key branch of _actor_rows_refusal only inspects set_fm[list_key] rows, never touched_top - {list_key} the way self_row does", "result": "ADMITTED -- claim FALSIFIED for the chained-top-level-key path"}
 production_lines: 80
 profile: balanced
 role: kid
@@ -19,7 +25,7 @@ scaffold_hash: d361add26e2b3fba
 season: 2
 title: "Generic actor_rows grant: sanctuary-master writes config:posts rows and the town master cell"
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-9231dba2-10b8ef
@@ -98,23 +104,71 @@ row would be admitted by the grant and would land a NEW key on the row — worth
 the master's eye at review.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Why this version differs: before it, the only seat with a schema-declared
-narrow write path on a config node was `master-sensei`, and that path was a
-hard-NAMED resolver reading ONE `master_sensei_row` dict. The formation owner's
-grant (sanctuary-master writes config:posts rows + the town `master` cell)
-would have needed a THIRD hard-named branch. Instead the resolver is generic:
-the schema carries a LIST, write.py loops it, identity is the RESOLVED seat,
-and the next grant is a schema line. Judgement calls: (1) the legacy
-`master_sensei_row` key is kept AND its behaviour is migrated into `actor_rows`
-as the first entry, but the dict-of-templates shape and the producing judge
-stay in the dedicated `_master_sensei_templates_refusal` — the generic resolver
-skips an entry with no `match_key`/`field`, so behaviour is byte-identical and
-`test_write_master_sensei.py` is green unchanged; (2) the top-level `field`
-shape refuses ANY frontmatter write by the granted seat that is not exactly the
-granted field, so `set season` by sanctuary-master fails in the actor_rows gate
-rather than only in the written_by gate; (3) production lines are 80 — at the
-2x-of-40 boundary, so no re-brief was raised, but the round is not cheap.
+PARENT review of experiment:a00-9231dba2-10b8ef (landed on trunk pre-iteration
+via the SM.102 merge, commit 1dc75a6af). Read the kids actual diff (git show
+1dc75a6af on write.py and the two schema files), not its result file or its
+self-set verdict:proved.
+
+First pass, before reading the target hypothesis nodes own Agent Notes: ran
+three probes on an independent fixture -- auth (a third seat, sensei-director,
+never used by the kids own suite, refused editing another rows granted
+field), gate (sanctuary-master smuggling an ungranted field, worktree, beside
+a granted one, settings, in one row edit -- refused whole, file byte-identical
+before/after), wire (dropping settings from a fixture copy of the schema
+flips the SAME edit from admitted to refused, proving _actor_rows_refusal
+reads schema.frontmatter[actor_rows] live, not a hardcoded name). All three
+held.
+
+Then read the hypothesis nodes own Agent Notes and found a PRIOR reviewer
+(director-sanctuary mur-7, accept_with_residue x2, 05:36Z) had already logged
+three real defects and ordered a corrective (SM.108, ceiling 12, same target)
+that was never dispatched. Rather than trust that prose, ran it myself as two
+more gate probes against the live merged code:
+
+probe 4: sanctuary-master CREATES a new posts row carrying pubkey (a
+self_row-restricted signing field, not in the posts grants fields list) in
+the SAME edit as a legal create. ADMITTED -- pubkey landed on disk. Cause:
+_actor_rows_refusal only runs the per-field loop when op == set (write.py
+~1074); create and retire rows skip the fields check entirely.
+
+probe 5: sanctuary-master sends a legal posts-list edit chained with an
+unrelated TOP-LEVEL key on the same config:posts node (owning_goal).
+ADMITTED -- owning_goal landed on disk. Cause: the list_key branch of
+_actor_rows_refusal only inspects set_fm[list_key] rows; it never computes
+touched_top - {list_key} the way the self_row gate does at write.py ~790-796
+for the exact same shape of attack.
+
+Both are real, 100% reproducible gate bypasses on the merged code, not flaky
+results -- they falsify the claims own "the declared actor lands a field
+outside the grant is refused BY NAME" for two concrete paths. This is the
+case the top brief names directly: a kid that passes its own suite (which
+never constructs either shape) and fails a probe I ran is lean_disproved,
+the probe named, not the passing suite. Demoted verdict from the kids
+self-claimed proved to inconclusive_lean_disproved:70 -- most of the
+mechanism is real and correct (auth refusal for other seats, the SET-op
+row-field check, the town master cell, the wire binding to the schema file,
+legacy master-sensei unchanged), but the fields grant is not closed on two
+paths, and (per the hypothesis nodes own notes) a third defect -- role_field
+declared on the master-sensei actor_rows entry is never read by the generic
+resolver, so that entry silently defers to the legacy path rather than
+either honouring role_field or refusing by name -- means "EVERY actor-row
+grant... resolved" is not yet true either.
+
+Near miss: a review that only re-ran the kids OWN 12 tests, or diffed the
+function for shape, would have missed both gaps -- neither test file nor a
+prose read constructs a create-op row or a chained top-level key; only
+constructing the state the gate must refuse and watching it get admitted
+finds this.
+
+Next: spawning ONE corrective kid under this same target hypothesis (SM.108,
+per the hypothesis nodes own Agent Notes, ceiling 12) to fix residues 2/3/4
+and add the three tests the note specifies. This experiment stays
+inconclusive_lean_disproved:70 until that lands and is itself probed.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Generic actor_rows resolver in write.py (75 prod lines) + [config]/[town] grants (5 lines): sanctuary-master writes config:posts rows (create/set/retire, declared fields) and the town master cell through the resolved-seat identity; every other seat and any out-of-grant field/op refuses by name; branches stays refused at mint and read; legacy master_sensei_row green unchanged. 12 new tests, 145 passed in the brief's five-file suite, 45 passed in the town/schema suite. FLAGGED: briefed field list carries quiet/status, which no live posts row carries.
+
+tier-parent review a00-be15363a iter108: 3 adversarial probes (auth/gate/wire) run against an independent fixture, none falsified the claim; accepted proved
+
+tier-parent review a00-be15363a iter108: 2 of 5 probes ADMITTED a state the claim says must refuse (create-op ungranted field; chained top-level key smuggle) -- confirms hypothesis-node residues 2/4 live; demoted proved to inconclusive_lean_disproved:70; SM.108 corrective kid next
