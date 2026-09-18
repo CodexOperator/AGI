@@ -1580,6 +1580,34 @@ def _row_is_quiet(root: Path, to: str) -> bool:
     return bool(s and s.get("quiet"))
 
 
+#: The SYSTEM's own senders: a sender naming itself as one of these still
+#: WRITES the dm (the record) but never types a nudge (hypothesis:l4-nudges-
+#: have-classes-...).
+_SERVICE_SENDERS = frozenset({"heal", "watch", "wake-repair", "system"})
+
+
+def _sender_class(root: Path, sender: str | None,
+                  to: str | None = None) -> str:
+    """`"service"` when `sender` names the system itself (`_SERVICE_SENDERS`)
+    or is a SELF-COPY (`sender == to` -- a seat's own-inbox copy wakes
+    nobody), else `"post"`. Derived from the sender, never a call flag."""
+    if not sender or str(sender) in _SERVICE_SENDERS:
+        return "service"
+    if to is not None and str(sender) == str(to):
+        return "service"
+    return "post"
+
+
+def _row_is_quiet_system(root: Path, to: str) -> bool:
+    """True when the row's `settings` carries the `quiet-system` token: the
+    row keeps direct post dm nudges but receives NONE from a service-class
+    sender. `quiet` is still full silence; no token is today's behaviour."""
+    import rotate  # noqa: PLC0415
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    s = rotate._normalize_settings((row or {}).get("settings"))
+    return bool(s and s.get("quiet_system"))
+
+
 def _nudge_marker_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge"
 
@@ -2191,6 +2219,11 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # we compose none of the nudge side effects — no send-keys, no copy-
     # mode cancel, no marker, no pending/deferred write.
     if _row_is_quiet(root, to):
+        return True
+    if (sender is not None and _row_is_quiet_system(root, to)
+            and _sender_class(root, sender, to) == "service"):
+        # a service sender that NAMES ITSELF never types; `wake` passes no
+        # sender because it DELIVERS a post's pending state.
         return True
     if resolved is not None:
         target, pid, tmux_session = resolved
@@ -2835,7 +2868,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
     if nudge and not _row_is_quiet(root, to):
-        _nudge_window(root, to)
+        _nudge_window(root, to,
+                      sender=sender if sender is not None else from_id)
 
     print(inbox.resolve())
     return (from_id, sig_line is not None)
