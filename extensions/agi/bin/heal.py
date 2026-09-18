@@ -931,6 +931,77 @@ def _sweep_iter_name(wt: Path) -> str:
     return dirs[0].name if dirs else "?"
 
 
+def _porcelain_unquote(field: str) -> str:
+    r"""Undo git's C-quoting for ONE porcelain path field: drop one enclosing
+    quote pair and resolve the FULL escape set git can emit -- `\\`, `\"`,
+    the letter escapes `\a \b \f \n \r \t \v`, and `\ooo` (exactly three
+    octal digits) for any byte git C-quotes. Git C-quotes every byte >= 0x80
+    as an octal escape (`core.quotePath=true` is the default), so a path with
+    a non-ASCII byte comes back as e.g. `"\303\251.txt"`; resolving only
+    `\\`/`\"` leaves the literal string `\303\251.txt`, which is not a path
+    on disk. Escapes are rebuilt as BYTES and decoded UTF-8 with
+    `surrogateescape` so an arbitrary byte sequence round-trips instead of
+    raising. Unquoted fields pass through."""
+    if len(field) < 2 or not (field.startswith('"') and field.endswith('"')):
+        return field
+    body = field[1:-1].encode("utf-8", "surrogateescape")
+    letters = {ord("a"): 7, ord("b"): 8, ord("f"): 12, ord("n"): 10,
+               ord("r"): 13, ord("t"): 9, ord("v"): 11}
+    out = bytearray()
+    i = 0
+    while i < len(body):
+        b = body[i]
+        if b == 0x5C and i + 1 < len(body):  # a backslash escape
+            nxt = body[i + 1]
+            if nxt in (0x22, 0x5C):  # \" or \\
+                out.append(nxt)
+                i += 2
+                continue
+            if nxt in letters:
+                out.append(letters[nxt])
+                i += 2
+                continue
+            if 0x30 <= nxt <= 0x37:  # octal, exactly three digits
+                j = i + 1
+                while j < len(body) and j < i + 4 and 0x30 <= body[j] <= 0x37:
+                    j += 1
+                if j == i + 4:
+                    out.append(int(body[i + 1:j], 8))
+                    i = j
+                    continue
+            out.append(b)  # unknown escape: keep the backslash literally
+            i += 1
+            continue
+        out.append(b)
+        i += 1
+    return bytes(out).decode("utf-8", "surrogateescape")
+
+
+def _porcelain_rename_dest(path: str) -> str:
+    """The DESTINATION of an `ORIG -> DEST` porcelain v1 rename/copy field.
+    Git C-quotes each side independently, so an unquoted side never holds a
+    space: scan the ORIG side quote-awarely when quoted, else split on the
+    FIRST separator; unquote the DEST side. No separator -> unchanged."""
+    if path.startswith('"'):
+        i = 1
+        while i < len(path):
+            if path[i] == "\\":
+                i += 2
+                continue
+            if path[i] == '"':
+                i += 1
+                break
+            i += 1
+        if not path[i:].startswith(" -> "):
+            return path
+        dest = path[i + 4:]
+    else:
+        _orig, sep, dest = path.partition(" -> ")
+        if not sep:
+            return path
+    return _porcelain_unquote(dest)
+
+
 def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     """The `git status --porcelain` entries that are NOT under a worktree's
     own `.agi/sessions/` (per-worktree session scratch is the one tolerated
@@ -938,7 +1009,16 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     without `--force`)."""
     dirty: list[str] = []
     for ln in status_lines:
-        path = ln[3:].strip().strip('"')
+        path = ln[3:].rstrip("\n")
+        # Porcelain v1 rename/copy entries read `XY PATH` where PATH is
+        # `ORIG -> DEST`, never a single path. A naive `ln[3:]` returns the
+        # literal non-path string `ORIG -> DEST`, which the park's
+        # `(wt / rel).is_file()` filter drops silently. Take the DESTINATION:
+        # a rename's bytes live there.
+        if "R" in ln[:2] or "C" in ln[:2]:
+            path = _porcelain_rename_dest(path)
+        else:
+            path = _porcelain_unquote(path)
         if path.startswith(".agi/sessions/"):
             continue
         dirty.append(path)
