@@ -94,7 +94,7 @@
       "target": "@437",
       "skipped": "view session view-director-thought absent"
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
   },
   "swept_latches": [],
@@ -115,8 +115,47 @@
     "reap_source": "derived from own window @id @435 pane 1891567: chain [1891567, 1891574, 1891759, 1891762] (deepest-first; authority row pid 1891762)"
   },
   "after_join": {
-    "claimed_at": "2026-09-18T04:59:16.459843+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-18T04:58:33.120117Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-thought",
+        "rc": 0,
+        "output": "@437 director-thought\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-thought.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/35064208-f885-473c-8854-bff34b139ae3.jsonl",
+        "rc": 0,
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-director-thought/35064208-f885-473c-8854-bff34b139ae3.jsonl (via claude-code transcript (explicit)).",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1891567|1891574|1891759|1891762)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(1891567|1891574|1891759|1891762)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-thought --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-thought --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "silent-refused",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-thought",
+    "dm_signed": false,
+    "code_head": "2c40fdb",
+    "code_loaded": "1789692242:1063307",
+    "claimed_at": "2026-09-18T04:59:16.459843+00:00",
+    "claim_key": "2026-09-18T04:58:33.120117Z",
+    "performed_after_s": 42.75885796546936
   }
 }
