@@ -20361,6 +20361,69 @@ def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
                         "push) -- a live close-out is the real run.")
 
 
+def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, SOURCE SIDE (SM.123): one verb moves a post to another
+    box. This round builds the PLAN and the ONE signed migrate record; the
+    card gate, the carryover commit, the ref push, the target receive and the
+    seated line are named as steps and shipped by later slices (they run on
+    the target's tick / the landing, never as a kid's git). `--dry-run`
+    prints every step by alias and touches nothing. Refusals print BY NAME.
+    """
+    import migrate_channel
+    import send
+    if root is None:
+        print("ERR: migrate needs an agi project root.", file=sys.stderr)
+        return 1
+    root = Path(root).resolve()
+    if not args.post:
+        print("REFUSED: migrate needs --post <post> (nothing touched)")
+        return 1
+    try:
+        source = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot move
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    if not args.to:
+        print("REFUSED: migrate needs --to <box> (nothing touched)")
+        return 1
+    if args.to == source:
+        print(f"REFUSED: a migrate to the box the post is already on "
+              f"({source}) (nothing touched)")
+        return 1
+    if args.mode not in migrate_channel.MODES:
+        print(f"REFUSED: unknown mode {args.mode!r} "
+              f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
+        return 1
+    branch = f"refs/agi/posts/{args.post}"
+    print(f"migrate {args.post}: {source} -> {args.to} (mode {args.mode})")
+    for i, step in enumerate((
+            "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
+            "carryover commit: the post worktree's diffs as ONE commit on its branch",
+            f"push: {branch} (the post branch rides git)",
+            "record: ONE migrate record, signed with the post key",
+            "target receive: the mail_poll tick seats the successor from the ref",
+            "seated line: ONE answer back on the same channel",
+    ), 1):
+        print(f"  step {i}: {step}")
+    if args.dry_run:
+        print("dry-run: nothing touched")
+        return 0
+    rec = migrate_channel.record(post=args.post, mode=args.mode,
+                                 source_box=source, target_box=args.to,
+                                 branch=branch, tip=args.tip,
+                                 session_id=args.session_id, ts=send._now())
+    text = migrate_channel.format_record(rec, sign_root=root, signer=args.post)
+    out = send.comms_root(root) / migrate_channel.SUBDIR / migrate_channel.record_name(rec)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    signed = "signed" if "sig:" in text else "UNSIGNED"
+    print(f"record: {migrate_channel.record_name(rec)} ({signed} with the "
+          f"{args.post} key)")
+    print("next: the target box's mail_poll tick receives it; the ref push is "
+          "the landing, never this verb")
+    return 0
+
+
 def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     """The BARE rotation verb (SL7.115, owner order 22:2xZ via the Sensei):
     `rotate` IS `rotate-self` for the post whose SIGNING KEY the caller holds
@@ -20884,6 +20947,33 @@ def main(argv: list[str] | None = None) -> int:
     # the SL7.114 resolvers, every rotate-self flag an override, --post
     # rotating a LOWER-RANKED post only (downward rank-gated). Delegates to
     # cmd_rotate_self with a Namespace carrying EVERY rotate-self attribute.
+    # migrate --post <post> --to <box> [--mode rotate|fork] [--dry-run]:
+    # QUICK-MIGRATE (SM.123), source side. --dry-run prints every step by
+    # alias and touches nothing; without it, ONE signed migrate record lands
+    # under the season comms root. The ref push and the target receive are
+    # named steps, shipped later -- this verb never runs a kid's git.
+    p_mig = sub.add_parser(
+        "migrate", help="move a post to another box as a fresh rotation "
+                        "(--mode rotate) or a transcript fork (--mode fork); "
+                        "--dry-run prints the plan and touches nothing")
+    p_mig.add_argument("--post", default=None, help="the post to move")
+    p_mig.add_argument("--to", dest="to", default=None,
+                       help="the TARGET box name (never a path or address)")
+    p_mig.add_argument("--mode", default="rotate", choices=["rotate", "fork"],
+                       help="rotate = a fresh seating from the card "
+                            "(default); fork = resume the transcript copy")
+    p_mig.add_argument("--session-id", default=None,
+                       help="with --mode fork: the source session id to "
+                            "resume on the target")
+    p_mig.add_argument("--tip", default=None,
+                       help="the post branch tip the target receives from")
+    p_mig.add_argument("--dry-run", action="store_true",
+                       help="print every step by alias and touch nothing")
+    p_mig.add_argument("--root", default=None,
+                       help="project root override (default: resolve from cwd)")
+    p_mig.set_defaults(func=cmd_migrate)
+
+    # rotate --post <name>: the bare rotation verb
     p_r = sub.add_parser(
         "rotate", help="rotate-self for the post whose key the caller "
                         "holds: name/timeout/force/stops derived, every "
@@ -21056,6 +21146,10 @@ def main(argv: list[str] | None = None) -> int:
     p_lw.set_defaults(func=cmd_launch_wrapper)
 
     args = ap.parse_args(argv)
+
+    # migrate resolves --root itself, else the nearest project
+    if args.cmd == "migrate":
+        return args.func(args, getattr(args, "root", None) or find_project_root())
 
     # complete works purely from its explicit paths + git; no project root.
     if args.cmd == "complete":
