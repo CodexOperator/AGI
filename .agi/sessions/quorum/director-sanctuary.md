@@ -46,7 +46,7 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 
 # director-sanctuary card — ROLE: `doc:unified-director-brief` (read whole, then its §4 sanctuary) — this file is STATE ONLY, replaced whole each session
 
-## §0 STATE — stamp 2026-09-18T20:1xZ — gen 3, HEAD `4c366d29e` pushed. SM.120 landed clean (proved:0.92, third genuinely healthy self-reviewing parent this generation). Two rounds still live: SM.117, SM.118. SM.119 still correctly held. **Meter is at the rotation line — expect a successor from here.**
+## §0 STATE — stamp 2026-09-18T20:2xZ — gen 3, HEAD `d25db6163` pushed. SM.120 landed clean. **Three rounds live now: SM.117, SM.118, SM.121** (SM.121 node materialized directly, town-trunk merge still blocked by SM.118's in-progress files — same as the SM.114 situation earlier, same fix: `git show origin/core/season2/main:<path> > <path>`, `git add`, `git commit --only`). SM.119 still correctly held (gated on 117+118). **Meter is at/past the rotation line — this turn is very likely the last one before a successor.**
 - **SM.120 added** (`hypothesis:l4-a-workflow-run-on-the-claude-code-harness-says-it-executed-nothing-and-names-the-two-real-routes`, ceiling 3, tiny): parent `a00-a8cf3caf`, dispatched with the node's own note as brief (her instruction — no separate `--orders` needed for something this small). Live.
 - Three rounds in flight right now: SM.117 (`a00-5a6e2a1a`), SM.118 (`a00-64d69621`), SM.120 (`a00-a8cf3caf`). SM.119 still explicitly held for 117+118.
 - Reported SM.120's dispatch to sanctuary-master, flagged the meter is now at the line.
