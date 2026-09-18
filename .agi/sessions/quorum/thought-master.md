@@ -91,8 +91,9 @@ LANDED 18:1xZ  TM.37 Uno retry = lean_proved:50 (job 27711, 226 s, ~3.8 GPU-min;
    clarified on the node). Both parents died pre-harvest again (rescued); TM.38 had run in the shared main checkout (no --branch) -- director told: --branch always, commit
    after every probe. Rig-survival/df report STILL missing -> first act of pufferlib off-box.
 🔴 RIG LINK DOWN since ~16:00Z 09-18: local-town-tunnel.service (user unit) restart loop, 53x "ssh: connect to host <ip> port 22: Connection timed out" (network DROP), 18080
-   unbound -> every pi-local (off-box) round dies at Connection error (TM.39 pufferlib off-box 18:05Z, nothing spawned, cleaned). Suspect the 13:3xZ hardening (sshd drop-in +
-   fail2ban on the overlay, d0a985a0b) or the overlay link. NOT mine to touch (Prime's box, secrets). Reported: SM 18:1xZ, belam [red] (quiet till 09-19 12:00Z), owner in my pane.
+   unbound -> every pi-local (off-box) round dies at Connection error (TM.39 pufferlib off-box 18:05Z, nothing spawned, cleaned). DIAGNOSED 18:3xZ (owner asked gateway vs box): WG overlay to the
+   [region] gateway UP (handshake 1 min ago, traffic flowing), overlay gateway address pings OK; the RIG's overlay address does NOT reply -> the rig itself (box or its WG
+   peer) is down, not the gateway, not a ban. Owner checks the rig; the keeper app pane missing is separate. NOT mine to touch (Prime's box, secrets). Reported: SM 18:1xZ, belam [red] (quiet till 09-19 12:00Z), owner in my pane.
    Check with `systemctl --user status local-town-tunnel.service` + `curl -s -m 8 127.0.0.1:18080/v1/models`; when it answers, dm the director "rig back". Blocked meanwhile:
    pufferlib off-box, why-idea count, spectral Bend half, the 27B fetch/queue status (still unknown since the 10:23Z storm).
 LIVE  ARM4C: spectral NumPy half ordered 18:1xZ (1 USD) -- expect a [status] parent id. API slot idle until the Prime's per-job line. 1/25 live is another post's parent.
