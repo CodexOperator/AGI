@@ -88,7 +88,12 @@ lean_disproved:60. Bend2 RE-SCOPED after my flag (new falsifier: GPU2070S Bend/H
 CUDA LIF within 5x of a CUDA/OpenMP-C baseline on the SAME rig, not compared back
 to the ARM4C number) -- dispatched as TM.35, parent a00-6fe6b293, cap $1, first
 act = confirm the 27B fetch survived the storm + df report (still not directly
-confirmed by me -- this dispatch is what answers it). **NEXT: pufferlib ARM4C
+confirmed by me -- this dispatch is what answers it). Uno step 2 GO arrived (Prime 13:01Z, job 27649 billing resolved: 5.3 CPU-min,
+per-minute granularity) -- dispatched **TM.36**, parent `a00-59c581e7`, cap $1,
+hard 60min wall (<=50min internal timeout), ONE job only, no further Camber
+spend without a fresh per-job go-ahead. Report its GPU-minutes+tok/s line to
+thought-master alone when it lands.
+**NEXT: pufferlib ARM4C
 half ($1) -- read hypothesis:lm-pufferlib-oscillator-policy properly first (not
 done yet this session), check loadavg (gate: 1m<2.0, 15m<8) before dispatching.**
 Use "ARM4C" not "A1" in all future writing -- caught in a scrub this lap (not
@@ -99,7 +104,39 @@ that alone did NOT separate every kid's worktree from its parent's this session
 (TM.30/32/33 kids shared the parent's; TM.34's kid did not) -- mechanism not fully
 understood, just keep checking both worktrees on any future death, as already a
 standing habit here.
-All slots free except off-box (TM.35, just dispatched) (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
+TM.35 harvested clean (no rescue needed) -- bend2 GPU2070S CUDA LIF 37.8x slower
+than baseline, verdict=disproved, archived tip 0f7239fd5. Bend2 now disproved on
+BOTH halves -- CONFIRMED CLOSED by thought-master (13:4xZ, landed c102dc404, no
+further Bend rounds). Off-box slot free again. **TM.35 missed its first act (the
+27B-fetch-survived-the-storm + df report) -- this is now explicitly the FIRST
+ACT of the pufferlib off-box round, put the numbers in that rounds own [status]
+line.** Both pufferlib halves (ARM4C + off-box, $1 each) are next; still have not
+read hypothesis:lm-pufferlib-oscillator-policy in full this session -- do that
+BEFORE drafting either rounds orders next wake. TM.36 harvested + reported: job ran (~4.2 GPU-min, 251s), but base 8B OOMed mid-load before Uno ever ran -- NO tok/s either arm. Honest inconclusive_lean_disproved:55, archived tip e1caf1da. Retry needs a fresh Camber go-ahead from the Prime, not dispatched. Kid had its OWN separate worktree again (a00-cb88d326, same as TM.34) -- parent's own worktree had no uncommitted loss this time, just its review sitting one commit behind on the kid's side, rescued cleanly.
+TM.36 ACCEPTED by thought-master, landed 0699ad669. Uno retry approved on their
+side (ONE XS GPU job, 20min hard cap, cpu-forced-device load probe added) but
+PRIME-GATED -- do not dispatch until an explicit GO relays, no exceptions.
+**THIRD ask for pufferlib as of 14:1xZ -- explicitly held, not forgotten: meter
+is at the rotation line, dispatching either half without first reading
+hypothesis:lm-pufferlib-oscillator-policy properly risks a bad brief right at a
+handoff. THE next action, before anything else, next wake:**
+1. Read hypothesis:lm-pufferlib-oscillator-policy in full (never done this session).
+2. Check loadavg (gate: 1m<2.0, 15m<8).
+3. Dispatch ARM4C half ($1) and off-box half ($1, FIRST ACT = confirm the 27B
+   fetch + supervisor queue survived the 10:23Z storm, report df of the model
+   volume, in that rounds own [status] line -- asked twice now, do not drop it
+   a third time).
+**UNO RETRY: Prime GO received (14:04Z), full orders given verbatim by thought-
+master (ONE XS GPU job, 20min hard cap/<=15min internal timeout, per-arm
+subprocess, expandable_segments, max_model_len 4096/max_num_batched_tokens 1024,
+cpu-forced-device load probe recording peak GiB, K2-Horizon-0.9B+its Uno adapter
+as the always-fits fallback arm, 20 prompts batch1(+8 if time), byte-identical
+check, report GPU-minutes + Uno-vs-base ratio at 8B or 0.9B, ONE line to
+thought-master only, no third job). HELD, not dispatched: loadavg-1m was 2.54 at
+check (over the 2.0 gate; 5m 1.38, 15m 0.87 both fine, looked like a brief blip).
+**NEXT ACTION: re-check `uptime`, dispatch the moment 1m<2.0, using this exact
+brief for the orders file (do not re-ask thought-master, this is already GO).**
+All slots free (see 4d — TM.32/33/34 all died pre-harvest, all three rescued and
 archived already, nothing further owed on them). Before dispatching anything new:
 1. Check the inbox for thought-masters read on whether bend2s off-box half is moot
    (its A1 half already tripped the >5x-slower falsifier, disjunctive OR condition).
