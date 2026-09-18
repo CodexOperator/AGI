@@ -6,12 +6,17 @@ parents:
   - hypothesis:lm-jev-ece-is-a-pooling-artifact
 next_edges: []
 confidence: 0.9
-edited_by: a00-bdec620b
+edited_by: a00-1bc025ed
 evidence_runs:
   - experiment:a00-bdec620b-6c4cf7
 line_ceiling: 40
 loop: hypothesis:lm-jev-ece-is-a-pooling-artifact@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "parent_probes2.py PROBE2: best-case single T minimising ECE on all 600 experiment rows (sweep T 0.05..100)", "expected": "experiment ECE <= 0.10 after fitting", "observed": "in-sample best-case 0.0519 at T=1.049 (<=0.10); under the claim NLL-fit+held-out protocol 0.062-0.158, mean 0.102, 2/5 seeds above", "result": "FAILS under claim protocol"}
+  - {"conjunct": 2, "class": "gate", "cmd": "parent_probes2.py PROBE1: best-case single T minimising ECE on all 507 verdict rows", "expected": "verdict ECE <= 0.10 for some one temperature", "observed": "in-sample best 0.0959 at T=4.52; under NLL-fit held-out NEVER reaches 0.10 on 5/5 seeds (min 0.141, mean 0.162)", "result": "FAILS decisively under claim protocol"}
+  - {"conjunct": 3, "class": "gate", "cmd": "parent_probes2.py PROBE3: best-case per-group (Te,Tv) minimising pooled ECE", "expected": "pooled ECE <= 0.12 after per-group fit", "observed": "in-sample best 0.0615; NLL-fit held-out mean 0.114 but 2/5 seeds above (0.133,0.139)", "result": "marginal FAIL under claim protocol"}
+  - {"conjunct": 4, "class": "wire", "cmd": "parent_probes2.py PROBE4: argmax(scaled(p,T)) vs argmax(p) for all 1107 rows, T in {0.05,0.1,1,12,100}", "expected": "argmax delta <= 0.02", "observed": "0 changes", "result": "HOLDS"}
 production_lines: 1
 profile: balanced
 role: kid
@@ -94,24 +99,23 @@ Assertions against the claim:
 - **(d) argmax unchanged within +/-0.02** — HOLDS EXACTLY: delta = 0.0000 on all
   5 seeds, all subgroups (temperature is monotone in logits, so this is identity).
 
-Verdict: **disproved**. Per-group temperature fitting reduces the verdict
-subgroup from 0.320 to 0.162 but never reaches 0.10 on any seed. Grouping is
-**not** the whole story. The fitted verdict T ~ 12 against experiment T ~ 1.5
-shows the residual is not a scalar-scale artifact: the verdict probability
-vector is peaked (max ~0.95) while its argmax accuracy is ~0.59, so no single
-temperature can both flatten and reorder it. A class-conditional / ranking fix
-is required, not a temperature.
+Verdict: **disproved** (parent-confirmed). Per-group temperature fitting reduces
+the verdict subgroup from 0.320 to 0.162, but under the pre-registered
+NLL-fit + held-out protocol it never reaches 0.10 on any of the 5 seeds.
+Grouping is **not** the whole story. The fitted held-out verdict T ~ 11-15
+against experiment T ~ 1.5-2.0 shows the residual is not a held-out
+scalar-scale artifact. Parent probe 1 (recorded in `probes:`): an IN-SAMPLE
+temperature chosen to minimise ECE directly (T ~ 4.5) does reach verdict ECE
+0.0959, so "no single temperature can" is too strong as written; that escape
+fits the evaluation labels and does not survive the held-out protocol, so the
+claim as stated is still disproved. A class-conditional / ranking fix is the
+honest next lever, not a temperature.
 
 Reproduce: `python3 .agi/sessions/iter-TM.57/a00-bdec620b/probe_ece_pool.py`
 (CPU only, ~10 s, no network).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First pass on this node. Chose to compute ECE over rows (repeats) to match
-acts_replay.py's pooling, and reported both definitions because the claim's
-"0.152" and the cited "0.196" are different measurements (B-on-scrub vs
-A-on-pre-scrub) — pinning that provenance is what lets the falsifier be read
-honestly. The falsifier was pre-registered, and (b) tripped on every seed, so
-the strong verdict is warranted rather than the lean the brief suggested.
+(1) INSTRUCTION: the tier-parent task says "You are handed each kid DIFF ... never its result file", "One negative probe per claim conjunct, run by YOU, recorded as probes: in the kid node", and "a kid that passes its own tests and fails your probe is lean_disproved". (2) MACHINE: I read the kid committed bytes (git show HEAD: .agi/context/local-maxxing/bench/20260918T233624Z.jsonl and .agi/nodes/experiment/a00-bdec620b-6c4cf7.md) plus the executable probe .agi/sessions/iter-TM.57/a00-bdec620b/probe_ece_pool.py, then ran my OWN probes (scratch/parent_probes2.py over the 1107 scrub rows, best-case T sweep): verdict best-case in-sample min ECE 0.0959 at T=4.52; experiment 0.0519 at T=1.049; pooled per-group best 0.0615; argmax invariant under T (0 changes); defA scrub 0.1563, defB scrub 0.1524, defA pre-scrub 0.1960. (3) NEAR MISS: the kid sentence "no single temperature can both flatten and reorder it" satisfies "temperature fails" while losing the mechanism -- a single temperature that minimises ECE IN-SAMPLE does reach 0.0959, so the true failure is the NLL objective plus the held-out protocol (the claim own specification), not the impossibility of any temperature. I corrected that sentence in this version rather than let it ride. (4) DEVIATION: none; I did not re-run the kid suite as evidence.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
