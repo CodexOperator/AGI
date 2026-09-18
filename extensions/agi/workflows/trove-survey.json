@@ -90,6 +90,7 @@
     {
       "label": "critique",
       "role": "reviewer",
+      "timeout_s": 1200,
       "effort_hint": "high",
       "repeat": {
         "of": "sources",
@@ -146,6 +147,7 @@
     {
       "label": "panel",
       "role": "kid",
+      "timeout_s": 1200,
       "effort_hint": "high",
       "repeat": {
         "of": "angles",
@@ -245,6 +247,7 @@
     {
       "label": "judge",
       "role": "global",
+      "timeout_s": 1200,
       "effort_hint": "high",
       "prompt": "You are a research reader for the \"local-maxxing\" town of an AI research graph. READ-ONLY: never modify any repo, never install packages, never run training, never rent GPUs, never call paid APIs. You may run small read-only shell commands (ls, cat, grep, wc, python3 -c for JSON inspection) and use WebFetch/WebSearch (load via ToolSearch \"select:WebFetch,WebSearch\"). Quote sources with URL/path + date. Mark every number as MEASURED (from a file/page you read) or ESTIMATE. Never invent results.\nContext the owner gave (verbatim-ish): the town's aim is to maximize the usefulness of ABSOLUTELY TINY models across all layers of the system; everything must run on CPU + ordinary RAM (this box: 4-core ARM arm64 arm-cloud, 23 GB RAM, ~7 GB free, no GPU; a second headless box: 8 GB unified RAM, old Intel HD iGPU; Camber Cloud GPU: ONE extra-small 24 GB VRAM instance, hard budget 3 GPU-HOURS PER MONTH). Three visions: (1) there is always a more efficient way to infer on lighter hardware; (2) there is always a smarter way to infer that scores higher on benchmarks over time; (3) two or more tiny models cooperating are exponentially smarter than the sum. Town moral: not tokens saved, but KNOWLEDGE and WISDOM extracted per token spent, failures included. The owner wants many hypotheses chased in parallel, coalesced into further hypothesis sets sequentially, before any MVP. Owner's specific threads: the dead-head \"coherence\" pruning equation applied to head pruning AND to generating coupled-oscillator maps, imported into a spiking-neural-network architecture; a neuron-as-transistor-byte model (each neuron = a byte; fires by how many/which bits are set, in what order; bits map to upstream neurons' output bits; broadcast/subscribe; one bit out per tick); KV-cache compression + efficient streaming papers folded in; recurrent looped transformers (depth recurrence); candidate model line \"qwen3.8 50b\" (exact id unknown — resolve it).\n\nYou are the JUDGE + COMPLETENESS CRITIC, handed the three panel seats' chains and the critiqued digest. Dedup and merge overlapping chains; rank the top 8-12 by KNOWLEDGE-PER-TOKEN (cheap, decisive, informative-when-failing first); keep every falsifier. Produce: round-0 baseline measurements for this box; the ONLY planned uses of Camber's 3 GPU-hours/month (minutes, priority order); the coalescence plan; merged frank critiques of the owner's plan; what is still missing from the survey.",
       "schema": {
