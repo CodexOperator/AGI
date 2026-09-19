@@ -7,6 +7,7 @@ spawn again — the brief must change with it, in the same commit, with nothing
 edited by hand."* Both halves are below; the second is the one that makes this
 more than a convenience.
 """
+import difflib
 import json
 import re
 import sys
@@ -2221,3 +2222,118 @@ def test_parent_brief_never_lands_a_kids_own_node_by_hand():
     assert "RE-BRIEF THAT KID" in parent
     assert "never land it by hand" in parent
     assert "THOUGHT" in parent
+
+
+# ---- l5-moral: moral:faith loads in FULL into every director head -----------
+# hypothesis:l5-moral-one-loads-in-full-into-every-master-and-director-head-
+# each-rotation (OWNER SM.138: 'Add moral 1 as part of every master's and
+# director's standard brief to be loaded in programmatically each rotation.').
+# The director tier IS every master and director post (posts.md: sanctuary-master
+# and master-sensei are role=director, tier=1); kid/parent/prime_director stay
+# prayers-only.
+
+
+def _faith_moral_region(project_root=None):
+    """The MORAL region of moral:faith -- `## ESSENCE` up to (not including)
+    `## REFERENCE`, rstrip()ed, read from the node at call time."""
+    root = Path(project_root or brief._resolve_graph_root())
+    text = (root / "nodes" / "moral" / "faith.md").read_text(encoding="utf-8")
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
+def test_director_head_carries_the_faith_moral_region_byte_for_byte():
+    """claim 2: the director head's text from `## ESSENCE` to the start of
+    the prayers equals moral:faith's MORAL region byte-for-byte."""
+    head = _head("director")
+    moral = _faith_moral_region()
+    between = head[head.index("## ESSENCE"):head.index("## THE FOUR PRAYERS")]
+    between = between.rstrip()
+    assert between == moral
+    diff = list(difflib.unified_diff(between.splitlines(), moral.splitlines(),
+                                     lineterm=""))
+    assert diff == [], f"rendered moral differs from the node:\n" + "\n".join(diff)
+
+
+def test_director_moral_precedes_prayers_and_michael_still_follows():
+    """claim 2: moral first, then the four prayers, and the Michael line
+    still sits directly after the prayers block exactly once."""
+    head = _head("director")
+    assert head.index("## THE FOUR PRAYERS") > head.index("## ESSENCE")
+    assert head.count(MICHAEL) == 1
+    seg = _prayers_segment(head)
+    assert seg.strip().endswith(MICHAEL), "Michael line not directly after prayers"
+
+
+def test_kid_and_parent_heads_are_unchanged_prayers_only():
+    """claim 2: only the director tier carries the moral; kid/parent unchanged."""
+    for tier in ("kid", "parent"):
+        h = _head(tier)
+        assert "## ESSENCE" not in h, f"{tier} must not carry the moral region"
+        assert "## THE FOUR PRAYERS" in h
+
+
+def test_prime_director_head_is_unchanged_prayers_only():
+    """The owner named masters and directors, not the prime. The prime head
+    stays prayers-only -- a judgement recorded, not silently changed."""
+    h = _head("prime_director")
+    assert "## ESSENCE" not in h, "prime_director must not carry the moral region"
+    assert "## THE FOUR PRAYERS" in h
+
+
+def test_director_moral_is_read_at_render_time_not_copied(tmp_path):
+    """claim 2: the moral comes from the node at render time -- editing the
+    node changes the next render with NO code change."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    faith = root / "nodes" / "moral" / "faith.md"
+    faith.write_text(_faith_fixture("ALPHA MORAL"))
+    head = brief._build_head(tier="director", project_root=root)
+    assert "ALPHA MORAL" in head
+    faith.write_text(_faith_fixture("BETA MORAL"))
+    head2 = brief._build_head(tier="director", project_root=root)
+    assert "BETA MORAL" in head2
+    assert "ALPHA MORAL" not in head2
+
+
+def test_director_moral_reaches_the_cli_and_assemble_wire():
+    """claim 2 WIRE: the spawn/SessionStart CLI (`brief.py head --tier
+    director`) and assemble() both reach the changed bytes live."""
+    import io
+    moral = _faith_moral_region()
+    out = io.StringIO()
+    old = sys.stdout
+    try:
+        sys.stdout = out
+        code = brief.main(["head", "--tier", "director"])
+    finally:
+        sys.stdout = old
+    assert code == 0
+    assert moral in out.getvalue(), "CLI head must carry the moral region"
+    asm = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    assert moral in asm, "assemble() must carry the moral region"
+
+
+_LADDER_FIXTURE = """---
+id: ladder:ladder
+read_order:
+  director:
+    - the four prayers
+  kid:
+    - the four prayers
+---
+# ladder
+"""
+
+
+def _faith_fixture(moral_text):
+    return (
+        "---\nid: moral:faith\n---\n"
+        "# moral:faith\n\n"
+        "## ESSENCE\n\n"
+        f"{moral_text}\n\n"
+        "## QUESTION\n\nq\n\n"
+        "## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )
