@@ -384,7 +384,13 @@ def test_the_declaration_stays_small():
     just the commands used during standard workflows*. The failure mode for
     this node is not being wrong, it is growing."""
     table = commands.load(REAL_ROOT)
-    assert len(table) <= 20, (
+    # 20 -> 25 on 2026-09-19 (sanctuary-master, syncing thought trunk
+    # @22c8a07a8): the OWNER ordered the mesh workflow in thought-master's
+    # pane 05:4xZ -- five `ssh -F <config> <town>` entries, alias/label/
+    # what/reach only -- and an owner order is the one authority that grows
+    # this set. Exactly the ordered size, no headroom: the next unordered
+    # entry still fails here.
+    assert len(table) <= 25, (
         f"{len(table)} commands declared. This is not a shell-alias dumping "
         f"ground — a command that saves one keystroke does not belong; one a "
         f"cold session must be TOLD does (goal:g1.10).")

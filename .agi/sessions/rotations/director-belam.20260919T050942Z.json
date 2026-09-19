@@ -1,0 +1,174 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-belam",
+  "recorded_at": "2026-09-19T05:10:15.649124Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-belam",
+      "windows": [
+        "director-sanctuary",
+        "director-thought",
+        "belam-S2-L5-II",
+        "sanctuary-helper",
+        "director-belam.prev",
+        "sanctuary-master",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "thought-master",
+        "belam-S2-L5-I",
+        "director-belam"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1310419,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-belam.prev",
+      "windows": [
+        "director-sanctuary",
+        "director-thought",
+        "belam-S2-L5-II",
+        "sanctuary-helper",
+        "director-belam.prev",
+        "sanctuary-master",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "thought-master",
+        "belam-S2-L5-I",
+        "director-belam"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -6.024
+  },
+  "seated_at": "2026-09-19T05:10:15.649124Z",
+  "window": "director-belam",
+  "session_id": "446773a7-cd37-4d57-9614-cf841ea0e4b5",
+  "pid": 2783249,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-belam.prev",
+      "id": "@431"
+    },
+    "successor_window": {
+      "name": "director-belam",
+      "id": "@466"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@466",
+      "pid": 2783249,
+      "session_id": "446773a7-cd37-4d57-9614-cf841ea0e4b5",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/446773a7-cd37-4d57-9614-cf841ea0e4b5.jsonl",
+      "name": "post-sanctuary-director-59",
+      "path": "/home/ubuntu/.claude/sessions/2783249.json",
+      "note": "joined by @466 in registry file 2783249.json"
+    },
+    "successor_row": "config:seats row 'director-belam': session_ref= session_name=post-sanctuary-director-59 session_label=director-belam session_id=446773a7-cd37-4d57-9614-cf841ea0e4b5 pid=2783249 generation=3 window='@466' source=registry pubkey=f7d004317613f5dc... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 0fe079ed3, retried 0) -- own-row only: director-belam spawn row: gen 3, session_id 446773a7-cd37-4d57-9614-cf841ea0e4b5, window @466, pid 2783249\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-belam.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-belam.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.ack.446773a7.json",
+    "own_authority_released": "generation 2 of seat 'director-belam' retired; successor generation 3 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sanctuary-director/main",
+    "livestream_repoint": {
+      "session": "view-director-belam",
+      "target": "@466",
+      "skipped": "view session view-director-belam absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-sonnet-5"
+      },
+      "live": {
+        "model": "claude-sonnet-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-belam.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "cbf8fc8209d9c78cecbc03bf2a6a9a1019e3a96099603a2c9bc7fc9cddec3fed",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3811560,
+      3811565,
+      3811694,
+      3811704
+    ],
+    "reap_source": "derived from own window @id @431 pane 3811560: chain [3811560, 3811565, 3811694, 3811704] (deepest-first; authority row pid 3811704)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-belam",
+        "rc": 0,
+        "output": "@466 director-belam\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-belam.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/446773a7-cd37-4d57-9614-cf841ea0e4b5.jsonl",
+        "rc": 0,
+        "output": "0.0857\t85708/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3811560|3811565|3811694|3811704)\\b'",
+        "rc": 0,
+        "output": "3811560  845418 ?        [bash] <defunct>\n",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-belam --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-belam --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-belam",
+    "dm_signed": true,
+    "code_head": "81c1b5f",
+    "code_loaded": "1789775516:1071399",
+    "claimed_at": "2026-09-19T05:11:08.879000+00:00",
+    "claim_key": "2026-09-19T05:10:15.649124Z",
+    "performed_after_s": 52.6352641582489
+  }
+}
