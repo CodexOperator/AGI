@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SCOPE += (7) CRON BOX GATES (owner 02:1xZ): a cadence with no box runs on EVERY box (crons.py already treats absent as all) and that is the documented DEFAULT in [cron].md; a box list is the exception and must say why in a sibling why_box field (mail_poll: the remote-box reader); the node's grid_sync and branch_push rows drop their box lists now (grid_sync keeps mirror_towns; both jobs are idempotent per box) and crons.py audit flags a gated KNOWN job without why_box; write.py set on a dotted config key writes NESTED (measured 2b0ea2284: dotted keys landed flat) or refuses by name. Ceiling +10 -> 46. Ships in the SAME batch, same residue rule.
