@@ -17195,6 +17195,23 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
                 pass
             raise
         os.chmod(_tmp, send.SEAT_KEY_MODE)
+        # l5 claim (3): keep the OLD live private bytes as evidence, 0600,
+        # under the successor -- the swap never destroys the predecessor key.
+        try:
+            _old = json.loads(_key.read_text())
+            _ofp = send.seatsig.fingerprint(
+                send.seatsig.get(str(_old.get("scheme") or "ed25519"))
+                .public_from_secret(bytes.fromhex(_old["priv_hex"])))
+            _ret = _key.parent / f"{_key.name}.retired-{_ofp}"
+            if not _ret.exists():
+                _rfd = os.open(_ret,
+                               os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                               send.SEAT_KEY_MODE)
+                with os.fdopen(_rfd, "w") as _rf:
+                    _rf.write(_key.read_text())
+                os.chmod(_ret, send.SEAT_KEY_MODE)
+        except Exception:  # noqa: BLE001 -- retirement never blocks the swap
+            pass
         os.replace(_tmp, _key)
         _pend.unlink()
     except (OSError, ValueError):
@@ -17742,9 +17759,12 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
         return None, None, (
             f"post {seat!r}: could not compare the held key to the committed row")
     if ours != row_fp:
+        _pend = key_path.parent / f"{key_path.name}.pending"
+        _where = str(key_path) + (f" and {_pend}" if _pend.is_file() else "")
         return None, None, (
-            f"post {seat!r}: held key fingerprint {ours} does not match the "
-            f"committed row {row_fp}; {KEYGEN_LINE.format(seat=seat)} first")
+            f"post {seat!r}: held key fingerprint {ours} at {_where} does not "
+            f"match the committed row {row_fp} (pubkey "
+            f"{row.get('pubkey')}); {KEYGEN_LINE.format(seat=seat)} first")
     return seat, row, how
 
 
