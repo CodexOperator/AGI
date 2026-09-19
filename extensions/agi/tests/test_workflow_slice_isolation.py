@@ -231,7 +231,9 @@ def test_merge_up_review_red_round_leaves_sibling_slices(
             return _sp.CompletedProcess(
                 cmd, 0, stdout=json.dumps({
                     "round": "r2", "verdicts": [], "missed": [],
-                    "final_recommendation": "accept", "summary": "s"}),
+                    "final_recommendation": "accept", "summary": "s",
+                    "config_max": {"answer": "no", "where": ""},
+                    "template_max": {"answer": "no", "where": ""}}),
                 stderr="")
         if "ROUND r1" in prompt:
             return _sp.CompletedProcess(cmd, 1, stdout="boom", stderr="")
@@ -239,7 +241,9 @@ def test_merge_up_review_red_round_leaves_sibling_slices(
             cmd, 0, stdout=json.dumps({
                 "round": "r2", "verdict_recommendation": "accept",
                 "conjuncts": [], "defects": [], "defects_summary": "NONE",
-                "tests_run": "t", "node_checks": "n", "prime_step": "p"}),
+                "tests_run": "t", "node_checks": "n", "prime_step": "p",
+                "config_max": {"answer": "no", "where": ""},
+                "template_max": {"answer": "no", "where": ""}}),
             stderr="")
 
     args = {"rounds": [

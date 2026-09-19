@@ -2894,3 +2894,55 @@ def test_hook_main_notes_once_and_never_raises(tmp_path, monkeypatch, capsys):
     assert hook.main(json.dumps(payload)) == 0
     err = capsys.readouterr().err
     assert "workflow_note:" in err
+
+
+# ---------- --root: a detached run never depends on cwd ---------------------
+# hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-
+# depends-on-cwd. `systemd-run --user ... -- python3 workflow.py run ...`
+# does not inherit the caller's cwd, so the launcher sees systemd-run's 0
+# while workflow.py exits 2 with "no .agi project root found from cwd". The
+# fix is one --root option that works AFTER the subcommand, the position a
+# director naturally appends to a brief's `run <name> --dry-run` line.
+
+def _wfl(argv, cwd):
+    import subprocess as _sp
+    return _sp.run([sys.executable, str(BIN / "workflow.py"), *argv],
+                   cwd=str(cwd), capture_output=True, text=True, timeout=60)
+
+
+def test_root_after_subcommand_resolves_from_a_non_project_cwd(tmp_path):
+    """The exact literal the brief uses: `run <name> --dry-run --root <p>`,
+    --root AFTER the verb, run from a cwd with no .agi above it."""
+    r = _wfl(["run", "review", "--dry-run", "--root", str(REPO)], tmp_path)
+    assert r.returncode == 0, (r.stdout, r.stderr)
+    assert "[dispatch] global-checks" in r.stdout, r.stdout
+    assert "[summary] workflow=review" in r.stdout, r.stdout
+
+
+def test_root_before_subcommand_also_resolves(tmp_path):
+    """The parent-parser position keeps working; one option, two positions."""
+    r = _wfl(["--root", str(REPO), "run", "review", "--dry-run"], tmp_path)
+    assert r.returncode == 0, (r.stdout, r.stderr)
+    assert "[dispatch] global-checks" in r.stdout, r.stdout
+
+
+def test_no_root_from_non_project_cwd_exits_2_byte_identical(tmp_path):
+    """Without --root the old behaviour is untouched, message included."""
+    r = _wfl(["run", "review", "--dry-run"], tmp_path)
+    assert r.returncode == 2
+    assert r.stderr == "workflow.py: no .agi project root found from cwd\n"
+
+
+def test_root_to_a_non_project_path_exits_2_naming_it(tmp_path):
+    missing = tmp_path / "nope"
+    r = _wfl(["run", "review", "--dry-run", "--root", str(missing)], tmp_path)
+    assert r.returncode == 2
+    assert str(missing) in r.stderr, r.stderr
+    assert "--root" in r.stderr, r.stderr
+
+
+def test_help_names_root_and_still_exits_0():
+    r = _wfl(["--help"], REPO)
+    assert r.returncode == 0
+    assert r.stdout.strip()
+    assert "--root" in r.stdout, r.stdout
