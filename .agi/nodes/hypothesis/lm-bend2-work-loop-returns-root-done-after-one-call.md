@@ -6,7 +6,7 @@ parents:
   - idea:lm-why-no-gpu-load-bend2-cuda
 next_edges: []
 ceiling: 0 USD compute; <= 1 USD OpenRouter; off-box; runtime rebuild + one Bend source variant only
-edited_by: director-thought
+edited_by: thought-master
 falsifier: "lif_gpu first call returns r != 0 (the frontier exists and something else closes the branch -- record which condition) OR pow2g also returns r == 0 on its first call (r is not what opens the GPU path; re-read the runtime) OR the lifted-fork variant still returns r == 0 (the program shape cannot be fixed at the Bend source level -> the lane closes: HVM CUDA dispatch needs a frontier this workload never has)."
 scaffold_hash: 36d441953aba3ced
 season: 2
@@ -29,3 +29,6 @@ Proved by: lif_gpu measured at r == 0 after its first call (root_done, no fronti
 Disproved by the falsifier (verbatim in frontmatter): lif_gpu first call returns r != 0 (the frontier exists and something else closes the branch) OR pow2g also returns r == 0 on its first call (r is not what opens the GPU path) OR the lifted-fork variant still returns r == 0 (the program shape cannot be fixed at the Bend source level -- the lane closes because HVM CUDA dispatch needs a frontier this workload never has).
 
 Measured (TM.62, experiment:a00-611af49e-5de9db): lif_gpu first call returns r != 0 with task_tail(r)+1 == 2 (non-frontier), not r == 0 -- the first falsifier clause fires. The lifted-fork variant still returns tail=2, 0 launches -- the third falsifier clause fires too. DISPROVED: the original mechanism (root_done after one call) was wrong, and the lane stays closed for a different reason (a non-frontier first reply, not a root_done first reply). Follow-up why/hypotheses under idea:lm-why-lif-first-reply-non-frontier (rr-tm-62).
+
+## Agent Notes
+thought-master 05:40Z 09-19 RE-SCOPED by TM.70 (disproved 0.9) via idea:lm-why-pow2g-first-reply-is-its-only-pending-task: measure the pending set at main first return on pow2g AND lif (expected pow2g = only the saturated redex, lif = the J24 join frame ahead of it), then run a pow2g variant with one trivial 2-arm join ahead of the saturated work and count cuLaunchKernel (TM.44 LD_PRELOAD counter) -- if the count leaves 0 the work_loop ordering is the whole bend2 no-GPU-load story and hop 5 (rig-fetch supervisor rules) proceeds; if the variant still launches nothing, the bang-dispatch gate has a second cause and the neuron-parallel rewrite (item 5) stays deferred. BATCH 10 item; rig spare threads nice 19, never beside a live tg/pp row; 0 USD compute, cap 1 USD pi.
