@@ -261,8 +261,11 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     assert "--provider" in cmd and "openrouter" in cmd, cmd
     assert "--model" in cmd and "glm" in cmd, cmd
     assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
-    # the rendered per-item prompt reached the binary (the stub dropped it)
-    assert "write /tmp/S/a.md" in cmd, cmd
+    # the rendered per-item prompt reached the binary (the stub dropped it);
+    # it is the LAST argv element and now also carries the RETURN SHAPE block
+    # for this schema-bearing stage.
+    assert "write /tmp/S/a.md" in cmd[-1], cmd
+    assert "Required keys: slug" in cmd[-1], cmd
     # the pi child env must not inherit Claude subscription credentials
     env = captured["env"] or {}
     assert "ANTHROPIC_API_KEY" not in env, env
@@ -291,6 +294,51 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
     assert "write.py" in context
     assert any("--emit" in cmd and "llm" in cmd for cmd, _ in calls)
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
+
+
+def test_stage_context_schema_stage_head_carries_the_four_prayers():
+    """SM.134 revert: a stage that declares a schema gets the same
+    constitution head as any other stage -- the four-prayers block is in
+    front of the model and no `--no-prayers` flag is ever passed."""
+    import subprocess as _sp
+    from unittest import mock
+
+    seen = []
+    real_run = _sp.run
+
+    def fake_run(cmd, **kw):
+        seen.append(cmd)
+        if "viewport.py" in cmd[1]:
+            return _sp.CompletedProcess(cmd, 0, stdout="V", stderr="")
+        return real_run(cmd, **kw)
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        context = _stage_context(REPO, REPO / ".agi",
+                                 {"label": "s", "role": "kid",
+                                  "schema": {"type": "object"}})
+    brief_cmds = [c for c in seen if "brief.py" in c[1]]
+    assert len(brief_cmds) == 1, brief_cmds
+    assert "--no-prayers" not in brief_cmds[0], brief_cmds[0]
+    assert "## THE FOUR PRAYERS" in context, context
+    assert "Ѻтче нашъ" in context, context
+
+
+_PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго."
+_PRAYER_POST = "Свѧтый Боже, Свѧтый Крѣпкїй, Свѧтый Безсмертный, помилуй насъ."
+
+
+def test_pi_prayer_wrapped_json_parses_structured_without_a_belt():
+    """The slice-3 belt was unnecessary. A JSON object wrapped in a prayer
+    prelude + postlude resolves structured through `_resolve_lenient_return`
+    as-is: the balanced-brace parser finds the object inside the surrounding
+    text, so no line-filter is needed (and the engine no longer has one)."""
+    import workflow as _wf
+    text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
+    schema = {"type": "object",
+              "properties": {"ok": {"type": "boolean"}},
+              "required": ["ok"]}
+    assert not hasattr(_wf, "_strip_prayer_wrap")
+    assert _wf._resolve_lenient_return(schema, text) == {"ok": True}
 
 
 def test_run_stage_pi_schema_violating_json_is_unstructured():
@@ -1053,7 +1101,23 @@ def _pi_live_run_body(_sp, mock, run_workflow):
     assert "[claude-code]" not in text and "[ok]" not in text
 
 
-def test_claude_code_path_feeds_the_same_view(tmp_path_factory):
+def _clear_cc_seam(monkeypatch):
+    """Clear the three live Claude Code seam vars for the duration of a test.
+
+    The Bash tool that runs pytest inherits `CLAUDECODE=1`,
+    `CLAUDE_CODE_SESSION_ID` and `CLAUDE_CODE_MESSAGING_SOCKET`, so a test that
+    calls `run_workflow(..., "claude-code", ...)` directly and means to test the
+    seam-ABSENT path must clear them explicitly — otherwise detection silently
+    reroutes it onto the native-handback branch.
+    """
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        monkeypatch.delenv(var, raising=False)
+
+
+def test_claude_code_path_feeds_the_same_view(tmp_path_factory, monkeypatch):
+    # Seam-ABSENT path: clear the ambient Claude Code markers the pytest Bash
+    # tool exports, or this test hits the native-handback branch instead.
+    _clear_cc_seam(monkeypatch)
     # This test predated the tmp-path tracking seam its neighbours use and
     # ran a NON-dry claude-code workflow against the REAL project root, so
     # `_track_run` appended one phantom row to the production
@@ -1101,7 +1165,8 @@ def _tmp_session_root(tmp_path_factory, wf_mod):
     return tmp, lambda: setattr(wf_mod._loc, "shared_project_root", saved)
 
 
-def test_real_cc_run_appends_exactly_one_row(tmp_path_factory):
+def test_real_cc_run_appends_exactly_one_row(tmp_path_factory, monkeypatch):
+    _clear_cc_seam(monkeypatch)
     import workflow as _wf
     from workflow import run_workflow
     tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
@@ -1658,6 +1723,47 @@ def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
         restore()
 
 
+# A run_key minted from a long `why`/args blob (brainstorm's shape: idea id +
+# whole why sentence + max_hypotheses, all slugged and joined) can run well
+# past the ~255-byte filesystem limit on a single path component. Measured:
+# `_persist_stage_value` used the raw run_key as a directory name, mkdir threw
+# `File name too long`, the broad except swallowed it, and the stage's
+# structured return was never written to disk -- the chained stage then read
+# back only the 200-char in-process preview and failed schema validation
+# (director gen 6, commit 453445d60: both brainstorm stages "recorded
+# unstructured"). hypothesis: the fix bounds the PATH COMPONENT only, and
+# leaves the descriptive run_key (used for reporting/citing) untouched.
+
+def test_run_key_path_component_bounds_long_keys():
+    from workflow import _run_key_path_component
+    short = "mur-40"
+    assert _run_key_path_component(short) == short
+    long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "x" * 300
+    out = _run_key_path_component(long_key)
+    assert len(out.encode("utf-8")) <= 200
+    # deterministic and distinguishable: two long keys sharing a prefix must
+    # not collide on the same truncated directory
+    other_long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "y" * 300
+    assert out != _run_key_path_component(other_long_key)
+    assert out == _run_key_path_component(long_key)  # deterministic
+
+
+def test_persist_stage_value_survives_a_long_run_key(tmp_path_factory):
+    import json as _json
+    import workflow as _wf
+    from workflow import _persist_stage_value
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "z" * 300
+    try:
+        _persist_stage_value(tmp, long_key, "brainstorm", {"a": "structured"})
+        runs_dir = tmp / "sessions" / "workflows" / "runs"
+        written = list(runs_dir.glob("*/brainstorm.json"))
+        assert len(written) == 1, list(runs_dir.iterdir())
+        assert _json.loads(written[0].read_text()) == {"a": "structured"}
+    finally:
+        restore()
+
+
 def test_run_prints_run_key_first_and_tracks_it(tmp_path_factory):
     import subprocess as _sp
     from unittest import mock
@@ -2053,6 +2159,7 @@ def test_pi_mint_error_runs_inherited_env_when_verified(tmp_path_factory,
 def test_claude_code_path_mints_nothing(tmp_path_factory, monkeypatch):
     """(e): the claude-code branch never touches the credential seam and its
     emitted lines are unchanged."""
+    _clear_cc_seam(monkeypatch)
     import workflow as _wf
     from workflow import run_workflow
     tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
@@ -2281,11 +2388,13 @@ def test_manifest_timeout_s_reaches_the_stage_subprocess(
     assert seen == [7], seen
 
 
-def test_no_manifest_timeout_keeps_the_600_default(tmp_path_factory,
-                                                   monkeypatch):
+def test_no_manifest_timeout_keeps_the_3600_default(tmp_path_factory,
+                                                    monkeypatch):
+    """SM.105: the undeclared default wall is 3600 s (was 600), so a stage
+    that declares no timeout_s anywhere gets 60 minutes."""
     seen = _capture_timeouts(tmp_path_factory, monkeypatch,
                              _manifest_with_timeout())
-    assert seen == [600], seen
+    assert seen == [3600], seen
 
 
 def test_per_stage_timeout_overrides_the_manifest(tmp_path_factory,
@@ -2597,3 +2706,491 @@ def test_tree_previews_a_multi_kb_detail_while_tracking_keeps_it_whole(
     assert rows, "the run must be tracked"
     assert rows[0]["returns"]["only"] == output
     assert len(rows[0]["returns"]["only"]) == len(output)
+
+
+# ---------- native handback: the seam, the one call, the link, the hook ------
+# hypothesis:l4-same-harness-handback-a-claude-code-caller-gets-one-exact-native-
+# workflow-call-every-engine-js-is-registered-and-a-hook-closes-the-record
+
+def _set_cc_seam(monkeypatch):
+    """Export the three live Claude Code seam markers so run_workflow takes the
+    native-handback branch."""
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        monkeypatch.setenv(var, "test-value")
+
+
+def test_cc_seam_helper_reads_an_explicit_env():
+    assert workflow._claude_code_seam_present({}) is False
+    full = {v: "x" for v in workflow.CLAUDE_CODE_SEAM_VARS}
+    assert workflow._claude_code_seam_present(full) is True
+    for var in workflow.CLAUDE_CODE_SEAM_VARS:
+        partial = dict(full)
+        partial.pop(var)
+        assert workflow._claude_code_seam_present(partial) is False, var
+
+
+def test_native_seam_prints_one_call_with_the_script_stem(tmp_path_factory,
+                                                          monkeypatch, capsys):
+    """A native session gets ONE exact Workflow call whose `name` is the
+    REGISTERED script stem, never the config key. review -> agi-round-review,
+    drafting -> agi-brief-drafting: a key-formatted name would not resolve as a
+    `.claude/workflows/` link and the caller's copy-paste would fail."""
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _set_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        err = capsys.readouterr().err
+        assert rc == 0
+        calls = [l for l in buf.getvalue().splitlines()
+                 if l.startswith("Workflow(")]
+        assert len(calls) == 1, calls
+        parsed = json.loads(calls[0][len("Workflow("):-1])
+        assert parsed["name"] == "agi-round-review", parsed
+        # The caller's targets survive; the runner ALSO resolves the project
+        # root into args so the native Workflow call carries it (the stages
+        # `cd {project_root}`, never a hardcoded checkout).
+        assert parsed["args"]["targets"] == [{"window": "t1"}], parsed
+        assert parsed["args"]["project_root"] == str(REPO), parsed
+        # the SM.120 stderr notice belongs to the headless path only
+        assert "no stage executed by workflow.py" not in err, err
+        # and the row is still tracked, still unnoted
+        lines = (tmp / "sessions" / "workflows" / "review.jsonl")\
+            .read_text(encoding="utf-8").splitlines()
+        assert json.loads(lines[0])["harness_id"] == []
+    finally:
+        restore()
+
+
+def test_native_seam_key_and_stem_diverge_for_drafting(tmp_path_factory,
+                                                       monkeypatch):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _set_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "drafting", "claude-code",
+                          {"briefs": [{"slug": "x"}]}, False, out=buf)
+        assert rc == 0
+        calls = [l for l in buf.getvalue().splitlines()
+                 if l.startswith("Workflow(")]
+        assert len(calls) == 1, calls
+        assert json.loads(calls[0][len("Workflow("):-1])["name"] == \
+            "agi-brief-drafting", calls
+    finally:
+        restore()
+
+
+def test_no_seam_still_prints_the_stderr_notice(tmp_path_factory, monkeypatch,
+                                                capsys):
+    import workflow as _wf
+    from workflow import run_workflow
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    _clear_cc_seam(monkeypatch)
+    try:
+        buf = io.StringIO()
+        rc = run_workflow(REPO / ".agi", "review", "claude-code",
+                          {"targets": [{"window": "t1"}]}, False, out=buf)
+        assert rc == 0
+        assert "no stage executed by workflow.py" in capsys.readouterr().err
+        assert "Workflow(" not in buf.getvalue()
+    finally:
+        restore()
+
+
+def test_link_creates_every_registered_script_and_is_idempotent(tmp_path,
+                                                               monkeypatch):
+    """After `link`, every real manifest's `script` resolves to a live symlink
+    in the fixture's `.claude/workflows/`, and a second run creates 0."""
+    from workflow import link_workflows
+    scripts = set()
+    for mf in sorted(WF_DIR.glob("*.json")):
+        m = json.loads(mf.read_text(encoding="utf-8"))
+        scripts.add(m["script"])
+        (tmp_path / "extensions" / "agi" / "workflows" / mf.name).parent\
+            .mkdir(parents=True, exist_ok=True)
+        (tmp_path / "extensions" / "agi" / "workflows" / mf.name)\
+            .write_text(json.dumps(m), encoding="utf-8")
+        src = tmp_path / "extensions" / "agi" / "workflows" / m["script"]
+        if not src.exists():
+            src.write_text("// fixture\n", encoding="utf-8")
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    buf = io.StringIO()
+    assert link_workflows(graph, out=buf) == 0
+    # Derived from the live manifests above, never a pinned literal: the
+    # literal "12" drifted the moment a new workflow pair landed (TM.60,
+    # research-review), which is the copied-list defect this assertion is
+    # supposed to catch, not commit.
+    assert f"[linked] {len(scripts)} workflow link(s) created" in buf.getvalue(), \
+        buf.getvalue()
+    for script in scripts:
+        link = tmp_path / ".claude" / "workflows" / script
+        assert link.is_symlink(), f"{link} not a symlink"
+        assert link.resolve().is_file(), f"{link} does not resolve"
+    buf2 = io.StringIO()
+    assert link_workflows(graph, out=buf2) == 0
+    assert "[linked] 0 workflow link(s) created" in buf2.getvalue()
+
+
+def test_link_refuses_a_non_symlink_by_name(tmp_path, monkeypatch, capsys):
+    from workflow import link_workflows
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "review.json").write_text(json.dumps(
+        {"name": "review", "script": "agi-round-review.js"}))
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    links = tmp_path / ".claude" / "workflows"
+    links.mkdir(parents=True)
+    blocker = links / "agi-round-review.js"
+    blocker.write_text("not a link\n", encoding="utf-8")
+    monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
+    assert link_workflows(graph, out=io.StringIO()) == 2
+    assert "link refused" in capsys.readouterr().err
+    assert not blocker.is_symlink()
+    assert blocker.read_text() == "not a link\n"
+
+
+# ---------- the hook: reverse-map, last open row, note seam ------------------
+
+def _load_hook():
+    import importlib.util
+    p = Path(__file__).resolve().parents[1] / "hooks" / "workflow_note.py"
+    spec = importlib.util.spec_from_file_location("workflow_note", p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _hook_fixture(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "sessions" / "workflows").mkdir(parents=True)
+    (graph / "config.json").write_text("{}", encoding="utf-8")
+    wf = tmp_path / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "review.json").write_text(json.dumps(
+        {"name": "review", "script": "agi-round-review.js"}))
+    return graph
+
+
+def test_hook_plans_the_run_key_from_the_registered_name(tmp_path):
+    """The reverse map is a manifest `script` read: a name formatted from the
+    config key would not match `agi-round-review.js`."""
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-1",
+                    "harness_id": ["wf_old"]}) + "\n" +
+        json.dumps({"workflow": "review", "run_key": "mur-2",
+                    "harness_id": []}) + "\n")
+    payload = {"tool_name": "Workflow",
+               "tool_input": {"name": "agi-round-review", "args": {}},
+               "tool_response": {"runId": "wf_new"}}
+    assert hook.plan_note(payload, graph) == ("mur-2", "wf_new")
+
+
+def test_hook_accepts_the_ordered_id_keys(tmp_path):
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-1",
+                    "harness_id": []}) + "\n")
+    for key in ("runId", "run_id", "id"):
+        payload = {"tool_name": "Workflow",
+                   "tool_input": {"name": "agi-round-review"},
+                   "tool_response": {key: "wf_x"}}
+        assert hook.plan_note(payload, graph) == ("mur-1", "wf_x"), key
+
+
+def test_hook_skips_named_on_everything_it_does_not_understand():
+    hook = _load_hook()
+    for payload in (
+        {"tool_name": "Bash", "tool_input": {"name": "agi-round-review"}},
+        {"tool_name": "Workflow", "tool_input": {"args": {}}},
+        {"tool_name": "Workflow", "tool_input": {"name": "not-a-wf"}},
+        {"tool_name": "Workflow", "tool_input": {"name": "agi-round-review"},
+         "tool_response": {"nope": 1}},
+    ):
+        try:
+            hook.plan_note(payload, Path("/nonexistent"))
+            raise AssertionError(f"expected HookSkip for {payload}")
+        except hook.HookSkip as exc:
+            assert str(exc)
+
+
+def test_hook_main_notes_once_and_never_raises(tmp_path, monkeypatch, capsys):
+    hook = _load_hook()
+    graph = _hook_fixture(tmp_path)
+    (graph / "sessions" / "workflows" / "review.jsonl").write_text(
+        json.dumps({"workflow": "review", "run_key": "mur-9",
+                    "harness_id": []}) + "\n")
+    calls = []
+    monkeypatch.setattr(hook, "_note", lambda rk, hid: calls.append((rk, hid)))
+    payload = {"cwd": str(tmp_path), "hook_event_name": "PostToolUse",
+               "tool_name": "Workflow",
+               "tool_input": {"name": "agi-round-review", "args": {}},
+               "tool_response": {"runId": "wf_zzz"}}
+    assert hook.main(json.dumps(payload)) == 0
+    assert calls == [("mur-9", "wf_zzz")]
+    # malformed stdin: named, exit 0, no note
+    assert hook.main("{not json") == 0
+    assert calls == [("mur-9", "wf_zzz")]
+    # unrelated project (no .agi from cwd): refused by name, exit 0
+    other = tmp_path / "elsewhere"
+    other.mkdir()
+    payload["cwd"] = str(other)
+    assert hook.main(json.dumps(payload)) == 0
+    err = capsys.readouterr().err
+    assert "workflow_note:" in err
+
+
+# ---------- --root: a detached run never depends on cwd ---------------------
+# hypothesis:l5-workflow-py-takes-an-explicit-root-so-a-detached-run-never-
+# depends-on-cwd. `systemd-run --user ... -- python3 workflow.py run ...`
+# does not inherit the caller's cwd, so the launcher sees systemd-run's 0
+# while workflow.py exits 2 with "no .agi project root found from cwd". The
+# fix is one --root option that works AFTER the subcommand, the position a
+# director naturally appends to a brief's `run <name> --dry-run` line.
+
+def _wfl(argv, cwd):
+    import subprocess as _sp
+    return _sp.run([sys.executable, str(BIN / "workflow.py"), *argv],
+                   cwd=str(cwd), capture_output=True, text=True, timeout=60)
+
+
+def test_root_after_subcommand_resolves_from_a_non_project_cwd(tmp_path):
+    """The exact literal the brief uses: `run <name> --dry-run --root <p>`,
+    --root AFTER the verb, run from a cwd with no .agi above it."""
+    r = _wfl(["run", "review", "--dry-run", "--root", str(REPO)], tmp_path)
+    assert r.returncode == 0, (r.stdout, r.stderr)
+    assert "[dispatch] global-checks" in r.stdout, r.stdout
+    assert "[summary] workflow=review" in r.stdout, r.stdout
+
+
+def test_root_before_subcommand_also_resolves(tmp_path):
+    """The parent-parser position keeps working; one option, two positions."""
+    r = _wfl(["--root", str(REPO), "run", "review", "--dry-run"], tmp_path)
+    assert r.returncode == 0, (r.stdout, r.stderr)
+    assert "[dispatch] global-checks" in r.stdout, r.stdout
+
+
+def test_no_root_from_non_project_cwd_exits_2_byte_identical(tmp_path):
+    """Without --root the old behaviour is untouched, message included."""
+    r = _wfl(["run", "review", "--dry-run"], tmp_path)
+    assert r.returncode == 2
+    assert r.stderr == "workflow.py: no .agi project root found from cwd\n"
+
+
+def test_root_to_a_non_project_path_exits_2_naming_it(tmp_path):
+    missing = tmp_path / "nope"
+    r = _wfl(["run", "review", "--dry-run", "--root", str(missing)], tmp_path)
+    assert r.returncode == 2
+    assert str(missing) in r.stderr, r.stderr
+    assert "--root" in r.stderr, r.stderr
+
+
+def test_help_names_root_and_still_exits_0():
+    r = _wfl(["--help"], REPO)
+    assert r.returncode == 0
+    assert r.stdout.strip()
+    assert "--root" in r.stdout, r.stdout
+
+
+# ---------- R1: the runner resolves {project_root}, never a literal --------
+# hypothesis:lm-chained-research-review-cuts-director-glue-calls, residues
+# from outcome:a00-cc347774-096d54. The why/brainstorm/refute/review prompts
+# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree
+# minted into the MAIN checkout's graph. The runner now injects the resolved
+# project root as a run arg and each prompt carries `{project_root}`.
+
+def test_research_review_prompts_name_the_runner_project_root():
+    from workflow import render_stage_prompt
+    manifest = workflow._load_manifest(REPO, "research-review")
+    worktree = "/tmp/fake-worktree"
+    args = {"project_root": worktree}
+    seen = 0
+    for st in manifest["stages"]:
+        out = render_stage_prompt(st, args, prior={
+            "verdicts": "[]", "missed": "none", "summary": "s",
+            "final_recommendation": "accept", "why_node": "idea:x",
+            "why_question": "q", "why_summary": "s", "evidence": "e",
+            "branch": "why", "push_further": "none", "hypotheses": "[]",
+            "idea": "idea:x", "refined_question": "q"})
+        assert "/home/ubuntu/work/agi" not in out, (st["label"], out)
+        if "{project_root}" not in st["prompt"]:
+            continue
+        seen += 1
+        assert f"cd {worktree} &&" in out, (st["label"], out[:200])
+    assert seen == 4, seen  # review, why, brainstorm, refute
+
+
+def test_render_stage_prompt_project_root_falls_back_to_cwd_root(tmp_path,
+                                                                 monkeypatch):
+    """A direct caller that passes no project_root still gets a REAL path,
+    never an empty `cd  &&` — resolved from the cwd's project root."""
+    from workflow import render_stage_prompt
+    monkeypatch.setattr(workflow._loc, "find_project_root",
+                        lambda *a, **k: tmp_path / ".agi")
+    st = {"label": "refute:x", "prompt": "cd {project_root} && true"}
+    out = render_stage_prompt(st, {})
+    assert out == f"cd {tmp_path} && true", out
+
+
+def test_pi_run_renders_project_root_not_main_checkout(tmp_path_factory):
+    """The live pi path: with a REAL run_workflow call, the rendered refute
+    prompt carries the run's resolved repo root (REPO, in this suite), never
+    the hardcoded main checkout."""
+    import subprocess as _sp
+    from unittest import mock
+    from workflow import run_workflow
+
+    calls = []
+    good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "kept": "none", "dropped": "none", "notes": "n"})
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            calls.append(" ".join(cmd))
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+
+    saved = workflow._loc.shared_project_root
+    workflow._loc.shared_project_root = lambda root: tmp_path_factory.mktemp("s")
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "research-review", "pi",
+                              {"targets": [{"key": "k", "hypothesis": "h",
+                                            "experiments": "e", "files": "f",
+                                            "focus": "x", "verdict": "proved"}]},
+                              False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert calls, "no stage rendered"
+        assert any(f"cd {REPO} &&" in c for c in calls), calls[0][:400]
+        assert all("/home/ubuntu/work/agi &&" not in c or f"cd {REPO} &&" in c
+                   for c in calls), "main checkout literal survived"
+    finally:
+        workflow._loc.shared_project_root = saved
+
+
+# ---------- R2: an empty handoff list is visible, not a silent ok ----------
+# The acceptance clause "ready_batch of 1 to 5" is prompt-only: the schema has
+# no minItems, so a refuter that drops everything leaves downstream blank
+# while the summary reads ok. The runner now names it.
+
+def test_empty_handoff_renders_a_warn_and_sets_batch_empty():
+    from workflow import RunView
+    buf = io.StringIO()
+    v = RunView("research-review", [{"label": "refute:k"}], "pi", out=buf)
+    v.stage_finished("refute:k", {"ready_batch": []})
+    v.stage_empty_handoff("refute:k", "ready_batch")
+    v.summary()
+    text = buf.getvalue()
+    assert "[warn] refute:k: handoff ready_batch is empty" in text, text
+    assert "batch_empty=true" in text, text
+    # the summary line is still last among summary-render lines
+    tail = [l for l in text.splitlines() if l.startswith(("[stage]", "[summary]"))]
+    assert tail[-1] == ("[summary] workflow=research-review stages=1 ok=1 "
+                        "unstructured=0 failed=0"), tail
+    assert v.empty_handoffs == [{"stage": "refute:k", "field": "ready_batch"}]
+
+
+def test_nonempty_handoff_never_warns():
+    from workflow import RunView
+    buf = io.StringIO()
+    v = RunView("research-review", [{"label": "refute:k"}], "pi", out=buf)
+    v.stage_finished("refute:k", {"ready_batch": [{"id": "hypothesis:x"}]})
+    v.summary()
+    assert "[warn]" not in buf.getvalue()
+    assert v.empty_handoffs == []
+
+
+def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
+    """The mechanical detection: a stage declaring `handoff_list` and
+    returning it empty makes the run level say so, through the summary AND
+    the tracking row's `batch_empty` — without failing the run (rc 0)."""
+    import subprocess as _sp
+    from unittest import mock
+    from workflow import run_workflow
+
+    good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "kept": "none", "dropped": "none", "notes": "n"})
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+
+    tmp = tmp_path_factory.mktemp("handoff-sess")
+    saved = workflow._loc.shared_project_root
+    workflow._loc.shared_project_root = lambda root: tmp
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "research-review", "pi",
+                              {"targets": [{"key": "k", "hypothesis": "h",
+                                            "experiments": "e", "files": "f",
+                                            "focus": "x", "verdict": "proved"}]},
+                              False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert "[warn] refute:k: handoff ready_batch is empty" in buf.getvalue()
+        row = json.loads((tmp / "sessions" / "workflows" /
+                          "research-review.jsonl").read_text().splitlines()[-1])
+        assert row["batch_empty"] is True, row
+        assert row["failed"] == 0
+    finally:
+        workflow._loc.shared_project_root = saved
+# ---------- RETURN SHAPE block: pi stage sees its schema ------------------
+
+def _capture_pi_prompt(stage, run_args):
+    import subprocess as _sp
+    from unittest import mock
+    captured = {}
+
+    def fake_run(cmd, **kw):
+        captured["cmd"] = cmd
+        return _sp.CompletedProcess(cmd, 0,
+                                    stdout='{"a": "x"}', stderr="")
+
+    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi",
+                                "provider": "openrouter"}}}
+    st = dict(stage)
+    label = st["label"]
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        _run_stage_pi(cfg, st, {label: {"model": "m", "effort": "low"}},
+                      run_args)
+    return captured["cmd"][-1]
+
+
+def test_pi_prompt_carries_every_required_key_and_result_file():
+    """hypothesis:lm-pi-stage-never-sees-its-schema...: a schema-bearing pi
+    stage must be handed its own schema, its required keys named, the
+    last-thing-in-stdout instruction, and the rendered result_file path."""
+    schema = {"type": "object",
+              "properties": {"angle": {"type": "string"},
+                             "chains": {"type": "array"}},
+              "required": ["angle", "chains"]}
+    stage = {"label": "panel:a", "role": "kid", "prompt": "do the work",
+             "schema": schema, "result_file": "{scratch}/panel-{key}.json",
+             "_repeat_item": {"key": "a"}}
+    prompt = _capture_pi_prompt(stage, {"scratch": "/tmp/S"})
+    assert "do the work" in prompt
+    assert '"angle"' in prompt and '"chains"' in prompt, prompt
+    assert "Required keys" in prompt and "angle" in prompt, prompt
+    assert "LAST thing in your stdout" in prompt, prompt
+    assert "/tmp/S/panel-a.json" in prompt, prompt
+
+
+def test_pi_prompt_without_schema_is_byte_identical():
+    """A stage with NO schema renders byte-identical to before: the block is
+    appended only when a schema is declared."""
+    stage = {"label": "plain:a", "role": "kid", "prompt": "just prose {key}",
+             "_repeat_item": {"key": "a"}}
+    args = {"scratch": "/tmp/S"}
+    prompt = _capture_pi_prompt(stage, args)
+    assert prompt == render_stage_prompt(stage, args), repr(prompt)

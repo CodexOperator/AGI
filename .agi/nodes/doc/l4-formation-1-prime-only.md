@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g15
 next_edges: []
-edited_by: sanctuary-master
+edited_by: a00-e446700d
 origin: doc-version
 scaffold_hash: f28ce2413e478238
 season: 2
@@ -70,7 +70,7 @@ owner ──► belam (Prime) ── every role at once: the graph's trajectory 
 
 Next: **doc:l4-formation-2-texas-two-step** (goal:g17.1).
 
-**Prime/SM reading:** F1 proves the loop itself — one seat can run brief → dispatch → review → merge → rotate end to end — and establishes the Prime's successor chain (`belam-S1-L<n>-<numeral>`) and the handoff/card discipline the later seats copy. Survival mode, the step at F1's edge, proves that a second persistent seat can be trusted with a loop brief without cratering the subscription (L265, L387: "That seemed to work phenomenally last time"). F2 then doubles that one director:
+**Prime/SM reading:** F1 proves the loop itself — one seat can run brief → dispatch → review → merge → rotate end to end — and establishes the Prime's successor chain (`belam-S<season>-L<loop>-<numeral>`, derived from the live ladder cells) and the handoff/card discipline the later seats copy. Survival mode, the step at F1's edge, proves that a second persistent seat can be trusted with a loop brief without cratering the subscription (L265, L387: "That seemed to work phenomenally last time"). F2 then doubles that one director:
 
 > Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work. Act after the workflow finishes. Let the current director take point though and the other one is like a helper to the first. Call it the Texas two step formation, goes under sanctuary goal as subgoal
 

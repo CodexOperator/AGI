@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""agi-boxinfo — alias + class-level facts only (SM.122); never a host, board,
+serial, MAC, IP or hardware model string (doc:unified-director-brief §2)."""
+from __future__ import annotations
+import os, shutil, subprocess, sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import boxes, locations
+def main():
+    root = locations.find_project_root(os.getcwd())
+    try:
+        alias = boxes.this_box(root)
+    except Exception:  # an undeclared box is reported, not fatal
+        alias = "undeclared"
+    print(f"box: {alias}")
+    exe = shutil.which("nvidia-smi")
+    if not exe:
+        print("gpu: absent")
+    else:
+        try:
+            out = subprocess.run(
+                [exe, "--query-gpu=memory.total", "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=5)
+            nums = [x for x in (out.stdout or "").split() if x.isdigit()]
+            print("gpu: present")
+            print("gpu_memory_mib: " + (str(sum(int(n) for n in nums))
+                                        if nums else "unreadable"))
+        except (OSError, subprocess.SubprocessError):
+            print("gpu: present\ngpu_memory_mib: unreadable")
+    try:
+        ram = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") // (1024 * 1024)
+    except (ValueError, OSError):
+        ram = 0
+    print(f"ram_mib: {ram}")
+    try:
+        free = shutil.disk_usage(locations.source_root(root)).free
+        print(f"disk_free_mib: {free // (1024 * 1024)}")
+    except OSError:
+        pass
+    print("load: " + " ".join(f"{x:.2f}" for x in os.getloadavg()))
+    try:
+        up = int(float(Path("/proc/uptime").read_text().split()[0]))
+        print(f"uptime_s: {up}")
+    except OSError:
+        pass
+    return 0
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,18 @@
+=== NSYS RUN step1 start date -u ===
+2026-09-18T21:28:46Z
+WARNING: CPU IP/backtrace sampling not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
+
+WARNING: CPU context switch tracing not supported, disabling.
+Try the 'nsys status --environment' command to learn more.
+
+19983
+Importer error status: The importer binary and its dependencies were not found.
+Unable to retrieve the importer version: skipping importation of the QDSTRM file.
+Generating '/tmp/nsys-report-fd8b.qdstrm'
+Generated:
+    /data/work/tm44/lifgpu_run1.qdstrm
+WALL 55.15 USER 0.02 SYS 0.13
+rc=0
+=== NSYS RUN step1 end date -u ===
+2026-09-18T21:29:41Z

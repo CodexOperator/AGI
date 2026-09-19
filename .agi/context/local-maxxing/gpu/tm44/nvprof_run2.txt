@@ -1,0 +1,31 @@
+=== NVPROF RUN step2 start ===
+2026-09-18T21:31:37Z
+==7787== NVPROF is profiling process 7787, command: ./lifgpu --gpu 512MB
+19983
+==7787== Profiling application: ./lifgpu --gpu 512MB
+==7787== Profiling result:
+            Type  Time(%)      Time     Calls       Avg       Min       Max  Name
+ GPU activities:  100.00%  14.635ms         1  14.635ms  14.635ms  14.635ms  [CUDA memset]
+      API calls:   68.14%  75.836ms         1  75.836ms  75.836ms  75.836ms  cuDevicePrimaryCtxRetain
+                   18.28%  20.342ms         1  20.342ms  20.342ms  20.342ms  cuMemAllocManaged
+                   13.18%  14.665ms         1  14.665ms  14.665ms  14.665ms  cuMemsetD8
+                    0.39%  429.32us         1  429.32us  429.32us  429.32us  cuModuleLoadData
+                    0.01%  10.620us         1  10.620us  10.620us  10.620us  cuMemAdvise
+                    0.00%  5.5010us         1  5.5010us  5.5010us  5.5010us  cuCtxSynchronize
+                    0.00%  4.8900us         1  4.8900us  4.8900us  4.8900us  cuDeviceGetPCIBusId
+                    0.00%  1.5030us         5     300ns     131ns     752ns  cuDeviceGetAttribute
+                    0.00%  1.4820us         1  1.4820us  1.4820us  1.4820us  cuCtxSetCurrent
+                    0.00%     912ns         2     456ns     331ns     581ns  cuDeviceGetCount
+                    0.00%     902ns         1     902ns     902ns     902ns  cuModuleGetFunction
+                    0.00%     871ns         1     871ns     871ns     871ns  cuDeviceTotalMem
+                    0.00%     642ns         2     321ns     161ns     481ns  cuDeviceGet
+
+==7787== Unified Memory profiling result:
+Device "NVIDIA GeForce RTX 2070 SUPER (0)"
+   Count  Avg Size  Min Size  Max Size  Total Size  Total Time  Name
+      36  4.0000KB  4.0000KB  4.0000KB  144.0000KB  44.73900us  Device To Host
+      37         -         -         -           -  14.31675ms  Gpu page fault groups
+Total CPU Page faults: 242
+WALL 48.61 USER 48.23 SYS 0.34
+rc=0
+2026-09-18T21:32:25Z

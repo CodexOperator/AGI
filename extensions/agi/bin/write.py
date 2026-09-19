@@ -1029,6 +1029,100 @@ def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
     return None
 
 
+def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
+    """Resolve EVERY `actor_rows:` entry for the actor's RESOLVED seat. A
+    `list_key` entry grants its row list (fields/ops/deny_roles), a `field`
+    entry one top-level cell. "" = admitted, None = no entry applies, else a
+    refusal naming the reason. Old rows come from the post-first geometry
+    resolver, never a hardcoded file name."""
+    entries = schema.frontmatter.get("actor_rows")
+    if not isinstance(entries, list):
+        return None
+    seat = _resolve_seat(root, actor)
+    if seat is None:
+        return None
+    for entry in entries:
+        if (not isinstance(entry, dict)
+                or str(entry.get("actor") or "") != seat):
+            continue
+        key, mk = entry.get("list_key"), entry.get("match_key")
+        if key and mk:
+            # (SM.108 defect 2) A grant on a row list grants ONLY that list: a
+            # chained edit that also touches any other top-level key is refused
+            # whole, exactly as `self_row` refuses `touched_top - {list_key}`.
+            bad_top = (set(set_fm or {}) | set(unset_fm or {})) - {key}
+            if bad_top:
+                return (f"the actor grant on `{key}` may write ONLY that "
+                        f"list (touched top-level field(s) "
+                        f"{', '.join(sorted(bad_top))}); those declarations "
+                        "are outside the grant")
+            if key not in (set_fm or {}):
+                continue
+            rows = set_fm[key]
+            if not isinstance(rows, list):
+                return f"`{key}` must be a list of rows, got {type(rows).__name__}"
+            _, resolved = geometry_config.resolve(root)
+            old = (_load_seats(root) if key in (resolved, "posts", "seats")
+                   else (_read_node_fm(root, where) or {}).get(key))
+            old = old if isinstance(old, list) else []
+            old_by = {r.get(mk): r for r in old if isinstance(r, dict)}
+            new_by = {r.get(mk): r for r in rows if isinstance(r, dict)}
+            # SM.115 + SM.115b: the actor's OWN row is co-governed by
+            # `self_row`. A field the type's `self_row` declares (its identity
+            # cells) is not THIS grant's to refuse, so it is exempted
+            # FIELD-LEVEL below; every other own-row field still goes through
+            # the grant's `fields` check, and non-self_row fields (town, ...)
+            # stay admitted exactly as on any other row.
+            _sr = schema.frontmatter.get("self_row")
+            self_row_fields = ([str(f) for f in (_sr.get("fields") or [])]
+                               if isinstance(_sr, dict) else [])
+            fields = [str(f) for f in (entry.get("fields") or [])]
+            ops = [str(o) for o in (entry.get("ops") or ["set"])]
+            deny = [str(r) for r in (entry.get("deny_roles") or [])]
+            for name in list(old_by) + [n for n in new_by if n not in old_by]:
+                o, n = old_by.get(name), new_by.get(name)
+                if o == n:
+                    continue
+                if str(name) in deny:
+                    return f"row {name!r} is in deny_roles {deny} on `{key}`"
+                op = "set" if o is not None and n is not None else (
+                    "retire" if n is None else "create")
+                if op not in ops:
+                    return f"op {op!r} is not granted on `{key}` (ops {ops})"
+                if op in ("set", "create"):
+                    # (SM.108 defect 4) a CREATE row is field-checked exactly
+                    # like a SET row: every key on a brand-new row except
+                    # `match_key` must be in the grant's `fields`.
+                    old_r = o or {}
+                    for f in set(old_r) | set(n):
+                        if (f != mk and old_r.get(f) != n.get(f)
+                                and f not in fields
+                                and not (str(name) == seat
+                                         and f in self_row_fields)):
+                            return (f"field {f!r} is not granted on `{key}` "
+                                    f"rows (fields {fields})")
+            return ""
+        if entry.get("field"):
+            if not (set_fm or unset_fm):
+                continue
+            field = str(entry["field"])
+            touched = set(set_fm or {}) | set(unset_fm or [])
+            if touched - {field} or field not in set_fm:
+                return (f"the actor grant sets only the `{field}` field; "
+                        f"this write touches "
+                        f"{', '.join(sorted(touched)) or 'nothing'}")
+            return ""
+        # (SM.108 defect 3) the actor MATCHED but the entry's shape is one
+        # this resolver does not read (no list_key+match_key, no field) --
+        # refuse BY NAME rather than silently falling through to "no entry
+        # applies". A no-op write is left to the caller's written_by refusal.
+        if set_fm or unset_fm:
+            return (f"actor_rows entry for {seat!r} declares no shape this "
+                    f"resolver reads (need list_key+match_key or field; "
+                    f"entry keys {sorted(entry)})")
+    return None
+
+
 def _sectionize(body: str):
     """Split a node body into {header: text} + a preamble, keyed on `## `.
 
@@ -1469,6 +1563,20 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         # admission here is refined by submit's facts-region gate,
                         # which refuses any delta outside the `## facts` section.
                         return
+
+        # GENERIC `actor_rows:` carve-out (hypothesis:l4-the-formation-owner-
+        # writes-config-posts-rows-...): the schema declares as a LIST which
+        # RESOLVED seats may write which row list or single field -- a future
+        # grant is ONE schema line, never a new branch here.
+        if schema.frontmatter.get("actor_rows"):
+            _ar = _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where)
+            if _ar == "":
+                return
+            if _ar is not None and _refuse(
+                    out_decision, preview,
+                    f"{node_type} nodes ({where}): the actor_rows grant does "
+                    f"not cover this write; {_ar} (schema-declared actor_rows)"):
+                return
 
         # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
         # say) is not in `written_by` and yet may update ONE thing — its own seat

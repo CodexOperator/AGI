@@ -1032,6 +1032,46 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
     assert own["key_history"][-1]["pub"] == pred_pub.hex()
 
 
+def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
+        tmp_path):
+    """hypothesis:l5-key-history-retires-a-key-by-fingerprint-never-by-
+    generation-pair: the retired entry's IDENTITY is its fingerprint, never
+    the (from, to) generation pair. After a generation-count reset a fresh
+    rotation re-offers a pair an EARLIER epoch already used; the old
+    (from,to) predicate dropped it silently and the outgoing key never
+    entered key_history, so the retired key's last lines read FORGED at an
+    enforcing reader.
+
+    Two assertions: (a) a DIFFERENT fp under an already-present (2,3) pair
+    is APPENDED (len+1); (b) re-offering the SAME fp is still a no-op
+    (len unchanged) -- history never duplicates a key."""
+    existing_hist = [{"pub": "aa" * 32, "fp": "fp-old", "from": 2,
+                      "to": 3, "rotated_by_sig": "sig-old"}]
+    rows = [{"name": "s1", "role": "director",
+             "session_ref": "x", "generation": 3, "window": "",
+             "key_history": list(existing_hist)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    fresh = {"successor_pub": "aa" * 32, "scheme": "ed25519",
+             "retired": {"pub": "bb" * 32, "fp": "fp-new", "from": 2,
+                         "to": 3, "rotated_by_sig": "sig-new"}}
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=fresh)
+    assert "config:seats row" in out, out
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert own["key_history"] == existing_hist + [fresh["retired"]]
+    assert own["key_history"][-1]["fp"] == "fp-new"
+    # (b) idempotence on the fp: the deliberate retry is a no-op.
+    again = dict(fresh, retired=dict(fresh["retired"],
+                                     rotated_by_sig="sig-retry"))
+    rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=again)
+    own2 = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert len(own2["key_history"]) == len(own["key_history"])
+
+
 def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
     """hypothesis:l5-key-rotation-at-a-rename-boundary-clobbers-key-history-
     instead-of-carrying-it: at a RENAME-plus-key-rotation boundary the row
@@ -7477,6 +7517,152 @@ def test_ack_commits_only_own_row_leaves_foreign_unstaged(
         "the ack commit must change belam's own row"
     assert not any('"name": "other"' in ln for ln in changed), \
         "the ack commit must not change the foreign spawn-row hunk"
+
+
+# ── L4.319 (a00-4be93400): the ack own-row dirty gate's ROOT ─────────────
+#    hypothesis:l4-the-continue-ack-own-row-dirty-gate-judges-the-calling-
+#    worktree-never-main. The ONE `_ack_seats_dirty` call site resolves
+#    `_shared_graph_root(root)` -- MAIN -- and the tests below hold that root
+#    choice to account: from a LINKED worktree the gate must still see MAIN's
+#    own-row dirt (the safety invariant), foreign / non-row dirt must never
+#    block, and the MAIN caller is byte-identical. The falsifier pair is the
+#    first test: swapping the call site to the caller's own `root` -- which
+#    nothing ever writes (the ONE writer targets MAIN), so the worktree copy
+#    is stale-but-clean by construction -- would make it silently read CLEAN
+#    on a MAIN own-row dirt and defeat r3b/g15.24.
+
+
+def _ack_main_and_worktree(tmp_path, seat="belam"):
+    """A MAIN checkout + one LINKED worktree, both with a real `.agi` graph
+    and a COMMITTED seats.md carrying one row. Returns (repo, main_root,
+    wt, wt_root)."""
+    repo = tmp_path / "main"
+    repo.mkdir()
+    subprocess.run(["git", "-C", str(repo), "init", "-q", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = repo / ".agi"
+    (root / "nodes").mkdir(parents=True)
+    (root / "config.json").write_text("{}", encoding="utf-8")
+    (root / "sessions").mkdir(parents=True)
+    _write_seats_sheet(root, [{"name": seat, "role": "prime_director",
+                               "model": "x", "effort": "max",
+                               "settings": "", "session_ref": ""}])
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m",
+                    "seats seed"], check=True, capture_output=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-a@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+    return repo, root, wt, wt / ".agi"
+
+
+def _ack_continue_args(seat="belam", ref="f52a4c"):
+    return SimpleNamespace(seat=seat, gen=7, ref=ref, answer="continue",
+                           text="", wait=0)
+
+
+def test_ack_from_worktree_sees_main_own_row_dirt(
+        tmp_path, monkeypatch, capsys):
+    """SAFETY INVARIANT (L4.319 #1): the calling worktree's own seats.md is
+    stale-but-CLEAN (nothing writes it -- the ONE writer targets MAIN), so a
+    gate that judged the caller's root would read clean. It must NOT: an
+    own-row dirt written directly on MAIN is REFUSED (rc 3, named) by an ack
+    driven from the linked worktree. This test fails if the `id_root` at the
+    call site is swapped to the caller's `root`."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    main_seats = rotate._ack_seats_path(main_root)
+    wt_seats = rotate._ack_seats_path(wt_root)
+    head_bytes = subprocess.run(
+        ["git", "-C", str(wt), "show", "HEAD:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert wt_seats.read_text(encoding="utf-8") == head_bytes, \
+        "the worktree copy must be clean (== HEAD) or this test is vacuous"
+    main_seats.write_text(main_seats.read_text(encoding="utf-8").replace(
+        '"name": "belam", "role": "prime_director"',
+        '"name": "belam", "role": "pre-dirty"'), encoding="utf-8")
+    before = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    out = capsys.readouterr()
+    assert code == 3, out.err
+    assert "dirty" in out.err and "refuse" in out.err
+    assert subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip() \
+        == before, "a refused ack must make no commit"
+
+
+def test_ack_from_worktree_foreign_main_dirt_does_not_block(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #2: MAIN dirty only with FOREIGN content (another seat's row
+    plus a staged unrelated file) and the worktree clean -> the gate is
+    pathspec- AND own-row-scoped, so the ack is NOT refused; it proceeds and
+    lands its own-row commit on MAIN."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    main_seats = rotate._ack_seats_path(main_root)
+    text = main_seats.read_text(encoding="utf-8")
+    row = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    main_seats.write_text(text.replace(row, row + "\n" + foreign),
+                          encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    # dirty ONLY the FOREIGN row on MAIN + a staged unrelated tracked file.
+    main_seats.write_text(main_seats.read_text(encoding="utf-8").replace(
+        '"name": "other", "role": "director"',
+        '"name": "other", "role": "parent"'), encoding="utf-8")
+    (repo / "notes.txt").write_text("foreign\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "notes.txt"], check=True,
+                   capture_output=True)
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    assert code == 0, capsys.readouterr().err
+
+
+def test_ack_from_worktree_non_row_dirt_does_not_block(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #3: `tests/test_workflow.py` uncommitted in the CALLING
+    worktree, MAIN and both seats.md copies clean -> nothing in the ack path
+    blocks it: `_ack_seats_dirty` is blind to any path but seats.md (pathspec)
+    and to any row but the seat's own. Confirms the claim-(3) incident cannot
+    have come from this gate; no other dirty gate exists in `cmd_ack`."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    (wt / "tests").mkdir()
+    (wt / "tests" / "test_workflow.py").write_text(
+        "def test_x():\n    assert 1\n", encoding="utf-8")
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    assert code == 0, capsys.readouterr().err
+
+
+def test_ack_from_main_own_row_dirt_identical(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #4: from MAIN itself (`_shared_graph_root(root) == root`) the
+    own-row dirt refusal is byte-identical: rc 3, named, no commit."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(main_root)
+    seats = rotate._ack_seats_path(main_root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"name": "belam", "role": "prime_director"',
+        '"name": "belam", "role": "pre-dirty"'), encoding="utf-8")
+    before = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    code = rotate.cmd_ack(_ack_continue_args(), main_root)
+    out = capsys.readouterr()
+    assert code == 3, out.err
+    assert "dirty" in out.err and "refuse" in out.err
+    assert subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip() \
+        == before, "a refused ack must make no commit"
 
 
 def test_ack_commit_stages_index_only_never_writes_seats(

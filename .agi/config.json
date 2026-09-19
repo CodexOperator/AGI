@@ -56,7 +56,12 @@
       },
       "allowed_extra": [
         "deepseek/deepseek-v4.1-flash",
-        "~z-ai/glm-flash-latest"
+        "~z-ai/glm-flash-latest",
+        "anthropic/claude-opus-5"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "pi-local": {
@@ -70,6 +75,10 @@
       },
       "allowed_extra": [
         "Qwen3.5-9B-Q4_K_M"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "claude-code": {
@@ -112,7 +121,8 @@
       "ttl_minutes": 180,
       "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
     },
-    "parent_max_kids": 10
+    "parent_max_kids": 10,
+    "memory_max": "4G"
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,

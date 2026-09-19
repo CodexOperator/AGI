@@ -69,6 +69,7 @@ import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -135,6 +136,8 @@ DEFAULT_CC_ROLES = {
 SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
     "quiet": {"quiet": True},
+    # a row that keeps post dm nudges but never a service-class one
+    "quiet-system": {"quiet_system": True},
 }
 
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
@@ -818,6 +821,55 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
         best_base = prefix
         best_val = 1
     return f"{best_base}-{_int_to_roman(best_val + 1)}"
+
+
+_CHAIN_TOKEN_RE = re.compile(r"-S(\d+)-L(\d+)(?:$|[-.])")
+
+
+def _chain_token(name: str | None) -> tuple[int, int] | None:
+    """The (season, loop) token of a prime chain window, or None.
+
+    `belam-S2-L5-III` -> (2, 5); a plain `belam` or a pre-token window such
+    as `belam-S1-L3` -> None. ONE reader, so the name resolver, the chain
+    grep and the reap order can never disagree on what a token is."""
+    if not name:
+        return None
+    m = _CHAIN_TOKEN_RE.search(name)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def prime_window_name(root: Path | None, predecessor: str | None,
+                      prefix: str = "belam") -> str:
+    """The Prime successor window name: `<prefix>-S<season>-L<loop>-<ROM>`.
+
+    Season and loop come from the LIVE cells (ladder `current_season` +
+    `current_loop`), never by copying the predecessor's prefix. The numeral
+    CONTINUES from the predecessor ONLY when the predecessor carries the
+    SAME S/L token; on a token change it restarts at I, so a season or loop
+    rollover never inherits the old name (hypothesis:l4-the-prime-successor-
+    window-name-derives-from-the-season-and-loop-cells-...). When the ladder
+    has no cells (a fixture root) the predecessor's own token is kept, so a
+    pre-cell root stays byte-identical."""
+    season = load_ladder_field(root, "current_season", None) if root else None
+    loop = load_ladder_field(root, "current_loop", None) if root else None
+    ptok = _chain_token(predecessor)
+    if season is None or loop is None:
+        tok = ptok or (1, 1)
+    else:
+        tok = (int(season), int(loop))
+    val = 1
+    if predecessor and ptok == tok:
+        val = _split_roman_suffix(predecessor)[1] + 1
+    return f"{prefix}-S{tok[0]}-L{tok[1]}-{_int_to_roman(val)}"
+
+
+def _window_seniority(w: str) -> tuple:
+    """Reap sort key, OLDEST first: (S/L token, then numeral).
+
+    Sorting by numeral ALONE reaps the NEWEST window after a season/loop
+    token change (`belam-S2-L5-I`, numeral 1, outranks `belam-S1-L4-V`). A
+    pre-token window sorts before any token window."""
+    return (_chain_token(w) or (0, 0), _split_roman_suffix(w)[1])
 
 
 def _session_label(row: dict | None, gen: int) -> str | None:
@@ -3266,6 +3318,12 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         for row in _load_seats(root):
             seat = row.get("name") or "?"
+            if not boxes.row_is_local(root, row):
+                # A foreign box's row: its pin log is that box's file, not
+                # this one's. Name the seat and the box, never a false age=?.
+                print(f"{seat}\tbox={row.get('box') or '(default)'}\t"
+                      f"skipped: foreign box")
+                continue
             gen = _read_generation(root, seat)
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
@@ -9408,9 +9466,11 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         cells["pubkey"] = key_rotation.get("successor_pub")
         cells["sig_scheme"] = (_cur.get("sig_scheme")
                                or key_rotation.get("scheme"))
+        # l5-key-history-...-never-by-generation-pair: dedupe by the retired
+        # key's fingerprint (fp, fallback pub), never its (from,to) pair.
         _hist = list(_cur.get("key_history") or [])
-        if _ret and not any(h.get("from") == _ret.get("from")
-                            and h.get("to") == _ret.get("to")
+        if _ret and not any((h.get("fp") or h.get("pub"))
+                            == (_ret.get("fp") or _ret.get("pub"))
                             for h in _hist if isinstance(h, dict)):
             _hist.append(_ret)
         cells["key_history"] = _hist
@@ -11060,9 +11120,9 @@ def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
         return None
     if not live_belam:
         return None
-    # oldest = lowest line value; a bare base (no Roman) is line 1
-    by_line = sorted(live_belam,
-                     key=lambda w: _split_roman_suffix(w)[1])
+    # oldest = lowest (S/L token, numeral); across prefixes too, so a
+    # season/loop token change never reaps the newest window.
+    by_line = sorted(live_belam, key=_window_seniority)
     return by_line[0]
 
 
@@ -18445,8 +18505,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # numeral in the chain (its numeral is the successor's minus one line)
         _chain_live = [w for w in _existing_for_chain
                        if w == seat or w.startswith(seat + "-")]
+        # numeral ALONE ranks `belam-S1-L4-XXXI` above `belam-S2-L5-I` after a
+        # season/loop token change, so the successor restarted at `-I` and
+        # collided with the live window (belam-S2-L5-I rotate, 2026-09-18
+        # 23:1xZ). Rank by (token, numeral) -- the reap key, one reader.
         own_chain_name = max(
-            _chain_live, key=lambda w: _split_roman_suffix(w)[1],
+            _chain_live, key=_window_seniority,
             default=None)
         # L4.122 merge-up 24 residue (G): gen_before for a CHAIN seat comes
         # from the ROW/numeral — the predecessor's own window's line value —
@@ -18456,7 +18520,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # the counter only when no chain window is live yet (a fresh prime).
         gen_before = (_split_roman_suffix(own_chain_name)[1]
                       if own_chain_name else _read_generation(root, seat))
-        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
+        spawn_name = prime_window_name(root, own_chain_name, prefix=seat)
         _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
         new_name = None   # the own-window rename is plain-seat only
     else:
@@ -20303,6 +20367,69 @@ def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
                         "push) -- a live close-out is the real run.")
 
 
+def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, SOURCE SIDE (SM.123): one verb moves a post to another
+    box. This round builds the PLAN and the ONE signed migrate record; the
+    card gate, the carryover commit, the ref push, the target receive and the
+    seated line are named as steps and shipped by later slices (they run on
+    the target's tick / the landing, never as a kid's git). `--dry-run`
+    prints every step by alias and touches nothing. Refusals print BY NAME.
+    """
+    import migrate_channel
+    import send
+    if root is None:
+        print("ERR: migrate needs an agi project root.", file=sys.stderr)
+        return 1
+    root = Path(root).resolve()
+    if not args.post:
+        print("REFUSED: migrate needs --post <post> (nothing touched)")
+        return 1
+    try:
+        source = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot move
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    if not args.to:
+        print("REFUSED: migrate needs --to <box> (nothing touched)")
+        return 1
+    if args.to == source:
+        print(f"REFUSED: a migrate to the box the post is already on "
+              f"({source}) (nothing touched)")
+        return 1
+    if args.mode not in migrate_channel.MODES:
+        print(f"REFUSED: unknown mode {args.mode!r} "
+              f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
+        return 1
+    branch = f"refs/agi/posts/{args.post}"
+    print(f"migrate {args.post}: {source} -> {args.to} (mode {args.mode})")
+    for i, step in enumerate((
+            "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
+            "carryover commit: the post worktree's diffs as ONE commit on its branch",
+            f"push: {branch} (the post branch rides git)",
+            "record: ONE migrate record, signed with the post key",
+            "target receive: the mail_poll tick seats the successor from the ref",
+            "seated line: ONE answer back on the same channel",
+    ), 1):
+        print(f"  step {i}: {step}")
+    if args.dry_run:
+        print("dry-run: nothing touched")
+        return 0
+    rec = migrate_channel.record(post=args.post, mode=args.mode,
+                                 source_box=source, target_box=args.to,
+                                 branch=branch, tip=args.tip,
+                                 session_id=args.session_id, ts=send._now())
+    text = migrate_channel.format_record(rec, sign_root=root, signer=args.post)
+    out = send.comms_root(root) / migrate_channel.SUBDIR / migrate_channel.record_name(rec)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    signed = "signed" if "sig:" in text else "UNSIGNED"
+    print(f"record: {migrate_channel.record_name(rec)} ({signed} with the "
+          f"{args.post} key)")
+    print("next: the target box's mail_poll tick receives it; the ref push is "
+          "the landing, never this verb")
+    return 0
+
+
 def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     """The BARE rotation verb (SL7.115, owner order 22:2xZ via the Sensei):
     `rotate` IS `rotate-self` for the post whose SIGNING KEY the caller holds
@@ -20826,6 +20953,33 @@ def main(argv: list[str] | None = None) -> int:
     # the SL7.114 resolvers, every rotate-self flag an override, --post
     # rotating a LOWER-RANKED post only (downward rank-gated). Delegates to
     # cmd_rotate_self with a Namespace carrying EVERY rotate-self attribute.
+    # migrate --post <post> --to <box> [--mode rotate|fork] [--dry-run]:
+    # QUICK-MIGRATE (SM.123), source side. --dry-run prints every step by
+    # alias and touches nothing; without it, ONE signed migrate record lands
+    # under the season comms root. The ref push and the target receive are
+    # named steps, shipped later -- this verb never runs a kid's git.
+    p_mig = sub.add_parser(
+        "migrate", help="move a post to another box as a fresh rotation "
+                        "(--mode rotate) or a transcript fork (--mode fork); "
+                        "--dry-run prints the plan and touches nothing")
+    p_mig.add_argument("--post", default=None, help="the post to move")
+    p_mig.add_argument("--to", dest="to", default=None,
+                       help="the TARGET box name (never a path or address)")
+    p_mig.add_argument("--mode", default="rotate", choices=["rotate", "fork"],
+                       help="rotate = a fresh seating from the card "
+                            "(default); fork = resume the transcript copy")
+    p_mig.add_argument("--session-id", default=None,
+                       help="with --mode fork: the source session id to "
+                            "resume on the target")
+    p_mig.add_argument("--tip", default=None,
+                       help="the post branch tip the target receives from")
+    p_mig.add_argument("--dry-run", action="store_true",
+                       help="print every step by alias and touch nothing")
+    p_mig.add_argument("--root", default=None,
+                       help="project root override (default: resolve from cwd)")
+    p_mig.set_defaults(func=cmd_migrate)
+
+    # rotate --post <name>: the bare rotation verb
     p_r = sub.add_parser(
         "rotate", help="rotate-self for the post whose key the caller "
                         "holds: name/timeout/force/stops derived, every "
@@ -20998,6 +21152,10 @@ def main(argv: list[str] | None = None) -> int:
     p_lw.set_defaults(func=cmd_launch_wrapper)
 
     args = ap.parse_args(argv)
+
+    # migrate resolves --root itself, else the nearest project
+    if args.cmd == "migrate":
+        return args.func(args, getattr(args, "root", None) or find_project_root())
 
     # complete works purely from its explicit paths + git; no project root.
     if args.cmd == "complete":
