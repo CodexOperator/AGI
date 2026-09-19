@@ -20,6 +20,35 @@ town: local-maxxing
 <!-- BODY:BEGIN -->
 # hypothesis:lm-jev-split-leaks-repeats
 
-## Hypothesis
+## Claim
 
-What is the testable claim? What would prove it? What would disprove it?
+The held-out verdict ECE of 0.141-0.212 (experiment:a00-bdec620b-6c4cf7) is not
+a miscalibration measurement at all: it is a **split-leakage artifact**. The
+50/50 split was by act id, but the 3 repeats of one act id can still land on
+opposite sides, so a held-out verdict row is scored against a confidence whose
+sibling repeats were seen in train. Verdict rows carry the most within-act label
+disagreement (idea:lm-why-jev-echoes-leaked-verdicts hop 2: ~20 pct of q1
+targets self-inconsistent), so this leak inflates verdict ECE specifically.
+
+**Claim:** re-splitting with ALL 3 repeats of an act id forced onto the SAME
+side (GroupKFold by act id) drops verdict-subgroup held-out ECE to <= 0.10 on
+>= 4/5 seeds.
+
+## Falsifier
+
+Act-blocked (grouped) split leaves verdict held-out ECE > 0.10 on >= 2/5 seeds.
+Then the failure is NOT split leakage and the residual is real shape/scale.
+
+## Cost
+
+0 API calls (reuses committed `json_cache_scrub` probabilities and
+`acts_replay_scrub.jsonl` labels), 0 GPU, pure NumPy on CPU, < 2 min. <= 1 USD
+only if a cached row must be re-derived.
+
+## Experiment that tests it
+
+Extend the TM.57 probe (`probe_ece_pool.py`) to split with `GroupKFold` on act
+id (all repeats one side), refit per-group NLL temperature on train, report
+held-out verdict/experiment/pooled ECE across seeds 20260918/1/7/42/1234 and
+the fitted T. Rows to `bench/<utc>.jsonl`. Compare against the
+`bench/20260918T233624Z.jsonl` split-by-act baseline.
