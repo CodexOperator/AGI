@@ -640,12 +640,31 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
         _parsed = branches.parse(branch)
     except ValueError:
         _parsed = None
-    if _parsed is not None and _parsed["kind"] in ("post", "loop"):
+    # hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    # main: the v3 TOWN-FIRST spellings every live seat actually carries
+    # (`<town>/season<m>/posts/<seat>/main`, `.../loops/...`) parse as
+    # `v3_post` / `v3_loop`, which the tuple below did not name -- so a town
+    # director's spawn fell through to the ladder lookup, matched no row and
+    # was measured against CORE's main, forcing a merge of season2/main into
+    # its post branch before every dispatch (owner 01:1xZ 09-19: "merging
+    # into prim branch ... needs urgent fix"). `merge_target` already resolves
+    # the v3 trunk of the same tuple.
+    if _parsed is not None and _parsed["kind"] in (
+            "post", "loop", "v3_post", "v3_loop"):
         return branches.merge_target(branch)
     town = spawn_gate.town_of_branch(nodes_dir, branch)
-    if not town:
-        return None
-    return spawn_gate.town_integration_branch(nodes_dir, town)
+    if town:
+        return spawn_gate.town_integration_branch(nodes_dir, town)
+    # A v3 town TRUNK whose town has NO `town_branches` row at all integrates
+    # against ITSELF on origin (owner 01:0xZ 09-19: every master's town is
+    # independent and batched -- it is never measured against core's main).
+    # A town WITH a row (core: season/s2) keeps today's exact-equality path
+    # and its None fallback, byte-for-byte.
+    if (_parsed is not None and _parsed["kind"] == "v3_town_season_main"
+            and _parsed.get("town")
+            and _parsed["town"] not in spawn_gate.read_town_branches(nodes_dir)):
+        return branch
+    return None
 
 
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
