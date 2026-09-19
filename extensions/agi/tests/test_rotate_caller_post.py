@@ -133,3 +133,33 @@ def test_main_as_root_is_a_no_op(tmp_path, monkeypatch):
     monkeypatch.delenv("AGI_SEAT", raising=False)
     post, row, how = rotate._caller_post(repo / ".agi")
     assert post == seat and how == "env"
+
+
+def test_main_row_without_worktree_cell_never_yields_to_the_copy(tmp_path,
+                                                                 monkeypatch):
+    """(probe C) MAIN HAS a row for the seat but its `worktree` cell is
+    ABSENT (a stale/lagging MAIN row), so the only worktree match is the
+    worktree COPY's row. Conjunct (2): the fallback to root's copy happens
+    ONLY when the shared root has no row for the seat -- so MAIN's row is the
+    authority and the held key B (named only by the copy) must REFUSE."""
+    repo, wt, seat, pub_a, pub_b = _make(tmp_path)
+    _write_seats(repo / ".agi", [{"name": seat, "role": "director",
+                                  "window": "@OLD", "pid": 100,
+                                  "generation": 3, "pubkey": pub_a}])
+    _write_seats(wt / ".agi", _rows(seat, wt, pub_b))
+    post, row, why = _call_as_worktree(wt, monkeypatch)
+    assert (post, row) == (None, None), "MAIN's row for the seat is the authority"
+    assert "fingerprint" in why and seat in why
+
+
+def test_main_row_with_mismatched_worktree_cell_never_yields_to_the_copy(
+        tmp_path, monkeypatch):
+    """(probe C variant) MAIN's row for the seat exists but its `worktree`
+    cell points elsewhere; the copy is the only match. Same rule: per-seat
+    fallback, so MAIN's stale pubkey refuses the held key."""
+    repo, wt, seat, pub_a, pub_b = _make(tmp_path)
+    _write_seats(repo / ".agi", _rows(seat, tmp_path / "elsewhere", pub_a))
+    _write_seats(wt / ".agi", _rows(seat, wt, pub_b))
+    post, row, why = _call_as_worktree(wt, monkeypatch)
+    assert (post, row) == (None, None), "MAIN's row for the seat is the authority"
+    assert "fingerprint" in why and seat in why
