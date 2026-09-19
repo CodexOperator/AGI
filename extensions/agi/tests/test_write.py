@@ -1806,3 +1806,46 @@ def test_the_incident_note_and_a_verb_pair_are_still_unchanged():
         ("note", ["probes && open the box"])]
     assert write.parse_script("note a && set title b") == [
         ("note", ["a"]), ("set", ["title", "b"])]
+
+
+# --- a verb-closing `&&` with no space must separate (l5-verb-split, third
+# round) `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-
+# that-begins-a-verb` clause (2). The lookahead required the verb name to end
+# at whitespace or end-of-string, so when a verb was immediately followed by
+# the NEXT separator (`-&&adopt&&`, `a&&adopt&&`) that `&&` was not a
+# separator and the tail leaked into the last argument. The pre-fix loop
+# (`str.split("&&")`) split it; these pin the pre-fix bytes back.
+
+
+def test_a_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """`body_patch -&&adopt&&`: `adopt` is immediately followed by the next
+    `&&`, with no space. That is still a separator -- the empty trailing chunk
+    is dropped, exactly as the pre-fix loop did."""
+    assert write.parse_script("body_patch -&&adopt&&") == [
+        ("body_patch", ["-"]), ("adopt", [])]
+    assert write.parse_script("note a&&adopt&&") == [
+        ("note", ["a"]), ("adopt", [])]
+
+
+def test_a_spaced_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """The other ordering: a spaced pair then a verb closed by a pair."""
+    assert write.parse_script("note x && adopt&&") == [
+        ("note", ["x"]), ("adopt", [])]
+
+
+def test_the_trailing_ampersand_fix_from_round_two_did_not_regress():
+    """Round two's behaviour, asserted again because the third-round boundary
+    must subsume it, not replace it: a trailing pair still separates."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+
+
+def test_the_round_two_and_round_one_prose_rules_did_not_regress():
+    """The third-round boundary must not loosen the prose rules: a run whose
+    successor begins no verb stays verbatim."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && setter x") == [
+        ("note", ["a && setter x"])]
