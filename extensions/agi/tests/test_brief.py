@@ -2181,16 +2181,23 @@ def test_parent_brief_dms_the_director_the_rebrief_answer():
     assert "BEFORE the kid resumes" in parent
 
 
-def test_parent_brief_slices_the_ceiling_across_kids():
-    """A `ceiling across K kids` target gives each kid its SLICE, written on
-    the KID NODE before the spawn -- the harvest measures overage against
-    that node's `line_ceiling` (SM.52: `60-across-2` ran to 212)."""
+def test_parent_brief_says_the_spawn_already_sliced_the_ceiling():
+    """A `ceiling across K kids` target's slice is written BY THE SPAWN onto
+    the KID NODE before the brief is assembled; the parent reads that node
+    field and never divides the number itself (SM.52: `60-across-2` ran to
+    212 when the whole N reached each kid).
+
+    hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-by-
+    the-spawn-never-by-parent-arithmetic.
+    """
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "across K kids" in parent
-    assert "GETS ITS SLICE" in parent
-    assert "N = ceiling / K" in parent
-    assert "set line_ceiling" in parent
-    assert "60-across-2" in parent
+    assert "ALREADY DIVIDED FOR YOU" in parent
+    assert "ceil(N/K)" in parent
+    assert "never divide it yourself" in parent
+    # the OLD instruction -- the parent doing the arithmetic -- is gone
+    assert "GETS ITS SLICE" not in parent
+    assert "N = ceiling / K" not in parent
 
 
 def test_parent_brief_demands_the_kid_title_in_its_own_words():

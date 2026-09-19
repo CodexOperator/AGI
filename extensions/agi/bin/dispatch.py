@@ -2438,6 +2438,11 @@ def main() -> int:
             }
             extra_fm = ({"pushed_from": args.target}
                         if args.push_further and args.target else None)
+            if args.tier == "kid" and target:
+                _slice, _k, _ = spawn_budget.node_line_ceiling(
+                    child_graph, target, cfg)
+                if _k > 1:
+                    extra_fm = dict(extra_fm or {}, line_ceiling=_slice)
             scaffold_info = _scaffold_node_for_agent(
                 child_graph, args.iter_n, agent_id, level, target, role,
                 stamp=child_stamp, extra_fm=extra_fm)

@@ -1833,16 +1833,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the same files (a shared cwd is fine when they would not). One kid "
         f"when the work is one thing. Do NOT fan three kids onto one file "
         f"— that is the measured collision hazard with extra steps.",
-        # the CEILING clause's own SLICE: when it says `across K kids`, each
-        # kid gets ceiling/K ON ITS NODE before the spawn, because the harvest
-        # measures overage against the kid node's `line_ceiling`.
-        f"WHEN THE TARGET'S CEILING CLAUSE SAYS `across K kids`, EACH KID "
-        f"GETS ITS SLICE, NOT THE WHOLE CEILING. Before spawning kid i, run "
-        f"`python3 extensions/agi/bin/write.py <kid-node> 'set line_ceiling "
-        f"N'` with N = ceiling / K, so the harvest measures that kid against "
-        f"the slice it was actually given. A `60-across-2` brief read as 60 "
-        f"each ran a kid to 212 (SM.52); the slice goes on the NODE before "
-        f"the spawn, never in prose only.",
+        f"AN `across K kids` CEILING IS ALREADY DIVIDED FOR YOU: the spawn "
+        f"writes each kid's slice (`ceil(N/K)`) onto the kid node's "
+        f"`line_ceiling`; read that node field, never divide it yourself.",
         # hypothesis:l4-audit-misses-per-side-pending-... item (8): a kid
         # experiment node minted by dispatch carries a title DERIVED from its
         # filename (`A00 f067c356 b0ad80`), which renders as an opaque id in
@@ -2176,7 +2169,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     if line_ceiling is not None:
         resolved_line_ceiling, ceiling_source = int(line_ceiling), "explicit"
     else:
-        resolved_line_ceiling, ceiling_source = spawn_budget.node_line_ceiling(
+        resolved_line_ceiling, _k, ceiling_source = spawn_budget.node_line_ceiling(
             _resolve_graph_root(project_root), target,
             _config_data(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),
