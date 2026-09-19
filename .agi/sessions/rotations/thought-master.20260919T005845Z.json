@@ -106,7 +106,7 @@
         "model": "claude-opus-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
   },
@@ -165,8 +165,47 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-19T01:00:19.092752+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-19T00:59:52.363552Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep thought-master",
+        "rc": 0,
+        "output": "@457 thought-master\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/thought-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/73ad03e6-1bb9-4b40-a2e5-38623487fee7.jsonl",
+        "rc": 0,
+        "output": "0.0959\t95902/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(790384|2256146|2256145|2256141|2256136)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(790384|2256146|2256145|2256141|2256136)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post thought-master --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post thought-master --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "silent-refused",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "thought-master",
+    "dm_signed": false,
+    "code_head": "ee1c352",
+    "code_loaded": "1789775516:1071399",
+    "claimed_at": "2026-09-19T01:00:19.092752+00:00",
+    "claim_key": "2026-09-19T00:59:52.363552Z",
+    "performed_after_s": 26.133681774139404
   }
 }
