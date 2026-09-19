@@ -30,6 +30,11 @@ crons_live: true
 edited_by: a00-e2ea2536
 season: 1
 services:
+  agi-alarms-sanctuary-master:
+    enabled: true
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/rotate.py alarms --holder sanctuary-master --root {root}
+    restart: on-failure
+    working_directory: "{repo_root}"
   agi-reaper:
     enabled: true
     exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30
