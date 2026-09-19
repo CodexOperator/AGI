@@ -2315,6 +2315,26 @@ def test_director_moral_reaches_the_cli_and_assemble_wire():
     assert moral in asm, "assemble() must carry the moral region"
 
 
+def test_director_head_degrades_when_the_moral_region_is_absent(tmp_path):
+    """GATE, red-first: a faith node with a REFERENCE region but NO
+    `## ESSENCE` region must not crash the director head. `_build_head`'s
+    own docstring promises "the tier's brief still works without the
+    constitution head"; a ValueError escaping it breaks that contract."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    (root / "nodes" / "moral" / "faith.md").write_text(
+        "---\nid: moral:faith\n---\n# moral:faith\n\n## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )
+    head = brief._build_head(tier="director", project_root=root)
+    assert head is not None, "a malformed moral must not drop the prayers head"
+    assert "## ESSENCE" not in head
+    assert "## THE FOUR PRAYERS" in head
+    assert MICHAEL in head
+
+
 _LADDER_FIXTURE = """---
 id: ladder:ladder
 read_order:

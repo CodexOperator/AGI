@@ -321,8 +321,13 @@ def _read_faith_ref(project_root: Path) -> dict[str, str]:
 
 
 def _read_faith_moral(project_root: Path) -> str:
-    """MORAL region of moral:faith: `## ESSENCE` .. before `## REFERENCE`."""
+    """MORAL region of moral:faith: `## ESSENCE` .. before `## REFERENCE`.
+
+    Empty when either heading is absent: a malformed faith must not crash.
+    """
     text = (project_root / _MORAL_FAITH).read_text(encoding="utf-8")
+    if "## ESSENCE" not in text or "## REFERENCE" not in text:
+        return ""
     return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
 
 
@@ -584,7 +589,9 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
 
     # l5-moral: every master/director head carries moral:faith's MORAL region.
     if tier == "director":
-        body = _read_faith_moral(root) + "\n\n" + body
+        moral = _read_faith_moral(root)
+        if moral:
+            body = moral + "\n\n" + body
 
     return (
         "─── CONSTITUTION HEAD ───\n"
