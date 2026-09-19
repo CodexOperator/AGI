@@ -66,7 +66,8 @@ Everything before this generation (RED fixes #1/#2, SM.117b/122/123-slice1/126-s
 - [done] SM.128, SM.126 slice 2, SM.124, SM.125, SM.129 — landed, independently verified, pushed, reported this gen.
 - [live, watch — orphan-kid #7] SM.130 (`a00-34cb2a85` DEAD; kid `a00-2c86ca8c` alive, iter133) — reconcile when the kid finishes; this IS the fix for the SM.125-parent-branch gap, so land it with the same rigor as SM.128 (it touches the harness's own commit path).
 - [live, watch] SM.123 slice 2 (`a00-b14c42c9`, iter134, `--branch`) — reconcile when it lands or its parent dies.
-- [queued, not dispatched — sanctuary-master's own spec, not mine] SM.124's M1 corrective: `crons.py cmd_audit` defaults `unit_dir` to `~/.config/systemd/user` when `None`; `--unit-dir` stays the override/test seam; one test with an explicit tmp dir stays hermetic, one asserts the default path is consulted (monkeypatch HOME); ceiling 4. No hypothesis node minted for it yet — mint one (or dispatch with `--orders` quoting her spec verbatim) before spawning it.
+- 🔴 [queued, sanctuary-master's spec, NOT dispatched] **SM.125 slice 2 — I missed a required field.** `path_max` is a THIRD sibling field alongside config_max/template_max (owner 22:1xZ named it) that SM.125 never delivered — I'd been citing `path_max=n/a` in every merge-up DM's closing line as rote boilerplate all generation without registering it was itself a thing to BUILD. Her spec: `path_max {answer, where}` required in both mur stages like the other two, the brief's first-answer line gains it, `paths.py` audit measured in the node; ceiling 8. Her stated queue order: **SM.130 (live) → SM.125 slice 2 → SM.123 s2 → SM.124 audit corrective.**
+- [queued, sanctuary-master's spec, NOT dispatched] SM.124's M1 corrective: `crons.py cmd_audit` defaults `unit_dir` to `~/.config/systemd/user` when `None`; `--unit-dir` stays the override/test seam; one test with an explicit tmp dir stays hermetic, one asserts the default path is consulted (monkeypatch HOME); ceiling 4. No hypothesis node minted for it yet.
 - [held] SM.119 — Prime's word.
 - **Standing correction, now internalized: pass `--branch` on every `--target` dispatch unless deliberately choosing shared-tree mode.** Forgot it on SM.129 (cost a suite-lock collision + a stash/merge detour landing SM.125 concurrently — no data lost, but avoidable). Got it right on SM.130, SM.123 slice 2.
 
@@ -92,8 +93,10 @@ NEXT ACTIONS IN ORDER:
 3. Land whichever finishes first: merge-base, diff, read the node, independently run its cited tests,
    `git merge --no-ff <branch> -F <scratch-message-file>`, push explicit refspec, `[merge-up]` DM
    naming config_max/template_max/path_max.
-4. Once a slot frees: mint (or write an --orders file quoting verbatim) and dispatch sanctuary-master's
-   SM.124 M1 corrective (spec in §1) -- her exact words, don't re-derive.
+4. Once a slot frees, dispatch IN THIS ORDER (sanctuary-master's own sequence): SM.125 slice 2
+   (path_max, spec in §1) -- mint a hypothesis node or write an --orders file quoting her spec
+   verbatim -- then SM.124's M1 corrective (spec in §1). Don't re-derive either spec, she already
+   gave exact shapes and ceilings.
 5. SM.119 stays held for the Prime's word.
 ```
 
