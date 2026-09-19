@@ -1081,6 +1081,8 @@ def cmd_audit(root: Path, crontab_file: Path | str | None = None,
             found.append(f"node: cadences.{name} gates on box {job['box']!r} "
                          f"with no `why_box` — a `box` gate is the exception "
                          f"and must say why")
+    if unit_dir is None:
+        unit_dir = Path.home() / ".config" / "systemd" / "user"
     if unit_dir is not None:
         ud = Path(unit_dir)
         declared = set(node["services"])
