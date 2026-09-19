@@ -59,11 +59,11 @@ still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
 
 ### 2a. Clone
 
-`CodexOperator/agi` is **private**, default branch `master`. Authenticate with
+`CodexOperator/AGI` is **private**, default branch `master`. Authenticate with
 `gh auth login` or an SSH key, then:
 
 ```bash
-git clone git@github.com:CodexOperator/agi.git ~/work/agi
+git clone git@github.com:CodexOperator/AGI.git ~/work/agi
 ```
 
 ### 2b. Dependencies

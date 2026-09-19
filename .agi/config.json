@@ -153,12 +153,20 @@
     "lockdown": false,
     "verify": "enforcing",
     "nudge_stale_after_minutes": 60,
-    "wake_repair_every_s": 3600
+    "wake_repair_every_s": 3600,
+    "undelivered_after_minutes": 10
   },
   "locations": {
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
+  },
+  "box": {
+    "root": "/home/ubuntu/work/agi",
+    "logs_dir": "/home/ubuntu/logs",
+    "tmux_session": "agi-rc",
+    "user": "ubuntu",
+    "allow": []
   },
   "workflows": {
     "review": {

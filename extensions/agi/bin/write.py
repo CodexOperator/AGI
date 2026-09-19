@@ -224,6 +224,15 @@ def _refuse_marker_value(key: str, value) -> str | None:
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
     """`set <key> <value>` — one frontmatter field."""
+    if "." in key:
+        # hypothesis:l4-a-message-that-did-not-land...: a dotted key used to
+        # land as a FLAT frontmatter literal (`comms.foo` as one key), which
+        # no nested reader could ever find. Refuse by name instead: the
+        # caller sets the parent mapping (key.split(".")[0]) as one object.
+        raise EditError(
+            f"cannot set {key!r}: dotted keys are not written as flat "
+            f"frontmatter literals — set the parent mapping "
+            f"{key.split('.', 1)[0]!r} as one object")
     if key in PROTECTED:
         raise EditError(
             f"{key!r} is identity or completion state and no verb may set it. "

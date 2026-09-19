@@ -147,6 +147,8 @@ def test_crons_box_filter_core_unchanged_and_local_mail_only(tmp_path):
     assert core2 == core  # core-town crontab byte-identical to today
     assert len(local2) == 2
     assert any("--box-local" in ln for ln in local2)
+    # SM.123 conjunct 2: the SAME tick receives the migrate record.
+    assert any("migrate --receive" in ln for ln in local2)
     assert any("push" in ln for ln in local2)
     assert not any("grid.py commit" in ln for ln in local2)
 
