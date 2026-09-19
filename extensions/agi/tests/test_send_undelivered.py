@@ -122,6 +122,57 @@ def test_stale_record_dms_the_sender_exactly_once(project, monkeypatch, capsys):
     assert dm.read_text() == first, "no second [undelivered] on the next sweep"
 
 
+def test_second_sender_to_a_busy_seat_is_notified_too(
+        project, monkeypatch, capsys):
+    """Conjunct (4), residue 2: the claim says ONCE PER MESSAGE, and the
+    machine only recorded the FIRST dm to a busy seat. A second sender
+    coalescing onto the same busy seat is recorded on the same sidecar and
+    gets its OWN `[undelivered]` dm exactly once -- the first sender's
+    single notification still lands, and the next sweep re-notifies
+    neither."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
+    _write_seats(project, [_row()])
+    _fake_tmux(monkeypatch, ["@246", "director"])
+    send_mod.send_dm(project, "sender-a", "director", "first body",
+                     "sender-a")
+    send_mod.send_dm(project, "sender-b", "director", "second body",
+                     "sender-b")
+    rec = send_mod._read_deferred(project, "director")
+    assert rec.get("sender") == "sender-a"
+    rec["ts"] = "2020-01-01T00:00:00Z"
+    for o in rec.get("others") or []:
+        assert o.get("sender") == "sender-b"
+        o["ts"] = "2020-01-01T00:00:00Z"
+    send_mod._nudge_deferred_path(project, "director").write_text(
+        json.dumps(rec))
+    capsys.readouterr()
+
+    _fake_tmux(monkeypatch, ["@246", "director"])
+    send_mod.wake_all_local(project)
+    a = project / "dm" / "sender-a--wake-repair.md"
+    b = project / "dm" / "sender-b--wake-repair.md"
+    assert a.is_file(), "the first sender must be notified"
+    assert b.is_file(), "the second sender must NOT be silently dropped"
+    assert "[undelivered] director" in b.read_text()
+    first_a, first_b = a.read_text(), b.read_text()
+
+    _fake_tmux(monkeypatch, ["@246", "director"])
+    send_mod.wake_all_local(project)
+    assert a.read_text() == first_a, "no second dm to sender-a"
+    assert b.read_text() == first_b, "no second dm to sender-b"
+
+
+def test_ladder_comms_cell_is_not_a_second_declared_reader(project):
+    """Residue 1: the comms cell that no reader consumed is GONE from
+    ladder.md, and `_comms_config` still returns the default from the
+    config.json / _COMMS_DEFAULTS path."""
+    ladder = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+              / ".geometry" / "ladder.md")
+    assert not ladder.exists() or "undelivered_after_minutes" not in \
+        ladder.read_text(), "the dead ladder.comms cell must be deleted"
+    assert send_mod._comms_config(project)["undelivered_after_minutes"] == 10
+
+
 def test_wake_help_mentions_all_local(capsys):
     """Conjunct (6): the sweep is discoverable from `wake --help`."""
     with pytest.raises(SystemExit):

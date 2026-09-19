@@ -1744,10 +1744,23 @@ def _record_deferred_render(root: Path, seat: str, more: int) -> None:
 
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
-    same batch is COUNTED (pending), never overwrites the first. Returns
-    True if it stored (this is the first deferred body), False if one was
-    already pending. Best-effort, never raises."""
-    if _read_deferred(root, seat) is not None:
+    same batch is COUNTED (pending) and appended to `others` so the sender
+    is NOT silently dropped at the undelivered deadline (residue 2 of
+    mur-sm-136: the claim is once per MESSAGE, never once per seat). The
+    inline delivery keeps the FIRST body. Returns True if it stored (this
+    is the first deferred body), False if one was already pending.
+    Best-effort, never raises."""
+    existing = _read_deferred(root, seat)
+    if existing is not None:
+        others = existing.get("others")
+        if not isinstance(others, list):
+            others = []
+            existing["others"] = others
+        others.append({"sender": sender, "body": body, "ts": _now()})
+        try:
+            _nudge_deferred_path(root, seat).write_text(json.dumps(existing))
+        except OSError:
+            pass
         return False
     try:
         p = _nudge_deferred_path(root, seat)
@@ -2762,27 +2775,37 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
 
 
 def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
-    """Conjunct (4): after T min untyped, dm the SENDER ONCE."""
-    if rec.get("notified") or not (ts := rec.get("ts")):
-        return
-    try:
-        dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
-        age = (datetime.now(timezone.utc)
-               - dt.astimezone(timezone.utc)).total_seconds() / 60.0
-    except ValueError:
-        return
-    if age < float(_comms_config(root).get("undelivered_after_minutes") or 10):
-        return
-    excerpt = (rec.get("body") or "").replace("\n", " ")[:80]
-    try:
-        send_dm(root, "wake-repair", rec.get("sender") or "unknown",
-                f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
-                f"{int(age)} min", sender="wake-repair")
-    except SystemExit:
-        return
-    rec["notified"] = True
-    with contextlib.suppress(OSError):
-        _nudge_deferred_path(root, seat).write_text(json.dumps(rec))
+    """Conjunct (4): after T min untyped, dm EACH sender ONCE -- the first
+    recorded dm AND every later dm coalesced onto the same busy seat
+    (`others`, appended by `_store_deferred`). Each record is marked
+    notified so the next sweep is a no-op."""
+    t = float(_comms_config(root).get("undelivered_after_minutes") or 10)
+    records = [rec] + [o for o in (rec.get("others") or [])
+                       if isinstance(o, dict)]
+    changed = False
+    for r in records:
+        if r.get("notified") or not (ts := r.get("ts")):
+            continue
+        try:
+            dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+            age = (datetime.now(timezone.utc)
+                   - dt.astimezone(timezone.utc)).total_seconds() / 60.0
+        except ValueError:
+            continue
+        if age < t:
+            continue
+        excerpt = (r.get("body") or "").replace("\n", " ")[:80]
+        try:
+            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+                    f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
+                    f"{int(age)} min", sender="wake-repair")
+        except SystemExit:
+            continue
+        r["notified"] = True
+        changed = True
+    if changed:
+        with contextlib.suppress(OSError):
+            _nudge_deferred_path(root, seat).write_text(json.dumps(rec))
 
 
 def wake_all_local(root: Path, tmux_session: str | None = None) -> bool:
