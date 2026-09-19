@@ -1714,3 +1714,151 @@ def test_done_deliverable_diffs_against_round_base_in_season_repo(tmp_path, monk
     assert rec2["verdict"] == "inconclusive_lean_disproved:50", rec2
     assert rec2["demoted_from"] == "proved", rec2  # gate original survives
     assert "gone.py" in rec2["demote_reason"], rec2
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l5-a-parent-that-accepts-a-kid-branch-lands-that-branch-on-its-
+# own-at-done-time -- a parent `done --owns <kid>` folds the kid's own
+# `--branch` into the parent's checkout, so an accepted artefact is never left
+# stranded on the kid's branch (parent branch base+0 while kids carry the work).
+# --------------------------------------------------------------------------
+
+def _kid_branch_worktree(main, tmp_path, name, branch, fname, body):
+    """A kid's own --branch worktree cut from season/s1, one real commit."""
+    wt = tmp_path / f"wt-{name}"
+    r = _ggit(main, "worktree", "add", "-b", branch, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    (wt / fname).write_text(body)
+    _ggit(wt, "add", "-A")
+    rc = _ggit(wt, "-c", "user.email=t@t", "-c", "user.name=t",
+               "commit", "-qm", f"kid {name}")
+    assert rc.returncode == 0, rc.stderr
+    return wt
+
+
+def _owned_parent_setup(tmp_path, rows):
+    """main + a linked parent worktree, clean, carrying the iter manifest that
+    names the kid rows (node_id -> branch). Returns (main, pbr, pwt, wt_graph).
+    `.agi/sessions/` is committed as ignored so the manifest itself never
+    becomes an in-scope dirty path in the parent's round commit."""
+    import json as _json
+    main = tmp_path / "main"
+    main.mkdir()
+    graph = main / ".agi"
+    (graph / "nodes" / "experiment").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (main / ".gitignore").write_text(".agi/sessions/\n")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+    pbr = "loop/parent-abc12345@s2"
+    pwt = tmp_path / "wt-p"
+    r = _ggit(main, "worktree", "add", "-b", pbr, str(pwt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = pwt / ".agi"
+    d = wt_graph / "sessions" / "iter-001"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "manifest.json").write_text(_json.dumps({"agents": rows}))
+    return main, pbr, pwt, wt_graph
+
+
+def test_done_merges_the_owned_kids_branch_into_the_parent(tmp_path,
+                                                           monkeypatch):
+    """The claim's conjunct 1/2: with the parent worktree CLEAN (its review was
+    real but it made no direct edits) and the accepted kid's one commit sitting
+    only on the kid's --branch, `_auto_commit_worktree` must land that branch on
+    the parent's own branch -- base+1, carrying the kid's bytes. Today the
+    parent reads exactly its fork point (base+0)."""
+    main, pbr, pwt, wt_graph = _owned_parent_setup(tmp_path, [
+        {"id": "a00-parent", "status": "running"},
+        {"id": "a00-k1", "node_id": "experiment:kidA",
+         "branch": "loop/kid-aaa11111@s2"},
+    ])
+    _kid_branch_worktree(main, tmp_path, "a", "loop/kid-aaa11111@s2",
+                         "kid_a.py", "a = 1\n")
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                              ["experiment:kidA"], "proved")
+    ahead = _ggit(main, "rev-list", "--count", "--first-parent",
+                  f"season/s1..{pbr}").stdout.strip()
+    assert ahead == "1", f"parent branch must land base+1, got {ahead}"
+    ls = _ggit(main, "ls-tree", "-r", "--name-only", pbr).stdout
+    assert "kid_a.py" in ls, ls
+
+
+def test_done_lands_two_owned_kid_branches_as_two_merges(tmp_path,
+                                                         monkeypatch):
+    """Conjunct 4, the sequential leg: two sibling kids (both cut from the
+    parent's base), each accepted by its own `done --owns`, land as base+2 --
+    each merge is its own round's finishing act."""
+    main, pbr, pwt, wt_graph = _owned_parent_setup(tmp_path, [
+        {"id": "a00-parent", "status": "running"},
+        {"id": "a00-k1", "node_id": "experiment:kidA",
+         "branch": "loop/kid-aaa11111@s2"},
+        {"id": "a00-k2", "node_id": "experiment:kidB",
+         "branch": "loop/kid-bbb22222@s2"},
+    ])
+    _kid_branch_worktree(main, tmp_path, "a", "loop/kid-aaa11111@s2",
+                         "kid_a.py", "a = 1\n")
+    _kid_branch_worktree(main, tmp_path, "b", "loop/kid-bbb22222@s2",
+                         "kid_b.py", "b = 1\n")
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                              ["experiment:kidA"], "proved")
+    cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                              ["experiment:kidB"], "proved")
+    ahead = _ggit(main, "rev-list", "--count", "--first-parent",
+                  f"season/s1..{pbr}").stdout.strip()
+    assert ahead == "2", f"two accepted kids must land base+2, got {ahead}"
+    ls = _ggit(main, "ls-tree", "-r", "--name-only", pbr).stdout
+    assert "kid_a.py" in ls and "kid_b.py" in ls, ls
+
+
+def test_done_leaves_a_branchless_kid_unchanged(tmp_path, monkeypatch):
+    """Conjunct 3: a kid dispatched WITHOUT `--branch` (no branch cell in its
+    manifest row) leaves today's path byte-identical -- no merge, parent's
+    branch stays at its fork point."""
+    main, pbr, pwt, wt_graph = _owned_parent_setup(tmp_path, [
+        {"id": "a00-parent", "status": "running"},
+        {"id": "a00-k1", "node_id": "experiment:kidA"},
+    ])
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                              ["experiment:kidA"], "proved")
+    ahead = _ggit(main, "rev-list", "--count", "--first-parent",
+                  f"season/s1..{pbr}").stdout.strip()
+    assert ahead == "0", f"a branchless kid must not move the parent, got {ahead}"
+
+
+def test_done_refuses_a_conflicting_kid_branch_by_name(tmp_path, monkeypatch,
+                                                       capsys):
+    """Conjunct 3, conflict leg: a merge that conflicts is aborted and named --
+    never a partial merge. The parent branch is left exactly where it was."""
+    main, pbr, pwt, wt_graph = _owned_parent_setup(tmp_path, [
+        {"id": "a00-parent", "status": "running"},
+        {"id": "a00-k1", "node_id": "experiment:kidA",
+         "branch": "loop/kid-aaa11111@s2"},
+    ])
+    # The parent's own branch is one commit ahead, editing f.txt one way ...
+    (pwt / "f.txt").write_text("parent\n")
+    _ggit(pwt, "add", "-A")
+    rc = _ggit(pwt, "-c", "user.email=t@t", "-c", "user.name=t",
+               "commit", "-qm", "parent edit")
+    assert rc.returncode == 0, rc.stderr
+    # ... and the kid edits the SAME file the other way -> a real conflict.
+    kwt = _kid_branch_worktree(main, tmp_path, "a", "loop/kid-aaa11111@s2",
+                               "f.txt", "kid\n")
+    cli = _load_cli()
+    monkeypatch.setattr(cli, "_find_root", lambda: wt_graph)
+    cli._auto_commit_worktree(wt_graph, "a00-parent", None,
+                              ["experiment:kidA"], "proved")
+    err = capsys.readouterr().err
+    assert "loop/kid-aaa11111@s2" in err, err
+    ahead = _ggit(main, "rev-list", "--count", "--first-parent",
+                  f"season/s1..{pbr}").stdout.strip()
+    assert ahead == "1", f"a refused merge must not move the parent, got {ahead}"
+    assert _ggit(main, "ls-files", "-u").stdout.strip() == "", \
+        "no conflict may survive the refusal (no partial merge)"
