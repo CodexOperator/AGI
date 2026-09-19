@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - idea:lm-why-lif-first-reply-non-frontier
 next_edges: []
-edited_by: ubuntu
+edited_by: director-thought
 scaffold_hash: 7831e788687ba2c7
 season: 2
 testable_claim: "Static read of comp.ts task_tail (4189), task_deliver (4201-4211) and fid_arity (3497), plus one printf of term_loc(r), fid_arity(term_aux(r)), H[task_tail(r)] and H[task_tail(r)+1] on lifgpu_i3's first corpus_eval reply. Claim: H[tl+1] is the count task_deliver decrements to decide a frame is ready, so 2 = two arguments still owed; falsified if the word is not a count (a pointer or lap bit) or task_deliver's readiness test does not read it."
@@ -25,7 +25,7 @@ tests the semantics of the word being read.
 
 ### Claim
 `task_tail(t) = term_loc(t) + fid_arity(term_aux(t))` (comp.ts:4189) points one
-past the frame's argument slots. `H[task_tail(t)+1]` is a remaining-argument
+past the frame's argument slots. `(u32)H[task_tail(t)+1]` is a remaining-argument
 count that `task_deliver` (comp.ts:4201-4211) decrements via
 `a32_sub_rel(a32_at(H, tl+1), 1)` and compares to 1 to decide the continuation
 is ready. Therefore `H[task_tail(r)+1] == 2` means two arguments are still owed

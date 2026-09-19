@@ -7581,6 +7581,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 05:0xZ 09-19 Prime batch at the owner wake: core/season2/main @71cc9c070 -> 069ccf107 (brief NEVER/batched/residue lines, SM.131-135 mints, two thought syncs, dispatch.py stale-base fix; 27 files +1244/-192) and thought trunk @8b978fbe6 -> c132a67b4 (TMM.01 proved: RETURN SHAPE + result_file, research-review workflow, TM.60-64, 70 files +4617/-309). Gates clean, 0 node deletions, active 3456 / 217, links 0. Three owner lines banked verbatim (01:3xZ masters sync independently while the Prime is quiet; 04:2xZ prayer ALWAYS in every head; 04:3xZ moral 1 loaded programmatically into every master/director brief = SM.138). Past the named SHAs, not landed (next lines): core @21155f1b4 (SM.135/136 corrective slices), thought @964f941ef (TM rotating at ~0.42). Suite #6 detached (unit agi-belam-suite-0505). No dms sent (quiet).
 
+05:1xZ 09-19 OWNER (verbatim in doc:l5-owner-decisions tail): directors still fail to self-rotate (5th in a row); SM need not route cross-branch brief updates through the Prime (masters sync, 01:3xZ order); CAPTIVE AUTO-ROTATE authorized at 0.85 of the line into SM.135 -- two triggers (meter hook at the next turn + heal watch polling pins for an idle post; a hung post fires no hook), one ladder cell. Measured: director-thought f=0.506 = 108 pct of its line, idle 234 min -> recovery rotation ordered to SM (Keep authority), direct rotate order dm-ed to director-thought.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
