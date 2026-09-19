@@ -622,9 +622,22 @@ def _card_path(root: Path, seat: str) -> Path:
     return (s / "quorum" / f"{seat}.md") if s is not None else \
         root / "sessions" / "quorum" / f"{seat}.md"
 
+def _rotate_now_authorisers(root: Path, seat: str) -> set[str]:
+    """Who may order this seat's rotation: its row's `rotated_by` holder
+    plus the owner (`AGI_OWNER`, else a role-`owner` row) (conjunct 1)."""
+    holder, owner = "", os.environ.get("AGI_OWNER", "").strip()
+    for row in _seat_rows(root):
+        if row.get("name") == seat:
+            holder = str(row.get("rotated_by") or "").strip()
+        elif not owner and str(row.get("role") or "").strip() == "owner":
+            owner = str(row.get("name") or "").strip()
+    return {s for s in (holder, owner) if s}
+
+
 def _rotate_now_unread(root: Path, seat: str) -> bool:
-    """An unread `rotate now` in the seat inbox FILE (never `send.py read`,
-    which would mark the whole inbox read) — never raises (P7)."""
+    """An unread `rotate now` from an AUTHORISED sender (the seat row's
+    `rotated_by` holder or the owner) in the inbox FILE — never `send.py
+    read`, which marks the whole inbox read. Never raises (P7)."""
     if not seat:
         return False
     inbox = ((_shared_sessions_dir(root) or root / "sessions")
@@ -633,12 +646,23 @@ def _rotate_now_unread(root: Path, seat: str) -> bool:
         text = inbox.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return False
-    if "rotate now" not in text.rsplit("# read up to here", 1)[-1]:
+    allowed = _rotate_now_authorisers(root, seat)
+    current, hit = "", False
+    for line in text.rsplit("# read up to here", 1)[-1].splitlines():
+        stripped = line.strip()
+        if stripped.startswith("from:"):
+            current = stripped[5:].strip()
+        elif "rotate now" in stripped and current in allowed:
+            hit = True
+    if not hit:
+        return False
+    try:
+        inbox_mt = inbox.stat().st_mtime
+    except OSError:
         return False
     card = _card_path(root, seat)
     card_mt = card.stat().st_mtime if card.exists() else 0
-    return inbox.stat().st_mtime >= max(card_mt,
-                                        _work_last_ts(root, seat, card) or 0)
+    return inbox_mt >= max(card_mt, _work_last_ts(root, seat, card) or 0)
 
 
 def _import_last_act():
@@ -752,6 +776,26 @@ def _stops_line(root: Path, seat: str) -> str:
             break
     dm = _last_signed_dm(root)
     return f"stops: {subject} | last dm: {dm[:80]}"
+
+
+def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
+                         minutes: int, state_dir: Path | None) -> tuple[bool, str | None]:
+    """The FORCE decision, shared by the over-line gate and the below-line
+    `rotate now` path: card STILL stale `minutes` after the first fire ->
+    capture. `(handled, which)`; not handled = stamp absent/young (P7)."""
+    p = (state_dir or Path(f"/tmp/agi-rotation-{os.getuid()}")) / f"capture-{seat}.json"
+    try:
+        first = int(json.loads(p.read_text()).get("first", 0))
+    except Exception:   # pylint: disable=broad-except
+        first = 0
+    if not (first and minutes and (time.time() - first) >= minutes * 60):
+        return False, None
+    try:
+        which = _force_capture(root, seat, card, fraction, minutes,
+                               state_dir or p.parent)
+    except OSError:
+        which = "capture-failed"
+    return True, (None if which == "captured" else which)
 
 
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
@@ -929,18 +973,10 @@ def _gated_rotate(root: Path, seat: str, session_id: str = "",
     stale, clear_line = _card_stale_measure(root, seat, card)
     if stale:
         print(f"  {clear_line}")
-        p = (state_dir or Path(f"/tmp/agi-rotation-{os.getuid()}")) / f"capture-{seat}.json"
-        try:
-            first = int(json.loads(p.read_text()).get("first", 0))
-        except Exception:   # pylint: disable=broad-except
-            first = 0
-        if first and minutes and (time.time() - first) >= minutes * 60:
-            try:
-                which = _force_capture(root, seat, card, fraction, minutes,
-                                       state_dir or p.parent)
-            except OSError:
-                which = "capture-failed"
-            return None if which == "captured" else which
+        handled, which = _maybe_force_capture(root, seat, card, fraction,
+                                              minutes, state_dir)
+        if handled:
+            return which
         print("[rotation] card-age captive: the seat card is older than the "
               "seat's OWN last act — run the line above, then re-check on "
               "the next prompt.")
@@ -1358,6 +1394,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if rotate_now:
         print(IMPERATIVE)   # conjunct 1 below the line; [meter] stays last
+        # conjunct 2 below the line (the measured f=0.444 < 0.47 trigger):
+        # an authorised unread `rotate now` with a card STILL stale forces
+        # the capture; a fresh card spawns nothing here.
+        card = _card_path(root, seat)
+        stale, _clear = _card_stale_measure(root, seat, card)
+        if stale:
+            _handled, which = _maybe_force_capture(root, seat, card, fraction,
+                                                   capture_minutes, state_dir)
+            if which:
+                print(f"{DEFER_PREFIX} ({which}) — the hook could not capture "
+                      "this seat's card; re-check on the next prompt.")
         _meter(used, threshold, fraction)
         return 0
 

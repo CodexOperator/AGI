@@ -67,6 +67,7 @@ def _graph(tmp_path, extra=""):
         "---\nseats:\n"
         "  - {\"name\": \"probe-director\", \"role\": \"director\", "
         "\"worktree\": \".agi/worktrees/seat-probe-director\", "
+        "\"rotated_by\": \"sanctuary-director\", "
         "\"rotate_at\": 0.4}\n---\n")
     cwd = graph / "worktrees" / "seat-probe-director"
     cwd.mkdir(parents=True, exist_ok=True)
@@ -185,3 +186,51 @@ def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
     stops = rots[0][rots[0].index("--stops") + 1]
     assert stops.strip(), "stops line must never be empty"
     assert "auto-captured at f=" in stops, stops
+
+
+def test_rotate_now_from_unrelated_sender_is_silent_below_the_line(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """P1 regression (class auth): an unread `rotate now` from a sender that
+    is neither the seat row's `rotated_by` holder nor the owner prints NO
+    imperative — the claim restricts the triggering dm to the authoriser."""
+    graph, cwd = _graph(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    inbox = graph / "sessions" / "inbox" / "probe-director.md"
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("---\nfrom: random-unrelated-seat\nrotate now\n")
+    tp = tmp_path / "unrelated.jsonl"
+    _transcript(tp, 10_000)                     # 0.10 < 0.25
+    state_dir = tmp_path / "state-unrelated"
+    state_dir.mkdir()
+    code, out, err = run_hook(_payload(graph, tp, "s-unrel", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert EXPECTED not in out, out
+
+
+def test_below_line_holder_rotate_now_forces_capture(tmp_path, run_hook,
+                                                     monkeypatch, capsys):
+    """P4 regression (class wire): an unread `rotate now` from the HOLDER,
+    BELOW the line, card stale N min after the first fire -> the capture runs
+    (handoff + rotate-self --force argv recorded under AGI_HOOK_NO_SPAWN)."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts",
+                        lambda *a, **k: int(__import__("time").time()) - 60)
+    inbox = graph / "sessions" / "inbox" / "probe-director.md"
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("---\nfrom: sanctuary-director\nrotate now\n")
+    state_dir = tmp_path / "state-below-force"
+    _stale_state(tmp_path, graph, state_dir)
+    tp = tmp_path / "below-force.jsonl"
+    _transcript(tp, 10_000)                     # 0.10 < 0.25 -> below the line
+    code, out, err = run_hook(_payload(graph, tp, "s-below-force", cwd),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert EXPECTED in out, out
+    assert len(hook._CAPTURE_LOGGED) == 2, hook._CAPTURE_LOGGED
+    handoff, rot = hook._CAPTURE_LOGGED
+    assert handoff[2:5] == ["handoff", "--driven", "--seat"], handoff
+    assert "rotate-self" in rot and "--force" in rot, rot
+    assert "auto-captured at f=" in rot[rot.index("--stops") + 1]
