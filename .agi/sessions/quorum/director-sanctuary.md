@@ -35,9 +35,17 @@ The fullest session this seat has run. Trunk synced 4x. **5 rounds harvested/mer
 3. **SM.136's still-open config_max**: `.agi/context/schemas/[cron].md:73-75`'s built-in cron list omits `nudge_sweep` (declared at `crons.py:92-93` and `.agi/nodes/.geometry/crons.md:26`). One-line schema doc fix, director-level or kid-level either way.
 4. **New write.py fragility, already relayed**: the `&&`-verb-splitter breaks on a literal `&&` inside any verb's own free-text argument (no escaping seam) — this is the most likely root cause of the SM.131 node corruption, confirmed live this session (see §4 trap #22). Relayed to sanctuary-master along with item 1's ceiling finding; no reply needed unless she wants a hardening round dispatched.
 
+````
+**STOPS, in priority order — all 5 rounds this session are landed; nothing is mid-flight. First job for the successor:**
+1. **Dispatch mur for SM.135 slice-2** (banked this session for meter reasons): `merge_up`/`new_tip` = `c01a1a03d446600886e96c7cf0e28223248f9be9`, `old_tip` = `693d31efc87a3451cb6418358032df1c0bf12700`, hypothesis `hypothesis:l5-the-meter-captures-the-final-card-and-forces-the-rotation-itself`, experiments `experiment:a00-3a04e059-da77bd, experiment:a00-931b52d8-2c24f6`, files `extensions/agi/bin/rotate.py, extensions/agi/hooks/rotation_alert.py, extensions/agi/tests/test_rotate_alarms_captive.py, extensions/agi/tests/test_rotate_alarms_idle.py, extensions/agi/tests/test_rotation_alert_captive.py`. Focus: confirm the two captive-rotate triggers can't double-fire (kid 1's own THOUGHT names an unlatched-capture near-miss it left for a follow-on, not a demotion) and sanity-check the 135-vs-44 ceiling overage doesn't hide a rushed corner.
+2. **Banked code fix (SM.131, not urgent — the crash is already fixed, this is the latent part)**: `write.py`'s outside-ref gate (~L1877-1892) must compute the EFFECTIVE ref set from pre-existing frontmatter (via `node_writer.find_node_file` + `frontmatter.load_node_file`) merged with `edit.set_fm`, MINUS anything in `edit.unset_fm` — today it reads only `edit.set_fm.get(f)`, so (a) a location-only edit on a node with an existing relative `link_ref` is wrongly admitted (falsifies the round's own "agrees in every reachable state" claim), and (b) `unset location && set link_ref <relative>` is wrongly refused. A third, lower-priority item from the same review: `links.outside_repo_path` (links.py:363) raises an uncaught `KeyError` for an undeclared `location:` name (no live node hits this today). Dispatch against `hypothesis:l5-a-verdict-node-carries-the-class-its-evidence-experiment-recorded` when there's room.
+3. **SM.136's still-open config_max**: `.agi/context/schemas/[cron].md:73-75`'s built-in cron list omits `nudge_sweep` (declared at `crons.py:92-93` and `.agi/nodes/.geometry/crons.md:26`). One-line schema doc fix, director-level or kid-level either way.
+4. **New write.py fragility, already relayed**: the `&&`-verb-splitter breaks on a literal `&&` inside any verb's own free-text argument (no escaping seam) — this is the most likely root cause of the SM.131 node corruption, confirmed live this session (see §4 trap #22). Relayed to sanctuary-master along with item 1's ceiling finding; no reply needed unless she wants a hardening round dispatched.
+
 ```
 python3 extensions/agi/bin/send.py read director-sanctuary
 ```
+````
 
 ## §4 TRAPS (carried forward + this session's additions — long list, a successor should read it in full)
 1. Replace the card on first substantive action — still worth restating every session.
