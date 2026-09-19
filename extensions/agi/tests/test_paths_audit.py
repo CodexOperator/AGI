@@ -108,6 +108,27 @@ def test_path_shaped_logs_dir_literal_is_caught(tmp_path, capsys):
     assert f"{src / 'a.py'}:1: logs:" in out
 
 
+def test_declared_cell_name_drives_the_classifier(tmp_path, capsys):
+    """Residue 3b: the classifier's key names must come from [box].md, so a
+    declaration that names the cell `logs` (not `logs_dir`) still REPORTS a
+    matching literal -- never a class gone dark behind a disagreeing schema."""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n  logs: {type: str}\n"
+        "  tmux_session: {type: str}\n  user: {type: str}\n---\n")
+    (graph / "config.json").write_text(json.dumps(
+        {"box": {"root": "/srv/box/repo", "logs": "/srv/x/logs",
+                 "tmux_session": "box-session", "user": "boxuser"}}))
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text("log = '/srv/x/logs/a.log'\n")
+    rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
+    assert rc == 1, (rc, out)
+    assert f"{src / 'a.py'}:1: logs:" in out
+
+
 def test_box_schema_names_the_cells_once(tmp_path):
     """Residue 3 (config_max): the four cell names are declared in
     [box].md and READ from there by boxes.py -- not a third hardcoded list."""
