@@ -17680,6 +17680,16 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
 DEFAULT_RANKS = ["prime_director", "director", "helper"]  # highest first
 
 
+def _seat_read_root(root: Path, seat: str | None = None) -> Path:
+    """The identity WRITER's tree; root's copy only when it has no such row."""
+    shared = _shared_graph_root(root)
+    if shared == root:
+        return root
+    locations.refuse_live_resolution(root, shared)
+    under = _find_seat(shared, seat) if seat else _load_seats(shared)
+    return shared if under else root
+
+
 def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
@@ -17691,7 +17701,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     import send  # local: same dir, no import cycle (send.py pattern)
     seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat:
-        row = _find_seat(root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
@@ -17700,9 +17710,11 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     top = _git_toplevel(Path.cwd())
     seat = row = None
     if top is not None:
-        for r in _load_seats(root):
+        _trees = (_seat_read_root(root), root)
+        for r in (r for _t in _trees for r in _load_seats(_t)):
             if r.get("worktree") and Path(str(r.get("worktree"))) == top:
-                seat, row = r.get("name"), r
+                seat = r.get("name")
+                row = _find_seat(_seat_read_root(root, seat), seat) or r
                 break
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
@@ -20768,7 +20780,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # target = --post or --name or the caller's own post.
     target = args.post or args.name or caller_post
     if target != caller_post:
-        target_row = _find_seat(root, target)
+        target_row = _find_seat(_seat_read_root(root, target), target)
         if target_row is None:
             print(f"rotate refused: no seat {target!r} in the seats registry "
                   f"(nothing delegated)", file=sys.stderr)
