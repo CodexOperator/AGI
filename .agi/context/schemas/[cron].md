@@ -6,7 +6,8 @@ derived_from: authored-2026-08-29 for G10.2 -- no prior corpus to survey; this
   the reader that consumes it rather than a census of existing nodes
 fields:
   crons_live: {type: bool}   # master switch; false means every managed line is removed
-  cadences: {type: dict}     # job name -> {every_mins|schedule, enabled, cmd?, box?, log?}
+  cadences: {type: dict}     # job name -> {every_mins|schedule, enabled, cmd?, box?, why_box?, log?}
+                             # box is the EXCEPTION: absent means EVERY box; a gated job MUST say why in why_box (audited)
   services: {type: dict}     # OPTIONAL: service name -> systemd unit settings; absent = no units
 validation:
   required: [crons_live, cadences]
