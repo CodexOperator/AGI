@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-event-driven-sparse-lif-matches-reference-at-a-fraction-of-the-work
 next_edges: []
 confidence: 0.9
-edited_by: a00-7afca595
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-4abc60e7-5fc7ea
 line_ceiling: 250
@@ -36,7 +36,7 @@ LIF_LEAK=restore LIF_ORDER=sync`, N=10000, syn=100, dt=0.1, T=1000, 4 nets,
 seeds [7, 100010, 200013, 300016], on CPU8G under `agi-run` (4 threads, 4 GB, no swap).
 
 Landed: `event/event_port.py` (80 lines, pure NumPy/python, no numba) and
-`event/event_rows.jsonl` (24 rows + 6 summary rows). Reference = the C body of
+`event/event_rows.jsonl` (24 per-(arm,seed) rows; the 6 summary rows a prior landing carried are not in the current file -- TM.64 re-ran event_port.py, which emits only per-row records, and the summarise.py step that built them was never landed, see Evidence). Reference = the C body of
 `bend/lif_baseline.py` with a per-(neuron,step) reporter appended (the
 `ref_trains()` path of the read-only `spectral/lif_spectral_driven.py`, which
 reproduces 79675 spikes exactly). `bend/*` and `spectral/*` untouched.
@@ -150,8 +150,9 @@ of N*T either way (`event-k` now touches the same 1.77e6 cells as `event-steplk`
 ## Evidence
 
 - `event/event_port.py` — all arms; `event/event_rows.jsonl` — 24 per-(arm,seed)
-  rows + 6 summary rows (arm, spikes_total, updates_pct_NT_mean, wall_s_mean,
-  conjunct1/2/3 booleans, first_divergence).
+  rows only (TM.64 mur finding M1: the 6 summary rows a prior landing carried,
+  with conjunct1/2/3 booleans, are NOT in the current file; every measured
+  number above is derived from these 24 rows directly and restated in prose).
 - Command: `ssh cpu8g "agi-run python3 tm61/event/event_port.py all"`; the
   dedup+summary step (`summarise.py`) is in the session scratch dir, not landed,
   because a second landed script would break the 40-line ceiling (see caveat).
