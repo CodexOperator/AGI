@@ -9,25 +9,32 @@ cadences:
     every_mins: 5
     enabled: true
     mirror_towns: true
-    box: core-town
   branch_push:
     schedule: 7 * * * *
     enabled: true
-    box: [core-town, local-town]
   mail_poll:
     every_mins: 5
     enabled: true
     box: local-town
+    why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
   publish_engine:
     schedule: 37 * * * *
     enabled: false
   engine_push:
     schedule: 47 * * * *
     enabled: false
+  nudge_sweep:
+    every_mins: 2
+    enabled: true
 crons_live: true
-edited_by: ubuntu
+edited_by: a00-e2ea2536
 season: 1
 services:
+  agi-alarms-sanctuary-master:
+    enabled: true
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/rotate.py alarms --holder sanctuary-master --root {root}
+    restart: on-failure
+    working_directory: "{repo_root}"
   agi-reaper:
     enabled: true
     exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30
