@@ -4,8 +4,8 @@ type: experiment
 parents:
   - mvp:lm-jev-review-triage-feature
 next_edges: []
-edited_by: a00-2a4dfb57
-line_ceiling: 40
+edited_by: a00-ebe73dfa
+line_ceiling: 200
 production_lines: 76
 title: "Review-TRIAGE built: scrubbed single jev call + frozen TM.51 LR; dry-run reproduces 0.7435/0.7727/0.7945/0.8923; 20 fresh acts $0.0020"
 ---
