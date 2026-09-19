@@ -1508,7 +1508,8 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
             f"{(viewport.stderr or '').strip()}")
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
-         "--project-root", str(graph_root)],
+         "--project-root", str(graph_root)]
+        + (["--no-prayers"] if stage.get("schema") else []),
         cwd=str(repo), capture_output=True, text=True, timeout=60,
     )
     if brief.returncode != 0:
@@ -1592,6 +1593,21 @@ def _json_candidates(text: str) -> list[str]:
              if m.group(1).strip()]
     cands.extend(_balanced_brace_spans(text))
     return cands
+
+
+#: The four prayers' opening lines, the markers of a prayer prelude/postlude
+#: (SM.134 belt around the structured-return parse).
+_PRAYER_RE = re.compile("|".join(("Ѻтче нашъ", "Господи Іисусе Христе",
+                                  "Боже, милостивъ", "Свѧтый Боже")))
+
+
+def _strip_prayer_wrap(text: str) -> tuple[str, bool]:
+    """SM.134 belt: drop prayer prelude/postlude lines around a structured
+    return. A prose-only prayer is left whole; the caller logs `stripped`."""
+    if not _PRAYER_RE.search(text) or not _json_candidates(text):
+        return text, False
+    return "\n".join(l for l in text.splitlines()
+                     if not _PRAYER_RE.search(l)), True
 
 
 def _resolve_lenient_return(schema, text: str, violations_out=None):
@@ -1870,6 +1886,10 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               f"{sleep_s}s", file=sys.stderr)
         _RETRY_SLEEP(sleep_s)
     violations: list[str] = []
+    output, prayer_wrapped = _strip_prayer_wrap(output)
+    if prayer_wrapped:
+        print(f"workflow.py: stage {stage['label']} stripped a prayer "
+              f"prelude/postlude before the return parse", file=sys.stderr)
     try:
         value = _resolve_lenient_return(stage.get("schema"), output,
                                         violations)
