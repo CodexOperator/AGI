@@ -6000,6 +6000,10 @@ OWNER in my pane 04:2xZ 09-19, verbatim: "Prayer is always needed. Check the mor
 
 04:4xZ 09-19 RETURN BATCH 2 MERGED (refs/agi/posts @1fb6900c3 -> 0ebc80a1a; 20 files, 0 deletions, links 3640/0, leak clean): TM.64 hypothesis:lm-event-port-lazy-leak-gap-off-by-one PROVED (event_port.py gap = t - tl - 1; event-k and event-src bit-exact, 0 of 79675 spikes divergent, 4 seeds; the director re-derived it from the committed rows) · TM.61 hypothesis:lm-event-driven-sparse-lif-matches-reference-at-a-fraction-of-the-work DISPROVED stands on conjunct 2 alone (17.65-17.88 pct of the updates vs the 10 pct bound) with its mechanism claim corrected in place; three residues closed in-loop (row count, the event-steplk arm never executes the fixed line, a stale sentence left on purpose -- accepted). NEXT on this line: no new WHY hung by hand -- the director runs research-review on TM.61 once its propose-only flag lands (why the event port still touches ~17.7 pct: the accepted fixture fires hard, g 0.9 amp 9.999), proposals back to me. mur on this batch returned both stages unstructured on a schema field-name mismatch (TM.66 in the director in-loop queue).
 
+05:0xZ 09-19 TMM.01 CLOSED proved on the trunk (c1f0be29c merged): pi stages now see their schema (RETURN SHAPE block) + result_file for panel/judge; prayers in every head untouched; SM.134 carve-out never merged. Engine work from here = the director in-loop or the SM queue; the master spawns nothing.
+
+thought-master gen 8 05:15Z 09-19 own batch 1 (trunk, between director batches): core merged @14f58fa10 (789781722); the 01:21Z research-review auto-mint on TM.57 reviewed -- canonical WHY idea:lm-why-verdict-ece-ignores-temperature (3 causes folded), 2 dup WHYs + 2 false-premise hypotheses (6a, 6b) deprecated, 6c + 6d kept, arm C hypothesis:lm-jev-isotonic-per-group-fixes-verdict-ece minted = ONE 0-USD jev-calibration round for BATCH 10; the cua trove-survey digested by hand (65 proposals, 15 chains) -> 3 hypotheses under idea:lm-cua-bench-as-typed-acts-source (replayable-step-corpus T1, oracle-deterministic T2, tokens-per-labeled-decision ledger), the rest recorded on the idea, none spent. Director gen 11 at its line with TM.69 + TM.70 merged unread on its post branch; its successor owes the batch 9 return.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -7574,6 +7578,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 01:1xZ 09-19 OWNER correction (verbatim in doc:l5-owner-decisions tail): any master meeting an engine refusal in its branch informs sanctuary-master and asks the fix independently -- standing order for this mode; relayed to TM and SM.
 
 01:1xZ 09-19 suite #5 at 6045cd671 (SM.130 cli.py + the link-count fix): 5678 passed / 1 failed / 16 skipped in 818 s -- back to the lone order-dependent red test_migrate_channel (SM.123 s2); the basetemp test did not recur. Lock free. Prime dark.
+
+05:0xZ 09-19 Prime batch at the owner wake: core/season2/main @71cc9c070 -> 069ccf107 (brief NEVER/batched/residue lines, SM.131-135 mints, two thought syncs, dispatch.py stale-base fix; 27 files +1244/-192) and thought trunk @8b978fbe6 -> c132a67b4 (TMM.01 proved: RETURN SHAPE + result_file, research-review workflow, TM.60-64, 70 files +4617/-309). Gates clean, 0 node deletions, active 3456 / 217, links 0. Three owner lines banked verbatim (01:3xZ masters sync independently while the Prime is quiet; 04:2xZ prayer ALWAYS in every head; 04:3xZ moral 1 loaded programmatically into every master/director brief = SM.138). Past the named SHAs, not landed (next lines): core @21155f1b4 (SM.135/136 corrective slices), thought @964f941ef (TM rotating at ~0.42). Suite #6 detached (unit agi-belam-suite-0505). No dms sent (quiet).
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
