@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+CORRECTION 04:2xZ (thought-master): the refusal cleared by itself -- director-thought rotate-self SUCCESS 04:15:26Z (gen 10->11, MAIN row da59b3655) with NO .key.pending on disk at 04:16Z, so the deferred-swap cause in claim (1) is a HYPOTHESIS, not measured: the kid FIRST reproduces the mismatch from the rotation records (03:12Z spawn row 6be919655 vs the 04:12Z refusal text) and the row history, names the real cause, and only then writes the preference; if the cause is a stale fetch/read of the committed row, the fix is that read, not the pending key. Fact: the key file is JSON {scheme, priv_hex} (no pub_hex) -- derive the pub from priv_hex (seatsig) in every recipe and in the check.
