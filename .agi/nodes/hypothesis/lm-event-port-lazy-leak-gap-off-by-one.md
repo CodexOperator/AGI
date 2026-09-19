@@ -22,3 +22,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+TM.64 mur finding D3: this testable_claim names event-steplk as an arm that should reproduce 0 divergent under the gap fix, but event_port.py line 49 (if not mode.endswith(steplk)) means event-steplk never executes the fixed line at all -- it was already bit-exact before and after, unaffected by this fix. The arms that actually execute the fix and were measured bit-exact are event-k and event-src (0 divergent of 79675 spikes, all 4 seeds, see experiment:a00-f4454515-5d5179). Residue only, does not change the fix or the disproved bottom-line verdict on the parent hypothesis; recorded rather than hand-edited into testable_claim to avoid a frontmatter YAML edit on a long quoted field.
