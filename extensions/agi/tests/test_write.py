@@ -1706,3 +1706,60 @@ def test_create_still_mints_a_declared_type_at_the_front_end(project):
     res, made = write.create(project, "hypothesis", "still-fine", ["goal:g1"])
     assert res.written and not res.rejected
     assert (project / "nodes" / "hypothesis" / "still-fine.md").exists()
+
+
+# --- the `&&` seam is the verb grammar, not a literal split (l5-verb-split)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb`: `parse_script` used to split on a literal `&&` ANYWHERE,
+# including inside a free-text argument. Measured cost: a note/ref field
+# filled with leaked review prose crashed `links.py links` with
+# `OSError: file name too long` on trunk until hand-unset
+# (experiment:a00-794503d4). These tests pin the new rule and its residual.
+
+
+def test_a_prose_ampersand_that_begins_no_verb_stays_verbatim():
+    """The incident's exact shape: the continuation after `&&` is prose, not
+    a verb name, so nothing splits and the note keeps every byte."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+
+
+def test_a_prose_ampersand_run_that_begins_no_verb_stays_verbatim():
+    """Several `&&` in one argument, none followed by a verb."""
+    assert write.parse_script("note a && b && c") == [
+        ("note", ["a && b && c"])]
+
+
+def test_an_ampersand_before_a_real_verb_still_splits_and_runs_both():
+    """A verb-only script is unchanged: the second `&&` begins `set`."""
+    calls = write.parse_script("note a && set title b")
+    assert calls == [("note", ["a"]), ("set", ["title", "b"])]
+    edit = write.Edit("hypothesis:h1")
+    for name, args in calls:
+        write.apply_verb(edit, name, args)
+    assert edit.body_append == "a" and edit.set_fm.get("title") == "b"
+
+
+def test_a_set_value_keeps_its_own_ampersands_that_begin_no_verb():
+    """`set`'s value is free text too; `b` and `c` are not verbs."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_residual_limit_a_verb_led_prose_ampersand_is_executed():
+    """KNOWN LIMIT, asserted not hidden. `note quote && set status x` DOES
+    split, because `set` after the `&&` begins a verb: a prose argument
+    cannot quote a verb-led command verbatim. The seam is the verb grammar
+    and this is the hole in it — pinned here so no reader is misled."""
+    assert write.parse_script("note quote && set status x") == [
+        ("note", ["quote"]), ("set", ["status", "x"])]
+
+
+def test_an_unknown_first_verb_still_refuses_by_name():
+    """The refusal the front end owes: an unknown FIRST token is named, even
+    when a later `&&` begins a real verb."""
+    calls = write.parse_script("frobnicate a && set title b")
+    assert calls[0] == ("frobnicate", ["a"])
+    with pytest.raises(write.EditError) as exc:
+        write.apply_verb(write.Edit("hypothesis:h1"), *calls[0])
+    assert "frobnicate" in str(exc.value)
