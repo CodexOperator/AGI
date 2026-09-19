@@ -279,7 +279,7 @@ def test_fork_resume_command_is_exact_and_the_transcript_is_copied_before_spawn(
     runs = []
     monkeypatch.setattr(rotate.subprocess, "run",
                         lambda argv, **kw: runs.append(argv))
-    wt = tmp_path / "worktrees" / "p"
+    wt = tmp_path / ".agi" / "worktrees" / "post-p"
     copied = []
     monkeypatch.setattr(rotate, "_migrate_copy_transcript",
                         lambda root, rec, worktree: (
@@ -427,7 +427,151 @@ def test_seat_makes_a_real_worktree_from_the_pushed_ref(tmp_path, monkeypatch):
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {})
     cells = rotate._migrate_seat(repo, post="p", rec=_request(),
                                  row={"role": "director"}, box="boxB")
-    assert (repo / "worktrees" / "p" / "f").is_file()
-    assert (repo / ".git" / "worktrees" / "p").is_dir()  # a real link
+    assert (repo / ".agi" / "worktrees" / "post-p" / "f").is_file()
+    assert (repo / ".git" / "worktrees" / "post-p").is_dir()  # a real link
     assert spawns and spawns[-1][1].endswith("rotate.py")
     assert cells["box"] == "boxB"
+    assert cells["worktree"] == ".agi/worktrees/post-p"
+
+
+def _real_repo(tmp_path):
+    """A real git repo with a pushed refs/agi/posts/p -- the target box's
+    bytes for a genuine `git worktree add`."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for argv in (["git", "init", "-q"],
+                 ["git", "config", "user.email", "t@t"],
+                 ["git", "config", "user.name", "t"]):
+        subprocess.run(argv, cwd=repo, check=True)
+    (repo / "f").write_text("x")
+    subprocess.run(["git", "add", "f"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-qm", "i"], cwd=repo, check=True)
+    subprocess.run(["git", "update-ref", "refs/agi/posts/p", "HEAD"],
+                   cwd=repo, check=True)
+    return repo
+
+
+def test_receive_marks_the_moved_post_as_a_worktree_never_main(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R1: the seating writes the REAL post-worktree convention; a
+    post left with no worktree cell is classified MAIN and the next rotation
+    silently runs in MAIN."""
+    repo = _real_repo(tmp_path)
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex()})
+    real_run = subprocess.run
+    spawns = []
+
+    def fake_run(argv, **kw):
+        if argv and argv[0] == "git":
+            return real_run(argv, **kw)
+        spawns.append(argv)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    captured = {}
+    monkeypatch.setattr(rotate, "_write_identity_cells",
+                        lambda root, **kw: captured.update(kw) or "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), repo)
+    assert rc == 0
+    assert captured["cells"]["worktree"] == ".agi/worktrees/post-p"
+    row = {"name": "p", "worktree": captured["cells"]["worktree"]}
+    assert not (bool(row) and not row["worktree"].strip())   # NOT a MAIN post
+    assert rotate._seat_worktree_cwd(repo, row) == str(
+        repo / ".agi" / "worktrees" / "post-p")
+
+
+def test_auto_mode_fork_supplies_the_posts_own_session_id(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R2: when the meter is the chooser, fork must not be blocked
+    by the --session-id refusal -- the post's live id IS the thing to fork."""
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    live_send = importlib.import_module("send")
+    live_send._mint_seat_key(tmp_path, "p", "ed25519")
+    fake_comms = tmp_path / "comms"
+    monkeypatch.setattr(live_send, "comms_root",
+                        lambda root, override=None: fake_comms)
+    monkeypatch.setattr(rotate, "_migrate_default_mode",
+                        lambda root, post: "fork")
+    monkeypatch.setattr(rotate, "_migrate_row",
+                        lambda root, post: {"name": "p",
+                                            "session_id": "sess-9"})
+    rc = rotate.main(["migrate", "--post", "p", "--to", "boxB",
+                      "--root", str(tmp_path)])
+    assert rc == 0, capsys.readouterr().out
+    files = sorted((fake_comms / migrate_channel.SUBDIR).glob("*.md"))
+    parsed = migrate_channel.parse_record(files[0].read_text())
+    assert parsed["mode"] == "fork"
+    assert parsed["session_id"] == "sess-9"
+
+
+def test_auto_mode_fork_with_no_session_id_anywhere_is_refused(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    monkeypatch.setattr(rotate, "_migrate_default_mode",
+                        lambda root, post: "fork")
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {})
+    rc = rotate.main(["migrate", "--post", "p", "--to", "boxB",
+                      "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "REFUSED" in out and "session-id" in out
+
+
+def test_a_stage_absent_record_is_read_as_a_request_and_verifies(
+        tmp_path, monkeypatch):
+    """SLICE 4 R3: the slice-1 writer had no `stage`; its record must not be
+    silently dropped by an upgraded receiver, and its legacy signature (over
+    the stageless key order) must still verify."""
+    import yaml
+    live_send = importlib.import_module("send")
+    _p, pub = live_send._mint_seat_key(tmp_path, "p", "ed25519")
+    rec = _rec()
+    legacy = {k: rec.get(k, "") for k in migrate_channel._KEYS_LEGACY}
+    line = live_send._sign_line(
+        tmp_path, "p", rec["ts"], rec["target_box"],
+        migrate_channel._canonical(rec, migrate_channel._KEYS_LEGACY))
+    if line:
+        legacy["sig"] = line.split(": ", 1)[1]
+    text = ("---\n" + yaml.safe_dump(legacy, sort_keys=False)
+            + "---\n\nbody\n")
+    parsed = migrate_channel.parse_record(text)
+    assert parsed is not None and parsed["stage"] == "request"
+    assert migrate_channel.verify_record(text, pub.hex()) is True
+
+
+def test_receive_skips_a_record_it_cannot_seat_without_killing_the_tick(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R4: a `git worktree add` that left the worktree absent raises
+    in the spawn's cwd=; skip that record by name, seat the next one."""
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _q, pubq = live._mint_seat_key(tmp_path, "q", "ed25519")
+    _place(fake, _request(post="p", ts="2026-09-18T12:00:00+00:00"),
+           signer="p", root=tmp_path)
+    _place(fake, _request(post="q", ts="2026-09-18T12:01:00+00:00"),
+           signer="q", root=tmp_path)
+    rows = {"p": {"name": "p", "pubkey": pub.hex()},
+            "q": {"name": "q", "pubkey": pubq.hex()}}
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: rows.get(post, {}))
+    seated = []
+
+    def fake_seat(root, *, post, rec, row, box):
+        if post == "p":
+            raise FileNotFoundError("[Errno 2] no such file: worktrees")
+        seated.append(post)
+        return {"box": box, "worktree": f".agi/worktrees/post-{post}",
+                "window": "w", "pid": 1, "session_id": "s",
+                "session_name": "n"}
+
+    monkeypatch.setattr(rotate, "_migrate_seat", fake_seat)
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda root, **kw: "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "could not seat" in out and "tick lives" in out
+    assert seated == ["q"]

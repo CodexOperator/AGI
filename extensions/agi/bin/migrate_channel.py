@@ -24,6 +24,7 @@ SUBDIR = "migrate"
 STAGES = ("request", "seated")
 _KEYS = ("kind", "stage", "post", "mode", "source_box", "target_box", "branch",
          "tip", "session_id", "ts")
+_KEYS_LEGACY = tuple(k for k in _KEYS if k != "stage")
 _UNSAFE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
@@ -58,13 +59,14 @@ def record_name(rec) -> str:
     return f"{_safe(rec['ts'])}-{_safe(rec['post'])}--{_safe(rec['target_box'])}.md"
 
 
-def _canonical(rec) -> str:
-    """The record's nine fields in a fixed key order -- the payload a
+def _canonical(rec, keys=None) -> str:
+    """The record's fields in a fixed key order -- the payload a
     signature covers. `send._canonical_msg(ts, post, target_box, THIS)` is
     the exact signed envelope; `sig` is absent so a reader reconstructs the
     same bytes from the parsed dict (send's one-canonical-form discipline).
     """
-    return "\n".join(f"{k}: {rec.get(k, '')}" for k in _KEYS)
+    keys = _KEYS if keys is None else keys
+    return "\n".join(f"{k}: {rec.get(k, '')}" for k in keys)
 
 
 def format_record(rec, *, sign_root=None, signer=None) -> str:
@@ -87,8 +89,8 @@ def format_record(rec, *, sign_root=None, signer=None) -> str:
     return "---\n" + head + "---\n\n" + body
 
 
-def parse_record(text: str) -> dict | None:
-    """Parse one record file, or None when it is not a migrate record."""
+def _parse_fm(text: str) -> dict | None:
+    """Raw migrate frontmatter, or None; `stage` left exactly as written."""
     parted = frontmatter.split_frontmatter(text)
     if not parted:
         return None
@@ -100,6 +102,17 @@ def parse_record(text: str) -> dict | None:
         return None
     if fm.get("mode") not in MODES:
         return None
+    return fm
+
+
+def parse_record(text: str) -> dict | None:
+    """Parse one record. R3: no `stage` is the slice-1 writer's shape; read
+    it as a `request`, never silently drop it."""
+    fm = _parse_fm(text)
+    if fm is None:
+        return None
+    if not str(fm.get("stage") or "").strip():
+        fm["stage"] = "request"
     if fm.get("stage") not in STAGES:
         return None
     return fm
@@ -111,7 +124,7 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
     Unsigned, malformed, or unknown-scheme records are False -- an unverified
     record is never admitted, exactly like an unsigned dm.
     """
-    rec = parse_record(text)
+    rec = _parse_fm(text)
     if rec is None:
         return False
     parts = str(rec.get("sig") or "").split(":", 2)
@@ -120,13 +133,16 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
     name, _fp, sig_hex = parts
     if scheme_name and name != scheme_name:
         return False
+    # R3: a stageless record was signed under the legacy order; a staged one
+    # never verifies under it (else a `seated` ack relabels as `request`).
+    keys = _KEYS if "stage" in rec else _KEYS_LEGACY
     try:
         import seatsig
         import send
         msg = send._canonical_msg(str(rec.get("ts", "")),
                                  str(rec.get("post", "")),
                                  str(rec.get("target_box", "")),
-                                 _canonical(rec)).encode()
+                                 _canonical(rec, keys)).encode()
         scheme = seatsig.get(name)
         return bool(scheme.verify(bytes.fromhex(pub_hex), msg,
                                   bytes.fromhex(sig_hex)))
