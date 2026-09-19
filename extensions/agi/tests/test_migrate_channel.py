@@ -177,7 +177,7 @@ def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
     monkeypatch.setenv("AGI_BOX", "boxB")
     live, fake = _fake_comms(tmp_path, monkeypatch)
     _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
-    _place(fake, _request(), signer="p", root=tmp_path)
+    path, text = _place(fake, _request(), signer="p", root=tmp_path)
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
         "name": "p", "role": "director", "pubkey": pub.hex()})
     seated = []
@@ -197,11 +197,11 @@ def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
     assert cell_calls[0]["cells"]["pid"] == 4242
     assert "box" not in cell_calls[0]["cells"]   # seating is the master's
     assert "no actor_rows grant covers box/worktree" in out
-    acks = _acks(fake)
-    assert len(acks) == 1
-    assert acks[0]["stage"] == "seated"
-    assert acks[0]["source_box"] == "boxB" and acks[0]["target_box"] == "boxA"
-    assert "seated p on boxB" in out
+    # SLICE 6: no seating grant -> NO seated ack, and the request record is
+    # left exactly as it was (a receive that could not seat has not seated).
+    assert _acks(fake) == []
+    assert "seated p on boxB" not in out
+    assert path.read_text(encoding="utf-8") == text
 
 
 def test_receive_refuses_an_unsigned_record_by_name(tmp_path, monkeypatch,
