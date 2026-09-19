@@ -2965,3 +2965,73 @@ def test_l4p6_composition_real_check_key_floor_through_dispatch(
     assert mints2 == [], "a refused pre-flight must never reach a spawn"
     assert "iteration 1" in err2, \
         f"refusal must name the owning iter: {err2}"
+
+
+# --- hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end
+# with-a-live-kid-is-named-not-a-death, conjunct 3 (the reaper label) -------
+
+
+class _KidAlive:
+    """Parent pid dead, kid pid alive -- the turn-end shape."""
+
+    def __init__(self, alive_pid):
+        self.alive_pid = alive_pid
+
+    def is_alive(self, pid):
+        return pid == self.alive_pid
+
+
+def _turn_end_round(tmp_path, last_event=None, kid=True):
+    graph = _reap_project(tmp_path)
+    it = graph / "sessions" / "iter-T"
+    (it / "parent-p").mkdir(parents=True)
+    lines = [json.dumps({"type": "message_end"})]
+    if last_event is not None:
+        lines.append(json.dumps(last_event))
+    (it / "parent-p" / "output.log").write_text("\n".join(lines) + "\n")
+    if kid:
+        (it / "kid-k").mkdir(parents=True)
+        (it / "kid-k" / "agent.json").write_text(json.dumps(
+            {"id": "kid-k", "status": "running", "pid": 555,
+             "spawned_by_agent": "parent-p",
+             "node_id": "experiment:kid-1"}))
+    rec = {"id": "parent-p", "tier": "parent", "status": "running",
+           "pid": 999, "started_at": 0}
+    return graph, it, rec
+
+
+def test_success_tail_with_live_kid_is_a_turn_end_not_a_death(tmp_path):
+    """A parent pid gone whose log ends in a completed turn AND whose kid is
+    still live is labelled a headless turn-end, never 'died'."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "turn-end with live kid experiment:kid-1 (headless exit, not a death)")
+    assert out["record"]["death"]["evidence"] == "turn-end"
+    assert "turn-end with live kid" in out["message"]
+
+
+def test_claude_code_success_result_is_also_a_turn_end(tmp_path):
+    """The claude-code harness spells the same fact `result`/`success`."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "result", "subtype": "success"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert "turn-end with live kid" in out["record"]["fail_reason"]
+    assert out["record"]["death"]["evidence"] == "turn-end"
+
+
+def test_truncated_log_keeps_the_honest_died_label(tmp_path):
+    """A killed-mid-turn parent (no success tail) must keep the exact old
+    text and carry no turn-end evidence -- no regression of the death label."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(tmp_path)
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
