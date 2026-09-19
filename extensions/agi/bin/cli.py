@@ -2177,6 +2177,30 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     except (OSError, subprocess.SubprocessError):
         return None
 
+    # hypothesis:l5-a-parent-that-accepts-a-kid-branch-lands-that-branch-on-
+    # its-own-at-done-time: fold each accepted kid's own `--branch` (iter
+    # manifest node_id/branch rows) into this checkout so the parent lands
+    # them; branchless = no-op; a conflicting merge is aborted and named.
+    if owns:
+        rows = {}
+        for mp in (root / "sessions").glob("iter-*/manifest.json"):
+            try:
+                rows.update({a.get("node_id"): a.get("branch") for a in json.loads(mp.read_text()).get("agents") or []})
+            except (OSError, ValueError):
+                pass
+        for nid in owns:
+            br = rows.get(nid)
+            if not br:
+                continue
+            r = subprocess.run(["git", "-C", str(checkout_root), "-c",
+                                "user.email=agi@local", "-c", "user.name=agi",
+                                "merge", "--no-ff", "--no-edit", br],
+                               capture_output=True, text=True)
+            if r.returncode:
+                subprocess.run(["git", "-C", str(checkout_root), "merge",
+                                "--abort"], capture_output=True, text=True)
+                print(f"ERR: owned kid branch {br} ({nid}) did not merge: {r.stderr.strip() or '(no stderr from git)'}", file=sys.stderr)
+
     status = subprocess.run(
         ["git", "-C", str(checkout_root), "status", "--porcelain", "-z",
          "--no-renames", "-uall"],
