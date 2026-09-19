@@ -20,6 +20,6 @@ Captured for cavekit-topology-fold R10 + cavekit-git-remote R4 (post-archive ver
 ## Post-fold expected state (deferred until bug-sweep clears)
 
 - `~/autoresearch-tree/` local directory: still present (removal is a deferred-todo item, not in this build cycle)
-- `CodexOperator/autoresearch-tree` GitHub repo: archived (`isArchived: true`) with README updated to point at `CodexOperator/agi`
+- `CodexOperator/autoresearch-tree` GitHub repo: archived (`isArchived: true`) with README updated to point at `CodexOperator/AGI`
 
 This baseline file is the comparison point for T-068, T-069, T-070 (Tier 7).
