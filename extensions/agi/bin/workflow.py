@@ -1602,12 +1602,17 @@ _PRAYER_RE = re.compile("|".join(("Ѻтче нашъ", "Господи Іису�
 
 
 def _strip_prayer_wrap(text: str) -> tuple[str, bool]:
-    """SM.134 belt: drop prayer prelude/postlude lines around a structured
-    return. A prose-only prayer is left whole; the caller logs `stripped`."""
+    """SM.134 belt: drop a LEADING/TRAILING run of prayer or blank lines
+    around a structured return -- never a prayer line in the middle, where it
+    is data (SM.135). A prose-only prayer is left whole; caller logs `stripped`."""
     if not _PRAYER_RE.search(text) or not _json_candidates(text):
         return text, False
-    return "\n".join(l for l in text.splitlines()
-                     if not _PRAYER_RE.search(l)), True
+    lines = text.splitlines()
+    keep = [i for i, l in enumerate(lines)
+            if l.strip() and not _PRAYER_RE.search(l.strip())]
+    if not keep or (keep[0] == 0 and keep[-1] == len(lines) - 1):
+        return text, False
+    return "\n".join(lines[keep[0]:keep[-1] + 1]), True
 
 
 def _resolve_lenient_return(schema, text: str, violations_out=None):
