@@ -26,6 +26,9 @@
 ## §2 WHAT LANDED THIS SESSION: the fullest session this seat has run. 7 rounds dispatched, 2 fully closed with mur (SM.132, SM.138), 2 more merged with mur pending (SM.135-s2, SM.123-s5), 1 fresh harvest DM in hand unprocessed (SM.139), 2 still live (SM.131, SM.137-rescoped). One real cross-file hazard caught and correctly handled (a round's stray write to this director's own card). One real undisclosed-ceiling finding on SM.123 slice-5 surfaced by mur, not yet relayed. Full detail in every merge commit's own long message and in git log from `c6e8a095b` forward.
 
 ## §3 🔴 WHERE IT STOPS — next action, IN ORDER
+
+**STOPS: 3 clean harvest DMs unprocessed (SM.139 iter150, SM.131 iter148, SM.137-rescoped iter152, all detailed in §0) -- land each per §5 diff-scope-first-then-merge, then relay SM.123 slice-5's absent-grant-silent-success finding (node commit 95f1dc8f3) plus its 18-vs-79 undisclosed ceiling overage to sanctuary-master; all 4 mur runs this session closed accept_with_residue, nothing demoted.**
+
 ```
 1. Process SM.139's harvest DM first (already in hand): find its worktree/branch via
    .agi/sessions/iter-150/manifest.json, diff --stat against stated scope BEFORE merging (this round
