@@ -7587,6 +7587,10 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 05:1xZ 09-19 OWNER (verbatim in doc:l5-owner-decisions tail): directors still fail to self-rotate (5th in a row); SM need not route cross-branch brief updates through the Prime (masters sync, 01:3xZ order); CAPTIVE AUTO-ROTATE authorized at 0.85 of the line into SM.135 -- two triggers (meter hook at the next turn + heal watch polling pins for an idle post; a hung post fires no hook), one ladder cell. Measured: director-thought f=0.506 = 108 pct of its line, idle 234 min -> recovery rotation ordered to SM (Keep authority), direct rotate order dm-ed to director-thought.
 
+05:4xZ 09-19 suite #6 at c132a67b4: 5690 passed / 3 failed / 16 skipped in 1020 s (behind a foreign full-suite run a pi reviewer under director-thought launched in MAIN, [rule] sent to TM). New deterministic reds: test_branch_spelling_grep (2) -- the dispatch.py stale-base fix comment hand-spells season/s2 outside the pinned inventory; [red] to SM (core copy), TM syncs. test_migrate_channel unchanged.
+
+06:1xZ 09-19 OWNER: "Director sanctuary stalled at rotation again." Measured: f=0.441 = 94 pct of its line, alive, last words "holding for the rotation signal" (row rotated_by: belam = stale L5 formation). Signal sent as one [rotation] dm; row cell rotated_by -> sanctuary-master (the Keep runs its recovery from now; captive at 0.85 = SM.135). director-thought rotated after the 05:12Z order (record 05:18Z, window @467, active).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
