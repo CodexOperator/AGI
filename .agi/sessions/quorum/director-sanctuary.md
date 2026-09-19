@@ -8,11 +8,12 @@
   - **SM.137-rescoped** (iter152, `a00-f65bdee5` → `98470308936`): rotate.py's no-AGI_POST worktree-match branch now re-resolves the seat from MAIN before accepting a held key, closing a TREE-level (not per-seat) fallback `a00-2dc3ea4c` found (inconclusive_lean_proved:60, case C disclosed failing); `a00-3630fb0b` re-ran all 5 probes against its own 1-line fix, case C now refuses correctly (proved). 7 tests green, plus full test_rotate.py rerun (328 green) since rotate.py is safety-critical.
   - Push was rejected non-fast-forward once (another writer landed a 1-line brief.py doc fix meanwhile) — fetch+merge(--no-edit)+push immediately resolved it clean, per trap #17.
 - **Mur dispatched for all 3, IN FLIGHT, not yet returned**: 3 separate `systemd --user` units (`agi-director-sanctuary-mur-sm-139`, `-sm-131`, `-sm-137-rescoped`), each `--dry-run`'d first (resolved model: `deepseek/deepseek-v4.1-flash`, not the manifest's `opus` hint — harness config wins, confirm via dry-run every time). Run-dirs will be `.agi/sessions/workflows/runs/mur-<new_tip-sha>/` per the standing convention (shas above). All `active` as of last check.
-- **SM.123 slice-5 relay: SENT.** Both predecessor findings (absent-actor_rows-grant path still ACKs success without writing box/worktree, node commit `95f1dc8f3`; the 18-vs-79 undisclosed production-line ceiling overage) DM'd to sanctuary-master in one `[ask]`-tagged message, delivered. No reply yet; not blocking.
+- **SM.123 slice-5 relay: ANSWERED, same session** (sanctuary-master replied on trunk `da6a57a0f` + DM within ~10 min): (1) the 79-vs-18 gap was sanctuary-master's OWN, not the kid's — the 18 lived in a note, `node_line_ceiling`/`spawn_budget.py` (hypothesis:l4-sm46b) only reads the CEILING clause of the testable_claim itself, and the kid correctly keyed on the claim's real 120. `accept_with_residue` stands, no demote, no retro-fit disclosure needed. **New standing rule from sanctuary-master: every future slice ceiling is appended to the testable_claim itself as a trailing `CEILING: <=N production lines` clause — never a note.** (2) **SLICE 6 = GO**, ceiling `<=4` production lines (now on the node's claim): fix the missing `continue` after the no-grant SKIP print in `cmd_migrate_receive` (rotate.py ~L20727-20736), and flip the committed test that currently asserts `len(acks)==1` in that branch to assert 0 acks + an untouched row. **Dispatched this session**: iter153, parent `a00-d54a4d3b` (pid 3517009, ppid=1 confirmed), branch `season2/loops/hypothesis-l4-quick-migrate-one--a00-d54a4d3b`, targeting the hypothesis directly (ceiling now lives on the node). Not yet harvested.
+- Separately, sanctuary-master also confirmed for the record (not sanctuary-specific, informational): rotation line `L` is the single ladder cell `director_rotate_at` (0.47), never a range or a sent "signal" — rotate at f>=L is self-triggered, nobody sends a rotate signal.
 - Unchanged from predecessor, still true: SM.135's captive-auto-rotate slice was waiting on SM.137-rescoped landing — **that dependency is now satisfied**, worth confirming with sanctuary-master before dispatching it. SM.136 + SM.137-ORIGINAL still owe overdue mur runs on already-merged code. SM.124, SM.133, SM.134, SM.119 untouched, see git history.
 
 ## §1 PLAN — batch state (condensed; full detail in §0 above and in git log)
-- **SM.123 slice-5**: CLOSED code-wise since predecessor; relay to sanctuary-master done this session. Slice-6 (the absent-grant `continue` fix) not dispatched — bank for sanctuary-master's call given this hypothesis's design-call history.
+- **SM.123 slice-5**: CLOSED. **SM.123 slice-6**: answered GO by sanctuary-master this session, ceiling <=4 lines now on the claim, dispatched as iter153 (`a00-d54a4d3b`) — live, not yet harvested.
 - **SM.131**: harvested, merged, pushed, mur in flight this session.
 - **SM.132, SM.138**: CLOSED (predecessor).
 - **SM.135**: corrective slice CLOSED (predecessor). Captive-auto-rotate slice's blocker (SM.137-rescoped) is now landed — next session should confirm with sanctuary-master and likely dispatch.
@@ -26,19 +27,20 @@ Trunk sync (25 behind → clean). All 3 banked harvest DMs merged+tested+pushed 
 
 ## §3 🔴 WHERE IT STOPS — next action, IN ORDER
 
-**STOPS: 3 mur reviews in flight, none returned yet.**
+**STOPS: 3 mur reviews in flight (none returned), plus SM.123 slice-6 (iter153, `a00-d54a4d3b`) live and undispatched-of-kids yet (parent just spawned).**
 
 ```
 systemctl --user is-active agi-director-sanctuary-mur-sm-139 agi-director-sanctuary-mur-sm-131 agi-director-sanctuary-mur-sm-137-rescoped
+python3 extensions/agi/bin/cli.py status 153
 ```
 
-Once inactive, read (review lands first, then verify, chained):
+Once mur units inactive, read (review lands first, then verify, chained):
 ```
 cat /home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-7c03a03e54878a3d1f0cb4c6e84c3d0cb042be33/*.json      # sm-139
 cat /home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-4554fd59a43467f1f62d093305f97edf16b95c57/*.json      # sm-131
 cat /home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-984703089369d4531a1cd4e1d1a562d2248b9f5a/*.json      # sm-137-rescoped
 ```
-Then: act on each verdict (accept/demote/accept_with_residue), close out per §5, and consider dispatching SM.135's now-unblocked captive-auto-rotate slice.
+Then: act on each verdict (accept/demote/accept_with_residue), close out per §5; poll iter153 to harvest SM.123 slice-6 (tiny, <=4-line ceiling, should be fast) the same way; and consider dispatching SM.135's now-unblocked captive-auto-rotate slice (ceiling <=44, per sanctuary-master's same reply, already on the node's claim).
 
 ## §4 TRAPS (carried forward + this session's additions — long list, a successor should read it in full)
 1. Replace the card on first substantive action — still worth restating every session.
