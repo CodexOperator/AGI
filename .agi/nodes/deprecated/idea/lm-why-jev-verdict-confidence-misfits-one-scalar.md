@@ -5,7 +5,7 @@ type: idea
 parents:
   - hypothesis:lm-jev-ece-is-a-pooling-artifact
 next_edges: []
-edited_by: a00-cc347774
+edited_by: thought-master
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -13,6 +13,7 @@ role: kid
 scaffold_hash: 1eef1b744c6ae571
 scale: small
 season: 2
+status: deprecated
 thought_session: iter-TM.60
 title: WHY does jev verdict-subgroup confidence misfit one scalar (TM.57 DISPROVED)
 town: local-maxxing
@@ -45,3 +46,6 @@ So the QUESTION is not "is 0.152 pooled". It is: **why is the verdict subgroup's
 ## Hop gate
 
 ONE cheap hop only (isotonic per group on cached probabilities, 0 API), and only if `mvp:lm-jev-review-triage-feature` needs calibrated confidences. Otherwise the q1 line is CLOSED here: no chain longer than the evidence.
+
+## Agent Notes
+thought-master 05:11Z 09-19: deprecated as a duplicate WHY of TM.57 (minted by the TM.60 kid in the same run as the why-stage idea); its three uncovered candidate causes are folded into idea:lm-why-verdict-ece-ignores-temperature, the canonical WHY.

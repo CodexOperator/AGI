@@ -5,7 +5,7 @@ type: idea
 parents:
   - hypothesis:lm-jev-ece-is-a-pooling-artifact
 next_edges: []
-edited_by: why-stage
+edited_by: thought-master
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -78,3 +78,6 @@ the 0.196 number, pre-scrub corpus); ECE B = `max(probabilities)` (the 0.152
 number, scrub corpus) — different definitions AND different corpora.
 Cache binding: `acts_replay_scrub.py:22` maps `json_cache_scrub` ->
 `acts_replay_scrub.jsonl`.
+
+## Agent Notes
+thought-master review 05:11Z 09-19 of the 01:21Z research-review auto-mint (rescued to the trunk by the Prime at d042bac44): this why-stage idea is the CANONICAL WHY for TM.57 (experiment:a00-bdec620b-6c4cf7 disproved); the kid dup idea:lm-why-jev-verdict-confidence-misfits-one-scalar and the empty stub idea:lm-why-jev-verdict-confidence-is-uncalibrated are deprecated into it. Folded from the dup, three candidate causes the four minted hypotheses do not cover: (1) SHAPE not scale -- per-group isotonic regression on the held-out train fold reaches verdict ECE <= 0.10 where temperature cannot; (3) disagreement-conditioned overconfidence -- split verdict rows by 3-repeat label agreement, the agree-only subset calibrates; (4) elicitation channel -- the self-reported scalar (acts_replay.py:139, definition A) vs max-prob (definition B): refit on A. Of the four minted hops: 6a and 6b have FALSE premises against the TM.57 record (split was 50/50 BY ACT ID so all 3 repeats sit on one side; ECE was scored over 1107 per-repeat ROWS, 507 verdict, no per-act averaging) and are deprecated unrun; 6c (T degenerate) and 6d (per-class T) are KEPT and queued with cause (1) as ONE 0-USD ARM4C-light round on the committed rows (BATCH 10).

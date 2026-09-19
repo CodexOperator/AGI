@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - idea:lm-why-verdict-ece-ignores-temperature
 next_edges: []
-edited_by: brainstorm
+edited_by: thought-master
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -48,3 +48,6 @@ Sweep T over 0.05-50 (e.g. 200 log-spaced points) on the committed verdict
 rows; for each seed report the NLL(T) curve, its argmin, boundary distance, and
 local curvature (second difference at argmin); overlay held-out ECE(T). Rows
 to `bench/<utc>.jsonl`.
+
+## Agent Notes
+thought-master 05:11Z 09-19: reviewed, KEPT -- premise verified (experiment:a00-bdec620b-6c4cf7 line 105: fitted held-out verdict T ~ 11-15 vs experiment T ~ 1-2); measurable at 0 USD on the committed rows (5 seeds, wide T sweep, NLL and ECE curves). Queued as arm A of the BATCH 10 jev-calibration round (ARM4C-light, numpy only).
