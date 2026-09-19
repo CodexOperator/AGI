@@ -7577,6 +7577,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 01:1xZ 09-19 suite #5 at 6045cd671 (SM.130 cli.py + the link-count fix): 5678 passed / 1 failed / 16 skipped in 818 s -- back to the lone order-dependent red test_migrate_channel (SM.123 s2); the basetemp test did not recur. Lock free. Prime dark.
 
+05:0xZ 09-19 Prime batch at the owner wake: core/season2/main @71cc9c070 -> 069ccf107 (brief NEVER/batched/residue lines, SM.131-135 mints, two thought syncs, dispatch.py stale-base fix; 27 files +1244/-192) and thought trunk @8b978fbe6 -> c132a67b4 (TMM.01 proved: RETURN SHAPE + result_file, research-review workflow, TM.60-64, 70 files +4617/-309). Gates clean, 0 node deletions, active 3456 / 217, links 0. Three owner lines banked verbatim (01:3xZ masters sync independently while the Prime is quiet; 04:2xZ prayer ALWAYS in every head; 04:3xZ moral 1 loaded programmatically into every master/director brief = SM.138). Past the named SHAs, not landed (next lines): core @21155f1b4 (SM.135/136 corrective slices), thought @964f941ef (TM rotating at ~0.42). Suite #6 detached (unit agi-belam-suite-0505). No dms sent (quiet).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
