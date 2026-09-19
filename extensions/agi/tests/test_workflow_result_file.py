@@ -217,3 +217,25 @@ def test_full_run_incomplete_digest_fails_and_skips_dependent(
     assert "[✗] find:t1" in text, text
     assert "skipped" in text and "dependency 'find'" in text, text
     assert rows and rows[0]["stages"]["find:t1"] == "failed", rows
+
+
+# -- trove-survey: panel and judge declare a result_file --------------------
+
+def test_trove_survey_panel_and_judge_declare_result_file():
+    """hypothesis:lm-pi-stage-never-sees-its-schema...: panel and judge were
+    handed neither a result_file nor a closing schema sentence, unlike read
+    and critique. Both must now declare a rendered result_file whose parent
+    dir is the run scratch."""
+    import json as _json
+    from pathlib import Path as _Path
+    manifest = _json.loads(
+        (REPO / "extensions" / "agi" / "workflows" / "trove-survey.json")
+        .read_text(encoding="utf-8"))
+    by_label = {s["label"]: s for s in manifest["stages"]}
+    for label in ("panel", "judge"):
+        st = by_label[label]
+        assert st.get("result_file"), f"{label} declares no result_file"
+        assert "{scratch}" in st["result_file"], st["result_file"]
+        tail = st["prompt"][-400:]
+        assert "JSON object" in tail and "schema" in tail, \
+            f"{label} prompt names no required schema: {tail!r}"

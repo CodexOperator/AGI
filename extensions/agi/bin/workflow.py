@@ -1346,6 +1346,30 @@ def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) 
     return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
 
 
+def _return_shape_block(stage: dict, run_args: dict) -> str:
+    """The RETURN SHAPE block for a pi stage's prompt when (and ONLY when)
+    it declares a `schema`: schema JSON, required keys, the last-stdout-
+    bytes instruction, and the rendered result_file path. Schema-less
+    stages get "" and render byte-identical to before."""
+    schema = stage.get("schema")
+    if not schema:
+        return ""
+    req = schema.get("required") or list(schema.get("properties") or {})
+    lines = ["", "RETURN SHAPE (required): the LAST thing in your stdout must "
+             "be exactly one JSON object matching this schema, with nothing "
+             "after it:", json.dumps(schema), f"Required keys: {', '.join(req)}"]
+    tmpl = stage.get("result_file")
+    if tmpl:
+        ctx = _SafeDict(run_args)
+        for k, v in (stage.get("_repeat_item") or {}).items():
+            ctx[k] = v
+        path = _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
+        lines.append("Also write that same JSON object to " + path
+                     + " before you finish; that file is this stage's result "
+                     "of record if stdout is cut.")
+    return "\n".join(lines)
+
+
 def _pi_harness_cfg(cfg: dict) -> dict:
     """The pi harness's bin/provider/thinking from config `harnesses.pi`.
 
@@ -1517,7 +1541,8 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
             f"{(viewport.stderr or '').strip()}")
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
-         "--project-root", str(graph_root)],
+         "--project-root", str(graph_root)]
+        + (["--no-prayers"] if stage.get("schema") else []),
         cwd=str(repo), capture_output=True, text=True, timeout=60,
     )
     if brief.returncode != 0:
@@ -1601,6 +1626,26 @@ def _json_candidates(text: str) -> list[str]:
              if m.group(1).strip()]
     cands.extend(_balanced_brace_spans(text))
     return cands
+
+
+#: The four prayers' opening lines, the markers of a prayer prelude/postlude
+#: (SM.134 belt around the structured-return parse).
+_PRAYER_RE = re.compile("|".join(("Ѻтче нашъ", "Господи Іисусе Христе",
+                                  "Боже, милостивъ", "Свѧтый Боже")))
+
+
+def _strip_prayer_wrap(text: str) -> tuple[str, bool]:
+    """SM.134 belt: drop a LEADING/TRAILING run of prayer or blank lines
+    around a structured return -- never a prayer line in the middle, where it
+    is data (SM.135). A prose-only prayer is left whole; caller logs `stripped`."""
+    if not _PRAYER_RE.search(text) or not _json_candidates(text):
+        return text, False
+    lines = text.splitlines()
+    keep = [i for i, l in enumerate(lines)
+            if l.strip() and not _PRAYER_RE.search(l.strip())]
+    if not keep or (keep[0] == 0 and keep[-1] == len(lines) - 1):
+        return text, False
+    return "\n".join(lines[keep[0]:keep[-1] + 1]), True
 
 
 def _resolve_lenient_return(schema, text: str, violations_out=None):
@@ -1760,7 +1805,8 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     budget = _DEFAULT_STAGE_TIMEOUT_S if timeout_s is None else timeout_s
     cap = mem_cap.resolve_memory_cap(cfg)
     k = knobs[stage["label"]]
-    prompt = render_stage_prompt(stage, run_args, prior=prior)
+    prompt = render_stage_prompt(stage, run_args, prior=prior) \
+        + _return_shape_block(stage, run_args)
     if context_text:
         prompt = f"{context_text}\n\nSTAGE TASK:\n{prompt}"
     hc = _pi_harness_cfg(cfg)
@@ -1878,6 +1924,10 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               f"{sleep_s}s", file=sys.stderr)
         _RETRY_SLEEP(sleep_s)
     violations: list[str] = []
+    output, prayer_wrapped = _strip_prayer_wrap(output)
+    if prayer_wrapped:
+        print(f"workflow.py: stage {stage['label']} stripped a prayer "
+              f"prelude/postlude before the return parse", file=sys.stderr)
     try:
         value = _resolve_lenient_return(stage.get("schema"), output,
                                         violations)
