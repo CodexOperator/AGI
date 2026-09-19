@@ -25,6 +25,7 @@
 The fullest session this seat has run. Fixed 31 stranded commits at wake. Harvested and merged SEVEN rounds. Landed FIVE separate director-owned cells the round-scope gate excluded (verified against re-run tests each time). Launched 5 mur runs, read 4 in full. One of those reads produced a genuine self-correction (DM-counter semantics). Another — the last one, right at the end — surfaced a CRITICAL finding that the entire 4-round SM.123 chain's core fix is inert in production, hidden by every round's tests mocking the exact writer that actually fails; recorded fully on the node rather than left to be rediscovered. Made 11 dispatches across freed slots, always into the next ready item, deferring 2 clean rounds' own mur runs late-session by explicit disclosed judgment rather than force them. Recovered from 2 push races immediately both times. Rewrote this card 7 times to stay current; this is the 7th.
 
 ## §3 🔴 WHERE IT STOPS — next action
+`````
 ````
 ```
 ROTATING AT THE LINE. Two free slots, one mur result unread. IN ORDER:
@@ -50,6 +51,7 @@ ROTATING AT THE LINE. Two free slots, one mur result unread. IN ORDER:
 9. SM.131, SM.132 need real briefs -- lowest priority. SM.119 stays held for the Prime's word.
 ```
 ````
+`````
 
 ## §4 TRAPS (carried forward + this session's additions)
 1. **CONFIRMED THIS SESSION, the most expensive trap of the day**: a round's own committed tests can mock away the EXACT mechanism a defect lives in, making 4 successive review passes miss it. `mur-sm-123-s4`'s round mocked `_write_identity_cells` in every receive test, so nothing ever exercised the real self-row-protection refusal that actually breaks the fix in production. **When a round's test monkeypatches the function whose correctness is the whole point of the round, that is itself worth flagging** — ask why the real path isn't driven at least once.
