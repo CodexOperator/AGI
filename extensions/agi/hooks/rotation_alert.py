@@ -815,9 +815,17 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
         return "capture-no-spawn"
     card.write_text(f"{AUTO_CAPTURED}\n" + card.read_text(encoding="utf-8"),
                     encoding="utf-8")
-    for a in argvs:
-        _Popen(a, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-               stdin=subprocess.DEVNULL, start_new_session=True)
+    # ONE background child chains handoff THEN rotate-self with `&&`, so the
+    # card write completes before rotate-self reads it (`--stops` is built
+    # from the card). Both argvs are passed POSITIONALLY ($2.. = handoff argv,
+    # then rotate-self argv; $1 = its length) so nothing is shell-interpolated;
+    # P7 holds -- the hook itself never blocks, the child does the waiting.
+    handoff_argv, rotate_argv = argvs
+    _Popen(["bash", "-c",
+            'n=$1; shift; a=("$@"); "${a[@]:0:$n}" && "${a[@]:$n}"',
+            "bash", str(len(handoff_argv)), *handoff_argv, *rotate_argv],
+           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+           stdin=subprocess.DEVNULL, start_new_session=True)
     print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")
     return "captured"
 
@@ -1342,7 +1350,7 @@ def main(argv: list[str] | None = None) -> int:
         else:
             break
 
-    def _emit(title: str, headline: str) -> int:
+    def _emit(title: str, headline: str, show_fraction: bool = True) -> int:
         print(title)
         print()
         print(headline)
@@ -1356,12 +1364,20 @@ def main(argv: list[str] | None = None) -> int:
             print(ROTATE_CMD_NO_SEAT.format(bin=bin_dir, transcript=transcript))
         print("```")
         print()
-        print("(Fraction computed from `input_tokens + cache_read_input_tokens + "
-              "cache_creation_input_tokens` on the NEWEST assistant message of the "
-              f"handed transcript — a level, not a running total: {used} tokens of "
-              f"a {window}-token window = {fraction:.4f} of {threshold:.3f} window "
-              f"({fraction/threshold * 100:.2f}% of the line); threshold "
-              f"{threshold:.4f} from {threshold_source}.)")
+        if show_fraction:
+            # Below the line only: the number-and-band form. The over-line
+            # context is the IMPERATIVE block alone (conjunct 1), so that
+            # branch passes show_fraction=False; only the threshold's own
+            # PROVENANCE survives there (naming the row that won is not a
+            # band -- it is the reason the line sits where it does).
+            print("(Fraction computed from `input_tokens + cache_read_input_tokens + "
+                  "cache_creation_input_tokens` on the NEWEST assistant message of the "
+                  f"handed transcript — a level, not a running total: {used} tokens of "
+                  f"a {window}-token window = {fraction:.4f} of {threshold:.3f} window "
+                  f"({fraction/threshold * 100:.2f}% of the line); threshold "
+                  f"{threshold:.4f} from {threshold_source}.)")
+        else:
+            print(f"(Rotation line from {threshold_source}.)")
         print("---")
         return 0
 
@@ -1383,12 +1399,9 @@ def main(argv: list[str] | None = None) -> int:
                       "its card. The command below inspects/rotates by hand "
                       "if needed.")
         _rc = _emit(AT_OR_OVER_TITLE,
-                    f"This session is at or over its rotation line: "
-                    f"{fraction:.4f} of {threshold:.3f} window "
-                    f"({fraction/threshold * 100:.2f}% of the line) ≥ the line. "
-                    f"Rotate NOW. If you were "
-                    f"mid-round, hand off cleanly first."
-                    + suffix)
+                    "This session is at or over its rotation line. "
+                    "Rotate NOW. If you were mid-round, hand off cleanly first."
+                    + suffix, show_fraction=False)
         _meter(used, threshold, fraction)
         return _rc
 
