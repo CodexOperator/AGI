@@ -217,7 +217,7 @@ DEPENDENCY  rotate.py receive/fork (SM.123 s2, under director-sanctuary) must la
    never holds a rotation) · the CPU8G ssh alias (ARM4C-only; the Prime provisions one on the target if the CPU lane is wanted from there) · the local-town tunnel (moot: 18080 is local on the rig).
 (b) TARGET STATE (from experiment:a00-4922be82-9f3b11, SM.117b real-box slice)  · checkout exists on the rig (clone + local-maxxing/season1/main merge of core, clean) · box-local .env
    AGI_BOX=local-town (envfile --check named an EMPTY required OPENROUTER_API_KEY -> the Prime/SM fill it before the move) · ssh alias `local-town` via the mesh config (alias only, never an address)
-   · llama-server: docker, presets Qwen3.5-9B-Q4_K_M / Qwen3.5-35B-A3B-Q3_K_M / bonsai, -np 1, ctx fit (~47k), health ok · 16 threads, 24 GB... no: 8 GB VRAM, /data 266 G free · pi-local = 127.0.0.1:18080 there too.
+   · llama-server: docker, presets Qwen3.5-9B-Q4_K_M / Qwen3.5-35B-A3B-Q3_K_M / bonsai, -np 1, ctx fit (~47k), health ok · 16 threads, 8 GB VRAM, /data 266 G free · pi-local = 127.0.0.1:18080 there too.
 (c) DIRECTOR HANDOFF  at the word: the director lands or hands off TM.58/TM.60/survey (+ any rig round) on its post branch, pushes, writes its card, rotates on the target (receive/fork);
    THEN I: final card (this file), push the trunk, `rotate.py rotate` into the target per the SM's cells. Verify on arrival: `send.py read` empty, git in sync, `curl 127.0.0.1:18080/v1/models`.
 ```
