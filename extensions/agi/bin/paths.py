@@ -16,7 +16,7 @@ def classify(line, cells):
     hits = ["home"] if HOME_RE.search(line) else []
     for cls, key in (("logs", "logs_dir"), ("tmux", "tmux_session"), ("user", "user")):
         v = cells.get(key) or ""
-        if v and re.search(r"\b%s\b" % re.escape(v), line):
+        if v and re.search(r"(?<![A-Za-z0-9_])%s(?![A-Za-z0-9_])" % re.escape(v), line):
             hits.append(cls)
     v = cells.get("root") or ""
     return hits + (["box"] if v and v in line else [])
@@ -40,6 +40,11 @@ def main(argv=None):
     a.add_argument("dir", nargs="?")
     a.add_argument("--root", default=str(Path(__file__).resolve().parents[3] / ".agi"))
     args = ap.parse_args(argv)
+    cells = boxes.box_cells(Path(args.root))
+    missing = sorted(k for k, v in cells.items() if not v)
+    if missing:
+        print("missing box cells: %s" % ", ".join(missing))
+        return 2
     found = findings(Path(args.root), args.dir)
     if found:
         print("\n".join(found))
