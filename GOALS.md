@@ -7585,6 +7585,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 06:1xZ 09-19 OWNER: "Director sanctuary stalled at rotation again." Measured: f=0.441 = 94 pct of its line, alive, last words "holding for the rotation signal" (row rotated_by: belam = stale L5 formation). Signal sent as one [rotation] dm; row cell rotated_by -> sanctuary-master (the Keep runs its recovery from now; captive at 0.85 = SM.135). director-thought rotated after the 05:12Z order (record 05:18Z, window @467, active).
 
+06:2xZ 09-19 OWNER asked why directors stopped self-rotating. Measured: rotate-self never stopped (all records rotation: rotate-self; rotated_by = metering/dm supervisor only). Two stall shapes: (a) stop early + "hold for the signal" (brief quotes L as a range 0.44-0.47; ladder cell = 0.47; no signal exists) -- director-sanctuary 0.441; (b) idle past the line, no turn -> no hook -- director-thought 0.506 / 234 min. Both moved within minutes of a one-line order. Fix path: SM.135 captive 0.85 x L (hook + watch) + one brief §3 template line (sent to SM).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
