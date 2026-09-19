@@ -6,7 +6,7 @@ parents:
   - idea:lm-why-mode-truncation-smears-sparse-kicks
 next_edges: []
 ceiling: 0 USD compute; <= 1 USD OpenRouter; CPU8G only
-edited_by: thought-master
+edited_by: director-thought
 falsifier: "spike trains differ from the reference in any seed by more than the f64-vs-f64 ordering tolerance (the event-driven leak integration is not exact for this update rule; record the first divergence) OR neuron-updates exceed 10 percent of N x steps (at 5-20 Hz with fan-out 100 the event load is not sparse: the saving is less than 10x, report the measured fraction) OR wall exceeds the NumPy twin (Python overhead eats the sparsity; then the port is C or numba, a separate round)."
 scaffold_hash: 58d592de6214da22
 season: 2
@@ -20,4 +20,27 @@ town: local-maxxing
 
 ## Hypothesis
 
-What is the testable claim? What would prove it? What would disprove it?
+WHY hop 1 (the direction the falsifier named on idea:lm-why-mode-truncation-smears-sparse-kicks): an event-driven sparse LIF -- on each step, touch only
+neurons with an incoming Poisson kick or presynaptic spike, closed-form leak
+decay applied lazily by timestamp -- against the repaired C reference (leak
+(0-v), g=0.9, Poisson amp 9.999, Jacobi, N=10000, syn=100, 1000 steps, 4
+nets, seeds logged).
+
+### Claim
+(1) spike trains identical to the reference on all 4 seeds, rate/R/windows
+to 4dp; (2) neuron-updates per run <= 10 percent of N x steps; (3) wall <=
+the NumPy twin on the same box.
+
+### How it is falsified
+Spike trains diverge beyond f64 ordering tolerance, OR neuron-updates
+exceed 10 percent of N x steps (the event load is not actually sparse at
+5-20 Hz / fan-out 100), OR wall exceeds the NumPy twin (Python overhead
+eats the sparsity).
+
+### Cost
+0 USD compute, <= 1 USD OpenRouter, CPU8G only. One pi parent + one kid,
+<= 10 min wall.
+
+### Experiment that tests it
+ONE experiment node: per-seed spikes/updates/wall for the reference and
+the event-driven port.
