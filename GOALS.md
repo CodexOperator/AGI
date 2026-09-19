@@ -7587,6 +7587,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 06:2xZ 09-19 OWNER asked why directors stopped self-rotating. Measured: rotate-self never stopped (all records rotation: rotate-self; rotated_by = metering/dm supervisor only). Two stall shapes: (a) stop early + "hold for the signal" (brief quotes L as a range 0.44-0.47; ladder cell = 0.47; no signal exists) -- director-sanctuary 0.441; (b) idle past the line, no turn -> no hook -- director-thought 0.506 / 234 min. Both moved within minutes of a one-line order. Fix path: SM.135 captive 0.85 x L (hook + watch) + one brief §3 template line (sent to SM).
 
+07:3xZ 09-19 OWNER (verbatim in doc:l5-owner-decisions tail): sandbox branches for another instance to try the redesign -- created on origin at 5ee9bfb72: encryption-town/{main,season2/main}, codex-town/{main,season2/main} (v3 grammar parses both kinds). Not our towns: no node, no row, no cron mirror, never merged by us, excluded from every prune/delete pass; origin heads 13 -> 17. Both masters told in one line each (they brief their directors).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
