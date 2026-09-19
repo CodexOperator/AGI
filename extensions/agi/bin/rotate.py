@@ -17713,7 +17713,8 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
         _trees = (_seat_read_root(root), root)
         for r in (r for _t in _trees for r in _load_seats(_t)):
             if r.get("worktree") and Path(str(r.get("worktree"))) == top:
-                seat, row = r.get("name"), r
+                seat = r.get("name")
+                row = _find_seat(_seat_read_root(root, seat), seat) or r
                 break
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
