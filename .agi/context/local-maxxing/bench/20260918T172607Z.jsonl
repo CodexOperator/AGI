@@ -1,0 +1,12 @@
+{"ts_utc":"20260918T172607Z","key":"uno_job_wall_s","value":226,"created_to_finished_s":228,"note":"job 27711 XS GPU one-shot, 22.03 GiB device, reached warmup then env blocker"}
+{"ts_utc":"20260918T172607Z","key":"uno_gpu_minutes","value":3.77,"note":"billed wall started 17:22:21Z -> finished 17:26:07Z; per-minute monthly allowance"}
+{"ts_utc":"20260918T172607Z","key":"uno_install_s","value":126,"note":"uv+py3.10+torch cu128+FA2 wheel+deps+uno repo editable"}
+{"ts_utc":"20260918T172607Z","key":"uno_download_s","value":136,"note":"16.38 GB uno-qwen3-8B bundle; K2 base 16s, K2 Uno adapter 3s, same background job"}
+{"ts_utc":"20260918T172607Z","key":"uno_weight_load_peak_gib","value":15.28,"note":"8B base with default device cpu around load_model: alloc==peak==15.28 GiB; prior default-shaped run OOMed at 21.69 GiB, so the load defect is FIXED"}
+{"ts_utc":"20260918T172607Z","key":"uno_weight_load_peak_gib_k2","value":2.04,"note":"K2-Horizon-0.9B base weight load peak, same cpu-forced path"}
+{"ts_utc":"20260918T172607Z","key":"uno_nvsmi_max_mib","value":15886,"note":"max nvidia-smi memory.used seen by the 2s poller across the run"}
+{"ts_utc":"20260918T172607Z","key":"uno_base_batch1_tok_s","value":null,"note":"no token generated: LLM init died in warmup_model before generate"}
+{"ts_utc":"20260918T172607Z","key":"uno_uno_batch1_tok_s","value":null,"note":"no token generated; both arms died at warmup"}
+{"ts_utc":"20260918T172607Z","key":"uno_identical_prompts","value":"0/20","note":"no greedy output produced by either arm"}
+{"ts_utc":"20260918T172607Z","key":"uno_tpf","value":null,"note":"tokens-per-forward and acceptance rate not reachable; no forward completed"}
+{"ts_utc":"20260918T172607Z","key":"uno_blocker","value":"triton-inductor-Python.h-missing","note":"RMSNorm/two-pass @torch.compile -> inductor -> triton cuda_utils.c build fails: /usr/include/python3.10/Python.h absent on the engine=base image; one-line fix C_INCLUDE_PATH=<uv python3.10 include dir>"}
