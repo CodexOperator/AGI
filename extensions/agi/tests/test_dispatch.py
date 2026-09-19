@@ -2981,7 +2981,7 @@ class _KidAlive:
         return pid == self.alive_pid
 
 
-def _turn_end_round(tmp_path, last_event=None, kid=True):
+def _turn_end_round(tmp_path, last_event=None, kid=True, kid_pid=555):
     graph = _reap_project(tmp_path)
     it = graph / "sessions" / "iter-T"
     (it / "parent-p").mkdir(parents=True)
@@ -2992,7 +2992,7 @@ def _turn_end_round(tmp_path, last_event=None, kid=True):
     if kid:
         (it / "kid-k").mkdir(parents=True)
         (it / "kid-k" / "agent.json").write_text(json.dumps(
-            {"id": "kid-k", "status": "running", "pid": 555,
+            {"id": "kid-k", "status": "running", "pid": kid_pid,
              "spawned_by_agent": "parent-p",
              "node_id": "experiment:kid-1"}))
     rec = {"id": "parent-p", "tier": "parent", "status": "running",
@@ -3031,6 +3031,40 @@ def test_truncated_log_keeps_the_honest_died_label(tmp_path):
     d = _load_dispatch()
     graph, it, rec = _turn_end_round(tmp_path)
     out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+class _AlwaysAlive:
+    """The production pi adapter answers True for pid 0 (it falls back to
+    os.kill(0, 0), which signals the caller's own process group)."""
+
+    def is_alive(self, pid):
+        return True
+
+
+def test_pid_null_kid_is_never_a_live_kid(tmp_path):
+    """A kid record with `pid: null` is UNKNOWN, not alive -- the success
+    tail keeps the honest died label even though is_alive(0) is True."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=None)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+def test_pid_zero_kid_is_never_a_live_kid(tmp_path):
+    """`pid: 0` is unknown too; is_alive(0) answering True must not make it
+    a live kid."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=0)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
                       cap=5, cfg={}, restart_ok=False)
     assert out["record"]["fail_reason"] == (
         "pid 999 died (detected by reaper)")
