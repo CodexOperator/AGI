@@ -1763,3 +1763,46 @@ def test_an_unknown_first_verb_still_refuses_by_name():
     with pytest.raises(write.EditError) as exc:
         write.apply_verb(write.Edit("hypothesis:h1"), *calls[0])
     assert "frobnicate" in str(exc.value)
+
+
+# --- the trailing `&&` must still separate (l5-verb-split, second round)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb` clause (2): "a script that is ONLY verbs still parses exactly
+# as today (every existing test_write* case byte-identical)". The verb-lookahead
+# alone made a TRAILING `&&` (nothing after it, so no verb to look ahead at)
+# non-separating, absorbing the pair into the last argument. Pre-fix
+# `note a &&` -> `("note", ["a"])`; it became `("note", ["a &&"])`. These pin
+# the pre-fix behaviour back, without loosening the prose rule above.
+
+
+def test_a_trailing_verb_only_script_still_drops_the_empty_chunk():
+    """Nothing after the `&&` means no verb looks ahead -- but the pair is
+    still a separator, and the empty chunk it makes is skipped as before."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("note a &&   ") == [("note", ["a"])]
+
+
+def test_a_trailing_verb_only_script_keeps_an_existing_argument_clean():
+    """The measured shape: a chained verb line ended with `&&`, and the pair
+    must not leak into the `set` value or the `thought` sentence."""
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+    assert write.parse_script(
+        "set confidence 0.9 && thought why it changed now &&") == [
+        ("set", ["confidence", "0.9"]),
+        ("thought", ["why it changed now"])]
+
+
+def test_a_non_verb_ampersand_run_is_still_not_a_separator():
+    """The prose rule from the first round must not regress: neither `b` nor
+    `c` is a verb, so a trailing pair is the only separator in the line."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_incident_note_and_a_verb_pair_are_still_unchanged():
+    """Both first-round fixes hold: prose after `&&` stays verbatim when it
+    begins no verb, and a real verb after `&&` still starts the next call."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && set title b") == [
+        ("note", ["a"]), ("set", ["title", "b"])]

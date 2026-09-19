@@ -506,7 +506,9 @@ ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
 #: `str.split("&&")` this replaces split inside an argument too, and leaked
 #: prose in a note/ref field crashed `links.py links` (experiment:a00-794503d4).
 #: Residual (test-pinned): prose cannot quote a VERB-LED command.
-_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$))" % "|".join(
+#: A trailing `&&` (nothing but whitespace after it) is still a separator --
+#: otherwise it leaks into the last argument and verb-only scripts change.
+_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$)|$)" % "|".join(
     sorted(VERBS, key=len, reverse=True)))
 
 #: One-line example per verb, for the help epilog. Module-level (not local to
