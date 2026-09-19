@@ -7519,6 +7519,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 00:0xZ 09-19 Prime landing: core/season2/main @49b4ce001 -> season2/main 36816aae3 (SM.130 minted under g15: cmd_done --owns lands an accepted kid --branch worktree on the parent branch at done time; the SM.125 parent read base+0 with accepted=3). Gate: base 94f521d62 = HEAD, clean, 0 node deletions, 2 files +31/-4, verify 12/12 (bin-suite-fresh green again), active 3350 / 217. Suite #2 for the code landing 026583930: 5660 passed / 1 failed / 16 skipped in 733 s at 94f521d62 -- the 1 = test_migrate_channel (SM.123 s2), unchanged; window released 00:0xZ.
 
+00:1xZ 09-19 Prime landing: core/season2/main @5b981b11e -> season2/main b3c3448ce (SM.125: config_max + template_max required by name as {answer, where} in both merge-up-review stages + the kid first-answer line in the brief §1, 0 production lines, lean_proved:85 -- path_max + paths.py audit NOT delivered, SM.125 slice 2 ordered by SM; SM.129: workflow.py --root before or after the subcommand, 7/2 lines, proved 0.9, so the brief line-62 template may say --root too). Gate: base 49b4ce001, clean, 0 node deletions, 11 files +760/-57, bytes read (workflow.py whole, mur schema keys, brief hunk), verify 11/12 (workflow.py since suite), active 3354 / 217. Proven on MAIN: workflow.py --root <MAIN> list works; --root /nonexistent refuses naming --root. Suite #3 detached (unit agi-belam-suite-0012).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
