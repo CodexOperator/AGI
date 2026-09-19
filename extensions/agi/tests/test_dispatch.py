@@ -2097,6 +2097,39 @@ def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
     assert _current_town_branch(repo, nodes) is None
 
 
+def test_v3_post_branch_resolves_its_own_town_trunk(tmp_path):
+    """hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    main: a v3 town-first post/loop branch (`<town>/season<m>/posts/<seat>/
+    main`) resolves the trunk of ITS tuple, never core's main -- the shape
+    the thought town's director actually carries."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/loops/hyp-a00-abc123/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+
+
+def test_v3_town_trunk_without_ladder_row_integrates_against_itself(tmp_path):
+    """A v3 town TRUNK whose town has no `town_branches` row is measured
+    against itself on origin (owner 01:0xZ 09-19: towns are independent and
+    batched). A trunk whose town HAS a row (core) keeps today's path: the
+    exact-equality lookup misses `core/season2/main` vs `season/s2` and the
+    resolver still returns None (the caller's season/sN fallback)."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b", "local-maxxing/season1/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b", "core/season2/main")
+    assert _current_town_branch(repo, nodes) is None
+
+
 # ---------------------------------------------------------------------------
 # hypothesis:l4-branches-follow-the-season-grammar — the stale-base guard
 # must resolve the town/integration branch CANONICAL-first with the one-season
