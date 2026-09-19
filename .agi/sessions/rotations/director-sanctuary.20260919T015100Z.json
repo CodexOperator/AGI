@@ -1,0 +1,174 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-sanctuary",
+  "recorded_at": "2026-09-19T01:51:26.407987Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-sanctuary",
+      "windows": [
+        "director-sanctuary",
+        "director-thought",
+        "belam-S2-L5-II",
+        "sanctuary-helper",
+        "director-belam",
+        "director-sanctuary.prev",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "sanctuary-master",
+        "belam-S2-L5-I",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 4114869,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-sanctuary.prev",
+      "windows": [
+        "director-sanctuary",
+        "director-thought",
+        "belam-S2-L5-II",
+        "sanctuary-helper",
+        "director-belam",
+        "director-sanctuary.prev",
+        "belam-S1-L4-XXXI",
+        "belam-S1-L4-XXX",
+        "master-sensei",
+        "belam-S1-L4-XXIX",
+        "sanctuary-master",
+        "belam-S2-L5-I",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -3.165
+  },
+  "seated_at": "2026-09-19T01:51:26.407987Z",
+  "window": "director-sanctuary",
+  "session_id": "a606aa82-ce56-47a2-8622-7a95aa74926a",
+  "pid": 1343126,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-sanctuary.prev",
+      "id": "@455"
+    },
+    "successor_window": {
+      "name": "director-sanctuary",
+      "id": "@459"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@459",
+      "pid": 1343126,
+      "session_id": "a606aa82-ce56-47a2-8622-7a95aa74926a",
+      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
+      "name": "post-sensei-director-4d",
+      "path": "/home/ubuntu/.claude/sessions/1343126.json",
+      "note": "joined by @459 in registry file 1343126.json"
+    },
+    "successor_row": "config:seats row 'director-sanctuary': session_ref= session_name=post-sensei-director-4d session_label=director-sanctuary session_id=a606aa82-ce56-47a2-8622-7a95aa74926a pid=1343126 generation=7 window='@459' source=registry pubkey=89c896c13e344fa5... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 71b4bb6cd, retried 0) -- own-row only: director-sanctuary spawn row: gen 7, session_id a606aa82-ce56-47a2-8622-7a95aa74926a, window @459, pid 1343126\npush: push: OK -- season2/main",
+    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.key (0600, atomic replace)",
+    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-sanctuary.meter",
+    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.ack.a606aa82.json",
+    "own_authority_released": "generation 6 of seat 'director-sanctuary' retired; successor generation 7 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
+    "livestream_repoint": {
+      "session": "view-director-sanctuary",
+      "target": "@459",
+      "skipped": "view session view-director-sanctuary absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-sonnet-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-sonnet-5"
+      },
+      "live": {
+        "model": "claude-sonnet-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-sanctuary.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "6ebd13db48b924e0242c00a01ecb4a1dfa10f3b390740f083ea5fd03f37777dc",
+  "announced_to": [
+    "master-sensei"
+  ],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      3829902,
+      3829907,
+      3829934,
+      3829941
+    ],
+    "reap_source": "derived from own window @id @455 pane 3829902: chain [3829902, 3829907, 3829934, 3829941] (deepest-first; authority row pid 3829941)"
+  },
+  "after_join": {
+    "performer": "watch",
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-sanctuary",
+        "rc": 0,
+        "output": "@459 director-sanctuary\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-sanctuary.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/a606aa82-ce56-47a2-8622-7a95aa74926a.jsonl",
+        "rc": 0,
+        "output": "0.0836\t83584/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3829902|3829907|3829934|3829941)\\b'",
+        "rc": 0,
+        "output": "3829902  845418 ?        [bash] <defunct>\n",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-sanctuary --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-sanctuary --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-sanctuary",
+    "dm_signed": true,
+    "code_head": "8fc2c63",
+    "code_loaded": "1789775516:1071399",
+    "claimed_at": "2026-09-19T01:52:10.061476+00:00",
+    "claim_key": "2026-09-19T01:51:26.407987Z",
+    "performed_after_s": 43.15622425079346
+  }
+}
