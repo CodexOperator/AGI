@@ -7553,3 +7553,23 @@ def test_box_local_sweeps_dm_channels_for_local_rows_only(
     assert "[dm post-a--seat-a]" in out, out
     assert "foreign dm" not in out, out
     assert "[dm post-far--seat-a]" not in out, out
+
+
+def test_no_pending_signer_is_byte_identical(project, monkeypatch):
+    """l5 claim (3) guard (d): with no `.key.pending`, the signer is
+    byte-identical to the pre-change signer -- the live `.key` signs, and the
+    `sig:` line is exactly what the raw key would produce. The pending
+    preference must never touch a seat that has no deferred swap."""
+    send_mod.keygen(project, "plain-a")
+    live = _seat_key_file(project, "plain-a")
+    obj = json.loads(live.read_text())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv = bytes.fromhex(obj["priv_hex"])
+    pub = scheme.public_from_secret(priv)
+    ts, text = "2026-01-01T00:00:00Z", "hi"
+    got = send_mod._sign_line(project, "plain-a", ts, "recv", text)
+    msg = send_mod._canonical_msg(ts, "plain-a", "recv", text).encode()
+    want = (f"sig: ed25519:{send_mod.seatsig.fingerprint(pub)}:"
+            f"{scheme.sign(priv, msg).hex()}")
+    assert got == want
+    assert not (live.parent / f"{live.name}.pending").exists()
