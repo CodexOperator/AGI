@@ -105,6 +105,28 @@ def test_imperative_at_or_over_the_line(tmp_path, run_hook, monkeypatch, capsys)
     assert out.strip().splitlines()[-1].startswith("[meter]"), out
 
 
+def test_over_line_payload_is_imperative_without_the_band(tmp_path, run_hook,
+                                                          monkeypatch, capsys):
+    """Residue 1: at/over the line the hook's additional context is the
+    IMPERATIVE block, NOT a number and a band. The pre-fix bytes printed the
+    imperative and THEN `{f} of {t} window (N% of the line)` -- exactly the
+    form conjunct 1 forbids. The deferral reason (if any) is not the band and
+    stays; the [meter] line stays LAST."""
+    graph, cwd = _graph(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    tp = tmp_path / "over-band.jsonl"
+    _transcript(tp, 45_000)                     # 0.45 >= 0.4 -> over the line
+    state_dir = tmp_path / "state-over-band"
+    state_dir.mkdir()
+    code, out, err = run_hook(_payload(graph, tp, "s-over-band", cwd),
+                              state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    assert EXPECTED in out, out
+    assert "% of the line" not in out, out
+    assert "of 0.250 window" not in out, out
+    assert out.strip().splitlines()[-1].startswith("[meter]"), out
+
+
 def test_imperative_on_unread_rotate_now_below_the_line(tmp_path, run_hook,
                                                         monkeypatch, capsys):
     """Conjunct 1: an UNREAD `rotate now` in the seat's inbox prints the
@@ -186,6 +208,34 @@ def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
     stops = rots[0][rots[0].index("--stops") + 1]
     assert stops.strip(), "stops line must never be empty"
     assert "auto-captured at f=" in stops, stops
+
+
+def test_capture_is_one_ordered_child_handoff_then_rotate_self(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """Residue 2: handoff must COMPLETE before rotate-self reads the card
+    (`--stops` is built from the card). The pre-fix bytes Popen-ed handoff and
+    rotate-self as two concurrent fire-and-forget children with no ordering
+    guarantee. The built shape is ONE background child -- `bash -c` chains the
+    two argvs with `&&`, argv passed positionally so nothing is shell-
+    interpolated -- so rotate-self cannot start until handoff exits."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-order"
+    _stale_state(tmp_path, graph, state_dir)
+    tp = tmp_path / "order.jsonl"
+    _transcript(tp, 45_000)
+    code, out, err = run_hook(_payload(graph, tp, "s-order", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert len(_SPAWNS) == 1, _SPAWNS
+    argv = _SPAWNS[0]
+    assert argv[0] == "bash" and argv[1] == "-c", argv
+    assert "&&" in argv[2], argv
+    joined = " ".join(argv)
+    assert "handoff" in joined and "rotate-self" in joined, argv
+    assert joined.index("handoff") < joined.index("rotate-self"), argv
+    assert "--stops" in argv, argv
 
 
 def test_rotate_now_from_unrelated_sender_is_silent_below_the_line(
