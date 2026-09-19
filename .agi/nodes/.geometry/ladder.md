@@ -11,11 +11,13 @@ caps:
   director_kids: 3
 caps_apply_from_season: 2
 caps_vision_scope: town
+comms:
+  undelivered_after_minutes: 10
 current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam
+edited_by: a00-e2ea2536
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
