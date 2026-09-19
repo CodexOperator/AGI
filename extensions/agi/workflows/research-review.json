@@ -1,0 +1,390 @@
+{
+ "name": "research-review",
+ "script": "agi-research-review.js",
+ "type": "research",
+ "provider": "claude-code",
+ "description": "Chained research review: review:{key} -> verify:{key} -> why:{key} -> brainstorm:{key} -> refute:{key} over args.targets [{key,hypothesis,experiments,files,focus,verdict}]. Stage 3 mints the WHY idea under the hypothesis when the round was disproved or inconclusive (else writes push_further); stage 4 mints 1-5 hypotheses under that idea; stage 5 keeps/modifies/drops them into a ready_batch. Every later stage receives the earlier stage's structured return through chained_from placeholders only -- no director-authored glue. Authored by kid a00-cc347774 (TM.60) for hypothesis:lm-chained-research-review-cuts-director-glue-calls, following goal:g14. NOTE: workflow.py author cannot yet generate a 5-stage chained script, so both halves were authored by hand; the manifest is the source and agi-research-review.js is derived from it by the same conventions.",
+ "stages": [
+  {
+   "label": "review",
+   "role": "kid",
+   "model_hint": "opus",
+   "effort_hint": "high",
+   "repeat": {
+    "of": "targets",
+    "label_template": "review:{key}"
+   },
+   "prompt": "You are reviewing ONE research round on the agi graph (READ-ONLY: never edit, commit, or touch tmux/systemd/crontab). Target {key}: hypothesis node {hypothesis}; experiment nodes: {experiments}; files in scope: {files}; focus: {focus}. Node files live under .agi/nodes/<type>/<slug>.md (frontmatter + body). Rules: MECHANISM not wording, cite file:line or node:field for every judgement; a claim about a reader that was never read is wording; a green test can require a defect; a test that touches a REAL tmux pane, systemd unit, crontab or process is a defect. You MAY run single COMMITTED test files with `cd /home/ubuntu/work/agi && env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file> -q -p no:cacheprovider`. NEVER author a probe that calls rotate/heal/send/dispatch functions. Return ONLY the structured result.\n\nSteps: (1) read the hypothesis testable_claim and split it into conjuncts; (2) read each experiment node: verdict, evidence_runs (a decisive verdict needs >=1 and evidence_runs must resolve to real nodes; an experiment may cite itself, a verdict may not), parents; (3) for every conjunct find the mechanism in the named bytes and cite file:line, status MET / NOT_MET / UNVERIFIED; (4) run the round's test files individually if any and report counts; (5) check no test or code path reaches a real pane, unit, crontab or process; (6) state any step only the PRIME can do, with exact commands and what proves it; (7) recommend accept / demote / accept_with_residue and list every defect with severity demote|residue|note. defects_summary must be a plain-text numbered list `title -- file:line -- detail`, or the word NONE. Budget: at most 12 tool calls; read only the named nodes and files, do not explore the wider graph.\n\nRETURN CONTRACT: return ONE flat JSON object (a ```json fence is fine) whose TOP-LEVEL keys are exactly: round (string, the target key, = \"{key}\"), verdict_recommendation (accept|demote|accept_with_residue), conjuncts (array of {claim,status,evidence}), defects (array of {title,file,detail,severity}), defects_summary (string), tests_run (string), node_checks (string), prime_step (string). Do NOT nest them under a target/round object, and do NOT add other top-level keys.",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "round": {
+      "type": "string"
+     },
+     "verdict_recommendation": {
+      "type": "string",
+      "enum": [
+       "accept",
+       "demote",
+       "accept_with_residue"
+      ]
+     },
+     "conjuncts": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "claim": {
+         "type": "string"
+        },
+        "status": {
+         "type": "string",
+         "enum": [
+          "MET",
+          "NOT_MET",
+          "UNVERIFIED"
+         ]
+        },
+        "evidence": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "claim",
+        "status",
+        "evidence"
+       ]
+      }
+     },
+     "defects": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "title": {
+         "type": "string"
+        },
+        "file": {
+         "type": "string"
+        },
+        "detail": {
+         "type": "string"
+        },
+        "severity": {
+         "type": "string",
+         "enum": [
+          "demote",
+          "residue",
+          "note"
+         ]
+        }
+       },
+       "required": [
+        "title",
+        "file",
+        "detail",
+        "severity"
+       ]
+      }
+     },
+     "defects_summary": {
+      "type": "string"
+     },
+     "tests_run": {
+      "type": "string"
+     },
+     "node_checks": {
+      "type": "string"
+     },
+     "prime_step": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "round",
+     "verdict_recommendation",
+     "conjuncts",
+     "defects",
+     "defects_summary",
+     "tests_run",
+     "node_checks",
+     "prime_step"
+    ]
+   }
+  },
+  {
+   "label": "verify",
+   "role": "kid",
+   "model_hint": "opus",
+   "effort_hint": "high",
+   "chained_from": "review",
+   "repeat": {
+    "of": "targets",
+    "label_template": "verify:{key}"
+   },
+   "prompt": "You are the adversarial verifier of ONE research round on the agi graph (READ-ONLY: never edit, commit, or touch tmux/systemd/crontab). Target {key}: hypothesis {hypothesis}; experiment nodes {experiments}; files {files}. A first reviewer recommended `{verdict_recommendation}` and reported these defects:\n{defects_summary}\n\nREFUTE each one from the actual bytes and tests. Default to refuted=true when a defect is wording, already handled elsewhere in the bytes, or does not reproduce; refuted=false ONLY with a file:line citation that the defect is real. Then give your own accept / demote / accept_with_residue: demote only for a confirmed defect of severity demote. If the list is NONE, look for what the first reviewer MISSED (an unread reader, a test requiring a defect, a real-resource touch) and report it under missed. Read the target hypothesis node and each experiment node yourself; a decisive verdict needs evidence_runs that resolve to real nodes. Budget: at most 10 tool calls; read only the named nodes.\n\nRETURN CONTRACT: return ONE flat JSON object (a ```json fence is fine) whose TOP-LEVEL keys are exactly: round (string, the target key, = \"{key}\"), verdicts (array of {defect,refuted,reason}), missed (array of strings), final_recommendation (accept|demote|accept_with_residue), summary (string). Do NOT nest them under a target object and do NOT add other top-level keys.",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "round": {
+      "type": "string"
+     },
+     "verdicts": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "defect": {
+         "type": "string"
+        },
+        "refuted": {
+         "type": "boolean"
+        },
+        "reason": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "defect",
+        "refuted",
+        "reason"
+       ]
+      }
+     },
+     "missed": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "final_recommendation": {
+      "type": "string",
+      "enum": [
+       "accept",
+       "demote",
+       "accept_with_residue"
+      ]
+     },
+     "summary": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "round",
+     "verdicts",
+     "missed",
+     "final_recommendation",
+     "summary"
+    ]
+   }
+  },
+  {
+   "label": "why",
+   "role": "parent",
+   "tier": 0,
+   "model_hint": "opus",
+   "effort_hint": "high",
+   "chained_from": "verify",
+   "repeat": {
+    "of": "targets",
+    "label_template": "why:{key}"
+   },
+   "prompt": "You are the WHY stage of a chained research review. Target {key}: hypothesis node {hypothesis}; experiment nodes: {experiments}; focus: {focus}. The review recommended `{final_recommendation}`; the verifier returned these per-defect verdicts:\n{verdicts}\nMissing: {missed}\nVerifier summary: {summary}\n\n(1) Read the target hypothesis node and its experiment node(s) yourself, including the experiment's `verdict` field. The dispatching hint is verdict={verdict}; read the node to confirm it. (2) If the verdict is `disproved` or starts with `inconclusive`, MINT ONE WHY idea node under the hypothesis: run `cd /home/ubuntu/work/agi && python3 extensions/agi/bin/write.py create idea <slug> --parent {hypothesis} --set title=<one-line question> --actor why-stage --session iter-TM.60` (slug: lm-why-<six-word-kebab>; if it exists pick another), then set its body with `write.py <new-id> 'replace body N:M -'`: the WHY question (what the failure MEASURED, not what was hoped), the candidate causes each one falsifiable, and the evidence (experiment ids, numbers, file:line). Report the minted node id in why_node. (3) If the verdict is `proved`, do NOT mint an idea: set branch push_further and write the one-line next probe in push_further. (4) why_summary <= 600 chars. Budget: at most 20 tool calls; read only the target nodes.\n\nRETURN CONTRACT: return ONE flat JSON object (a ```json fence is fine) whose TOP-LEVEL keys are exactly: target (the hypothesis id, = \"{hypothesis}\"), verdict (string), branch (why|push_further), why_node (the minted node id, or none), why_question, why_summary, evidence, push_further. Do NOT nest them and do NOT add other top-level keys.",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "target": {
+      "type": "string"
+     },
+     "verdict": {
+      "type": "string"
+     },
+     "branch": {
+      "type": "string",
+      "enum": [
+       "why",
+       "push_further"
+      ]
+     },
+     "why_node": {
+      "type": "string"
+     },
+     "why_question": {
+      "type": "string"
+     },
+     "why_summary": {
+      "type": "string"
+     },
+     "evidence": {
+      "type": "string"
+     },
+     "push_further": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "target",
+     "verdict",
+     "branch",
+     "why_node",
+     "why_question",
+     "why_summary",
+     "evidence",
+     "push_further"
+    ]
+   }
+  },
+  {
+   "label": "brainstorm",
+   "role": "parent",
+   "tier": 0,
+   "model_hint": "opus",
+   "effort_hint": "max",
+   "chained_from": "why",
+   "repeat": {
+    "of": "targets",
+    "label_template": "brainstorm:{key}"
+   },
+   "prompt": "You are the BRAINSTORM stage of a chained research review. WHY node: {why_node}; question: {why_question}; summary: {why_summary}; evidence: {evidence}; branch: {branch}. (1) Read the WHY idea node {why_node} whole (frontmatter + body + notes). If why_node is `none` (verdict proved), refine push_further ({push_further}) into 1 to 3 hypotheses under hypothesis {hypothesis} instead. (2) Refine the question if the evidence supports a sharper one. (3) MINT 1 to 5 hypothesis nodes under the idea: for each run `cd /home/ubuntu/work/agi && python3 extensions/agi/bin/write.py create hypothesis <slug> --parent {why_node} --set title=<quoted one-line title> --set testable_claim=<quoted claim> --actor brainstorm --session iter-TM.60`, then set the body with `write.py <new-id> 'replace body N:M -'` (what the claim is, how it is falsified, its cost). Each hypothesis must be falsifiable, cost-bounded (<= 1 USD, 0 compute where possible), and name the experiment that would test it. Return the minted ids in hypotheses, each with title, one-line testable_claim and cost; count = number minted; dropped = hypotheses you considered but rejected, with a one-line reason. Budget: at most 30 tool calls (one create + one body write per hypothesis).\n\nRETURN CONTRACT: return ONE flat JSON object (a ```json fence is fine) whose TOP-LEVEL keys are exactly: idea (the idea node id, = \"{why_node}\"), refined_question, hypotheses (array of {id,title,testable_claim,cost}), dropped (array of strings), count (integer). Do NOT nest them and do NOT add other top-level keys.",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "idea": {
+      "type": "string"
+     },
+     "refined_question": {
+      "type": "string"
+     },
+     "hypotheses": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string"
+        },
+        "title": {
+         "type": "string"
+        },
+        "testable_claim": {
+         "type": "string"
+        },
+        "cost": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "id",
+        "title",
+        "testable_claim",
+        "cost"
+       ]
+      }
+     },
+     "dropped": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "count": {
+      "type": "integer"
+     }
+    },
+    "required": [
+     "idea",
+     "refined_question",
+     "hypotheses",
+     "dropped",
+     "count"
+    ]
+   }
+  },
+  {
+   "label": "refute",
+   "role": "kid",
+   "model_hint": "opus",
+   "effort_hint": "high",
+   "chained_from": "brainstorm",
+   "repeat": {
+    "of": "targets",
+    "label_template": "refute:{key}"
+   },
+   "prompt": "You are the REFUTE stage of a chained research review (read-only except mechanical fixes). Target {key}; idea {idea}; refined question: {refined_question}. The brainstorm minted these hypotheses:\n{hypotheses}\n\nFor EACH minted hypothesis decide KEEP, MODIFY or DROP. (1) Read the hypothesis node whole. (2) Try to refute its testable_claim: is it falsifiable, is the falsifier real, does a control already exist, is the cost bounded, does the parent idea's evidence already answer it? (3) KEEP if it survives as written; DROP if it is self-defeating, already answered by the parent round, or not falsifiable; MODIFY only for a MECHANICAL fix and APPLY it with `cd /home/ubuntu/work/agi && python3 extensions/agi/bin/write.py <id> 'set testable_claim <quoted>'` (or `set title`), naming the exact verb in the reason. (4) ready_batch = the surviving (KEEP or MODIFY) hypotheses, each with id, final title and final testable_claim; kept/dropped = comma-separated ids or `none`; notes <= 600 chars (ordering, what to run first, anything the director must know). Budget: at most 15 tool calls; read only the minted hypothesis nodes.\n\nRETURN CONTRACT: return ONE flat JSON object (a ```json fence is fine) whose TOP-LEVEL keys are exactly: target (the target key, = \"{key}\"), decisions (array of {hypothesis,decision,reason}), ready_batch (array of {id,title,testable_claim}), kept (string), dropped (string), notes (string). Do NOT nest them and do NOT add other top-level keys.",
+   "schema": {
+    "type": "object",
+    "properties": {
+     "target": {
+      "type": "string"
+     },
+     "decisions": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "hypothesis": {
+         "type": "string"
+        },
+        "decision": {
+         "type": "string",
+         "enum": [
+          "KEEP",
+          "MODIFY",
+          "DROP"
+         ]
+        },
+        "reason": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "hypothesis",
+        "decision",
+        "reason"
+       ]
+      }
+     },
+     "ready_batch": {
+      "type": "array",
+      "items": {
+       "type": "object",
+       "properties": {
+        "id": {
+         "type": "string"
+        },
+        "title": {
+         "type": "string"
+        },
+        "testable_claim": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "id",
+        "title",
+        "testable_claim"
+       ]
+      }
+     },
+     "kept": {
+      "type": "string"
+     },
+     "dropped": {
+      "type": "string"
+     },
+     "notes": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "target",
+     "decisions",
+     "ready_batch",
+     "kept",
+     "dropped",
+     "notes"
+    ]
+   }
+  }
+ ]
+}

@@ -2772,7 +2772,11 @@ def test_link_creates_every_registered_script_and_is_idempotent(tmp_path,
     monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
     buf = io.StringIO()
     assert link_workflows(graph, out=buf) == 0
-    assert "[linked] 12 workflow link(s) created" in buf.getvalue(), \
+    # Derived from the live manifests above, never a pinned literal: the
+    # literal "12" drifted the moment a new workflow pair landed (TM.60,
+    # research-review), which is the copied-list defect this assertion is
+    # supposed to catch, not commit.
+    assert f"[linked] {len(scripts)} workflow link(s) created" in buf.getvalue(), \
         buf.getvalue()
     for script in scripts:
         link = tmp_path / ".claude" / "workflows" / script
