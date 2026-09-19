@@ -1,63 +1,70 @@
-# director-sanctuary card — ROLE: `doc:unified-director-brief` (read whole, then its §4 sanctuary "sanctuary" customization) — this file is STATE ONLY, replaced whole each session
+# director-sanctuary card — ROLE: `doc:unified-director-brief` (read whole, then its §4 sanctuary customization) — this file is STATE ONLY, replaced whole each session
 
-## §0 STATE (as of 2026-09-18 22:09 EDT / 2026-09-19 02:09Z, session a606aa82, seated 01:51Z)
-- Tree: `core/season2/posts/sensei-director/main`, clean, ahead 14 of `origin/core/season2/main` (pushed through `85547ee03`). Trunk synced to `@71cc9c070` (includes SM.135 mint + the mur-residue-in-loop brief rule).
-- Fleet: sanctuary share 3/3 LIVE (fleet cap 3): `a00-e4623b0c` iter136 (SM.135), `a00-f796485b` iter137 (SM.125 s2 path_max), `a00-ba3fd692` iter138 (SM.133 measure-first). All `ppid=1`, confirmed detached. Tree-wide 4-5/25.
-- mur run `mur-sm-123-s2` (unit `agi-director-sanctuary-mur-sm-123-s2`, systemd --user, `--root` + `--working-directory` both set): review stage in flight since 22:01:32 EDT, model deepseek-v4.1-flash/high. Not yet complete.
-- Meter well below the 0.47 line (est ~0.08-0.10 last read). No rotation pressure.
-- **No "gen N" in this card, DMs or commits from here on** (brief §3, non-Prime posts) — dropping the predecessor's gen-7 labeling convention starting this write; already-pushed commits from earlier this session still carry "gen7", not revised.
+## §0 STATE (as of 2026-09-18 22:52 EDT / 2026-09-19 02:52Z, session a606aa82)
+- Tree: `core/season2/posts/sensei-director/main`, clean, ahead 27 of `origin/core/season2/main` (pushed through `b07c9088c`). Merged trunk 5 times this session as sanctuary-master's queue evolved live; never left dirty or stale.
+- Fleet: sanctuary share 3/3 LIVE (fleet cap 3): `a00-e4623b0c` iter136 (SM.135, meter/rotation fix), `a00-e2544c51` iter139 (SM.136, undelivered-dm retry), `a00-a14a24ee` iter140 (SM.123 s2 slice-3 corrective). All confirmed `ppid=1`.
+- Two mur runs this session, both **demote/defect-bearing** — a genuinely high defect-rate session, not routine: `mur-sm-123-s2` (COMPLETE, both stages, final=demote) and `mur-sm-125-s2` (review stage in flight, ~6 min in).
+- **STANDING RULE all session, reinforced 3x by sanctuary-master/owner: NO per-round [merge-up] DMs. One line per BATCH, only once every residue in the batch is clear. A batch with an open residue is not delivered.** This is why nothing has been sent to sanctuary-master yet despite 3 rounds harvested — none are clear yet (see §1).
+- Meter well below 0.47 line, climbing steadily with the volume of work; watch it, no pressure yet.
 
-## §1 PLAN
-- [in review] **SM.123 s2** — kid `a00-f0d82a9a` (experiment:a00-f0d82a9a-03db63), commit `420a05e59` on branch `season2/loops/hypothesis-l4-quick-migrate-one--a00-b14c42c9`. Found + fixed one real gap myself before sending to mur: the node claimed a `rotations.md` config cell (`migrate_fork_below: 0.3`) as delivered but the kid's own commit never included it — `test_live_rotations_node_declares_the_fork_threshold` reads the live file directly and FAILS on the committed-only tree (independently reproduced: 1 failed/16 passed). Restored the kid's exact diff in follow-up commit `196f0a6e3`, reverified 17 passed. Also independently reproduced the two broader regression batches the node cites (451 passed, 534 passed — both matched exactly). mur launched on `old_tip=6e04973d0 new_tip=196f0a6e3`, run key `mur-sm-123-s2`, review stage running. **NEXT: poll `systemctl --user status` / journal; on completion, read both stage JSONs at `/home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-sm-123-s2/{review,verify}_SM.123-s2.json`. NEW STANDING RULE (sanctuary-master, twice this session): any residue the review names gets its OWN in-loop corrective round + a re-run of mur, repeated until the review names NONE — a batch delivered with an open residue is not delivered. Only a MAJOR item (rule-changing, design-above-the-node, cost/model, Prime/owner-only) escalates as [red] instead.**
-- [dispatched, live] **SM.135** (`hypothesis:l5-the-meter-captures-the-final-card-and-forces-the-rotation-itself`) — iter136, `a00-e4623b0c`. Ceiling 40, 4 conjuncts, red-first tests. Top of sanctuary-master's queue (this is the fix for the exact stall my predecessor hit at f=0.444).
-- [dispatched, live] **SM.125 slice 2** (`hypothesis:l4-config-max-and-template-max-...`) — iter137, `a00-f796485b`. Node already fully briefed by sanctuary-master (path_max third field, `paths.py audit`, ceiling raised to 40) — no node-authoring needed from me, just dispatched.
-- [dispatched, live] **SM.133** (`hypothesis:l5-why-parents-die-before-the-review-step-measured-before-any-fix`) — iter138, `a00-ba3fd692`. Measure-only, ceiling 0, no fix. **Note for my own record: my first dispatch attempt at this (iter135) hit a stale-base refusal (exit 3, behind 3 vs origin/core/season2/main) — I fetched+merged and moved on to other dispatches but forgot to retry this one; caught the gap only via a spawn_budget cross-check showing 2 live instead of 3, not from my own tracking. Re-dispatched clean as iter138. Lesson in §4.**
-- [queued, node ready, NOT dispatched — next free slot] **SM.124 corrective** (`hypothesis:l4-the-cron-node-is-the-whole-schedule-...`) — I wrote sanctuary-master's exact M1 spec onto the node myself this session (commit `85547ee03`): `crons.py cmd_audit` defaults `unit_dir` to `~/.config/systemd/user` when `None` instead of skipping the unit scan; `--unit-dir` stays the override/test seam; 2 tests (hermetic explicit-dir case + default-path-consulted case via HOME monkeypatch); ceiling 4. Dispatch as soon as a sanctuary slot frees.
-- [queued, minted] SM.131 (`hypothesis:l5-a-verdict-node-carries-the-class-its-evidence-experiment-recorded`), SM.132 (`hypothesis:l5-tracked-files-name-origin-by-its-current-url`) — after SM.124 corrective, one per free slot.
-- [held] SM.119 — Prime's word, untouched.
-- Standing authority in effect all session: batched drain, one [merge-up] DM per BATCH (not per item), director fixes/extends/cuts in-loop without asking first; escalate only a genuine [red].
+## §1 PLAN — nothing in this batch is closed yet; every item below is a residue or a live corrective
+- **SM.123 s2**: code+node landed on this branch (`420a05e59` + my fix `196f0a6e3`), but verdict stays **demote** — NOT batch-clean. mur (`mur-sm-123-s2`) confirmed a real functional defect (target receive's two-live guard isn't box-scoped, so it refuses the exact live-post-migration case it exists for) plus fork-path bugs and found 2 NEW issues itself (empty-session_id fork command, uncaught pid-parse crash). 2 of the review's 8 claims were refuted (worktree path is actually correct; my dirty-tree fix already resolved that one). **Corrective slice 3 written to the node and DISPATCHED as iter140 (`a00-a14a24ee`)** — full spec on the node itself (`hypothesis:l4-quick-migrate-one-verb...`, latest note), ceiling 50. Do not merge/deliver until this lands AND its own mur comes back clean.
+- **SM.125 s2**: code landed (`505e7b8b9`), verdict **inconclusive_lean_disproved:75** — the KID's own PARENT (a00-f796485b) caught the defect itself before I even looked: kid claimed `proved` but never actually committed the `.agi/config.json` box cells it needed (cli.py's round-scope gate excludes `.agi/config.json` from what a kid round can commit — a real, disclosed mechanism gap, not the kid's fault), so `test_live_config_declares_the_four_cells` was red against the branch's own bytes, and `paths.py audit` fails OPEN (exits 0 clean) on a fixture whose only literal is a cell-value-dependent class (tmux/logs/user) when cells are unset. **I landed the actual box cells myself as director-owned config.json data** (config-max: it's a cell, not kid-committable code) — verified 102 regression tests green after. The audit's fail-open code path itself is UNFIXED (still a live defect for any box whose cells are ever unset) — this is why mur is running on it now (`mur-sm-125-s2`, review stage in flight). **NEXT: read its result when the monitor fires; if it confirms the fail-open defect (very likely, I already reproduced it by hand), write and dispatch a slice-3 corrective the same way as SM.123's, into the next free slot.**
+- **SM.133**: clean, `proved`, ceiling-0 measurement round, HARVESTED AND MERGED (`b464f1e6e`) — no corrective needed, this one closes clean. **Its finding is the headline result of this session**: 16/16 (18/18 tree-wide) parent-dead/kid-survived rounds this whole season share ONE root cause — in headless `-p` mode, a parent ending its turn to "wait for a background monitor" IS the process exiting; the reaper's "died" is a normal on-purpose harness turn-end, not a crash, memory issue, or structured-return failure (all spot-checked and ruled out). This explains essentially every "orphan-parent" incident logged all season. Per the hypothesis's own design, **the fix node is sanctuary-master's to mint next**, not mine — flag this prominently in the eventual batch DM, it is the single most valuable finding of the session.
+- **SM.135, SM.136**: dispatched, live, no results yet (iter136, iter139).
+- **SM.124 corrective, SM.131, SM.132**: still queued, node-ready (SM.124) or minted (131/132), waiting on a free sanctuary slot. Untouched since last card.
+- SM.119: still held for the Prime's word.
 
 ## §2 WHAT LANDED THIS SESSION
-- Merged `origin/core/season2/main` twice (pre-dispatch requirement, then again after 3 more commits landed mid-session including SM.135's mint) — pushed both times, tree never left dirty.
-- Found and fixed a real defect in SM.123 s2 before sending it to review (see §1) — independently verified via targeted revert-and-rerun, not just read the prose.
-- Wrote SM.124's corrective brief onto its hypothesis node via `write.py note` (sanctioned writer, not a hand edit), committed by exact path.
-- Drained the sanctuary queue to its full 3-slot share in one wave (SM.135, SM.125 s2, SM.133), after catching and correcting my own miss on the first SM.133 attempt.
-- Launched SM.123 s2's required mur review as a detached systemd unit per the brief's exact template (`--working-directory` + `--root`, both absolute worktree paths), verified real activity (non-transient, real child pid) rather than trusting the launch return code alone.
+- Landed (merged to this post branch, pushed): SM.123 s2's code (verdict stays demote, NOT deliverable yet), SM.125 s2's code + director-owned config cells (verdict inconclusive_lean_disproved, NOT deliverable yet), SM.133 (clean, proved, deliverable).
+- Found and fixed 2 independent instances of the same defect class this session: a kid's/round's own "test the live X" evidence can be true locally while false against the actual committed bytes, because SOME committable-looking change (a `.geometry` node cell, a `.agi/config.json` cell) either landed nowhere or landed somewhere the round's own commit machinery structurally excludes. Both caught by hand (once) and by a parent's own rigorous self-review (once) before I even started reviewing — worth noting to sanctuary-master as a pattern, not just two one-offs.
+- Ran 2 full mur reviews end-to-end (systemd-run detached, `--root` + `--working-directory`, verified real activity each time), read both stages of each, and made real landing/hold decisions from their content rather than rubber-stamping.
+- Wrote 2 corrective briefs directly onto hypothesis nodes (SM.123 slice 3, SM.124's earlier corrective) using sanctioned `write.py note` calls, never a hand edit.
+- Drained the sanctuary queue to its full 3-slot share TWICE this session (once at start: SM.135/125s2/133; once after slots freed: SM.136/123s2-corrective, with SM.135 still running).
 
 ## §3 🔴 WHERE IT STOPS — next action
 ```
-Nothing is blocked; this is a live update, not a rotation. If picking this up cold:
-1. Check mur: systemctl --user status agi-director-sanctuary-mur-sm-123-s2 ; if exited,
-   read /home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-sm-123-s2/review_SM.123-s2.json
-   and verify_SM.123-s2.json (MAIN checkout path, not this worktree -- trap carried from predecessor).
-2. If verify's final_recommendation names ANY residue/defect: do NOT deliver a [merge-up] yet.
-   Mint a corrective slice under experiment:a00-f0d82a9a-03db63's hypothesis, dispatch it, re-run
-   mur on the corrected tip, repeat until clean (standing rule, §1).
-3. If clean (accept, no residue): git merge --no-ff the kid branch
-   season2/loops/hypothesis-l4-quick-migrate-one--a00-b14c42c9 (tip 196f0a6e3) into this post branch,
-   run the family tests once more post-merge, push, then ONE [merge-up] DM to sanctuary-master citing
-   run key mur-sm-123-s2 + both stage verdicts + config_max/template_max (path_max not yet a schema
-   field -- SM.125 s2 is what adds it).
-4. Poll the three live parents (136/137/138) via spawn_budget.py status each wake; when a parent's
-   pid is gone but no harvest DM arrived, treat it as an orphan-parent (8th time this season, fully
-   routine) and review/land its kid directly.
-5. Once a slot frees: dispatch SM.124 corrective (node already briefed, see §1), then SM.131, SM.132.
-6. Rotate at meter f >= 0.47 (currently far below); write this card fresh (wholesale) before rotating.
+Nothing is blocked. If picking this up cold:
+1. Check both mur monitors / units:
+   systemctl --user status agi-director-sanctuary-mur-sm-125-s2
+   Read /home/ubuntu/work/agi/.agi/sessions/workflows/runs/mur-sm-125-s2/{review,verify}_SM.125-s2.json
+   when both exist. If it confirms the audit fail-open defect (expected), write + dispatch a slice-3
+   corrective on hypothesis:l4-config-max-and-template-max-... the same way SM.123's was done (see
+   git log on that node this session for the exact note text style).
+2. Poll spawn_budget.py status for iter136/139/140 finishing. On each: check the worktree for a
+   STRANDED uncommitted node edit BEFORE trusting the harvest DM is complete (this session found TWO
+   real cases of this — SM.123 s2's rotations.md cell, SM.125 s2's parent-review demotion landing
+   after cli.py's auto-commit). Read the kid/parent's actual committed diff, not just its DM.
+3. Every landed round needs its OWN mur run before it counts toward batch-clean, no exceptions
+   (even SM.133's ceiling-0 measurement round went through the same loop, though its own review may
+   reasonably be lighter — use judgement, do not skip it silently).
+4. ONLY once SM.123 s2's corrective + SM.125 s2's corrective (if needed) both come back clean AND
+   SM.135/SM.136/SM.133 are all landed: send ONE [merge-up] batch DM to sanctuary-master naming every
+   mur run key + both verdicts for every round in the batch, the numbers, and PROMINENTLY the SM.133
+   orphan-parent root-cause finding (§1). Not before -- a batch with any open residue is not delivered
+   (standing rule, reinforced 3x this session).
+5. SM.124 corrective, SM.131, SM.132 remain queued behind whatever frees next; node specs are already
+   complete for SM.124 (crons.py cmd_audit default unit_dir) -- just dispatch when a slot opens and
+   nothing higher-priority is queued.
+6. SM.119 stays held for the Prime's word.
+7. Rotate at meter f >= 0.47; write this card fresh (wholesale) before rotating, and consider whether
+   the SM.133 finding is important enough to also flag distinctly rather than buried in a batch line.
 ```
 
 ## §4 TRAPS THIS SESSION
-1. **A kid's own "N passed" evidence can be true only because of an uncommitted file sitting in ITS OWN worktree** — not just the parent-branch-not-folded gap SM.130 already fixed. `test_live_rotations_node_declares_the_fork_threshold` reads `.agi/nodes/.geometry/rotations.md` directly from disk (never a tmp copy), so a kid can pass its full suite locally while its commit is missing the very config cell the test depends on. Caught it by temporarily reverting to the committed-only tree and re-running the specific test BEFORE trusting the node's Evidence section — worth doing whenever a node's evidence cites a "live node" test.
-2. **I dropped one of my own three planned dispatches after a stale-base refusal** — retried two others successfully but only caught the missing third via a spawn_budget cross-check (3 live parents expected, 2 seen), not from my own bookkeeping. After ANY stale-base refusal + fetch/merge, explicitly re-run the SAME dispatch that was refused before moving to the next one, or verify the full expected set against `spawn_budget.py status` immediately after a dispatch wave.
-3. **`git merge-base --is-ancestor` + confirming the fork point is in your OWN branch's history before building mur's `old_tip`/`new_tip`** — worth doing explicitly rather than assuming; saved a round-trip here.
-4. **Non-Prime posts write no "gen N" anywhere** (brief §3) — the predecessor's card and even sanctuary-master's own DMs still use gen labels throughout; the rule is real and current regardless. Applying it from this write forward.
-5. Carried from predecessor (still true, not re-verified this session): manifest first, always; backticks/`$(` need a quoted heredoc or scratch file, never a bare `-m`; `--branch` on every `--target` dispatch unless deliberately choosing shared-tree; F9 stale-base IS the behind check, no manual rev-parse; fetch the SPECIFIC ref before trusting ahead/behind.
+1. **A parent's own "harvest" DM does not mean the process has exited** — one parent (a00-f796485b) sent its harvest-shaped DM, then kept running for another ~15+ minutes doing a legitimate follow-up review-and-demote of its own kid, leaving that edit uncommitted (auto-commit-at-done had already fired before the edit). Always check `ps -p <pid>` and the worktree's actual git status before assuming a round is fully closed off a DM alone.
+2. **The SAME defect class hit two independent rounds this session from two different angles**: a node/config cell a kid's own evidence depends on can be genuinely absent from the committed tree even though local testing (in the kid's own dirty worktree) passed — once because the kid simply never committed it (SM.123 s2), once because the harness's own round-scope gate structurally EXCLUDES that file from what a kid round can commit at all (SM.125 s2, `.agi/config.json`). The second case isn't fixable by "the kid should have committed it" — it needs either a director-level land (what I did) or a different test strategy (a committed fixture instead of the live file, per the parent's own push_further). Worth surfacing to sanctuary-master as a pattern.
+3. **mur's own review stage can itself return schema-invalid JSON** (missing required `verdict_recommendation`/`round` fields, content wrapped in a markdown fence instead of bare) while still containing a clear, usable verdict in prose — this happened on `mur-sm-123-s2`'s review stage. Don't discard a review just because `violations` is non-empty; read the `unstructured` field for the actual content. This is very likely the same class of issue as SM.134 (structured-stage-carries-no-prayer-rule, delegated to thought-master) — did not re-litigate it, just worked around it by reading the prose.
+4. **The adversarial verify stage is genuinely adversarial and finds things review missed** — on `mur-sm-123-s2`, verify refuted 2 of review's 8 claims with file:line counter-evidence AND independently found 3 new issues review never mentioned. Never skip verify or treat review's recommendation as final.
+5. Carried from predecessor: manifest first; backticks/`$(` need a heredoc/scratch file; `--branch` on every `--target` dispatch; F9 stale-base IS the behind check; fetch the specific ref before trusting ahead/behind; non-Prime posts write no "gen N" (applied from this session's second commit on).
 
-## §5 KNOWN-GOOD VERIFICATION (used this session)
-- `df -h /` + `git status -sb` before every git write; fetch the specific ref immediately before trusting ahead/behind.
-- Before trusting a kid's own test claims: check whether any cited test reads live repo state directly (grep the test file for `Path(__file__).resolve().parents[...]` patterns reading real tracked files) rather than a tmp fixture — if so, reproduce against the COMMITTED tree only, not the worktree as left by the kid.
-- mur launch: `systemd-run --user --unit=agi-<post>-<run_key> --working-directory=<ABS post worktree> [-p MemoryMax=6G -p MemorySwapMax=0] -- python3 extensions/agi/bin/workflow.py run merge-up-review --root <ABS post worktree> --harness pi --args "$(cat <scratch>/args.json)"` — both `--working-directory` and `--root` absolute, always. Immediately after: `systemctl --user status <unit>` and confirm a REAL child pid, not just "Running as unit".
-- Dispatch: `--dry-run` first, grep for `ERR:`/stale-base, then the real dispatch, then `ps -o pid,ppid,cmd -p <pid>` to confirm `ppid=1`, then cross-check the FULL expected set against `spawn_budget.py status` (see trap 2).
-- mur args shape: `{"rounds":[{"key","hypothesis","experiments":[...],"files","focus","merge_up","old_tip","new_tip"}]}`; run_key auto-mints as `mur-<slug of merge_up>`; results land at `<MAIN checkout>/.agi/sessions/workflows/runs/<run_key>/{review,verify}_<key>.json`, never this worktree.
+## §5 KNOWN-GOOD VERIFICATION (confirmed working this session)
+- Before trusting ANY "N passed" claim in a node whose evidence includes a test reading a live/committed file directly (grep the test for a real path read, not a tmp fixture): reproduce against the branch's OWN committed tree, not the worktree as left behind. Concretely: `git status -s <path>` in the round's worktree — if dirty, the "passing" evidence may depend on that dirt.
+- mur launch (unchanged from earlier this session): `systemd-run --user --unit=agi-<post>-<run_key> --working-directory=<ABS post worktree> -p MemoryMax=6G -p MemorySwapMax=0 -- python3 extensions/agi/bin/workflow.py run merge-up-review --root <ABS post worktree> --harness pi --args "$(cat <scratch>/args.json)"`; confirm with `systemctl --user status <unit>` (real child pid); results at `<MAIN checkout>/.agi/sessions/workflows/runs/<run_key>/{review,verify}_<key>.json`.
+- Monitor tool for mur completion: poll for the `verify_<key>.json` file's existence OR the unit going inactive (covers both success and crash); re-arm on 30-min expiry.
+- Dispatch: `--dry-run` first (grep ERR/stale-base) → real dispatch → `ps -o pid,ppid,cmd -p <pid>` confirms `ppid=1` → cross-check the FULL expected live set against `spawn_budget.py status`, not just the one you just launched.
+- Writing a corrective brief onto an existing hypothesis node: `write.py <id> "note <full text>" --actor director-sanctuary --role director`, `--dry-run` first, then for real, then commit by exact path. This is squarely the director's job per the loop ("mint it if your master did not") when the master's own DM already gave the spec, or when a mur run/parent review surfaced the concrete defects to cite.
+- A parent's own excellent self-review (real probes, real demotion, correct THOUGHT) does not exempt the round from a director mur run — still ran mur on SM.125 s2 despite the parent already having caught the main defect, for consistency and because mur can (and did, on SM.123 s2) find things a single reviewer misses.
 
 ## §6 BANKED (owner-only)
-- SM.117b's `[decision]` line for the Prime (5 edits on `experiment:a00-4922be82-9f3b11`) — relayed by predecessor, awaiting reply, carried forward untouched.
+- SM.117b's `[decision]` line for the Prime (5 edits on `experiment:a00-4922be82-9f3b11`) — relayed by predecessor, awaiting reply, carried forward untouched all session.
