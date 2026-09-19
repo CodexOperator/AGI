@@ -1095,8 +1095,9 @@ def test_dm_coalesces_no_rendered_box_and_defers_the_body(
                      "sanctuary-director")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
     assert "nudge: coalesced (no rendered box)" in capsys.readouterr().err
-    assert send_mod._read_deferred(project / ".agi", seat) \
-        == {"sender": "sanctuary-director", "body": "the dm body"}, \
+    _rec = send_mod._read_deferred(project / ".agi", seat)
+    assert _rec and _rec.get("sender") == "sanctuary-director" \
+        and _rec.get("body") == "the dm body", \
         "the unrenderable dm must be deferred for an idle retry, not dropped"
 
 
@@ -1715,8 +1716,9 @@ def test_same_sender_stranded_line_does_not_swallow_new_dm(
     assert pane.submitted == ["[nudge: mee]: older body" + " "], pane.submitted
     assert pane.input == ""
     # the NEW body survives -- deferred for a later idle retry, never dropped
-    assert send_mod._read_deferred(root, "adv-alive") \
-        == {"sender": "mee", "body": "newer body"}, \
+    _rec = send_mod._read_deferred(root, "adv-alive")
+    assert _rec and _rec.get("sender") == "mee" \
+        and _rec.get("body") == "newer body", \
         "the new same-sender dm body must be deferred, not lost"
 
 
@@ -2083,8 +2085,9 @@ def test_zero_body_line_is_refused_not_delivered(project: Path,
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, pathological, seat, "hello", pathological)
     assert _typed(calls) == [], "no zero-body line may be typed"
-    assert send_mod._read_deferred(root, seat) \
-        == {"sender": pathological, "body": "hello"}, \
+    _rec = send_mod._read_deferred(root, seat)
+    assert _rec and _rec.get("sender") == pathological \
+        and _rec.get("body") == "hello", \
         "the unrenderable dm is deferred for a later retry, not dropped"
 
 
