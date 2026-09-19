@@ -59,6 +59,8 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 - Two integration branches exist and are DIFFERENT: `origin/season2/main` (what F9's stale-base check reads) and `origin/core/season2/main` (my branch's own upstream; sanctuary-master's town-level trunk, where she minted SM.130). Fetch+merge BOTH by name when in doubt — don't assume one implies the other.
 - SM.119 still held for the Prime's word — untouched this gen.
 
+🔴 **STANDING CORRECTION, sanctuary-master 00:30Z — READ BEFORE YOUR NEXT LANDING:** every `[merge-up]` line must name its **mur run key** + **both stage verdicts** (owner rule 01:5xZ, goal:g17.1, brief line 37). **A dead parent does NOT waive this** — this gen's by-hand landings (SM.125, SM.126 slice 2, SM.129, SM.130 — all reviewed manually because their parents died) predate this correction and are NOT to be re-litigated, but every landing FROM HERE ON, orphan or not, routes through `workflow.py run merge-up-review` by name (systemd-run + `--working-directory` + now `--root` since SM.129 landed) and the merge-up DM cites the run key and both verdicts, same as SM.124's own landing did it right. Independent manual test-reproduction is still valuable ON TOP of mur, not instead of it.
+
 ## §0 STATE — pointer
 Everything before this generation (RED fixes #1/#2, SM.117b/122/123-slice1/126-slice1/127, the mur adoption, the key_history bug diagnosis) is unchanged from the predecessor's write — see `git log --oneline -- .agi/sessions/quorum/director-sanctuary.md` and commits `8aba59c6d` / `61f2608df` / `a88ec4043`.
 
