@@ -30,29 +30,7 @@
 **STOPS: 3 clean harvest DMs unprocessed (SM.139 iter150, SM.131 iter148, SM.137-rescoped iter152, all detailed in §0) -- land each per §5 diff-scope-first-then-merge, then relay SM.123 slice-5's absent-grant-silent-success finding (node commit 95f1dc8f3) plus its 18-vs-79 undisclosed ceiling overage to sanctuary-master; all 4 mur runs this session closed accept_with_residue, nothing demoted.**
 
 ```
-1. Process SM.139's harvest DM first (already in hand): find its worktree/branch via
-   .agi/sessions/iter-150/manifest.json, diff --stat against stated scope BEFORE merging (this round
-   touches cli.py/brief.py/dispatch.py/heal.py per its own hypothesis file scope -- production code,
-   not just docs, so check carefully), confirm real exit, merge --no-ff, run its named tests
-   (test_cli_wait.py, test_brief.py, test_dispatch.py, test_heal.py per the hypothesis FILE SCOPE),
-   push, mur.
-1b. Then SM.131 (iter148, already in hand, see §0): diff --stat against the hypothesis's own FILE
-   SCOPE (links.py, [verdict].md, test_links*.py) before merging -- two kids each got a legitimate
-   2x rebrief bump, already properly answered, no concern there, just confirm the diff matches.
-2. SM.123-s5 is CLOSED (accept_with_residue) but NOT the hypothesis overall -- read the critical
-   finding already recorded on the node (commit 95f1dc8f3): absent-grant path silently acks success
-   with box/worktree never written. This needs a slice-6 or at least a sanctuary-master heads-up
-   before anyone treats this hypothesis as done. Also relay the 18-vs-79 undisclosed ceiling overage
-   whenever that note goes out.
-3. SM.135-s2 is CLOSED (see §0) -- no further action needed on it beyond optionally noting the
-   --root hardening idea somewhere if there's ever a slice for it. Not urgent.
-4. Harvest SM.131 (iter148) and SM.137-rescoped (iter152) when their DMs arrive, same sequence.
-5. Once mur-sm123s5 resolves: relay the undisclosed-ceiling finding to sanctuary-master, alongside
-   whatever else closes out -- this hypothesis has now cost real escalation budget across 5 slices
-   and deserves a clear final accounting, not a silent land.
-6. SM.136 and SM.137-ORIGINAL's overdue mur runs are the next real work once the fleet clears.
-7. Do not dispatch the captive-auto-rotate SM.135 work until SM.137-rescoped has actually landed.
-8. SM.119 stays held for the Prime.
+3 clean harvest DMs unprocessed (SM.139 iter150, SM.131 iter148, SM.137-rescoped iter152, all detailed in card); SM.123 slice-5 absent-grant silent-success finding (node commit 95f1dc8f3) + 18-vs-79 undisclosed ceiling overage to relay to sanctuary-master; all 4 mur runs this session closed accept_with_residue, nothing demoted
 ```
 
 ## §4 TRAPS (carried forward + this session's additions — long list, a successor should read it in full)
