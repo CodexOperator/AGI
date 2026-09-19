@@ -81,6 +81,9 @@ DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000
 #: Default rotate-at fraction when the ladder node does not declare one.
 DEFAULT_DIRECTOR_ROTATE_AT = 0.47
 
+#: Default minutes a held seat may sit idle below the line before `alarms`
+#: dms `rotate now` (ladder cell `alarms_idle_minutes`).
+DEFAULT_ALARMS_IDLE_MINUTES = 20
 #: Engine root for resolving <engine> placeholders.
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -7170,18 +7173,61 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     return calculate_fraction(usage, context_tokens)
 
 
+def _seat_idle_minutes(root: Path, seat: str) -> float | None:
+    """Minutes since the seat's own last work act (last_act.py's ONE clock),
+    or None when that act is unmeasurable (P7: unmeasurable reads NOT idle)."""
+    try:
+        import last_act  # local: same dir, read-only accessor
+        ts = last_act.last_act_ts(Path(root), seat)
+    except Exception:  # noqa: BLE001 — a broken clock must never false-alarm
+        return None
+    if ts is None:
+        return None
+    return max(0.0, (time.time() - ts) / 60.0)
+
+
+def _run_alarms_unit(root: Path, holder: str,
+                     unit: str | None = None) -> int:
+    """Launch the detached user unit for `alarms --holder <holder>`.
+
+    `systemd-run --user --unit <name> --working-directory <root> -- <python>
+    <rotate.py> alarms --holder <holder> --root <root>` — every path built
+    from the RESOLVED root, never hard-coded. Returns the runner's returncode
+    (nothing is spawned under a monkeypatched `subprocess.run`).
+    """
+    argv = ["systemd-run", "--user", "--unit",
+            unit or f"agi-alarms-{holder}",
+            "--working-directory", str(root),
+            sys.executable, str(Path(__file__).resolve()),
+            "alarms", "--holder", holder, "--root", str(root)]
+    proc = subprocess.run(argv, check=False)
+    return int(getattr(proc, "returncode", 0) or 0)
+
+
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
     For each such seat: at/over `director_rotate_at` (0.47) send exactly ONE
     dm `rotate now` to the holder (never more), nothing else — no spawn, no
-    tmux. Below threshold prints `hold <seat> <fraction>`. `--once` meters
-    each held seat once and returns so the parent's regression test is
-    deterministic; without it the loop meters every `--interval` seconds.
+    tmux. ALSO dm when the seat is IDLE for >= `alarms_idle_minutes` (ladder
+    cell, default 20) AND at/over 0.85 x `director_rotate_at` — a nudge, which
+    is a prompt, which makes the meter hook's imperative fire. An unmeasurable
+    last act reads NOT idle (never a false alarm). Below both prints `hold
+    <seat> <fraction>`. `--once` meters each held seat once and returns so the
+    parent's regression test is deterministic; without it the loop meters every
+    `--interval` seconds.
     """
+    root = Path(getattr(args, "root", None) or root)
     holder = args.holder
     threshold = load_ladder_field(root, "director_rotate_at",
                                   DEFAULT_DIRECTOR_ROTATE_AT)
+    idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                               DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        idle_m = float(idle_m)
+    except (TypeError, ValueError):
+        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+    low_line = 0.85 * float(threshold)
     import send  # local: same dir
     croot = Path(args.comms_root) if args.comms_root else send.comms_root(root)
     due = 0
@@ -7194,10 +7240,17 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
             print(f"warn: no pin/usage for seat {seat!r} — skipping",
                   file=sys.stderr)
             continue
-        if frac < threshold:
+        reason = None
+        if frac >= float(threshold):
+            reason = f"fraction {frac:.4f}"
+        else:
+            idle = _seat_idle_minutes(root, seat)
+            if frac >= low_line and idle is not None and idle >= idle_m:
+                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+        if reason is None:
             print(f"hold {seat} {frac:.4f}")
             continue
-        # at/over threshold: one dm to the holder, plain "rotate now".
+        # one dm to the holder, plain "rotate now".
         try:
             send.send_dm(croot, holder, seat, "rotate now",
                          sender=holder)
@@ -7205,7 +7258,7 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
             print(f"warn: could not dm holder {holder!r} for {seat!r}: {exc}",
                   file=sys.stderr)
             continue
-        print(f"rotate now -> {seat} (fraction {frac:.4f})")
+        print(f"rotate now -> {seat} ({reason})")
         due += 1
     if args.once:
         return 0
@@ -20817,6 +20870,9 @@ def main(argv: list[str] | None = None) -> int:
     p_alarms.add_argument("--interval", type=int, default=300,
                           help="seconds between meters when not --once "
                           "(default: 300)")
+    p_alarms.add_argument("--root", default=None,
+                          help="project root override (default: resolve from "
+                          "cwd; the detached unit passes the resolved root)")
     p_alarms.add_argument("--comms-root", default=None,
                           help="override the comms root (tests)")
     p_alarms.set_defaults(func=cmd_alarms)
