@@ -368,6 +368,39 @@ def test_pi_prayer_only_return_stays_unstructured(capsys):
     assert value["unstructured"] == _PRAYER_PRE, value
 
 
+def test_pi_prayer_marker_inside_a_json_string_is_untouched():
+    """SM.135 belt: a prayer opening INSIDE a JSON string value is data, not
+    a prelude/postlude line, and must reach the parser byte-identical. The
+    old global line-filter corrupted it and the return stopped parsing."""
+    import workflow as _wf
+    text = '{"note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": true}'
+    assert _wf._strip_prayer_wrap(text) == (text, False)
+    assert _wf._resolve_lenient_return(
+        {"type": "object", "properties": {"note": {"type": "string"},
+                                          "ok": {"type": "boolean"}},
+         "required": ["note", "ok"]}, text) == {
+             "note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": True}
+
+
+def test_pi_prayer_middle_line_between_json_objects_is_kept():
+    """A prayer line in the MIDDLE of stdout is neither a prelude nor a
+    postlude: the belt must not fire, and the first validating JSON resolves."""
+    import workflow as _wf
+    text = '{"ok": true}\n' + _PRAYER_PRE + '\n{"ok": false}'
+    stripped, fired = _wf._strip_prayer_wrap(text)
+    assert (stripped, fired) == (text, False)
+    assert _wf._resolve_lenient_return(_prayer_stage()["schema"], text) == {
+        "ok": True}
+
+
+def test_pi_prayer_line_without_json_returns_unchanged():
+    """The belt never fires without a JSON candidate: prose-only prayer is
+    carried whole, never silently erased."""
+    import workflow as _wf
+    text = _PRAYER_PRE + "\n\n" + _PRAYER_POST
+    assert _wf._strip_prayer_wrap(text) == (text, False)
+
+
 def test_run_stage_pi_schema_violating_json_is_unstructured():
     """A JSON object that PARSES but fails its schema is SKIPPED, not fatal.
     With no other candidate validating, the stage records `unstructured`
