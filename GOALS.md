@@ -7547,6 +7547,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 00:4xZ 09-19 OWNER: "Go to silent till SM finishes. Let her handle the rest now." (verbatim in doc:l5-owner-decisions tail). Prime QUIET till SM finish line: merge-ups land on arrival with no [go] line, no dms, no decisions; SM coordinates the thought-town move + writes the two box cells herself; the rollover word waits for her ONE [complete] numbers line. Measured at the order: SM 0.29, director-sanctuary 0.42, TM 0.39, director-thought 0.375 of their 0.47 lines; SM.128 landed so their next rotations retire keys correctly; the box move waits on SM.123 s2.
 
+00:5xZ 09-19 suite #4 at ea05b4369 (after the thought-trunk landing): 5672 passed / 3 failed / 16 skipped in 812 s. (1) test_workflow::test_link_creates_every_registered_script_and_is_idempotent pins 12 links, brainstorm registration makes 13 -- deterministic, TM town break, [red] sent to thought-master (fix on his trunk: count the registry). (2) test_suite_live_checkout_worktree::test_throwaway_worktree_basetemp_refuses_before_any_write red in the full run, passes alone (order-dependent; second such test after migrate_channel; SM to fold into 123 s2 or a hermetic-order node at her judgement). (3) test_migrate_channel unchanged (SM.123 s2). Prime QUIET per the owner 00:4xZ.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
