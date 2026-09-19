@@ -2471,6 +2471,7 @@ def main(argv: list[str] | None = None) -> int:
         prog="workflow.py",
         description="Harness-agnostic workflow runner (hypothesis:l3-workflows-unified-route).",
     )
+    ap.add_argument("--root", default=argparse.SUPPRESS, help="explicit project root (default: walk up from cwd)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     rp = sub.add_parser("run", help="resolve and run a workflow (the only sanctioned dispatch route)")
     rp.add_argument("name", help="config key (e.g. review, drafting) or agi-*.js script name")
@@ -2511,11 +2512,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="the harness-minted id to record (e.g. wf_ba530baa-dab)")
     val = sub.add_parser("validate",
                          help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
+    for _p in sub.choices.values():
+        _p.add_argument("--root", default=argparse.SUPPRESS, help="explicit project root")
     args = ap.parse_args(argv)
 
-    root = _loc.find_project_root()
+    root_arg = getattr(args, "root", None)
+    root = _loc.find_project_root(start=root_arg)
     if root is None:
-        print("workflow.py: no .agi project root found from cwd", file=sys.stderr)
+        where = f"--root {root_arg}" if root_arg else "cwd"
+        print(f"workflow.py: no .agi project root found from {where}", file=sys.stderr)
         return 2
 
     if args.cmd == "register":
