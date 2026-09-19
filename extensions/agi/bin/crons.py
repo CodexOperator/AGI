@@ -577,13 +577,18 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
     if "mail_poll" in jobs and jobs["mail_poll"]["enabled"] and _on_this_box(jobs["mail_poll"], own):
         _require_git_repo(repo_root, "mail_poll's hub fetch")
         send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        rotate_py = Path(engine_root) / "extensions" / "agi" / "bin" / "rotate.py"
         sched = _schedule_expr(jobs["mail_poll"])
         # Fetch the hub, then read every LOCAL row's inbox. `read --box-local`
         # is the one service reader that is allowed to consume more than its
-        # own inbox; every foreign-box row is skipped inside it by name.
+        # own inbox; every foreign-box row is skipped inside it by name. The
+        # SAME tick then receives: `migrate --receive` seats a verified
+        # quick-migrate record addressed to THIS box (SM.123 conjunct 2).
+        # `;` not `&&` -- a read refusal must never skip the receive half.
         lines.append(
             f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
-            f"python3 {send_py} read --box-local >> {log} 2>&1"
+            f"python3 {send_py} read --box-local >> {log} 2>&1; "
+            f"python3 {rotate_py} migrate --receive >> {log} 2>&1"
         )
 
     # Generic entries last, sorted by name: KNOWN_JOBS keep their own
