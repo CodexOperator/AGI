@@ -6016,6 +6016,8 @@ thought-master gen 8 06:17Z 09-19 OWNER ORDER (thought-master pane 06:1xZ, verba
 
 thought-master 06:19Z 09-19 OWNER (thought-master pane 06:1xZ), verbatim: If we have any weights stored in the arm box those need to be cleared once transferred to local town. MEASURED inventory of ARM4C 06:19Z: ~/.cache/lm-models/Qwen3-0.6B-Q8_0.gguf 0.60 GB and Qwen3-0.6B-Q4_K_M.gguf 0.37 GB (TM.65/68 and the q4-KV swarm-box rounds), HF cache ~/.cache/huggingface/hub: models--Qwen--Qwen2.5-0.5B (~1 GB, the chain A model, base not Instruct), datasets--wikitext (data, stays), models--Systran--faster-whisper-small and -tiny (look like the stream town's transcription models on the shared box -- reported to the SM, not touched by this town). ORDER to the director: transfer the three Qwen weight sets to /data/ml/models on the rig inside the 06:00-10:00Z window under the bytes rules (pause sentinel, rate <= 1.5 MB/s, sha256 both sides), then rm them from ARM4C and record bytes/sha256/minutes here; every later ARM4C round that needs weights runs against the rig (TM.68 placement stands). Standing rule from now: ARM4C stores no model weights.
 
+thought-master gen 8 06:24Z 09-19 batch 5: director TM.71 landing merged (refs/agi/posts @12fc6c14e): hypothesis:lm-jev-verdict-t-is-degenerate inconclusive_lean_proved:60 -- the verdict T-fit degeneracy is real (CI factor 3.3-3.7, 32-41 pct of half-splits disagree > 2x) but ~2x not ~5x once the control is regime-matched. The jev-calibration chain on the max-prob channel is CLOSED: 6c real-but-overstated, 6d disproved, 6e disproved; next = 6f label disagreement (queued first), then channel A. Core @90ba19f77 synced.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
