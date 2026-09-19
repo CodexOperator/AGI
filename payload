@@ -1675,6 +1675,47 @@ def test_mint_run_key_collision_appends_suffix(tmp_path_factory):
         restore()
 
 
+# A run_key minted from a long `why`/args blob (brainstorm's shape: idea id +
+# whole why sentence + max_hypotheses, all slugged and joined) can run well
+# past the ~255-byte filesystem limit on a single path component. Measured:
+# `_persist_stage_value` used the raw run_key as a directory name, mkdir threw
+# `File name too long`, the broad except swallowed it, and the stage's
+# structured return was never written to disk -- the chained stage then read
+# back only the 200-char in-process preview and failed schema validation
+# (director gen 6, commit 453445d60: both brainstorm stages "recorded
+# unstructured"). hypothesis: the fix bounds the PATH COMPONENT only, and
+# leaves the descriptive run_key (used for reporting/citing) untouched.
+
+def test_run_key_path_component_bounds_long_keys():
+    from workflow import _run_key_path_component
+    short = "mur-40"
+    assert _run_key_path_component(short) == short
+    long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "x" * 300
+    out = _run_key_path_component(long_key)
+    assert len(out.encode("utf-8")) <= 200
+    # deterministic and distinguishable: two long keys sharing a prefix must
+    # not collide on the same truncated directory
+    other_long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "y" * 300
+    assert out != _run_key_path_component(other_long_key)
+    assert out == _run_key_path_component(long_key)  # deterministic
+
+
+def test_persist_stage_value_survives_a_long_run_key(tmp_path_factory):
+    import json as _json
+    import workflow as _wf
+    from workflow import _persist_stage_value
+    tmp, restore = _tmp_session_root(tmp_path_factory, _wf)
+    long_key = "brainstorm-idea-lm-why-jev-echoes-leaked-verdicts-" + "z" * 300
+    try:
+        _persist_stage_value(tmp, long_key, "brainstorm", {"a": "structured"})
+        runs_dir = tmp / "sessions" / "workflows" / "runs"
+        written = list(runs_dir.glob("*/brainstorm.json"))
+        assert len(written) == 1, list(runs_dir.iterdir())
+        assert _json.loads(written[0].read_text()) == {"a": "structured"}
+    finally:
+        restore()
+
+
 def test_run_prints_run_key_first_and_tracks_it(tmp_path_factory):
     import subprocess as _sp
     from unittest import mock
