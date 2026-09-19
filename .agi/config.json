@@ -160,6 +160,13 @@
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
+  "box": {
+    "root": "/home/ubuntu/work/agi",
+    "logs_dir": "/home/ubuntu/logs",
+    "tmux_session": "agi-rc",
+    "user": "ubuntu",
+    "allow": []
+  },
   "workflows": {
     "review": {
       "effort": "medium",
