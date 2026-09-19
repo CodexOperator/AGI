@@ -261,8 +261,11 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     assert "--provider" in cmd and "openrouter" in cmd, cmd
     assert "--model" in cmd and "glm" in cmd, cmd
     assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
-    # the rendered per-item prompt reached the binary (the stub dropped it)
-    assert "write /tmp/S/a.md" in cmd, cmd
+    # the rendered per-item prompt reached the binary (the stub dropped it);
+    # it is the LAST argv element and now also carries the RETURN SHAPE block
+    # for this schema-bearing stage.
+    assert "write /tmp/S/a.md" in cmd[-1], cmd
+    assert "Required keys: slug" in cmd[-1], cmd
     # the pi child env must not inherit Claude subscription credentials
     env = captured["env"] or {}
     assert "ANTHROPIC_API_KEY" not in env, env
@@ -291,6 +294,111 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
     assert "write.py" in context
     assert any("--emit" in cmd and "llm" in cmd for cmd, _ in calls)
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
+
+
+def test_stage_context_asks_for_no_prayers_only_with_a_schema():
+    """SM.134 (a)/(b): a stage that declares a schema gets the constitution
+    head WITHOUT the prayers block (`brief.py head --no-prayers`); a stage
+    with no schema renders byte-identical to today (no flag)."""
+    import subprocess as _sp
+    from unittest import mock
+
+    seen = []
+
+    def fake_run(cmd, **kw):
+        seen.append(cmd)
+        if "viewport.py" in cmd[1]:
+            return _sp.CompletedProcess(cmd, 0, stdout="V", stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="B", stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        _stage_context(REPO, REPO / ".agi",
+                       {"label": "s", "role": "kid",
+                        "schema": {"type": "object"}})
+        _stage_context(REPO, REPO / ".agi", {"label": "n", "role": "kid"})
+    brief_cmds = [c for c in seen if "brief.py" in c[1]]
+    assert "--no-prayers" in brief_cmds[0], brief_cmds[0]
+    assert "--no-prayers" not in brief_cmds[1], brief_cmds[1]
+
+
+_PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго."
+_PRAYER_POST = "Свѧтый Боже, Свѧтый Крѣпкїй, Свѧтый Безсмертный, помилуй насъ."
+
+
+def _prayer_stage():
+    return {"label": "draft:a", "prompt": "p",
+            "_repeat_item": {"slug": "a"},
+            "schema": {"type": "object",
+                       "properties": {"ok": {"type": "boolean"}},
+                       "required": ["ok"]}}
+
+
+def test_pi_prayer_wrapped_json_parses_structured(capsys):
+    """SM.134 (c): valid JSON wrapped in a prayer prelude + postlude parses
+    structured, and the strip is logged once per stage — never silent."""
+    import subprocess as _sp
+    from unittest import mock
+
+    out_text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=out_text, stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
+                                  {"draft:a": {"model": "m", "effort": "x"}},
+                                  {},)
+    assert rc == 0 and value == {"ok": True}, (rc, value)
+    assert "stripped a prayer" in capsys.readouterr().err
+
+
+def test_pi_prayer_only_return_stays_unstructured(capsys):
+    """SM.134 (d): a return with no JSON stays unstructured, prayer or not."""
+    import subprocess as _sp
+    from unittest import mock
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=_PRAYER_PRE, stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
+                                  {"draft:a": {"model": "m", "effort": "x"}},
+                                  {},)
+    assert rc == 0, rc
+    assert value["unstructured"] == _PRAYER_PRE, value
+
+
+def test_pi_prayer_marker_inside_a_json_string_is_untouched():
+    """SM.135 belt: a prayer opening INSIDE a JSON string value is data, not
+    a prelude/postlude line, and must reach the parser byte-identical. The
+    old global line-filter corrupted it and the return stopped parsing."""
+    import workflow as _wf
+    text = '{"note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": true}'
+    assert _wf._strip_prayer_wrap(text) == (text, False)
+    assert _wf._resolve_lenient_return(
+        {"type": "object", "properties": {"note": {"type": "string"},
+                                          "ok": {"type": "boolean"}},
+         "required": ["note", "ok"]}, text) == {
+             "note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": True}
+
+
+def test_pi_prayer_middle_line_between_json_objects_is_kept():
+    """A prayer line in the MIDDLE of stdout is neither a prelude nor a
+    postlude: the belt must not fire, and the first validating JSON resolves."""
+    import workflow as _wf
+    text = '{"ok": true}\n' + _PRAYER_PRE + '\n{"ok": false}'
+    stripped, fired = _wf._strip_prayer_wrap(text)
+    assert (stripped, fired) == (text, False)
+    assert _wf._resolve_lenient_return(_prayer_stage()["schema"], text) == {
+        "ok": True}
+
+
+def test_pi_prayer_line_without_json_returns_unchanged():
+    """The belt never fires without a JSON candidate: prose-only prayer is
+    carried whole, never silently erased."""
+    import workflow as _wf
+    text = _PRAYER_PRE + "\n\n" + _PRAYER_POST
+    assert _wf._strip_prayer_wrap(text) == (text, False)
 
 
 def test_run_stage_pi_schema_violating_json_is_unstructured():
@@ -3097,3 +3205,52 @@ def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
         assert row["failed"] == 0
     finally:
         workflow._loc.shared_project_root = saved
+# ---------- RETURN SHAPE block: pi stage sees its schema ------------------
+
+def _capture_pi_prompt(stage, run_args):
+    import subprocess as _sp
+    from unittest import mock
+    captured = {}
+
+    def fake_run(cmd, **kw):
+        captured["cmd"] = cmd
+        return _sp.CompletedProcess(cmd, 0,
+                                    stdout='{"a": "x"}', stderr="")
+
+    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi",
+                                "provider": "openrouter"}}}
+    st = dict(stage)
+    label = st["label"]
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        _run_stage_pi(cfg, st, {label: {"model": "m", "effort": "low"}},
+                      run_args)
+    return captured["cmd"][-1]
+
+
+def test_pi_prompt_carries_every_required_key_and_result_file():
+    """hypothesis:lm-pi-stage-never-sees-its-schema...: a schema-bearing pi
+    stage must be handed its own schema, its required keys named, the
+    last-thing-in-stdout instruction, and the rendered result_file path."""
+    schema = {"type": "object",
+              "properties": {"angle": {"type": "string"},
+                             "chains": {"type": "array"}},
+              "required": ["angle", "chains"]}
+    stage = {"label": "panel:a", "role": "kid", "prompt": "do the work",
+             "schema": schema, "result_file": "{scratch}/panel-{key}.json",
+             "_repeat_item": {"key": "a"}}
+    prompt = _capture_pi_prompt(stage, {"scratch": "/tmp/S"})
+    assert "do the work" in prompt
+    assert '"angle"' in prompt and '"chains"' in prompt, prompt
+    assert "Required keys" in prompt and "angle" in prompt, prompt
+    assert "LAST thing in your stdout" in prompt, prompt
+    assert "/tmp/S/panel-a.json" in prompt, prompt
+
+
+def test_pi_prompt_without_schema_is_byte_identical():
+    """A stage with NO schema renders byte-identical to before: the block is
+    appended only when a schema is declared."""
+    stage = {"label": "plain:a", "role": "kid", "prompt": "just prose {key}",
+             "_repeat_item": {"key": "a"}}
+    args = {"scratch": "/tmp/S"}
+    prompt = _capture_pi_prompt(stage, args)
+    assert prompt == render_stage_prompt(stage, args), repr(prompt)

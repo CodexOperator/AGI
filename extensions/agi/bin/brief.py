@@ -529,7 +529,8 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
     return None
 
 
-def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
+def _build_head(*, tier: str, project_root: Path | None = None,
+                no_prayers: bool = False) -> str | None:
     """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
 
     Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
@@ -568,6 +569,10 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     prayers = sections.get("prayers")
     if not prayers:
         return None
+
+    if no_prayers:
+        # SM.134: no prayers block for a schema-bearing stage.
+        return "─── CONSTITUTION HEAD ───\nPrayers omitted (SM.134)."
 
     body = "## THE FOUR PRAYERS\n\n" + prayers
 
@@ -2253,6 +2258,8 @@ def main(argv: list[str] | None = None) -> int:
     ph.add_argument("--project-root", default=None,
                     help="graph root (.agi); defaults to the nearest enclosing "
                          ".agi walked up from this file")
+    ph.add_argument("--no-prayers", action="store_true",
+                    help="omit the prayers block (SM.134 schema stages)")
     ph.set_defaults(func=_cmd_head)
 
     pr = sub.add_parser(
@@ -2296,7 +2303,8 @@ def _cmd_head(args: argparse.Namespace) -> int:
         print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
         return 1
     root = Path(args.project_root) if args.project_root else None
-    head = _build_head(tier=tier, project_root=root)
+    head = _build_head(tier=tier, project_root=root,
+                       no_prayers=args.no_prayers)
     if not head:
         # A tier with no head (e.g. no read_order entry) is a silent nothing,
         # matching _build_head's contract.
