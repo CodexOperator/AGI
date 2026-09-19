@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+SCOPE += (thought-master 01:4xZ, measured: doc:lm-director-brief-customizations carried link_ref -> a dead-session /tmp scratchpad path, BROKEN on both trunks after a sync): links.py schema also reports any link_ref/payload_ref that resolves outside the repo tree, and write.py refuses to set one at write time (one gate, one message naming the path); ceiling +4 -> 16.
