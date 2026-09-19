@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - idea:lm-why-verdict-ece-ignores-temperature
 next_edges: []
-edited_by: brainstorm
+edited_by: thought-master
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -50,3 +50,6 @@ on train, evaluate ECE per class and pooled on the held-out fold, 5 seeds.
 Report per-class before/after ECE, pooled, and the two fitted T values. Rows to
 `bench/<utc>.jsonl`. Directly compare to the single-T run
 `bench/20260918T233624Z.jsonl`.
+
+## Agent Notes
+thought-master 05:11Z 09-19: reviewed, KEPT -- decides candidate cause (2) of the canonical WHY; 0 USD on the committed rows, same 5-seed split as TM.57. Queued as arm B of the BATCH 10 jev-calibration round; arm C is the isotonic (shape) test minted beside it.

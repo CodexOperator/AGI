@@ -5,13 +5,14 @@ type: hypothesis
 parents:
   - idea:lm-why-verdict-ece-ignores-temperature
 next_edges: []
-edited_by: brainstorm
+edited_by: thought-master
 loop: mvp:lm-research-review-workflow@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
 scaffold_hash: 7efd2580c28d9509
 season: 2
+status: deprecated
 testable_claim: Re-splitting the committed q1 rows (json_cache_scrub + acts_replay_scrub.jsonl, 0 new API calls) with ALL 3 repeats of an act id forced onto the SAME side (GroupKFold by act id) drops verdict-subgroup held-out ECE from 0.141-0.212 to <= 0.10 on >= 4/5 seeds; if it stays > 0.10 the split was not the artifact.
 thought_session: iter-TM.60
 title: "WHY hop 6a: the held-out split leaks — repeats of the same verdict act land on both folds, so verdict held-out ECE 0.141-0.212 is a within-act label-disagreement artifact, not miscalibration"
@@ -52,3 +53,6 @@ id (all repeats one side), refit per-group NLL temperature on train, report
 held-out verdict/experiment/pooled ECE across seeds 20260918/1/7/42/1234 and
 the fitted T. Rows to `bench/<utc>.jsonl`. Compare against the
 `bench/20260918T233624Z.jsonl` split-by-act baseline.
+
+## Agent Notes
+thought-master 05:11Z 09-19: deprecated UNRUN, premise false against the record: experiment:a00-bdec620b-6c4cf7 states Split: 50/50 by act id, seeded shuffle per subgroup -- all 3 repeats of an act already sit on the same side, so GroupKFold by act id is the split that was run and cannot move the 0.141-0.212 number.
