@@ -90,7 +90,7 @@ from frontmatter import split_frontmatter  # noqa: E402
 # which is what makes "running apply twice is byte-identical" true regardless
 # of how the node happens to order its `cadences:` mapping.
 KNOWN_JOBS = ("grid_sync", "branch_push", "publish_engine", "engine_push",
-              "mail_poll")
+              "mail_poll", "nudge_sweep")
 
 #: Relative to the project root `locations.find_project_root` resolves.
 #: `rglob("*.md")` traverses dot-directories (confirmed against `level3.py`),
@@ -212,6 +212,17 @@ def _resolve_cadence(path: Path, name: str, job: dict) -> dict:
             )
         entry["box"] = ([v.strip() for v in vals]
                         if isinstance(raw_box, list) else vals[0].strip())
+    # Optional `why_box`: a `box` gate is the EXCEPTION (absent = every box,
+    # the documented default), so a gated KNOWN job must say why in this
+    # sibling field. `audit` flags a gated job without it, by name.
+    raw_why = job.get("why_box")
+    if raw_why is not None:
+        if not isinstance(raw_why, str) or not raw_why.strip():
+            raise CronsError(
+                f"{path}: cadences.{name}.why_box must be a non-empty string "
+                f"— a `box` gate is the exception and says why"
+            )
+        entry["why_box"] = raw_why.strip()
     return entry
 
 
@@ -584,6 +595,17 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         lines.append(
             f"{sched} cd {root} && git -C {repo_root} fetch -q origin && "
             f"python3 {send_py} read --box-local >> {log} 2>&1"
+        )
+
+    if "nudge_sweep" in jobs and jobs["nudge_sweep"]["enabled"] and _on_this_box(jobs["nudge_sweep"], own):
+        # The sweep walks every LOCAL row itself (`wake --all-local`), so no
+        # seat list is hardcoded here: the whole point is that a busy pane's
+        # nudge is retried until it lands, box default = every box.
+        send_py = Path(engine_root) / "extensions" / "agi" / "bin" / "send.py"
+        sched = _schedule_expr(jobs["nudge_sweep"])
+        lines.append(
+            f"{sched} cd {root} && python3 {send_py} wake --all-local "
+            f">> {log} 2>&1"
         )
 
     # Generic entries last, sorted by name: KNOWN_JOBS keep their own
@@ -1049,6 +1071,11 @@ def cmd_audit(root: Path, crontab_file: Path | str | None = None,
     if managed != render_managed_lines(root, repo_root, engine_root, node):
         found.append("crontab: this project's managed block drifts from the "
                      "node (run `crons.py apply`)")
+    for name, job in node["jobs"].items():
+        if name in KNOWN_JOBS and job.get("box") and not job.get("why_box"):
+            found.append(f"node: cadences.{name} gates on box {job['box']!r} "
+                         f"with no `why_box` — a `box` gate is the exception "
+                         f"and must say why")
     if unit_dir is not None:
         ud = Path(unit_dir)
         declared = set(node["services"])
