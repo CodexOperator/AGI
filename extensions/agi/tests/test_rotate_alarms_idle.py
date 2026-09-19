@@ -117,3 +117,36 @@ def test_alarms_unit_argv_carries_user_working_directory_and_root(tmp_path,
     assert "--root" in argv
     assert argv[argv.index("--root") + 1] == str(tmp_path)
     assert rc == 0
+
+
+def _alarms_detached(root, holder):
+    return SimpleNamespace(holder=holder, once=False, interval=300, detach=True,
+                           comms_root=str(root / "comms"), root=None)
+
+
+def test_alarms_detach_launches_unit_once_and_never_meters(tmp_path,
+                                                           monkeypatch):
+    """P7 fix: `alarms --detach` calls `_run_alarms_unit` once, does not
+    enter the meter loop, and sends no dm."""
+    calls = []
+
+    def rec(argv, **kw):
+        calls.append(argv)
+        return SimpleNamespace(returncode=7)
+
+    monkeypatch.setattr(subprocess, "run", rec)
+    rc = rotate.cmd_alarms(_alarms_detached(tmp_path, "advisor"), tmp_path)
+    assert rc == 7, "the runner's returncode is returned"
+    assert len(calls) == 1, calls
+    argv = calls[0]
+    assert argv[0] == "systemd-run"
+    assert "--user" in argv
+    assert "--working-directory" in argv
+    assert argv[argv.index("--working-directory") + 1] == str(tmp_path)
+    assert argv[argv.index("--root") + 1] == str(tmp_path)
+    assert "alarms" in argv
+    inner = argv[argv.index("alarms") + 1:]
+    assert "--holder" in inner and inner[inner.index("--holder") + 1] == "advisor"
+    assert "--root" in inner and inner[inner.index("--root") + 1] == str(tmp_path)
+    assert "--detach" not in argv, "the detached unit must not recurse"
+    assert not (tmp_path / "comms").exists(), "no dm, no meter"
