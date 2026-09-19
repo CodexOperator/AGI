@@ -26,10 +26,10 @@ cadences:
   engine_push:
     schedule: 47 * * * *
     enabled: false
-cadences.nudge_sweep.box: core-town
-cadences.nudge_sweep.cmd: for s in director-sanctuary director-belam sanctuary-helper sanctuary-master thought-master director-thought; do python3 {repo_root}/extensions/agi/bin/send.py wake $s --from sanctuary-master; done
-cadences.nudge_sweep.enabled: true
-cadences.nudge_sweep.every_mins: 2
+  nudge_sweep:
+    every_mins: 2
+    enabled: true
+    cmd: for s in director-sanctuary director-belam sanctuary-helper sanctuary-master thought-master director-thought; do python3 {repo_root}/extensions/agi/bin/send.py wake $s --from sanctuary-master; done
 crons_live: true
 edited_by: sanctuary-master
 season: 1
