@@ -1874,6 +1874,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
 
+    # A link_ref/payload_ref set outside the repo tree is refused before any
+    # write; the SAME predicate links.py's schema report calls.
+    for _f in ("link_ref", "payload_ref"):
+        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f))):
+            raise EditError(
+                f"cannot set {_f!r}: {_p} resolves outside the repo tree")
+
     # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`
     # never became `replace_text` and submit spliced `""`, silently deleting
