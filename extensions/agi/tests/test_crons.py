@@ -171,6 +171,7 @@ def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
 def test_load_valid_node(tmp_path):
     cad = dict(DEFAULT_CADENCES)
     cad["mail_poll"] = {"every_mins": 5, "enabled": True}
+    cad["nudge_sweep"] = {"every_mins": 2, "enabled": True}
     root = make_project(tmp_path, cadences=cad)
     node = crons.load_crons_node(root)
     assert node["crons_live"] is True
@@ -1441,3 +1442,45 @@ def test_audit_is_silent_on_another_projects_unit(tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "deadbeef" not in out
+
+
+# --- the nudge_sweep known job + why_box (l5 undelivered-nudge round) -----
+
+
+def test_nudge_sweep_renders_on_every_box_and_is_not_a_generic_cmd(tmp_path):
+    """`nudge_sweep` is a KNOWN job: it renders the `wake --all-local` sweep
+    (never a hardcoded seat list) and an absent `box` key means EVERY box."""
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True}}
+    root = make_project(tmp_path, cadences=cad)
+    node = crons.load_crons_node(root)
+    assert "nudge_sweep" in node["jobs"]
+    assert "cmd" not in node["jobs"]["nudge_sweep"]
+    for box in ("core-town", "local-town", ""):
+        lines = crons.render_managed_lines(root, root, root, node, box_name=box)
+        assert len(lines) == 1
+        assert lines[0].startswith("*/2 * * * *")
+        assert "wake --all-local" in lines[0]
+        assert "send.py" in lines[0]
+        assert lines[0].endswith(f">> {crons._log_path(root)} 2>&1")
+
+
+def test_audit_flags_a_gated_known_job_without_why_box(tmp_path):
+    """A `box` list is the exception and must say why in `why_box`; the
+    audit names the job and the missing field."""
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
+                           "box": "local-town"}}
+    root = make_project(tmp_path, cadences=cad)
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    found = crons.cmd_audit(root, crontab_file=fixture)
+    assert any("nudge_sweep" in f and "why_box" in f for f in found), found
+
+
+def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path):
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
+                           "box": "local-town",
+                           "why_box": "the sweep only reads local rows"}}
+    root = make_project(tmp_path, cadences=cad)
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    assert crons.cmd_audit(root, crontab_file=fixture) == []
