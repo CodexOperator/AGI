@@ -215,8 +215,9 @@ def _turn_end_with_live_kid(iter_dir, agent_id, is_alive) -> "str | None":
         if (krec.get("spawned_by_agent") != agent_id
                 and krec.get("dispatched_by") != agent_id):
             continue
+        kpid = _rec_pid(krec)
         if (krec.get("status") in (None, "running")
-                and is_alive(_rec_pid(krec))):
+                and kpid > 0 and is_alive(kpid)):
             return krec.get("node_id") or ap.parent.name
     return None
 
