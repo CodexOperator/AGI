@@ -100,3 +100,5 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 01:0xZ 09-19 OWNER order (verbatim in doc:l5-owner-decisions tail): Prime QUIET row cell ON (settings ultracode quiet; belam-unquiet timer disabled; the owner wakes me); thought-master independent on his branch, batched with director-thought (assign batch -> review batch back), any codebase fix he deems necessary on his branch, go/stay decided with the owner tomorrow; each master full authority in its own branch incl. seat assignment for now, no queue node where the engine refuses. Relayed one line each to TM and SM. Suite #5 (cli.py) running detached; result recorded here at the next wake.
 
 01:1xZ 09-19 OWNER correction (verbatim in doc:l5-owner-decisions tail): any master meeting an engine refusal in its branch informs sanctuary-master and asks the fix independently -- standing order for this mode; relayed to TM and SM.
+
+01:1xZ 09-19 suite #5 at 6045cd671 (SM.130 cli.py + the link-count fix): 5678 passed / 1 failed / 16 skipped in 818 s -- back to the lone order-dependent red test_migrate_channel (SM.123 s2); the basetemp test did not recur. Lock free. Prime dark.
