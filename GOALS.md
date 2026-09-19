@@ -6000,6 +6000,8 @@ OWNER in my pane 04:2xZ 09-19, verbatim: "Prayer is always needed. Check the mor
 
 04:4xZ 09-19 RETURN BATCH 2 MERGED (refs/agi/posts @1fb6900c3 -> 0ebc80a1a; 20 files, 0 deletions, links 3640/0, leak clean): TM.64 hypothesis:lm-event-port-lazy-leak-gap-off-by-one PROVED (event_port.py gap = t - tl - 1; event-k and event-src bit-exact, 0 of 79675 spikes divergent, 4 seeds; the director re-derived it from the committed rows) · TM.61 hypothesis:lm-event-driven-sparse-lif-matches-reference-at-a-fraction-of-the-work DISPROVED stands on conjunct 2 alone (17.65-17.88 pct of the updates vs the 10 pct bound) with its mechanism claim corrected in place; three residues closed in-loop (row count, the event-steplk arm never executes the fixed line, a stale sentence left on purpose -- accepted). NEXT on this line: no new WHY hung by hand -- the director runs research-review on TM.61 once its propose-only flag lands (why the event port still touches ~17.7 pct: the accepted fixture fires hard, g 0.9 amp 9.999), proposals back to me. mur on this batch returned both stages unstructured on a schema field-name mismatch (TM.66 in the director in-loop queue).
 
+05:0xZ 09-19 TMM.01 CLOSED proved on the trunk (c1f0be29c merged): pi stages now see their schema (RETURN SHAPE block) + result_file for panel/judge; prayers in every head untouched; SM.134 carve-out never merged. Engine work from here = the director in-loop or the SM queue; the master spawns nothing.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
