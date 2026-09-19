@@ -2702,7 +2702,11 @@ def test_native_seam_prints_one_call_with_the_script_stem(tmp_path_factory,
         assert len(calls) == 1, calls
         parsed = json.loads(calls[0][len("Workflow("):-1])
         assert parsed["name"] == "agi-round-review", parsed
-        assert parsed["args"] == {"targets": [{"window": "t1"}]}, parsed
+        # The caller's targets survive; the runner ALSO resolves the project
+        # root into args so the native Workflow call carries it (the stages
+        # `cd {project_root}`, never a hardcoded checkout).
+        assert parsed["args"]["targets"] == [{"window": "t1"}], parsed
+        assert parsed["args"]["project_root"] == str(REPO), parsed
         # the SM.120 stderr notice belongs to the headless path only
         assert "no stage executed by workflow.py" not in err, err
         # and the row is still tracked, still unnoted
@@ -2772,6 +2776,10 @@ def test_link_creates_every_registered_script_and_is_idempotent(tmp_path,
     monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
     buf = io.StringIO()
     assert link_workflows(graph, out=buf) == 0
+    # Derived from the live manifests above, never a pinned literal: the
+    # literal "12" drifted the moment a new workflow pair landed (TM.60,
+    # research-review), which is the copied-list defect this assertion is
+    # supposed to catch, not commit.
     assert f"[linked] {len(scripts)} workflow link(s) created" in buf.getvalue(), \
         buf.getvalue()
     for script in scripts:
@@ -2946,3 +2954,146 @@ def test_help_names_root_and_still_exits_0():
     assert r.returncode == 0
     assert r.stdout.strip()
     assert "--root" in r.stdout, r.stdout
+
+
+# ---------- R1: the runner resolves {project_root}, never a literal --------
+# hypothesis:lm-chained-research-review-cuts-director-glue-calls, residues
+# from outcome:a00-cc347774-096d54. The why/brainstorm/refute/review prompts
+# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree
+# minted into the MAIN checkout's graph. The runner now injects the resolved
+# project root as a run arg and each prompt carries `{project_root}`.
+
+def test_research_review_prompts_name_the_runner_project_root():
+    from workflow import render_stage_prompt
+    manifest = workflow._load_manifest(REPO, "research-review")
+    worktree = "/tmp/fake-worktree"
+    args = {"project_root": worktree}
+    seen = 0
+    for st in manifest["stages"]:
+        out = render_stage_prompt(st, args, prior={
+            "verdicts": "[]", "missed": "none", "summary": "s",
+            "final_recommendation": "accept", "why_node": "idea:x",
+            "why_question": "q", "why_summary": "s", "evidence": "e",
+            "branch": "why", "push_further": "none", "hypotheses": "[]",
+            "idea": "idea:x", "refined_question": "q"})
+        assert "/home/ubuntu/work/agi" not in out, (st["label"], out)
+        if "{project_root}" not in st["prompt"]:
+            continue
+        seen += 1
+        assert f"cd {worktree} &&" in out, (st["label"], out[:200])
+    assert seen == 4, seen  # review, why, brainstorm, refute
+
+
+def test_render_stage_prompt_project_root_falls_back_to_cwd_root(tmp_path,
+                                                                 monkeypatch):
+    """A direct caller that passes no project_root still gets a REAL path,
+    never an empty `cd  &&` — resolved from the cwd's project root."""
+    from workflow import render_stage_prompt
+    monkeypatch.setattr(workflow._loc, "find_project_root",
+                        lambda *a, **k: tmp_path / ".agi")
+    st = {"label": "refute:x", "prompt": "cd {project_root} && true"}
+    out = render_stage_prompt(st, {})
+    assert out == f"cd {tmp_path} && true", out
+
+
+def test_pi_run_renders_project_root_not_main_checkout(tmp_path_factory):
+    """The live pi path: with a REAL run_workflow call, the rendered refute
+    prompt carries the run's resolved repo root (REPO, in this suite), never
+    the hardcoded main checkout."""
+    import subprocess as _sp
+    from unittest import mock
+    from workflow import run_workflow
+
+    calls = []
+    good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "kept": "none", "dropped": "none", "notes": "n"})
+
+    def fake_run(cmd, **kw):
+        if "--provider" in cmd:
+            calls.append(" ".join(cmd))
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+
+    saved = workflow._loc.shared_project_root
+    workflow._loc.shared_project_root = lambda root: tmp_path_factory.mktemp("s")
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "research-review", "pi",
+                              {"targets": [{"key": "k", "hypothesis": "h",
+                                            "experiments": "e", "files": "f",
+                                            "focus": "x", "verdict": "proved"}]},
+                              False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert calls, "no stage rendered"
+        assert any(f"cd {REPO} &&" in c for c in calls), calls[0][:400]
+        assert all("/home/ubuntu/work/agi &&" not in c or f"cd {REPO} &&" in c
+                   for c in calls), "main checkout literal survived"
+    finally:
+        workflow._loc.shared_project_root = saved
+
+
+# ---------- R2: an empty handoff list is visible, not a silent ok ----------
+# The acceptance clause "ready_batch of 1 to 5" is prompt-only: the schema has
+# no minItems, so a refuter that drops everything leaves downstream blank
+# while the summary reads ok. The runner now names it.
+
+def test_empty_handoff_renders_a_warn_and_sets_batch_empty():
+    from workflow import RunView
+    buf = io.StringIO()
+    v = RunView("research-review", [{"label": "refute:k"}], "pi", out=buf)
+    v.stage_finished("refute:k", {"ready_batch": []})
+    v.stage_empty_handoff("refute:k", "ready_batch")
+    v.summary()
+    text = buf.getvalue()
+    assert "[warn] refute:k: handoff ready_batch is empty" in text, text
+    assert "batch_empty=true" in text, text
+    # the summary line is still last among summary-render lines
+    tail = [l for l in text.splitlines() if l.startswith(("[stage]", "[summary]"))]
+    assert tail[-1] == ("[summary] workflow=research-review stages=1 ok=1 "
+                        "unstructured=0 failed=0"), tail
+    assert v.empty_handoffs == [{"stage": "refute:k", "field": "ready_batch"}]
+
+
+def test_nonempty_handoff_never_warns():
+    from workflow import RunView
+    buf = io.StringIO()
+    v = RunView("research-review", [{"label": "refute:k"}], "pi", out=buf)
+    v.stage_finished("refute:k", {"ready_batch": [{"id": "hypothesis:x"}]})
+    v.summary()
+    assert "[warn]" not in buf.getvalue()
+    assert v.empty_handoffs == []
+
+
+def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
+    """The mechanical detection: a stage declaring `handoff_list` and
+    returning it empty makes the run level say so, through the summary AND
+    the tracking row's `batch_empty` — without failing the run (rc 0)."""
+    import subprocess as _sp
+    from unittest import mock
+    from workflow import run_workflow
+
+    good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "kept": "none", "dropped": "none", "notes": "n"})
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=good, stderr="")
+
+    tmp = tmp_path_factory.mktemp("handoff-sess")
+    saved = workflow._loc.shared_project_root
+    workflow._loc.shared_project_root = lambda root: tmp
+    try:
+        buf = io.StringIO()
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            rc = run_workflow(REPO / ".agi", "research-review", "pi",
+                              {"targets": [{"key": "k", "hypothesis": "h",
+                                            "experiments": "e", "files": "f",
+                                            "focus": "x", "verdict": "proved"}]},
+                              False, out=buf)
+        assert rc == 0, buf.getvalue()
+        assert "[warn] refute:k: handoff ready_batch is empty" in buf.getvalue()
+        row = json.loads((tmp / "sessions" / "workflows" /
+                          "research-review.jsonl").read_text().splitlines()[-1])
+        assert row["batch_empty"] is True, row
+        assert row["failed"] == 0
+    finally:
+        workflow._loc.shared_project_root = saved
