@@ -7583,6 +7583,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 05:4xZ 09-19 suite #6 at c132a67b4: 5690 passed / 3 failed / 16 skipped in 1020 s (behind a foreign full-suite run a pi reviewer under director-thought launched in MAIN, [rule] sent to TM). New deterministic reds: test_branch_spelling_grep (2) -- the dispatch.py stale-base fix comment hand-spells season/s2 outside the pinned inventory; [red] to SM (core copy), TM syncs. test_migrate_channel unchanged.
 
+06:1xZ 09-19 OWNER: "Director sanctuary stalled at rotation again." Measured: f=0.441 = 94 pct of its line, alive, last words "holding for the rotation signal" (row rotated_by: belam = stale L5 formation). Signal sent as one [rotation] dm; row cell rotated_by -> sanctuary-master (the Keep runs its recovery from now; captive at 0.85 = SM.135). director-thought rotated after the 05:12Z order (record 05:18Z, window @467, active).
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
