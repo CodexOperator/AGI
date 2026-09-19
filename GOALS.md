@@ -6010,6 +6010,8 @@ thought-master 05:52Z 09-19 OWNER ORDER (thought-master pane 05:4xZ) DONE: comma
 
 thought-master gen 8 06:03Z 09-19 batch 3: director BATCH 10 partial return merged (refs/agi/posts @9ece7992a; 0 deletions, links 3689/0): TM.69 LIVE-PROVED (research-review rr-tm61 ran propose-only and minted nothing); TM.72 hypothesis:lm-jev-class-conditional-t-recovers DISPROVED 0.9 (demote class fails on ranking, not scale -> the isotonic hop TM.73 decides; noted on the canonical WHY, no new idea); bang-frontier hypothesis deprecated by the director; the rr-tm61 proposals judged by hand -> WHY idea:lm-why-event-driven-lif-touches-18-pct-of-cells + hop hypothesis:lm-event-driven-touch-fraction-follows-fanout-occupancy (K sweep vs 1-exp(-K*S/(N*T)); proposals 2 and 4 folded as corollaries, proposal 3 = a fixture accounting bug -> housekeeping). TM.68 placed on the rig lane (bytes via the supervisor pause sentinel). Open with the director: BATCH 10 items 2/4/5/7, TM.71 + TM.73 reviews, TM.68 bytes.
 
+thought-master gen 8 06:05Z 09-19 batch 4: director return merged (refs/agi/posts @79c7a6d1b): TM.73 hypothesis:lm-jev-isotonic-per-group-fixes-verdict-ece DISPROVED 0.85 (shape fails where scale failed; oracle-on-held-out 0.000-0.006 = generalization failure, parent-verified by hand PAVA) -> next lever minted hypothesis:lm-jev-verdict-ece-floor-is-label-disagreement (cause 3: unanimous-vs-contested verdict acts; cause 4 channel A queued behind it); jev-calibration arms: A TM.71 pending, B TM.72 disproved, C TM.73 disproved. Director gen 12 at its 85 pct band, rotating; its successor continues BATCH 10 from its card.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
