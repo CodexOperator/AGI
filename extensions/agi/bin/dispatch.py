@@ -645,7 +645,7 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
     # (`<town>/season<m>/posts/<seat>/main`, `.../loops/...`) parse as
     # `v3_post` / `v3_loop`, which the tuple below did not name -- so a town
     # director's spawn fell through to the ladder lookup, matched no row and
-    # was measured against CORE's main, forcing a merge of season2/main into
+    # was measured against CORE's main, forcing a merge of core's main into
     # its post branch before every dispatch (owner 01:1xZ 09-19: "merging
     # into prim branch ... needs urgent fix"). `merge_target` already resolves
     # the v3 trunk of the same tuple.
@@ -658,7 +658,7 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
     # A v3 town TRUNK whose town has NO `town_branches` row at all integrates
     # against ITSELF on origin (owner 01:0xZ 09-19: every master's town is
     # independent and batched -- it is never measured against core's main).
-    # A town WITH a row (core: season/s2) keeps today's exact-equality path
+    # A town WITH a row (core: the row's own season branch) keeps today's exact-equality path
     # and its None fallback, byte-for-byte.
     if (_parsed is not None and _parsed["kind"] == "v3_town_season_main"
             and _parsed.get("town")
