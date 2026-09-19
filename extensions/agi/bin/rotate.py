@@ -20381,6 +20381,8 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
         print("ERR: migrate needs an agi project root.", file=sys.stderr)
         return 1
     root = Path(root).resolve()
+    if getattr(args, "receive", False):
+        return cmd_migrate_receive(args, root)
     if not args.post:
         print("REFUSED: migrate needs --post <post> (nothing touched)")
         return 1
@@ -20396,12 +20398,18 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
         print(f"REFUSED: a migrate to the box the post is already on "
               f"({source}) (nothing touched)")
         return 1
-    if args.mode not in migrate_channel.MODES:
+    if args.mode is not None and args.mode not in migrate_channel.MODES:
         print(f"REFUSED: unknown mode {args.mode!r} "
               f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
         return 1
+    mode = args.mode or _migrate_default_mode(root, args.post)
+    if mode == "fork" and not str(args.session_id or "").strip():
+        print("REFUSED: fork mode needs --session-id (a blank transcript id "
+              "composes a broken `claude --resume  --fork-session` that "
+              "silently loses context); nothing touched")
+        return 1
     branch = f"refs/agi/posts/{args.post}"
-    print(f"migrate {args.post}: {source} -> {args.to} (mode {args.mode})")
+    print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
     for i, step in enumerate((
             "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
             "carryover commit: the post worktree's diffs as ONE commit on its branch",
@@ -20414,7 +20422,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     if args.dry_run:
         print("dry-run: nothing touched")
         return 0
-    rec = migrate_channel.record(post=args.post, mode=args.mode,
+    rec = migrate_channel.record(post=args.post, mode=mode,
                                  source_box=source, target_box=args.to,
                                  branch=branch, tip=args.tip,
                                  session_id=args.session_id, ts=send._now())
@@ -20427,6 +20435,176 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
           f"{args.post} key)")
     print("next: the target box's mail_poll tick receives it; the ref push is "
           "the landing, never this verb")
+    return 0
+
+
+def _migrate_fork_below(root: Path) -> float:
+    """`config:rotations` rotate_defaults.migrate_fork_below, default 0.30."""
+    try:
+        return float(_load_rotate_defaults(root).get("migrate_fork_below", 0.30))
+    except (TypeError, ValueError):
+        return 0.30
+
+
+def _migrate_default_mode(root: Path, post: str) -> str:
+    """`rotate` (a fresh seating from the card, no transcript transport)
+    unless the post's meter reads below the config threshold -- fork is the
+    extra, chosen only when the line is not close. An unmeasurable meter
+    never blocks the move: it falls back to `rotate`."""
+    try:
+        frac = _seat_fraction(root, _migrate_row(root, post))
+    except Exception:  # noqa: BLE001 -- an unreadable meter is not a fork
+        return "rotate"
+    if frac is not None and frac < _migrate_fork_below(root):
+        return "fork"
+    return "rotate"
+
+
+def _migrate_row(root: Path, post: str) -> dict:
+    """The post's committed identity row (MAIN's graph), {} when absent."""
+    import write
+    try:
+        rows = write._load_seats(_shared_graph_root(root))
+    except Exception:  # noqa: BLE001 -- no readable graph = no known row
+        return {}
+    for r in rows:
+        if r.get("name") == post:
+            return r
+    return {}
+
+
+def _fork_resume_command(session_id: str) -> str:
+    """The EXACT line a fork seating runs in the new worktree -- one
+    command, never a second spelling."""
+    return f"claude --resume {session_id} --fork-session"
+
+
+def _migrate_transcript_dest(worktree: Path, session_id) -> Path:
+    """The path `claude --resume` actually READS: the ONE derivation
+    (`transcript_from_registry_dict`), never a worktree-local copy nothing
+    reads. It also yields the canonical slug (every '/' AND '.' -> '-') the
+    remote path must use (SLICE 3 SHOULD FIX a + b)."""
+    return Path(transcript_from_registry_dict(
+        {"cwd": str(worktree), "session_id": str(session_id or "")}))
+
+
+def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
+    """Seam: copy the source session's transcript 0600 to the destination
+    `claude --resume` reads. Production pulls it from the SOURCE BOX ALIAS
+    over ssh (never an address); tests monkeypatch this."""
+    dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
+    subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
+                    str(dest)], check=False)
+    try:
+        dest.chmod(0o600)
+    except OSError:
+        pass
+    return dest
+
+
+def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> dict:
+    """Seam: create the post worktree from the pushed ref and seat the
+    successor on THIS box (mode rotate = the ordinary spawn from row+card;
+    mode fork = the transcript copy + the exact resume command). Returns the
+    identity cells the seating produced; tests monkeypatch THIS."""
+    ref = rec.get("branch") or f"refs/agi/posts/{post}"
+    wt = root / "worktrees" / post
+    subprocess.run(["git", "-C", str(root), "worktree", "add", "--force",
+                    str(wt), ref], check=False)
+    argv = [sys.executable, str(Path(__file__).resolve()), "spawn",
+            "--name", post, "--seat", post,
+            "--tier", str(row.get("role") or "director")]
+    if rec.get("mode") == "fork":
+        _migrate_copy_transcript(root, rec, wt)
+        argv += ["--successor-argv",
+                 _fork_resume_command(str(rec.get("session_id") or ""))]
+    subprocess.run(argv, cwd=str(wt), check=False)
+    after = _migrate_row(root, post)
+    return {"box": box, "window": after.get("window"), "pid": after.get("pid"),
+            "session_id": after.get("session_id"),
+            "session_name": after.get("session_name")}
+
+
+def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, TARGET SIDE (SM.123): the mail_poll tick's receive.
+    For every `stage: request` record addressed to THIS box whose signature
+    verifies against the post's pinned key, seats the successor once and
+    answers with ONE `stage: seated` line on the same channel. An unverified
+    record or a row already live is REFUSED BY NAME and nothing is seated."""
+    import migrate_channel
+    import send
+    try:
+        me = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    cdir = send.comms_root(root) / migrate_channel.SUBDIR
+    records = sorted(cdir.glob("*.md")) if cdir.exists() else []
+    handled = 0
+    for path in records:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rec = migrate_channel.parse_record(text)
+        if rec is None or rec.get("stage") != "request":
+            continue
+        if rec.get("target_box") != me:
+            continue
+        if getattr(args, "post", None) and rec.get("post") != args.post:
+            continue
+        handled += 1
+        post = str(rec["post"])
+        row = _migrate_row(root, post)
+        pub = str(row.get("pubkey") or "")
+        if not migrate_channel.verify_record(text, pub):
+            print(f"REFUSED: migrate record {path.name} for {post} does not "
+                  f"verify against its pinned key (nothing touched)")
+            continue
+        raw_pid = row.get("pid")
+        try:
+            pid = int(raw_pid) if raw_pid not in (None, "") else 0
+        except (TypeError, ValueError):
+            print(f"SKIP: migrate record {path.name} for {post} carries a "
+                  f"non-numeric pid {raw_pid!r} (record skipped, tick lives)")
+            continue
+        # MUST FIX (SLICE 3): the row's session_id/pid are the SOURCE box's
+        # when the post is being moved here. Only a row that is POSITIVELY
+        # live on THIS box is two-live-on-one-row; an undeclared row's
+        # liveness belongs to the box the record came from.
+        live_here = boxes.row_is_local(root, row)
+        if not str(row.get("box") or "").strip() and str(
+                rec.get("source_box") or "") != me:
+            live_here = False
+        if live_here and (row.get("session_id") or (pid and _pid_alive(pid))):
+            print(f"REFUSED: {post} is already live on {me} (pid {pid}) -- "
+                  f"two live on one row (nothing touched)")
+            continue
+        if rec.get("mode") == "fork" and not str(
+                rec.get("session_id") or "").strip():
+            print(f"REFUSED: migrate record {path.name} for {post} is fork "
+                  f"with no session_id (a blank resume loses context); "
+                  f"nothing touched")
+            continue
+        if getattr(args, "dry_run", False):
+            print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
+                  f"ref {rec.get('branch')}); nothing touched")
+            continue
+        cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
+        line = _write_identity_cells(
+            root, seat=post, actor=post,
+            role=str(row.get("role") or "director"), cells=cells)
+        ack = migrate_channel.seat_record(rec, ts=send._now())
+        ack_path = cdir / migrate_channel.record_name(ack)
+        ack_path.write_text(
+            migrate_channel.format_record(ack, sign_root=root, signer=post),
+            encoding="utf-8")
+        print(f"seated {post} on {me} (mode {rec.get('mode')}); "
+              f"{line or 'no identity row'}; answered {ack_path.name}")
+    if handled == 0:
+        print(f"receive on {me}: no migrate records addressed here")
     return 0
 
 
@@ -20965,9 +21143,11 @@ def main(argv: list[str] | None = None) -> int:
     p_mig.add_argument("--post", default=None, help="the post to move")
     p_mig.add_argument("--to", dest="to", default=None,
                        help="the TARGET box name (never a path or address)")
-    p_mig.add_argument("--mode", default="rotate", choices=["rotate", "fork"],
+    p_mig.add_argument("--mode", default=None, choices=["rotate", "fork"],
                        help="rotate = a fresh seating from the card "
-                            "(default); fork = resume the transcript copy")
+                            "(default); fork = resume the transcript copy. "
+                            "Absent, the mode derives: fork only when the "
+                            "meter is below rotate_defaults.migrate_fork_below")
     p_mig.add_argument("--session-id", default=None,
                        help="with --mode fork: the source session id to "
                             "resume on the target")
@@ -20975,6 +21155,10 @@ def main(argv: list[str] | None = None) -> int:
                        help="the post branch tip the target receives from")
     p_mig.add_argument("--dry-run", action="store_true",
                        help="print every step by alias and touch nothing")
+    p_mig.add_argument("--receive", action="store_true",
+                       help="TARGET side: seat every verified migrate record "
+                            "addressed to THIS box and answer with ONE seated "
+                            "line (the mail_poll tick's half)")
     p_mig.add_argument("--root", default=None,
                        help="project root override (default: resolve from cwd)")
     p_mig.set_defaults(func=cmd_migrate)

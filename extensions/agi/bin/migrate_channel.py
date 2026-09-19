@@ -21,20 +21,34 @@ MODES = ("rotate", "fork")
 KIND = "migrate"
 SUBDIR = "migrate"
 
-_KEYS = ("kind", "post", "mode", "source_box", "target_box", "branch", "tip",
-         "session_id", "ts")
+STAGES = ("request", "seated")
+_KEYS = ("kind", "stage", "post", "mode", "source_box", "target_box", "branch",
+         "tip", "session_id", "ts")
 _UNSAFE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
-def record(*, post, mode, source_box, target_box, branch, tip, session_id, ts):
-    """The ONE record dict: one kind, two modes, no addresses, no literals."""
+def record(*, post, mode, source_box, target_box, branch, tip, session_id, ts,
+           stage="request"):
+    """The ONE record dict: one kind, two stages, two modes, no addresses."""
     if mode not in MODES:
         raise ValueError(f"unknown migrate mode {mode!r} (one of {MODES})")
+    if stage not in STAGES:
+        raise ValueError(f"unknown migrate stage {stage!r} (one of {STAGES})")
     if not post or not target_box or not ts:
         raise ValueError("a migrate record needs post, target_box and ts")
-    return {"kind": KIND, "post": post, "mode": mode, "source_box": source_box,
-            "target_box": target_box, "branch": branch, "tip": tip or "",
-            "session_id": session_id or "", "ts": ts}
+    return {"kind": KIND, "stage": stage, "post": post, "mode": mode,
+            "source_box": source_box, "target_box": target_box, "branch": branch,
+            "tip": tip or "", "session_id": session_id or "", "ts": ts}
+
+
+def seat_record(request, *, ts):
+    """The ONE seated line back on the SAME channel: the same kind, the
+    `seated` stage, boxes swapped -- never a second record kind or module."""
+    return record(post=request["post"], mode=request["mode"],
+                  source_box=request["target_box"],
+                  target_box=request["source_box"],
+                  branch=request.get("branch"), tip=request.get("tip"),
+                  session_id=request.get("session_id"), ts=ts, stage="seated")
 
 
 def record_name(rec) -> str:
@@ -85,6 +99,8 @@ def parse_record(text: str) -> dict | None:
     if not isinstance(fm, dict) or fm.get("kind") != KIND:
         return None
     if fm.get("mode") not in MODES:
+        return None
+    if fm.get("stage") not in STAGES:
         return None
     return fm
 
