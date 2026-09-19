@@ -7476,3 +7476,77 @@ def test_read_positional_unchanged_when_no_dm_has_unread(
     assert "inbox only" in out, out
     assert "[dm " not in out, out
     assert not (croot / "dm").is_dir() or not list((croot / "dm").glob("*.json"))
+
+
+def test_dm_sweep_cursor_is_shared_across_a_linked_worktree(
+        tmp_path: Path, capsys, clear_identity, monkeypatch):
+    """ITEM 1's required two-independent-directories falsifier: the dm-sweep
+    cursor is written beside the SHARED dm file (the MAIN checkout's comms
+    root, which is what `comms_root()` resolves to from any worktree), so a
+    FRESH linked worktree's `read <post>` sees the same cursor and never
+    replays the channel. A per-worktree sidecar would fail the second block."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (repo / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 5\n---\n")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+
+    croot = send_mod.comms_root(repo / ".agi")
+    send_mod.send_dm(croot, "seat-a", "seat-b", "dm body", "seat-a")
+    dm = croot / "dm" / "seat-a--seat-b.md"
+    first_wt, second_wt = tmp_path / "wt1", tmp_path / "wt2"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-a@s2", str(first_wt), "season/s1"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-b@s2", str(second_wt), "season/s1"],
+                   check=True, capture_output=True)
+
+    _in_project(monkeypatch, first_wt)
+    assert send_mod.main(["--from", "seat-a", "read", "seat-a"]) == 0
+    out1 = capsys.readouterr().out
+    assert "dm body" in out1, out1                 # seeded once, from wt1
+    assert send_mod._load_state(dm).get("seat-a") == 1
+
+    _in_project(monkeypatch, second_wt)
+    assert send_mod.main(["--from", "seat-a", "read", "seat-a"]) == 0
+    out2 = capsys.readouterr().out
+    assert "dm body" not in out2, out2            # wt2 shares wt1's cursor
+    assert "[dm " not in out2, out2
+
+
+def test_box_local_sweeps_dm_channels_for_local_rows_only(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """ITEM (e): `read --box-local` (mail_poll's one service reader) must
+    sweep each LOCAL row's dm channels too, or a dm pushed from another box
+    is never delivered; a foreign-box row is still skipped by name."""
+    import boxes
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send_dm(croot, "post-a", "seat-a", "local dm", "seat-a")
+    send_mod.send_dm(croot, "post-far", "seat-a", "foreign dm", "seat-a")
+    capsys.readouterr()
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows", lambda root: [
+        {"name": "post-a"}, {"name": "post-far", "box": "other"}])
+    monkeypatch.setattr(boxes, "row_is_local",
+                        lambda root, r: r.get("name") == "post-a")
+
+    rc = send_mod.main(["--from", "seat-a", "--comms-root", str(croot),
+                        "read", "--box-local"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "local dm" in out, out
+    assert "[dm post-a--seat-a]" in out, out
+    assert "foreign dm" not in out, out
+    assert "[dm post-far--seat-a]" not in out, out

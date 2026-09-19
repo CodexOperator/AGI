@@ -9466,9 +9466,11 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
         cells["pubkey"] = key_rotation.get("successor_pub")
         cells["sig_scheme"] = (_cur.get("sig_scheme")
                                or key_rotation.get("scheme"))
+        # l5-key-history-...-never-by-generation-pair: dedupe by the retired
+        # key's fingerprint (fp, fallback pub), never its (from,to) pair.
         _hist = list(_cur.get("key_history") or [])
-        if _ret and not any(h.get("from") == _ret.get("from")
-                            and h.get("to") == _ret.get("to")
+        if _ret and not any((h.get("fp") or h.get("pub"))
+                            == (_ret.get("fp") or _ret.get("pub"))
                             for h in _hist if isinstance(h, dict)):
             _hist.append(_ret)
         cells["key_history"] = _hist
@@ -18503,8 +18505,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # numeral in the chain (its numeral is the successor's minus one line)
         _chain_live = [w for w in _existing_for_chain
                        if w == seat or w.startswith(seat + "-")]
+        # numeral ALONE ranks `belam-S1-L4-XXXI` above `belam-S2-L5-I` after a
+        # season/loop token change, so the successor restarted at `-I` and
+        # collided with the live window (belam-S2-L5-I rotate, 2026-09-18
+        # 23:1xZ). Rank by (token, numeral) -- the reap key, one reader.
         own_chain_name = max(
-            _chain_live, key=lambda w: _split_roman_suffix(w)[1],
+            _chain_live, key=_window_seniority,
             default=None)
         # L4.122 merge-up 24 residue (G): gen_before for a CHAIN seat comes
         # from the ROW/numeral — the predecessor's own window's line value —
