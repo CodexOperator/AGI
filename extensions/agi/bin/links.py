@@ -355,6 +355,15 @@ def _verdict_class_disagreements(root) -> list[str]:
     return out
 
 
+def outside_repo_path(root, ref, location=None):
+    """Resolved path of `ref` when it lands OUTSIDE the repo tree, else None.
+    ONE predicate: the schema report and write.py's refusal both call it."""
+    if not ref or str(ref).strip() == SELF:
+        return None
+    p = locations.resolve_payload_path(Path(root), str(ref).strip(), location).resolve()
+    return None if p.is_relative_to(locations.source_root(Path(root))) else p
+
+
 def _schema_report(root, fix: bool = False) -> int:
     """Which nodes violate their type's `required` list, and optionally fix them.
 
@@ -395,10 +404,16 @@ def _schema_report(root, fix: bool = False) -> int:
             by_type.setdefault(ntype, []).append((node_id, missing))
 
     verdict_class = _verdict_class_disagreements(root)
+    outside = [f"outside-ref: {nid} {f} -> {p}"
+               for nid, fm, _ in _iter_corpus(root)
+               for f in (LINK_FIELD, LEGACY_LINK_FIELD)
+               if (p := outside_repo_path(root, fm.get(f), fm.get("location")))]
     total = sum(len(v) for v in by_type.values())
     print(f"schema: {total} node(s) missing a required field, "
-          f"{len(verdict_class)} verdict-class disagreement(s)")
-    print("\n".join(verdict_class), end="\n" if verdict_class else "")
+          f"{len(verdict_class)} verdict-class disagreement(s), "
+          f"{len(outside)} outside-ref(s)")
+    print("\n".join(verdict_class + outside),
+          end="\n" if verdict_class or outside else "")
     for ntype, entries in sorted(by_type.items(), key=lambda kv: -len(kv[1])):
         fields: dict[str, int] = {}
         for _nid, missing in entries:
