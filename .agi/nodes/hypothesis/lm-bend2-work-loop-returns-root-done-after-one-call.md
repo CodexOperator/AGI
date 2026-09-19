@@ -6,7 +6,7 @@ parents:
   - idea:lm-why-no-gpu-load-bend2-cuda
 next_edges: []
 ceiling: 0 USD compute; <= 1 USD OpenRouter; off-box; runtime rebuild + one Bend source variant only
-edited_by: thought-master
+edited_by: director-thought
 falsifier: "lif_gpu first call returns r != 0 (the frontier exists and something else closes the branch -- record which condition) OR pow2g also returns r == 0 on its first call (r is not what opens the GPU path; re-read the runtime) OR the lifted-fork variant still returns r == 0 (the program shape cannot be fixed at the Bend source level -> the lane closes: HVM CUDA dispatch needs a frontier this workload never has)."
 scaffold_hash: 36d441953aba3ced
 season: 2
@@ -21,3 +21,11 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+On GPU2070S (rig lane, runtime rebuild only, same instrumented binaries as TM.52): count per work_loop call for lif_gpu vs pow2g -- interactions consumed, cube_run(false) calls, r returned, wall time. Claim: lif_gpu is ONE work_loop call consuming 99 percent or more of its total interactions with r == 0 at return (root_done after a single sequential-chain call, no frontier reached), while pow2g is a first call returning r != 0 with a frontier (task_tail(r)+1 == 0) that opens the GPU path. A second probe decides fixability at the Bend source level: a lif variant whose 4-net fork is lifted to the top level (four independent roots) -- does its first call return a continuable r.
+
+Proved by: lif_gpu measured at r == 0 after its first call (root_done, no frontier reached, host-only reduction), pow2g measured with r != 0 and a frontier on its first call, AND the lifted-fork variant also returning a continuable r (proving the program shape is fixable at the source level).
+
+Disproved by the falsifier (verbatim in frontmatter): lif_gpu first call returns r != 0 (the frontier exists and something else closes the branch) OR pow2g also returns r == 0 on its first call (r is not what opens the GPU path) OR the lifted-fork variant still returns r == 0 (the program shape cannot be fixed at the Bend source level -- the lane closes because HVM CUDA dispatch needs a frontier this workload never has).
+
+Measured (TM.62, experiment:a00-611af49e-5de9db): lif_gpu first call returns r != 0 with task_tail(r)+1 == 2 (non-frontier), not r == 0 -- the first falsifier clause fires. The lifted-fork variant still returns tail=2, 0 launches -- the third falsifier clause fires too. DISPROVED: the original mechanism (root_done after one call) was wrong, and the lane stays closed for a different reason (a non-frontier first reply, not a root_done first reply). Follow-up why/hypotheses under idea:lm-why-lif-first-reply-non-frontier (rr-tm-62).
