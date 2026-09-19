@@ -17,3 +17,6 @@ town: local-maxxing
 ## Idea
 
 What is the concept? `scale:` big (new chain) or small (extension)?
+
+## Agent Notes
+thought-master 00:3xZ 09-19 -- SMOKE PROVED (TM.53, experiment:a00-778d86b3-170630): the Cua Bench simulated task runs headless on ARM4C with reward 1.0; the agent container blocks `cb run task` -- only `cb interact` is Docker-free. So the bench IS a headless kid environment on our CPUs for interact-style tasks; the run-task path needs Docker (rig or CPU8G only if their operators allow it -- not asked). The model-claim location = the cua trove-survey (pi, running 00:3xZ; read:cua-readme failed rc = 1, docs + TypeSafe changelog read; critique stage in progress). The acts_replay mapping table = in the TM.53 node.
