@@ -6,12 +6,16 @@ parents:
   - hypothesis:lm-pow2g-first-reply-is-a-saturated-bang
 next_edges: []
 confidence: 0.9
-edited_by: a00-8d86b8db
+edited_by: a00-dd8458a6
 evidence_runs:
   - experiment:a00-8d86b8db-4d4efb
 line_ceiling: 40
 loop: hypothesis:lm-pow2g-first-reply-is-a-saturated-bang@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "bend pow2g.bend -o pow2g.c; apply instr67 anchors (task_node writer + corpus_eval work_loop); clang -std=c11 -O3 -lpthread -lm; run ./pow2g_i", "expected": "pow2g first reply saturated: FID_POW2 arity 1, H[tl+1] low=0", "observed": "FIRST n=1 io_gpu=0 term_aux=1 FID_POW2 fid_arity=1 tl=51417605; H[tl+1] low=0 hi=0 -> saturated", "result": "pass"}
+  - {"conjunct": 2, "class": "wire", "cmd": "re-run TM.67 instrumented lifgpu_i67 host binary and read its FIRST rows", "expected": "lif first reply owes 2: fid_arity 2, H[tl+1] low=2", "observed": "FIRST n=1 term_aux=11 FID_BATCH_J24 fid_arity=2 tl=51417606; H[tl+1] low=2 -> owes 2", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "decode lif first-reply fid 11 against FID_ARITY_T and the named net.fin wrapper hop", "expected": "if the owed 2 sits on net.fin (arity 1) the wrapper is the cause; else the conjunct fails", "observed": "owed 2 sits on FID_BATCH_J24 arity 2, the batch pair-join, NOT net.fin arity 1 -> FALSIFIER B fires", "result": "fail"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -86,3 +90,15 @@ Raw output, screenshots, logs.
 
 ## Agent Notes
 Device0 host build of pow2g and lif_gpu, anchor-asserted instrumentation of task_node + corpus_eval + FID_ENTER. pow2g first reply FID_POW2 H[tl+1]low=0 saturated; lif first reply FID_BATCH_J24 low=2. FALSIFIER B fires: the owed 2 is the batch fork/join frame, not net.fin; lif first entered task FID_BATCH is itself saturated. Hypothesis disproved. Rows in rows70.txt.
+
+Parent review accepted the kid as disproved after the kid own rows and three parent-run probes agreed: pow2g first reply FID_POW2 saturated (owed 0); lif first reply FID_BATCH_J24 owed 2; the owed 2 sit on the batch pair-join frame, NOT the net.fin wrapper (FALSIFIER B fires). Deliverables rows70.txt, instr70.py, pow2g_c.c, lifgpu_c.c, both binaries and both .bend sources are all present in the session work dir.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+WHAT THE INSTRUCTION SAID: "One negative probe per claim conjunct, run by YOU, recorded as `probes:`"; and "edit a kid's node in place, and write why the node now says what it says into that node's THOUGHT block".
+
+WHAT THE MACHINE ACTUALLY DOES (built and ran, not read): emitted pow2g's C with bend 2.0.5 (`bend pow2g.bend -o pow2g.c`), applied the same instrumentation as the TM.67 kid (the generic `task_node` writer anchor `e.mem[loc + ar + 1] = ((u64)idx << 32) | rem;` and the `corpus_eval` `work_loop(e, io_stk, t, !BANGS and ...)` call), built host-only with `clang -std=c11 -O3 -lpthread -lm`, and ran it. Result: `FIRST n=1 term_aux=1` (= FID_POW2, arity 1), `H[tl+1] low=0` -- the first reply is the saturated bang def. Re-ran the TM.67 instrumented lif_gpu host binary: `FIRST term_aux=11` (= FID_BATCH_J24, arity 2), `H[tl+1] low=2`. Artifacts under `.agi/sessions/iter-TM.70/a00-dd8458a6/`.
+
+THE NEAR MISS: a reader could accept the kid's `disproved` on the strength of its own rows alone; the step that actually settles conjunct 3 is the arithmetic decode of fid 11 against `FID_ARITY_T` -- the 2 owed args sit on a `FID_BATCH_J24` frame of arity 2 (the batch pair-join), while the named `net.fin` frame has arity 1, so the wrapper is exonerated. The kid performed that decode and so did I; the un-decoded row is the plausible reading that satisfies the words and loses the mechanism.
+
+DEVIATION FROM A STANDING RULE: the parent review section says read the kid's DIFF via `git diff merge-base..<kid-branch>`, while the same brief says "Do not run git at all". I read the changed bytes directly (the node file and its named session artifacts) rather than running any git command. Both are read-only; the direct read is the one that cannot touch the shared tree's index, and the node file IS the changed authored artifact this round.
+<!-- THOUGHT:END -->
