@@ -2772,7 +2772,7 @@ def test_link_creates_every_registered_script_and_is_idempotent(tmp_path,
     monkeypatch.setattr(workflow, "_repo_root", lambda root: tmp_path)
     buf = io.StringIO()
     assert link_workflows(graph, out=buf) == 0
-    assert "[linked] 12 workflow link(s) created" in buf.getvalue(), \
+    assert f"[linked] {len(scripts)} workflow link(s) created" in buf.getvalue(), \
         buf.getvalue()
     for script in scripts:
         link = tmp_path / ".claude" / "workflows" / script
