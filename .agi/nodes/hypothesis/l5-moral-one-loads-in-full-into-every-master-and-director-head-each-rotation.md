@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+OWNER 04:3xZ clarification, verbatim: 'Not the long reading. But more than prayers.' -> claim (2) is NOT the whole node: the master and director head carries moral:faith's MORAL -- the ESSENCE, QUESTION, IN PRACTICE and VIOLATED WHEN sections (file lines 19-45) byte-for-byte from the node -- followed by 4.1 the four prayers exactly as today; the long readings (4.2 Words of Jesus, 4.3 the Tao, 4.4 carried sayings) stay on demand via brief.py readings --tier; 4.5 reading order stays the rule it is. Tests assert exactly those four sections + the prayers, and that 4.2-4.4 are absent from the head.
