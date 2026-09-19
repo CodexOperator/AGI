@@ -327,80 +327,18 @@ _PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, п
 _PRAYER_POST = "Свѧтый Боже, Свѧтый Крѣпкїй, Свѧтый Безсмертный, помилуй насъ."
 
 
-def _prayer_stage():
-    return {"label": "draft:a", "prompt": "p",
-            "_repeat_item": {"slug": "a"},
-            "schema": {"type": "object",
-                       "properties": {"ok": {"type": "boolean"}},
-                       "required": ["ok"]}}
-
-
-def test_pi_prayer_wrapped_json_parses_structured(capsys):
-    """SM.134 (c): valid JSON wrapped in a prayer prelude + postlude parses
-    structured, and the strip is logged once per stage — never silent."""
-    import subprocess as _sp
-    from unittest import mock
-
-    out_text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
-
-    def fake_run(cmd, **kw):
-        return _sp.CompletedProcess(cmd, 0, stdout=out_text, stderr="")
-
-    with mock.patch("subprocess.run", side_effect=fake_run):
-        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
-                                  {"draft:a": {"model": "m", "effort": "x"}},
-                                  {},)
-    assert rc == 0 and value == {"ok": True}, (rc, value)
-    assert "stripped a prayer" in capsys.readouterr().err
-
-
-def test_pi_prayer_only_return_stays_unstructured(capsys):
-    """SM.134 (d): a return with no JSON stays unstructured, prayer or not."""
-    import subprocess as _sp
-    from unittest import mock
-
-    def fake_run(cmd, **kw):
-        return _sp.CompletedProcess(cmd, 0, stdout=_PRAYER_PRE, stderr="")
-
-    with mock.patch("subprocess.run", side_effect=fake_run):
-        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
-                                  {"draft:a": {"model": "m", "effort": "x"}},
-                                  {},)
-    assert rc == 0, rc
-    assert value["unstructured"] == _PRAYER_PRE, value
-
-
-def test_pi_prayer_marker_inside_a_json_string_is_untouched():
-    """SM.135 belt: a prayer opening INSIDE a JSON string value is data, not
-    a prelude/postlude line, and must reach the parser byte-identical. The
-    old global line-filter corrupted it and the return stopped parsing."""
+def test_pi_prayer_wrapped_json_parses_structured_without_a_belt():
+    """The slice-3 belt was unnecessary. A JSON object wrapped in a prayer
+    prelude + postlude resolves structured through `_resolve_lenient_return`
+    as-is: the balanced-brace parser finds the object inside the surrounding
+    text, so no line-filter is needed (and the engine no longer has one)."""
     import workflow as _wf
-    text = '{"note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": true}'
-    assert _wf._strip_prayer_wrap(text) == (text, False)
-    assert _wf._resolve_lenient_return(
-        {"type": "object", "properties": {"note": {"type": "string"},
-                                          "ok": {"type": "boolean"}},
-         "required": ["note", "ok"]}, text) == {
-             "note": "Господи Іисусе Христе, помилуй мя грешнаго", "ok": True}
-
-
-def test_pi_prayer_middle_line_between_json_objects_is_kept():
-    """A prayer line in the MIDDLE of stdout is neither a prelude nor a
-    postlude: the belt must not fire, and the first validating JSON resolves."""
-    import workflow as _wf
-    text = '{"ok": true}\n' + _PRAYER_PRE + '\n{"ok": false}'
-    stripped, fired = _wf._strip_prayer_wrap(text)
-    assert (stripped, fired) == (text, False)
-    assert _wf._resolve_lenient_return(_prayer_stage()["schema"], text) == {
-        "ok": True}
-
-
-def test_pi_prayer_line_without_json_returns_unchanged():
-    """The belt never fires without a JSON candidate: prose-only prayer is
-    carried whole, never silently erased."""
-    import workflow as _wf
-    text = _PRAYER_PRE + "\n\n" + _PRAYER_POST
-    assert _wf._strip_prayer_wrap(text) == (text, False)
+    text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
+    schema = {"type": "object",
+              "properties": {"ok": {"type": "boolean"}},
+              "required": ["ok"]}
+    assert not hasattr(_wf, "_strip_prayer_wrap")
+    assert _wf._resolve_lenient_return(schema, text) == {"ok": True}
 
 
 def test_run_stage_pi_schema_violating_json_is_unstructured():

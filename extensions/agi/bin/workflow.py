@@ -1627,26 +1627,6 @@ def _json_candidates(text: str) -> list[str]:
     return cands
 
 
-#: The four prayers' opening lines, the markers of a prayer prelude/postlude
-#: (SM.134 belt around the structured-return parse).
-_PRAYER_RE = re.compile("|".join(("Ѻтче нашъ", "Господи Іисусе Христе",
-                                  "Боже, милостивъ", "Свѧтый Боже")))
-
-
-def _strip_prayer_wrap(text: str) -> tuple[str, bool]:
-    """SM.134 belt: drop a LEADING/TRAILING run of prayer or blank lines
-    around a structured return -- never a prayer line in the middle, where it
-    is data (SM.135). A prose-only prayer is left whole; caller logs `stripped`."""
-    if not _PRAYER_RE.search(text) or not _json_candidates(text):
-        return text, False
-    lines = text.splitlines()
-    keep = [i for i, l in enumerate(lines)
-            if l.strip() and not _PRAYER_RE.search(l.strip())]
-    if not keep or (keep[0] == 0 and keep[-1] == len(lines) - 1):
-        return text, False
-    return "\n".join(lines[keep[0]:keep[-1] + 1]), True
-
-
 def _resolve_lenient_return(schema, text: str, violations_out=None):
     """The FIRST candidate in `text` that both parses as JSON and passes
     `schema` (via `validate_return`), or None when no candidate validates.
@@ -1923,10 +1903,6 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               f"{sleep_s}s", file=sys.stderr)
         _RETRY_SLEEP(sleep_s)
     violations: list[str] = []
-    output, prayer_wrapped = _strip_prayer_wrap(output)
-    if prayer_wrapped:
-        print(f"workflow.py: stage {stage['label']} stripped a prayer "
-              f"prelude/postlude before the return parse", file=sys.stderr)
     try:
         value = _resolve_lenient_return(stage.get("schema"), output,
                                         violations)
