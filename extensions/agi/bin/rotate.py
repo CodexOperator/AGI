@@ -7189,15 +7189,16 @@ def _seat_idle_minutes(root: Path, seat: str) -> float | None:
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
-    For each such seat: at/over `director_rotate_at` (0.47) send exactly ONE
-    dm `rotate now` to the holder (never more), nothing else — no spawn, no
-    tmux. ALSO dm when the seat is IDLE for >= `alarms_idle_minutes` (ladder
-    cell, default 20) AND at/over 0.85 x `director_rotate_at` — a nudge, which
-    is a prompt, which makes the meter hook's imperative fire. An unmeasurable
-    last act reads NOT idle (never a false alarm). Below both prints `hold
-    <seat> <fraction>`. `--once` meters each held seat once and returns so the
-    parent's regression test is deterministic; without it the loop meters every
-    `--interval` seconds.
+    For each such seat at/over `director_rotate_at` (0.47) OR idle for >=
+    `alarms_idle_minutes` (ladder, default 20) AND at/over `captive_rotate_ratio`
+    x the line (ladder; ABSENT = the idle lane is OFF by name): trigger (b) of
+    the owner ruling 05:1xZ ROTATES the seat directly by the MASTER PATH —
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller) — and sends NO dm; the dm is what the ruling
+    replaced. An unmeasurable last act reads NOT idle (never a false alarm).
+    Below both lines prints `hold <seat> <fraction>`. `--once` meters each held
+    seat once and returns so the parent's regression test is deterministic;
+    without it the loop meters every `--interval` seconds.
     """
     root = Path(getattr(args, "root", None) or root)
     holder = args.holder
@@ -7209,9 +7210,12 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
         idle_m = float(idle_m)
     except (TypeError, ValueError):
         idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
-    low_line = 0.85 * float(threshold)
-    import send  # local: same dir
-    croot = Path(args.comms_root) if args.comms_root else send.comms_root(root)
+    try:
+        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+    except (TypeError, ValueError):
+        ratio = None                       # absent/garbage = idle lane off
+    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                  ).strip().lower() in ("1", "true", "yes", "on")
     due = 0
     for row in _load_seats(root):
         if row.get("rotated_by") != holder:
@@ -7227,26 +7231,55 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
             reason = f"fraction {frac:.4f}"
         else:
             idle = _seat_idle_minutes(root, seat)
-            if frac >= low_line and idle is not None and idle >= idle_m:
+            if (ratio is not None and frac >= ratio * float(threshold)
+                    and idle is not None and idle >= idle_m):
                 reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
         if reason is None:
             print(f"hold {seat} {frac:.4f}")
             continue
-        # one dm to the holder, plain "rotate now".
-        try:
-            send.send_dm(croot, holder, seat, "rotate now",
-                         sender=holder)
-        except SystemExit as exc:
-            print(f"warn: could not dm holder {holder!r} for {seat!r}: {exc}",
-                  file=sys.stderr)
+        if _master_rotate(root, holder, seat, row, masters):
             continue
-        print(f"rotate now -> {seat} ({reason})")
+        print(f"rotate -> {seat} ({reason})")
         due += 1
     if args.once:
         return 0
     while True:
         time.sleep(args.interval)
         return cmd_alarms(args, root)
+
+
+def _master_rotate(root: Path, holder: str, seat: str, row: dict,
+                   masters: bool) -> int:
+    """Trigger (b): rotate `seat` by the MASTER PATH — spawn
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller; NEVER a dm). A DIRECTOR only, never the Prime;
+    a *master* seat only when the ladder's `captive_rotate_masters` is on.
+    Refuses BY NAME and spawns nothing when the holder's own key does not load
+    (the child would otherwise refuse after cmd_alarms printed success)."""
+    role = str(row.get("role") or "")
+    if role != "director" or _is_prime_role(role) or ("master" in seat
+                                                      and not masters):
+        print(f"captive rotate refused: {seat!r} is not a captive row",
+              file=sys.stderr)
+        return 1
+    who, _row, how = _caller_hold_key(root, holder, _find_seat(root, holder),
+                                      "env")
+    if who is None:
+        print(f"captive rotate refused: holder {holder!r}: {how}",
+              file=sys.stderr)
+        return 1
+    b = Path(__file__).resolve().parent
+    _spawn_master_rotate(["python3", str(b / "rotate.py"), "rotate",
+                          "--post", seat],
+                         {**os.environ, "AGI_POST": holder}, root)
+    return 0
+
+
+def _spawn_master_rotate(argv: list, env: dict, cwd: Path) -> None:
+    """The ONE detached-child seam for trigger (b); tests monkeypatch THIS."""
+    subprocess.Popen(argv, env=env, cwd=str(cwd), stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
+                     start_new_session=True)
 
 
 # --- driven handoff writer (hypothesis:l4-rotate-self-drives-the-handoff-
@@ -17680,6 +17713,16 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
 DEFAULT_RANKS = ["prime_director", "director", "helper"]  # highest first
 
 
+def _seat_read_root(root: Path, seat: str | None = None) -> Path:
+    """The identity WRITER's tree; root's copy only when it has no such row."""
+    shared = _shared_graph_root(root)
+    if shared == root:
+        return root
+    locations.refuse_live_resolution(root, shared)
+    under = _find_seat(shared, seat) if seat else _load_seats(shared)
+    return shared if under else root
+
+
 def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
@@ -17691,7 +17734,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     import send  # local: same dir, no import cycle (send.py pattern)
     seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat:
-        row = _find_seat(root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
@@ -17700,9 +17743,11 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     top = _git_toplevel(Path.cwd())
     seat = row = None
     if top is not None:
-        for r in _load_seats(root):
+        _trees = (_seat_read_root(root), root)
+        for r in (r for _t in _trees for r in _load_seats(_t)):
             if r.get("worktree") and Path(str(r.get("worktree"))) == top:
-                seat, row = r.get("name"), r
+                seat = r.get("name")
+                row = _find_seat(_seat_read_root(root, seat), seat) or r
                 break
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
@@ -20725,8 +20770,11 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                 root, seat=post, actor=master, role="", cells=seat_cells)
             line = f"{line}; {seated_line}" if line else seated_line
         elif seat_cells:
+            # SLICE 6: no seating grant -> no ack, request record left as it
+            # was (a receive that could not seat has not seated).
             print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
                   f"(the seating cells were not written)")
+            continue
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)
         ack_path.write_text(
@@ -20768,7 +20816,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # target = --post or --name or the caller's own post.
     target = args.post or args.name or caller_post
     if target != caller_post:
-        target_row = _find_seat(root, target)
+        target_row = _find_seat(_seat_read_root(root, target), target)
         if target_row is None:
             print(f"rotate refused: no seat {target!r} in the seats registry "
                   f"(nothing delegated)", file=sys.stderr)
