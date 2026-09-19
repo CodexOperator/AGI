@@ -9,33 +9,33 @@ commands:
     argv:
       - bash
       - <engine>/extensions/agi/driver.sh
-      - --smoke
-      - --max-iters
+      - "--smoke"
+      - "--max-iters"
       - 1
     about: snapshot + render + metrics, no dispatch — verify the node count did not drop
     workflow: verify
   tests:
     argv:
       - python3
-      - -m
+      - "-m"
       - pytest
       - <engine>/extensions/agi/tests/
-      - -q
+      - "-q"
     about: the engine's own suite
     workflow: verify
   goals-check:
     argv:
       - python3
       - <engine>/extensions/agi/bin/snapshot-goals.py
-      - --render
-      - --check
+      - "--render"
+      - "--check"
     about: GOALS.md and the goal nodes are byte-identical inverses
     workflow: verify
   viewport-verify:
     argv:
       - python3
       - <engine>/extensions/agi/bin/viewport.py
-      - --verify
+      - "--verify"
     about: goal:g9.7 — one render, two readers
     workflow: verify
   grid-commit:
@@ -43,7 +43,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/grid.py
       - commit
-      - --all
+      - "--all"
     about: version every changed node and its payload
     workflow: verify
   links:
@@ -78,7 +78,7 @@ commands:
     argv:
       - python3
       - <engine>/extensions/agi/bin/envfile.py
-      - --check
+      - "--check"
     about: goal:g1.8 — required keys present, forbidden keys absent
     workflow: read
   crons:
@@ -99,7 +99,7 @@ commands:
     argv:
       - python3
       - <engine>/extensions/agi/bin/dispatch.py
-      - --help
+      - "--help"
     about: dispatch --help exits 0 — agents can be spawned
     workflow: verify
   verify:
@@ -112,21 +112,21 @@ commands:
     argv:
       - python3
       - <engine>/extensions/agi/bin/verification.py
-      - --suite
+      - "--suite"
     about: the PRIME's rotation check — the rotation level plus the engine suite; the suite window is granted, one runner at a time
     workflow: verify
   view:
     argv:
       - python3
       - <engine>/extensions/agi/bin/viewport.py
-      - --live
+      - "--live"
     about: the live graph, agents drawn as spiders where they are working
     workflow: see
   view-llm:
     argv:
       - python3
       - <engine>/extensions/agi/bin/viewport.py
-      - --emit
+      - "--emit"
       - llm
     about: goal:g9.7 — exactly what a kid is handed, from the same frame stream
     workflow: see
@@ -134,7 +134,7 @@ commands:
     argv:
       - python3
       - <engine>/extensions/agi/bin/viewport.py
-      - --emit
+      - "--emit"
       - both
     about: human and llm views side by side, from ONE stream
     workflow: see
@@ -150,10 +150,50 @@ commands:
       - <engine>/extensions/agi/bin/cli.py
       - session-complete
       - <iter>
-      - --dry-run
+      - "--dry-run"
     about: hypothesis:l4-session-dirs-come-home-when-the-round-is-done — bring a finished round's session dir home from a worktree, COPY-THEN-VERIFY; start every inspection with --dry-run
     workflow: read
-edited_by: sanctuary-director
+  mesh-local-town:
+    argv:
+      - ssh
+      - "-F"
+      - <home>/work/.sanctuary/ssh/config
+      - local-town
+    about: "GPU2070S, the rig (local-town): model bytes under /data, llama-server on 127.0.0.1:18080 there, the town download queue. Append a command to run it remotely."
+    workflow: mesh
+  mesh-core-town:
+    argv:
+      - ssh
+      - "-F"
+      - <home>/work/.sanctuary/ssh/config
+      - core-town
+    about: "ARM4C, this box (core-town; the alias stream-town is the same box): the Prime, the masters, pi processes. From ARM4C itself this is a loopback."
+    workflow: mesh
+  mesh-encryption-town:
+    argv:
+      - ssh
+      - "-F"
+      - <home>/work/.sanctuary/ssh/config
+      - encryption-town
+    about: "CPU8G, the secrets hub (encryption-town): the only box with Doppler; CPU-only rounds go here first (agi-run = nice 19 / 4 threads / 4G). Never copy a secret off it."
+    workflow: mesh
+  mesh-silicon-town:
+    argv:
+      - ssh
+      - "-F"
+      - <home>/work/.sanctuary/ssh/config
+      - silicon-town
+    about: "EDGE, the human gate (silicon-town): an ephemeral VM, up only while the owner laptop is; the only writer of box truth. Reachable = the owner is present."
+    workflow: mesh
+  mesh-gw:
+    argv:
+      - ssh
+      - "-F"
+      - <home>/work/.sanctuary/ssh/config
+      - gw
+    about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
+    workflow: mesh
+edited_by: thought-master
 ordered:
   - verify
 season: 1
@@ -183,6 +223,12 @@ workflows:
     - view-llm
     - view-both
     - write
+  mesh:
+    - mesh-local-town
+    - mesh-core-town
+    - mesh-encryption-town
+    - mesh-silicon-town
+    - mesh-gw
 ---
 **The commands the engine cannot run without, declared once.** Every other
 thing a run does is configuration — metrics, dispatch, harnesses, schemas,
@@ -231,6 +277,39 @@ same object. `<root>` and `<engine>` are substituted at resolve time, so no
 absolute path — machine state `goal:g8.2` keeps out of the graph — appears
 here.
 
+## Mesh — the farm, reached through `<home>/work/.sanctuary`
+
+**Owner order 2026-09-19 05:4xZ (thought-master pane):** a cold session must be
+able to reach every box without being told how, and nothing that identifies a
+box may reach the graph. The truth lives in **`~/work/.sanctuary/`** on every
+box — `README.md` (where the iron is, rules, ops cheatsheet), `BOOTSTRAP.md`
+(rebuild runbook), `hosts.json` (per-town cells), `ssh/config` + pinned
+`ssh/known_hosts` + the mesh key. **That directory is never committed, never
+synced; its only off-box copy is a Doppler bundle on the secrets hub.** The
+graph carries only what is below: the alias, the label, and the one command.
+
+| ssh alias (as in `ssh/config`) | graph label | what it is | reach |
+|---|---|---|---|
+| `local-town` | **GPU2070S** — the rig | 8 GB GPU, 16 threads, `/data` model store, llama-server `127.0.0.1:18080` | `ssh -F ~/work/.sanctuary/ssh/config local-town` |
+| `core-town` (= `stream-town`) | **ARM4C** — this box | 4-core arm cloud, 23 GB, no GPU; the Prime and the masters live here | `ssh -F ~/work/.sanctuary/ssh/config core-town` |
+| `encryption-town` | **CPU8G** — the secrets hub | 2c/4t, 8 GB, encrypted disk; the only box with Doppler; CPU-only rounds first | `ssh -F ~/work/.sanctuary/ssh/config encryption-town` |
+| `silicon-town` | **EDGE** — the human gate | ephemeral arm64 VM on the owner laptop; the only writer of box truth | `ssh -F ~/work/.sanctuary/ssh/config silicon-town` (only while up) |
+| `gw` | the overlay hub | owner ops only (lock/unlock a farm box) | agents never |
+
+- **Anonymized on purpose, exactly as the mesh files say it should be:** no
+  hostname, user, address, region or secret name appears here or in any node,
+  dm or commit — the label (`CPU8G · GPU2070S · ARM4C · EDGE`) and the town
+  alias are the whole vocabulary. Host keys are pinned in the mesh files; a
+  mismatch means stop and ask, never `StrictHostKeyChecking=no`.
+- `commands.py run mesh-<town>` opens the shell; the same `argv` with a
+  trailing command runs it remotely (`ssh -F <cfg> local-town 'df -h /data'`).
+  `<home>` resolves at run time, so no absolute path lives in the graph.
+- Box-local shortcuts that exist only on ARM4C (`cpu8g`, `agi-run`) are
+  conveniences over the same mesh; the `-F` form is the one that works from
+  every box and every worktree.
+- `bin/boxes.py` names THIS box from `AGI_BOX`; the mesh names the OTHER boxes.
+  A box added to the farm gets a row here, a label, and nothing else.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-roundtrip probe
+05:51Z 09-19 thought-master, OWNER ORDER in the thought-master pane 05:4xZ: add an anonymized reference to the mesh directory (~/work/.sanctuary) with one easy command per box. This version adds the mesh workflow (five ssh -F entries, one per town alias, <home> resolved by commands.py) and the Mesh body section: alias, label, what, reach -- nothing that identifies a box. Frontmatter written directly because write.py has no verb for a nested map entry (patch = payload only, set = scalars); disclosed here, not silent.
 <!-- THOUGHT:END -->

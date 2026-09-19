@@ -20,4 +20,14 @@ town: core
 
 ## Hypothesis
 
-What is the testable claim? What would prove it? What would disprove it?
+`extensions/agi/workflows/research-review.json`'s `why` (~line 192) and
+`brainstorm` (~line 248) stages call `write.py create` directly in their own
+prompt text, with no gate -- every run mints a real idea and up to 5 real
+hypotheses as a side effect of reading, whether the round asked for that or
+not (confirmed live on rr-tm-62). Fix: thread a `mint` run arg (default
+absent, meaning off) into both stage prompts; when it does not render the
+affirmative literal `true`/`True`, the stage runs no `write.py create` and
+instead fills new always-present proposal fields (`proposed_idea_title`,
+`proposed_idea_body`, `proposed_hypotheses`); `mint:true` preserves the
+current minting behaviour verbatim. See `testable_claim`/`falsifier`/`tests`/
+`ceiling` in frontmatter for the exact conjuncts, falsifier and cost bound.
