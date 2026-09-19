@@ -1381,7 +1381,8 @@ def test_audit_flags_a_foreign_agi_block_and_extra_unit(tmp_path, capsys):
     assert "agi-ghost-99.service" in out
 
 
-def test_audit_clean_fixture_exits_zero(tmp_path, capsys):
+def test_audit_clean_fixture_exits_zero(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
     root = make_project(tmp_path, cadences={
         "grid_sync": {"every_mins": 5, "enabled": True}})
     fixture = tmp_path / "crontab.fixture"
@@ -1444,6 +1445,48 @@ def test_audit_is_silent_on_another_projects_unit(tmp_path, capsys):
     assert "deadbeef" not in out
 
 
+def test_audit_default_scans_the_user_unit_dir(tmp_path, monkeypatch, capsys):
+    """SM.124 corrective: with no `--unit-dir`, plain `crons.py audit`
+    scans `$HOME/.config/systemd/user` instead of skipping the unit loop, so
+    an undeclared unit that actually runs is named, not reported clean.
+    HOME is monkeypatched at a fixture dir — never the box's real units."""
+    home = tmp_path / "home"
+    hud = home / ".config" / "systemd" / "user"
+    hud.mkdir(parents=True)
+    (hud / "claude-remote-control.service").write_text("[Unit]\n")
+    monkeypatch.setenv("HOME", str(home))
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    found = crons.cmd_audit(root, crontab_file=fixture)
+    assert any("claude-remote-control.service" in f for f in found), found
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture)])
+    assert rc == 1
+    assert "claude-remote-control.service" in capsys.readouterr().out
+
+
+def test_audit_explicit_unit_dir_never_reads_home(tmp_path, monkeypatch):
+    """`--unit-dir` stays the override/test seam: the explicit fixture dir
+    is what gets scanned and HOME is not consulted, however dirty HOME is."""
+    home = tmp_path / "home"
+    hud = home / ".config" / "systemd" / "user"
+    hud.mkdir(parents=True)
+    (hud / "ghost-in-home.service").write_text("[Unit]\n")
+    monkeypatch.setenv("HOME", str(home))
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "some-tool.service").write_text("[Unit]\n")
+    found = crons.cmd_audit(root, crontab_file=fixture, unit_dir=ud)
+    assert any("some-tool.service" in f for f in found), found
+    assert not any("ghost-in-home" in f for f in found), found
+
+
 # --- the nudge_sweep known job + why_box (l5 undelivered-nudge round) -----
 
 
@@ -1464,9 +1507,10 @@ def test_nudge_sweep_renders_on_every_box_and_is_not_a_generic_cmd(tmp_path):
         assert lines[0].endswith(f">> {crons._log_path(root)} 2>&1")
 
 
-def test_audit_flags_a_gated_known_job_without_why_box(tmp_path):
+def test_audit_flags_a_gated_known_job_without_why_box(tmp_path, monkeypatch):
     """A `box` list is the exception and must say why in `why_box`; the
     audit names the job and the missing field."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
     cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
                            "box": "local-town"}}
     root = make_project(tmp_path, cadences=cad)
@@ -1476,7 +1520,8 @@ def test_audit_flags_a_gated_known_job_without_why_box(tmp_path):
     assert any("nudge_sweep" in f and "why_box" in f for f in found), found
 
 
-def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path):
+def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
     cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
                            "box": "local-town",
                            "why_box": "the sweep only reads local rows"}}
