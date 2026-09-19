@@ -24,11 +24,13 @@ def weights(seed):
 def gsc_of(W):  # C: gwant*N*K/(100*ws), ws = sequential row-major sum
     ws = float(np.cumsum(W.ravel())[-1]); return GAIN*N*K/(100.0*ws), ws
 def stats(tr):
-    n2 = len({i for _, i in tr}); win = np.bincount([t for t, _ in tr], minlength=T)
+    na = len({i for _, i in tr})
+    c = np.bincount([i for _, i in tr], minlength=N) if tr else np.zeros(N, np.int64)
+    n2 = int((c >= 2).sum()); win = np.bincount([t for t, _ in tr], minlength=T)
     w = np.array([win[q*100:(q+1)*100].sum() for q in range(10)], float)/(N*0.01)
     return {"spikes": len(tr), "rate_hz": len(tr)/(N*T*DT/1000.0),
             "window_rates": [round(float(x), 4) for x in w], "R": round(float(L.pop_R([tr])), 6),
-            "n_active": len({i for _, i in tr}), "n_active_ge2": n2, "isi_n": len(tr) - n2}
+            "n_active": na, "n_active_ge2": n2, "isi_n": len(tr) - na}
 def ev_net(seed, mode):
     W = weights(seed); gsc, ws = gsc_of(W); X = L.drive_vec(seed)
     v = L.init_v(seed).copy(); spk = np.zeros(N, bool); tl = np.full(N, -1, np.int64)
@@ -45,7 +47,7 @@ def ev_net(seed, mode):
                                 minlength=N)
             tu = np.union1d(np.nonzero(I)[0], np.nonzero(X[t])[0]); upd += len(tu)
             if not mode.endswith("steplk"):
-                gap = (t - tl[tu]).astype(float); vd = v[tu]*(A**gap)
+                gap = (t - tl[tu]).astype(float) - 1.0; vd = v[tu]*(A**gap)
                 v1 = vd + R10*(((0.0 - vd) + I[tu]) + X[t][tu]); f1 = v1 >= 1.0
                 v[tu] = np.where(f1, v1 - 1.0, v1); tl[tu] = t
                 spk = np.zeros(N, bool); spk[tu[f1]] = True
