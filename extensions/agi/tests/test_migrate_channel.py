@@ -192,9 +192,11 @@ def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
     out = capsys.readouterr().out
     assert rc == 0
     assert seated == [("p", "rotate", "boxB")]
-    assert len(cell_calls) == 1          # the ONE writer, called once
+    assert len(cell_calls) == 1          # session cells: the post's self_row
+    assert cell_calls[0]["actor"] == "p"
     assert cell_calls[0]["cells"]["pid"] == 4242
-    assert cell_calls[0]["cells"]["box"] == "boxB"
+    assert "box" not in cell_calls[0]["cells"]   # seating is the master's
+    assert "no actor_rows grant covers box/worktree" in out
     acks = _acks(fake)
     assert len(acks) == 1
     assert acks[0]["stage"] == "seated"
@@ -448,6 +450,23 @@ def _real_repo(tmp_path):
     subprocess.run(["git", "commit", "-qm", "i"], cwd=repo, check=True)
     subprocess.run(["git", "update-ref", "refs/agi/posts/p", "HEAD"],
                    cwd=repo, check=True)
+    # SM.123 slice 5: the seating actor is resolved from a REAL [config].md
+    # grant, so `_migrate_seating_actor` (not a mock) answers.
+    import json
+    root = Path(__file__).resolve().parents[3]
+    (repo / ".agi" / "context" / "schemas").mkdir(parents=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "context" / "schemas" / "[config].md").write_text(
+        (root / ".agi" / "context" / "schemas" / "[config].md")
+        .read_text(encoding="utf-8"), encoding="utf-8")
+    rows = [{"name": "p", "role": "director", "town": "core"},
+            {"name": "sanctuary-master", "role": "director",
+             "town": "sanctuary"}]
+    body = "\n".join(f"  - {json.dumps(r)}" for r in rows)
+    (repo / ".agi" / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nid: config:posts\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nparents:\n  - goal:g17\nposts:\n" + body +
+        "\n---\n\n# config:posts\n\nfixture\n", encoding="utf-8")
     return repo
 
 
@@ -472,13 +491,15 @@ def test_receive_marks_the_moved_post_as_a_worktree_never_main(
         spawns.append(argv)
 
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)
-    captured = {}
+    calls = []
     monkeypatch.setattr(rotate, "_write_identity_cells",
-                        lambda root, **kw: captured.update(kw) or "ok")
+                        lambda root, **kw: calls.append(kw) or "ok")
     rc = rotate.cmd_migrate_receive(_rns(), repo)
     assert rc == 0
-    assert captured["cells"]["worktree"] == ".agi/worktrees/post-p"
-    row = {"name": "p", "worktree": captured["cells"]["worktree"]}
+    seating = next(c for c in calls if "worktree" in c["cells"])
+    assert seating["actor"] == "sanctuary-master"
+    assert seating["cells"]["worktree"] == ".agi/worktrees/post-p"
+    row = {"name": "p", "worktree": seating["cells"]["worktree"]}
     assert not (bool(row) and not row["worktree"].strip())   # NOT a MAIN post
     assert rotate._seat_worktree_cwd(repo, row) == str(
         repo / ".agi" / "worktrees" / "post-p")
@@ -541,6 +562,107 @@ def test_a_stage_absent_record_is_read_as_a_request_and_verifies(
     parsed = migrate_channel.parse_record(text)
     assert parsed is not None and parsed["stage"] == "request"
     assert migrate_channel.verify_record(text, pub.hex()) is True
+
+
+def _config_root(tmp_path):
+    """A REAL graph root ([config].md live bytes, ladder, posts rows) so the
+    receive tick drives the REAL `_write_identity_cells` -> write.submit path,
+    never a mock (SM.123 slice 5 binding rule)."""
+    import json
+    root = Path(__file__).resolve().parents[3]
+    agi = tmp_path / ".agi"
+    (agi / "context" / "schemas").mkdir(parents=True)
+    (agi / "nodes" / ".geometry").mkdir(parents=True)
+    (agi / "config.json").write_text("{}", encoding="utf-8")
+    (agi / "context" / "schemas" / "[config].md").write_text(
+        (root / ".agi" / "context" / "schemas" / "[config].md")
+        .read_text(encoding="utf-8"), encoding="utf-8")
+    (agi / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\nid: ladder:ladder\ncurrent_season: 2\n"
+        "towns: [core, sanctuary]\n---\n\n# ladder\n", encoding="utf-8")
+    rows = [{"name": "p", "role": "director", "town": "core"},
+            {"name": "sanctuary-master", "role": "director",
+             "town": "sanctuary"}]
+    body = "\n".join(f"  - {json.dumps(r)}" for r in rows)
+    (agi / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nid: config:posts\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nparents:\n  - goal:g17\nposts:\n" + body +
+        "\n---\n\n# config:posts\n\nfixture\n", encoding="utf-8")
+    return agi
+
+
+def test_receive_writes_seating_cells_under_the_master_and_refuses_the_post(
+        tmp_path, monkeypatch, capsys):
+    """SM.123 slice 5 BINDING: the REAL writer lands box/worktree on the
+    moved post's row through the schema-declared actor_rows grant, while the
+    SAME seating write as the post itself is REFUSED by name."""
+    import write as write_mod  # noqa: PLC0415
+    agi = _config_root(tmp_path)
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(agi, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=agi)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex()})
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, *, post, rec, row, box: {
+                            "box": box, "worktree": ".agi/worktrees/post-p",
+                            "window": "w1", "pid": 4242, "session_id": "s1",
+                            "session_name": "n1"})
+    rc = rotate.cmd_migrate_receive(_rns(), agi)
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    text = (agi / "nodes" / ".geometry" / "posts.md").read_text(
+        encoding="utf-8")
+    assert '"box": "boxB"' in text and "worktrees/post-p" in text
+    assert "seated p on boxB" in out
+    with pytest.raises(write_mod.EditError) as ei:
+        rotate._write_identity_cells(
+            agi, seat="p", actor="p", role="director",
+            cells={"box": "boxC", "worktree": ".agi/worktrees/post-p"})
+    assert "may update only its OWN row" in str(ei.value)
+
+
+def test_a_blank_stage_record_reads_as_request_and_verifies(tmp_path):
+    """SM.123 slice 5: a present-but-BLANK `stage: ""` is the legacy shape;
+    parse reads it as request and verify must use the legacy key order."""
+    import yaml
+    live_send = importlib.import_module("send")
+    _p, pub = live_send._mint_seat_key(tmp_path, "p", "ed25519")
+    rec = _rec()
+    legacy = {k: rec.get(k, "") for k in migrate_channel._KEYS_LEGACY}
+    legacy["stage"] = ""
+    line = live_send._sign_line(
+        tmp_path, "p", rec["ts"], rec["target_box"],
+        migrate_channel._canonical(rec, migrate_channel._KEYS_LEGACY))
+    if line:
+        legacy["sig"] = line.split(": ", 1)[1]
+    text = ("---\n" + yaml.safe_dump(legacy, sort_keys=False)
+            + "---\n\nbody\n")
+    parsed = migrate_channel.parse_record(text)
+    assert parsed is not None and parsed["stage"] == "request"
+    assert migrate_channel.verify_record(text, pub.hex()) is True
+
+
+def test_seating_uses_the_rows_own_worktree_cell_when_set(tmp_path, monkeypatch):
+    """SM.123 slice 5: the row's OWN `worktree` cell chooses the directory;
+    the `post-<seat>` convention is the EMPTY-cell fallback only."""
+    repo = _real_repo(tmp_path)
+    (repo / ".agi" / "worktrees" / "custom-p").mkdir(parents=True)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {})
+    monkeypatch.setattr(rotate, "_migrate_copy_transcript",
+                        lambda root, rec, worktree: worktree)
+    real_run = subprocess.run
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda argv, **kw: (real_run(argv, **kw)
+                                            if argv and argv[0] == "git"
+                                            else None))
+    cells = rotate._migrate_seat(
+        repo, post="p", rec=_request(),
+        row={"role": "director", "worktree": ".agi/worktrees/custom-p"},
+        box="boxB")
+    assert cells["worktree"] == ".agi/worktrees/custom-p"
+    assert (repo / ".agi" / "worktrees" / "custom-p").is_dir()
 
 
 def test_receive_skips_a_record_it_cannot_seat_without_killing_the_tick(

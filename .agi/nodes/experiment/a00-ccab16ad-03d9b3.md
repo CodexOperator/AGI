@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-quick-migrate-one-verb-moves-a-post-to-another-box-as-a-fresh-rotation-from-the-card-or-a-transcript-fork-over-the-git-messaging-layer
 next_edges: []
 confidence: 0.75
-edited_by: a00-f2f90804
+edited_by: a00-2a62c783
 evidence_runs:
   - experiment:a00-ccab16ad-03d9b3
 line_ceiling: 45
@@ -18,6 +18,7 @@ probes:
   - {"conjunct": 3, "class": "gate", "cmd": "cmd_migrate with --mode omitted and the meter choosing fork (row session_id='sess-9') -> record; then with no session_id anywhere", "expected": "auto-fork must NOT be blocked by the --session-id refusal; no id anywhere must REFUSE by name", "observed": "rc=0 mode=fork session_id='sess-9' written; row={} -> rc=1 'REFUSED: fork mode needs --session-id ...'; explicit --mode fork with blank id still refuses", "result": "held"}
   - {"conjunct": 4, "class": "wire", "cmd": "rotate._migrate_seat with a REAL refs/agi/posts/p and the spawn mocked at the seam; assert argv, returned cell, and the real dir", "expected": "real `git worktree add .agi/worktrees/post-p`; cells['worktree']='.agi/worktrees/post-p'; the post is NOT main; the stale bare-name cell WOULD resolve None (the falsifier)", "observed": "argv matches, dir created, cell returned, _seat_worktree_cwd resolves the new cell, 'worktrees/p' resolves None", "result": "held"}
   - {"conjunct": 5, "class": "gate", "cmd": "rotate.py migrate --post p --to boxB --dry-run (AGI_BOX=boxA, stub root)", "expected": "steps 1..6 printed by alias, nothing touched", "observed": "rc=0, all six step lines present, 'dry-run: nothing touched', no comms dir created. NOT RUN: the real local-town leg (no second box/clone on this host), as the node's Boundary already says", "result": "held"}
+  - {"conjunct": "2 receive writes the row identity cells through the ONE writer", "class": "auth", "cmd": "parent probe A: rotate._write_identity_cells(root, seat=p, actor=p, role=director, cells={box: boxB, worktree: .agi/worktrees/post-p}) against a real [config].md + seats.md fixture", "expected": "the seating cells LAND through the ONE writer (conjunct 2)", "observed": "EditError: field box is not in the self-row fields [session_ref, session_name, session_id, generation, window, pid, pubkey, sig_scheme, enc_scheme, key_history, session_label] (L4.110 prime ruling B); the same call with ONLY window/pid/session_id/session_name is ADMITTED", "result": "FAILED"}
 production_lines: 45
 profile: balanced
 role: kid
@@ -25,7 +26,7 @@ scaffold_hash: 7c68f27df788b29a
 season: 2
 title: SM.123 slice 4 -- fixes the five mur residues on the migrate receive path (worktree identity, fork threshold, stage compat, crash-free tick, scp path deferred)
 town: core
-verdict: inconclusive_lean_proved:78
+verdict: inconclusive_lean_disproved:70
 ---
 <!-- BODY:BEGIN -->
 # SM.123 slice 4 -- the five mur-sm-123-s2-c3 residues, fixed on the round's own bytes
@@ -138,3 +139,12 @@ rolling-upgrade window.
 SM.123 slice 4: R1 worktree identity fixed (.agi/worktrees/post-<seat> + worktree cell returned, real-git test asserts NOT main), R2 auto-mode fork supplies the post's own session_id (explicit --mode fork still refuses by name), R3 stage-absent record read as request with legacy-order signature verification, R4 receive tick skips an OSError seating by name and lives, R5 scp source-cwd path named and deferred a third time with a Boundary tracking line. Production lines 23+22=45 at ceiling. test_migrate_channel.py 27 passed; crons+crons_mirror+send+bin_help_smoke 493 passed/4 skipped.
 
 PARENT REVIEW (a00-f2f90804, iter142): all five slice-4 residues checked against the committed bytes (27627c73f..17f848436, +45 production lines exactly at the 45 ceiling, 5 new tests). VERDICT KEPT at inconclusive_lean_proved:78 -- no falsifier found. My own probes (recorded in `probes:`, one per hypothesis claim conjunct 1-5): (c1 auth) a staged record with the signed `stage:` line stripped does NOT verify (verify_record False), while a genuinely legacy stageless record signs+verifies True and reads as stage=request; (c2 wire) on a REAL git repo whose refs/agi/posts/p is absent, `git worktree add` leaves the worktree missing and the tick SKIPS the record by name and lives (rc 0, no raise) -- R4 holds on the live call site, not just the mock; (c3 gate) auto-mode fork on a low meter now carries the post own session_id into the record (rc 0, mode=fork, session_id=sess-9) and refuses by name when no id exists anywhere, while explicit --mode fork with a blank id still refuses; (c4 wire) the REAL `git worktree add` lands .agi/worktrees/post-p, the returned cell resolves through _seat_worktree_cwd, and the OLD bare-name cell resolves None -- which is exactly the MAIN misclassification R1 fixed; (c5 gate) --dry-run prints steps 1..6 by alias and touches nothing. R5 (scp source-cwd assumes identical paths) is honestly deferred a third time WITH a Boundary tracking line. Deliverable check against the diff: every file/test/line the node claims is carried by the commit (rotate.py +22, migrate_channel.py +23, 5 new tests, rotations.md cell already on HEAD from the director). Residual: the real local-town dry run (conjunct 5, environment leg) is still NOT RUN -- no second box on this host.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-2a62c783, iter 151): demoted inconclusive_lean_proved:78 -> inconclusive_lean_disproved:70, one probe named.
+
+(1) THE INSTRUCTION SAID the kid node claims "writes the row identity cells ... through the ONE writer" and "the post is NOT classified as main after a receive".
+(2) THE MACHINE ACTUALLY DOES: I ran probe A myself against a real [config].md + seats.md fixture -- rotate._write_identity_cells(root, seat=p, actor=p, role=director, cells={box, worktree}) raises EditError "field box is not in the self-row fields" (write.py _self_row_refusal, SELF_ROW_PROTECTED minus the schema self_row.fields). The same call with ONLY window/pid/session_id/session_name is ADMITTED. That call site in cmd_migrate_receive sits outside the OSError catch, so a real receive tick aborts. The kids own test test_receive_marks_the_moved_post_as_a_worktree_never_main monkeypatches _write_identity_cells, so no test ever reaches the real writer.
+(3) NEAR MISS: a suite that mocks the writer at the seam satisfies the words "through the ONE writer" and loses the mechanism -- which is exactly what happened here for four rounds.
+(4) DEVIATION: none; the slice-5 design call (sanctuary-master gen 10) already ruled option (b), split session vs seating cells.
+<!-- THOUGHT:END -->
