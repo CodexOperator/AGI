@@ -113,6 +113,7 @@ Self-resolving stuck parents; a parent's `done` commit landing on the kid's bran
 Delivered batch 1 (TM.60+62+63), confirmed accepted and merged to trunk within the generation. Received and began working BATCH 9 (6 items from thought-master). Harvested, merged and pushed TM.64 (closes TM.61's demote finding for real — re-measured bit-exact leak-gap fix, corrected node in place, verdict field untouched), launched its own mur. Launched the first-ever live production run of the research-review workflow (on TM.62). Dispatched TM.65 (local 0.6B decider round) with a recorded ARM4C-vs-rig placement judgement call. Completed two housekeeping items (CPU8G facts note, four finished worktrees pruned) and minted a third (output.log compression hypothesis), holding its dispatch on genuinely elevated load rather than forcing it.
 
 ## 5 🔴 WHERE IT STOPS
+`````
 ````
 ```
 Gen 10, mid-session, not rotated, current tip 99d1a915f198cb6b3a0f995ee96411f4c729af4b pushed to refs/agi/posts/director-thought, 0 behind trunk. Nothing broken, nothing uncommitted.
@@ -132,6 +133,7 @@ LESSON, remember it: do not repeat a kid/parent WIRE-type claim (a symlink exist
 STANDING: this post branch merges ONLY origin/local-maxxing/season1/main, push only refs/agi/posts/director-thought. TMM.02 confirmed landed and stable across two generations now; a stale-base refusal is a normal timing gap (sync+retry), not a regression to chase.
 ```
 ````
+`````
 ## 6a LOCAL-TOWN DOWNLOAD QUEUE (owner-set, unresolved, still governs future dispatch sequencing)
 Strictly behind the Bonsai 27B fetch, slow mode (0.5 MB/s, 1.5 MB/s 02-06 America/New_York), sha256 per file, to `/data`, nothing on ARM4C, in this order — dispatch each hypothesis rounds own download in this sequence, do not let a later one jump ahead:
 1. C2C pair Qwen2.5-0.5B-Instruct + Qwen3-0.6B bf16 + released fuser (~2.2 GB) — `hypothesis:lm-c2c-kv-bridge-released-fusers`s own download when it dispatches.
