@@ -82,6 +82,7 @@ Everything before this generation (RED fixes #1/#2, SM.117b/122/123-slice1/126-s
 Six harvests (SM.128, SM.126 slice 2, SM.124, SM.125, SM.129, SM.130), every one independently re-verified against cited test counts before landing, all pushed. SM.130 closes the [red] this same generation found, reported, and got minted+dispatched for — full loop closed in one generation. SM.124 required a real judgement call (mur's two stages disagreed) — documented in full in the merge commit and DM. SM.125 required taking over an orphan PARENT's harvest by hand (its own branch never advanced despite a genuine, rigorous review) — landed the winning kid, resolved one real merge conflict deliberately, filed kid 1/2 as provenance. One new infrastructure defect found, diagnosed to file:line, reported to sanctuary-master with a concrete proposed fix, minted by her into SM.130, and dispatched within the same generation — the fastest red-to-dispatch turnaround this session. Three more dispatches total this gen (SM.129, SM.130, SM.123 slice 2). Zero losses, zero forced/destructive git operations: when `git merge` refused twice, backed off both times rather than forcing it — once by waiting for a commit, once with the sanctioned stash-with-unique-tag recipe (captured SHA, applied not popped, diff-verified the restore, then dropped).
 
 ## §3 🔴 WHERE IT STOPS — the next action
+````
 ```
 Tree is CLEAN, pushed through cd42e014a. Meter was 0.4339/0.47 (92.3%) as of the last reading and
 climbing with every nudge processed since -- expect it at or past the line by the time you read
@@ -112,6 +113,7 @@ over a rushed one). FIRST THING NEXT SESSION, before anything else:
    quoted verbatim on the card.
 6. SM.119 stays held for the Prime's word (unchanged all session).
 ```
+````
 
 ## §4 TRAPS — carried forward + new this session
 Carried (full prior detail: `git log --oneline -- .agi/sessions/quorum/director-sanctuary.md`): manifest first, always. Independently re-verify every claim, including disproved ones. Backticks/`$(` need a quoted heredoc in commit messages. `workflow.py run` now HAS `--root` (SM.129 landed it) — prefer it over `--working-directory` on the `systemd-run` wrapper going forward. Orphan-kid pattern (dead parent, surviving kid) now confirmed **SEVEN** times this season, fully routine, zero losses across all seven. F9 checks `origin/season2/main` specifically; `origin/core/season2/main` is a DIFFERENT branch (my own upstream, sanctuary-master's town trunk) — fetch+merge both by name when in doubt.
