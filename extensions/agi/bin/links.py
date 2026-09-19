@@ -334,6 +334,27 @@ def main(argv: list[str] | None = None) -> int:
     return 1 if live_broken and args.broken else 0
 
 
+def _verdict_class_disagreements(root) -> list[str]:
+    """A verdict's class must equal the class its evidence experiment recorded.
+    `:N` is stripped; an experiment with no `verdict:` records no class and is
+    silent; report only, never write.
+    """
+    k = lambda v: str(v or "").strip().split(":")[0]
+    norm = lambda v: v if isinstance(v, list) else ([] if v is None else [v])
+    corpus = {nid: fm for nid, fm, _ in _iter_corpus(root)}
+    out = []
+    for nid, fm in corpus.items():
+        if fm.get("type") != "verdict":
+            continue
+        refs = norm(fm.get("evidence_runs")) + norm(fm.get("parents"))
+        for ref in dict.fromkeys(str(x) for x in refs):
+            ef = corpus.get(ref) or {}
+            ec = k(ef.get("verdict"))
+            if ef.get("type") == "experiment" and ec and ec != k(fm.get("verdict")) and ec != k(fm.get("demoted_from")):
+                out.append(f"verdict-class: {nid} says {k(fm.get('verdict'))}, {ref} says {ec}")
+    return out
+
+
 def _schema_report(root, fix: bool = False) -> int:
     """Which nodes violate their type's `required` list, and optionally fix them.
 
@@ -373,8 +394,11 @@ def _schema_report(root, fix: bool = False) -> int:
         if missing:
             by_type.setdefault(ntype, []).append((node_id, missing))
 
+    verdict_class = _verdict_class_disagreements(root)
     total = sum(len(v) for v in by_type.values())
-    print(f"schema: {total} node(s) missing a required field")
+    print(f"schema: {total} node(s) missing a required field, "
+          f"{len(verdict_class)} verdict-class disagreement(s)")
+    print("\n".join(verdict_class), end="\n" if verdict_class else "")
     for ntype, entries in sorted(by_type.items(), key=lambda kv: -len(kv[1])):
         fields: dict[str, int] = {}
         for _nid, missing in entries:
