@@ -1,0 +1,24 @@
+{
+  "branch": "encryption-town/season2/main",
+  "seats_changed": [
+    {"name": "sanctuary-master", "model": "grok-4.3", "settings": "", "role": "director", "town": "all"},
+    {"name": "master-sensei", "model": "grok-4.3", "settings": "", "role": "director", "town": "all"},
+    {"name": "council-core", "model": "grok-4.6", "settings": "", "role": "council", "town": "core"},
+    {"name": "encryption-prime", "model": "grok-4.6", "settings": "", "role": "prime_director", "town": "encryption"},
+    {"name": "encryption-master", "model": "grok-4.3", "settings": "", "role": "director", "town": "encryption"},
+    {"name": "council-encryption", "model": "grok-4.6", "settings": "", "role": "council", "town": "encryption"},
+    {"name": "director-enc-sealed-box", "model": "grok-fast", "settings": "", "role": "director", "town": "encryption"},
+    {"name": "director-enc-lockdown", "model": "grok-fast", "settings": "", "role": "director", "town": "encryption"},
+    {"name": "director-core-g15", "model": "grok-fast", "settings": "", "role": "director", "town": "core"},
+    {"name": "director-core-g17", "model": "grok-fast", "settings": "", "role": "director", "town": "core"}
+  ],
+  "nodes": [
+    "doc:sanctuary-master-seating-brief",
+    "doc:core-town-hierarchy-comms",
+    "doc:encryption-town-season2-apply",
+    "doc:director-brief-enc-sealed-box",
+    "hypothesis:enc-sealed-box-comms-x25519",
+    "hypothesis:enc-scheme-lockdown-buildout"
+  ],
+  "note": "Full seat rows live in config:posts on this branch. Parents/kids = pi+OpenRouter only."
+}
