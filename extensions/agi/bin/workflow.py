@@ -1346,6 +1346,30 @@ def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) 
     return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
 
 
+def _return_shape_block(stage: dict, run_args: dict) -> str:
+    """The RETURN SHAPE block for a pi stage's prompt when (and ONLY when)
+    it declares a `schema`: schema JSON, required keys, the last-stdout-
+    bytes instruction, and the rendered result_file path. Schema-less
+    stages get "" and render byte-identical to before."""
+    schema = stage.get("schema")
+    if not schema:
+        return ""
+    req = schema.get("required") or list(schema.get("properties") or {})
+    lines = ["", "RETURN SHAPE (required): the LAST thing in your stdout must "
+             "be exactly one JSON object matching this schema, with nothing "
+             "after it:", json.dumps(schema), f"Required keys: {', '.join(req)}"]
+    tmpl = stage.get("result_file")
+    if tmpl:
+        ctx = _SafeDict(run_args)
+        for k, v in (stage.get("_repeat_item") or {}).items():
+            ctx[k] = v
+        path = _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
+        lines.append("Also write that same JSON object to " + path
+                     + " before you finish; that file is this stage's result "
+                     "of record if stdout is cut.")
+    return "\n".join(lines)
+
+
 def _pi_harness_cfg(cfg: dict) -> dict:
     """The pi harness's bin/provider/thinking from config `harnesses.pi`.
 
@@ -1760,7 +1784,8 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     budget = _DEFAULT_STAGE_TIMEOUT_S if timeout_s is None else timeout_s
     cap = mem_cap.resolve_memory_cap(cfg)
     k = knobs[stage["label"]]
-    prompt = render_stage_prompt(stage, run_args, prior=prior)
+    prompt = render_stage_prompt(stage, run_args, prior=prior) \
+        + _return_shape_block(stage, run_args)
     if context_text:
         prompt = f"{context_text}\n\nSTAGE TASK:\n{prompt}"
     hc = _pi_harness_cfg(cfg)

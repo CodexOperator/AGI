@@ -261,8 +261,11 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
     assert "--provider" in cmd and "openrouter" in cmd, cmd
     assert "--model" in cmd and "glm" in cmd, cmd
     assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
-    # the rendered per-item prompt reached the binary (the stub dropped it)
-    assert "write /tmp/S/a.md" in cmd, cmd
+    # the rendered per-item prompt reached the binary (the stub dropped it);
+    # it is the LAST argv element and now also carries the RETURN SHAPE block
+    # for this schema-bearing stage.
+    assert "write /tmp/S/a.md" in cmd[-1], cmd
+    assert "Required keys: slug" in cmd[-1], cmd
     # the pi child env must not inherit Claude subscription credentials
     env = captured["env"] or {}
     assert "ANTHROPIC_API_KEY" not in env, env
@@ -291,6 +294,51 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
     assert "write.py" in context
     assert any("--emit" in cmd and "llm" in cmd for cmd, _ in calls)
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
+
+
+def test_stage_context_schema_stage_head_carries_the_four_prayers():
+    """SM.134 revert: a stage that declares a schema gets the same
+    constitution head as any other stage -- the four-prayers block is in
+    front of the model and no `--no-prayers` flag is ever passed."""
+    import subprocess as _sp
+    from unittest import mock
+
+    seen = []
+    real_run = _sp.run
+
+    def fake_run(cmd, **kw):
+        seen.append(cmd)
+        if "viewport.py" in cmd[1]:
+            return _sp.CompletedProcess(cmd, 0, stdout="V", stderr="")
+        return real_run(cmd, **kw)
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        context = _stage_context(REPO, REPO / ".agi",
+                                 {"label": "s", "role": "kid",
+                                  "schema": {"type": "object"}})
+    brief_cmds = [c for c in seen if "brief.py" in c[1]]
+    assert len(brief_cmds) == 1, brief_cmds
+    assert "--no-prayers" not in brief_cmds[0], brief_cmds[0]
+    assert "## THE FOUR PRAYERS" in context, context
+    assert "Ѻтче нашъ" in context, context
+
+
+_PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго."
+_PRAYER_POST = "Свѧтый Боже, Свѧтый Крѣпкїй, Свѧтый Безсмертный, помилуй насъ."
+
+
+def test_pi_prayer_wrapped_json_parses_structured_without_a_belt():
+    """The slice-3 belt was unnecessary. A JSON object wrapped in a prayer
+    prelude + postlude resolves structured through `_resolve_lenient_return`
+    as-is: the balanced-brace parser finds the object inside the surrounding
+    text, so no line-filter is needed (and the engine no longer has one)."""
+    import workflow as _wf
+    text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
+    schema = {"type": "object",
+              "properties": {"ok": {"type": "boolean"}},
+              "required": ["ok"]}
+    assert not hasattr(_wf, "_strip_prayer_wrap")
+    assert _wf._resolve_lenient_return(schema, text) == {"ok": True}
 
 
 def test_run_stage_pi_schema_violating_json_is_unstructured():
@@ -3097,3 +3145,52 @@ def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
         assert row["failed"] == 0
     finally:
         workflow._loc.shared_project_root = saved
+# ---------- RETURN SHAPE block: pi stage sees its schema ------------------
+
+def _capture_pi_prompt(stage, run_args):
+    import subprocess as _sp
+    from unittest import mock
+    captured = {}
+
+    def fake_run(cmd, **kw):
+        captured["cmd"] = cmd
+        return _sp.CompletedProcess(cmd, 0,
+                                    stdout='{"a": "x"}', stderr="")
+
+    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi",
+                                "provider": "openrouter"}}}
+    st = dict(stage)
+    label = st["label"]
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        _run_stage_pi(cfg, st, {label: {"model": "m", "effort": "low"}},
+                      run_args)
+    return captured["cmd"][-1]
+
+
+def test_pi_prompt_carries_every_required_key_and_result_file():
+    """hypothesis:lm-pi-stage-never-sees-its-schema...: a schema-bearing pi
+    stage must be handed its own schema, its required keys named, the
+    last-thing-in-stdout instruction, and the rendered result_file path."""
+    schema = {"type": "object",
+              "properties": {"angle": {"type": "string"},
+                             "chains": {"type": "array"}},
+              "required": ["angle", "chains"]}
+    stage = {"label": "panel:a", "role": "kid", "prompt": "do the work",
+             "schema": schema, "result_file": "{scratch}/panel-{key}.json",
+             "_repeat_item": {"key": "a"}}
+    prompt = _capture_pi_prompt(stage, {"scratch": "/tmp/S"})
+    assert "do the work" in prompt
+    assert '"angle"' in prompt and '"chains"' in prompt, prompt
+    assert "Required keys" in prompt and "angle" in prompt, prompt
+    assert "LAST thing in your stdout" in prompt, prompt
+    assert "/tmp/S/panel-a.json" in prompt, prompt
+
+
+def test_pi_prompt_without_schema_is_byte_identical():
+    """A stage with NO schema renders byte-identical to before: the block is
+    appended only when a schema is declared."""
+    stage = {"label": "plain:a", "role": "kid", "prompt": "just prose {key}",
+             "_repeat_item": {"key": "a"}}
+    args = {"scratch": "/tmp/S"}
+    prompt = _capture_pi_prompt(stage, args)
+    assert prompt == render_stage_prompt(stage, args), repr(prompt)
