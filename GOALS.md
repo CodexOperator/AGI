@@ -7551,6 +7551,12 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 
 00:5xZ 09-19 Prime landings (quiet, no [go]): core/season2/main @94087a43f -> c928f24dc (SM.130 cmd_done --owns folds accepted kid branches at done time; cli.py 24 lines, 4 tests) and thought trunk @6049f816c -> 8b8639830 (link-count pin fix: test asserts len(scripts), passes on MAIN; TM.59 first mvp->outcome PROVED; TM.52/53; GOALS rendered in-commit). Gates: bases ccf620dea / 2ab998a58, clean, 0 node deletions, active 3415 / 217, verify 11/12 (cli.py since suite). Suite #5 detached (unit agi-belam-suite-0057).
 
+01:0xZ 09-19 OWNER order (verbatim in doc:l5-owner-decisions tail): Prime QUIET row cell ON (settings ultracode quiet; belam-unquiet timer disabled; the owner wakes me); thought-master independent on his branch, batched with director-thought (assign batch -> review batch back), any codebase fix he deems necessary on his branch, go/stay decided with the owner tomorrow; each master full authority in its own branch incl. seat assignment for now, no queue node where the engine refuses. Relayed one line each to TM and SM. Suite #5 (cli.py) running detached; result recorded here at the next wake.
+
+01:1xZ 09-19 OWNER correction (verbatim in doc:l5-owner-decisions tail): any master meeting an engine refusal in its branch informs sanctuary-master and asks the fix independently -- standing order for this mode; relayed to TM and SM.
+
+01:1xZ 09-19 suite #5 at 6045cd671 (SM.130 cli.py + the link-count fix): 5678 passed / 1 failed / 16 skipped in 818 s -- back to the lone order-dependent red test_migrate_channel (SM.123 s2); the basetemp test did not recur. Lock free. Prime dark.
+
 ## S1 — Retire `bin/` as a directory name — status: horizon
 
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
