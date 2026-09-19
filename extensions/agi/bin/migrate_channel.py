@@ -135,7 +135,10 @@ def verify_record(text: str, pub_hex: str, scheme_name: str | None = None) -> bo
         return False
     # R3: a stageless record was signed under the legacy order; a staged one
     # never verifies under it (else a `seated` ack relabels as `request`).
-    keys = _KEYS if "stage" in rec else _KEYS_LEGACY
+    # A present-but-BLANK `stage` ("") is the legacy shape too: parse_record
+    # reads it as `request`, so verification must pick the legacy key order by
+    # the same normalised value, never by raw key presence (SM.123 slice 5).
+    keys = _KEYS if str(rec.get("stage") or "").strip() else _KEYS_LEGACY
     try:
         import seatsig
         import send
