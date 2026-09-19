@@ -59,6 +59,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 # The sash the hook is told to hand back when it fires. This is the ONE
@@ -281,6 +282,11 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
 
 #: Headline used at and above the rotation line (fires every call).
 AT_OR_OVER_TITLE = "## ⚠️  ROTATION OWED NOW — at or over the line"
+
+IMPERATIVE = ("ROTATE NOW: (a) write the card wholesale now, (b) run python3 "
+              "extensions/agi/bin/rotate.py rotate; nothing else this turn")
+AUTO_CAPTURED = "AUTO-CAPTURED"
+_CAPTURE_LOGGED: list[list[str]] = []
 #: Headline used while below the line but crossing a band (fires once per band).
 BENEATH_TITLE = "## ⚠️  approaching rotation"
 
@@ -616,6 +622,48 @@ def _card_path(root: Path, seat: str) -> Path:
     return (s / "quorum" / f"{seat}.md") if s is not None else \
         root / "sessions" / "quorum" / f"{seat}.md"
 
+def _rotate_now_authorisers(root: Path, seat: str) -> set[str]:
+    """Who may order this seat's rotation: its row's `rotated_by` holder
+    plus the owner (`AGI_OWNER`, else a role-`owner` row) (conjunct 1)."""
+    holder, owner = "", os.environ.get("AGI_OWNER", "").strip()
+    for row in _seat_rows(root):
+        if row.get("name") == seat:
+            holder = str(row.get("rotated_by") or "").strip()
+        elif not owner and str(row.get("role") or "").strip() == "owner":
+            owner = str(row.get("name") or "").strip()
+    return {s for s in (holder, owner) if s}
+
+
+def _rotate_now_unread(root: Path, seat: str) -> bool:
+    """An unread `rotate now` from an AUTHORISED sender (the seat row's
+    `rotated_by` holder or the owner) in the inbox FILE — never `send.py
+    read`, which marks the whole inbox read. Never raises (P7)."""
+    if not seat:
+        return False
+    inbox = ((_shared_sessions_dir(root) or root / "sessions")
+             / "inbox" / f"{seat}.md")
+    try:
+        text = inbox.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    allowed = _rotate_now_authorisers(root, seat)
+    current, hit = "", False
+    for line in text.rsplit("# read up to here", 1)[-1].splitlines():
+        stripped = line.strip()
+        if stripped.startswith("from:"):
+            current = stripped[5:].strip()
+        elif "rotate now" in stripped and current in allowed:
+            hit = True
+    if not hit:
+        return False
+    try:
+        inbox_mt = inbox.stat().st_mtime
+    except OSError:
+        return False
+    card = _card_path(root, seat)
+    card_mt = card.stat().st_mtime if card.exists() else 0
+    return inbox_mt >= max(card_mt, _work_last_ts(root, seat, card) or 0)
+
 
 def _import_last_act():
     """The ONE seat-scoped clock (bin/last_act.py), or None (P7)."""
@@ -729,6 +777,49 @@ def _stops_line(root: Path, seat: str) -> str:
     dm = _last_signed_dm(root)
     return f"stops: {subject} | last dm: {dm[:80]}"
 
+
+def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
+                         minutes: int, state_dir: Path | None) -> tuple[bool, str | None]:
+    """The FORCE decision, shared by the over-line gate and the below-line
+    `rotate now` path: card STILL stale `minutes` after the first fire ->
+    capture. `(handled, which)`; not handled = stamp absent/young (P7)."""
+    p = (state_dir or Path(f"/tmp/agi-rotation-{os.getuid()}")) / f"capture-{seat}.json"
+    try:
+        first = int(json.loads(p.read_text()).get("first", 0))
+    except Exception:   # pylint: disable=broad-except
+        first = 0
+    if not (first and minutes and (time.time() - first) >= minutes * 60):
+        return False, None
+    try:
+        which = _force_capture(root, seat, card, fraction, minutes,
+                               state_dir or p.parent)
+    except OSError:
+        which = "capture-failed"
+    return True, (None if which == "captured" else which)
+
+
+def _force_capture(root: Path, seat: str, card: Path, fraction: float,
+                   minutes: int, state_dir: Path) -> str:
+    """Capture the final card N min after the imperative first fired (driven
+    §0 writer + AUTO-CAPTURED header + rotate-self --force); NO_SPAWN records."""
+    line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
+    s3 = state_dir / f"capture-{seat}.s3"
+    s3.write_text(line + "\n", encoding="utf-8")
+    b = Path(__file__).resolve().parents[1] / "bin"
+    argvs = [["python3", str(b / "rotate.py"), "handoff", "--driven", "--seat", seat,
+              "--field", "s3", str(s3), "--field", "s6", str(s3)],
+             _rotate_self_argv(b, seat, f"{_stops_line(root, seat)} | {line}")]
+    if os.environ.get("AGI_HOOK_NO_SPAWN"):
+        _CAPTURE_LOGGED.extend(argvs)
+        print(f"rotation: capture for {seat} declined (AGI_HOOK_NO_SPAWN).")
+        return "capture-no-spawn"
+    card.write_text(f"{AUTO_CAPTURED}\n" + card.read_text(encoding="utf-8"),
+                    encoding="utf-8")
+    for a in argvs:
+        _Popen(a, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+               stdin=subprocess.DEVNULL, start_new_session=True)
+    print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")
+    return "captured"
 
 #: once-per-generation latch dir, under the shared sessions dir. Keyed by
 #: seat + generation so a slow spawn is never doubled (gate (d)).
@@ -864,7 +955,9 @@ def _spawn_rotate_self(root: Path, seat: str, stops: str) -> int | None:
     return proc.pid
 
 
-def _gated_rotate(root: Path, seat: str, session_id: str = "") -> str | None:
+def _gated_rotate(root: Path, seat: str, session_id: str = "",
+                  fraction: float = 0.0, minutes: int = 0,
+                  state_dir: Path | None = None) -> str | None:
     """goal:g15.25 line (4) — the hook's auto-rotation decision for an over-line
     seat. Runs the FOUR gates IN ORDER; each gate that HOLDS prints its reason
     and does NOTHING (re-check next prompt). Every gate clean → spawns the
@@ -880,6 +973,10 @@ def _gated_rotate(root: Path, seat: str, session_id: str = "") -> str | None:
     stale, clear_line = _card_stale_measure(root, seat, card)
     if stale:
         print(f"  {clear_line}")
+        handled, which = _maybe_force_capture(root, seat, card, fraction,
+                                              minutes, state_dir)
+        if handled:
+            return which
         print("[rotation] card-age captive: the seat card is older than the "
               "seat's OWN last act — run the line above, then re-check on "
               "the next prompt.")
@@ -1132,9 +1229,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         window = int(ladder.get("director_context_tokens") or 0)
         ladder_default = float(ladder.get("director_rotate_at") or 0.0)
+        capture_minutes = int(ladder.get("card_capture_minutes") or 10)
     except (TypeError, ValueError):
         window = 0
         ladder_default = 0.0
+        capture_minutes = 10
     if window <= 0 or ladder_default <= 0:
         # D4: no window / no ladder — a real fraction cannot be computed, so
         # the meter reads the refusal reason, never a confident number. Keep
@@ -1227,6 +1326,14 @@ def main(argv: list[str] | None = None) -> int:
     band = 0
     b_frac = 0.0
     over_line = fraction >= threshold
+    rotate_now = _rotate_now_unread(root, seat)
+    if over_line or rotate_now:
+        fp = state_dir / f"capture-{seat or 'noseat'}.json"
+        if not fp.exists():
+            try:
+                fp.write_text(json.dumps({"first": int(time.time())}))
+            except OSError:
+                pass
     # Find the highest band the current fraction crosses (below the line).
     for i, bf in enumerate(BAND_FRACTIONS):
         if fraction >= bf * threshold:
@@ -1260,10 +1367,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if over_line:
         # Every firing at/over the line (P3). Do not consume band state.
+        print(IMPERATIVE)
         # goal:g15.25 line (4) — the hook ROTATES at threshold (gated); when a
         # gate holds it prints the deferral so the operator sees WHY an
         # over-line seat has not rotated, and re-checks next prompt.
-        deferral = _gated_rotate(root, seat, session_id or "")
+        deferral = _gated_rotate(root, seat, session_id or "", fraction,
+                                 capture_minutes, state_dir)
         if deferral:
             suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
                       "rotating this seat while that holds; it re-checks on "
@@ -1282,6 +1391,22 @@ def main(argv: list[str] | None = None) -> int:
                     + suffix)
         _meter(used, threshold, fraction)
         return _rc
+
+    if rotate_now:
+        print(IMPERATIVE)   # conjunct 1 below the line; [meter] stays last
+        # conjunct 2 below the line (the measured f=0.444 < 0.47 trigger):
+        # an authorised unread `rotate now` with a card STILL stale forces
+        # the capture; a fresh card spawns nothing here.
+        card = _card_path(root, seat)
+        stale, _clear = _card_stale_measure(root, seat, card)
+        if stale:
+            _handled, which = _maybe_force_capture(root, seat, card, fraction,
+                                                   capture_minutes, state_dir)
+            if which:
+                print(f"{DEFER_PREFIX} ({which}) — the hook could not capture "
+                      "this seat's card; re-check on the next prompt.")
+        _meter(used, threshold, fraction)
+        return 0
 
     if band < 0 or b_frac <= 0.0:
         # Below the lowest band: no band block (silent in the body, P3), but
