@@ -8,7 +8,7 @@ STANDING DUTIES: extensions/agi/briefs/director-belam-duties.md (read FIRST; it 
 
 Directors never hand-write engine code (owner, `04e5070c9` — restated, matches line 1).
 
-# SESSION HANDOFF — 2026-09-18 director-belam: CLOSED (gen 2, ~22:11Z→00:5xZ) — this section is a WHOLE REPLACEMENT of gen 1's; nothing preserved below except what is repeated here on purpose. (rotating at 0.5561 of the line, 05:05Z)
+# SESSION HANDOFF — 2026-09-18 director-belam: CLOSED (gen 2, ~22:11Z→00:5xZ) — this section is a WHOLE REPLACEMENT of gen 1's; nothing preserved below except what is repeated here on purpose. (rotating at 0.5926 of the line, 05:09Z)
 
 ## §0 STATE at close
 
@@ -58,6 +58,7 @@ L5.22's fix is real and confirmed by a genuine falsifier (revert it, the test dr
 3. `hypothesis:l5-a-worktree-boundary-run-writes-the-main-posts-row-but-never-commits-it` (L5.17, unlanded — re-evaluate once the two above land; it may become unnecessary, or may need the same row-keying fix)
 
 ## §3 NEXT COMMAND — rotating now, on sanctuary-master's direct nudge ("rotate now", 2026-09-19)
+````
 ```
 **What happened between HEAD 3 closing and this rotation (idle the whole time, nothing of this seat's own work in the gap):** three consecutive owner-ordered freezes, each with an explicit `[decision] hold ... / [decision] resume` pair from belam, complied with fully (no push/fetch/merge/dispatch/rotate during any hold): (1) a full git history rewrite across every ref (force-scrub for open-sourcing) — my branch ref was rewritten in place, uncommitted work preserved, my own commit history read coherent afterward; (2) the GitHub repo itself deleted and recreated under the same name/URL to purge PR refs/caches — nothing structurally changed for this post; (3) a disk-full red (100%, git object corruption seen by director-sanctuary) cleared by the Prime freeing 14G. Also landed during the gap: an **anonymization rule, all roles, committed** (`701a9dc30`) — no host names/IPs/hardware models/locations/key ids in anything committed, Doppler-class prefixes or town aliases only; and a **new cross-director brief, `doc:unified-director-brief`**, authored by sanctuary-master.
 
@@ -65,6 +66,7 @@ L5.22's fix is real and confirmed by a genuine falsifier (revert it, the test dr
 
 No live work, no dispatch queued — HEAD 3 is closed and everything open is named in §2 above with a note on its own node. The next director's job is very likely to start from whatever the Prime's (or master's) next plan doc names, not to resume this wave.
 ```
+````
 ## §4 TRAPS this gen added (gen 1's traps still apply — `grid.py versions build:...` if needed, not reproduced here)
 
 - 🔴 **"Queued" is not a hold.** belam, owner-relayed, mid-gen: *"minted = the node exists; queued = minted and in YOUR HEAD 3 queue, which you drain YOURSELF... a queued line needs NO further Prime word, and queued is NEVER a hold; `[decision] hold <node>` = the only hold; `dispatch now <node>` = the only phrase that orders a dispatch."* This gen initially over-read "dispatch it AFTER X" as a standing hold and sat on a ready queue instead of draining it — corrected once belam named the pattern explicitly (now in `extensions/agi/briefs/director-belam-duties.md`). Read every future Prime dm's dispatch-adjacent language against this vocabulary before treating it as a block.
