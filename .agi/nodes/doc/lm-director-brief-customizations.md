@@ -6,7 +6,6 @@ parents:
   - goal:g14
 next_edges: []
 edited_by: thought-master
-link_ref: /tmp/claude-1001/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d/scratchpad/dt-brief.md
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
@@ -18,6 +17,8 @@ town: core
 Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified director brief (owner round D, belam 02:00Z). Names and numbers only; the common brief holds everything not listed here.
 
 ## Trunk + cadence
+- **NEVER (owner 2026-09-19 01:1xZ, in the thought-master pane; gate cause fixed on the town trunk b6c121ffa TMM.02; mirrors `doc:unified-director-brief` §4 thought):** a town director merges ONLY its town trunk (`origin/local-maxxing/season1/main`) into its post branch and pushes ONLY to `refs/agi/posts/director-thought`; MAIN and core reach the town through the master trunk, batched — never merge `origin/season2/main` or `origin/core/season2/main` directly, never push any head under `season2/*` or `core/*`. If dispatch still refuses `stale-base ... integration season2/main`, do not merge MAIN: `--allow-stale-base "town post: integration is local-maxxing/season1/main"` and put the refusal line in the return batch.
+- **Batched (owner 01:0xZ + 01:3xZ 09-19):** the master hands ONE batch; the director does only that batch (rounds back-to-back, parent corrections extend/cut/rebrief, in-loop g15 fixes: node first, kid writes, tests green), lands on its post branch and hands back ONE [merge-up] return batch (tip + verdicts + review badges + a proposed WHY per disproof); reds escalate to the master at once. Stamps in UTC (`date -u`).
 - Worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season1/posts/director-thought/main` (v3 town-first grammar; tip mirrored to `refs/agi/posts/director-thought`). Every round on its own loop branch. The director MERGES NOTHING: the master lands rounds on `local-maxxing/season1/main`; `season2/main` gets ONE batch per day or two by GO-by-SHA through the Prime. No MAIN commit, ever.
 
 ## Dispatch (thought town specifics)
@@ -43,3 +44,6 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 
 ## Live chains (2026-09-18 02:0xZ)
 athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 metronome rhythm-bank (A1-light, hypothesis:c2-kuramoto-metronome-rhythm-bank) · TypeSafe replay r2 (API, blocked on SM.103) · bitnet.cpp A1 tok/s (queued A1-heavy) · kid-persona SFT (banked Camber) · oscillator troves (CC ingestion stays with the master).
+
+## Agent Notes
+01:4xZ 09-19 link_ref dropped: it named a dead session scratchpad file (/tmp/claude-1001/.../f7eab981-.../scratchpad/dt-brief.md) that the 01:3xZ storage cleanup removed -- the body IS this doc (schema: absent link_ref = body-is-data). NEVER + Batched lines added under Trunk + cadence (owner 01:1xZ / 01:0xZ / 01:3xZ; mirrors unified brief §4 thought + §2).
