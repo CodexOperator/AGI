@@ -72,7 +72,7 @@ Everything before this generation (RED fixes #1/#2, SM.117b/122/123-slice1/126-s
 
 ## §1 PLAN
 - [done] SM.128, SM.126 slice 2, SM.124, SM.125, SM.129, **SM.130** — landed, independently verified, pushed, reported this gen. SM.130 (`75fc47ae5`) is the fix for the SM.125-parent-branch gap itself: `cli.py`'s `_auto_commit_worktree` now folds each accepted kid's own `--branch` into the parent checkout at done-time (orphan-kid #8, reviewed at full rigor since it touches core commit plumbing — 55+144 tests reproduced exact). The [red] I filed this gen is CLOSED.
-- [live, watch — orphan-kid #9] SM.123 slice 2: parent `a00-b14c42c9` DIED (~00:22Z), new kid `a00-f0d82a9a` (iter134) still working. **Worth checking once it finishes whether SM.130's fix actually applied** (this parent died AFTER SM.130 landed on trunk, but the parent's OWN checkout may predate the merge — if its branch still reads base+0 despite the kid finishing, that's either SM.130 not yet reaching this branch's history or a gap in the fix; note it, don't assume).
+- 🔴 [FINISHED, NOT YET REVIEWED/LANDED — pick this up first] SM.123 slice 2: kid `a00-f0d82a9a` committed `420a05e59` on branch `season2/loops/hypothesis-l4-quick-migrate-one--a00-b14c42c9` (worktree `.agi/worktrees/a00-b14c42c9`), verdict `inconclusive_lean_proved:70` confidence 0.7. Delivered: (a) item 1's root cause NAMED (not just "fixed silently") — `test_migrate_channel.py`'s order-dependency is a `send` module identity mismatch: the test patches `send.comms_root` on the binding captured at import time, but `rotate.py`'s lazy `import send` at call time resolves a DIFFERENT module object once other tests have already imported it differently — reproduced twice, instrumented, `id(send_test) != id(sys.modules['send'])` measured directly; (b) the REQUIRED target-side receive slice (conjuncts 2/3/4 — `migrate --receive` verifies the signed record, seats once, writes cells through the one writer, answers seated). **production_lines=187 against a 120 ceiling (1.56x) — check whether this was rebriefed/disclosed before landing.** Node also flags "item 1 named as a stale send-module patch target" — read the full node before deciding whether the NAMED fix was also BUILT or is left as a diagnosis (title suggests diagnosis-only for item 1, built for the receive slice — verify, don't assume). One uncommitted change sitting in that worktree too: `.agi/nodes/.geometry/rotations.md` — check if it's a fragment worth keeping (e.g. `migrate_fork_below`) or abandoned scratch. **Full review + mur run + landing NOT done this stamp** — meter too high to do it justice; this is the single highest-priority item for whoever continues.
 - 🔴 [queued, sanctuary-master's spec, NOT dispatched] **SM.125 slice 2 — I missed a required field.** `path_max` is a THIRD sibling field alongside config_max/template_max (owner 22:1xZ named it) that SM.125 never delivered — I'd been citing `path_max=n/a` in every merge-up DM's closing line as rote boilerplate all generation without registering it was itself a thing to BUILD. Her spec: `path_max {answer, where}` required in both mur stages like the other two, the brief's first-answer line gains it, `paths.py` audit measured in the node; ceiling 8. Her stated queue order: **SM.130 (live) → SM.125 slice 2 → SM.123 s2 → SM.124 audit corrective.**
 - [queued, sanctuary-master's spec, NOT dispatched] SM.124's M1 corrective: `crons.py cmd_audit` defaults `unit_dir` to `~/.config/systemd/user` when `None`; `--unit-dir` stays the override/test seam; one test with an explicit tmp dir stays hermetic, one asserts the default path is consulted (monkeypatch HOME); ceiling 4. No hypothesis node minted for it yet.
 - [held] SM.119 — Prime's word.
@@ -83,29 +83,34 @@ Six harvests (SM.128, SM.126 slice 2, SM.124, SM.125, SM.129, SM.130), every one
 
 ## §3 🔴 WHERE IT STOPS — the next action
 ```
-Tree is CLEAN, pushed through 75fc47ae5. SM.130 landed and closed this gen's [red]. One round
-still live: SM.123 slice 2, ORPHANED already (parent a00-b14c42c9 died ~00:22Z, kid a00-f0d82a9a
-still working, iter134). Meter was 0.3946/0.47 (84%) as of the last reading -- close to the line,
-expect it to fire soon. Check the next hook injection before starting anything new.
+Tree is CLEAN, pushed through cd42e014a. Meter was 0.4339/0.47 (92.3%) as of the last reading and
+climbing with every nudge processed since -- expect it at or past the line by the time you read
+this. This whole tail of the session (from ~85% onward) was owner/sanctuary-master traffic ONLY --
+five queue-reprioritization DMs, each recorded on the card as it arrived, ZERO new dispatches or
+landings attempted once the meter crossed ~85% (deliberate: preserve budget for an accurate handoff
+over a rushed one). FIRST THING NEXT SESSION, before anything else:
 
-NEXT ACTIONS IN ORDER:
-1. `python3 extensions/agi/bin/spawn_budget.py status` + `send.py read director-sanctuary` -- check
-   on a00-f0d82a9a (SM.123 slice 2's surviving kid). When it finishes, this is an orphan-kid round:
-   read its node/branch directly, no parent DM will arrive.
-2. CAUTION on this specific round: it was dispatched (iter134) BEFORE SM.130's fix merged into this
-   post branch, so its own checkout does NOT carry SM.130's fix. If it turns out to have MULTIPLE
-   sibling kid branches to reconcile (unlikely for a single --orders round, but check), it can hit
-   the SAME zero-commit-branch symptom SM.130 just fixed -- don't assume the fix already protects it.
-3. Land it: merge-base, diff, read the node, independently run its cited tests, `git merge --no-ff
-   <branch> -F <scratch-message-file>`, push explicit refspec, `[merge-up]` DM naming
-   config_max/template_max/path_max.
-4. Once a slot frees, dispatch IN THIS ORDER (sanctuary-master's own sequence): SM.125 slice 2
-   (path_max, spec in §1) -- mint a hypothesis node or write an --orders file quoting her spec
-   verbatim -- then SM.124's M1 corrective (spec in §1). Don't re-derive either spec, she already
-   gave exact shapes and ceilings.
-5. SM.119 stays held for the Prime's word.
-6. If f >= 0.47 fires before any of the above, rotate on it directly -- this card is current enough
-   to hand off as-is at any point from here.
+1. SM.123 SLICE 2 IS DONE AND WAITING (full detail in §1) -- branch `season2/loops/hypothesis-l4-
+   quick-migrate-one--a00-b14c42c9`, commit `420a05e59`, verdict inconclusive_lean_proved:70,
+   187 production lines against a 120 ceiling. This is the OWNER-REQUIRED receive/fork slice, and
+   sanctuary-master's queue puts it FIRST. Read the full node, check the ceiling overage was
+   disclosed, independently run whatever tests it cites, and land it PER THE NEW RULE below.
+2. 🔴 NEW RULE since ~00:30Z, applies to this landing and every one after: route through
+   `workflow.py run merge-up-review` by name (systemd-run + --working-directory + --root) and cite
+   the mur run key + BOTH stage verdicts in the merge-up line -- a dead parent does not waive this
+   (sanctuary-master's correction, full text in the head-of-card block above §0 STATE).
+3. 🔴 Before that dispatch or any other: `git fetch origin core/season2/main && git merge
+   origin/core/season2/main` -- @33b3c7e22 (TMM.02) must be in before your next dispatch (head-of-
+   card block, sanctuary-master 01:36Z). NOT done this stamp.
+4. You now have STANDING IN-LOOP AUTHORITY (owner, ~01:4xZ, head-of-card block) -- act without
+   asking sanctuary-master first for routine calls, and batch your merge-up DMs: ONE line per landed
+   BATCH (mur key + both verdicts + numbers each), not one per item. Escalate directly only for a
+   genuine [red]: rule-changing, Prime/owner-only, a red merge into the trunk, or an engine refusal.
+5. Queue after SM.123 s2, sanctuary-master's exact order (§0a/§1): SM.125 s2 (path_max, ceiling 8)
+   -> SM.124 audit corrective (ceiling 4) -> SM.133 (measure why parents die, ceiling 0, no fix)
+   -> SM.131 -> SM.132. SM.134 is thought-master's, not ours. Don't re-derive any spec, they're
+   quoted verbatim on the card.
+6. SM.119 stays held for the Prime's word (unchanged all session).
 ```
 
 ## §4 TRAPS — carried forward + new this session
