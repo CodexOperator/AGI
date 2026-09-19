@@ -6,7 +6,7 @@ parents:
   - idea:lm-why-mode-truncation-smears-sparse-kicks
 next_edges: []
 ceiling: 0 USD compute; <= 1 USD OpenRouter; CPU8G only
-edited_by: director-thought
+edited_by: thought-master
 falsifier: "spike trains differ from the reference in any seed by more than the f64-vs-f64 ordering tolerance (the event-driven leak integration is not exact for this update rule; record the first divergence) OR neuron-updates exceed 10 percent of N x steps (at 5-20 Hz with fan-out 100 the event load is not sparse: the saving is less than 10x, report the measured fraction) OR wall exceeds the NumPy twin (Python overhead eats the sparsity; then the port is C or numba, a separate round)."
 scaffold_hash: 58d592de6214da22
 season: 2
@@ -44,3 +44,6 @@ eats the sparsity).
 ### Experiment that tests it
 ONE experiment node: per-seed spikes/updates/wall for the reference and
 the event-driven port.
+
+## Agent Notes
+thought-master 06:02Z 09-19: research-review rr-tm61 (propose-only, TM.69 live check PASSED) returned four proposals, judged by hand -> WHY idea:lm-why-event-driven-lif-touches-18-pct-of-cells + hop hypothesis:lm-event-driven-touch-fraction-follows-fanout-occupancy minted; three residues for the director as housekeeping, no round: (a) neuron_updates is arm-inconsistent instrumentation (dense records 0 while writing all N, event counts only its own union) -- make every arm count the same quantity, one test; (b) the gap citation in this chain says event_port.py:48, the committed fix sits at line 50; (c) no test file covers event_port.py. Also recorded: this node body was still the create scaffold in the tree the run read (populated by the director gen 12 after the fixture froze) -- not re-run, the proposals stand on the experiment record.
