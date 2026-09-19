@@ -1,0 +1,12 @@
+{"tag": "main", "fold": 0, "threshold": 0.0, "agreement": 0.7837837837837838, "auc": 0.5953663793103448}
+{"tag": "main", "fold": 1, "threshold": 0.0, "agreement": 0.7837837837837838, "auc": 0.5953663793103449}
+{"tag": "main", "fold": 2, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.5190918472652218}
+{"tag": "main", "fold": 3, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.564499484004128}
+{"tag": "main", "fold": 4, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.5897832817337462}
+{"tag": "main", "fold": "pooled", "n": 370, "agreement": 0.7756756756756756, "auc": 0.5687628563032618, "ece": 0.34447747747747753, "confusion": [[287, 0], [83, 0]], "threshold_mean": 0.0, "threshold_std": 0.0, "thresholds": [0.0, 0.0, 0.0, 0.0, 0.0]}
+{"tag": "shuffled_labels", "fold": 0, "threshold": 0.0, "agreement": 0.7837837837837838, "auc": 0.4951508620689656}
+{"tag": "shuffled_labels", "fold": 1, "threshold": 0.0, "agreement": 0.7837837837837838, "auc": 0.4719827586206896}
+{"tag": "shuffled_labels", "fold": 2, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.5856553147574819}
+{"tag": "shuffled_labels", "fold": 3, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.4195046439628483}
+{"tag": "shuffled_labels", "fold": 4, "threshold": 0.0, "agreement": 0.7702702702702703, "auc": 0.5247678018575852}
+{"tag": "shuffled_labels", "fold": "pooled", "n": 370, "agreement": 0.7756756756756756, "auc": 0.49617984131648546, "ece": 0.35411711711711713, "confusion": [[287, 0], [83, 0]], "threshold_mean": 0.0, "threshold_std": 0.0, "thresholds": [0.0, 0.0, 0.0, 0.0, 0.0]}

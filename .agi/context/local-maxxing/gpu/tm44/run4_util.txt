@@ -1,0 +1,6 @@
+=== RUN4 plain + 10ms util sampling start ===
+2026-09-18T21:33:58Z
+19983
+WALL 48.41 USER 48.24 SYS 0.18
+rc=0
+2026-09-18T21:34:48Z
