@@ -43,6 +43,7 @@ Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import fcntl
 import hashlib
 import re
@@ -319,6 +320,7 @@ _COMMS_DEFAULTS = {
     # while its kids kept the unread digest moving. The repair runs on its OWN
     # cadence, this many SECONDS apart (default hourly), never on the poll.
     "wake_repair_every_s": 3600,
+    "undelivered_after_minutes": 10,
 }
 
 #: The one warning printed per send and per read/peek when `lockdown` is set.
@@ -1687,6 +1689,17 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
         pass
 
 
+def _announce_nudge(root: Path, to: str, delivered: bool) -> None:
+    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`."""
+    if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
+            or not (row.get("window") or row.get("pid")):
+        return
+    t = _comms_config(root).get("undelivered_after_minutes") or 10
+    print(f"[delivered] {to}" if delivered else
+          f"[undelivered-yet] {to} -- pane busy; the sweep retries, you hear "
+          f"[undelivered] after {t:g} min", file=sys.stderr)
+
+
 def _nudge_deferred_path(root: Path, seat: str) -> Path:
     """Sidecar holding the FIRST deferred dm body for a seat (sender+body
     as JSON) -- a dm whose inline line coalesced under a busy pane and must
@@ -1739,7 +1752,8 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     try:
         p = _nudge_deferred_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({"sender": sender, "body": body}))
+        p.write_text(json.dumps({"sender": sender, "body": body,
+                                 "ts": _now()}))
         return True
     except OSError:
         return False
@@ -2747,6 +2761,50 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
                          window_id=window_id)
 
 
+def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
+    """Conjunct (4): after T min untyped, dm the SENDER ONCE."""
+    if rec.get("notified") or not (ts := rec.get("ts")):
+        return
+    try:
+        dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        age = (datetime.now(timezone.utc)
+               - dt.astimezone(timezone.utc)).total_seconds() / 60.0
+    except ValueError:
+        return
+    if age < float(_comms_config(root).get("undelivered_after_minutes") or 10):
+        return
+    excerpt = (rec.get("body") or "").replace("\n", " ")[:80]
+    try:
+        send_dm(root, "wake-repair", rec.get("sender") or "unknown",
+                f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
+                f"{int(age)} min", sender="wake-repair")
+    except SystemExit:
+        return
+    rec["notified"] = True
+    with contextlib.suppress(OSError):
+        _nudge_deferred_path(root, seat).write_text(json.dumps(rec))
+
+
+def wake_all_local(root: Path, tmux_session: str | None = None) -> bool:
+    """Conjunct (3): retry every LOCAL row with pending work via `wake()`."""
+    any_delivered = False
+    for r in _locally_loaded_rows(root):
+        name = (r.get("name") or "").strip()
+        if not name or not boxes.row_is_local(root, r):
+            continue
+        rec = _read_deferred(root, name)
+        if not (_seat_has_pending(root, name)
+                or _nudge_marker_stale(root, name)):
+            continue
+        ok = wake(root, name, tmux_session)
+        any_delivered = any_delivered or ok
+        if rec is not None and ok:
+            print(f"[delivered-late] {name} {rec.get('ts') or '?'}")
+        elif rec is not None:
+            _notify_undelivered(root, name, rec)
+    return any_delivered
+
+
 def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     """ONE line naming a seat's nudge state: marker age, pending count,
     `in_mode`, and last-read age -- so a director sees a stalled post in one
@@ -2876,8 +2934,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
     if nudge and not _row_is_quiet(root, to):
-        _nudge_window(root, to,
-                      sender=sender if sender is not None else from_id)
+        _announce_nudge(root, to, _nudge_window(
+            root, to, sender=sender if sender is not None else from_id))
 
     print(inbox.resolve())
     return (from_id, sig_line is not None)
@@ -3811,8 +3869,9 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    _nudge_window(locations.find_project_root(croot) or croot, other,
-                  sender=_detect_sender(sender), body=text)
+    ok = _nudge_window(locations.find_project_root(croot) or croot, other,
+                       sender=_detect_sender(sender), body=text)
+    _announce_nudge(croot, other, ok)
     return path
 
 
@@ -5215,7 +5274,9 @@ def main(argv: list[str] | None = None) -> int:
              " (never Enter-only), or wake an idle pane whose seat has "
              "unread; busy/no-op (hypothesis:l4-a-stranded-nudge-is-"
              "resubmitted-by-typing-not-enter)")
-    p_wake.add_argument("target", help="seat name")
+    p_wake.add_argument("target", nargs="?", help="seat name")
+    p_wake.add_argument("--all-local", dest="all_local", action="store_true",
+                        help="sweep every LOCAL seat row with pending work")
 
     p_status = sub.add_parser(
         "status", parents=[common],
@@ -5489,6 +5550,11 @@ def main(argv: list[str] | None = None) -> int:
         # exit 0 ONLY when the wake actually delivered a token/strand/deferred
         # to a pane; 1 otherwise. heal.py/rotate.py call send.wake() directly
         # and deliberately ignore the value; only this verb path returns it.
+        if getattr(args, "all_local", False):
+            return 0 if wake_all_local(root) else 1
+        if not args.target:
+            print("ERR: wake needs a target or --all-local", file=sys.stderr)
+            return 1
         return 0 if wake(root, _alias_canon(root, args.target) or
                          args.target) else 1
 

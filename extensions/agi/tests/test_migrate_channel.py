@@ -6,6 +6,9 @@
 # push, the target receive and the seated line are named steps, not this
 # round's bytes.
 import argparse
+import importlib
+import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -92,17 +95,483 @@ def test_unknown_mode_refused_by_name(tmp_path, monkeypatch, capsys):
 
 def test_apply_writes_one_signed_record(tmp_path, monkeypatch, capsys):
     monkeypatch.setenv("AGI_BOX", "boxA")
-    assert send._mint_seat_key(tmp_path, "p", "ed25519") is not None
+    # Patch the module object the code under test imports at CALL time, not
+    # the name bound when this file was imported. In a full-suite run another
+    # module can leave a DIFFERENT `send` in sys.modules than the one bound
+    # here; patching the stale object silently misses and the record lands in
+    # the real comms root. (hypothesis:l4-quick-migrate-... receive-side round)
+    live_send = importlib.import_module("send")
+    assert live_send._mint_seat_key(tmp_path, "p", "ed25519") is not None
     fake_comms = tmp_path / "comms"
-    monkeypatch.setattr(send, "comms_root",
+    monkeypatch.setattr(live_send, "comms_root",
                         lambda root, override=None: fake_comms)
     rc = rotate.main(["migrate", "--post", "p", "--to", "boxB",
                       "--root", str(tmp_path)])
     out = capsys.readouterr().out
     assert rc == 0
-    files = sorted((fake_comms / "migrate").glob("*.md"))
+    files = sorted((fake_comms / migrate_channel.SUBDIR).glob("*.md"))
     assert len(files) == 1
     parsed = migrate_channel.parse_record(files[0].read_text())
     assert parsed["mode"] == "rotate"
     assert parsed["source_box"] == "boxA" and parsed["target_box"] == "boxB"
     assert "signed with the p key" in out
+
+
+# --- SM.123 slice 2: the TARGET side (`migrate --receive`) -------------------
+#
+# The mail_poll tick's half: a verified `stage: request` record addressed to
+# THIS box seats the successor once, writes the identity cells through the ONE
+# writer, and answers with ONE `stage: seated` line on the SAME channel. An
+# unsigned/tampered record or a row already live is refused BY NAME.
+#
+# A "post" never touches the real graph here: `_migrate_row`, `_migrate_seat`
+# and `_write_identity_cells` are the seams, so no test reads or writes the
+# live checkout. The comms root is redirected the same way the apply test does.
+
+
+def _rns(**kw):
+    base = dict(post=None, dry_run=False, receive=True)
+    base.update(kw)
+    return argparse.Namespace(**base)
+
+
+def _fake_comms(tmp_path, monkeypatch):
+    """Redirect the live `send` module's comms_root (the module receive
+    imports at call time) to a tmp path; return (module, fake_root)."""
+    live = importlib.import_module("send")
+    fake = tmp_path / "comms"
+    monkeypatch.setattr(live, "comms_root",
+                        lambda root, override=None: fake)
+    return live, fake
+
+
+def _request(**kw):
+    base = dict(post="p", mode="rotate", source_box="boxA", target_box="boxB",
+                branch="refs/agi/posts/p", tip="abc", session_id=None,
+                ts="2026-09-18T12:00:00+00:00")
+    base.update(kw)
+    return migrate_channel.record(**base)
+
+
+def _place(fake, rec, *, signer=None, root=None):
+    cdir = fake / migrate_channel.SUBDIR
+    cdir.mkdir(parents=True, exist_ok=True)
+    text = migrate_channel.format_record(rec, sign_root=root, signer=signer)
+    path = cdir / migrate_channel.record_name(rec)
+    path.write_text(text, encoding="utf-8")
+    return path, text
+
+
+def _acks(fake):
+    cdir = fake / migrate_channel.SUBDIR
+    out = []
+    for p in sorted(cdir.glob("*.md")):
+        rec = migrate_channel.parse_record(p.read_text(encoding="utf-8"))
+        if rec is not None and rec.get("stage") == "seated":
+            out.append(rec)
+    return out
+
+
+def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex()})
+    seated = []
+    monkeypatch.setattr(rotate, "_migrate_seat", lambda root, *, post, rec, row, box: (
+        seated.append((post, rec["mode"], box)) or
+        {"box": box, "window": "w1", "pid": 4242, "session_id": "s1",
+         "session_name": "n1"}))
+    cell_calls = []
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda root, **kw: (
+        cell_calls.append(kw) or "wrote identity cells for seat 'p'"))
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert seated == [("p", "rotate", "boxB")]
+    assert len(cell_calls) == 1          # the ONE writer, called once
+    assert cell_calls[0]["cells"]["pid"] == 4242
+    assert cell_calls[0]["cells"]["box"] == "boxB"
+    acks = _acks(fake)
+    assert len(acks) == 1
+    assert acks[0]["stage"] == "seated"
+    assert acks[0]["source_box"] == "boxB" and acks[0]["target_box"] == "boxA"
+    assert "seated p on boxB" in out
+
+
+def test_receive_refuses_an_unsigned_record_by_name(tmp_path, monkeypatch,
+                                                    capsys):
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request())            # unsigned
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "pubkey": pub.hex()})
+    seen = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, **kw: seen.append(1) or {})
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert seen == []
+    assert "does not verify" in out and "nothing touched" in out
+    assert _acks(fake) == []
+
+
+def test_receive_refuses_a_tampered_record_by_name(tmp_path, monkeypatch,
+                                                   capsys):
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    path, text = _place(fake, _request(session_id="sess-1"), signer="p",
+                        root=tmp_path)
+    path.write_text(text.replace("rotate", "fork", 1), encoding="utf-8")
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "pubkey": pub.hex()})
+    seen = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, **kw: seen.append(1) or {})
+    rotate.cmd_migrate_receive(_rns(), tmp_path)
+    assert seen == []
+    assert "does not verify" in capsys.readouterr().out
+
+
+def test_receive_refuses_two_live_on_one_row_by_name(tmp_path, monkeypatch,
+                                                     capsys):
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "pubkey": pub.hex(), "pid": os.getpid(),
+        "box": "boxB", "session_id": "already-live"})
+    seen = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, **kw: seen.append(1) or {})
+    rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert seen == []
+    assert "already live on boxB" in out and "two live on one row" in out
+    assert _acks(fake) == []
+
+
+def test_receive_ignores_records_addressed_to_another_box(tmp_path,
+                                                          monkeypatch, capsys):
+    monkeypatch.setenv("AGI_BOX", "boxC")
+    _live, fake = _fake_comms(tmp_path, monkeypatch)
+    _place(fake, _request())            # target_box=boxB, we are boxC
+    seen = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, **kw: seen.append(1) or {})
+    rotate.cmd_migrate_receive(_rns(), tmp_path)
+    assert seen == []
+    assert "no migrate records addressed here" in capsys.readouterr().out
+
+
+def test_fork_resume_command_is_exact_and_the_transcript_is_copied_before_spawn(
+        tmp_path, monkeypatch):
+    assert (rotate._fork_resume_command("sess-1")
+            == "claude --resume sess-1 --fork-session")
+    rec = _request(mode="fork", session_id="sess-1")
+    runs = []
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda argv, **kw: runs.append(argv))
+    wt = tmp_path / ".agi" / "worktrees" / "post-p"
+    copied = []
+    monkeypatch.setattr(rotate, "_migrate_copy_transcript",
+                        lambda root, rec, worktree: (
+                            copied.append(worktree / ".migrate-transcript.jsonl")
+                            or worktree / ".migrate-transcript.jsonl"))
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "window": "w", "pid": 7, "session_id": "sess-1",
+        "session_name": "n"})
+    cells = rotate._migrate_seat(tmp_path, post="p", rec=rec,
+                                 row={"role": "director"}, box="boxB")
+    assert copied == [wt / ".migrate-transcript.jsonl"]
+    spawn = runs[-1]
+    assert "claude --resume sess-1 --fork-session" in spawn
+    assert cells["box"] == "boxB" and cells["session_id"] == "sess-1"
+
+
+def test_fork_is_chosen_only_below_the_config_threshold(tmp_path, monkeypatch):
+    monkeypatch.setattr(rotate, "_load_rotate_defaults",
+                        lambda root: {"migrate_fork_below": 0.5})
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {"name": "p"})
+    assert rotate._migrate_fork_below(tmp_path) == 0.5
+    monkeypatch.setattr(rotate, "_seat_fraction", lambda root, row: 0.2)
+    assert rotate._migrate_default_mode(tmp_path, "p") == "fork"
+    monkeypatch.setattr(rotate, "_seat_fraction", lambda root, row: 0.8)
+    assert rotate._migrate_default_mode(tmp_path, "p") == "rotate"
+    monkeypatch.setattr(rotate, "_seat_fraction", lambda root, row: None)
+    assert rotate._migrate_default_mode(tmp_path, "p") == "rotate"
+
+
+def test_live_rotations_node_declares_the_fork_threshold():
+    """A test of live config reads the LIVE node, never a copied list."""
+    node = (Path(__file__).resolve().parents[3]
+            / ".agi" / "nodes" / ".geometry" / "rotations.md")
+    assert "migrate_fork_below" in node.read_text(encoding="utf-8")
+
+
+def test_stage_is_part_of_the_one_record_kind():
+    assert migrate_channel.record_name(migrate_channel.seat_record(
+        _request(), ts="2026-09-18T13:00:00+00:00")).endswith("p--boxA.md")
+    with pytest.raises(ValueError, match="unknown migrate stage"):
+        migrate_channel.record(post="p", mode="rotate", source_box="a",
+                               target_box="b", branch="r", tip="", 
+                               session_id=None, ts="t", stage="seatedz")
+
+
+# --- SM.123 slice 3: the corrective -----------------------------------------
+
+
+def test_receive_seats_when_the_live_row_belongs_to_another_box(
+        tmp_path, monkeypatch, capsys):
+    """MUST FIX: every live row carries the SOURCE box's session_id, so the
+    old unscoped check refused the exact post migrate exists to move."""
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex(),
+        "box": "boxA", "pid": os.getpid(), "session_id": "source-live"})
+    seated = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, *, post, rec, row, box: (
+                            seated.append(post) or {"box": box, "window": "w",
+                            "pid": 1, "session_id": "s", "session_name": "n"}))
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda root, **kw: "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    assert rc == 0
+    assert seated == ["p"]          # the source box's live row does not block
+    assert "two live on one row" not in capsys.readouterr().out
+
+
+def test_receive_skips_a_non_numeric_pid_without_killing_the_tick(
+        tmp_path, monkeypatch, capsys):
+    """NEW (d): one bad pid must skip its record, never abort the loop."""
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _q, pubq = live._mint_seat_key(tmp_path, "q", "ed25519")
+    _place(fake, _request(post="p", ts="2026-09-18T12:00:00+00:00"),
+           signer="p", root=tmp_path)
+    _place(fake, _request(post="q", ts="2026-09-18T12:01:00+00:00"),
+           signer="q", root=tmp_path)
+    rows = {"p": {"name": "p", "pubkey": pub.hex(), "pid": "not-a-pid"},
+            "q": {"name": "q", "pubkey": pubq.hex()}}
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: rows.get(post, {}))
+    seated = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, *, post, rec, row, box: (
+                            seated.append(post) or {"box": box, "window": "w",
+                            "pid": 1, "session_id": "s", "session_name": "n"}))
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda root, **kw: "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "non-numeric pid" in out
+    assert seated == ["q"]          # p skipped, q still seated: the tick lived
+
+
+def test_fork_mode_without_session_id_is_refused_by_name(tmp_path, monkeypatch,
+                                                         capsys):
+    """NEW (c): a fork from the meter alone had a blank resume id."""
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    rc = rotate.main(["migrate", "--post", "p", "--to", "boxB", "--mode",
+                      "fork", "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "REFUSED" in out and "session-id" in out
+    assert not (tmp_path / "comms").exists()
+
+
+def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path):
+    """SHOULD FIX (a)+(b): dest is the projects path (never a copy in the
+    worktree) and the slug canonicalizes BOTH '/' and '.'."""
+    dest = rotate._migrate_transcript_dest(
+        Path("/home/x/.agi/worktrees/p"), "sess-1")
+    assert dest.name == "sess-1.jsonl"
+    assert dest.parent.name == "-home-x--agi-worktrees-p"
+    assert ".migrate-transcript.jsonl" not in str(dest)
+    assert str(dest).startswith(str(Path.home() / ".claude" / "projects"))
+
+
+def test_seat_makes_a_real_worktree_from_the_pushed_ref(tmp_path, monkeypatch):
+    """ALSO CLOSE conjunct 4: one minimal REAL-git test -- a real repo, a
+    real ref, a real `git worktree add`; only the spawn is recorded."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for argv in (["git", "init", "-q"],
+                 ["git", "config", "user.email", "t@t"],
+                 ["git", "config", "user.name", "t"]):
+        subprocess.run(argv, cwd=repo, check=True)
+    (repo / "f").write_text("x")
+    subprocess.run(["git", "add", "f"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-qm", "i"], cwd=repo, check=True)
+    subprocess.run(["git", "update-ref", "refs/agi/posts/p", "HEAD"],
+                   cwd=repo, check=True)
+    real_run = subprocess.run
+    spawns = []
+
+    def fake_run(argv, **kw):
+        if argv and argv[0] == "git":
+            return real_run(argv, **kw)
+        spawns.append(argv)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {})
+    cells = rotate._migrate_seat(repo, post="p", rec=_request(),
+                                 row={"role": "director"}, box="boxB")
+    assert (repo / ".agi" / "worktrees" / "post-p" / "f").is_file()
+    assert (repo / ".git" / "worktrees" / "post-p").is_dir()  # a real link
+    assert spawns and spawns[-1][1].endswith("rotate.py")
+    assert cells["box"] == "boxB"
+    assert cells["worktree"] == ".agi/worktrees/post-p"
+
+
+def _real_repo(tmp_path):
+    """A real git repo with a pushed refs/agi/posts/p -- the target box's
+    bytes for a genuine `git worktree add`."""
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for argv in (["git", "init", "-q"],
+                 ["git", "config", "user.email", "t@t"],
+                 ["git", "config", "user.name", "t"]):
+        subprocess.run(argv, cwd=repo, check=True)
+    (repo / "f").write_text("x")
+    subprocess.run(["git", "add", "f"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-qm", "i"], cwd=repo, check=True)
+    subprocess.run(["git", "update-ref", "refs/agi/posts/p", "HEAD"],
+                   cwd=repo, check=True)
+    return repo
+
+
+def test_receive_marks_the_moved_post_as_a_worktree_never_main(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R1: the seating writes the REAL post-worktree convention; a
+    post left with no worktree cell is classified MAIN and the next rotation
+    silently runs in MAIN."""
+    repo = _real_repo(tmp_path)
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex()})
+    real_run = subprocess.run
+    spawns = []
+
+    def fake_run(argv, **kw):
+        if argv and argv[0] == "git":
+            return real_run(argv, **kw)
+        spawns.append(argv)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    captured = {}
+    monkeypatch.setattr(rotate, "_write_identity_cells",
+                        lambda root, **kw: captured.update(kw) or "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), repo)
+    assert rc == 0
+    assert captured["cells"]["worktree"] == ".agi/worktrees/post-p"
+    row = {"name": "p", "worktree": captured["cells"]["worktree"]}
+    assert not (bool(row) and not row["worktree"].strip())   # NOT a MAIN post
+    assert rotate._seat_worktree_cwd(repo, row) == str(
+        repo / ".agi" / "worktrees" / "post-p")
+
+
+def test_auto_mode_fork_supplies_the_posts_own_session_id(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R2: when the meter is the chooser, fork must not be blocked
+    by the --session-id refusal -- the post's live id IS the thing to fork."""
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    live_send = importlib.import_module("send")
+    live_send._mint_seat_key(tmp_path, "p", "ed25519")
+    fake_comms = tmp_path / "comms"
+    monkeypatch.setattr(live_send, "comms_root",
+                        lambda root, override=None: fake_comms)
+    monkeypatch.setattr(rotate, "_migrate_default_mode",
+                        lambda root, post: "fork")
+    monkeypatch.setattr(rotate, "_migrate_row",
+                        lambda root, post: {"name": "p",
+                                            "session_id": "sess-9"})
+    rc = rotate.main(["migrate", "--post", "p", "--to", "boxB",
+                      "--root", str(tmp_path)])
+    assert rc == 0, capsys.readouterr().out
+    files = sorted((fake_comms / migrate_channel.SUBDIR).glob("*.md"))
+    parsed = migrate_channel.parse_record(files[0].read_text())
+    assert parsed["mode"] == "fork"
+    assert parsed["session_id"] == "sess-9"
+
+
+def test_auto_mode_fork_with_no_session_id_anywhere_is_refused(
+        tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    monkeypatch.setattr(rotate, "_migrate_default_mode",
+                        lambda root, post: "fork")
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {})
+    rc = rotate.main(["migrate", "--post", "p", "--to", "boxB",
+                      "--root", str(tmp_path)])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "REFUSED" in out and "session-id" in out
+
+
+def test_a_stage_absent_record_is_read_as_a_request_and_verifies(
+        tmp_path, monkeypatch):
+    """SLICE 4 R3: the slice-1 writer had no `stage`; its record must not be
+    silently dropped by an upgraded receiver, and its legacy signature (over
+    the stageless key order) must still verify."""
+    import yaml
+    live_send = importlib.import_module("send")
+    _p, pub = live_send._mint_seat_key(tmp_path, "p", "ed25519")
+    rec = _rec()
+    legacy = {k: rec.get(k, "") for k in migrate_channel._KEYS_LEGACY}
+    line = live_send._sign_line(
+        tmp_path, "p", rec["ts"], rec["target_box"],
+        migrate_channel._canonical(rec, migrate_channel._KEYS_LEGACY))
+    if line:
+        legacy["sig"] = line.split(": ", 1)[1]
+    text = ("---\n" + yaml.safe_dump(legacy, sort_keys=False)
+            + "---\n\nbody\n")
+    parsed = migrate_channel.parse_record(text)
+    assert parsed is not None and parsed["stage"] == "request"
+    assert migrate_channel.verify_record(text, pub.hex()) is True
+
+
+def test_receive_skips_a_record_it_cannot_seat_without_killing_the_tick(
+        tmp_path, monkeypatch, capsys):
+    """SLICE 4 R4: a `git worktree add` that left the worktree absent raises
+    in the spawn's cwd=; skip that record by name, seat the next one."""
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _q, pubq = live._mint_seat_key(tmp_path, "q", "ed25519")
+    _place(fake, _request(post="p", ts="2026-09-18T12:00:00+00:00"),
+           signer="p", root=tmp_path)
+    _place(fake, _request(post="q", ts="2026-09-18T12:01:00+00:00"),
+           signer="q", root=tmp_path)
+    rows = {"p": {"name": "p", "pubkey": pub.hex()},
+            "q": {"name": "q", "pubkey": pubq.hex()}}
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: rows.get(post, {}))
+    seated = []
+
+    def fake_seat(root, *, post, rec, row, box):
+        if post == "p":
+            raise FileNotFoundError("[Errno 2] no such file: worktrees")
+        seated.append(post)
+        return {"box": box, "worktree": f".agi/worktrees/post-{post}",
+                "window": "w", "pid": 1, "session_id": "s",
+                "session_name": "n"}
+
+    monkeypatch.setattr(rotate, "_migrate_seat", fake_seat)
+    monkeypatch.setattr(rotate, "_write_identity_cells", lambda root, **kw: "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "could not seat" in out and "tick lives" in out
+    assert seated == ["q"]
