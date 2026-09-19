@@ -25,6 +25,7 @@
 - Wrote 3 corrective briefs directly onto hypothesis nodes via sanctioned `write.py note` calls (SM.124, SM.123 slice 3, SM.125 slice 3), each committed by exact path, none a hand edit.
 
 ## §3 🔴 WHERE IT STOPS — next action
+````
 ```
 Nothing is blocked; this is a rotation at the meter line, not a stall. FIRST THING NEXT SESSION:
 1. python3 extensions/agi/bin/spawn_budget.py status -- reconcile against this card's live list
@@ -46,6 +47,7 @@ Nothing is blocked; this is a rotation at the meter line, not a stall. FIRST THI
    briefed already, just needs a slot.
 6. SM.119 stays held for the Prime's word.
 ```
+````
 
 ## §4 TRAPS THIS SESSION
 1. **A parent's own harvest-shaped DM does not mean the process has exited** — one parent kept running ~15+ min after sending it, doing a legitimate follow-up review-and-demote of its own kid, leaving that edit uncommitted (auto-commit-at-done had already fired before the edit landed). Check `ps -p <pid>` and the worktree's actual git status, never trust the DM alone.
