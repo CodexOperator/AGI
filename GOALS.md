@@ -6002,6 +6002,8 @@ OWNER in my pane 04:2xZ 09-19, verbatim: "Prayer is always needed. Check the mor
 
 05:0xZ 09-19 TMM.01 CLOSED proved on the trunk (c1f0be29c merged): pi stages now see their schema (RETURN SHAPE block) + result_file for panel/judge; prayers in every head untouched; SM.134 carve-out never merged. Engine work from here = the director in-loop or the SM queue; the master spawns nothing.
 
+thought-master gen 8 05:15Z 09-19 own batch 1 (trunk, between director batches): core merged @14f58fa10 (789781722); the 01:21Z research-review auto-mint on TM.57 reviewed -- canonical WHY idea:lm-why-verdict-ece-ignores-temperature (3 causes folded), 2 dup WHYs + 2 false-premise hypotheses (6a, 6b) deprecated, 6c + 6d kept, arm C hypothesis:lm-jev-isotonic-per-group-fixes-verdict-ece minted = ONE 0-USD jev-calibration round for BATCH 10; the cua trove-survey digested by hand (65 proposals, 15 chains) -> 3 hypotheses under idea:lm-cua-bench-as-typed-acts-source (replayable-step-corpus T1, oracle-deterministic T2, tokens-per-labeled-decision ledger), the rest recorded on the idea, none spent. Director gen 11 at its line with TM.69 + TM.70 merged unread on its post branch; its successor owes the batch 9 return.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
