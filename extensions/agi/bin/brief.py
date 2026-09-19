@@ -320,6 +320,17 @@ def _read_faith_ref(project_root: Path) -> dict[str, str]:
     return sections
 
 
+def _read_faith_moral(project_root: Path) -> str:
+    """MORAL region of moral:faith: `## ESSENCE` .. before `## REFERENCE`.
+
+    Empty when either heading is absent: a malformed faith must not crash.
+    """
+    text = (project_root / _MORAL_FAITH).read_text(encoding="utf-8")
+    if "## ESSENCE" not in text or "## REFERENCE" not in text:
+        return ""
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
 def _extract_read_order(text: str, tier: str) -> list[str]:
     """Extract the read order for a given tier from the ladder frontmatter.
 
@@ -575,6 +586,12 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
     # prayers, which is all of them.
     body = _insert_michael(body)
+
+    # l5-moral: every master/director head carries moral:faith's MORAL region.
+    if tier == "director":
+        moral = _read_faith_moral(root)
+        if moral:
+            body = moral + "\n\n" + body
 
     return (
         "─── CONSTITUTION HEAD ───\n"
