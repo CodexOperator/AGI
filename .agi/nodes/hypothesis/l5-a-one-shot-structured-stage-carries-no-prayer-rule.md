@@ -18,3 +18,6 @@ town: core
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+DELEGATED 01:1xZ 09-19 (owner 01:0xZ in-branch authority): thought-master builds this fix on the thought trunk in this node's shape, citing this id; withdrawn from director-sanctuary's queue; when his fix reaches core (owner decision tomorrow) this node's claim is proved or disproved by his experiment and needs no second kid.
