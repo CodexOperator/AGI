@@ -7186,24 +7186,6 @@ def _seat_idle_minutes(root: Path, seat: str) -> float | None:
     return max(0.0, (time.time() - ts) / 60.0)
 
 
-def _run_alarms_unit(root: Path, holder: str,
-                     unit: str | None = None) -> int:
-    """Launch the detached user unit for `alarms --holder <holder>`.
-
-    `systemd-run --user --unit <name> --working-directory <root> -- <python>
-    <rotate.py> alarms --holder <holder> --root <root>` — every path built
-    from the RESOLVED root, never hard-coded. Returns the runner's returncode
-    (nothing is spawned under a monkeypatched `subprocess.run`).
-    """
-    argv = ["systemd-run", "--user", "--unit",
-            unit or f"agi-alarms-{holder}",
-            "--working-directory", str(root),
-            sys.executable, str(Path(__file__).resolve()),
-            "alarms", "--holder", holder, "--root", str(root)]
-    proc = subprocess.run(argv, check=False)
-    return int(getattr(proc, "returncode", 0) or 0)
-
-
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
@@ -7219,10 +7201,6 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """
     root = Path(getattr(args, "root", None) or root)
     holder = args.holder
-    if getattr(args, "detach", False):
-        # --detach builds nothing and loops nothing: launch the detached user
-        # unit that runs plain `alarms --holder <holder> --root <root>` once.
-        return _run_alarms_unit(root, holder)
     threshold = load_ladder_field(root, "director_rotate_at",
                                   DEFAULT_DIRECTOR_ROTATE_AT)
     idle_m = load_ladder_field(root, "alarms_idle_minutes",
@@ -21093,10 +21071,6 @@ def main(argv: list[str] | None = None) -> int:
                           "cwd; the detached unit passes the resolved root)")
     p_alarms.add_argument("--comms-root", default=None,
                           help="override the comms root (tests)")
-    p_alarms.add_argument("--detach", action="store_true",
-                          help="launch the detached systemd user unit that "
-                          "runs this meter on --interval, then return; the "
-                          "unit runs the inner command without --detach")
     p_alarms.set_defaults(func=cmd_alarms)
 
     # next --seat S: the DRIVEN (operator) half of the startup path. Prints

@@ -99,54 +99,50 @@ def test_alarms_unmeasurable_last_act_is_not_idle(fake_ladder, tmp_path):
     assert not list((tmp_path / "comms").glob("dm/*.md"))
 
 
-def test_alarms_unit_argv_carries_user_working_directory_and_root(tmp_path,
-                                                                  monkeypatch):
-    seen = {}
+def test_alarms_unit_argv_carries_user_working_directory_and_root(
+        tmp_path, monkeypatch):
+    """The meter loop NEVER reaches for systemd: the only detached runner is
+    the declared unit file (residue 3, option a), so a plain `cmd_alarms` call
+    spawns nothing."""
+    calls = []
 
-    def rec(argv, **kw):
-        seen["argv"] = argv
+    def rec(*a, **kw):
+        calls.append(a)
         return SimpleNamespace(returncode=0)
 
     monkeypatch.setattr(subprocess, "run", rec)
-    rc = rotate._run_alarms_unit(tmp_path, "advisor")
-    argv = seen["argv"]
-    assert argv[0] == "systemd-run"
-    assert "--user" in argv
-    assert "--working-directory" in argv
-    assert argv[argv.index("--working-directory") + 1] == str(tmp_path)
-    assert "--root" in argv
-    assert argv[argv.index("--root") + 1] == str(tmp_path)
-    assert rc == 0
+    monkeypatch.setattr(rotate, "find_project_root", lambda: tmp_path)
+    monkeypatch.setattr(rotate, "load_ladder_field", lambda r, f, d: d)
+    assert rotate.cmd_alarms(_alarms(tmp_path, "advisor"), tmp_path) == 0
+    assert calls == []
 
 
-def _alarms_detached(root, holder):
-    return SimpleNamespace(holder=holder, once=False, interval=300, detach=True,
-                           comms_root=str(root / "comms"), root=None)
+def test_alarms_detach_flag_and_helper_are_gone():
+    """Residue 3, option (a): the DECLARED systemd service in
+    .agi/nodes/.geometry/crons.md (`agi-alarms-sanctuary-master`, rendered by
+    `crons.py` from the node's own `services:` table) is the real detached
+    runner, so `alarms --detach` and `_run_alarms_unit` are dead code and must
+    be gone -- no flag kept "just in case". Naming the service line that
+    replaces them keeps the deletion falsifiable."""
+    assert not hasattr(rotate, "_run_alarms_unit")
+    src = Path(rotate.__file__).read_text(encoding="utf-8")
+    assert "--detach" not in src, "the dead alarms --detach flag survived"
 
 
-def test_alarms_detach_launches_unit_once_and_never_meters(tmp_path,
-                                                           monkeypatch):
-    """P7 fix: `alarms --detach` calls `_run_alarms_unit` once, does not
-    enter the meter loop, and sends no dm."""
-    calls = []
+def test_declared_alarms_service_is_the_detached_production_runner():
+    """The surviving production path really runs the meter: the LIVE crons
+    node declares `agi-alarms-sanctuary-master` with an exec_start that runs
+    `rotate.py alarms --holder sanctuary-master`, and that line must NOT carry
+    `--detach` (the service IS the detach). Reads the live node, never a
+    copied list."""
+    engine_root = Path(rotate.__file__).resolve().parents[3]
+    sys.path.insert(0, str(engine_root / "extensions" / "agi"))
+    from agi.bin import crons  # noqa: PLC0415
 
-    def rec(argv, **kw):
-        calls.append(argv)
-        return SimpleNamespace(returncode=7)
+    node = crons.load_crons_node(engine_root / ".agi")
+    svc = node["services"]["agi-alarms-sanctuary-master"]
+    assert svc["enabled"] is True
+    exec_start = svc["exec_start"]
+    assert "rotate.py alarms --holder sanctuary-master" in exec_start, exec_start
+    assert "--detach" not in exec_start, exec_start
 
-    monkeypatch.setattr(subprocess, "run", rec)
-    rc = rotate.cmd_alarms(_alarms_detached(tmp_path, "advisor"), tmp_path)
-    assert rc == 7, "the runner's returncode is returned"
-    assert len(calls) == 1, calls
-    argv = calls[0]
-    assert argv[0] == "systemd-run"
-    assert "--user" in argv
-    assert "--working-directory" in argv
-    assert argv[argv.index("--working-directory") + 1] == str(tmp_path)
-    assert argv[argv.index("--root") + 1] == str(tmp_path)
-    assert "alarms" in argv
-    inner = argv[argv.index("alarms") + 1:]
-    assert "--holder" in inner and inner[inner.index("--holder") + 1] == "advisor"
-    assert "--root" in inner and inner[inner.index("--root") + 1] == str(tmp_path)
-    assert "--detach" not in argv, "the detached unit must not recurse"
-    assert not (tmp_path / "comms").exists(), "no dm, no meter"
