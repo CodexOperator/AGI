@@ -1128,6 +1128,10 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             # many, how many seconds (SM.105).
             "extensions": {lb: st["extensions"] for lb, st in view.state.items()
                            if st.get("extensions")},
+            # An empty declared handoff list (`handoff_list`) is a run-level
+            # boolean, so an empty ready_batch is legible in the record
+            # without failing the run.
+            "batch_empty": bool(getattr(view, "empty_handoffs", [])),
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -1158,6 +1162,10 @@ class RunView:
                            "violations": [], "attempts": [],
                            "extensions": []}
                       for lb in self.order}
+        # A stage that declares a `handoff_list` and returned it EMPTY. Its
+        # own run-level fact (never a failure), rendered by `summary` and
+        # recorded in the tracking row as `batch_empty`.
+        self.empty_handoffs: list = []
 
     def _tree(self) -> None:
         o = self.out
@@ -1229,6 +1237,18 @@ class RunView:
         if label in self.state:
             self.state[label]["attempts"] = [dict(a) for a in attempts]
 
+    def stage_empty_handoff(self, label: str, field: str) -> None:
+        """A stage that declared a `handoff_list` and returned it EMPTY.
+
+        Visibility, NOT failure: the stage legitimately dropped every
+        candidate, so the run still ends `ok`. Without this, an empty list is
+        indistinguishable from a chain that broke — both leave downstream
+        placeholders blank while the summary reads `ok`. Rendered by
+        `summary` and recorded as `batch_empty` on the tracking row."""
+        self.empty_handoffs.append({"stage": label, "field": field})
+        self.out.write(f"[empty] {label}: {field}=[]\n")
+        self.out.flush()
+
     def stage_unstructured(self, label: str, text: str,
                            violations: list[str] | None = None) -> None:
         """A stage whose pi process succeeded (rc 0) but returned no JSON that
@@ -1247,15 +1267,20 @@ class RunView:
             self.state[label]["violations"] = list(violations or [])
 
     def summary(self) -> None:
-        """The ONE summary both harnesses print. Renders from stage order and
-        statuses only — no harness token, no per-harness wording — so two runs
-        with the same stage outcomes end byte-identically."""
+        """The ONE summary both harnesses print. Renders from stage order,
+        statuses, and any empty-handoff warns — no harness token, no
+        per-harness wording — so two runs with the same stage outcomes end
+        byte-identically."""
         o = self.out
         for lb in self.order:
             o.write(f"[stage] {lb} {self.state[lb]['status']}\n")
         counts: dict[str, int] = {}
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
+        for e in self.empty_handoffs:
+            o.write(f"[warn] {e['stage']}: handoff {e['field']} is empty — "
+                    "the stage ran and kept nothing (batch_empty=true); "
+                    "this is not a chain failure\n")
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
                 f"ok={counts.get('ok', 0)} "
                 f"unstructured={counts.get('unstructured', 0)} "
@@ -1307,6 +1332,14 @@ def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) 
     ctx = _SafeDict(run_args)
     for k, v in (stage.get("_repeat_item") or {}).items():
         ctx[k] = v
+    # `{project_root}` is injected by `run_workflow`; a direct caller (a
+    # probe, a test) may pass it too. When it is absent, resolve the cwd's
+    # project root rather than expanding to '' and emitting `cd  &&` — never
+    # a hardcoded checkout path.
+    if not ctx.get("project_root"):
+        _pr = _loc.find_project_root()
+        if _pr is not None:
+            ctx["project_root"] = str(_pr.parent)
     if prior:
         for k, v in prior.items():
             ctx[k] = v
@@ -2019,6 +2052,13 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
     # mint reads existing tracked rows so a re-run de-collides (-2, -3).
     run_key = _mint_run_key(root, key, args)
+    # The RUNNER resolves the project root and hands it to every stage prompt
+    # as `{project_root}` — no prompt hardcodes a checkout path, so a run
+    # started in a git worktree mints into THAT worktree's graph. Added AFTER
+    # the run key is minted: a path is environment, not identity, and must
+    # never enter the descriptive key (`rr-tm57`, unchanged).
+    args = dict(args or {})
+    args.setdefault("project_root", str(repo))
     out.write(f"[run-key] {run_key}\n")
     cfg_row = (cfg.get("workflows") or {}).get(key) or {}
     manifest = _load_manifest(repo, key)
@@ -2194,6 +2234,14 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 timeout_s=stage_timeout)
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
+                # A declared handoff list that came back EMPTY is a run-level
+                # fact, not a stage failure: name it so a consumer can tell
+                # "the stage dropped everything" from "the chain broke"
+                # (the schema has no minItems, so both look identical).
+                hfield = st.get("handoff_list")
+                if (hfield and isinstance(value, dict)
+                        and value.get(hfield) == []):
+                    view.stage_empty_handoff(st["label"], hfield)
             if rc != 0:
                 # MARK AND CONTINUE: this slice failed; siblings and every
                 # independent stage still run. The run ends non-zero below.
