@@ -192,6 +192,35 @@ def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
             "dirty_paths": dirty, "kids": kids}
 
 
+def _turn_end_with_live_kid(iter_dir, agent_id, is_alive) -> "str | None":
+    """Name of a still-live kid when this agent's LAST log event is a
+    COMPLETED turn (pi `turn_end` or claude-code `result`/`success`), else
+    None. hypothesis:l5-a-parent-waits-...: in headless -p a turn-end IS
+    process exit; a truncated log answers None, so the honest 'died' label
+    stays."""
+    try:
+        lines = [l for l in (Path(iter_dir) / agent_id / "output.log")
+                 .read_text(errors="replace").splitlines() if l.strip()]
+        ev = json.loads(lines[-1])
+    except (OSError, ValueError, IndexError):
+        return None
+    if not ((ev.get("type") == "result" and ev.get("subtype") == "success")
+            or ev.get("type") == "turn_end"):
+        return None
+    for ap in sorted(Path(iter_dir).glob("*/agent.json")):
+        try:
+            krec = json.loads(ap.read_text())
+        except (OSError, ValueError):
+            continue
+        if (krec.get("spawned_by_agent") != agent_id
+                and krec.get("dispatched_by") != agent_id):
+            continue
+        if (krec.get("status") in (None, "running")
+                and is_alive(_rec_pid(krec))):
+            return krec.get("node_id") or ap.parent.name
+    return None
+
+
 def _rec_pid(rec: dict) -> int:
     """The record's pid as an int, tolerant of null / non-int pids.
 
@@ -3371,21 +3400,24 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
     if not restart_ok:
         _cap = (" memory-cap" if mem_cap.reaped_cap_death(
             pid, rec.get("memory_max")) else "")
+        _turn = _turn_end_with_live_kid(iter_dir, agent_id, adapter.is_alive)
+        _reason = (f"turn-end with live kid {_turn} (headless exit, not a death)" if _turn else f"pid {pid} died (detected by reaper){_cap}")
+        _death = _death_class(
+            rec.get("worktree") or "", agent_id,
+            int(time.time()) - int(rec.get("started_at", 0) or 0),
+            agent_dir=iter_dir / agent_id)
+        if _turn:
+            _death["evidence"] = "turn-end"
         return {
             "record": {
                 "status": "failed",
                 "finished_at": int(time.time()),
-                "fail_reason": f"pid {pid} died (detected by reaper){_cap}",
+                "fail_reason": _reason,
                 # hypothesis:l4-a-reaped-parent-record-names-its-death-class-
-                # and-staged-work… — the class rides BESIDE fail_reason; the
-                # fail_reason text is deliberately unchanged.
-                "death": _death_class(
-                    rec.get("worktree") or "", agent_id,
-                    int(time.time()) - int(rec.get("started_at", 0) or 0),
-                    agent_dir=iter_dir / agent_id),
+                # and-staged-work… — the class rides BESIDE fail_reason.
+                "death": _death,
             },
-            "message": (f"agent {agent_id} failed (pid {pid} died — death "
-                        f"recorded by the reaper service)"),
+            "message": f"agent {agent_id} failed ({_reason})",
         }
 
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
