@@ -50,13 +50,21 @@ refusal happened without parsing stderr):
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# The unpatched dispatch primitives, captured once: `_run_stage_proc` resumes a
+# live child across a wall extension, which needs the real `Popen`; a caller
+# that injected only `subprocess.run` (the legacy test seam) still gets it.
+_REAL_POPEN = subprocess.Popen
+_REAL_RUN = subprocess.run
 
 import yaml
 
@@ -69,6 +77,7 @@ import adapters  # noqa: E402  -- owns the model/provider namespace guard,
 import provisioning  # noqa: E402  -- the ONE mint seam dispatch.py uses
 import spawn_gate  # noqa: E402  -- reads ladder roles for the same resolver
 import locations as _loc  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
 from frontmatter import split_frontmatter  # noqa: E402
 
 WORKFLOWS_DIR_REL = ("extensions", "agi", "workflows")
@@ -601,6 +610,45 @@ def _row_matches_key(r: dict, key: str) -> bool:
     return any(key == i for i in _row_harness_ids(r))
 
 
+def link_workflows(root: Path, out=sys.stdout) -> int:
+    """Create the `.claude/workflows/<script>` -> `../../extensions/agi/
+    workflows/<script>` RELATIVE symlink for every registered manifest script
+    that has none, matching the four already there. Idempotent (a second run
+    creates 0). Refuses BY NAME, never silently skips, when a path already
+    exists and is not a symlink pointing at the right target. Returns 2 on any
+    such refusal, else 0."""
+    repo = _repo_root(root)
+    wf = repo.joinpath(*WORKFLOWS_DIR_REL)
+    links = repo / ".claude" / "workflows"
+    links.mkdir(parents=True, exist_ok=True)
+    made = 0
+    for mf in sorted(wf.glob("*.json")):
+        try:
+            manifest = json.loads(mf.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        script = manifest.get("script")
+        if not script:
+            continue
+        dest = links / script
+        target = Path("..") / ".." / Path(*WORKFLOWS_DIR_REL) / script
+        if dest.is_symlink():
+            if os.readlink(dest) == str(target):
+                continue
+            print(f"workflow.py: link refused: {dest} is a symlink to "
+                  f"{os.readlink(dest)!r}, not {str(target)!r}",
+                  file=sys.stderr)
+            return 2
+        if dest.exists():
+            print(f"workflow.py: link refused: {dest} exists and is not a "
+                  f"symlink to {str(target)!r}", file=sys.stderr)
+            return 2
+        dest.symlink_to(target)
+        made += 1
+    out.write(f"[linked] {made} workflow link(s) created\n")
+    return 0
+
+
 def note_workflow(root: Path, run_key: str, harness_id: str,
                   out=sys.stdout) -> int:
     """Record the claude-code harness's `wf_<id>` beside the tracked row a
@@ -767,9 +815,20 @@ def _expand_stages(manifest: dict, args: dict) -> list[dict]:
             out.append(dict(st))
             continue
         tmpl = rep.get("label_template", st["label"] + ":{?}")
+        # The slice identity is the field the stage's OWN template names
+        # ({key}->key, {slug}->slug, {window}->window); window/slug are only a
+        # template-agnostic fallback. The old fixed window/slug probe made
+        # _repeat_key None for every {key}-axis manifest, so one failed slice
+        # matched all its siblings (SM.105 key-axis falsifier).
+        key_fields = re.findall(r"\{(\w+)\}", tmpl)
         for item in pool:
             sub = dict(st)
-            key = item.get("window") or item.get("slug") if isinstance(item, dict) else item
+            if not isinstance(item, dict):
+                key = item
+            else:
+                key = next((item[f] for f in key_fields if f in item), None)
+                if key is None:
+                    key = item.get("window") or item.get("slug")
             try:
                 sub["label"] = tmpl.format(**item) if isinstance(item, dict) else tmpl
             except (KeyError, IndexError):
@@ -895,6 +954,37 @@ def validate_return(schema: dict | None, value) -> list[str]:
     return errors
 
 
+def _result_file_value(stage: dict, run_args: dict,
+                       view: "RunView | None") -> "dict | None":
+    """A stage's declared `result_file`, read back as its structured return.
+
+    Read the rendered `result_file` as JSON and return it ONLY when it
+    validates against the stage schema; the stage is then marked
+    `resolved-from-digest`. Absent, unparseable or schema-invalid: None, and
+    the caller fails the stage as today (hypothesis:l4-a-research-stage-whose-
+    digest-file-is-complete-returns-it-as-its-structured-result-never-fails-
+    the-run-at-the-structured-return)."""
+    tmpl = stage.get("result_file")
+    if not tmpl:
+        return None
+    ctx = _SafeDict(run_args)
+    for k, v in (stage.get("_repeat_item") or {}).items():
+        ctx[k] = v
+    p = Path(_PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl))
+    try:
+        value = json.loads(p.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if validate_return(stage.get("schema"), value):
+        return None
+    if view is not None:
+        view.stage_resolved(stage["label"], f"resolved-from-digest: {p}")
+    else:
+        print(f"workflow.py: stage {stage['label']} resolved from digest {p}",
+              file=sys.stderr)
+    return value
+
+
 def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
     lines = []
     for st in stages:
@@ -913,7 +1003,8 @@ def _dispatch_lines(stages: list[dict], knobs: dict[str, dict]) -> list[str]:
 # summary render from the same events, so no presentation detail can appear
 # on one harness and not the other — there is only one source.
 _GLYPH = {"pending": "[ ]", "running": "[~]", "ok": "[✓]",
-          "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]"}
+          "failed": "[✗]", "resolved": "[·]", "unstructured": "[?]",
+          "skipped": "[»]"}
 
 # The tree renders a HEAD of a stage's detail, never the whole thing
 # (hypothesis:l4-workflow-residue-sub-floor-marker-dead-code-and-truncation
@@ -945,6 +1036,22 @@ def _preview_detail(text: str) -> str:
 
 
 
+def _run_key_path_component(run_key: str) -> str:
+    """Filesystem-safe form of `run_key` for use as a directory name. Most
+    filesystems cap one path component at 255 bytes, and a run_key slugged
+    from a long `why`/args blob can exceed that -- measured: `brainstorm`'s
+    run_key (idea id + whole `why` string + max_hypotheses) tripped `File
+    name too long` on mkdir, which `_persist_stage_value`'s broad except
+    swallowed, so the stage's structured return was never written and the
+    chained stage read back only the 200-char preview (director gen 6,
+    commit 453445d60). Truncated keys keep a digest of the FULL key so two
+    long keys sharing a prefix still land in different directories."""
+    if len(run_key.encode("utf-8")) <= 200:
+        return run_key
+    digest = hashlib.sha256(run_key.encode("utf-8")).hexdigest()[:8]
+    return f"{run_key[:190]}-{digest}"
+
+
 def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
     """Write a pi stage's WHOLE return to
     `<sessions>/workflows/runs/<run_key>/<label>.json` -- the view keeps 200
@@ -954,7 +1061,7 @@ def _persist_stage_value(root: Path, run_key: str, label: str, value) -> None:
     Best effort: a persistence failure never fails the run."""
     try:
         sess = _loc.shared_project_root(root) or root
-        d = Path(sess) / "sessions" / "workflows" / "runs" / run_key
+        d = Path(sess) / "sessions" / "workflows" / "runs" / _run_key_path_component(run_key)
         d.mkdir(parents=True, exist_ok=True)
         safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", label)
         (d / f"{safe}.json").write_text(
@@ -1009,10 +1116,22 @@ def _track_run(root: Path, key: str, harness: str, view, run_key: str | None = N
             # name conjunct (3)).
             "violations": {lb: st["violations"] for lb, st in view.state.items()
                            if st.get("violations")},
+            # A resolved-from-digest stage NAMES the file it stood in for.
+            "resolved_from_digest": {
+                lb: st["detail"] for lb, st in view.state.items()
+                if st["detail"].startswith("resolved-from-digest:")},
             # Every transient retry is NAMED in the record: stage label,
             # attempt n, matched signature, sleep seconds.
             "attempts": {lb: st["attempts"] for lb, st in view.state.items()
                          if st.get("attempts")},
+            # A wall extension is part of the run status: which stage, how
+            # many, how many seconds (SM.105).
+            "extensions": {lb: st["extensions"] for lb, st in view.state.items()
+                           if st.get("extensions")},
+            # An empty declared handoff list (`handoff_list`) is a run-level
+            # boolean, so an empty ready_batch is legible in the record
+            # without failing the run.
+            "batch_empty": bool(getattr(view, "empty_handoffs", [])),
         }
         path = wf_dir / f"{key}.jsonl"
         with open(path, "a", encoding="utf-8") as fh:
@@ -1040,8 +1159,13 @@ class RunView:
         self.out = out
         self.order = [st["label"] for st in stages]
         self.state = {lb: {"status": "pending", "detail": "",
-                           "violations": [], "attempts": []}
+                           "violations": [], "attempts": [],
+                           "extensions": []}
                       for lb in self.order}
+        # A stage that declares a `handoff_list` and returned it EMPTY. Its
+        # own run-level fact (never a failure), rendered by `summary` and
+        # recorded in the tracking row as `batch_empty`.
+        self.empty_handoffs: list = []
 
     def _tree(self) -> None:
         o = self.out
@@ -1072,7 +1196,9 @@ class RunView:
 
     def stage_resolved(self, label: str, detail: str = "") -> None:
         """claude-code path: the script is the runner there, so a stage can
-        only be RESOLVED here, never observed to completion."""
+        only be RESOLVED here, never observed to completion. Also the pi
+        path's digest fallback: a stage with no schema-valid stdout whose
+        declared `result_file` validates is resolved from that file."""
         self._set(label, "resolved", detail)
 
     def stage_started(self, label: str, detail: str = "") -> None:
@@ -1088,11 +1214,40 @@ class RunView:
     def stage_failed(self, label: str, reason: str) -> None:
         self._set(label, "failed", reason.replace("\n", " ")[:120])
 
+    def stage_skipped(self, label: str, reason: str) -> None:
+        """A stage skipped BY NAME because the slice it depends on failed
+        (SM.105 isolation). Its own status, never `failed`: nothing was run."""
+        self._set(label, "skipped", reason.replace("\n", " ")[:120])
+
+    def stage_extension(self, label: str, extension_s: float,
+                        n: int = 1, pid: int | None = None) -> None:
+        """Name a granted wall extension: the stage was producing at the
+        wall and got `extension_s` more seconds (the n-th extension). `pid` is
+        the SAME live process the wall was moved under -- recorded so the run
+        status proves the extension was in place, not a re-dispatch."""
+        if label in self.state:
+            self.state[label]["extensions"].append(
+                {"n": n, "extension_s": extension_s, "pid": pid})
+        self.out.write(f"[extension] {label} +{extension_s:g}s (n={n})\n")
+        self.out.flush()
+
     def stage_attempts(self, label: str, attempts: list) -> None:
         """Record the named retry rows (attempt n, signature, sleep_s) for a
         stage, so `_track_run`'s jsonl row carries them."""
         if label in self.state:
             self.state[label]["attempts"] = [dict(a) for a in attempts]
+
+    def stage_empty_handoff(self, label: str, field: str) -> None:
+        """A stage that declared a `handoff_list` and returned it EMPTY.
+
+        Visibility, NOT failure: the stage legitimately dropped every
+        candidate, so the run still ends `ok`. Without this, an empty list is
+        indistinguishable from a chain that broke — both leave downstream
+        placeholders blank while the summary reads `ok`. Rendered by
+        `summary` and recorded as `batch_empty` on the tracking row."""
+        self.empty_handoffs.append({"stage": label, "field": field})
+        self.out.write(f"[empty] {label}: {field}=[]\n")
+        self.out.flush()
 
     def stage_unstructured(self, label: str, text: str,
                            violations: list[str] | None = None) -> None:
@@ -1112,15 +1267,20 @@ class RunView:
             self.state[label]["violations"] = list(violations or [])
 
     def summary(self) -> None:
-        """The ONE summary both harnesses print. Renders from stage order and
-        statuses only — no harness token, no per-harness wording — so two runs
-        with the same stage outcomes end byte-identically."""
+        """The ONE summary both harnesses print. Renders from stage order,
+        statuses, and any empty-handoff warns — no harness token, no
+        per-harness wording — so two runs with the same stage outcomes end
+        byte-identically."""
         o = self.out
         for lb in self.order:
             o.write(f"[stage] {lb} {self.state[lb]['status']}\n")
         counts: dict[str, int] = {}
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
+        for e in self.empty_handoffs:
+            o.write(f"[warn] {e['stage']}: handoff {e['field']} is empty — "
+                    "the stage ran and kept nothing (batch_empty=true); "
+                    "this is not a chain failure\n")
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
                 f"ok={counts.get('ok', 0)} "
                 f"unstructured={counts.get('unstructured', 0)} "
@@ -1172,10 +1332,42 @@ def render_stage_prompt(stage: dict, run_args: dict, prior: dict | None = None) 
     ctx = _SafeDict(run_args)
     for k, v in (stage.get("_repeat_item") or {}).items():
         ctx[k] = v
+    # `{project_root}` is injected by `run_workflow`; a direct caller (a
+    # probe, a test) may pass it too. When it is absent, resolve the cwd's
+    # project root rather than expanding to '' and emitting `cd  &&` — never
+    # a hardcoded checkout path.
+    if not ctx.get("project_root"):
+        _pr = _loc.find_project_root()
+        if _pr is not None:
+            ctx["project_root"] = str(_pr.parent)
     if prior:
         for k, v in prior.items():
             ctx[k] = v
     return _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
+
+
+def _return_shape_block(stage: dict, run_args: dict) -> str:
+    """The RETURN SHAPE block for a pi stage's prompt when (and ONLY when)
+    it declares a `schema`: schema JSON, required keys, the last-stdout-
+    bytes instruction, and the rendered result_file path. Schema-less
+    stages get "" and render byte-identical to before."""
+    schema = stage.get("schema")
+    if not schema:
+        return ""
+    req = schema.get("required") or list(schema.get("properties") or {})
+    lines = ["", "RETURN SHAPE (required): the LAST thing in your stdout must "
+             "be exactly one JSON object matching this schema, with nothing "
+             "after it:", json.dumps(schema), f"Required keys: {', '.join(req)}"]
+    tmpl = stage.get("result_file")
+    if tmpl:
+        ctx = _SafeDict(run_args)
+        for k, v in (stage.get("_repeat_item") or {}).items():
+            ctx[k] = v
+        path = _PLACEHOLDER.sub(lambda m: str(ctx[m.group(1)]), tmpl)
+        lines.append("Also write that same JSON object to " + path
+                     + " before you finish; that file is this stage's result "
+                     "of record if stdout is cut.")
+    return "\n".join(lines)
 
 
 def _pi_harness_cfg(cfg: dict) -> dict:
@@ -1503,6 +1695,63 @@ def _pi_failure_is_transient(output_text: str, stderr_text: str,
     return m.group(0)
 
 
+def _stage_is_producing(stage: dict) -> bool:
+    """A stage is PRODUCING at the wall when its declared `progress_file`
+    (alias `output_file` / `heartbeat_file`) was touched within `silence_s`
+    (default 300 s); otherwise it is silent and the wall kills it."""
+    path = (stage.get("progress_file") or stage.get("output_file")
+            or stage.get("heartbeat_file"))
+    try:
+        mtime = os.stat(path).st_mtime
+    except (OSError, TypeError):
+        return False
+    return (time.time() - mtime) <= stage.get("silence_s", 300)
+
+
+def _run_stage_proc(cmd, *, budget: float, stage: dict,
+                    spawn_env: dict | None, view: "RunView | None",
+                    cap: "str | None" = None):
+    """Run ONE stage command with the SM.105 optional wall extension, on a
+    live `Popen` so an extension is the SAME process and the SAME output file.
+
+    A producing stage at the wall keeps its pid: the deadline moves and the
+    poll loop keeps waiting on the process it already started -- no kill, no
+    re-dispatch, no second run. A silent stage (or a stage out of extensions)
+    is killed at the wall and raises TimeoutExpired, the exact contract
+    `subprocess.run` had. A caller that injected only `subprocess.run` (the
+    legacy test seam) owns dispatch and cannot hand back a resumable child, so
+    it gets the single deadline it was given."""
+    env = spawn_env if spawn_env is not None else _pi_env()
+    # SM.112 -- one cap for the stage child. Only on a REAL launch: a test
+    # that injected the Popen seam owns its own child.
+    if cap is not None and subprocess.Popen is _REAL_POPEN:
+        cmd = mem_cap.wrap_argv(cmd, cap)
+    if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
+        return subprocess.run(cmd, capture_output=True, text=True, env=env,
+                              timeout=budget)
+    grants = max(0, int(stage.get("max_extensions", 1) or 0))
+    n = 0
+    deadline = time.monotonic() + budget
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, text=True, env=env)
+    while True:
+        try:
+            out, err = proc.communicate(
+                timeout=max(0.0, deadline - time.monotonic()))
+            return subprocess.CompletedProcess(cmd, proc.returncode, out, err)
+        except subprocess.TimeoutExpired:
+            if n >= grants or not _stage_is_producing(stage):
+                proc.kill()
+                out, err = proc.communicate()
+                raise subprocess.TimeoutExpired(cmd, deadline, output=out,
+                                                stderr=err)
+            n += 1
+            budget = stage.get("extension_s") or budget
+            deadline = time.monotonic() + budget
+            if view is not None:
+                view.stage_extension(stage["label"], budget, n, pid=proc.pid)
+
+
 def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
                   out=sys.stdout, view: "RunView | None" = None,
                   prior: dict | None = None,
@@ -1527,13 +1776,16 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     `_resolve_workflow_spawn_env()`.
 
     `timeout_s` is the stage's wall-clock budget, resolved by the CALLER from
-    the manifest (`stage["timeout_s"]` > `manifest["timeout_s"]` > 600) —
-    this function never re-reads a manifest (hypothesis:l4-a-per-run-workflow-
-    key-is-revoked-at-run-end-and-a-schema-miss-keeps-its-name conjunct (5)).
-    None means 600, byte-identical to the old hardcoded literal."""
+    the manifest (`stage["timeout_s"]` > `manifest["timeout_s"]` >
+    `_DEFAULT_STAGE_TIMEOUT_S`) — this function never re-reads a manifest
+    (hypothesis:l4-a-per-run-workflow-key-is-revoked-at-run-end-and-a-schema-
+    miss-keeps-its-name conjunct (5)). None means the module default."""
     import subprocess
+    budget = _DEFAULT_STAGE_TIMEOUT_S if timeout_s is None else timeout_s
+    cap = mem_cap.resolve_memory_cap(cfg)
     k = knobs[stage["label"]]
-    prompt = render_stage_prompt(stage, run_args, prior=prior)
+    prompt = render_stage_prompt(stage, run_args, prior=prior) \
+        + _return_shape_block(stage, run_args)
     if context_text:
         prompt = f"{context_text}\n\nSTAGE TASK:\n{prompt}"
     hc = _pi_harness_cfg(cfg)
@@ -1558,10 +1810,9 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     # most 3 attempts, sleeping 15 then 45 s through the injectable seam.
     while True:
         try:
-            proc = subprocess.run(
-                cmd, capture_output=True, text=True,
-                env=(spawn_env if spawn_env is not None else _pi_env()),
-                timeout=(600 if timeout_s is None else timeout_s))
+            proc = _run_stage_proc(
+                cmd, budget=budget, stage=stage, spawn_env=spawn_env,
+                view=view, cap=cap)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
@@ -1573,7 +1824,10 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             # hypothesis:l4-the-harvest-reads-the-diff-per-deliverable-a-
             # timeout-says-timed-out-... from mur-sm-60) -- this is the
             # merged shape, reconciled at a season2/main merge conflict.
-            budget = 600 if timeout_s is None else timeout_s
+            # A wall-cut stage whose result_file is complete resolves.
+            digest = _result_file_value(stage, run_args, view)
+            if digest is not None:
+                return 0, digest
             if view is not None:
                 view.stage_failed(stage["label"],
                                    f"timed out after {budget:g} s")
@@ -1599,6 +1853,16 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
             break
         signature = _pi_failure_is_transient(output, proc.stderr or "", stage)
         if signature is None:
+            # SM.112 -- the cap's kill is NAMED, never the generic rc: the
+            # cap predicate is checked FIRST, the wall timeout raised above.
+            if mem_cap.is_cap_death(proc.returncode, cap,
+                                    output + (proc.stderr or "")):
+                if view is not None:
+                    view.stage_failed(stage["label"],
+                                      f"memory-cap (rc={proc.returncode})")
+                print(f"workflow.py: stage {stage['label']} killed by memory-cap "
+                      f"rc={proc.returncode}", file=sys.stderr)
+                return 3, None
             # rc != 0 WITHOUT the transient signature is a real failure, never
             # retried (falsifier: a stage retried on a failure without it).
             if view is not None:
@@ -1652,6 +1916,18 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
               file=sys.stderr)
         return 4, None
     if value is None:
+        # No valid block in stdout: a declared result_file may still hold it.
+        digest = _result_file_value(stage, run_args, view)
+        if digest is not None:
+            return 0, digest
+        if stage.get("result_file"):
+            if view is not None:
+                view.stage_failed(stage["label"], "no schema-valid JSON and "
+                                  "no complete result_file")
+            print(f"workflow.py: stage {stage['label']} declared result_file "
+                  f"but neither stdout nor the file carried a schema-valid "
+                  f"return", file=sys.stderr)
+            return 2, None
         # The pi process SUCCEEDED and returned prose with no schema-valid
         # JSON. That is `unstructured`, never a failure: the run continues,
         # the stage's whole text rides the value so the next stage's `prior`
@@ -1688,11 +1964,21 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
     return 0, value
 
 
-# The historical, undeclared default wall-clock budget for one stage. Named
-# here so the resolver is the ONE place the default lives; `_run_stage_pi`
-# still guards its own `timeout_s is None` for legacy callers, and that guard
-# resolves to this same number.
-_DEFAULT_STAGE_TIMEOUT_S = 600
+# The undeclared default wall-clock budget for one stage, raised 600 -> 3600
+# by the SM.105 owner verbatim (2026-09-18: "increase the timeout ... like 60
+# mins to be safe with optional extension"). Named here so the resolver is
+# the ONE place the default lives; `_run_stage_pi` still guards its own
+# `timeout_s is None` for legacy callers, and that guard resolves to this
+# same number.
+_DEFAULT_STAGE_TIMEOUT_S = 3600
+
+# A load-scaled wall is capped at this multiple of the declared budget.
+_LOAD_CAP_MULT = 2.0
+
+
+def _current_load() -> float:
+    """The ONE load source a wall may scale on; tests patch THIS seam."""
+    return os.getloadavg()[0]
 
 
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
@@ -1716,7 +2002,7 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     from a hung stage until it has already hung.
 
     An absent value anywhere falls through to the manifest value and then to
-    `_DEFAULT_STAGE_TIMEOUT_S` (600), byte-behaviour-identical to before.
+    `_DEFAULT_STAGE_TIMEOUT_S` (3600 since SM.105).
     """
     label = stage.get("label")
     if "timeout_s" in stage and stage["timeout_s"] is not None:
@@ -1732,7 +2018,53 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
             f"{where}={raw!r} is not a positive number of seconds; a budget "
             f"of 0 (or less, or non-numeric) is not a request to wait "
             f"forever — the run is refused before any stage is dispatched")
-    return raw
+    # Opt-in load scaling (absent key = byte-for-byte today's number).
+    lf = (stage["load_factor"] if "load_factor" in stage
+          else manifest.get("load_factor"))
+    if lf is None:
+        return raw
+    if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
+        raise ValueError(
+            f"stage {label!r} load_factor={lf!r} is not a positive number")
+    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
+
+
+def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
+    """The base label this stage depends on that has a failed slice, or None.
+    A repeated slice depends on the SAME `_repeat_key` of its base; a simple
+    stage depends on the whole base. A repeated stage never consults its own
+    base label, so a failed slice never skips a sibling slice (SM.105)."""
+    deps = stage.get("chained_from") or stage.get("depends_on")
+    if not deps:
+        return None
+    deps = [deps] if isinstance(deps, str) else deps
+    for d in deps:
+        keys = failed_keys.get(d)
+        if keys and ("_repeat_key" not in stage
+                     or stage["_repeat_key"] in keys):
+            return d
+    return None
+
+
+#: The three env markers a LIVE Claude Code session exports. Their presence
+#: is what tells a native Workflow tool call (the caller IS Claude Code) apart
+#: from a headless `workflow.py run --harness claude-code` invocation, which
+#: must keep printing the SM.120 stderr notice and execute nothing
+#: (hypothesis:l4-same-harness-handback-...).
+CLAUDE_CODE_SEAM_VARS = (
+    "CLAUDECODE", "CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_MESSAGING_SOCKET",
+)
+
+
+def _claude_code_seam_present(env: dict | None = None) -> bool:
+    """True when the caller IS a live Claude Code session (all three seam
+    vars exported), False for any other caller. `env` defaults to
+    `os.environ`, and a test passes an explicit mapping so BOTH branches are
+    assertable without forking a session — the three shipped tests that call
+    `run_workflow(..., "claude-code", ...)` directly inherit the ambient
+    seam and must clear it to keep testing the seam-ABSENT path."""
+    e = os.environ if env is None else env
+    return all(e.get(v) for v in CLAUDE_CODE_SEAM_VARS)
 
 
 def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
@@ -1745,6 +2077,13 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
     # mint reads existing tracked rows so a re-run de-collides (-2, -3).
     run_key = _mint_run_key(root, key, args)
+    # The RUNNER resolves the project root and hands it to every stage prompt
+    # as `{project_root}` — no prompt hardcodes a checkout path, so a run
+    # started in a git worktree mints into THAT worktree's graph. Added AFTER
+    # the run key is minted: a path is environment, not identity, and must
+    # never enter the descriptive key (`rr-tm57`, unchanged).
+    args = dict(args or {})
+    args.setdefault("project_root", str(repo))
     out.write(f"[run-key] {run_key}\n")
     cfg_row = (cfg.get("workflows") or {}).get(key) or {}
     manifest = _load_manifest(repo, key)
@@ -1820,10 +2159,31 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
 
     view = RunView(key, stages, harness, out=out)
     view.run_started()
-    if harness != "pi":
+    if harness == "claude-code":
         # claude-code harness: the Workflow script is the runner; we only
         # resolve and describe — but through the SAME event stream the pi
         # path feeds, so the two surfaces differ only where execution does.
+        # TWO callers reach here: (a) a NATIVE Claude Code session, whose
+        # tool call we hand back exactly — the ONE registered name and the
+        # resolved args — so the caller copy-pastes a call that runs; and
+        # (b) a headless `--harness claude-code` run, which must say out loud
+        # that it executed nothing (hypothesis:l4-a-workflow-run-on-the-
+        # claude-code-harness-says-it-executed-nothing-and-names-the-two-real-
+        # routes). The seam distinguishes them; the pi path never reaches here.
+        if _claude_code_seam_present():
+            # The registered workflow NAME is the script stem (`script` minus
+            # `.js`), NEVER the config key: `review` -> `agi-round-review.js`
+            # and `drafting` -> `agi-brief-drafting.js`, so formatting the key
+            # would print two names that do not exist as `.claude/workflows/`
+            # links and the copy-pasted call would fail.
+            script = str(manifest.get("script") or "")
+            wf_name = script[:-3] if script.endswith(".js") else script
+            out.write(f"Workflow({json.dumps({'name': wf_name, 'args': args})})\n")
+        else:
+            print(f"workflow.py: no stage executed by workflow.py; "
+                  f"{manifest.get('script')} runs under the Claude Code "
+                  f"Workflow tool; a headless run is `--harness pi`",
+                  file=sys.stderr)
         for st in stages:
             view.stage_resolved(st["label"],
                                 f"model={knobs[st['label']].get('model')} "
@@ -1855,22 +2215,43 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # a-schema-miss-keeps-its-name conjunct (2)).
     try:
         prior_by_key: dict[tuple, dict] = {}
+        # SM.105 isolation: `failed_keys` maps a base label (or a simple
+        # stage's own label) to its failed repeat keys. The loop NEVER returns
+        # on the first failure -- it marks THAT slice failed and continues,
+        # skipping only stages that depend on a failed slice.
+        failed_keys: dict[str, set] = {}
+        first_rc: int | None = None
         for st in stages:
+            dep = _failed_dependency(st, failed_keys)
+            if dep is not None:
+                view.stage_skipped(st["label"], f"dependency {dep!r} failed")
+                print(f"workflow.py: workflow={key} skipped stage "
+                      f"{st['label']} (dependency {dep!r} failed)",
+                      file=sys.stderr)
+                continue
             prior = None
             if "_repeat_key" in st and st.get("chained_from"):
-                # The chain mechanism: a repeated stage whose manifest names a
-                # `chained_from` base label renders with the PRIOR stage's
-                # validated return for the SAME repeat key merged into its prompt
-                # context (so it can name the finding's schema fields —
-                # {answer}, {still_live}, ...). Nothing else on pi crosses stage
-                # boundaries; run_args only otherwise.
+                # `chained_from` over the same repeat key: the prior stage's
+                # validated return merged into this stage's prompt context.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
-            context_text = _stage_context(repo, root, st)
-            # The stage's wall-clock budget was resolved (declared, never
-            # truthy) before anything was dispatched — see
-            # `_resolve_stage_timeout` for the definition of `0` and the
-            # refusal path (hypothesis:l4-workflow-residue-sub-floor-marker-
-            # dead-code-and-truncation conjunct (5)).
+            try:
+                context_text = _stage_context(repo, root, st)
+            except (subprocess.TimeoutExpired, RuntimeError) as exc:
+                # Fail THIS stage by name; siblings proceed under SM.105.
+                reason = (f"context-build-timeout after {exc.timeout:g} s"
+                          if isinstance(exc, subprocess.TimeoutExpired)
+                          else f"context-build-failed: {exc}")
+                view.stage_failed(st["label"], reason)
+                print(f"workflow.py: workflow={key} stage {st['label']} "
+                      f"{reason}", file=sys.stderr)
+                if first_rc is None:
+                    first_rc = 3
+                failed_keys.setdefault(
+                    st.get("_base_label", st["label"]), set()).add(
+                        st.get("_repeat_key"))
+                continue
+            # The budget was resolved (declared, never truthy) before any
+            # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
             stage_timeout = stage_timeouts[st["label"]]
             rc, value = _run_stage_pi(
                 cfg, st, knobs, args, out=out, view=view, prior=prior,
@@ -1878,17 +2259,30 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 timeout_s=stage_timeout)
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
+                # A declared handoff list that came back EMPTY is a run-level
+                # fact, not a stage failure: name it so a consumer can tell
+                # "the stage dropped everything" from "the chain broke"
+                # (the schema has no minItems, so both look identical).
+                hfield = st.get("handoff_list")
+                if (hfield and isinstance(value, dict)
+                        and value.get(hfield) == []):
+                    view.stage_empty_handoff(st["label"], hfield)
             if rc != 0:
-                print(f"workflow.py: workflow={key} failed at stage "
-                      f"{st['label']} (rc={rc})", file=sys.stderr)
-                view.summary()
-                _track_run(root, key, harness, view, run_key)
-                return rc
+                # MARK AND CONTINUE: this slice failed; siblings and every
+                # independent stage still run. The run ends non-zero below.
+                if first_rc is None:
+                    first_rc = rc
+                failed_keys.setdefault(
+                    st.get("_base_label", st["label"]), set()).add(
+                        st.get("_repeat_key"))
+                print(f"workflow.py: workflow={key} stage {st['label']} "
+                      f"failed (rc={rc}); continuing", file=sys.stderr)
+                continue
             if "_repeat_key" in st and value is not None:
                 prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
         view.summary()
         _track_run(root, key, harness, view, run_key)
-        return 0
+        return first_rc or 0
     finally:
         _revoke_run_credential(minted_key_hash, root)
 
@@ -2167,6 +2561,7 @@ def main(argv: list[str] | None = None) -> int:
         prog="workflow.py",
         description="Harness-agnostic workflow runner (hypothesis:l3-workflows-unified-route).",
     )
+    ap.add_argument("--root", default=argparse.SUPPRESS, help="explicit project root (default: walk up from cwd)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     rp = sub.add_parser("run", help="resolve and run a workflow (the only sanctioned dispatch route)")
     rp.add_argument("name", help="config key (e.g. review, drafting) or agi-*.js script name")
@@ -2197,6 +2592,8 @@ def main(argv: list[str] | None = None) -> int:
     stt = sub.add_parser("status", help="resolve recent workflow runs by descriptive run key")
     stt.add_argument("key", nargs="?", default=None,
                      help="run key or workflow key to filter to (e.g. mur-39)")
+    lk = sub.add_parser("link",
+                        help="create the .claude/workflows/<script> symlinks for every registered workflow (idempotent)")
     nt = sub.add_parser("note",
                         help="record the claude-code harness's wf_ id beside a tracked run key")
     nt.add_argument("run_key",
@@ -2205,11 +2602,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="the harness-minted id to record (e.g. wf_ba530baa-dab)")
     val = sub.add_parser("validate",
                          help="check the registry invariant: agi-*.js <-> sibling <name>.json, and only implemented stages")
+    for _p in sub.choices.values():
+        _p.add_argument("--root", default=argparse.SUPPRESS, help="explicit project root")
     args = ap.parse_args(argv)
 
-    root = _loc.find_project_root()
+    root_arg = getattr(args, "root", None)
+    root = _loc.find_project_root(start=root_arg)
     if root is None:
-        print("workflow.py: no .agi project root found from cwd", file=sys.stderr)
+        where = f"--root {root_arg}" if root_arg else "cwd"
+        print(f"workflow.py: no .agi project root found from {where}", file=sys.stderr)
         return 2
 
     if args.cmd == "register":
@@ -2244,6 +2645,8 @@ def main(argv: list[str] | None = None) -> int:
             return list_workflows(root)
         if args.cmd == "status":
             return status_workflow(root, args.key)
+        if args.cmd == "link":
+            return link_workflows(root)
         if args.cmd == "validate":
             return validate_registry(root)
         try:

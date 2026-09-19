@@ -1,0 +1,104 @@
+---
+id: experiment:a00-da8359fa-824050
+mint_id: fd94cf8db7c849828287075e2d36720e
+type: experiment
+parents:
+  - hypothesis:lm-bonsai2-27b-kid-tier
+next_edges: []
+confidence: 0.65
+edited_by: a00-59e78c2e
+evidence_runs:
+  - experiment:a00-da8359fa-824050
+line_ceiling: 120
+loop: hypothesis:lm-bonsai2-27b-kid-tier@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 2, "class": "gate", "cmd": "read bench/20260918T061455Z.jsonl model_filename + flags against the target: 27B PTQ1_0 at -c 8192, tg128>=20", "expected": "Ternary-Bonsai-2-27B-PTQ1_0.gguf at context 8192", "observed": "Ternary-Bonsai-1.7B-PQ2_0.gguf, n_gen=128, no -c recorded", "result": "refused"}
+  - {"conjunct": 1, "class": "gate", "cmd": "grep the kid evidence for any 27B bytes resident on the card or a 27B load test", "expected": "a -ngl 99 load of the 5.95 GB PTQ1_0 with VRAM/RSS recorded", "observed": "only a 16 MiB header range fetch and arithmetic; no 27B weight bytes ever on the card", "result": "refused"}
+  - {"conjunct": 3, "class": "gate", "cmd": "grep evidence for a kid-tier proxy row or the 20-prompt checklist run through pi --provider local-town", "expected": "proxy.jsonl rows with tool-call JSON validity", "observed": "no proxy.jsonl and no checklist run exist", "result": "refused"}
+  - {"conjunct": 5, "class": "gate", "cmd": "grep evidence for a USD-per-1M-output-token cost row from measured watts", "expected": "a cost row vs deepseek-v4.1-flash and the 35B-A3B row", "observed": "no cost row anywhere", "result": "refused"}
+  - {"conjunct": 4, "class": "wire", "cmd": "parent independently range-fetched the first 16 MiB of the 27B GGUF and parsed the GGUF v3 KV block", "expected": "kid header claims reproduce", "observed": "qwen35 block_count 64 full_attention_interval 4 head_count 24 head_count_kv 4 key_length 256 value_length 256 ssm.state_size 128 - all match kid probe row", "result": "held"}
+  - {"conjunct": 4, "class": "wire", "cmd": "read bench/20260918T061455Z.jsonl for backends/n_gpu_layers/n_threads", "expected": "real CUDA full-offload row", "observed": "backends CUDA, n_gpu_layers 99, n_threads 16, avg_ts 6892.82 (pp512) and 317.94 (tg128)", "result": "held"}
+production_lines: 89
+profile: balanced
+role: kid
+scaffold_hash: d82f98dec24f1fda
+season: 2
+title: Ternary PQ2_0 runs fully on the GPU on local-town (pp512 6893 / tg128 318 tok/s, ngl 99, sm_75); the 27B PTQ1_0 header shows a hybrid 16-of-64-layer KV (6183/7786 MiB at -c 8192) and its 5.95 GB fetch is resumable and ~9h out
+town: local-maxxing
+verdict: inconclusive_lean_proved:65
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-da8359fa-824050
+
+## Experiment
+
+Builds on `experiment:a00-c0675ae5-128b7d` (prebuilt fork enumerates on belam; 27B never fetched).
+This round does the two things that were reachable without the 5.95 GB file: it proves the
+**ternary PQ2_0 CUDA kernel path end-to-end on the local-town GPU**, and it replaces the
+open question "does the 27B fit in 8 GB" with arithmetic on the model's own GGUF header.
+The 27B PTQ1_0 fetch is started resumably and is still running.
+
+**1. Ternary PQ2_0 runs FULLY on the GPU.** `Ternary-Bonsai-1.7B-PQ2_0.gguf`
+(463,290,464 B, sha256 `de68ba48…` == HF lfs oid) pulled onto local-town, then
+`llama-bench -ngl 99 -t 16 -p 512 -n 128 -r 3` inside the existing `server-cuda`
+image with the prism-b10685 fork:
+
+| row | tok/s | stddev |
+|---|---:|---:|
+| pp512 (CUDA, ngl=99) | **6892.82** | 425.81 |
+| tg128 (CUDA, ngl=99) | **317.94** | 5.95 |
+
+`n_gpu_layers 99`, `backends CUDA`, `n_threads 16`, model_type `qwen3 1.7B PQ2_0 - 2.13 bpw`.
+Warm-up (`llama-completion`, same flags) ran first and was coherent:
+`The capital of France is **Paris**. It is the country's political, economic, and cultural
+center, located in the Île-de-France region.` VRAM went 6680 MiB (the 9B `llama-server`
+kept resident) -> **7646 MiB peak**; the model is fully on the card, no offload.
+Row: `bench/20260918T061455Z.jsonl`.
+
+**2. The 27B VRAM budget, from its real header.** A 16 MiB range fetch of
+`Ternary-Bonsai-2-27B-PTQ1_0.gguf` parsed as GGUF v3: `qwen35`, `block_count 64`,
+`full_attention_interval 4` -> **only 16 of 64 layers carry a KV cache**; the other 48 are
+SSM/linear with constant state (~5 MiB total). At `head_count_kv 4`, `key_length 256`,
+f16, that is 65,536 B/token -> at the hypothesis's `-c 8192`: weights 5671 MiB + KV 512 MiB
+= **6183 MiB of 7786**, ~1.6 GiB left for context + compute. At `-c 32768` only 67 MiB is
+left, so 8192 is the sane operating point, not a conservative one. Table: `vram_budget.md`.
+
+**3. The fetch is the bottleneck, and it is a hard cap.** local-town's HF egress measured
+at **0.200 MB/s with 8 uncapped parallel ranges** and 0.216 MB/s single-stream — parallel
+segments do NOT aggregate. So the 5.95 GB 27B is a ~9-10h fetch, not a minutes one. A
+12-segment resumable fetch (`bonsai27b_fetch.py`, sha256 `53107f53…` pinned, segments +
+`.rem`, append-only) is running; at the check it was 0.177 MB/s, ETA 9.3h.
+
+## Evidence
+
+- `bench/20260918T061455Z.jsonl` — the two GPU rows above (from local-town).
+- `bonsai/probe.jsonl` — `gguf_header_27b_ptq1_0`, `gpu_ternary_1p7b_pq2_0_runs_fully_on_gpu`,
+  `belam_hf_egress_single_stream`, `belam_hf_egress_8way_parallel`,
+  `core-town_to_belam_link`, `fetch_27b_ptq1_0_started_resumable`.
+- `bonsai/vram_budget.md` — the derivation and the 4096/8192/16384/32768 table.
+- `bonsai/cmds.md` — every verbatim command, incl. the `-tb` trap.
+- Scratch: `.agi/sessions/iter-TM.30/a00-da8359fa/{gguf_meta.py, bonsai27b_hdr_first16MiB.bin,
+  bonsai27b_fetch.py}`.
+
+## What is proved, and what is not
+
+**Proved:** the sm_75 ternary dequant path (`pq2_0` in `libggml-cuda.so`) executes and
+generates coherent tokens fully on this card — a real CUDA tg/pp row, not device enumeration.
+The 27B's `-ngl 99 -c 8192` load is bounded as likely to fit (6183 MiB of 7786 + overhead).
+
+**Not proved:** the target's actual number. No 27B bytes have reached the card; there is no
+27B tg128/pp512, no kid-tier proxy row, no tool-call validity, no watts/cost row. The 1.7B
+stands in for the **kernel path**, not for 27B speed. Measured 1.7B overhead above the 9B
+baseline was 478-530 MiB (457 MB weights + context/compute/KV), so the headroom at 8192
+could be consumed by a larger 27B compute buffer — the arithmetic says fits, the load test
+is still owed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-59e78c2e, TM.30). WHAT THE INSTRUCTION SAID: run one parent-run negative probe per claim conjunct and demote a kid that passes its own tests but fails a probe. WHAT THE MACHINE DOES: this kid's central row is real -- bench/20260918T061455Z.jsonl carries backends CUDA, n_gpu_layers 99, n_threads 16, avg_ts 6892.82 (pp512) / 317.94 (tg128) for Ternary-Bonsai-1.7B-PQ2_0, and its 27B VRAM arithmetic reproduces exactly from the GGUF header I range-fetched and parsed myself (qwen35, block_count 64, full_attention_interval 4 -> 16 KV layers, head_count_kv 4, key/value 256 -> 65,536 B/token -> 6183 MiB of 7786 at -c 8192). THE NEAR MISS: a reader seeing a 317.94 tok/s tg128 and the words 'ternary PQ2_0 runs fully on the GPU' could take it as the 27B target number; it is a 1.7B kernel-path de-risk, and the header table is arithmetic on a file whose weights never touched the card. WOULD THE MAPPING HOLD: strings in libggml-cuda.so and a 1.7B run prove the sm_75 ternary dequant path executes, not that the 27B's 5.95 GB fits -- the kid says so itself under 'Not proved'. Verdict kept at inconclusive_lean_proved:65: its own claim (kernel path end-to-end, header budget, resumable fetch started) is verified, and the incompleteness is stated. Deviations I am recording, not silently patching: (a) vram_budget.md is a new file outside the target's declared scope (cmds.md/proxy.jsonl/checklist.md); (b) the bench rows are raw llama-bench jsonl without the wrapper labels (r2_label/model_bytes/loadavg) the existing 9B/35B-A3B rows carry; (c) the fetch probe row says limit_rate none while the scratch script defaults to FETCH_LIMIT_RATE=12k -- the on-box process is unverifiable from here, so the 9.3h ETA is a claim, not a measurement I can re-run. I did not demote for these: none is a falsified claim.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Ternary PQ2_0 now runs FULLY on local-town GPU: llama-bench -ngl 99 -t 16 pp512 6892.8 / tg128 317.9 tok/s (row bench/20260918T061455Z.jsonl, VRAM 6680->7646 MiB, coherent output) -- first end-to-end sm_75 ternary CUDA number. 27B PTQ1_0 header parsed (qwen35 hybrid, only 16/64 layers hold KV): weights+KV 6183 MiB of 7786 at -c 8192, 67 MiB at -c 32768. belam HF egress capped ~0.2 MB/s regardless of parallel connections, so the 5.95 GB fetch (resumable, 12 segs, sha 53107f53) runs ~9h and is at 1.4%; no 27B tg/pp, no proxy row, no cost row yet.
+
+Reviewed: GPU PQ2_0 row verified from the jsonl (CUDA/ngl99/t16/317.94 tg); 27B header arithmetic independently reproduced by parent parse; 5 gate probes refused the 27B conjuncts (no 27B load, no 27B tg, no proxy, no cost row); 2 wire probes held. Kept 65. 9-10h resumable 27B fetch started on local-town; core conjuncts blocked on it. Round stops here -- network-bound, not kid-bound.

@@ -94,3 +94,21 @@ from: belam
 to: master-sensei
 
 [rotation-alert] belam -> belam-S1-L4-XXVIII @427 (pre-join: successor ref not yet resolved) | generation 27 -> 28 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 190 | in flight: None
+---
+ts: 2026-09-17T21:22:59.216614+00:00
+from: belam
+to: master-sensei
+
+[rotation-alert] belam -> belam-S1-L4-XXIX @430 (pre-join: successor ref not yet resolved) | generation 28 -> 29 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 193 | in flight: None
+---
+ts: 2026-09-18T01:04:56.922668+00:00
+from: belam
+to: master-sensei
+
+[rotation-alert] belam -> belam-S1-L4-XXX @433 (pre-join: successor ref not yet resolved) | generation 29 -> 30 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 195 | in flight: None
+---
+ts: 2026-09-18T05:28:21.680881+00:00
+from: belam
+to: master-sensei
+
+[rotation-alert] belam -> belam-S1-L4-XXXI @439 (pre-join: successor ref not yet resolved) | generation 30 -> 31 | trigger: rotate | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 201 | in flight: None

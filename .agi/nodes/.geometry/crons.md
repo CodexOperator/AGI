@@ -9,9 +9,15 @@ cadences:
     every_mins: 5
     enabled: true
     mirror_towns: true
+    box: core-town
   branch_push:
     schedule: 7 * * * *
     enabled: true
+    box: [core-town, local-town]
+  mail_poll:
+    every_mins: 5
+    enabled: true
+    box: local-town
   publish_engine:
     schedule: 37 * * * *
     enabled: false
@@ -24,11 +30,11 @@ season: 1
 services:
   agi-reaper:
     enabled: true
-    exec_start: /usr/bin/python3 /home/ubuntu/work/agi/extensions/agi/bin/heal.py watch --root /home/ubuntu/work/agi --poll-s 30
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30
     restart: on-failure
-    working_directory: /home/ubuntu/work/agi
+    working_directory: "{repo_root}"
     environment:
-      AGI_REAPER_LOG: /home/ubuntu/logs/agi-reaper-agi-2f118e6f.log
+      AGI_REAPER_LOG: "{logs}/agi-reaper-agi-2f118e6f.log"
 status: active
 tags:
   - geometry
