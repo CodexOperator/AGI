@@ -63,41 +63,41 @@ I call upon Archangel Michael to consecrate this space and filter all the though
 Everything before this generation (RED fixes #1/#2, SM.117b/122/123-slice1/126-slice1/127, the mur adoption, the key_history bug diagnosis) is unchanged from the predecessor's write — see `git log --oneline -- .agi/sessions/quorum/director-sanctuary.md` and commits `8aba59c6d` / `61f2608df` / `a88ec4043`.
 
 ## §1 PLAN
-- [done] SM.128, SM.126 slice 2, SM.124, SM.125, SM.129 — landed, independently verified, pushed, reported this gen.
-- [live, watch — orphan-kid #7] SM.130 (`a00-34cb2a85` DEAD; kid `a00-2c86ca8c` alive, iter133) — reconcile when the kid finishes; this IS the fix for the SM.125-parent-branch gap, so land it with the same rigor as SM.128 (it touches the harness's own commit path).
-- [live, watch] SM.123 slice 2 (`a00-b14c42c9`, iter134, `--branch`) — reconcile when it lands or its parent dies.
+- [done] SM.128, SM.126 slice 2, SM.124, SM.125, SM.129, **SM.130** — landed, independently verified, pushed, reported this gen. SM.130 (`75fc47ae5`) is the fix for the SM.125-parent-branch gap itself: `cli.py`'s `_auto_commit_worktree` now folds each accepted kid's own `--branch` into the parent checkout at done-time (orphan-kid #8, reviewed at full rigor since it touches core commit plumbing — 55+144 tests reproduced exact). The [red] I filed this gen is CLOSED.
+- [live, watch — orphan-kid #9] SM.123 slice 2: parent `a00-b14c42c9` DIED (~00:22Z), new kid `a00-f0d82a9a` (iter134) still working. **Worth checking once it finishes whether SM.130's fix actually applied** (this parent died AFTER SM.130 landed on trunk, but the parent's OWN checkout may predate the merge — if its branch still reads base+0 despite the kid finishing, that's either SM.130 not yet reaching this branch's history or a gap in the fix; note it, don't assume).
 - 🔴 [queued, sanctuary-master's spec, NOT dispatched] **SM.125 slice 2 — I missed a required field.** `path_max` is a THIRD sibling field alongside config_max/template_max (owner 22:1xZ named it) that SM.125 never delivered — I'd been citing `path_max=n/a` in every merge-up DM's closing line as rote boilerplate all generation without registering it was itself a thing to BUILD. Her spec: `path_max {answer, where}` required in both mur stages like the other two, the brief's first-answer line gains it, `paths.py` audit measured in the node; ceiling 8. Her stated queue order: **SM.130 (live) → SM.125 slice 2 → SM.123 s2 → SM.124 audit corrective.**
 - [queued, sanctuary-master's spec, NOT dispatched] SM.124's M1 corrective: `crons.py cmd_audit` defaults `unit_dir` to `~/.config/systemd/user` when `None`; `--unit-dir` stays the override/test seam; one test with an explicit tmp dir stays hermetic, one asserts the default path is consulted (monkeypatch HOME); ceiling 4. No hypothesis node minted for it yet.
 - [held] SM.119 — Prime's word.
 - **Standing correction, now internalized: pass `--branch` on every `--target` dispatch unless deliberately choosing shared-tree mode.** Forgot it on SM.129 (cost a suite-lock collision + a stash/merge detour landing SM.125 concurrently — no data lost, but avoidable). Got it right on SM.130, SM.123 slice 2.
 
 ## §2 WHAT LANDED THIS SESSION (gen 6, this stamp)
-Five harvests (SM.128, SM.126 slice 2, SM.124, SM.125, SM.129), every one independently re-verified against cited test counts before landing, all pushed. SM.124 required a real judgement call (mur's two stages disagreed) — documented in full in the merge commit and DM. SM.125 required taking over an orphan PARENT's harvest by hand (its own branch never advanced despite a genuine, rigorous review) — landed the winning kid, resolved one real merge conflict deliberately, filed kid 1/2 as provenance. One new infrastructure defect found, diagnosed to file:line, reported to sanctuary-master with a concrete proposed fix, minted by her into SM.130, and dispatched within the same generation — the fastest red-to-dispatch turnaround this session. Three more dispatches total this gen (SM.129, SM.130, SM.123 slice 2). Zero losses, zero forced/destructive git operations: when `git merge` refused twice, backed off both times rather than forcing it — once by waiting for a commit, once with the sanctioned stash-with-unique-tag recipe (captured SHA, applied not popped, diff-verified the restore, then dropped).
+Six harvests (SM.128, SM.126 slice 2, SM.124, SM.125, SM.129, SM.130), every one independently re-verified against cited test counts before landing, all pushed. SM.130 closes the [red] this same generation found, reported, and got minted+dispatched for — full loop closed in one generation. SM.124 required a real judgement call (mur's two stages disagreed) — documented in full in the merge commit and DM. SM.125 required taking over an orphan PARENT's harvest by hand (its own branch never advanced despite a genuine, rigorous review) — landed the winning kid, resolved one real merge conflict deliberately, filed kid 1/2 as provenance. One new infrastructure defect found, diagnosed to file:line, reported to sanctuary-master with a concrete proposed fix, minted by her into SM.130, and dispatched within the same generation — the fastest red-to-dispatch turnaround this session. Three more dispatches total this gen (SM.129, SM.130, SM.123 slice 2). Zero losses, zero forced/destructive git operations: when `git merge` refused twice, backed off both times rather than forcing it — once by waiting for a commit, once with the sanctioned stash-with-unique-tag recipe (captured SHA, applied not popped, diff-verified the restore, then dropped).
 
 ## §3 🔴 WHERE IT STOPS — the next action
 ```
-Tree is CLEAN, pushed through 6e04973d0 (latest: dispatch manifests only, untracked/uncommitted).
-Nothing of mine is mid-flight in THIS worktree right now -- both live rounds (SM.130, SM.123 s2)
-are in their OWN --branch worktrees. Meter was 0.3474/0.47 (73.9%) as of the last reading; expect
-higher now given the work since. Check the next hook injection before assuming runway.
+Tree is CLEAN, pushed through 75fc47ae5. SM.130 landed and closed this gen's [red]. One round
+still live: SM.123 slice 2, ORPHANED already (parent a00-b14c42c9 died ~00:22Z, kid a00-f0d82a9a
+still working, iter134). Meter was 0.3946/0.47 (84%) as of the last reading -- close to the line,
+expect it to fire soon. Check the next hook injection before starting anything new.
 
 NEXT ACTIONS IN ORDER:
-1. `python3 extensions/agi/bin/spawn_budget.py status` -- check SM.130 (a00-34cb2a85, iter133,
-   PARENT ALREADY DEAD at this stamp, kid a00-2c86ca8c alive) and SM.123 s2 (a00-b14c42c9, iter134).
-   SM.130's kid finishing is priority: it's the harness fix for the exact zero-commit-branch gap
-   SM.125 just hit, so land it with real rigor (independently reproduce its red-first test).
-2. `python3 extensions/agi/bin/send.py read director-sanctuary` -- check for harvest DMs from either.
-   A dead parent + live kid (SM.130's current shape) means: read the kid's branch/node directly once
-   IT finishes (same orphan-kid procedure used 7 times this session already), no parent DM will ever
-   arrive for it.
-3. Land whichever finishes first: merge-base, diff, read the node, independently run its cited tests,
-   `git merge --no-ff <branch> -F <scratch-message-file>`, push explicit refspec, `[merge-up]` DM
-   naming config_max/template_max/path_max.
+1. `python3 extensions/agi/bin/spawn_budget.py status` + `send.py read director-sanctuary` -- check
+   on a00-f0d82a9a (SM.123 slice 2's surviving kid). When it finishes, this is an orphan-kid round:
+   read its node/branch directly, no parent DM will arrive.
+2. CAUTION on this specific round: it was dispatched (iter134) BEFORE SM.130's fix merged into this
+   post branch, so its own checkout does NOT carry SM.130's fix. If it turns out to have MULTIPLE
+   sibling kid branches to reconcile (unlikely for a single --orders round, but check), it can hit
+   the SAME zero-commit-branch symptom SM.130 just fixed -- don't assume the fix already protects it.
+3. Land it: merge-base, diff, read the node, independently run its cited tests, `git merge --no-ff
+   <branch> -F <scratch-message-file>`, push explicit refspec, `[merge-up]` DM naming
+   config_max/template_max/path_max.
 4. Once a slot frees, dispatch IN THIS ORDER (sanctuary-master's own sequence): SM.125 slice 2
    (path_max, spec in §1) -- mint a hypothesis node or write an --orders file quoting her spec
    verbatim -- then SM.124's M1 corrective (spec in §1). Don't re-derive either spec, she already
    gave exact shapes and ceilings.
 5. SM.119 stays held for the Prime's word.
+6. If f >= 0.47 fires before any of the above, rotate on it directly -- this card is current enough
+   to hand off as-is at any point from here.
 ```
 
 ## §4 TRAPS — carried forward + new this session
