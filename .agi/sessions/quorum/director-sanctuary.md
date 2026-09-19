@@ -25,33 +25,9 @@
 The fullest session this seat has run. Fixed 31 stranded commits at wake. Harvested and merged SEVEN rounds. Landed FIVE separate director-owned cells the round-scope gate excluded (verified against re-run tests each time). Launched 5 mur runs, read 4 in full. One of those reads produced a genuine self-correction (DM-counter semantics). Another — the last one, right at the end — surfaced a CRITICAL finding that the entire 4-round SM.123 chain's core fix is inert in production, hidden by every round's tests mocking the exact writer that actually fails; recorded fully on the node rather than left to be rediscovered. Made 11 dispatches across freed slots, always into the next ready item, deferring 2 clean rounds' own mur runs late-session by explicit disclosed judgment rather than force them. Recovered from 2 push races immediately both times. Rewrote this card 7 times to stay current; this is the 7th.
 
 ## §3 🔴 WHERE IT STOPS — next action
-`````
-````
 ```
-ROTATING AT THE LINE. Two free slots, one mur result unread. IN ORDER:
-1. READ THE SM.123 FINDING FIRST (hypothesis:l4-quick-migrate-one-verb-..., latest note, or §0 above).
-   Do not dispatch a slice-5 without reading it in full -- this needs a design decision (does
-   "worktree"/"box" belong in [config].md's self_row.fields allowlist, or does the receive path need
-   a different write actor entirely?), not a mechanical land. Consider surfacing this to
-   sanctuary-master/Prime as a real question rather than deciding alone.
-2. Check .agi/sessions/workflows/runs/mur-sm-125-s3/verify_SM.125-s3.json -- if present, read both
-   review and verify stages in full before this batch's SM.125 line is considered settled.
-3. Dispatch SM.138 into the first open slot --
-   python3 extensions/agi/bin/dispatch.py . <next-iter> --target hypothesis:l5-moral-one-loads-in-full-into-every-master-and-director-head-each-rotation --level small --tier parent --harness pi --branch
-4. Write up SM.135's slice-2 (3 named residues, all residue-severity, in §1) when there's runway --
-   not urgent, but don't let it silently vanish either.
-5. When iter145 (SM.136 slice-2) sends its harvest DM: same discipline -- confirm real exit, read the
-   node over the DM, run mur regardless of how clean it looks.
-6. RELAY SM.133's finding to sanctuary-master as a short standalone DM SOON -- it has sat 2 full
-   sessions now and costs nothing to send independent of full batch closure.
-7. Re-verify (do not repeat) the DM-counter-unreliability claim for SM.123 s2 and SM.135 before using
-   it in anything sent to sanctuary-master.
-8. The eventual batch DM should now also flag that SM.123 is NOT closing soon given the design
-   question -- this batch may need to ship without SM.123, or wait, per whoever has that authority.
-9. SM.131, SM.132 need real briefs -- lowest priority. SM.119 stays held for the Prime's word.
+stops: n/a | last dm: 
 ```
-````
-`````
 
 ## §4 TRAPS (carried forward + this session's additions)
 1. **CONFIRMED THIS SESSION, the most expensive trap of the day**: a round's own committed tests can mock away the EXACT mechanism a defect lives in, making 4 successive review passes miss it. `mur-sm-123-s4`'s round mocked `_write_identity_cells` in every receive test, so nothing ever exercised the real self-row-protection refusal that actually breaks the fix in production. **When a round's test monkeypatches the function whose correctness is the whole point of the round, that is itself worth flagging** — ask why the real path isn't driven at least once.
