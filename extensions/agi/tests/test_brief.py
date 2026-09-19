@@ -1998,18 +1998,22 @@ def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
 
 
 def test_parent_brief_names_the_poll_reader_and_the_real_dm_body():
-    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark —
-    the parent brief must (a) name `cli.py status <iter>` as the poll reader,
+    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark,
+    extended by hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-...:
+    the parent brief must (a) name `cli.py wait <iter>` as the BLOCKING
+    foreground reader -- never `Sleep 30 seconds`, because in headless `-p` a
+    turn-end IS process exit (SM.133) -- give the NEVER-end-your-turn rule,
     (b) give the overdue mark's real body shape `iter=... agent=...
     reason=overdue`, and (c) never print the `[agi-nudge] reason=overdue`
-    composite — `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
+    composite -- `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
     not part of the dm body heal.py sends (`heal.py::_alarm_dispatcher` sends
-    `iter=... agent=... reason=...`). Red before the fix: the brief named the
-    composite that no reader produces or receives."""
+    `iter=... agent=... reason=...`)."""
     parent = _text("parent", dispatch_py="/x/dispatch.py",
                    target="hypothesis:y", max_live=25, kid_ceiling=3)
-    # the reader the brief points at is cli.py status
-    assert "cli.py status" in parent
+    # the reader the brief points at is the blocking foreground wait
+    assert "cli.py wait" in parent
+    assert "Sleep 30 seconds" not in parent
+    assert "NEVER end your turn" in parent
     # the overdue dm the brief describes is the body's real shape
     assert "reason=overdue" in parent
     assert "iter=... agent=... reason=overdue" in parent
