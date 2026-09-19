@@ -1,0 +1,10 @@
+2026-09-18T21:37:01Z
+[shim] cuLaunchKernel call #1
+[shim] cuLaunchKernel call #2
+[shim] cuLaunchKernel call #3
+[shim] cuLaunchKernel call #4
+16777216
+[shim] TOTAL cuLaunchKernel=4 cuLaunchKernelEx=0
+WALL 0.14 USER 0.02 SYS 0.11
+rc=0
+2026-09-18T21:37:01Z
