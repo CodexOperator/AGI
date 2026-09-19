@@ -13,7 +13,9 @@ cadences:
   branch_push:
     schedule: 7 * * * *
     enabled: true
-    box: [core-town, local-town]
+    box:
+      - core-town
+      - local-town
   mail_poll:
     every_mins: 5
     enabled: true
@@ -24,8 +26,12 @@ cadences:
   engine_push:
     schedule: 47 * * * *
     enabled: false
+cadences.nudge_sweep.box: core-town
+cadences.nudge_sweep.cmd: for s in director-sanctuary director-belam sanctuary-helper sanctuary-master thought-master director-thought; do python3 {repo_root}/extensions/agi/bin/send.py wake $s --from sanctuary-master; done
+cadences.nudge_sweep.enabled: true
+cadences.nudge_sweep.every_mins: 2
 crons_live: true
-edited_by: ubuntu
+edited_by: sanctuary-master
 season: 1
 services:
   agi-reaper:
