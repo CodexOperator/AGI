@@ -5,6 +5,11 @@ F32RUN=1 mirrors Bend's f32 arithmetic exactly (init as x*(1/195), dt as
 (float)0.1) so the spike counts must agree bit-for-bit; the default build is
 the f64 reference the f32 run drifts against. 4 nets run under OpenMP.
 Usage: python3 lif_baseline.py [threads] [f32]
+Env flags (defaults keep the old undriven 19983-spike run byte-for-byte):
+  LIF_LEAK=restore   leak pulls to rest=0 (threshold 1, reset 0); default (1-v).
+  LIF_GAIN=g         scale ring weights so 100*mean(w)==g; default unscaled.
+  LIF_ORDER=sync     double-buffered (Jacobi) spike update; default in-place.
+  LIF_DRIVE/LIF_INIT/LIF_AMP/LIF_REPORT as before.
 """
 import json
 import os
@@ -19,6 +24,7 @@ SEEDS = [7, 100010, 200013, 300016]  # batch(2n, 7) in lif.bend
 C = r"""
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 typedef uint32_t u32;
 #ifdef F32RUN
 typedef float real;
@@ -40,19 +46,50 @@ int main(void){
   const int N=10000, K=100, T=1000;
   u32 seeds[4]={7,100010,200013,300016};
   unsigned long long total=0;
+  const char* dv=getenv("LIF_DRIVE"); if(!dv) dv="none";
+  const char* iv=getenv("LIF_INIT"); if(!iv) iv="orig";
+  const char* av=getenv("LIF_AMP"); real amp=av?(real)atof(av):ONE;
+  const char* lv=getenv("LIF_LEAK"); int restore= lv && lv[0]=='r';
+  const char* gv=getenv("LIF_GAIN"); real gwant= gv?(real)atof(gv):(real)0.0;
+  const char* ov=getenv("LIF_ORDER"); int syc= ov && ov[0]=='s';
+  int dm= dv[0]=='p'?1: dv[0]=='g'?2:0;
+  int rep= getenv("LIF_REPORT")!=NULL;
   #pragma omp parallel for reduction(+:total) schedule(dynamic)
   for(int q=0;q<4;q++){
     u32 s=seeds[q];
-    real v[10000], spk[10000];
-    for(int i=0;i<N;i++){ v[i]=(real)(prng((u32)i+s)&255u)*R195; spk[i]=0; }
+    real v[10000], spk[10000], spkn[10000];
+    unsigned long cnt[10000], win[10], nactive=0; u32 gol[10000], gol2[10000];
+    for(int w=0;w<10;w++) win[w]=0;
+    for(int i=0;i<N;i++){ v[i]=(real)(prng((u32)i+s)&255u)*(iv[0]=='s'?(real)(1.0/256.0):R195);
+                          spk[i]=0; spkn[i]=0; cnt[i]=0; gol[i]=prng((u32)i*3u+s+991u)&1u; }
+    real ws=0;
+    if(gwant>(real)0.0) for(int i=0;i<N;i++)for(int k=0;k<K;k++) ws+=wgt((u32)i,(u32)k,s);
+    real gsc= gwant>(real)0.0 ? (real)((double)gwant*(double)N*(double)K/(100.0*(double)ws)) : ONE;
+    real rest= restore ? (real)0.0 : ONE;
     for(int t=0;t<T;t++){
       for(int i=0;i<N;i++){
         real I=0;
-        for(int k=0;k<K;k++){ int j=(i-1-k+4*N)%N; I+=wgt((u32)i,(u32)k,s)*spk[j]; }
-        real v1=v[i]+R10*((ONE-v[i])+I);
-        if(v1>=ONE){ v[i]=v1-ONE; spk[i]=ONE; total++; } else { v[i]=v1; spk[i]=0; }
+        for(int k=0;k<K;k++){ int j=(i-1-k+4*N)%N; I+=gsc*wgt((u32)i,(u32)k,s)*spk[j]; }
+        real x=0;
+        if(dm==1){ u32 u=prng((u32)t*2654435761u+(u32)i*97u+(u32)s)&1048575u; if(u<2097u) x=amp; }
+        else if(dm==2){ if(gol[i]) x=amp; }
+        real v1=v[i]+R10*((rest-v[i])+I+x);
+        int fired= v1>=ONE;
+        if(fired){ v[i]=v1-ONE; total++; } else v[i]=v1;
+        if(syc) spkn[i]= fired?ONE:(real)0.0; else spk[i]= fired?ONE:(real)0.0;
+        if(rep && fired){ if(cnt[i]==0) nactive++; cnt[i]++; win[t/100]++; }
+      }
+      if(syc) for(int i=0;i<N;i++) spk[i]=spkn[i];  /* LIF_ORDER=sync: reads above were PREVIOUS step */
+      if(dm==2 && (t+1)%100==0){
+        for(int r=0;r<100;r++)for(int c=0;c<100;c++){ int n=0;
+          for(int dr=-1;dr<=1;dr++)for(int dc=-1;dc<=1;dc++){ if(dr==0&&dc==0)continue;
+            n+=gol[((r+dr+100)%100)*100+((c+dc+100)%100)]; }
+          gol2[r*100+c]= gol[r*100+c] ? (n==2||n==3) : (n==3); }
+        for(int i=0;i<N;i++) gol[i]=gol2[i];
       }
     }
+    if(rep) fprintf(stderr,"NET %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
+                    nactive,win[0],win[1],win[2],win[3],win[4],win[5],win[6],win[7],win[8],win[9]);
   }
   printf("%llu\n", total);
   return 0;
@@ -70,6 +107,7 @@ def main():
     env = dict(os.environ, OMP_NUM_THREADS=threads)
     t0 = time.perf_counter()
     out = subprocess.run([exe], capture_output=True, text=True, env=env, check=True)
+    if os.environ.get("LIF_REPORT"): sys.stderr.write(out.stderr)
     wall = time.perf_counter() - t0
     spikes = int(out.stdout.strip())
     ns = 4 * N * STEPS
