@@ -31,10 +31,19 @@ def _box(root: Path) -> dict:
         return {}
 
 
+def box_cell_names(root: Path) -> tuple[str, ...]:
+    """The four cell names from context/schemas/[box].md -- the one declaration."""
+    import frontmatter, yaml
+    p = Path(root) / "context" / "schemas" / "[box].md"
+    parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
+    fm = yaml.safe_load(parts[0]) if parts else None
+    return tuple(((fm or {}).get("fields") or {}).keys()) or _BOX_CELLS
+
+
 def box_cells(root: Path) -> dict:
     """The `box` cells true of this box: root, logs_dir, tmux_session, user."""
     box = _box(root)
-    return {k: str(box.get(k) or "") for k in _BOX_CELLS}
+    return {k: str(box.get(k) or "") for k in box_cell_names(root)}
 
 
 def allow_paths(root: Path) -> list[str]:

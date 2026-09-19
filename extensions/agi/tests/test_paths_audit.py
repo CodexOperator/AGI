@@ -80,6 +80,44 @@ def test_allowlist_comes_from_the_cells_not_a_second_list(tmp_path, capsys):
     assert "allowed.py" not in out
 
 
+def test_unset_cells_refuse_a_clean_pass(tmp_path, capsys):
+    """Residue 1 (fail closed): a graph whose box cells are absent must NEVER
+    report the logs/tmux/user classes clean by silence. The audit exits 2 --
+    distinct from the 1 a real finding uses -- and names the missing cells."""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    (graph / "config.json").write_text(json.dumps({"box": {}}))
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text("tmux = 'box-session'\n")
+    rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
+    assert rc == 2, (rc, out)
+    assert "missing box cells" in out
+
+
+def test_path_shaped_logs_dir_literal_is_caught(tmp_path, capsys):
+    """Residue 2 (mur's regex bug): a cell value that BEGINS WITH A SLASH --
+    exactly what logs_dir is today -- could never match under a word boundary.
+    The logs class was silently dead for every path-shaped cell."""
+    graph = _graph(tmp_path, logs_dir="/home/ubuntu/logs")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text("log = '/home/ubuntu/logs/x.log'\n")
+    rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
+    assert rc == 1, (rc, out)
+    assert f"{src / 'a.py'}:1: logs:" in out
+
+
+def test_box_schema_names_the_cells_once(tmp_path):
+    """Residue 3 (config_max): the four cell names are declared in
+    [box].md and READ from there by boxes.py -- not a third hardcoded list."""
+    import yaml
+    import frontmatter
+    schema = Path(__file__).resolve().parents[3] / ".agi/context/schemas/[box].md"
+    fm = yaml.safe_load(frontmatter.split_frontmatter(schema.read_text())[0]) or {}
+    assert set((fm.get("fields") or {}).keys()) == set(CELLS)
+
+
 def test_live_config_declares_the_four_cells():
     graph = Path(__file__).resolve().parents[3] / ".agi"
     cells = boxes.box_cells(graph)
