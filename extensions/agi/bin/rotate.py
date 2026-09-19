@@ -20570,10 +20570,19 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
     mode fork = the transcript copy + the exact resume command). Returns the
     identity cells the seating produced; tests monkeypatch THIS."""
     ref = rec.get("branch") or f"refs/agi/posts/{post}"
-    # R1: follow the REAL `.agi/worktrees/post-<seat>` convention and write
-    # the worktree cell back, or the next rotation silently runs in MAIN.
+    # R1: the worktree path is the row's OWN configured cell when it carries
+    # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
+    # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
+    # convention. The cell written back is the same spelling used to create
+    # it, or the next rotation silently runs in MAIN.
     main = locations.git_common_root(root) or root
-    wt = main / ".agi" / "worktrees" / f"post-{post}"
+    cell = str(row.get("worktree") or "").strip()
+    if cell:
+        _p = Path(cell)
+        wt = _p if _p.is_absolute() else (main / cell)
+    else:
+        wt = main / ".agi" / "worktrees" / f"post-{post}"
+        cell = f".agi/worktrees/post-{post}"
     wt.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(["git", "-C", str(main), "worktree", "add", "--force",
                     str(wt), ref], check=False)
@@ -20586,10 +20595,42 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
                  _fork_resume_command(str(rec.get("session_id") or ""))]
     subprocess.run(argv, cwd=str(wt), check=False)
     after = _migrate_row(root, post)
-    return {"box": box, "worktree": f".agi/worktrees/post-{post}",
+    return {"box": box, "worktree": cell,
             "window": after.get("window"), "pid": after.get("pid"),
             "session_id": after.get("session_id"),
             "session_name": after.get("session_name")}
+
+
+def _migrate_seating_actor(root: Path) -> str:
+    """The RESOLVED seat the schema grants the SEATING cells (`box`,
+    `worktree`) on the geometry list -- read from `context/schemas/[config].md`
+    `actor_rows`, never a literal post name in this module (SM.123 slice 5:
+    seating cells are the master's authority, self_row stays untouched).
+    Returns '' when no entry covers BOTH cells, so the caller names the skip."""
+    import geometry_config  # noqa: PLC0415
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001 -- no schema, no grant
+        return ""
+    main_root = _shared_graph_root(root)
+    _, list_key = geometry_config.resolve(main_root)
+    try:
+        schema = load_schemas_from_dir(
+            main_root / "context" / "schemas").get("config")
+    except Exception:  # noqa: BLE001
+        return ""
+    entries = schema.frontmatter.get("actor_rows") if schema else None
+    if not isinstance(entries, list):
+        return ""
+    for e in entries:
+        if (not isinstance(e, dict)
+                or str(e.get("list_key") or "") != str(list_key)
+                or not e.get("match_key")):
+            continue
+        fields = {str(f) for f in (e.get("fields") or [])}
+        if {"box", "worktree"} <= fields:
+            return str(e.get("actor") or "")
+    return ""
 
 
 def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
@@ -20664,9 +20705,28 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
             print(f"SKIP: migrate record {path.name} for {post} could not seat "
                   f"({exc}); record skipped, tick lives")
             continue
-        line = _write_identity_cells(
-            root, seat=post, actor=post,
-            role=str(row.get("role") or "director"), cells=cells)
+        # SM.123 slice 5: SESSION cells are the post's own self_row write;
+        # SEATING cells (box, worktree) are the master's authority, written
+        # through the actor_rows grant resolved from the schema -- a post may
+        # never re-seat itself (L4.110 ruling B).
+        session_cells = {k: cells[k] for k in
+                         ("window", "pid", "session_id", "session_name")
+                         if cells.get(k) is not None}
+        seat_cells = {k: cells[k] for k in ("box", "worktree")
+                      if cells.get(k) is not None}
+        line = ""
+        if session_cells:
+            line = _write_identity_cells(
+                root, seat=post, actor=post,
+                role=str(row.get("role") or "director"), cells=session_cells)
+        master = _migrate_seating_actor(root) if seat_cells else ""
+        if seat_cells and master:
+            seated_line = _write_identity_cells(
+                root, seat=post, actor=master, role="", cells=seat_cells)
+            line = f"{line}; {seated_line}" if line else seated_line
+        elif seat_cells:
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(the seating cells were not written)")
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)
         ack_path.write_text(
