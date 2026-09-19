@@ -30,6 +30,16 @@ def _graph(tmp_path: Path) -> Path:
     return graph
 
 
+def _graph_with_locations(tmp_path: Path, **locs) -> Path:
+    """A graph whose config DECLARES named locations, so a `location:` name
+    resolves somewhere other than the default source root."""
+    import json
+
+    graph = _graph(tmp_path)
+    (graph / "config.json").write_text(json.dumps({"locations": locs}))
+    return graph
+
+
 def _node(graph: Path, node_id: str, **fields) -> Path:
     ntype, slug = node_id.split(":", 1)
     lines = [f"id: {node_id}", f"type: {ntype}"]
@@ -76,6 +86,46 @@ def test_write_refuses_an_outside_ref_and_writes_nothing(tmp_path, capsys):
     assert rc == 2
     assert "/tmp/scratch.md" in err and "outside the repo tree" in err
     assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_atomic_location_and_ref_in_one_script_is_refused(tmp_path, capsys):
+    """hypothesis:l5-a-verdict-... — the refusal resolves the ref against the
+    EFFECTIVE location, which this edit itself names. One script, no write."""
+    graph = _graph_with_locations(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    path = _node(graph, "doc:n", title="t")
+    before = path.read_bytes()
+    rc = write.main(["doc:n", "set location scratch && set link_ref bar.txt",
+                     "--root", str(graph)])
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "bar.txt" in err and "outside the repo tree" in err
+    assert path.read_bytes() == before, "the atomic refusal wrote nothing"
+
+
+def test_two_edits_location_then_ref_is_also_refused(tmp_path, capsys):
+    """The location already on the node file is the effective one, so the
+    second, location-less edit is refused exactly like the atomic case."""
+    graph = _graph_with_locations(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    path = _node(graph, "doc:n", title="t")
+    assert write.main(["doc:n", "set location scratch", "--root", str(graph)]) == 0
+    capsys.readouterr()
+    before = path.read_bytes()
+    rc = write.main(["doc:n", "set link_ref bar.txt", "--root", str(graph)])
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "bar.txt" in err and "outside the repo tree" in err
+    assert path.read_bytes() == before, "the second edit wrote nothing"
+    assert "outside-ref:" not in _schema(graph), "the gate and report agree"
+
+
+def test_a_ref_inside_a_declared_location_goes_through(tmp_path, capsys):
+    graph = _graph_with_locations(tmp_path, near=str(tmp_path / "sub"))
+    _node(graph, "doc:inside", title="t", location="near")
+    rc = write.main(["doc:inside", "set link_ref notes.txt", "--root", str(graph)])
+    capsys.readouterr()
+    assert rc == 0
+    assert "link_ref: notes.txt" in (
+        graph / "nodes" / "doc" / "inside.md").read_text()
 
 
 def test_an_inside_set_still_goes_through(tmp_path, capsys):

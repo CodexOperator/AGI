@@ -1875,9 +1875,19 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     root = _resolve_api_root(root)
 
     # A link_ref/payload_ref set outside the repo tree is refused before any
-    # write; the SAME predicate links.py's schema report calls.
+    # write; the SAME predicate links.py's schema report calls. The ref
+    # resolves against the EFFECTIVE location -- this edit's `location` if it
+    # carries one, else the one already on the node file -- so the refusal and
+    # the report agree in every reachable state (hypothesis:l5-a-verdict-...).
+    _loc = edit.set_fm.get("location")
+    if _loc is None and (_nf := node_writer.find_node_file(root, edit.node_id)):
+        from graph_core.persistence import frontmatter as _fmr
+        try:
+            _loc = _fmr.load_node_file(_nf, body=False).frontmatter.get("location")
+        except Exception:
+            _loc = None
     for _f in ("link_ref", "payload_ref"):
-        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f))):
+        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f), _loc)):
             raise EditError(
                 f"cannot set {_f!r}: {_p} resolves outside the repo tree")
 
