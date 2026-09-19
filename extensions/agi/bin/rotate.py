@@ -20737,8 +20737,11 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                 root, seat=post, actor=master, role="", cells=seat_cells)
             line = f"{line}; {seated_line}" if line else seated_line
         elif seat_cells:
+            # SLICE 6: no seating grant -> no ack, request record left as it
+            # was (a receive that could not seat has not seated).
             print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
                   f"(the seating cells were not written)")
+            continue
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)
         ack_path.write_text(
