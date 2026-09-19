@@ -296,6 +296,78 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
 
 
+def test_stage_context_asks_for_no_prayers_only_with_a_schema():
+    """SM.134 (a)/(b): a stage that declares a schema gets the constitution
+    head WITHOUT the prayers block (`brief.py head --no-prayers`); a stage
+    with no schema renders byte-identical to today (no flag)."""
+    import subprocess as _sp
+    from unittest import mock
+
+    seen = []
+
+    def fake_run(cmd, **kw):
+        seen.append(cmd)
+        if "viewport.py" in cmd[1]:
+            return _sp.CompletedProcess(cmd, 0, stdout="V", stderr="")
+        return _sp.CompletedProcess(cmd, 0, stdout="B", stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        _stage_context(REPO, REPO / ".agi",
+                       {"label": "s", "role": "kid",
+                        "schema": {"type": "object"}})
+        _stage_context(REPO, REPO / ".agi", {"label": "n", "role": "kid"})
+    brief_cmds = [c for c in seen if "brief.py" in c[1]]
+    assert "--no-prayers" in brief_cmds[0], brief_cmds[0]
+    assert "--no-prayers" not in brief_cmds[1], brief_cmds[1]
+
+
+_PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго."
+_PRAYER_POST = "Свѧтый Боже, Свѧтый Крѣпкїй, Свѧтый Безсмертный, помилуй насъ."
+
+
+def _prayer_stage():
+    return {"label": "draft:a", "prompt": "p",
+            "_repeat_item": {"slug": "a"},
+            "schema": {"type": "object",
+                       "properties": {"ok": {"type": "boolean"}},
+                       "required": ["ok"]}}
+
+
+def test_pi_prayer_wrapped_json_parses_structured(capsys):
+    """SM.134 (c): valid JSON wrapped in a prayer prelude + postlude parses
+    structured, and the strip is logged once per stage — never silent."""
+    import subprocess as _sp
+    from unittest import mock
+
+    out_text = f"{_PRAYER_PRE}\n\n{{\"ok\": true}}\n\n{_PRAYER_POST}"
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=out_text, stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
+                                  {"draft:a": {"model": "m", "effort": "x"}},
+                                  {},)
+    assert rc == 0 and value == {"ok": True}, (rc, value)
+    assert "stripped a prayer" in capsys.readouterr().err
+
+
+def test_pi_prayer_only_return_stays_unstructured(capsys):
+    """SM.134 (d): a return with no JSON stays unstructured, prayer or not."""
+    import subprocess as _sp
+    from unittest import mock
+
+    def fake_run(cmd, **kw):
+        return _sp.CompletedProcess(cmd, 0, stdout=_PRAYER_PRE, stderr="")
+
+    with mock.patch("subprocess.run", side_effect=fake_run):
+        rc, value = _run_stage_pi({"harnesses": {"pi": {}}}, _prayer_stage(),
+                                  {"draft:a": {"model": "m", "effort": "x"}},
+                                  {},)
+    assert rc == 0, rc
+    assert value["unstructured"] == _PRAYER_PRE, value
+
+
 def test_run_stage_pi_schema_violating_json_is_unstructured():
     """A JSON object that PARSES but fails its schema is SKIPPED, not fatal.
     With no other candidate validating, the stage records `unstructured`

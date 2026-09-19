@@ -131,7 +131,14 @@ def test_failed_slice_leaves_siblings_and_independents_running(
     assert "[stage] indep ok" in text, text
     # dep was SKIPPED, never dispatched; three stages actually ran.
     assert len(calls) == 3, calls
-    assert sorted(c.rstrip().splitlines()[-1] for c in calls) == [
+    # Identify a slice by the line EQUAL to its stage prompt text ANYWHERE in
+    # the captured prompt — never the LAST line, which the terminal RETURN
+    # SHAPE block owns for a schema-bearing stage (SM.134 slice 2; C3 keeps
+    # the block terminal, so this is a test-identification convention only).
+    def _slice(c):
+        return next(ln.strip() for ln in c.splitlines()
+                    if ln.strip() in ("INDEP", "WORK a", "WORK b"))
+    assert sorted(_slice(c) for c in calls) == [
         "INDEP", "WORK a", "WORK b"], calls
     err = capsys.readouterr().err
     assert "skipped stage dep (dependency 'work' failed)" in err, err
