@@ -20403,7 +20403,12 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
               f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
         return 1
     mode = args.mode or _migrate_default_mode(root, args.post)
-    if mode == "fork" and not str(args.session_id or "").strip():
+    session_id = str(args.session_id or "").strip()
+    if mode == "fork" and not session_id and args.mode is None:
+        # R2: the meter chose fork; supply the post's own live session id.
+        session_id = str(
+            _migrate_row(root, args.post).get("session_id") or "").strip()
+    if mode == "fork" and not session_id:
         print("REFUSED: fork mode needs --session-id (a blank transcript id "
               "composes a broken `claude --resume  --fork-session` that "
               "silently loses context); nothing touched")
@@ -20425,7 +20430,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     rec = migrate_channel.record(post=args.post, mode=mode,
                                  source_box=source, target_box=args.to,
                                  branch=branch, tip=args.tip,
-                                 session_id=args.session_id, ts=send._now())
+                                 session_id=session_id or None, ts=send._now())
     text = migrate_channel.format_record(rec, sign_root=root, signer=args.post)
     out = send.comms_root(root) / migrate_channel.SUBDIR / migrate_channel.record_name(rec)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -20510,8 +20515,12 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
     mode fork = the transcript copy + the exact resume command). Returns the
     identity cells the seating produced; tests monkeypatch THIS."""
     ref = rec.get("branch") or f"refs/agi/posts/{post}"
-    wt = root / "worktrees" / post
-    subprocess.run(["git", "-C", str(root), "worktree", "add", "--force",
+    # R1: follow the REAL `.agi/worktrees/post-<seat>` convention and write
+    # the worktree cell back, or the next rotation silently runs in MAIN.
+    main = locations.git_common_root(root) or root
+    wt = main / ".agi" / "worktrees" / f"post-{post}"
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "--force",
                     str(wt), ref], check=False)
     argv = [sys.executable, str(Path(__file__).resolve()), "spawn",
             "--name", post, "--seat", post,
@@ -20522,7 +20531,8 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
                  _fork_resume_command(str(rec.get("session_id") or ""))]
     subprocess.run(argv, cwd=str(wt), check=False)
     after = _migrate_row(root, post)
-    return {"box": box, "window": after.get("window"), "pid": after.get("pid"),
+    return {"box": box, "worktree": f".agi/worktrees/post-{post}",
+            "window": after.get("window"), "pid": after.get("pid"),
             "session_id": after.get("session_id"),
             "session_name": after.get("session_name")}
 
@@ -20592,7 +20602,13 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
             print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
                   f"ref {rec.get('branch')}); nothing touched")
             continue
-        cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
+        try:
+            cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
+        except OSError as exc:
+            # R4: a `worktree add` that left `wt` absent must skip by name.
+            print(f"SKIP: migrate record {path.name} for {post} could not seat "
+                  f"({exc}); record skipped, tick lives")
+            continue
         line = _write_identity_cells(
             root, seat=post, actor=post,
             role=str(row.get("role") or "director"), cells=cells)
