@@ -1541,8 +1541,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
             f"{(viewport.stderr or '').strip()}")
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
-         "--project-root", str(graph_root)]
-        + (["--no-prayers"] if stage.get("schema") else []),
+         "--project-root", str(graph_root)],
         cwd=str(repo), capture_output=True, text=True, timeout=60,
     )
     if brief.returncode != 0:

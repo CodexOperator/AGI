@@ -296,29 +296,31 @@ def test_stage_context_uses_shared_viewport_and_brief_surfaces():
     assert any("brief.py" in cmd[1] and "parent" in cmd for cmd, _ in calls)
 
 
-def test_stage_context_asks_for_no_prayers_only_with_a_schema():
-    """SM.134 (a)/(b): a stage that declares a schema gets the constitution
-    head WITHOUT the prayers block (`brief.py head --no-prayers`); a stage
-    with no schema renders byte-identical to today (no flag)."""
+def test_stage_context_schema_stage_head_carries_the_four_prayers():
+    """SM.134 revert: a stage that declares a schema gets the same
+    constitution head as any other stage -- the four-prayers block is in
+    front of the model and no `--no-prayers` flag is ever passed."""
     import subprocess as _sp
     from unittest import mock
 
     seen = []
+    real_run = _sp.run
 
     def fake_run(cmd, **kw):
         seen.append(cmd)
         if "viewport.py" in cmd[1]:
             return _sp.CompletedProcess(cmd, 0, stdout="V", stderr="")
-        return _sp.CompletedProcess(cmd, 0, stdout="B", stderr="")
+        return real_run(cmd, **kw)
 
     with mock.patch("subprocess.run", side_effect=fake_run):
-        _stage_context(REPO, REPO / ".agi",
-                       {"label": "s", "role": "kid",
-                        "schema": {"type": "object"}})
-        _stage_context(REPO, REPO / ".agi", {"label": "n", "role": "kid"})
+        context = _stage_context(REPO, REPO / ".agi",
+                                 {"label": "s", "role": "kid",
+                                  "schema": {"type": "object"}})
     brief_cmds = [c for c in seen if "brief.py" in c[1]]
-    assert "--no-prayers" in brief_cmds[0], brief_cmds[0]
-    assert "--no-prayers" not in brief_cmds[1], brief_cmds[1]
+    assert len(brief_cmds) == 1, brief_cmds
+    assert "--no-prayers" not in brief_cmds[0], brief_cmds[0]
+    assert "## THE FOUR PRAYERS" in context, context
+    assert "Ѻтче нашъ" in context, context
 
 
 _PRAYER_PRE = "Господи Іисусе Христе, Сыне Божїй, помилуй мѧ грѣшнаго."

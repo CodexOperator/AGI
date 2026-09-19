@@ -919,26 +919,6 @@ def test_director_constitution_head_contains_prayers():
         assert "FOUR PRAYERS" in d or "Молитва" in d
 
 
-def test_head_no_prayers_omits_every_prayer_opening():
-    """SM.134: a stage that declares a schema gets the constitution head
-    WITHOUT the prayers block, so no prayer opening line is handed to a
-    stage that must return exactly one JSON object."""
-    full = brief._build_head(tier="director")
-    assert "Ѻтче нашъ" in full, full
-    bare = brief._build_head(tier="director", no_prayers=True)
-    assert "CONSTITUTION HEAD" in bare, bare
-    for opening in ("Ѻтче нашъ", "Господи Іисусе Христе", "Боже, милостивъ",
-                    "Свѧтый Боже"):
-        assert opening not in bare, opening
-
-
-def test_head_no_prayers_false_is_byte_identical_to_today():
-    """A stage WITHOUT a schema renders byte-identical to today: the default
-    head never changes (SM.134 (b))."""
-    assert brief._build_head(tier="director", no_prayers=False) == \
-        brief._build_head(tier="director")
-
-
 def test_prime_director_constitution_head_contains_sayings():
     """The prime director reads the carried sayings; director may not.
 
