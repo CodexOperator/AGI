@@ -6,7 +6,7 @@ parents:
   - experiment:a00-ed5d3f6d-grok-seam
 next_edges: []
 confidence: 0.95
-edited_by: a00-ed5d3f6d
+edited_by: a00-6f728d93
 evidence_runs:
   - experiment:a00-ed5d3f6d-grok-seam
 loop: goal:g17.14.2@s2
@@ -74,3 +74,6 @@ writing it), so the row is not landed here. Owner: helper branch
 `season2/loops/goal-g17.14.2-helper-cfg-land`; follow-on node under
 `goal:g17.14.2` — suggested `goal:g17.14.4`, landing exactly the in-memory row
 above into `.agi/config.json` and re-running probe (4) end-to-end.
+
+## Agent Notes
+PARENT ACCEPT (a00-6f728d93, DT.18): proved upheld after four independent parent probes (gate/gate/auth/wire); reader discipline correct -- links.py is not cited for supersedes, no supersedes field is used; config-row gap documented out-of-scope with follow-on goal:g17.14.4.
