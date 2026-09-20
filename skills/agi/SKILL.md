@@ -147,6 +147,51 @@ due (name your own successor below that line), exit 1 means rotate.
 Bare `agi` stays valid as the graph skill; these are the two rotation verbs
 enumerated for suggestion.
 
+### Entering prime state — the seating sequence (owner, 2026-09-20)
+
+A session that is told "assume the role of prime director" is NOT the Prime
+until the graph says so. Measured on local-town 2026-09-20 04:2x–05:0xZ
+(belam gen 3): the hand-seated shape — row cells written by script, a pin,
+a key, seats spawned — worked but left the Prime as a bg remote-control
+session with no window, no rotation record and no ack, i.e. not something
+`heal.py`, `rotate.py alarms` or the next rotation can reason about. Owner's
+words, verbatim: *"rotate self into the prime slot properly. If you do that
+first thing everything else becomes easier … Last part is always to rotate
+self properly into prime role with proper pin activation and such."*
+
+Run these in order, from MAIN, every time a Prime is stood up on a box:
+
+```bash
+# 0  the prayer is the first tokens of the FIRST reply (Constitution), then:
+bin/agi-boxinfo                                   # which box (AGI_BOX in MAIN's .env) — alias only
+git branch --show-current                         # the trunk this box works: season2/main on core, <town>/season2/main on a town box
+git fetch origin && git merge --no-edit origin/<parent-trunk>    # sync; then links.py links + snapshot-goals.py --render --check
+# 1  the row: box cell + identity cells through the ONE writer (write.py, actor = the prime row), never a hand edit
+#    (posts.md is config; written_by is [owner, prime_director]; a box's rows carry `box: <alias>` — a row
+#     without the cell belongs to default_box and is FOREIGN everywhere else: whois/heal/status/mail_poll skip it)
+# 2  the key: keys never cross boxes — re-mint on arrival; key_history on the row records the rotation
+send.py --from belam keygen --post belam
+# 3  the pin: the seat-stable meter pin on YOUR OWN transcript (never the newest .jsonl — that is another seat's)
+rotate.py meter --post belam --pin .agi/sessions/belam.meter --session-log ~/.claude/projects/<slug>/<own-session-id>.jsonl
+# 4  the seats you were told to stand up, each from its own card, then pin each to its own transcript
+rotate.py spawn --post <name> --tier director --prompt-file .agi/sessions/quorum/<name>.md
+# 5  crons.py apply (the node is the schedule; the box filter installs only this box's lines) · the HANDOFF card
+# 6  LAST — rotate self INTO the prime slot properly. This is what makes steps 1–3 real:
+#    the engine spawns the successor in tmux under the launch wrapper, writes the rotation record,
+#    the ack, the row (gen+1, window, pid, session_id via the registry JOIN) and ACTIVATES the pin
+#    at the successor's own transcript. `prepare` gates it: pushed, clean tree, card newer than last commit.
+AGI_SEAT=belam AGI_POST=belam rotate.py rotate --force --stops "<where it stops, one paragraph>"
+```
+
+Two things this sequence catches that a hand seating does not: a first
+`claude` launch in a folder on a fresh box throws THREE TUI dialogs (folder
+trust → bypass-permissions accept → renderer offer) and the seat sits on them
+silently — answer with `tmux send-keys -t agi-rc:<post> Down Enter` for the
+first two and `Escape` for the third (it does not interrupt the turn); and a
+box with no push credential blocks `prepare` on `unpushed commits` — that is
+the owner's to fix (`gh auth login`), bank it, do everything else, rotate when
+it clears. A Prime that skips step 6 is a Prime by assertion, not by the graph.
+
 ## Constitution
 
 Five morals anchor the graph. Every node has a path to one.
