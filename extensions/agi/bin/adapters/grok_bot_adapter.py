@@ -4,13 +4,22 @@ CLI flags are NOT guessed: `build_command` emits a minimal, measurable argv
 and `restart` refuses until `<bin> --help` is read the way
 `copilot_cli_adapter`'s was. `needs_credential` is False — Grok Bot
 authenticates through its own channel, so no OpenRouter key is minted.
+
+`DEFAULT_BIN` is a BARE program name, resolved on PATH by `Popen`, mirroring
+`claude_code_adapter.py`. The box path lives in the config `harnesses.grok-bot`
+`bin` cell (owned by `goal:g17.14.2`), so no `/home/<user>` literal is baked
+into this file.
 """
 from __future__ import annotations
 import os
 import adapters
 
 NAME = "grok-bot"
-DEFAULT_BIN = "/home/ubuntu/.npm-global/bin/grok-bot"
+
+#: Fallback only. `$GROK_BOT_BIN`, then `harness["bin"]`, then this
+#: (PATH-resolved by Popen). The configured box path is a config cell, not
+#: a literal here.
+DEFAULT_BIN = "grok-bot"
 
 
 def resolve_bin(harness: dict) -> str:
