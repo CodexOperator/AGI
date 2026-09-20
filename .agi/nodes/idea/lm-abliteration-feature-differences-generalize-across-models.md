@@ -3,7 +3,7 @@ id: idea:lm-abliteration-feature-differences-generalize-across-models
 mint_id: d958b0dbda99457fa04124c4cb460e39
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.9
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 4b8fd854ab844288

@@ -3,7 +3,7 @@ id: idea:lm-jev-mcp-sandwich
 mint_id: 6cc72c9cc13043b8b08518061dc040f4
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.8
 next_edges: []
 edited_by: thought-master
 scaffold_hash: e19d2c3a53eeaa92

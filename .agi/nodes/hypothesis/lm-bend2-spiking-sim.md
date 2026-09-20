@@ -4,7 +4,7 @@ mint_id: f8007b7f031047dba8535d17a08ef618
 type: hypothesis
 parents:
   - idea:lm-hybrid-oscillator-readout
-  - goal:g14
+  - goal:g14.12
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; downloads <= 500 MB (Bun + Bend); runs <= 10 min each; file scope = .agi/context/local-maxxing/bend/{cmds.md, lif.bend, lif_baseline.py, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

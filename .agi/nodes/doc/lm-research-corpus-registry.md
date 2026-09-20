@@ -3,7 +3,7 @@ id: doc:lm-research-corpus-registry
 mint_id: 2328b7decfb849f5964748eda29dce3e
 type: doc
 parents:
-  - goal:g14
+  - goal:g14.10
 next_edges: []
 edited_by: thought-master
 payload_ref: datasets/README.md

@@ -3,7 +3,7 @@ id: doc:glm-5-3-flash
 mint_id: 3955a85cedbe47c9a7e78450b6cd51ec
 type: doc
 parents:
-  - goal:g14
+  - goal:g14.13
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/glm-5-3-flash.md

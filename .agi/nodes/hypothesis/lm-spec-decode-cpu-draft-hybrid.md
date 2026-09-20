@@ -3,7 +3,7 @@ id: hypothesis:lm-spec-decode-cpu-draft-hybrid
 mint_id: 5ee62e6054a8400a9e9648d3c5d573cf
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; <= 3 GB downloads inside the local-town ceiling; file scope = .agi/context/local-maxxing/specdec/{prompts.jsonl, rows.jsonl, cmds.md} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master
