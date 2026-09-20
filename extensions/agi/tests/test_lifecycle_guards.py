@@ -134,6 +134,42 @@ def test_it_is_a_warning_and_never_a_failure(capsys):
     assert sg.warn_premature_complete(existing)   # returns, does not raise
 
 
+def _wrapper(nid, fm):
+    """The shape `load_existing_nodes()` actually returns on the live path:
+    {path, origin, fm, body} — not a flat frontmatter dict."""
+    return {"path": Path(f"{nid.split(':')[-1]}.md"),
+            "origin": "goals-doc", "fm": fm, "body": ""}
+
+
+def test_wrapper_shaped_nodes_warn_on_the_real_render_path(capsys):
+    """DH.12 residue, goal:s26: the guard read wrapper dicts as flat fm, so on
+    `--render` it returned [] while the flat-dict unit tests stayed green —
+    inert exactly where it was supposed to fire. The live shape must warn."""
+    sg = _snapshot_goals()
+    existing = {
+        "goal:g5": _wrapper("goal:g5",
+                            _goal_fm("G5", "complete", kind="long-term")),
+        "goal:g5.1": _wrapper("goal:g5.1",
+                              _goal_fm("G5.1", "active", parents=["goal:g5"])),
+    }
+    assert sg.warn_premature_complete(existing) == [("G5", "G5.1", "active")]
+    assert "goal:s26" in capsys.readouterr().err
+
+
+def test_both_shapes_agree(capsys):
+    """Accepting both shapes is the contract: a flat caller (the older unit
+    tests) and a wrapper caller (the live render) must produce identical
+    offenders for identical content, not one warning and one silence."""
+    sg = _snapshot_goals()
+    flat = {
+        "goal:g5": _goal_fm("G5", "complete", kind="long-term"),
+        "goal:g5.1": _goal_fm("G5.1", "horizon", parents=["goal:g5"]),
+    }
+    wrapped = {nid: _wrapper(nid, fm) for nid, fm in flat.items()}
+    assert sg.warn_premature_complete(flat) == [("G5", "G5.1", "horizon")]
+    assert sg.warn_premature_complete(wrapped) == sg.warn_premature_complete(flat)
+
+
 # --------------------------------- goal:s23 — load retired, do not render
 
 
