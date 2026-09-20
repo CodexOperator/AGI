@@ -2,10 +2,12 @@
 spawn argv for every harness is produced from a TOML template plus a thin
 hook, and a FOURTH harness renders with no edit to rotate.py.
 
-Fixture-only: no test starts a live harness. The copilot expected argv is
-frozen (a literal), while claude is compared directly to
-`rotate._build_claude_command` — no copied literals for the claude shape.
+Fixture-only: no test starts a live harness. Both seat builders are compared
+to a FROZEN LITERAL argv (the old hand-built shape), never to
+`harness_template.render`: the builders ARE that render, so comparing the two
+is a tautology that pins nothing about the seat argv.
 """
+import json
 import sys
 from pathlib import Path
 
@@ -56,14 +58,25 @@ CLAUDE_MATRIX = [
 
 
 @pytest.mark.parametrize("model,effort,settings", CLAUDE_MATRIX)
-def test_claude_template_matches_build_claude_command(model, effort, settings):
-    """The format must express claude-code exactly: multi-token flag, JSON
-    value, positional-last prompt. Production claude is NOT rewired."""
-    expected = rotate._build_claude_command(
+def test_claude_builder_renders_frozen_argv(model, effort, settings):
+    """The PRODUCTION claude builder equals the OLD hand-built argv
+    (rotate.py@8b6dcea1f), written out here as a literal: multi-token flag,
+    JSON value, positional-last prompt. This pins the seat shape, so a
+    dropped/renamed flag in claude-code.toml fails this test; asserting
+    `== harness_template.render(...)` could not, since the builder IS that
+    call."""
+    expected = ["claude", "--remote-control", "N", "--permission-mode",
+                "bypassPermissions", "--debug-file", "D.LOG"]
+    if model:
+        expected += ["--model", model]
+    if effort:
+        expected += ["--effort", effort]
+    if settings:
+        expected += ["--settings", json.dumps(settings)]
+    expected.append("CARD")
+
+    got = rotate._build_claude_command(
         "N", "CARD", "D.LOG", model=model, effort=effort, settings=settings)
-    got = harness_template.render(
-        "claude-code", prompt="CARD", name="N", debug_file="D.LOG",
-        model=model, effort=effort, settings=settings)
     assert got == expected
 
 
@@ -73,15 +86,23 @@ def test_available_includes_shipped_harnesses():
     assert "claude-code" in ids
 
 
-def test_copilot_builder_is_now_template_backed():
-    """The production builder equals the render, and the old flag literals
-    are gone from it."""
+@pytest.mark.parametrize("model,effort,extra", COPILOT_MATRIX)
+def test_copilot_builder_renders_frozen_argv(model, effort, extra):
+    """The PRODUCTION copilot builder equals the OLD hand-built argv
+    (rotate.py@8b6dcea1f), the same literal shape frozen above. A dropped or
+    renamed seat flag in copilot-cli.toml fails this; `== render(...)` could
+    not, since the builder IS that call."""
+    expected = ["/x/copilot"]
+    if model:
+        expected += ["--model", model]
+    if effort:
+        expected += ["--effort", effort]
+    expected += ["--allow-all", "--remote", *extra, "-i", "CARD"]
+
     got = rotate._build_copilot_command(
-        prompt_text="CARD", model="auto", bin_path="/x/copilot",
-        extra_args=["--z"])
-    assert got == harness_template.render(
-        "copilot-cli", prompt="CARD", model="auto", bin_path="/x/copilot",
-        extra_args=["--z"])
+        prompt_text="CARD", model=model, effort=effort,
+        bin_path="/x/copilot", extra_args=extra)
+    assert got == expected
 
 
 def test_unknown_template_is_a_named_error():
