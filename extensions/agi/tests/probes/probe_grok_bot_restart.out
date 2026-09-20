@@ -1,0 +1,17 @@
+NAME grok-bot
+DEFAULT_BIN grok-bot
+needs_credential False
+REQUIRED ['build_command', 'child_env', 'is_alive', 'restart', 'needs_credential']
+new_pid 2784092 is_alive True
+argv_seen --model grok-4-fast -p /tmp/grokprobe-asr26exg/context.md
+record {"id": "probe", "worktree": "/tmp/grokprobe-asr26exg", "pid": 2784092, "status": "restarted", "restarted_at": 1789902821}
+agent_json {
+  "id": "probe",
+  "worktree": "/tmp/grokprobe-asr26exg",
+  "pid": 2784092,
+  "status": "restarted",
+  "restarted_at": 1789902821
+}
+output_log_exists True
+group_gone True
+teardown_ok True
