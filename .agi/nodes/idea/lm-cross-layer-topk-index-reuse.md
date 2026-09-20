@@ -3,14 +3,15 @@ id: idea:lm-cross-layer-topk-index-reuse
 mint_id: fc38a3de53314cddb02fb2a1d33ad5cd
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 16c4b462efb82d97
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: Share top-k attention indices across layer blocks; pick the blocks by greedy LM-loss search, not similarity
 town: local-maxxing
 ---

@@ -5,15 +5,20 @@ type: goal
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam-S1-L4-V
+confidence: 0.6
+edited_by: belam
 goal_id: G1.17
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 47478845a6e15ffc
 season: 2
+seeds: []
 status: horizon
-thought_session: f3b92df1
+tags:
+  - goal
+  - subgoal
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.17: Most engine functions are DRIVEN — the tool prints the next step, the agent types only what it is told"
 ---
 <!-- BODY:BEGIN -->

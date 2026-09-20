@@ -3,11 +3,10 @@ id: hypothesis:l4-needs-credential-is-provider-gated
 mint_id: 89331de9413d40538028916cf8877e47
 type: hypothesis
 parents:
-  - goal:g15
-  - goal:g14
+  - goal:g6.11
 next_edges: []
 ceiling: $1 OpenRouter for the round's own tokens (of the $2 the Prime capped round 2 at; account read 09:10Z $11.89, floor $5.00); no suite run — the single test file only; nothing touches .env/Doppler/<keeper-dir>.
-edited_by: thought-master
+edited_by: belam
 evidence_runs:
   - experiment:a00-9d2ad822-0861fe
   - experiment:a00-c1b9dfec-62a1aa
@@ -18,6 +17,7 @@ scaffold_hash: 181b9cc6a20bc6ca
 season: 2
 testable_claim: "With needs_credential deciding from the HARNESS ROW, not the provider name — `.agi/config.json` harnesses.<row>.credential: none (an explicit allowlist cell; the pi-local row gets it, no other row does) — a spawn on --harness pi-local mints no OpenRouter key (dry-run prints no minting line; a real kid has no OPENROUTER_API_KEY in env; provisioning shows no new engine-minted key), while EVERY other row — openrouter, unknown, and the test placeholder provider=fake in test_dispatch_scaffold_unregistered.py:54 — still mints exactly as before (default True), and test_adapters.py + test_dispatch_scaffold_unregistered.py pass run alone."
 tests: "ONE pi parent, ONE kid (Kid A of the GPU endpoint's round 2, re-homed here): the one-liner + its test; proof = the dry-run line, the real-kid env-keys log, the provisioning delta, test_adapters.py run ALONE; parent authors no experiment node, re-runs the dry-run itself as its probe."
+thought_session: dissolve-legacy-2026-09-19
 title: "needs_credential is provider-gated: a pi-local spawn mints no OpenRouter key"
 town: local-maxxing
 verdict: proved

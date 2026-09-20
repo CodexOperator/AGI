@@ -3,7 +3,7 @@ id: cron:crons
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
 type: cron
 parents:
-  - goal:g10.2
+  - goal:g2.25
 cadences:
   grid_sync:
     every_mins: 5
@@ -102,13 +102,13 @@ authored reasoning regions (marked with the paired HTML comment this schema
 uses for exactly one such region per node) — the previous version's, about
 retiring the `publish_engine`/`engine_push` cadences after `goal:g11`, left
 at the top; and an older one below it, about correcting this node's own mint
-from parentless to `parents: [goal:g10.2]`, from the version before that.
+from parentless to `parents: [goal:g2.25]`, from the version before that.
 Past edits added a new region at the top without removing the one
 underneath, which the schema does not allow — exactly one such region per
 node, rewritten from scratch per version. Both are merged into this single
 one. The
 parentage fix from the older block is still true and is why `parents:
-[goal:g10.2]` is set above; that fact now lives in the frontmatter itself; it
+[goal:g2.25]` is set above; that fact now lives in the frontmatter itself; it
 does not need to be restated at length here. The cadence-retirement reasoning
 from the newer block is still current and now lives in the body below,
 unchanged in substance.

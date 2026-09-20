@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD round on goal:g15.24 — clause (i) swap defect in `_merge_region` (rotate.py), clause (ii) in-process alert-hook test. Measured base HEAD 09585af8e. Both clauses BUILT, proved on built bytes, full neighbourhood green.
+BUILD round on goal:g6.46 — clause (i) swap defect in `_merge_region` (rotate.py), clause (ii) in-process alert-hook test. Measured base HEAD 09585af8e. Both clauses BUILT, proved on built bytes, full neighbourhood green.
 
 ## Base (pre-fix) — clause (i) reproduced
 

@@ -3,9 +3,9 @@ id: doc:baseten-eagle3-heads
 mint_id: fcc49524105645b3902029628ed924f4
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/baseten-eagle3-heads.md
 scaffold_hash: e9df13a140f01b1e
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"How to train custom EAGLE-3 heads for speculative decoding\""
 town: local-maxxing
 ---

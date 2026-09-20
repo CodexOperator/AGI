@@ -3,13 +3,13 @@ id: hypothesis:l3w4-seat-sessions-and-tiling
 mint_id: e254cbdf45a84cb99bbfda36769e2e37
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: 45218ed64ae7a1e1
 season: 2
 testable_claim: "After the change, one command brings up a live background remote-control session for every non-ephemeral seat in config:seats exactly the way Belam's own session is brought up — same head, same model and effort from the seat row, same CLAUDE_CODE_WORKFLOWS gate — and each one answers a read-back; rotate.py status lists every seat as attached with a real session id rather than no_pin; and a separate tiling step arranges the corresponding terminals on the X :1 desktop automatically, re-tiling when a seat is added or rotated. Three red-first tests fail today and pass after: a dry run resolves one launch command per non-ephemeral seat row from seats.md with that row's model and effort, a seat with session_kind fire-and-forget is excluded, and the tiler computes a full-screen partition for N windows with no overlap and no gaps."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Every non-ephemeral seat gets its own remote-control session, and the desktop tiles them
 ---
 <!-- BODY:BEGIN -->

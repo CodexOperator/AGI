@@ -3,13 +3,13 @@ id: hypothesis:a05-2dca16d9-b39dde
 mint_id: 95a24e6ac031474aaed83b8a9e115509
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 7d42fe005d4a3824
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A05 2dca16d9 b39dde
 verdict: pending
 ---

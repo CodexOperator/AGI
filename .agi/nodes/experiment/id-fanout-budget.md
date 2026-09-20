@@ -113,7 +113,7 @@ idea:engine-embeddings                   4
 idea:engine-tests-embeddings             4
 idea:engine-context-impl                 3
 idea:engine-tests-chain-engine           3
-goal:g8.2                                2
+goal:g1.24                                2
 idea:engine-gitignore                    1
 idea:engine-handoff                      1
 idea:engine-readme                       1
@@ -154,7 +154,7 @@ idea:engine-run-loop-sh                  1
 idea:engine-schema-sql                   1
 idea:engine-migrate-to-sqlite            1
 idea:engine-skill-doc                    1
-goal:g8.1                                1
+goal:g1.23                                1
 idea:engine-start-sh                     1
 ```
 

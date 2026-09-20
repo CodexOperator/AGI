@@ -3,9 +3,9 @@ id: doc:deepseek-v4-1-flash
 mint_id: 5d778b6aeaed46e3b15c02136b208626
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/deepseek-v4-1-flash.md
 scaffold_hash: 6151684256388732
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression\""
 town: local-maxxing
 ---

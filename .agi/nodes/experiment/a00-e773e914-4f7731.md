@@ -74,7 +74,7 @@ The prototype script (re-reads `graph_core`, builds the `NodeFrameStream` iterat
 - **Holds:** the shared traversal itself — both formatters consume the same `frames` list, and experiment 3 (452 frames, both truncating at the same boundary, MD ordering cross-checked against `frames[:200]`) is a non-vacuous pass.
 - **Gap 1 — truncation is a formatter parameter, not stream policy.** Both formatters take `max_lines=200` independently. They agree only because the same value was passed to both; the hypothesis's own check 3 ("neither formatter filters by criteria the stream did not already apply") is not what the code does. One formatter re-parameterised to 150 would diverge silently.
 - **Gap 2 — experiments 1–2 are vacuous.** The target's subtree is depth-1 only, so `max_depth=2` and `max_depth=4` emit the same 2 frames; the depth knob was never exercised non-vacuously.
-- **Gap 3 — the strongest falsifier was not run.** Proof criterion 2/4 of the parent hypothesis (a stream change propagates to both outputs in lockstep) is goal:g9.7's own falsifier, and this experiment tests fidelity only. The lean is demoted 75→65 on that basis; nothing here is disproved.
+- **Gap 3 — the strongest falsifier was not run.** Proof criterion 2/4 of the parent hypothesis (a stream change propagates to both outputs in lockstep) is goal:g2.19's own falsifier, and this experiment tests fidelity only. The lean is demoted 75→65 on that basis; nothing here is disproved.
 
 
 ## Agent Notes
@@ -92,7 +92,7 @@ except the Evidence section, which I extended rather than replaced. Changes and 
 2. Demoted the lean 75 -> 65 (confidence 0.75 -> 0.65). The kid's own caveat says
    "prototype-only" but 75% is a claim about the hypothesis, and the hypothesis's
    strongest falsifier — lockstep change propagation, proof criterion 2/4, which is
-   goal:g9.7's own falsifier — was never tested. Fidelity was; propagation was not.
+   goal:g2.19's own falsifier — was never tested. Fidelity was; propagation was not.
    I re-ran the script myself and every reported number reproduced exactly (889
    nodes, 2/2/452 frames, PASS), so nothing here is demoted on fabrication; it is
    demoted on coverage. The two vacuous experiments (target subtree is depth-1, so

@@ -109,7 +109,7 @@ on the horizon, encrypts and serves.
 
 Rungs 1–4 are live as goal lines under `goal:g15` at the Sanctuary director
 (rung 1 = SL4.06: keys on rows, labels INFORMATIONAL until the crypto gate in
-`goal:g17.1` lands — injective canonical form, one registry, a verify-side
+`goal:g7.16` lands — injective canonical form, one registry, a verify-side
 vector; the flip to enforcing is its own round with the owner's GO). Rungs
 5–8 are horizon: minted as goals under this vision's `proposes_goals` only
 when the owner names an order. Rung 1 enforcing is the gate for every rung

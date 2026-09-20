@@ -3,9 +3,9 @@ id: idea:engine-schema-registry
 mint_id: 76120a4f22eb413886a99e6a4780c315
 type: idea
 parents:
-  - goal:g5
+  - goal:g4.12
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: big
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/src/schema_registry"
 unit_kind: src_package
 unit_path: extensions/agi/src/schema_registry

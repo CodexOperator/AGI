@@ -3,14 +3,15 @@ id: idea:lm-hunch-cluster-parallel-speculation
 mint_id: 2fa890fea8d04bb79224bf8349bc5413
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c53d593f4ca9729c
 season: 2
 tags:
   - local-maxxing
   - owner-hunch
+thought_session: dissolve-legacy-2026-09-19
 title: "Cluster-parallel speculation: the CPUs can host the draft's trainer, not its proposal — three ≤20-minute gates (PEARL ceiling on local-town, verify-batch cost on"
 town: local-maxxing
 ---

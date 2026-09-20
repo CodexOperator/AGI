@@ -3,12 +3,13 @@ id: hypothesis:l4-the-real-box-half-of-remote-now-agi-cloned-on-the-town-box-wit
 mint_id: e8665e8b84f840fc8a1fa83ae06f9166
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 50fb73fecefb683a
 season: 2
 testable_claim: "(1) over `ssh local-town` (mesh-config alias; never an address, hardware or location string in any node, card, dm or log) agi is cloned from origin into the post user's home, checked out on the thought town trunk (local-maxxing/season1/main) at or past the commit that carries SM.117 (boxes.py) -- read from origin/core/season2/main until the Prime's pass lands it on season2/main -- with its own .agi/sessions (box-local by construction), its own tmux server session agi-rc, and its own MAIN-root .env carrying AGI_BOX=local-town, the OPENROUTER_PROVISIONING_KEY slot EMPTY (the owner mints the box's own key; envfile.py --check names the missing key by name, nothing else fails); (2) `crons.py apply` on the box installs ONLY the jobs whose box is local-town (branch push + mail_poll), core-town's crontab untouched, proved by `crons.py show` on both boxes; (3) post keys: thought-master.key + director-thought.key copied 0600 over the overlay into the box's sessions/seats/, OR left for re-mint at the next rotation -- the choice recorded with the reason; (4) PROOF: a dm sent from core-town to thought-master (committed + pushed on the branch the box polls) is read by `send.py read thought-master --box-local` on local-town within one poll tick (<= 5 min), measured; (5) the box-cell edit for the thought-master + director-thought rows is delivered as ONE [decision] line (exact row edits, box: local-town, settings: quiet on core-town) for the Prime to apply at the 09-19 check-in -- no live row cell is written by this round; (6) the experiment records every command by alias and the tick latency; a box that stops answering mid-round = the round pauses and says so, never a stand-in substitution."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.117b (Prime 20:36Z: the town box is back; owner 14:5xZ/21:3xZ): the REAL-BOX half of Remote NOW -- agi cloned on local-town over the ssh alias with its own sessions, tmux, .env (box alias + its own provisioning key slot), crons applied for that box only, post keys carried or re-minted, and a dm committed on core-town read on the box within one poll tick"
 town: core
 ---

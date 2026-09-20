@@ -3,14 +3,15 @@ id: idea:lm-kv-bytes-ledger-q4-cache
 mint_id: fa319016535e4378853a2934e47a560e
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: cd059c7373cb095e
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: "q4_0 KV on the swarm box: does halving KV bytes move Qwen3-0.6B tok/s at 4-8K context?"
 town: local-maxxing
 ---

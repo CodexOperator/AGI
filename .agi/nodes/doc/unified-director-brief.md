@@ -3,7 +3,7 @@ id: doc:unified-director-brief
 mint_id: c49b6dee2fd04b438487ecc05d7758cd
 type: doc
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-master
 scaffold_hash: 7bdcfffd955edadb
@@ -34,7 +34,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
               └─► NODE: the brief lives on the hypothesis node -- measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING (10-12 production lines per conjunct); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch). The kid answers this named line FIRST, before any code: config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>.
                     └─► DISPATCH a parent from YOUR worktree: dispatch.py . <PREFIX>.<nn> --target <node> --level small --tier parent --harness pi --branch  (exit 3 = stale base: merge origin, push, re-run; live-parent cap per your master; kids <= 5 per parent)  -- NEVER `--post`/`--seat` on a parent or kid dispatch: that flag spawns the agent AS that seat, and the seat row (your own claude-code row) overrides the ladder's pi/deepseek parent row and silently beats `--harness` (measured gen 11, 2026-09-19 06:5xZ: a parent resolved claude-code/sonnet-5 with a harness that forbids dispatch.py); `--post` is for spawning a SEAT session only
                           └─► HARVEST: MB=$(git merge-base HEAD <loop branch>); git diff --stat $MB <loop branch>; THOUGHT:BEGIN <= 1 per new node; read the kid nodes; git merge --no-ff into your post branch; run the touched tests WITH their neighbourhood, --basetemp under /tmp
-                                └─► REVIEW IT YOURSELF (owner 2026-09-18 01:5xZ, goal:g17.1): workflow.py run merge-up-review ... --harness pi -- by name, one round per KID slice (rounds[] is the parallel axis; a 15-item round timed out at 1800 s), NEVER the Claude Workflow tool (F29)
+                                └─► REVIEW IT YOURSELF (owner 2026-09-18 01:5xZ, goal:g7.16): workflow.py run merge-up-review ... --harness pi -- by name, one round per KID slice (rounds[] is the parallel axis; a 15-item round timed out at 1800 s), NEVER the Claude Workflow tool (F29)
                                       └─► a [red] the review finds is YOURS to fix in-loop (own g15 fix round, or demote the verdict with the measured reason) BEFORE delivery -- never sent up
                                             └─► DELIVER ONE [merge-up] line to your MASTER: batch (post-branch tip sha, merge-base sha, files/tests numbers) + review (mur run key + per-slice verdicts) + one proposed g15 line per finding
                                                   └─► the master GATES (merge-base, merge-tree clean vs the live trunk head, no deletions, bytes) and LANDS on the town trunk; the Prime merges the trunk into season2/main at cadence. Silence past your line = the loop is healthy. Next.

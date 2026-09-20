@@ -3,12 +3,13 @@ id: hypothesis:l4-the-sensei-audit-verbs-resolve-the-window-by-post-and-record-n
 mint_id: 869ce668e89444caaefebe23056856a7
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 scaffold_hash: 278ca1d291338cda
 season: 2
 testable_claim: "MEASURED 2026-09-16 11:4xZ (master-sensei): sensei.py rotate-out-audit and wake-audit default and match the window by observations.b_generation (sensei.py:1686 gen = _gen_bounds(records[-1][1])[0]; :1693 out_rec = the record whose _gen_bounds(rec)[0] == gen; --gen on both parsers :1899/:1914). rotate.py:4701-4703 writes b_generation ONLY when gen_before is not None AND the role is prime or None - guard landed in e85a1a797 (SM.243, 2026-09-16) - so every NON-PRIME post rotate-self record carries no b_generation and no gen_before/gen_after at any level (thought-master.20260916T110753Z.json, sensei-director.20260916T104936Z.json: measured, the only gen token is prose inside handover strings), and the verbs refuse: ERR cannot default --gen: the latest record has no b_generation.before (thought-master, 11:1xZ). The master-sensei record 20260916T105216Z still carries it (role None on its path): the keying is inconsistent by call path, not merely absent. Owner 2026-09-13 (doc:l4-owner-decisions): No generations anywhere - label by post + record timestamp. CLAIM, one kid, sensei.py + tests only, rotate.py untouched: both verbs resolve the window by RECORD - default = the post latest rotate-self record; --record <stamp> selects one by the recorded_at stamp in its filename (the same key rotate.py status --record takes); the out-window = the predecessor calls after its last work act up to that record recorded_at; the wake-window = from that record join to the successor first commit; --gen stays as a deprecated alias that resolves to the record whose b_generation.before matches WHEN present and refuses by name otherwise, never the default; every printed line names the record stamp, never a generation. Test, committed: run both verbs on tmp_path copies of (1) a CURRENT non-prime rotate-self record shaped like thought-master.20260916T110753Z.json (genless) and (2) a prime record carrying b_generation, and assert both resolve to the planted transcripts with source lines naming the stamp. Falsifier: sensei.py rotate-out-audit --post thought-master with no flags on the committed 20260916T110753Z record still refuses, or the prime record resolves to a different window than the gen path did. Deviation from the Prime wording (top-level gen_before/gen_after with b_generation fallback), measured reason: a rotate-self record has neither at the top level - only a SEATING record does, and only for prime roles - so that keying would leave TM and SD un-auditable; recorded in THOUGHT."
+thought_session: dissolve-legacy-2026-09-19
 title: L4 the sensei audit verbs resolve the window by post and record never by b generation
 town: core
 ---

@@ -12,7 +12,7 @@ next_edges: []
 core: false
 edited_by: belam-S1-L4-VI
 proposes_goals:
-  - goal:g18.1
+  - goal:g2.27
 scaffold_hash: 8f30a63fc84f3437
 season: 2
 thought_session: belam-S1-L4-VI
@@ -47,7 +47,7 @@ is the work itself, nothing added.
 
 Town: `streaming-suite`. Council: the Streaming Council (reports to the Core
 Council; the Prime stands as Core Council until one is seated). The Keep is
-shared. `proposes_goals: goal:g18.1`.
+shared. `proposes_goals: goal:g2.27`.
 ## Agent Notes
 OWNER 2026-09-11 00:4xZ, verbatim (the vision's charter; also in doc:l4-owner-decisions): 'The streaming suite, and the web app suite are the first sort of none core goals, so they should perhaps be labeled as such. Each one is technically a whole shippable app, so I just want both to be treated as such. This means that they each would get their own visions, but still share the morals. The vision goal sets then determine the big picture splits between each project that agi is actively working on, and each one of course has a corresponding Council. I figured the Keep part of Sanctuary can be shared across all towns, which are each led by their own Council. Core Council reports to Prime, all other Councils report to Core Council. For all others, Core Council IS Prime himself. The rest of the chain holds loosely, all masters return work to the Council from which the work originated.' This town: streaming-suite. Its Council reports to the Core Council; until a Core Council is seated the Prime IS the Core Council for it. The Keep is shared with every town. Masters return this town's work to this town's Council.
 <!-- BODY:END -->

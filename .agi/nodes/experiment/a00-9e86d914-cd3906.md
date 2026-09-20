@@ -21,7 +21,7 @@ verdict: proved
 ---
 # experiment:a00-9e86d914-cd3906
 
-FIX-ONLY build (goal:g15.25 SL7.105 residue (b), parent hypothesis): measure the pre-fix state, IMPLEMENT the claim, prove it on the built bytes. Pre-fix measurements confirmed three of the four claim clauses were NOT met even though the SL7.89 re-exec seam existed:
+FIX-ONLY build (goal:g6.47 SL7.105 residue (b), parent hypothesis): measure the pre-fix state, IMPLEMENT the claim, prove it on the built bytes. Pre-fix measurements confirmed three of the four claim clauses were NOT met even though the SL7.89 re-exec seam existed:
 
 - `rotate.run_after_join_for_seat` stamped `code_head` only on the RETURNED result dict (rotate.py:12136) and the skipped dict (:12050) — the PERSISTED `after_join` block written to disk at rotate.py:11827 carried NO code_head. Claim (1) part 1 unmet.
 - heal.py:475 `after_join performed for <seat> ...` log line named record/dm but NOT code_head. Claim (1) part 2 unmet.

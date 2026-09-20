@@ -3,12 +3,13 @@ id: doc:lm-director-brief-customizations
 mint_id: df60a7c4d75049578ba1fcbc53ca2415
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.7
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
+thought_session: dissolve-legacy-2026-09-19
 title: "director-thought per-master section of the unified director brief (thought town: trunk, cadence, dispatch classes, review-by-director, comms, rotation, typed decisions)"
 town: core
 ---
@@ -33,7 +34,7 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 - Measurement rules: a warm-up request before any tok/s number (TM.10); `--load-mode none` or warm-up noted per row; per-prompt rows beside every median; ETA and ratios re-derived by the parent from the bytes, not the kid's prose.
 - Boxes: downloads <= 200 GB on local-town (`/data`), <= 2 GB removable on the A1; the ONE permitted local-town change is logged with its rollback command verbatim BEFORE it is made; never an address in any encoding (alias only), never `.env` / Doppler / secrets; no Camber rental — every GPU-hour ask is banked with numbers (3 GPU-h/month on record, XS ~$1.50-3/h).
 
-## Review (owner 01:5xZ 09-18, goal:g17.1)
+## Review (owner 01:5xZ 09-18, goal:g7.16)
 - The director runs the merge-up review ITSELF after each round lands: `workflow.py run merge-up-review --args "$(cat args.json)"` on pi, one slice per kid, `old_tip` = merge-base with `season2/main`; read `returns.<stage>.unstructured` in `.agi/sessions/workflows/merge-up-review.jsonl`; never the Claude Workflow tool.
 - Delivery = ONE `[merge-up]` dm to the master: tips, merge-bases, file counts, mur run key, per-slice verdicts. A `[red]` the review finds is fixed IN-LOOP (own g15 fix round or demote) before delivery.
 - Verdicts: `proved` needs the kid in `evidence_runs`; a failed gate (tenancy, bytes, key) = honest `pending`, never a lean.

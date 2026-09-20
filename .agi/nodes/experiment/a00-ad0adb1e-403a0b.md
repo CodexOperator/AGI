@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD fix-only round on goal:g15.25 SL7.71. Pre-fix state MEASURED: both
+BUILD fix-only round on goal:g6.47 SL7.71. Pre-fix state MEASURED: both
 rotation templates (director + prime_director, 4bad592ec + fb9e86652) list
 `meter` in `telemetry`, so every bootstrap write ran `_derive_bootstrap_fact`
 against a switch with no `meter` branch and rendered
@@ -97,5 +97,5 @@ meter telemetry key resolves in _derive_bootstrap_fact (measured fraction / est.
 PARENT ACCEPT: meter resolves measured/est./join-only-pending, never SKIPPED; verified independently (292 tests green across 5 files); proved kept, confidence 0.85; est. byte-count caller is still opt-in, follow-up worth one node if rotate-self should pass it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW a00-bbb6f27a: instruction said goal:g15.25 FIX-ONLY, kid must IMPLEMENT the meter branch, not merely reproduce it. Machine check: rotate.py:7493 now has key == "meter" (measured / est. / join-only), meter added to BOOTSTRAP_JOIN_ONLY_FACTS at :7573, all three _write_bootstrap call sites (9050, 12417, 13012) pass join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS), and _fill_bootstrap_join_facts computes overrides["meter"] (:9578). I re-ran the bytes myself: test_rotate_startup.py -k meter 3 passed; test_rotate_startup.py+test_rotate_handover.py 134 passed; test_rotate.py+test_after_join_service.py+test_rotate_tail.py 289 passed. NEAR MISS: a branch that only relabels the SKIPPED string would have satisfied the words and left pre-spawn blocks still non-resolving; the join_pending wiring is what actually makes it never-blank. Deviation from the claim text: the est. case is caller-opt-in because rotate-self passes no first-input byte count yet (kid said so); the pre-spawn real outcome is join-only pending, which the claim explicitly permits.
+PARENT REVIEW a00-bbb6f27a: instruction said goal:g6.47 FIX-ONLY, kid must IMPLEMENT the meter branch, not merely reproduce it. Machine check: rotate.py:7493 now has key == "meter" (measured / est. / join-only), meter added to BOOTSTRAP_JOIN_ONLY_FACTS at :7573, all three _write_bootstrap call sites (9050, 12417, 13012) pass join_pending=set(BOOTSTRAP_JOIN_ONLY_FACTS), and _fill_bootstrap_join_facts computes overrides["meter"] (:9578). I re-ran the bytes myself: test_rotate_startup.py -k meter 3 passed; test_rotate_startup.py+test_rotate_handover.py 134 passed; test_rotate.py+test_after_join_service.py+test_rotate_tail.py 289 passed. NEAR MISS: a branch that only relabels the SKIPPED string would have satisfied the words and left pre-spawn blocks still non-resolving; the join_pending wiring is what actually makes it never-blank. Deviation from the claim text: the est. case is caller-opt-in because rotate-self passes no first-input byte count yet (kid said so); the pre-spawn real outcome is join-only pending, which the claim explicitly permits.
 <!-- THOUGHT:END -->

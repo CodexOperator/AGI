@@ -5,12 +5,14 @@ type: town
 parents:
   - vision:the-living-being
   - ladder:ladder
+  - goal:g26.towns
 next_edges: []
 council: council-core
 edited_by: belam
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
+thought_session: goal-glom-2026-09-19
 town: core
 visions:
   - vision:alive

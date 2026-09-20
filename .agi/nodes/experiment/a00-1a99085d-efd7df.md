@@ -37,7 +37,7 @@ This experiment fixes exactly that, nothing wider.
 
 **Fix (season.py only):** added a module constant `TOWN_ALL = "all"` with a
 comment marking it the Keep's shared marker, NOT a town name (towns come from the
-ladder's `towns:` list per goal:g8.2; `all` is a bound sentinel, never a literal).
+ladder's `towns:` list per goal:g1.24; `all` is a bound sentinel, never a literal).
 `_merge_up_town_gate` now returns `None` (allows) when `seat_town == TOWN_ALL`,
 so a Keep seat serves any round's town. The refusal fires only when BOTH towns are
 specific AND differ. Everything else unchanged: AGI_SEAT/--seat derivation,
@@ -78,7 +78,7 @@ PARENT REVIEW (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). ACCEPTE
 
 (2) WHAT THE MACHINE ACTUALLY DOES — re-run by me against the LIVE `.agi/nodes`, not a fixture. season.py:1175 `TOWN_ALL = "all"`; :1208 `if seat_town == TOWN_ALL: return None`. My five live-seat calls: `AGI_SEAT=sanctuary-director` + core round -> None; the same Keep seat + a streaming-suite round -> None; `council-web-app-suite` + core round -> the refusal string naming both towns; `council-core` + core round -> None; `council-streaming-suite` + streaming-suite round -> None. The regression the parent measured on kid 2 (`all` treated as a literal town, refusing every Keep-seat merge) is gone. The kid's own tests: test_season + test_no_literal_town = 51 passed; the fixture now contains a KEEP row with `town: all`, which is the shape it was missing before.
 
-(3) THE NEAR MISS. Skipping the gate entirely when a seat is a Keep seat would also stop the false refusal and would lose the mechanism: a streaming-suite round merged through `council-web-app-suite` MUST still refuse, and that case only survives because the wildcard lives at the SEAT half and the comparison is still made. The other near miss: hardcoding `"all"` inline at the comparison satisfies the words and loses the naming requirement — the constant is what makes the reserved marker greppable and distinct from a town name (goal:g8.2).
+(3) THE NEAR MISS. Skipping the gate entirely when a seat is a Keep seat would also stop the false refusal and would lose the mechanism: a streaming-suite round merged through `council-web-app-suite` MUST still refuse, and that case only survives because the wildcard lives at the SEAT half and the comparison is still made. The other near miss: hardcoding `"all"` inline at the comparison satisfies the words and loses the naming requirement — the constant is what makes the reserved marker greppable and distinct from a town name (goal:g1.24).
 
 (4) DEVIATION / RESIDUE I AM CARRYING FORWARD. The kid's own reproduction used a TEMP graph shaped like the live seats, not the live graph itself; I ran the live one and it holds, so the claim survives -- but the brief asked for the live graph and that half of the evidence was substituted. More substantive and NOT this kid's lane: the gate still fails open on the real merge-up path for a loop-branch -> town-branch merge, because `_resolve_round_town`'s third source is the record file's `node_id` and the actual `--record` passed to `season.py merge-up` is the spawn-budget lease, which carries `branch`/`base_branch`/`worktree` and no `node_id`. A `town/streaming-suite@s2` -> core merge DOES fire (the branch maps through `town_of_branch`); a `loop/...` -> town-branch merge does not. Named as push_further, not a demotion: the kid fixed exactly the wildcard it was handed and did it correctly.
 <!-- THOUGHT:END -->

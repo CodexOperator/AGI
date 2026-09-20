@@ -3,7 +3,7 @@ id: hypothesis:a00-001de563-9bd20a
 mint_id: 7960e8366fbb4cc4aee5ca4ed76ac8af
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** The three distribution shapes `goal:g8.1` compares (drop-in clone,
+**Claim:** The three distribution shapes `goal:g1.23` compares (drop-in clone,
 skill package, real install) are not mutually exclusive — the engine's
 architecture naturally splits into two layers that fit different shapes:
 

@@ -3,12 +3,13 @@ id: hypothesis:l3-rotate-ultracode-env
 mint_id: 7baf7724778f49d6804fb5f047c21d3a
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 62f33aadd09270e3
 season: 1
 testable_claim: "A successor or advisor spawned for a role whose ladder settings carry ultracode gets CLAUDE_CODE_WORKFLOWS=1 in its environment and the keyword ultracode in its prompt, and reports ultracode: yes from its own system-reminder; without the env var it reports no"
+thought_session: dissolve-legacy-2026-09-19
 title: L3 rotate ultracode env gate
 ---
 # hypothesis:l3-rotate-ultracode-env
