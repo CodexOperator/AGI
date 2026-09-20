@@ -1,0 +1,71 @@
+{
+  "protocol": {
+    "dataset": "openai HumanEval",
+    "n_problems": 164,
+    "samples_per_problem": 1,
+    "temperature": 0.0,
+    "top_k": 1,
+    "top_p": 1.0,
+    "seed": 1234,
+    "max_tokens": 512,
+    "thinking": "chat_template_kwargs enable_thinking=false",
+    "resumable": true
+  },
+  "pass@1": {
+    "A": [
+      "128/164",
+      78.0
+    ],
+    "B": [
+      "142/164",
+      86.6
+    ],
+    "C1": [
+      "141/164",
+      86.0
+    ]
+  },
+  "paired": {
+    "A_vs_B": {
+      "b": 20,
+      "c": 6,
+      "diff_pp": 8.5,
+      "mcnemar_exact_p": 0.0094
+    },
+    "B_vs_C1": {
+      "b": 1,
+      "c": 2,
+      "diff_pp": -0.6,
+      "mcnemar_exact_p": 1.0
+    },
+    "A_vs_C1": {
+      "b": 20,
+      "c": 7,
+      "diff_pp": 7.9,
+      "mcnemar_exact_p": 0.0192
+    }
+  },
+  "claim": "C >= B > A with C1-B >= +3.0pp AND McNemar p<0.05",
+  "claim_result": "DISPROVED: B>A holds (+8.5pp, p=0.0094); C1-B = -0.6pp, p=1.0, 141 vs 142 raw count, far below +3.0pp and not significant",
+  "B_vs_C1_byte_identical_completions": "141/164",
+  "cost_rows": {
+    "A": {
+      "mean_s_per_problem": 4.15,
+      "peak_vram_MiB": 6740,
+      "mean_W": 147.0,
+      "peak_W": 224.3
+    },
+    "B": {
+      "mean_s_per_problem": 10.06,
+      "peak_vram_MiB": 7302,
+      "mean_W": 140.7,
+      "peak_W": 183.1
+    },
+    "C1": {
+      "mean_s_per_problem": 10.75,
+      "peak_vram_MiB": 7324,
+      "mean_W": 137.1,
+      "peak_W": 174.6
+    }
+  }
+}
