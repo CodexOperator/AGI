@@ -30,7 +30,10 @@
 
 ## §3 🔴 Where it stops
 ```
-04:48Z 09-20 LIVE (gen 3, f≈0.15): three posts seated on local-town; trunk local, UNPUSHED (no creds). NEXT ACTION: read the inbox (python3 extensions/agi/bin/send.py read belam) when the point reports; the Prime never dispatches — thought-master owns goal:g14 rounds, director-thought owns goal:g14.3 under the point. If a seat is idle with unread: python3 extensions/agi/bin/send.py wake --all-local (cron does it every 2 min). If the owner lands creds: git push origin local-maxxing/season2/main, then the mirrors push themselves at the next tick.
+05:1xZ 09-20 LIVE (gen 3, f≈0.22): three posts seated; belam row is quiet (settings 'ultracode quiet'); thought-master told (owner relay) it is in independent research mode and reports nothing to the Prime. SKILL.md gained 'Entering prime state' (32dffa39f). NEXT = step 6 of that section, rotate self INTO the prime slot properly:
+  touch .agi/sessions/quorum/belam.md && git commit -q -m 'belam card' -- .agi/sessions/quorum/belam.md   # clears 'card older than last commit'
+  AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate --force --stops-file .agi/sessions/belam.stops
+BLOCKED on ONE prepare gate: unpushed commits -> the owner must land a GitHub credential on this box first (git config --global credential.helper store; then one interactive push). The moment origin/local-maxxing/season2/main == HEAD, run the two lines above and this session ends; the successor is the Prime.
 ```
 
 ## §4 Traps hit this session
