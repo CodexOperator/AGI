@@ -1,0 +1,43 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-20T05:20:38.754423Z",
+  "result": "refused",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "bash",
+        "thought-master",
+        "director-thought",
+        "belam-S2-L5-I"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 3,
+      "after": 1
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 31310,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": false,
+      "name": null,
+      "windows": [
+        "bash",
+        "thought-master",
+        "director-thought",
+        "belam-S2-L5-I"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    }
+  },
+  "refusal_reason": "predecessor window None gone",
+  "swept_latches": [],
+  "inherited": true
+}
