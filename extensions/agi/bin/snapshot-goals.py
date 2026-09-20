@@ -941,6 +941,19 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
 LIVE_GOAL_STATUSES = ("active", "horizon")
 
 
+def _frontmatter(node: dict) -> dict:
+    """The frontmatter of one node, whichever shape the caller holds.
+
+    `load_existing_nodes()` yields wrappers `{path, origin, fm, body}` — the
+    live `--render` path — while unit tests and older callers pass a flat fm
+    dict. A guard that reads only one shape is inert on the other, and
+    goal:s26 was exactly that: green under flat-dict tests, dead on the real
+    render. Accept both so neither caller is privileged.
+    """
+    fm = node.get("fm")
+    return fm if isinstance(fm, dict) else node
+
+
 def warn_premature_complete(existing: dict) -> list[tuple]:
     """goal:s26 — an overarching goal is not `complete` while its subgoals live.
 
@@ -961,7 +974,8 @@ def warn_premature_complete(existing: dict) -> list[tuple]:
     both name.
     """
     status_of, kind_of, gid_of = {}, {}, {}
-    for nid, fm in existing.items():
+    for nid, node in existing.items():
+        fm = _frontmatter(node)
         if str(fm.get("type") or "") != "goal":
             continue
         st = fm.get("status")
@@ -970,10 +984,10 @@ def warn_premature_complete(existing: dict) -> list[tuple]:
         gid_of[nid] = str(fm.get("goal_id") or nid)
 
     offenders = []
-    for nid, fm in existing.items():
+    for nid, node in existing.items():
         if nid not in status_of:
             continue
-        raw = fm.get("parents")
+        raw = _frontmatter(node).get("parents")
         parents = [x.strip() for x in raw if isinstance(x, str) and x.strip()] \
             if isinstance(raw, (list, tuple)) else []
         if status_of[nid] not in LIVE_GOAL_STATUSES:
