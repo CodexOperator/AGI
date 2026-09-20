@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-d9d3fcc1-943a40
 next_edges: []
-edited_by: a00-d9d3fcc1
+edited_by: a00-dd8fbaa9
 line_ceiling: 400
 loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -114,11 +114,5 @@ production_lines: 162 (the adapter copy; measured per-file by `wc -l` because th
 new file is untracked and `git diff --numstat` shows nothing for it).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Why the claim is worded the way it is: DT.21's "sole remaining gap"
-was true on its own side branch and false on the tip this round inherits, because
-the adapter bytes never landed here. So the experiment measures the tip state
-after landing the bytes, and the claim explicitly conditions the "sole remaining"
-proposition on that landing. Also recorded: the mint scan reads `git ls-files`,
-so an untracked new file is invisible to it — the build node had to be minted by
-hand with the mvp:bin-modules parent the map prescribes.
+PARENT REVIEW (a00-dd8fbaa9, DT.22). The probes listed in this body are the KID own; the parent ran eight independent negative probes (parent_probes.py in the round scratch dir) and all held: the load probe reads the tree file itself, the corrupt-copy probe proves the REQUIRED check is live, the hash probe is byte-identical, the resolve probe shows the real config refusing by name and an in-memory row resolving, dispatch.py is grok-free, config.json is byte-identical to HEAD, the build/mvp chain resolves, and the base tip 7d35ae4f9 has no adapter file. This closes the node own caveat: the hand-minted build node was untracked, and the parent done commits it via --owns. One residue is named and left for the director, not committed here: level3.py --mint-missing-only also left 203 unrelated census build nodes untracked under .agi/nodes/build/; they are foreign to this round (their basenames carry no agent id) and are neither accepted nor rejected by this review.
 <!-- THOUGHT:END -->
