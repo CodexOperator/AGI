@@ -75,9 +75,20 @@ def test_claude_builder_renders_frozen_argv(model, effort, settings):
         expected += ["--settings", json.dumps(settings)]
     expected.append("CARD")
 
-    got = rotate._build_claude_command(
-        "N", "CARD", "D.LOG", model=model, effort=effort, settings=settings)
+    got = rotate._build_harness_command(
+        "claude-code", name="N", prompt_text="CARD", debug_file="D.LOG",
+        model=model, effort=effort, settings=settings)
     assert got == expected
+
+
+def test_no_named_harness_builders_in_rotate_source():
+    """goal:g7.27.1: the dead per-harness builders are gone, and stay gone.
+    The sole rotate argv seam is `_build_harness_command`; a reintroduced
+    `_build_claude_command` / `_build_copilot_command` is drift the invariant
+    forbids. Greps the SOURCE, so an unused redefinition still fails."""
+    src = (Path(rotate.__file__)).read_text(encoding="utf-8")
+    assert "_build_claude_command" not in src
+    assert "_build_copilot_command" not in src
 
 
 def test_available_includes_shipped_harnesses():
@@ -86,22 +97,25 @@ def test_available_includes_shipped_harnesses():
     assert "claude-code" in ids
 
 
-@pytest.mark.parametrize("model,effort,extra", COPILOT_MATRIX)
-def test_copilot_builder_renders_frozen_argv(model, effort, extra):
-    """The PRODUCTION copilot builder equals the OLD hand-built argv
+@pytest.mark.parametrize("model,effort", [(None, None), ("auto", None),
+                                         (None, "high"), ("auto", "high")])
+def test_copilot_builder_renders_frozen_argv(model, effort):
+    """The PRODUCTION copilot seat builder equals the OLD hand-built argv
     (rotate.py@8b6dcea1f), the same literal shape frozen above. A dropped or
     renamed seat flag in copilot-cli.toml fails this; `== render(...)` could
-    not, since the builder IS that call."""
+    not, since the builder IS that call. `extra_args` is not a production
+    seat dimension (`_build_harness_command` does not accept it), so the
+    render-level `COPILOT_MATRIX` above covers it."""
     expected = ["/x/copilot"]
     if model:
         expected += ["--model", model]
     if effort:
         expected += ["--effort", effort]
-    expected += ["--allow-all", "--remote", *extra, "-i", "CARD"]
+    expected += ["--allow-all", "--remote", "-i", "CARD"]
 
-    got = rotate._build_copilot_command(
-        prompt_text="CARD", model=model, effort=effort,
-        bin_path="/x/copilot", extra_args=extra)
+    got = rotate._build_harness_command(
+        "copilot-cli", name="N", prompt_text="CARD", debug_file="D.LOG",
+        model=model, effort=effort, bin_path="/x/copilot")
     assert got == expected
 
 
