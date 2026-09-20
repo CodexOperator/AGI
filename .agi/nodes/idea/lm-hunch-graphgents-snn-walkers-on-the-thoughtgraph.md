@@ -3,7 +3,7 @@ id: idea:lm-hunch-graphgents-snn-walkers-on-the-thoughtgraph
 mint_id: bef51fc3993649b5982e3be168205582
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.12
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 201b3215b736ff19

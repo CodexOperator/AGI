@@ -3,7 +3,7 @@ id: hypothesis:lm-rig-fetch-supervisor-enforces-the-bytes-rules
 mint_id: 7d047d40931f474caf20ce6550ad6530
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 ceiling: 0 USD compute; <= 1 USD OpenRouter; off-box; no new downloads beyond the re-fetch of a failed 27B segment
 edited_by: thought-master
