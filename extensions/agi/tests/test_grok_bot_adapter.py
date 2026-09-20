@@ -2,11 +2,9 @@
 
 Mirror of `test_claude_code_adapter.py` / `test_copilot_cli_adapter.py`: guard
 the surface every adapter must expose (`goal:g4.6`) and the tier contract this
-one must not soften. The adapter and its live config row are owned by siblings
-`goal:g17.14.1` (`bin/adapters/grok_bot_adapter.py`) and `goal:g17.14.2`
-(`harnesses.grok-bot`). This file is TEST-ONLY: it neither implements the
-adapter nor edits the config, so until `.1`/`.2` land the `importorskip` below
-skips the whole file rather than collection-failing the suite.
+one must not soften. After g17.14.1/.2 land, import the module directly (same
+as copilot/claude) so a present-but-broken adapter fails the suite instead of
+being swallowed by `importorskip`.
 """
 from __future__ import annotations
 
@@ -21,11 +19,7 @@ sys.path.insert(0, str(BIN))
 
 import adapters  # noqa: E402
 
-grok = pytest.importorskip(
-    "adapters.grok_bot_adapter",
-    reason="grok-bot adapter not yet landed (goal:g17.14.1 owns the module; "
-           "goal:g17.14.2 owns its .agi/config.json row)",
-)
+grok = adapters.load("grok_bot")
 
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
 #: for a `grok-bot` harness name.
@@ -36,16 +30,21 @@ HARNESS = {"adapter": "grok_bot",
 # ---------------------------------------------------------------- interface
 
 
-def test_name_is_non_empty():
-    assert isinstance(grok.NAME, str) and grok.NAME
+def test_name_is_the_harness_literal():
+    """NAME must be the harness string seats/config use, not a non-empty guess."""
+    assert grok.NAME == "grok-bot"
 
 
-def test_adapter_implements_the_whole_interface_not_a_stub():
-    """`adapters.load` only proves the names exist; this proves `restart` is
-    real (`goal:g4.7`), not a stub that raises where the work goes."""
+def test_adapter_implements_the_whole_interface():
+    """`adapters.load` only proves the names exist; every REQUIRED name is
+    callable. Practice stub: `restart` raises NotImplementedError until CLI
+    flags are measured (Belam locked stub restart OK for g17.14)."""
     for fn in adapters.REQUIRED:
         assert callable(getattr(grok, fn)), fn
-    assert callable(grok.restart)
+    with pytest.raises(NotImplementedError) as exc:
+        grok.restart(harness=HARNESS, tier="kid", context_file="/tmp/x")
+    msg = str(exc.value).lower()
+    assert "unmeasured" in msg or "flag" in msg or "build_command" in msg
 
 
 def test_is_alive_tracks_a_live_pid_and_not_a_reaped_one():
