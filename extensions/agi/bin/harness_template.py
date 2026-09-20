@@ -100,7 +100,8 @@ def _emit(part, values: dict) -> list[str]:
 
 def render(harness_id: str, *, prompt, model=None, effort=None,
            bin_path=None, settings=None, extra_args=None,
-           name=None, debug_file=None) -> list[str]:
+           name=None, debug_file=None,
+           provider=None, thinking=None) -> list[str]:
     """The argv for `harness_id`, from its template alone.
 
     `name` (the RC/session name) and `debug_file` are slots the claude-code
@@ -109,7 +110,8 @@ def render(harness_id: str, *, prompt, model=None, effort=None,
     tmpl = load(harness_id)
     values = {"prompt": prompt, "model": model, "effort": effort,
               "settings": settings, "extra_args": extra_args,
-              "name": name, "debug_file": debug_file}
+              "name": name, "debug_file": debug_file,
+              "provider": provider, "thinking": thinking}
     args = [str(bin_path or tmpl.get("bin") or harness_id)]
     for part in tmpl.get("argv", []):
         args.extend(_emit(part, values))

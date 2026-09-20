@@ -14,6 +14,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import harness_template
 from agi.bin import rotate
+from agi.bin.adapters import pi_adapter
 
 
 COPILOT_MATRIX = [
@@ -179,3 +180,50 @@ def test_claude_production_path_reaches_render(monkeypatch):
     assert seen["id"] == "claude-code"
     assert seen["kw"]["name"] == "N"
     assert seen["kw"]["settings"] == {"a": 1}
+
+
+# ------------------------------------------- pi: the dispatch-path harness
+
+
+def test_pi_template_renders_the_flag_shape():
+    """pi's headless argv, frozen: provider/model/thinking, `-p --mode json`,
+    the spread prompt entries, then the positional closing line."""
+    got = harness_template.render(
+        "pi", prompt="CARD", bin_path="/x/pi", provider="openrouter",
+        model="kid-m", thinking="medium",
+        extra_args=["--append-system-prompt", "S"])
+    assert got == ["/x/pi", "--provider", "openrouter", "--model", "kid-m",
+                   "--thinking", "medium", "-p", "--mode", "json",
+                   "--append-system-prompt", "S", "CARD"]
+    # Absent keys emit NO flag, so pi's own settings keep winning.
+    bare = harness_template.render("pi", prompt="CARD", bin_path="/x/pi")
+    assert bare == ["/x/pi", "-p", "--mode", "json", "CARD"]
+
+
+def test_pi_adapter_production_path_reaches_render(monkeypatch, tmp_path):
+    """pi_adapter.build_command must render pi.toml, not build flags inline."""
+    seen = {}
+
+    def sentinel(harness_id, **kw):
+        seen["id"] = harness_id
+        return ["sentinel", *kw["extra_args"]]
+
+    monkeypatch.setattr(pi_adapter.harness_template, "render", sentinel)
+    monkeypatch.setenv("AGI_PI_TRAJECTORY_BYPASS", "1")
+    got = pi_adapter.build_command(
+        harness={"adapter": "pi", "models": {"kid": "m"}}, tier="kid",
+        context_file="/tmp/ctx.md", agent_id="a00-x", iter_n=1,
+        sess_dir=tmp_path, cli_py="/x/cli.py")
+    assert seen["id"] == "pi"
+    assert got[0] == "sentinel"
+    assert pi_adapter.model_args({"models": {"kid": "m"}}, "kid") == \
+        ["--model", "m"]
+
+
+def test_pi_template_is_dispatch_only_not_a_rotate_seat():
+    """`rotate = false` keeps pi out of the rotate seat set while its template
+    is still available to the dispatch-path adapter."""
+    assert "pi" in harness_template.available()
+    assert harness_template.load("pi").get("rotate") is False
+    assert "pi" not in rotate._known_harnesses()
+    assert rotate._validate_harness(None, "pi")[0] == 1
