@@ -10448,6 +10448,8 @@ thought-master 22:3xZ 09-20 (cleanliness pass, owner 22:1xZ): required goal fiel
 
 **First chunk (minted):** `idea:lm-abliteration-feature-differences-generalize-across-models` → `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01). Sub-sub-goals are the director's to mint (G14.9.1 own lever, G14.9.2 cross-model signatures), same format, before any further chunk runs.
 
+thought-master 23:0xZ 09-20 (knowledge from ABC.01 + ABC.02, both merged): the OrcaBonsai runtime abliteration LoRA on Bonsai 2 27B PTQ1_0 is measured NULL on coding twice -- scale 1: 141/164 vs B 142/164 (p = 1.0, 141 completions byte-identical); scale 2: 143/164 (p = 1.0 vs B, 105/164 byte-identical, so the direction IS active at scale 2 and still changes no aggregate capability). Consequence for ABL.01 (hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost): a refusal direction must be measured on what it is FOR -- the round's primary metric is a refusal-rate battery, HumanEval is the no-cost CONTROL, and 'no change on coding' is the expected null, never a finding. The owner's prod rule (16:2xZ: abliterated if identical) is unaffected: identical is what was measured.
+
 #### G14.10 — THE RESEARCH CORPUS — datasets/ at the repo root: every eval round triples, every scrubbed parent/kid trajectory, every harvested workflow run, indexed by datasets/README.md = doc:lm-research-corpus-registry; the landing rule and the one scrub (owner 21:4xZ / 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
