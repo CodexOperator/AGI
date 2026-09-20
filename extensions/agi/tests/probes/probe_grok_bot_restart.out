@@ -1,0 +1,15 @@
+NAME grok-bot
+DEFAULT_BIN grok-bot
+needs_credential False
+REQUIRED ['build_command', 'child_env', 'is_alive', 'restart', 'needs_credential']
+new_pid 1733710 is_alive True
+argv_seen --model grok-4-fast -p /tmp/grokprobe-xrjai2w1/context.md
+record {"id": "probe", "worktree": "/tmp/grokprobe-xrjai2w1", "pid": 1733710, "status": "restarted", "restarted_at": 1789887436}
+agent_json {
+  "id": "probe",
+  "worktree": "/tmp/grokprobe-xrjai2w1",
+  "pid": 1733710,
+  "status": "restarted",
+  "restarted_at": 1789887436
+}
+output_log_exists True
