@@ -1,5 +1,5 @@
 ---
-id: goal:g17.16
+id: goal:g7.27
 mint_id: 16851767a106428e9fbd3c38873c3558
 type: goal
 parents:
@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G17.16
+goal_id: G7.27
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -22,10 +22,10 @@ tags:
   - template
   - spawn
 thought_session: texas-two-step-belam-voice-2026-09-19
-title: "G17.16: Templates are the sole harness arg builders"
+title: "G7.27: Templates are the sole harness arg builders"
 town: core
 ---
-# goal:g17.16
+# goal:g7.27
 
 ## Why this exists
 
@@ -54,9 +54,9 @@ Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
 
 ## Out of scope
 
-- Persistent seat watch/restart (`goal:g17.17`).
-- Deleting rotate's orchestration / pane layout (`goal:g17.18` consumes this).
-- Landing grok-bot on main (`goal:g17.19` consumes the grok post template from this).
+- Persistent seat watch/restart (`goal:g7.28`).
+- Deleting rotate's orchestration / pane layout (`goal:g7.29` consumes this).
+- Landing grok-bot on main (`goal:g7.30` consumes the grok post template from this).
 
 ## Agent Notes
 
