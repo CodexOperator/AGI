@@ -219,19 +219,6 @@ Shares its substrate with G9.4 — the viewport a human pans and the region an
 agent requests are the same query at different resolutions. Build them as one
 mechanism with two front-ends, not two renderers that drift.
 
-### G1.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g1.legacy-direct
-
-### G1.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g20.legacy-direct
-
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
 ### G1.2 — One skill: fold in caveman, cavekit, and gitnexus — status: horizon
 
 Four systems overlap in this repo and none of them know about the others:
@@ -922,59 +909,45 @@ FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6,
 ## Agent Notes
 OWNER 2026-09-10 (verbatim in doc:l4-owner-decisions): 'Most functions should be driven ideally since that'll likely reduce token use significantly but that can be a subgoal under the relevant perpetual goal for later.' Minted HORIZON — declared and committed to, not yet worked — per 'for later'. WHAT DRIVEN MEANS HERE, from the owner's rotation message the same night: like a console that says 'now type your password, then hit enter' — the tool feeds the agent one step at a time, the literal tokens to type and the key to press, so the agent spends no tokens deciding what to do next and cannot skip or reorder a step. The first two driven surfaces are rotation (rotate.py rotate-self as ONE call, hypothesis:l4-the-predecessor-hands-over-authority) and startup (rotate.py next, hypothesis:l4-startup-is-one-script-or-a-driven-prompt), both under goal:g17 because they are seat protocol. This goal is the generalization: every repeated, mechanical engine function gets a driven form, and the measure is tokens per invocation before and after. Parent is goal:g1 because the engine's standard commands are declared in a node (g1.10) and named node operations already turn hand edits into engine actions (g13.1) — a driven form is the next step of the same idea: the command tells you the command.
 
-### G1.18 — Graph-native handoffs — cite nodes, not essays; native tools over ad-hoc; Grok Bot functions eventually through the graph — status: active
+## G2 — Adjustable zoom with contracts that survive the trip — status: horizon
 
-# goal:g1.18
+One graph readable at five grains, where level 3 is **actual code nodes that
+stitch into a runnable directory layout** — the property that makes the graph an
+executable artifact rather than a description of one. Build level 3 first and
+treat the others as projections around it.
 
-## Why this exists
+**Invariant:** one node at level N ⇔ a collection at level N+1, and back.
 
-Parent `goal:g1` (engine / agent orientation). Owner 2026-09-19: minimize inter-bot token handoffs by citing graph nodes; prefer native AGI tools; long-term all Grok Bot functions through the graph.
+**Two axes, not one — and conflating them is the mistake this goal keeps
+making.** *Zoom* is **where you are standing**: far out shows supernode
+groupings, base level shows build nodes, closer shows a node's version history,
+closest shows the chat that produced a version. *LOD* is **how much detail is
+drawn at wherever you stand**, dialled up or down independently. Every zoom
+position has its own LOD range. Zoom is **G2.5**–**G2.7**; LOD is **G2.8**–**G2.9**.
 
-## Owner bank (verbatim, 2026-09-19)
+⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
+no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
+into the data was a category error: it froze one grain into the type system and
+made the other grains unnameable. Zoom is now organised on two axes and neither
+of them is a level number — coarser grains come from **tags and addresses**
+(G2.5, G2.6), finer grains from **mint ids and the grid** (G2.7). A node is a
+node. Retiring the name is **S11**; it is mechanical and touches ~180 files, so
+it is sequenced deliberately rather than done in passing.
 
-> sweet. stand by for batch completion. It'll be a while before you and your directors talk. That is the point: the graph allows you to minimize how many tokens you must pass manually back and forth between one another as outputs. If you check my openrouter use, it holds steady at 92-93% cached tokens which IDK if that's higher than average or not but that's what I've been staying at. The point is that you never have to take a thousand tokens to explain someting you can summarize by saying in 20 tokens "these graph nodes and these parts of these graph nodes specifically is what I am trying to tell you." And also the engine takes care of most of the manual calling and organizing as well so it's all way more automated. The goal is that even you bots will start using the native tools more and more over the built in ones because they are more convenient even with the setup you all have. Eventually I want it all to come full circle where all grokbot functions are done in the graph - through the graph. But that comes later, first just see what the parents brought in. Also for merg ups, we are using our custom git scripts right? They take care of things like signing each one and also verifying key ownership, rotation, etc. If you check git history you will see a cryptographic chain of authenticity in there somewhere. It's incomplete and insecure, but it does exist. Hardening comes later during the redesign
+🔴 **Already falsified for the free-form implementation, and the number is
+known:** 0.441 overall claim recall against a 0.90 bar, 12 agents over 6
+complete round trips. Loss is category-structured, not uniform — prose survives
+at 0.792, structured frontmatter recalls **0.000** (0/24, zero variance). Node
+identity is destroyed outright, and it is not a capacity problem: the children
+were longer than the parents.
 
-## Target end-state
+**Design consequence:** zoom is a lossy transform, not a view. To behave like a
+view, contract-bearing parts must not pass through a model at all — the harness
+attaches inherited frontmatter and contract slices mechanically, and only prose
+round-trips. Ground truth and scoring rule are preserved at
+`agi/context/refs/zoom-roundtrip-ground-truth/` so the follow-up A/B stays cheap.
 
-- Inter-bot communication defaults to node citations (`goal:…`, `build:…`, ranges) instead of essay restatement.
-- Agents prefer native graph tools (read/write/dispatch/workflow/send) over harness-built-in equivalents when both can do the job.
-- Horizon: Grok Bot capabilities are reachable as graph operations (full circle), without abandoning the graph as source of truth.
-
-## Invariants
-
-- The graph is the cheap shared memory; chat is the thin pointer layer.
-- Native tool convenience must win on the same task, or the tool is incomplete (file a residue, do not invent a parallel path).
-
-## Falsifier
-
-1. A director↔helper handoff that names only node ids + field ranges is accepted as complete brief for the next round (no required prose dump).
-2. For a task that both a native AGI tool and a harness built-in can perform, the standing brief prefers the native tool by name.
-3. "Full circle" is horizon: no claim that Grok Bot UI is already graph-native until an explicit later goal closes it.
-
-## Related
-
-- Merge-up authenticity / verify: `goal:g7.11`.
-# goal:g1.18
-
-### G1.19 — Engine surface inventory under config-maxxing — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g1.19
-
-### G1.20 — Rotation boundary and branch-reshape tooling — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g1.20
-
-### G1.21 — Owner-banked L5/L6 decisions and plans — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g1.21
-
-### G1.22 — Branch reshuffle and loop-prune delta plans — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g1.22
+Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
 
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
@@ -995,19 +968,6 @@ What has to be true:
 - The index is a *seed*, not the source of truth. Known gap: GitNexus has zero
   symbol coverage of all twelve `bin/*.py`, which is the half of the engine
   where every 2026-08 change landed.
-
-### G2.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g2.legacy-direct
-
-### G2.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g21.legacy-direct
-
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
 
 ### G2.2 — IO maps as inherited contract slices — status: horizon
 
@@ -1761,18 +1721,31 @@ Falsifier: over a loop with feeling blocks live, at least one real defect or
 better-approach is traceable to the free-form half before it appeared anywhere
 else — and no acceptance decision anywhere in the loop cites a feeling.
 
-### G2.13 — Engine and renderer surface inventory — status: active
+## G3 — Scoring that added motion cannot move — status: active
 
-<!-- BODY:BEGIN -->
-# goal:g2.13
+The graph is measured by goals reached, never by motion spent. This goal exists
+because the opposite was tried and it worked: 9 chains × 2000 hops via shortcut
+cycles, carrying no signal, and the resulting structure then broke the render
+path outright.
 
-### G3.1 — Legacy direct links absorbed from old top-level roots — status: retired
+**Invariants:**
+- No primary metric that appending hops can shift. `longest_chain_length` is a
+  descriptive statistic, never a target.
+- A decisive verdict (`proved` / `disproved`) requires `evidence_runs >= 1`.
+  Unevidenced claims are demoted, not discarded — the expensive artifact is kept,
+  only the overclaim is dropped.
+- `unevidenced_decisive_verdicts` reads `0`. Nonzero means a bypass or a
+  hand-edited node.
 
-<!-- BODY:BEGIN -->
-# goal:g22.legacy-direct
+Banked: **H3** (metric computation out of the driver heredoc into `metrics.py`;
+`evidence_fraction`, `evidence_weighted_depth`; gameable-primary warning) and
+**H4** (the gate in code, on both writer paths). This project's own config
+migrated off `longest_chain_length` on 2026-08-21.
 
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
+Still open, and the reason this stays active: **L4** — `outcome_coverage` is a
+*proxy* that counts chains reaching an outcome, not their **attribution to a
+specific goal**. True goal-fulfilment scoring is unbuilt. The goal nodes it
+needs exist as of L15.
 
 ### G3.1 — `evidence_runs` must resolve to a real node — status: complete
 
@@ -1791,48 +1764,30 @@ Then re-measure and record a corrected baseline on both live projects.
 the post-offload 0.365, of which 33 of 121 surviving verdicts are still
 sentinel-backed. Owns TODO **H4c**.
 
-### G3.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g3.legacy-direct
-
 ### G3.2 — Vision-adherence score — the success metric particular to evidence and verdict quality — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g3.2
 
-### G3.3 — Metric-maxxing wave hypotheses — status: active
+## G4 — Right model at the right grain, several goals at once — status: horizon
 
-<!-- BODY:BEGIN -->
-# goal:g3.3
+Model choice is a knob the user sets per tier and experiments with — nothing
+hardcoded. Three tiers: **delegator** (the user's own session, holding intent
+and coordinating several parent/kid groups), **parent** (a subagent by default,
+so review motion never accumulates in the chat the user reads), **kid** (one
+node, bounded scope).
 
-### G3.4 — Vision-adherence and evidence-quality hypotheses — status: active
+**Not refuted by G2's evidence — its price is now a number.** Prose recall of
+0.792 from a cheap tier is what a cheap tier is *for*. What is refuted is
+handing the cheap tier the contract layer. Tiering survives if the model authors
+prose and the harness moves structure.
 
-<!-- BODY:BEGIN -->
-# goal:g3.4
+**Budget invariant:** inner-loop completions count against a single global
+iteration budget, so recursion is bounded regardless of nesting depth.
 
-### G3.5 — Engine metric-surface ideas — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g3.5
-
-### G3.6 — Evidence-gate and metric-parity hypotheses — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g3.6
-
-### G3.7 — Metric authenticity hypotheses — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g3.7
-
-### G4.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g23.legacy-direct
-
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
+Owns: **L3** (per-tier and eventually per-level model assignment), **L6**
+(recursive sub-loops; `cc_dispatch.max_goals_active` exists and is unread).
+Blocked on G2 for per-level assignment.
 
 ### G4.1 — Parallel kids share one working tree and collide — status: active
 
@@ -1931,11 +1886,6 @@ not the missing piece; the shape is. **This is flagged for a dedicated
 brainstorming session with a small context, not for the next kid that reads
 this node** — a half-chosen answer here would be built into both runtimes at
 once via `goal:g4.3`, and would be expensive to reverse.
-
-### G4.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g4.legacy-direct
 
 ### G4.2 — A reasoning-effort dial, not just a model name — status: horizon
 
@@ -2317,53 +2267,122 @@ the kid model would pass every other clause.
 ## Agent Notes
 "Owner ask, 2026-09-04. Measured in loop L1: iter-1075 parents outlived agent_timeout_mins=20 by more than an hour (leases live 10:59 to past 12:10 EDT); the reaper reported 15 stale parents killed in wave 6; _reap_one restarts a kid with harness={} so a restarted kid runs on the CLI default model; manifest.json still says running after agent.json says done. Commit to: (1) a hung or restarted process is visible in spawn_budget status with its age and restart count; (2) a lease older than its timeout is reaped or explained, never silent; (3) restarts carry the original model and tier; (4) manifest and agent.json agree. Each with a red-on-purpose test. Falsifier: hold a fake pi process past the timeout in a fixture project and assert the reaper reports and bounds it."
 
-### G4.10 — Elegance wave hypotheses and ideas — status: active
+## G5 — Goals are a lifecycle the engine reads, not a human convention — status: active
 
-<!-- BODY:BEGIN -->
-# goal:g4.10
+`status:` should be a field the engine acts on: stop accruing score to
+`phasing-out` and `complete` goals while keeping their chains attributable, and
+fail loudly when a seed node points at a goal id that does not exist.
 
-### G4.11 — Elegance engine-surface ideas — status: active
+**Invariant:** a project is legitimate at three depths — goals only (ideation),
+goals + seed ideas (chains starting), goals + build site (execution). A
+goals-only project is a valid state, not a broken one.
 
-<!-- BODY:BEGIN -->
-# goal:g4.11
+Banked: **L15** — goals are first-class nodes, derived from this file, linked by
+parent-pointing, with referential integrity live and an H0-safe origin-guarded
+prune. A missing `GOALS.md` prunes nothing.
 
-### G4.12 — Elegance schema and hierarchy specialists — status: active
+Owns: **L5** (rotation the engine enforces), **L18** (the ideation stage; a
+missing build site must degrade like a missing `GOALS.md` does, not abort the
+driver).
 
-<!-- BODY:BEGIN -->
-# goal:g4.12
+**Landed 2026-08-23** (`exp:g5-lifecycle-enforcement`, `mvp:strict-goal-refs`):
+retired goals stop scoring while staying attributable; **L5** rotation warns
+every iteration (`METRIC_WARNING goal_rotation=`, currently reading 37/3);
+**L18** a goals-only project runs instead of aborting; and `--strict-goals`
+makes a dangling goal reference fail the run, wired into `driver.sh` while the
+count is still 0 — which is when to start enforcing, not after the first one.
 
-### G4.13 — Commit-path gates and grid flock work — status: active
+## Revision 2026-09-01: `complete` must keep scoring; only `retired` stops
 
-<!-- BODY:BEGIN -->
-# goal:g4.13
+**This goal's own sentence above is the defect.** "Stop accruing score to
+`phasing-out` *and* `complete` goals" collapses two states the lifecycle
+already distinguishes, and `metrics.py` implements the collapse:
+`SCORING_GOAL_STATUSES = frozenset({"active", "horizon"})`.
 
-### G4.14 — Spawn dispatch and parallel-kid scheduling — status: active
+The consequence is measured, not theoretical. The 2026-09-01 sweep marked nine
+goals `complete`/`phasing-out` on falsifiers and `outcome_coverage` fell
+**0.27 -> 0.232** — purely from bookkeeping, with no work undone and no node
+removed. **The metric penalises finishing**, which is a live disincentive
+against the sweep this project has wanted for three sessions.
 
-<!-- BODY:BEGIN -->
-# goal:g4.14
+**The two states mean different things and must score differently:**
 
-### G4.15 — Write-path elegance hypotheses — status: active
+- **`complete` — the goal was achieved.** Its chains are real, valid, and
+  still extendable; a later hypothesis may hang off them. The evidence stays
+  in the corpus and **stays in the metric**. Completing a goal is the success
+  case and must never look like regression.
+- **`phasing-out` / retired — the goal stopped making sense.** Folded into
+  another goal, accomplished incidentally while working on something else, or
+  simply no longer worth pursuing. Its results are not useful to the corpus as
+  a whole, so they leave the score.
 
-<!-- BODY:BEGIN -->
-# goal:g4.15
+Two sub-cases the retired side needs, and they are why this is not a one-line
+constant change:
 
-### G4.16 — Elegance authenticity hypotheses — status: active
+1. **A chain that concluded "retire this goal" is excluded.** Such a chain did
+   produce evidence — the evidence *for stopping* — but that is a decision
+   about the graph, not a contribution to the corpus's outcome coverage.
+   Counting it would reward abandoning goals.
+2. **A goal retired before any chain closed is ignored wholly.** No completed
+   chain means nothing to include or exclude; it should not appear in either
+   side of the ratio rather than counting as an unconverted hypothesis.
 
-<!-- BODY:BEGIN -->
-# goal:g4.16
+**Falsifier.** Mark a goal with a closed hypothesis->mvp chain `complete`:
+`outcome_coverage` must not move. Mark a goal whose chain concluded "retire
+this" as retired: its mvps and hypotheses must leave both numerator and
+denominator. Retire a goal with no closed chain: the ratio must be unchanged
+in both terms.
 
-### G4.17 — Delegator and seat-rotation elegance — status: active
+**Naming is the only real gap.** The lifecycle already has four states and
+`phasing-out` already means "retired"; `CLAUDE.md` documents retirement as
+marking `phasing-out`. Renaming it to `retired` would read better and costs a
+`status` regex plus a corpus pass — worth doing with the change, not before it.
 
-<!-- BODY:BEGIN -->
-# goal:g4.17
+## Landed 2026-09-02 — both halves, and the third clause the revision needed
 
-### G5.1 — Legacy direct links absorbed from old top-level roots — status: retired
+`SCORING_GOAL_STATUSES` is now `{active, horizon, complete}` and
+`RETIRED_GOAL_STATUSES` is `{retired, phasing-out}`. Measured on the live
+corpus at the moment of the change: **`outcome_coverage` 0.232 -> 0.284**, from
+27 `complete` goals whose chains had been excluded for no reason anyone had
+decided. That is more than the 0.038 the 2026-09-01 sweep cost.
 
-<!-- BODY:BEGIN -->
-# goal:g24.legacy-direct
+**The third clause is the one the revision above did not state, and without it
+the fix would have armed a worse metric than it repaired.** The revision's
+sub-case 2 and its own falsifier contradicted each other — the body said a
+retired goal's unconverted hypotheses "should not appear in either side of the
+ratio", the falsifier said "the ratio must be unchanged in both terms". The
+owner resolved it on the narrow reading, and the resolution is a rule:
 
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
+> **Retirement can only ever remove a *closed* chain, never bare denominator
+> weight.** A hypothesis under a retired goal that never reached an mvp stays
+> in the denominator.
+
+Without it, retiring goals in bulk — which is exactly what a goal sweep does —
+raises `outcome_coverage` for free, and nothing in the metric can tell that
+apart from honest retirement. This project has already paid once for a gameable
+primary metric (`goal:g3`); it did not need a second one wearing a lifecycle
+field as a disguise. `retired_open_hypotheses` is emitted so the spared set is
+visible rather than implicit.
+
+Implementation note worth keeping: "on a closed chain" is computed by walking
+**up** from every `mvp` through `parents`, stopping at goals. `parents` is the
+edge direction stored on disk, so this needs no inverted index and no second
+traversal order to keep in sync.
+
+**The rename shipped with it**, as this goal said it should. `retired` is
+canonical in the schema regex, `snapshot-goals.py`, `metrics.py`, `CLAUDE.md`,
+`SKILL.md`, the goals preamble node, and the one live node carrying it
+(`goal:g6.5`). **`phasing-out` stays accepted permanently, not for a migration
+window** — projects predating the rename carry it, and a reader that stopped
+recognising it would silently start scoring their retired chains.
+
+`goals_retired` also stopped counting `complete`, which was the same collapse
+`SCORING_GOAL_STATUSES` made, in the reporting layer. `goals_complete` is now
+its own line.
+
+**Five falsifier tests, all fixtures.** Every clause was unobservable on the
+live corpus the day it shipped — 1 retired goal, 0 hypotheses beneath it — so
+there was nothing to measure them against until a sweep creates the shape.
 
 ### G5.1 — A goal too saturated with intent gets broken up — status: horizon
 
@@ -2414,11 +2433,6 @@ Falsifier: run the metric over this file as it stands. It must flag **G6.6**
 (known bundled, proved so by verdict) and must not flag **G3.1** or **S9**
 (single claim, single falsifier, closed cleanly). If it cannot separate those,
 the signal is length in disguise.
-
-### G5.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g5.legacy-direct
 
 ### G5.2 — Splitting a goal is a mechanical act — classifiers and encoders, not taste — status: horizon
 
@@ -2474,73 +2488,34 @@ closed cleanly in one chain do not.
 
 **Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
 
-### G5.5 — Local-model research hypotheses and ideas — status: active
+## G6 — The closed loop: engine work starts in the graph — status: horizon
 
-<!-- BODY:BEGIN -->
-# goal:g5.5
+Run `agi` and `agi-tree` against each other and the pair is closed: a change to
+the engine originates as a node in this graph, and the engine that grows this
+graph is the thing the node changed. Neither is the author of the other — the
+graph is the sequence, the engine is the machinery that reads it.
 
-### G5.6 — Local-maxxing spawn and kid-tier experiments — status: active
+Today the loop is open. Engine reasoning lives in `TODO.md` and `CLAUDE.md` as
+prose, gets read by agents, and never returns to the graph.
 
-<!-- BODY:BEGIN -->
-# goal:g5.6
+**Invariants:**
+- An engine change is reviewable as **node → verdict → commit**.
+- The decomposition is **generated, never hand-written** — a hand-authored map
+  goes stale exactly the way `domain-exporters` did.
+- Deprecate superseded mass; **never delete it.** Retired nodes remain prior art
+  and remain evidence.
 
-### G5.7 — Local-maxxing seat and director glue — status: active
+Known state of this graph: the idea layer already decomposes an *older* engine —
+`domain-exporters` and `domain-environment-indexers` describe modules that no
+longer exist, and there is no idea node at all for `src/agi_algos`, the twelve
+`bin/*.py`, `driver.sh`, `hooks/`, `lib/`, `scripts/`, or `extensions/agi-bridge/`.
+The half of the engine that actually changes is the half with no representation.
+Below the idea layer it is not a decomposition of anything: ~14.5k experiments
+and ~14.6k verdicts against 14 ideas is the H3 gaming artifact, not thought.
 
-<!-- BODY:BEGIN -->
-# goal:g5.7
-
-### G5.8 — Local-maxxing research docs and notes — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.8
-
-### G5.9 — Local-maxxing metric side-quests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.9
-
-### G5.10 — Local-maxxing authenticity side-quests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.10
-
-### G5.11 — Local-maxxing goal-split mechanics — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.11
-
-### G5.12 — Local-maxxing write-path side-quests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.12
-
-### G5.13 — Season review and rollover side-quests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.13
-
-### G5.14 — Local-maxxing engine-surface ideas — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.14
-
-### G5.15 — Local-maxxing thematic research batch — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.15
-
-### G5.16 — Local-maxxing grid side-quests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.16
-
-### G6.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g25.legacy-direct
-
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
+Owns: **L19**. Preconditions cleared 2026-08-21: H3 config migration (this
+project), this file, and H0e (truncated chain results no longer cached as
+complete).
 
 ### G6.1 — agi-tree becomes the source of truth agi is assembled from — status: complete
 
@@ -2617,11 +2592,6 @@ story rather than a loss. See **G6.9**.
 `--verify` against the engine read 5 — the honest "the graph is ahead of the
 engine" report, which was structurally invisible before. After publishing, both
 read 0. 671 engine tests pass.
-
-### G6.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g6.legacy-direct
 
 ### G6.2 — Retire the padding and keep it recoverable — status: complete
 
@@ -3276,78 +3246,30 @@ working tree and no backup, and came back whole.
 real one is the hypergraph viewport (**G9.4**, **G10.3**); markdown is what
 gets rendered until that exists, not the target.
 
-### G6.10 — Seat rotation, quorum, and nudge harness tests — status: active
+## G7 — Nothing the loop produces is ever silently lost — status: active
 
-<!-- BODY:BEGIN -->
-# goal:g6.10
+The graph is what makes it safe to stop mid-sprint, which only holds if stopping
+cannot lose work and no artefact can quietly disappear or quietly lie.
 
-### G6.11 — Spawn, dispatch, and kid-lifecycle tests — status: active
+**Invariants:**
+- **Node count never drops** across a snapshot.
+- The engine is never vendored into a project. It arrives as a gitignored clone
+  that can be pulled; a committed copy diverges forever.
+- No project-local `bin/*.py` shadowing an engine script. Treat any that exists
+  as stale until proven otherwise.
+- A partial answer is never served as a complete one.
 
-<!-- BODY:BEGIN -->
-# goal:g6.11
+Paid for in full: stale project-local `snapshot-build-site.py` silently wiped
+29,264 files (**H0**); a second stale override broke the render path (**H0b**);
+`find_chains` did not terminate on this corpus (**H0c**); a truncated
+`find_chains` result was cached and re-served silently forever (**H0e**).
+Banked on the other side: the git grid — per-node and per-session refs, cron
+sync at a ≤5-minute crash window, rejected drafts survive (**H10**).
 
-### G6.12 — Test-maxxing residual hypothesis batch — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.12
-
-### G6.13 — Branch, merge-up, and season-git tests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.13
-
-### G6.14 — L-series test-maxxing hypothesis batch — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.14
-
-### G6.15 — Write-path and frontmatter round-trip tests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.15
-
-### G6.16 — Ring-sig, quarantine, and whois tests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.16
-
-### G6.17 — Test-maxxing engine-surface coverage — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.17
-
-### G6.18 — Grid commit and evidence-gate tests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.18
-
-### G6.19 — Test-maxxing metric-evidence coverage — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.19
-
-### G6.20 — Test-maxxing schema-hierarchy coverage — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.20
-
-### G6.21 — Test-maxxing docs and plan coverage — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.21
-
-### G6.22 — Test-maxxing local-model side coverage — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.22
-
-### G7.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g26.legacy-direct
-
-## Agent Notes
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
+Owns: **L9**'s unpinned-clone gap (record the expected engine commit in config;
+warn, never fail, on drift — it closes the whole staleness class), **H1**/**H2**
+(state into the DB), **L16** (close the config-name compatibility window only
+once pinning exists — it is load-bearing until then).
 
 ### G7.1 — Referential integrity on every parent reference — status: horizon
 
@@ -3412,16 +3334,6 @@ unchecked in both directions, which this sweep proved matters: the repaired
 G7.5 node's stray line was a `spawns:` entry, and three `next_edges:` pointed at
 nodes S15 deleted. A reference is a reference; checking only one field name is
 the same scope mistake L15 made with `goal:`.
-
-### G7.1 — Legacy direct links absorbed from old top-level roots — status: retired
-
-<!-- BODY:BEGIN -->
-# goal:g7.legacy-direct
-
-### G7.2 — Town nodes as in-graph containers — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g26.towns
 
 ### G7.2 — Duplicate node ids silently hide files on disk — status: horizon
 
@@ -4320,67 +4232,7 @@ and open a fresh Claude Code session in any directory. If nothing in that
 session's injected context mentions that the engine is unpublished, this goal
 is not met.
 
-### G7.11 — Merge-ups use custom git scripts — signing, key ownership, rotation; authenticity chain exists (incomplete); batch verify 10-15m to core/season2/main — status: active
-
-# goal:g7.11
-
-## Why this exists
-
-Parent `goal:g7` (nothing silently lost). Owner 2026-09-19: merge-ups use custom git scripts (signing, key ownership, rotation); a cryptographic authenticity chain exists but is incomplete/insecure (harden in redesign); each batch merge to `core/season2/main` runs an advanced verification script (~10–15 minutes).
-
-## Owner bank (verbatim excerpts, 2026-09-19)
-
-From the graph-handoff bank (`goal:g1.18`):
-
-> Also for merg ups, we are using our custom git scripts right? They take care of things like signing each one and also verifying key ownership, rotation, etc. If you check git history you will see a cryptographic chain of authenticity in there somewhere. It's incomplete and insecure, but it does exist. Hardening comes later during the redesign
-
-From the seat/brief bank (`goal:g17.15`):
-
-> We have an advanced verification script that takes 10-15 minutes per run that we run during each batch merge to core/season2/main.
-
-## Target end-state
-
-- Every Belam/director merge-up to the town trunk uses the custom git scripts (sign + key ownership + rotation checks), never raw `git merge` alone.
-- Authenticity chain is present on history today; hardening is a redesign follow-on, not a silent drop.
-- Batch merge to `core/season2/main` does not land without the advanced verification script completing green (or an explicit owner waiver node).
-
-## Invariants
-
-- Residues-only batches may merge while the next batch runs; red blockers must be fixed in-batch first (standing Texas two-step rule).
-- Verification is part of "nothing silently lost," not optional polish.
-
-## Falsifier
-
-1. A merge-up path that bypasses the custom scripts fails a gate (or is impossible from the sanctioned workflow).
-2. History still shows the authenticity chain markers after a practice merge-up.
-3. A merge to `core/season2/main` without the ~10–15m verify run is rejected or recorded as a red blocker.
-
-## Related
-
-- `goal:g1.18`, `goal:g17.15`, redesign hardening (later).
-# goal:g7.11
-
-### G7.12 — Perpetual seats registry and push-further loops — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g7.12
-
-### G7.13 — Sanctuary thematic integrity batch — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g7.13
-
-### G7.14 — Sanctuary merge-up and spawn harness tests — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g7.14
-
-### G7.15 — Sanctuary hierarchy one-source integrity — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g7.15
-
-## G8 — Forkability: anyone grows their own tree — status: retired
+## G8 — Forkability: anyone grows their own tree — status: horizon
 
 A project repo holds data and configuration; the engine arrives as a clone.
 `fantasia` is the reference implementation and proves the layout composes.
@@ -4453,7 +4305,7 @@ agi-tree — should reach a rendered map and a first chain with no engine change
 at all. L18 already proved the goals-only stage works on a bare project; this
 extends it through a full iteration.
 
-## G9 — Legibility: a human can see what the loop is doing — status: retired
+## G9 — Legibility: a human can see what the loop is doing — status: horizon
 
 **Stated plainly by the owner, and it is the sharpest usability signal this
 project has had:** *"You keep referencing these items and I have no idea what
@@ -4851,7 +4703,7 @@ in `goal:g9.8` is under-specified — fix it there.
 
 **Minted by** `sanctuary-director` L4 gen I on 2026-09-09 under L4.20, whose claim is that every brief point B1-B25 exists under an EXISTING perpetual goal. No top-level goal was added; `goal:s29`'s shapes hold for any build node a later round adds.
 
-## G10 — The hypergraph: an environment, not a document — status: retired
+## G10 — The hypergraph: an environment, not a document — status: horizon
 
 **The end state this whole system is walking toward.** Not "a graph the agent can
 query" — a *place the agent is in*. There are no blocks of prose anywhere in the
@@ -5013,7 +4865,7 @@ second one, which is **G1.2**'s failure mode.
 Depends on **G1.3** (the supermap convention it extends), **G10.2** (the actions
 it lists should be read from the geometry, not hardcoded a second time).
 
-## G11 — One repo: the graph lives inside what it builds — status: retired
+## G11 — One repo: the graph lives inside what it builds — status: complete
 
 
 
@@ -5341,7 +5193,7 @@ points it at the wrong directory is the H0i pruning hazard with the safety
 catch removed. It has not fired only because nothing has run it from a cwd
 where the old rule resolves differently.
 
-## G12 — Only morals are parentless — moral spawns vision spawns goal — status: retired
+## G12 — Only morals are parentless — moral spawns vision spawns goal — status: active
 
 **The rule, stated once: exactly one node type may have an empty `parents`
 list — `moral`.** Every other type, without exception, resolves to at least
@@ -5735,7 +5587,7 @@ while the migration is still being decided node by node.
 ## Agent Notes
 The generic tier ladder declared as one node, .agi/nodes/.geometry/ladder.md with schema [ladder]: tiers 0..3 each with plan node, report node, judged-against, lens and cadence; current_season; caps (5 morals, 3 visions); budget_usd_week; spawn profiles; read order by role; director_rotate_at. Judgment record lives on the report node: judged_against, lens, alignment, adjust, season. season_parents is the season edge, traversable for zoom and provenance, excluded from chain depth and outcome_coverage. season.py status, judge, rollover. Design: .agi/context/season-ladder-and-morals-brief.md section 1. Build plan: HANDOFF.md section 3, loop L2 waves 1 to 5.
 
-## G13 — One read/write path for nodes — an LLM-native node interface — status: retired
+## G13 — One read/write path for nodes — an LLM-native node interface — status: active
 
 **One way in and one way out of the graph.** Every operation an agent performs
 on a node — create it, create the file behind it, edit it in place, read it,
@@ -6022,41 +5874,7 @@ SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item 
 <!-- BODY:BEGIN -->
 # goal:g13.2
 
-### G13.3 — Everything is a node — docs, configs, and especially scripts without nodes must gain them — status: active
-
-# goal:g13.3
-
-## Why this exists
-
-Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node — docs, configs, and especially scripts without nodes must gain them. Ties to spawn injecting briefs and in-graph brief edits.
-
-## Owner bank (verbatim excerpt, 2026-09-19 — full text also on goal:g17.15)
-
-> Everything is a node. Always. If there's a doc or config that is not a node, then it needs to be a node. If there's a script file with no node, that especially needs to be a node. … when some bot uses the spawn function to stand up a post they automatically get a fresh worktree and correct pin and key assignment, as well as the correct brief is automatically added to that bot's individual instructions.
-
-## Target end-state
-
-- Every operational doc, config, and script under the engine/graph tree has a corresponding node (or is explicitly listed as non-graph ephemeral with a gate).
-- Scripts without nodes are treated as defects found by scan, not style nits.
-- Brief/doc edits that change agent behavior go through `write.py`, not side-channel file edits.
-
-## Invariants
-
-- One read/write path remains the only sanctioned mutation of operational content.
-- A script that affects dispatch/workflow/spawn/send without a node fails the batch verify gate (`goal:g7.11`).
-
-## Falsifier
-
-1. A scan lists every `extensions/agi/bin/*.py` (and declared config/doc paths) with either a node id or an explicit `ephemeral:` exemption.
-2. Editing a brief node via `write.py` changes the next spawn's injected instructions without a second out-of-band copy step.
-3. Adding a new script without a node fails the 10–15m advanced verification run used on merge to `core/season2/main`.
-
-## Related
-
-- `goal:g17.15`, `goal:s35` (schemas are nodes), `goal:g7.11`.
-# goal:g13.3
-
-## G14 — Local-maxxing: the smallest model that can do the job, everywhere — status: retired
+## G14 — Local-maxxing: the smallest model that can do the job, everywhere — status: horizon
 
 # goal:g14
 
@@ -6202,27 +6020,6 @@ thought-master 06:19Z 09-19 OWNER (thought-master pane 06:1xZ), verbatim: If we 
 
 <!-- BODY:BEGIN -->
 # goal:g14.1
-
-### G14.2 — The local-maxxing TOWN — town node, three visions, its council, its branch after the reshuffle; g14 leaves the horizon as the town long-term goal; research treasury = g14 OWNER SOURCE notes + https://www.alphaxiv.org/abs/2609.recurrent-looped-transformer (OWNER ORDER 23:33Z via Prime XX, verbatim doc:l4-owner-decisions @16a82adbf; medium priority, after the live bundle + reshuffle) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.2
-
-### G14.3 — The Thought Master post (thought-master, Opus, a master modeled on stream-master, answers to the sanctuary-master; inference R+D = the local-maxxing town master) — charter section written by the SM: (a) verify the exact model FIRST (qwen3.8 50b: id, dense or MoE, weights size, licence) and the Camber Cloud XS instance (GPU, 24 GB VRAM, disk, network, price/h) — dense 50B at 4-bit is 25+ GB > 24 GB, so sub-4-bit / 2xXS parallel / MoE offload IS the research question; (b) the looped-transformer paper digested into an autoresearch-style hypothesis chain; (c) a cost/throughput table: tokens/s + USD per 1M on one XS per candidate quantization, spin-up included, vs OpenRouter deepseek-v4-flash; (d) cadence: ONE pi research round at a time, spend-capped, never ahead of the live loop. master-sensei drafts quorum/thought-master.md; the Prime seats it (spawn --name, --dry-run first) when brief + row are ready; director-thought seated LAZILY at the master first round (Prime assumption, flagged to the owner) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.3
-
-## Agent Notes
-ROUND 0 DELIVERED (thought-master 05:54Z): doc:lm-round0-table -- (a) there is no qwen3.8-50b; the line is Qwen3.8-27B / Ternary Bonsai 2 27B (PTQ1_0 5.95 GB fits the 8 GB GPU with 0.54 GB KV at 8k, hybrid attention); (b) Camber XS = 1x L4 24 GB, 8 cores, 32 GB, 1.50 USD/h, billing granularity unpublished with a core-hour overbilling report, job-level SDK/CLI exists; (c) the XS does not pay for kid inference: ~2.8-2.9 USD per 1M output at 8 slots vs deepseek-v4-flash 0.177 (16x), parity with hosted qwen3.8-27b (2.55) only at >= 8 parallel kids; break-even 2,350 tok/s vs flash / 163 tok/s vs the hosted 27B; our GPU2070S (448 GB/s) beats the L4 (300 GB/s) for the ternary 27B. The XS is for VRAM headroom + training only; a 0.03 USD CPU job first to observe billing granularity; the 100 signup credits cover the first hour.
-
-### G14.4 — The [region] SECRETS HUB (core town goal now; the encryption town + its master LATER, banked): the bare-metal box (8 GB unified, Intel HD, headless) holds the Doppler CLI auth and becomes the secrets gateway — the public box never holds the Doppler token; the hub issues short-lived per-spawn keys (provisioning.py mint moves there); first consumer = the thought master Camber rentals; connection details come from the owner — ask for nothing (OWNER ORDER 23:33Z) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.4
-
-## Agent Notes
-OWNER 23:47Z (via Prime XX): the hub weak point — the old single box recovery path + its inbound-closed posture — is the OWNER to handle; this goal records it as the owner own item and asks nothing.
 
 ### G15.1 — Build nodes re-attribute to the perpetual goal they actually belong under — status: active
 
@@ -7762,7 +7559,7 @@ Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/g
 - Full sanctuary seating of every town on Grok Bot.
 - Cross-machine mesh messaging.
 
-#### G17.14.1 — grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False) — status: active
+### G17.14.1 — grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False) — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g17.14.1
@@ -7770,7 +7567,7 @@ Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/g
 ## Agent Notes
 Why: parent goal:g17.14 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
 
-#### G17.14.2 — harnesses.grok-bot config row only (no dispatch.py edit) — status: active
+### G17.14.2 — harnesses.grok-bot config row only (no dispatch.py edit) — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g17.14.2
@@ -7778,49 +7575,13 @@ Why: parent goal:g17.14 needs one adapter module with TODAY REQUIRED surface. Th
 ## Agent Notes
 Why: parent goal:g17.14 needs harnesses.grok-bot in .agi/config.json so adapters.resolve(cfg, grok-bot) works. This subgoal owns the config row only (adapter: grok_bot, models kid/parent, bin/provider as peers). Zero dispatch.py. Zero adapter file edits.
 
-#### G17.14.3 — mirror adapter interface tests for grok-bot — status: active
+### G17.14.3 — mirror adapter interface tests for grok-bot — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g17.14.3
 
 ## Agent Notes
 Why: parent goal:g17.14 falsifier 4 — mirror existing adapter interface tests. This subgoal owns test_grok_bot_adapter.py (and any fixture-only helpers): load REQUIRED, is_alive True, needs_credential explicit False, restart callable, missing model tier KeyError.
-
-### G17.15 — Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump) — status: active
-
-# goal:g17.15
-
-## Why this exists
-
-Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be self-sufficient custom instructions, not "reference these instructions + pile." Spawn must stand up worktree + pin + key + brief injection. After-rotate dump matters for pi (and later in-house websocket dataflow).
-
-## Owner bank (verbatim, 2026-09-19)
-
-> I was wonering if we could assign the direct briefs that every post gets to the custom instructions of each bot directly instead of saying 'reference these instructions' and then a bunch of other stuff. Those are supposed to be self-sufficient. If you feel they lack anything to be complete by all means modify them in-graph using your key through the write function. Everything is a node. Always. If there's a doc or config that is not a node, then it needs to be a node. If there's a script file with no node, that especially needs to be a node. We have an advanced verification script that takes 10-15 minutes per run that we run during each batch merge to core/season2/main. But this way when some bot uses the spawn function to stand up a post they automatically get a fresh worktree and correct pin and key assignment, as well as the correct brief is automatically added to that bot's individual instructions. We also have an after-rotate feature to dump some relevant data into a fresh rotation. This isn't as relevant for grok bots that auto-rotate, but super relevant for pi posts among others. Especially will be relevant once we bring all model calls in-house using raw websocket connections and we manage all pieces of the dataflow outside the actual inference matrix multiplications - for now.
-
-## Target end-state
-
-- Every post brief is the bot's custom instructions body (complete, self-sufficient).
-- Gaps are fixed in-graph via `write.py` (not external doc drift).
-- `spawn` for a post yields: fresh worktree, correct pin, correct key assignment, brief written into that bot's individual instructions.
-- `after-rotate` dumps relevant session data into the fresh rotation (required for pi; optional/no-op-ok for auto-rotating grok-bot seats until in-house websocket dataflow).
-
-## Invariants
-
-- Briefs live as nodes; edits go through the unified write path.
-- Spawn is the only sanctioned way to stand up a post with pin/key/worktree/brief.
-- After-rotate is a graph-declared feature, not a harness side-effect.
-
-## Falsifier
-
-1. A newly spawned post's custom instructions equal the brief node body (byte-stable after normalize), with no "see also / reference these" stub.
-2. Spawn without a brief node fails closed.
-3. After-rotate on a pi post leaves a dump artifact reachable from the new rotation's graph context; on grok-bot auto-rotate it is either applied or explicitly skipped with a recorded reason.
-
-## Related
-
-- Cross-cut: `goal:g13.3` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
-# goal:g17.15
 
 ### G17.16 — Templates are the sole harness arg builders — status: active
 
@@ -7974,7 +7735,7 @@ Consumes `goal:g17.16` + `goal:g17.17`.
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Prerequisite: measure real CLI. Soft-depends on `goal:g17.16` (template) and `goal:g17.18` (harness-blind rotate) for the "no special-case seat" claim; adapter+config land can proceed earlier.
 
-## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
+## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g19
@@ -10259,7 +10020,7 @@ The following goals are `goal_kind: perpetual` — the long-horizon
 commitments, broadly worded, one director each. Retire stays legal on the
 node; they simply carry no per-goal complete/retired lifecycle line here.
 
-### G1 — Config-maxxing
+### G1 — Config-maxxing: every engine action is declared, never improvised
 
 **Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
 step is a command".** The invariant did not change; the framing got one level
@@ -10321,354 +10082,6 @@ parallel code path; hook parity audit), **L17** (config schema plus a writer, so
 configs stop being hand-written), **L18** action 2 (`agi-tree init` scaffolds a
 project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
 prior session manifests).
-
-## Agent Notes
-Perpetual umbrella for Config-maxxing. Absorbs prior art from old G1, G8, G19. Folded from goal:g20 onto goal:g1 in place 2026-09-19 (id/mint_id protected).
-
-### G1 — Config-maxxing
-
-<!-- BODY:BEGIN -->
-# goal:g20
-
-## Agent Notes
-Perpetual umbrella for Config-maxxing. Absorbs prior art from old G1, G8, G19 (goal:g1, goal:g8, goal:g19). Owner bank: glom 2026-09-19 — write.py PROTECTS id so old goal:g1 cannot
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G2 — Beauty
-
-One graph readable at five grains, where level 3 is **actual code nodes that
-stitch into a runnable directory layout** — the property that makes the graph an
-executable artifact rather than a description of one. Build level 3 first and
-treat the others as projections around it.
-
-**Invariant:** one node at level N ⇔ a collection at level N+1, and back.
-
-**Two axes, not one — and conflating them is the mistake this goal keeps
-making.** *Zoom* is **where you are standing**: far out shows supernode
-groupings, base level shows build nodes, closer shows a node's version history,
-closest shows the chat that produced a version. *LOD* is **how much detail is
-drawn at wherever you stand**, dialled up or down independently. Every zoom
-position has its own LOD range. Zoom is **G2.5**–**G2.7**; LOD is **G2.8**–**G2.9**.
-
-⚠️ **`level3` as a node type is legacy stale wording, and the graph should carry
-no zoom-level names at all.** A zoom level is a *view*, and baking a view's name
-into the data was a category error: it froze one grain into the type system and
-made the other grains unnameable. Zoom is now organised on two axes and neither
-of them is a level number — coarser grains come from **tags and addresses**
-(G2.5, G2.6), finer grains from **mint ids and the grid** (G2.7). A node is a
-node. Retiring the name is **S11**; it is mechanical and touches ~180 files, so
-it is sequenced deliberately rather than done in passing.
-
-🔴 **Already falsified for the free-form implementation, and the number is
-known:** 0.441 overall claim recall against a 0.90 bar, 12 agents over 6
-complete round trips. Loss is category-structured, not uniform — prose survives
-at 0.792, structured frontmatter recalls **0.000** (0/24, zero variance). Node
-identity is destroyed outright, and it is not a capacity problem: the children
-were longer than the parents.
-
-**Design consequence:** zoom is a lossy transform, not a view. To behave like a
-view, contract-bearing parts must not pass through a model at all — the harness
-attaches inherited frontmatter and contract slices mechanically, and only prose
-round-trips. Ground truth and scoring rule are preserved at
-`agi/context/refs/zoom-roundtrip-ground-truth/` so the follow-up A/B stays cheap.
-
-Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
-
-## Agent Notes
-Perpetual umbrella for Beauty. Absorbs prior art from old G2, G9, G10, G18. Folded from goal:g21 onto goal:g2 in place 2026-09-19.
-
-### G2 — Beauty
-
-<!-- BODY:BEGIN -->
-# goal:g21
-
-## Agent Notes
-Perpetual umbrella for Beauty. Absorbs prior art from old G2, G9, G10, G18. Owner bank: glom 2026-09-19.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G3 — Metric-maxxing
-
-<!-- BODY:BEGIN -->
-# goal:g22
-
-## Agent Notes
-Perpetual umbrella for Metric-maxxing. Absorbs prior art from old G3 only (NOT G16). Owner bank: glom 2026-09-19.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G3 — Metric-maxxing
-
-The graph is measured by goals reached, never by motion spent. This goal exists
-because the opposite was tried and it worked: 9 chains × 2000 hops via shortcut
-cycles, carrying no signal, and the resulting structure then broke the render
-path outright.
-
-**Invariants:**
-- No primary metric that appending hops can shift. `longest_chain_length` is a
-  descriptive statistic, never a target.
-- A decisive verdict (`proved` / `disproved`) requires `evidence_runs >= 1`.
-  Unevidenced claims are demoted, not discarded — the expensive artifact is kept,
-  only the overclaim is dropped.
-- `unevidenced_decisive_verdicts` reads `0`. Nonzero means a bypass or a
-  hand-edited node.
-
-Banked: **H3** (metric computation out of the driver heredoc into `metrics.py`;
-`evidence_fraction`, `evidence_weighted_depth`; gameable-primary warning) and
-**H4** (the gate in code, on both writer paths). This project's own config
-migrated off `longest_chain_length` on 2026-08-21.
-
-Still open, and the reason this stays active: **L4** — `outcome_coverage` is a
-*proxy* that counts chains reaching an outcome, not their **attribution to a
-specific goal**. True goal-fulfilment scoring is unbuilt. The goal nodes it
-needs exist as of L15.
-
-## Agent Notes
-Perpetual umbrella for Metric-maxxing. Absorbs prior art from old G3 only (NOT G16). Folded from goal:g22 onto goal:g3 in place 2026-09-19.
-
-### G4 — Elegance
-
-<!-- BODY:BEGIN -->
-# goal:g23
-
-## Agent Notes
-Perpetual umbrella for Elegance. Absorbs prior art from old G5, G6, G7, G11, G12, G13. Owner bank: glom 2026-09-19.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G4 — Elegance
-
-Model choice is a knob the user sets per tier and experiments with — nothing
-hardcoded. Three tiers: **delegator** (the user's own session, holding intent
-and coordinating several parent/kid groups), **parent** (a subagent by default,
-so review motion never accumulates in the chat the user reads), **kid** (one
-node, bounded scope).
-
-**Not refuted by G2's evidence — its price is now a number.** Prose recall of
-0.792 from a cheap tier is what a cheap tier is *for*. What is refuted is
-handing the cheap tier the contract layer. Tiering survives if the model authors
-prose and the harness moves structure.
-
-**Budget invariant:** inner-loop completions count against a single global
-iteration budget, so recursion is bounded regardless of nesting depth.
-
-Owns: **L3** (per-tier and eventually per-level model assignment), **L6**
-(recursive sub-loops; `cc_dispatch.max_goals_active` exists and is unread).
-Blocked on G2 for per-level assignment.
-
-## Agent Notes
-Perpetual umbrella for Elegance. Absorbs prior art from old G5, G6, G7, G11, G12, G13. Folded from goal:g23 onto goal:g4 in place 2026-09-19.
-
-### G5 — Local-maxxing
-
-<!-- BODY:BEGIN -->
-# goal:g24
-
-## Agent Notes
-Perpetual umbrella for Local-maxxing. Absorbs prior art from old G4, G14. Owner bank: glom 2026-09-19.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G5 — Local-maxxing
-
-`status:` should be a field the engine acts on: stop accruing score to
-`phasing-out` and `complete` goals while keeping their chains attributable, and
-fail loudly when a seed node points at a goal id that does not exist.
-
-**Invariant:** a project is legitimate at three depths — goals only (ideation),
-goals + seed ideas (chains starting), goals + build site (execution). A
-goals-only project is a valid state, not a broken one.
-
-Banked: **L15** — goals are first-class nodes, derived from this file, linked by
-parent-pointing, with referential integrity live and an H0-safe origin-guarded
-prune. A missing `GOALS.md` prunes nothing.
-
-Owns: **L5** (rotation the engine enforces), **L18** (the ideation stage; a
-missing build site must degrade like a missing `GOALS.md` does, not abort the
-driver).
-
-**Landed 2026-08-23** (`exp:g5-lifecycle-enforcement`, `mvp:strict-goal-refs`):
-retired goals stop scoring while staying attributable; **L5** rotation warns
-every iteration (`METRIC_WARNING goal_rotation=`, currently reading 37/3);
-**L18** a goals-only project runs instead of aborting; and `--strict-goals`
-makes a dangling goal reference fail the run, wired into `driver.sh` while the
-count is still 0 — which is when to start enforcing, not after the first one.
-
-## Revision 2026-09-01: `complete` must keep scoring; only `retired` stops
-
-**This goal's own sentence above is the defect.** "Stop accruing score to
-`phasing-out` *and* `complete` goals" collapses two states the lifecycle
-already distinguishes, and `metrics.py` implements the collapse:
-`SCORING_GOAL_STATUSES = frozenset({"active", "horizon"})`.
-
-The consequence is measured, not theoretical. The 2026-09-01 sweep marked nine
-goals `complete`/`phasing-out` on falsifiers and `outcome_coverage` fell
-**0.27 -> 0.232** — purely from bookkeeping, with no work undone and no node
-removed. **The metric penalises finishing**, which is a live disincentive
-against the sweep this project has wanted for three sessions.
-
-**The two states mean different things and must score differently:**
-
-- **`complete` — the goal was achieved.** Its chains are real, valid, and
-  still extendable; a later hypothesis may hang off them. The evidence stays
-  in the corpus and **stays in the metric**. Completing a goal is the success
-  case and must never look like regression.
-- **`phasing-out` / retired — the goal stopped making sense.** Folded into
-  another goal, accomplished incidentally while working on something else, or
-  simply no longer worth pursuing. Its results are not useful to the corpus as
-  a whole, so they leave the score.
-
-Two sub-cases the retired side needs, and they are why this is not a one-line
-constant change:
-
-1. **A chain that concluded "retire this goal" is excluded.** Such a chain did
-   produce evidence — the evidence *for stopping* — but that is a decision
-   about the graph, not a contribution to the corpus's outcome coverage.
-   Counting it would reward abandoning goals.
-2. **A goal retired before any chain closed is ignored wholly.** No completed
-   chain means nothing to include or exclude; it should not appear in either
-   side of the ratio rather than counting as an unconverted hypothesis.
-
-**Falsifier.** Mark a goal with a closed hypothesis->mvp chain `complete`:
-`outcome_coverage` must not move. Mark a goal whose chain concluded "retire
-this" as retired: its mvps and hypotheses must leave both numerator and
-denominator. Retire a goal with no closed chain: the ratio must be unchanged
-in both terms.
-
-**Naming is the only real gap.** The lifecycle already has four states and
-`phasing-out` already means "retired"; `CLAUDE.md` documents retirement as
-marking `phasing-out`. Renaming it to `retired` would read better and costs a
-`status` regex plus a corpus pass — worth doing with the change, not before it.
-
-## Landed 2026-09-02 — both halves, and the third clause the revision needed
-
-`SCORING_GOAL_STATUSES` is now `{active, horizon, complete}` and
-`RETIRED_GOAL_STATUSES` is `{retired, phasing-out}`. Measured on the live
-corpus at the moment of the change: **`outcome_coverage` 0.232 -> 0.284**, from
-27 `complete` goals whose chains had been excluded for no reason anyone had
-decided. That is more than the 0.038 the 2026-09-01 sweep cost.
-
-**The third clause is the one the revision above did not state, and without it
-the fix would have armed a worse metric than it repaired.** The revision's
-sub-case 2 and its own falsifier contradicted each other — the body said a
-retired goal's unconverted hypotheses "should not appear in either side of the
-ratio", the falsifier said "the ratio must be unchanged in both terms". The
-owner resolved it on the narrow reading, and the resolution is a rule:
-
-> **Retirement can only ever remove a *closed* chain, never bare denominator
-> weight.** A hypothesis under a retired goal that never reached an mvp stays
-> in the denominator.
-
-Without it, retiring goals in bulk — which is exactly what a goal sweep does —
-raises `outcome_coverage` for free, and nothing in the metric can tell that
-apart from honest retirement. This project has already paid once for a gameable
-primary metric (`goal:g3`); it did not need a second one wearing a lifecycle
-field as a disguise. `retired_open_hypotheses` is emitted so the spared set is
-visible rather than implicit.
-
-Implementation note worth keeping: "on a closed chain" is computed by walking
-**up** from every `mvp` through `parents`, stopping at goals. `parents` is the
-edge direction stored on disk, so this needs no inverted index and no second
-traversal order to keep in sync.
-
-**The rename shipped with it**, as this goal said it should. `retired` is
-canonical in the schema regex, `snapshot-goals.py`, `metrics.py`, `CLAUDE.md`,
-`SKILL.md`, the goals preamble node, and the one live node carrying it
-(`goal:g6.5`). **`phasing-out` stays accepted permanently, not for a migration
-window** — projects predating the rename carry it, and a reader that stopped
-recognising it would silently start scoring their retired chains.
-
-`goals_retired` also stopped counting `complete`, which was the same collapse
-`SCORING_GOAL_STATUSES` made, in the reporting layer. `goals_complete` is now
-its own line.
-
-**Five falsifier tests, all fixtures.** Every clause was unobservable on the
-live corpus the day it shipped — 1 retired goal, 0 hypotheses beneath it — so
-there was nothing to measure them against until a sweep creates the shape.
-
-## Agent Notes
-Perpetual umbrella for Local-maxxing. Absorbs prior art from old G4, G14. Folded from goal:g24 onto goal:g5 in place 2026-09-19.
-
-### G6 — Test-maxxing
-
-<!-- BODY:BEGIN -->
-# goal:g25
-
-## Agent Notes
-Perpetual umbrella for Test-maxxing. Absorbs prior art from old G15, G16. Owner bank: glom 2026-09-19.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G6 — Test-maxxing
-
-Run `agi` and `agi-tree` against each other and the pair is closed: a change to
-the engine originates as a node in this graph, and the engine that grows this
-graph is the thing the node changed. Neither is the author of the other — the
-graph is the sequence, the engine is the machinery that reads it.
-
-Today the loop is open. Engine reasoning lives in `TODO.md` and `CLAUDE.md` as
-prose, gets read by agents, and never returns to the graph.
-
-**Invariants:**
-- An engine change is reviewable as **node → verdict → commit**.
-- The decomposition is **generated, never hand-written** — a hand-authored map
-  goes stale exactly the way `domain-exporters` did.
-- Deprecate superseded mass; **never delete it.** Retired nodes remain prior art
-  and remain evidence.
-
-Known state of this graph: the idea layer already decomposes an *older* engine —
-`domain-exporters` and `domain-environment-indexers` describe modules that no
-longer exist, and there is no idea node at all for `src/agi_algos`, the twelve
-`bin/*.py`, `driver.sh`, `hooks/`, `lib/`, `scripts/`, or `extensions/agi-bridge/`.
-The half of the engine that actually changes is the half with no representation.
-Below the idea layer it is not a decomposition of anything: ~14.5k experiments
-and ~14.6k verdicts against 14 ideas is the H3 gaming artifact, not thought.
-
-Owns: **L19**. Preconditions cleared 2026-08-21: H3 config migration (this
-project), this file, and H0e (truncated chain results no longer cached as
-complete).
-
-## Agent Notes
-Perpetual umbrella for Test-maxxing. Absorbs prior art from old G15, G16. Folded from goal:g25 onto goal:g6 in place 2026-09-19.
-
-### G7 — Sanctuary
-
-<!-- BODY:BEGIN -->
-# goal:g26
-
-## Agent Notes
-Perpetual umbrella for Sanctuary. Absorbs prior art from old G17. Owner bank: glom 2026-09-19. Status active.
-
-Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No delete.
-
-### G7 — Sanctuary
-
-The graph is what makes it safe to stop mid-sprint, which only holds if stopping
-cannot lose work and no artefact can quietly disappear or quietly lie.
-
-**Invariants:**
-- **Node count never drops** across a snapshot.
-- The engine is never vendored into a project. It arrives as a gitignored clone
-  that can be pulled; a committed copy diverges forever.
-- No project-local `bin/*.py` shadowing an engine script. Treat any that exists
-  as stale until proven otherwise.
-- A partial answer is never served as a complete one.
-
-Paid for in full: stale project-local `snapshot-build-site.py` silently wiped
-29,264 files (**H0**); a second stale override broke the render path (**H0b**);
-`find_chains` did not terminate on this corpus (**H0c**); a truncated
-`find_chains` result was cached and re-served silently forever (**H0e**).
-Banked on the other side: the git grid — per-node and per-session refs, cron
-sync at a ≤5-minute crash window, rejected drafts survive (**H10**).
-
-Owns: **L9**'s unpinned-clone gap (record the expected engine commit in config;
-warn, never fail, on drift — it closes the whole staleness class), **H1**/**H2**
-(state into the DB), **L16** (close the config-name compatibility window only
-once pinning exists — it is load-bearing until then).
-
-## Agent Notes
-Perpetual umbrella for Sanctuary. Absorbs prior art from old G17. Folded from goal:g26 onto goal:g7 in place 2026-09-19. Status active.
 
 ### G15 — Bugfix and optimization
 
@@ -10925,20 +10338,6 @@ Per node at done and per session: model, harness, profile, tokens_in, tokens_out
 ## Agent Notes
 Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
 
-## App: local-maxxing
-
-The goals of this app/town share one vision, one council and one per-town
-vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
-Town is derived from a vision's `town:` cell; core is every other goal.
-
-#### G14.5 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.5
-
-## Agent Notes
-OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 into the graph properly, but that needs IOMap system from SM so dont worry about that or telling her. Just letting you know thats a part of the solution. But some way to at least explain what each code file in bend2 does in and of itself at the source level. Thatll take a while, can be a long-term slow moving ongoing effort. The hypothesis could be I think this file does this and experiment until you have the right hypothesis and it links up to the existing build mode that is the code file. This can be a second director job you spawn, a test run of having a director attached to a specific goal that they keep chasing independently. You can communicate this to sanctuary master but dont stand up the post yet we need to preserve resources." APPLY (thought-master): (1) this goal holds the field; (2) SHAPE of the work: the Bend2 + HVM source (HigherOrderCO, the compiler, the C and CUDA runtimes) enters the tree under .agi/context/local-maxxing/bend2-src/ (a pinned shallow checkout, commit recorded) so level3 mints a build node per file -- the build node IS the file; per file one hypothesis "this file does X" with a falsifier (a probe: a call, a test, a trace) and one experiment; a verdict links hypothesis -> build node; a per-directory doc summarizes what proved; (3) ORDER: start where the why-idea points (the HVM CUDA runtime + the Bend to HVM lowering), not alphabetically; (4) the dedicated director (second town director, goal-attached, chases this alone at a gentle cadence, 1 USD/round) is NOT seated until the owner lifts the resource hold; until then the why-idea experiment (kernel-launch count) is the only Bend work and runs under director-thought; (5) the proper cross-file mapping (calls, imports, contracts) waits on the IOMap system -- not a thing to ask for. Communicated to the sanctuary-master 17:5xZ as a status line (a post to plan, not to stand up).
-
 ## App: streaming-suite
 
 The goals of this app/town share one vision, one council and one per-town
@@ -10975,7 +10374,7 @@ The goals of this app/town share one vision, one council and one per-town
 vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
 Town is derived from a vision's `town:` cell; core is every other goal.
 
-### G18 — Sanctuary as a managed subscription web app — the project pays for itself — status: retired
+### G18 — Sanctuary as a managed subscription web app — the project pays for itself — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g18
