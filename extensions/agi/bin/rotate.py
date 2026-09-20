@@ -923,10 +923,12 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
 # harness adds a `.toml` and edits nothing here (hypothesis:harness-arg-
 # builders-are-templates-only). Anything else is refused by name rather than
 # silently fallen back to claude (goal:g15). "claude-code" is the built-in
-# default (its argv is today's `claude --remote-control`).
+# default (its argv is today's `claude --remote-control`). `rotate = false`
+# opts a template out of the seat set (pi is headless, not a rotate seat).
 def _known_harnesses() -> tuple[str, ...]:
     try:
-        return tuple(harness_template.available())
+        return tuple(h for h in harness_template.available()
+                     if harness_template.load(h).get("rotate", True))
     except Exception:
         return ("claude-code",)
 
