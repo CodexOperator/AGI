@@ -926,6 +926,9 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
                 town = nearest_vision_town(str(NODES_DIR), [vr])
         goals.append({
             "gid": gid,
+            "node_id": node_id,
+            "path": node["path"],
+            "parents": fm.get("parents") or [],
             "title": title,
             "status": fm.get("status", "active"),
             "goal_kind": str(fm.get("goal_kind") or "").strip(),
@@ -933,6 +936,26 @@ def load_goal_nodes(existing: dict) -> tuple[str, list[dict]]:
             "town": town.strip() or "core",
             "body": (node.get("body") or "").strip(),
         })
+    # goal:g17.14 — a goal whose id nests under its parent's id (G17.14.1
+    # under G17.14) must render exactly one heading deeper. Only an id-prefix
+    # parent is a true nesting edge: the mechanical `goal:g15` parent every
+    # S-goal carries (goal:g12.3) and build parents are not, and demanding
+    # `parent + 1` of those would refuse 39 legitimate nodes. A wrong depth is
+    # refused BY NAME, never guessed.
+    by_node_id = {g["node_id"]: g for g in goals}
+    for g in goals:
+        parents = g["parents"] if isinstance(g["parents"], list) else []
+        for pid in parents:
+            parent = by_node_id.get(pid)
+            if parent is None or not g["gid"].startswith(parent["gid"] + "."):
+                continue
+            if g["heading_level"] != parent["heading_level"] + 1:
+                sys.exit(
+                    f"ERR: {g['path']} ({g['gid']}) has heading_level "
+                    f"{g['heading_level']} but its parent {pid} "
+                    f"({parent['gid']}) is level {parent['heading_level']}; "
+                    f"must be {parent['heading_level'] + 1} (goal:g17.14)")
+
     return preamble, goals
 
 

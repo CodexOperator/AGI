@@ -1294,3 +1294,34 @@ def test_render_town_goal_nests_strictly_below_the_app_head(tmp_path):
             f"{want} renders at {hashes}x'#' but must nest strictly below "
             f"the app head's {head_hashes}x'#'")
         assert rendered.index(line) > head_idx
+
+
+def _goal_node(project, rel, gid, level, parents, kind="subgoal"):
+    sg.write_frontmatter(
+        project / "nodes" / "goal" / rel,
+        {"id": f"goal:{gid.lower()}", "type": "goal", "goal_id": gid,
+         "status": "active", "goal_kind": kind, "heading_level": level,
+         "title": f"{gid}: t", "parents": parents}, "b",
+        origin="goals-doc")
+
+
+def test_render_refuses_a_subgoal_at_its_parents_depth(tmp_path):
+    """goal:g17.14 — an id-nesting goal one heading short of its parent is a
+    named refusal, the DT.16 rival route (`heading_level: 3` under a level-3
+    parent, flattened GOALS.md)."""
+    (tmp_path / "nodes").mkdir()
+    _goal_node(tmp_path, "g1.md", "G1", 2, [], kind="long-term")
+    _goal_node(tmp_path, "g1.2.md", "G1.2", 2, ["goal:g1"])
+    r = run(tmp_path, "--render")
+    assert r.returncode == 1, r.stderr
+    assert "g1.2.md" in r.stderr and "must be 3" in r.stderr
+
+
+def test_render_does_not_demand_parent_plus_one_of_a_mechanical_edge(tmp_path):
+    """The `goal:g15` parent every S-goal carries (goal:g12.3) is an edge, not
+    a nesting: both render at `##`. A blanket parent+1 rule would refuse 39
+    live nodes; only an id-prefix parent is a true nesting edge."""
+    (tmp_path / "nodes").mkdir()
+    _goal_node(tmp_path, "g15.md", "G15", 2, [], kind="perpetual")
+    _goal_node(tmp_path, "s1.md", "S1", 2, ["goal:g15"], kind="short-term")
+    assert run(tmp_path, "--render").returncode == 0
