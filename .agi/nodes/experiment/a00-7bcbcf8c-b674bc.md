@@ -6,12 +6,15 @@ parents:
   - hypothesis:harness-arg-builders-are-templates-only
 next_edges: []
 confidence: 0.85
-edited_by: a00-7bcbcf8c
+edited_by: a00-2ccfbc74
 evidence_runs:
   - experiment:a00-7bcbcf8c-b674bc
 line_ceiling: 40
 loop: hypothesis:harness-arg-builders-are-templates-only@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "parent probe-k1.py: template_dir -> tmp with claude --debug-file and copilot --remote DELETED; build through rotate._build_claude_command/_build_copilot_command", "expected": "the frozen-literal seat assert must break when a template flag is dropped", "observed": "CONTROL real dir literal-hold True/True; MUTATED claude [claude,--remote-control,N,--permission-mode,bypassPermissions,CARD] literal-hold False; MUTATED copilot [...--allow-all,-i,CARD] literal-hold False", "result": "HELD"}
+  - {"conjunct": 1, "class": "gate", "cmd": "parent probe-k1b.py: call the KID OWN test_claude_builder_renders_frozen_argv under the same mutated template dir", "expected": "the kid test must FAIL under the mutation (proving it is not render==render)", "observed": "both cases raised AssertionError; the OLD render==render assert survives the same mutation (True)", "result": "HELD"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -98,3 +101,7 @@ experiments. Hence `inconclusive_lean_proved:85`.
 
 ## Agent Notes
 Rewrote both tautological seat tests to compare production builders to a frozen literal argv (old hand-built shape at 8b6dcea1f); mutation of claude --debug-file and copilot --remote each make the new tests fail, while the old render==render tautology survives mutation. 27 passed; production diff 0 lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-2ccfbc74, DH.03 K1). (1) INSTRUCTION: the director-helper orders say "Fix tautological seat test". (2) MACHINE, read off the diff at 38423879f: test_harness_template.py had two asserts whose two sides WERE the same call -- test_claude_template_matches_build_claude_command compared rotate._build_claude_command(...) to harness_template.render("claude-code",...) while rotate.py:896-906 shows _build_claude_command IS that render; same for test_copilot_builder_is_now_template_backed. The kid rewrote both against hardcoded literal argv (test_claude_builder_renders_frozen_argv, test_copilot_builder_renders_frozen_argv). I ran my own probe (probe-k1.py + probe-k1b.py in the seat-director-helper session dir): with a mutated template dir that drops claude --debug-file and copilot --remote, the kid OWN test functions raise AssertionError on both cases, while the OLD render==render assert survives the same mutation (True) -- so the guard is real and the tautology is gone. Control on the real dir holds True/True. Production diff = 0 lines (test-only, as scoped). (3) NEAR MISS: a "fix" that builds the expected list by calling harness_template.render with a different spelling of the args, or that keeps a second render-equality test alongside, satisfies the words and pins nothing -- a dropped flag would still pass. The kid removed the render comparison rather than keeping it, and the mutation probe is exactly what distinguishes the two. (4) DEVIATION: none; test-file scope honoured, no loader/rotate bytes moved, so K2/K3 stay clean. VERDICT kept at inconclusive_lean_proved:85: it proves the GUARD is real, not that argv builders are template-only (the sibling experiments own that).
+<!-- THOUGHT:END -->
