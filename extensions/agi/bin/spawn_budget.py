@@ -273,18 +273,18 @@ _CEILING_NUMBER_RES = (
     re.compile(r"(\d+)\s+production\s+lines", re.I),  # N production lines
     re.compile(r"(\d+)\s+lines", re.I),               # <=N lines
 )
+_CEILING_KIDS_RE = re.compile(r"across\s+(\d+)\s+kid", re.I)
 _CEILING_SENTENCE_MAX = 60
 
 
-def _ceiling_clause(text: str | None) -> int | None:
-    """The N of the node's own CEILING clause in `text`, or None. The LAST
-    match wins: the node's own ceiling is its trailing declaration while
-    earlier mentions are quoted examples (this node quotes `<=120`, declares
-    20). Malformed/absent/non-positive -> None, never a raise.
+def _ceiling_clause(text: str | None) -> tuple[int, int] | None:
+    """The `(N, K)` of the node's own CEILING clause in `text`, or None.
+    Grammar, verbatim: `CEILING: <=N production lines across K kids`; absent
+    `across K kids` means K=1. LAST match wins; malformed/absent -> None.
     """
     if not text:
         return None
-    found: int | None = None
+    found: tuple[int, int] | None = None
     for anchor in _CEILING_ANCHOR_RE.finditer(text):
         seg = text[anchor.start():anchor.start() + _CEILING_SENTENCE_MAX]
         stops = [i for i in (seg.find("\n"), seg.find(".")) if i != -1]
@@ -295,7 +295,9 @@ def _ceiling_clause(text: str | None) -> int | None:
             if m:
                 n = int(m.group(1))
                 if n > 0:
-                    found = n
+                    km = _CEILING_KIDS_RE.search(seg)
+                    k = int(km.group(1)) if km and int(km.group(1)) > 0 else 1
+                    found = (n, k)
                 break
     return found
 
@@ -328,12 +330,10 @@ def _node_text(graph_root, node_id) -> str | None:
 
 
 def node_line_ceiling(graph_root, node_id, cfg, default: int = 40
-                      ) -> tuple[int, str]:
-    """The kid's production-line ceiling as (N, source), ONE source.
-
-    The DISPATCHING node's own CEILING clause wins, then the config default;
-    `source` is `"clause"` or `"default"` so the brief can say which it used.
-    An unresolvable node is not a ceiling of zero, and not a crash either.
+                      ) -> tuple[int, int, str]:
+    """The kid's ceiling as (slice, K, source), ONE source. `slice` is
+    `ceil(N/K)` when the dispatching node's clause says `across K kids`, else
+    N (K=1); `source` is `"clause"`/`"default"`; unresolvable -> default.
 
     Read from the frontmatter `testable_claim` field alone when that field
     exists: a body or Agent-Notes mention is prose about the ceiling, never
@@ -345,8 +345,8 @@ def node_line_ceiling(graph_root, node_id, cfg, default: int = 40
     claim = fm.get("testable_claim") if isinstance(fm, dict) else None
     n = _ceiling_clause(claim if isinstance(claim, str) and claim else text)
     if n is not None:
-        return n, "clause"
-    return production_line_ceiling(cfg or {}, default), "default"
+        return -(-n[0] // n[1]), n[1], "clause"
+    return production_line_ceiling(cfg or {}, default), 1, "default"
 
 
 @dataclass

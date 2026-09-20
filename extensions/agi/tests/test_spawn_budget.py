@@ -1273,24 +1273,44 @@ def test_node_line_ceiling_parses_the_clause_and_defaults(tmp_path):
         "---\nid: hypothesis:h\ntype: hypothesis\n---\n"
         "e.g. `CEILING: <=120 production lines` never reaches.\n"
         "CEILING: <=20 production lines, 1 kid\n", encoding="utf-8")
-    assert spawn_budget.node_line_ceiling(graph, "hypothesis:h", {}) == (20, "clause")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:h", {}) == (20, 1, "clause")
     # absent clause -> config default, named as such
     (graph / "nodes" / "hypothesis" / "bare.md").write_text(
         "---\nid: hypothesis:bare\ntype: hypothesis\n---\nno ceiling\n")
     assert spawn_budget.node_line_ceiling(
         graph, "hypothesis:bare", {"spawn": {"production_line_ceiling": 17}}
-    ) == (17, "default")
+    ) == (17, 1, "default")
     # unresolvable node -> default, never a crash
-    assert spawn_budget.node_line_ceiling(graph, "hypothesis:nope", {}) == (40, "default")
-    assert spawn_budget.node_line_ceiling(graph, None, {}) == (40, "default")
-    # the three accepted spellings
-    assert spawn_budget._ceiling_clause("CEILING: <=7 lines") == 7
-    assert spawn_budget._ceiling_clause("CEILING: 33 production lines") == 33
-    assert spawn_budget._ceiling_clause("CEILING: <=120 production lines") == 120
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:nope", {}) == (40, 1, "default")
+    assert spawn_budget.node_line_ceiling(graph, None, {}) == (40, 1, "default")
+    # the three accepted spellings; K=1 when there is no `across K kids`
+    assert spawn_budget._ceiling_clause("CEILING: <=7 lines") == (7, 1)
+    assert spawn_budget._ceiling_clause("CEILING: 33 production lines") == (33, 1)
+    assert spawn_budget._ceiling_clause("CEILING: <=120 production lines") == (120, 1)
     # malformed and non-matching are None -> the caller's default
     assert spawn_budget._ceiling_clause("CEILING: <=abc production lines") is None
     assert spawn_budget._ceiling_clause("HARD CEILING: 2 kids") is None
     assert spawn_budget._ceiling_clause(None) is None
+
+
+def test_across_k_kids_clause_sets_its_slice_as_the_kid_ceiling(tmp_path):
+    """hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-
+    by-the-spawn-never-by-parent-arithmetic: the parser reports K beside N and
+    the ONE resolver returns the kid's SLICE, ceil(N/K) -- never the whole N.
+    """
+    assert spawn_budget._ceiling_clause(
+        "CEILING: <=44 production lines across 2 kids") == (44, 2)
+    assert spawn_budget._ceiling_clause("CEILING: <=26 production lines") == (26, 1)
+    graph = tmp_path / ".agi"
+    d = graph / "nodes" / "hypothesis"
+    d.mkdir(parents=True)
+    (d / "a2.md").write_text(
+        "---\nid: hypothesis:a2\ntype: hypothesis\n"
+        "testable_claim: \"build it. CEILING: <=44 production lines across "
+        "2 kids.\"\n---\n", encoding="utf-8")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:a2", {}) == (22, 2, "clause")
+    # an odd N divides up, never down past what K kids were promised
+    assert spawn_budget._ceiling_clause("CEILING: <=45 across 2 kids") == (45, 2)
 
 
 def test_node_line_ceiling_reads_only_the_testable_claim_field(tmp_path):
@@ -1309,17 +1329,17 @@ def test_node_line_ceiling_reads_only_the_testable_claim_field(tmp_path):
         "---\nid: hypothesis:t1\ntype: hypothesis\n"
         "testable_claim: \"behaviour to build. CEILING: <=40 production lines.\"\n"
         "---\n## Agent Notes\n_git diff --numstat ... 20 lines_\n", encoding="utf-8")
-    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t1", {}) == (40, "clause")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t1", {}) == (40, 1, "clause")
     # T2: no frontmatter -> the fallback reads the whole text
     (d / "t2.md").write_text(
         "no frontmatter here\nCEILING: <=12 production lines\n", encoding="utf-8")
-    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t2", {}) == (12, "clause")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t2", {}) == (12, 1, "clause")
     # T3: field present, no clause -> default, and the body does not win
     (d / "t3.md").write_text(
         "---\nid: hypothesis:t3\ntype: hypothesis\n"
         "testable_claim: the thing being claimed, no number here\n"
         "---\nCEILING: <=9 production lines\n", encoding="utf-8")
-    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t3", {}) == (40, "default")
+    assert spawn_budget.node_line_ceiling(graph, "hypothesis:t3", {}) == (40, 1, "default")
 
 
 # --------------------------------------------------------------------------

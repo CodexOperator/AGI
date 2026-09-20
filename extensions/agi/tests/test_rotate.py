@@ -2784,21 +2784,31 @@ def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
     assert not list(comms.glob("dm/*.md"))
 
 
-def test_alarms_once_dms_holder_when_due_then_stops(fake_ladder, tmp_path):
-    """At/over threshold: exactly one dm `rotate now` to the holder, nil more."""
+def test_alarms_once_master_rotates_the_due_seat_then_stops(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """At/over threshold: exactly ONE master-path rotate of the due seat
+    under the holder's key, nothing for the seat below the line, and NO dm
+    (SM.135 slice 2, owner ruling 2026-09-19 05:1xZ: the alarms poll rotates
+    a captive director itself; this test asserted the retired dm path)."""
     seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"},
              {"name": "kid-2", "role": "director", "rotated_by": "advisor"}]
     _write_seats_sheet(tmp_path, seats)
     _pin_seat_transcript(tmp_path, "kid-1", tokens=40000)  # 0.40 >= 0.25
     _pin_seat_transcript(tmp_path, "kid-2", tokens=4000)   # 0.04 < 0.25
     comms = tmp_path / "comms"
+    spawns = []
+    monkeypatch.setattr(rotate, "_caller_hold_key",
+                        lambda root, seat, row, how: (seat, row or {}, how))
+    monkeypatch.setattr(rotate, "_spawn_master_rotate",
+                        lambda argv, env, cwd: spawns.append((argv, env)))
     args = SimpleNamespace(holder="advisor", once=True, interval=300,
                            comms_root=str(comms))
     rc = rotate.cmd_alarms(args, tmp_path)
     assert rc == 0
-    dms = list(comms.glob("dm/*.md"))
-    assert len(dms) == 1  # only the due seat was dm'd
-    assert "rotate now" in dms[0].read_text(encoding="utf-8")
+    assert len(spawns) == 1, capsys.readouterr().out  # only the due seat
+    assert spawns[0][0][2:] == ["rotate", "--post", "kid-1"]
+    assert spawns[0][1]["AGI_POST"] == "advisor"
+    assert not list(comms.glob("dm/*.md"))            # the dm path is gone
 
 
 def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,
