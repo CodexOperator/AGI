@@ -6,15 +6,18 @@ parents:
   - hypothesis:a00-61bd9edf-9999f8
 next_edges: []
 confidence: 0.97
-edited_by: a00-61bd9edf
+edited_by: a00-25edbeda
 line_ceiling: 40
 loop: goal:g17.14.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - {"conjunct": 1, "class": "gate", "cmd": "adapters.load(grok_bot) on tip 18b3044cc", "expected": "AdapterError naming the missing adapter file path", "observed": "AdapterError: no adapter for harness grok_bot: expected .../extensions/agi/bin/adapters/grok_bot_adapter.py", "result": "refused by name"}
-  - {"conjunct": 2, "class": "auth", "cmd": "adapters.resolve(cfg,grok-bot) on .agi/config.json", "expected": "AdapterError naming grok-bot and the declared set", "observed": "AdapterError: no harness grok-bot in config; declared: [claude-code, copilot-cli, pi, pi-local]", "result": "refused by name"}
-  - {"conjunct": 3, "class": "wire", "cmd": "sha256-checked canonical blob materialized for a COPY of the package, then adapters.load(grok_bot)", "expected": "loads; every adapters.REQUIRED name callable", "observed": "loaded grok_bot_adapter; build_command,child_env,is_alive,needs_credential,restart all callable", "result": "pass"}
-  - {"conjunct": 4, "class": "wire", "cmd": "same package copy, adapters.resolve(cfg,grok-bot) with the row absent", "expected": "still refuses by name; the config row is the sole remaining gap", "observed": "AdapterError: no harness grok-bot in config; declared: [...]", "result": "refused by name"}
+  - {"conjunct": 1, "class": "gate", "cmd": "adapters.load('grok_bot') on tip 18b3044cc", "expected": "AdapterError naming the missing adapter file path", "observed": "AdapterError: no adapter for harness 'grok_bot': expected .../extensions/agi/bin/adapters/grok_bot_adapter.py", "result": "refused by name"}
+  - {"conjunct": 2, "class": "auth", "cmd": "adapters.resolve(cfg,'grok-bot') on .agi/config.json", "expected": "AdapterError naming grok-bot and the declared set", "observed": "AdapterError: no harness 'grok-bot' in config; declared: ['claude-code','copilot-cli','pi','pi-local']", "result": "refused by name"}
+  - {"conjunct": 3, "class": "wire", "cmd": "sha256-checked canonical blob materialized for a COPY of the package, then adapters.load('grok_bot')", "expected": "loads; every adapters.REQUIRED name callable", "observed": "loaded grok_bot_adapter; build_command,child_env,is_alive,needs_credential,restart all callable", "result": "pass"}
+  - {"conjunct": 4, "class": "wire", "cmd": "same package copy, adapters.resolve(cfg,'grok-bot') with the row absent", "expected": "still refuses by name; the config row is the sole remaining gap", "observed": "AdapterError: no harness 'grok-bot' in config; declared: [...]", "result": "refused by name"}
+  - {"conjunct": "PARENT P1 (auth)", "class": "auth", "cmd": "adapters.load('grok_bot_absent') on the current tree", "expected": "AdapterError naming the missing file; the refusal path is live", "observed": "refused: no adapter for harness 'grok_bot_absent': expected .../adapters/grok_bot_absent_adapter.py", "result": "held"}
+  - {"conjunct": "PARENT P2 (wire/history)", "class": "wire", "cmd": "git cat-file -e 18b3044cc:extensions/agi/bin/adapters/grok_bot_adapter.py ; git cat-file -e e554c440c:...", "expected": "absent at 18b3044cc (rc=128), present at e554c440c (rc=0)", "observed": "18b3044cc: rc=128 'exists on disk, but not in 18b3044cc'; e554c440c: rc=0", "result": "held"}
+  - {"conjunct": "PARENT P3 (gate)", "class": "gate", "cmd": "git cat-file -e on 18b3044cc for the adapter file", "expected": "the claimed PRE-land absence is a real committed state", "observed": "rc=128; the file was genuinely absent on 18b3044cc and is added by 86692b018 (162 lines)", "result": "held"}
 production_lines: 0
 profile: balanced
 role: kid

@@ -6,7 +6,7 @@ parents:
   - experiment:a00-61bd9edf-grok-seam
 next_edges: []
 confidence: 0.97
-edited_by: a00-61bd9edf
+edited_by: a00-25edbeda
 evidence_runs:
   - experiment:a00-61bd9edf-grok-seam
 loop: goal:g17.14.2@s2
@@ -65,3 +65,7 @@ the adapter blob is not landed in the tree (out of scope, 162 production lines
 - Config row fold in `.agi/config.json` (Prime/director-owned) — `goal:g17.14.4`.
 
 A fresh checkout still fails `resolve` until both land.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT VERDICT REVIEW (a00-25edbeda, DT.21). Kept proved as the PRE-land historical record pinned to tip 18b3044cc. Verified independently: git cat-file -e 18b3044cc:extensions/agi/bin/adapters/grok_bot_adapter.py rc=128 (the file was genuinely absent), and the current tip added it in 86692b018. The verdict judgement that the PRIOR only-the-row claim is disproved is sound; the corrected claim (both inputs required) is the surviving one. Round-2 verdict:a00-893ae9ca-grok-landed-verdict records the landed state. No probes field on this verdict (residue 3); parent probes live on experiment:a00-61bd9edf-grok-seam.
+<!-- THOUGHT:END -->

@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-893ae9ca-6e4643
 next_edges: []
-edited_by: a00-893ae9ca
+edited_by: a00-25edbeda
 line_ceiling: 300
 loop: goal:g17.14.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -13,6 +13,11 @@ probes:
   - {"conjunct": 1, "class": "wire", "cmd": "cd extensions/agi/bin && python3 -c \"import adapters; m=adapters.load('grok_bot'); print(m.NAME, [callable(getattr(m,f)) for f in adapters.REQUIRED])\"", "expected": "loads; NAME == grok-bot; all five REQUIRED callable", "observed": "grok-bot [True, True, True, True, True]", "result": "pass"}
   - {"conjunct": 2, "class": "auth", "cmd": "adapters.resolve(json.load(open('.agi/config.json')), 'grok-bot')", "expected": "AdapterError naming grok-bot and the declared set", "observed": "AdapterError: no harness 'grok-bot' in config; declared: ['claude-code', 'copilot-cli', 'pi', 'pi-local']", "result": "refused by name"}
   - {"conjunct": 3, "class": "wire", "cmd": "sha256sum extensions/agi/bin/adapters/grok_bot_adapter.py", "expected": "66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c", "observed": "66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c", "result": "pass"}
+  - {"conjunct": "PARENT P1", "class": "wire", "cmd": "adapters.load('grok_bot') from tree bytes; print m.__file__", "expected": "module file is the worktree adapter, not a copy", "observed": "/data/work/agi/.agi/worktrees/a00-25edbeda/extensions/agi/bin/adapters/grok_bot_adapter.py; NAME=grok-bot; all REQUIRED callable", "result": "held"}
+  - {"conjunct": "PARENT P2", "class": "wire", "cmd": "diff <(git show e554c440c:extensions/agi/bin/adapters/grok_bot_adapter.py) extensions/agi/bin/adapters/grok_bot_adapter.py", "expected": "byte-identical", "observed": "IDENTICAL; sha256 matches canonical", "result": "held"}
+  - {"conjunct": "PARENT P3", "class": "gate", "cmd": "config harnesses keys + resolve(cfg,'grok-bot')", "expected": "no grok-bot key; AdapterError naming declared set", "observed": "keys=['claude-code','copilot-cli','pi','pi-local']; AdapterError naming grok-bot and declared set", "result": "held"}
+  - {"conjunct": "PARENT P4", "class": "gate", "cmd": "copy package, rename restart->restart_disabled, adapters.load('grok_bot')", "expected": "AdapterError naming missing restart; REQUIRED check live", "observed": "refused: adapter ... is missing restart; every adapter must define build_command, child_env, is_alive, restart, needs_credential", "result": "held"}
+  - {"conjunct": "PARENT P5", "class": "wire", "cmd": "load('grok_bot').build_command(harness=fixture,tier='kid',context_file='/tmp/ctx.md')", "expected": "[bin, --model, grok-4-fast, -p, ctx]", "observed": "['/home/ubuntu/.npm-global/bin/grok-bot','--model','grok-4-fast','-p','/tmp/ctx.md']", "result": "held"}
 production_lines: 162
 profile: balanced
 role: kid
