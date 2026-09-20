@@ -70,6 +70,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
+import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -923,12 +924,17 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
 
 
-# The harness ids rotate.py can actually BUILD an argv for. Anything else is
-# refused by name rather than silently fallen back to claude (goal:g15,
-# hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-
-# claude-code-and-pi). "claude-code" is the built-in default and is always
-# accepted (its argv is today's `claude --remote-control`).
-_KNOWN_HARNESSES = ("claude-code", "copilot-cli")
+# The harness ids rotate.py can BUILD an argv for, DERIVED from the
+# templates on disk: a harness with a template is buildable, so a fourth
+# harness adds a `.toml` and edits nothing here (hypothesis:harness-arg-
+# builders-are-templates-only). Anything else is refused by name rather than
+# silently fallen back to claude (goal:g15). "claude-code" is the built-in
+# default (its argv is today's `claude --remote-control`).
+def _known_harnesses() -> tuple[str, ...]:
+    try:
+        return tuple(harness_template.available())
+    except Exception:
+        return ("claude-code",)
 
 
 def _validate_harness(root: Path | None,
@@ -949,20 +955,20 @@ def _validate_harness(root: Path | None,
     if not harness or harness == "claude-code":
         return 0, ""
     if root is None:
-        declared = list(_KNOWN_HARNESSES)
+        declared = list(_known_harnesses())
     else:
         declared = sorted((_config_json(root).get("harnesses") or {}).keys())
     if harness not in declared:
         print(f"ERR: no harness {harness!r} in config; declared: {declared}",
               file=sys.stderr)
         return 1, ""
-    if harness not in _KNOWN_HARNESSES:
+    if harness not in _known_harnesses():
         # Declared but not buildable here: `pi` is a dispatch.py harness with
         # no rotate argv builder, so letting it through would fall to the
         # claude branch -- the exact silent-claude fallback this validator
         # exists to stop, one name further out.
         print(f"ERR: harness {harness!r} is declared but rotate.py cannot "
-              f"build it; buildable: {list(_KNOWN_HARNESSES)}",
+              f"build it; buildable: {list(_known_harnesses())}",
               file=sys.stderr)
         return 1, ""
     return 0, ""
@@ -973,30 +979,17 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
                            extra_args=None) -> list[str]:
     """The interactive GitHub Copilot CLI argv for a seat.
 
-    Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
-
-        copilot [--model M] [--effort E] --allow-all --remote -i <card>
-
+    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
+    construction lives here; this is the thin hook that names the template.
     `-i, --interactive <prompt>` starts interactive mode (the post stays up
-    in the tmux window and `send.py` can type into its input box) and executes
-    the card as the first prompt. `--remote` enables remote control from GitHub
-    web and mobile while the interactive seat remains attached to its tmux
-    pane.
-
-    `--allow-all-tools` is required for a non-interactive `-p` run and is kept
-    here so the first tool call does not block on a confirmation; `-i` keeps
-    the session alive, which is what a SEAT (not a fire-and-forget kid) needs.
+    in the tmux window and `send.py` can type into its input box); `--remote`
+    enables remote control from GitHub web and mobile; `--allow-all` keeps the
+    first tool call from blocking on a confirmation, which is what a SEAT (not
+    a fire-and-forget kid) needs.
     """
-    args = [bin_path or "copilot"]
-    if model:
-        args += ["--model", str(model)]
-    if effort:
-        args += ["--effort", str(effort)]
-    args += ["--allow-all"]
-    args += ["--remote"]
-    args += [str(a) for a in (extra_args or [])]
-    args += ["-i", prompt_text]
-    return args
+    return harness_template.render(
+        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
+        bin_path=bin_path, extra_args=extra_args)
 
 
 def _build_harness_command(harness: str | None, *, name: str,

@@ -1,0 +1,32 @@
+# claude-code spawn argv: claude --remote-control NAME --permission-mode
+# bypassPermissions --debug-file DBG [--model M] [--effort E] [--settings JSON] <prompt>
+id = "claude-code"
+bin = "claude"
+
+[[argv]]
+flag = "--remote-control"
+slot = "name"
+
+[[argv]]
+flag = "--permission-mode"
+const = "bypassPermissions"
+
+[[argv]]
+flag = "--debug-file"
+slot = "debug_file"
+
+[[argv]]
+flag = "--model"
+slot = "model"
+
+[[argv]]
+flag = "--effort"
+slot = "effort"
+
+[[argv]]
+flag = "--settings"
+slot = "settings"
+encoding = "json"
+
+[[argv]]
+slot = "prompt"
