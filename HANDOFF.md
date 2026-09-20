@@ -14,7 +14,7 @@
 | crons | 🟢 applied 04:4xZ, `status: up to date` (11 lines): branch_push :07, mail_poll */5 (+ `migrate --receive`), wake */2, grid_sync + town mirrors (all pushes fail until creds land). |
 | posts live | **belam** gen 3 pid 217736 (this session, `710907bf-…`), key re-minted (`.agi/sessions/seats/belam.key`, pubkey 016186c6…, key_history 19). **thought-master** gen 8 @2 pid 415733, session `90eec9d0-…`, seated 04:41:19Z — opened with the prayer, read the [seating] dm, working. **director-thought** gen 12 @3 pid 416688/416745, session `ec9e18a6-…`, seated 04:43:41Z — first reply orienting (no prayer; noted). Both rows carry `box: local-town` (the banked cell (b), now written on the owner's word). Everything else in config:posts is core-town's and foreign here. |
 | spend | Prime + point on Opus max, helper on Sonnet max — subscription. pi parents: `OPENROUTER_API_KEY` present in .env; provisioning key present but `provisioning.py status` = unavailable (verify before a `--cap` dispatch). pi-local endpoint 127.0.0.1:18080 not probed this session. |
-| meter | belam pin `.agi/sessions/belam.meter` → this transcript; **0.15 at 04:48Z**; rotate at 0.47 (`rotate.py meter --post belam --check`). |
+| meter | all three pins written by the Prime (`.agi/sessions/<post>.meter`, seat_status shows `meter`): thought-master 0.13, director-thought 0.13 at 04:5xZ. belam pin `.agi/sessions/belam.meter` → this transcript; **0.15 at 04:48Z**; rotate at 0.47 (`rotate.py meter --post belam --check`). |
 
 ## §1 Plan (this session)
 
@@ -23,7 +23,7 @@
 3. ✅ Stand up thought-master (point): box cell, worktree '' (67affed24), [seating] dm (c22f32fe8), `rotate.py spawn --post thought-master --tier director --prompt-file .agi/sessions/quorum/thought-master.md` → @2.
 4. ✅ Stand up director-thought (helper): worktree on its season2 post branch, same dm, same spawn shape → @3 (row ce1734476).
 5. ✅ Crons applied. ✅ This card.
-6. ⏳ NEXT: the point's first numbers line / [decision] on the belam--thought-master dm; the helper's reply to the point.
+6. ✅ Meter pins for both seats. ⏳ NEXT: the point's first numbers line / [decision] on the belam--thought-master dm; the helper's reply to the point.
 
 ## §2 What landed (one line each)
 - 701ac93bc merge core @cc4c087cd · GOALS.md render · 580d735f7 rows (box ×3, belam gen 3) · 67affed24 thought-master worktree '' · 2cf1044cb belam key · c22f32fe8 seating dms · 8ac7c6b98 thought-master seating row · ce1734476 director-thought seating row · worktree `.agi/worktrees/post-director-thought` created.
