@@ -391,3 +391,40 @@ def test_non_table_roles_is_a_named_error(tmp_path, monkeypatch):
     with pytest.raises(harness_template.HarnessTemplateError) as exc:
         harness_template.role_source("bad")
     assert "roles is not a table" in str(exc.value)
+
+
+@pytest.mark.parametrize("literal", ['"xyz"', "3", '{a = "b"}'])
+def test_non_list_argv_is_a_named_error(tmp_path, monkeypatch, literal):
+    """A non-list top-level `argv` -- a string, number or inline table -- is
+    refused BY NAME, never a TypeError from iterating an int nor a silently
+    accepted string/dict that `render()` then walks as tokens."""
+    (tmp_path / "bad.toml").write_text(
+        f'id = "bad"\nbin = "b"\nargv = {literal}\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "argv is not a list" in str(exc.value)
+
+
+def test_non_table_shapes_is_a_named_error(tmp_path, monkeypatch):
+    """`shapes` as a bare string (not `[shapes.<name>]` tables) is refused BY
+    NAME, never an AttributeError from calling `.items()` on a str."""
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\nshapes = "x"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "shapes is not a table" in str(exc.value)
+
+
+@pytest.mark.parametrize("literal", ['"xyz"', "3", '{a = "b"}'])
+def test_non_list_shape_argv_is_a_named_error(tmp_path, monkeypatch, literal):
+    """A non-list `shapes.<name>.argv` is refused BY NAME, same discipline as
+    the top-level one -- `render(..., shape=...)` must never iterate
+    a string, number or dict-as-tokens."""
+    (tmp_path / "bad.toml").write_text(
+        f'id = "bad"\nbin = "b"\n[shapes.d]\nargv = {literal}\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "shapes.d.argv is not a list" in str(exc.value)
