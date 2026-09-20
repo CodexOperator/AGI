@@ -22,6 +22,12 @@ Element vocabulary (ordered `argv` array; a bare string is a literal token):
     {spread = "extra_args"}                     # splice a caller list
     {slot = "prompt"}                           # positional (last)
 
+The template ALSO declares where its SEAT model/effort/settings come from,
+under `[roles] source = "..."` — `ladder` (the shared roles ladder, then
+`harnesses.claude-code`, then `DEFAULT_CC_ROLES`) or `row` (THIS harness's own
+`harnesses.<id>` config row). Closed vocabulary, same discipline as the argv
+keys; a template that omits it is `ladder`.
+
 Shapes: an optional `[shapes.<name>]` table holds its own `argv`, selected by
 `render(..., shape="<name>")`; the top-level `argv` stays the default. This is
 how ONE binary's rotate SEAT shape and headless DISPATCH shape live in one
@@ -35,6 +41,10 @@ from pathlib import Path
 
 TEMPLATES_SUBPATH = ("extensions", "agi", "templates", "harness")
 _ALLOWED_KEYS = {"flag", "slot", "const", "encoding", "spread", "when"}
+
+#: Where a seat's model/effort/settings come from. Closed vocabulary: a
+#: template that omits `[roles] source` is `ladder` (claude-code's behaviour).
+ROLE_SOURCES = ("ladder", "row")
 
 
 class HarnessTemplateError(Exception):
@@ -96,6 +106,22 @@ def _check_parts(path: Path, parts: list, label: str = "argv") -> None:
                 raise HarnessTemplateError(
                     f"{path}: {label}[{i}] has non-template key(s) {sorted(bad)}; "
                     f"allowed: {sorted(_ALLOWED_KEYS)}")
+
+
+def role_source(harness_id: str) -> str:
+    """The declared `[roles] source`; an unknown source is a NAMED error.
+
+    The one reader the seat path uses to learn WHERE its model/effort/settings
+    come from, so `spawn_window` owns no harness-NAME branch
+    (hypothesis:harness-arg-builders-are-templates-only).
+    """
+    roles = load(harness_id).get("roles") or {}
+    source = roles.get("source", "ladder")
+    if source not in ROLE_SOURCES:
+        raise HarnessTemplateError(
+            f"{harness_id}: unknown roles.source {source!r}; "
+            f"known: {list(ROLE_SOURCES)}")
+    return source
 
 
 def _emit(part, values: dict) -> list[str]:

@@ -918,6 +918,35 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
 
 
+def _resolve_seat_role(root: Path, harness: str | None, tier: str,
+                       model, effort, settings):
+    """Resolve `(model, effort, settings)` from the harness template's SOURCE.
+
+    `ladder` and `row` are the two closed sources `harness_template.role_source`
+    admits; the choice is DATA in the template, so a fourth harness declares it
+    and this file is not edited (hypothesis:harness-arg-builders-are-templates-
+    only). A `row` harness's settings are a Claude Code concept its argv
+    ignores, so the caller's value is left untouched.
+    """
+    hid = harness or "claude-code"
+    if harness_template.role_source(hid) == "ladder":
+        if not model:
+            model = load_role(root, tier, "model")
+        if not effort:
+            effort = load_role(root, tier, "effort")
+        if settings is None:
+            settings = load_role(root, tier, "settings")
+    else:  # "row": THIS harness's own config row
+        hrow = _harness_row(root, hid)
+        if not model:
+            models = hrow.get("models") or {}
+            model = models.get(tier) or models.get("director") or None
+        if not effort:
+            e = hrow.get("effort")
+            effort = (e.get(tier) if isinstance(e, dict) else e) or None
+    return model, effort, settings
+
+
 # The harness ids rotate.py can BUILD an argv for, DERIVED from the
 # templates on disk: a harness with a template is buildable, so a fourth
 # harness adds a `.toml` and edits nothing here (hypothesis:harness-arg-
@@ -1755,28 +1784,16 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     if hr_rc:
         return hr_rc, ""
 
-    # Resolve model / effort / settings (caller flags override role defaults)
+    # Resolve model / effort / settings for the harness's DECLARED SOURCE
+    # (hypothesis:harness-arg-builders-are-templates-only): `ladder` or `row`
+    # is template data, so a harness's name never branches the resolution.
     if root is not None:
-        if harness and harness != "claude-code":
-            # A third harness's cells live in ITS OWN row. The ladder/claude-
-            # code fallback load_role() resolves would hand a copilot seat a
-            # claude model name, so the whole resolution is owned here.
-            hrow = _harness_row(root, harness)
-            if not model:
-                models = hrow.get("models") or {}
-                model = models.get(tier) or models.get("director") or None
-            if not effort:
-                e = hrow.get("effort")
-                effort = (e.get(tier) if isinstance(e, dict) else e) or None
-            # settings are a Claude Code concept (ultracode); the copilot
-            # argv ignores them. Leave whatever the caller passed untouched.
-        else:
-            if not model:
-                model = load_role(root, tier, "model")
-            if not effort:
-                effort = load_role(root, tier, "effort")
-            if settings is None:
-                settings = load_role(root, tier, "settings")
+        try:
+            model, effort, settings = _resolve_seat_role(
+                root, harness, tier, model, effort, settings)
+        except harness_template.HarnessTemplateError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 1, ""
 
     if root is not None and not debug_file:
         # (w2) route the DEFAULT debug log through `_sessions_dir` (the ONE

@@ -3,6 +3,11 @@
 id = "claude-code"
 bin = "claude"
 
+# Seat role cells come from the shared ladder: `nodes/.geometry/ladder.md`
+# roles table, then `harnesses.claude-code`, then `DEFAULT_CC_ROLES`.
+[roles]
+source = "ladder"
+
 [[argv]]
 flag = "--remote-control"
 slot = "name"
