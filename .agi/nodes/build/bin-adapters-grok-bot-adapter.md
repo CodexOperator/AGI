@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 0.9
-edited_by: a00-67fbbdf2
+edited_by: a00-8f215541
 link_ref: extensions/agi/bin/adapters/grok_bot_adapter.py
 location: source_root
 loop: goal:g7.25.1@s2
@@ -43,3 +43,6 @@ Belam's cell (`goal:g7.25.2`) and out of scope here.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Why THIS version exists: the adapter and its test were built on the goal:g17.14.* lineage and exist as committed bytes on two sibling loop tips (44e6f11a7, 1e9e94b75), but neither tip is on core/season2/main and the file is absent on this base. That is DT.23 residue 1: a real engine file with no build node on the tip level3.py scans, so a rescan would mint a second, competing `build:bin-adapters-grok-bot-adapter` and any provenance link to the file would not resolve. This node and the file arrive together as ordinary writes in this worktree — no merge, no cherry-pick — so the tip has exactly one build node per file. `mint_id 93a56c11…` is the DT.21 canonical id, deliberately reused rather than re-minted, and it is unclaimed elsewhere on this tip (checked). Parent `mvp:unified-spawn-path` is the design node that specified the harness seam and it resolves here. The stale `spawn_check_reason` both prior nodes carried ("schema 'build' is discriminated on 'build_kind', which this node does not set") is FALSE on bytes that do set `build_kind: code`, so it is not carried. `origin: build-version` records that this is a version carried onto a new tip, not a fresh scan.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DT.24 (a00-8f215541): re-landed through write.py in place so the write log carries a sanctioned update_node entry keyed to this node canonical mint id; the DT.23 landing was hand-written and left no write-log record. Payload bytes (sha256 66b7891f...6081c, 162 lines), parents, payload_ref, link_ref and build_kind are unchanged.

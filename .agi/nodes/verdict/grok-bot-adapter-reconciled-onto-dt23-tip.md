@@ -6,7 +6,7 @@ parents:
   - experiment:grok-bot-adapter-reconciled-onto-dt23-tip
 next_edges: []
 confidence: 0.95
-edited_by: a00-67fbbdf2
+edited_by: a00-8f215541
 evidence_runs:
   - experiment:grok-bot-adapter-reconciled-onto-dt23-tip
 loop: goal:g7.25.1@s2
@@ -46,8 +46,9 @@ longer swallows a shipped-row regression.
   residue-3 fix and it is the only behavioural change this round makes.
 - `adapters.load("grok_bot").NAME` prints `grok-bot`; the REQUIRED surface is
   present.
-- `links.py links`: 3808 resolved, **0 broken** (3806 before — the +2 are the
-  new build nodes and their `mvp:unified-spawn-path` parents, which resolve).
+- `links.py links`: 3810 resolved, **0 broken** at the DT.24 review (the live
+  count is higher now, because this round's own nodes add links). The 3806 base
+  was NOT re-measured this round, so the +2 delta is note-only, not asserted.
 - `links.py schema` lists neither new build id: both carry `build_kind`,
   `payload_ref`, `origin`, `confidence`, `tags`.
 - Neither payload path appears in the `grid_coverage_check.py --verbose`
