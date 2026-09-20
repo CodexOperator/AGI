@@ -7,13 +7,15 @@ fields:
   goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
   origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
+  heading_level: {type: int}  # render depth; snapshot-goals.py hard-requires it
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
 validation:
-  required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags]
+  required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, heading_level, seeds, confidence, tags]
   types:
+    heading_level: int
     seeds: list
     tags: list
     confidence: float
