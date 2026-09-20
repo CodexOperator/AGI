@@ -3,7 +3,7 @@ id: idea:lm-eagle3-head-per-byte
 mint_id: 8362bfbd9a524bbbb750a56b0de41186
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 47c98c84704e2888

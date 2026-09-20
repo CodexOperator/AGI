@@ -3,7 +3,7 @@ id: idea:lm-dead-head-coupling-scan
 mint_id: 2a64dd181b29411f8270ea5c9e845f9c
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 edited_by: thought-master
 scaffold_hash: cc015006f24072c0

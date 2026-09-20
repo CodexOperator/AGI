@@ -3,7 +3,7 @@ id: idea:lm-kid-persona-lora
 mint_id: ee55c6e7ee3647e1bf03ca14f5cf5ba3
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.7
 next_edges: []
 edited_by: thought-master
 scaffold_hash: e4f560d8c4d4dc1c

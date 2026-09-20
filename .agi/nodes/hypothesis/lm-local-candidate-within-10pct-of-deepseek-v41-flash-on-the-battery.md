@@ -3,7 +3,7 @@ id: hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-batt
 mint_id: b59febbe54794c3a947f82a9690cb4ec
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g14.11
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 427688da6364be01
