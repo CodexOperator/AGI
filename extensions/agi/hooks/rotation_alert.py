@@ -62,6 +62,13 @@ import sys
 import time
 from pathlib import Path
 
+#: `graph_core` lives under `src/`, one level up from `hooks/`. This hook is
+#: executed directly (`python3 .../hooks/rotation_alert.py`), so `src` is NOT
+#: on sys.path by default and `geometry_config.load_rows` would silently read
+#: ZERO rows — the seat lookup that gates the captive auto-rotate (and the
+#: seat's own rotate_at) would be production-dead. rotate.py inserts the same.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
 # The sash the hook is told to hand back when it fires. This is the ONE
 # high-signal quantity: the operator copies it and the next command is whole.
 # 🔴 `--pin` TAKES A PATH. This read `--seat {seat} --pin --session-log ...`,
@@ -799,10 +806,12 @@ def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
 
 
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
-                   minutes: int, state_dir: Path) -> str:
+                   minutes: int, state_dir: Path, line: str | None = None) -> str:
     """Capture the final card N min after the imperative first fired (driven
-    §0 writer + AUTO-CAPTURED header + rotate-self --force); NO_SPAWN records."""
-    line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
+    §0 writer + AUTO-CAPTURED header + rotate-self --force); NO_SPAWN records.
+    `line` overrides the stops reason — the CAPTIVE path names its own ratio."""
+    if line is None:
+        line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
     s3 = state_dir / f"capture-{seat}.s3"
     s3.write_text(line + "\n", encoding="utf-8")
     b = Path(__file__).resolve().parents[1] / "bin"
@@ -828,6 +837,63 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
            stdin=subprocess.DEVNULL, start_new_session=True)
     print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")
     return "captured"
+
+
+def _captive_rotate_eligible(root: Path, seat: str, masters: bool) -> bool:
+    """May the engine rotate `seat` WITHOUT consent? DIRECTOR only, never the
+    Prime (the ONE predicate `rotate._is_prime_role`); a `master` seat only
+    when the ladder's `captive_rotate_masters` cell is true."""
+    if not seat:
+        return False
+    role = ""
+    for r in _seat_rows(root):
+        if r.get("name") == seat:
+            role = str(r.get("role") or "")
+            break
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415 — lazy, engine-optional (P7).
+        if rotate._is_prime_role(role):
+            return False
+    except Exception:  # noqa: BLE001 (P7: unimportable engine never crashes)
+        pass
+    if role != "director":
+        return False
+    return "master" not in seat or masters
+
+
+def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
+                    ladder: dict, capture_minutes: int, state_dir: Path) -> bool:
+    """CAPTIVE AUTO-ROTATE, trigger (a) (owner 05:1xZ): at f >= the ladder's
+    `captive_rotate_ratio` x the line a DIRECTOR is rotated by the engine
+    ITSELF — the card as it stands, AUTO-CAPTURED, no consent asked and no
+    `card_capture_minutes` waited on. OFF BY NAME until a captive cell exists."""
+    if not seat or not ("captive_rotate_ratio" in ladder
+                        or "captive_rotate_masters" in ladder):
+        return False
+    try:
+        ratio = float(ladder.get("captive_rotate_ratio", 0.85))
+    except (TypeError, ValueError):
+        ratio = 0.85
+    masters = str(ladder.get("captive_rotate_masters", "false")).strip().lower() \
+        in ("1", "true", "yes", "on")
+    if fraction < ratio * threshold:
+        return False
+    if not _captive_rotate_eligible(root, seat, masters):
+        return False
+    which = _merge_in_flight(root)
+    if which or _suite_lock_held(root):
+        print(f"{DEFER_PREFIX} ({which or 'suite-lock-held'}) — the captive "
+              "auto-rotate does not fire while that holds.")
+        return False
+    line = (f"auto-captured at f={fraction:.4f} at the captive ratio "
+            f"{ratio:g} x the line, no self-rotate")
+    try:
+        _force_capture(root, seat, _card_path(root, seat), fraction,
+                       capture_minutes, state_dir, line=line)
+    except OSError:
+        return False
+    return True
 
 #: once-per-generation latch dir, under the shared sessions dir. Keyed by
 #: seat + generation so a slow spawn is never doubled (gate (d)).
@@ -1330,6 +1396,15 @@ def main(argv: list[str] | None = None) -> int:
             fired_bands = set(json.loads(state_path.read_text()).get("fired", []))
         except (OSError, json.JSONDecodeError):
             fired_bands = set()
+
+    # ---- CAPTIVE AUTO-ROTATE, trigger (a) (owner ruling 05:1xZ) -------------
+    # At f >= captive_rotate_ratio x the line a DIRECTOR is rotated by the
+    # engine ITSELF: the card as it stands, AUTO-CAPTURED, no consent asked,
+    # no `card_capture_minutes` waited. Off by name with no captive cell.
+    if _captive_rotate(root, seat, fraction, threshold, ladder,
+                       capture_minutes, state_dir):
+        _meter(used, threshold, fraction)
+        return 0
 
     band = 0
     b_frac = 0.0

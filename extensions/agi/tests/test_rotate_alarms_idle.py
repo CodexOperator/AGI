@@ -1,6 +1,8 @@
 """Conjuncts 3+4 of hypothesis:l5-the-meter-captures-the-final-card-and-forces-
-the-rotation-itself: `alarms --once` also dms a held seat that is IDLE below the
-line, and `alarms` is runnable as a detached systemd user unit.
+the-rotation-itself, as amended by the owner ruling 05:1xZ (trigger (b)):
+`alarms --once` ROTATES a held seat that is IDLE at/over `captive_rotate_ratio`
+x the line directly by the master path (no dm), and `alarms` is runnable as a
+declared detached systemd user unit.
 
 Red-first: written before the code.
 """
@@ -52,7 +54,8 @@ def fake_ladder(tmp_path, monkeypatch):
 
     def fake_load(root_param, field, default):
         return {"director_context_tokens": 100_000,
-                "director_rotate_at": 0.25}.get(field, default)
+                "director_rotate_at": 0.25,
+                "captive_rotate_ratio": 0.85}.get(field, default)
 
     monkeypatch.setattr(rotate, "load_ladder_field", fake_load)
     (tmp_path / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
@@ -64,17 +67,25 @@ def _alarms(root, holder):
                            comms_root=str(root / "comms"), root=None)
 
 
-def test_alarms_idle_below_line_dms_held_seat(fake_ladder, tmp_path, capsys):
-    """A held seat at 0.85 x line, idle >= M minutes, gets exactly one dm."""
+def test_alarms_idle_at_ratio_master_rotates_held_seat(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """A held seat at 0.85 x line, idle >= M minutes, is rotated directly by
+    the master path with the holder as caller -- and no dm is sent."""
     _write_seats_sheet(tmp_path, [{"name": "kid-1", "role": "director",
                                    "rotated_by": "advisor"}])
     _pin_seat_transcript(tmp_path, "kid-1", tokens=21_250)  # 0.2125 = 0.85*0.25
     _stamp(tmp_path, "kid-1", age_s=21 * 60)                # idle > 20 min
+    spawns = []
+    monkeypatch.setattr(rotate, "_caller_hold_key",
+                        lambda root, seat, row, how: (seat, row or {}, how))
+    monkeypatch.setattr(rotate, "_spawn_master_rotate",
+                        lambda argv, env, cwd: spawns.append((argv, env)))
     rc = rotate.cmd_alarms(_alarms(tmp_path, "advisor"), tmp_path)
     assert rc == 0
-    dms = list((tmp_path / "comms").glob("dm/*.md"))
-    assert len(dms) == 1, capsys.readouterr().out
-    assert "rotate now" in dms[0].read_text(encoding="utf-8")
+    assert len(spawns) == 1, capsys.readouterr().out
+    assert spawns[0][0][2:] == ["rotate", "--post", "kid-1"]
+    assert spawns[0][1]["AGI_POST"] == "advisor"
+    assert not list((tmp_path / "comms").glob("dm/*.md"))
 
 
 def test_alarms_working_seat_same_fraction_stays_silent(fake_ladder, tmp_path,

@@ -2393,3 +2393,64 @@ def test_wake_repair_runs_on_its_own_hourly_cadence_not_the_poll(tmp_path, monke
     assert heal._wake_repair_due(root, 1_000.0 + 3599) is False
     assert heal._wake_repair_due(root, 1_000.0 + 3600) is True
     assert heal._wake_repair_due(root, 1_000.0 + 3630) is False
+
+
+# --- hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end
+# with-a-live-kid-is-named-not-a-death, conjunct 3 (heal's past-deadline path)
+
+
+def _turn_end_round(graph: Path, name: str, parent: str, timeout_s: int,
+                    pid: int, kid_pid: int, log: str) -> None:
+    """A parent alive at the reap pass, dead by the deadline check, whose log
+    carries `log`; one live kid stamped `spawned_by_agent=<parent>`."""
+    _round_alive_then_dead(graph, name, parent, timeout_s=timeout_s,
+                           started_ago=5, pid=pid)
+    it = graph / "sessions" / f"iter-{name}"
+    (it / parent / "output.log").write_text(log)
+    kid = it / "kid-k"
+    kid.mkdir(parents=True, exist_ok=True)
+    (kid / "agent.json").write_text(json.dumps(
+        {"id": "kid-k", "status": "running", "pid": kid_pid,
+         "spawned_by_agent": parent, "node_id": "experiment:kid-1"}))
+
+
+def test_heal_success_tail_with_live_kid_names_the_turn_end(graph_project,
+                                                           monkeypatch):
+    """The watcher's own past-deadline death path labels a success tail with a
+    live kid a turn-end, and sets death.evidence=turn-end."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(graph_project, "T", "parent-p", 1, 424246, 424247,
+                    json.dumps({"type": "turn_end"}) + "\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-T" / "parent-p"
+                      / "agent.json").read_text())
+    assert rec["fail_reason"] == (
+        "turn-end with live kid experiment:kid-1 (headless exit, not a death)")
+    assert rec["death"]["evidence"] == "turn-end"
+    man = json.loads((graph_project / "sessions" / "iter-T"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "parent-p")
+    assert entry["fail_reason"] == rec["fail_reason"]
+
+
+def test_heal_truncated_log_keeps_the_died_label(graph_project, monkeypatch):
+    """A killed-mid-turn parent keeps 'pid N died (detected by reaper)' and no
+    turn-end evidence."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(graph_project, "U", "parent-q", 1, 424248, 424249,
+                    "starting\nworking on it\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-U" / "parent-q"
+                      / "agent.json").read_text())
+    assert rec["fail_reason"] == "pid 424248 died (detected by reaper)"
+    assert rec["death"]["evidence"] != "turn-end"
