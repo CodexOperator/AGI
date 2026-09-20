@@ -55,3 +55,6 @@ OpenRouter the same day (USD per 1M output; input in brackets): **deepseek-v4-fl
 
 ## Acceptance against the charter
 (a) exact model + bytes + licence-to-verify: done · (b) XS instance quoted: done, granularity + disk + egress open · (c) rows with fits / tok/s / USD per 1M incl. spin-up over 1-h and 6-h vs deepseek-v4-flash the same day: done as ESTIMATE; the proven row is GPU2070S's, from TM.30 · (d) the looped-transformer chain: `doc:recurrent-looped-transformer` + `hypothesis:lm-oscillator-research-hunt` exist; not this doc's scope.
+
+## Agent Notes
+CORRECTED 22:3xZ 09-20 by ABC.01 (MEASURED, hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box): verdict 2 assumed ~3 slots at 8k beside the 5.95 GB PTQ1_0 on the 8 GB rig; at the 64K ctx line the 27B takes 7,268 MiB (64/64 layers, ~890 MiB headroom) = ONE stream at 23.0 tok/s (18.9 at 16.8K). Slot count on the rig is a ctx-line choice to be measured, not the free headroom the estimate implied. Bonsai row quality is now measured too: 86.6 pct HumanEval pass@1 vs the 9B's 78.0 pct. Cost table columns revised (abliterated?, Camber = training only, reference bar deepseek-v4.1-flash): goal:g14.3 note 22:3xZ.
