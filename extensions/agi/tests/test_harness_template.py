@@ -260,6 +260,115 @@ def test_shipped_templates_declare_their_role_source():
     assert harness_template.ROLE_SOURCES == ("ladder", "row")
 
 
+# ------------------- per-template fail isolation in `_known_harnesses`
+# (hypothesis:harness-arg-builders-are-templates-only). ONE malformed template
+# used to abort the whole comprehension and collapse the buildable set to
+# `("claude-code",)`, so a bad unrelated file made `copilot-cli`
+# unlaunchable with the WRONG reason. Each template now fails alone.
+
+BROKEN = 'id = "broken"\nbin = "broken"\n[[argv]]\nscript = "import os"\n'
+
+
+def _seat_dir_with_broken(tmp_path, broken_name="broken",
+                          break_claude=False):
+    """Real templates + one malformed file whose name is caller-chosen."""
+    import shutil
+    td = tmp_path / f"seat-{broken_name}-{break_claude}"
+    td.mkdir()
+    real = harness_template.template_dir()
+    for p in real.glob("*.toml"):
+        shutil.copy(p, td / p.name)
+    (td / f"{broken_name}.toml").write_text(BROKEN)
+    if break_claude:
+        (td / "claude-code.toml").write_text(BROKEN)
+    return td
+
+
+def _patch_seat_dir(monkeypatch, td):
+    monkeypatch.setattr(harness_template, "template_dir", lambda: td)
+    monkeypatch.setattr(rotate.harness_template, "template_dir", lambda: td)
+
+
+def test_broken_template_excludes_only_itself_and_is_named(
+        tmp_path, monkeypatch, capsys):
+    """Falsifier 1: real claude-code + real copilot-cli + a malformed file.
+    Both real harnesses stay buildable; the broken one is excluded and NAMED.
+    Pre-fix this returned `("claude-code",)`."""
+    _patch_seat_dir(monkeypatch, _seat_dir_with_broken(tmp_path))
+
+    known = rotate._known_harnesses()
+    err = capsys.readouterr().err
+
+    assert "claude-code" in known
+    assert "copilot-cli" in known
+    assert "broken" not in known
+    assert "'broken'" in err and "malformed" in err
+    assert "HarnessTemplateError" in err
+    assert err.count("ERR:") == 1  # quiet about the healthy files
+
+
+def test_broken_sibling_does_not_unbuild_copilot(tmp_path, monkeypatch,
+                                                 capsys):
+    """Falsifier 2: with `broken.toml` present, the validator ACCEPTS
+    copilot-cli and the builder still emits copilot argv. Pre-fix the
+    validator refused it -- the live cost."""
+    _patch_seat_dir(monkeypatch, _seat_dir_with_broken(tmp_path))
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "claude-code": {"adapter": "claude_code"},
+        "copilot-cli": {"adapter": "copilot_cli", "bin": "/x/copilot"},
+    }}))
+    capsys.readouterr()
+
+    assert rotate._validate_harness(root, "copilot-cli")[0] == 0
+    got = rotate._build_harness_command(
+        "copilot-cli", name="n", prompt_text="CARD", debug_file="D.LOG",
+        model="auto", bin_path="/x/copilot")
+    assert got == ["/x/copilot", "--model", "auto", "--allow-all",
+                   "--remote", "-i", "CARD"]
+
+
+def test_broken_claude_does_not_remove_copilot(tmp_path, monkeypatch,
+                                               capsys):
+    """Falsifier 3 (reverse): a malformed `claude-code.toml` must not remove
+    `copilot-cli`. No 'the default survived so we are fine'."""
+    _patch_seat_dir(monkeypatch,
+                    _seat_dir_with_broken(tmp_path, broken_name="junk",
+                                          break_claude=True))
+    known = rotate._known_harnesses()
+    capsys.readouterr()
+    assert "copilot-cli" in known
+    assert "claude-code" not in known
+
+
+def test_unknown_id_still_refused_and_whole_enum_fallback(
+        tmp_path, monkeypatch, capsys):
+    """Falsifier 4: an unknown id is still refused BY NAME, and a failure of
+    `available()` ITSELF (no enumeration at all) still yields the documented
+    `("claude-code",)` fallback -- a distinction the old code could not make."""
+    _patch_seat_dir(monkeypatch, _seat_dir_with_broken(tmp_path))
+    assert rotate._validate_harness(None, "does-not-exist")[0] == 1
+    assert "does-not-exist" in capsys.readouterr().err
+
+    def boom():
+        raise OSError("template dir vanished")
+    monkeypatch.setattr(rotate.harness_template, "available", boom)
+    assert rotate._known_harnesses() == ("claude-code",)
+    assert "cannot enumerate" in capsys.readouterr().err
+
+
+def test_load_all_reports_broken_by_name_and_keeps_siblings(tmp_path,
+                                                            monkeypatch):
+    """The reader itself: `load_all()` returns `(loaded, broken)`; a broken id
+    is in `broken` with its error text, its siblings are in `loaded`."""
+    _patch_seat_dir(monkeypatch, _seat_dir_with_broken(tmp_path))
+    loaded, broken = rotate.harness_template.load_all()
+    assert "claude-code" in loaded and "copilot-cli" in loaded
+    assert "broken" not in loaded
+    assert "broken" in broken and "HarnessTemplateError" in broken["broken"]
+
+
 def test_unknown_role_source_is_a_named_error(tmp_path, monkeypatch):
     (tmp_path / "weird.toml").write_text(
         'id = "weird"\nbin = "w"\n[roles]\nsource = "cosmic"\n')

@@ -954,12 +954,24 @@ def _resolve_seat_role(root: Path, harness: str | None, tier: str,
 # silently fallen back to claude (goal:g15). "claude-code" is the built-in
 # default (its argv is today's `claude --remote-control`). `rotate = false`
 # opts a template out of the seat set (pi is headless, not a rotate seat).
+#
+# PER-TEMPLATE FAILURE ISOLATION: one malformed `.toml` excludes ONLY itself
+# and is NAMED on stderr; the other templates stay buildable. The
+# `("claude-code",)` fallback is reserved for the case where the enumeration
+# ITSELF cannot run (`available()` raises) -- a bad file no longer hides
+# every sibling, the same silent-claude class one file over.
 def _known_harnesses() -> tuple[str, ...]:
     try:
-        return tuple(h for h in harness_template.available()
-                     if harness_template.load(h).get("rotate", True))
-    except Exception:
+        loaded, broken = harness_template.load_all()
+    except Exception as exc:
+        print(f"ERR: cannot enumerate harness templates ({exc}); "
+              f"falling back to 'claude-code'", file=sys.stderr)
         return ("claude-code",)
+    for hid in sorted(broken):
+        print(f"ERR: harness template {hid!r} is malformed, excluded from "
+              f"the seat set: {broken[hid]}", file=sys.stderr)
+    return tuple(sorted(h for h, data in loaded.items()
+                        if data.get("rotate", True)))
 
 
 def _validate_harness(root: Path | None,
