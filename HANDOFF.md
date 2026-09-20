@@ -8,7 +8,7 @@
 |---|---|
 | box | **local-town** (`AGI_BOX` in `/data/work/agi/.env`; alias only). GPU 8 GiB, 16 GiB RAM, 243 GB free. MAIN = `/data/work/agi`. tmux `agi-rc`. Logs `~/logs/agi-crons-agi-3fbc6951.log`. |
 | branch | **`local-maxxing/season2/main`** in MAIN = the town trunk. core/season2/main **@cc4c087cd merged in at 701ac93bc** (04:1xZ). Posts: director-thought on `local-maxxing/season2/posts/director-thought/main` in `.agi/worktrees/post-director-thought` (from refs/agi/posts/director-thought @43b4810f1 — TM.74 round NOT yet in the trunk). thought-master runs IN MAIN (row worktree '' here: a second checkout of the trunk cannot exist). |
-| 🔴 push | **DOWN on this box** — no GitHub credential: every push (cron + hand) fails `could not read Username for 'https://github.com'`, since the clone (cron log). MAIN is **ahead 46+** of origin. Fix = owner: `gh auth login` or a credential helper for `https://github.com/CodexOperator/agi.git` on this box. Commits are safe locally; nothing is lost, nothing is published. |
+| push | 🟢 **UP since 05:2xZ** — `gh auth login` (CodexOperator) + `gh auth setup-git`; trunk pushed 87ff547ec..07b336503. Was DOWN on this box — no GitHub credential: every push (cron + hand) fails `could not read Username for 'https://github.com'`, since the clone (cron log). MAIN is **ahead 46+** of origin. Fix = owner: `gh auth login` or a credential helper for `https://github.com/CodexOperator/agi.git` on this box. Commits are safe locally; nothing is lost, nothing is published. |
 | nodes | links **3721 resolved / 0 broken** (18 retired payloads); GOALS **186 goals round-trip byte-identical** (re-rendered after the core sync: g17.14, g17.16-19 arrived unrendered). Node count: measure with `driver.sh --smoke --max-iters 1` before any merge-up; not measured this session. |
 | tests | **5804 passed / 18 failed / 26 skipped** at 701ac93bc (575 s). All 18 are box-environment, not tree defects: 10× test_season TestMergeUp + test_cli (no **global** git identity → "Committer identity unknown" in tmp repos); 4× graphweb (no `node` binary); 2× ws_raw --help; 1× provisioning unavailable (no provisioning key issued here). pytest installed `--user` this session (QUICKSTART 2b). |
 | crons | 🟢 applied 04:4xZ, `status: up to date` (11 lines): branch_push :07, mail_poll */5 (+ `migrate --receive`), wake */2, grid_sync + town mirrors (all pushes fail until creds land). |
@@ -33,7 +33,7 @@
 05:1xZ 09-20 LIVE (gen 3, f≈0.22): three posts seated; belam row is quiet (settings 'ultracode quiet'); thought-master told (owner relay) it is in independent research mode and reports nothing to the Prime. SKILL.md gained 'Entering prime state' (32dffa39f). NEXT = step 6 of that section, rotate self INTO the prime slot properly:
   touch .agi/sessions/quorum/belam.md && git commit -q -m 'belam card' -- .agi/sessions/quorum/belam.md   # clears 'card older than last commit'
   AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate --force --stops-file .agi/sessions/belam.stops
-BLOCKED on ONE prepare gate: unpushed commits -> the owner must land a GitHub credential on this box first (git config --global credential.helper store; then one interactive push). The moment origin/local-maxxing/season2/main == HEAD, run the two lines above and this session ends; the successor is the Prime.
+Push credential landed 05:2xZ (gh, CodexOperator); trunk in sync; rotating NOW — the successor (belam gen 4, tmux agi-rc) is the Prime; this bg session ends at its `continue`.
 ```
 
 ## §4 Traps hit this session
