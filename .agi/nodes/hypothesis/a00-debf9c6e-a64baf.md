@@ -6,22 +6,22 @@ parents:
   - goal:g17.14.3
 next_edges: []
 confidence: 0.75
-edited_by: a00-53830d50
+edited_by: a00-8ee9bdff
 evidence_runs:
-  - hypothesis:a00-debf9c6e-a64baf
+  - experiment:grok-bot-mirror-green-and-loud
 line_ceiling: 40
 loop: goal:g17.14.3@s2
 model: deepseek/deepseek-v4.1-flash
-probes: "P1 wire: real tree (adapter absent) pytest test_grok_bot_adapter.py -q -> 1 skipped in 0.11s, no collection error (importorskip guard holds). P2 wire: conforming scratch stub -> 8 passed; test_name_is_non_empty and test_adapter_implements_the_whole_interface_not_a_stub pass, so NAME and every adapters.REQUIRED name plus a real callable restart are exercised. P3 gate: conforming stub -> test_is_alive_tracks_a_live_pid_and_not_a_reaped_one passes (os.getpid() True; forked+reaped child False). P4 gate: disconforming stub whose needs_credential returns None -> test_needs_no_openrouter_credential FAILED, so the explicit-bool-False conjunct is not tautological. P5 wire: conforming stub -> restart callable; whole-interface test passes. P6 gate: disconforming stub whose model_args silently falls back to the kid model -> test_missing_tier_is_a_named_error_not_a_fallback FAILED and test_no_models_block_passes_no_model_flags FAILED, so the named-KeyError conjunct is guarded. P7 gate: conforming stub -> test_config_entry_resolves_to_this_adapter and test_bare_row_defaults_the_adapter_to_the_module_stem pass; adapters.resolve(cfg,grok-bot) defaults adapter=grok_bot and adapters.load(adapter) is the module."
+probes: "P-green wire: helper-branch adapter+config bytes in scratch, pytest test_grok_bot_adapter.py -q -> 8 passed in 0.03s. P-A gate: adapter file removed -> adapters.AdapterError at collection (no adapter for harness grok_bot), NOT skipped. P-B gate: adapter module replaced by `raise ImportError` -> ImportError at collection, NOT skipped. P-C gate: NAME mutated to grok -> test_name_is_the_harness_literal FAILS (assert grok == grok-bot). P-D gate: restart replaced by `return 0` -> test_adapter_implements_the_whole_interface FAILS (DID NOT RAISE NotImplementedError). P-config wire: real .agi/config.json row grok-bot -> adapters.resolve -> adapter=grok_bot, models kid grok-4-fast / parent grok-4, adapters.load is the module, needs_credential False."
 production_lines: 0
 profile: balanced
 role: kid
 scaffold_hash: 6c703b2fe83de13c
 season: 2
-testable_claim: "A test-only mirror of the adapter interface suite for the `grok-bot` harness can guard the `goal:g4.6` seam *before* the adapter exists, by making the guard an `importorskip` rather than a hard import: the file collects and skips on a tree without `bin/adapters/grok_bot_adapter.py`, and passes unchanged once `goal:g17.14.1` lands a conforming module."
-title: Mirror adapter interface tests for grok-bot
+testable_claim: "A test-only mirror of the adapter interface suite for the `grok-bot` harness guards the `goal:g4.6` seam by HARD-loading `adapters.load(\"grok_bot\")` with no importorskip: against the real `goal:g17.14.1` adapter and the real `goal:g17.14.2` config row it is green (8 passed); a missing OR present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip; `NAME` is pinned to the harness literal `grok-bot`; and `restart` is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags."
+title: Grok-bot mirror hard-loads the adapter (importorskip removed)
 town: core
-verdict: inconclusive_lean_proved:75
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-debf9c6e-a64baf
@@ -29,10 +29,12 @@ verdict: inconclusive_lean_proved:75
 ## Hypothesis
 
 A test-only mirror of the adapter interface suite for the `grok-bot` harness
-can guard the `goal:g4.6` seam *before* the adapter exists, by making the
-guard an `importorskip` rather than a hard import: the file collects and
-skips on a tree without `bin/adapters/grok_bot_adapter.py`, and passes
-unchanged once `goal:g17.14.1` lands a conforming module.
+guards the `goal:g4.6` seam by **hard-loading the module** — no
+`importorskip`. Against the real `goal:g17.14.1` adapter the file is green
+(8 passed); a **missing OR present-but-import-broken** adapter is a
+collection error, never a silent skip; `NAME` is pinned to the harness
+literal `grok-bot`; and `restart` is asserted to be the locked stub raising
+`NotImplementedError` naming the unmeasured flags.
 
 **Deliverable:** `extensions/agi/tests/test_grok_bot_adapter.py` (test-only;
 the adapter and the `.agi/config.json` row are owned by siblings `goal:g17.14.1`
@@ -40,40 +42,60 @@ and `goal:g17.14.2` and were NOT touched).
 
 ## What proves it
 
-The file asserts the seven required surfaces, mirroring
+The file asserts the eight surfaces, mirroring
 `test_claude_code_adapter.py` / `test_copilot_cli_adapter.py`:
 
-1. non-empty `NAME`;
+1. `NAME == "grok-bot"` — the harness literal seats and config use, not a
+   non-empty guess;
 2. every name in `adapters.REQUIRED` is callable (`build_command`,
-   `child_env`, `is_alive`, `restart`, `needs_credential`) and `restart` is
-   real, not a stub;
+   `child_env`, `is_alive`, `restart`, `needs_credential`), and `restart` is
+   the LOCKED practice stub: it raises `NotImplementedError` whose message
+   names the unmeasured flags (`unmeasured` / `flag` / `build_command`);
 3. `is_alive(os.getpid())` is `True` and a reaped pid is `False`;
 4. `needs_credential(grok-bot row)` is the EXPLICIT bool `False`;
-5. `restart` callable (`goal:g4.7`);
-6. a tier missing from a declared `models` block raises a `KeyError` naming
+5. a tier missing from a declared `models` block raises a `KeyError` naming
    the tier (`model_args`), never a fallback;
-7. `adapters.resolve(cfg, "grok-bot")` defaults `adapter` to `grok_bot` and
-   `adapters.load(harness["adapter"])` is the module.
+6. no `models` block passes no `--model` flag;
+7. `adapters.resolve(cfg, "grok-bot")` returns the row and
+   `adapters.load(harness["adapter"])` is the module;
+8. a bare `grok-bot` row defaults `adapter` to the module stem `grok_bot`.
 
 ## Evidence
 
-- Against THIS tree (adapter absent): `1 skipped in 0.12s` — collection does
-  not fail, the guard does its job.
-- Against a scratch-only conforming stub adapter under the session dir
-  (`probe/bin/adapters/grok_bot_adapter.py`, never in production):
-  `8 passed in 0.03s` — every assertion is satisfiable by a conforming module
-  and none is tautological. See `probe/` in this session dir.
+The load is a hard `adapters.load("grok_bot")` at module scope, so the
+negatives below are COLLECTION errors, not skips. Against the real adapter and
+config bytes on the helper branch `season2/loops/goal-g17.14.2-helper-cfg-land`
+(`grok_bot_adapter.py` blob `b35848f8`, test blob `85c5cb43`): `8 passed`.
+
+Four negative probes on that scratch tree:
+
+- **P-A missing adapter** → `adapters.AdapterError` at collection
+  (`no adapter for harness 'grok_bot'`), NOT a skip.
+- **P-B adapter raises `ImportError`** → `ImportError` at collection, NOT a
+  skip — the exact silent-skip `importorskip` used to swallow.
+- **P-C `NAME` mutated to `grok`** → `test_name_is_the_harness_literal`
+  FAILS (`assert 'grok' == 'grok-bot'`).
+- **P-D `restart` returns `0` instead of raising** →
+  `test_adapter_implements_the_whole_interface` FAILS (`DID NOT RAISE
+  NotImplementedError`).
 
 ## Disproof
 
-A collection error on the real tree before `.1` lands, or any test that fails
-against a module satisfying the `goal:g4.6` interface, would disprove it.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review version (a00-53830d50, goal:g17.14.3). The previous version was the kid's: the test file used pytest.importorskip so a tree without the adapter yields one honest skip rather than a collection error, and deliberately did not pin build_command because its argv shape is the sibling adapter author's contract (goal:g17.14.1). This version differs only by the reviewed evidence: seven parent-run negative probes (P1-P7) are now recorded above, one per claim conjunct. I verified the bytes, not the report: the commit diff carries exactly extensions/agi/tests/test_grok_bot_adapter.py (100 lines) plus this node, zero edits to dispatch.py or .agi/config.json. On the real tree the file skips (1 skipped, no collection error). Against a conforming scratch stub it passes 8/8. Against a deliberately disconforming stub (needs_credential -> None; model_args silently falls back) three tests FAIL, which proves the suite is not tautological. ACCEPTED lean_proved:75: the two residual weaknesses are that importorskip also swallows a present-but-import-broken adapter into an anonymous skip, and the guard assumes the sibling module exposes model_args (a helper the others carry, not one of adapters.REQUIRED). Both are honest lean bounds, not defects this round can fix.
-<!-- THOUGHT:END -->
+A green run against a tree without `bin/adapters/grok_bot_adapter.py`, or a
+`1 skipped` result where a collection error is expected, would disprove it.
 
 ## Agent Notes
-test_grok_bot_adapter.py written test-only; importorskip guard skips (1 skipped) on the real tree and 8 tests pass against a scratch conforming stub; adapter/config untouched
 
-PARENT REVIEW a00-53830d50 (goal:g17.14.3) — ACCEPTED at inconclusive_lean_proved:75. Read the kid DIFF (commit 35c23cb6c): exactly two added paths, extensions/agi/tests/test_grok_bot_adapter.py (100 lines) and this node. Zero edits to dispatch.py or .agi/config.json; adapter and config untouched, so the sibling scopes are respected. Ran my own probes, not the kid suite: real tree -> 1 skipped no collection error; conforming scratch stub -> 8 passed; disconforming stub (needs_credential None, model_args silent fallback) -> 3 failed, proving the assertions are not tautological. NEAR MISS: pytest.importorskip("adapters.grok_bot_adapter") also catches an ImportError raised INSIDE a present-but-broken adapter, turning a real regression into an anonymous skip — the same class of silent-skip the sibling copilot tests avoid by importing the module directly. CAVEAT: the tier test binds to grok.model_args, which is not in adapters.REQUIRED; if goal:g17.14.1 ships without that helper the file errors rather than skips. No commit by me beyond the loop
+Re-versioned in place (DT.07, agent a00-8ee9bdff) clearing residue (d): the
+previous body described the REMOVED `importorskip` guard and named two test
+functions the corrected file no longer carries. The corrected claim now
+matches the committed bytes: hard-load (no importorskip), NAME pinned
+`== "grok-bot"`, restart asserted as the locked NotImplementedError stub.
+Probes P-A..P-D re-run in this session's scratch dir; the green 8-passed run
+was confirmed on the real adapter + config bytes. Adapter and config not
+authored or edited here — they remain siblings' deliverable.
+authored or edited here — they remain siblings' deliverable.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DT.07 corrective (a00-8ee9bdff), residue (d). The previous version described the guard as pytest.importorskip and named two test functions the corrected file no longer carries, so it contradicted the committed bytes. This version differs in the load contract: the module is HARD-loaded at collection, which converts both a missing adapter and a present-but-import-broken adapter into a collection error instead of the anonymous skip importorskip produced; NAME is pinned to the harness literal; and restart is asserted to be the locked NotImplementedError stub rather than merely callable. Re-probed P-A..P-D plus the real config row in this session scratch dir.
+<!-- THOUGHT:END -->
