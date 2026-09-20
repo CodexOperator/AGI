@@ -34,7 +34,7 @@ From the graph-handoff bank (`goal:g1.18`):
 
 > Also for merg ups, we are using our custom git scripts right? They take care of things like signing each one and also verifying key ownership, rotation, etc. If you check git history you will see a cryptographic chain of authenticity in there somewhere. It's incomplete and insecure, but it does exist. Hardening comes later during the redesign
 
-From the seat/brief bank (`goal:g17.15`):
+From the seat/brief bank (`goal:g7.165`):
 
 > We have an advanced verification script that takes 10-15 minutes per run that we run during each batch merge to core/season2/main.
 
@@ -57,5 +57,5 @@ From the seat/brief bank (`goal:g17.15`):
 
 ## Related
 
-- `goal:g1.18`, `goal:g17.15`, redesign hardening (later).
+- `goal:g1.18`, `goal:g7.165`, redesign hardening (later).
 # goal:g7.11
