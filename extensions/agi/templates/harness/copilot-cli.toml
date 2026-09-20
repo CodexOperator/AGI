@@ -1,0 +1,25 @@
+# copilot-cli spawn argv. Shape (measured from `copilot --help`, v1.0.83,
+# 2026-09-14): copilot [--model M] [--effort E] --allow-all --remote [x...] -i <prompt>
+id = "copilot-cli"
+bin = "copilot"
+
+[[argv]]
+flag = "--model"
+slot = "model"
+
+[[argv]]
+flag = "--effort"
+slot = "effort"
+
+[[argv]]
+const = "--allow-all"
+
+[[argv]]
+const = "--remote"
+
+[[argv]]
+spread = "extra_args"
+
+[[argv]]
+flag = "-i"
+slot = "prompt"
