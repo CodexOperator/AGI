@@ -92,5 +92,10 @@
     "reap_source": "SKIPPED: seat row pid 0 not in the derived chain [415733, 415735, 415790]; NOT TERM'd (a row that does not own the chain cannot reap it)",
     "skipped": "SKIPPED: seat row pid 0 not in the derived chain [415733, 415735, 415790]; NOT TERM'd (a row that does not own the chain cannot reap it)"
   },
-  "committed_by": "rotate-self"
+  "committed_by": "rotate-self",
+  "after_join": {
+    "claimed_at": "2026-09-20T05:55:54.001788+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-20T05:55:25.457268Z"
+  }
 }
