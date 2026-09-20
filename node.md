@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 54402cfbcfe0b5d2
 season: 2
 seeds: []
-status: active
+status: retired
 tags:
   - goal
   - subgoal
   - legacy-direct
   - g1-g7-rewrite-2026-09-19
-thought_session: g1-g7-rewrite-2026-09-19
+thought_session: dissolve-legacy-2026-09-19
 title: Legacy direct links absorbed from old top-level roots
 town: core
 ---
@@ -28,5 +28,5 @@ town: core
 # goal:g3.legacy-direct
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Catch-all for non-goal re-links; minted under g1-g7 rewrite 2026-09-19
+Retired: all child refs rehomed onto real thematic subgoals in dissolve-legacy-2026-09-19; catchall no longer needed.
 <!-- THOUGHT:END -->
