@@ -16,9 +16,16 @@ Element vocabulary (ordered `argv` array; a bare string is a literal token):
     {flag = "--debug-file", slot = "debug_file"}# skip entirely when empty
     {flag = "--settings", slot = "settings", encoding = "json"}
     {flag = "--permission-mode", const = "bypassPermissions"}
+    {flag = "--tools", spread = "tools"}        # variadic: flag + a list
     {const = "--allow-all"}
+    {const = "--verbose", when = "verbose"}     # emit only when slot is truthy
     {spread = "extra_args"}                     # splice a caller list
     {slot = "prompt"}                           # positional (last)
+
+Shapes: an optional `[shapes.<name>]` table holds its own `argv`, selected by
+`render(..., shape="<name>")`; the top-level `argv` stays the default. This is
+how ONE binary's rotate SEAT shape and headless DISPATCH shape live in one
+file (hypothesis:harness-arg-builders-are-templates-only).
 """
 from __future__ import annotations
 
@@ -27,7 +34,7 @@ import tomllib
 from pathlib import Path
 
 TEMPLATES_SUBPATH = ("extensions", "agi", "templates", "harness")
-_ALLOWED_KEYS = {"flag", "slot", "const", "encoding", "spread"}
+_ALLOWED_KEYS = {"flag", "slot", "const", "encoding", "spread", "when"}
 
 
 class HarnessTemplateError(Exception):
@@ -70,23 +77,39 @@ def load(harness_id: str) -> dict:
             f"no harness template {harness_id!r} in {template_dir()}; "
             f"available: {available()}")
     data = tomllib.loads(path.read_text(encoding="utf-8"))
-    for i, part in enumerate(data.get("argv", [])):
+    _check_parts(path, data.get("argv", []))
+    for name, shape in (data.get("shapes") or {}).items():
+        if not isinstance(shape, dict):
+            raise HarnessTemplateError(f"{path}: shape {name!r} is not a table")
+        _check_parts(path, shape.get("argv", []), label=f"shapes.{name}")
+    return data
+
+
+def _check_parts(path: Path, parts: list, label: str = "argv") -> None:
+    """Refuse any token outside the declarative vocabulary, in a shape too."""
+    for i, part in enumerate(parts):
         if not isinstance(part, (str, dict)):
-            raise HarnessTemplateError(f"{path}: argv[{i}] is not a token")
+            raise HarnessTemplateError(f"{path}: {label}[{i}] is not a token")
         if isinstance(part, dict):
             bad = set(part) - _ALLOWED_KEYS
             if bad:
                 raise HarnessTemplateError(
-                    f"{path}: argv[{i}] has non-template key(s) {sorted(bad)}; "
+                    f"{path}: {label}[{i}] has non-template key(s) {sorted(bad)}; "
                     f"allowed: {sorted(_ALLOWED_KEYS)}")
-    return data
 
 
 def _emit(part, values: dict) -> list[str]:
     if isinstance(part, str):
         return [part]
+    if part.get("when") and not values.get(part["when"]):
+        return []
     if "spread" in part:
-        return [str(v) for v in (values.get(part["spread"]) or [])]
+        vals = [str(v) for v in (values.get(part["spread"]) or [])]
+        # A variadic flag (flag + list); empty list emits NEITHER, or
+        # `--mcp-config` would swallow the next token.
+        if not vals:
+            return []
+        return [str(part["flag"]), *vals] if "flag" in part else vals
     if "const" in part:
         toks = [str(part["const"])]
     else:
@@ -98,21 +121,36 @@ def _emit(part, values: dict) -> list[str]:
     return [str(part["flag"]), *toks] if "flag" in part else toks
 
 
-def render(harness_id: str, *, prompt, model=None, effort=None,
+def render(harness_id: str, *, prompt=None, model=None, effort=None,
            bin_path=None, settings=None, extra_args=None,
-           name=None, debug_file=None,
-           provider=None, thinking=None) -> list[str]:
+           name=None, debug_file=None, provider=None, thinking=None,
+           shape=None, model_args=None, output_format=None, verbose=None,
+           budget=None, prompt_file=None, repo_root=None, mcp=None,
+           tools=None, allowed=None, disallowed=None, closing=None) -> list[str]:
     """The argv for `harness_id`, from its template alone.
 
-    `name` (the RC/session name) and `debug_file` are slots the claude-code
-    shape needs; a harness whose template ignores them is unaffected.
+    `shape` selects an optional `[shapes.<name>]` argv instead of the
+    top-level one; an unknown shape is a named error, never a silent fall
+    back to the default argv.
     """
     tmpl = load(harness_id)
+    parts = tmpl.get("argv", [])
+    if shape is not None:
+        shapes = tmpl.get("shapes") or {}
+        if shape not in shapes:
+            raise HarnessTemplateError(
+                f"{harness_id}: no shape {shape!r}; known: {sorted(shapes)}")
+        parts = (shapes[shape] or {}).get("argv", [])
     values = {"prompt": prompt, "model": model, "effort": effort,
               "settings": settings, "extra_args": extra_args,
               "name": name, "debug_file": debug_file,
-              "provider": provider, "thinking": thinking}
+              "provider": provider, "thinking": thinking,
+              "model_args": model_args, "output_format": output_format,
+              "verbose": verbose, "budget": budget,
+              "prompt_file": prompt_file, "repo_root": repo_root, "mcp": mcp,
+              "tools": tools, "allowed": allowed, "disallowed": disallowed,
+              "closing": closing}
     args = [str(bin_path or tmpl.get("bin") or harness_id)]
-    for part in tmpl.get("argv", []):
+    for part in parts:
         args.extend(_emit(part, values))
     return args

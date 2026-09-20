@@ -1,5 +1,5 @@
-# claude-code spawn argv: claude --remote-control NAME --permission-mode
-# bypassPermissions --debug-file DBG [--model M] [--effort E] [--settings JSON] <prompt>
+# claude-code spawn argv. Top-level = the rotate SEAT shape; the headless
+# DISPATCH shape is [shapes.dispatch] below.
 id = "claude-code"
 bin = "claude"
 
@@ -30,3 +30,24 @@ encoding = "json"
 
 [[argv]]
 slot = "prompt"
+
+# Headless dispatch (claude_code_adapter.build_command). Order is
+# load-bearing: every variadic flag stays BEFORE `--`, or it swallows the turn.
+[shapes.dispatch]
+argv = [
+  "-p",
+  {spread = "model_args"},
+  {flag = "--output-format", slot = "output_format"},
+  {const = "--verbose", when = "verbose"},
+  "--strict-mcp-config",
+  {flag = "--max-budget-usd", slot = "budget"},
+  {flag = "--append-system-prompt-file", slot = "prompt_file"},
+  {spread = "extra_args"},
+  {flag = "--add-dir", slot = "repo_root"},
+  {flag = "--mcp-config", spread = "mcp"},
+  {flag = "--tools", spread = "tools"},
+  {flag = "--allowedTools", spread = "allowed"},
+  {flag = "--disallowedTools", spread = "disallowed"},
+  "--",
+  {slot = "closing"},
+]
