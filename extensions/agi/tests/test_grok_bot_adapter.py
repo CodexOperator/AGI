@@ -97,3 +97,60 @@ def test_bare_row_defaults_the_adapter_to_the_module_stem():
     assert name == "grok-bot"
     assert harness["adapter"] == "grok_bot"
     assert adapters.load(harness["adapter"]) is grok
+
+
+# -------------------------------------------------------- live config row
+# The tests above build their `cfg` in memory, so they would stay green even
+# if the shipped `.agi/config.json` lost the `grok-bot` row. These read the
+# REAL config from disk -- read-only, never written -- so the row the live
+# harnesses actually use is the thing asserted (`hypothesis:grok-bot-live-
+# config-row-has-a-pytest`).
+
+
+def _project_root() -> Path:
+    """Nearest ancestor holding a real `.agi/config.json` (`goal:g11`).
+
+    Walked up from this file, never hardcoded: the root is three levels above
+    `extensions/agi/tests/` today, and the walk survives the test moving.
+    """
+    for parent in Path(__file__).resolve().parents:
+        if (parent / ".agi" / "config.json").is_file():
+            return parent
+    raise AssertionError(f"no .agi/config.json above {__file__}")
+
+
+@pytest.fixture(scope="module")
+def live_cfg() -> dict:
+    """The project's real config, loaded read-only."""
+    import json
+
+    path = _project_root() / ".agi" / "config.json"
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_live_config_grok_row_resolves(live_cfg):
+    """The on-disk `grok-bot` row resolves to the adapter, with the live bin.
+
+    `bin` is asserted against the loaded cell, not a literal, so the test
+    tracks the config instead of freezing one path.
+    """
+    name, row = adapters.resolve(live_cfg, "grok-bot")
+    assert name == "grok-bot"
+    assert row["adapter"] == "grok_bot"
+    assert row["bin"] == live_cfg["harnesses"]["grok-bot"]["bin"]
+
+
+def test_live_config_peers_still_resolve(live_cfg):
+    """Adding the fourth harness did not disturb the three already declared."""
+    pname, prow = adapters.resolve(live_cfg, "pi")
+    assert pname == "pi"
+    assert prow["adapter"] == "pi"
+    cname, crow = adapters.resolve(live_cfg, "copilot-cli")
+    assert cname == "copilot-cli"
+    assert crow["adapter"] == "copilot_cli"
+
+
+def test_dispatch_still_has_zero_grok_hits():
+    """The whole point of `goal:g4.6`: adding a harness edits no dispatch code."""
+    dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
+    assert "grok" not in dispatch.read_text(encoding="utf-8").lower()
