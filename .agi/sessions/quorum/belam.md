@@ -4,5 +4,5 @@ The Prime's live handoff is `HANDOFF.md` at the repo root (`build:HANDOFF.md`, r
 
 ### 🔴 Where it stops
 ```
-05:3xZ 09-20 belam gen 1 LIVE (f≈0.10): box blockers cleared (push up, provisioning up, node+pi up). WAITING on the town: the g15 mint + round for the workflow.py _pi_harness_cfg precedence fix (queued P1, director-thought), then any [merge-up]. Prime NEXT = one send.py read belam when nudged -> review by bytes -> verify on the trunk (links 0 · goals byte-identical · active >= 3520 · guard silent) -> push.
+05:4xZ 09-20 LIVE (gen 1, f≈0.11): box blockers cleared (push up, provisioning up, node+pi up). The town runs its own rounds (owner GO 05:32Z in the thought-master pane: 6g on pi with deepseek); the workflow.py precedence gap is a noted finding, NOT queued. Owner 05:4xZ: slow down. Prime NEXT = one `send.py read belam` when nudged (never peek) -> review any [merge-up] by bytes -> verify on the trunk (links 0 · goals byte-identical · active >= 3520 · guard silent) -> push. Nothing else is owed by the Prime now.
 ```

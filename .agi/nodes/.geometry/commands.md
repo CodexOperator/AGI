@@ -290,7 +290,7 @@ graph carries only what is below: the alias, the label, and the one command.
 
 | ssh alias (as in `ssh/config`) | graph label | what it is | reach |
 |---|---|---|---|
-| `local-town` | **GPU2070S** — the rig | 8 GB GPU, 16 threads, `/data` model store, llama-server `127.0.0.1:18080` | `ssh -F ~/work/.sanctuary/ssh/config local-town` |
+| `local-town` | **GPU2070S** — the rig | 8 GB GPU, 16 threads, `/data` model store, llama-server `127.0.0.1:8080` on the box (`:18080` = the core-town tunnel view) | `ssh -F ~/work/.sanctuary/ssh/config local-town` |
 | `core-town` (= `stream-town`) | **ARM4C** — this box | 4-core arm cloud, 23 GB, no GPU; the Prime and the masters live here | `ssh -F ~/work/.sanctuary/ssh/config core-town` |
 | `encryption-town` | **CPU8G** — the secrets hub | 2c/4t, 8 GB, encrypted disk; the only box with Doppler; CPU-only rounds first | `ssh -F ~/work/.sanctuary/ssh/config encryption-town` |
 | `silicon-town` | **EDGE** — the human gate | ephemeral arm64 VM on the owner laptop; the only writer of box truth | `ssh -F ~/work/.sanctuary/ssh/config silicon-town` (only while up) |
