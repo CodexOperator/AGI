@@ -5,12 +5,20 @@ type: experiment
 parents:
   - hypothesis:a00-e0ab0dcc-d7d5f1
 next_edges: []
-edited_by: a00-e0ab0dcc
-line_ceiling: 40
+edited_by: a00-58c5fcf5
+line_ceiling: 180
 loop: goal:g17.14.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "C1 adapter surface", "class": "auth", "cmd": "python3 -c needs_credential({}); model_args({models:{kid:x}}, parent)", "expected": "explicit False; KeyError naming parent", "observed": "False; KeyError harness grok_bot declares no model for tier parent", "result": "held"}
+  - {"conjunct": "C2 stub build_command", "class": "wire", "cmd": "build_command(harness=live_row,tier=kid,ctx)", "expected": "[bin, --model, M, -p, ctx] with the config bin cell first", "observed": "[/home/ubuntu/.npm-global/bin/grok-bot, --model, grok-4-fast, -p, /tmp/x]; sentinel bin threads too", "result": "held"}
+  - {"conjunct": "C3 real restart", "class": "gate", "cmd": "restart with Popen raising OSError; _restart_cwd with bogus worktree", "expected": "None and record untouched; historical cwd fallback", "observed": "None; record stayed {pid:111,status:running}; fallback held", "result": "held"}
+  - {"conjunct": "C4 superset test file", "class": "wire", "cmd": "comm -23 <tests in e554c440c|ca330ac35> <tests in branch file>", "expected": "empty for both", "observed": "empty; counts branch/e554/ca33 = 15/11/12", "result": "held"}
+  - {"conjunct": "C5 committed probe evidence", "class": "wire", "cmd": "git ls-files probe.py probe.out ; grep mock probe.py ; cat probe.out", "expected": "both tracked; no mock; live pid + is_alive True", "observed": "both tracked; no monkeypatch; new_pid 1733710 is_alive True", "result": "held"}
+  - {"conjunct": "C6 config row landed", "class": "gate", "cmd": "git show HEAD:.agi/config.json ; adapters.resolve(committed_cfg, grok-bot)", "expected": "row present and resolve succeeds", "observed": "row ABSENT from HEAD; AdapterError no harness grok-bot -- the named residue, owned by goal:g17.14.2; cli.py:2093 forbids a kid/parent round from committing .agi/config.json", "result": "residue-named"}
 production_lines: 174
 profile: balanced
+rebrief_answer: proceed with ceiling 180
 rebrief_request: 174 production lines (adapter 162 + config 12) > 2x ceiling 80; overage inherent to re-adding committed bytes verbatim; request ceiling 180
 role: kid
 scaffold_hash: 3dddafedfbb98467
@@ -113,3 +121,10 @@ carries a `rebrief_request`: the overage is inherent to re-adding the committed
 adapter (162 lines) plus the carried `g17.14.2` config row (12 lines) — there
 is no smaller honest version of "bring the committed bytes forward verbatim".
 Requested ceiling: 180 production lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review a00-58c5fcf5 DT.17. (1) THE INSTRUCTION: the DT.17 dispatch orders require the DT.14 residues cleared -- "probe evidence committed, production_lines match tip bytes, test file merge-safe vs live-config peers"; the parent brief requires reading the kid DIFF, never its result file, and running one negative probe per claim conjunct. (2) WHAT THE MACHINE ACTUALLY DOES: the adapter file sha256 66b7891f...081c equals the e554c440c blob (verbatim); comm -23 over test names is empty in both directions and counts are branch/e554/ca33 = 15/11/12 (superset); the probe .py has no monkeypatch and its committed .out carries new_pid 1733710 is_alive True; grep -in grok dispatch.py is empty; BUT git show HEAD:.agi/config.json has no grok-bot row and adapters.resolve on it raises AdapterError, because cli.py:2093 _round_scope_ok returns False for .agi/config.json -- a kid/parent round-done commit may not add it. (3) THE NEAR MISS: a parent that trusted the kid 15-passed line, or that probed only the worktree, would record proved; the committed tip checked out fresh fails test_live_config_grok_row_resolves, so the honest record stops at kid 2 inconclusive_lean_proved:85 with the row named as g17.14.2 residue. (4) DEVIATION: none; the parent ran 15 own probes, none falsified a landed claim.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Parent review (a00-58c5fcf5, DT.17): ACCEPTED kid1 corrective bytes + kid2 verdict inconclusive_lean_proved:85. 15 independent parent probes held, none falsified a landed claim. Accepted: adapter byte-identical to e554c440c (sha 66b7891f...081c); superset test file 15/11/12 with zero missing names; committed in-tree unmocked respawn probe (pid 1733710, is_alive True); production_lines 174 honest (adapter 162 + config 12); dispatch.py zero grok hits. DEMOTED/NAMED: C6 config row is worktree-only and cannot land through a kid/parent round (cli.py:2093 returns False for .agi/config.json), so the committed tip fails test_live_config_grok_row_resolves until goal:g17.14.2 folds the row from the live-config line ca330ac35/ca3b2da28 -- no peer test is lost because our test file is a superset.
