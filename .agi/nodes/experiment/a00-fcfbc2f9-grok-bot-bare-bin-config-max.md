@@ -5,12 +5,17 @@ type: experiment
 parents:
   - hypothesis:a00-fcfbc2f9-7d809f
 next_edges: []
-edited_by: a00-fcfbc2f9
-line_ceiling: 40
+edited_by: a00-da782beb
+line_ceiling: 90
 loop: goal:g17.14.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "resolve_bin({}) / harness bin / GROK_BOT_BIN env", "expected": "grok-bot then /SENTINEL/grok then /ENV/grok", "observed": "all three held live", "result": "held"}
+  - {"conjunct": 2, "class": "gate", "cmd": "paths.py audit adapters | grep grok; grep npm-global/bin/grok-bot file", "expected": "zero grok audit hits, zero literal", "observed": "audit exit=1 no grok lines; control flags pi/copilot 8 lines; literal grep=0", "result": "gate held"}
+  - {"conjunct": 3, "class": "auth", "cmd": "adapters.load(grok) refuse; load(grok_bot) ok; REQUIRED; needs_credential; missing-tier KeyError", "expected": "unauthorised refused by name; full surface authorised", "observed": "load(grok) AdapterError by name; AUTH PASS; KeyError names parent/grok_bot", "result": "refused as required"}
 production_lines: 86
 profile: balanced
+rebrief_answer: proceed with ceiling 90
 rebrief_request: "Adopted file grok_bot_adapter.py is 86 lines (ceiling 40, 2x=80); overage is entirely the parent-ordered byte-adopted LOCKED stub, authored delta is the one-line DEFAULT_BIN fix. Remains: steps 3-6 chain complete. Requesting ceiling >=90 for adopted locked stubs."
 role: kid
 scaffold_hash: f1d7bf24d101d31d
@@ -95,3 +100,6 @@ All five checks pass on the built bytes: the box literal is gone, the module
 loads, the precedence is unchanged, `dispatch.py` is untouched, and the
 helper's committed test file is green.
 <!-- BODY:END -->
+
+## Agent Notes
+PARENT REVIEW a00-da782beb (DT.08): accepted proved. Re-read the bytes: the adopted file is the helper tip 76d141786 byte-for-byte except the docstring block and DEFAULT_BIN (one-line config_max fix), plus one trailing newline the kid dropped and this parent restored. Ran three probes myself, one per claim conjunct: wire (resolve_bin threads harness bin /SENTINEL and env $GROK_BOT_BIN live, bare default grok-bot), gate (paths.py audit has zero grok_bot_adapter home/user hits while still flagging pi_adapter/copilot_cli_adapter; grep npm-global bin path = 0), auth (adapters.load(grok) refuses by name, load(grok_bot) ok, all REQUIRED callable, needs_credential explicit False, model_args missing tier KeyError by name). dispatch.py grep grok = 0 hits. Rebrief answered: continue, ceiling 90. NOTE: the four chain nodes (experiment/verdict/mvp/build) were left untracked because cli.py scoped the kid done commit to basenames carrying the kid id; landed by the parent round at done --owns. Old foreign self-cite hypothesis:a00-bfd0d94a-d67716 is not on this branch, so it could not be re-pointed here.
