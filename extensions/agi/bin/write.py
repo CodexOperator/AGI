@@ -499,6 +499,18 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "adopt": 0}
+#: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+#: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
+#: is a known verb name ending at whitespace or end-of-string; any other `&&`
+#: stays in the current verb's last free-text argument. The literal
+#: `str.split("&&")` this replaces split inside an argument too, and leaked
+#: prose in a note/ref field crashed `links.py links` (experiment:a00-794503d4).
+#: Residual (test-pinned): prose cannot quote a VERB-LED command.
+#: A trailing `&&` (nothing but whitespace after it) is still a separator --
+#: otherwise it leaks into the last argument and verb-only scripts change.
+#: So is a pair that closes a verb name with no space: `-&&adopt&&`.
+_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
+    sorted(VERBS, key=len, reverse=True)))
 
 #: One-line example per verb, for the help epilog. Module-level (not local to
 #: main) so a test can assert each example PARSES as its verb's arity via the
@@ -587,7 +599,7 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     the string is data here, exactly as `commands.py` keeps argv a list.
     """
     out: list[tuple[str, list[str]]] = []
-    for chunk in str(text).split("&&"):
+    for chunk in _VERB_SEP.split(str(text)):
         stripped = chunk.strip()
         if not stripped:
             continue
