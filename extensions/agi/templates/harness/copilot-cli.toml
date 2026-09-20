@@ -1,5 +1,5 @@
-# copilot-cli spawn argv. Shape (measured from `copilot --help`, v1.0.83,
-# 2026-09-14): copilot [--model M] [--effort E] --allow-all --remote [x...] -i <prompt>
+# copilot-cli spawn argv. Top-level = the rotate SEAT shape (`-i`); the
+# headless DISPATCH shape (`-p`) is [shapes.dispatch] below.
 id = "copilot-cli"
 bin = "copilot"
 
@@ -23,3 +23,14 @@ spread = "extra_args"
 [[argv]]
 flag = "-i"
 slot = "prompt"
+
+# Headless dispatch (copilot_cli_adapter.build_command): the one-turn `-p`
+# replaces the seat's interactive `-i`.
+[shapes.dispatch]
+argv = [
+  {spread = "model_args"},
+  "--allow-all",
+  "--remote",
+  {spread = "extra_args"},
+  {flag = "-p", slot = "prompt"},
+]
