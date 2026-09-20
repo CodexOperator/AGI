@@ -128,16 +128,46 @@ def live_cfg() -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_live_config_grok_row_resolves(live_cfg):
-    """The on-disk `grok-bot` row resolves to the adapter, with the live bin.
+def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
+    """The on-disk `grok-bot` row resolves to the adapter, and its live `bin`
+    cell reaches the argv that actually spawns.
 
-    `bin` is asserted against the loaded cell, not a literal, so the test
-    tracks the config instead of freezing one path.
+    The old assert compared `row["bin"]` to
+    `live_cfg["harnesses"]["grok-bot"]["bin"]` and could not fail:
+    `adapters.resolve` shallow-copies the row (`harness =
+    dict(harnesses[chosen])`), so both names are the same string object. These
+    asserts instead exercise `grok.resolve_bin` / `grok.build_command`, the
+    spawn path where `$GROK_BOT_BIN`, then the row's cell, then
+    `DEFAULT_BIN` have precedence -- so a default silently taking over is
+    visible.
+
+    The live binary need not exist on this box; the claim is that the config
+    cell is carried, not that the path is populated.
     """
+    monkeypatch.delenv("GROK_BOT_BIN", raising=False)
     name, row = adapters.resolve(live_cfg, "grok-bot")
+    live_bin = live_cfg["harnesses"]["grok-bot"]["bin"]
     assert name == "grok-bot"
     assert row["adapter"] == "grok_bot"
-    assert row["bin"] == live_cfg["harnesses"]["grok-bot"]["bin"]
+    # The non-vacuous anchor: a row that omitted `bin` or carried the bare
+    # fallback would fail here, where the old same-object assert could not.
+    assert live_bin != grok.DEFAULT_BIN
+    assert grok.resolve_bin(row) == live_bin
+    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
+    assert argv[0] == live_bin
+
+
+def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
+    """A sentinel in a COPY's `bin` cell reaches argv[0] unchanged, so no
+    constant and no fallback can mask the config cell. The live config is
+    never mutated -- the sentinel is written to the resolved dict, which
+    `adapters.resolve` copied out of the loaded config."""
+    monkeypatch.delenv("GROK_BOT_BIN", raising=False)
+    _, row = adapters.resolve(live_cfg, "grok-bot")
+    row["bin"] = "/SENTINEL/grok-bot"
+    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
+    assert argv[0] == "/SENTINEL/grok-bot"
+    assert argv[0] != grok.DEFAULT_BIN
 
 
 def test_live_config_peers_still_resolve(live_cfg):
