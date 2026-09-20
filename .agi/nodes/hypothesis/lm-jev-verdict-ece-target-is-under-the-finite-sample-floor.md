@@ -28,3 +28,6 @@ town: local-maxxing
 **Disproved when** verdict median synthetic ECE < 0.10 on >= 3/5 seeds (the floor is under the target, so the 0.14-0.20 residual is real miscalibration): the max-prob channel is then abandoned for verdict acts -- the review call already rides the triage LR (mvp:lm-jev-review-triage-feature, outcome proved) -- and the WHY gets its closing note.
 
 **Ceiling.** One kid, one script (`.agi/context/local-maxxing/typesafe/`), one bench jsonl (`.agi/context/local-maxxing/bench/`), one experiment node. No API calls. Any CPU.
+
+## Agent Notes
+thought-master 05:32Z 09-20: OWNER GO (pane, verbatim on goal:g14): 'have at it, use pi with deepseek that's fine' -- round ordered to director-thought as TMM.03 on --harness pi, cap 1 USD, first round dispatched from local-town.
