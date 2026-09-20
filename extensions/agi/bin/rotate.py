@@ -895,21 +895,15 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 
 def _build_claude_command(name: str, prompt_text: str, debug_file: str,
                           model=None, effort=None, settings=None) -> list[str]:
-    """The remote-control argv: `claude --remote-control NAME ... <prompt>`."""
-    cmd = [
-        "claude",
-        "--remote-control", name,
-        "--permission-mode", "bypassPermissions",
-        "--debug-file", debug_file,
-    ]
-    if model:
-        cmd += ["--model", str(model)]
-    if effort:
-        cmd += ["--effort", str(effort)]
-    if settings:
-        cmd += ["--settings", json.dumps(settings)]
-    cmd.append(prompt_text)
-    return cmd
+    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
+
+    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
+    so no claude flag literal lives in this file (hypothesis:harness-arg-
+    builders-are-templates-only).
+    """
+    return harness_template.render(
+        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
+        model=model, effort=effort, settings=settings)
 
 
 def _harness_row(root: Path | None, harness: str | None) -> dict:
@@ -996,19 +990,19 @@ def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
                            bin_path: str | None = None) -> list[str]:
-    """The argv for the resolved harness, claude by default.
+    """The argv for the resolved harness, DISPATCHED ON ITS TEMPLATE.
 
-    The ONE seam a third harness enters `spawn_window` through. `harness`
-    absent/`claude-code` returns `_build_claude_command` byte-identically, so
-    every existing spawn line is unchanged; `copilot-cli` returns the
-    interactive copilot argv instead.
+    The ONE seam a harness enters `spawn_window` through. `harness` absent or
+    `claude-code` renders `claude-code.toml` byte-identically to the old
+    hand-built claude argv; any other harness renders ITS OWN template. There
+    is no `if harness == "..."` branch here: a harness with a template on disk
+    is built, and one without raises `UnknownHarnessError` by name rather than
+    silently falling back to claude (goal:g15).
     """
-    if harness == "copilot-cli":
-        return _build_copilot_command(
-            prompt_text=prompt_text, model=model, effort=effort,
-            bin_path=bin_path)
-    return _build_claude_command(name, prompt_text, debug_file, model=model,
-                                 effort=effort, settings=settings)
+    return harness_template.render(
+        harness or "claude-code", prompt=prompt_text, model=model,
+        effort=effort, settings=settings, name=name, debug_file=debug_file,
+        bin_path=bin_path)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -1761,7 +1755,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
 
     # Resolve model / effort / settings (caller flags override role defaults)
     if root is not None:
-        if harness == "copilot-cli":
+        if harness and harness != "claude-code":
             # A third harness's cells live in ITS OWN row. The ladder/claude-
             # code fallback load_role() resolves would hand a copilot seat a
             # claude model name, so the whole resolution is owned here.
@@ -1801,9 +1795,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical.
-        _bin = None
-        if harness == "copilot-cli":
-            _bin = _harness_row(root, harness).get("bin") or None
+        _bin = _harness_row(root, harness).get("bin") or None
         # A non-prime seat spawned with no explicit --prompt-file gets its body
         # from the assembled brief. assemble() already inserts the constitution
         # head, so we skip successor_prompt() — calling both would double-insert it

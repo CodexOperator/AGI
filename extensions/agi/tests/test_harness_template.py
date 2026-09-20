@@ -136,3 +136,46 @@ def test_template_vocabulary_has_no_scripting_escape_hatch(tmp_path,
     monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
     with pytest.raises(harness_template.HarnessTemplateError):
         harness_template.load("evil")
+
+def test_build_harness_command_dispatches_on_template(tmp_path, monkeypatch):
+    """`_build_harness_command` must BUILD a fourth harness from its template,
+    not silently fall through to claude (the hole kid 1 left open). Asserting
+    the BUILT argv, not `_validate_harness`'s return code."""
+    (tmp_path / "fake-harness.toml").write_text(FAKE)
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    monkeypatch.setattr(rotate.harness_template, "template_dir", lambda: tmp_path)
+
+    got = rotate._build_harness_command(
+        "fake-harness", name="N", prompt_text="CARD", debug_file="D.LOG",
+        model="strong")
+    assert got == ["fakebin", "--tier", "strong", "--static", "CARD"]
+    assert got[0] != "claude"
+
+
+def test_build_harness_command_refuses_unknown_never_claude(monkeypatch):
+    """An id with no template raises by name -- never a silent claude argv."""
+    # rotate imports the module under its bare name, so its exception class
+    # is a second object; assert against the class the builder actually raises.
+    with pytest.raises(rotate.harness_template.UnknownHarnessError):
+        rotate._build_harness_command(
+            "no-such-harness", name="N", prompt_text="CARD", debug_file="D.LOG")
+
+
+def test_claude_production_path_reaches_render(monkeypatch):
+    """The claude production build must go THROUGH harness_template.render,
+    not an inline argv (parent probe on conjunct 1)."""
+    seen = {}
+
+    def sentinel(harness_id, **kw):
+        seen["id"] = harness_id
+        seen["kw"] = kw
+        return ["sentinel"]
+
+    monkeypatch.setattr(rotate.harness_template, "render", sentinel)
+    got = rotate._build_harness_command(
+        None, name="N", prompt_text="CARD", debug_file="D.LOG", model="m",
+        settings={"a": 1})
+    assert got == ["sentinel"]
+    assert seen["id"] == "claude-code"
+    assert seen["kw"]["name"] == "N"
+    assert seen["kw"]["settings"] == {"a": 1}
