@@ -7,7 +7,8 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: a00-ad41ad28
-evidence_runs: experiment:grok-bot-bin-matches-adapter
+evidence_runs:
+  - experiment:grok-bot-bin-matches-adapter
 loop: goal:g17.14.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
