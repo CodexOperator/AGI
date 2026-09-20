@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-67fbbdf2-50b8d8
 next_edges: []
 confidence: 0.95
-edited_by: a00-c3dabe60
+edited_by: a00-8f215541
 evidence_runs:
   - experiment:grok-bot-adapter-reconciled-onto-dt23-tip
 line_ceiling: 300
@@ -116,11 +116,12 @@ P4 — links:
 
 ```
 $ python3 extensions/agi/bin/links.py links
-links: 3808 resolved, 0 broken (18 retired payload(s), not damage)
+links: 3810 resolved, 0 broken (18 retired payload(s), not damage)
 ```
 
-3806 before this round, 3808 after — the two new build nodes and their
-resolving parents.
+DT.24 re-measure (a00-8f215541): 3810 resolved at this review; the live count
+is higher now because this round's own scaffold and experiment nodes add links.
+The 3806 base was NOT re-measured this round, so the +2 delta is note-only.
 
 P5/P7 — schema: neither `build:bin-adapters-grok-bot-adapter` nor
 `build:tests-test-grok-bot-adapter` appears in `links.py schema` output (grep
@@ -207,11 +208,15 @@ rather than the test node's former `mvp:grok-bot-live-config-test`, because that
 former parent does not resolve on this tip. That is the legal `[mvp]` new-file
 origin and keeps the two files one lineage; I accept it.
 
-CAVEAT, named for the record: `git merge-tree --write-tree HEAD 44e6f11a7`
-exits 1 on `extensions/agi/tests/test_grok_bot_adapter.py` (add/add), because
-this round deliberately changed that test while DT.21 did not. The adapter path
-itself, the residue-1 target, is NOT in conflict: it is byte-identical on both
-sides and merge-tree vs the DT.22 tip exits 0.
+CAVEAT, corrected in DT.24 (a00-8f215541) from the bytes, not the prose: `git
+merge-tree --write-tree 1e9e94b75 4e6536769` (DT.22 sibling tip vs this tip)
+exits 1 with `CONFLICT (add/add): Merge conflict in
+.agi/nodes/build/bin-adapters-grok-bot-adapter.md` — the add/add conflict is on
+the BUILD NODE, NOT on the adapter source (the adapter path is byte-identical on
+both sides). The DT.23 claim that merge-tree vs the DT.22 tip exits 0 was FALSE.
+The TRUE half stands: merge-tree vs core `7d35ae4f9` exits 0, the fast-forward
+path. `HEAD` vs `44e6f11a7` exits 1 on BOTH the build node and
+`extensions/agi/tests/test_grok_bot_adapter.py` (add/add).
 
 VERDICT: accept as written. The kid's `verdict: proved` is backed by a resolving
 `evidence_runs` list and survives all four parent probes.
