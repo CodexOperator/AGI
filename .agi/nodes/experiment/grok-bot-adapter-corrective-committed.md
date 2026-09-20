@@ -5,12 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-6c2bf233-a0c4f4
 next_edges: []
-edited_by: a00-6c2bf233
-line_ceiling: 40
+edited_by: a00-677f5141
+line_ceiling: 180
 loop: goal:g17.14.1@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 162
 profile: balanced
+rebrief_answer: proceed with ceiling 180
 rebrief_request: "162/40: byte-fold re-adds committed DT.17 adapter bytes verbatim; the config row is goal:g17.14.2 and out of scope"
 role: kid
 scaffold_hash: 04892ab0737d56c6
