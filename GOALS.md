@@ -6018,6 +6018,8 @@ thought-master 06:19Z 09-19 OWNER (thought-master pane 06:1xZ), verbatim: If we 
 
 thought-master gen 8 06:24Z 09-19 batch 5: director TM.71 landing merged (refs/agi/posts @12fc6c14e): hypothesis:lm-jev-verdict-t-is-degenerate inconclusive_lean_proved:60 -- the verdict T-fit degeneracy is real (CI factor 3.3-3.7, 32-41 pct of half-splits disagree > 2x) but ~2x not ~5x once the control is regime-matched. The jev-calibration chain on the max-prob channel is CLOSED: 6c real-but-overstated, 6d disproved, 6e disproved; next = 6f label disagreement (queued first), then channel A. Core @90ba19f77 synced.
 
+thought-master 04:51Z 09-20 (local-town, first seating on the rig; MAIN /data/work/agi = the town trunk local-maxxing/season2/main): TM.74 merged into the trunk at 74271855e (4 files landed: experiment:a00-f8aca319-427816 disproved, jev_label_disagreement_split.py, bench/20260919T063222Z.jsonl, the director's card; gates 0 deletions / 0 leaks / 0 prayers; links 3723/0). Hop 6f DISPROVED closes the fourth calibration hop under idea:lm-why-verdict-ece-ignores-temperature (note there); hop 6g minted: hypothesis:lm-jev-verdict-ece-target-is-under-the-finite-sample-floor (0 USD, committed rows -- is the 0.10 target below the ECE-B floor at ~85 held-out acts; experiment subgroup is the control). BOX FACTS measured: llama-server docker on 127.0.0.1:8080 (NOT 18080 -- that is the tunnel-side port in command:commands), -np 1, models-max 1, presets Qwen3.5-35B-A3B-Q3_K_M / Qwen3.5-9B-Q4_K_M / bonsai, GPU idle 38 MiB; /models holds Athena-Class-31B Q8 segments seg000-007+ (assembly pending); pi binary ABSENT on this box (harness rows pi + pi-local point at the core-town npm path; no node/npm on PATH); OPENROUTER_API_KEY and OPENROUTER_PROVISIONING_KEY EMPTY in the box .env; push down (no credential). Consequence: no kid can be dispatched from local-town until pi is installed here and the pi-local row's bin/endpoint are box-local -- banked to the Prime as a [decision]; the director's first order is the 6g brief plus the box audit it can do without spend.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -7511,6 +7513,208 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g18.1 sequence executed): queue drai
 
 🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
 
+### G17.14 — Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g17.14
+
+## Why this exists
+
+**Parent `goal:g17` (the seat system).** Seats declare harness per role. Without a `grok-bot` adapter file, a seat row that names `harness: grok-bot` cannot be loaded through `adapters.load` / `adapters.resolve`, so seating on Grok Bot is config theater. This sub-goal is the missing adapter — **parity with what `pi_adapter`, `claude_code_adapter`, and `copilot_cli_adapter` already do today**, nothing more.
+
+**Practice-run scope (owner 2026-09-19).** Tiny on purpose so Belam and a director can walk a level-1 graph modification loop (hypothesis → experiment → verdict) and feel the graph. Same-harness workflow/message handback, cross-machine messaging, and finishing `goal:g1.14` / `goal:g1.15` are **later** — not falsifiers here.
+
+## Target end-state
+
+`grok-bot` is a named harness behind one adapter module that answers the **exact same five questions** every shipped adapter answers (`adapters.REQUIRED` + the g4.7 restart contract):
+
+1. `build_command(...)` → argv that starts one agent
+2. `child_env(...)` → environment that argv runs in
+3. `is_alive(pid)` → whether the process is still running
+4. `restart(...)` → re-spawn; return new pid (or raise `NotImplementedError` only if the harness truly cannot — pi and Claude Code both restart)
+5. `needs_credential(harness)` → whether dispatch should mint an OpenRouter-style per-spawn key
+
+Plus the ordinary helpers the others carry where they apply: `NAME`, `resolve_bin`, `model_args` (tier missing from a declared `models` block errors by name, never silent fallback).
+
+Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/grok_bot_adapter.py`. `dispatch.py` is not edited. The third-harness falsifier of `goal:g4.6` / the copilot claim holds again for a fourth name.
+
+**What directors do with it (operating note, not a build clause):** seats on grok-bot still grow chains by `dispatch.py` spawning **pi parents** (OpenRouter). The adapter lets a grok-bot *seat* exist; it does not replace pi as the chain-growth harness. Directors use unified dispatch + unified workflow for round review — that is why they are directors.
+
+## Invariants
+
+- A harness is an adapter named in config; never a town; never a fork of read/write/dispatch/workflow/send.
+- `adapters.load("grok_bot")` succeeds and the module defines every name in `adapters.REQUIRED`.
+- No edit to `dispatch.py` to teach it about grok-bot.
+- No new remote git heads.
+- Chain growth stays on pi parents via dispatch; grok-bot adapter parity does not move token-heavy parent/kid work off OpenRouter.
+
+## Falsifier
+
+1. Drop in `grok_bot_adapter.py` + a `harnesses.grok-bot` row. `python -c 'import adapters; adapters.load("grok_bot")'` succeeds; missing any `REQUIRED` name fails at load with the existing `AdapterError` shape.
+2. `adapters.resolve(cfg, "grok-bot")` returns the config row with `adapter` defaulting as the other harnesses do. Spawn argv for kid and parent tiers comes only from `build_command` — no shared-path branch on the string `grok-bot`.
+3. `grep` `dispatch.py` for `grok` / `grok-bot` / `grok_bot` after the change: **zero** hits outside comments that already discuss harnesses in the abstract (ideally zero absolute). If a hit appears, the seam is in the wrong place.
+4. Mirror the existing adapter tests: `is_alive` on the current pid is True; `needs_credential` is explicit True/False (not an AttributeError); `restart` is callable.
+
+## Out of scope (explicit — next steps, not this goal)
+
+- Same-harness workflow handback (Claude Code already has a seam; generalize later).
+- Same-harness message handback / native `SendToAgent` re-route.
+- Updates to pi / Claude Code / copilot adapters.
+- Full sanctuary seating of every town on Grok Bot.
+- Cross-machine mesh messaging.
+
+### G17.16 — Templates are the sole harness arg builders — status: active
+
+# goal:g17.16
+
+## Why this exists
+
+**Parent `goal:g7` (Sanctuary / seat lineage).** Today argv construction is scattered: `rotate.py` has `_KNOWN_HARNESSES` + `_build_claude_command` / `_build_copilot_command` / `_build_harness_command`, `dispatch.py` calls per-adapter `build_command`, and each adapter embeds its own flag dance (Claude's `--append-system-prompt-file` + tools + `--` closing turn; pi's trajectory wrapper; copilot's `--allow-all --remote`). Adding Grok Bot (or any fourth seat harness) forces special-casing in rotate even when the dispatch adapter already exists.
+
+Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
+
+## Target end-state
+
+- Every harness's invocation logic (flags, brief assembly spelling, env exports that belong to the harness, closing line) lives in a **post/harness template**, not inline in `rotate.py`, `dispatch.py`, or thick adapter bodies.
+- The adapter's `build_command` either **becomes the template renderer** or is **retired in favor of it** — one seam.
+- Templates are rich enough to express peer flag dances (e.g. Claude's `--append-system-prompt-file` + tools + closing turn) **without becoming mini-programs**.
+- If the template format cannot capture something, keep a **thin adapter hook** rather than overloading the template.
+
+## Invariants
+
+- No harness argv builder remains in `rotate.py`.
+- `dispatch.py` does not grow harness string branches; it resolves a template (or thin hook) the same way for every harness.
+- Peer behavior (pi / claude-code / copilot-cli) stays byte-measurable after the move — no silent flag loss.
+
+## Falsifier
+
+1. For each of `pi`, `claude-code`, `copilot-cli`: spawn dry-run argv is produced only from the template (+ optional thin hook), with **zero** hits for that harness's flag construction inside `rotate.py`.
+2. A new harness can add a template (+ optional thin hook) without editing `rotate.py` allowlists or `_build_*_command`.
+3. Something the format cannot express is isolated behind a named thin hook, not a template "scripting" escape hatch.
+
+## Out of scope
+
+- Persistent seat watch/restart (`goal:g17.17`).
+- Deleting rotate's orchestration / pane layout (`goal:g17.18` consumes this).
+- Landing grok-bot on main (`goal:g17.19` consumes the grok post template from this).
+
+## Agent Notes
+
+Assigned to **director-helper**. Point director-belam stays on current batch — do not reassign or interrupt.
+Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
+
+### G17.17 — Dispatch persistent mode for occupied seats — status: active
+
+# goal:g17.17
+
+## Why this exists
+
+**Parent `goal:g7` (Sanctuary / seat lineage).** `dispatch.py` today fires and forgets (kid/parent rounds). A **seat** needs the process held, watched, and restarted on death — work `rotate.py` currently re-implements around tmux panes and harness-specific argv. Owner ask 2026-09-19 (voice): give dispatch a **persistent** mode so rotate does not own process lifecycle.
+
+## Target end-state
+
+- `dispatch` gains a **persistent** mode: hold the process, watch it, restart on death (using the harness restart contract / template renderer from `goal:g17.16`).
+- Persistent mode **registers the process as an occupied seat** (seat registry / posts row pin stays coherent).
+- Rotate does not re-implement watch/restart once this lands.
+
+## Invariants
+
+- Fire-and-forget (kid/parent) behavior remains the default; persistent is opt-in and explicit.
+- Restart goes through the same adapter/template seam as first spawn (no second argv path).
+- Seat occupation is visible in the graph/config posts row, not only in tmux state.
+
+## Falsifier
+
+1. `dispatch … --persistent` (or equivalent named flag) keeps a seat process alive across a deliberate kill+restart without rotate rebuilding argv.
+2. After start, the seat registry / posts row shows the seat occupied with the live pid/session pin.
+3. Kid/parent non-persistent spawns are unchanged (regression dry-run).
+
+## Out of scope
+
+- Template authorship (`goal:g17.16`).
+- Stripping rotate argv builders (`goal:g17.18`).
+- Grok land (`goal:g17.19`).
+
+## Agent Notes
+
+Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
+Depends on / pairs with `goal:g17.16` for restart argv source.
+
+### G17.18 — Shrink rotate.py to pure orchestration (no harness argv) — status: active
+
+# goal:g17.18
+
+## Why this exists
+
+**Parent `goal:g7` (Sanctuary / seat lineage).** `rotate.py` today both orchestrates (population, panes, succession) **and** builds harness argv (`_KNOWN_HARNESSES`, `_build_harness_command`, `_build_claude_command`, `_build_copilot_command`). That is why a landed `grok_bot_adapter` still cannot seat in the combined Teamux pane without special-casing. Owner ask 2026-09-19 (voice): shrink rotate to **pure orchestration**.
+
+## Target end-state
+
+- `rotate.py` decides the population, lays out the panes, and hands each **seat spec** to `dispatch` with the right **template**.
+- Remove `_KNOWN_HARNESSES` and the inline `_build_harness_command` / `_build_copilot_command` / `_build_claude_command` argv builders.
+- Rotate has **no harness knowledge** and **no argv construction**.
+
+## Invariants
+
+- Depends on `goal:g17.16` (templates) and `goal:g17.17` (persistent dispatch) — do not strip builders until dispatch can hold seats.
+- Existing claude-code and copilot-cli seats still spawn after the shrink (measured dry-run / one live seat probe).
+- Grep of `rotate.py` for harness flag construction (`--append-system-prompt`, `--allow-all`, `claude --remote-control`, etc.) is empty outside comments pointing at templates.
+
+## Falsifier
+
+1. `_KNOWN_HARNESSES` and `_build_*_command` are gone from `rotate.py`.
+2. `rotate.py spawn` / seat window path calls persistent dispatch + template only.
+3. Claude and copilot seats still come up; a third harness needs only template (+ thin hook), not a rotate edit.
+
+## Out of scope
+
+- Authoring the template format itself (`goal:g17.16`).
+- Implementing persistent watch (`goal:g17.17`).
+- Grok-specific land (`goal:g17.19`) — but this goal **unblocks** it.
+
+## Agent Notes
+
+Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
+Consumes `goal:g17.16` + `goal:g17.17`.
+
+### G17.19 — Land grok-bot adapter + post template on core/season2/main — status: active
+
+# goal:g17.19
+
+## Why this exists
+
+**Parent `goal:g7` (Sanctuary / seat lineage).** Practice adapter + config + tests live on loop tip `76d141786` (`goal:g17.14` family) but **not** on `core/season2/main`. Stub argv (`<bin> [--model] -p <context>`) was never measured against real `grok-bot --help`. Even after land, `rotate.py`'s allowlist would refuse a grok seat. Owner ask 2026-09-19 (voice): land the adapter on main, write its **post template**, and make a Grok Bot seat drop in with **no special-casing** once templates + shrink-rotate land.
+
+## Target end-state
+
+- `grok_bot_adapter.py` + `harnesses.grok-bot` + interface tests are on `core/season2/main`.
+- **Prerequisite:** measure the real CLI — read `<bin> --help`, replace guessed `-p` flags; implement `restart` (or document true impossibility).
+- A **post template** for grok-bot exists (via `goal:g17.16` format) so seating uses the same path as Claude/copilot.
+- A grok-bot seat drops in automatically once this + `goal:g17.16`/`goal:g17.18` land — **no** rotate/dispatch special-case for the string `grok-bot`.
+
+## Invariants
+
+- No edit to `dispatch.py` that names `grok` (same falsifier as `goal:g17.14`).
+- No new `_KNOWN_HARNESSES` entry — rotate must already be harness-blind (`goal:g17.18`) or this goal waits on it.
+- Chain growth for directors still uses pi parents via dispatch (operating note from `goal:g17.14`); this goal is **seat** land, not replacing OpenRouter parents.
+
+## Falsifier
+
+1. On `core/season2/main`: `adapters.load("grok_bot")` succeeds; `adapters.resolve(cfg, "grok-bot")` returns the config row.
+2. `build_command` argv matches measured `--help` (not the practice stub alone); `restart` is callable without "unmeasured" refusal **or** a node documents why NotImplementedError remains.
+3. `rotate.py` / `dispatch.py` grep for `grok` / `grok-bot` / `grok_bot` outside comments: **zero** special-case hits.
+4. One dry-run (or live probe) seats grok-bot through the unified template + persistent dispatch path.
+
+## Out of scope
+
+- Same-harness workflow / SendToAgent handback (still deferred from `goal:g17.14`).
+- Full sanctuary migration of every town onto Grok Bot.
+
+## Agent Notes
+
+Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
+Prerequisite: measure real CLI. Soft-depends on `goal:g17.16` (template) and `goal:g17.18` (harness-blind rotate) for the "no special-case seat" claim; adapter+config land can proceed earlier.
+
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: active
 
 <!-- BODY:BEGIN -->
@@ -7602,6 +7806,8 @@ Numbers at open (13:3xZ 09-17): nodes 3187/217/3404 (SM.101 minted 12:09Z) · or
 06:1xZ 09-19 OWNER: "Director sanctuary stalled at rotation again." Measured: f=0.441 = 94 pct of its line, alive, last words "holding for the rotation signal" (row rotated_by: belam = stale L5 formation). Signal sent as one [rotation] dm; row cell rotated_by -> sanctuary-master (the Keep runs its recovery from now; captive at 0.85 = SM.135). director-thought rotated after the 05:12Z order (record 05:18Z, window @467, active).
 
 06:2xZ 09-19 OWNER asked why directors stopped self-rotating. Measured: rotate-self never stopped (all records rotation: rotate-self; rotated_by = metering/dm supervisor only). Two stall shapes: (a) stop early + "hold for the signal" (brief quotes L as a range 0.44-0.47; ladder cell = 0.47; no signal exists) -- director-sanctuary 0.441; (b) idle past the line, no turn -> no hook -- director-thought 0.506 / 234 min. Both moved within minutes of a one-line order. Fix path: SM.135 captive 0.85 x L (hook + watch) + one brief §3 template line (sent to SM).
+
+07:3xZ 09-19 OWNER (verbatim in doc:l5-owner-decisions tail): sandbox branches for another instance to try the redesign -- created on origin at 5ee9bfb72: encryption-town/{main,season2/main}, codex-town/{main,season2/main} (v3 grammar parses both kinds). Not our towns: no node, no row, no cron mirror, never merged by us, excluded from every prune/delete pass; origin heads 13 -> 17. Both masters told in one line each (they brief their directors).
 
 ## S1 — Retire `bin/` as a directory name — status: horizon
 

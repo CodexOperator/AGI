@@ -1503,6 +1503,90 @@ def test_scaffold_push_further_stamps_pushed_from(tmp_path):
     assert fm["pushed_from"] == node_id
 
 
+def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
+        tmp_path, monkeypatch):
+    """hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-
+    by-the-spawn-never-by-parent-arithmetic: the SPAWN divides, the parent
+    does not. A kid minted under `CEILING: <=44 production lines across 2
+    kids` carries `line_ceiling: 22` in its frontmatter BEFORE the brief is
+    assembled, so the brief and the harvest read one number. A K-less clause
+    writes NO field (byte-identical to today).
+
+    FALSIFIED if the inline `extra_fm` write in dispatch.main is removed: the
+    minted node then carries no `line_ceiling` and the harvest falls back.
+    """
+    import json as _json
+    import yaml as _yaml
+
+    def _project(name: str, clause: str) -> Path:
+        root = tmp_path / name
+        graph = root / ".agi"
+        (graph / "nodes" / "hypothesis").mkdir(parents=True)
+        (graph / "config.json").write_text(_json.dumps({
+            "metric_primary": "outcome_coverage",
+            "spawn": {"harness": "pi", "parallel": 1},
+            "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
+                                 "models": {"kid": "~z-ai/glm-flash-latest"},
+                                 "allowed_extra": ["~z-ai/glm-flash-latest"]}}}))
+        (graph / "nodes" / "hypothesis" / "across.md").write_text(
+            "---\nid: hypothesis:across\ntype: hypothesis\n"
+            f"testable_claim: \"build it. {clause}\"\n---\n")
+        return root
+
+    class _Proc:
+        pid = 4242
+
+        def poll(self):
+            return None
+
+    class _Adapter:
+        def build_command(self, **kw):
+            return [sys.executable, "-c", "pass"]
+
+        def child_env(self, **kw):
+            return {}
+
+        def needs_credential(self, *a, **k):
+            return False
+
+        def is_alive(self, pid):
+            return True
+
+    class _Run:
+        returncode = 0
+        stdout = "ctx\n"
+        stderr = ""
+
+    monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch.provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
+                        lambda cfg, root=None, iter_n=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    def _mint(project: Path):
+        monkeypatch.setattr(sys, "argv", [
+            str(BIN / "dispatch.py"), str(project), "1", "--tier", "kid",
+            "--target", "hypothesis:across", "--harness", "pi",
+            "--detach"])
+        assert dispatch.main() == 0
+        exps = list((project / ".agi" / "nodes" / "experiment").glob("*.md"))
+        assert len(exps) == 1, exps
+        return _yaml.safe_load(exps[0].read_text().split("---", 2)[1])
+
+    assert _mint(_project("k2", "CEILING: <=44 production lines across 2 kids.")
+                 ).get("line_ceiling") == 22
+    assert "line_ceiling" not in _mint(
+        _project("k1", "CEILING: <=44 production lines."))
+
+
 # --------------------------- the model/provider guard on the SPAWN path ----
 
 def _guard_project(tmp_path: Path, model: str) -> Path:
