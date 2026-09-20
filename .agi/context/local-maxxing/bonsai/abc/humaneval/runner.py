@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
-"""Resumable HumanEval A/B/C runner. One sample/problem, greedy, thinking off, 512 tok.
+"""Resumable HumanEval arm runner. One sample/problem, greedy, thinking off, 512 tok.
 
-Usage: run_abc.py <arm> <base_url> <model_id> <outdir> [limit]
-Writes:
-  <outdir>/<arm>.completions.jsonl   {"task_id","completion"} for the harness
-  <outdir>/<arm>.raw.jsonl           {"task_id","raw","prompt","secs","finish"} audit trail
-Skips task_ids already present in <arm>.completions.jsonl (resumable).
+Usage: runner.py <arm> <base_url> <model_id> <outdir> [limit]
+
+Dataset: path from $HUMANEVAL if set, else the installed `human_eval` package's
+bundled HumanEval.jsonl.gz. Results dir: <outdir> arg, else $ABC_OUTDIR, else the
+directory this script lives in. NO worktree-absolute paths anywhere.
+Writes <outdir>/<arm>.completions.jsonl (harness input) and <arm>.raw.jsonl (audit).
+Skips task_ids already in the completions file (resumable).
 """
-import gzip, json, os, re, sys, time, urllib.request, urllib.error
+import gzip, json, os, re, sys, time, urllib.request
 
-ARM, BASE, MODEL, OUTDIR = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+ARM, BASE, MODEL = sys.argv[1], sys.argv[2], sys.argv[3]
+OUTDIR = sys.argv[4] if len(sys.argv) > 4 else os.environ.get(
+    "ABC_OUTDIR", os.path.dirname(os.path.abspath(__file__)))
 LIMIT = int(sys.argv[5]) if len(sys.argv) > 5 else 164
-HUMANEVAL = "/data/work/agi/.agi/worktrees/a00-944318b2/.agi/sessions/iter-ABC.01/a00-bb10233d/venv/lib/python3.12/site-packages/human_eval/data/HumanEval.jsonl.gz"
+
+def human_eval_path():
+    p = os.environ.get("HUMANEVAL")
+    if p:
+        return p
+    import human_eval.data as d
+    return os.path.join(os.path.dirname(os.path.abspath(d.__file__)),
+                        "data", "HumanEval.jsonl.gz")
 
 os.makedirs(OUTDIR, exist_ok=True)
 COMP = os.path.join(OUTDIR, ARM + ".completions.jsonl")
@@ -23,7 +34,7 @@ if os.path.exists(COMP):
             done.add(json.loads(line)["task_id"])
 
 problems = []
-with gzip.open(HUMANEVAL, "rt") as f:
+with gzip.open(human_eval_path(), "rt") as f:
     for line in f:
         problems.append(json.loads(line))
 problems.sort(key=lambda p: p["task_id"])
@@ -44,12 +55,9 @@ def completion_from(prompt, raw):
     code = extract_code(raw)
     p = prompt.strip("\n")
     c = code
-    # If the model re-emitted the prompt (exact), drop it so harness prepend reconstructs.
     idx = c.find(p)
     if idx != -1 and idx < 40:
         c = c[idx + len(p):]
-    # If model redefined the target function fully and did not match exactly,
-    # keep only from the docstring/body to avoid duplicate-def syntax breakage.
     if re.search(r"^\s*def\s+\w+\s*\(", c) and p not in c:
         lines = c.split("\n")
         for i, ln in enumerate(lines):
@@ -58,7 +66,8 @@ def completion_from(prompt, raw):
                     indent = re.match(r"^(\s*)", lines[i + 1]).group(1)
                     c = "\n" + "\n".join(lines[i + 1:])
                     if indent == "":
-                        c = "\n" + "\n".join("    " + x if x.strip() else x for x in lines[i + 1:])
+                        c = "\n" + "\n".join("    " + x if x.strip() else x
+                                              for x in lines[i + 1:])
                 break
     return c
 
@@ -70,16 +79,15 @@ def call(prompt):
         "max_tokens": 512, "stream": False,
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    data = json.dumps(body).encode()
-    req = urllib.request.Request(BASE + "/v1/chat/completions", data=data,
+    req = urllib.request.Request(BASE + "/v1/chat/completions",
+                                 data=json.dumps(body).encode(),
                                  headers={"Content-Type": "application/json"})
     t0 = time.time()
     with urllib.request.urlopen(req, timeout=600) as r:
         resp = json.load(r)
     dt = time.time() - t0
-    txt = resp["choices"][0]["message"]["content"] or ""
-    finish = resp["choices"][0].get("finish_reason")
-    return txt, dt, finish
+    ch = resp["choices"][0]
+    return (ch["message"]["content"] or ""), dt, ch.get("finish_reason")
 
 n_new = 0
 for prob in problems:
@@ -101,5 +109,6 @@ for prob in problems:
         f.write(json.dumps({"task_id": tid, "raw": raw, "prompt": prob["prompt"],
                             "secs": round(dt, 2), "finish": finish}) + "\n")
     n_new += 1
-    print(f"[{ARM}] {n_new:3d} {tid} {dt:6.1f}s finish={finish} comp_chars={len(comp)}", flush=True)
+    print(f"[{ARM}] {n_new:3d} {tid} {dt:6.1f}s finish={finish} "
+          f"comp_chars={len(comp)}", flush=True)
 print(f"[{ARM}] done, {n_new} new completions this pass", flush=True)
