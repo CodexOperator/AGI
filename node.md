@@ -1,5 +1,5 @@
 ---
-id: goal:g17.15
+id: goal:g7.26
 mint_id: 6058821da96c417e949b9115e01eb35d
 type: goal
 parents:
@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G17.15
+goal_id: G7.26
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,10 @@ tags:
   - goal
   - subgoal
 thought_session: g1-g7-rewrite-2026-09-19
-title: "G17.15: Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump)"
+title: "G7.26: Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump)"
 town: core
 ---
-# goal:g17.15
+# goal:g7.26
 
 ## Why this exists
 
@@ -53,5 +53,5 @@ Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be se
 
 ## Related
 
-- Cross-cut: `goal:g13.3` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
-# goal:g17.15
+- Cross-cut: `goal:g4.20` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
+# goal:g7.26
