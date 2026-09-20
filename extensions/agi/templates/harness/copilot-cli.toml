@@ -3,6 +3,11 @@
 id = "copilot-cli"
 bin = "copilot"
 
+# Seat role cells come from THIS harness's own `harnesses.copilot-cli` row --
+# a claude model name is never borrowed (hyp:l4-copilot-cli-is-a-third-...).
+[roles]
+source = "row"
+
 [[argv]]
 flag = "--model"
 slot = "model"

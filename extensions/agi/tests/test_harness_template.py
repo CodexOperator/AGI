@@ -248,3 +248,22 @@ def test_pi_template_is_dispatch_only_not_a_rotate_seat():
     assert harness_template.load("pi").get("rotate") is False
     assert "pi" not in rotate._known_harnesses()
     assert rotate._validate_harness(None, "pi")[0] == 1
+
+
+def test_shipped_templates_declare_their_role_source():
+    """The seat path reads WHERE role cells come from off the template:
+    claude-code says `ladder`, copilot-cli says `row`, and an omitted field
+    defaults to `ladder` (claude's unchanged behaviour)."""
+    assert harness_template.role_source("claude-code") == "ladder"
+    assert harness_template.role_source("copilot-cli") == "row"
+    assert harness_template.load("pi").get("roles") is None  # omitted -> ladder
+    assert harness_template.ROLE_SOURCES == ("ladder", "row")
+
+
+def test_unknown_role_source_is_a_named_error(tmp_path, monkeypatch):
+    (tmp_path / "weird.toml").write_text(
+        'id = "weird"\nbin = "w"\n[roles]\nsource = "cosmic"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.role_source("weird")
+    assert "unknown roles.source 'cosmic'" in str(exc.value)
