@@ -11,12 +11,14 @@ fields:
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}
   tags: {type: list}
+  heading_level: {type: int} # render depth in GOALS.md; snapshot-goals.py hard-errors if absent (goal:g6.9)
 validation:
-  required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags]
+  required: [id, type, mint_id, title, goal_id, goal_kind, status, origin, seeds, confidence, tags, heading_level]
   types:
     seeds: list
     tags: list
     confidence: float
+    heading_level: int
   regex:
     goal_id: '^[GS]\d+(\.\d+)*$'
     # `perpetual` is canonical; `long-term` is the legacy spelling and stays
