@@ -12,12 +12,14 @@ caps:
   director_kids: 3
 caps_apply_from_season: 2
 caps_vision_scope: town
+captive_rotate_masters: false
+captive_rotate_ratio: 0.85
 card_capture_minutes: 10
 current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: a00-74292b3b
+edited_by: director-sanctuary
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
