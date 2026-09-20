@@ -3,9 +3,9 @@ id: exp:g11-migration-rehearsal
 mint_id: 58b01e6669b249ff83fb439a4c2bd6b3
 type: experiment
 parents:
-  - goal:g11
+  - goal:g4.10
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 evidence_runs: 4
 season: 1
 status: complete
@@ -14,7 +14,7 @@ tags:
   - g11
   - migration
   - grid
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Four rehearsals of the two-repo merge on throwaway clones, including one reversed
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->

@@ -3,13 +3,13 @@ id: hypothesis:l3w4-sanctuary-theme
 mint_id: 46267f0fe486406087c140306f504f00
 type: hypothesis
 parents:
-  - goal:g9
+  - goal:g2.13
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam
 scaffold_hash: 5cea453abaf1f5bf
 season: 2
 testable_claim: viewport.py's new --theme sanctuary flag calls sanctuary_frame(seat_rows, ephemeral_leases, rotating) to build one SanctuaryScene from config:seats rows (tier==3 rows as mantled-spirit avatars in the tree, role==director rows as probe wisps), spawn_budget.live_agents() as ephemeral wisps, and rotate.py's tmux window census matched against <seat>.gen-renamed windows for the rotating signal, and render_sanctuary_human and render_sanctuary_llm both draw the identical spirits, wisps, and — only when a seat is rotating — one light-strand line naming that seat's rotated_by holder and the seat, while printing "no seat registry yet" with no traceback in both when seats.md is absent.
-thought_session: L3.24
+thought_session: dissolve-legacy-2026-09-19
 title: Draw the Sanctuary viewport theme
 ---
 <!-- BODY:BEGIN -->
@@ -22,7 +22,7 @@ What is the testable claim? What would prove it? What would disprove it?
 ## Agent Notes
 ## CLAIM
 
-`viewport.py` gains a third live-axis render, `--theme sanctuary` (default `graph`). `sanctuary_frame(seat_rows, ephemeral_leases, rotating) -> SanctuaryScene` (frozen, mirrors `Frame`) builds the scene once; `render_sanctuary_human`/`render_sanctuary_llm` read it, per `goal:g9.7`'s two-reader discipline. The tree on the outcrop houses one avatar per tier-3 seat (Belam, the advisors, later the Sanctuary Master) as "mantled spirits"; every tier-1 `role: director` seat and live ephemeral lease draws as a "wisp"; a seat whose tmux window is renamed `<seat>.gen\d+` (`l3w4-seat-rotation-loops`'s step) draws a light-strand line, holder to seat. (Mechanics: director proposal; scene content: owner text.)
+`viewport.py` gains a third live-axis render, `--theme sanctuary` (default `graph`). `sanctuary_frame(seat_rows, ephemeral_leases, rotating) -> SanctuaryScene` (frozen, mirrors `Frame`) builds the scene once; `render_sanctuary_human`/`render_sanctuary_llm` read it, per `goal:g2.19`'s two-reader discipline. The tree on the outcrop houses one avatar per tier-3 seat (Belam, the advisors, later the Sanctuary Master) as "mantled spirits"; every tier-1 `role: director` seat and live ephemeral lease draws as a "wisp"; a seat whose tmux window is renamed `<seat>.gen\d+` (`l3w4-seat-rotation-loops`'s step) draws a light-strand line, holder to seat. (Mechanics: director proposal; scene content: owner text.)
 
 ## WHY
 

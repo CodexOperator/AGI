@@ -33,7 +33,7 @@ assert scripted == by_hand
 
 Asserted on the **accumulated object**, not on the resulting file — two paths
 that produce the same file could still have taken different operations to get
-there, and it is the operations `goal:g13.1` says must be identical.
+there, and it is the operations `goal:g4.18` says must be identical.
 
 ### No file write in the module
 
@@ -52,7 +52,7 @@ already follows.
 ### Provenance, which had never been written before
 
 `edited_by` and `thought_session` land on submit. **`thought_session` has been
-reserved in frontmatter since `goal:g2.7`/`goal:g10.1` with nothing writing
+reserved in frontmatter since `goal:g2.7`/`goal:g2.24` with nothing writing
 it.** This is the first writer.
 
 ### Three behaviours that are easy to get wrong and are tested

@@ -78,7 +78,7 @@ near miss. This round LANDS the fix and proves it on the built bytes.
      ONE pathspec commit — NEVER `git add -A`), falling back to
      `_commit_rotation_record` when the card is absent. Returns
      `(True,"committed",...)` or a named `(False,"refused",...)`.
-   - `g17_1_note` runs `write.py goal:g17.1 note <the closeout numbers line>`
+   - `g17_1_note` runs `write.py goal:g7.16 note <the closeout numbers line>`
      via subprocess (REUSE write.py); non-zero exit → `(False,"refused",...)`.
    - `render` runs `snapshot-goals.py --render`.
    Signature grew one optional keyword `seat: str = ""` (the pathspec runner
@@ -113,7 +113,7 @@ near miss. This round LANDS the fix and proves it on the built bytes.
     stays UNCOMMITTED (never `git add -A`).
 (f) `test_g17_1_note_runner_drives_write_py_subprocess_seam` — the note
     runner is driven through a recorded subprocess argv (never the live
-    goal:g17.1); non-zero exit refuses by name.
+    goal:g7.16); non-zero exit refuses by name.
 
 ### what-fails-before / what-passes-after
 - (a) before: `_closeout_step_list("parent", None, worktree="")` returned the
@@ -156,7 +156,7 @@ unchanged.
   parent brief wanted — a row with an explicitly-empty worktree cell = MAIN
   post, a Prime = PRIME list, a worktree row = worktree list — holds exactly.
 - The `g17_1_note`/`render`/`push` REAL runners are covered by presence +
-  subprocess-argv tests; a live write.goal:g17.1 was deliberately NOT invoked
+  subprocess-argv tests; a live write.goal:g7.16 was deliberately NOT invoked
   (the claim's own rule). The `render` runner body is a single
   `_closeout_pop_and_run` delegated call exercised only via the code-read.
 

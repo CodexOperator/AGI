@@ -3,12 +3,13 @@ id: hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-eve
 mint_id: c4b35cf5268e4da887e9ebdbc1f48433
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: fdf03c4759f10cb6
 season: 2
 testable_claim: "(1) merge-up-review.json: the review stage schema REQUIRES `config_max` and `template_max`, each {answer: yes|no, where: <cell or template line named when yes>}, the review prompt asks both questions in the owner's words, and the verify stage's `verdicts` carry them through; a return missing either is schema-invalid (the existing validate_return path names the missing field). (2) the dispatch-order template (config:rotations / the director brief §1 order shape) carries ONE named line the kid answers first: \"config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>\"; the kid's experiment node records the three answers. (3) a test proves a review return without the two fields is refused by name and one with them validates; a second test proves the brief/template text carries the line. (4) mur runs on pi keep the same wall/load behaviour byte-identical apart from the two new fields. CEILING 10 production lines + manifest/template/brief text. SCOPE CONSOLIDATED (sanctuary-master 08:3xZ 09-19; the three Agent-Notes layers, in the field the resolver reads): (5) path_max is the THIRD check in the same verdict fields and dispatch-order line (owner 22:1xZ), shipped as the check + paths.py audit + the box cells under .agi/config.json read through boxes.py with {root}/{logs}/{tmux}/{user} placeholders + the migration of the measured baseline -- landed in slices 1-2. (6) SLICE 3 CORRECTIVE (live, iter160; mur-sm-125-s2 residues): paths.py classify() fails CLOSED when a box cell is unset (a distinct non-zero exit naming the missing cell, never a silent clean pass); the cell-value match no longer depends on a word boundary, so a slash-leading logs_dir literal IS caught (red-first test); the four box cell names are declared once in a new .agi/context/schemas/[box].md and read from it by boxes.py and paths.py; the prior slice's undisclosed 80-vs-40 overrun is recorded in this slice's kid THOUGHT; test_paths_audit.py grows past 5, test_box_guard.py and test_config_max_template_max_required.py stay green. CEILING: <=20 production lines."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.125 (owner 22:0xZ + 22:1xZ in the sanctuary-master pane): config_max + template_max + path_max are REQUIRED fields of every merge-up-review verdict and a named line of every dispatch order, paths.py audit lists every hardcoded path or box literal, and the measured baseline moves to config cells + placeholders -- a change that belongs in a cell, a template line or a placeholder is returned by name, never accepted as code"
 town: core
 ---

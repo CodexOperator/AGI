@@ -3,13 +3,13 @@ id: hypothesis:l3-cli-done-worktree-manifest
 mint_id: 82a10dff567545489abb812ce807e9c8
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: de24bb130510b6fa
 season: 2
 testable_claim: After the change, a parent running inside a --branch worktree completes 'cli.py done --owns <experiment-id>' from its own cwd with no copying and no cd to the main checkout, and the same call from the main checkout for a non-branch agent behaves exactly as it does today; proven by a red-first test for each half, with the node stating explicitly whether iteration session state was made SHARED (main-only, like the spawn budget and comms root) or FORKED (per-worktree, like the graph a kid edits) and why.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: The manifest, agent.json and cli.py's resolver disagree about where a --branch agent's session state lives, so no parent can be right
 ---
 <!-- BODY:BEGIN -->

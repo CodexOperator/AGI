@@ -3,7 +3,7 @@ id: idea:l4-g179-channels-ab
 mint_id: d27e8ac71ee048918348a3960b528886
 type: idea
 parents:
-  - goal:g17.9
+  - goal:g7.21.1
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

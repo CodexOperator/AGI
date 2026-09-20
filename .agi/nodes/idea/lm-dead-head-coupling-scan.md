@@ -3,14 +3,15 @@ id: idea:lm-dead-head-coupling-scan
 mint_id: 2a64dd181b29411f8270ea5c9e845f9c
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: cc015006f24072c0
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: GQA-group dead-head KV compaction on Qwen3-0.6B (g=2), scan as D1 prior
 town: local-maxxing
 ---

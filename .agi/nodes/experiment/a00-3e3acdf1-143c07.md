@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-G15 build-order round for `hypothesis:l4-reshuffle-delete-old-is-never-unfiltered-and-post-n-maps-to-season2-posts`. The Prime ruling (window-46 HOLD, recorded on goal:g17.1): `--delete-old` is NEVER unfiltered; an unfiltered run must default to `--kinds posts,towns` and say so. Chose the default-and-print form.
+G15 build-order round for `hypothesis:l4-reshuffle-delete-old-is-never-unfiltered-and-post-n-maps-to-season2-posts`. The Prime ruling (window-46 HOLD, recorded on goal:g7.16): `--delete-old` is NEVER unfiltered; an unfiltered run must default to `--kinds posts,towns` and say so. Chose the default-and-print form.
 
 ### Pre-fix defect (measured, `extensions/agi/bin/cli.py` a00-d5b6e48c @ a00-3e3acdf1-143c07)
 - `_reshuffle_kinds("")` returned the EMPTY set (was "no filter") — approx L2543-2552.

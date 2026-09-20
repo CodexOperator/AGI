@@ -3,12 +3,13 @@ id: hypothesis:l3-done-broken-frontmatter
 mint_id: 972759bccd1b4082986a2c656cf11b40
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: belam-S1-L3-II
+edited_by: belam
 scaffold_hash: 82ce16c14c9237bd
 season: 2
-testable_claim: cli.py done validates the node's frontmatter before demoting anything, repairs a broken or missing --- block from the spawn manifest when the body is intact, refuses loudly with the exact defect otherwise, and the kid brief tells kids to edit below the closing --- only
+testable_claim: "cli.py done validates the node's frontmatter before demoting anything, repairs a broken or missing --- block from the spawn manifest when the body is intact, refuses loudly with the exact defect otherwise, and the kid brief tells kids to edit below the closing --- only"
+thought_session: dissolve-legacy-2026-09-19
 title: L3 done broken frontmatter
 ---
 # hypothesis:l3-done-broken-frontmatter

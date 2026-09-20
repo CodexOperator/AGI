@@ -103,7 +103,7 @@ Raw-string histogram (MEASURED): `lean_proved:50` x62, `lean_proved:80` x35, `pr
 
 ### 2. Group = parent goal id chain (MEASURED)
 
-23 distinct groups. Largest: `unknown` 116, `goal:g13` 11, `goal:g8.1` 7, `goal:g4.7` 5.
+23 distinct groups. Largest: `unknown` 116, `goal:g13` 11, `goal:g1.23` 7, `goal:g4.7` 5.
 The 116 `unknown` are **honest**: season-1 hypotheses hang off `idea:` nodes whose frontmatter
 carries `domain:` and no goal parent (e.g. `idea:domain-vector-embedding-isomorphism`); there
 is no goal chain to find. In the 105 modelled records the largest goal group is 51.

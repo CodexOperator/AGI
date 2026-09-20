@@ -3,13 +3,13 @@ id: hypothesis:l3-seat-pin-generation-never-increments
 mint_id: 2f3d912873114c008786b88577a55c6e
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 6b97b3af8d46831e
 season: 2
 testable_claim: After the change, a successor that reads rotate.py meter --seat belam without re-pointing the pin is refused loudly instead of receiving its predecessor's usage number, proven by a live two-generation rehearsal in which generation N claims the pin and generation N+1 reads it and is refused, with the refusal exiting nonzero.
-thought_session: rc-XIII
+thought_session: dissolve-legacy-2026-09-19
 title: "The cross-generation seat-pin guard fires correctly on a mismatch but is inert in production: no seat handoff file exists so every generation reads as 0, and the documented recovery writes a legacy pin the guard deliberately skips"
 ---
 <!-- BODY:BEGIN -->

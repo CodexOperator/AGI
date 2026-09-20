@@ -3,13 +3,13 @@ id: hypothesis:l3-branch-isolation-partial-break
 mint_id: 5790fd977917423d92bcf57f8360c37b
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: da2df61e83457199
 season: 2
 testable_claim: After the change, every process a --branch parent spawns (its kids, and a healer restart of either) resolves a working directory and a set of rendered source paths that lie INSIDE that parent's worktree, proven by a red-first test that asserts the resolved child cwd and the brief's rendered source paths are all under the worktree root and never under the main checkout; and measured live, one --branch round ends with 'git -C <main checkout> status --porcelain -- extensions/ .agi/nodes/' EMPTY.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: "--branch isolation held for most agents and not all: source edits landed in the main checkout while nodes landed in the worktree"
 ---
 <!-- BODY:BEGIN -->

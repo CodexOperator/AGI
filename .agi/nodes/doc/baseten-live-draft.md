@@ -3,9 +3,9 @@ id: doc:baseten-live-draft
 mint_id: 084c8cdf3cc947b8bc332166be4aab1e
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/baseten-live-draft.md
 scaffold_hash: 37dd1dd6ce97b1a9
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"Live draft model training for speculative decoding\""
 town: local-maxxing
 ---

@@ -3,13 +3,13 @@ id: hypothesis:a00-c3912124-15653d
 mint_id: 277aef84515b4052a88076dbe3a79026
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.2
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 6e486e5c6ff46d06
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 — evidence gate/metric parity and deprecation guard soundness
 verdict: pending
 ---

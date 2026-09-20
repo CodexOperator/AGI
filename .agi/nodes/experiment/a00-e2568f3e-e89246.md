@@ -26,7 +26,7 @@ verdict: proved
 
 **The claim is a build order, and it is built.** Renamed the viewport theme
 literal `sanctuary` -> `keep` so the ladder may declare `sanctuary` as a town in
-the SAME round without tripping the `goal:g8.2` guard
+the SAME round without tripping the `goal:g1.24` guard
 (`test_no_literal_town.py`), which flags any RUNNABLE string constant equal to a
 non-core ladder town. The guard was not touched and no exemption was taught: the
 branch at `viewport.py:1076` (`if args.theme == "sanctuary"`) is exactly the
@@ -46,7 +46,7 @@ Changes (FILE SCOPE respected; ~11 production lines):
    - `_render_sanctuary` -> `_render_keep` (def + call site); docstring follows
    - `:580` status string `theme=keep`
    - `:421-422` comment: the theme is a VIEW of the keep, so the flag names the
-     view, never a town (`goal:g8.2`)
+     view, never a town (`goal:g1.24`)
    - **NO alias** — no `sanctuary` spelling survives anywhere runnable.
    - Identifiers that merely CONTAIN the substring (`sanctuary_frame`,
      `render_sanctuary_human/llm`, `SanctuaryScene`) were deliberately left:

@@ -3,7 +3,7 @@ id: hypothesis:l4-rotate-self-under-pytest-reaps-the-host-prime
 mint_id: 3bb99057832840819dc2e87af42cdaaf
 type: hypothesis
 parents:
-  - goal:g15.20
+  - goal:g6.42
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 94ad90aad3a063c6

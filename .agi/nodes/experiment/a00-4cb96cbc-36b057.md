@@ -66,7 +66,7 @@ writer (`write.py replace body 40:40 -`): `--basetemp` under
 synthetic `.agi/` root; a round whose fixtures DO build one must use pytest's
 default, out-of-repo basetemp, because an in-repo basetemp puts tmp_path inside
 the real repo and `locations` resolves the real graph instead of the synthetic
-root. Reasoning added to that node's THOUGHT. (goal:g17.1 / GOALS.md carry the
+root. Reasoning added to that node's THOUGHT. (goal:g7.16 / GOALS.md carry the
 merge-up-24 *record* of the race fix; left untouched — that is history, not the
 live instruction.)
 

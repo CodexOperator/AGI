@@ -4,7 +4,7 @@ mint_id: 953405ff83b54fadbf6a761593968783
 type: build
 parents:
   - idea:engine-skill-doc
-  - goal:g13.1
+  - goal:g4.18
 build_kind: prose
 confidence: 1.0
 edited_by: sanctuary-director

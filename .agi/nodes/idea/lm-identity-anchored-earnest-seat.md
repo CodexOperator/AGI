@@ -3,15 +3,16 @@ id: idea:lm-identity-anchored-earnest-seat
 mint_id: d55c17d5c00d4298b507c759baa38e61
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.7
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 9220647a20df446d
 scale: big
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: "\"Seat a judgement-heavy post (Prime/master class) on a model whose self-model is in the weights, disclosed to it in-context — an earnest hard-worker identity that prides itself on a job well done; measure coherence across rotation vs the base model before any seat\""
 town: local-maxxing
 ---

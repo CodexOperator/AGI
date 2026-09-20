@@ -4,7 +4,7 @@ mint_id: 51a860be97414f8cbf290ec48f2ff4ab
 type: hypothesis
 parents:
   - idea:l4-g176-one-question
-  - goal:g17.6
+  - goal:g7.19.1
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

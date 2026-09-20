@@ -3,10 +3,10 @@ id: goal:g5.4
 mint_id: 6ea00939f8e14d958d59b423d41a0208
 type: goal
 parents:
-  - goal:g5
+  - goal:g4
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: belam
 goal_id: G5.4
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G5.4: The season review and rollover, end to end"
 ---
 <!-- BODY:BEGIN -->

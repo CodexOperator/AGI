@@ -3,12 +3,13 @@ id: hypothesis:l4-remote-thought-town-a-box-cell-one-guard-and-a-five-minute-mai
 mint_id: fd6fdb17978b438cbf7a23f1643744d1
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 0ebb967fcd4862fe
 season: 2
 testable_claim: "(1) config:posts rows accept a `box` cell (formation-owner grant: `box` added to the sanctuary-master actor_rows fields); a row without the cell belongs to the default box named by the posts node's `default_box` cell, and THIS box's alias comes from AGI_BOX in the MAIN-root .env (box-local by construction), never a literal in code (test_no_literal_town.py stays green). (2) ONE helper (boxes.py: this_box(root), row_is_local(root, row)) is called by whois, heal and rotate status: a row whose box != this box is skipped BY NAME (its pid/window are another box's truth), a local row is judged exactly as today; ~10 lines at the call sites. (3) crons.md jobs take an optional `box` field; crons.py apply installs only jobs whose box is this box (absent = default box), so local-town's crontab is branch push + mail poll ONLY and core-town's crontab is byte-identical to today. (4) a new crons.md job mail_poll (every 5 min: fetch origin season2/main + the town trunk, then send.py read <post> for every local row) delivers a dm committed on another box within one tick through a bare hub repo. (5) STAND-IN: a second clone of agi under a second Unix user on this machine (sudo -n available; else a second clone dir under this user with tmux -L standin, disclosed) with its own .env (AGI_BOX=local-town, its own OPENROUTER_PROVISIONING_KEY placeholder -- the real key is the owner's to mint), its own .agi/sessions (own verify-suite.lock by construction), and crons applied for its box: a dm pushed from a throwaway core-side worktree to the local bare hub is read on the stand-in after one tick; envfile.py --check and verification.py --level quick pass there. (6) NO live thought-master / director-thought row is touched: the box cells for those two rows are delivered as ONE [decision] line with the exact row edit, applied at the 09-19 check-in."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.117 (owner 14:5xZ via the Prime 19:39Z, doc:s3-plan PRE-S3 \"SM.113\"; ids renumbered, 113-116 were taken): REMOTE THOUGHT TOWN, the Remote NOW shape -- a row's box cell names whose box its pid/window cells are, ONE guard skips foreign rows, a 5-minute fetch+read cron delivers mail across boxes in one tick, and the whole shape is verified on a stand-in box on this machine before the town boxes answer"
 town: core
 ---

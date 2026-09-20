@@ -3,13 +3,13 @@ id: hypothesis:l3-rotation-record-and-predecessor-guarantee
 mint_id: 5a17cb406ebe46a88b28a5d0eaaf4f19
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam
 scaffold_hash: 4e695a3456910cc9
 season: 2
 testable_claim=After: the change, every rotation performed by rotate.py — throwaway rehearsal or real claude --remote-control successor — writes a durable machine-readable record under .agi/sessions/rotations/ capturing all five observations (a NEW tmux window exists under the reused plain name per tmux list-windows and never the tool return value; the seat handoff generation incremented; which log the read-back actually read; that a planted stale bare continue was refused; that the predecessor window is still alive), AND rotate-self/loop REFUSE to report success when the predecessor window is gone or the successor window is absent; proven by red-first tests for each half plus one live throwaway rehearsal whose record file survives cleanup and is committed
-thought_session: belam-S1-L3-X
+thought_session: dissolve-legacy-2026-09-19
 title: "A rotation that is not recorded by the rotation itself is not evidence: make every rotation write a durable record, and make predecessor survival a guarantee"
 ---
 <!-- BODY:BEGIN -->

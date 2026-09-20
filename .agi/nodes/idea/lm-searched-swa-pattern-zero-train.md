@@ -3,14 +3,15 @@ id: idea:lm-searched-swa-pattern-zero-train
 mint_id: 3fb121025ee2488cbb342eff5d9a3bed
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: f935e715497d1822
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: Greedy-search a per-layer sliding-window pattern on Qwen3-0.6B, no training, to cut KV bytes/token
 town: local-maxxing
 ---

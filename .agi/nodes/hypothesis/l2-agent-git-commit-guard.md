@@ -3,13 +3,13 @@ id: hypothesis:l2-agent-git-commit-guard
 mint_id: de598d8294f049298f5435595c7b556c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.13
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: d9bab02f69062881
 season: 1
 testable_claim: "An agent spawned by dispatch.py at tier kid or parent cannot git commit in the project repo: a per-process hooks path installed by dispatch.py refuses the commit with the rule and the tier, while git status and git diff keep working"
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "L2 g15: l2-agent-git-commit-guard"
 ---
 # hypothesis:l2-agent-git-commit-guard
