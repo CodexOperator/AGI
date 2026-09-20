@@ -21,7 +21,7 @@ tags:
   - harness
   - template
   - spawn
-thought_session: texas-two-step-belam-voice-2026-09-19
+thought_session: texas-two-step-belam-voice-2026-09-20
 title: "G7.27: Templates are the sole harness arg builders"
 town: core
 ---
@@ -62,3 +62,5 @@ Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not reassign or interrupt.
 Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
+
+Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
