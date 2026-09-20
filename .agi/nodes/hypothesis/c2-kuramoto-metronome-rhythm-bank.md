@@ -3,7 +3,7 @@ id: hypothesis:c2-kuramoto-metronome-rhythm-bank
 mint_id: 09e5761280d74522a523645dced45522
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g14.12
   - hypothesis:c2-digital-kuramoto-flip-mode
 next_edges: []
 ceiling: "$1 OpenRouter total for parent + kid (deepseek-v4-flash class); CPU only, A1-light: single core under nice -n 19, numpy thread count explicitly limited to 1 in the environment; may run beside an off-box round (TM.27) but never beside another A1-heavy round (llama-bench, bitnet.cpp) on this same box; N <= 1000, no downloads, no pip installs, no torch, no GPU, no new providers; <= 40 tool calls for the kid; wall-clock <= 15 minutes hard; loadavg + MemAvailable row beside the reported numbers, same tenancy protocol as the town other numpy rounds."

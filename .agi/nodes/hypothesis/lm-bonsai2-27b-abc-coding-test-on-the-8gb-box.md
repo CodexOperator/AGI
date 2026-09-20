@@ -3,7 +3,7 @@ id: hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 mint_id: fff4f223fd4f4bed8fada6a94a6162ef
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g14.11
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 9b64eb97c3a0785d

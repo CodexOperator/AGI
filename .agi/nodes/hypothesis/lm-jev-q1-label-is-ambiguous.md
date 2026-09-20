@@ -4,10 +4,10 @@ mint_id: b232490b882446cb9a3faedeab37f26e
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14
+  - goal:g14.8
 next_edges: []
 ceiling: <= 1 USD OpenRouter (parent+kid); 0 API calls; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
-edited_by: brainstorm
+edited_by: thought-master
 falsifier: Pair disagreement is at or below 0.05 with a CI excluding 0.15 (the labels are consistent and the q1 gap is real model error, not target noise) OR every disagreeing pair is explained by a documented pre-review vs post-review transition recorded on the nodes (then the label is stale, not ambiguous, and the fix is a label rule, not a new model).
 scaffold_hash: 4f44b699ffc32e3c
 season: 2

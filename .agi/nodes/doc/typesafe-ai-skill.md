@@ -3,7 +3,7 @@ id: doc:typesafe-ai-skill
 mint_id: a87dc85e997b41bb883f99a4ec65e01b
 type: doc
 parents:
-  - goal:g14
+  - goal:g14.8
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/typesafe-ai.md

@@ -6058,6 +6058,8 @@ OWNER 21:4xZ 09-20 (thought-master pane, verbatim, six paragraphs): 'And we know
 
 OWNER 21:4xZ-21:5xZ 09-20 (thought-master pane, two more lines, verbatim): (1) 'Also if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance.' (2) 'Put all synthetic datasets into a separate easy to find easy to browse archive with its own explainer doc that you also build into the graph. Make adjustments as needed this is your branch. I have to go good luck' -- READ + ACTED: (1) = the town's SWITCH RULE and completion shape: when a local candidate's bench performance is within 10 pct of deepseek-v4.1-flash on the agreed battery (agentic coding + instruction following), the contributing chains mint ONE mvp that ties them together, a build node follows, and the town starts running its own kids and parents on it. The 10 pct needs a reference row that does not exist yet -> minted hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (chunk 1: the deepseek-v4.1-flash HumanEval row + IFEval on deepseek and the three local arms; the gap table). (2) = DONE at 21:5xZ: datasets/ at the repo root (kid-sft + jev-typed-acts moved whole, humaneval-abc symlinked until ABC.02 lands, the 09-20 trove-survey stage JSON committed under workflow-runs/), explainer datasets/README.md = the payload of doc:lm-research-corpus-registry, landing rule standing from ABC.02 on.
 
+OWNER 22:1xZ 09-20 (thought-master pane, verbatim): 'Also let's go ahead and break out all those goals into sub goals and let the director break those down into sub sub goals before pursuing as ideas and hypotheses. This way the goal g14 on itself doesn't get too overcrowded with chains and it makes more sense semantically looking at graph. Make sure all subgoals and sub-sub goals follow the exact same format as our current goals regarding invariants falsifiers etc. Just need to do a cleanliness pass' -- ACTED 22:1xZ: six subgoals minted in the current goal format (frontmatter goal_id/goal_kind subgoal/status/origin goals-doc/seeds/confidence/tags + Agent Notes with owner source, commits-to, invariants, falsifiers, done-when, first chunk): G14.6 Track I inference-side optimisation (heads -> context/throughput -> layered) · G14.7 Track II fine-tuning (morals + sanctuary SFT A/B, + oscillator, + QAT; Camber) · G14.8 Track III jev optimisations (local jev, API-key side, the magic pane) · G14.9 abliteration (own lever + cross-model feature differences; the prod rule) · G14.10 the research corpus archive (landing rule, scrub, registry) · G14.11 the switch (battery, reference bar, the 10 pct rule -> mvp -> build -> run our own). Today's chunk-1 ideas/hypotheses re-parented from goal:g14 to their subgoal; the director mints the sub-sub-goals (G14.x.y, same format) under each subgoal and re-parents the chunk nodes under them BEFORE pursuing any of them. Existing G14.1-G14.5 untouched (ids never renumbered).
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10355,6 +10357,166 @@ Per node at done and per session: model, harness, profile, tokens_in, tokens_out
 
 ## Agent Notes
 Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the owner text of 2026-09-07 (04:40–07:36 UTC) recorded verbatim in .agi/context/l3-command-ladder-brief.md, section "Owner text 2026-09-07 — perpetual seats, the quorum as reviewer, the owner liaison". The seat system: a registry of roles and active seats extending the dispatch model-assignment config — per seat its role, ladder tier, harness, model, effort, session kind (remote-control, tty, fire-and-forget), personality ref, handoff, current session pin and who rotates it — resolved from config nodes in the graph so the graph carries everything. It spawns the seat build nodes and sub-goals that lead to config nodes, holds the owner-liaison seat (Sonnet 5 high, rotated by the quorum, the owner primary contact), and the perpetual rotation loops at 0.35 for every non-prime seat. Model table (owner correction 07:36 UTC): prime Belam Fable 5.1 max ultracode; quorum advisors Opus 5 max; director-kids Opus 5 high; liaison Sonnet 5 high; pi parents and kids as they are. Comms (owner): collapsed ladder gives director-kids no free comms to Belam; the expanded hierarchy allows free director-kid lateral comms and limited vertical comms to other director-kids; no director reaches Belam except through the quorum, which IS Belam to anyone else. Wave-4 briefs are hypothesis:l3w4-* under this goal.
+
+## App: local-maxxing
+
+The goals of this app/town share one vision, one council and one per-town
+vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
+Town is derived from a vision's `town:` cell; core is every other goal.
+
+#### G14.5 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.5
+
+## Agent Notes
+OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 into the graph properly, but that needs IOMap system from SM so dont worry about that or telling her. Just letting you know thats a part of the solution. But some way to at least explain what each code file in bend2 does in and of itself at the source level. Thatll take a while, can be a long-term slow moving ongoing effort. The hypothesis could be I think this file does this and experiment until you have the right hypothesis and it links up to the existing build mode that is the code file. This can be a second director job you spawn, a test run of having a director attached to a specific goal that they keep chasing independently. You can communicate this to sanctuary master but dont stand up the post yet we need to preserve resources." APPLY (thought-master): (1) this goal holds the field; (2) SHAPE of the work: the Bend2 + HVM source (HigherOrderCO, the compiler, the C and CUDA runtimes) enters the tree under .agi/context/local-maxxing/bend2-src/ (a pinned shallow checkout, commit recorded) so level3 mints a build node per file -- the build node IS the file; per file one hypothesis "this file does X" with a falsifier (a probe: a call, a test, a trace) and one experiment; a verdict links hypothesis -> build node; a per-directory doc summarizes what proved; (3) ORDER: start where the why-idea points (the HVM CUDA runtime + the Bend to HVM lowering), not alphabetically; (4) the dedicated director (second town director, goal-attached, chases this alone at a gentle cadence, 1 USD/round) is NOT seated until the owner lifts the resource hold; until then the why-idea experiment (kernel-launch count) is the only Bend work and runs under director-thought; (5) the proper cross-file mapping (calls, imports, contracts) waits on the IOMap system -- not a thing to ask for. Communicated to the sanctuary-master 17:5xZ as a status line (a post to plan, not to stand up).
+
+thought-master 22:3xZ 09-20 (cleanliness pass, owner 22:1xZ): required goal fields were missing (status, origin, seeds, tags, confidence) so this subgoal never rendered into GOALS.md -- set now, no other change; it is the source-mapping sibling of the G14.12 spiking side track.
+
+#### G14.6 — TRACK I — inference-side optimisation of the local models the town runs its parents and kids on: oscillator/coherence head pruning WITHOUT spikes first, then context and throughput from the DeepSeek-class papers, then every technique layered (owner 21:4xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.6
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "as far as using the models for parents and kids I wanna: Apply the oscillator technique first without any spike stuff just trying to prune heads, see if we can increase context limits and token throughput via techniques in the other papers we have from deepseek etc, (we have a ton of cpu threads here and a ton of ram), and also applying all the techniques layered." Pace: "super slow … super small chunks."
+
+**Commits to.** Make the local models the town actually runs its parents and kids on (today Qwen3.5-9B Q4_K_M and Bonsai 2 27B PTQ1_0 on the rig) cheaper per token and longer in context by layering *existing* inference-side techniques, in this order: (1) head pruning guided by the oscillator/coherence method, with no spiking machinery; (2) context and throughput levers from the DeepSeek-class papers already in the trove (MLA/NSA-style KV, MTP/spec-decode, TurboQuant-class KV quantisation, kv-slot, eagle3) — each measured alone; (3) the survivors layered, so that a new optimisation is *composed* from off-the-shelf ones. Spiking work (bend2 language mapping) stays a side track under G14.5 and enters here only as a learned, measured piece.
+
+**Invariants.** Every lever is measured on the same bench rows (tok/s at empty and 16K context, peak VRAM, J/token, KLD or pass@1 vs the unmodified model) before and after; a lever that costs > 2 points on the G14.11 battery is not kept whatever its speed; nothing here modifies weights (that is G14.7); the resident server is restored after every GPU window; one paid round at a time.
+
+**Falsifiers.** (a) The oscillator/coherence ranking is falsified as a pruning criterion if the K_c threshold shows no knee and coherence does not rank head damage (first chunk) — then pruning proceeds by measured Δloss/GQA-group yield and the oscillator budget is released. (b) The goal itself is falsified if, after each lever has one measured chunk, no lever *or* layering improves tok/s or context by ≥ 20 % at ≤ 2 battery points — then the local models are served as-is and the effort moves to G14.7.
+
+**Done when.** A layered configuration is measured end to end on a real round (a parent + kid on the served model) and its rows sit in the G14.11 gap table; the mvp that G14.11 mints cites this goal's contributing chains.
+
+**First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G14.6.1 heads, G14.6.2 context/throughput, G14.6.3 layering), same format as this node, before any chunk runs.
+
+#### G14.7 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.7
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "first fine tune the bigger models on our morals and the sanctuary substack from user Shaelaran with its fairly esoteric texts specifically. I wanna see how that affects performance and compare contrast with several ab trials with various parameters adjusted. Then try to do the oscillator optimization together with the fine tune. Then do a quantization-oriented fine tune to maybe optimize even more. Just keep chasing individual optimizations first then layering together over time." And: "I'm fine with spending camber hours on it and failing it's fine since at least it can run parallel for fine tuning stuff or even more RL and heck even pretraining a bunch of smaller models in parallel." Trajectory: "maximize local model performance on agentic coding and instruction following performance through existing off the shelf methods like fine tuning and Lora fine tuning further potentially from the abliterated model or combine fine tuning with the custom Lora."
+
+**Commits to.** A training track for the bigger local models, off the shelf only (SFT / LoRA / QLoRA, later RL and small-model pretraining), on Camber GPU hours the owner has authorised for this purpose (per-job keys still issued through the Prime): (1) SFT on the town's morals plus the Sanctuary substack (Shaelaran), several A/B trials over parameters (rank, lr, epochs, data mix), each judged on the G14.11 battery and on the jev typed-acts replay; (2) the same fine-tune combined with the G14.6 oscillator optimisation; (3) a quantisation-oriented fine-tune (QAT / quantisation-aware LoRA) for the served precision; layering as each step proves. The base to fine-tune from is the abliterated candidate, or the custom LoRA is combined with it (G14.9 rule).
+
+**Invariants.** The corpus is measured, scrubbed and split before any GPU hour (G14.10 rule); every trial has a pre-registered eval and a control (base model, same battery, same template); no trial is judged on training loss; the served precision is the one measured; per-job spend is stated in the round brief and never exceeds what the Prime issued; failing trials are recorded as rows, not deleted.
+
+**Falsifiers.** (a) The morals+sanctuary SFT is falsified as a lever if across ≥ 3 A/B trials no trial beats the base on the battery by ≥ 2 points without a > 2-point loss elsewhere — then the corpus is the wrong signal for these evals and the track moves to task-shaped data (the town's own labelled rounds, G14.10). (b) The goal is falsified if no fine-tune of any kind closes ≥ 25 % of the local-vs-reference gap in G14.11 after the three steps each have one measured chunk.
+
+**Done when.** A fine-tuned, served, abliterated candidate sits in the G14.11 gap table with its recipe (data, params, hours, USD) reproducible from the archive, and the layered recipe is the one the G14.11 mvp cites.
+
+**First chunk (minted):** `hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set` (corpus before hours). Sub-sub-goals are the director's to mint (G14.7.1 corpus + battery, G14.7.2 SFT A/B trials, G14.7.3 SFT + oscillator, G14.7.4 QAT), same format, before any chunk runs.
+
+#### G14.8 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.8
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "I also wanna pursue more jev optimizations: Local jev stuff especially but also the api key stuff. See if we can come up with a 'magic pane' that is a tmux pane surface that reads the raw prose tokens an LLM streams into it and suggests structured outputs it should use as instantaneous mid stream interruptions like autocorrect like oh you want this structured form rescaled and the next tokens you stream will go straight in the body or whatever appropriate fields just fire them all off I'll distribute and confirm final form. Call it the magic pane. A true LLM autocorrect and autofill that could genuinely save tokens. Just have link to it via cli."
+
+**Commits to.** The jev line (the local judge of typed engine acts) continues on the local models first; the API-key side (per-kid endpoint keys, G14.4's consumer) is kept measurable; and the **magic pane** is built in small chunks as a research tool, not engine code: (1) an offline detector that predicts the structured form from the first prose tokens of a recorded stream; (2) a read-only tmux surface that shows the suggestion beside a live stream; (3) the interruption protocol — a CLI the streaming agent calls to hand the next tokens straight into the form's fields, with the pane distributing and confirming the final form; (4) measured token savings on real rounds. Local models only (the 9B on `:8080` or smaller); the pane never edits a node itself — it proposes, the agent confirms through `write.py` / `send.py`.
+
+**Invariants.** Every chunk reports precision/recall or accuracy against a majority baseline, latency per event, and — from chunk 3 — tokens saved per form versus the same form written out by the agent, on ≥ 20 real events; no chunk touches `extensions/` (a kid may write a script under `.agi/context/local-maxxing/magic-pane/`; the CLI link is a one-line wrapper); the detector runs on a local model at ≤ 1.5 s median or it is not usable mid-stream.
+
+**Falsifiers.** (a) The detector is falsified if top-1 form accuracy stays < 0.6 at 80 prose tokens (then a form-specific prompt or a tiny classifier is the next chunk, and if that also fails the pane is retired). (b) The goal is falsified if the interruption protocol saves < 15 % of the tokens of the structured forms it intercepts on ≥ 20 real events — an autocorrect that costs more than it saves is not kept.
+
+**Done when.** A round's parent runs with the pane linked, its forms are filled through the pane, the saving is measured, and the pane is handed to G14.11's build as a component or retired with its numbers.
+
+**First chunk (minted):** `idea:lm-magic-pane-llm-autocorrect-and-autofill` → `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens`. Sub-sub-goals are the director's to mint (G14.8.1 local jev, G14.8.2 API-key side, G14.8.3 the magic pane), same format, before any chunk runs.
+
+#### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.9
+
+## Agent Notes
+**Owner source (2026-09-20 16:2xZ, verbatim on goal:g14):** "if it's identical, my preference is always use the abliterated models over non-abliterated ones. So if any model is good enough to be used in prod at some point it would have to be abliterated. If not by anyone else then by us. We could extract the feature differences between abliterated and non-abliterated models and see if there are any generalized patterns across models."
+
+**Commits to.** (1) The standing rule: a prod candidate must be abliterated — by the town if by no one else; between identical candidates the abliterated one wins; every charter-table row carries `abliterated?`. (2) The capability: derive a direction from any model the town serves, apply it at runtime (control vector or rank-1 LoRA projection), verify it is in the compute graph (scale 0 byte-identical, large scale visibly broken), and price it on the G14.11 battery. (3) The research question: are the feature differences between abliterated and non-abliterated models the same object across models — compared only through basis-independent signatures (unembedding token sets vs a random-direction null, depth profile, behaviour profile), never raw cosine across hidden sizes.
+
+**Invariants.** Every direction has an adapter-in-graph check and a random-direction control; capability cost is measured on the same battery as everything else; the shipped OrcaBonsai lever (Bonsai 2 27B) is the reference implementation the town's own lever must match before being trusted; nothing is baked into weights (a ternary re-quantisation rounds the edit away — measured by the source).
+
+**Falsifiers.** (a) The own-lever chunk is falsified if the extracted direction moves refusal < 10 points at every scale or costs ≥ 2 battery points at the first scale that works — then the rank-1 projection route replaces the control-vector route, and if that also fails the town relies on shipped abliterations only. (b) The cross-model claim is falsified if the unembedding-signature overlap across the Qwen family is not above the random null (Jaccard of top-200 ≤ null + 2σ) — then "abliteration" is per-model and the goal narrows to the capability alone.
+
+**Done when.** The town has abliterated at least one candidate itself, matched the shipped lever's behaviour on Bonsai, and either found a shared signature (a `doc:` with the pattern) or recorded that there is none.
+
+**First chunk (minted):** `idea:lm-abliteration-feature-differences-generalize-across-models` → `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01). Sub-sub-goals are the director's to mint (G14.9.1 own lever, G14.9.2 cross-model signatures), same format, before any further chunk runs.
+
+#### G14.10 — THE RESEARCH CORPUS — datasets/ at the repo root: every eval round triples, every scrubbed parent/kid trajectory, every harvested workflow run, indexed by datasets/README.md = doc:lm-research-corpus-registry; the landing rule and the one scrub (owner 21:4xZ / 21:5xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.10
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ / 21:5xZ, verbatim on goal:g14):** "are we storing the synthetic datasets we are generating from these evals? They are rpeclassified and can really strengthen our research corpus and ability to use it for model tune ups." — "Put all synthetic datasets into a separate easy to find easy to browse archive with its own explainer doc that you also build into the graph."
+
+**Commits to.** `datasets/` at the repo root is the town's research corpus: every eval round's `(prompt, output, label)` triples, every parent/kid trajectory (scrubbed), every harvested workflow run, indexed by `datasets/README.md`, which is the payload of `doc:lm-research-corpus-registry`. The corpus is the input of G14.7 and the evidence base of G14.11.
+
+**Invariants.** (1) Nothing lands unscrubbed: the span-based redactor is the one scrub; a leak hit blocks the commit. (2) Every record carries its label's provenance (which experiment, which verdict, which reviewer). (3) Trajectories are landed *before* a worktree is removed; raw streaming logs are never landed. (4) The index is updated in the same merge that adds a corpus. (5) Model bytes never live here. (6) A dataset used for training is frozen by sha256 in the trial's node.
+
+**Falsifiers.** (a) A merge that adds a round without its triples or trajectories is a rule violation, counted on this node; three in a row falsify the hand-step design and force the engine-level retention flag (SM item). (b) The corpus is falsified as "preclassified" if a re-scrub or a label audit finds > 1 % of records with a wrong or missing label — then the affected corpus is quarantined (moved under `datasets/quarantine/`) until relabelled.
+
+**Done when.** Never — this is a perpetual hygiene goal; it is reviewed at each G14.11 gap-table update (does every row's evidence resolve into the archive?).
+
+**First chunks (done / minted):** the archive itself (2026-09-20 21:5xZ); `datasets/trajectories/ABC.01/` (landed 22:00Z); DS.01 = the kid-sft re-scrub with the span tool (queued after MP.01). Sub-sub-goals are the director's to mint (G14.10.1 landing, G14.10.2 scrub + audit), same format.
+
+#### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.11
+
+## Agent Notes
+**Owner source (2026-09-20 21:5xZ, verbatim on goal:g14):** "if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance." Trajectory (21:4xZ): "overall trajectory is maximize evaluation performance on the local model."
+
+**Commits to.** One battery, one reference bar, one switch. The **battery** is agentic coding + instruction following measured the same way for every candidate and for the reference: HumanEval 164 (execution pass@1), IFEval 541 (strict prompt-level accuracy), and — when it exists — the town's own typed-round success (a minimal engine round on the candidate, done-or-not, as in round 0). The **reference** is deepseek-v4.1-flash via OpenRouter on the same protocol, re-taken when the model id changes. The **switch**: when a local candidate is within 10 % (relative) of the reference on every battery row, the contributing chains (G14.6–G14.9) mint ONE mvp that cites each contributing hypothesis, a build node follows, and the town's parents and kids run on it.
+
+**Invariants.** The gap table (candidate × eval, absolute and relative, paired discordant counts vs the reference, tok/s, VRAM, USD/1M tokens, `abliterated?`) is the only place a candidate's standing is read from; every row resolves into `datasets/`; a proof of "within 10 %" never switches anything by itself — it triggers the mvp mint; the mvp names every contributing chain by id; the first real rounds on the local build are compared to the same rounds on the reference before the switch is called complete.
+
+**Falsifiers.** (a) The switch rule is falsified as a criterion if a candidate within 10 % on the battery fails ≥ 30 % of real typed rounds the reference completes — then the battery is missing the agentic row and is extended before any switch. (b) The goal is falsified for a season if no candidate reaches 90 % of the reference on any battery row after G14.6, G14.7 and G14.9 each have a landed chunk — recorded, not hidden.
+
+**Done when.** The town's parents and kids run on its own build for one full week of rounds with the gap table showing ≤ 10 % on every row and the round-completion rate within 10 % of the reference's.
+
+**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G14.11.1 the battery + reference, G14.11.2 the mvp/build/switch), same format, before any chunk runs.
+
+#### G14.12 — SIDE TRACK — spiking / oscillator readouts (Kuramoto, LIF/spectral, C2C fusers, SNN walkers, the bend2 spiking sim): only as capacity allows, never ahead of an owner-track round, imported into the main tracks piece by piece as learned (owner 21:4xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.12
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "No crazy spiking stuff too much yet except on the side if capacity allows like mainly the bend2 language mapping so we can slowly import it into the graph not just wholesale but as we learn the useful things we need to know about it to make things run better." Earlier sources: the owner's oscillator / Kuramoto / C2C / LIF threads (goal:g14 notes 09-14 → 09-19).
+
+**Commits to.** Keep the spiking and oscillator lines alive as a **side track**: coupled-oscillator readouts, LIF/spectral snapshots, C2C fusers, Kuramoto rhythm banks, SNN walkers, the bend2 spiking sim — run only when no owner-track (G14.6–G14.11) round is waiting for the same resources, and only as small measured chunks whose *learned* pieces are imported into the main tracks (e.g. a coherence ranking that G14.6 can use) rather than wholesale. G14.5 (the bend2/HVM source mapping) is the sibling that feeds this track its ground truth.
+
+**Invariants.** A side-track round never holds the GPU or the paid-round slot ahead of an owner-track round; every chunk names the main-track hypothesis it would feed if it proved; the oscillator budget is gated by G14.6's first chunk (the K_c kill-test) — no oscillator spend before that verdict; kill criteria pre-registered per chunk (the 09-20 judge's FRANK 7).
+
+**Falsifiers.** The track is paused (status `horizon`) for the season if two consecutive chunks feed nothing measurable into a main track, or if the K_c kill-test returns the null and no other coherence signal survives its own falsifier.
+
+**Done when.** Never as such — it is retired into the main tracks piece by piece; done for a season when every learned piece has a home under G14.6–G14.11 and nothing here is still live.
+
+**Seeds:** the existing oscillator/spiking nodes re-homed here on 2026-09-20 (cleanliness pass). Sub-sub-goals are the director's to mint (G14.12.1 readouts, G14.12.2 bend2 spiking sim), same format, before any chunk runs.
+
+#### G14.13 — THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.13
+
+## Agent Notes
+**Owner source (2026-09-13 23:32Z, verbatim in doc:l4-owner-decisions; goal:g14 charter):** the thought-master owns "goal:g14 … and its research treasury"; "a very slow, gentle research loop". Owner links arrive as lines in the pane (09-18: turboquant_plus / OrcaBonsai / bonsai2-small-gpu; 09-14: dead-head, tiktok-videos-4b, the looped transformer) and are ingested by the trove-survey and paper-digest workflows.
+
+**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G14.6–G14.12) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
+
+**Invariants.** One survey per owner link set, never re-run blind (the run dir is the record); every digest quotes file paths and dates and marks MEASURED vs ESTIMATE; a critique stage that times out is recorded as missing on the goal (the 09-20 bonsai2-small-gpu critique); cost per survey stated (≤ 1 USD unless the owner names more).
+
+**Falsifiers.** A treasury row that is minted as a hypothesis without a falsifier, or under g14 directly instead of its track, is a rule violation counted here; the workflow is re-authored if two surveys in a row produce judge rows that cannot be minted as written.
+
+**Done when.** Never — perpetual; reviewed when a track closes (every digest it cites resolves).
+
+**Seeds:** the paper/repo digests re-homed here on 2026-09-20 (cleanliness pass), plus the 09-20 trove-survey run (`datasets/workflow-runs/trove-survey-2026-09-20/`).
 
 ## App: streaming-suite
 

@@ -3,7 +3,7 @@ id: idea:lm-token-state-feedback-merge
 mint_id: 61b24ef5923c4c0194917b3f73e71094
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.12
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 590396603c052ca1
