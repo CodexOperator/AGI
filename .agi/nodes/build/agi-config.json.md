@@ -25,5 +25,5 @@ title: Agi config.json
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-09-19: raise spawn.parallel 1->7 (more concurrent pi parents; RAM free)
+owner correction 2026-09-19: spawn.parallel is per-command slots not soft concurrency; restore 1. Up to 7 concurrent parents is prose/soft until a hard cap lands later.
 <!-- THOUGHT:END -->
