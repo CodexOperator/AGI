@@ -170,6 +170,35 @@ def test_both_shapes_agree(capsys):
     assert sg.warn_premature_complete(wrapped) == sg.warn_premature_complete(flat)
 
 
+def test_cmd_render_emits_the_goal_s26_warning_end_to_end(tmp_path, monkeypatch,
+                                                          capsys):
+    """DH.13 residue, goal:s26: the tests above call
+    `warn_premature_complete` with a hand-built wrapper dict, so a regression
+    in the DISK reader (`load_existing_nodes`) or in `cmd_render`'s call site
+    could stay unseen. Drive the real render from goal FILES on disk to the
+    warning on stderr."""
+    sg = _snapshot_goals()
+    nodes = tmp_path / "nodes" / "goal"
+    nodes.mkdir(parents=True)
+    (nodes / "G5.md").write_text(
+        "---\nid: goal:G5\norigin: goals-doc\ntype: goal\ngoal_id: G5\n"
+        "status: complete\ngoal_kind: long-term\nheading_level: 2\n"
+        'title: "G5: T"\n---\nbody\n')
+    (nodes / "G5.1.md").write_text(
+        "---\nid: goal:G5.1\norigin: goals-doc\ntype: goal\ngoal_id: G5.1\n"
+        "status: active\ngoal_kind: subgoal\nheading_level: 3\n"
+        'title: "G5.1: T"\nparents:\n  - goal:G5\n---\nbody\n')
+    monkeypatch.setattr(sg, "NODES_DIR", tmp_path / "nodes")
+    monkeypatch.setattr(sg, "GOALS_MD", tmp_path / "GOALS.md")
+    monkeypatch.setattr(sg, "PROJECT_ROOT", tmp_path)
+    existing = sg.load_existing_nodes()
+    assert sorted(existing["goal:G5"]) == ["body", "fm", "origin", "path"]
+    assert sg.cmd_render(check=False) == 0
+    err = capsys.readouterr().err
+    assert "goal:s26" in err
+    assert "G5.1" in err
+
+
 # --------------------------------- goal:s23 — load retired, do not render
 
 
