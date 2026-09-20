@@ -87,16 +87,31 @@ def load(harness_id: str) -> dict:
             f"no harness template {harness_id!r} in {template_dir()}; "
             f"available: {available()}")
     data = tomllib.loads(path.read_text(encoding="utf-8"))
-    _check_parts(path, data.get("argv", []))
+    argv = data.get("argv", [])
+    if not isinstance(argv, list):
+        raise HarnessTemplateError(
+            f"{path}: argv is not a list (got {type(argv).__name__}: "
+            f"{argv!r}); write argv = [ ... ]")
+    _check_parts(path, argv)
     roles = data.get("roles")
     if roles is not None and not isinstance(roles, dict):
         raise HarnessTemplateError(
             f"{path}: roles is not a table (got {type(roles).__name__}: "
             f"{roles!r}); write [roles] source = ...")
-    for name, shape in (data.get("shapes") or {}).items():
+    shapes = data.get("shapes")
+    if shapes is not None and not isinstance(shapes, dict):
+        raise HarnessTemplateError(
+            f"{path}: shapes is not a table (got {type(shapes).__name__}: "
+            f"{shapes!r}); write [shapes.<name>]")
+    for name, shape in (shapes or {}).items():
         if not isinstance(shape, dict):
             raise HarnessTemplateError(f"{path}: shape {name!r} is not a table")
-        _check_parts(path, shape.get("argv", []), label=f"shapes.{name}")
+        shape_argv = shape.get("argv", [])
+        if not isinstance(shape_argv, list):
+            raise HarnessTemplateError(
+                f"{path}: shapes.{name}.argv is not a list (got "
+                f"{type(shape_argv).__name__}: {shape_argv!r})")
+        _check_parts(path, shape_argv, label=f"shapes.{name}")
     return data
 
 
