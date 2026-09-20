@@ -364,3 +364,31 @@ def test_bogus_role_source_is_a_named_error_never_a_default(
     assert rc != 0
     assert shell == ""
     assert "unknown roles.source 'cosmic'" in err
+
+
+def test_non_table_roles_refuses_the_seat_by_name_not_a_crash(
+        tmp_path, capsys, monkeypatch):
+    """A top-level `roles = "ladder"` (not a `[roles]` table) must reach the
+    seat path's `except HarnessTemplateError` catch: rc != 0, empty command,
+    `ERR:` on stderr -- never an AttributeError escaping the named refusal."""
+    td = tmp_path / "tmplnontable"
+    td.mkdir()
+    (td / "nontable.toml").write_text(
+        'id = "nontable"\nbin = "/fake/bin/nontable"\n'
+        'roles = "ladder"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    _patch_templates(monkeypatch, td)
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "nontable": {"adapter": "x"}}}))
+
+    rc, shell = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="nontable", root=root)
+    err = capsys.readouterr().err
+    assert rc != 0
+    assert shell == ""
+    assert "roles is not a table" in err
