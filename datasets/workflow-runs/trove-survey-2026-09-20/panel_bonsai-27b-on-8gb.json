@@ -1,0 +1,251 @@
+{
+ "angle": "What is the shortest measured path to serving Bonsai 2 27B ternary on the 8 GB RTX 2070 SUPER (sm_75) box at a usable tokens/s (serve line, kernel, MTP/spec-decode), and what does it displace in the current 3-entry preset list? Verified on the box itself 2026-09-20: the 12 PTQ1_0 segments concatenate to the pinned sha256, the prebuilt PrismML fork carries 145 sm_75 and 340 ptq1_0 matches, cmake is ABSENT on the host, and the router exposes exactly {Qwen3.5-35B-A3B-Q3_K_M, Qwen3.5-9B-Q4_K_M, bonsai=Ternary-Bonsai-1.7B-PQ2_0} under the stock image that rejects PTQ1_0. Shortest path = assemble + load + bench the prebuilt fork (no build, no download, ~30 min, $0); the 1.5x kernel is the only real decode lever and its sm_75 transfer is the one open question; MTP is a 12 GB-tier feature on this model.",
+ "chains": [
+  {
+   "chain_title": "A. Load first: the zero-build prebuilt path is the shortest measured path, and the 8 GB row has never been run",
+   "why_this_first": "Every asset is already on the 8 GB box (MEASURED this session: 12 segments under /data/ml/models/bonsai summing to 5,946,648,928 B and concatenating to sha256 53107f53...; the prebuilt PrismML fork at /data/ml/llama-prism-fork/fork/llama-prism-b10685-7dffb15 with 145 sm_75 and 340 ptq1_0 string matches; 238 GB free disk), so the first experiment is a cat+sha256, a server stop, one load and one llama-bench: no build, no download, ~30 min, $0. The source repo's own serve/README.md marks the 8 GB row 'pending' and measured its ~7.3 GB footprint on a 12 GB card, so until A2 runs every claim about 27B-on-8GB is arithmetic. A failure here is the cheapest possible good news: it closes the tier before any build is attempted.",
+   "hypotheses": [
+    {
+     "id": "A1",
+     "claim": "The 12 on-disk PTQ1_0 segments concatenate to the pinned sha256 53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3 and total 5,946,648,928 B, so the local copy is the exact PrismML release and no re-fetch is needed. STATUS: MEASURED TRUE on this box 2026-09-20 (cat seg000..seg011 | sha256sum = the pin).",
+     "falsifier": "sha256sum of the concatenation differs from 53107f53..., or the byte total differs from 5,946,648,928.",
+     "experiment": "cd /data/ml/models/bonsai; cat Ternary-Bonsai-2-27B-PTQ1_0.gguf.seg0[0-9][0-9] | sha256sum; du -cb ...seg0[0-9][0-9] | tail -1. Already run; keep the command in the node as the standing integrity gate before every 27B load.",
+     "hardware": "8GB box (2070S, local/free) - disk only",
+     "est_cost": "~1 min, $0 (already spent)",
+     "builds_on": "none",
+     "knowledge_if_fails": "If the local segments are corrupt or short, every downstream chain is void and the true first cost is a ~9 h re-fetch at the measured ~0.2 MB/s egress, not the load test. This is the gate, not a formality."
+    },
+    {
+     "id": "A2",
+     "claim": "The prebuilt PrismML fork loads Ternary-Bonsai-2-27B-PTQ1_0.gguf fully on the 2070S at the verbatim serve/8gb.sh line (-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja) with no CPU offload and no cudaMalloc OOM under the 7786 MiB usable VRAM, i.e. the 8 GB row loads.",
+     "falsifier": "cudaMalloc OOM; or the load log shows any layer offloaded to CPU; or nvidia-smi peak exceeds 8192 MiB. The 3060 reference is 7266 MiB idle at 64K (source MEASURED), i.e. only ~520 MiB of this card's 7786 MiB usable is claimed as headroom.",
+     "experiment": "Stop the stock 9B router child (currently 6742 MiB used, MEASURED), then run the prebuilt fork's llama-server with serve/8gb.sh against the assembled file; read the load log for n_layer_all=64 / no 'offloaded' lines and sample nvidia-smi. If it OOMs, retry at -c 32768 and then with -ctk q4_0 -ctv iq4_nl.",
+     "hardware": "8GB box (2070S, sm_75, local/free)",
+     "est_cost": "~10 min wall, $0",
+     "builds_on": "A1",
+     "knowledge_if_fails": "The 8 GB tier is really a 12 GB tier: the 3060's 7266 MiB does not transfer to sm_75/driver 595.84 and the right 8 GB line is 32K, not 64K. This is the single most load-bearing unrun number in the source repo."
+    },
+    {
+     "id": "A3",
+     "claim": "At 64K loaded, the prebuilt fork's decode on the 2070S lands in the read's ESTIMATE band (empty ~28-35 tok/s, 64K filled ~9-13 tok/s), so the prebuilt path alone is already 'usable' for long-context single-stream work.",
+     "falsifier": "llama-bench tg128 < 15 tok/s at depth 0, or < 6 tok/s at 64K, q4_0 K/V, r=3, tenancy logged.",
+     "experiment": "Prebuilt llama-bench, original file, -fa 1 -ctk q4_0 -ctv q4_0, depth ladder 0 / 16384 / 65536, tg128 and pp512, r=3, with /proc/loadavg and nvidia-smi beside every row. Replaces the source's 3060-only ladder with a sm_75 row.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~20 min, $0",
+     "builds_on": "A2",
+     "knowledge_if_fails": "If prebuilt decode at 64K is <6 tok/s the 27B is not usable on 8 GB without the kernel, which makes chain B mandatory rather than optional and re-orders the whole roadmap. If it is >=10 tok/s the kernel becomes a nicety."
+    },
+    {
+     "id": "A4",
+     "claim": "The 27B at 64K displaces the existing 'bonsai' slot (Ternary-Bonsai-1.7B-PQ2_0.gguf) but does NOT displace the 9B/35B presets: at matched quality it is a long-context candidate, not a raw-speed one.",
+     "falsifier": "A task where the 27B at 64K beats the 9B at equal wall-clock, or the 9B cannot fit the context the 27B can.",
+     "experiment": "Measure the 9B's max context on this card under the stock router; then one 3-prompt code/prose/bash spot-check (greedy, thinking off) at 27B-64K vs 9B-max-ctx, logging tok/s and bytes/token. Raw outputs stored, not scored by eye.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~30 min, $0",
+     "builds_on": "A3",
+     "knowledge_if_fails": "The preset list is not short of a 27B; the binding constraint is the 9B's context, and the 27B's niche is long context at ~6-10x the 9B's bytes/token. That redirects the town's 27B spend to long-context jobs only."
+    }
+   ]
+  },
+  {
+   "chain_title": "B. The 1.5x PTQ1_0 kernel on sm_75: does the only decode lever transfer to Turing?",
+   "why_this_first": "The kernel is the difference between the prebuilt ~9-13 tok/s at 64K and a patched ~12-18 tok/s (ESTIMATE), and it was built and measured ONLY for sm_86 (RTX 3060, CUDA 12.4). This card is sm_75 with host nvcc 12.0.140 and NO cmake installed (MEASURED this session). The gain's sm_75 survival decides whether the 8 GB tier is merely loadable or actually usable, and it is entirely local/free except for one attribution burst.",
+   "hypotheses": [
+    {
+     "id": "B1",
+     "claim": "The pr-ptq1-mmv patch series (kernel/patches/kernel/0001..0005) applies cleanly to prism/prism 9a9394a89 and the kept dp4a path contains no sm_80+ intrinsic, so the kernel is a build question, not a port.",
+     "falsifier": "git am conflict; or grep finds mma.sync.m16n8k16.s8 / __nv_ / cooperative-groups in the KEPT kernel (the report says the tensor-core variants were reverted, so only a grep of the final diff counts).",
+     "experiment": "git clone github.com/sudoingX/llama.cpp (branch pr-ptq1-mmv); git am kernel/patches/kernel/0001..0005; grep -nE 'mma.sync|__nv_|cooperative_groups' ggml/src/ggml-cuda/mmvq-ptq1_0.cuh mmvq.cu quantize.cu.",
+     "hardware": "8GB box (host CPU/disk, local/free)",
+     "est_cost": "~20 min, $0",
+     "builds_on": "A1",
+     "knowledge_if_fails": "If the kept kernel is sm_80+, Turing needs a genuinely different kernel (VEC fallback or a new dp4a variant): a multi-day port, not a build. That is a stop decision worth far more than the 20 minutes."
+    },
+    {
+     "id": "B2",
+     "claim": "The patched fork compiles for compute_75 on this box. cmake is absent from the host (MEASURED), so the build must run inside the resident ghcr.io/ggml-org/llama.cpp:server-cuda image (CUDA 13.2 per the read) or after installing cmake; host nvcc is 12.0.140.",
+     "falsifier": "Compile error for sm_75; or the built libggml-cuda.so contains no ptq1_0 SASS for sm_75 (cuobjdump --dump-sass | grep -c ptq1_0 == 0); or a CUDA 12.0-vs-12.4 feature gap blocks it.",
+     "experiment": "docker run the build with -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75 -DLLAMA_BUILD_TESTS=ON; cuobjdump --dump-sass build/libggml-cuda.so | grep -c ptq1_0; run the PTQ1_0 MUL_MAT correctness cases.",
+     "hardware": "8GB box (2070S build + CPU, local/free)",
+     "est_cost": "~30-60 min build, $0",
+     "builds_on": "B1",
+     "knowledge_if_fails": "cmake/CUDA-version friction is the real cost, and the prebuilt path is the only zero-friction one. If the sm_75 build fails for tooling reasons, the town's kernel work belongs on the ARM box / CI, not on this card."
+    },
+    {
+     "id": "B3",
+     "claim": "Patched tg128 at 64K is >=1.25x prebuilt (the 3060 measured 1.25x@64K, 1.53x@0, source MEASURED), i.e. the gain decays with depth on sm_75 the same way it does on sm_86.",
+     "falsifier": "patched/prebuilt tg128 < 1.10x at 64K, or < 1.25x at depth 0. A ratio below 1.0 would mean the kernel is a regression on Turing.",
+     "experiment": "Prebuilt vs patched llama-bench depth ladder 0 / 16384 / 65536, original Bonsai 2 file, -fa 1 -ctk q4_0 -ctv q4_0, r=3; report both builds and the ratio per depth, with VRAM beside each row.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~30 min, $0",
+     "builds_on": "B2",
+     "knowledge_if_fails": "The kernel's value on the 8 GB tier is smaller than the 3060's; it is a speed nicety, not what makes the 27B usable. That caps the kernel's priority below the load test and below any KV work."
+    },
+    {
+     "id": "B4",
+     "claim": "On the patched sm_75 build the 3-token verify batch still costs >=2 single-token steps (3060 measured 2.4), so n-max 1 remains the only speculative setting that can pay even with the kernel.",
+     "falsifier": "pp3/pp1 < 1.8 on the patched sm_75 build (which would make n-max 2 viable on 8 GB).",
+     "experiment": "Patched llama-bench pp1/pp2/pp3/pp4/tg32 on the original file, q4_0 K/V, plus the same with GGML_CUDA_BATCH_INVARIANT=1 to see if the invariant path changes the batch ratio.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~15 min, $0",
+     "builds_on": "B2",
+     "knowledge_if_fails": "If sm_75's batch ratio is better than sm_86's, MTP n-max 2 becomes viable and chain C changes verdict; if worse, spec-decode is dead on this card regardless of kernel."
+    },
+    {
+     "id": "B5",
+     "claim": "Camber burst (ONLY justified spend for this angle): the sm_75 decode gap is architecture, not the kernel - a modern-arch 24 GB instance shows >=0.95x of its sm_86 kernel ratio while the 2070S shows the B3 ratio. MERGE THIS WITH the KV panel's C4: it is the SAME A/B (one binary, one model, one llama-bench line) and must be ONE ~20 min burst, not two.",
+     "falsifier": "The 24 GB modern-arch card shows the same ratio as the 2070S (kernel-bound, not arch), or the 2070S already shows the sm_86 ratio (no gap to attribute).",
+     "experiment": "ONE burst: pull the patched build + assembled 27B to the Camber XS instance, run llama-bench pp8192/tg128 q8_0-vs-turbo3 (KV panel) AND tg128@64K prebuilt-vs-patched (this panel) in the same session; diff against the 2070S numbers from B3.",
+     "hardware": "Camber XS 24GB - 10-30 min burst (the ONLY Camber spend for this angle; ~1 GB transfer)",
+     "est_cost": "~20 min of the 3 GPU-h/month budget, ~$1",
+     "builds_on": "B3",
+     "knowledge_if_fails": "Decisive attribution either way: Turing needs a kernel fix (arch gap) or the kernel itself is the ceiling (no gap). Both stop future guessing and transfer to every sm_75/sm_86 card the town touches."
+    }
+   ]
+  },
+  {
+   "chain_title": "C. MTP/spec-decode on 8 GB: a kill-test the source's own VRAM rows already lean against",
+   "why_this_first": "The grafted MTP head is the only lever that raises tok/s without changing weights, so it earns a kill-test - but the lean head adds ~1.2 GB (source MEASURED on 3060: 9,956 MiB at 131K vs 8,754 MiB flag-off, i.e. ~1.2 GB) against the 8 GB line's ~520 MiB 64K headroom, and the 16.5 GB donor GGUF needed for the graft is NOT on disk (MEASURED this session: find /data -iname '*Qwen3.8-27B*' empty) at a measured ~0.2 MB/s egress. This chain decides in under an hour whether MTP is a 12 GB-only feature here.",
+   "hypotheses": [
+    {
+     "id": "C1",
+     "claim": "The MTP head's VRAM cost makes the 64K 8 GB line impossible; the maximum context with the head resident is <=16K on this card. Source arithmetic: base 5810 MiB + 1472 MiB/64K q4_0 KV + 1229 MiB lean head = 8511 MiB > 7786 MiB usable.",
+     "falsifier": "nvidia-smi shows the head resident at 65536 context under 8192 MiB total.",
+     "experiment": "First the arithmetic against the measured 3060 rows and this card's 7786 MiB; then, only if the arithmetic leaves any doubt, one confirmatory load at -c 16384 with the lean head. No donor needed for the arithmetic; the load needs the merged file from C2.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~30 min (arithmetic + one load), $0",
+     "builds_on": "A2",
+     "knowledge_if_fails": "If it fits at 64K, spec-decode on 8 GB is real and the preset changes; if not, MTP is confirmed 12 GB-only on this model and the 8 GB tier's only lever is the kernel. Both are decisive and cheap."
+    },
+    {
+     "id": "C2",
+     "claim": "The donor Qwen3.8-27B-UD-Q4_K_M.gguf (16,464,440,224 B) needed for the graft is absent locally and, at the measured ~0.2 MB/s egress, its download is ~23 h, so MTP is not the 'shortest measured path' even if it would fit.",
+     "falsifier": "The donor exists on disk or downloads at >5 MB/s (then MTP is back on the table and C1 is the only gate).",
+     "experiment": "find /data -iname '*Qwen3.8-27B*'; if absent, fetch a 100 MB range from the unsloth repo, time it, and extrapolate to 16.5 GB with the tenancy logged.",
+     "hardware": "8GB box (network/disk, local/free)",
+     "est_cost": "~10 min, $0",
+     "builds_on": "none",
+     "knowledge_if_fails": "If egress is fast now, MTP is a live 8 GB experiment; if slow, the town should plan no MTP work that needs a 16 GB donor and should bank the minutes."
+    },
+    {
+     "id": "C3",
+     "claim": "IF the fat head is grafted and served at <=16K, n-max 1 gives >=1.15x over flag-off on this card (the 3060 prebuilt gave +8% overall at 131K, +17% code, -6% prose; the patched fork gave +26%). Below 1.0x, the head is pure VRAM cost and should be dropped from the 8 GB tier.",
+     "falsifier": "flag-on median <= flag-off median at 16K, or greedy identity cannot be established (no GGML_CUDA_BATCH_INVARIANT in the prebuilt fork, MEASURED: --help has no batch-invariant flag).",
+     "experiment": "graft via extract_head.py + merge.py (needs donor from C2), verify_identity.py + probe.py at 16K, flag off vs --spec-type draft-mtp --spec-draft-n-max 1, 3 prompts x 3 runs; report acceptance per run. Note the prebuilt fork cannot be made lossless; a lossless claim needs the kernel branch.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~1-2 h after the donor, $0",
+     "builds_on": "C1, C2",
+     "knowledge_if_fails": "Spec-decode does not pay on sm_75 even at short context; the head is pure VRAM cost and the 8 GB tier should ship without it. That removes a whole branch of the roadmap on measured evidence."
+    }
+   ]
+  },
+  {
+   "chain_title": "D. Displacement: what the 27B replaces in a 3-entry preset list, measured in bytes/token",
+   "why_this_first": "The angle asks what it displaces, and the router already answers half of it: /v1/models (MEASURED this session) exposes exactly Qwen3.5-35B-A3B-Q3_K_M (unloaded), Qwen3.5-9B-Q4_K_M (loaded), and bonsai=Ternary-Bonsai-1.7B-PQ2_0.gguf (unloaded), all under the stock ghcr.io/ggml-org image that rejects PTQ1_0. The 27B is therefore a long-context/capability candidate for the existing 'bonsai' alias, and its displacement cost is an ENGINE swap in the router, not just a file drop.",
+   "hypotheses": [
+    {
+     "id": "D1",
+     "claim": "The preset list is exactly those 3 entries and the stock image cannot load PTQ1_0, so serving the 27B requires the PrismML fork to become the router image (or a second port/server).",
+     "falsifier": "The stock image loads PTQ1_0, or a 4th entry already exists, or the router can point one alias at a different engine per-model.",
+     "experiment": "Read /v1/models and docker inspect llama-server; attempt a stock-image load of the assembled 27B (expected: reject private type 143), then a fork load. Record the exact error strings.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~15 min, $0",
+     "builds_on": "A1",
+     "knowledge_if_fails": "The displacement is an operational engine swap with a downtime window, not a drop-in; the town must budget for a router image change and a second model-dir entry, which is absent from the plan."
+    },
+    {
+     "id": "D2",
+     "claim": "At 64K, the 27B's bytes-touched-per-token is HIGHER than the 9B's and comparable to the 35B-A3B's, so it is a capability/long-context win, not a Vision-1 bytes/token win. Header MEASURED: weights 5671 MiB, f16 KV 65,536 B/token (16 of 64 layers carry KV); q4_0 KV ~16 KB/token ESTIMATE -> ~1.0 GiB of KV read per decoded token at 64K, ~6.7 GiB total touched per token ESTIMATE.",
+     "falsifier": "Measured bytes/token for the 27B at usable context is below the 35B-A3B's at matched quality, or the 27B is not bandwidth-bound (tok/s x bytes/token far below copy bandwidth).",
+     "experiment": "Compute weights + KV bytes/token from the GGUF header (already parsed in .agi/context/local-maxxing/bonsai/vram_budget.md) and multiply by measured tok/s; compare to the town's 9B (5.68 GB file, 62.5 tok/s measured) and 35B-A3B (16.4 GB file, 12.4 tok/s measured) rows. Log the ledger row in the bytes-touched table.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~30 min, $0",
+     "builds_on": "A3",
+     "knowledge_if_fails": "The 27B is not a bytes/token improvement; the town's Vision-1 ledger will show it as a regression unless it REPLACES the 35B for long-context jobs. That is the honest displacement answer and it prevents a rhetorical win."
+    },
+    {
+     "id": "D3",
+     "claim": "The 27B's real niche is long context: with only 16 of 64 layers carrying KV (header MEASURED) and a 5.95 GB weight file, it holds 64K where the dense 9B cannot, so it displaces the 35B-A3B for long-context single-stream work and leaves the 9B as the fast short-context preset.",
+     "falsifier": "The 9B fits the same context at acceptable speed, or the 27B's 64K decode is below the 35B's 12.4 tok/s (then the 27B has no niche on this box).",
+     "experiment": "Measure the 9B's max context and decode at its max; compare to 27B-64K decode from A3 and the 35B's measured 12.4 tok/s single / 51.1 tok/s @np4. One table, three rows, same tenancy logging.",
+     "hardware": "8GB box (2070S, local/free)",
+     "est_cost": "~30 min, $0",
+     "builds_on": "A4, D2",
+     "knowledge_if_fails": "If the 27B's 64K decode is below the 35B's, it has no niche and the correct town decision is not to serve it at all on 8 GB - a real, measured 'no' that saves the engine swap in D1."
+    }
+   ]
+  },
+  {
+   "chain_title": "E. The owner's spiking/oscillator/byte-neuron thread, frankly: kill it against its own frozen artifact before any oscillator spend",
+   "why_this_first": "The owner asked for this thread by name, and the trove already contains a ~5-minute CPU measurement that decides its load-bearing claim: the dead-head K_c=0.96025 is already falsified by the paper's own bundle (base-rate lift 1.0001 on Qwen2.5-0.5B; Spearman(z_h, delta_loss)=+0.268; precision rises monotonically through 0.96 up to chi~2; the single most damaging head has z=-0.078). One kill-test, then two honest bridges to the 27B's ternary/KV bytes, judged in routing TV. No oscillator/Kuramoto spend before E1.",
+   "hypotheses": [
+    {
+     "id": "E1",
+     "claim": "KILL-TEST: the dead-head K_c=0.96025 threshold is not a critical point - precision/safe-recall are smooth through 0.96 and Spearman(z_h, delta_loss) is near zero on the bundled Qwen2.5-0.5B 468 KB artifact.",
+     "falsifier": "A discontinuity (precision or safe-recall jump) at 0.96 in the frozen artifact.",
+     "experiment": "Parse data/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json with python3; sweep chi over 0.2..4.0; compute dead-precision, safe-recall, and Spearman(z_h, delta_loss) over the 336 heads. The critique has already computed lift 1.0001 and Spearman +0.268, so this run is a reproduction and a node artifact, not a discovery.",
+     "hardware": "4-core ARM CPU box (or any CPU)",
+     "est_cost": "~5 min, $0",
+     "builds_on": "none",
+     "knowledge_if_fails": "If a knee exists, the coherence equation earns a place and the oscillator thread is alive; if not, the town stops spending on the Kuramoto/BKT framing for pruning and the thread reduces to 'rank heads by coupling', which the routing-TV oracle already covers. A large saved budget either way."
+    },
+    {
+     "id": "E2",
+     "claim": "The only dead-head mechanism that touches KV bytes is Level-2 GQA compaction, and its yield is combinatorially gated by group size: on the town's actual Qwen3-0.6B (g=2, 224 groups) the KV-byte yield at DeltaLoss <=0.5 is <15%, and the 27B (GQA 24/4, g=6, only 16 KV layers) is even less pruneable.",
+     "falsifier": "A tiny model with g=2 yields >=15% KV-byte reduction at DeltaLoss <=0.5; or the 27B's per-head z_h distribution shows enough fully-dead g=6 groups to matter.",
+     "experiment": "Apply the frozen per-head deltas plus the HF config GQA grouping to Qwen3-0.6B (16 q / 8 kv / head_dim 128 / 28 layers) and to the 27B header (24/4, 64 blocks, 16 KV); compute fully-dead groups and bytes/token arithmetic. No GPU.",
+     "hardware": "4-core ARM CPU box",
+     "est_cost": "<1 CPU-hour, $0",
+     "builds_on": "E1",
+     "knowledge_if_fails": "Decides whether the dead-head thread can pay the 27B's KV ledger at all. The one MEASURED win (SmolLM2 g=3, KV -27.5% at +0.53 nats) needs small g; if g=2 and g=6 both fail, the thread is a ranking tool, not a memory lever."
+    },
+    {
+     "id": "E3",
+     "claim": "KILL-TEST: a byte-neuron / 1-bit-per-tick encoding of the PTQ1_0 ternary weights or of the KV cache is not competitive with scalar quantization at equal bits - 'neuron-as-byte' is a compute substrate, not a better codec.",
+     "falsifier": "A byte/bit-order encoding of K beats turboMSE3 on routing TV at <=3 bpw on the same captured K.",
+     "experiment": "Capture K from the 1.7B PQ2_0 (already on disk) on CPU; encode with (a) the E3 bit-order/spike-count scheme (context/local-maxxing/e3, bend LIF) and (b) turboMSE3; compare routing TV and inner-product error at matched bpw. The LUT-sweep harness already exists at e3/e3_lut.py with results in e3/e3_results.json.",
+     "hardware": "4-core ARM CPU box",
+     "est_cost": "~2 CPU-hours, $0",
+     "builds_on": "E1",
+     "knowledge_if_fails": "Either the byte-neuron representation earns a concrete KV/ternary application, or we learn its value must be measured in spikes/FLOPs, not bits - and stop trying to fold it into the KV thread. Both are knowledge; neither is a loss."
+    },
+    {
+     "id": "E4",
+     "claim": "A coupled-oscillator map (the dead-head paper's S^1 coupling, Kuramoto/Lohe) can generate the rotation matrix at lower cost than a stored dense rotation, with no TV regression vs the fixed WHT at d=128.",
+     "falsifier": "Oscillator-generated rotation gives >=0.1 higher TV at matched bits than fixed WHT.",
+     "experiment": "Generate a rotation from the S^1 coupling at d=128 in numpy; run the same quantize/TV harness as E3 against the fixed WHT. This is the one concrete bridge between the owner's oscillator thread and the KV thread.",
+     "hardware": "4-core ARM CPU box",
+     "est_cost": "~1 CPU-hour, $0",
+     "builds_on": "E3",
+     "knowledge_if_fails": "A fail closes the 'generate rotations from dynamics' hope cheaply; a pass connects two of the town's threads with a measured mechanism. Either outcome is publishable as a verdict."
+    },
+    {
+     "id": "E5",
+     "claim": "COALESCENCE SEED: coherence/pruning and KV-quantization are two ends of one bit-allocation problem - head-level capacity (prune) and token-level precision (quantize) compose rather than compete; composed prune+quantize is not worse than either alone at equal bytes.",
+     "falsifier": "Composed prune+quantize is worse than either alone at equal bytes (they interfere), or the composed ranking is unstable across seeds.",
+     "experiment": "CPU proxy on the 1.7B: rank heads by z_h, drop the lowest-k, quantize the remaining K to turboMSE2, measure routing TV vs each lever alone at matched bytes. Do not run this before E1 and the routing-TV oracle are settled.",
+     "hardware": "4-core ARM CPU box",
+     "est_cost": "2-3 CPU-hours, $0",
+     "builds_on": "E2, E1",
+     "knowledge_if_fails": "Tells the town whether to treat its threads as ONE budget (the owner's stated ambition) or as separate tracks. A null result is the honest answer that prevents a rhetorical coalescence with no measured currency."
+    }
+   ]
+  }
+ ],
+ "coalescence_points": [
+  "A + B -> ONE 8 GB deployment decision (2nd-order set). A says whether the prebuilt line loads and decodes; B says whether the patched kernel transfers to sm_75. Coalesce into a single measured criterion: 'loads fully at <=7786 MiB AND >=15 tok/s at 64K q4_0 on the 2070S.' Outcomes: 8GB-tier-viable (prebuilt) | kernel-mandatory | 27B-on-8GB-dead. No further 27B work until this set has one number.",
+  "A + C -> the spec-decode branch collapses into the deployment decision. If C1 (head exceeds 64K headroom) or C2 (donor absent at ~0.2 MB/s) holds, MTP is dropped from the 8 GB tier and the coalesced set is the kernel-only line. MTP re-enters only if C2's egress measures >5 MB/s.",
+  "B + KV panel C -> ONE Camber burst, not two. The cross-arch attribution A/B (one binary, one model, one llama-bench line) answers both the PTQ1_0 kernel-gain question (B5) and the TurboQuant decode-tax question (KV panel C4). Second-order set: 'Turing kernel gap is arch | kernel ceiling.' Spend ~20 of the 180 monthly GPU-minutes once, and bank the rest.",
+  "D + town Vision-1 ledger -> one preset-table decision. The 27B's bytes/token row (D2) must sit in the same table as the measured 9B (62.5 tok/s) and 35B-A3B (12.4 tok/s single / 51.1 @np4) rows, at matched quality and logged tenancy. Coalesce into 'which model serves which job at which context', not a new separate 27B track.",
+  "E + D + KV chain -> routing TV as the common currency. E3's byte-neuron encoding and E4's oscillator rotation can only be judged against the 27B/KV work if the SAME oracle (routing TV, then KLD) ranks them. Without the oracle first, the coalescence is prose. With it, 'which representation wins at equal bits' becomes one measured question across heads, tokens, and ticks.",
+  "E1 gates all E spending. No Kuramoto/oscillator/byte-neuron experiment runs before the ~5-minute sweep of the existing 468 KB artifact. The critique already computed lift 1.0001 and Spearman +0.268; reproducing it is the entry ticket, not an experiment."
+ ],
+ "critique_of_owner_plan": [
+  "FRANK #1 - the 'shortest measured path' is NOT the kernel and NOT MTP; it is the zero-build prebuilt fork + serve/8gb.sh, and the 8 GB row is documented-but-UNRUN. MEASURED on the box 2026-09-20: the 12 segments already hash to the pin, the prebuilt fork already carries 145 sm_75 and 340 ptq1_0 matches, and cmake is ABSENT. The plan leads with kernel/MTP, but the actual first experiment is a ~15-minute load+bench with assets on disk. Leading with the build path adds cmake/docker friction for a gain that may not transfer to sm_75.",
+  "FRANK #2 - MTP is a 12 GB-tier feature on this model and the plan treats it as a lever. The lean head adds ~1.2 GB (source MEASURED on 3060) against the 8 GB line's ~520 MiB 64K headroom, and the 16.5 GB donor GGUF is not on disk (MEASURED) at ~0.2 MB/s (~23 h). The source's own serve/README.md puts MTP in the 12 GB tier; chasing it on 8 GB is spending tokens on a path the numbers already close at 64K.",
+  "FRANK #3 - the 8 GB 'row' is measured on a 12 GB card. 7266 MiB vs 7786 MiB usable is ~520 MiB, thinner than headless driver overhead, and this card runs driver 595.84 against the 3060's 550.144.03. Treat A2 as a falsifier, not a formality; the honest 8 GB context may be 32K, and every downstream '64K' claim must be conditional on A2.",
+  "FRANK #4 - the angle conflates 'usable tokens/s' with 'spec-decode speedup'. The 3060 prebuilt MTP is +8% overall but -6% on prose and +17% on code only; on an 8 GB card where the head does not fit at 64K, spec-decode is a 12 GB feature. Strike it from the 8 GB roadmap until C1/C2 are measured; the kernel (B3) is the 8 GB lever, not the head.",
+  "FRANK #5 - displacement is an ENGINE swap, not a file drop. MEASURED: the local-town router runs the stock ghcr.io/ggml-org image, which rejects PTQ1_0, and its preset list is exactly {35B-A3B, 9B, bonsai=1.7B}. Serving the 27B means the PrismML fork becomes the router image (or a second server/port) - a downtime window and a model-dir change the plan never names. Until D1 runs, 'what it displaces' is unanswered.",
+  "FRANK #6 - the spiking/oscillator/byte-neuron thread shares no currency with the 27B serve line except routing TV, and its headline claim is already falsified by its own frozen artifact (lift 1.0001, Spearman +0.268, precision monotone through 0.96). Run the ~5-minute sweep BEFORE any oscillator experiment, do not let the 27B work absorb the byte-neuron budget, and pre-register E1's stop rule or the 'many hypotheses' instruction will re-create the hop-padding failure (TODO.md H3) it is meant to avoid."
+ ]
+}
