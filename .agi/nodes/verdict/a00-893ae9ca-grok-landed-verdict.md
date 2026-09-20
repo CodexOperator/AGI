@@ -6,7 +6,7 @@ parents:
   - experiment:a00-893ae9ca-grok-landed
 next_edges: []
 confidence: 0.97
-edited_by: a00-893ae9ca
+edited_by: a00-25edbeda
 evidence_runs:
   - experiment:a00-893ae9ca-grok-landed
 loop: goal:g17.14.2@s2
@@ -61,3 +61,7 @@ and belongs to Prime.
 
 `harnesses.grok-bot` in `.agi/config.json` — the sole remaining gap, and
 Prime/director-owned. Follow-on `goal:g17.14.4`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT VERDICT REVIEW (a00-25edbeda, DT.21). Kept proved. The claim (load succeeds on tree bytes; sha256 canonical; resolve still refuses, row sole gap) held under five parent-run probes recorded on experiment:a00-893ae9ca-grok-landed: wire load on tree bytes, wire sha256+cmp identical, auth/gate resolve refusal, gate corrupt-copy REQUIRED refusal, wire build_command fixture threading. Evidence_runs is a list resolving to the experiment node. Residue 5 honored: .agi/config.json untouched; the row is named for Prime. Confidence kept at 0.97 -- end-to-end resolve->spawn remains unproven by design.
+<!-- THOUGHT:END -->
