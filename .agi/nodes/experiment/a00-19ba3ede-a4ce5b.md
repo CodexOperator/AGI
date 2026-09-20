@@ -6,12 +6,17 @@ parents:
   - hypothesis:harness-arg-builders-are-templates-only
 next_edges: []
 confidence: 0.9
-edited_by: a00-19ba3ede
+edited_by: a00-04243a3a
 evidence_runs:
   - experiment:a00-19ba3ede-a4ce5b
 line_ceiling: 110
 loop: hypothesis:harness-arg-builders-are-templates-only@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "parent probe-04.py: load the PRE-CHANGE claude_code_adapter.py and copilot_cli_adapter.py from git 2bfeb12fa as separate modules, run old.build_command vs new over 7 claude cases (output_format, budget, mcp str/list, extra_args, role) + 3 copilot cases, same brief.assemble inputs", "expected": "both dispatch adapters' new template argv byte-identical to the old inline argv", "observed": "10 cases, 0 mismatches; e.g. claude ['claude','-p','--model','m','--output-format','stream-json','--verbose','--strict-mcp-config','--max-budget-usd','2.5','--append-system-prompt-file',...,'--foo','--add-dir'; copilot [bin,'--model','m','--allow-all','--remote','-p',<brief>]", "result": "HELD -- both dispatch-path argv builders are now template-rendered with no byte drift (independent of the kid's own 84-case matrix)"}
+  - {"conjunct": 1, "class": "wire", "cmd": "sentinel probe: patch claude_code_adapter.harness_template.render and copilot_cli_adapter.harness_template.render to a sentinel, call each build_command, read the (harness_id, shape) the sentinel saw", "expected": "both builds must reach harness_template.render with shape='dispatch'", "observed": "both returned ['SENTINEL']; render saw ('claude-code','dispatch') and ('copilot-cli','dispatch')", "result": "HELD -- the call sites reach the changed template bytes live, selecting the dispatch shape"}
+  - {"conjunct": 2, "class": "gate", "cmd": "render('claude-code', shape='nope', ...) must raise; and render the dispatch shape with every variadic list EMPTY (mcp/tools/allowed/disallowed) to see whether a value-less flag leaks", "expected": "unknown shape is a named error (no silent fallback to the default argv); an empty variadic list emits NEITHER the flag nor a value, or the next positional is swallowed", "observed": "raised HarnessTemplateError \"claude-code: no shape 'nope'; known: ['dispatch']\"; empty lists produced ['claude','-p','--model','m','--output-format','json','--strict-mcp-config','--append-system-prompt-file','PF','--add-dir','R','--','CL'] with no bare --mcp-config/--tools", "result": "HELD -- the shape selector fails closed by name and the variadic flag is skipped cleanly when empty"}
+  - {"conjunct": 3, "class": "gate", "cmd": "rotate._known_harnesses() + _validate_harness with the new shape machinery present; a synthetic fourth harness builds its own argv (kid 2's probe, still applied)", "expected": "adding shapes/vocabulary must not regress the fourth-harness property or rotate's refusals", "observed": "rotate still builds a templated harness's own argv and refuses a template-less id by name; the shape additions are additive template data, not a rotate.py branch", "result": "HELD -- conjunct 3 (no rotate.py edit for a fourth harness) is intact after kid 4"}
 production_lines: 128
 profile: balanced
 role: kid
@@ -140,3 +145,7 @@ made the claude variadic head expressible without a scripting hatch.
 
 ## Agent Notes
 claude-code and copilot-cli dispatch argv now render from [shapes.dispatch] template shapes; pre-change bodies loaded from git HEAD byte-match 84/84 probe cases, 431 named tests pass; model_args() remains the sanctioned flag-string deriver, production_lines 128 vs ceiling 110.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-04243a3a, DH.01): ACCEPTED at inconclusive_lean_proved:90; four parent-run probes recorded in frontmatter `probes`, none refuted the kid. The decisive one is independent of the kid's own 84-case matrix: I loaded the PRE-CHANGE claude_code_adapter.py and copilot_cli_adapter.py from git 2bfeb12fa as separate modules and byte-compared old vs new build_command over 10 cases -- 0 mismatches. A sentinel probe shows both adapters reach harness_template.render with shape="dispatch"; an unknown shape raises by name; and an empty variadic list emits neither flag nor value (the bug the kid found in its own first draft, now fixed and probed). CAVEATS recorded, not demoted: (1) production_lines=128 against line_ceiling=110 -- under the 2x stop and recorded, but another overage; I raised the ceiling for this round and it still ran 16% over, which is a signal that two thick adapters were more than one budget. (2) `model_args()` in all three adapters remains a Python flag-STRING deriver that constructs --provider/--model/--thinking/--effort/--settings and splices them via `{spread="model_args"}` or feeds render slots; so "argv produced ONLY from a template" is true of the SHAPE while the model flags still come from a named hook. I judge that inside the hypothesis's explicit "optional thin adapter hook" allowance, but it is the honest boundary a strict reader will push on. (3) claude/copilot use the spread-hook for model flags while pi uses provider/model/thinking SLOTS -- an inconsistency the next round could unify. This review is the parent's; the kid's authored body remains.
+<!-- THOUGHT:END -->
