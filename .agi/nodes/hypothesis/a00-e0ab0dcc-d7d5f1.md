@@ -15,7 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: 46298018341e148d
 season: 2
-testable_claim: "**Testable claim.** The corrective for `goal:g17.14.1` lands on this branch as a byte-honest upgrade of committed work, not a re-design:"
+testable_claim: "The corrective lands on this branch as a byte-honest upgrade: adapter carries e554c440c bytes verbatim, the ca330ac35 grok-bot config row resolves, the test file is a superset of the restart and live-config sets, a real unmocked respawn probe is committed in-tree with real stdout, and dispatch.py has zero grok hits."
 title: "grok-bot adapter corrective: committed bytes, superset tests, real respawn probe"
 town: core
 verdict: pending
@@ -58,3 +58,6 @@ Why this version: DT.14 returned accept_with_residue on three points -- probe ev
 
 ## Agent Notes
 grok_bot_adapter (162 lines, sha-identical to e554c440c) + grok-bot config row (12 lines, g17.14.2 dependency) + superset test file (15 tests: restart+live-config) + committed real respawn probe. pytest 15/35 green, dispatch.py zero grok hits. production_lines 174 > 2x ceiling 80 -> rebrief_request filed, pending parent authorization.
+
+## Agent Notes
+grok_bot_adapter (162 lines, sha-identical to e554c440c) + grok-bot config row (12 lines, g17.14.2 dependency) + superset test file (15 tests: restart+live-config) + committed real respawn probe. pytest 15/35 green, dispatch.py zero grok hits. production_lines 174 > 2x ceiling 80 -> rebrief_request filed; NOTE .agi/config.json is excluded from kid done commits by the scope rule and must be committed by the loop/director.
