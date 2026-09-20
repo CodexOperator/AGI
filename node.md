@@ -1,5 +1,5 @@
 ---
-id: goal:g13.3
+id: goal:g4.20
 mint_id: a125ad25c35e4648a0b8fb1d2eb9a9c1
 type: goal
 parents:
@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G13.3
+goal_id: G4.20
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,16 +19,16 @@ tags:
   - goal
   - subgoal
 thought_session: g1-g7-rewrite-2026-09-19
-title: "G13.3: Everything is a node — docs, configs, and especially scripts without nodes must gain them"
+title: "G4.20: Everything is a node — docs, configs, and especially scripts without nodes must gain them"
 town: core
 ---
-# goal:g13.3
+# goal:g4.20
 
 ## Why this exists
 
 Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node — docs, configs, and especially scripts without nodes must gain them. Ties to spawn injecting briefs and in-graph brief edits.
 
-## Owner bank (verbatim excerpt, 2026-09-19 — full text also on goal:g17.15)
+## Owner bank (verbatim excerpt, 2026-09-19 — full text also on goal:g7.165)
 
 > Everything is a node. Always. If there's a doc or config that is not a node, then it needs to be a node. If there's a script file with no node, that especially needs to be a node. … when some bot uses the spawn function to stand up a post they automatically get a fresh worktree and correct pin and key assignment, as well as the correct brief is automatically added to that bot's individual instructions.
 
@@ -51,5 +51,5 @@ Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node 
 
 ## Related
 
-- `goal:g17.15`, `goal:s35` (schemas are nodes), `goal:g7.11`.
-# goal:g13.3
+- `goal:g7.165`, `goal:s35` (schemas are nodes), `goal:g7.11`.
+# goal:g4.20
