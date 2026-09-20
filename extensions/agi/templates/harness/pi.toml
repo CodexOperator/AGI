@@ -1,0 +1,13 @@
+# pi headless dispatch argv (pi_adapter.build_command); `rotate = false` =
+# the dispatch shape, not a rotate.py interactive seat.
+id = "pi"
+bin = "pi"
+rotate = false
+argv = [
+  {flag = "--provider", slot = "provider"},
+  {flag = "--model", slot = "model"},
+  {flag = "--thinking", slot = "thinking"},
+  "-p", "--mode", "json",
+  {spread = "extra_args"},
+  {slot = "prompt"},
+]
