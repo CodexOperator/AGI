@@ -1,13 +1,13 @@
 ---
-id: goal:g17.14.1
+id: goal:g7.25.1
 mint_id: f41a23b73a4941708bc991009d3a1e2d
 type: goal
 parents:
-  - goal:g17.14
+  - goal:g7.25
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G17.14.1
+goal_id: G7.25.1
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -21,11 +21,11 @@ tags:
   - grok-bot
   - adapter
 thought_session: goal-glom-polish-2026-09-19
-title: "G17.14.1: grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False)"
+title: "G7.25.1: grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False)"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g17.14.1
+# goal:g7.25.1
 
 ## Agent Notes
-Why: parent goal:g17.14 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
+Why: parent goal:g7.25 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
