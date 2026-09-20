@@ -95,6 +95,26 @@ def load(harness_id: str) -> dict:
     return data
 
 
+def load_all() -> tuple[dict[str, dict], dict[str, str]]:
+    """Parse every available template, ISOLATING per-file failure.
+
+    Returns `(loaded, broken)`: `loaded` maps a harness id to its parsed
+    template, `broken` maps a failing id to its error text. ONE malformed
+    template removes only ITSELF from the result, never its siblings
+    (hypothesis:harness-arg-builders-are-templates-only); naming the broken
+    ids is the caller's job. An exception from `available()` itself still
+    propagates -- that is the whole-enumeration failure, not a file's.
+    """
+    loaded: dict[str, dict] = {}
+    broken: dict[str, str] = {}
+    for hid in available():
+        try:
+            loaded[hid] = load(hid)
+        except Exception as exc:
+            broken[hid] = f"{type(exc).__name__}: {exc}"
+    return loaded, broken
+
+
 def _check_parts(path: Path, parts: list, label: str = "argv") -> None:
     """Refuse any token outside the declarative vocabulary, in a shape too."""
     for i, part in enumerate(parts):
