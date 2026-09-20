@@ -376,3 +376,18 @@ def test_unknown_role_source_is_a_named_error(tmp_path, monkeypatch):
     with pytest.raises(harness_template.HarnessTemplateError) as exc:
         harness_template.role_source("weird")
     assert "unknown roles.source 'cosmic'" in str(exc.value)
+
+
+def test_non_table_roles_is_a_named_error(tmp_path, monkeypatch):
+    """`roles` as a bare string (not a `[roles]` table) is refused BY NAME by
+    both `load` and its reader `role_source` -- never a bare AttributeError
+    escaping the seat path's `except HarnessTemplateError` catch."""
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\nroles = "ladder"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "roles is not a table" in str(exc.value)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.role_source("bad")
+    assert "roles is not a table" in str(exc.value)

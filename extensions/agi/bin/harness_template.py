@@ -88,6 +88,11 @@ def load(harness_id: str) -> dict:
             f"available: {available()}")
     data = tomllib.loads(path.read_text(encoding="utf-8"))
     _check_parts(path, data.get("argv", []))
+    roles = data.get("roles")
+    if roles is not None and not isinstance(roles, dict):
+        raise HarnessTemplateError(
+            f"{path}: roles is not a table (got {type(roles).__name__}: "
+            f"{roles!r}); write [roles] source = ...")
     for name, shape in (data.get("shapes") or {}).items():
         if not isinstance(shape, dict):
             raise HarnessTemplateError(f"{path}: shape {name!r} is not a table")
@@ -136,6 +141,10 @@ def role_source(harness_id: str) -> str:
     (hypothesis:harness-arg-builders-are-templates-only).
     """
     roles = load(harness_id).get("roles") or {}
+    if not isinstance(roles, dict):
+        raise HarnessTemplateError(
+            f"{harness_id}: roles is not a table (got "
+            f"{type(roles).__name__}: {roles!r}); write [roles] source = ...")
     source = roles.get("source", "ladder")
     if source not in ROLE_SOURCES:
         raise HarnessTemplateError(
