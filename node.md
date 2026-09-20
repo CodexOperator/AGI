@@ -1,5 +1,5 @@
 ---
-id: goal:g17.17
+id: goal:g7.28
 mint_id: 07e7ba7f51034ec681ba3ab4438ac907
 type: goal
 parents:
@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G17.17
+goal_id: G7.28
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -22,10 +22,10 @@ tags:
   - seat
   - persistent
 thought_session: texas-two-step-belam-voice-2026-09-19
-title: "G17.17: Dispatch persistent mode for occupied seats"
+title: "G7.28: Dispatch persistent mode for occupied seats"
 town: core
 ---
-# goal:g17.17
+# goal:g7.28
 
 ## Why this exists
 
@@ -33,7 +33,7 @@ town: core
 
 ## Target end-state
 
-- `dispatch` gains a **persistent** mode: hold the process, watch it, restart on death (using the harness restart contract / template renderer from `goal:g17.16`).
+- `dispatch` gains a **persistent** mode: hold the process, watch it, restart on death (using the harness restart contract / template renderer from `goal:g7.27`).
 - Persistent mode **registers the process as an occupied seat** (seat registry / posts row pin stays coherent).
 - Rotate does not re-implement watch/restart once this lands.
 
@@ -51,11 +51,11 @@ town: core
 
 ## Out of scope
 
-- Template authorship (`goal:g17.16`).
-- Stripping rotate argv builders (`goal:g17.18`).
-- Grok land (`goal:g17.19`).
+- Template authorship (`goal:g7.27`).
+- Stripping rotate argv builders (`goal:g7.29`).
+- Grok land (`goal:g7.30`).
 
 ## Agent Notes
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
-Depends on / pairs with `goal:g17.16` for restart argv source.
+Depends on / pairs with `goal:g7.27` for restart argv source.
