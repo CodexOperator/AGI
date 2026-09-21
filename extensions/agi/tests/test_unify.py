@@ -258,6 +258,38 @@ def test_grid_refs_transfer_with_count_and_target_preserved(migrated):
         assert _rev_parse(engine, ref) == _rev_parse(tree, ref)
 
 
+def test_grid_namespace_reads_the_projects_storage_trunk(repos, monkeypatch):
+    """The unify call sites read their namespace through
+    `grid.ref_ns_for` (goal:g14.14.7): a project declaring
+    `grid.storage_trunk` moves the git command's namespace, not just its
+    output. This is the SOURCE check the round exists for -- an unconfigured
+    empty config still yields `refs/grid` (asserted by the count above).
+    """
+    engine, tree = repos
+    (tree / "agi-tree.config.json").write_text(
+        '{"grid": {"storage_trunk": "refs/grid/t9"}}\n')
+    assert unify.grid_ref_namespace(tree) == "refs/grid/t9"
+
+    seen: list[list[str]] = []
+    real_run = unify.subprocess.run
+
+    def recorder(argv, **kw):
+        seen.append([str(a) for a in argv])
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(unify.subprocess, "run", recorder)
+    # 0 refs are under the configured trunk; the two refs live under
+    # `refs/grid/...` and must no longer be counted.
+    assert unify.count_grid_refs(tree) == 0
+    assert any("refs/grid/t9" in a for argv in seen for a in argv), seen
+
+    # the stale-payload probe reads the trunk too, on a node with a mint id
+    _add_payload_node(tree, "b1", "extensions/agi/bin/hello.py")
+    seen.clear()
+    unify.find_stale_payloads(tree, engine)
+    assert any("refs/grid/t9/node/" in a for argv in seen for a in argv), seen
+
+
 # --- file relocation -----------------------------------------------------------
 
 
