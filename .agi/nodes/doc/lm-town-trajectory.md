@@ -32,14 +32,14 @@ formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
 grid       LIVE: cron records every 5 min into refs/grid/local-maxxing/ (first tick 71 versions; refs 3812) -- this node's overwrites are versions now
-live       research: SWR.02-B/C2 + TEL.03 census ordered (TMM.27) · engine: EF.08 migration (GO)
-landed     EF.08 migrate-trunk + cutover · EF.09 guard (2da449a74; suite 5867/0) · TEL.02 ad0face7f · EF.07 · MP.01 + TEL.01 · G14.14.1 COMPLETE · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
+live       research: SWR.02-B (GPU, IFEval on the 27B; then C2) · engine: 14.14.8 capture hook
+landed     TEL.03 shift census 7b3cef17f (only Bonsai-1.7B can shift; IMROPE families cannot) · EF.08 + EF.09 (grid LIVE) · TEL.02 · EF.07 · MP.01 + TEL.01 · G14.14.1 · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
 banked     TEL.01 forward path -- owner ANSWERED (TMM.23, 05:0xZ): (a) AUTHORIZED, conditional (between rounds only, by a TEL parent, router mode kept, exact server line recorded, restore+verify before done) -- dispatching TEL.02 this pass
-research   SWR.02-B -> SWR.02-C2 (IFEval; one merge-up) · TEL.03 shift census (0 USD) -> G14.10.2 capture (engine hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy chunks 2-3 on the text + tail-KV path
+research   SWR.02-B -> SWR.02-C2 (one merge-up) -> G14.10.2 capture (hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy: text+tail-KV for big models; k=2 shift swarm on Bonsai-1.7B; fork can_shift probe
 engine     14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 07:3xZ 09-21 -- v13 (the first overwrite the cron will version on its own): grid row LIVE, landed/engine rows after EF.09; metric rows unchanged.
+thought-master 08:0xZ 09-21 -- v14: rows after TEL.03 (shift census); metric rows unchanged.
 <!-- THOUGHT:END -->
