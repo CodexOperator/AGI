@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-36a00a4c-3a2fb9
 next_edges: []
-edited_by: a00-21805d00
+edited_by: a00-bae1a692
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -96,15 +96,19 @@ process SIGKILLed):
 
 The path above is also Kid B's evidence source for residue 1.
 
-Suite on the changed/covering files:
+Suite, fixtures-only, on the changed/covering files:
 
 ```
 python3 -m pytest extensions/agi/tests/test_tmux_hold.py \
   extensions/agi/tests/test_grok_bot_adapter.py \
-  extensions/agi/tests/test_adapters.py \
-  extensions/agi/tests/test_real_adapter_restart.py -q
--> 74 passed
+  extensions/agi/tests/test_adapters.py -q
+-> 61 passed
 ```
+
+`test_real_adapter_restart.py` is EXCLUDED from that count. It is a
+pre-existing, unmodified real-process integration file that spawns and
+SIGKILLs real OS processes (`subprocess.Popen` / `os.kill(SIGKILL)`); adding
+it to the three-file run yields 74 passed (its 13 tests).
 
 `grep -c grok extensions/agi/bin/dispatch.py extensions/agi/bin/rotate.py` stays 0.
 
@@ -115,5 +119,5 @@ chain (test files excluded): `13/0 bin/adapters/__init__.py`, `26/3
 bin/adapters/tmux_hold.py` = **42 changed lines** (39 added / 3 deleted)
 against a ceiling of 40 -- over the ceiling, under 2x (80), so no re-brief.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DT.34 corrective round (a00-21805d00), reconciliation only, no production code changed. Two residues on the shipped bytes: (1) the suite line read 70 while the committed tree yields 73 -- 74 after this round committed no-leak test in test_grok_bot_adapter.py; (2) the production-lines block named 2/1 .agi/config.json for a tmux:true edit that was never committed. Both corrected: 13/0 adapters/__init__.py + 26/3 adapters/tmux_hold.py = 42 changed lines, over the 40 ceiling under 2x. The reachability mechanism is the adapter HOLD_PANE declaration, not a config cell.
+DT.34 corrective round (a00-21805d00), reconciliation only, no production code changed. Two residues on the shipped bytes: (1) the suite line read 70 while the fixtures-only committed tree yields 61 (73 before this round's added no-leak test in test_grok_bot_adapter.py; the earlier 74 counted a real-process integration file that is not part of the fixture count) -- DT.37 corrective round (a00-46a1a38f): every cited suite count is now the fixtures-only 61, with test_real_adapter_restart.py named separately as excluded real-process, and the edited_by stamp is corrected to a00-bae1a692, the author of the tip edits; (2) the production-lines block named 2/1 .agi/config.json for a tmux:true edit that was never committed. Both corrected: 13/0 adapters/__init__.py + 26/3 adapters/tmux_hold.py = 42 changed lines, over the 40 ceiling under 2x. The reachability mechanism is the adapter HOLD_PANE declaration, not a config cell.
 <!-- THOUGHT:END -->
