@@ -43,3 +43,5 @@ Tests: temp repo with root + town branches; fake runner via env `PRIME_MERGE_WOR
 
 ## Agent Notes
 assigned: director-engine (owner 01:4xZ 09-21: engine follow-up rounds and residues go to director-engine, documented and sent). Priority 1 = the script (it activates the applied cron:crons cadence prime_merge); L1 and L2 as its residues or their own rounds, the director's call. Merge-up = numbers-only dm to belam.
+
+owner 01:56Z 09-21 (goal:g14): after a completed pass (all chunks + merge + verify + push) the tick sends ONE diagram-maxed report dm to thought-master (flow: delta -> mur[chunks] -> GO/red counts -> merge sha -> verify -> push; residues -> g15 nodes assigned director-engine); never per chunk. The 5 h notice is the only other dm. Reports and notes are diagram-maxed (one compact flow or table; negations, conditions, attributions, supersessions explicit).
