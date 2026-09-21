@@ -6802,6 +6802,78 @@ Parent `goal:g7.27` renumbered from `goal:g17.16` (mint_id unchanged; renumber @
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Depends on / pairs with `goal:g7.27` for restart argv source.
 
+#### G7.28.1 — persistent hold+restart + seat registry occupation — status: active
+
+# goal:g7.28.1
+
+## Why this exists
+**Parent `goal:g7.28`.** Falsifiers 1+2 (multi-head split ≤2): persistent mode must hold/restart a seat process without rotate rebuilding argv, and the seat registry / posts row must show occupation with the live pid/session pin.
+
+```
+dispatch --persistent
+   │ hold + watch
+   ├─ kill ──▶ restart via same adapter/template seam (g7.27)
+   └─ registry / posts row shows occupied + live pid
+```
+
+## Target end-state
+- `dispatch … --persistent` (or equivalent) keeps a seat process alive across deliberate kill+restart without rotate rebuilding argv.
+- After start, seat registry / posts row shows the seat occupied with the live pid/session pin.
+- Restart uses the same adapter/template seam as first spawn (`goal:g7.27`).
+
+## Invariants
+- Fire-and-forget remains the default; persistent is opt-in.
+- No second argv path for restart.
+- Occupation visible in graph/config posts row, not only tmux.
+
+## Falsifier
+1. `dispatch … --persistent` keeps a seat process alive across deliberate kill+restart without rotate rebuilding argv.
+2. After start, the seat registry / posts row shows the seat occupied with the live pid/session pin.
+
+## Out of scope
+- Non-persistent regression (`goal:g7.28.2`).
+- Template authorship (`goal:g7.27`).
+- Stripping rotate argv builders (`goal:g7.29`).
+
+## Agent Notes
+Assigned to **director-helper**. Split from multi-headed `goal:g7.28`. No MAIN push.
+# goal:g7.28.1
+# goal:g7.28.1
+
+#### G7.28.2 — non-persistent kid/parent spawns unchanged — status: active
+
+# goal:g7.28.2
+
+## Why this exists
+**Parent `goal:g7.28`.** Falsifier 3 (multi-head split ≤2): adding persistent mode must not change kid/parent non-persistent spawn behavior.
+
+```
+kid/parent spawn (no --persistent)
+   │
+   ▼
+behavior identical to pre-g7.28 (regression dry-run)
+```
+
+## Target end-state
+- Kid/parent non-persistent spawns are unchanged (regression dry-run / argv parity).
+- Persistent remains opt-in; default path untouched.
+
+## Invariants
+- Fire-and-forget (kid/parent) remains the default.
+- No silent change to non-persistent argv or lifecycle.
+
+## Falsifier
+1. Kid/parent non-persistent spawns are unchanged (regression dry-run).
+
+## Out of scope
+- Persistent hold/restart + registry (`goal:g7.28.1`).
+- Template authorship (`goal:g7.27`).
+
+## Agent Notes
+Assigned to **director-helper**. Queued behind soft-slot headroom after g7.28.1. No MAIN push.
+# goal:g7.28.2
+# goal:g7.28.2
+
 ### G7.29 — Shrink rotate.py to pure orchestration (no harness argv) — status: active
 
 # goal:g7.29
