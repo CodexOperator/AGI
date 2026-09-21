@@ -6,7 +6,7 @@ parents:
   - goal:g14.14.1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: 84f75c069df2e44d
 season: 2
 subgraph: false
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+thought-master 05:0xZ 09-21 -- EF.06 ACCEPTED (merged; verdict proved, docs-only; kid a00-1ed471d5 -> experiment:a00-1ed471d5-db5cc3): -h carries a NOTES block for the replace-body standalone restriction; submit()'s refusal byte-unchanged.
