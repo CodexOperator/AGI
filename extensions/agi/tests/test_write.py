@@ -1537,6 +1537,170 @@ def test_replace_body_is_standalone_like_body_patch(project):
 
 
 # --------------------------------------------------------------------------
+# hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+# the body-only structural guard. `replace body N:M` is offset-free but the
+# RANGE is still hand-chosen; a range that splits a heading from its text (or
+# cuts a paragraph at either edge) is refused before the splice, unless the
+# caller passes `--force`. A whole paragraph, a whole section, and a
+# whole-section tail that ends on a CHILDLESS deeper heading are all admitted
+# -- the last is the falsifier EF.03 measured (experiment:a00-29883877-7abb3b).
+# --------------------------------------------------------------------------
+
+#: Line 1 is blank, line 3 is `## A`, line 5 is the childless deeper heading
+#: `### A.1` with no text of its own before the sibling `## B`.
+GUARD_BODY = "\n# T\n## A\nintro\n### A.1\n## B\nbeta\n"
+
+
+def _guard_node(root, body=GUARD_BODY, name="h2"):
+    """A scratch node whose read body is exactly `body` (the frontmatter is
+    written so the blank line `body` opens with survives the reader)."""
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{name}.md"
+    path.write_text(
+        '---\nid: "hypothesis:%s"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\n%s\n' % (name, body))
+    (root / "config.json").write_text("{}")
+    return path
+
+
+def _replace_body(root, rng, text, name="h2", force=False):
+    edit = write.Edit(node_id=f"hypothesis:{name}")
+    write.verb_replace(edit, "body", rng, "--force -" if force else "-")
+    edit.replace_text = text
+    return write.submit(root, edit, actor="kid", session="s1")
+
+
+def test_replace_body_guard_refuses_a_heading_split(tmp_path):
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "3:4", "X")
+    assert "heading" in str(ei.value) and "--force" in str(ei.value)
+    assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_paragraph_tail(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    # starts strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "5:5", "X")
+    # ends strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:4", "X")
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_paragraph(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "4:6", "WHOLE PARAGRAPH")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE PARAGRAPH" in after and "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_allows_a_whole_section(tmp_path):
+    body = "\n# T\n## A\nalpha\n\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "3:5", "WHOLE SECTION")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE SECTION" in after and "## B" in after
+
+
+def test_replace_body_guard_admits_a_childless_deeper_heading_tail(tmp_path):
+    """EF.03 falsifier (c): the full `## A` section (3:5) ends on the deeper
+    heading `### A.1`, which has NO text of its own -- so ending there is the
+    correct tail, not a split, and the range must land with no --force."""
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    assert write._read_body_text(graph, "hypothesis:h2") == GUARD_BODY
+    res = _replace_body(graph, "3:5", "REPLACED")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "REPLACED" in after and "### A.1" not in after
+    assert "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_refuses_ending_on_a_heading_with_content(tmp_path):
+    """The other edge, same corruption: ending on a heading whose own
+    section still holds text removes the heading and orphans its text. This
+    is the false-positive BOUNDARY -- the childless case above passes, this
+    one must not."""
+    body = "\n# T\n## A\nintro\n### A.1\na1text\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:5", "X")   # ends on `### A.1`, a1text left
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "3:5", "X")   # stops short of `## A`'s end
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_body_open_range(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "1:", "WHOLE BODY")
+    assert res.status != node_writer.REJECTED
+    assert "WHOLE BODY" in write._read_body_text(graph, "hypothesis:h2")
+
+
+def test_replace_body_guard_honours_force(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "3:4", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "FORCED" in after and "intro" not in after
+    assert "### A.1" in after, "--force admits exactly the partial edit asked for"
+
+
+def test_replace_body_guard_reflects_in_dry_run(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    before = (graph / "nodes" / "hypothesis" / "h2.md").read_text()
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "hypothesis:h2",
+         "replace body 3:4 -", "--root", str(graph),
+         "--actor", "kid", "--session", "s1", "--dry-run"],
+        input="X\n", capture_output=True, text=True,
+    )
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "heading" in proc.stderr and "admitted" not in proc.stdout
+    assert (graph / "nodes" / "hypothesis" / "h2.md").read_text() == before
+
+
+def test_replace_body_guard_leaves_a_payload_alone(tmp_path):
+    """A payload is arbitrary bytes; the structural guard is body-only, so an
+    identical range on a `.py` payload is never structure-checked."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text("# T\n## A\nintro\n### A.1\n")
+    (graph / "nodes" / "build" / "b9.md").write_text(
+        '---\nid: build:b9\ntype: build\nmint_id: abc123\ntitle: "t"\n'
+        'scaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    edit = write.Edit(node_id="build:b9")
+    write.verb_replace(edit, "payload", "1:3", "-")
+    edit.replace_text = "PATCHED"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert payload.read_text().startswith("PATCHED")
+
+
+# --------------------------------------------------------------------------
 # hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
 # --------------------------------------------------------------------------
 
