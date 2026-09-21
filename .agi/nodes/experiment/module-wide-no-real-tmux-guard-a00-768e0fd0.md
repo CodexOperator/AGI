@@ -5,8 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-768e0fd0-6e3cb8
 next_edges: []
-edited_by: a00-768e0fd0
-evidence_runs: experiment:module-wide-no-real-tmux-guard-a00-768e0fd0
+edited_by: a00-3193a1dc
+evidence_runs:
+  - experiment:module-wide-no-real-tmux-guard-a00-768e0fd0
 line_ceiling: 40
 loop: goal:g7.31.4.2@s2
 model: deepseek/deepseek-v4.1-flash
