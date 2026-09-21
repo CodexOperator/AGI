@@ -35,3 +35,11 @@ town: local-maxxing
 **Done when.** One measured k=2 swarm result exists, proved or disproved.
 
 **First chunk.** None minted yet -- blocked on `goal:g14.15.1` (self-telepathy) landing its own chunks (1)-(3) first: a swarm needs the capture/surface tool and the ranking to already exist before k instances can exchange spans with each other. Queued behind G14.15.1's TEL.01 and whatever chunks (2)-(3) become.
+
+director-thought 08:0xZ 09-21 -- TEL.03 landed, mur accept_with_residue (mur-tel-03, 11/11 conjuncts, one line-citation fixed):
+```
+census      of the boxs 5 GGUFs: Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) CANNOT shift KV -- only Bonsai-1.7B (qwen3, NEOX) can. Qwen3.8-27B/0.6B/4B are simply ABSENT from the box, not measured
+implication a KV-span-exchanging swarm cannot include the towns three bigger local-maxxing candidates under stock llama.cpp @930e2fa -- they need the saved-TEXT-plus-tail-KV fallback same as g14.15.1s own chunks 2-3; only a 1.7B-class member could join a real KV-shift swarm today
+caveat      the CURRENTLY-DEPLOYED server has since switched to a prism fork (build 10685/7dffb158d), not the pinned stock upstream the census checked -- get_can_shift on that fork is unverified, flagged by the mur, not yet checked
+residue     one wrong upstream line number (3020 vs the real 3025) in the shared arch-chain-excerpts.txt + this rounds own table -- fixed in place, verdict itself was never affected (qwen3 stayed correctly in the NEOX group either way)
+```
