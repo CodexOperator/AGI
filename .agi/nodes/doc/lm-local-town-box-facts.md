@@ -3,12 +3,13 @@ id: doc:lm-local-town-box-facts
 mint_id: be884d39f86c4bc691f0755e347679ca
 type: doc
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 49353c4e24c2c7b0
 season: 2
 tags: local-maxxing,local-town,runbook,provisioning,pi
+thought_session: parent-residue-g14-g17-remap
 title: "local-town (GPU2070S, the rig) box facts + dispatch runbook -- measured 2026-09-20 on the first seating there; the one page a post reads before dispatching from this box (owner 05:5xZ: card refresh + doc pass)"
 town: local-maxxing
 ---
