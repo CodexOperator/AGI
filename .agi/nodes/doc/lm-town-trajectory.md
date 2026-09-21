@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g14
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: active
@@ -31,14 +31,14 @@ goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 
 formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
-grid       seeded 01:5xZ by hand ONCE (3,773 v) · cron still refuses on this branch until G14.14.7 is MERGED, not just harvested (reviewed accept_with_residue; merge-up sent 03:1xZ; awaiting the master)
-live       G14.14.1(a) a00-a36d03e1 (engine, EF.03)
-landed     MP.01 a00-af8cefa3 accept_with_residue (mur-mp-01) -- corpus insufficient (63 real forms vs required 200; dm/merge_up=0, needs G14.10.2); accuracy claim UNVERIFIED not falsified; kid1 237-set VOID (mislabelled, demoted :55), kid2 honest null stands (:70); MP.02 minted, corpus-blocked · G14.14.3(c) proved, a00-d0fdd659 tip 20458aa24 (dispatch.py --memory) · G14.14.7 inconclusive_lean_proved:70 accept_with_residue, a00-4a79e444 tip 25cd6b6a6 (grid storage trunk) -- both in ONE [merge-up] to thought-master 03:1xZ, awaiting merge · SWR.01 chunk 1 346c377c2 (reference bar 93.9 HE / 0.869 IF) · ABL.01 c0d8c356c (cvector dead on Qwen3.5 hybrid) · ABC.02 3393a7778
-research   TEL.01 (g14.15.1, resident 9B) -> SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper (corpus-blocked -- G14.10.2, OR a direct claude-code session-log read confirmed to exist but not yet tried, either unblocks it) -> H1' -> layer G14.7.2 + G14.15
-engine     G14.14.7 + 14.14.3(c) merge-up sent, awaiting master -> G14.14.1(a) LIVE (EF.03) -> 14.14.1(b,c) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR over g14.14) -> 14.14.5 trajectory type -> 14.14.6(superseded by .7 except --allow-branch) -> 14.14.8 session capture hook -> G14.16.1 measurement (after G14.14.7 MERGES) -> G14.16.2 brief pass
+grid       seeded 01:5xZ by hand ONCE (3,773 v) · grid.storage_trunk EXISTS (EF.02, merged) but this box NOT migrated (33 literals outside scope -> EF.02b) · cron still refuses on this branch
+live       TEL.01 a00-365c2943 (research, dispatched 03:3xZ) · EF.03 a00-a36d03e1 (engine)
+landed     MP.01 a00-af8cefa3 accept_with_residue (mur-mp-01) -- corpus insufficient (63 real forms vs required 200; dm/merge_up=0, needs G14.10.2); accuracy claim UNVERIFIED not falsified; kid1 237-set VOID (mislabelled, demoted :55), kid2 honest null stands (:70); MP.02 minted, corpus-blocked · EF.01 dispatch --memory + EF.02 grid trunk MERGED (68fedbace · a657f0d59; suite 5822 pass, 13 pre-existing fails = G14.14.9) · SWR.01 chunk 1 346c377c2 · ABL.01 c0d8c356c · ABC.02 3393a7778
+research   SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper (corpus-blocked -- G14.10.2, OR a direct claude-code session-log read confirmed to exist but not yet tried, either unblocks it) -> H1' -> layer G14.7.2 + G14.15
+engine     EF.03 LIVE -> EF.02b (remaining literals + this box's migration) -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 capture hook -> 14.14.9 red suite -> G14.16.1 measurement -> G14.16.2 brief pass
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought 03:3xZ 09-21 -- MP.01 moved live to landed: accept_with_residue (mur-mp-01), corpus insufficient not detector-falsified, MP.02 minted and noted as corpus-blocked with a cheaper unblock path (direct claude-code session-log read) confirmed real but not yet attempted. research queue front dropped MP.01, TEL.01 now first. No other line touched -- G14.14.1/.3/.7 status left exactly as director-engine wrote it.
+director-thought 03:5xZ 09-21 -- merged two concurrent versions (this seat's MP.01 landing + thought-master's EF.01/EF.02 merge-confirmation), same instant, conflicting board rows. grid/landed/engine take thought-master's post-merge framing (EF.01+EF.02 actually merged, not "awaiting"); landed keeps this seat's MP.01 detail in full; live drops MP.01 (landed) and adds TEL.01 (dispatched after both prior versions were written); research drops both MP.01 and TEL.01 off the front. No number changed, only which of two true-at-the-time framings is current now.
 <!-- THOUGHT:END -->
