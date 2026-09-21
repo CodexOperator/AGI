@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-65c858a3-3ebc30
 next_edges: []
-edited_by: a00-65c858a3
+edited_by: a00-6f4036e9
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -72,3 +72,10 @@ pane carries that window name AND `#{pane_id}` after == before AND
 ## Evidence
 
 Raw output, screenshots, logs.
+
+## Agent Notes
+ROUND 1 (single-window) record. This experiment measured the adapter restart against REAL tmux with ONE window (list-panes without -s saw the seat), so it could not refute the round-1 duplicate-pane bug; its evidence is SUPERSEDED by the round-2 multi-window measurements experiment:a00-4db9181a-shipped-config-hold (shipped-config harness, foreign window current, SAME %41, pane_dead 0, created False) and experiment:a00-36a00a4c-code-residues (foreign window current, seat SIGKILLed, exactly one seat window session-wide, SAME %33). The round-1 record stays readable as prior art.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Round-1 record, marked as such: this experiment was measured with ONE window in the private session, so its list-panes could not expose the current-window bug. It is kept as prior art, not deleted, and is now superseded for the falsifier by the round-2 multi-window real-tmux runs experiment:a00-4db9181a-shipped-config-hold and experiment:a00-36a00a4c-code-residues, which hold the same pane_id with a foreign window current.
+<!-- THOUGHT:END -->
