@@ -628,6 +628,26 @@ def _check_branch_guard(root: Path | None) -> str | None:
     return None
 
 
+def _check_profile_drift(root: Path | None) -> str | None:
+    """Refuse rotation when a linked profile artifact disagrees with its node.
+
+    The graph is the SoT (`goal:g7.31.5.3`); drift is refused BY NAME before
+    any side effect, and nothing-linked/nothing-drifted is a no-op.
+    """
+    if root is None:
+        return None
+    import profile_sync  # inline: keep rotate's module load free of it
+    try:
+        bad = [r for r in profile_sync.check_all(root) if r["status"] != "ok"]
+    except Exception as e:  # a crashing guard must not block rotation
+        return f"rotate refused: profile drift check failed: {e}"
+    if not bad:
+        return None
+    names = ", ".join(f"{r['node_id']} ({r['status']})" for r in bad)
+    return (f"rotate refused: profile drift — {len(bad)} linked node(s) "
+            f"out of sync: {names}")
+
+
 # ---- role resolution (ladder roles table, else config.json, else defaults)
 
 
@@ -18188,6 +18208,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
     # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
     # is BEHIND the shared geometry branch would spawn its successor on a
