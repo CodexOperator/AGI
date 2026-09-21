@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-1f598f3d-47a870
 next_edges: []
 confidence: 0.97
-edited_by: a00-1f598f3d
+edited_by: a00-e3764563
 evidence_runs:
   - experiment:prompt-marker-write-guard-grant
 line_ceiling: 40
@@ -34,10 +34,14 @@ verdict: proved
 `.agi/context/schemas/[config].md` declares the write guard as DATA:
 `self_row.fields` (what a seated post may write on ITS OWN row) and the
 `sanctuary-master` `actor_rows` entry's `fields` (what the master may write
-when seating a post). `prompt_marker` -- the pane's box glyph, read by
-`send.py._prompt_markers(root, to)` from the RECIPIENT's own row -- was in
-NEITHER, so `write.py::_self_row_refusal` refused a seat setting its own glyph
-and `write.py::_actor_rows_refusal` refused the master's seating write. Only
+when seating a post). `prompt_marker` -- the pane's box glyph, DECLARED as data
+on the RECIPIENT's own row -- was in NEITHER, so `write.py::_self_row_refusal`
+refused a seat setting its own glyph and `write.py::_actor_rows_refusal`
+refused the master's seating write. (The runtime READER that consumes the row
+cell is NOT on this tip: shipped `send.py` hardcodes the `\u276f` glyph in
+`_input_region`; the row-declared reader lands only on unmerged commit
+`1c94972ab`, ref `refs/agi/loops/goal-g7.31.4.1-a00-b2486ebc`. This grant is
+the schema-DATA half; wiring the reader is out of scope here.) Only
 `written_by`-admitted roles (owner, prime_director) could land the cell: an
 operational gap.
 
@@ -67,6 +71,13 @@ python3 -m pytest extensions/agi/tests/test_write_self_row.py \
 ```
 Observed: `38 passed, 17 warnings in 1.09s`.
 
-Production diff (test files excluded):
-`git diff --numstat -- . ':!extensions/agi/tests'`
--> `2  2  .agi/context/schemas/[config].md` (2 lines changed; ceiling 40).
+Production diff (test files excluded). The schema cell and this node were
+committed on different lines, so both ranges are cited:
+`git diff --numstat 5d8d4c91..132095b5e -- . ':!extensions/agi/tests'`
+-> `2  2  .agi/context/schemas/[config].md` (the two `prompt_marker`
+cells; ceiling 40).
+`git diff --numstat 6221bdb1..dbe38aedb -- . ':!extensions/agi/tests'`
+-> `72  0  .agi/nodes/experiment/prompt-marker-write-guard-grant.md` (this
+node, created by this round).
+Production-only (`extensions/ src/ skills/`, tests excluded) is EMPTY for
+both ranges.
