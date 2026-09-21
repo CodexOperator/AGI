@@ -12,7 +12,7 @@ tags:
   - brief
   - director
   - formation
-thought_session: belam-director-internals-2026-09-21
+thought_session: belam-grok-harness-2026-09-21
 title: Unified director brief -- the ROLE every director runs (your card is the STATE), with per-master customizations (sanctuary / thought / prime)
 town: core
 ---
@@ -22,7 +22,7 @@ town: core
 
 ## Standing LLM ops (owner 2026-09-20/21 — HARD spine)
 
-**Grok Texas two-step directors sync internals from `doc:director-grok-internals` (byte-identical §).**
+**ALL posts update internals via graph SoT only; grok seed = `grok-internals-sync` (`doc:grok-harness-internals-sync` + per-post `*-grok-internals`).**
 
 **SoT:** `doc:standing-llm-ops`. Re-read on wake. Supersedes conflicting comms/token habits below for every director (incl. Grok Texas two-step).
 
