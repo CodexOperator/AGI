@@ -101,7 +101,10 @@ def test_bare_row_defaults_the_adapter_to_the_module_stem():
 
 # ----------------------------------------------------------------- restart
 
-RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
+#: `tmux: False` is explicit on purpose: `grok_bot_adapter.hold_harness`
+#: supplies the pane hold when a row says nothing, so the DIRECT-`Popen` tests
+#: must state the opt-out to stay honest about which path they exercise.
+RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot", "tmux": False,
                    "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
@@ -167,7 +170,10 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
 # cell, so `grok_bot_adapter.restart`'s tmux branch was unguarded in-repo.
 # This harness enables it and a fake tmux is installed via the SAME global
 # `subprocess.run` the conftest guard patches (our body patch wins).
-TMUX_HARNESS = dict(RESTART_HARNESS, tmux=True, tmux_session="agi-rc")
+# A SENTINEL session name, deliberately not the live box cell: if the harness's
+# own `tmux_session` is dropped (e.g. a shadowed variable) the fallback names
+# the box session and the target assert below goes red.
+TMUX_HARNESS = dict(RESTART_HARNESS, tmux=True, tmux_session="agi-sentinel-dt28")
 SEAT = tmux_hold.pane_name("a00-test")
 
 
@@ -213,6 +219,11 @@ def test_restart_reaches_tmux_hold_and_stamps_the_record(monkeypatch, tmp_path):
     assert "new-window" not in verbs and "new-session" not in verbs
     assert any(c[1] == "respawn-pane" and c[c.index("-t") + 1] == "%42"
                for c in fake.calls)  # immutable pane_id
+    # The session target is the HARNESS's own cell, never the box fallback
+    # (`tmux_hold._box_session`) -- a dropped `tmux_session` used to land the
+    # respawn in the live box session, "creating" a pane nobody could find.
+    assert any(c[1] == "list-panes" and c[c.index("-t") + 1] == "agi-sentinel-dt28"
+               for c in fake.calls)
     assert rec["tmux"] == {"created": False, "pane_id": "%42"}
     assert rec["pid"] == 7001 and rec["status"] == "restarted"
     written = _json.loads((sess / "agent.json").read_text())
@@ -223,11 +234,72 @@ def test_tmux_harness_resolves_the_box_session_from_config(live_cfg_raw):
     """The session a held seat is born into is the box cell -- ONE source of
     truth (`goal:g7.31.1.2`, config_max), carried into the resolved harness
     so `harness_spec` records it for restart. A harness-local literal would
-    fail this."""
+    fail this.
+
+    The enabled() truth does NOT come from a `tmux` cell this round cannot
+    commit (`cli.py`'s round-scope gate excludes `.agi/config.json`): the
+    opt-in is declared by `grok_bot_adapter.HOLD_PANE`, so a shipped row with
+    no `tmux` cell still reaches the seam.
+    """
     _, row = adapters.resolve(live_cfg_raw, "grok-bot")
     assert row["tmux_session"] == live_cfg_raw["box"]["tmux_session"]
     assert row["tmux_session"] != "agi-hold"  # the retired literal
+    assert grok.HOLD_PANE is True
     assert tmux_hold.enabled(row) is True
+
+
+def test_shipped_row_reaches_the_pane_seam_without_a_config_cell():
+    """The committed bytes of this round put the opt-in in the adapter, not in
+    a config cell: a `grok-bot` row that says nothing about tmux resolves to a
+    pane-holding harness (`goal:g7.31.1.2`)."""
+    row_in = dict(HARNESS)
+    cfg = {"harnesses": {"grok-bot": row_in, "pi": {"adapter": "pi"}},
+           "box": {"tmux_session": "agi-rc"}}
+    _, row = adapters.resolve(cfg, "grok-bot")
+    assert "tmux" not in row_in and "pane" not in row_in
+    assert tmux_hold.enabled(row) is True
+
+
+def test_explicit_tmux_false_beats_the_adapter_default():
+    """A caller that states `tmux: False` gets the direct path: the adapter
+    default never overrides a stated cell, at resolve or at restart."""
+    cfg = {"harnesses": {"grok-bot": dict(HARNESS, tmux=False),
+                         "pi": {"adapter": "pi"}},
+           "box": {"tmux_session": "agi-rc"}}
+    _, row = adapters.resolve(cfg, "grok-bot")
+    assert row["tmux"] is False
+    assert tmux_hold.enabled(row) is False
+    assert tmux_hold.enabled(grok.hold_harness(row)) is False
+
+
+def test_explicit_tmux_false_keeps_the_direct_popen_path(monkeypatch, tmp_path):
+    """`tmux: False` really leaves tmux alone (`goal:g7.31.1.2`):
+    `tmux_hold.reattach` is never called and the restart returns a real Popen
+    pid, not a pane pid."""
+    spawned = []
+
+    class FakeProc:
+        pid = 6161
+
+    def fake_popen(args, **kwargs):
+        spawned.append(list(args))
+        return FakeProc()
+
+    def no_tmux(*a, **k):
+        raise AssertionError("tmux_hold.reattach reached despite tmux: False")
+
+    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(grok.tmux_hold, "reattach", no_tmux)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == FakeProc.pid  # a real Popen pid
+    assert spawned  # the direct path actually ran
+    assert "tmux" not in rec  # no pane identity stamped
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the

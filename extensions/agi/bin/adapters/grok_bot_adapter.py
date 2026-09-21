@@ -25,6 +25,14 @@ from adapters import tmux_hold
 
 NAME = "grok-bot"
 
+#: Grok Bot seats hold a durable named tmux pane by default (`goal:g7.31.1.2`).
+#: Declared HERE, in the module that owns this seat's spawn shape, so the
+#: shipped `harnesses.grok-bot` row reaches the seam with NO config cell. An
+#: explicit `tmux: False` / `pane: False` on the harness is honoured and keeps
+#: the direct-`Popen` path.
+HOLD_PANE = True
+
+
 #: Fallback only. `$GROK_BOT_BIN`, then `harness["bin"]`, then this
 #: (PATH-resolved by Popen). The configured box path is a config cell, not
 #: a literal here.
@@ -34,6 +42,19 @@ DEFAULT_BIN = "grok-bot"
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
     return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
+
+
+def hold_harness(harness: dict) -> dict:
+    """`harness` with this adapter's pane-hold default applied.
+
+    A stated `tmux`/`pane` cell -- True or False -- wins outright; only a row
+    that says nothing gets `HOLD_PANE`. Applied in `restart` as well as by
+    `adapters.resolve`, so a harness replayed from an older record (no cell)
+    still re-enters its named pane (`goal:g7.31.1.2`).
+    """
+    if "tmux" in harness or "pane" in harness:
+        return harness
+    return {**harness, "tmux": HOLD_PANE}
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
@@ -134,22 +155,24 @@ def restart(
         ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
-    if tmux_hold.enabled(harness):
-        hold: dict = {}
+    hold = hold_harness(harness)
+    if tmux_hold.enabled(hold):
+        created: dict = {}
         # Durable named pane hold (`goal:g7.31.1.2`): same pane identity across
-        # pid churn. Opt-in via `harness["tmux"]`; unset keeps the Popen path.
+        # pid churn. Declared by `HOLD_PANE` on this adapter; an explicit
+        # `tmux: False` keeps the Popen path below.
         new_pid = tmux_hold.reattach(
-            harness, agent_id, args,
+            hold, agent_id, args,
             cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
-            created=hold)
+            created=created)
         if new_pid is not None and agent_record is not None:
             agent_record["pid"] = new_pid
             agent_record["status"] = "restarted"
             agent_record["restarted_at"] = int(time.time())
-            if hold:
+            if created:
                 # `created: true` means the seat's named pane was GONE and was
                 # re-created, not reattached (`goal:g7.31.1.2`).
-                agent_record["tmux"] = hold
+                agent_record["tmux"] = created
             (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         return new_pid
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
