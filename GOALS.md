@@ -6084,6 +6084,8 @@ OWNER 01:56Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'And repo
 
 OWNER 01:57Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Tell everyone else to diagram max as well to maximally compress all comms and card content/updates while retaining even more meaning than without doing the compression' -- APPLIED: one identical [owner] dm to thought-master, director-thought and director-engine (every post on this box): every dm, note, card and card update is diagram-maxed -- one compact flow or table carries the state; prose only where a diagram would drop meaning; the four shapes diagrams drop (negations, conditions, attributions, supersessions -- hypothesis:l3w4-context-load-minimal) are kept EXPLICIT in the diagram, so the compressed form carries MORE meaning, not less; owner verbatim stays verbatim in nodes.
 
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Yes it is break it out into a proper subgoal as well to fall inline with the rest, including the standard format. Then refine the doc pass even more for yourself and the directors based on that format and tell both directors to sync theirs and refine even further to allow batch-maxxing for them as well. Do self-comms using diagram maxxing as well. And even thought stream if possible for all roles.' -- confirms the 01:57Z diagram-max order (relayed by the Prime, goal:g14 L236) as the owner's. ACTED: goal:g14.16 minted (standard format); card pass; TMM.20 / TME.05 to the directors.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10637,6 +10639,26 @@ thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to t
 **Falsifiers.** (1) is falsified if shifted re-injection agrees < 80 pct with re-prefill (then RoPE-shifted KV is not position-portable for this model and telepathy needs re-prefill from saved TEXT plus a saved KV only for the tail); (3) if KV ranking never beats text retrieval on the probe set; (4) if the swarm's answer quality is below the single long-context instance at equal total tokens.
 **Done when.** (1)-(3) have verdicts and either a working in-session KV RAG on the served model or the measured reason it cannot work; (4) has one measured k=2 swarm result.
 **First chunk (the director mints G14.15.1 self-telepathy and G14.15.2 swarm, same format, then TEL.01 = chunk (1) span fidelity):** `hypothesis:` under G14.15.1 — testable claim (1) above, falsifier, the committed test, file scope, ceiling in engine units; runs on the resident 9B (no model loading on the host), cap 1 USD for the parent, queued after MP.01 (one GPU round at a time). Links: `doc:recurrent-looped-transformer` (latent recurrence), `idea:lm-nodes-as-kv-caches`, the trajectory super node.
+
+#### G14.16 — DIAGRAM-MAX + BATCH-MAX — every dm, note, card, board section and (where possible) thought stream on the town is ONE compact flow or table that carries MORE meaning in FEWER tokens than the prose it replaces, never dropping a negation, condition, attribution or supersession; directors batch-max (many rounds per order, one merge-up per batch) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.16
+## Agent Notes
+**Owner source (verbatim on goal:g14):** 01:57Z 09-21 (Prime pane): "Tell everyone else to diagram max as well to maximally compress all comms and card content/updates while retaining even more meaning than without doing the compression" · 02:1xZ 09-21 (thought-master pane): "break it out into a proper subgoal … including the standard format. Then refine the doc pass even more for yourself and the directors based on that format and tell both directors to sync theirs and refine even further to allow batch-maxxing for them as well. Do self-comms using diagram maxxing as well. And even thought stream if possible for all roles."
+**Commits to.**
+```
+scope      every dm · note · card · board section · [merge-up] line · THOUGHT block · (if the harness allows) the thought stream itself — every role on local-maxxing
+shape      ONE compact flow or table per message/section; prose ONLY where a diagram would drop meaning
+keep       negations (NOT/never) · conditions (if/only when) · attributions (who said/measured) · supersessions (X supersedes Y) — always explicit
+verbatim   owner text stays verbatim, in nodes (goal:g14 notes), never compressed
+batch-max  a director's order carries MANY rounds; ONE [merge-up] per batch; a dm per round is a defect
+target     fewer tokens AND more meaning than the prose replaced — measured, not felt
+```
+**Invariants.** A compressed artifact is checked against its source for the four shapes before it replaces it; owner verbatim is never rewritten; a card stays ≤ 40 lines with state on `doc:lm-town-trajectory` (versions, not notes); the trajectory node's metric table is the model of the shape.
+**Falsifiers.** (a) A diagram-maxed card/dm loses a fact its source held (found by a reader or a mur) → it is not done; the fact is restored and the shape revised. (b) Token count of the compressed artifact is not below the prose it replaced (measured with the same tokenizer) → not compression. (c) A director's turn count per landed round does not fall after batch-maxxing → the batching is nominal.
+**Done when.** All three cards and both role briefs are in the shape with measured token reduction (a before/after table on this node); every [merge-up] and board update of one full week is in the shape; one measured batch (≥ 3 rounds per order) landed with one merge-up.
+**First chunk (the master, no spend):** the card pass — thought-master card §4+ (done 02:0xZ), director-thought + director-engine cards synced to the shape (TMM.20 / TME.05), before/after line counts on this node; then G14.16.1 (director-engine, same format): the measurement round — a tokenizer count of each card/brief before and after, the four-shape checklist as a committed script, run as one pi round.
 
 ## App: streaming-suite
 
