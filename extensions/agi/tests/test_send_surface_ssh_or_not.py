@@ -85,3 +85,39 @@ def test_no_is_ssh_in_caller_facing_send_bodies():
     assert {f.name for f in found} == want
     for fn in found:
         assert "is_ssh" not in (ast.get_source_segment(src, fn) or ""), fn.name
+
+
+# conjunct 2, REAL path: send_dm -> REAL _nudge_window -> REAL _nudge_target.
+# Only the tmux/capture layer is faked; neither _nudge_window nor
+# _nudge_target is stubbed, so the foreign-box refusal is exercised as built.
+def test_real_path_refuses_foreign_box_and_reaches_local(
+        tmp_path, monkeypatch, capsys):
+    root = _graph(tmp_path, [LOCAL, FOREIGN])
+    monkeypatch.setattr(send, "_window_id_listed", lambda *a, **k: True)
+    monkeypatch.setattr(send, "_leave_copy_mode", lambda *a, **k: True)
+    monkeypatch.setattr(send, "_capture_pane", lambda *a, **k: "")
+    monkeypatch.setattr(send, "_registry_status", lambda *a, **k: None)
+    typed: list[tuple] = []
+
+    def _fake_send_keys(target, *keys, **kw):
+        typed.append((target, keys))
+        return True
+    monkeypatch.setattr(send, "_send_keys", _fake_send_keys)
+
+    # foreign-box peer: REFUSED by name, and no keystroke reaches any pane.
+    p_far = send.send_dm(root, "sender", "far-seat", "hi far", "sender")
+    err = capsys.readouterr().err
+    assert "FOREIGN box row" in err and "far-seat" in err
+    assert typed == []
+
+    # local peer: SAME call, reached, typed into its own pane.
+    p_local = send.send_dm(root, "sender", "local-seat", "hi local", "sender")
+    assert [t for t, _ in typed] and typed[0][0].endswith(":@111")
+
+    # SAME result shape both peers (the dm record, transport aside).
+    assert isinstance(p_far, Path) and isinstance(p_local, Path)
+    assert p_far.parent == p_local.parent
+    for p, text in ((p_far, "hi far"), (p_local, "hi local")):
+        blocks = send._conv_blocks(p)
+        assert len(blocks) == 1 and blocks[0]["text"] == text
+        assert {"ts", "from", "to"} <= set(blocks[0])
