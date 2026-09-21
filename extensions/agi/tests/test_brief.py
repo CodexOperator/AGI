@@ -1129,6 +1129,38 @@ def test_kid_brief_contains_write_py_syntax():
     assert "not k=v" in kid.lower()
 
 
+# --- goal:g7.31.3.1: the cold seat brief lists the five pane routes ---------
+
+#: The five contract names and the engine seam each must name, verbatim from
+#: `goal:g7.31.3`'s table. A rename lands in the goal node and `brief.py`
+#: together; this test is the falsifier that the RENDERED brief carries them.
+_FIVE_ROUTES = ("write", "read", "send", "dispatch|workflow",
+                "rotate|spawn")
+_ROUTE_SEAMS = ("write.py", "commands.py", "send.py", "dispatch.py",
+                "workflow.py", "rotate.py")
+
+
+def test_full_brief_lists_the_five_pane_routes_with_their_seams():
+    """goal:g7.31.3.1 -- the assembled cold-seat brief (the `goal:g7.26`
+    custom-instruction surface) lists all five routes by their contract
+    names and names every engine seam. Rendered, not source-grepped."""
+    for tier in _ALL_TIERS:
+        txt = _text(tier, scaffold=SCAFFOLD, target="goal:g7.31.3.1")
+        for name in _FIVE_ROUTES:
+            assert name in txt, f"{tier} brief missing route name {name!r}"
+        for seam in _ROUTE_SEAMS:
+            assert seam in txt, f"{tier} brief missing seam {seam!r}"
+        assert brief._ROUTES_SEGMENT in txt
+
+
+def test_survival_brief_does_not_carry_the_five_route_table():
+    """The survival profile exists to be smaller than this segment; the
+    route table is full-profile only (`hypothesis:l3w4-context-load-minimal`)."""
+    s = _text("kid", scaffold=SCAFFOLD, profile="survival")
+    assert "FIVE PANE-FACING ROUTES" not in s
+    assert brief._ROUTES_SEGMENT not in s
+
+
 # ----------------- l3w0-brief-head-michael: the Archangel Michael line --------
 
 MICHAEL = brief._MICHAEL_LINE
