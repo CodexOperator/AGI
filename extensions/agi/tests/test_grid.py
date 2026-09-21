@@ -1907,3 +1907,183 @@ def test_crons_py_has_no_namespace_literal():
     crons_src = (BIN.with_name("crons.py")).read_text()
     assert "refs/grid" not in crons_src
 
+
+
+# ---------------- goal:g14.14.7 -- migrate-trunk: change the NAMESPACE -----
+#
+# migrate-refs and migrate-mint-refs both move refs WITHIN refs/grid/node/.
+# Neither changes the namespace. This is the one that does, and it is
+# ref-driven (a ref with no live node file still moves).
+
+@pytest.fixture()
+def trunk_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "nodes" / "level3").mkdir(parents=True)
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def _seed_node_ref(root, suffix, revisions=("body 1\n",)):
+    """Create `refs/grid/node/<suffix>` by plumbing only -- deliberately no
+    node FILE behind it, so the tests prove the migration is ref-driven."""
+    parent = None
+    for i, text in enumerate(revisions, 1):
+        blob = grid.git(root, "hash-object", "-w", "--stdin", input_text=text)
+        tree = grid.git(root, "mktree",
+                        input_text=f"100644 blob {blob}\tnode.md\n")
+        args = ["commit-tree", tree, "-m", f"v{i} {suffix}"]
+        if parent:
+            args += ["-p", parent]
+        parent = grid.git(root, *args)
+    grid.git(root, "update-ref", f"refs/grid/node/{suffix}", parent)
+    return parent
+
+
+def _refs(root, ns):
+    return grid.git(root, "for-each-ref", ns, "--format=%(refname)").splitlines()
+
+
+def test_migrate_trunk_dry_run_changes_nothing(trunk_project, capsys):
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s) for s in ("m1", "m2", "m3")}
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=False)
+    out = capsys.readouterr().out
+
+    assert out.count("WOULD-MOVE") == 3
+    assert "3 would-move, 0 unchanged, 0 conflict(s)" in out
+    assert sorted(_refs(root, "refs/grid/node/")) == sorted(
+        f"refs/grid/node/{s}" for s in tips)
+    assert _refs(root, "refs/grid/local-maxxing") == []
+
+
+def test_migrate_trunk_write_moves_all_and_preserves_shas(trunk_project):
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s, ("a\n", "b\n")) for s in ("m1", "m2", "m3")}
+
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+
+    new = _refs(root, "refs/grid/local-maxxing/node/")
+    assert len(new) == 3
+    assert _refs(root, "refs/grid/node/") == []      # moved, not duplicated
+    for s, tip in tips.items():
+        assert grid.ref_tip(root, f"refs/grid/local-maxxing/node/{s}") == tip
+        assert int(grid.git(root, "rev-list", "--count",
+                            f"refs/grid/local-maxxing/node/{s}")) == 2
+
+
+def test_migrate_trunk_is_idempotent(trunk_project, capsys):
+    root = trunk_project
+    for s in ("m1", "m2"):
+        _seed_node_ref(root, s)
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+    tip = grid.ref_tip(root, "refs/grid/local-maxxing/node/m1")
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)  # no-op
+    out = capsys.readouterr().out
+
+    assert "0 moved, 0 unchanged, 0 conflict(s)" in out
+    assert grid.ref_tip(root, "refs/grid/local-maxxing/node/m1") == tip
+    assert _refs(root, "refs/grid/node/") == []
+
+
+def test_migrate_trunk_uses_configured_trunk_when_to_absent(trunk_project,
+                                                            restore_ref_ns):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing/"}}))
+    assert grid.ref_ns_for(root) == "refs/grid/local-maxxing"  # slash stripped
+
+    grid.cmd_migrate_trunk(root, None, write=True)
+
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        "refs/grid/local-maxxing/node/m1"]
+    assert "refs/grid/local-maxxing//" not in grid.git(
+        root, "for-each-ref", "refs/", "--format=%(refname)")
+
+
+def test_migrate_trunk_config_first_via_main_sequence(trunk_project,
+                                                      restore_ref_ns):
+    """The config-first order the hypothesis names, through main()'s real
+    sequence. main() calls `apply_storage_trunk(root)` BEFORE dispatch, so by
+    the time the verb runs `REF_NS` is the TARGET trunk. The source must not
+    be re-resolved from that config, or `old_ns == new_ns` and nothing moves.
+
+    This test FAILS on the pre-fix bytes: with `old_ns = REF_NS` it reports
+    '0 moved' and leaves every ref under `refs/grid/node/`."""
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s, ("a\n", "b\n")) for s in ("m1", "m2")}
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+
+    # Exactly what main() does, in order: resolve config FIRST, then migrate.
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"   # the config-first state
+    grid.cmd_migrate_trunk(root, None, write=True)
+
+    new = _refs(root, "refs/grid/local-maxxing/node/")
+    assert len(new) == 2
+    assert _refs(root, "refs/grid/node/") == []       # moved, not stranded
+    for s, tip in tips.items():
+        assert grid.ref_tip(root, f"refs/grid/local-maxxing/node/{s}") == tip
+
+
+def test_migrate_trunk_from_override_with_config_set(trunk_project,
+                                                     restore_ref_ns):
+    """Even with a configured trunk already resolved into `REF_NS`, an
+    explicit `--from refs/grid` moves the refs onto the configured `--to`
+    destination -- the source seam is independent of the config."""
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"
+
+    grid.cmd_migrate_trunk(root, None, write=True, source="refs/grid")
+
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        "refs/grid/local-maxxing/node/m1"]
+    assert _refs(root, "refs/grid/node/") == []
+
+
+def test_migrate_trunk_refuses_to_overwrite_conflicting_destination(
+        trunk_project, capsys):
+    root = trunk_project
+    old_tip = _seed_node_ref(root, "m1", ("real history\n",))
+    grid.git(root, "update-ref", "refs/grid/local-maxxing/node/m1", old_tip)
+
+    # Different history already at the destination -> never clobbered.
+    other_tip = _seed_node_ref(root, "m2", ("other history\n",))
+    grid.git(root, "update-ref", "refs/grid/local-maxxing/node/m1", other_tip)
+    assert other_tip != old_tip
+
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+
+    assert grid.ref_tip(root, "refs/grid/node/m1") == old_tip       # untouched
+    assert grid.ref_tip(root, "refs/grid/local-maxxing/node/m1") == other_tip
+
+
+def test_migrate_trunk_same_namespace_is_unchanged_noop(trunk_project, capsys):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid", write=True)
+    out = capsys.readouterr().out
+
+    assert "0 moved, 1 unchanged, 0 conflict(s)" in out
+    assert grid.ref_tip(root, "refs/grid/node/m1") is not None
+
+
+def test_migrate_trunk_refuses_invalid_target_namespace(trunk_project):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    with pytest.raises(SystemExit):
+        grid.cmd_migrate_trunk(root, "refs/grid//bad", write=True)
+    # Invalid target -> nothing moved, source intact.
+    assert grid.ref_tip(root, "refs/grid/node/m1") is not None
