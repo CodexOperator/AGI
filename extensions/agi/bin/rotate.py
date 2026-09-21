@@ -18135,6 +18135,118 @@ def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
         return f"rotation-failed dm to supervisor {sup!r} FAILED: {exc}"
 
 
+#: The session-capture landing dir under a repo (goal:g14.14.8). It MIRRORS
+#: -- never duplicates -- the established `datasets/trajectories/<id>/`
+#: shape (`transcript.jsonl` + `label.json`), so a reader of one can read
+#: the other.
+SESSION_DATASET_DIR = "sessions"
+
+#: Loaded-once cache of `datasets/tools/scrub.py`, keyed by resolved path.
+_SCRUB_MODULE_CACHE: dict = {}
+
+
+def _load_scrub_module(root: Path):
+    """The ONE redactor: `datasets/tools/scrub.py`, imported by path.
+
+    The redaction implementation is reused UNCHANGED -- a second, local
+    redactor is the exact falsifier this capture exists to avoid. Search
+    order is the caller's own repo first (where the landing goes), then this
+    script's repo (a worktree's rotate.py may run against a graph whose repo
+    has no `datasets/`). Raises on absence so `_capture_session_safe` can log
+    it and leave the rotation standing.
+    """
+    import importlib.util
+    cands = [locations.repo_root(root) / "datasets" / "tools" / "scrub.py",
+             ENGINE_ROOT / "datasets" / "tools" / "scrub.py"]
+    path = next((p for p in cands if p.is_file()), None)
+    if path is None:
+        raise FileNotFoundError(
+            "datasets/tools/scrub.py not found (tried: "
+            + ", ".join(str(p) for p in cands) + ")")
+    key = str(path)
+    mod = _SCRUB_MODULE_CACHE.get(key)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location("agi_scrub", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _SCRUB_MODULE_CACHE[key] = mod
+    return mod
+
+
+def capture_session_transcript(root: Path, *, seat: str, row: dict | None,
+                               transcript_path: Path | str | None = None
+                               ) -> Path | None:
+    """Land one scrubbed rotation transcript + its pre-labels under
+    `datasets/sessions/<role>/<session-id>/` (goal:g14.14.8).
+
+    `transcript_path=None` resolves the seat's OWN transcript through the ONE
+    existing resolver `resolve_transcript` (--session-log / $AGI_SESSION_LOG
+    / seat pin / cwd slug), never a second discovery path. Scrubbing goes
+    through `datasets/tools/scrub.py` UNCHANGED and the landed bytes are
+    re-checked with the SAME module's `recheck` before the write completes.
+
+    Returns the landing dir, or None when no transcript resolved. Raises on a
+    real failure; the call site uses `_capture_session_safe`.
+    """
+    source_tag = "explicit"
+    if transcript_path is None:
+        tpath, source_tag = resolve_transcript(root=root, seat=seat)
+        if tpath is None:
+            print(f"WARN: session capture: no transcript for seat {seat!r} "
+                  f"(source={source_tag})", file=sys.stderr)
+            return None
+    else:
+        tpath = Path(transcript_path).expanduser()
+    session_id = tpath.stem
+    role = ((row or {}).get("role") or "unknown")
+    dest = (locations.repo_root(root) / "datasets" / SESSION_DATASET_DIR
+            / str(role) / session_id)
+    dest.mkdir(parents=True, exist_ok=True)
+    scrub = _load_scrub_module(root)
+    raw = tpath.read_text(encoding="utf-8", errors="replace")
+    scrubbed, counts = scrub.redact_text(raw)
+    remaining = scrub.recheck(scrubbed)
+    if remaining:
+        print(f"WARN: session capture: {len(remaining)} candidate span(s) "
+              f"remain after scrub for {session_id}", file=sys.stderr)
+    (dest / "transcript.jsonl").write_text(scrubbed, encoding="utf-8")
+    label = {
+        "role": (row or {}).get("role"),
+        "harness": (row or {}).get("harness"),
+        "model": (row or {}).get("model"),
+        "name": (row or {}).get("name"),
+        "town": (row or {}).get("town"),
+        "box": (row or {}).get("box"),
+        "session_id": session_id,
+        "transcript_source": source_tag,
+        "scrub_redactions": counts,
+    }
+    if row and "provider" in row:
+        label["provider"] = row.get("provider")
+    (dest / "label.json").write_text(
+        json.dumps(label, indent=2) + "\n", encoding="utf-8")
+    return dest
+
+
+def _capture_session_safe(root: Path, *, seat: str, row: dict | None,
+                          transcript_path=None) -> Path | None:
+    """Non-blocking capture: log on error, never raise past the caller.
+
+    A capture is ADDITIVE (goal:g14.14.8): a rotation that already succeeded
+    must COMPLETE even when its capture fails, with the error logged.
+    """
+    try:
+        dest = capture_session_transcript(root, seat=seat, row=row,
+                                          transcript_path=transcript_path)
+        if dest is not None:
+            print(f"session capture: {dest} (rotation continues)")
+        return dest
+    except Exception as e:  # noqa: BLE001 -- never fail a rotation here
+        print(f"WARN: session capture failed (rotation continues): "
+              f"{type(e).__name__}: {e}", file=sys.stderr)
+        return None
+
+
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -19636,6 +19748,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if _lat is not None:
         _rec.setdefault("observations", {})["spawn_to_registry_s"] = _lat
     record_path = _write_rotation_record(root, _rec, path=rec_path)
+
+    # (6.1) SESSION CAPTURE (goal:g14.14.8): land the PREDECESSOR's own
+    #     transcript, scrubbed, beside its pre-labels under
+    #     `datasets/sessions/<role>/<session_id>/` (mirrors trajectories/).
+    #     ADDITIVE and NON-BLOCKING: the rotation already succeeded above; a
+    #     capture error is logged and the rotation completes regardless.
+    #     Resolved through the ONE existing `resolve_transcript` (env
+    #     $AGI_SESSION_LOG still names THIS seat's own session here).
+    if not args.dry_run:
+        _capture_session_safe(root, seat=seat, row=row)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack
