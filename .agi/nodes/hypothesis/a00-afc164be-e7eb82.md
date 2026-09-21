@@ -66,3 +66,6 @@ comment. A malformed probe dict still round-trips.
 
 ## Agent Notes
 Closed both MUR residues: (1) wrote a DH.33-delta THOUGHT onto experiment:rotate-pane-contract-reuse via write.py (grep: no PARENT REVIEW (DH.18); L119 names the staged test and 4 passed tail); (2) declared probes:{type:list} in .agi/context/schemas/[hypothesis].md after tags, mirroring [experiment].md. links.py schema unchanged (hypothesis testable_claimx128, no probes violation); pytest -k schema 77 passed, 1 skipped. 7 production lines vs ceiling 40.
+
+## Agent Notes
+Closed both MUR residues: (1) wrote a DH.33-delta THOUGHT onto experiment:rotate-pane-contract-reuse via write.py, named as an owned path in this same done call (--owns) so the human-slug node lands in the round commit -- the mechanism whose absence caused the DH.33 residue; grep: no PARENT REVIEW (DH.18), L119 names the staged test and 4 passed tail; (2) declared probes:{type:list} in .agi/context/schemas/[hypothesis].md after tags, mirroring [experiment].md. links.py schema unchanged (hypothesis testable_claimx128, no probes violation); pytest -k schema 77 passed, 1 skipped. 7 production lines vs ceiling 40.
