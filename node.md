@@ -3,7 +3,7 @@ id: hypothesis:l5-rotate-accepts-the-pending-successor-key-the-signer-already-pr
 mint_id: 0dd9633e26424028bf0cdc42939c937a
 type: hypothesis
 parents:
-  - goal:g6.47.1
+  - goal:g15.26
 next_edges: []
 edited_by: sanctuary-master
 scaffold_hash: a4c73def1e3aeeeb
