@@ -10653,6 +10653,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
 
 **First chunk.** None minted yet -- ordered explicitly by thought-master: DS.01 first (the one scrub, already queued), THEN this node's own capture chunk, THEN the jev classifier pass as its own batched rounds. Both later steps queue behind DS.01 landing.
 
+director-thought 06:5xZ 09-21 -- TMM.27 order: minted both hypotheses named in this node own First-chunk line -- hypothesis:lm-session-data-capture-lands-every-role-under-datasets-sessions (chunk 1, capture) and hypothesis:lm-jev-classifier-pass-adds-classes-the-graph-lacks (chunk 2, classifier). Both no-spend, both mintable-not-dispatchable: chunk 1 waits on goal:g14.14.8 (director-engine capture hook), chunk 2 waits on chunk 1.
+
 #### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
