@@ -1139,12 +1139,17 @@ _FIVE_ROUTES = ("write", "read", "send", "dispatch|workflow",
 _ROUTE_SEAMS = ("write.py", "commands.py", "send.py", "dispatch.py",
                 "workflow.py", "rotate.py")
 
-#: Tiers this falsifier iterates. Local to the routes test, NOT the shared
-#: `_ALL_TIERS` above (other tests key on that tuple being the four ladder
-#: tiers): `_ROUTES_SEGMENT` rides every FULL-profile brief, so `liaison`
-#: must be covered too, and `advisor` is added below when a vision node
-#: exists to embody (its required target).
-_ROUTES_TIERS = ("kid", "parent", "director", "prime_director", "liaison")
+#: Tiers this falsifier iterates. DERIVED from `brief.TIERS` -- never
+#: re-listed -- so a tier added to the brief's own contract is covered here
+#: automatically instead of drifting silently out of the falsifier. (Same
+#: failure mode `test_verdict_taxonomy_is_derived_not_retyped` guards.)
+#: `advisor` is excluded only because its brief requires a live
+#: `vision:<stem>` target, resolved separately below; the rest of the
+#: membership is the brief's, not this test's, to declare. A function, not a
+#: frozen tuple, so the derivation is real at call time (and provable by
+#: monkeypatch, `test_routes_tiers_are_derived_from_the_brief_contract`).
+def _routes_tiers():
+    return tuple(t for t in brief.TIERS if t != "advisor")
 
 
 def _live_vision_target():
@@ -1156,22 +1161,46 @@ def _live_vision_target():
     return f"vision:{paths[0].stem}" if paths else None
 
 
+def test_routes_tiers_are_derived_from_the_brief_contract(monkeypatch):
+    """The routes falsifier must cover every tier `brief.TIERS` declares,
+    not a copy of today's membership: add a tier to the brief's contract and
+    it appears in `_routes_tiers()` in the same commit, with no test edit."""
+    sentinel = "tier-sentinel-9f3a"
+    monkeypatch.setattr(brief, "TIERS", brief.TIERS + (sentinel,))
+    assert sentinel in _routes_tiers(), (
+        "_routes_tiers is a copy of the tier list, not a derivation: a new "
+        "brief tier is silently NOT covered by the routes falsifier"
+    )
+    assert "advisor" not in _routes_tiers()
+
+
 def test_full_brief_lists_the_five_pane_routes_with_their_seams():
     """goal:g7.31.3.1 -- the assembled cold-seat brief (the `goal:g7.26`
     custom-instruction surface) lists all five routes by their contract
     names and names every engine seam. Rendered, not source-grepped."""
-    tiers = list(_ROUTES_TIERS)
-    vision = _live_vision_target()
-    if vision:
-        tiers.append("advisor")
-    for tier in tiers:
-        target = vision if tier == "advisor" else "goal:g7.31.3.1"
+
+    def _check(tier, target):
         txt = _text(tier, scaffold=SCAFFOLD, target=target)
         for name in _FIVE_ROUTES:
             assert name in txt, f"{tier} brief missing route name {name!r}"
         for seam in _ROUTE_SEAMS:
             assert seam in txt, f"{tier} brief missing seam {seam!r}"
         assert brief._ROUTES_SEGMENT in txt
+
+    for tier in _routes_tiers():
+        _check(tier, "goal:g7.31.3.1")
+    vision = _live_vision_target()
+    if vision is None:
+        # The advisor's brief cannot be assembled without a live vision
+        # target, and a graph may legitimately carry no vision node. The drop
+        # must be VISIBLE, not silent: the non-advisor tiers above are still
+        # asserted, then this reports the uncovered advisor as a skip with
+        # its reason rather than passing as if coverage were complete.
+        pytest.skip(
+            "advisor tier uncovered: the live graph carries no vision node "
+            "to embody its required target (non-advisor tiers were checked)"
+        )
+    _check("advisor", vision)
 
 
 def test_survival_brief_does_not_carry_the_five_route_table():
