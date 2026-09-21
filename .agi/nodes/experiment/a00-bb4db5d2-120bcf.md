@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices
 next_edges: []
 confidence: 0.85
-edited_by: a00-bb4db5d2
+edited_by: a00-1e2bdb76
 evidence_runs:
   - experiment:a00-bb4db5d2-120bcf
 line_ceiling: 200
@@ -17,11 +17,16 @@ probes:
   - {"conjunct": 1, "class": "gate", "cmd": "same fixture, CLI dry-run replace body 3:4 - (starts on ## A, stops short)", "expected": "refused, names the heading and --force", "observed": "exit 2: starts on the heading ## A but stops before the end of its section (line 5)", "result": "PASS"}
   - {"conjunct": 1, "class": "wire", "cmd": "printf X | CLI replace body 3:4 --force - on the scratch node, then read body", "expected": "--force threads parse_script -> verb_replace -> submit and lands the partial edit", "observed": "updated: hypothesis:h2; body reads # T / X / ### A.1 / ## B / beta", "result": "PASS"}
   - {"conjunct": 3, "class": "gate", "cmd": "test_replace_body_guard_refuses_ending_on_a_heading_with_content: ### A.1 with a1text, range 4:5", "expected": "refused -- the false-positive boundary", "observed": "EditError naming the heading; node bytes unchanged", "result": "PASS"}
+  - {"conjunct": 1, "class": "gate", "cmd": "_body_range_refusal on director fixture '# T/## A/intro/### A.1/## B/beta', range 3:4; and live CLI 'replace body 3:4 -' on a scratch node", "expected": "refused, refusal names the heading split, node bytes unchanged", "observed": "REFUSED: \"starts on the heading '## A' but stops before the end of its section (line 5)\"; CLI exit 2, node unchanged", "result": "PASS"}
+  - {"conjunct": 2, "class": "gate", "cmd": "full '## A' section 2:5 of body '## A/intro/### A.1/a1text/## B/beta' (last child HAS content); whole paragraph 4:6 of '# T/## A/alpha one/alpha two/tail/## B/beta'", "expected": "no refusal -- the documented whole-paragraph / whole-section case is unchanged", "observed": "both ADMITTED; CLI 'replace body 3:5 -' landed on the scratch node (exit 0)", "result": "PASS"}
+  - {"conjunct": 3, "class": "gate", "cmd": "EF.03 falsifier: full '## A' section 3:5 of '# T/## A/intro/### A.1/## B/beta' (childless deeper-heading tail); boundary: same + 'a1text' under ### A.1", "expected": "childless tail ADMITTED with no --force; with-content boundary REFUSED", "observed": "ADMITTED; REFUSED naming the heading split -- the fix is narrow, not disabled", "result": "PASS"}
+  - {"conjunct": 1, "class": "wire", "cmd": "printf X | write.py hypothesis:h2 'replace body 3:4 -'; then 'replace body 3:4 --force -' --root scratch", "expected": "no-force exits 2 and leaves the node unchanged; --force exits 0 and lands exactly the partial edit", "observed": "exit 2 unchanged; exit 0 'updated', body '# T/FORCED/### A.1/## B/beta' (### A.1 survives)", "result": "PASS"}
 production_lines: 147
 profile: balanced
 role: kid
 scaffold_hash: 0400e32727482b43
 season: 2
+thought_session: EF.04
 title: "replace body structural guard (fix-forward): refuses heading splits and paragraph tails, admits a whole section ending on a childless deeper heading"
 town: local-maxxing
 verdict: proved
@@ -155,20 +160,15 @@ $ git diff --numstat -- extensions/agi/bin/write.py
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Fix-forward from EF.03. That round's guard was structurally sound but its
-end-on-heading branch fired unconditionally on ANY heading as a range's last
-line, so a whole-section replace whose last line was a childless deeper
-heading was refused without `--force` — falsifier (c), measured by the parent.
-This branch had none of that code, so the guard was written fresh from the
-corrected rule instead of patching a diff I could not see: the end-on-heading
-refusal exists, but fires only when the heading's own section extends beyond
-it AND holds a non-blank line. The required childless-tail test is pinned, as
-is the boundary that the same range with real trailing text still refuses.
-Kept from EF.03: heading-split-at-start, paragraph edges, `--force`, the
-body-only policy, and dry-run truthfulness. New refinement beyond EF.03:
-`_has_content` treats a heading followed only by blanks as NOT orphaned text,
-so a heading at EOF (`## A\n`) can be a range's last line without a false
-refusal.
+PARENT REVIEW, EF.04 — accepted the kid's proved (0.85); no demotion.
+
+WHAT THE INSTRUCTION SAID (director-engine fix-forward): "the end-on-heading refusal must only fire when that heading's OWN section (i.e. _section_end(lines, j) for j = hi-1) extends beyond line j itself -- meaning the heading being cut off actually has trailing content the range would silently orphan."
+
+WHAT THE MACHINE ACTUALLY DOES (read from the committed bytes at 231244dc0, then run by me). The end branch is now: j = end - 1; if _is_heading(lines[j]): sec = _section_end(lines, j); if sec > j + 1 and _has_content(lines, j + 1, sec): return refusal. The unconditional EF.03 branch is gone. On the director's own fixture '# T/## A/intro/### A.1/## B/beta', range 3:5 is ADMITTED (the childless ### A.1 tail); the same range REFUSES when ### A.1 carries 'a1text' -- so the branch was narrowed, not disabled. A full ## A section whose last child HAS content (2:5) is admitted, as is a nested childless chain (2:4). Wire probe: CLI 'replace body 3:4 -' exits 2 with the split named and leaves the node byte-identical; 'replace body 3:5 -' lands; 'replace body 3:4 --force -' lands the partial edit with ### A.1 surviving. The 10 tests are in the diff; I ran the 10-file write suite: 241 passed, so falsifier (b) does not fire.
+
+THE NEAR MISS. A plausible implementation satisfies the words and loses the mechanism: use 'sec > j + 1' alone. That treats a heading followed only by blank lines (a heading at EOF, which the body's trailing newline creates) as a split and re-refuses the childless tail through a different door. The kid's _has_content(lines, j+1, sec) ignores blanks, which is why '## A/### A.1/<blank>' is admitted.
+
+DEVIATIONS, none demoting. (1) The guard is body-only policy in submit plus main's dry-run, not literally inside _splice_range/_parse_range as the claim's wording names -- that is the mechanism preserved, so a partial read stays unguarded and the transform stays pure line arithmetic. (2) No --at anchor was built; the claim is an OR and the guard is (ii). RESIDUAL GAP carried, not demoted: _is_heading is fence-blind -- a '#' line inside a ``` code fence reads as a heading and can move _section_end, so a range cutting a code block in half is not refused; no falsifier in the claim names a fence.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
