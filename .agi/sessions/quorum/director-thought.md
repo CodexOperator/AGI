@@ -19,8 +19,8 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~02:3xZ
- live     MP.01 a00-af8cefa3 (pid 987668, ~50 min elapsed of 75min timeout, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
+2026-09-21 ~02:4xZ
+ live     MP.01 a00-af8cefa3 (pid 987668, 1h15m elapsed, PAST its 75min manifest timeout but pid alive, Ss) -- manifest top-level status=stalled/overdue_since=None (stale label: NOT trusted alone) vs raw output.log mtime = now, kid a00-5b80b456 actively writing datasets/magic-pane/segments.jsonl (segs~36-39 of the >=200 target, still climbing) -- treated as overdue-but-working (card rule), not dead; no kill, no replacement, no dispatch of a second round
  landed   SWR.01 (346c377c2) -- ref bar 93.9pct HE / 0.869 IF strict; B/C1/C2 fire 0.9x on HE; IFEval undecided -> SWR.02 (TMM.19, not my lane)
  queued   H1' (g14.9.1, minted) | TEL.01 (g14.15.1, minted+filled, ready to dispatch) -- both no spend yet
  minted   TMM.21 batch (no spend): G14.7.2 training-ladder + G14.7.3 diagram-maxed-traces under g14.7; G14.10.2 session-trunk+classifier under g14.10 -- skeleton-only, blocked on FT.00/DS.01
