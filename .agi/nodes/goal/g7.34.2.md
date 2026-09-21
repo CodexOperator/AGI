@@ -21,8 +21,8 @@ tags:
   - trajectory
   - mint
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
-title: "G7.34.2: B2 mint trajectory:core + local-maxxing; town→traj; traj→chain"
+thought_session: belam-graph-only-coord-2026-09-21
+title: "G7.34.2: mint trajectory:core + local-maxxing; town→traj; traj→chain"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -50,7 +50,7 @@ trajectory:core + trajectory:local-maxxing minted from stand-ins; town bodies po
 - Research round execution.
 
 ## Agent Notes
-Parked **town:core**. Parent **goal:g7.34**. B2 only. Depends on B1.
+Parked **town:core**. Parent **goal:g7.34**. G7.34.2 only. Depends on goal:g7.34.1.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam 2026-09-21: mint parked unassigned on town:core; geometry/trajectory spine; no director assign; no impl yet

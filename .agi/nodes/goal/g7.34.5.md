@@ -21,8 +21,8 @@ tags:
   - geometry
   - formation
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
-title: "G7.34.5: B5 formation nested template + single context loader (L6)"
+thought_session: belam-graph-only-coord-2026-09-21
+title: "G7.34.5: formation nested template + single context loader (L6)"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -48,7 +48,7 @@ One formation renderer: nested template + single context loader. Documented seam
 - Trajectory KG work (g7.34.1/.2).
 
 ## Agent Notes
-Parked **town:core**. Parent **goal:g7.34**. B5 L6 renderer.
+Parked **town:core**. Parent **goal:g7.34**. G7.34.5 L6 renderer.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam 2026-09-21: mint parked unassigned on town:core; geometry/trajectory spine; no director assign; no impl yet
