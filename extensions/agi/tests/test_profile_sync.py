@@ -234,3 +234,42 @@ def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
     """The call site in cmd_rotate_self must name the guard (wire probe)."""
     src = (BIN / "rotate.py").read_text()
     assert "pguard = _check_profile_drift(root)" in src
+
+
+# ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
+
+def _broken(graph: Path, name: str, extra: str = "") -> Path:
+    p = graph / "nodes" / "hypothesis" / name
+    p.write_text("---\nid: hypothesis:broken\n: : : not valid yaml [[[\n"
+                 + extra + "---\n\nbody\n")
+    return p
+
+
+def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
+    """P7: an in-sync linked node + an unparseable UNLINKED sibling stays
+    green — the sibling does not link a profile, so it is not ours to fail."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _broken(repo / ".agi", "broken.md")
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "broken" not in r.stdout
+    assert rotate._check_profile_drift(repo / ".agi") is None
+
+
+def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
+    """`profile_ref:` in the raw bytes means it cannot be proven in sync:
+    surface it by path, never silently drop it."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _broken(repo / ".agi", "broken.md", extra='profile_ref: "profile/b.md"\n')
+    r = _cli_all(repo)
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "UNREADABLE" in r.stdout and "broken.md" in r.stdout
+    assert "2 linked, 1 not ok" in r.stdout
+    msg = rotate._check_profile_drift(repo / ".agi")
+    assert msg and "broken.md" in msg and "unreadable" in msg
+    assert "profile drift" in msg
