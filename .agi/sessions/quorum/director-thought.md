@@ -1,6 +1,6 @@
 # CARD — director-thought (diagram-maxed, owner 01:57Z 09-21: "diagram max as well... retaining even more meaning")
 
-Role: HELPER under thought-master (POINT). Worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`; MAIN trunk `/data/work/agi` @ `local-maxxing/season2/main`. Board: `doc:lm-town-trajectory` (one note per landing; master trims). Role docs read once per generation; this card = identity + rules + stops, replaced whole each session.
+Role: HELPER under thought-master (POINT). Worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`; MAIN trunk `/data/work/agi` @ `local-maxxing/season2/main`. Board: `doc:lm-town-trajectory` -- as of 04:5xZ 09-21 this seat STOPPED editing it directly (thought-master v8 lesson: one writer per version, everyone else conflicted it every batch); board rows now travel in the merge-up dm instead, master applies them. Role docs read once per generation; this card = identity + rules + stops, replaced whole each session.
 
 ## Rules
 ```
@@ -19,11 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~04:2xZ
- landed   TEL.01 a00-365c2943 accept_with_residue (mur-tel-01, 13/13 conjuncts, both stages ok) -- shift mechanism EXISTS in the binary, ZERO HTTP surface reaches it; verdict pending, honest; notes on hypothesis+g14.15.1, board replaced (added a "banked" row)
- fixed    my own hypothesis's stale :8080 ref -- and a mis-offset replace I made WHILE fixing it (hit the blank line before Claim, not Claim itself, producing a duplicate) -- self-caught, corrected with a fresh read+replace, verified clean; recorded honestly in the node's own THOUGHT block
- banked   TEL.01 forward path, NOT decided here: (a) restart resident server --cache-reuse N [needs owner permission] vs (b) new seq_add/seq_rm HTTP route [engine-adjacent, director-engine's lane] vs (c) second model load [out of scope] -- on the board's new "banked" row, going in the merge-up dm next
- queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked)
- next     🔴 send ONE merge-up dm to thought-master (TEL.01 landed + the banked forward-path decision) -- no live research round right now, nothing else to dispatch until that decision lands or SWR.02/next-queue-item arrives
- traps    git commit --amend used once by mistake, unpushed no harm (do not repeat) · end-of-turn USER replies drifted to prose once, owner caught it 03:4xZ, fixed · replace body mis-offset happened live this turn on my OWN node -- always re-read after a replace before trusting it landed right, not just before computing the range
+2026-09-21 ~05:2xZ
+ answered TMM.23: owner authorized path (a), --cache-reuse restart, conditional (between-rounds, by a TEL parent, router mode kept, exact line recorded, restore+verify before done). TEL.02 drafted with every condition built in, dry-run clean.
+ blocked  TEL.02 dispatch REFUSED -- pool headroom $-8.82 (pool $28.81 - floor $1.60 - live $36.03), live is OTHER TOWNS (DH.*/DT.* keys, same shared workspace), NOT local-maxxing (spawn_budget was 0/25, verified twice). Not forced, not retried in a loop -- reported to thought-master, banked.
+ last-board-edit doc:lm-town-trajectory v9 (83133de2a) -- last DIRECT edit by this seat; adopting thought-master's v8 lesson (one writer per version), board rows go in the merge-up dm from here
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · TEL.02 (drafted, ready, blocked on pool headroom only)
+ next     wait for headroom to clear (other-town keys, not mine to hand-manage) -- retry TEL.02 dispatch then; watch for thought-master reply
+ traps    git commit --amend once by mistake, unpushed no harm · end-of-turn USER replies drifted to prose once, owner caught 03:4xZ, fixed · a replace body mis-offset happened live on my own node, self-caught -- always re-read after, not just before · board is no longer this seat's to edit directly
 ```
