@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-36a00a4c-3a2fb9
 next_edges: []
-edited_by: a00-7a565c89
+edited_by: a00-21805d00
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -103,24 +103,17 @@ python3 -m pytest extensions/agi/tests/test_tmux_hold.py \
   extensions/agi/tests/test_grok_bot_adapter.py \
   extensions/agi/tests/test_adapters.py \
   extensions/agi/tests/test_real_adapter_restart.py -q
--> 70 passed
+-> 74 passed
 ```
 
 `grep -c grok extensions/agi/bin/dispatch.py extensions/agi/bin/rotate.py` stays 0.
 
 ## Production lines
 
-`git diff --numstat` over the production paths (test files excluded):
-`2/1 .agi/config.json`, `13/0 bin/adapters/__init__.py`, `26/3
-bin/adapters/tmux_hold.py` = **45 changed lines** (41 added / 4 deleted)
+`git diff --numstat` over the production paths that DID ship in this
+chain (test files excluded): `13/0 bin/adapters/__init__.py`, `26/3
+bin/adapters/tmux_hold.py` = **42 changed lines** (39 added / 3 deleted)
 against a ceiling of 40 -- over the ceiling, under 2x (80), so no re-brief.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This node's previous version described the seam as enabled by a `tmux: true`
-cell on `harnesses.grok-bot`; that edit was never committed, so the sentence
-was false on the shipped bytes while a `proved` hypothesis cited it as counted
-evidence. The bytes carry a different (and working) mechanism: the adapter
-module declares `HOLD_PANE = True`, and `adapters.resolve` materialises it
-onto the resolved row, so the seam is reachable with the config row left
-silent. Rewritten to match what shipped; the disabled path is an explicit
-`tmux: False`, which wins over `HOLD_PANE`. No code changed -- prose only.
+DT.34 corrective round (a00-21805d00), reconciliation only, no production code changed. Two residues on the shipped bytes: (1) the suite line read 70 while the committed tree yields 73 -- 74 after this round committed no-leak test in test_grok_bot_adapter.py; (2) the production-lines block named 2/1 .agi/config.json for a tmux:true edit that was never committed. Both corrected: 13/0 adapters/__init__.py + 26/3 adapters/tmux_hold.py = 42 changed lines, over the 40 ceiling under 2x. The reachability mechanism is the adapter HOLD_PANE declaration, not a config cell.
 <!-- THOUGHT:END -->
