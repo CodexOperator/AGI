@@ -23,6 +23,7 @@ Two halves, both asserted on the WIRE bytes / the returned value:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -181,3 +182,91 @@ def test_pane_coherent_fails_open_without_tmux(tmp_path, monkeypatch):
 def test_pane_coherent_fails_open_when_the_seam_is_absent(tmp_path):
     assert SS.pane_coherent({"name": "director-seat", "window": "@7"},
                             "agi-rc", str(tmp_path / "missing")) is None
+
+# ---- READ side: seat_status.seat_occupation (pane + pid) ----------------- #
+
+def test_seat_occupation_occupied_when_window_and_pid_agree(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7", "pid": os.getpid()},
+        "agi-rc", str(wins))
+    assert occ is not None, occ
+    assert occ["state"] == "occupied", occ
+    assert occ["window"] == "@7" and occ["live"] == "@7", occ
+    assert occ["pid_alive"] is True, occ
+
+
+def test_seat_occupation_pane_drift_when_row_window_is_stale(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@9", "pid": os.getpid()},
+        "agi-rc", str(wins))
+    assert occ["state"] == "pane-drift", occ
+    assert occ["window"] == "@9" and occ["live"] == "@7", occ
+
+
+def test_seat_occupation_pane_drift_when_dead_pid_owns_a_matching_window(
+        tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7", "pid": 999999999},
+        "agi-rc", str(wins))
+    assert occ["state"] == "pane-drift", occ
+    assert occ["pid_alive"] is False, occ
+
+
+def test_seat_occupation_unoccupied_when_no_window_answers_the_name(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 somebody-else\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7"}, "agi-rc", str(wins))
+    assert occ["state"] == "unoccupied", occ
+    assert occ["live"] is None, occ
+
+
+def test_seat_occupation_fails_open_without_tmux(tmp_path, monkeypatch):
+    monkeypatch.setattr(SS.shutil, "which", lambda _n: None)
+    assert SS.seat_occupation(
+        {"name": "director-seat", "window": "@7"}, "agi-rc", None) is None
+
+
+def test_seat_occupation_fails_open_when_the_seam_is_absent(tmp_path):
+    assert SS.seat_occupation(
+        {"name": "director-seat", "window": "@7"},
+        "agi-rc", str(tmp_path / "missing")) is None
+
+
+# ---- the INJECTED view: occupation reaches to_markdown/to_compact --------- #
+
+def test_collect_without_a_seam_computes_no_occupation(tmp_path):
+    """Byte-identical contract: no seam -> no occupation cell anywhere."""
+    graph = _graph(tmp_path, [{"name": "director-seat", "role": "director"}])
+    v = SS.collect(graph, {})
+    assert all(s.get("occupation") is None for s in v.seats), v.seats
+    text = "\n".join(SS.to_markdown(v)) + "\n".join(SS.to_compact(v))
+    assert "pane=" not in text, text
+
+
+def test_collect_with_a_window_seam_renders_occupation_both_views(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    graph = _graph(tmp_path, [{"name": "director-seat", "role": "director",
+                               "window": "@7", "pid": os.getpid()}])
+    v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins))
+    occ = v.seats[0]["occupation"]
+    assert occ and occ["state"] == "occupied", occ
+    assert "pane=occupied(@7)" in "\n".join(SS.to_compact(v))
+    assert "pane=occupied(@7)" in "\n".join(SS.to_markdown(v))
+
+
+def test_collect_with_the_seam_renders_drift(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    graph = _graph(tmp_path, [{"name": "director-seat", "role": "director",
+                               "window": "@9"}])
+    v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins))
+    assert v.seats[0]["occupation"]["state"] == "pane-drift", v.seats
+    assert "pane=pane-drift(row @9 live @7)" in "\n".join(SS.to_compact(v))
