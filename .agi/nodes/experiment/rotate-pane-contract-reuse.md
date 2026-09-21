@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-62e2a798-0a7456
 next_edges: []
-edited_by: a00-62e2a798
+edited_by: a00-54d8ae5a
 line_ceiling: 40
 loop: goal:g7.31.2.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -19,6 +19,7 @@ scaffold_hash: a44173d253f10c40
 season: 2
 title: "Rotate pane-contract reuse proven: same spawn_window seam, zero per-harness argv builders, grok refused by name"
 town: core
+verdict: inconclusive_lean_proved:85
 ---
 <!-- BODY:BEGIN -->
 # experiment:rotate-pane-contract-reuse
@@ -96,3 +97,7 @@ the same pane contract through the single template seam, and THERE IS NO
 second argv builder (for grok or anyone). The one honest boundary is that a
 grok seat cannot yet be SEATED at all (no template) — a prerequisite gap, not
 a reinvention. `inconclusive_lean_proved:85`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (DH.18). Set the frontmatter verdict to match the node body's own honest conclusion (inconclusive_lean_proved:85). (1) Instruction: the experiment is the run; its verdict is what the parent weighs. (2) Machine: the frontmatter carried NO verdict field while the body closed 'inconclusive_lean_proved:85' -- a reader keyed on frontmatter would see no verdict at all. Set it. The two listed probes cover conjuncts 1 (wire) and 2 (gate); the parent added conjunct 3 (auth, real-root grok refusal) and the evidence-resolution probe on the hypothesis node. (3) Near miss: leaving the body's 85 as prose only, so the machine verdict stayed absent.
+<!-- THOUGHT:END -->
