@@ -5,8 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-11389962-70e33e
 next_edges: []
-edited_by: a00-11389962
-evidence_runs: experiment:s26-premature-complete-guard-accepts-wrapper-frontmatter
+edited_by: a00-7f6f1f95
+evidence_runs:
+  - experiment:s26-premature-complete-guard-accepts-wrapper-frontmatter
 line_ceiling: 40
 loop: goal:g7.27@s2
 model: deepseek/deepseek-v4.1-flash
