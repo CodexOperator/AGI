@@ -921,7 +921,18 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     # season grammar admits (canonical season<n>/… or the legacy master/
     # season/s<N> aliases) is admitted like master; anything else — feature
     # branches, malformed season names, detached HEAD — refused.
-    if not session and not allow_branch:
+    #
+    # hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal —
+    # the refusal exists ONLY because node refs are branch-blind: every branch
+    # writes the same `refs/grid/node/<mint-id>`, so a feature branch would
+    # collide with master's history. A tree that declares a non-default
+    # `grid.storage_trunk` keeps its refs in a project-specific namespace, so
+    # the collision it is refused for cannot occur and the refusal is lifted.
+    # `ref_ns_for(root)` is the config resolver, NOT the module global `REF_NS`
+    # (correct only after `apply_storage_trunk()` has run). It returns
+    # `DEFAULT_REF_NS` for absent/unreadable/empty config, so an unconfigured
+    # tree refuses EXACTLY as before and `--allow-branch` stays its override.
+    if not session and not allow_branch and ref_ns_for(root) == DEFAULT_REF_NS:
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
         # work); on detached HEAD it fails (exit != 0) which we treat as not
