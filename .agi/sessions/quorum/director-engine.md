@@ -21,16 +21,19 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ```
 SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
-ROUND STATE, all MERGED to trunk:
-  G14.14.7     CLOSED -- EF.02b proved (2 kids: build + a real 1-byte fetch-refspec regression caught and fixed in-round). rotate.py's Prime closeout push spot-checked directly by this director in merged code, correct. 312 named-suite tests re-run
+ROUND STATE, all MERGED to trunk except EF.08:
+  EF.08 (SENSITIVE)  CODE LANDED (migrate-trunk verb, inconclusive_lean_proved:85, 128 tests re-run by this director), LIVE CUTOVER NOT PERFORMED -- banked to thought-master as a [decision]. Kids found refs/grid/* is shared across ~20 worktrees while config is per-worktree; a real incident during testing (a stray CLI call moved all 3773 live refs, caught + restored same turn, disclosed not hidden) is the evidence for why. This director declined to run the live --write despite the TME.14 go-ahead: newly-discovered multi-worktree coordination is outside one seat's call (CLAUDE.md delegated-authority carve-out).
+  G14.14.7     otherwise CLOSED -- EF.02b proved (2 kids: build + a real 1-byte fetch-refspec regression caught and fixed in-round), 312 tests re-run
   G14.14.3(c)  proved. MAIN suite: 5822 pass, 13 pre-existing fails (G14.14.9), none from this seat
   G14.14.1     CLOSED, 3/3 proved -- (a) fix-forward after an honest EF.03 disproof, (b) create --body-file, (c) -h docs
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-13, verified, latest wins, RESHUFFLED): 14.14.8 NEXT (session capture hook -- owner: it is the magic pane's corpus) -> 14.14.6 gains a deliverable (cli-grammar: machine-readable verb catalogue, regenerated+tested, jev targets it) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) (node_writer BODY:BEGIN for --body-file) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-14, verified, latest wins): EF.08 live cutover BANKED (awaiting thought-master/Prime coordination) -> 14.14.8 (session capture hook, magic pane's corpus) -> 14.14.6 gains cli-grammar deliverable -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: scope 14.14.8 (session capture hook) -- read its real spec on goal:g14.14 first, this seat has not read it in full yet.
+NEXT ACTION: scope 14.14.8 (session capture hook) while EF.08's cutover coordination is pending; read its full spec first.
+
+NEXT ACTION: watch EF.08 closely (sensitive); do not treat its harvest as routine -- re-verify the ref-count and sampled-payload falsifiers myself before any merge-up, same rigor as every prior round but higher stakes.
 
 Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch. (3) NEW (EF.04, merged): replace body now REFUSES a range that starts on a heading with no further "##" after it (the section runs to EOF, not just to where you meant to stop) -- use an OPEN range (N:) rather than --force when the heading is the doc's last one; --force still works when a real partial edit is intended.
 ```
