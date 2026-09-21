@@ -1,0 +1,57 @@
+---
+id: goal:g15.17
+mint_id: d583d38c95534ae38545894e445e0259
+type: goal
+parents:
+  - goal:g15
+  - build:bin-rotate
+next_edges: []
+confidence: 0.6
+edited_by: sensei-director
+goal_id: G15.17
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: 5fdf9685ab3c8cf2
+season: 2
+seeds:
+  - hypothesis:l4-a-first-seating-sends-the-sensei-the-same-alert-a-rotation-does
+  - hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor
+status: active
+tags:
+  - goal
+  - subgoal
+  - l4
+  - sanctuary-director
+thought_session: sensei-director-genI-L1
+title: "G15.17: a first seating sends the Sensei the same alert a rotation does (spawn, seats-launch, hand launch via ack --gen 1)"
+town: core
+---
+<!-- BODY:BEGIN -->
+**A FIRST SEATING sends the Sensei the same alert a rotation does.** Owner, 2026-09-11 16:2xZ, verbatim (relayed by the Prime's 16:22Z dm): "sensei should still get an auto-nudge for any new seat starting up same way he gets an alert for any rotation happening" — the dm carries seat, window @id, ref, pid, session id, transcript path. Today only `rotate-self` sends it.
+
+## Why this exists
+
+- `goal:g15` is the parent because this is a gap in the seat protocol's mechanism fixed in-loop: this very seat was hand-launched by the Prime at 16:10Z and the Sensei learned of it from the Prime's prose, not from the engine — the same silence for every `spawn` / `seats-launch` / hand launch.
+- `build:bin-rotate` is the parent because `_announce_rotation` (rotate.py, called from `cmd_loop` :1522 and `cmd_rotate_self` :5669 only) is the mechanism: the composer and the derived-recipient set already exist; the first-seating paths (`cmd_spawn`, `cmd_seats_launch`, and `ack --gen 1` for a hand launch) never call it.
+
+## Testable claim (a build order)
+
+(1) One composer, one shape: a first seating emits the `[rotation-alert]` dm with `trigger: first-seating` (generation `0 -> 1`), carrying seat, window @id, ref (when the join has it — else named absent), pid, session id, transcript path, to the same derived recipients (`_derive_receivers`: live seats, the Sensei among them); delivery failure never fails the seating. (2) Senders: `rotate.py spawn` and `seats-launch` after the window is up and the registry join (`_successor_window_id` + the `~/.claude/sessions/<pid>.json` join rotate-self already performs); a HAND launch is covered by `rotate.py ack --seat S --gen 1` (no predecessor) sending the same dm when no seating record exists for that seat + generation — recorded as `<sessions>/rotations/<seat>.<TS>.seating.json` (one record per seating, the same dir as rotation records, so the Sensei's `status --record latest` sees it). (3) Red-first tests on fixtures (window_path seam): spawn emits the seating text with the fields; ack gen 1 emits when no seating record and does NOT double-send when one exists; the text is the composer's shape. Neighbours `test_rotate.py`, `test_rotate_startup.py`, `test_send.py` (fake tmux) green.
+
+**Falsifiers:** a spawn or seats-launch after which the Sensei's dm file has no seating line; a second dm for the same seat + gen. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (`cmd_spawn` / `cmd_seats_launch` tails, `cmd_ack`, the announcer) + tests. EXCLUDED: `send.py` (import only), `config:*`, hooks. **CEILING:** 1 parent, up to 2 kids. **SERIAL** behind `goal:g15.16`'s round — both edit the announcer; cut after it is harvested.
+
+## Agent Notes
+DIRECTOR sensei-director 16:4xZ: second brief added from the Sensei's 16:38Z measurement of THIS seat's first seating (hand-spawned 16:10Z: no STARTUP OUTPUT, no facts; 22 of the first 40 calls are what the director template gives a rotated seat free — 13 engine-source reads, three --help): rotate.py spawn / seats-launch run the role's first_turn and append STARTUP OUTPUT, write the bootstrap record at gen 1, and share the seating record with the alert brief. Both briefs are serial behind g15.15 (SL1.03) and g15.16; one parent may take both as two kids (same spawn tail).
+
+SL2.02 (sensei-director L2): cut at hypothesis:l4-a-first-seating-is-a-rotation-without-a-predecessor with the alert sibling as the second kid and SL1.07's unlanded (ii)/(iii) folded in — one parent, up to three kids, same spawn-tail region.
+
+SENSEI spawn-seating audit 175816Z (draft spawn-seating-audit-20260911T175816Z.md, drafts dir now tracked at 1438dbe3f): line (1) IS this goal — rotate.py spawn runs the tier's startup.first_turn, pins the meter, writes the row with a pending ack like rotate-self step 2, and prints a [seating] block: spawned-by, predecessor pid + death ts, record none / wrapper none, worktree behind N, unresolved merge y/n. Both recoveries today (belam 175816Z: 22-call wake, sanctuary-helper 181834Z: 32) re-derived exactly these. SL2.02 (running) covers first_turn + the alert; the [seating] block is its residue or the next cut. Line (2) is goal:g15.21 (autopsy pre-fill), cut after (1).
+
+SL2.02 HARVESTED (sensei-director L3, 19:0xZ): kid 1 lean 70 — spawn + seats-launch run the role first_turn through the SAME composer as rotate-self (_first_seating_startup: gen 1, pred_pids = none: first seating, fail-soft), STARTUP OUTPUT appended to the first input, gen-1 bootstrap written; kid 2 proved — ONE composer (_announce_rotation seating=) writes <seat>.<TS>.seating.json carrying first_turn results + emits the first-seating [rotation-alert] (generation 0 -> 1) from cmd_spawn / cmd_seats_launch / ack --gen 1, deduped by _seating_record_exists; 552 green with neighbours. RESIDUE to SL3.01 (g15.21, same spawn region): spawn does not yet pin the meter or write the pending ack.json (rotate-self step 2) and the [seating] block has no worktree-state lines; no test reads a .seating.json through status --record latest.
+
+PRIME XI 20:10Z (mur-SL2.2): SL2.02 ACCEPT WITH RESIDUE, 12 MET / 3 NOT_MET, one composer confirmed. RESIDUE: (a) spawn --seat outside a project root crashes TypeError (_first_seating_run -> _resolve_template -> _rotations_node_path(None)), the refuter reproduced it; (b) the first-seating role is --tier (default prime_director), not the seat own row; (c) a seat first ROTATION acked at --gen 1 emits a spurious first-seating alert and writes a bogus .seating.json; (d) L2 addendum items (ii) join-only refusal and (iii) briefs stripped were neither built nor banked. DIRECTOR DECISION: (ii) is BUILT in the residue round; (iii) is DROPPED — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, not code. Also carried: the SL3.01 spawn-pin residue live on the Prime seat (row gen 11, pin 10): spawn pins at the row generation. L4 residue brief: hypothesis:l4-spawn-seats-without-a-root-with-the-rows-role-and-pins-at-the-rows-generation-and-a-first-rotation-is-not-a-first-seating — cut as SL4.04.
+
+DEVIATION (director, Prime-accepted 20:19Z): L2 addendum item (iii) briefs-stripped is dropped, not banked — the per-role briefs are each seat own card, governed by the owner 2026-09-09 trim standing, so a round has no business rewriting them; (ii) join-only refusal is built in SL4.04.
+
+SL4.04 HARVESTED (sensei-director L4, 20:5xZ): one kid proved 0.8 — (a) root-less spawn --seat seats the window with a named skip, exit 0; (b) first-seating role from the seat row, --tier fallback; (c) ack --gen 1 announces only with no rotation record AND no pending ack; (d)(ii) join-only rotate-self refused by name; (e) a re-spawn pins at the row generation (row 11 -> pin 11) — the autopsy test that asserted the buggy pin now asserts the live rule. 460 green with rotate/session-start/after-join/heal-seats/help-smoke neighbours; clean merge over SL4.03 in the same cmd_ack. All three Prime NOT_MET items closed; (iii) dropped by deviation. Rides merge-up SL2#5.
