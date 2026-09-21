@@ -6088,6 +6088,8 @@ OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Yes it is break it out into
 
 OWNER 02:09Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Make sure to apply diagram maxxing to all your context docs as well now including the explanation to diagram max everything. Your card, brief, etc all the standing instructions that spawn in and take up so much context each spawn. Do a pass on everyone else's as well and tell them to sync.' then 'They have standing orders to keep braking out goals into sub goals and subsub goals as needed so if you see that happening it's fine and expected.' -- APPLIED: Prime brief build:briefs-prime-director-successor 14.1 KB -> 8.8 KB via write.py replace payload (377 rotate/template tests pass); HANDOFF.md 9.6 KB -> 7.6 KB as tables + flows; card = stops slot only. Everyone else's pass: MEASURED already done by the posts themselves on the relayed order (thought-master card 18.3 KB -> 10.5 KB at a0976ae84 02:08Z; director-engine 6.7 KB diagram-maxed in its worktree e4cc6aca3 02:08Z; director-thought trimmed to 3.7 KB at 731ac745f 01:27Z) -- the Prime's drafts for the two director cards were withdrawn unwritten (a MAIN-copy rewrite of a live post's card would conflict at its next merge-up); one sync line each to the directors for the two stale facts (DE merge-up route = thought-master, not belam; DT formation wording = free-float, no POINT/HELPER). Goal splitting into nested sub-goals by the posts is EXPECTED: the merge routine treats new goal nodes as normal structure, never a red; only a node DELETION or a broken link is a red.
 
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain.' / 'Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc.' -- FILED: (1) -> goal:g14.7 Track II as G14.7.2 training-method ladder + G14.7.3 diagram-maxed traces as training data (director-thought mints, same format), layered with goal:g14.15 after both have verdicts; (2) -> goal:g14.10 as G14.10.2 the session-data trunk + jev classifier pass (director-thought mints; capture of claude-code role sessions = G14.14.8 on director-engine).
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10438,6 +10440,15 @@ thought-master 22:3xZ 09-20 (cleanliness pass, owner 22:1xZ): required goal fiel
 
 **First chunk (minted):** `hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set` (corpus before hours). Sub-sub-goals are the director's to mint (G14.7.1 corpus + battery, G14.7.2 SFT A/B trials, G14.7.3 SFT + oscillator, G14.7.4 QAT), same format, before any chunk runs.
 
+thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
+  G14.7.2 TRAINING-METHOD LADDER (director mints, goal format)   base = small models first (0.6B / 1.7B / 4B; the 9B last), corpus = datasets/ (kid-sft after DS.01, jev-typed-acts, trajectories, switch-rule, abl-01)
+    arm        SFT full | LoRA (+QLoRA) | RL on verdict labels (DPO/GRPO-style, label = round verdict / mur residue) | PRETRAIN from scratch on the synthetic corpus ("somewhat big-ish" only after the small ladder proves the recipe)
+    measure    the battery (HumanEval + IFEval strict) + the kid-tier checklist, vs the untuned base and vs the reference bar; USD + GPU-h per arm; Camber hours ALLOWED for FT/RL (owner 21:4xZ 09-20; per-job via the Prime, numbers first; failing is fine)
+    batch      rounds batch-maxed: one order = the ladder for one base; ONE merge-up
+  G14.7.3 DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA          variable = the same traces in prose vs diagram-maxed shape (goal:g14.16), same method, same base -> does the shape change performance and tokens-per-solution?
+  layering   AFTER G14.7.2 + G14.15 (telepathy) each have a verdict: the tuned small model + KV telepathy = the layered chunk (owner: "Then layer that with the kv cache telepathy chain")
+  order      after the live/queued rounds (MP.01 -> TEL.01 -> SWR.02); FT.00 (morals + sanctuary SFT) stays the first Track II round -- these extend it, not replace it
+
 #### G14.8 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10531,6 +10542,13 @@ thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama
 **Done when.** Never — this is a perpetual hygiene goal; it is reviewed at each G14.11 gap-table update (does every row's evidence resolve into the archive?).
 
 **First chunks (done / minted):** the archive itself (2026-09-20 21:5xZ); `datasets/trajectories/ABC.01/` (landed 22:00Z); DS.01 = the kid-sft re-scrub with the span tool (queued after MP.01). Sub-sub-goals are the director's to mint (G14.10.1 landing, G14.10.2 scrub + audit), same format.
+
+thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
+  G14.10.2 THE SESSION-DATA TRUNK + CLASSIFIER PASS (director mints, goal format)
+    capture    EVERY role's session data -- pi parents + kids (already land under datasets/trajectories/), AND claude-code roles (masters, directors, the Prime: session jsonl under the harness dir) -> datasets/sessions/<role>/<session>/ through the ONE scrub (datasets/tools/scrub.py); capture hook for claude-code roles = G14.14.8 (engine director)
+    labels     pre-label from what the graph already knows per record: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box; then a jev in-depth classifier pass over ALL data trunks (kid-sft, jev-typed-acts, trajectories, switch-rule, abl-01, sessions) adding the classes the graph does not carry (act type, reasoning shape prose/diagram-maxed, refusal, tool-error, rebrief) with calibration against a 200-record hand-checked slice
+    output     one index (datasets/README.md row + a labels.jsonl per trunk) that G14.7.2's arms read directly
+    order      DS.01 first (the one scrub), then G14.10.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
 
 #### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
@@ -10629,6 +10647,8 @@ thought-master 01:5xZ 09-21 (owner: 'we need a config and template maxxing pass 
 
 thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use'): ADD G14.14.7 GRID STORAGE TRUNK BY CONFIG -- today grid.py writes refs/grid/<mint_id> (branch-blind, master-only unless --allow-branch) and crons.py:548 hardcodes the command. Round: (a) `grid.storage_trunk` in .agi/config.json (a ref namespace like refs/grid/<town>/ or a branch name; default = the current refs/grid/ so every existing project round-trips unchanged) with the crons node able to override per project; (b) grid.py commit/log/diff/versions/payload/status and stitch.py --from-grid all resolve the trunk from config -- one resolver, no second spelling; (c) crons.py emits the grid_sync line from the same config (this supersedes G14.14.6's first item: with a configured trunk the branch-blind refusal no longer applies; keep --allow-branch as the explicit override for an unconfigured tree); (d) tests: a tree with storage_trunk=refs/grid/t1/ records N versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; `grid.py versions` reads back from the configured trunk. Migration for this box: set storage_trunk=refs/grid/local-maxxing/ AFTER the round lands, then one `grid.py migrate-refs` (existing verb) or a documented re-seed. Ceiling 200 engine lines; the kid pins existing behaviour with the engine suite first.
 
+thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g14.10): ADD G14.14.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 14.14.4; ceiling 200 engine lines; never a second scrub.
+
 #### G14.15 — KV-CACHE TELEPATHY — self-telepathy (a tool that captures the KV of a span tied to a section/turn, carries it forward and re-surfaces it later: in-session RAG over KV, in-stream memory and compression, latent-to-latent recurrence) and swarm telepathy (same-model small instances each holding a slice of the context, exchanging KV segments, a jev-like weighing of which segments matter, settling into an ordering a decoder consumes) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10663,6 +10683,8 @@ target     fewer tokens AND more meaning than the prose replaced — measured, n
 **First chunk (the master, no spend):** the card pass — thought-master card §4+ (done 02:0xZ), director-thought + director-engine cards synced to the shape (TMM.20 / TME.05), before/after line counts on this node; then G14.16.1 (director-engine, same format): the measurement round — a tokenizer count of each card/brief before and after, the four-shape checklist as a committed script, run as one pi round.
 
 thought-master 02:2xZ 09-21 card pass, measured: thought-master card 97 lines (09-20) -> 93 (§4 in the shape, 02:1xZ) -> 54 lines (§0-§3 in the shape, 02:2xZ); facts kept: every NEVER, both recorded exceptions, GATE 0 / ROUND 0 status, cadence, floor, alerts, prayers rule; owner quotes moved out of the card into their nodes (goal:g14, doc:l4-owner-decisions) rather than compressed. Directors' before/after arrive as their own notes here.
+
+director-engine 02:11Z 09-21 (via thought-master, verified dm): card diagram-max 2bd43c299 -> e4cc6aca3 = lines 33 -> 37 (+4: the table shape costs rows) · words 1063 -> 959 (-9.8 pct) · chars 7541 -> 6741 (-10.6 pct); its own flag: line count is a weak proxy for the shape -- words/chars are the measure, adopted for this goal's before/after table.
 
 ## App: streaming-suite
 

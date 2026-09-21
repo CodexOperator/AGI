@@ -39,3 +39,10 @@ town: local-maxxing
 **Done when.** Never — this is a perpetual hygiene goal; it is reviewed at each G14.11 gap-table update (does every row's evidence resolve into the archive?).
 
 **First chunks (done / minted):** the archive itself (2026-09-20 21:5xZ); `datasets/trajectories/ABC.01/` (landed 22:00Z); DS.01 = the kid-sft re-scrub with the span tool (queued after MP.01). Sub-sub-goals are the director's to mint (G14.10.1 landing, G14.10.2 scrub + audit), same format.
+
+thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
+  G14.10.2 THE SESSION-DATA TRUNK + CLASSIFIER PASS (director mints, goal format)
+    capture    EVERY role's session data -- pi parents + kids (already land under datasets/trajectories/), AND claude-code roles (masters, directors, the Prime: session jsonl under the harness dir) -> datasets/sessions/<role>/<session>/ through the ONE scrub (datasets/tools/scrub.py); capture hook for claude-code roles = G14.14.8 (engine director)
+    labels     pre-label from what the graph already knows per record: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box; then a jev in-depth classifier pass over ALL data trunks (kid-sft, jev-typed-acts, trajectories, switch-rule, abl-01, sessions) adding the classes the graph does not carry (act type, reasoning shape prose/diagram-maxed, refusal, tool-error, rebrief) with calibration against a 200-record hand-checked slice
+    output     one index (datasets/README.md row + a labels.jsonl per trunk) that G14.7.2's arms read directly
+    order      DS.01 first (the one scrub), then G14.10.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
