@@ -11,6 +11,11 @@ fields:
   confidence: {type: float}
   origin: {type: str}       # build-site (61/105) -- generated, do not hand-edit
   tags: {type: list}
+  probes: {type: list}        # additive (hypothesis:l4-cli-done-for-tier-parent-...): the
+                              # parent-run negative probes, one per claim conjunct of the
+                              # target hypothesis; each = {conjunct:int, class, cmd,
+                              # expected, observed, result}. Recorded by cli.py done like
+                              # evidence_runs (same record, same commit).
 validation:
   required: [id, type, mint_id, title, testable_claim]
   types:
