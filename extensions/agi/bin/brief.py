@@ -2026,6 +2026,27 @@ def _orders_section() -> str | None:
     return f"## DISPATCH ORDERS ({where})\n\n{text}"
 
 
+#: The five pane-facing engine routes (`goal:g7.31.3`, falsifier owned by
+#: `goal:g7.31.3.1`). ONE table, ONE string: this is the cold-seat
+#: custom-instruction surface that lists them, riding the existing assembled
+#: brief (`goal:g7.26` / `goal:g7.27` lineage) rather than a second path. The
+#: contract names are `goal:g7.31.3`'s; an engine rename updates that node's
+#: table and this constant in one edit, and the test greps the RENDERED brief
+#: for all five. A sixth route, or a parallel invoker, is the failure.
+#: Deliberately NOT rendered in the survival profile, whose one job is to be
+#: smaller than this segment (`hypothesis:l3w4-context-load-minimal`).
+_ROUTES_SEGMENT = (
+    "FIVE PANE-FACING ROUTES (goal:g7.31.3) -- prefer these over raw tools "
+    "for agent action:\n"
+    "  write             -> write.py\n"
+    "  read              -> commands.py list/show/run + viewport see/read\n"
+    "  send              -> send.py\n"
+    "  dispatch|workflow -> dispatch.py + workflow.py (ONE router, goal:g1.14)\n"
+    "  rotate|spawn      -> rotate.py\n"
+    "One seam each; name a raw tool in your report when you use one instead."
+)
+
+
 def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              dispatch_py: str | Path = "", scaffold: dict | None = None,
              target: str | None = None, parallel: int = 1,
@@ -2070,6 +2091,11 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # it: a kid's orders ARE the carry-forward segment handed in by the parent
     # (test_orders_never_reach_a_kid_brief).
     def _finish(body: list[str], head_tier: str) -> list[str]:
+        # goal:g7.31.3.1 -- the five-route table rides every FULL-profile
+        # brief, one seam, before the orders section. Survival keeps its
+        # minimum: it exists to be smaller than this segment is worth.
+        if profile == "full":
+            body = [*body, _ROUTES_SEGMENT]
         if tier != "kid":
             _o = _orders_section()
             if _o:
