@@ -2148,6 +2148,7 @@ def _splice_range(text: str, rng: str, new: str) -> str:
 # --------------------------------------------------------------------------
 
 _HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:\s|$)")
+_FENCE_RE = re.compile(r"^( {0,3})(`{3,}|~{3,})(.*)$")
 
 
 def _is_heading(line: str) -> bool:
@@ -2161,25 +2162,59 @@ def _heading_level(line: str) -> int:
     return len(m.group(1)) if m else 0
 
 
+def _fence_marker(line: str):
+    """(char, length, info-string) of a CommonMark fence line, or None."""
+    m = _FENCE_RE.match(line)
+    return (m.group(2)[0], len(m.group(2)), m.group(3)) if m else None
+
+
+def _guard_headings(lines: list[str]) -> list[bool]:
+    """Per line: an ATX heading that is NOT inside a code fence.
+
+    `# not a heading` inside ``` or ~~~ is code, and treating it as a
+    heading truncates `_section_end`, admitting a replace-body range that
+    cuts the fenced block in half (hypothesis:write-body-range-guard-is-
+    fence-aware-and-clamped). Fences follow CommonMark: an opening run of
+    three or more ``` or ~~~ (a backtick fence's info string may hold no
+    backtick); it closes only on the SAME character, at least as long, with
+    nothing but whitespace after it.
+    """
+    out = [False] * len(lines)
+    fence = None
+    for i, line in enumerate(lines):
+        mark = _fence_marker(line)
+        if fence is None:
+            if mark and not (mark[0] == "`" and "`" in mark[2]):
+                fence = mark[:2]
+                continue
+            out[i] = _is_heading(line)
+        elif (mark and mark[0] == fence[0] and mark[1] >= fence[1]
+              and not mark[2].strip()):
+            fence = None
+    return out
+
+
 def _section_end(lines: list[str], idx: int) -> int:
     """The 0-based EXCLUSIVE end of the section headed by `lines[idx]`.
 
-    The next line at the same-or-higher level, or the end of the text. This
-    is the guard's own rule for "where the heading's text stops", and the
-    whole-section case is measured against it rather than guessed at.
+    The next line at the same-or-higher level OUTSIDE any code fence, or
+    the end of the text. This is the guard's own rule for "where the
+    heading's text stops", and the whole-section case is measured against
+    it rather than guessed at.
     """
+    head = _guard_headings(lines)
     level = _heading_level(lines[idx])
     j = idx + 1
     while j < len(lines):
-        if _is_heading(lines[j]) and _heading_level(lines[j]) <= level:
+        if head[j] and _heading_level(lines[j]) <= level:
             break
         j += 1
     return j
 
 
-def _plain(line: str) -> bool:
+def _plain(line: str, heading: bool) -> bool:
     """A line that is neither blank nor a heading -- paragraph content."""
-    return bool(line.strip()) and not _is_heading(line)
+    return bool(line.strip()) and not heading
 
 
 def _has_content(lines: list[str], a: int, b: int) -> bool:
@@ -2217,20 +2252,27 @@ def _body_range_refusal(text: str, rng: str) -> str | None:
     lines = text.split("\n")
     n = len(lines)
     start = 0 if lo is None else lo - 1
+    if hi is not None and hi > n:
+        return (f"replace body {rng} ends past the end of the body at line "
+                f"{n} -- the range overruns it. Cap the range at {n} or "
+                f"pass --force")
     end = n if hi is None else hi
     if start >= n or end <= start:
         return None
-    if start > 0 and _plain(lines[start]) and _plain(lines[start - 1]):
+    head = _guard_headings(lines)
+    if start > 0 and _plain(lines[start], head[start]) \
+            and _plain(lines[start - 1], head[start - 1]):
         return (f"replace body {rng} starts inside a paragraph at line "
                 f"{start + 1} ({lines[start]!r}) -- it would cut the "
                 f"paragraph in half. Widen the range to a blank line or a "
                 f"heading, or pass --force")
-    if end < n and _plain(lines[end - 1]) and _plain(lines[end]):
+    if end < n and _plain(lines[end - 1], head[end - 1]) \
+            and _plain(lines[end], head[end]):
         return (f"replace body {rng} ends inside a paragraph at line {end} "
                 f"({lines[end - 1]!r}) -- the rest of the paragraph would be "
                 f"orphaned. Widen the range to a blank line or a heading, "
                 f"or pass --force")
-    if hi is not None and _is_heading(lines[start]):
+    if hi is not None and head[start]:
         sec = _section_end(lines, start)
         if end < sec and _has_content(lines, end, sec):
             return (f"replace body {rng} starts on the heading "
@@ -2238,7 +2280,7 @@ def _body_range_refusal(text: str, rng: str) -> str | None:
                     f"section (line {sec}) -- that splits the heading from "
                     f"its text. Widen the range or pass --force")
     j = end - 1
-    if _is_heading(lines[j]):
+    if head[j]:
         sec = _section_end(lines, j)
         if sec > j + 1 and _has_content(lines, j + 1, sec):
             return (f"replace body {rng} ends on the heading {lines[j]!r} "
