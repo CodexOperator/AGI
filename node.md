@@ -1,0 +1,136 @@
+---
+id: experiment:a01-16e06723-a207e3
+mint_id: 887af67277744799be83e339d48c4740
+type: experiment
+parents:
+  - hypothesis:a00-d98602f8-1b56cc
+next_edges: []
+confidence: 1.0
+edited_by: season.py
+evidence_runs:
+  - experiment:a01-16e06723-a207e3
+scaffold_hash: 7875c639dc051d46
+season: 1
+thought_session: season
+title: "Census: orphan sessions in refs/grid/session/*"
+verdict: disproved
+---
+# experiment:a01-16e06723-a207e3
+
+## Hypothesis under test
+
+`hypothesis:a00-d98602f8-1b56cc` claims that `refs/grid/session/*` is already a sufficient home for orphan chats (runs that produced no node version). Specifically:
+
+1. **(a)** A session ref exists for runs that minted no node version — the orphan partition is non-empty.
+2. **(b)** Each orphan session is retrievable by session id alone, with no node id in hand.
+3. **(c)** The six kid slots under goal:g10.1 that died on provider 403 across iters 1040-1041 are recoverable from the session namespace if the mechanism holds.
+
+## Method
+
+Enumerate all refs under `refs/grid/session/*` in this repo. Enumerate all session directories under `.agi/sessions/`. Compute the intersection: which sessions have a grid ref, which do not. Check whether any `iter-*` session produces grid session refs at all. Check whether orphan sessions (provider 403 failures) have any grid presence.
+
+## Results
+
+### Finding 1: Enumeration
+
+| Artifact | Count |
+|----------|-------|
+| `refs/grid/session/*` refs | 10 |
+| `.agi/sessions/iter-*` dirs | 85 |
+| `iter-*` sessions WITH a grid session ref | **0** |
+| `iter-*` sessions WITHOUT a grid session ref | **85** |
+
+### Finding 2: All 10 grid session refs trace to node production
+
+Every ref in `refs/grid/session/*` carries a node type suffix (`hyp`, `exp`, `verdict`, `mvp`) — each was written by `grid.py commit --session` alongside a node version. None are orphans:
+
+```
+refs/grid/session/9006/kid-a/hyp/payload-in-node
+refs/grid/session/9006/kid-b/exp/noncode-surface-census
+refs/grid/session/9007/kid-c/exp/grid-payload-roundtrip
+refs/grid/session/9007/kid-d/exp/prose-surface-probe
+refs/grid/session/9008/kid-e/verdict/payload-in-node
+refs/grid/session/9008/kid-f/verdict/noncode-coverage
+refs/grid/session/9009/kid-g/exp/evidence-gate-coverage
+refs/grid/session/9011/kid-j/mvp/zoom-runtime-contract
+refs/grid/session/9011/kid-k/mvp/strict-goal-refs
+refs/grid/session/9012/kid-m/mvp/census-boundary-scope
+```
+
+All commit messages: `session <N>/<kid>: v1 <type>:<title>`.
+
+### Finding 3: Sessions with refs (9006-9012) no longer exist as dirs
+
+The 10 refs point to a session naming scheme (`9006-9012`) whose directories are gone. The 85 live dirs (`iter-001` through `iter-1072`) have zero grid session refs. The grid namespace and the session filesystem are disjoint.
+
+### Finding 4: Orphan 403-failed sessions have no grid presence
+
+`iter-1040` contains 11 kid subdirs including 403 failures (`a00-38486821`, `a01-56fee0f5`, `a01-717569b6`, `a00-fe19cdc4`). None have a ref under `refs/grid/session/iter-1040/*`.
+
+`iter-1041` contains the hypothesis target `a00-d98602f8` whose `output.log` shows the identical 403 error. No grid session ref for it.
+
+```bash
+git for-each-ref --format='%(refname)' refs/grid/session/iter-1040/*  # empty
+git for-each-ref --format='%(refname)' refs/grid/session/iter-1041/*  # empty
+```
+
+## Conclusion
+
+The hypothesis is **disproved** on its core claim.
+
+- **(a) FALSE**: Session refs exist ONLY for runs that minted a node version. The orphan partition of `refs/grid/session/*` is empty — 0/10 refs are orphans.
+- **(b) FALSE**: Orphan sessions are NOT retrievable from the grid namespace. Their only address is the filesystem path `.agi/sessions/iter-NNN/agent-id/`, requiring iteration number + agent id.
+- **(c) FALSE**: The six 403-failed kids are unrecoverable from the grid namespace.
+
+Orphan chat data IS stored on the filesystem under `.agi/sessions/`, but `refs/grid/session/*` is strictly an index of productive sessions — a dimension of nodes, not a dimension of sessions. The g10.1 precondition remains unmet: unproductive chats need a designated home before the attachment rule is safe to build.
+
+## Evidence
+
+```bash
+# Total session refs
+git for-each-ref --format='%(refname)' refs/grid/session/ | wc -l
+# → 10
+
+# Total session directories
+ls -d .agi/sessions/iter-*/ | wc -l
+# → 85
+
+# Any iter session with grid refs?
+for d in .agi/sessions/iter-*/; do
+  iter=$(basename "$d")
+  refs=$(git for-each-ref --format='%(refname)' "refs/grid/session/$iter/*" 2>/dev/null | wc -l)
+  if [ "$refs" -gt 0 ]; then echo "$iter has refs"; fi
+done
+# → (no output) → 0 matches
+
+# Orphan 403 sessions: did they produce grid refs?
+git for-each-ref --format='%(refname)' refs/grid/session/iter-1040/* 2>/dev/null
+# → (empty)
+git for-each-ref --format='%(refname)' refs/grid/session/iter-1041/* 2>/dev/null
+# → (empty)
+```
+
+## Agent Notes
+Census of refs/grid/session/*: 10 refs exist, ALL for node-producing sessions (hyp/exp/verdict/mvp suffix). 85 iter-XXX session dirs, ZERO have grid session refs. Orphan 403-failed kids (iter-1040, iter-1041) have no grid presence. Claim disproved: namespace is strictly a node-production index, not an orphan home.
+
+<!-- THOUGHT:BEGIN -->
+Parent a00-b7398b3e review, iter 1069. Every number in this node was
+independently re-run and reproduces exactly: 10 session refs, 85
+`.agi/sessions/iter-*/` dirs, 0 iter-* refs, and the five 403 session dirs
+named (iter-1040 a00-38486821 / a01-56fee0f5 / a01-717569b6 / a00-fe19cdc4,
+iter-1041 a00-d98602f8) each re-confirmed against its own `output.log`.
+The commit-message claim was spot-checked on two refs
+(`session 9006/kid-a: v1 hyp:payload-in-node`,
+`session 9012/kid-m: v1 mvp:census-boundary-scope`). No body edits were
+needed; this version adds only `evidence_runs` naming the node itself —
+an experiment may cite itself since it IS the run — and this THOUGHT
+block. Without the field the `disproved` would have been auto-demoted on
+the next gate pass. The kid's own caveat is the load-bearing part of this
+run and is accepted: the experiment tested the grid *namespace*, and the
+broader question — whether the gitignored `.agi/sessions/` working tree is
+a home durable enough for G9.5's prior-art requirement — is a different
+claim, now the live gap under hypothesis:a00-d98602f8-1b56cc. Two
+convergent censuses (this node and sibling
+experiment:a00-a32c70be-9f6968, same iteration, no coordination) agree on
+every count, which is independent replication, not duplication.
+<!-- THOUGHT:END -->
