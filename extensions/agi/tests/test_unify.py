@@ -258,6 +258,26 @@ def test_grid_refs_transfer_with_count_and_target_preserved(migrated):
         assert _rev_parse(engine, ref) == _rev_parse(tree, ref)
 
 
+def _record_fetch_refspec(engine: Path, tree: Path, monkeypatch) -> list[str]:
+    """The exact refspec `fetch_grid_refs` hands `git fetch`. The fetch call
+    itself is faked (these fixtures have no remote named `agi-unify-source`),
+    but every other git call runs for real, so the argv under test is the argv
+    a real run would send."""
+    seen: list[list[str]] = []
+    real_run = unify.subprocess.run
+
+    def recorder(argv, **kw):
+        args = [str(a) for a in argv]
+        if "fetch" in args:
+            seen.append(args)
+            return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(unify.subprocess, "run", recorder)
+    unify.fetch_grid_refs(engine, tree)
+    return [a for argv in seen for a in argv if "refs/" in a]
+
+
 def test_grid_namespace_reads_the_projects_storage_trunk(repos, monkeypatch):
     """The unify call sites read their namespace through
     `grid.ref_ns_for` (goal:g14.14.7): a project declaring
@@ -266,7 +286,25 @@ def test_grid_namespace_reads_the_projects_storage_trunk(repos, monkeypatch):
     empty config still yields `refs/grid` (asserted by the count above).
     """
     engine, tree = repos
+
+    # The fetch is faked below, so the target's ref count cannot come from a
+    # real transfer: pre-seed the engine with the same two refs the tree
+    # carries, making the post-fetch count assertion (source == target) hold.
+    engine_tip = _rev_parse(engine)
+    for mint in ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"):
+        _git(engine, "update-ref", f"refs/grid/node/{mint}", engine_tip)
+
+    # UNCONFIGURED on both sides: the fetch refspec must be EXACTLY the old
+    # GRID_FETCH_REFSPEC literal, with no leading `+`. The `+` would turn a
+    # refusing fetch into a force-update -- a behaviour change hidden inside a
+    # byte that still spells `refs/grid`.
+    unconfigured = _record_fetch_refspec(engine, tree, monkeypatch)
+    assert "refs/grid/*:refs/grid/*" in unconfigured, unconfigured
+    assert not any(s.startswith("+") for s in unconfigured), unconfigured
+
     (tree / "agi-tree.config.json").write_text(
+        '{"grid": {"storage_trunk": "refs/grid/t9"}}\n')
+    (engine / "agi-tree.config.json").write_text(
         '{"grid": {"storage_trunk": "refs/grid/t9"}}\n')
     assert unify.grid_ref_namespace(tree) == "refs/grid/t9"
 
@@ -288,6 +326,12 @@ def test_grid_namespace_reads_the_projects_storage_trunk(repos, monkeypatch):
     seen.clear()
     unify.find_stale_payloads(tree, engine)
     assert any("refs/grid/t9/node/" in a for argv in seen for a in argv), seen
+
+    # CONFIGURED on both sides: the refspec maps the declared source
+    # namespace to the declared target, `+`-free, `refs/grid/t9` -> `refs/grid/t9`.
+    configured = _record_fetch_refspec(engine, tree, monkeypatch)
+    assert "refs/grid/t9/*:refs/grid/t9/*" in configured, configured
+    assert not any(s.startswith("+") for s in configured), configured
 
 
 # --- file relocation -----------------------------------------------------------
