@@ -5,13 +5,13 @@ type: experiment
 parents:
   - hypothesis:a00-36a00a4c-3a2fb9
 next_edges: []
-edited_by: a00-36a00a4c
+edited_by: a00-7a565c89
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
 season: 2
-testable_claim: "Under shipped config the durable named tmux pane hold is reachable: the session name resolves from the `box.tmux_session` cell (not a second literal), grok-bot's harness row enables the seam, and a killed seat process restarts into the SAME #{pane_id} with exactly one seat window, pane_dead 0, created False."
+testable_claim: "Under SHIPPED config the seam is reachable because the grok-bot adapter module declares HOLD_PANE = True and adapters.resolve materialises it onto the RESOLVED harness row, while `.agi/config.json` harnesses.grok-bot itself carries no tmux cell: the session name resolves from the box.tmux_session cell (not a second literal), grok_bot_adapter.restart takes the tmux branch, an explicit tmux: False on a harness wins and stays direct Popen, and a killed seat process restarts into the SAME #{pane_id} with exactly one seat window, pane_dead 0, created False."
 title: Close the four tmux-hold code/test residues on the live bytes
 town: core
 ---
@@ -40,11 +40,18 @@ the bytes, not the summary:
 
 ### Residue 2 (PRIMARY) -- seam reachable under shipped config
 
-`.agi/config.json` `harnesses.grok-bot` gains `"tmux": true`, so
-`tmux_hold.enabled(row)` is True on the shipped row and
-`grok_bot_adapter.restart` takes the tmux branch. The disabled path (a harness
-with no `tmux` cell, e.g. `RESTART_HARNESS` in the suite) is unchanged and
-still direct `Popen`.
+`.agi/config.json` `harnesses.grok-bot` stays SILENT -- its cells are exactly
+`[adapter, allowed_extra, bin, models]`, with no `tmux`, `pane`, or
+`tmux_session`. The seam is reachable anyway because
+`grok_bot_adapter.HOLD_PANE = True` (declared in the adapter module that owns
+the seat's spawn shape) is materialised onto the RESOLVED harness by
+`adapters.resolve`: a silent row plus a `HOLD_PANE` adapter yields
+`harness["tmux"] = True`, so `tmux_hold.enabled(row)` is True and
+`grok_bot_adapter.restart` takes the tmux branch. The `"tmux": true` config
+edit named by the previous version of this node was **NOT committed** -- the
+shipped row is silent. The disabled path is an EXPLICIT `tmux: False` (or
+`pane: False`) on a harness, which wins over `HOLD_PANE` in
+`grok_bot_adapter.hold_harness` and keeps direct `Popen`.
 
 ### Residue 3 (PRIMARY) -- non-vacuous assertion
 
@@ -108,12 +115,12 @@ python3 -m pytest extensions/agi/tests/test_tmux_hold.py \
 bin/adapters/tmux_hold.py` = **45 changed lines** (41 added / 4 deleted)
 against a ceiling of 40 -- over the ceiling, under 2x (80), so no re-brief.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This round builds the seam rather than re-measuring it: the four residues were
-code/test defects, so they were closed on the live bytes and then proven on
-REAL tmux. Config_max chose the box cell as the ONE source of the session name
-and deleted `DEFAULT_SESSION` outright rather than leaving `"agi-hold"` as a
-second literal; the harness opt-in stays explicit (`tmux: true` on the
-grok-bot row), which makes the seam reachable under shipped config without
-enabling it for every harness. The raw trace is under the session scratch dir
-because a pytest cannot hold real tmux (conftest `_no_real_tmux`).
+This node's previous version described the seam as enabled by a `tmux: true`
+cell on `harnesses.grok-bot`; that edit was never committed, so the sentence
+was false on the shipped bytes while a `proved` hypothesis cited it as counted
+evidence. The bytes carry a different (and working) mechanism: the adapter
+module declares `HOLD_PANE = True`, and `adapters.resolve` materialises it
+onto the resolved row, so the seam is reachable with the config row left
+silent. Rewritten to match what shipped; the disabled path is an explicit
+`tmux: False`, which wins over `HOLD_PANE`. No code changed -- prose only.
 <!-- THOUGHT:END -->
