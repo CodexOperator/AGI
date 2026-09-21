@@ -13,7 +13,7 @@ location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: town-location-2026-09-21
+thought_session: belam-engine-to-core-2026-09-21
 town: core
 visions:
   - vision:local-maxxing
@@ -29,12 +29,13 @@ LOCATION ──▶ local-town
 
 ```
 town:local-maxxing
-├─ GOAL BUNDLE (diagram-max)
-│  ├─ g14* ………… research tracks (g14.6–.16 + nested)
+├─ GOAL BUNDLE (diagram-max) — RESEARCH only
+│  ├─ g14* ………… research tracks (g14.6–.13, .15–.16 + nested)
 │  ├─ g5.17–.21 … remapped from legacy g14.1–.5 / g14.3 lineage
 │  └─ town:local-maxxing tagged goals (same set ∩)
+│  └─ goal:g14.14 …… MOVED → town:core (engine; parked unassigned)
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
-   (pending proper `trajectory` type — G14.14.5; doc kept, deprecated pointer)
+   (pending proper `trajectory` type — G14.14.5 on town:core; doc kept, deprecated pointer)
 ```
 
 ### Goal ids (bundle)
@@ -53,7 +54,7 @@ town:local-maxxing
 | goal:g14.11.1 | battery + reference |
 | goal:g14.12 | side track spiking |
 | goal:g14.13 | research treasury |
-| goal:g14.14 | engine fixes |
+| goal:g14.14 | **MOVED → town:core** (engine fixes; parked unassigned) |
 | goal:g14.15 | KV-cache telepathy |
 | goal:g14.16 | diagram-max + batch-max |
 | goal:g5.17 | Sensei assigns fine-tune / local-maxxing (remap) |
@@ -78,25 +79,26 @@ Town schema parents = ladder only → **linking is Agent Notes / this body**, no
 
 #### Links
 
-goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.14 · goal:g14.15 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set · **doc:lm-town-trajectory** (pointer; folded here)
+goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.15 · goal:g14.16 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set · **doc:lm-town-trajectory** (pointer; folded here) · ~~goal:g14.14~~ → town:core
 
 #### Board (formation · live · queue — replace in place)
 
 ```
-formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2) -> pi parents/kids
+formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet; G14.16.1-2 research/process — engine g14.14 now on town:core parked) -> pi parents/kids
 rules      diagram-max (goal:g14.16) · batch-max · board/trajectory = VERSIONS (replace body), never notes
 memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one research round at a time
 live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
-research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g14.6–.16)
-engine     G14.14.* → G14.16.* (trajectory type at 14.14.5)
+research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g14.6–.13, .15–.16)
+engine     goal:g14.14 (+ G14.14.*) → MOVED town:core (parked unassigned; trajectory type at 14.14.5)
 comms      magic pane (G14.8 / g7.32 messaging on core) = future unified messaging layer
 ```
 
 ## Agent Notes
 
 - Owner ask 2026-09-21: fold trajectory stand-in into town body; keep `doc:lm-town-trajectory` until trajectory type ships.
+- Owner ask 2026-09-21: engine goal:g14.14 ownership → town:core (parked unassigned); research tracks stay here.
 - Actor Belam; master cell = thought-master.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: fold doc:lm-town-trajectory into town body as GOAL BUNDLE + TRAJECTORY STAND-IN; doc kept as deprecated pointer pending trajectory type
+owner ask 2026-09-21: drop/mark engine goal:g14.14 moved → town:core in local-maxxing GOAL BUNDLE; research tracks (g14.6–.13,.15–.16 + g5.17–.21) stay; no director messaging
 <!-- THOUGHT:END -->
