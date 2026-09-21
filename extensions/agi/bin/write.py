@@ -2472,6 +2472,7 @@ def _compose_body(root, edit: Edit) -> str:
 
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
+           body: str | None = None,
            actor: str = "", session: str = "", role: str = "",
            bypass: bool = False):
     """Mint a node — and, for a build node, the file it points at.
@@ -2514,6 +2515,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
+                                 body=body,
                                  log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
@@ -2543,7 +2545,8 @@ def main(argv: list[str] | None = None) -> int:
     or `write.py build:bin-x "read payload 10:20"` / `"patch -"` (diff on
     stdin, fail-closed; `body_patch -` for a node body).
 
-    or `write.py create <type> <slug> --parent <id> [--payload PATH]`.
+    or `write.py create <type> <slug> --parent <id> [--payload PATH]
+    [--body-file PATH]`.
     """
     import argparse
 
@@ -2584,6 +2587,10 @@ def main(argv: list[str] | None = None) -> int:
                          "many are legal, not argparse")
     ap.add_argument("--payload", default=None,
                     help="with `create`: source file to link, created if absent")
+    ap.add_argument("--body-file", default=None, metavar="PATH",
+                    help="with `create`: read this file's UTF-8 bytes as the "
+                         "node body verbatim, instead of the type's "
+                         "placeholder scaffold")
     ap.add_argument("--set", dest="sets", action="append", default=[],
                     help="with `create`: extra frontmatter, k=v, repeatable")
     ap.add_argument("--no-spawn-gate", action="store_true",
@@ -2658,11 +2665,26 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  parents  {args.parents or '(none)'}")
             if args.payload:
                 print(f"  payload  {args.payload}")
+            if args.body_file is not None:
+                print(f"  body-file {args.body_file}")
             for k, v in set_fm.items():
                 print(f"  set      {k} = {v!r}")
             return 0
+        # hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-
+        # scaffold -- the verb layer owns IO. Read the body HERE, in `main()`,
+        # so a missing/unreadable file is refused by name with exit 2 and NO
+        # node is written; `body=None` (no flag) reaches `write_node`
+        # unchanged, keeping the BODY_PROMPTS scaffold path byte-identical.
+        body = None
+        if args.body_file is not None:
+            try:
+                body = Path(args.body_file).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                print(f"ERR: --body-file {args.body_file}: {exc}",
+                      file=sys.stderr)
+                return 2
         res, made = create(root, args.script, args.slug, args.parents,
-                           set_fm=set_fm, payload=args.payload,
+                           set_fm=set_fm, payload=args.payload, body=body,
                            actor=args.actor, session=args.session, role=args.role,
                            bypass=args.no_spawn_gate)
         if res.rejected:
