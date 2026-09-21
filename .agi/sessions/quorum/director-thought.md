@@ -19,11 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~05:3xZ
- live     TEL.02 a00-08eead1d (pid 1772128, just dispatched, cap $1, pi) -- TMM.23 path (a): restart the 9B child with --cache-reuse N between rounds, router mode kept, exact line recorded, restore+verify before done. Owner switched workspace (e31711fe...) to clear headroom for this; TMM.25 confirmed $2.52 fits, dispatched on the retry, worked first try.
- landed   TMM.24 residues (MP.01, all 4, done+pushed) -- see prior commits for detail, not re-summarized here
+2026-09-21 ~05:4xZ
+ live     TEL.02 a00-08eead1d (pid 1772128, ~13min elapsed, healthy) -- --cache-reuse restart; owner amended MID-ROUND to STAY enabled (not restore-to-original), amendment dm'd live to the parent, banked on goal:g14+g14.15.1
+ TMM.26   owner: magic pane now PRIORITY alongside local-inference kids/parents. MP.02 REDEFINED in place (single-call wrapper -> top-k SUGGESTER, up to 5 ranked candidates, never executed, top-1/top-5 metric); MP.03 FORMATTER minted new (bypass every recorded trap by construction, 0 trap hits). Both no-spend, queued after G14.10.2's capture.
+ queue    (TMM.26, current) TEL.02 (live) -> SWR.02-B -> G14.10.2 capture (engine hook G14.14.8 first) -> MP.02 -> MP.03 -> FT.00 -> DS.01 -> G14.7.2
  board    stopped editing doc:lm-town-trajectory directly (thought-master's v8 lesson); rows travel in the merge-up dm now
- queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · SWR.02/FT.00/DS.01/G14.10.2/G14.7.2 next in thought-master's stated order once TEL.02 lands
- next     watch TEL.02 -- it must restart the server (owner-authorized, one-time) then restore it before done; verify the restore actually happened when it reports
- traps    (kept from last pass) replace-body anchor guard caught a real mis-offset twice, working as intended · a script smoke-test overwrote landed deliverables once, caught+reverted via git status -- check status right after running any script that writes into a datasets/ path
+ next     watch TEL.02 land -- confirm the amendment was actually followed (server left running WITH --cache-reuse, not reverted) before accepting the round
+ traps    replace-body anchor guard caught a real mis-offset twice this session, working as intended · a script smoke-test overwrote landed deliverables once, caught+reverted via git status right after
 ```
