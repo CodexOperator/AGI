@@ -30,6 +30,7 @@ import branches  # noqa: E402 -- hyp l4-deliverable-check: round-own fork base
 import evidence_gate  # noqa: E402
 import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import node_writer  # noqa: E402
@@ -4052,9 +4053,17 @@ def _reshuffle_cell_edits(root: Path, season: int, jobs: list[dict]) -> list[str
 
 def _reshuffle_refs_grid(repo: Path) -> str:
     """Byte source of truth for the refs/grid namespace: refname + object name
-    per ref, one per line, refs sorted. Compare before/after for identity."""
+    per ref, one per line, refs sorted. Compare before/after for identity.
+
+    The namespace is read through `grid.ref_ns_for`, not written as a literal
+    (goal:g14.14.7): a project that declares `grid.storage_trunk` keeps its
+    history under the namespace it names. `repo` is a git repo root, so the
+    GRAPH root (`<repo>/.agi`) is resolved first -- passing the bare repo root
+    to the resolver would find no config and silently return the default.
+    """
+    ns = grid.ref_ns_for(locations.find_project_root(repo) or repo)
     r = subprocess.run(
-        ["git", "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid"],
+        ["git", "for-each-ref", "--format=%(refname) %(objectname)", ns],
         cwd=repo, capture_output=True, text=True)
     return "\n".join(sorted(r.stdout.splitlines())) + "\n"
 
