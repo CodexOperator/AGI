@@ -9,10 +9,11 @@ parents:
 next_edges: []
 council: council-core
 edited_by: belam
+location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: owner-ask-2026-09-21
+thought_session: town-location-2026-09-21
 town: core
 visions:
   - vision:alive
@@ -23,6 +24,8 @@ visions:
 # town:core
 
 ## GOAL BUNDLE + TRAJECTORY STAND-IN (encryption / core directors)
+
+LOCATION ──▶ encryption-town
 
 ```
 encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank encryption master LATER)
