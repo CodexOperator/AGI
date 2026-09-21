@@ -1,6 +1,6 @@
 # SWR.01 gap table — deepseek-v4.1-flash (reference) vs the five local HumanEval arms
 
-**Date:** 2026-09-21  **Round:** SWR.01  **Node:** experiment:a00-559ee702-d3c7dd
+**Date:** 2026-09-21  **Round:** SWR.01 (HumanEval table) + SWR-B.02/SWR-B.03 (arm B IFEval row)  **Node:** experiment:a00-559ee702-d3c7dd (HumanEval); experiment:a00-4eec4fce-e9b330 (IFEval)
 **Parent hypothesis:** hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 
 ## What is measured

@@ -96,12 +96,20 @@ It skips every prompt already present, appends the rest in official order.
 When 541/541 exist, score ONCE with the unchanged official harness:
 
 ```
-cd /data/work/agi/.agi/worktrees/a00-9db255d9/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
+cd /data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
 ../ifeval_venv/bin/python evaluation_main.py \
-  --input_data=/data/work/agi/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
-  --input_response_data=/data/work/agi/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
+  --input_data=/data/work/agi/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
+  --input_response_data=/data/work/agi/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
   --output_dir=<scratch>/armB_score
 ```
+
+MOOT as of SWR-B.03's own next kid: generation reached 541/541 and was scored in
+`experiment:a00-4eec4fce-e9b330` (strict 0.778189, 421/541 -- see that node for
+the live numbers). This node's verdict stays `pending` as an honest record of
+what THIS kid itself completed (283-309/541, mid-round), not because the work
+is still open. Path above corrected post-merge-up review (mur-director-thought,
+round swr-b-03): the cited worktree `a00-9db255d9` no longer exists; this is
+the engine-root location the completing round actually used.
 
 Harness and venv verified importable this round (`absl`, `langdetect`, `nltk`,
 `immutabledict`) and `evaluation_main.py` present — no rebuild needed. Switch

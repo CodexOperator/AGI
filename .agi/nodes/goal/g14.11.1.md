@@ -6,7 +6,7 @@ parents:
   - goal:g14.11
 next_edges: []
 confidence: 0.8
-edited_by: director-thought
+edited_by: belam
 goal_id: G14.11.1
 goal_kind: subgoal
 heading_level: 4
@@ -38,3 +38,5 @@ town: local-maxxing
 **Done when.** The gap table exists in `datasets/switch-rule/<date>/` with real numbers on both evals for the reference and every local candidate measured so far, and the switch verdict (fires / does not fire, per row) is stated plainly on the hypothesis node.
 
 **First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01) — the reference row + the gap table against the five existing local rows. G14.11.2 (the mvp/build/switch mechanics) is minted only when a switch verdict actually needs to be acted on, per the owner pace rule.
+
+SWR-B.03 landed (director-thought): arm B IFEval scored 541/541, strict 0.778189 (421/541) vs threshold 0.781886 (423 needed) -- does NOT fire, short 0.37pp, inside the +/-0.4pp unseeded-langdetect floor (mur-confirmed: 10 independent re-runs on the committed file gave 420x6/421x3/422x1, so 0.778189 is one valid sample of that floor, not fabricated). Loose 0.815157, instruction-level 0.851319. gap_table.md row landed under experiment:a00-4eec4fce-e9b330 (kid); experiment:a00-5f73ccd9-bc9dc8 (kid) is the mid-round generation step, verdict pending by design (superseded by the completing kid, not still-open work). Arm B: FIRES on HumanEval (92.2pct rel), does NOT fire on IFEval (89.57pct rel) -- two-eval hypothesis not satisfied by arm B alone; C1/C2 IFEval still unmeasured. mur-director-thought/swr-b-03: accept_with_residue, 1 confirmed residue (stale resume path in the pending kid, fixed post-review), 1 refuted (llama-server restore wording), 1 note (stale gap_table.md provenance header, fixed). No demotion.
