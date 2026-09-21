@@ -27,14 +27,21 @@ def _session(harness: dict) -> str:
 
 
 def panes(harness: dict) -> list[tuple[str, str, str]]:
-    """[(window_name, pane_id, pane_pid)]; empty if the session is absent."""
+    """[(window_name, pane_id, pane_pid)] across the WHOLE session.
+
+    `-s` is load-bearing: without it tmux lists only the session's CURRENT
+    window, so a seat whose window is not current is invisible to
+    `start()`/`reattach()` -- which then fabricated a second window of the
+    same name (`goal:g7.31.1.2`, parent probe 2).
+    """
     cp = subprocess.run(
-        ["tmux", "list-panes", "-t", _session(harness), "-F",
+        ["tmux", "list-panes", "-s", "-t", _session(harness), "-F",
          "#{window_name} #{pane_id} #{pane_pid}"], capture_output=True, text=True)
     return [] if cp.returncode else [
         tuple(ln.split()) for ln in cp.stdout.splitlines() if ln.strip()]
-def _pid(harness: dict, name: str) -> int | None:
-    return next((int(p) for w, _i, p in panes(harness) if w == name), None)
+def _pane(harness: dict, name: str) -> tuple[str, int] | None:
+    """The seat's (pane_id, pane_pid) session-wide -- an immutable id, not a name."""
+    return next(((i, int(p)) for w, i, p in panes(harness) if w == name), None)
 def _cmd(argv, log_file):
     if not log_file:
         return list(argv)
@@ -43,25 +50,39 @@ def _cmd(argv, log_file):
 def _run(args):
     return subprocess.run(args, capture_output=True, text=True)
 def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None):
-    """Create the named pane ONLY if absent, then run argv inside it."""
+    """Create the named pane ONLY if the session has none, then run argv in it."""
     name, sess, have = pane_name(agent_id), _session(harness), panes(harness)
-    if not have:
-        args = ["tmux", "new-session", "-d", "-s", sess, "-n", name,
-                "-c", str(cwd), "--", *_cmd(argv, log_file)]
-    elif not any(w == name for w, _, _ in have):
-        args = ["tmux", "new-window", "-t", sess, "-n", name,
-                "-c", str(cwd), "--", *_cmd(argv, log_file)]
-    else:
+    if any(w == name for w, _, _ in have):
         return reattach(harness, agent_id, argv, cwd=cwd, log_file=log_file)
-    if _run(args).returncode != 0:
+    args = (["tmux", "new-session", "-d", "-s", sess, "-n", name] if not have
+            else ["tmux", "new-window", "-t", sess, "-n", name])
+    if _run([*args, "-c", str(cwd), "--", *_cmd(argv, log_file)]).returncode != 0:
         return None
     _run(["tmux", "set-option", "-t", sess, "remain-on-exit", "on"])
-    return _pid(harness, name)
-def reattach(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None):
-    """Re-enter the SAME pane after death — respawn-pane -k, no second window."""
-    name, sess, have = pane_name(agent_id), _session(harness), panes(harness)
-    if not any(w == name for w, _, _ in have):
-        return start(harness, agent_id, argv, cwd=cwd, log_file=log_file)
-    cp = _run(["tmux", "respawn-pane", "-k", "-t", f"{sess}:{name}",
+    hit = _pane(harness, name)
+    return hit[1] if hit else None
+def reattach(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None,
+             created: dict | None = None):
+    """Re-enter the SAME pane after death: `respawn-pane -k` on its pane_id.
+
+    If the named pane is genuinely GONE (its window was killed, not just its
+    process) it is re-created by `start()` exactly once and `created` is
+    stamped -- so a caller can tell a held pane from a fabricated one instead
+    of being handed a fresh pane as if it were the original.
+    """
+    name = pane_name(agent_id)
+    hit = _pane(harness, name)
+    if hit is None:
+        pid = start(harness, agent_id, argv, cwd=cwd, log_file=log_file)
+        if created is not None:
+            again = _pane(harness, name)
+            created.update(created=pid is not None,
+                           pane_id=again[0] if again else None)
+        return pid
+    pane_id = hit[0]
+    cp = _run(["tmux", "respawn-pane", "-k", "-t", pane_id,
                "-c", str(cwd), "--", *_cmd(argv, log_file)])
-    return _pid(harness, name) if cp.returncode == 0 else None
+    if created is not None:
+        created.update(created=False, pane_id=pane_id)
+    hit = _pane(harness, name)
+    return hit[1] if cp.returncode == 0 and hit else None
