@@ -13,7 +13,7 @@ location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: belam-engine-to-core-2026-09-21
+thought_session: belam-geom-traj-spine-2026-09-21
 town: core
 visions:
   - vision:local-maxxing
@@ -23,7 +23,22 @@ visions:
 <!-- BODY:BEGIN -->
 # town:local-maxxing
 
-## GOAL BUNDLE + TRAJECTORY STAND-IN
+## town = ops · trajectory = KG (stand-in TEMPORARY)
+
+```
+town:local-maxxing ──▶ OPS home (who / research bundle / what's left / location)
+                         location: local-town
+trajectory:local-maxxing (soon) ──▶ KG coordination
+                         (metrics / mini-vision progress / links→chain nodes)
+.geometry/towns/local-maxxing ──▶ Pass-1 raw self (see goal:g7.34.3+)
+```
+
+**TRAJECTORY STAND-IN section below is TEMPORARY** pending `trajectory:*`
+type (`goal:g7.34.1` / `.2` on town:core). Until mint+migrate, this town
+body carries the stand-in. Metrics/links tables move to the trajectory node;
+ops bundle stays on town.
+
+## GOAL BUNDLE
 
 LOCATION ──▶ local-town
 
@@ -35,7 +50,7 @@ town:local-maxxing
 │  └─ town:local-maxxing tagged goals (same set ∩)
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
-   (pending proper `trajectory` type — G7.33.5 on town:core; doc kept, deprecated pointer)
+   (TEMP pending trajectory:* — g7.34.1/.2; doc kept, deprecated pointer)
 ```
 
 ### Goal ids (bundle)
@@ -65,9 +80,9 @@ town:local-maxxing
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 
-### Trajectory stand-in (folded from `doc:lm-town-trajectory`)
+### Trajectory stand-in (folded from `doc:lm-town-trajectory`) — TEMP
 
-**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. Proper `trajectory` type queued (G7.33.5); until it lands **this town section IS the stand-in**. `doc:lm-town-trajectory` remains as pointer ("stand-in moved into town body pending trajectory type") — do not delete yet.
+**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. Proper `trajectory` type queued (`goal:g7.34.1` schema + `goal:g7.34.2` mint; previously noted as G7.33.5); until it lands **this town section IS the stand-in**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
 
 #### Metrics chased (newest first)
 
@@ -79,7 +94,7 @@ Town schema parents = ladder only → **linking is Agent Notes / this body**, no
 
 #### Links
 
-goal:g14 · goal:g5.22 · goal:g5.23 · goal:g5.24 · goal:g5.25 · goal:g5.26 · goal:g5.27 · goal:g5.28 · goal:g5.29 · goal:g5.30 · goal:g5.31 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set · **doc:lm-town-trajectory** (pointer; folded here) · ~~goal:g7.33~~ → town:core
+goal:g14 · goal:g5.22 · goal:g5.23 · goal:g5.24 · goal:g5.25 · goal:g5.26 · goal:g5.27 · goal:g5.28 · goal:g5.29 · goal:g5.30 · goal:g5.31 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set · **doc:lm-town-trajectory** (pointer; folded here) · ~~goal:g7.33~~ → town:core · **goal:g7.34*** (parked geometry/trajectory spine on town:core)
 
 #### Board (formation · live · queue — replace in place)
 
@@ -89,7 +104,8 @@ rules      diagram-max (goal:g5.31) · batch-max · board/trajectory = VERSIONS 
 memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one research round at a time
 live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
 research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30–.31)
-engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned; trajectory type at 7.33.5)
+engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
+geometry   goal:g7.34* → town:core parked (trajectory type + .geometry/towns)
 comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer
 ```
 
@@ -97,8 +113,9 @@ comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messagi
 
 - Owner ask 2026-09-21: fold trajectory stand-in into town body; keep `doc:lm-town-trajectory` until trajectory type ships.
 - Owner ask 2026-09-21: engine goal:g7.33 ownership → town:core (parked unassigned); research tracks stay here.
+- Belam 2026-09-21: stand-in TEMP; town=ops / trajectory=KG; spine work = goal:g7.34* on town:core.
 - Actor Belam; master cell = thought-master.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: engine goal g14.14→g7.33 town:core; research g14.6–.16→g5.22–.31 town:local-maxxing kept; g14 umbrella shell remains; no director messaging
+Belam 2026-09-21: clarify town=ops vs trajectory=KG; TRAJECTORY STAND-IN temporary pending g7.34.1/.2; keep research bundle + metrics diagrams
 <!-- THOUGHT:END -->

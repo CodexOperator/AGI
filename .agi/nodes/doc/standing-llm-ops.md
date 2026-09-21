@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: suite-per-batch-2026-09-21
+thought_session: belam-geom-traj-spine-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -74,6 +74,23 @@ This doc itself must obey the rule (and be re-trimmed when parts finish).
 
 ---
 
+## 2b. town · trajectory · .geometry (Belam 2026-09-21)
+
+```
+town:*                 ──▶ OPS home (who / bundle / what's left / location)
+trajectory:* (pending) ──▶ KG counterpart (metrics / mini-vision / links→chain)
+.geometry/towns/<slug> ──▶ Pass-1 raw .self + formation templates (g7.34.3–.5)
+```
+
+| layer | owns | not |
+|---|---|---|
+| town | ops board, location, who's on it | lasting metrics SoT |
+| trajectory | measured progress + chain links | dispatch/ops roster |
+| .geometry/towns | self cells + formation render | goal nesting SoT |
+
+Stand-ins live in **town body** until `trajectory:*` type lands (`goal:g7.34.1` / `.2`). Parents on children remain nesting SoT for goals.
+
+---
 ## 3. Batch-max — compress passes, not meaning
 
 Same ethic as diagram-max: **more meaning per token**, not less meaning.
