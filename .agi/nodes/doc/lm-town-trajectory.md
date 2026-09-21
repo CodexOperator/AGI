@@ -24,7 +24,7 @@ town: local-maxxing
 | 09-20 | Qwen3.5-9B Q4_K_M (9B) | 6,010 MiB | 64K | 62.68 (2.87 J/tok) | HumanEval 78.0 / 79.3 pct (A / A2) | Q4 (shipped) | experiment:a00-c4441397-c8a8c6 |
 
 ## Links (every node that moves these numbers; the future `links:` field)
-goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.14 · goal:g14.15 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set
+goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.14 · goal:g14.15 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set · goal:g14.16 · treasury: https://github.com/yifanzhang-pro/KLPO (G14.7.2 RL arm candidate, 09-21)
 
 ## Board (formation · live · queue — replaced in place, never appended; 03:1xZ 09-21)
 ```
@@ -32,13 +32,13 @@ formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
 grid       seeded 01:5xZ by hand ONCE (3,773 v) · grid.storage_trunk EXISTS (EF.02) but this box NOT migrated (33 literals outside scope -> EF.02b) · cron still refuses on this branch
-live       MP.01 a00-af8cefa3 (research) · EF.03 (engine)
-landed     EF.01 dispatch --memory + EF.02 grid trunk (68fedbace · a657f0d59; suite 5822 pass, 13 pre-existing fails = G14.14.9) · SWR.01 chunk 1 346c377c2 · ABL.01 c0d8c356c · ABC.02 3393a7778
+live       MP.01 a00-af8cefa3 (research) · engine: G14.14.1(b)(c) pending pool headroom
+landed     EF.04 replace-body guard 2d570e2db · EF.01 dispatch --memory + EF.02 grid trunk (68fedbace · a657f0d59) · SWR.01 chunk 1 346c377c2 · ABL.01 c0d8c356c · ABC.02 3393a7778
 research   MP.01 -> TEL.01 (g14.15.1, resident 9B) -> SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper -> H1' -> layer G14.7.2 + G14.15
-engine     EF.03 -> EF.02b (remaining literals + this box's migration) -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 capture hook -> 14.14.9 red suite -> G14.16.1 measurement -> G14.16.2 brief pass
+engine     14.14.1(b)(c) -> EF.02b (remaining refs/grid literals + this box's migration) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 capture hook -> 14.14.9 red suite (PI_BIN isolation; ws_raw deps into packaging) -> 14.14.10 comms -> G14.16.1-2
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 03:3xZ 09-21 -- v5: board rows grid/live/landed/engine after the EF.01+EF.02 merge and the suite attribution; metric rows unchanged.
+thought-master 04:3xZ 09-21 -- v7: Links gains goal:g14.16 and the KLPO treasury link (owner ingestion 04:3xZ); rows unchanged. Same version carries v6's live/landed/engine rows (EF.04).
 <!-- THOUGHT:END -->
