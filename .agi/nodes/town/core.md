@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: town-location-2026-09-21
+thought_session: belam-engine-to-core-2026-09-21
 town: core
 visions:
   - vision:alive
@@ -84,12 +84,22 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 
 Town schema `parents:` = ladder only → spine listed here / Agent Notes, not town→goal parents.
 
+### UNASSIGNED / parked (engine from local-maxxing) — until directors finish current batches
+
+Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.** Parked unassigned until g7.25–g7.32 batches clear.
+
+| id | status | title (short) | note |
+|---|---|---|---|
+| goal:g14.14 | parked | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | moved from town:local-maxxing; nested G14.14.* not yet minted as separate nodes |
+| goal:g14.14.* | pending | sub-chunks under g14.14 body (14.1–14.8) | mint later under town:core when work starts |
+
 ## Agent Notes
 
 - Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
 - g7.31 tree untouched this ask; town points at it as spine.
 - Actor Belam; master cell = sanctuary-master.
+- Owner ask 2026-09-21: engine goals (g14.14) relocated from local-maxxing → core; **UNASSIGNED / parked** — no director assignment, no SendToAgent.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: encryption-town host = town:core; directors spine g7.25–g7.32 + g7.31 family as trajectory stand-in; g7.32 minted same-level (g7.31 untouched)
+owner ask 2026-09-21: park engine goal:g14.14 (moved from town:local-maxxing) under town:core GOAL BUNDLE as UNASSIGNED until directors finish current g7.25–g7.32 batches; no SendToAgent / no director assignment
 <!-- THOUGHT:END -->
