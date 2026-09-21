@@ -10713,6 +10713,60 @@ thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to t
 
 thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g14.10): ADD G14.14.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 14.14.4; ceiling 200 engine lines; never a second scrub.
 
+##### G14.14.1 — WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.14.1
+
+## Agent Notes
+Source. Transcribed from the goal g14.14 body (owner 01:1xZ-01:2xZ 09-21 on goal g14). Three independent write.py gaps, each its own hypothesis when minted.
+
+Commits to. Verified against source where checked this session, not assumed: (a) replace body N:M -- write.py _splice_range and _slice_range (lines 2068-2108) do plain text.split newline indexing with zero structural awareness of headings or paragraphs; _read_body_text (lines 2137-2146) returns the node BODY text starting at the BODY:BEGIN marker, which is why body-relative line 1 = that marker; _parse_range (lines 427-453) validates only that the range is numeric and non-empty, never that it respects a heading or paragraph boundary; no --at anchor option exists anywhere in verb_replace's signature. This is the exact class that corrupted ABL.01's winning node, and this director hit the same hazard live this session (worked around by always reading exact line numbers first, never guessing an offset). Fix: an anchor form (replace body --at HEADING) and/or a guard that refuses a range whose start or end falls inside a paragraph or splits a heading line from its body. (b) create leaves the unfilled scaffold body (the literal placeholder text, seen on TM.61/62/69 and SWR.01): create should render the body from the frontmatter it was given, or take a --body-file option. This director worked around it this session by minting with create then filling the body via note or a whole-range replace body -- a real workaround, not a fix. (c) replace body cannot share a submit with note or thought in the same write.py script -- either make ordered composition work, or the refusal should be printed in -h so a caller learns this from the help text rather than a failed edit; this director also hit an adjacent gap this session, chained note calls silently keeping only the last one (THOUGHT on goal:g14.14.3) -- likely the same family of submit-composition gap as (c), worth checking together.
+
+Invariants. Kids write the fix, parents review, the director batches and orders. Existing behaviour is pinned with the full engine suite before and after each change (python3 -m pytest extensions/agi/tests -q). None of the three items may change how an ALREADY-CORRECT existing range or scaffold-filled node reads -- default/already-good behaviour must stay byte-identical.
+
+Falsifiers. Each item is falsified independently: (a) if the anchor or guard fails to catch a real mis-offset case reproduced from the ABL.01 shape, or breaks a currently-correct replace; (b) if create with a --body-file or frontmatter-derived body ever produces the literal scaffold placeholder text; (c) if a chained note+replace (or note+note) script still silently drops content, or the -h refusal text is missing when composition is not supported. Any item breaking the engine suite is demoted, never merged.
+
+Done when. All three lettered items have a landed round, proved or disproved with its WHY. (c) additionally checked against the chained-note bug found this session (goal:g14.14.3 THOUGHT) to see if one fix covers both.
+
+First chunk, minted next: hypothesis for item (a), the replace body anchor/guard -- this director has the most direct operational evidence for it. Items (b) and (c) queued after, same format.
+
+##### G14.14.3 — DISPATCH/RUNTIME -- five measured engine gaps in the dispatch, session-locator, schema-check and startup path (owner 2026-09-21 01:1xZ-01:2xZ on goal:g14, relayed via goal:g14.14) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.14.3
+
+## Agent Notes
+Source. This sub-sub-goal carries the DISPATCH/RUNTIME group, five lettered items (a) through (e), transcribed from the goal g14.14 body (owner 2026-09-21 01:1xZ-01:2xZ on goal g14). Minted before any round runs under it, per the commitment stated on g14.14.
+
+Commits to. (a) the CEILING clause: brief.py CEILING line and the hypothesis schema wording say source-suffix lines, data files never count, and cli.py session-complete prints the measured number beside the recorded one -- verify the two agree and fix whichever drifts. (b) a kid session-dir locator, dispatch.py where KID-ID: a kid dispatched by a parent nests under the parent worktree at .agi/worktrees/PARENT/.agi/sessions/iter-X/KID/, not the top-level iter dir a director would guess first. (c) memory per round: add dispatch.py --memory GB, overriding the config-only spawn.memory_max (mem_cap.py lines 17 to 25, one call site at dispatch.py line 2649) for that single dispatch, so the future agi-batch workflow (G14.14.4) can schedule each round under its own measured GB instead of one fixed global value. (d) links.py schema currently exceeds 120 seconds on this graph; bring it under 60. (e) startup noise: rotate.py status prints a deprecated-alias warning on every call (season/s2 -> season2/main); the caller should pass the current name.
+
+Invariants. Kids write the fix, parents review, the director batches and orders -- never engine code hand-written above kid tier. Every fix is pinned by the engine suite before and after, python3 -m pytest extensions/agi/tests -q, one announce line to belam first per the suite-lock rule. Item (c) specifically: the override is request-scoped, it changes the resolved cap for that one dispatch call only, never the config file on disk.
+
+Falsifiers. Each lettered item is falsified on its own hypothesis: its committed test failing to reproduce the gap it names means the gap was misdiagnosed, and the WHY names the real mechanism for a re-mint; its fix breaking the engine suite means demote, never merge.
+
+Done when. All five lettered items have a landed round, proved or disproved with its WHY, in the stated order: item (c) first because the future agi-batch workflow depends on it, then the rest batched two to three at a time.
+
+First chunk, minted next: hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling, for item (c), ordered first per the g14.14 Order of work line.
+
+##### G14.14.7 — GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.14.7
+
+## Agent Notes
+Source. Transcribed from the goal g14.14 body (owner 01:5xZ 09-21 on goal g14, verbatim there: let us have a way to trunk the grid into any arbitrary branch storage trunk via config or template use). Supersedes G14.14.6's first item now that a configured trunk removes the branch-blind refusal; --allow-branch stays as the explicit override for an unconfigured tree.
+
+Commits to. Verified against source, not assumed: grid.py defines ONE constant, REF_NS = refs/grid at grid.py line 84, and nine call sites derive from it (FETCH_SPEC/PUSH_SPEC at lines 102-103, node_ref/legacy/session_ref at 299/303/307, mint_ref at 453, the ready/log lines at 681/683/965) -- already a single resolver in code, just not yet config-driven. crons.py lines 547-549 hardcode the grid_sync command as one literal string, including refs/grid/*:refs/grid/* on line 549, a SECOND spelling of the same namespace outside grid.py entirely. (a) add grid.storage_trunk to .agi/config.json, default value refs/grid so every existing project round-trips unchanged; (b) REF_NS resolves from config.storage_trunk (fallback refs/grid), so all nine existing call sites pick it up for free -- no second resolver added; (c) crons.py's cmd template uses grid.py's own PUSH_SPEC instead of re-hardcoding the literal on line 549; (d) tests: a tree with storage_trunk=refs/grid/t1/ records versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; grid.py versions reads back from the configured trunk.
+
+Invariants. Kids write the fix, parents review, the director batches and orders. The kid pins existing behaviour with the engine suite first (python3 -m pytest extensions/agi/tests -q) before changing REF_NS. Default behaviour (no storage_trunk configured) must be byte-identical to today -- this is the falsifier with the most weight, since refs/grid/* already holds real history that must keep resolving.
+
+Falsifiers. The round is falsified if a tree with no storage_trunk configured resolves anything other than refs/grid (a silent behavior change for every existing project), or if crons.py still hardcodes a namespace literal anywhere after the fix (the second-spelling gap reopened), or if the fix breaks the engine suite (demote, never merge).
+
+Done when. The hypothesis lands a verdict against its own falsifiers: default tree byte-identical, a configured trunk isolates its versions, crons.py has one spelling, engine suite green. Migration for this box (storage_trunk=refs/grid/local-maxxing/ then grid.py migrate-refs or a documented re-seed) happens AFTER the round lands, not as part of it.
+
+First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, the whole round (a) through (d) as one testable claim, per the goal g14.14.7 body describing ONE round rather than independent lettered items.
+
 #### G14.15 — KV-CACHE TELEPATHY — self-telepathy (a tool that captures the KV of a span tied to a section/turn, carries it forward and re-surfaces it later: in-session RAG over KV, in-stream memory and compression, latent-to-latent recurrence) and swarm telepathy (same-model small instances each holding a slice of the context, exchanging KV segments, a jev-like weighing of which segments matter, settling into an ordering a decoder consumes) — status: active
 
 <!-- BODY:BEGIN -->

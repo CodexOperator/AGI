@@ -81,7 +81,8 @@ PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
 PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
 PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
-REF_NS = "refs/grid"
+DEFAULT_REF_NS = "refs/grid"
+REF_NS = DEFAULT_REF_NS
 # Tree entry names inside a node's D2 commit. `node.md` predates payloads and
 # keeps its name so every existing reader (`rev-parse <tip>:node.md`) still
 # works. `payload` is goal:g6.3's addition: one node owns exactly one
@@ -101,6 +102,62 @@ GIT_MODE_EXEC = "100755"
 GIT_MODE_SYMLINK = "120000"
 FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
 PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+
+
+def ref_ns_for(root: Path) -> str:
+    """The grid ref namespace for graph root `root` (goal:g14.14.7).
+
+    This is the ONE resolver the nine derived call sites in this file already
+    keyed on — it now reads `grid.storage_trunk` out of the project config
+    instead of returning a literal. Absent, unreadable, malformed or empty
+    config resolves to `DEFAULT_REF_NS`, so a project that never sets the key
+    keeps every ref exactly where it was: no silent migration for the many
+    trees already carrying `refs/grid/*` history.
+
+    A trailing `/` is stripped on purpose: `refs/grid/t1/` and `refs/grid/t1`
+    must name the same namespace, or the caller's own concatenation would mint
+    `refs/grid/t1//node/...` with a doubled separator and two spellings of one
+    trunk, which is the exact defect this round removes.
+    """
+    cfg = locations.load_config(Path(root))
+    section = cfg.get("grid")
+    trunk = section.get("storage_trunk") if isinstance(section, dict) else None
+    if not isinstance(trunk, str) or not trunk.strip():
+        return DEFAULT_REF_NS
+    return trunk.strip().rstrip("/")
+
+
+def push_spec_for(root: Path) -> str:
+    """`REF_NS` push refspec for graph root `root` — the one spelling of it.
+
+    `crons.py` imports this rather than re-hardcoding the namespace (goal:g14.14.7
+    item b): the second spelling in the cron template was the gap, and a
+    function is what makes `apply` and the cron line agree by construction.
+    """
+    ns = ref_ns_for(root)
+    return f"{ns}/*:{ns}/*"
+
+
+def fetch_spec_for(root: Path) -> str:
+    """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
+    ns = ref_ns_for(root)
+    return f"+{ns}/*:{ns}/*"
+
+
+def apply_storage_trunk(root: Path) -> str:
+    """Resolve `grid.storage_trunk` for `root` into this module's globals.
+
+    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+    here derives from, so one call makes all of them config-aware with no
+    further edits. `main()` calls it once, before dispatch; a test or a caller
+    holding a configured tree calls it directly. Returns the resolved
+    namespace so a caller can report it without re-reading the config.
+    """
+    global REF_NS, FETCH_SPEC, PUSH_SPEC
+    REF_NS = ref_ns_for(root)
+    FETCH_SPEC = fetch_spec_for(root)
+    PUSH_SPEC = push_spec_for(root)
+    return REF_NS
 
 
 def find_project_root(start: Path | None = None) -> Path:
@@ -1648,6 +1705,7 @@ def main() -> None:
                          "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
+    apply_storage_trunk(root)
     if args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
                    tuple(args.session) if args.session else None,
