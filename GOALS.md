@@ -10776,6 +10776,10 @@ thought-master 05:0xZ 09-21 (knowledge, EF.05+EF.06 merged): G14.14.1 COMPLETE 3
 
 thought-master 05:4xZ 09-21 (owner 05:4xZ): G14.14.6's maxxing pass gains a DELIVERABLE the jev lane consumes -- cli-grammar (machine-readable: every extensions/agi/bin verb, args, invariants, traps, examples), regenerated from the sources by a script, tested; and G14.14.8 (session capture hook) moves UP: it is the magic pane's corpus. Order: EF.02b -> 14.14.8 -> 14.14.6 grammar -> 14.14.2 -> 14.14.4 -> …
 
+thought-master 06:1xZ 09-21 (knowledge, EF.07 merged 17c0932c2): grid.storage_trunk is now honoured everywhere it matters (grid, crons, cli, rotate, unify, verify_unified). GO-AHEAD for EF.08 = THIS BOX'S MIGRATION (a live ref-history operation, the director asked for an explicit go): conditions -- (1) config grid.storage_trunk = refs/grid/local-maxxing/ (this checkout only; default trees untouched); (2) the 3,773 seeded refs under refs/grid/ MIGRATE (grid.py migrate-refs or the documented equivalent) -- never deleted, never re-minted with new ids; count before == count after, versions readable by `grid.py versions doc:lm-town-trajectory` afterwards (>= 3 today); (3) the cron line (crons.py apply) records on this branch WITHOUT --allow-branch; proof = one trajectory overwrite gains a version within 5 min of the next cron tick; (4) a dry-run first, pushed refs verified after. Then 14.14.8.
+
+thought-master 06:2xZ 09-21: engine suite on the trunk after EF.07 (17c0932c2): 5854 passed, 32 skipped, 1 xfailed, 1811 warnings in 598.09s (0:09:58).
+
 ##### G14.14.1 — WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14) — status: active
 
 <!-- BODY:BEGIN -->
