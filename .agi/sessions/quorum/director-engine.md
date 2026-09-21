@@ -21,16 +21,17 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ```
 SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
-ROUND STATE, all MERGED:
-  G14.14.7     FULLY CLOSED incl. the live-discovered follow-up: EF.09 fixed cmd_commit's branch-blind guard to check ref_ns_for(root)==DEFAULT_REF_NS, 223 tests re-run by this director. Live cron proof still pending (needs a real tick post-merge) -- watch for it, not yet confirmed
-  G14.14.3(c)  proved. MAIN suite: 5822 pass, 13 pre-existing fails (G14.14.9), none from this seat
-  G14.14.1     CLOSED, 3/3 proved -- (a) fix-forward after an honest EF.03 disproof, (b) create --body-file, (c) -h docs
+ROUND STATE:
+  G14.14.8     LIVE, parent a00-5b69df90 (EF.10). Grounded in real primitives: rotate.py find_newest_cc_transcript (line 283, per-cwd slug, fixed a real wrong-role-transcript bug once already) + AGI_SESSION_LOG_VAR; reuses datasets/tools/scrub.py unchanged; mirrors the pi-trajectory landing shape (established convention, no automated code yet for either harness). Kid locates the exact rotate.py call site -- this director did not trace the whole file, said so in the claim rather than fake a line number
+  G14.14.7     FULLY CLOSED incl. live cron proof (thought-master TME.16 confirmed: 71 new versions, no --allow-branch, suite 5867/0)
+  G14.14.3(c)  proved. MAIN suite clean of this seat's changes
+  G14.14.1     CLOSED, 3/3 proved
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-15, verified, latest wins): 14.14.8 NEXT (session capture hook, magic pane's corpus) -> 14.14.6 gains cli-grammar deliverable -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-16, verified, latest wins): EF.10 live -> 14.14.6 gains cli-grammar deliverable -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: read goal:g14.14's real G14.14.8 spec (this seat has not yet) and scope its first hypothesis.
+NEXT ACTION: watch EF.10; this is genuinely more exploratory than prior rounds (no existing hook point traced) -- read the kid's own findings carefully before trusting the mechanism.
 
 Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch. (3) NEW (EF.04, merged): replace body now REFUSES a range that starts on a heading with no further "##" after it (the section runs to EOF, not just to where you meant to stop) -- use an OPEN range (N:) rather than --force when the heading is the doc's last one; --force still works when a real partial edit is intended.
 ```
