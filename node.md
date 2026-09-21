@@ -1,5 +1,5 @@
 ---
-id: goal:g7.27
+id: goal:g17.16
 mint_id: 16851767a106428e9fbd3c38873c3558
 type: goal
 parents:
@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G7.27
+goal_id: G17.16
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -21,11 +21,11 @@ tags:
   - harness
   - template
   - spawn
-thought_session: texas-two-step-belam-voice-2026-09-20
-title: "G7.27: Templates are the sole harness arg builders"
+thought_session: texas-two-step-belam-voice-2026-09-19
+title: "G17.16: Templates are the sole harness arg builders"
 town: core
 ---
-# goal:g7.27
+# goal:g17.16
 
 ## Why this exists
 
@@ -54,13 +54,11 @@ Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
 
 ## Out of scope
 
-- Persistent seat watch/restart (`goal:g7.28`).
-- Deleting rotate's orchestration / pane layout (`goal:g7.29` consumes this).
-- Landing grok-bot on main (`goal:g7.30` consumes the grok post template from this).
+- Persistent seat watch/restart (`goal:g17.17`).
+- Deleting rotate's orchestration / pane layout (`goal:g17.18` consumes this).
+- Landing grok-bot on main (`goal:g17.19` consumes the grok post template from this).
 
 ## Agent Notes
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not reassign or interrupt.
 Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
-
-Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
