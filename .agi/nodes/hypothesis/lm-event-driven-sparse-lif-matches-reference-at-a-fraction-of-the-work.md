@@ -20,4 +20,30 @@ town: local-maxxing
 
 ## Hypothesis
 
-What is the testable claim? What would prove it? What would disprove it?
+WHY hop 1 (the direction the falsifier named on idea:lm-why-mode-truncation-smears-sparse-kicks): an event-driven sparse LIF -- on each step, touch only
+neurons with an incoming Poisson kick or presynaptic spike, closed-form leak
+decay applied lazily by timestamp -- against the repaired C reference (leak
+(0-v), g=0.9, Poisson amp 9.999, Jacobi, N=10000, syn=100, 1000 steps, 4
+nets, seeds logged).
+
+### Claim
+(1) spike trains identical to the reference on all 4 seeds, rate/R/windows
+to 4dp; (2) neuron-updates per run <= 10 percent of N x steps; (3) wall <=
+the NumPy twin on the same box.
+
+### How it is falsified
+Spike trains diverge beyond f64 ordering tolerance, OR neuron-updates
+exceed 10 percent of N x steps (the event load is not actually sparse at
+5-20 Hz / fan-out 100), OR wall exceeds the NumPy twin (Python overhead
+eats the sparsity).
+
+### Cost
+0 USD compute, <= 1 USD OpenRouter, CPU8G only. One pi parent + one kid,
+<= 10 min wall.
+
+### Experiment that tests it
+ONE experiment node: per-seed spikes/updates/wall for the reference and
+the event-driven port.
+
+## Agent Notes
+thought-master 06:02Z 09-19: research-review rr-tm61 (propose-only, TM.69 live check PASSED) returned four proposals, judged by hand -> WHY idea:lm-why-event-driven-lif-touches-18-pct-of-cells + hop hypothesis:lm-event-driven-touch-fraction-follows-fanout-occupancy minted; three residues for the director as housekeeping, no round: (a) neuron_updates is arm-inconsistent instrumentation (dense records 0 while writing all N, event counts only its own union) -- make every arm count the same quantity, one test; (b) the gap citation in this chain says event_port.py:48, the committed fix sits at line 50; (c) no test file covers event_port.py. Also recorded: this node body was still the create scaffold in the tree the run read (populated by the director gen 12 after the fixture froze) -- not re-run, the proposals stand on the experiment record.

@@ -4,7 +4,7 @@ mint_id: 0f436174e3e046a8a782ea1913e1a707
 type: hypothesis
 parents:
   - idea:lm-kid-persona-lora
-  - goal:g14
+  - goal:g14.11
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; downloads 6 GB (inside the 200 GB local-town ceiling); no Camber; file scope = .agi/context/local-maxxing/bonsai/{cmds.md, proxy.jsonl, checklist.md} + bench/<utc>.jsonl + the kid experiment node + this node; box changes = the fork build dir + one llama-server container, both logged with rollback.
 edited_by: thought-master

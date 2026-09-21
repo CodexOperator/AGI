@@ -67,6 +67,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
@@ -81,6 +82,9 @@ DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000
 #: Default rotate-at fraction when the ladder node does not declare one.
 DEFAULT_DIRECTOR_ROTATE_AT = 0.47
 
+#: Default minutes a held seat may sit idle below the line before `alarms`
+#: dms `rotate now` (ladder cell `alarms_idle_minutes`).
+DEFAULT_ALARMS_IDLE_MINUTES = 20
 #: Engine root for resolving <engine> placeholders.
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -7170,20 +7174,49 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     return calculate_fraction(usage, context_tokens)
 
 
+def _seat_idle_minutes(root: Path, seat: str) -> float | None:
+    """Minutes since the seat's own last work act (last_act.py's ONE clock),
+    or None when that act is unmeasurable (P7: unmeasurable reads NOT idle)."""
+    try:
+        import last_act  # local: same dir, read-only accessor
+        ts = last_act.last_act_ts(Path(root), seat)
+    except Exception:  # noqa: BLE001 — a broken clock must never false-alarm
+        return None
+    if ts is None:
+        return None
+    return max(0.0, (time.time() - ts) / 60.0)
+
+
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
-    For each such seat: at/over `director_rotate_at` (0.47) send exactly ONE
-    dm `rotate now` to the holder (never more), nothing else — no spawn, no
-    tmux. Below threshold prints `hold <seat> <fraction>`. `--once` meters
-    each held seat once and returns so the parent's regression test is
-    deterministic; without it the loop meters every `--interval` seconds.
+    For each such seat at/over `director_rotate_at` (0.47) OR idle for >=
+    `alarms_idle_minutes` (ladder, default 20) AND at/over `captive_rotate_ratio`
+    x the line (ladder; ABSENT = the idle lane is OFF by name): trigger (b) of
+    the owner ruling 05:1xZ ROTATES the seat directly by the MASTER PATH —
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller) — and sends NO dm; the dm is what the ruling
+    replaced. An unmeasurable last act reads NOT idle (never a false alarm).
+    Below both lines prints `hold <seat> <fraction>`. `--once` meters each held
+    seat once and returns so the parent's regression test is deterministic;
+    without it the loop meters every `--interval` seconds.
     """
+    root = Path(getattr(args, "root", None) or root)
     holder = args.holder
     threshold = load_ladder_field(root, "director_rotate_at",
                                   DEFAULT_DIRECTOR_ROTATE_AT)
-    import send  # local: same dir
-    croot = Path(args.comms_root) if args.comms_root else send.comms_root(root)
+    idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                               DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        idle_m = float(idle_m)
+    except (TypeError, ValueError):
+        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+    except (TypeError, ValueError):
+        ratio = None                       # absent/garbage = idle lane off
+    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                  ).strip().lower() in ("1", "true", "yes", "on")
     due = 0
     for row in _load_seats(root):
         if row.get("rotated_by") != holder:
@@ -7194,24 +7227,60 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
             print(f"warn: no pin/usage for seat {seat!r} — skipping",
                   file=sys.stderr)
             continue
-        if frac < threshold:
+        reason = None
+        if frac >= float(threshold):
+            reason = f"fraction {frac:.4f}"
+        else:
+            idle = _seat_idle_minutes(root, seat)
+            if (ratio is not None and frac >= ratio * float(threshold)
+                    and idle is not None and idle >= idle_m):
+                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+        if reason is None:
             print(f"hold {seat} {frac:.4f}")
             continue
-        # at/over threshold: one dm to the holder, plain "rotate now".
-        try:
-            send.send_dm(croot, holder, seat, "rotate now",
-                         sender=holder)
-        except SystemExit as exc:
-            print(f"warn: could not dm holder {holder!r} for {seat!r}: {exc}",
-                  file=sys.stderr)
+        if _master_rotate(root, holder, seat, row, masters):
             continue
-        print(f"rotate now -> {seat} (fraction {frac:.4f})")
+        print(f"rotate -> {seat} ({reason})")
         due += 1
     if args.once:
         return 0
     while True:
         time.sleep(args.interval)
         return cmd_alarms(args, root)
+
+
+def _master_rotate(root: Path, holder: str, seat: str, row: dict,
+                   masters: bool) -> int:
+    """Trigger (b): rotate `seat` by the MASTER PATH — spawn
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller; NEVER a dm). A DIRECTOR only, never the Prime;
+    a *master* seat only when the ladder's `captive_rotate_masters` is on.
+    Refuses BY NAME and spawns nothing when the holder's own key does not load
+    (the child would otherwise refuse after cmd_alarms printed success)."""
+    role = str(row.get("role") or "")
+    if role != "director" or _is_prime_role(role) or ("master" in seat
+                                                      and not masters):
+        print(f"captive rotate refused: {seat!r} is not a captive row",
+              file=sys.stderr)
+        return 1
+    who, _row, how = _caller_hold_key(root, holder, _find_seat(root, holder),
+                                      "env")
+    if who is None:
+        print(f"captive rotate refused: holder {holder!r}: {how}",
+              file=sys.stderr)
+        return 1
+    b = Path(__file__).resolve().parent
+    _spawn_master_rotate(["python3", str(b / "rotate.py"), "rotate",
+                          "--post", seat],
+                         {**os.environ, "AGI_POST": holder}, root)
+    return 0
+
+
+def _spawn_master_rotate(argv: list, env: dict, cwd: Path) -> None:
+    """The ONE detached-child seam for trigger (b); tests monkeypatch THIS."""
+    subprocess.Popen(argv, env=env, cwd=str(cwd), stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
+                     start_new_session=True)
 
 
 # --- driven handoff writer (hypothesis:l4-rotate-self-drives-the-handoff-
@@ -8994,21 +9063,27 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         main = _closeout_main(root)
         if main is None:
             return (False, "refused", "push: could not resolve MAIN")
+        # The grid refspec comes from grid.py's ONE resolver, keyed on the
+        # MAIN graph root (goal:g14.14.7). `main` is a git toplevel, not a
+        # graph root, so `push_spec_for(main)` would read no config and return
+        # the default for the wrong reason; `_shared_graph_root(root)` is the
+        # graph root this closeout already trusts for the veto above.
+        grid_spec = grid.push_spec_for(_shared_graph_root(root))
         p1 = _git_proc(main, "push", "origin", _CLOSEOUT_MERGE_TARGET)
         if p1 is None or p1.returncode != 0:
             _e = (p1.stderr or p1.stdout or "nonzero exit").strip() \
                 if p1 is not None else "push could not run"
             return (False, "refused",
                     f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
-        p2 = _git_proc(main, "push", "origin", "refs/grid/*:refs/grid/*")
+        p2 = _git_proc(main, "push", "origin", grid_spec)
         if p2 is None or p2.returncode != 0:
             _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
                 if p2 is not None else "push could not run"
             return (False, "refused",
-                    "push: push origin refs/grid/*:refs/grid/* refused: "
+                    f"push: push origin {grid_spec} refused: "
                     f"{_e}")
         return (True, "ok",
-                f"push origin {_CLOSEOUT_MERGE_TARGET} + refs/grid from MAIN")
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
 
     def _verify_stamp():
         # verification --level rotation --stamp in MAIN (cwd).
@@ -17138,6 +17213,23 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
                 pass
             raise
         os.chmod(_tmp, send.SEAT_KEY_MODE)
+        # l5 claim (3): keep the OLD live private bytes as evidence, 0600,
+        # under the successor -- the swap never destroys the predecessor key.
+        try:
+            _old = json.loads(_key.read_text())
+            _ofp = send.seatsig.fingerprint(
+                send.seatsig.get(str(_old.get("scheme") or "ed25519"))
+                .public_from_secret(bytes.fromhex(_old["priv_hex"])))
+            _ret = _key.parent / f"{_key.name}.retired-{_ofp}"
+            if not _ret.exists():
+                _rfd = os.open(_ret,
+                               os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                               send.SEAT_KEY_MODE)
+                with os.fdopen(_rfd, "w") as _rf:
+                    _rf.write(_key.read_text())
+                os.chmod(_ret, send.SEAT_KEY_MODE)
+        except Exception:  # noqa: BLE001 -- retirement never blocks the swap
+            pass
         os.replace(_tmp, _key)
         _pend.unlink()
     except (OSError, ValueError):
@@ -17628,6 +17720,16 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
 DEFAULT_RANKS = ["prime_director", "director", "helper"]  # highest first
 
 
+def _seat_read_root(root: Path, seat: str | None = None) -> Path:
+    """The identity WRITER's tree; root's copy only when it has no such row."""
+    shared = _shared_graph_root(root)
+    if shared == root:
+        return root
+    locations.refuse_live_resolution(root, shared)
+    under = _find_seat(shared, seat) if seat else _load_seats(shared)
+    return shared if under else root
+
+
 def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
@@ -17639,7 +17741,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     import send  # local: same dir, no import cycle (send.py pattern)
     seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat:
-        row = _find_seat(root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
@@ -17648,9 +17750,11 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     top = _git_toplevel(Path.cwd())
     seat = row = None
     if top is not None:
-        for r in _load_seats(root):
+        _trees = (_seat_read_root(root), root)
+        for r in (r for _t in _trees for r in _load_seats(_t)):
             if r.get("worktree") and Path(str(r.get("worktree"))) == top:
-                seat, row = r.get("name"), r
+                seat = r.get("name")
+                row = _find_seat(_seat_read_root(root, seat), seat) or r
                 break
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
@@ -17685,9 +17789,12 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
         return None, None, (
             f"post {seat!r}: could not compare the held key to the committed row")
     if ours != row_fp:
+        _pend = key_path.parent / f"{key_path.name}.pending"
+        _where = str(key_path) + (f" and {_pend}" if _pend.is_file() else "")
         return None, None, (
-            f"post {seat!r}: held key fingerprint {ours} does not match the "
-            f"committed row {row_fp}; {KEYGEN_LINE.format(seat=seat)} first")
+            f"post {seat!r}: held key fingerprint {ours} at {_where} does not "
+            f"match the committed row {row_fp} (pubkey "
+            f"{row.get('pubkey')}); {KEYGEN_LINE.format(seat=seat)} first")
     return seat, row, how
 
 
@@ -20381,6 +20488,8 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
         print("ERR: migrate needs an agi project root.", file=sys.stderr)
         return 1
     root = Path(root).resolve()
+    if getattr(args, "receive", False):
+        return cmd_migrate_receive(args, root)
     if not args.post:
         print("REFUSED: migrate needs --post <post> (nothing touched)")
         return 1
@@ -20396,12 +20505,23 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
         print(f"REFUSED: a migrate to the box the post is already on "
               f"({source}) (nothing touched)")
         return 1
-    if args.mode not in migrate_channel.MODES:
+    if args.mode is not None and args.mode not in migrate_channel.MODES:
         print(f"REFUSED: unknown mode {args.mode!r} "
               f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
         return 1
+    mode = args.mode or _migrate_default_mode(root, args.post)
+    session_id = str(args.session_id or "").strip()
+    if mode == "fork" and not session_id and args.mode is None:
+        # R2: the meter chose fork; supply the post's own live session id.
+        session_id = str(
+            _migrate_row(root, args.post).get("session_id") or "").strip()
+    if mode == "fork" and not session_id:
+        print("REFUSED: fork mode needs --session-id (a blank transcript id "
+              "composes a broken `claude --resume  --fork-session` that "
+              "silently loses context); nothing touched")
+        return 1
     branch = f"refs/agi/posts/{args.post}"
-    print(f"migrate {args.post}: {source} -> {args.to} (mode {args.mode})")
+    print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
     for i, step in enumerate((
             "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
             "carryover commit: the post worktree's diffs as ONE commit on its branch",
@@ -20414,10 +20534,10 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
     if args.dry_run:
         print("dry-run: nothing touched")
         return 0
-    rec = migrate_channel.record(post=args.post, mode=args.mode,
+    rec = migrate_channel.record(post=args.post, mode=mode,
                                  source_box=source, target_box=args.to,
                                  branch=branch, tip=args.tip,
-                                 session_id=args.session_id, ts=send._now())
+                                 session_id=session_id or None, ts=send._now())
     text = migrate_channel.format_record(rec, sign_root=root, signer=args.post)
     out = send.comms_root(root) / migrate_channel.SUBDIR / migrate_channel.record_name(rec)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -20427,6 +20547,250 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
           f"{args.post} key)")
     print("next: the target box's mail_poll tick receives it; the ref push is "
           "the landing, never this verb")
+    return 0
+
+
+def _migrate_fork_below(root: Path) -> float:
+    """`config:rotations` rotate_defaults.migrate_fork_below, default 0.30."""
+    try:
+        return float(_load_rotate_defaults(root).get("migrate_fork_below", 0.30))
+    except (TypeError, ValueError):
+        return 0.30
+
+
+def _migrate_default_mode(root: Path, post: str) -> str:
+    """`rotate` (a fresh seating from the card, no transcript transport)
+    unless the post's meter reads below the config threshold -- fork is the
+    extra, chosen only when the line is not close. An unmeasurable meter
+    never blocks the move: it falls back to `rotate`."""
+    try:
+        frac = _seat_fraction(root, _migrate_row(root, post))
+    except Exception:  # noqa: BLE001 -- an unreadable meter is not a fork
+        return "rotate"
+    if frac is not None and frac < _migrate_fork_below(root):
+        return "fork"
+    return "rotate"
+
+
+def _migrate_row(root: Path, post: str) -> dict:
+    """The post's committed identity row (MAIN's graph), {} when absent."""
+    import write
+    try:
+        rows = write._load_seats(_shared_graph_root(root))
+    except Exception:  # noqa: BLE001 -- no readable graph = no known row
+        return {}
+    for r in rows:
+        if r.get("name") == post:
+            return r
+    return {}
+
+
+def _fork_resume_command(session_id: str) -> str:
+    """The EXACT line a fork seating runs in the new worktree -- one
+    command, never a second spelling."""
+    return f"claude --resume {session_id} --fork-session"
+
+
+def _migrate_transcript_dest(worktree: Path, session_id) -> Path:
+    """The path `claude --resume` actually READS: the ONE derivation
+    (`transcript_from_registry_dict`), never a worktree-local copy nothing
+    reads. It also yields the canonical slug (every '/' AND '.' -> '-') the
+    remote path must use (SLICE 3 SHOULD FIX a + b)."""
+    return Path(transcript_from_registry_dict(
+        {"cwd": str(worktree), "session_id": str(session_id or "")}))
+
+
+def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
+    """Seam: copy the source session's transcript 0600 to the destination
+    `claude --resume` reads. Production pulls it from the SOURCE BOX ALIAS
+    over ssh (never an address); tests monkeypatch this."""
+    dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
+    subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
+                    str(dest)], check=False)
+    try:
+        dest.chmod(0o600)
+    except OSError:
+        pass
+    return dest
+
+
+def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> dict:
+    """Seam: create the post worktree from the pushed ref and seat the
+    successor on THIS box (mode rotate = the ordinary spawn from row+card;
+    mode fork = the transcript copy + the exact resume command). Returns the
+    identity cells the seating produced; tests monkeypatch THIS."""
+    ref = rec.get("branch") or f"refs/agi/posts/{post}"
+    # R1: the worktree path is the row's OWN configured cell when it carries
+    # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
+    # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
+    # convention. The cell written back is the same spelling used to create
+    # it, or the next rotation silently runs in MAIN.
+    main = locations.git_common_root(root) or root
+    cell = str(row.get("worktree") or "").strip()
+    if cell:
+        _p = Path(cell)
+        wt = _p if _p.is_absolute() else (main / cell)
+    else:
+        wt = main / ".agi" / "worktrees" / f"post-{post}"
+        cell = f".agi/worktrees/post-{post}"
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "--force",
+                    str(wt), ref], check=False)
+    argv = [sys.executable, str(Path(__file__).resolve()), "spawn",
+            "--name", post, "--seat", post,
+            "--tier", str(row.get("role") or "director")]
+    if rec.get("mode") == "fork":
+        _migrate_copy_transcript(root, rec, wt)
+        argv += ["--successor-argv",
+                 _fork_resume_command(str(rec.get("session_id") or ""))]
+    subprocess.run(argv, cwd=str(wt), check=False)
+    after = _migrate_row(root, post)
+    return {"box": box, "worktree": cell,
+            "window": after.get("window"), "pid": after.get("pid"),
+            "session_id": after.get("session_id"),
+            "session_name": after.get("session_name")}
+
+
+def _migrate_seating_actor(root: Path) -> str:
+    """The RESOLVED seat the schema grants the SEATING cells (`box`,
+    `worktree`) on the geometry list -- read from `context/schemas/[config].md`
+    `actor_rows`, never a literal post name in this module (SM.123 slice 5:
+    seating cells are the master's authority, self_row stays untouched).
+    Returns '' when no entry covers BOTH cells, so the caller names the skip."""
+    import geometry_config  # noqa: PLC0415
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001 -- no schema, no grant
+        return ""
+    main_root = _shared_graph_root(root)
+    _, list_key = geometry_config.resolve(main_root)
+    try:
+        schema = load_schemas_from_dir(
+            main_root / "context" / "schemas").get("config")
+    except Exception:  # noqa: BLE001
+        return ""
+    entries = schema.frontmatter.get("actor_rows") if schema else None
+    if not isinstance(entries, list):
+        return ""
+    for e in entries:
+        if (not isinstance(e, dict)
+                or str(e.get("list_key") or "") != str(list_key)
+                or not e.get("match_key")):
+            continue
+        fields = {str(f) for f in (e.get("fields") or [])}
+        if {"box", "worktree"} <= fields:
+            return str(e.get("actor") or "")
+    return ""
+
+
+def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, TARGET SIDE (SM.123): the mail_poll tick's receive.
+    For every `stage: request` record addressed to THIS box whose signature
+    verifies against the post's pinned key, seats the successor once and
+    answers with ONE `stage: seated` line on the same channel. An unverified
+    record or a row already live is REFUSED BY NAME and nothing is seated."""
+    import migrate_channel
+    import send
+    try:
+        me = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    cdir = send.comms_root(root) / migrate_channel.SUBDIR
+    records = sorted(cdir.glob("*.md")) if cdir.exists() else []
+    handled = 0
+    for path in records:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rec = migrate_channel.parse_record(text)
+        if rec is None or rec.get("stage") != "request":
+            continue
+        if rec.get("target_box") != me:
+            continue
+        if getattr(args, "post", None) and rec.get("post") != args.post:
+            continue
+        handled += 1
+        post = str(rec["post"])
+        row = _migrate_row(root, post)
+        pub = str(row.get("pubkey") or "")
+        if not migrate_channel.verify_record(text, pub):
+            print(f"REFUSED: migrate record {path.name} for {post} does not "
+                  f"verify against its pinned key (nothing touched)")
+            continue
+        raw_pid = row.get("pid")
+        try:
+            pid = int(raw_pid) if raw_pid not in (None, "") else 0
+        except (TypeError, ValueError):
+            print(f"SKIP: migrate record {path.name} for {post} carries a "
+                  f"non-numeric pid {raw_pid!r} (record skipped, tick lives)")
+            continue
+        # MUST FIX (SLICE 3): the row's session_id/pid are the SOURCE box's
+        # when the post is being moved here. Only a row that is POSITIVELY
+        # live on THIS box is two-live-on-one-row; an undeclared row's
+        # liveness belongs to the box the record came from.
+        live_here = boxes.row_is_local(root, row)
+        if not str(row.get("box") or "").strip() and str(
+                rec.get("source_box") or "") != me:
+            live_here = False
+        if live_here and (row.get("session_id") or (pid and _pid_alive(pid))):
+            print(f"REFUSED: {post} is already live on {me} (pid {pid}) -- "
+                  f"two live on one row (nothing touched)")
+            continue
+        if rec.get("mode") == "fork" and not str(
+                rec.get("session_id") or "").strip():
+            print(f"REFUSED: migrate record {path.name} for {post} is fork "
+                  f"with no session_id (a blank resume loses context); "
+                  f"nothing touched")
+            continue
+        if getattr(args, "dry_run", False):
+            print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
+                  f"ref {rec.get('branch')}); nothing touched")
+            continue
+        try:
+            cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
+        except OSError as exc:
+            # R4: a `worktree add` that left `wt` absent must skip by name.
+            print(f"SKIP: migrate record {path.name} for {post} could not seat "
+                  f"({exc}); record skipped, tick lives")
+            continue
+        # SM.123 slice 5: SESSION cells are the post's own self_row write;
+        # SEATING cells (box, worktree) are the master's authority, written
+        # through the actor_rows grant resolved from the schema -- a post may
+        # never re-seat itself (L4.110 ruling B).
+        session_cells = {k: cells[k] for k in
+                         ("window", "pid", "session_id", "session_name")
+                         if cells.get(k) is not None}
+        seat_cells = {k: cells[k] for k in ("box", "worktree")
+                      if cells.get(k) is not None}
+        line = ""
+        if session_cells:
+            line = _write_identity_cells(
+                root, seat=post, actor=post,
+                role=str(row.get("role") or "director"), cells=session_cells)
+        master = _migrate_seating_actor(root) if seat_cells else ""
+        if seat_cells and master:
+            seated_line = _write_identity_cells(
+                root, seat=post, actor=master, role="", cells=seat_cells)
+            line = f"{line}; {seated_line}" if line else seated_line
+        elif seat_cells:
+            # SLICE 6: no seating grant -> no ack, request record left as it
+            # was (a receive that could not seat has not seated).
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(the seating cells were not written)")
+            continue
+        ack = migrate_channel.seat_record(rec, ts=send._now())
+        ack_path = cdir / migrate_channel.record_name(ack)
+        ack_path.write_text(
+            migrate_channel.format_record(ack, sign_root=root, signer=post),
+            encoding="utf-8")
+        print(f"seated {post} on {me} (mode {rec.get('mode')}); "
+              f"{line or 'no identity row'}; answered {ack_path.name}")
+    if handled == 0:
+        print(f"receive on {me}: no migrate records addressed here")
     return 0
 
 
@@ -20459,7 +20823,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # target = --post or --name or the caller's own post.
     target = args.post or args.name or caller_post
     if target != caller_post:
-        target_row = _find_seat(root, target)
+        target_row = _find_seat(_seat_read_root(root, target), target)
         if target_row is None:
             print(f"rotate refused: no seat {target!r} in the seats registry "
                   f"(nothing delegated)", file=sys.stderr)
@@ -20817,6 +21181,9 @@ def main(argv: list[str] | None = None) -> int:
     p_alarms.add_argument("--interval", type=int, default=300,
                           help="seconds between meters when not --once "
                           "(default: 300)")
+    p_alarms.add_argument("--root", default=None,
+                          help="project root override (default: resolve from "
+                          "cwd; the detached unit passes the resolved root)")
     p_alarms.add_argument("--comms-root", default=None,
                           help="override the comms root (tests)")
     p_alarms.set_defaults(func=cmd_alarms)
@@ -20965,9 +21332,11 @@ def main(argv: list[str] | None = None) -> int:
     p_mig.add_argument("--post", default=None, help="the post to move")
     p_mig.add_argument("--to", dest="to", default=None,
                        help="the TARGET box name (never a path or address)")
-    p_mig.add_argument("--mode", default="rotate", choices=["rotate", "fork"],
+    p_mig.add_argument("--mode", default=None, choices=["rotate", "fork"],
                        help="rotate = a fresh seating from the card "
-                            "(default); fork = resume the transcript copy")
+                            "(default); fork = resume the transcript copy. "
+                            "Absent, the mode derives: fork only when the "
+                            "meter is below rotate_defaults.migrate_fork_below")
     p_mig.add_argument("--session-id", default=None,
                        help="with --mode fork: the source session id to "
                             "resume on the target")
@@ -20975,6 +21344,10 @@ def main(argv: list[str] | None = None) -> int:
                        help="the post branch tip the target receives from")
     p_mig.add_argument("--dry-run", action="store_true",
                        help="print every step by alias and touch nothing")
+    p_mig.add_argument("--receive", action="store_true",
+                       help="TARGET side: seat every verified migrate record "
+                            "addressed to THIS box and answer with ONE seated "
+                            "line (the mail_poll tick's half)")
     p_mig.add_argument("--root", default=None,
                        help="project root override (default: resolve from cwd)")
     p_mig.set_defaults(func=cmd_migrate)

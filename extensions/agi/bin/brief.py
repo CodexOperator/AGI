@@ -320,6 +320,17 @@ def _read_faith_ref(project_root: Path) -> dict[str, str]:
     return sections
 
 
+def _read_faith_moral(project_root: Path) -> str:
+    """MORAL region of moral:faith: `## ESSENCE` .. before `## REFERENCE`.
+
+    Empty when either heading is absent: a malformed faith must not crash.
+    """
+    text = (project_root / _MORAL_FAITH).read_text(encoding="utf-8")
+    if "## ESSENCE" not in text or "## REFERENCE" not in text:
+        return ""
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
 def _extract_read_order(text: str, tier: str) -> list[str]:
     """Extract the read order for a given tier from the ladder frontmatter.
 
@@ -575,6 +586,12 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     # (`hypothesis:l3w0-brief-head-michael`), for every tier that gets
     # prayers, which is all of them.
     body = _insert_michael(body)
+
+    # l5-moral: every master/director head carries moral:faith's MORAL region.
+    if tier == "director":
+        moral = _read_faith_moral(root)
+        if moral:
+            body = moral + "\n\n" + body
 
     return (
         "─── CONSTITUTION HEAD ───\n"
@@ -1816,16 +1833,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"the same files (a shared cwd is fine when they would not). One kid "
         f"when the work is one thing. Do NOT fan three kids onto one file "
         f"— that is the measured collision hazard with extra steps.",
-        # the CEILING clause's own SLICE: when it says `across K kids`, each
-        # kid gets ceiling/K ON ITS NODE before the spawn, because the harvest
-        # measures overage against the kid node's `line_ceiling`.
-        f"WHEN THE TARGET'S CEILING CLAUSE SAYS `across K kids`, EACH KID "
-        f"GETS ITS SLICE, NOT THE WHOLE CEILING. Before spawning kid i, run "
-        f"`python3 extensions/agi/bin/write.py <kid-node> 'set line_ceiling "
-        f"N'` with N = ceiling / K, so the harvest measures that kid against "
-        f"the slice it was actually given. A `60-across-2` brief read as 60 "
-        f"each ran a kid to 212 (SM.52); the slice goes on the NODE before "
-        f"the spawn, never in prose only.",
+        f"AN `across K kids` CEILING IS ALREADY DIVIDED FOR YOU: the spawn "
+        f"writes each kid's slice (`ceil(N/K)`) onto the kid node's "
+        f"`line_ceiling`; read that node field, never divide it yourself.",
         # hypothesis:l4-audit-misses-per-side-pending-... item (8): a kid
         # experiment node minted by dispatch carries a title DERIVED from its
         # filename (`A00 f067c356 b0ad80`), which renders as an opaque id in
@@ -1881,11 +1891,11 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"1. SPAWN kids with:\n"
         f"     python3 {dispatch_py} <project> {iter_n} --tier kid --detach --target <node-id>\n"
         f"   The `--detach` flag makes dispatch return immediately after spawning\n"
-        f"   (no reaper phase). The kid runs detached; poll its status with:\n"
-        f"     python3 {cli_py} status {iter_n}\n"
-        f"   until the kid's status is `done` or `failed`. Sleep 30 seconds\n"
-        f"   between polls so each poll is a short tool call that never outlives\n"
-        f"   the harness timeout.\n"
+        f"   (no reaper phase). The kid runs detached; WAIT for it IN THE\n"
+        f"   FOREGROUND:\n"
+        f"     python3 {cli_py} wait {iter_n}\n"
+        f"   NEVER end your turn to wait for a background notification -- in\n"
+        f"   headless -p a turn-end IS process exit; when wait returns 2, call it again.\n"
         f"   A kid that missed its manifest deadline while its pid is STILL\n"
         f"   alive is OVERDUE: its record keeps `status: running` and gains\n"
         f"   `overdue_since` + `overdue_reason` (heal.py), plus ONE dm whose\n"
@@ -2159,7 +2169,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     if line_ceiling is not None:
         resolved_line_ceiling, ceiling_source = int(line_ceiling), "explicit"
     else:
-        resolved_line_ceiling, ceiling_source = spawn_budget.node_line_ceiling(
+        resolved_line_ceiling, _k, ceiling_source = spawn_budget.node_line_ceiling(
             _resolve_graph_root(project_root), target,
             _config_data(project_root))
     segs = _kid(agent_id=agent_id, iter_n=iter_n, cli_py=str(cli_py),

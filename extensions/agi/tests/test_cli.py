@@ -1862,3 +1862,29 @@ def test_done_refuses_a_conflicting_kid_branch_by_name(tmp_path, monkeypatch,
     assert ahead == "1", f"a refused merge must not move the parent, got {ahead}"
     assert _ggit(main, "ls-files", "-u").stdout.strip() == "", \
         "no conflict may survive the refusal (no partial merge)"
+
+
+def test_reshuffle_refs_grid_reads_the_projects_storage_trunk(tmp_path, monkeypatch):
+    """`_reshuffle_refs_grid` keys its `for-each-ref` namespace on
+    `grid.ref_ns_for` (goal:g14.14.7) rather than the literal `refs/grid`, so
+    the before/after identity check follows the project's configured trunk."""
+    cli = _load_cli()
+    repo = tmp_path / "r"
+    repo.mkdir()
+    seen: list[list[str]] = []
+
+    class _R:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def recorder(argv, **kw):
+        seen.append([str(a) for a in argv])
+        return _R()
+
+    monkeypatch.setattr(cli.subprocess, "run", recorder)
+    monkeypatch.setattr(cli.grid, "ref_ns_for",
+                        lambda root: "refs/grid/t9")
+    out = cli._reshuffle_refs_grid(repo)
+    assert out == "\n"
+    assert seen and seen[0][-1] == "refs/grid/t9", seen

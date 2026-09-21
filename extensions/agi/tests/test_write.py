@@ -229,6 +229,33 @@ def test_help_epilog_lists_every_verb_and_arity(capsys):
             f"epilog missing {name} (arity {write.ARITY[name]})"
 
 
+def test_help_documents_replace_body_standalone_restriction(capsys):
+    """hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    -- `replace body` already REFUSES to share a submit with note, thought or
+    body_patch (one body writer per submit). That refusal is correct and
+    unchanged; what was missing is discoverability from `-h`, so a caller
+    learns the rule before writing a script that will fail. The rendered help
+    must name `replace` and at least one of note/thought/body_patch together.
+
+    Fails on the pre-change help (the only `replace` line then was the bare
+    `replace body 4:9 path/to/file` example, which names no other writer) and
+    passes once the NOTES block is rendered."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    restricted = [
+        line for line in out.splitlines()
+        if "replace" in line.lower()
+        and any(w in line.lower() for w in ("note", "thought", "body_patch"))
+    ]
+    assert restricted, (
+        "write.py -h never names the replace-body standalone restriction "
+        "(replace + note/thought/body_patch together); a caller can only "
+        "learn it by hitting the refusal")
+
+
 def test_help_epilog_drift_guard_refuses_a_verb_without_an_example(monkeypatch):
     """The epilog is fail-closed: if a verb appears in VERBS but has no
     entry in VERB_EXAMPLES (or in ARITY), `write.py -h` must REFUSE rather
@@ -481,6 +508,65 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
     assert made is None
     assert not (tmp_path / "src" / "orphan.py").exists(), (
         "a rejected spawn left an orphaned source file")
+
+
+def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path):
+    """CLAIM (G14.14.1b): `create --body-file PATH` reads the file in the verb
+    layer and threads it to `node_writer.write_node`'s existing `body` kwarg,
+    so the new node carries the caller's own prose. `node_writer` prepends its
+    canonical `# <id>` heading to ANY supplied body (and only a `body is None`
+    call gets the `BODY:BEGIN` marker + prompt), so the byte-identical claim is
+    the prose AFTER that heading; the placeholder must be absent."""
+    _schemas(project)
+    prose = tmp_path / "prose.md"
+    prose.write_text("The claim, stated at length.\n\n"
+                     "## Evidence\n\n- one\n- two\n")
+    out, err, rc = _run(["create", "hypothesis", "with-prose",
+                         "--parent", "goal:g1",
+                         "--body-file", str(prose),
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "with-prose.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    assert body == "\n# hypothesis:with-prose\n\n" + prose.read_text(), (
+        "the file's prose did not land verbatim")
+    assert "What is the testable claim?" not in body, (
+        "the BODY_PROMPTS placeholder leaked into a --body-file body")
+
+
+def test_create_without_body_file_still_scaffolds_the_placeholder(project):
+    """The regression guard: `--body-file` absent must pass `body=None`
+    unchanged, so the `BODY_PROMPTS` scaffold path is byte-identical to
+    today's. Compares against the exact bytes `write_node` composes for a
+    `body is None` call — marker, heading, prompt."""
+    _schemas(project)
+    out, err, rc = _run(["create", "hypothesis", "plain-one",
+                         "--parent", "goal:g1",
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "plain-one.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    expected = (node_writer.BODY_BEGIN + "\n# hypothesis:plain-one\n\n"
+                + node_writer.BODY_PROMPTS["hypothesis"])
+    # `_serialize_node` normalises the body's trailing newlines to exactly one.
+    expected = expected.rstrip("\n") + "\n"
+    assert body == expected, ("the no-flag scaffold path changed")
+
+
+def test_is_untouched_scaffold_rejects_a_real_body_file_body(project, tmp_path):
+    """Falsifier (c): a real `--body-file` body must NOT be mistaken for an
+    untouched placeholder. `_is_untouched_scaffold` checks whether the existing
+    body is a substring of the scaffold this call would write; against the
+    placeholder scaffold a real body must return False."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "prose-node", ["goal:g1"],
+                          body="A real, multiline body.\n\n- not a placeholder\n")
+    assert res.written
+    text = Path(res.path).read_text()
+    placeholder = (node_writer.BODY_BEGIN + "\n# hypothesis:prose-node\n\n"
+                   + node_writer.BODY_PROMPTS["hypothesis"])
+    assert node_writer._is_untouched_scaffold(text, placeholder) is False, (
+        "a real body was flagged as an untouched scaffold")
 
 
 # --------------------------------------------------------------------------
@@ -1537,6 +1623,170 @@ def test_replace_body_is_standalone_like_body_patch(project):
 
 
 # --------------------------------------------------------------------------
+# hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+# the body-only structural guard. `replace body N:M` is offset-free but the
+# RANGE is still hand-chosen; a range that splits a heading from its text (or
+# cuts a paragraph at either edge) is refused before the splice, unless the
+# caller passes `--force`. A whole paragraph, a whole section, and a
+# whole-section tail that ends on a CHILDLESS deeper heading are all admitted
+# -- the last is the falsifier EF.03 measured (experiment:a00-29883877-7abb3b).
+# --------------------------------------------------------------------------
+
+#: Line 1 is blank, line 3 is `## A`, line 5 is the childless deeper heading
+#: `### A.1` with no text of its own before the sibling `## B`.
+GUARD_BODY = "\n# T\n## A\nintro\n### A.1\n## B\nbeta\n"
+
+
+def _guard_node(root, body=GUARD_BODY, name="h2"):
+    """A scratch node whose read body is exactly `body` (the frontmatter is
+    written so the blank line `body` opens with survives the reader)."""
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{name}.md"
+    path.write_text(
+        '---\nid: "hypothesis:%s"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\n%s\n' % (name, body))
+    (root / "config.json").write_text("{}")
+    return path
+
+
+def _replace_body(root, rng, text, name="h2", force=False):
+    edit = write.Edit(node_id=f"hypothesis:{name}")
+    write.verb_replace(edit, "body", rng, "--force -" if force else "-")
+    edit.replace_text = text
+    return write.submit(root, edit, actor="kid", session="s1")
+
+
+def test_replace_body_guard_refuses_a_heading_split(tmp_path):
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "3:4", "X")
+    assert "heading" in str(ei.value) and "--force" in str(ei.value)
+    assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_paragraph_tail(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    # starts strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "5:5", "X")
+    # ends strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:4", "X")
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_paragraph(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "4:6", "WHOLE PARAGRAPH")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE PARAGRAPH" in after and "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_allows_a_whole_section(tmp_path):
+    body = "\n# T\n## A\nalpha\n\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "3:5", "WHOLE SECTION")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE SECTION" in after and "## B" in after
+
+
+def test_replace_body_guard_admits_a_childless_deeper_heading_tail(tmp_path):
+    """EF.03 falsifier (c): the full `## A` section (3:5) ends on the deeper
+    heading `### A.1`, which has NO text of its own -- so ending there is the
+    correct tail, not a split, and the range must land with no --force."""
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    assert write._read_body_text(graph, "hypothesis:h2") == GUARD_BODY
+    res = _replace_body(graph, "3:5", "REPLACED")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "REPLACED" in after and "### A.1" not in after
+    assert "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_refuses_ending_on_a_heading_with_content(tmp_path):
+    """The other edge, same corruption: ending on a heading whose own
+    section still holds text removes the heading and orphans its text. This
+    is the false-positive BOUNDARY -- the childless case above passes, this
+    one must not."""
+    body = "\n# T\n## A\nintro\n### A.1\na1text\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:5", "X")   # ends on `### A.1`, a1text left
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "3:5", "X")   # stops short of `## A`'s end
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_body_open_range(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "1:", "WHOLE BODY")
+    assert res.status != node_writer.REJECTED
+    assert "WHOLE BODY" in write._read_body_text(graph, "hypothesis:h2")
+
+
+def test_replace_body_guard_honours_force(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "3:4", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "FORCED" in after and "intro" not in after
+    assert "### A.1" in after, "--force admits exactly the partial edit asked for"
+
+
+def test_replace_body_guard_reflects_in_dry_run(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    before = (graph / "nodes" / "hypothesis" / "h2.md").read_text()
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "hypothesis:h2",
+         "replace body 3:4 -", "--root", str(graph),
+         "--actor", "kid", "--session", "s1", "--dry-run"],
+        input="X\n", capture_output=True, text=True,
+    )
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "heading" in proc.stderr and "admitted" not in proc.stdout
+    assert (graph / "nodes" / "hypothesis" / "h2.md").read_text() == before
+
+
+def test_replace_body_guard_leaves_a_payload_alone(tmp_path):
+    """A payload is arbitrary bytes; the structural guard is body-only, so an
+    identical range on a `.py` payload is never structure-checked."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text("# T\n## A\nintro\n### A.1\n")
+    (graph / "nodes" / "build" / "b9.md").write_text(
+        '---\nid: build:b9\ntype: build\nmint_id: abc123\ntitle: "t"\n'
+        'scaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    edit = write.Edit(node_id="build:b9")
+    write.verb_replace(edit, "payload", "1:3", "-")
+    edit.replace_text = "PATCHED"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert payload.read_text().startswith("PATCHED")
+
+
+# --------------------------------------------------------------------------
 # hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
 # --------------------------------------------------------------------------
 
@@ -1706,3 +1956,146 @@ def test_create_still_mints_a_declared_type_at_the_front_end(project):
     res, made = write.create(project, "hypothesis", "still-fine", ["goal:g1"])
     assert res.written and not res.rejected
     assert (project / "nodes" / "hypothesis" / "still-fine.md").exists()
+
+
+# --- the `&&` seam is the verb grammar, not a literal split (l5-verb-split)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb`: `parse_script` used to split on a literal `&&` ANYWHERE,
+# including inside a free-text argument. Measured cost: a note/ref field
+# filled with leaked review prose crashed `links.py links` with
+# `OSError: file name too long` on trunk until hand-unset
+# (experiment:a00-794503d4). These tests pin the new rule and its residual.
+
+
+def test_a_prose_ampersand_that_begins_no_verb_stays_verbatim():
+    """The incident's exact shape: the continuation after `&&` is prose, not
+    a verb name, so nothing splits and the note keeps every byte."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+
+
+def test_a_prose_ampersand_run_that_begins_no_verb_stays_verbatim():
+    """Several `&&` in one argument, none followed by a verb."""
+    assert write.parse_script("note a && b && c") == [
+        ("note", ["a && b && c"])]
+
+
+def test_an_ampersand_before_a_real_verb_still_splits_and_runs_both():
+    """A verb-only script is unchanged: the second `&&` begins `set`."""
+    calls = write.parse_script("note a && set title b")
+    assert calls == [("note", ["a"]), ("set", ["title", "b"])]
+    edit = write.Edit("hypothesis:h1")
+    for name, args in calls:
+        write.apply_verb(edit, name, args)
+    assert edit.body_append == "a" and edit.set_fm.get("title") == "b"
+
+
+def test_a_set_value_keeps_its_own_ampersands_that_begin_no_verb():
+    """`set`'s value is free text too; `b` and `c` are not verbs."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_residual_limit_a_verb_led_prose_ampersand_is_executed():
+    """KNOWN LIMIT, asserted not hidden. `note quote && set status x` DOES
+    split, because `set` after the `&&` begins a verb: a prose argument
+    cannot quote a verb-led command verbatim. The seam is the verb grammar
+    and this is the hole in it — pinned here so no reader is misled."""
+    assert write.parse_script("note quote && set status x") == [
+        ("note", ["quote"]), ("set", ["status", "x"])]
+
+
+def test_an_unknown_first_verb_still_refuses_by_name():
+    """The refusal the front end owes: an unknown FIRST token is named, even
+    when a later `&&` begins a real verb."""
+    calls = write.parse_script("frobnicate a && set title b")
+    assert calls[0] == ("frobnicate", ["a"])
+    with pytest.raises(write.EditError) as exc:
+        write.apply_verb(write.Edit("hypothesis:h1"), *calls[0])
+    assert "frobnicate" in str(exc.value)
+
+
+# --- the trailing `&&` must still separate (l5-verb-split, second round)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb` clause (2): "a script that is ONLY verbs still parses exactly
+# as today (every existing test_write* case byte-identical)". The verb-lookahead
+# alone made a TRAILING `&&` (nothing after it, so no verb to look ahead at)
+# non-separating, absorbing the pair into the last argument. Pre-fix
+# `note a &&` -> `("note", ["a"])`; it became `("note", ["a &&"])`. These pin
+# the pre-fix behaviour back, without loosening the prose rule above.
+
+
+def test_a_trailing_verb_only_script_still_drops_the_empty_chunk():
+    """Nothing after the `&&` means no verb looks ahead -- but the pair is
+    still a separator, and the empty chunk it makes is skipped as before."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("note a &&   ") == [("note", ["a"])]
+
+
+def test_a_trailing_verb_only_script_keeps_an_existing_argument_clean():
+    """The measured shape: a chained verb line ended with `&&`, and the pair
+    must not leak into the `set` value or the `thought` sentence."""
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+    assert write.parse_script(
+        "set confidence 0.9 && thought why it changed now &&") == [
+        ("set", ["confidence", "0.9"]),
+        ("thought", ["why it changed now"])]
+
+
+def test_a_non_verb_ampersand_run_is_still_not_a_separator():
+    """The prose rule from the first round must not regress: neither `b` nor
+    `c` is a verb, so a trailing pair is the only separator in the line."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_incident_note_and_a_verb_pair_are_still_unchanged():
+    """Both first-round fixes hold: prose after `&&` stays verbatim when it
+    begins no verb, and a real verb after `&&` still starts the next call."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && set title b") == [
+        ("note", ["a"]), ("set", ["title", "b"])]
+
+
+# --- a verb-closing `&&` with no space must separate (l5-verb-split, third
+# round) `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-
+# that-begins-a-verb` clause (2). The lookahead required the verb name to end
+# at whitespace or end-of-string, so when a verb was immediately followed by
+# the NEXT separator (`-&&adopt&&`, `a&&adopt&&`) that `&&` was not a
+# separator and the tail leaked into the last argument. The pre-fix loop
+# (`str.split("&&")`) split it; these pin the pre-fix bytes back.
+
+
+def test_a_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """`body_patch -&&adopt&&`: `adopt` is immediately followed by the next
+    `&&`, with no space. That is still a separator -- the empty trailing chunk
+    is dropped, exactly as the pre-fix loop did."""
+    assert write.parse_script("body_patch -&&adopt&&") == [
+        ("body_patch", ["-"]), ("adopt", [])]
+    assert write.parse_script("note a&&adopt&&") == [
+        ("note", ["a"]), ("adopt", [])]
+
+
+def test_a_spaced_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """The other ordering: a spaced pair then a verb closed by a pair."""
+    assert write.parse_script("note x && adopt&&") == [
+        ("note", ["x"]), ("adopt", [])]
+
+
+def test_the_trailing_ampersand_fix_from_round_two_did_not_regress():
+    """Round two's behaviour, asserted again because the third-round boundary
+    must subsume it, not replace it: a trailing pair still separates."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+
+
+def test_the_round_two_and_round_one_prose_rules_did_not_regress():
+    """The third-round boundary must not loosen the prose rules: a run whose
+    successor begins no verb stays verbatim."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && setter x") == [
+        ("note", ["a && setter x"])]

@@ -3,7 +3,7 @@ id: idea:lm-searched-swa-pattern-zero-train
 mint_id: 3fb121025ee2488cbb342eff5d9a3bed
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 edited_by: thought-master
 scaffold_hash: f935e715497d1822

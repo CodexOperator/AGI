@@ -3,7 +3,7 @@ id: idea:lm-spiking-as-frozen-spectral-snapshots
 mint_id: 1b0237a617db4c078b167e5bba0f26cf
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.12
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 1792b285d445979e

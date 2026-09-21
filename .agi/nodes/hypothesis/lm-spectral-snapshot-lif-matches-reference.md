@@ -4,7 +4,7 @@ mint_id: a3229f380e7649bcb54069782b61d02c
 type: hypothesis
 parents:
   - idea:lm-spiking-as-frozen-spectral-snapshots
-  - goal:g14
+  - goal:g14.12
 next_edges: []
 ceiling: 1 USD OpenRouter per half (2 per node); 0 compute; no downloads; runs <= 10 min each
 edited_by: thought-master

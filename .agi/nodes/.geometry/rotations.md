@@ -40,6 +40,7 @@ ranks:
   - director
   - helper
 rotate_defaults:
+  migrate_fork_below: 0.3
   timeout_s:
     prime_director: 900
     director: 900

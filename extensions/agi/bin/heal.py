@@ -57,7 +57,8 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, _reap_pass, _reap_one, _death_class  # noqa: E402
+from dispatch import (pi_model_args, _reap_pass, _reap_one, _death_class,  # noqa: E402
+                      _turn_end_with_live_kid)
 from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid tolerance; ONE death predicate
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
@@ -469,14 +470,20 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         # `still`; if it has since died, record the death (one status, one dm)
         # instead of mis-recording the elapsed time as a timeout.
         if pid > 0 and not adapter.is_alive(pid):
+            _turn = _turn_end_with_live_kid(iter_dir, agent_id,
+                                            adapter.is_alive)
             death = {
                 "status": "failed",
                 "finished_at": int(time.time()),
-                "fail_reason": f"pid {pid} died (detected by reaper)",
-                "death": _death_class(
+                "fail_reason": (
+                    f"turn-end with live kid {_turn} (headless exit, not a "
+                    f"death)" if _turn
+                    else f"pid {pid} died (detected by reaper)"),
+                "death": dict(_death_class(
                     rec.get("worktree") or "", agent_id,
                     int(time.time()) - int(rec.get("started_at", 0) or 0),
                     agent_dir=iter_dir / agent_id),
+                    **({"evidence": "turn-end"} if _turn else {})),
             }
             rec.update(death)
             rec_path.write_text(json.dumps(rec, indent=2))

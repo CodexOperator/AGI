@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 ceiling: "dispatch.py _current_town_branch only (8 code lines plus comments), two tests, no ladder edit, no other file; 0 USD. DEVIATION: hand-written by the thought-master under the owner 01:0xZ in-branch fix authority and the 01:1xZ \"urgent fix\" line, not by a kid -- one-token tuple change plus a guarded self-rule, tests red then green, reported to the SM."
-edited_by: thought-master
+edited_by: sanctuary-master
 falsifier: after the change a dispatch from local-maxxing/season1/posts/director-thought/main still prints integration season2/main, OR one from local-maxxing/season1/main does, OR any existing test_dispatch.py stale-base / town-branch test regresses, OR core-side behaviour changes (core/season2/main resolves to anything but None; season/s2 resolves to anything but season/s2).
 link_ref: extensions/agi/bin/dispatch.py
 location: source_root
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+RED CLOSED 05:4xZ 09-19 (Prime [red] 05:42Z, MAIN suite #6 at c132a67b4: test_branch_spelling_grep x2 deterministic): b6c121ffa's two comments hand-spelled a season branch (dispatch.py:648 'season2/main', :661 'season/s2') outside the L4.332-pinned inventory. Fixed by sanctuary-master directly on core (comment rewords only, 2 lines, no pin change, no code path touched; owner 01:0xZ full authority in-branch + the Prime's own fix line): 'core's main' and 'the row's own season branch'. test_branch_spelling_grep + test_dispatch.py 134 green. TM syncs by the standing order.

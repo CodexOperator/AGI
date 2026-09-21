@@ -3,7 +3,7 @@ id: idea:lm-online-draft-distillation-cpu-split
 mint_id: 7fe3cdf3536c46838ba019ddcbd2408d
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 05bb47f1114e1dae

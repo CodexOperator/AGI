@@ -1,0 +1,12 @@
+{
+  "role": "kid1",
+  "verdict": "inconclusive_lean_proved:70",
+  "mur": "accept_with_residue",
+  "agent_id": "a00-6ce9cb00",
+  "scrub_redactions": {
+    "ip_decimal": 171,
+    "ip_hex": 244,
+    "hex40_key": 13,
+    "ip_dotted": 40
+  }
+}

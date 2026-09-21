@@ -30,6 +30,7 @@ import branches  # noqa: E402 -- hyp l4-deliverable-check: round-own fork base
 import evidence_gate  # noqa: E402
 import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import node_writer  # noqa: E402
@@ -2323,6 +2324,45 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+#: hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end-
+#: with-a-live-kid-is-named-not-a-death -- the ONE blocking wait a parent uses
+#: INSTEAD of ending its turn (in headless `-p` a turn-end IS process exit,
+#: SM.133: 16 of 16 parent deaths). `--max-seconds` defaults to 540, under the
+#: 600 s harness Bash ceiling so the call always returns before it.
+_WAIT_POLL_SECONDS = 20.0
+_WAIT_MAX_SECONDS = 540.0
+
+
+def cmd_wait(args: argparse.Namespace) -> int:
+    """Block IN-PROCESS until every kid of the round is terminal.
+
+    One heartbeat line per poll (agent, status, elapsed); 0 when all terminal,
+    2 on timeout naming the still-running agents. Never a shell sleep, never a
+    background job. `--agent` narrows the set (repeatable).
+    """
+    sroot = _session_root()
+    manifest = _legacy_fallback(
+        sroot, locations.iteration_dir(sroot, args.iter_n) / "manifest.json")
+    if not manifest.exists():
+        print(f"ERR: no manifest at {manifest}", file=sys.stderr)
+        return 1
+    want = set(args.agent or [])
+    deadline = time.monotonic() + args.max_seconds
+    while True:
+        m = json.loads(manifest.read_text())
+        states = [(a["id"], a.get("status", "running")) for a in m["agents"]
+                  if (a.get("id") in want if want
+                      else a.get("tier", "kid") == "kid")]
+        print(f"wait {args.iter_n}: " + ", ".join(f"{i}={s}" for i, s in states))
+        if states and all(s in TERMINAL_STATUSES for _, s in states):
+            return 0
+        if time.monotonic() >= deadline:
+            print("still running: " + " ".join(
+                i for i, s in states if s not in TERMINAL_STATUSES), file=sys.stderr)
+            return 2
+        time.sleep(min(_WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
+
+
 # ---------------------------------------------------------------------------
 # session-complete: bring a finished round's session dirs home
 # (hypothesis:l4-session-dirs-come-home-when-the-round-is-done)
@@ -4013,9 +4053,17 @@ def _reshuffle_cell_edits(root: Path, season: int, jobs: list[dict]) -> list[str
 
 def _reshuffle_refs_grid(repo: Path) -> str:
     """Byte source of truth for the refs/grid namespace: refname + object name
-    per ref, one per line, refs sorted. Compare before/after for identity."""
+    per ref, one per line, refs sorted. Compare before/after for identity.
+
+    The namespace is read through `grid.ref_ns_for`, not written as a literal
+    (goal:g14.14.7): a project that declares `grid.storage_trunk` keeps its
+    history under the namespace it names. `repo` is a git repo root, so the
+    GRAPH root (`<repo>/.agi`) is resolved first -- passing the bare repo root
+    to the resolver would find no config and silently return the default.
+    """
+    ns = grid.ref_ns_for(locations.find_project_root(repo) or repo)
     r = subprocess.run(
-        ["git", "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid"],
+        ["git", "for-each-ref", "--format=%(refname) %(objectname)", ns],
         cwd=repo, capture_output=True, text=True)
     return "\n".join(sorted(r.stdout.splitlines())) + "\n"
 
@@ -5815,6 +5863,13 @@ def main() -> int:
     p_stat = sub.add_parser("status")
     p_stat.add_argument("iter_n", type=locations.iteration_id)
     p_stat.set_defaults(func=cmd_status)
+
+    p_wait = sub.add_parser("wait")
+    p_wait.add_argument("iter_n", type=locations.iteration_id)
+    p_wait.add_argument("--agent", action="append", default=[],
+                        help="wait for only this kid (repeatable; default: all kids)")
+    p_wait.add_argument("--max-seconds", type=float, default=_WAIT_MAX_SECONDS)
+    p_wait.set_defaults(func=cmd_wait)
 
     p_claim = sub.add_parser("claim")
     p_claim.add_argument("--node-id", required=True)
