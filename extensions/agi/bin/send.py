@@ -1954,9 +1954,35 @@ def _registry_status(pid: str | int | None) -> str | None:
         return None
 
 
-def _input_region(pane: str | None) -> str:
+#: The default input-box prompt glyph (the `\u276f` that heads a Claude Code
+#: input box). A seat whose pane renders a DIFFERENT box glyph declares it as
+#: data on its own row (`prompt_marker`, string or list); the transport never
+#: branches on a harness NAME (goal:g7.31 falsifier 3), so any harness pane
+#: that carries its marker as a row cell is nudged by the same code path.
+DEFAULT_PROMPT_MARKER = "\u276f"
+
+
+def _prompt_markers(root: Path, to: str) -> tuple:
+    """The prompt-glyph markers the RECIPIENT's own `config:posts` row
+    declares, else `(DEFAULT_PROMPT_MARKER,)`. A `prompt_marker` cell may be
+    a string or a list of strings; an absent/blank cell keeps today's single
+    Claude glyph, byte-identical. Read from the row, never from a harness
+    name -- a grok-bot pane (or any other) works by carrying its glyph."""
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    cell = (row or {}).get("prompt_marker")
+    if isinstance(cell, str) and cell:
+        return (cell,)
+    if isinstance(cell, (list, tuple)):
+        markers = tuple(m for m in cell if isinstance(m, str) and m)
+        if markers:
+            return markers
+    return (DEFAULT_PROMPT_MARKER,)
+
+
+def _input_region(pane: str | None,
+                  markers: tuple = (DEFAULT_PROMPT_MARKER,)) -> str:
     """The INPUT-LINE region of a capture: from the LAST prompt-marker line
-    (the `\u276f` prompt glyph that heads the Claude Code input box) to the
+    (the box glyph a seat's row names, default `\u276f`) to the
     end, inclusive. Everything ABOVE the box -- a SUBMITTED token echoed in
     the transcript, an old `esc to interrupt` scrolled up -- is transcript
     and must not read as stranded/busy (hypothesis:l4-a-nudge-is-a-wake-
@@ -1975,7 +2001,7 @@ def _input_region(pane: str | None) -> str:
     safe 'no rendered box -> do not type into it' answer in either case."""
     lines = (pane or "").splitlines()
     for i in range(len(lines) - 1, -1, -1):
-        if "\u276f" in lines[i]:
+        if any(m in lines[i] for m in markers):
             return "\n".join(lines[i:])
     return ""
 
@@ -2027,7 +2053,9 @@ def _region_join_wrap(region: str) -> list[str]:
 
 
 def _nudge_coalesce_reason(pane: str | None, token: str,
-                           registry: str | None) -> str | None:
+                           registry: str | None,
+                           markers: tuple = (DEFAULT_PROMPT_MARKER,),
+                           ) -> str | None:
     """Coalescing reason when the pane must not be typed into right now: the
     pane is busy (a Claude Code mid-turn spinner), or the token already sits
     unsubmitted in the pane's input line (already queued). None = nudge now.
@@ -2059,7 +2087,7 @@ def _nudge_coalesce_reason(pane: str | None, token: str,
     if registry == "busy":
         return "pane busy (registry)"
     if pane is not None:
-        region = _input_region(pane)
+        region = _input_region(pane, markers)
         if region == "":
             # No rendered input box (SHAPE A: the box hidden under a busy
             # spinner / the capture scrolled above it, OR an empty mock
@@ -2338,9 +2366,12 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
               f"{int(_NUDGE_COALESCE_WINDOW_S)}s)", file=sys.stderr)
         return False
     # (2) busy / already-queued coalescing. Measure read-only, never send.
+    # The box glyph is the RECIPIENT row's own data (`prompt_marker`), never a
+    # harness name (goal:g7.31 falsifier 3): absent means the Claude default.
+    markers = _prompt_markers(root, to)
     pane_capture = _capture_pane(tmux_session, target)
     reason = _nudge_coalesce_reason(pane_capture, text,
-                                    _registry_status(pid))
+                                    _registry_status(pid), markers)
     if reason == "token already unsubmitted":
         # Probe (C): a line STRANDED in an idle pane (typed by the old
         # one-call shape, by a `-l` call whose Enter never came, or left by
@@ -2377,7 +2408,7 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # had never touched the pane.
         if not _leave_copy_mode(target):
             return False
-        region = _input_region(pane_capture)
+        region = _input_region(pane_capture, markers)
         # CLAUSE (a): for an inline DM the head (`[nudge: <from>]:`) identifies
         # only the SENDER, and every dm from that sender shares it -- a stranded
         # line left by an EARLIER same-sender dm (different body) used to read
@@ -2701,7 +2732,8 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     _leave_copy_mode(target)
     pane = _capture_pane(tms, target)
     reason = _nudge_coalesce_reason(pane, _build_nudge_token(to, "idle"),
-                                    _registry_status(pid))
+                                    _registry_status(pid),
+                                    _prompt_markers(root, to))
 
     # A stranded nudge-shaped line in the pane is delivered (resubmitted by
     # TYPING) regardless of pending -- the resubmit itself IS the wake. The
