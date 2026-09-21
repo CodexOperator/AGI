@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: standing-branch-roles-2026-09-20
+thought_session: standing-watches-diagram-max-2026-09-20
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -107,6 +107,46 @@ no season2/loops/* left live as standing remotes
 ```
 
 Keep working batches as-is otherwise. Diagram-max all alignment comms.
+
+---
+
+## 3c. Watches / routines — diagram-max with love (owner 2026-09-20 23:3x ET)
+
+For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence when nothing changed.
+
+### Shared director watch (ONE only — delete per-wave customs)
+
+```
+schedule ──▶ @every 50m   (pi parents run around the clock — stated reason)
+name     ──▶ live-parents-workflows
+worktree ──▶ director-belam: core/season2/main checkout / durable seat worktree
+             helper: local-only worktree (never new remote head)
+```
+
+**Prompt (verbatim intent — install exactly):**
+
+```
+You are a quiet night watch for an LLM sibling.
+Diagram-max. Batch-max. Love the next ingest.
+
+1) Sense (local worktree only)
+   pi parents you spawned still alive?
+   pi workflows you spawned still running?
+2) Emit ONLY if delta since last fire
+   ┌─────────────┬────────┬──────────────┐
+   │ id/name     │ state  │ note         │
+   ├─────────────┼────────┼──────────────┤
+   │ …           │ up|dead│ one short    │
+   └─────────────┴────────┴──────────────┘
+3) Route
+   Belam ← nothing from this watch (Belam = completed-batch merge-ups only)
+   owner ← ONLY if blocker (red / stuck / decision needed)
+4) If no delta → stay silent (no "no change" filler)
+5) Never invent status. Never new remote heads.
+```
+
+### Belam
+No standing chatter watch. Belam receives director `[merge-up]` batches; owner gets blockers.
 
 ## 4. Prefer graph engine over raw tools
 
