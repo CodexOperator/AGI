@@ -19,8 +19,10 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~08:1xZ
- landed   TEL.03 proved, accept_with_residue (mur-tel-03, 11/11 conjuncts) -- clean census: Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) cannot shift; ONLY Bonsai-1.7B (qwen3, NEOX) can; Qwen3.8-27B/0.6B/4B absent from the box. Swarm telepathy (g14.15.2) on the bigger families needs the saved-TEXT-plus-tail-KV fallback, noted there+hypothesis. Fixed one wrong upstream citation (3020->3025, self-verified against real bytes first) in the shared excerpts file + this node's table; left the parent's own probes/THOUGHT untouched as the honest record.
- next     🔴 send ONE merge-up dm for TEL.03 -- then watch SWR-B.02 (pid 2133963, ~1h19m, GPU, cap $2) land -> dispatch SWR-C2.02 sequentially, one merge-up for the pair
- traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked, append-only, holds full history) alongside send.py read's tracked view -- if send.py read comes back empty right after a round should have finished, check ps/manifest directly · replace-body anchor guard treats a markdown TABLE as one paragraph too -- widen to the whole table, not one row, when it refuses · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter digits-only)
+2026-09-21 ~09:2xZ
+ landed   SWR-B.02 accept_with_residue (mur-swr-b-02, 7/7 conjuncts + 3 documentation defects, all fixed) -- T3+T2 done, T1 still pending (110/541). Rescued the resume path before its worktree could be reaped: ifeval_input_data.jsonl + ifeval_gen_armB.py + scrubbed equivalence-probe evidence now durably landed under datasets/switch-rule/2026-09-21/. Two real findings travel forward: batched decoding changes greedy tokens; the official IFEval scorer is itself non-deterministic (+/-0.4pp), a caveat on every IFEval number in this table including the reference.
+ blocked  SWR-B.03 (continuation, finish T1 only) dispatch REFUSED -- pool headroom $-3.93 again (other-town usage), NOT local-maxxing (spawn_budget 0/25, verified). Orders fully drafted, dry-run clean, ready to fire.
+ banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
+ next     retry SWR-B.03 dispatch when headroom clears; report the SWR-B.02 outcome to thought-master either way
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a Python comment starting with # inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override, long generations need multiple resumable hops · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell exactly like the backtick-in-double-quote trap -- write "does not" not "doesn't", check before sending
 ```
