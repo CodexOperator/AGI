@@ -5,8 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-aa592d9a-c374ea
 next_edges: []
-edited_by: a00-aa592d9a
-evidence_runs: experiment:a00-aa592d9a-seat-pane-pin
+edited_by: a00-0a0390bf
+evidence_runs:
+  - experiment:a00-aa592d9a-seat-pane-pin
 line_ceiling: 40
 loop: goal:g7.31.2.1@s2
 model: deepseek/deepseek-v4.1-flash

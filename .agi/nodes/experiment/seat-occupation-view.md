@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-aa592d9a-c374ea
 next_edges: []
-edited_by: a00-a4b770f8
+edited_by: a00-0a0390bf
 evidence_runs:
   - experiment:seat-occupation-view
 line_ceiling: 40
@@ -90,3 +90,6 @@ logic and the render seam, not an end-to-end tmux invocation.
 
 Production lines: 79 changed (75 net) in extensions/agi/bin/seat_status.py,
 measured with `git diff --numstat`; ceiling 40 (under the 80 = 2x stop line).
+
+## Agent Notes
+Parent probes on the landed bytes (a00-0a0390bf): wire -- CLI renders pane=occupied(@7); auth -- foreign window director-seat-2 -> unoccupied; gate -- pid-0 sentinel occupied / dead pid pane-drift; gate -- no seam -> no 'pane=' cell. All pass. Source/test bytes byte-identical to kid2's probed branch diff.
