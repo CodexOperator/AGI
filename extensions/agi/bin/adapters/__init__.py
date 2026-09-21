@@ -91,6 +91,20 @@ def _box_tmux_session(cfg: dict) -> str:
     return str((cfg.get("box") or {}).get("tmux_session") or "").strip()
 
 
+def _adapter_holds_a_pane(adapter: str) -> bool:
+    """Does this adapter declare its seats hold a durable tmux pane?
+
+    Read from the adapter's OWN module (`HOLD_PANE`), so the pane hold is
+    declared where the seat's spawn shape lives and the shipped harness row
+    needs no `tmux` cell (`goal:g7.31.1.2`). An unloadable adapter still fails
+    later, by name, at spawn time -- this never raises.
+    """
+    try:
+        return bool(getattr(load(adapter), "HOLD_PANE", False))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     """Pick a harness from config, synthesizing one for a legacy project.
 
@@ -130,6 +144,11 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
         harness = dict(harnesses[chosen])
         harness.setdefault("adapter", chosen.replace("-", "_"))
         harness.setdefault("tmux_session", _box_tmux_session(cfg))
+        if ("tmux" not in harness and "pane" not in harness
+                and _adapter_holds_a_pane(harness["adapter"])):
+            # The adapter's own declaration, materialized onto the resolved
+            # row -- an explicit `tmux: False` above always wins.
+            harness["tmux"] = True
         return chosen, harness
 
     # --- legacy: no `harnesses` block. Synthesize pi from `agent_dispatch`.
