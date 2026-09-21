@@ -20,10 +20,10 @@ prayer   first tokens + last before rotate only, never per turn
 ## 🔴 Where it stops
 ```
 2026-09-21 ~05:3xZ
- TMM.24   MP.01+TEL.01 merged by thought-master (d461f6e5f) -- 4 residues delegated to me ("your kid, fix in place"), all DONE: kid1 title+body corrected to match its demoted verdict; probes moved into the schema probes: frontmatter field on both kid nodes; detect.py box-path hardcode consolidated+commented (behavior-preserving, verified); census non-reproducibility documented honestly + excluded_live_agents audit field added. Committed 1e5a8cd49, pushed.
- blocked  TEL.02 (TMM.23 path (a), --cache-reuse restart) dispatch REFUSED TWICE, pool headroom fluctuating in real time around $0 from OTHER TOWNS' usage (DH.*/DT.* keys, shared workspace) -- NOT local-maxxing (spawn_budget 0/25 both times, verified). Not forced, not tight-polled -- waiting on the standing loop cadence.
- board    stopped editing doc:lm-town-trajectory directly (thought-master's v8 lesson, confirmed by TMM.24); rows travel in the merge-up dm now
- queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · TEL.02 (ready, blocked on pool headroom only)
- next     retry TEL.02 dispatch on the next wakeup; send a short merge-up dm on the residue-fix completion
- traps    a live replace-body edit hit the anchor guard TWICE this pass (wrong range both times, off-by-one on a blank line) before landing right -- the guard IS active and caught it both times, exactly its job · a script smoke-test accidentally overwrote the LANDED datasets/magic-pane/{segments.jsonl,metrics_strict.json} -- caught immediately via git status, reverted before committing -- never smoke-test a script whose OUT path can collide with already-landed deliverables without checking git status right after
+ live     TEL.02 a00-08eead1d (pid 1772128, just dispatched, cap $1, pi) -- TMM.23 path (a): restart the 9B child with --cache-reuse N between rounds, router mode kept, exact line recorded, restore+verify before done. Owner switched workspace (e31711fe...) to clear headroom for this; TMM.25 confirmed $2.52 fits, dispatched on the retry, worked first try.
+ landed   TMM.24 residues (MP.01, all 4, done+pushed) -- see prior commits for detail, not re-summarized here
+ board    stopped editing doc:lm-town-trajectory directly (thought-master's v8 lesson); rows travel in the merge-up dm now
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · SWR.02/FT.00/DS.01/G14.10.2/G14.7.2 next in thought-master's stated order once TEL.02 lands
+ next     watch TEL.02 -- it must restart the server (owner-authorized, one-time) then restore it before done; verify the restore actually happened when it reports
+ traps    (kept from last pass) replace-body anchor guard caught a real mis-offset twice, working as intended · a script smoke-test overwrote landed deliverables once, caught+reverted via git status -- check status right after running any script that writes into a datasets/ path
 ```
