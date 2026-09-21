@@ -1,0 +1,192 @@
+{
+  "operating_mode": "full",
+  "operating_modes": {
+    "survival": {
+      "name": "survival",
+      "seats": "Prime + ONE director-kid aimed at a loop brief (two persistent seats, each helping the other to conserve the resource that matters most)",
+      "models": "Prime claude-opus-5; director claude-sonnet-5 (subscription seat defaults; the owner named both models directly for survival)",
+      "source": "doc:l4-owner-decisions:265 ('only two persistent seats active each helping the other to conserve the resource that matters most') and :311 ('the Prime + ONE director on a loop brief')",
+      "in_force": false
+    },
+    "ultimate_survival": {
+      "name": "ultimate survival",
+      "seats": "Prime + single remaining director (the survival pair dropped to the leanest models)",
+      "models": "Prime powered by opus; single remaining director runs off sonnet or even openrouter (owner verbatim)",
+      "source": "doc:l4-owner-decisions:265 ('They can drop down to ultimate survival where Prime is powered by opus and single remaining director runs off sonnet or even openrouter')",
+      "in_force": false
+    },
+    "enhanced_survival": {
+      "name": "enhanced survival",
+      "seats": "Prime + point director (sanctuary-director) + helper director (sanctuary-helper) \u2014 the Texas two-step formation, three seats, helper answers to the point",
+      "models": "Prime claude-opus-5; point director claude-opus-5 max; helper director claude-sonnet-5 max (owner verbatim: 'Helper director kid runs sonnet btw.' 'Sonnet max effort')",
+      "source": "goal:g17.1:26 ('Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work... Let the current director take point though and the other one is like a helper') and :28 ('this is just enhanced survival mode')",
+      "in_force": true
+    }
+  },
+  "active_operating_mode": "enhanced_survival",
+  "engine_commit": "179f9560283936fae421e08002ef9db38d7f1e25",
+  "metric_primary": "outcome_coverage",
+  "metric_unit": "fraction",
+  "best_direction": "higher",
+  "secondary_metrics": [
+    "longest_chain_length",
+    "avg_chain_depth",
+    "mvp_count",
+    "chain_branching_factor"
+  ],
+  "chain_min_join_length": 3,
+  "mid_chain_join_prob": 0.3,
+  "fresh_start_prob": 0.15,
+  "big_idea_vs_small_idea_split": 0.3,
+  "attractiveness_weights": {
+    "length": 0.3,
+    "depth": 0.2,
+    "recency": 0.2,
+    "mvp_count": 0.3
+  },
+  "harnesses": {
+    "pi": {
+      "adapter": "pi",
+      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "provider": "openrouter",
+      "thinking": "medium",
+      "models": {
+        "kid": "deepseek/deepseek-v4.1-flash",
+        "parent": "deepseek/deepseek-v4.1-flash"
+      },
+      "allowed_extra": [
+        "deepseek/deepseek-v4.1-flash",
+        "~z-ai/glm-flash-latest",
+        "anthropic/claude-opus-5"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
+      ]
+    },
+    "pi-local": {
+      "adapter": "pi",
+      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "provider": "local-town",
+      "credential": "none",
+      "models": {
+        "kid": "Qwen3.5-9B-Q4_K_M",
+        "parent": "Qwen3.5-9B-Q4_K_M"
+      },
+      "allowed_extra": [
+        "Qwen3.5-9B-Q4_K_M"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
+      ]
+    },
+    "claude-code": {
+      "adapter": "claude_code",
+      "models": {
+        "kid": "claude-sonnet-5",
+        "parent": "claude-opus-5",
+        "director": "claude-fable-5-1"
+      },
+      "effort": {
+        "director": "max"
+      },
+      "allowed_models": [
+        "claude-sonnet-5",
+        "claude-opus-5",
+        "claude-fable-5-1"
+      ]
+    },
+    "copilot-cli": {
+      "adapter": "copilot_cli",
+      "bin": "/home/ubuntu/.npm-global/bin/copilot",
+      "models": {
+        "kid": "auto",
+        "parent": "auto",
+        "director": "auto",
+        "prime_director": "auto"
+      },
+      "allowed_extra": [
+        "auto"
+      ]
+    }
+  },
+  "spawn": {
+    "harness": "pi",
+    "parallel": 1,
+    "max_live": 25,
+    "credential": {
+      "provider": "openrouter",
+      "per_spawn_limit_usd": 1.5,
+      "ttl_minutes": 180,
+      "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
+    },
+    "parent_max_kids": 10,
+    "memory_max": "6G"
+  },
+  "provisioning": {
+    "min_key_remaining_usd": 1.0,
+    "min_account_remaining_usd": 1.6
+  },
+  "agent_dispatch": {
+    "claude_max_parallel": 1,
+    "ollama_max_parallel": 0,
+    "ollama_model": "qwen3:4b",
+    "provider": "openrouter",
+    "model": "deepseek/deepseek-v4.1-flash",
+    "thinking": "medium",
+    "inline_reaper": false
+  },
+  "agent_timeout_mins": 75,
+  "delay_mins": 0,
+  "max_iters": 10,
+  "injection_file": "context/INJECTION.md",
+  "cc_dispatch": {
+    "iterations_per_run": 5,
+    "kids_per_iter": 2,
+    "kid_model": "claude-sonnet-5",
+    "parent_model": "claude-opus-5",
+    "director_model": "claude-fable-5-1"
+  },
+  "goal_body_cap": 0,
+  "comms": {
+    "lockdown": false,
+    "verify": "enforcing",
+    "nudge_stale_after_minutes": 60,
+    "wake_repair_every_s": 3600,
+    "undelivered_after_minutes": 10
+  },
+  "locations": {
+    "comms_root": "comms/season-2",
+    "pi_home": "/home/ubuntu/.pi/agent",
+    "claude_home": "/home/ubuntu/.claude"
+  },
+  "box": {
+    "root": "/home/ubuntu/work/agi",
+    "logs_dir": "/home/ubuntu/logs",
+    "tmux_session": "agi-rc",
+    "user": "ubuntu",
+    "allow": []
+  },
+  "workflows": {
+    "review": {
+      "effort": "medium",
+      "provider": "pi",
+      "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
+    },
+    "drafting": {
+      "model": "deepseek/deepseek-v4.1-flash",
+      "effort": "max",
+      "provider": "pi",
+      "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
+    },
+    "deep-search": {
+      "effort": "high",
+      "provider": "pi",
+      "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
+    }
+  },
+  "reaper": {
+    "max_restarts": 0
+  }
+}
