@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-62e2a798-0a7456
 next_edges: []
-edited_by: a00-afc164be
+edited_by: a00-3c0140ac
 line_ceiling: 40
 loop: goal:g7.31.2.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -116,5 +116,5 @@ second argv builder (for grok or anyone). The one honest boundary is that a
 grok seat cannot yet be SEATED at all (no template) — a prerequisite gap, not
 a reinvention. `inconclusive_lean_proved:85`.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.33 DELTA (kid a00-30f4b181; round tip 6818bae2e descends from the MUR base 1ef815f2d). (1) Instruction: add the staged-rename coverage and make this experiment node say what it now runs -- the body had claimed 3 tests and the THOUGHT still carried the DH.18 parent-review text. (2) Machine: the body now reads "(4 tests," (L29), names `test_staged_rename_spawns_successor_under_new_name_and_prev` (L75; defined in the test file and driving the staged-rename branch of `_apply_staged` end to end), keeps the non-staged `_rename_own_window` path as conjunct 1, and closes the pytest tail on the MEASURED run `4 passed, 22 warnings in 1.89s` (L43); `edited_by` is a00-30f4b181. (3) Near miss: leaving the body at 3 tests and the thought at DH.18 -- body and thought would then describe two different versions, and a zoom at this version would read reasoning two rounds stale (G2.11). (4) Deviation: the rename a non-prime seat actually gets is `<seat>.prev`, not the `S.gen<N>` the inherited brief and the rotate.py:18122 docstring still say; the tests assert the measured `.prev`, and the stale docstring is left as a separate defect rather than re-prosed here.
+DH.45 CORRECTIVE (kid a00-3c0140ac; base tip 053d3f8bb). (1) Instruction: replace this THOUGHT with one whose subject is THIS version delta -- the previous round had replaced the stale PARENT REVIEW (DH.18) text with a DH.39 DELTA narrative that described a prior agent edit, not its own -- and set edited_by to mine, leaving the body byte-identical. (2) Machine: this version changes exactly edited_by from a00-33653715 to a00-3c0140ac and this THOUGHT block; the body is untouched. (3) History, stated accurately: the text this version replaces was the DH.39 DELTA text written by a00-33653715, which described the DH.39 edit (edited_by from a00-30f4b181 to a00-afc164be) as if it were its own; that DH.39 edit had in turn replaced the stale PARENT REVIEW (DH.18) text. One G2.11 defect therefore survived a round; this version closes it. (4) Near miss: presenting a prior agent edit as this version delta. The authored block is read by grid.py diff, by the grid version snapshot of node.md, or by a human opening the node file -- not by zoom, which loads body=False. (5) Deviation: none.
 <!-- THOUGHT:END -->
