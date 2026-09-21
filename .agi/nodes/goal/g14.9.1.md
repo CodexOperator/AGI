@@ -15,6 +15,7 @@ scaffold_hash: 7f9f4157c307eb6f
 season: 2
 seeds:
   - hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost
+  - hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b
 status: active
 tags:
   - local-maxxing
