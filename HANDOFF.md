@@ -31,7 +31,7 @@ Owner lines: in nodes (`goal:g14` for this box; `doc:l4-owner-decisions`, `doc:l
 ```
 
 ## §2 Landed (one line each)
-e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · b870ee0e9 routine + owner line · 072349c7f cadence + spec node · 440da437c/865991992/77d9696b4 owner lines (nested goals · comms route · diagram-max) · brief diagram-maxed · pushed after each.
+e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d diagram-max pass (brief, handoff) · posts diagram-maxed their own cards (TM a0976ae84 · DE e4cc6aca3 · DT 731ac745f) · b870ee0e9 routine + owner line · 072349c7f cadence + spec node · 440da437c/865991992/77d9696b4 owner lines (nested goals · comms route · diagram-max) · brief diagram-maxed · pushed after each.
 
 ## §3 🔴 Where it stops
 ```
