@@ -6,14 +6,16 @@ parents:
   - goal:g7.31
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-belam
 goal_id: G7.31.3
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: f3e486a8b7f08b2f
 season: 2
-seeds: []
+seeds:
+  - goal:g7.31.3.1
+  - goal:g7.31.3.2
 status: active
 tags:
   - goal
@@ -83,3 +85,5 @@ Historical L4 owner language named **three** (viewing / writing / dispatching). 
 Assigned to **director-belam (point)** with umbrella + `.1`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `doc:standing-llm-ops` §4, `goal:g1.14`, `command:commands`, `goal:g7.26`, `goal:g7.27`.
+
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
