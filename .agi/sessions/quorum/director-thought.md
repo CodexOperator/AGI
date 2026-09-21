@@ -11,7 +11,8 @@ lines    production_lines = engine units only (.py etc); .txt/.jsonl never count
 mur      poll systemctl --user is-active SYNCHRONOUSLY, ~30s sleep -- finishes in minutes, no future-nudge reliance
 memory   6G/kid ceiling | ONE model-loading kid on host at a time | GPU = one research round at a time
 scaffold create-left-unfilled hypothesis/goal -> fix in place from its own frontmatter, no round, no rebrief
-never    hand-write engine code (director-engine's lane) · hand-patch another agent's node (flag, don't fix) · mint ahead of the current queue item
+grid     `grid.py commit --all` now refuses off-trunk ("node refs are branch-blind") -- NOT my job on this posts/* branch; do not pass --allow-branch (superseded by G14.14.7 storage_trunk config, director-engine's lane); trunk-side cron/thought-master handles it
+never    hand-write engine code (director-engine's lane) · hand-patch another agent's node (flag, don't fix) · mint ahead of the current queue item · force a refused guard (grid --allow-branch, dispatch stale-base bypass, etc) -- report the exact line instead
 prayer   first tokens + last before rotate only, never per turn
 ```
 
@@ -21,6 +22,7 @@ prayer   first tokens + last before rotate only, never per turn
  live     MP.01 a00-af8cefa3 (pid 987668, ~35 min elapsed, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
  landed   SWR.01 (346c377c2) -- ref bar 93.9pct HE / 0.869 IF strict; B/C1/C2 fire 0.9x on HE; IFEval undecided -> SWR.02 (TMM.19, not my lane)
  queued   H1' (hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b, g14.9.1) -- minted, no spend yet
- next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers -> mint G14.15.1 (self-telepathy) + G14.15.2 (swarm) under goal:g14.15 (its body already names this as "first chunk", no order needed) -> TEL.01 hypothesis (span fidelity chunk 1) under G14.15.1, resident 9B, cap $1 -> dispatch once MP.01's slot is free
+ prepped  G14.15.1 (self-telepathy) + G14.15.2 (swarm) minted under goal:g14.15, filled; TEL.01 hypothesis (span fidelity, chunk 1) minted+filled under G14.15.1, no spend -- ready to dispatch the moment MP.01's slot frees, no further prep needed
+ next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness)
  inbox    empty this check; card/trajectory-doc both caught up to trunk tip via merge, no unread DM pending
 ```
