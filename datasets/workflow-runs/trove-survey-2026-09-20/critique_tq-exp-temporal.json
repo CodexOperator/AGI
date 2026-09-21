@@ -1,0 +1,74 @@
+{
+ "type": "object",
+ "properties": {
+  "source": {
+   "type": "string"
+  },
+  "unsupported_claims": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "errors_found": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "missing_angles": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "strongest_seed": {
+   "type": "string"
+  },
+  "weakest_seed": {
+   "type": "string"
+  },
+  "confidence": {
+   "type": "number",
+   "description": "0-1 that the reading is reliable"
+  }
+ },
+ "required": [
+  "source",
+  "unsupported_claims",
+  "errors_found",
+  "missing_angles",
+  "strongest_seed",
+  "weakest_seed",
+  "confidence"
+ ],
+ "source": "tq-exp-temporal",
+ "unsupported_claims": [
+  "Summary says 'turboMSE3 TV 0.370 on fp16 weights, matching PPL 3,556'. PPL 3,556 is the asymmetric-kv-compression §3.1 number measured on Qwen2.5-7B Q4_K_M under symmetric turbo3/turbo3 (the Algorithm-2 QJL flavor); villines-probe-validation §10.1 says the §3.4 headline anchored that PPL to the WRONG flavor and re-anchors to turboMSE3=0.370 as a routing proxy. No turboMSE3/fp16 PPL was ever measured, so 'matching PPL 3,556' is a cross-flavor, cross-weight conflation.",
+  "'~27k lines of result JSON' (summary and reusable_assets) is overstated: measured `wc -l villines-probe/*.json` at 846590d = 19,311 lines; git added 19,324 JSON lines across 4dad409 (2,811) + 2f79598 (10,913) + 846590d (5,600). ~19.3k, not ~27k.",
+  "'It validates: K is load-bearing' — tq_collapse_probe.py quantizes K only; there is no V ablation in the probe, so it shows K-quantization collapse, not K's relative load-bearing role vs V. The K-vs-V claim is imported from asymmetric-kv-compression, not validated by this probe.",
+  "Summary 'Villines CUDA reference numbers reproduce within +/-0.010 on Metal' contradicts its own key_fact ('+/-0.008'); the paper §3.2 reports max Δ = 0.0080 (turboMSE2). The 0.010 is unsourced.",
+  "Seed 6 asserts Qwen3.5 is 'bias-free, QK-norm' and will show the same per-channel off-centering. Nothing in the read slice measures Qwen3.5's bias term, QK-norm, or K statistics; the measured models are Qwen2.5-7B/3B, Qwen3-8B, Qwen3-1.7B, Mistral-7B-v0.3.",
+  "The 2070S recommendation 'keep K at q8_0 (asymmetric recipe) for Qwen3.5' extrapolates a recipe measured on Qwen2.5-7B (PPL 3,556 -> 6.71) to a model never tested in this source.",
+  "'the general mechanism is per-channel K off-centering' overstates the source: Mistral is the explicit negative control (offset_ratio max 2.51, TV 0.0909->0.0812 no-op). The addendum title says the mechanism generalizes past the bias term, not across architectures."
+ ],
+ "errors_found": [
+  "key_fact 2 cites `git diff --stat main..experiment/temporal-decay` as evidence the branch is docs-only. That diff is an 81,176-line stale revert because main is four months ahead of the branch's merge-base; the correct comparison (367bb2d..experiment/temporal-decay) is +38 lines, which key_fact 1 states. The two citations contradict in scale and the main..branch one is misleading evidence.",
+  "Open question 'What exactly is the missing turbo2 block layout/quantizer (2-bit indices + no hi1 bit)? It is not present in this repo' is overbroad: a working 2-bit Python quantizer (quantize_2bit/dequantize_2bit, CENTROIDS_2BIT) IS present in benchmarks/temporal_decay_prototype.py. What is missing is the C++/Metal turbo2 block type, as the design doc itself says.",
+  "Key_facts label the real Qwen3-1.7B cosine numbers 'MEASURED (commit deb2d84 message ...)'. A commit message is an author assertion, not a measurement artifact; no result JSON for the real-model path was committed (the reading itself says so under failures_and_lessons). Marking it MEASURED is a provenance overclaim.",
+  "The synthetic-prototype numbers are attributed jointly to 'commit deb2d84 message, and ... run_synthetic_test'; the script was never run in this environment (numpy absent) and no output JSON exists, so the reading is quoting a commit message throughout. Consistent with the above provenance problem."
+ ],
+ "missing_angles": [
+  "No CPU path. Every decisive falsifier is GPU-gated (M5 Max/Metal, RTX CUDA, 2070S), yet the probe's SDPA capture and the numpy prototype can run on CPU for a <=2B model. The reading never states this or estimates CPU cost, which is the town's actual constraint.",
+  "The owner's named threads (dead-head coherence pruning, coupled-oscillator maps, spiking-neural-net architecture, neuron-as-byte, looped/recurrent transformers) are entirely absent; even the KV thread is not tied to any of them.",
+  "'qwen3.8 50b' is never mentioned or resolved. The sibling trove source resolves the referent to Qwen/Qwen3.8-27B (Bonsai 2 base) and reports no Qwen3.8-50B; the reading does not cross-reference it.",
+  "No license check. main is Apache-2.0 with a NOTICE file (commit 9eb0341) and the branch carries LICENSE; reusable_assets are recommended with no terms, unlike sibling readings.",
+  "Oracle risk unflagged: main carries docs/papers/attn-rotation-and-ppl-artifact.md, which measures PPL ranking KV configs BACKWARDS on gemma-4 and recommends KLD over PPL, and why-mse-fails-for-kv-quantization.md says MSE inverts below b=3. The seeds' downstream oracle (PPL/needle-NLL) is used without this caveat.",
+  "No check of whether a CPU turbo3/turbo4 kernel actually exists (upstream llama.cpp Hadamard/FWHT kernels; the README claims a CPU backend for the fork), which decides whether any of these KV levers is deployable on the CPU box.",
+  "The 30-34% memory saving assumes a 10-layer/2-KV-head Qwen3.5-35B-A3B shape (run_memory_savings_estimate); the reading notes the estimate is analytic but not that the town's tiny models have a different shape, so the percentage does not transfer.",
+  "The calibration corpus is one Python-stdlib text and T9 (calibration-text dependence) is unrun; a CPU re-run on a different corpus is not guaranteed to reproduce the Metal numbers, and the reading does not flag this as a reproduction risk."
+ ],
+ "strongest_seed": "Seed 2 (routing-side TV as a cheap pre-screen that ranks configs in the same order as downstream needle-NLL/PPL). It tests the probe's own central, explicitly-unmeasured 'ghost PPL' claim using an existing CPU-runnable harness (villines-probe/tv_vs_ppl.py) in under an hour, and the outcome is decisive either way: if TV tracks needle-NLL the 19k-line probe becomes a reusable pre-screen; if not, the probe is only a diagnostic and seeds 3/6 lose their ranking value. Highest knowledge-per-token on CPU because it converts the largest in-tree asset into one falsifiable number.",
+ "weakest_seed": "Seed 5 (temporal decay's memory saving is largest exactly where the 8GB box needs it). Its CPU experiment is pure re-arithmetic of run_memory_savings_estimate, which I reproduced exactly (32K 140->98 MB = 30%, 256K 1120->742 MB = 34%) — zero new knowledge — and its falsifier needs the GPU box, which is banked. Runner-up weakest: seed 4, whose CPU half (fixed WHT already captures the headroom; no head clears 1 bit) is already answered by the committed torquant_cert_*.json, leaving only a GPU-gated learned-rotor falsifier.",
+ "confidence": 0.62
+}

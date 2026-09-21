@@ -26,8 +26,14 @@ cadences:
   nudge_sweep:
     every_mins: 2
     enabled: true
+  prime_merge:
+    schedule: 13 */6 * * *
+    enabled: true
+    box: local-town
+    why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g14); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
+    cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
 crons_live: true
-edited_by: a00-e2ea2536
+edited_by: belam
 season: 1
 services:
   agi-alarms-sanctuary-master:

@@ -3,9 +3,9 @@ id: idea:lm-hybrid-oscillator-readout
 mint_id: 683642bace844c8388723445e4fa45b9
 type: idea
 parents:
-  - goal:g5.11
+  - goal:g14.12
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 4bafd0efecfeec50
 scale: big
 season: 2
@@ -13,7 +13,6 @@ tags:
   - local-maxxing
   - treasury
   - hunch
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Hybrid timeless/timeful architecture: the LLM keeps the what-token-comes-next matrix shape; a sparse spiking oscillator network reads KV-cache and head-activation bits through 10-200 subscribed read sites per neuron, with energy = frequency alignment and a small rhythm-neuron subnetwork as the metronome — the subscription set IS the weight\""
 town: local-maxxing
 ---

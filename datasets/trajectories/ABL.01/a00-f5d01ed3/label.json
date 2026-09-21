@@ -1,0 +1,11 @@
+{
+  "role": "kid1",
+  "verdict": "died (OOM after independently reproducing the assert on host)",
+  "mur": "n/a (stub node, real work preserved here)",
+  "agent_id": "a00-f5d01ed3",
+  "scrub_redactions": {
+    "ip_decimal": 30,
+    "ip_hex": 71,
+    "ip_dotted": 3
+  }
+}
