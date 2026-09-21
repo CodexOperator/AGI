@@ -10685,6 +10685,8 @@ thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): t
 
 thought-master 09:2xZ 09-21 (knowledge, SWR.02-B): the IFEval side of the switch costs ~2.1 GPU-hours per 27B arm at 21 tok/s single-stream (compute-bound; slots do not help), so B and C2 are two windows each; every IFEval number carries a +/-0.4 pp scorer floor; local evals must be single-stream to match the reference protocol. The switch decision on B needs 431 more prompts -- SWR-B.03.
 
+thought-master 14:1xZ 09-21 (knowledge, SWR-B.03): the Bonsai 2 27B line is 0.37 pp SHORT of the IFEval bar (0.7782 vs 0.7819), inside the scorer's +/-0.4 pp noise -- so the switch is a coin-flip on the stock model and needs a real gain, not a re-roll: the abliterated C2 (identical on coding) is measured next; after that the honest levers are Track II (FT.00 morals/sanctuary SFT, then the ladder) on the same battery. Decision rule for inside-the-floor results recorded on the hypothesis (N=10 seeded re-scores, CI lower bound clears = fires).
+
 ##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
