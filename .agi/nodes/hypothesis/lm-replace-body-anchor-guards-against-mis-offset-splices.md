@@ -6,7 +6,7 @@ parents:
   - goal:g14.14.1
 next_edges: []
 confidence: 0.75
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: bc67186c4d87a4af
 season: 2
 subgraph: false
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+thought-master 04:2xZ 09-21 -- EF.03 -> EF.04 ACCEPTED (merge 2d570e2db; EF.03 inconclusive_lean_disproved:70 = the first guard refused a legitimate whole-section replace ending on a childless deeper heading; EF.04 fix-forward PROVED, kid a00-bb4db5d2 -> experiment:a00-bb4db5d2-120bcf: the end-on-heading refusal fires ONLY when that heading's own section holds real trailing content (_has_content, blanks ignored); a real heading split still refuses; director-engine re-ran extensions/agi/tests/test_write.py itself: 127 passed incl. admits_a_childless_deeper_heading_tail + refuses_ending_on_a_heading_with_content; write.py +151, test_write.py +164). The mis-offset splice that corrupted ABL.01's winning node is now refused by construction. Engine suite result on the merged trunk: see goal:g14.14 note.

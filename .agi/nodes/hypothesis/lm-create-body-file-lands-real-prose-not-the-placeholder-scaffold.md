@@ -6,7 +6,7 @@ parents:
   - goal:g14.14.1
 next_edges: []
 confidence: 0.75
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: 0c8707efe633761f
 season: 2
 subgraph: false
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+thought-master 05:0xZ 09-21 -- EF.05 ACCEPTED (merged; verdict proved; kid a00-6fd993f0 -> experiment:a00-6fd993f0-7b4b24): write.py create --body-file threads argparse -> create(body=) -> node_writer.write_node's existing body kwarg; fail-closed on a missing/unreadable path (exit 2, no node written); no-flag path byte-identical to the placeholder scaffold. RESIDUE carried as G14.14.1(d): a --body-file node carries NO BODY:BEGIN marker (write_node adds it only when body is None) -> cli.py done's repair path has no anchor if the frontmatter is later mangled; fix belongs in node_writer.py (out of this round's scope, disclosed by the director). Suite on the merged trunk: see goal:g14.14.
