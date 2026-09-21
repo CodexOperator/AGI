@@ -6679,7 +6679,7 @@ Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be se
 - Cross-cut: `goal:g4.20` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
 # goal:g7.26
 
-### G7.27 — Templates are the sole harness arg builders — status: active
+### G7.27 — Templates are the sole harness arg builders — status: complete
 
 # goal:g7.27
 
@@ -6720,6 +6720,50 @@ Assigned to **director-helper**. Point director-belam stays on current batch —
 Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
+
+#### G7.27.1 — Retire dead rotate _build_claude/_build_copilot hooks — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.27.1
+
+## Why this exists
+
+Parent `goal:g7.27` (templates sole harness arg builders) landed on MAIN at `0b89f5b24`. Residue: `rotate.py` still defines unused `_build_claude_command` and `_build_copilot_command` (each referenced only at their def). The live seam is already `_build_harness_command` -> `harness_template.render`. Dead named builders contradict the invariant "no harness argv builder remains in rotate.py" and invite drift.
+
+## Target end-state
+
+- `_build_claude_command` and `_build_copilot_command` are deleted from `extensions/agi/bin/rotate.py`.
+- Sole rotate argv seam remains `_build_harness_command` (thin hook naming the template).
+- Regression test asserts those two names are absent from rotate.py source.
+- Zero `dispatch.py` edits. Zero template format changes. No MAIN push from this parent.
+
+## Falsifier
+
+1. `grep -n "_build_claude_command\|_build_copilot_command" extensions/agi/bin/rotate.py` is empty.
+2. Existing harness template / rotate copilot / dispatch-shape tests still pass.
+3. `spawn_window` / successor dry path still renders argv only via `harness_template.render`.
+
+#### G7.27.2 — Reparent hypothesis + falsifier verdict close-out — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.27.2
+
+## Why this exists
+
+Parent `goal:g7.27` renumbered from `goal:g17.16` (mint_id unchanged; renumber @ 737748908). Graph residue: `hypothesis:harness-arg-builders-are-templates-only` still lists `parents: [goal:g17.16]`. Done-state also needs a committed verdict that the three G7.27 falsifiers hold on current MAIN tip (templates-only argv; fourth harness adds a `.toml` with no rotate allowlist/`_build_*` edit; unexpressible bits stay behind named thin hooks).
+
+## Target end-state
+
+- Hypothesis parent edge points at `goal:g7.27` (not g17.16).
+- A `verdict:` node under the hypothesis records measured evidence for the three falsifiers against tip >= `0b89f5b24` / `737748908`.
+- If all green, set `goal:g7.27` `status: done` (or equivalent close spelling already used on peer goals); if red, leave active and name the gap.
+- Zero production code edits unless a falsifier fails (then fix in-loop). No MAIN push.
+
+## Falsifier
+
+1. `hypothesis:harness-arg-builders-are-templates-only` frontmatter `parents` contains `goal:g7.27` and not `goal:g17.16`.
+2. Verdict cites concrete file/test evidence for each of the three parent falsifiers.
+3. Goal status matches the verdict (done iff all three green).
 
 ### G7.28 — Dispatch persistent mode for occupied seats — status: active
 
@@ -6999,6 +7043,109 @@ Assigned to **director-helper** with `.4` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.28`, `goal:g7.29`, `goal:g7.30`, `goal:g7.31.1`.
 
+##### G7.31.2.1 — Seat-start registry occupation matches tmux pane pin — status: active
+
+# goal:g7.31.2.1
+
+## Why this exists
+**Parent `goal:g7.31.2`.** Falsifier-1 of the multi-headed pane-anchor goal: after seat start, posts/seat registry must show occupied with the live pane/session pin matching `tmux`. Without this, pin/formation/rotate are theater.
+
+```
+seat start ──▶ pane attach
+                 │
+                 ├─▶ posts/seat registry = occupied
+                 └─▶ pin == tmux live pane/session
+```
+
+## Target end-state
+- Attaching the named pane **is** registering occupation (posts/seat registry coherent with tmux).
+- Formation and pin readers see the live holder without ad-hoc pane scrapes.
+- Measurable: registry pin matches `tmux` list for that seat.
+
+## Invariants
+- Pane name / seat pin are one-writer facts (no dual registries that disagree).
+- Soft-depends on durable hold from `goal:g7.31.1` but may design the registry contract in parallel.
+
+## Falsifier
+1. After seat start: posts/seat registry shows occupied with the live pane/session pin matching `tmux`.
+
+## Out of scope
+- Rotate / auto-rotation successor contract (`goal:g7.31.2.2`).
+- Grep for new argv builders in rotate (`goal:g7.31.2.3`).
+- Messaging / handbacks (`goal:g7.31.4`).
+
+## Agent Notes
+Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Diagram-max; batch-max; spawn.parallel=1; no MAIN push; zero `--post`/`--seat` on parent/kid dispatch.
+# goal:g7.31.2.1
+
+##### G7.31.2.2 — Rotate/auto-rotation reuses same pane contract — status: active
+
+# goal:g7.31.2.2
+
+## Why this exists
+**Parent `goal:g7.31.2`.** Falsifier-2: rotate / auto-rotation must reuse the same pane-contract; no second argv builder path for grok in `rotate.py`.
+
+```
+rotate / auto-rotation
+   │ template + persistent dispatch
+   ▼
+successor holds SAME pane-contract
+   (name or documented successor rename)
+   NO _build_*_command reappears for grok
+```
+
+## Target end-state
+- Rotate / auto-rotation reuses the pane contract via template + persistent dispatch.
+- Successor holds the same pane-contract (name or documented successor rename).
+- No second argv builder for grok appears in rotate.
+
+## Invariants
+- Single argv seam: adapter + template (`goal:g7.27`) + persistent dispatch (`goal:g7.28`); rotate stays orchestration (`goal:g7.29`).
+
+## Falsifier
+1. After rotate-self (or auto-rotation): successor holds the **same** pane-contract; no `_build_*_command` path reappears in rotate for grok.
+
+## Out of scope
+- Seat-start registry occupation (`goal:g7.31.2.1`).
+- Blanket argv-builder grep closeout (`goal:g7.31.2.3`) except as shared evidence.
+- Doc sync (`goal:g7.31.5`).
+
+## Agent Notes
+Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Prefer proving via rotate dry-path + template render; no MAIN push.
+# goal:g7.31.2.2
+
+##### G7.31.2.3 — Zero new harness argv builders in rotate.py — status: active
+
+# goal:g7.31.2.3
+
+## Why this exists
+**Parent `goal:g7.31.2`.** Falsifier-3: rotate stays orchestration — grep finds **zero** new harness argv builders.
+
+```
+rotate.py
+  ├─ orchestration OK
+  └─ new harness argv builders ──▶ MUST be zero
+```
+
+## Target end-state
+- `rotate.py` contains no new harness argv builders for any harness (including grok).
+- Sole argv seam remains template render via the thin orchestration hook.
+
+## Invariants
+- Aligns with `goal:g7.27` / `goal:g7.29`: rotate does not grow `_build_*_command` surfaces.
+
+## Falsifier
+1. Grep `rotate.py` for new harness argv builders: **zero** (orchestration only).
+
+## Out of scope
+- Registry occupation (`goal:g7.31.2.1`).
+- Successor pane-contract behavior beyond the grep gate (`goal:g7.31.2.2`).
+- Adapter / template content changes unless required for the grep to stay green.
+
+## Agent Notes
+Assigned to **director-helper**. Prefer regression test + source grep. No MAIN push.
+# goal:g7.31.2.3
+
 #### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: active
 
 # goal:g7.31.3
@@ -7109,6 +7256,108 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
+##### G7.31.4.1 — Grok-pane outbound lands inbox plus recipient nudge — status: active
+
+# goal:g7.31.4.1
+
+## Why this exists
+**Parent `goal:g7.31.4`.** Falsifier-1: from a grok pane, one outbound message must land in the recipient inbox **and** a nudge must appear in the recipient pane.
+
+```
+grok pane ──native harness message──▶ recipient inbox
+                 │
+                 └─▶ small nudge in recipient pane (wake token ≠ body)
+```
+
+## Target end-state
+- Pane-initiated messaging uses the harness-native channel when available (`send.py` seam).
+- Recipients get a small nudge in their own pane, not a pasted body dump.
+- Capture or send.py proof exists for both landing + nudge.
+
+## Invariants
+- Wake token ≠ message body (send.py nudge contract).
+- Authority / identity verified against the graph (`config:seats`), never pane string alone.
+- No daemon required for messages (standing L4).
+
+## Falsifier
+1. From a grok pane: one outbound message lands in recipient inbox **and** a nudge appears in the recipient pane (capture or send.py proof).
+
+## Out of scope
+- SSH-or-not same-surface proof (`goal:g7.31.4.2`).
+- Daemon absence on heal/cron (`goal:g7.31.4.3`).
+- Five-route catalog (`goal:g7.31.3`).
+
+## Agent Notes
+Assigned to **director-helper**. One falsifier head of `goal:g7.31.4`. No MAIN push; zero `--post`/`--seat` on dispatches.
+# goal:g7.31.4.1
+
+##### G7.31.4.2 — Same send/nudge function surface SSH-or-not — status: active
+
+# goal:g7.31.4.2
+
+## Why this exists
+**Parent `goal:g7.31.4`.** Falsifier-2: mixed topology (SSH-mesh and non-mesh) must expose the **same** caller-facing function names/args; engine fills transport gaps.
+
+```
+caller
+  │ same function names/args
+  ├─▶ SSH-mesh peer
+  └─▶ non-mesh peer
+engine gap-fill (no caller branch on is_ssh)
+```
+
+## Target end-state
+- Same send/read/nudge function surface whether peer is mesh-reachable or local.
+- Engine fills transport gaps without a second API.
+- Documented dry-run of both transports is acceptable proof when live dual topology is unavailable.
+
+## Invariants
+- Same caller-facing functions whether peer is mesh-reachable or local.
+- No caller branch on `is_ssh`.
+
+## Falsifier
+1. Repeat with one peer on SSH-mesh and one not (or documented dry-run of both transports): **same** function names/args succeed; no caller branch on "is_ssh".
+
+## Out of scope
+- Single-path inbox+nudge proof (`goal:g7.31.4.1`) except as shared setup.
+- Daemon absence (`goal:g7.31.4.3`).
+- Full sanctuary migration of every town onto Grok Bot.
+
+## Agent Notes
+Assigned to **director-helper**. Prefer API-surface test over live dual-host if topology missing. No MAIN push.
+# goal:g7.31.4.2
+
+##### G7.31.4.3 — No new message daemon on heal/cron surface — status: active
+
+# goal:g7.31.4.3
+
+## Why this exists
+**Parent `goal:g7.31.4`.** Falsifier-3: standing L4 ruling — repo + nudge, not a router process. No new message daemon on heal/cron for this goal.
+
+```
+heal / cron surface
+  └─ new message daemon for g7.31.4 ──▶ MUST NOT appear
+```
+
+## Target end-state
+- Messaging works without a dedicated message daemon.
+- Heal/cron surface gains no new message-router process for this goal.
+
+## Invariants
+- No daemon required for messages (standing L4).
+- Repo + nudge remains the transport model.
+
+## Falsifier
+1. No new message daemon process appears in the heal/cron surface for this goal.
+
+## Out of scope
+- Implementing send/nudge paths (`goal:g7.31.4.1`, `goal:g7.31.4.2`) beyond checking they do not introduce a daemon.
+- Pane hold / pin wiring (`.1` / `.2`).
+
+## Agent Notes
+Assigned to **director-helper**. Prefer inventory grep of heal/cron + process list before/after. No MAIN push.
+# goal:g7.31.4.3
+
 #### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
 
 # goal:g7.31.5
@@ -7157,6 +7406,110 @@ graph nodes   ◄── no durable drift
 Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
+
+##### G7.31.5.1 — write.py standing/instruction updates linked Grok profile — status: active
+
+# goal:g7.31.5.1
+
+## Why this exists
+**Parent `goal:g7.31.5`.** Falsifier-1: a write to a linked standing/instruction (etc.) via `write.py` must update the corresponding Grok Bot profile/settings artefact.
+
+```
+write.py → standing/instruction/routine/todo
+              │ same action (or non-skippable follow-up)
+              ▼
+Grok Bot profile / settings bytes match
+```
+
+## Target end-state
+- Linked write updates Grok Bot profile/settings in the same action (or tightly coupled follow-up that cannot be skipped silently).
+- Graph remains SoT; profile surfaces are projections.
+
+## Invariants
+- Uses unified write route (`goal:g7.31.3`); no side-channel editor bypassing `write.py`.
+- Never invent a second SoT — if conflict, graph wins and profile is repaired.
+
+## Falsifier
+1. Edit a linked standing/instruction node via `write.py`; linked Grok Bot profile/settings bytes change to match (or a named sync command exits 0 with proof).
+
+## Out of scope
+- Reverse bridge (`goal:g7.31.5.2`).
+- Automated drift detector (`goal:g7.31.5.3`).
+- Authoring the five routes (`goal:g7.31.3`).
+
+## Agent Notes
+Assigned to **director-helper**. One falsifier head of `goal:g7.31.5`. No MAIN push.
+# goal:g7.31.5.1
+
+##### G7.31.5.2 — Reverse harness-doc bridge or explicit absence recorded — status: active
+
+# goal:g7.31.5.2
+
+## Why this exists
+**Parent `goal:g7.31.5`.** Falsifier-2: if a reverse bridge (harness doc → graph) is claimed it must work; otherwise the node explicitly records "reverse bridge absent".
+
+```
+harness doc edit
+  ├─ reverse bridge exists ──▶ linked graph node updates
+  └─ absent ──▶ node records "reverse bridge absent" (falsifier N/A until built)
+```
+
+## Target end-state
+- Either reverse bridge reconverges harness-side edits to the node, **or** this node explicitly records absence with a falsifier for when it lands.
+- No silent claim of a bridge that does not exist.
+
+## Invariants
+- Graph remains SoT for goal/contract content.
+- Honest gap documentation beats a fake bridge.
+
+## Falsifier
+1. (If reverse bridge claimed) edit harness doc; linked node updates — **or** the node explicitly records "reverse bridge absent" and falsifier is N/A until built.
+
+## Out of scope
+- Forward write→profile sync (`goal:g7.31.5.1`).
+- Drift check automation (`goal:g7.31.5.3`).
+- Replacing `doc:standing-llm-ops` as the ops contract.
+
+## Agent Notes
+Assigned to **director-helper**. Prefer documenting absence if bridge not found this pass; no MAIN push.
+# goal:g7.31.5.2
+
+##### G7.31.5.3 — Automated graph↔profile drift check exits non-zero on desync — status: active
+
+# goal:g7.31.5.3
+
+## Why this exists
+**Parent `goal:g7.31.5`.** Falsifier-3: deliberate desync must be detected by an automated check (exit non-zero) before the next seat rotation.
+
+```
+deliberate desync
+   │
+   ▼
+automated drift_check / hash / content equality
+   │ exit non-zero
+   ▼
+before next seat rotation
+```
+
+## Target end-state
+- Drift check is measurable (hash / content equality / `drift_check` style), not vibes.
+- A forced desync fails the check before the next rotation.
+
+## Invariants
+- Graph SoT; profile is projection repaired on conflict.
+- Check is runnable without human judgment.
+
+## Falsifier
+1. A deliberate desync is detected by an automated check (exit non-zero) before the next seat rotation.
+
+## Out of scope
+- Implementing forward sync (`goal:g7.31.5.1`) beyond needing bytes to compare.
+- Reverse bridge policy (`goal:g7.31.5.2`).
+- Pane hold / handback transport.
+
+## Agent Notes
+Assigned to **director-helper**. Prefer a small CLI/check script or pytest; no MAIN push.
+# goal:g7.31.5.3
 
 ## G8 — Forkability: anyone grows their own tree — status: retired
 
