@@ -1276,6 +1276,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
     # loop's re-rooted engine paths in the dry report (which dry-prints the
     # same argv a real spawn would get).
     engine_paths = child_engine_paths(root)
+    # hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling --
+    # print the resolved cap so `--memory` is observable without a real
+    # spawn; the live path stores this SAME value into the spawn record.
+    _dry_mem_cap = mem_cap.resolve_memory_cap(cfg, override=args.memory)
+    print(f"dry-run memory_max={_dry_mem_cap}")
 
     for slot, target_entry in enumerate(targets):
         if len(target_entry) == 4:
@@ -1536,6 +1541,15 @@ def main() -> int:
         help="per-round mint cap in USD; refused before minting when it "
              "exceeds pool remaining minus floor minus live caps "
              "(hypothesis:l4-dispatch-takes-a-per-round-cap...).",
+    )
+    ap.add_argument(
+        "--memory",
+        default=None,
+        metavar="GB",
+        help="hypothesis:lm-dispatch-memory-override-feeds-agi-batch-"
+             "scheduling -- per-round GB override for config "
+             "`spawn.memory_max`; absent means use the configured value. "
+             "Request-scoped: the config file on disk is never written.",
     )
     ap.add_argument(
         "--strategy",
@@ -2646,7 +2660,7 @@ def main() -> int:
         # warning and a 5xx signature is a dead round nobody re-runs. The
         # lease is held by THIS process here, so a re-spawn lands under the
         # SAME lease, agent id, worktree and log.
-        _mem_cap = mem_cap.resolve_memory_cap(cfg)
+        _mem_cap = mem_cap.resolve_memory_cap(cfg, override=args.memory)
 
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
