@@ -72,13 +72,16 @@ def child_env(*, harness: dict, base: dict[str, str],
     is authoritative (dispatch has already landed ladder/seat overrides into
     it), so it WINS over a stale inherited `AGI_MODEL`.
 
-    MEASURED, DT.29, re-measured DT.32 -- compat/no-delivery on this CLI: the
-    0.3.1 SOURCE reads no `AGI_MODEL` (`grep -rn 'AGI_MODEL'
+    MEASURED, DT.29, re-measured DT.32, CORRECTED DT.35 -- compat/no-delivery
+    on this CLI: the 0.3.1 SOURCE reads no `AGI_MODEL` (`grep -rn 'AGI_MODEL'
     node_modules/grok-bot-cli/src` exits 1), and that absence holds under the
-    full UNION measurement of the source-read env set (22 names: literal
-    dot-accesses + the two `truthyEnv(...)` literals; the only computed
-    `process.env[name]` site in `url-policy.js:13` is called with those two,
-    never `AGI_MODEL`). So the stamp reaches the process env but NOT
+    full UNION measurement of the source-read env set (25 names, FOUR scans:
+    literal dot-accesses; the two `truthyEnv(...)` literals; ALIASED
+    DEFAULT-PARAMETER reads `env.<NAME>` (`CODEX_HOME` codex-bridge.js:27-28;
+    `APPDATA`/`XDG_CONFIG_HOME` app-session.js:104-110); and a check that the
+    only computed `process.env[name]` site in `url-policy.js:13` is called
+    with those two truthyEnv literals, never `AGI_MODEL`). So the stamp
+    reaches the process env but NOT
     grok-bot's model choice.
     Model selection stays the app/profile field; this is kept for a CLI that
     later reads the name, not a claim of delivery. Test:

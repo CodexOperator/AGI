@@ -80,9 +80,9 @@ History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
 """
 
 #: Env names `grok-bot-cli@0.3.1`'s SOURCE actually reads, measured VERBATIM in
-#: the DT.29 experiment and RE-MEASURED in DT.32. The measurement is a UNION
-#: of three commands over `node_modules/grok-bot-cli/src` (scratch
-#: `measure-0.3.1/`); none alone is complete:
+#: the DT.29 experiment, RE-MEASURED in DT.32 and CORRECTED in DT.35. The
+#: measurement is a UNION of FOUR scans over `node_modules/grok-bot-cli/src`
+#: (scratch `measure-0.3.1/`); none alone is complete:
 #:   npm install grok-bot-cli@0.3.1 --no-audit --no-fund
 #:   grep -rn 'AGI_MODEL' src                              # no matches, exit 1
 #:   (a) grep -rhoE 'process\.env\.[A-Za-z_][A-Za-z0-9_]*' src | sort -u
@@ -90,16 +90,28 @@ History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
 #:   (b) grep -rhoE 'truthyEnv\("([A-Za-z_][A-Za-z0-9_]*)"\)' src | sort -u
 #:       -> 2 names read through the COMPUTED accessor
 #:          (GROK_BOT_ALLOW_ANY_GATEWAY, GROK_BOT_ALLOW_LOCAL_GATEWAY)
-#:   (c) grep -rn 'process\.env\[' src
+#:   (c) grep -rhoE '\benv\.[A-Za-z_][A-Za-z0-9_]*' src | sort -u
+#:       -> 3 names read through an ALIASED DEFAULT-PARAMETER: a function
+#:          takes `env = process.env` (or is handed one) and then reads
+#:          `env.<NAME>` -- invisible to any `process.env.<NAME>` grep:
+#:            CODEX_HOME        codex-bridge.js:27-28 (codexSocketPath)
+#:            APPDATA           app-session.js:104-110 (grokBotAppDataPath,
+#:                              reached via grokBotGatewayDescriptorPath
+#:                              `env = process.env` at :116)
+#:            XDG_CONFIG_HOME   same app-session.js:104-110 site
+#:   (d) grep -rn 'process\.env\[' src
 #:       -> exactly ONE dynamic site, url-policy.js:13, the generic helper
 #:          `process.env[name]` whose only callers pass the two literals in (b);
-#:          no other computed access exists whose name is uncounted
-#: UNION = 20 + 2 = 22 names.
-#: A narrow (a)-only scan MISSES (b) because `process.env[name]` is invisible
-#: to a dot-access grep. (`process.env.S` seen under the narrower `[A-Z_]+`
-#: class is the truncation of `process.env.SystemRoot` -- named, not dropped.)
+#:          no other computed access, spread (`...process.env`) or `Reflect`
+#:          read exists whose name is uncounted
+#: UNION = 20 + 2 + 3 = 25 names.
+#: A narrow (a)-only scan MISSES (b) AND (c): `process.env[name]` is invisible
+#: to a dot-access grep, and an aliased `env.<NAME>` never spells
+#: `process.env.<NAME>` at the read site. (`process.env.S` seen under the
+#: narrower `[A-Z_]+` class is the truncation of `process.env.SystemRoot` --
+#: named, not dropped.) An exact-22 claim is FALSIFIED by scan (c).
 RECORDED_CLI_SOURCE_ENV_0_3_1 = frozenset({
-    "CURSOR_ACCESS_TOKEN", "CURSOR_API_BASE_URL",
+    "APPDATA", "CODEX_HOME", "CURSOR_ACCESS_TOKEN", "CURSOR_API_BASE_URL",
     "GROK_BOT_ACCESS_TOKEN", "GROK_BOT_AGENTS_DIR",
     "GROK_BOT_ALLOW_ANY_GATEWAY", "GROK_BOT_ALLOW_LOCAL_GATEWAY",
     "GROK_BOT_GATEWAY_HEADERS", "GROK_BOT_GATEWAY_TOKEN",
@@ -108,6 +120,15 @@ RECORDED_CLI_SOURCE_ENV_0_3_1 = frozenset({
     "SAND_BOX_NAMESPACE", "SAND_CLIENT_VERSION", "SAND_DATA_ROOT",
     "SAND_GATEWAY_TOKEN", "SAND_HOST_GATEWAY_TOKEN",
     "SAND_HOST_GATEWAY_URL", "SAND_HOST_PORT", "SystemRoot",
+    "XDG_CONFIG_HOME",
+})
+
+#: Names reachable ONLY through an aliased default-parameter read (scan (c)) --
+#: the class the DT.32 exact-22 claim missed. Asserted by
+#: `test_recorded_cli_source_env_has_the_aliased_reads` so a content
+#: regression turns the suite RED.
+RECORDED_CLI_ALIASED_ENV_0_3_1 = frozenset({
+    "APPDATA", "CODEX_HOME", "XDG_CONFIG_HOME",
 })
 
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
@@ -266,11 +287,18 @@ def test_agi_model_is_not_read_by_the_0_3_1_cli_source():
     """DT.29 D2: the CLI's SOURCE, not just its `--help`, re-scopes the stamp.
 
     `grep -rn AGI_MODEL node_modules/grok-bot-cli/src` exits 1 (no matches) on
-    the published 0.3.1 source, and the env set the CLI reads is exactly
-    `RECORDED_CLI_SOURCE_ENV_0_3_1` (22 names, measured as the UNION of literal
-    dot-accesses, `truthyEnv(...)` string args, and a check that the one
-    computed `process.env[name]` site has no uncounted callers -- commands in
-    the constant's docstring). So on THIS
+    the published 0.3.1 source, and the env set the CLI reads is
+    `RECORDED_CLI_SOURCE_ENV_0_3_1` (25 names, measured as the UNION of literal
+    dot-accesses, `truthyEnv(...)` string args, ALIASED DEFAULT-PARAMETER reads
+    (`env.<NAME>`, scan (c)), and a check that the one computed
+    `process.env[name]` site has no uncounted callers -- commands in the
+    constant's docstring).
+
+    DISPROVED IF the CLI reads `AGI_MODEL` through ANY of the four scans --
+    including the aliased read `env.AGI_MODEL` (scan (c)), which an exact-22
+    measurement would have missed. An exact-22 union claim is FALSIFIED: the
+    three aliased names in `RECORDED_CLI_ALIASED_ENV_0_3_1` are read but
+    invisible to a `process.env.<NAME>` grep. So on THIS
     CLI the adapter's `AGI_MODEL` stamping is **compat/no-delivery**: the
     configured tier does NOT reach grok-bot through the environment, and
     model selection stays the app/profile field. The stamp is kept -- a later
@@ -285,10 +313,31 @@ def test_agi_model_is_not_read_by_the_0_3_1_cli_source():
     assert not any("MODEL" in name.upper()
                    for name in RECORDED_CLI_SOURCE_ENV_0_3_1), (
         "the CLI reads a model-selecting env name; re-measure and re-scope")
+
     # The stamp really is carried -- and it really is not in what the CLI
     # reads. The two facts together are the re-scope, not a closure.
     env = grok.child_env(harness=HARNESS, base={}, tier="kid")
     assert env["AGI_MODEL"] == "grok-kid"
+
+
+def test_recorded_cli_source_env_has_the_aliased_reads():
+    """Content assertion (DT.35 residue 5): the constant can regress silently.
+
+    The suite otherwise asserts only `AGI_MODEL` absence / no MODEL token, so
+    a constant edited back to 22 names would stay green. Pin the corrected
+    measurement: a >=25-name union that INCLUDES the three names reachable
+    only through aliased default-parameter reads (scan (c)) -- the class the
+    DT.32 exact-22 claim missed. RED on any regression to 22.
+    """
+    assert len(RECORDED_CLI_SOURCE_ENV_0_3_1) >= 25, (
+        "constant shrank below the corrected >=25 union; re-run "
+        "extensions/agi/tests/probes/probe_dt35.py")
+    assert RECORDED_CLI_ALIASED_ENV_0_3_1 <= RECORDED_CLI_SOURCE_ENV_0_3_1, (
+        "aliased-read names dropped from the constant; they are read via "
+        "env.<NAME> and no process.env.<NAME> grep can see them")
+    # The exact-22 claim is the one this suite now falsifies: if the aliased
+    # names were absent the union would drop back to 22.
+    assert len(RECORDED_CLI_SOURCE_ENV_0_3_1) != 22
 
 
 def test_the_binding_predicate_is_falsifiable():
