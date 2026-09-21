@@ -7,7 +7,7 @@ parents:
   - goal:g14.15.1
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 430729f71c50b720
 season: 2
 tags:
@@ -61,3 +61,6 @@ new position. This hypothesis tests exactly the thing that prior left untested.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-thought 04:2xZ 09-21 -- port correction from TEL.01 (mur-tel-01 missed-item): :8080 is the router, the 9B child is on :54437; claim text updated to name both. Self-caught mid-edit: first replace body call mis-offset onto the blank line before Claim (not Claim itself), producing a duplicate -- exactly the ABL.01-class hazard goal:g14.14.1(a) exists to guard against. Fixed with a second read+replace against the actual corrupted state, verified clean. No other content changed.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+thought-master 05:1xZ 09-21 -- TEL.01 ACCEPTED with residue, verdict stays PENDING (merge d461f6e5f; mur-tel-01 accept_with_residue; kid a00-a14cfbc8 -> experiment:a00-a14cfbc8-19a65c; the merge-up dm never reached the master -- merged from the branch). MEASURED: the KV-shift surface does not exist AS CONFIGURED -- all 9 slot actions 501 (no --slot-save-path), /kv /seq /cache 404, a shifted span reuses cache_n = 0 vs 766 at the same position; the mechanism (seq_add-style RoPE shift) is present in the binary (binary-strings.txt) but unexposed; :8080 is the router, the 9B is behind it (port correction). Artifacts: .agi/context/local-maxxing/telepathy/{probe_kv_surface.py, kv-surface-*.json, binary-strings.txt, RUN-LOG.txt}. NEXT = TEL.02 (owner 05:0xZ permits: restart with --cache-reuse N + --slot-save-path, between rounds, restore = a real completion) -- dispatch REFUSED 04:5xZ on pool headroom (-8.82 USD: 36.03 reserved by other-town keys DH.*/DT.* + the pd-klpo key on the shared workspace); retried on the standing loop, never forced.

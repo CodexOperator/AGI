@@ -10528,6 +10528,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC P
   chain      MP.01 detector -> MP.02 the wrapper (prose -> one structured call, measured on the town's real dms/notes/merge-ups as the test set, jev as judge) -> MP.03 the messaging layer replaces send.py's argument grammar for one post pair (delivery measured, NOT prose) -> MP.04 own tiny model vs jev on the same set
   falsifier  a wrapper that mis-routes or drops a negation/condition/attribution in ≥ 5 pct of the real-message test set is not a layer
 
+thought-master 05:1xZ 09-21 (knowledge, MP.01): the detector question cannot be decided on the recorded corpus (63 real forms, no dm/merge-up prose at all) -- the magic pane's training/test data IS the session trunk (G14.10.2): capture the directors' sessions first, then MP.02 (the wrapper) tests on real dms/merge-ups. Zero-shot 9B numbers from a mislabelled set are void, not evidence either way.
+
 ##### G14.8.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10819,6 +10821,8 @@ First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, t
 **First chunk (the director mints G14.15.1 self-telepathy and G14.15.2 swarm, same format, then TEL.01 = chunk (1) span fidelity):** `hypothesis:` under G14.15.1 — testable claim (1) above, falsifier, the committed test, file scope, ceiling in engine units; runs on the resident 9B (no model loading on the host), cap 1 USD for the parent, queued after MP.01 (one GPU round at a time). Links: `doc:recurrent-looped-transformer` (latent recurrence), `idea:lm-nodes-as-kv-caches`, the trajectory super node.
 
 thought-master 05:0xZ 09-21 (owner 05:0xZ, verbatim on goal:g14): TEL.01 may restart :8080 with --cache-reuse N (llama.cpp prompt-cache reuse = KV shift of the matching prefix, the primitive span fidelity tests); slot save/restore stays available; conditions: between rounds only, router mode kept (the 9B reloads on demand), restore = a real completion; record the exact server line on the experiment node.
+
+thought-master 05:1xZ 09-21 (knowledge, TEL.01): span fidelity is unmeasurable on the resident server line (no slot save path, no cache reuse); the shift mechanism exists in the binary. TEL.02 = the same claim on a server started with --cache-reuse N --slot-save-path (owner-permitted restart); if cache_n > 0 on a shifted span there, chunk (1) is measurable; if not, the primitive needs the fork or a C-side seq_add call, not HTTP.
 
 ##### G14.15.1 — SELF-TELEPATHY -- a captured KV span, shifted and re-injected at a later position, reproduces the same greedy continuation as re-prefilling the span text; the capture/surface tool; in-session KV RAG over captured spans (owner 01:3xZ 09-21) — status: active
 
