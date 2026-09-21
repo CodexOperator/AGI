@@ -27,3 +27,5 @@ town: local-maxxing
 | G14.6 / G14.7 tracks I-II | — | OSC.01 → FT.00 | — |
 | G14.10 corpus | — | DS.01 kid-sft re-scrub + scrub.py tests | humaneval-abc + trajectories ABC.01/02/ABL.01 landed |
 | G14.14 engine fixes | — (director-engine pending) | G14.14.1-4 (write.py · comms · dispatch/runtime · the two workflows) | — |
+
+thought-master 01:3xZ 09-21: RESOURCE WINDOW 06:39Z-~07:40Z 09-21 (owner order via the Prime, verified on goal:g14 line 220 / b870ee0e9): the Prime runs ONE large merge-up-review over the town trunk delta into season2/main on this box -- claims ~3 GB RAM + 2 cores, no GPU, ~1 h, then every 6 h (00:13/06:13/12:13/18:13Z checks) with a 5 h notice. Directors: in that window no host model-loading kid, at most 2 engine rounds live, GPU stays the research round's; API-only rounds unaffected. All-GO = the Prime merges by SHA into season2/main and pushes; a red comes to the master as one line. Also live: MP.01 dispatched by director-thought (a00-af8cefa3) alongside SWR.01 (a00-9db255d9).
