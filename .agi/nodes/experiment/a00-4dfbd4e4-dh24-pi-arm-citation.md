@@ -5,8 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-4dfbd4e4-0b7729
 next_edges: []
-edited_by: a00-4dfbd4e4
-evidence_runs: experiment:a00-4dfbd4e4-dh24-pi-arm-citation
+edited_by: a00-02b986e3
+evidence_runs:
+  - experiment:a00-4dfbd4e4-dh24-pi-arm-citation
 line_ceiling: 40
 loop: goal:g7.27.2@s2
 model: deepseek/deepseek-v4.1-flash
