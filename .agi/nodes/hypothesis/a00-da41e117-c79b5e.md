@@ -3,15 +3,16 @@ id: hypothesis:a00-da41e117-c79b5e
 mint_id: dbce00991a16465d8d794e7a03216a99
 type: hypothesis
 parents:
-  - goal:g17.14.2
+  - goal:g7.25.2
 next_edges: []
-edited_by: a00-da41e117
+edited_by: belam
 loop: goal:g17.14.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
 scaffold_hash: 32439ae30a363b3c
 season: 2
+thought_session: parent-residue-g14-g17-remap
 title: grok-bot config bin must equal the sibling adapter DEFAULT_BIN grok-bot
 town: core
 ---
