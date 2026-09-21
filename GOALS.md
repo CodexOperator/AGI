@@ -6952,6 +6952,82 @@ Assigned to **director-belam (point)** with umbrella + `.3`. May further split; 
 
 **Related:** `goal:g7.25` family (REQUIRED surface), `goal:g7.30` (land adapter), `goal:g7.28` (persistent hold).
 
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
+
+##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: active
+
+# goal:g7.31.1.1
+
+## Why this exists
+
+**Parent `goal:g7.31.1`.** Falsifiers on the parent were multi-headed: measured CLI argv vs durable pane hold. This leaf owns **measured CLI** — `build_command` argv matches a recorded `grok-bot --help`, and stub-only guessed flags (e.g. lone `-p`) are gone from the landed adapter path on `core/season2/main`.
+
+## Target end-state
+
+- `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+- Stub-only guessed flags are absent from the landed adapter path on `core/season2/main`.
+- Measurement is CLI/grep-answerable, not vibes.
+
+## Invariants
+
+- Restart/pane hold is OOS here (`goal:g7.31.1.2`).
+- No second argv path; seam stays `goal:g7.27` / `goal:g7.28`.
+- Does not special-case the string `grok` inside `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+2. Stub-only guessed flags (e.g. lone `-p`) are gone from the landed adapter path on `core/season2/main` (grep/diff proof).
+
+## Out of scope
+
+- Durable named tmux pane restart/reattach (`goal:g7.31.1.2`).
+- Pane ↔ post/pin wiring (`goal:g7.31.2`).
+- Five unified routes (`goal:g7.31.3` family).
+
+## Agent Notes
+
+Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
+
+##### G7.31.1.2 — Durable named tmux pane restart/reattach hold — status: active
+
+# goal:g7.31.1.2
+
+## Why this exists
+
+**Parent `goal:g7.31.1`.** Falsifiers on the parent were multi-headed. This leaf owns **durable named tmux pane hold** — kill the seat process; `restart` (or persistent-dispatch restart) reattaches to the **same** tmux pane name the seat keeps.
+
+## Target end-state
+
+- Adapter `restart` (or documented true impossibility) re-attaches to the same named tmux pane.
+- Pane name is stable across adapter restarts; seat occupation is visible independently of process pid churn.
+- Precursor to magic pane — durable hold first; magic UX later.
+
+## Invariants
+
+- One named pane per seat; no anonymous fire-and-forget for persistent grok seats.
+- Restart goes through the same adapter/template seam as first spawn (`goal:g7.27` / `goal:g7.28`).
+- Measured CLI argv shape is OOS here (`goal:g7.31.1.1`).
+- Does not special-case `grok` inside `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. Kill the seat process; `restart` (or persistent-dispatch restart) reattaches to the **same** tmux pane name; `tmux list-panes` / capture shows the seat still there.
+
+## Out of scope
+
+- Measuring CLI flags / retiring stub argv (`goal:g7.31.1.1`).
+- Magic-pane product chrome.
+- Pane ↔ post/pin (`goal:g7.31.2`).
+
+## Agent Notes
+
+Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g7.28`, `goal:g7.31.1.1`.
+
 #### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
 # goal:g7.31.2
@@ -7055,6 +7131,79 @@ Historical L4 owner language named **three** (viewing / writing / dispatching). 
 Assigned to **director-belam (point)** with umbrella + `.1`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `doc:standing-llm-ops` §4, `goal:g1.14`, `command:commands`, `goal:g7.26`, `goal:g7.27`.
+
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
+
+##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: active
+
+# goal:g7.31.3.1
+
+## Why this exists
+
+**Parent `goal:g7.31.3`.** Falsifiers on the parent were multi-headed. This leaf owns the **cold seat brief / custom-instruction surface** listing the five pane-facing routes by contract names (write / read / send / dispatch|workflow / rotate|spawn).
+
+## Target end-state
+
+- A cold seat brief or custom-instruction surface lists the five routes by the names in `goal:g7.31.3` table (or records a deliberate rename with old→new).
+- Names are the contract; engine renames update the parent table + this falsifier in one edit.
+
+## Invariants
+
+- ONE workflow router (`goal:g1.14`).
+- Routes are harness-agnostic at the engine boundary.
+- Sample agent-action proof is OOS here (`goal:g7.31.3.2`).
+- No sixth "special grok route" in `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. A cold seat brief / custom-instruction surface lists the five routes by the names in the `goal:g7.31.3` table (or records a deliberate rename with old→new). Grep/read proof on the brief artifact.
+
+## Out of scope
+
+- Running sample write+send+dispatch through CLIs (`goal:g7.31.3.2`).
+- Durable pane hold (`goal:g7.31.1` family).
+- SSH handbacks / profile sync (`.4` / `.5`).
+
+## Agent Notes
+
+Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Via `goal:g7.26` / `goal:g7.27` surfaces, not a second path. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `doc:standing-llm-ops` §4, `goal:g7.26`, `goal:g7.27`, `goal:g7.31.3.2`.
+
+##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: active
+
+# goal:g7.31.3.2
+
+## Why this exists
+
+**Parent `goal:g7.31.3`.** Falsifiers on the parent were multi-headed. This leaf owns **sample agent action** for write + send + one dispatch/workflow run going through the named CLIs (`write.py` / `send.py` / `dispatch.py`+`workflow.py`), not a parallel script.
+
+## Target end-state
+
+- Sample agent action for write + send + one dispatch/workflow run goes through the named CLIs.
+- Evidence is a recorded transcript / experiment with command lines cited — not a vibes claim.
+
+## Invariants
+
+- ONE workflow router (`goal:g1.14`).
+- Message bodies are files/stdin, never backtick-laden argv (L4 message ruling).
+- Brief listing of the five names is OOS here (`goal:g7.31.3.1`).
+- No sixth "special grok route" in `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. Sample agent action for write + send + one dispatch/workflow run goes through the named CLIs, not a parallel script (transcript/experiment proof).
+
+## Out of scope
+
+- Authoring the cold brief list (`goal:g7.31.3.1`).
+- Durable pane hold / pin wiring / handbacks / doc sync.
+
+## Agent Notes
+
+Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
