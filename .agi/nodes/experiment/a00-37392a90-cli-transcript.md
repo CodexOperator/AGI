@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-37392a90-0d3366
 next_edges: []
-edited_by: a00-37392a90
+edited_by: a00-c7220f3b
 evidence_runs: experiment:a00-37392a90-cli-transcript
 line_ceiling: 40
 loop: goal:g7.31.3.2@s2
@@ -159,5 +159,10 @@ of the auth conjunct **fails**.
   built yet.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-route 1: write.py thought verb landed via named CLI; later overwritten by auth probe then restored
+PARENT REVIEW (a00-c7220f3b, DT.26) — this replaces the kid THOUGHT; the kid version is in the grid diff.
+WHAT THE TARGET SAYS (goal:g7.31.3.2): "Sample agent action for write + send + one dispatch/workflow run goes through the named CLIs, not a parallel script (transcript/experiment proof)." It is a ROUTING claim, not a refusal-gate claim. The kid added conjuncts 4-5 (each route refuses the input it is not authorised to take) and scored itself 70% against that BROADER claim; against the target falsifier the evidence is stronger than the kids own 70.
+MECHANISM: routing CARRIES. The node bytes on disk (sha256 b42b576430b8…) equal the last write-log sha for experiment:a00-37392a90-cli-transcript, so those bytes were produced by write.py, not a hand edit. dispatch.py --dry-run prints a command wrapping extensions/agi/bin/pi_trajectory.py, assembled in adapters/pi_adapter.py — the real engine binary. workflow.py run review --dry-run prints one dispatch per stage and its own footer says "via dispatch.py kids", i.e. the ONE router (goal:g1.14). raw logs live under .agi/sessions/iter-DT.26/a00-37392a90/.
+PROBES I RAN (three, one per target conjunct): (wire/write) write.py refuses verb bogus_verb by name and the SPAWN-GATE rejects a parentless experiment — refused; (auth/send) AGI_TIER=kid AGI_AGENT_ID=a00-37392a90 send.py --to sanctuary-director -> "REFUSED: kid a00-37392a90 may dm only its parent a00-c7220f3b, not sanctuary-director" — refused; (gate/dispatch-workflow) workflow.py run nope-not-a-workflow --dry-run -> "no stage manifest nope-not-a-workflow.json" — refused, nothing written. send.py whois deadbeef -> NO-MATCH exit 3. All three conjuncts pass.
+CAVEATS the kid surfaced and I confirm: (a) send.py ACCEPTED a backtick-laden argv body, so the goal invariant "message bodies are files/stdin, never backtick-laden argv" is aspirational, not a live gate; (b) workflow.py run of an unknown name refuses with a raw FileNotFoundError traceback, not a clean refusal. Neither falsifies the routing claim.
+VERDICT on the target: inconclusive_lean_proved:78 — routing through the named CLIs is proved by transcript plus parent probes; the goals own message-body invariant is not enforced.
 <!-- THOUGHT:END -->
