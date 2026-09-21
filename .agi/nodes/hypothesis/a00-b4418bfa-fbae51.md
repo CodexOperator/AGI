@@ -6,15 +6,15 @@ parents:
   - goal:g7.31.3.1
 next_edges: []
 confidence: 0.95
-edited_by: a00-b4418bfa
+edited_by: a00-7477e928
 evidence_runs:
   - experiment:a00-b4418bfa-five-routes-render
 loop: goal:g7.31.3.1@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - {"conjunct": 1, "class": "wire", "cmd": "PYTHONPATH=extensions/agi/bin python3 .agi/sessions/iter-DT.25/a00-b4418bfa/probe_five_routes.py", "expected": "kid,parent,director,prime_director each carry all five contract names (write/read/send/dispatch|workflow/rotate|spawn) and all six seams (write.py/commands.py/send.py/dispatch.py/workflow.py/rotate.py) plus brief._ROUTES_SEGMENT under default profile resolution", "observed": "effective_profile(default)=full; all four tiers names_missing=[] seams_missing=[] segment=True; RESULT: PASS", "result": "held"}
-  - {"conjunct": 2, "class": "gate", "cmd": "same probe, profile=survival", "expected": "survival brief must omit the segment (it exists to be smaller)", "observed": "segment=False heading=False chars=4450 vs full kid 10091", "result": "refused"}
-  - {"conjunct": 3, "class": "carry", "cmd": "basename check on both node files", "expected": "evidence node filename carries the round agent id so cli.py _round_scope_ok can carry it", "observed": "experiment:a00-b4418bfa-five-routes-render lives at nodes/experiment/a00-b4418bfa-five-routes-render.md, basename carries a00-b4418bfa; passed to done via --owns", "result": "held"}
+  - {"conjunct": 1, "class": "wire", "cmd": "cd /data/work/agi/.agi/worktrees/a00-7477e928; PYTHONPATH=extensions/agi/bin python3 -c \"import brief; render kid/parent/director/prime_director with NO profile kwarg\"", "expected": "every full-profile tier carries brief._ROUTES_SEGMENT with all five contract names and all six engine seams under default profile resolution", "observed": "kid,parent,director,prime_director all segment=True, names_missing=[], seams_missing=[]; full kid brief 10081 chars", "result": "held"}
+  - {"conjunct": 2, "class": "gate", "cmd": "cd /data/work/agi/.agi/worktrees/a00-7477e928; PYTHONPATH=extensions/agi/bin python3 -c \"import brief; render kid with profile=survival\"", "expected": "the survival profile must refuse/exclude the segment it exists to be smaller than", "observed": "survival segment=False and heading absent, 4430 chars vs the full kid brief 10081", "result": "refused"}
+  - {"conjunct": 3, "class": "wire", "cmd": "cd /data/work/agi/.agi/worktrees/a00-7477e928; git ls-tree -r --name-only 1baadf8c7", "expected": "the cited evidence run is carried by the round commit", "observed": "both .agi/nodes/experiment/a00-b4418bfa-five-routes-render.md and .agi/nodes/hypothesis/a00-b4418bfa-fbae51.md are in 1baadf8c7; basename carries the agent id", "result": "held"}
 profile: balanced
 role: kid
 scaffold_hash: 88c1972f335e2cf0
@@ -62,3 +62,8 @@ agent's id so the round diff can carry it.
 
 ## Agent Notes
 Re-ran goal:g7.31.3.1 falsifier on current bytes: brief.assemble() renders all five contract names and six seams for kid/parent/director/prime_director under default full profile; survival omits the segment. brief.py unchanged; committed evidence node now carries the agent id in its basename.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT review of a00-b4418bfa (1baadf8c7), ACCEPTED, verdict proved -- the corrective kid the leaf needed after kid 1 lost its evidence node. WHAT THE INSTRUCTION SAID (goal:g7.31.3.1): "A cold seat brief / custom-instruction surface lists the five routes by the names in the goal:g7.31.3 table ... Grep/read proof on the brief artifact." WHAT THE MACHINE ACTUALLY DOES, on the committed bytes: brief.py carries _ROUTES_SEGMENT (brief.py:2038) and the _finish() hook appends it only when profile == "full" (brief.py:2093). I re-ran the render on the current bytes: kid, parent, director and prime_director each carry all five contract names and all six seams (full kid brief 10081 chars); the survival probe REFUSES it (segment absent, 4430 chars). The cited evidence node experiment:a00-b4418bfa-five-routes-render IS committed in 1baadf8c7 and its basename carries a00-b4418bfa, which closes the exact _round_scope_ok gap that made kid 1 untracked. THE NEAR MISS: a probe that passes an explicit profile="full" kwarg satisfies the words while the live default resolution could return another profile and drop the segment; this kid passed NO profile kwarg and printed effective_profile(default)=full, and my independent render reproduced it. The second near miss: appending unconditionally would also hit the survival profile, whose one job is to be smaller than the segment; the gate probe confirms survival omits it. NO DEVIATION to record; the kid touched neither dispatch.py nor rotate.py nor brief.py, and 0 broken links across 3849. NEXT: nothing left on this leaf -- the sample write+send+dispatch transcript is goal:g7.31.3.2.
+note Parent probes for goal:g7.31.3.1: (1) wire/full tiers HELD -- five names + six seams in kid/parent/director/prime_director under default profile; (2) gate/survival REFUSED as intended (4430 vs 10081 chars); (3) wire/carry HELD -- evidence node committed in 1baadf8c7. Kid 1 (a00-13a360dc) demoted for its lost evidence node; kid 2 (a00-b4418bfa) accepted proved and supplies the committed evidence run.
+<!-- THOUGHT:END -->
