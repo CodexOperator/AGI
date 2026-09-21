@@ -80,16 +80,28 @@ History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
 """
 
 #: Env names `grok-bot-cli@0.3.1`'s SOURCE actually reads, measured VERBATIM in
-#: the DT.29 experiment. Commands (scratch `measure-0.3.1/`):
+#: the DT.29 experiment and RE-MEASURED in DT.32. The measurement is a UNION
+#: of three commands over `node_modules/grok-bot-cli/src` (scratch
+#: `measure-0.3.1/`); none alone is complete:
 #:   npm install grok-bot-cli@0.3.1 --no-audit --no-fund
-#:   grep -rn 'AGI_MODEL' node_modules/grok-bot-cli/src      # no matches, exit 1
-#:   grep -rhoE 'process\.env\.[A-Za-z_][A-Za-z0-9_]*' \
-#:       node_modules/grok-bot-cli/src | sort -u
-#: (`process.env.S` seen under the narrower `[A-Z_]+` class is the truncation of
-#: `process.env.SystemRoot` -- named here, not dropped.)
+#:   grep -rn 'AGI_MODEL' src                              # no matches, exit 1
+#:   (a) grep -rhoE 'process\.env\.[A-Za-z_][A-Za-z0-9_]*' src | sort -u
+#:       -> 20 LITERAL dot-access names
+#:   (b) grep -rhoE 'truthyEnv\("([A-Za-z_][A-Za-z0-9_]*)"\)' src | sort -u
+#:       -> 2 names read through the COMPUTED accessor
+#:          (GROK_BOT_ALLOW_ANY_GATEWAY, GROK_BOT_ALLOW_LOCAL_GATEWAY)
+#:   (c) grep -rn 'process\.env\[' src
+#:       -> exactly ONE dynamic site, url-policy.js:13, the generic helper
+#:          `process.env[name]` whose only callers pass the two literals in (b);
+#:          no other computed access exists whose name is uncounted
+#: UNION = 20 + 2 = 22 names.
+#: A narrow (a)-only scan MISSES (b) because `process.env[name]` is invisible
+#: to a dot-access grep. (`process.env.S` seen under the narrower `[A-Z_]+`
+#: class is the truncation of `process.env.SystemRoot` -- named, not dropped.)
 RECORDED_CLI_SOURCE_ENV_0_3_1 = frozenset({
     "CURSOR_ACCESS_TOKEN", "CURSOR_API_BASE_URL",
     "GROK_BOT_ACCESS_TOKEN", "GROK_BOT_AGENTS_DIR",
+    "GROK_BOT_ALLOW_ANY_GATEWAY", "GROK_BOT_ALLOW_LOCAL_GATEWAY",
     "GROK_BOT_GATEWAY_HEADERS", "GROK_BOT_GATEWAY_TOKEN",
     "GROK_BOT_GATEWAY_URL", "GROK_BOT_HISTORY", "GROK_BOT_HISTORY_DIR",
     "SAND_ACCESS_TOKEN", "SAND_AGENTS_DIR", "SAND_BACKEND_URL",
@@ -255,7 +267,10 @@ def test_agi_model_is_not_read_by_the_0_3_1_cli_source():
 
     `grep -rn AGI_MODEL node_modules/grok-bot-cli/src` exits 1 (no matches) on
     the published 0.3.1 source, and the env set the CLI reads is exactly
-    `RECORDED_CLI_SOURCE_ENV_0_3_1` (commands in its docstring). So on THIS
+    `RECORDED_CLI_SOURCE_ENV_0_3_1` (22 names, measured as the UNION of literal
+    dot-accesses, `truthyEnv(...)` string args, and a check that the one
+    computed `process.env[name]` site has no uncounted callers -- commands in
+    the constant's docstring). So on THIS
     CLI the adapter's `AGI_MODEL` stamping is **compat/no-delivery**: the
     configured tier does NOT reach grok-bot through the environment, and
     model selection stays the app/profile field. The stamp is kept -- a later
