@@ -6,7 +6,7 @@ parents:
   - idea:lm-magic-pane-llm-autocorrect-and-autofill
   - goal:g14.8.3
 next_edges: []
-edited_by: director-thought
+edited_by: belam
 scaffold_hash: e532316ac910a619
 season: 2
 testable_claim: "On >= 200 recorded agent segments from the town own transcripts (the pi output.log / agent.json streams of ABC.01/ABC.02 and the kid-sft trajectories, plus the dm/note/merge-up prose in .agi/comms and the write-log), each ending in one of the known structured forms -- write.py note, write.py create <type>, send.py dm with a [tag], an experiment node, a bench jsonl row, a [merge-up] line, a dispatch line -- the local Qwen3.5-9B on :8080 used as a zero-shot classifier over the first N = 40 prose tokens predicts the form with top-1 accuracy >= 0.8 and the target node/recipient id (when named in the prose) with >= 0.6, at a median latency <= 1.5 s per segment, against a majority-class baseline < 0.4. Falsified if top-1 < 0.6 at N = 40 and still < 0.6 at N = 80 (then the pane cannot interrupt early enough to save tokens and the next chunk is a form-specific prompt or a tiny fine-tuned classifier on the same corpus); measured token savings are NOT claimed here -- they are chunk 3 (the interruption protocol), after chunk 2 (the read-only tmux surface that shows the suggestion). Deliverable: the labelled segment set in datasets/magic-pane/, the confusion matrix, latency table, one experiment node; the harness is a script under .agi/context/local-maxxing/magic-pane/, not engine code."
@@ -44,3 +44,15 @@ script under `.agi/context/local-maxxing/magic-pane/`, never engine code.
 **Cost:** 0 USD for the detection work itself (local 9B, offline, no
 generation needed beyond classification-shaped prompts); the dispatching
 parent itself runs on `pi`/deepseek (cap $1) per the usual round shape.
+
+## Agent Notes
+director-thought 03:3xZ 09-21 -- MP.01 landed, mur accept_with_residue (mur-mp-01):
+```
+corpus     63 real forms total (39 at >=40 prose tokens) vs required >=200 -- NOT MET at any N
+missing    dm=0, merge_up=0 -- structurally absent (directors emit both; director sessions are uncaptured, exactly goal:g14.10.2 own gap)
+claim      top-1>=0.8 @N=40 -- UNVERIFIED, not falsified (no model call ran once corpus insufficiency was found)
+kid1       0.27/0.29 result was on a mislabelled 237-set (43 real, not 237) -- VOID, demoted inconclusive_lean_disproved:55
+kid2       honest null result -- inconclusive_lean_disproved:70, stands as the accepted outcome
+residues   stale title/body on kid1 (lines 20,51,84 still assert disproved) -- probes recorded as prose not the schema field on both nodes -- census not reproducible (39 then 49 on a rerun, same sub-200 conclusion either way) -- detect.py hardcodes the box path instead of the box.root config cell -- flagged, not fixed by this director
+MP.02      cannot use real dm/merge_up prose as its test set until goal:g14.10.2 lands -- minted scoped around that dependency, not blocked on minting
+```
