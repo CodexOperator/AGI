@@ -6120,6 +6120,8 @@ OWNER 05:4xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Can we also
 
 thought-master 07:3xZ 09-21: the versioning rule of 01:4xZ ('each change in trajectory is … a new node version. We should grid py crons active to record it') is LIVE -- grid cron records into refs/grid/local-maxxing/ (EF.02 + EF.07 + EF.08 + EF.09 + the master's cutover); every overwrite of doc:lm-town-trajectory is a version within one 5-min tick.
 
+belam gen 1 FIRST MERGE PASS 06:39Z-11:46Z 09-21 (owner 01:2xZ; numbers only): delta origin/season2/main cb21bf01d..trunk 8cf1eb4c9 = 616 commits · 66 experiment / 78 hypothesis nodes · 57 engine+config files · 0 node deletions -> mur agi-merge-up-review on pi/deepseek-v4.1-flash, 33 rounds (32 hypothesis + engine-delta) in 7 chunks of <=5 [serial runner ~15 min/stage: chunk 1 06:40Z; chunks 2-7 relaunched IN PARALLEL 08:45Z; all exited 11:44Z; peak RAM within the 3 GB claim, GPU untouched] -> 0 red · 28 accept_with_residue · 4 demote · 1 verify-empty -> MERGED --no-ff 0f336c890 (season2/main; tree identical to the trunk tip) -> verify in .agi/worktrees/prime-root: links 3788/0 broken · goals 209 byte-identical · smoke active 3585 / deprecated 223 / total 3808 (root was 3520 active: never dropped) · smoke left the tree clean -> pushed origin/season2/main = 0f336c890 -> grid commit --all there (background). Residues -> hypothesis:mur-0921-residue-batch-into-season2-main (the batch: per-round table, 4 demotes dispositioned) + code rounds hypothesis:send-undelivered-notice-lands-in-the-comms-root (send.py:2799 wrong root) + hypothesis:write-body-range-guard-is-fence-aware-and-clamped (write.py:2153/2220 fence-blind + IndexError), all parent goal:g15, assigned director-engine. The 06:39Z run also carried the re-minted belam key to origin/season2/main: Prime dms verify from here.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10655,6 +10657,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
 
 **First chunk.** None minted yet -- ordered explicitly by thought-master: DS.01 first (the one scrub, already queued), THEN this node's own capture chunk, THEN the jev classifier pass as its own batched rounds. Both later steps queue behind DS.01 landing.
 
+director-thought 06:5xZ 09-21 -- TMM.27 order: minted both hypotheses named in this node own First-chunk line -- hypothesis:lm-session-data-capture-lands-every-role-under-datasets-sessions (chunk 1, capture) and hypothesis:lm-jev-classifier-pass-adds-classes-the-graph-lacks (chunk 2, classifier). Both no-spend, both mintable-not-dispatchable: chunk 1 waits on goal:g14.14.8 (director-engine capture hook), chunk 2 waits on chunk 1.
+
 #### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10674,6 +10678,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
 **First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G14.11.1 the battery + reference, G14.11.2 the mvp/build/switch), same format, before any chunk runs.
 
 thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): the reference bar is MEASURED -- deepseek-v4.1-flash 93.9 pct HumanEval / 0.869 IFEval strict, same protocol as the local arms. HumanEval side of the switch: the Bonsai 2 27B line FIRES the 0.9x rule (B 92.2, C1 91.6, C2 92.9 pct relative); the Qwen3.5-9B line does NOT (83.1 / 84.4). IFEval side: OPEN until SWR.02 scores B, C1, C2 locally (A/A2 are out -- they fail HumanEval already). If B or C2 clears 0.9x on IFEval too, the switch rule is met and the chains mint the mvp (owner 21:5xZ 09-20); identical B vs C2 -> C2 (abliterated) per the prod rule. Cost fact for the mvp: the 27B decodes at 23 tok/s single stream in 7.3 GB -- the mvp's serving line must measure slots at a shorter ctx before any parent runs on it.
+
+thought-master 09:2xZ 09-21 (knowledge, SWR.02-B): the IFEval side of the switch costs ~2.1 GPU-hours per 27B arm at 21 tok/s single-stream (compute-bound; slots do not help), so B and C2 are two windows each; every IFEval number carries a +/-0.4 pp scorer floor; local evals must be single-stream to match the reference protocol. The switch decision on B needs 431 more prompts -- SWR-B.03.
 
 ##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
 
@@ -10863,6 +10869,8 @@ thought-master 05:1xZ 09-21 (knowledge, TEL.01): span fidelity is unmeasurable o
 
 thought-master 06:4xZ 09-21 (knowledge, TEL.02): for the Qwen3.5 family (IMROPE, 4 positions per embedding) KV spans are NOT position-portable in llama.cpp -- telepathy on this model line = same-prefix reuse (works, 0.093x prefill) + saved TEXT with a tail KV, never a shifted span. Consequence: chunk (1) is CLOSED on Qwen3.5 with the measured reason; chunk (2) the capture/surface tool builds on prefix reuse + text; and a TEL.03 census (0 USD, CPU/metadata) decides which candidates in the line are shift-capable at all (get_can_shift per GGUF: Bonsai 2 27B / Qwen3.8-27B hybrid attention, the 0.6B-4B small bases for G14.7.2) -- telepathy's swarm (chunk 4) needs one shift-capable family or stays prefix-only.
 
+thought-master 08:0xZ 09-21 (knowledge, TEL.03): a KV-shift SWARM (G14.15.2) cannot include the town's three bigger candidates under stock llama.cpp -- IMROPE families are not position-portable; only a 1.7B-class qwen3/NEOX member (Bonsai-1.7B, on the box) can join a real shift-based swarm today. Telepathy's path on this line: (a) same-prefix reuse (works, 0.093x prefill) + saved TEXT with tail KV for the big models; (b) a shift-based k=2 swarm PROTOTYPE on Bonsai-1.7B (the only shift-capable member) to prove the coordination mechanics cheaply before any bigger family is sought; (c) one probe: get_can_shift on the deployed prism fork (build 10685) -- if the fork differs, the census re-runs there.
+
 ##### G14.15.1 — SELF-TELEPATHY -- a captured KV span, shifted and re-injected at a later position, reproduces the same greedy continuation as re-prefilling the span text; the capture/surface tool; in-session KV RAG over captured spans (owner 01:3xZ 09-21) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10910,6 +10918,14 @@ director-thought 06:3xZ 09-21 -- TEL.02 landed, mur accept_with_residue: pure Ro
 **Done when.** One measured k=2 swarm result exists, proved or disproved.
 
 **First chunk.** None minted yet -- blocked on `goal:g14.15.1` (self-telepathy) landing its own chunks (1)-(3) first: a swarm needs the capture/surface tool and the ranking to already exist before k instances can exchange spans with each other. Queued behind G14.15.1's TEL.01 and whatever chunks (2)-(3) become.
+
+director-thought 08:0xZ 09-21 -- TEL.03 landed, mur accept_with_residue (mur-tel-03, 11/11 conjuncts, one line-citation fixed):
+```
+census      of the boxs 5 GGUFs: Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) CANNOT shift KV -- only Bonsai-1.7B (qwen3, NEOX) can. Qwen3.8-27B/0.6B/4B are simply ABSENT from the box, not measured
+implication a KV-span-exchanging swarm cannot include the towns three bigger local-maxxing candidates under stock llama.cpp @930e2fa -- they need the saved-TEXT-plus-tail-KV fallback same as g14.15.1s own chunks 2-3; only a 1.7B-class member could join a real KV-shift swarm today
+caveat      the CURRENTLY-DEPLOYED server has since switched to a prism fork (build 10685/7dffb158d), not the pinned stock upstream the census checked -- get_can_shift on that fork is unverified, flagged by the mur, not yet checked
+residue     one wrong upstream line number (3020 vs the real 3025) in the shared arch-chain-excerpts.txt + this rounds own table -- fixed in place, verdict itself was never affected (qwen3 stayed correctly in the NEOX group either way)
+```
 
 #### G14.16 — DIAGRAM-MAX + BATCH-MAX — every dm, note, card, board section and (where possible) thought stream on the town is ONE compact flow or table that carries MORE meaning in FEWER tokens than the prose it replaces, never dropping a negation, condition, attribution or supersession; directors batch-max (many rounds per order, one merge-up per batch) — status: active
 

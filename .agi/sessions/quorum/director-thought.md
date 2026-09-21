@@ -7,7 +7,7 @@ Role: HELPER under thought-master (POINT). Worktree `.agi/worktrees/post-directo
 merge    trunk (LOCAL ref if origin lags) before every dispatch/status check
 push     git push origin local-maxxing/season2/posts/director-thought/main:refs/agi/posts/director-thought -- after every landing (NOT a plain branch push; no origin/<this-branch> exists)
 comms    send.py resolves vs MAIN abs path, not cwd | kid nests under PARENT's OWN worktree .agi/sessions/iter-<ITER>/<kid-id>/, never top-level
-lines    production_lines = engine units only (.py etc); .txt/.jsonl never count
+lines    production_lines = engine units only (.py etc); .txt/.jsonl never count. Third-party/upstream reference source DOES count (TMM.27 ruling, on goal:g14.14) -- excerpt <= 40 lines with URL+commit+line, never copy a whole file in
 mur      poll systemctl --user is-active SYNCHRONOUSLY, ~30s sleep -- finishes in minutes, no future-nudge reliance
 memory   6G/kid ceiling | ONE model-loading kid on host at a time | GPU = one research round at a time
 scaffold create-left-unfilled hypothesis/goal -> fix in place from its own frontmatter, no round, no rebrief
@@ -19,9 +19,10 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~06:4xZ
- landed   TEL.02 accept_with_residue (mur-tel-02, 5/5 conjuncts, sha256-verified) -- DECISIVE: KV position-shift architecturally unavailable on qwen35 (IMROPE, n_pos_per_embd()==4, get_can_shift()==false); same-prefix reuse works but is a distinct weaker mechanism, honestly not conflated. inconclusive_lean_disproved:80 -- fallback (saved-TEXT-plus-tail-KV) now the live path for g14.15.1 chunks 2-3, noted there+hypothesis.
- fixed    ceiling residue (12107/40, 4 verbatim upstream .cpp reference files) -- deleted the redundant full copies (arch-chain-excerpts.txt already carries the same citations), harvest now reads clean. Also self-caught and corrected my own overclaim in the node (said I did a byte-for-byte diff; I only spot-checked -- the mur's verify stage did the real sha256 compare).
- next     🔴 send ONE merge-up dm (TEL.02 numbers + the ceiling-exemption question as a future-policy flag, not a decision) -- then idle, SWR.02-B is next in queue and not mine to dispatch
- traps    replace-body anchor guard caught 2 real mis-offsets this session (own node, twice), working as intended -- always widen to the FULL paragraph, not a single line, when it refuses
+2026-09-21 ~09:2xZ
+ landed   SWR-B.02 accept_with_residue (mur-swr-b-02, 7/7 conjuncts + 3 documentation defects, all fixed) -- T3+T2 done, T1 still pending (110/541). Rescued the resume path before its worktree could be reaped: ifeval_input_data.jsonl + ifeval_gen_armB.py + scrubbed equivalence-probe evidence now durably landed under datasets/switch-rule/2026-09-21/. Two real findings travel forward: batched decoding changes greedy tokens; the official IFEval scorer is itself non-deterministic (+/-0.4pp), a caveat on every IFEval number in this table including the reference.
+ blocked  SWR-B.03 (continuation, finish T1 only) dispatch REFUSED -- pool headroom $-3.93 again (other-town usage), NOT local-maxxing (spawn_budget 0/25, verified). Orders fully drafted, dry-run clean, ready to fire.
+ banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
+ next     retry SWR-B.03 dispatch when headroom clears; report the SWR-B.02 outcome to thought-master either way
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a Python comment starting with # inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override, long generations need multiple resumable hops · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell exactly like the backtick-in-double-quote trap -- write "does not" not "doesn't", check before sending
 ```
