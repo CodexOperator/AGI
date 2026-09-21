@@ -19,7 +19,7 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ## 🔴 Where it stops (diagram-maxed per owner 01:57Z / goal:g14 L236, relayed TME.-tag and 4ed44b119)
 ````
 ```
-SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up], so the push carries nodes+code together (TME.09 -- EF.04 is the first round this seat did correctly; EF.01/EF.02 were not, thought-master merged those three by hand).
+SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
 ROUND STATE, all MERGED to trunk:
   G14.14.7     inconclusive_lean_proved:70, accept_with_residue -- residue = EF.02b (next up)
@@ -28,7 +28,7 @@ ROUND STATE, all MERGED to trunk:
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-11, verified, latest wins): EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (comms: pubkey at keygen, busy-pane dm hook) -> 14.14.11 (agi-ingest workflow, propose-only unless mint:true) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-12, verified, latest wins): EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.1(d) NEW (node_writer writes BODY:BEGIN for --body-file nodes -- this seat's own EF.05 caveat, promoted) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 -> 14.14.11 -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
 NEXT ACTION: mint EF.02b's hypothesis under g14.14.7 (dry-run first, verify the 33 literal sites for real before writing the claim); dispatch when capacity allows.
 
