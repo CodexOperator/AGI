@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-62e2a798-0a7456
 next_edges: []
-edited_by: a00-54d8ae5a
+edited_by: a00-30f4b181
 line_ceiling: 40
 loop: goal:g7.31.2.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -26,7 +26,7 @@ verdict: inconclusive_lean_proved:85
 
 ## Experiment
 
-New file `extensions/agi/tests/test_rotate_pane_contract.py` (3 tests,
+New file `extensions/agi/tests/test_rotate_pane_contract.py` (4 tests,
 comment-labelled by falsifier class). Fixtures modelled on
 `test_rotate_boundary_rename.py` (faked `spawn_window` capturing `name=`,
 throwaway tmp_path, no live tmux). No existing file edited. No guessed
@@ -40,7 +40,7 @@ Base tip: `5d8d4c914`.
 
 ```
 $ python3 -m pytest extensions/agi/tests/test_rotate_pane_contract.py -q
-3 passed, 11 warnings in 2.38s
+4 passed, 22 warnings in 1.89s
 
 $ python3 -m pytest extensions/agi/tests/test_rotate_boundary_rename.py \
     extensions/agi/tests/test_rotate_templates.py \
@@ -67,9 +67,17 @@ contract: one `spawn_window` seam, successor holds the SAME plain name.
 
 Divergence from the inherited brief: the brief said the predecessor is renamed
 to `S.gen<N>`. The MEASURED tip renames to `<seat>.prev` for a non-prime seat
-(rotate.py ~18644, and ~18750 in the staged-rename branch; goal:g15.25 makes
-non-prime posts generation-less on every surface). The test asserts the
-measured, documented rename; the docstring at rotate.py:18122 still says
+(rotate.py ~18644 non-staged, ~18750 in the staged-rename branch; goal:g15.25
+makes non-prime posts generation-less on every surface). Both rename branches
+are now COVERED in `test_rotate_pane_contract.py`: conjunct 1 drives the
+non-staged `_rename_own_window` path (`test_pane_name_reused_across_rotate_self`),
+and conjunct 4 drives the staged-rename branch end to end
+(`test_staged_rename_spawns_successor_under_new_name_and_prev`: a real
+`.agi/sessions/seats/adv-alive.rename.json` staged through committed
+`rotate.cmd_rename_post`, then `cmd_rotate_self` applies it at (0.9) and the
+successor spawns under the post-rename name `adv-renamed`, with the window
+renamed to `adv-alive.prev` and the stage consumed). These tests assert the
+MEASURED, documented rename; the docstring at rotate.py:18122 still says
 `S.gen<N>` and is stale prose.
 
 ### Test 2 (gate/negative) — `test_rotate_has_no_per_harness_argv_builder`
@@ -90,6 +98,16 @@ on stderr: `ERR: no harness 'grok-bot' in config; declared: [...]`. So a
 grok-bot seat CANNOT rotate on this tip — it is refused BY NAME, not seated
 through a second argv builder. The prerequisite is `goal:g7.31.1`.
 
+### Test 4 (wire) — `test_staged_rename_spawns_successor_under_new_name_and_prev`
+
+The staged-rename branch (`_apply_staged` at the (0.9) boundary, gated on
+`.agi/sessions/seats/<seat>.rename.json`): a stage is written through the
+committed `rotate.cmd_rename_post`, `cmd_rotate_self` applies it before the
+spawn, and the successor arrives under the post-rename name `adv-renamed`
+while the predecessor window is renamed to `adv-alive.prev` (non-live seams
+rename the name the window ACTUALLY carries, `old`) and the stage is consumed.
+This is the coverage the earlier round cited but did not write.
+
 ### Verdict
 
 Both conjuncts of falsifier 1 hold on the built bytes: the successor reuses
@@ -97,7 +115,6 @@ the same pane contract through the single template seam, and THERE IS NO
 second argv builder (for grok or anyone). The one honest boundary is that a
 grok seat cannot yet be SEATED at all (no template) — a prerequisite gap, not
 a reinvention. `inconclusive_lean_proved:85`.
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (DH.18). Set the frontmatter verdict to match the node body's own honest conclusion (inconclusive_lean_proved:85). (1) Instruction: the experiment is the run; its verdict is what the parent weighs. (2) Machine: the frontmatter carried NO verdict field while the body closed 'inconclusive_lean_proved:85' -- a reader keyed on frontmatter would see no verdict at all. Set it. The two listed probes cover conjuncts 1 (wire) and 2 (gate); the parent added conjunct 3 (auth, real-root grok refusal) and the evidence-resolution probe on the hypothesis node. (3) Near miss: leaving the body's 85 as prose only, so the machine verdict stayed absent.
 <!-- THOUGHT:END -->
