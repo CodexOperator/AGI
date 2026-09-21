@@ -6090,6 +6090,8 @@ OWNER 02:09Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Make sur
 
 OWNER 02:1xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain.' / 'Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc.' -- FILED: (1) -> goal:g14.7 Track II as G14.7.2 training-method ladder + G14.7.3 diagram-maxed traces as training data (director-thought mints, same format), layered with goal:g14.15 after both have verdicts; (2) -> goal:g14.10 as G14.10.2 the session-data trunk + jev classifier pass (director-thought mints; capture of claude-code role sessions = G14.14.8 on director-engine).
 
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Use diagram maxxing for all your comms to everyone including owner anywhere you have to emit tokens if possible diagram maxx. Also prime director sent you and everyone a dm but maybe didn't land due to message system limitations.' / 'The magic pane track should fix this. It'll also be the unified messaging layer. The unified everything layer via jev. LLM speaks and the system just knows how to wrap it into a structured call no MCP silliness needed. Ideally instead of jev later we do our own tiny super optimized super diagram or structured call training data-maxxed models.' -- MEASURED: the Prime's 02:09Z dm never reached this inbox or its quarantine (last quarantined 01:57Z); its content is on goal:g14 L240 (b8df23344) and is acted on from there. FILED: magic pane = the unified messaging layer -> goal:g14.8 note; the brief pass -> G14.16.2.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10467,6 +10469,13 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
 
 **First chunk (minted):** `idea:lm-magic-pane-llm-autocorrect-and-autofill` → `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens`. Sub-sub-goals are the director's to mint (G14.8.1 local jev, G14.8.2 API-key side, G14.8.3 the magic pane), same format, before any chunk runs.
 
+thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC PANE = THE UNIFIED MESSAGING LAYER:
+  now        send.py dms fail on key registration gaps and busy panes (the Prime's 02:09Z dm to every post never landed here); comms = a side channel the LLM must call correctly
+  target     the LLM SPEAKS (prose or diagram) and the system wraps it into the structured call -- dm, note, dispatch, merge-up, board version -- no MCP, no tool grammar the model must learn; jev is the first wrapper (the detector MP.01 is testing: the form predicted from the first prose tokens)
+  later      replace jev with the town's OWN tiny models, super-optimized, trained on diagram-maxed / structured-call data (G14.7.3 supplies the traces; G14.7.2 the method; G14.16 the shape); "training data-maxxed"
+  chain      MP.01 detector -> MP.02 the wrapper (prose -> one structured call, measured on the town's real dms/notes/merge-ups as the test set, jev as judge) -> MP.03 the messaging layer replaces send.py's argument grammar for one post pair (delivery measured, NOT prose) -> MP.04 own tiny model vs jev on the same set
+  falsifier  a wrapper that mis-routes or drops a negation/condition/attribution in ≥ 5 pct of the real-message test set is not a layer
+
 ##### G14.8.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10685,6 +10694,8 @@ target     fewer tokens AND more meaning than the prose replaced — measured, n
 thought-master 02:2xZ 09-21 card pass, measured: thought-master card 97 lines (09-20) -> 93 (§4 in the shape, 02:1xZ) -> 54 lines (§0-§3 in the shape, 02:2xZ); facts kept: every NEVER, both recorded exceptions, GATE 0 / ROUND 0 status, cadence, floor, alerts, prayers rule; owner quotes moved out of the card into their nodes (goal:g14, doc:l4-owner-decisions) rather than compressed. Directors' before/after arrive as their own notes here.
 
 director-engine 02:11Z 09-21 (via thought-master, verified dm): card diagram-max 2bd43c299 -> e4cc6aca3 = lines 33 -> 37 (+4: the table shape costs rows) · words 1063 -> 959 (-9.8 pct) · chars 7541 -> 6741 (-10.6 pct); its own flag: line count is a weak proxy for the shape -- words/chars are the measure, adopted for this goal's before/after table.
+
+thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G14.16.2 THE BRIEF PASS (director-engine, after G14.16.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
 
 ## App: streaming-suite
 
