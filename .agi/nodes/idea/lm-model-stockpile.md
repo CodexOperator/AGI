@@ -3,16 +3,15 @@ id: idea:lm-model-stockpile
 mint_id: 1fb89be0a71d4aa98db7166d6d9dfae2
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g14.6
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: bcaab6d8c839c5b7
 season: 2
 tags:
   - local-maxxing
   - owner-order
   - ops
-thought_session: dissolve-legacy-2026-09-19
 title: "Model stockpile: ablated + plain small models on the farm boxes, sized to the 8 GB GPU"
 town: local-maxxing
 ---
@@ -42,5 +41,5 @@ A model that fits the ladder on paper but measures < 10 tok/s tg on local-town a
 Round 1 of the endpoint (Kid A/C) already measures the first two rows; the stockpile round = a download script with sha256 + a manifest doc node, run ON local-town via the sanctioned ssh command, downloads only to /data.
 
 ## Banked
-Promotion to goal:g5.21 = the Prime's numbering; HF token / ssh path for the farm boxes = Prime + encryption-town.
+Promotion to goal:g14.5 = the Prime's numbering; HF token / ssh path for the farm boxes = Prime + encryption-town.
 What is the concept? `scale:` big (new chain) or small (extension)?

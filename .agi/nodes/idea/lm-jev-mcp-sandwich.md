@@ -3,12 +3,11 @@ id: idea:lm-jev-mcp-sandwich
 mint_id: 6cc72c9cc13043b8b08518061dc040f4
 type: idea
 parents:
-  - goal:g5.6
+  - goal:g14.8
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: e19d2c3a53eeaa92
 season: 2
-thought_session: dissolve-legacy-2026-09-19
 title: "jev-MCP sandwich: a typed-decision layer before and after MCP that suggests, then auto-dispatches with an undo window, the next tool call"
 town: core
 ---

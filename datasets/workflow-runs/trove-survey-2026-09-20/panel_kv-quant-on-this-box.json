@@ -1,0 +1,270 @@
+{
+ "angle": "Can TurboQuant+-class KV quantization run inside llama.cpp on an 8 GB CUDA GPU (RTX 2070 SUPER, sm_75, local/free) or on ggml-cpu, and what is the smallest measurable first step (one branch, one kernel, one benchmark line)? Smallest step found: upstream llama.cpp master already carries Hadamard KV rotation (#21038) + CPU FWHT (#22631) per the repo's self-report, so the first measurement is a CPU-only llama-perplexity KLD run of q4_0+rotation vs plain q4_0 -- no fork, no new kernel, ~1 CPU-hour, 0 USD. Every other chain is gated on that or on a CPU reference port; the single justified Camber burst is a cross-architecture attribution A/B, nothing else.",
+ "chains": [
+  {
+   "chain_title": "A. Rotation-only on ggml-cpu: the zero-fork first step (does upstream already give most of turbo4 for free?)",
+   "why_this_first": "It is the cheapest decisive test in the whole trove and it needs no TurboQuant fork and no GPU: build upstream master CPU-only, turn rotation on, run one benchmark line. The critique named this the strongest seed (confidence 0.62, tq-main) and the strongest CPU seed (tq-exp-speed). Both a pass and a fail transfer to the town's CPU-first aim: pass -> KV compression is deployable on ordinary RAM today; fail -> rotation is not first-order on CPU and the codec must actually be ported. Every later chain's cost depends on this answer.",
+   "hypotheses": [
+    {
+     "id": "A1",
+     "claim": "MEASURED only as a repo self-report (turboquant_plus README.md, main@ba52ad1 2026-07-20): llama.cpp upstream merged Hadamard KV rotation (#21038) plus FWHT kernels CPU #22631 / CUDA #23615. The falsifiable claim here is narrower: that code path is REACHABLE on a CPU-only build (an env knob or runtime flag turns rotation on for the KV cache). ESTIMATE ~1 CPU-hour to settle.",
+     "falsifier": "The rotation symbols exist only under the Metal/CUDA backend (no ggml-cpu call site in the KV-cache/attention path), or no env knob/flag can turn KV rotation on in a CPU-only build.",
+     "experiment": "On the 4-core ARM box: clone upstream llama.cpp; `cmake -B build -DGGML_CUDA=OFF -DGGML_METAL=OFF`; grep the KV-cache and attention source for the rotation/FWHT op and for the LLAMA_ATTN_ROT_K_OVERRIDE / _V_OVERRIDE knobs; run `llama-perplexity --help` and one 512-ctx run with rotation on and off.",
+     "hardware": "this box CPU (4-core ARM, 23 GB, ~7 GB free)",
+     "est_cost": "~1 CPU-hour, 0 USD",
+     "builds_on": "none",
+     "knowledge_if_fails": "The premise 'upstream already has it' is a source self-report, not a measurement (flagged in critique-tq-main). A fail closes the zero-effort CPU path and forces all CPU KV work through the fork's C code -- a redirect that saves weeks of assuming otherwise."
+    },
+    {
+     "id": "A2",
+     "claim": "MEASURED on Metal (docs/papers/eden-optimal-s-revisit.md): rotation choice is first-order, codebook second-order. Transferred claim: on a <=2B Qwen3.5 model, q4_0 KV + upstream rotation recovers >=50% of turbo4's KLD margin vs q8_0 at 512 and 4096 ctx, and corpus PPL does not invert the KLD ranking.",
+     "falsifier": "Rotated q4_0 KLD fails to beat plain q4_0 by half the turbo4 margin, OR PPL and KLD disagree in sign on any config pair (the gemma-class inversion the repo documents).",
+     "experiment": "llama-perplexity with --kl-divergence on wikitext-2 (8 chunks) for f16 / q8_0 / q4_0 / q4_0+rotation at 512 and 4096 ctx; record PPL and KLD side by side.",
+     "hardware": "this box CPU",
+     "est_cost": "1-2 CPU-hours, 0 USD",
+     "builds_on": "A1",
+     "knowledge_if_fails": "Rotation is not the first-order effect on real CPU KV; the codebook/block format carries the gain, so a CPU port must port the codec, not just the rotation. This is the exact question the repo's own MSE-vs-KLD paper says must be settled by KLD, not PPL."
+    },
+    {
+     "id": "A3",
+     "claim": "MEASURED (docs/experiment-context-scaling-fix.md, on main): group-32 WHT rotation destroyed quality (PPL 7.06 vs target 6.19) and 128-element groups are required for real KV. Transferred claim: the same group-size constraint holds on ggml-cpu.",
+     "falsifier": "Group-32 rotation is within 1% KLD of group-128 on the same model/context.",
+     "experiment": "CPU KLD for group-128 vs group-32 rotation, same model/ctx; report decode tok/s for each (group-32 is cheaper to unpack).",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "A2",
+     "knowledge_if_fails": "Pins the port's block layout. If group-32 is fine on CPU the port gets ~4x cheaper unpacking; if not, block-128 is mandatory and the pre-M5 byte-spanning 3-bit cache-thrash risk (documented at 10x+ decode collapse) returns as a first-class CPU hazard."
+    },
+    {
+     "id": "A4",
+     "claim": "FWHT rotation costs <=5% CPU decode and <=10% CPU prefill vs no rotation, because it is O(d log d); the fork's plan (docs/upstream-pr-plan.md) currently specifies a dense O(d^2) C rotation instead.",
+     "falsifier": "Rotation-on decode <0.85x rotation-off, or prefill <0.90x.",
+     "experiment": "llama-bench pp512/tg128 with rotation on/off at 2K and 4K; record tokens/s and peak RSS.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "A2",
+     "knowledge_if_fails": "Decides whether the CPU port may use the dense O(d^2) rotation the fork's plan specifies or must implement FWHT -- a concrete engineering fork worth ~1-2 days of work avoided or committed."
+    },
+    {
+     "id": "A5",
+     "claim": "Rotation-only q4_0 at 4K cuts KV RSS ~2x vs q8_0 at equal KLD, letting the 4-core ARM box (~7 GB free) serve roughly twice the context.",
+     "falsifier": "No measurable RSS / KV-MiB win at equal KLD, or quality >1% KLD worse.",
+     "experiment": "Measure llama-server KV MiB and peak RSS for q8_0 vs q4_0+rotation at 4K and 8K, matched on KLD.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "A2",
+     "knowledge_if_fails": "Quantifies or kills the entire CPU KV thread's payoff on ordinary RAM -- the town's actual constraint. A null result here means KV compression is not the town's memory lever and the budget should move to weights/context scheduling."
+    }
+   ]
+  },
+  {
+   "chain_title": "B. Does the TurboQuant codec itself run on ggml-cpu (not just its rotation primitive)?",
+   "why_this_first": "If chain A passes, the town still needs to know whether the full MSE-only PolarQuant codec ports to CPU at all, because the repo has ZERO .cpp/.cu/.metal (verified 0 of 245 tracked files; critique-tq-exp-structure). This chain builds the smallest CPU artifact -- one C reference of one block type -- and measures it against the repo's own correct Python codebook, including the centroid-table bug the repo already paid for.",
+   "hypotheses": [
+    {
+     "id": "B1",
+     "claim": "The upstream FWHT CPU kernel (#22631) is callable as a standalone primitive (ggml op or a small C harness) and matches turboquant/rotation.py fast_walsh_hadamard_transform on random d=128 to float tolerance.",
+     "falsifier": "The FWHT CPU kernel is not exposed outside a Metal/CUDA op, or its output diverges from the Python WHT by more than 1e-3.",
+     "experiment": "Build ggml-cpu; call the FWHT op on a fixed d=128 random vector; diff against the Python reference in turboquant/rotation.py.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "A1",
+     "knowledge_if_fails": "If not callable, the port must ship its own FWHT -- a real work item the upstream-pr-plan currently assumes away (critique-tq-main flagged this as an unverified premise)."
+    },
+    {
+     "id": "B2",
+     "claim": "A standalone C reference of block-32 MSE-only PolarQuant + WHT reproduces the Python codebook's per-coordinate MSE within 1%, and passes the pinned centroid test (outer 0.24021 for 4-bit d=128) from tests/test_codebook.py.",
+     "falsifier": "MSE divergence >5%, or the C table reproduces the known bug (outer ~0.1739) instead of 0.2402.",
+     "experiment": "Port turboquant/codebook.py and polar_quant.py to one C file; run the pinned-centroid conformance test; compare per-coordinate MSE against the Python reference.",
+     "hardware": "this box CPU",
+     "est_cost": "1-2 CPU-days engineering, 0 USD",
+     "builds_on": "B1",
+     "knowledge_if_fails": "Pins the correct 4-bit centroid table in C and gives the port a conformance test -- the exact failure the repo already measured as a ~2.1x excess MSE and ~33% KLD inflation (docs/turbo4-rematch-2026-06.md). Even a fail is a reusable test."
+    },
+    {
+     "id": "B3",
+     "claim": "The C block-32 codec, wired as q8_0-K + turbo-V, gives a CPU llama-perplexity KLD within +1% of q8_0 on a <=2B model -- the first MEASURED CPU turbo KV quality number in the town.",
+     "falsifier": "KLD regression >3% vs q8_0, or the asymmetric V path emits corrupt output.",
+     "experiment": "Wire the C block into the llama.cpp KV path (or a Python attention simulation if the wire is too large), run KLD at 512/4K and a 30-prompt REFRACT-lite KLD axis on the same model.",
+     "hardware": "this box CPU",
+     "est_cost": "2-4 CPU-days (simulation) / 1-2 CPU-weeks (real wire); 0 USD",
+     "builds_on": "B2",
+     "knowledge_if_fails": "A clean CPU turbo KV quality number exists nowhere in the trove (every published number is Metal/CUDA/HIP). If it fails, the CPU deployment path is dead and the town falls back to q8_0/q4_0+rotation; if it passes, 4.6x-smaller KV on ordinary RAM is unlocked."
+    },
+    {
+     "id": "B4",
+     "claim": "The asymmetric corruption bug -- V dequant ops gated on k->type, reported 2026-04-02 to emit literal U+003F '?' on Qwen3.5-122B (docs/papers/asymmetric-kv-compression.md) -- is engine-generic and reproduces on the CPU asymmetric path, or does not.",
+     "falsifier": "Literal '?' characters appear in a 200-token greedy CPU generation with q8_0-K/turbo3-V, where symmetric turbo3 is clean.",
+     "experiment": "Greedy-generate 200 tokens with q8_0-K/turbo3-V and with symmetric turbo3 on a <=2B Qwen; grep output bytes for U+003F and compare to a q8_0/q8_0 control.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "B3",
+     "knowledge_if_fails": "Either confirms the corruption is engine-generic (not Metal-specific) -- a critical safety finding for the town's Qwen-family serving -- or clears the CPU asymmetric path. This is the single most load-bearing omission the critique found in the trove, so a negative result is high-value."
+    }
+   ]
+  },
+  {
+   "chain_title": "C. 8 GB CUDA / sm_75 (RTX 2070 SUPER, local, free): does the fork's kernel transfer to Turing?",
+   "why_this_first": "The GPU box is the one with a free 8 GB CUDA device already carrying a PrismML sm_75 fork and the Bonsai segments on disk (MEASURED, read-bonsai2-small-gpu). The nearest measured CUDA point is an RTX 3090 (Ampere, 0.96x turbo3 decode on Qwen3.5-9B Q4_K_M); Turing's smaller L2 and possible VEC fallback are uncharacterised. This chain runs entirely on the local card at $0 and reserves Camber for exactly one attribution A/B (C4).",
+   "hypotheses": [
+    {
+     "id": "C1",
+     "claim": "TheTom/llama-cpp-turboquant (or the signalnine CUDA fork) builds for compute_75 with host nvcc 12.0 (MEASURED on this box: nvcc 12.0.140, driver 595.84, CUDA 13.2) and loads a turbo3/turbo4 KV cache, without silently falling back to VEC.",
+     "falsifier": "Build fails for compute_75, or cuobjdump SASS shows no turbo symbols (VEC fallback), or the model loads but the KV type is rejected.",
+     "experiment": "Build with -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=75; `cuobjdump --dump-sass` and grep for turbo/FWHT kernels; load a turbo3 model and read the backend log.",
+     "hardware": "8GB CUDA box (2070S sm_75, local/free)",
+     "est_cost": "1-2 h build + 10 min load, 0 USD",
+     "builds_on": "none",
+     "knowledge_if_fails": "Settles Turing support status. If no, the 8GB CUDA path needs a kernel port, not a build -- and the RTX 3090's 0.96x cannot be assumed for any sm_75 card. This is the fork's own open question (does the fused GQA-packed MMA path apply to sm_75?)."
+    },
+    {
+     "id": "C2",
+     "claim": "On the 2070S with Qwen3.5-9B Q4_K_M, turbo3 KV reaches >=0.85x q8_0 decode and >=0.95x prefill at 4K-8K (the centroid-LUT penalty that costs 12-16% on Apple Metal is smaller on CUDA constant memory).",
+     "falsifier": "turbo3 decode/q8_0 <0.85x at 8K.",
+     "experiment": "llama-bench pp512/tg128 and pp8192/tg128 for q8_0, turbo3, and q8_0-K/turbo4-V; plus llama-perplexity --chunks 8 for PPL/KLD. Compare to the RTX 3090 row in docs/benchmarks.md.",
+     "hardware": "8GB CUDA box (2070S, local/free)",
+     "est_cost": "<1 h, 0 USD",
+     "builds_on": "C1",
+     "knowledge_if_fails": "Sizes the LUT penalty on Turing and answers whether the 8GB box gets KV compression for free or pays a decode tax. If the tax is >15% at 8K, KV compression is a memory-only trade on this card and must be sold as context, not speed."
+    },
+    {
+     "id": "C3",
+     "claim": "Sparse V dequant (skip V dequant where softmax weight <1e-6; MEASURED +22.8% decode at 32K on Metal, +5% on plain q8_0) gives >=10% decode at 32K on Turing, i.e. the single biggest decode lever is vendor-general.",
+     "falsifier": "Sparse-V delta <5% at 32K on the 2070S.",
+     "experiment": "llama-bench / llama-server at pp32768+tg128 with sparse-V on vs off, turbo3/turbo3 and a q8_0 control.",
+     "hardware": "8GB CUDA box (2070S, local/free)",
+     "est_cost": "<1 h, 0 USD",
+     "builds_on": "C2",
+     "knowledge_if_fails": "Either confirms the biggest decode lever transfers across vendors (a near-free 32K speedup for the 8GB box) or shows it is a Metal-specific constant-cache artifact."
+    },
+    {
+     "id": "C4",
+     "claim": "The Turing decode gap is architecture (sm_75 VEC fallback / small L2), not the kernel: the same gguf + same build on a modern-arch 24 GB card shows >=0.95x turbo3/q8_0 at 8K while the 2070S shows <=0.85x.",
+     "falsifier": "The 24 GB modern-arch card shows the same <=0.85x (kernel-bound, not arch), or the 2070S shows >=0.95x (no arch gap to attribute).",
+     "experiment": "ONE A/B: llama-bench pp8192/tg128, q8_0 vs turbo3, same gguf, on a Camber XS 24 GB instance; diff against the 2070S number from C2. Single burst, one binary, one model, one line.",
+     "hardware": "Camber XS 24GB -- 10-30 min burst (the ONLY justified Camber spend)",
+     "est_cost": "~20 min of the 3 GPU-h/month budget, plus ~1 GB model transfer",
+     "builds_on": "C2",
+     "knowledge_if_fails": "Decisive attribution either way: Turing needs a kernel fix (arch gap) or the kernel itself is the ceiling (no arch gap). Both stop future guessing and the answer transfers to every sm_75/sm_86 card the town will touch. This is the one question that cannot be answered on the 2070S alone."
+    },
+    {
+     "id": "C5",
+     "claim": "At equal KLD, a q8_0-K + turbo-V config fits a context on the 2070S that q8_0/q8_0 cannot, under the MEASURED 7786 MiB usable VRAM (Bonsai 27B header: 16 of 64 layers carry KV; q4_0 KV at 64K measured 7266 MiB on a 3060).",
+     "falsifier": "No config fits at equal KLD that q8_0 rejects, or quality is >2% KLD worse.",
+     "experiment": "Analytic KV sizing from verified bits/val, then one 8K and one 32K load; record KV MiB, max ctx, and KLD for q8_0 vs asymmetric turbo.",
+     "hardware": "8GB CUDA box (2070S, local/free)",
+     "est_cost": "analytical <1 h; validation ~30 min, 0 USD",
+     "builds_on": "C2",
+     "knowledge_if_fails": "Answers the town's core 8GB question: does KV compression actually buy context on this card, or only theoretical bytes? A null result redirects the 8 GB effort to weight quantization (the PrismML PTQ1_0 path) and context scheduling."
+    }
+   ]
+  },
+  {
+   "chain_title": "D. The oracle is the experiment: KLD vs PPL vs routing-TV on CPU before any KV config is believed",
+   "why_this_first": "The trove's own strongest methodological finding is that MSE is adversarial and corpus PPL ranks KV configs BACKWARDS on instruct models (docs/papers/why-mse-fails-for-kv-quantization.md; attn-rotation-and-ppl-artifact.md). Every chain above cites PPL somewhere. This chain makes the town's measurement currency explicit and CPU-cheap first, so A/B/C results are not read through a broken oracle. It is a prerequisite, not an add-on.",
+   "hypotheses": [
+    {
+     "id": "D1",
+     "claim": "On the town's Qwen-family tiny models, corpus PPL and KLD-vs-fp16 agree on the ranking of {q8_0, q4_0, q4_0+rotation, turbo3}; the gemma-class sign inversion does not occur.",
+     "falsifier": "Spearman <=0 between PPL and KLD, or a sign inversion on any config pair.",
+     "experiment": "llama-perplexity PPL plus --kl-divergence on a <=2B model, 512 ctx, 8 chunks; rank the four configs by each and compare.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "A1",
+     "knowledge_if_fails": "If they disagree, PPL is banned as the town's KV oracle and every prior PPL-only number in the trove must be re-read; if they agree on Qwen, the town may keep the cheaper oracle for that family while distrusting it on gemma-class."
+    },
+    {
+     "id": "D2",
+     "claim": "Routing-side TV (Villines probe) computed on CPU predicts the KLD ranking of 4-5 KV configs at a fraction of the cost, converting the 19.3k-line probe from a diagnostic into a reusable pre-screen.",
+     "falsifier": "Spearman(TV, KLD) <=0.5, or TV ranks the best config worst.",
+     "experiment": "Run villines-probe/tv_vs_ppl.py on CPU for fp16 / turboMSE5 / turboMSE3 / biassub configs, seq 512-1024, and correlate TV with the llama-perplexity KLD from D1.",
+     "hardware": "this box CPU",
+     "est_cost": "<1 CPU-hour",
+     "builds_on": "D1",
+     "knowledge_if_fails": "The probe's central 'ghost PPL' claim has NO committed measurement (critique-tq-exp-temporal). A fail demotes 19.3k lines of JSON to a diagnostic; a pass gives the town a minutes-per-config CPU screen instead of hours-per-config KLD runs."
+    },
+    {
+     "id": "D3",
+     "claim": "The asymmetric corruption bug is detectable by KLD/TV before it is visible as literal '?' characters, i.e. a corrupt config shows a KLD spike relative to its clean symmetric twin.",
+     "falsifier": "The corrupt config has a normal KLD (indistinguishable from the clean config).",
+     "experiment": "Same 200-token greedy generation as B4 plus per-token KLD vs the fp16 reference; compare the corrupt and clean configs.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "D2",
+     "knowledge_if_fails": "Gives the town a cheap runtime guard for its serving loop (or proves the corruption is silent and only human reading catches it -- a far more dangerous result that must be published as such)."
+    }
+   ]
+  },
+  {
+   "chain_title": "E. Frankly touching the spiking / coupled-oscillator / byte-neuron thread (mostly a kill-test)",
+   "why_this_first": "The owner asked for this thread explicitly, and the trove already contains the bytes to kill or crown it at ~5 CPU-minutes. The dead-head coherence paper's own bundle shows the K_c=0.96 threshold is a label on a smooth ranking (base-rate lift 1.0001 on Qwen2.5-0.5B; the single most damaging head has z=-0.078; precision rises monotonically through 0.96). The town should read its own frozen artifact before spending on any oscillator experiment, and only then ask whether a byte-neuron representation has a KV application. Two hypotheses here are kill-tests; two probe real bridges.",
+   "hypotheses": [
+    {
+     "id": "E1",
+     "claim": "KILL-TEST: the dead-head K_c = 0.96025 threshold is not a critical point -- precision/safe-recall are smooth through 0.96 and Spearman(z_h, delta_loss) is near zero on the bundled Qwen2.5-0.5B 468 KB artifact.",
+     "falsifier": "A discontinuity (precision or safe-recall jump) at 0.96 in the frozen artifact.",
+     "experiment": "Parse data/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json with python3; sweep chi over 0.2..4.0; compute dead-precision, safe-recall, and Spearman(z_h, delta_loss) over the 336 heads.",
+     "hardware": "this box CPU",
+     "est_cost": "~5 min, 0 USD",
+     "knowledge_if_fails": "If a knee exists, the coherence equation earns a place and the oscillator thread is alive; if not (the critique already computed lift 1.0001 and Spearman +0.268), the town stops spending on the Kuramoto/BKT framing for pruning -- a large saved budget, and the thread reduces to 'rank heads by coupling', which D1 already covers."
+    },
+    {
+     "id": "E2",
+     "claim": "Level-2 GQA compaction (drop a KV group only if EVERY query head sharing it is dead) is the only dead-head mechanism that touches KV bytes, and its yield is combinatorially gated by group size: Qwen2.5-0.5B g=7 yields 3/48 groups; the town's live question is Qwen3-0.6B g=2 (224 groups).",
+     "falsifier": "A tiny model with g=2 yields >=15% KV-byte reduction at DeltaLoss <=0.5.",
+     "experiment": "Apply the frozen per-head deltas plus the HF config GQA grouping to Qwen3-0.6B (16 q / 8 kv / head_dim 128 / 28 layers); compute fully-dead groups and bytes/token arithmetic; no GPU.",
+     "hardware": "this box CPU",
+     "est_cost": "<1 CPU-hour",
+     "builds_on": "E1",
+     "knowledge_if_fails": "Decides whether the dead-head thread can pay the town's bytes/token ledger on its ACTUAL models. The one MEASURED win (SmolLM2 g=3, KV -27.5% at +0.53 nats) needs small g; if g=2 Qwen3-0.6B also fails, the thread is a ranking tool, not a memory lever."
+    },
+    {
+     "id": "E3",
+     "claim": "KILL-TEST: a byte-neuron / 1-bit-per-tick spiking encoding of K is not competitive with scalar quantization at equal bits -- i.e. 'neuron-as-byte' is a different compute substrate, not a better KV quantizer.",
+     "falsifier": "A byte/bit-order encoding of K beats turboMSE3 on routing TV at <=3 bpw on the same captured K.",
+     "experiment": "Capture K from a tiny model on CPU; encode with (a) the E3 bit-order / spike-count scheme (context/local-maxxing/e3, bend LIF) and (b) turboMSE3; compare routing TV and inner-product error at matched bpw.",
+     "hardware": "this box CPU",
+     "est_cost": "~2 CPU-hours",
+     "builds_on": "E1",
+     "knowledge_if_fails": "Either the owner's byte-neuron representation earns a concrete KV application (large), or we learn it is a compute substrate whose value must be measured in spikes/FLOPs, not bits -- and stop trying to fold it into the KV thread. Both outcomes are knowledge; neither is a loss."
+    },
+    {
+     "id": "E4",
+     "claim": "A coupled-oscillator map (the dead-head paper's S^1 coupling, Kuramoto/Lohe) can generate the rotation matrix at lower cost than a stored dense rotation, with no TV regression vs the fixed WHT at d=128.",
+     "falsifier": "Oscillator-generated rotation gives >=0.1 higher TV at matched bits than fixed WHT.",
+     "experiment": "Generate a rotation from the S^1 coupling at d=128 in numpy; run the same quantize/TV harness as E3 against the fixed WHT.",
+     "hardware": "this box CPU",
+     "est_cost": "~1 CPU-hour",
+     "builds_on": "E3",
+     "knowledge_if_fails": "This is the one concrete bridge the owner's oscillator thread and the KV thread could share. A fail closes the 'generate rotations from dynamics' hope cheaply; a pass would connect two of the town's threads with a measured mechanism."
+    },
+    {
+     "id": "E5",
+     "claim": "COALESCENCE SEED: coherence/pruning and KV-quantization are two ends of one bit-allocation problem -- head-level capacity (prune) and token-level precision (quantize) compose rather than compete.",
+     "falsifier": "Composed prune+quantize is worse than either alone at equal bytes (they interfere), or the composed ranking is unstable across seeds.",
+     "experiment": "CPU proxy on a tiny model: rank heads by z_h, drop the lowest-k, quantize remaining K to turboMSE2, measure routing TV vs each lever alone at matched bytes.",
+     "hardware": "this box CPU",
+     "est_cost": "2-3 CPU-hours",
+     "builds_on": "E2, D2",
+     "knowledge_if_fails": "Tells the town whether to treat its threads as ONE budget (the owner's stated ambition) or as separate tracks. A null result is the honest answer that prevents a rhetorical coalescence with no measured currency."
+    }
+   ]
+  }
+ ],
+ "coalescence_points": [
+  "A + B -> CPU deployment decision (2nd-order set). A says whether rotation-only suffices on ggml-cpu; B says whether the full codec ports. Coalesce into one fork with a single measured criterion: 'KLD within +1% of q8_0 at <=0.85x decode on the 4-core ARM box'. Outcomes: rotation-only-deployable | codec-port-needed | CPU-turbo-dead. No MVP until this set has one number.",
+  "B + C -> one codec, two backends (2nd-order set). If the same block-32 format + one pinned centroid table yields identical KLD on ggml-cpu and on sm_75 CUDA, the town gets a single source of truth for KV quantization. Test: the pinned 4-bit centroid table (0.2402) and the B2 conformance test run against BOTH backends.",
+  "A + C -> rotation-first-order across both iron. Run the identical rotation-only q4_0 KLD comparison (A2) on CPU and on the 2070S (C2). If both show the same >=50% recovery, rotation is a substrate-independent first-order effect and the town can spend its port budget on the codec, not the rotation.",
+  "D + E -> one oracle for representation vs quantization (2nd-order set). D2's routing TV becomes the common currency to judge E3's byte-neuron encoding against turboMSE3 at equal bits, and E5's composed prune+quantize. Without D first, E's comparisons have no shared scale; with D, the town can ask 'which representation wins at equal bits' as one measured question.",
+  "E + owner's KV thread -> one bit-budget across heads, tokens, and ticks. E2 (GQA group death), E5 (prune+quantize composition), and the KV chain's per-token precision schedule are the same resource. Coalesce into a 2nd-order hypothesis: 'a single bytes/token budget allocated across head capacity, KV precision, and (if E3/E4 survive) oscillator/byte representations'. Only pursue after E1's kill-test and D2's oracle are settled."
+ ],
+ "critique_of_owner_plan": [
+  "FRANK #1 -- 'qwen3.8 50b' does not exist. The sibling trove source (read-bonsai2-small-gpu, MEASURED) resolves the Bonsai 2 base to Qwen3.8-27B (unsloth/Qwen3.8-27B-UD-Q4_K_M.gguf, sha256 pinned) and the town's own bench names Qwen3.8-35B-A3B; no 50B id appears anywhere. The owner is chasing a misremembered id. Resolve to 27B/35B before any config claim is made; a config claim against a nonexistent checkpoint is unfalsifiable.",
+  "FRANK #2 -- the plan is CPU-first but the entire TurboQuant trove has ZERO CPU kernel, and the fork's 'CPU production' is a repo self-report (critique-tq-main: the upstream-merge facts are the repo's own README lines 3/16, not independently verified; upstream-pr-plan.md lists CPU llama-bench and end-to-end CPU validation as NOT YET done). The smallest real first step is upstream rotation-only (chain A), not porting the codec. Betting the KV thread on the fork's CPU claim before measuring it is the plan's largest unforced risk.",
+  "FRANK #3 -- 'many hypotheses in parallel, coalesce before MVP' will be rhetorical, not measured, because the KV thread and the spiking/oscillator/byte-neuron thread share no currency: KV work scores in KLD/TV, the neuron work in spike counts. Coalescence requires ONE oracle first. Chain D (KLD + routing TV on CPU) should be the town's first paid-for result, before any oscillator or byte-neuron experiment; otherwise E's comparisons are unfalsifiable and the coalescence points above are just prose.",
+  "FRANK #4 -- the dead-head coherence framing (K_c = 0.96025) is already falsified by the source's own frozen bytes: precision rises monotonically through 0.96, base-rate lift is 1.0001 on Qwen2.5-0.5B, and the single most damaging head has z=-0.078 (critique of dead-head.md, computed). Planning more Kuramoto/BKT work before running the ~5-minute CPU sweep of the existing 468 KB artifact is spending tokens on a dead idea. Read the artifact first; the sweep should gate all oscillator spending.",
+  "FRANK #5 -- the plan conflates the 8 GB 2070 SUPER (local, free) with the Camber 3 GPU-h/month budget. Almost every decisive KV test fits on the 2070S or the ARM CPU at $0. The ONLY justified Camber burst is chain C4: a single cross-architecture attribution A/B (one binary, one model, one llama-bench line) to separate Turing sm_75 VEC fallback from a kernel ceiling. Bank the remaining ~2h40m; do not spend Camber on quality sweeps that the local card can run.",
+  "FRANK #6 -- the presumed safe default for the town's Qwen models (asymmetric q8_0-K + turbo-V, the trove's 'dominant reusable finding') is contradicted inside its own source: the 2026-04-02 correction reports literal U+003F '?' output on Qwen3.5-122B, vLLM raised value bits 4->8 because V dominates, and @Madreag reports 'K precision matters less than V precision' (critiques of tq-main and tq-exp-structure). Qwen is exactly the sensitive family. Any chain touching this config MUST carry a corruption check (B4/D3) as a first-class falsifier, not an afterthought -- otherwise the town ships a config its own evidence says can emit garbage.",
+  "FRANK #7 -- 'maximize KNOWLEDGE per token, failures included' is stated as the moral but the plan has no per-experiment kill criterion or stop rule. The repo already paid for unbounded chain-padding (TODO.md H3: 9 chains x 2000 hops carrying no signal). Every chain here therefore pre-registers a falsifier and a stop condition; the plan should adopt the same, or the 'many hypotheses' instruction will re-create the hop-padding failure it is meant to avoid."
+ ]
+}

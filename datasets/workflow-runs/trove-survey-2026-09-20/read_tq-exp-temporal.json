@@ -1,0 +1,94 @@
+{
+ "source": "TheTom/turboquant_plus, local clone /data/work/trove/20260920/turboquant_plus, read 2026-09-20. Slices: experiment/temporal-decay@4ded8b8 (2026-03-25), experiment/temporal-decay-prototype@b42c027 (2026-03-26), test/villines-probe-validation@846590d (2026-06-11); reference main@ba52ad1 (2026-07-20). All paths below are inside this clone. Author = TheTom; the probe original is Gregory Villines (2026-05-31, private distribution).",
+ "summary": "Three branches read from a local clone of TheTom/turboquant_plus. (1) experiment/temporal-decay@4ded8b8 is DOCS-ONLY: it adds docs/experiment-temporal-decay.md (38 lines), a design for progressive KV requantization turbo3->turbo2 (3.5->2.5 bit) for tokens older than ~70% of max_pos, triggered in llama_kv_cache::update(); age = seq_pos_max(seq_id) - cell.pos. Verdict in the doc: DESIGN COMPLETE, blocked on a turbo2 block type that does not exist; estimate 2-3 sessions. (2) experiment/temporal-decay-prototype@b42c027 is a misnomer: it contains NO temporal code, only M1 Max / M2 Pro community hardware diagnostics in scripts/README.md. The real prototype commit deb2d84 (2026-03-26, '3->2 requant VIABLE') is on main and test/villines-probe-validation. benchmarks/temporal_decay_prototype.py (426 lines) implements dequant turbo3 -> renormalize -> nearest 2-bit centroid -> recompute norm correction -> repack; 'zero-signs' remap is documented as broken/biased. Author-recorded numbers: synthetic d=128 turbo3 cos 0.983, decay 0.940 (>0.80); real Qwen3-1.7B 3-bit cos 0.985, decay 0.949 (>0.75; L0 0.971, L2 0.927); inner-product error 1.76x; estimated KV savings 30-34% at 32K-256K (256K: 1120->742 MB). (3) test/villines-probe-validation@846590d adds the Villines TV-divergence probe (tq_collapse_probe.py, 556 lines), k_channel_stats.py, torquant_certificate.py, tv_vs_ppl.py, a validation paper, and ~27k lines of result JSON. The probe monkey-patches scaled_dot_product_attention to capture real post-RoPE Q/K, quantizes K with the real turboquant package, and measures total-variation attention mass misrouted between FP16 and quantized distributions. It validates: K is load-bearing; Qwen-family K collapses at <=3-bit (turboMSE3 TV 0.370 on fp16 weights, matching PPL 3,556); the bias hypothesis is FALSIFIED (bias-free Qwen3-8B collapses 0.307, Mistral clean 0.091); the general mechanism is per-channel K off-centering (offset_ratio max: Qwen2.5 58.0, Qwen3 6.5, Mistral 2.5); per-head centering rescues 3.7x / 2.1x / none. Villines CUDA reference numbers reproduce within +/-0.010 on Metal. No tv_vs_ppl output JSON is committed, so the 'ghost PPL' TV->needle-NLL link is asserted, not measured. For the RTX 2070S 8GB box: keep K at q8_0 (asymmetric recipe) for Qwen3.5; centering is a partial low-bit rescue; temporal decay is a KV-memory lever that is designed but not implemented.",
+ "key_facts": [
+  "MEASURED (git -C /data/work/trove/20260920/turboquant_plus log/merge-base): experiment/temporal-decay tip 4ded8b8 (2026-03-25 20:27 -0500) is a merge of 4b7c5e6 (2026-03-25, 'temporal decay design') into main@367bb2d; the branch's only unique content is docs/experiment-temporal-decay.md (+38 lines).",
+  "MEASURED (git ls-tree experiment/temporal-decay; git diff --stat main..experiment/temporal-decay): the branch contains docs/experiment-temporal-decay.md but NOT benchmarks/temporal_decay_prototype.py; it is docs-only for temporal work.",
+  "MEASURED (docs/experiment-temporal-decay.md on experiment/temporal-decay): design = recent tokens turbo3 (3.5-bit), tokens older than 70% of max_pos requantized to turbo2 (2.5-bit); trigger llama_kv_cache::update() (~every 256 tokens, exclusive cache access); Phase 2 = turbo3 recent 30% -> turbo2 mid 40% -> QJL-only old 30%; blockers = turbo2 block type missing, in-place re-quant with different block sizes, heterogeneous blocks in flash attention; 'DESIGN COMPLETE - needs turbo2 implementation', estimate 2-3 sessions.",
+  "MEASURED (git show --stat b42c027; git ls-tree -r experiment/temporal-decay-prototype): branch experiment/temporal-decay-prototype tip b42c027 (2026-03-26 17:16 -0500) contains only scripts/README.md additions (M1 Max 64GB and M2 Pro 32GB turbo3-vs-q8_0 prefill/decode tables); NO temporal-decay file. The branch name is stale.",
+  "MEASURED (git log --all --oneline -- benchmarks/temporal_decay_prototype.py; git merge-base --is-ancestor deb2d84 <branch>): the prototype was committed as deb2d84 (2026-03-26 17:29 -0500) on main and is present on test/villines-probe-validation; it is an ancestor of main, NOT of either temporal branch.",
+  "MEASURED (commit deb2d84 message, and benchmarks/temporal_decay_prototype.py run_synthetic_test): synthetic d=128, 1000 vectors: turbo3 cos=0.983, decay(3->2) cos=0.940 (script threshold >0.80); decay within 5% of direct 2-bit; inner-product error 1.76x worse than 3-bit.",
+  "MEASURED (commit deb2d84 message): real Qwen3-1.7B KV tensors: 3-bit cos=0.985, decay cos=0.949 (script threshold >0.75); layer 0 (early) 0.971 most decay-tolerant, layer 2 (mid) 0.927 worst case, still viable.",
+  "ESTIMATE (commit deb2d84 message + script run_memory_savings_estimate): KV memory savings 30-34% at 32K-256K context; 256K: 1120 MB -> 742 MB (378 MB saved). Computed analytically for a Qwen3.5-35B-A3B shape, not measured against a running cache.",
+  "MEASURED (benchmarks/temporal_decay_prototype.py requantize_3to2 + module docstring): the requant is dequant turbo3 -> renormalize -> nearest 2-bit centroid via np.digitize(MIDPOINTS_2BIT) -> recompute norm correction -> repack; 'just remap centroid indices' (zero-signs) is documented as broken/biased and rejected (Codex review cited).",
+  "MEASURED (villines-probe/tq_collapse_probe.py routing_divergence): primary metric TV = 0.5*sum|p_fp16 - p_quant| = fraction of attention mass misrouted; fp16-vs-fp16 must read exactly 0.0000 (harness identity); secondary top1_keep and topk_churn; gini_tv and frac_heads_80pct_tv classify damage as sparse vs diffuse.",
+  "MEASURED (villines-probe/results_T4_qwen7b_sweep_m5max.json, Qwen2.5-7B-Instruct fp16 weights, seq 1024, layers [0,1,14,27]): turbo3 TV=0.4612, turbo3_biassub 0.1321 (3.5x); turbo5 0.2684 -> turbo5_biassub 0.0377 (7.1x); turbo2 0.5788; turboMSE2 0.4702.",
+  "MEASURED (villines-probe/results_T4mse_qwen7b_instruct_m5max.json, seq 2048): the llama.cpp turbo3 anchor is turboMSE3 (Alg 1, no QJL) TV=0.3700, NOT the QJL flavor turbo3=0.4748; turboMSE8 0.0411, turboMSE5 0.1865, turboMSE4 0.2735, turboMSE2 0.4910, turboMSE3_biassub 0.0997 (3.7x).",
+  "MEASURED (villines-probe/results_qwen3_8b_biassub_m5max.json and results_mistral7b_m5max.json, seq 2048): bias-free Qwen3-8B turboMSE3 TV=0.3071 -> biassub 0.1479 (2.1x); Mistral-7B-v0.3 turboMSE3 0.0909 -> biassub 0.0812 (no-op). The bias-causal hypothesis is falsified.",
+  "MEASURED (villines-probe/kstats_*.json summaries, seq 2048): per-(layer,kv-head) offset_ratio = ||mean_t K|| / E_t||K - mean||: Qwen2.5-7B-Instruct n=112 max 58.02 mean 2.34; Qwen3-8B n=288 max 6.45 mean 1.16; Mistral-7B-v0.3 n=256 max 2.51 mean 0.95.",
+  "MEASURED (docs/papers/villines-probe-validation.md section 10.3): Qwen2.5 L27/KV1 offset_norm 921.5 reproduces k_proj bias_norm 920.3 head-for-head; Qwen3 has comparable offsets with no bias term; Qwen3 layer-0 offsets are broad (3.9-6.5) not concentrated.",
+  "MEASURED (villines-probe/sweep_qwen3b.json vs results_T2_sweep_qwen3b_m5max.json): Villines CUDA reference vs this Metal run reproduce within +/-0.008: turbo5 0.2091/0.2055, turbo5_biassub 0.0422/0.0393, turbo3 0.5232/0.5181, turbo2 0.6663/0.6608, turboMSE2 0.5352/0.5272.",
+  "MEASURED (villines-probe/results_T3_biascorr_qwen3b_m5max.json, 72 (layer,kv-head) points, Qwen2.5-3B): Pearson bias_norm vs base TV +0.979, Spearman +0.818; Pearson vs recovery +0.984, Spearman +0.770.",
+  "MEASURED (villines-probe/torquant_cert_qwen25_7b_instruct.json and torquant_cert_mistral7b.json): TorQuant rho raw mean 3.41 (Qwen2.5) / 3.52 (Mistral) - blind to the Qwen routing catastrophe; centered rho 1.63 / 1.62; delta_b centered mean 0.344 / 0.337 bits, max 0.569 / 0.915; certificate_normalized centered mean 10.3 / 8.8; zero heads clear the 1-bit bar.",
+  "MEASURED (villines-probe/calib.txt, wc -c): the calibration text is exactly 200000 bytes of Python stdlib source (docstring: 'Get useful information from live Python objects'), captured via inspect.getsource(); every result JSON points at villines-probe/calib.txt.",
+  "MEASURED (git ls-tree -r test/villines-probe-validation | grep villines): no tv_vs_ppl output JSON is committed; the TV->needle-NLL 'ghost PPL' correlation is described in tv_vs_ppl.py's docstring but the paper reports no number for it."
+ ],
+ "reusable_assets": [
+  "villines-probe/tq_collapse_probe.py (branch test/villines-probe-validation, 556 lines): model-agnostic scaled_dot_product_attention monkey-patch capture of real post-RoPE Q/K + the TV/top1/gini routing metric; `--self-test` runs numpy-only against the real turboquant package.",
+  "villines-probe/k_channel_stats.py (141 lines): per-(layer,kv-head) offset_norm/spread/offset_ratio/max_abs_chan_mu/kurtosis screen; cheap once K is captured; the generalized (bias-free) mechanism detector.",
+  "villines-probe/torquant_certificate.py (188 lines): TorQuant eq 15 rho, eq 19 delta_b, and Prop 6.1 stagewise certificate on raw vs centered K; butterfly_stage_pairs + apply_h2_stage verified = exact WHT (commit 846590d message: 1e-13).",
+  "villines-probe/tv_vs_ppl.py (238 lines): quantizing k_proj/v_proj forward hooks + teacher-forced needle-NLL and answer-top1 downstream signal; the unrun ghost-PPL test harness.",
+  "benchmarks/temporal_decay_prototype.py (426 lines, on main and test/villines-probe-validation): quantize_3bit/2bit, dequantize_3bit/2bit, requantize_3to2, cosine/MSE/inner-product metrics; synthetic path importable on CPU with numpy only.",
+  "villines-probe/calib.txt: 200,000-byte fixed calibration corpus (Python stdlib) for reproducible KV captures across runs.",
+  "villines-probe/*.json (~27k lines): reference CUDA numbers (sweep_qwen3b.json, biascorr_qwen3b.json) plus Metal reproductions (results_T2/T3/T4*, results_T4mse*, results_qwen3_8b_biassub*, results_mistral7b*, kstats_*, torquant_cert_*) - directly reusable as expected values for a CPU re-run.",
+  "docs/papers/villines-probe-validation.md: full methodology, T1-T9 matrix, section 10 addendum that supersedes the bias-causal framing; section 8 lists the five unrun tests.",
+  "docs/experiment-temporal-decay.md: the 2-tier/3-tier decay design, trigger point, age formula, and explicit blockers, for whoever implements a turbo2 block type."
+ ],
+ "failures_and_lessons": [
+  "Branch names are not provenance: experiment/temporal-decay-prototype contains no temporal code at all (only M1/M2 hardware diagnostics); the actual prototype commit deb2d84 lives on main. Verify content, not the label.",
+  "The temporal-decay design is blocked on a turbo2 block type that does not exist in this repo; the requant prototype validates vector quality only - never end-task quality and never a real KV cache. No result JSON was committed.",
+  "The temporal decay 30-34% memory saving is analytic (run_memory_savings_estimate), not measured on a running cache; treat as ESTIMATE.",
+  "The bias-causal explanation (Qwen K-fragility caused by k_proj bias=True) was falsified by the bias-free Qwen3-8B control; section 10 supersedes sections 4/5.3/5.5 of the paper.",
+  "The section 3.4 headline turbo3=0.46 anchored the wrong algorithm (Alg 2 QJL vs production Alg 1); corrected to turboMSE3=0.370 in section 10.1. The QJL flavor overstates production by ~0.10 TV.",
+  "The probe's central claim - TV predicts downstream quality ('ghost PPL') - has no committed measurement; tv_vs_ppl.py exists but no output JSON and no correlation number in the paper.",
+  "T7 (14-config matrix), T8 (layer-0 outlier robustness), T9 (calibration-text dependence) remain unrun; only T5/T6 were closed by the section 10 addendum.",
+  "The inner-product error of the 3->2 requant (1.76x worse) was measured in the prototype but never connected to TV or needle-NLL, so its end-task meaning is unknown."
+ ],
+ "hypothesis_seeds": [
+  {
+   "claim": "Progressive KV requantization (turbo3->2-bit for old tokens) keeps end-task quality inside the direct-2-bit envelope, so a tiny model can serve longer context in the same RAM.",
+   "falsifier": "On a real model, needle-NLL or PPL under decay-3->2 is worse than direct 2-bit by more than the decay's own cosine gap, or falls off the direct-2-bit baseline.",
+   "cpu_experiment": "Run the numpy-only synthetic path of benchmarks/temporal_decay_prototype.py, then a small HF model (e.g. Qwen2.5-0.5B/1.5B) forward on CPU with a decayed-K hook; no GPU.",
+   "est_cost": "CPU-only; minutes for synthetic, tens of minutes for a 0.5-1.5B CPU forward."
+  },
+  {
+   "claim": "Routing-side TV measured on a few heads is a cheap pre-screen for KV precision: it ranks configs in the same order as downstream needle-NLL/PPL.",
+   "falsifier": "TV vs needle-NLL across configs has Spearman <= 0, or TV ranks the best config worst.",
+   "cpu_experiment": "Run villines-probe/tv_vs_ppl.py on a tiny model on CPU, seq 512-1024, configs fp16/turbo5/turbo3/turboMSE3/biassub; correlate TV with needle-NLL.",
+   "est_cost": "CPU-only, under 1h; no GPU."
+  },
+  {
+   "claim": "Per-channel K mean subtraction is a general low-bit-K rescue, and offset_ratio identifies which (layer,head) need it, so a mixed-precision tiny model can keep only the few off-center heads at high precision.",
+   "falsifier": "offset_ratio does not predict TV recovery on a new architecture (Spearman <= 0.5).",
+   "cpu_experiment": "k_channel_stats.py + tq_collapse_probe.py --bias-corr on a small Qwen and a clean control, all on CPU.",
+   "est_cost": "CPU-only, under 1h."
+  },
+  {
+   "claim": "The fixed Walsh-Hadamard rotation already captures the available headroom: TorQuant post-centering first-order saving is <0.6 bits and no head clears 1 bit, so learned rotations are not worth GPU budget for tiny models.",
+   "falsifier": "A learned butterfly rotor beats the fixed WHT by >=1 bit, or by >=0.1 TV at matched bits, on a real model.",
+   "cpu_experiment": "Run torquant_certificate.py on a CPU small model, raw vs centered, and compare against a learned-rotor rotation fit on the same K.",
+   "est_cost": "Certificate is CPU-only minutes; the learned-rotor falsifier needs GPU (bank, not now)."
+  },
+  {
+   "claim": "Temporal decay's memory saving is largest exactly where the 8 GB box needs it (long context), so a 2070S serving Qwen3.5-9B Q4_K_M at 32-48K could fit a larger KV budget by decaying old tokens.",
+   "falsifier": "At 32K on the 2070S, decayed-K PPL exceeds the q8_0-K budget's acceptable delta, or the requant kernel cost exceeds the memory win.",
+   "cpu_experiment": "Recompute the analytic KV-size table from run_memory_savings_estimate with the box's real layer/KV-head config and context; no runtime.",
+   "est_cost": "CPU-only, seconds (arithmetic); the falsifier needs the GPU box."
+  },
+  {
+   "claim": "Qwen3.5 (bias-free, QK-norm) will show the same per-channel K off-centering as Qwen3-8B, so the offset screen - not the bias term - should drive K-precision choices for the tiny-model fleet.",
+   "falsifier": "Qwen3.5 offset_ratio stays below ~2.5 (Mistral-like) yet still collapses at turboMSE3, or is high yet does not collapse.",
+   "cpu_experiment": "Capture Qwen3.5 K on CPU with k_channel_stats.py and run the turboMSE3 sweep; compare offset_ratio max and TV to the Qwen3-8B numbers.",
+   "est_cost": "CPU-only for a small Qwen3.5 variant, under 1h; no GPU."
+  }
+ ],
+ "open_questions": [
+  "Was the temporal-decay 3->2 prototype ever run end-to-end on a real cache? No output JSON exists; only the commit message.",
+  "Does routing-side TV actually predict downstream needle-NLL/PPL? tv_vs_ppl.py exists but no output JSON is committed and the paper reports no correlation.",
+  "Why does Qwen3-8B retain a post-centering residual TV of 0.148 vs Mistral's 0.091? Per-channel kurtosis does not predict it (Spearman 0.02).",
+  "What exactly is the missing turbo2 block layout/quantizer (2-bit indices + no hi1 bit)? It is not present in this repo.",
+  "Does the 3->2 requant preserve inner-product ranking for attention, or only cosine? The 1.76x inner-product error was measured but never linked to TV or needle-NLL.",
+  "Where do Qwen3's per-channel K offsets come from if not a bias term - the learned k_proj weights alone? Section 10.3 says yes but does not isolate the channel.",
+  "Do T7 (14-config matrix), T8 (layer-0 outlier robustness) and T9 (calibration-text dependence) change any of the section 10 conclusions?"
+ ]
+}
