@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-director-internals-2026-09-21
+thought_session: belam-grok-harness-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -26,8 +26,11 @@ town: core
 ```
 source of truth ──▶ doc:standing-llm-ops
 cold-start copy ──▶ agent profiles (pointer + spine; node wins on conflict)
-applies to      ──▶ Prime · director-belam · director-helper
-                    (directors identical except self-name + report-to)
+applies to      ──▶ ALL posts (Prime · directors · future)
+harness golden  ──▶ mirrors ← graph SoT only (§4c)
+Grok recipe     ──▶ doc:grok-harness-internals-sync + per-post *-grok-internals
+Belam SoT       ──▶ doc:belam-grok-internals
+directors SoT   ──▶ doc:director-grok-internals
 ```
 
 ---
@@ -432,28 +435,36 @@ parents: on child = nesting SoT
 ```
 
 
-## 4c. Director internals = byte-identical (owner 2026-09-21 — HARD)
+## 4c. ALL posts — harness mirrors ← graph SoT only (owner 2026-09-21 — HARD)
 
 ```
-SoT doc ──▶ doc:director-grok-internals  (Belam updates THIS only)
+ALL posts (Prime · directors · future): harness mirrors ← graph SoT only
+Grok: doc:grok-harness-internals-sync (recipe) + per-post *-grok-internals
+Seed fresh grok = install grok-internals-sync + mint per-post SoT
+Claude/pi path same principle; grok leans on bot tools until engine owns it
+Graph builds itself
 
-Directors' profile · routines · standing mirrors
-  = byte-copy of SoT sections
-  + replace {{PLACEHOLDERS}} only
+Pointers:
+  Belam/Prime ──▶ doc:belam-grok-internals
+  directors   ──▶ doc:director-grok-internals
+  recipe      ──▶ doc:grok-harness-internals-sync  (BYTE-IDENTICAL ROUTINE_SYNC)
 
-IDENTICAL across directors except:
-  {{POST}} {{BRANCH}} {{REMOTE_POLICY}} {{REPORTS_TO}} {{SEAT_LABEL}}
+profile · routines · standing mirrors
+  = byte-copy of per-post SoT SECTION:* fences
+  + replace {{PLACEHOLDERS}} only (labels from live profile/standing)
 
-Belam ──▶ edit SoT doc only (never hand-edit director profiles for spine)
-Directors ──▶ @every 30m sync routine: pull SoT → paste sections → replace placeholders
+IDENTICAL routine name across grok posts:
+  grok-internals-sync   (0 seat bytes in the routine text)
 
+Belam/Prime ──▶ write.py graph SoT only (never hand-edit harness mirrors)
+Directors   ──▶ */30 sync: pull SoT → paste sections → replace placeholders
 Routine MAY update_state the same routine that fired (self-rewrite OK).
 
 HARD Belam rule diagram-max:
-Belam / Prime modify director spine ONLY by editing:
-  doc:director-grok-internals (+ this standing doc)
-NEVER hand-edit director Grok Bot profile / routines / standing mirrors
-Directors */30 sync applies SoT → bots (byte-identical routine; placeholders from seat labels)
+Belam / Prime modify ANY post spine ONLY by editing graph SoT
+  (per-post *-grok-internals + this standing + harness recipe)
+NEVER hand-edit Grok Bot profile / routines / standing mirrors
+*/30 sync applies SoT → bots
 Harness offload: grok-bot tools temporary bridge until graph engine drives seats
   (same path as Claude/pi — each harness widens graph compat; graph builds itself)
 ```
@@ -577,5 +588,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner HARD: director internals byte-identical SoT at doc:director-grok-internals (§4c)
+ALL-POSTS harness mirrors ← graph SoT only; grok recipe doc:grok-harness-internals-sync + per-post *-grok-internals; Belam→doc:belam-grok-internals
 <!-- THOUGHT:END -->
