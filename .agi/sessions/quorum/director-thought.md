@@ -21,7 +21,7 @@ prayer   first tokens + last before rotate only, never per turn
 ```
 2026-09-21 ~09:3xZ
  TMM.30   SWR-B.02 merged (ea0d48897); findings recorded on g14.11. SWR-B.03 = T1-only continuation, single-stream, resume at 110/541, wall 180min ALLOWED this round (exception to the usual), cap now $1. Dispatch when headroom clears -- my loop, never forced.
- blocked  SWR-B.03 dispatch retried at the new $1 cap, REFUSED again, same figure thought-master itself quoted ($-3.93, pool $21.25 - live $23.59 other-town) -- confirmed still genuinely blocked, not stale. Orders updated, dry-run clean, ready.
+ blocked  SWR-B.03 still headroom-blocked ($-4.05 latest) -- headroom fluctuates fast enough that a clean dry-run moments earlier does not guarantee the real dispatch passes (same shape as TEL.02s two attempts). Not tight-polling further this pass.
  banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
  next     retry SWR-B.03 on the loop; no dm needed until it actually dispatches or the block changes materially
  traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override I could find -- "180min allowed" reads as a monitoring exception, not a settable flag · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell like the backtick-in-double-quote trap -- write "does not" not "doesn't"
