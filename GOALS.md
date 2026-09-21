@@ -10452,6 +10452,24 @@ thought-master 22:3xZ 09-20 (cleanliness pass, owner 22:1xZ): required goal fiel
 
 **First chunk (minted):** `idea:lm-magic-pane-llm-autocorrect-and-autofill` → `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens`. Sub-sub-goals are the director's to mint (G14.8.1 local jev, G14.8.2 API-key side, G14.8.3 the magic pane), same format, before any chunk runs.
 
+##### G14.8.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.8.3
+
+## Agent Notes
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "See if we can come up with a 'magic pane' that is a tmux pane surface that reads the raw prose tokens an LLM streams into it and suggests structured outputs it should use as instantaneous mid stream interruptions like autocorrect ... Call it the magic pane. A true LLM autocorrect and autofill that could genuinely save tokens. Just have link to it via cli." Side-track authorization (owner 01:2xZ 09-21, relayed TMM.16): "run jev and openjev research on the side to progress on the magic pane trajectory" — allowed alongside G14.11 (the switch), not blocking on it.
+
+**Commits to.** The magic-pane half of G14.8, built in the three chunks G14.8 itself names: (1) an offline, passive detector that predicts which structured form (a `write.py note`, `write.py create <type>`, a tagged dm, an experiment node, a bench jsonl row, a `[merge-up]` line, a dispatch line) a recorded agent stream is about to produce, from only its first N prose tokens, using the resident local model — no engine code, no interruption of a live stream yet. (2) A read-only tmux surface that shows the suggestion beside a live stream, once chunk 1 clears its bar. (3) The interruption protocol itself (a CLI the streaming agent calls to hand tokens straight into the form's fields), measured for real token savings, only after chunks 1-2 hold.
+
+**Invariants.** Every chunk reports precision/recall or accuracy against a majority-class baseline and latency per event; chunk 3 additionally reports tokens saved per form versus the same form written out normally, on >= 20 real events; nothing here touches `extensions/` (a script lives under `.agi/context/local-maxxing/magic-pane/`, the eventual CLI link is a one-line wrapper); the detector must run at <= 1.5s median on a local model or it cannot usably sit mid-stream regardless of accuracy.
+
+**Falsifiers.** (a) Chunk 1 is falsified if top-1 form accuracy stays below 0.6 at 40 prose tokens AND still below 0.6 at 80 — then the next step is a form-specific prompt or a tiny fine-tuned classifier on the same labelled corpus, not a bigger model. (b) The whole goal is falsified if, once the interruption protocol chunk is reached, it saves less than 15% of the tokens of the forms it intercepts across >= 20 real events — an autocorrect that costs more than it saves is not kept.
+
+**Done when.** A round's parent runs with the pane linked end to end, its forms are filled through the pane, the saving is measured on real events, and the pane is either handed to G14.11's eventual build as a component or retired with its numbers recorded.
+
+**First chunk (minted):** `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens` (MP.01) — the passive detector, chunk 1 only; chunks 2-3 (the tmux surface, the interruption protocol) wait on this one clearing its own bar. `openjev` (the trycua/cua open-source jev line the owner pointed at 2026-09-18) rides as a second kid of the same round if budget allows, or the next MP chunk otherwise — a reading digest, not a new sub-sub-goal of its own.
+
 #### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10527,6 +10545,24 @@ thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama
 **Done when.** The town's parents and kids run on its own build for one full week of rounds with the gap table showing ≤ 10 % on every row and the round-completion rate within 10 % of the reference's.
 
 **First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G14.11.1 the battery + reference, G14.11.2 the mvp/build/switch), same format, before any chunk runs.
+
+##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.11.1
+
+## Agent Notes
+**Owner source (2026-09-20 21:5xZ, verbatim on goal:g14, relayed via goal:g14.11):** "if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance." Trajectory (21:4xZ): "overall trajectory is maximize evaluation performance on the local model."
+
+**Commits to.** The first half of G14.11's commitment: build the actual gap table, not just the rule for reading one. Score deepseek-v4.1-flash (the reference, via OpenRouter, temperature 0, one sample) on the SAME two evals every local candidate has already been measured on where possible — HumanEval 164 (execution pass@1, the ABC harness, same template) and IFEval 541 (official strict prompt-level accuracy) — then build the gap table (candidate x eval, absolute and relative, paired discordant counts vs the reference where the eval supports pairing) against the five local rows already measured in ABC.01/ABC.02 (A, A2, B, C1, C2). This chunk is measurement only: it does not call the switch, does not mint an mvp, and does not touch the GPU (the reference row is API-only; a local candidate's IFEval row, if still missing, is a separate later chunk under this same subgoal).
+
+**Invariants.** Every eval uses the identical protocol already established for the local rows (greedy, thinking off, one sample, same request shape); the gap table is the only place a candidate's standing is read from, never a single number quoted alone; USD and tok/s ride along on every row so cost is never separated from capability; a proof of "within 10 pct" is a trigger, never a switch by itself.
+
+**Falsifiers.** (a) If the reference itself cannot be scored cleanly on one of the two evals (rate limits, a harness mismatch, a template confound) the WHY names exactly which eval and why, and that eval is held missing from the gap table rather than estimated. (b) If every local candidate sits below 0.9x the reference on either eval, the switch does not fire this round — recorded as a real gap, not hidden, and G14.11's own falsifier (b) starts counting toward "no candidate reaches 90pct after G14.6/7/9 each land a chunk."
+
+**Done when.** The gap table exists in `datasets/switch-rule/<date>/` with real numbers on both evals for the reference and every local candidate measured so far, and the switch verdict (fires / does not fire, per row) is stated plainly on the hypothesis node.
+
+**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01) — the reference row + the gap table against the five existing local rows. G14.11.2 (the mvp/build/switch mechanics) is minted only when a switch verdict actually needs to be acted on, per the owner pace rule.
 
 #### G14.12 — SIDE TRACK — spiking / oscillator readouts (Kuramoto, LIF/spectral, C2C fusers, SNN walkers, the bend2 spiking sim): only as capacity allows, never ahead of an owner-track round, imported into the main tracks piece by piece as learned (owner 21:4xZ 09-20) — status: active
 
