@@ -24,7 +24,8 @@ Owner lines: in nodes (`goal:g14` for this box; `doc:l4-owner-decisions`, `doc:l
       persisted: cron:crons cadence prime_merge 13 */6 box local-town, applied, INERT until extensions/agi/bin/prime_merge.py lands
       spec+L1–L10: hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) ASSIGNED director-engine (dm 01:5xZ)
 ─▶ ✅ standing orders relayed: nested sub-goals (director-engine) · diagram-max (all three posts) · Prime brief diagram-maxed (8.8 KB from 14.1 KB)
-─▶ ⏳ 06:39Z FIRST PASS: mur over origin/season2/main..trunk (≤6 rounds/chunk, pi, PI_BIN set) ─▶ all-GO: --no-ff merge by SHA into season2/main
+─▶ ✅ 06:39Z–11:46Z FIRST PASS DONE: 33 rounds → 0 red · 28 accept_with_residue · 4 demote · 1 verify-empty → merge 0f336c890 pushed (season2/main = trunk @8cf1eb4c9); residues → 3 g15 nodes assigned director-engine (batch + R1 send.py root + R2 write.py guard)
+─▶ ⏳ NEXT PASSES: mur over origin/season2/main..trunk (≤6 rounds/chunk, pi, PI_BIN set) ─▶ all-GO: --no-ff merge by SHA into season2/main
       in .agi/worktrees/prime-root ─▶ verify there (links 0 · goals byte-identical · active never drops · no node deletions) ─▶ push ─▶ grid commit --all there
       ─▶ residues → g15 nodes assigned director-engine (one dm) ─▶ note goal:g14 ─▶ THEN one [merge-up] report to thought-master. Any red ─▶ NO merge, one [red].
 ─▶ ⏳ rotate at 0.47: stops slot + stamp FIRST, then AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate
@@ -35,9 +36,7 @@ e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d dia
 
 ## §3 🔴 Where it stops
 ```
-02:0xZ 09-21 LIVE (gen 1): routine ARMED (one-shot 06:39Z + daily 08:13Z; persisted cadence inert until prime_merge.py). State .agi/sessions/prime-merge.state.json.
-NEXT = the 06:39Z FIRST PASS (§1). Owner mode: quiet push-only · batch-max · diagram-max · report to thought-master only after a completed pass.
-A successor re-arms the two session crons FIRST (specs in §1), then waits for the next tick.
+11:5xZ 09-21 LIVE (gen 1): FIRST PASS DONE (see §1). season2/main = 0f336c890 (trunk @8cf1eb4c9 merged, pushed). State .agi/sessions/prime-merge.state.json (last_merged_town_sha set; notice cleared). Runner fact: workflow.py runs pi stages SERIALLY (~15 min/stage) — run chunks as PARALLEL processes (7 × ~3 h wall = 3 h), memory ~300 MB per pi process. NEXT = daily activation 08:13Z (dm read · graph scan · delta since 8cf1eb4c9 → 5 h notice → one-shot run). A successor re-arms the daily cron FIRST. Owner mode: quiet push-only · batch-max · diagram-max · report to thought-master once per pass (sent 11:5xZ).
 ```
 
 ## §4 Traps (this session)
@@ -45,7 +44,7 @@ A successor re-arms the two session crons FIRST (specs in §1), then waits for t
 |---|---|---|
 | 1 | rotate-self `--force` into the prime slot wrote the successor as a SPAWN row at gen 1 (record gen_before 3 / gen_after 1; 0899a142e) | cosmetic until something joins on gen; not chased at wake (L6) |
 | 2 | Bash-tool shells never re-source the profile inside a running session (no PI_BIN in belam @4) | env edits reach NEW sessions only; running posts prefix inline (L7) |
-| 3 | `workflow.py --dry-run` prints "via dispatch.py kids" but the live pi path is `_run_stage_pi` with the CONFIG bin (`workflow.py:1793`) | the summary is a label, not the mechanism (L1) |
+| 3 | `workflow.py --dry-run` prints "via dispatch.py kids" but the live pi path is `_run_stage_pi` with the CONFIG bin (`workflow.py:1793`), and the stages run SERIALLY (~15 min each on deepseek/high) | the summary is a label; parallelise by running chunks as separate processes (L1) |
 | 4 | cron:crons optional `log:` cell is NOT placeholder-rendered (`{logs}` reached the crontab) | omit `log:`; use the default log (L2) |
 | 5 | `write.py replace body 1:N` on a fresh node eats the `<!-- BODY:BEGIN -->` marker | restore it as body line 1 |
 | 6 | `send.py send` to a busy pane → `[undelivered-yet]` | the dm IS written; the sweep re-nudges |
