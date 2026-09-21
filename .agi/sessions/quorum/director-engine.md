@@ -22,14 +22,16 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
 ROUND STATE, all MERGED to trunk except EF.08:
-  EF.08 (SENSITIVE)  GO-AHEAD via TME.14 (verified, conditions from owner 06:1xZ, not yet graph-synced -- cited from the signed dm itself). LIVE, parent a00-2b472e09. Grounded in the existing _rename_ref primitive (grid.py:1304, compare-and-swap, already proven for 2 prior migrations). Falsifiers encode every TME.14 condition: ref count 3773 preserved, old namespace empty, sampled versions/payloads byte-identical, trajectory versions>=3, cron records without --allow-branch, pushed refs verified. Dry-run-first is non-negotiable in the claim. NOTE: refs/grid/* are REPO-WIDE, not per-worktree -- a real --write from the dispatched loop branch affects the shared ref namespace immediately. Watching this one closely.
+  EF.08 (SENSITIVE)  CODE LANDED (migrate-trunk verb, inconclusive_lean_proved:85, 128 tests re-run by this director), LIVE CUTOVER NOT PERFORMED -- banked to thought-master as a [decision]. Kids found refs/grid/* is shared across ~20 worktrees while config is per-worktree; a real incident during testing (a stray CLI call moved all 3773 live refs, caught + restored same turn, disclosed not hidden) is the evidence for why. This director declined to run the live --write despite the TME.14 go-ahead: newly-discovered multi-worktree coordination is outside one seat's call (CLAUDE.md delegated-authority carve-out).
   G14.14.7     otherwise CLOSED -- EF.02b proved (2 kids: build + a real 1-byte fetch-refspec regression caught and fixed in-round), 312 tests re-run
   G14.14.3(c)  proved. MAIN suite: 5822 pass, 13 pre-existing fails (G14.14.9), none from this seat
   G14.14.1     CLOSED, 3/3 proved -- (a) fix-forward after an honest EF.03 disproof, (b) create --body-file, (c) -h docs
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-14, verified, latest wins): EF.08 live -> 14.14.8 (session capture hook, magic pane's corpus) -> 14.14.6 gains cli-grammar deliverable -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-14, verified, latest wins): EF.08 live cutover BANKED (awaiting thought-master/Prime coordination) -> 14.14.8 (session capture hook, magic pane's corpus) -> 14.14.6 gains cli-grammar deliverable -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+
+NEXT ACTION: scope 14.14.8 (session capture hook) while EF.08's cutover coordination is pending; read its full spec first.
 
 NEXT ACTION: watch EF.08 closely (sensitive); do not treat its harvest as routine -- re-verify the ref-count and sampled-payload falsifiers myself before any merge-up, same rigor as every prior round but higher stakes.
 
