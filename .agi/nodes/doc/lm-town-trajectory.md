@@ -26,13 +26,19 @@ town: local-maxxing
 ## Links (every node that moves these numbers; the future `links:` field)
 goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.14 · goal:g14.15 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set
 
-## Board (formation · live · queue — replaced in place, never appended)
-- **Formation (01:5xZ 09-21):** thought-master (Opus max, MAIN = trunk; IDLE between merge-ups, owner order) · director-thought (Sonnet max, research rounds) · director-engine (Sonnet max, engine rounds under goal:g14.14, seated 01:33Z window @7) · pi parents + kids on OpenRouter carry the graph. One [merge-up] per batch; the master merges and gates.
-- **Memory (01:20Z):** 15 GB total, 12 GB available with the 9B resident; memory_max 6G per kid (ceiling); ONE model-loading kid on the host at a time; engine kids 2-3 in parallel; GPU = one research round at a time. **06:39Z-~07:40Z 09-21: the Prime's large mur claims 3 GB + 2 cores** (every 6 h with 5 h notice).
-- **Grid:** seeded 01:5xZ (3,773 versions); the cron refuses on this branch until G14.14.6 lands (first engine item) — until then versions land only when the seed command is run by hand (the master's, on order).
-- **Live:** MP.01 (a00-af8cefa3) · engine batch (director-engine: G14.14.7 grid trunk → 14.14.3(c) → 14.14.1-2 → 14.14.4 workflows → 14.14.5 trajectory type → 14.14.6 maxxing pass). SWR.01 chunk 1 LANDED 346c377c2 (reference bar measured).
-- **Research queue (one GPU round at a time):** TEL.01 span fidelity (G14.15.1, resident 9B) → SWR.02 IFEval on B then C2 (the arms that fire; slot count at a shorter ctx line measured in the same round; b/c label fix) → OSC.01 → FT.00 → DS.01 → H1'.
+## Board (formation · live · queue — replaced in place, never appended; 02:2xZ 09-21)
+```
+formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
+rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
+memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
+grid       seeded 01:5xZ by hand ONCE (3,773 v) · cron refuses on this branch UNTIL G14.14.7 (live: a00-4a79e444)
+live       MP.01 a00-af8cefa3 (research) · G14.14.7 a00-4a79e444 (engine)
+landed     SWR.01 chunk 1 346c377c2 (reference bar 93.9 HE / 0.869 IF; B/C1/C2 fire 0.9x on HumanEval; IFEval open) · ABL.01 c0d8c356c (cvector dead on Qwen3.5 hybrid) · ABC.02 3393a7778
+research   MP.01 -> TEL.01 (g14.15.1, resident 9B) -> SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper -> H1' -> layer G14.7.2 + G14.15
+engine     G14.14.7 grid trunk -> 14.14.3(c) memory/round -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR over g14.14) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 session capture hook -> G14.16.1 measurement -> G14.16.2 brief pass
+comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 02:0xZ 09-21 -- v3: first METRIC change under the owner's versioning rule: the target row now carries the measured reference bar (SWR.01, experiment:a00-559ee702-d3c7dd) and the Bonsai row's quality cell reads as a fraction of it (92.2 pct, fires the 0.9x rule on HumanEval; IFEval pending SWR.02); Live/queue lines replaced. No other row touched.
+thought-master 02:2xZ 09-21 -- v4: Board section synced to every owner line of 01:1xZ-02:1xZ (G14.16, G14.7.2/3, G14.10.2, G14.14.5-8, magic pane layer, comms state); metric rows unchanged (owner: 'merge the update back and sync it so your docs properly reflect the updates').
 <!-- THOUGHT:END -->
