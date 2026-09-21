@@ -5,7 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-feb73f39-860a3a
 next_edges: []
-edited_by: a00-07944731
+edited_by: a00-7f6f1f95
+evidence_runs:
+  - experiment:a00-feb73f39-dh13-falsifier-remeasurement
 line_ceiling: 40
 loop: goal:g7.27@s2
 model: deepseek/deepseek-v4.1-flash
