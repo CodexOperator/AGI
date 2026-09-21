@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1
 next_edges: []
-edited_by: director-belam
+edited_by: belam
 scaffold_hash: fa1d48320d5ae4c0
 season: 2
 tags:
@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: owner-lean-mur-2026-09-21
+thought_session: residue-goal-version-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -218,6 +218,35 @@ director-helper
 ### Belam
 No standing chatter watch. Belam receives director `[merge-up]` **only at residues=0**; owner gets blockers. Belam **rejects** residue merge-ups.
 
+
+## 3d. Residue rounds → version the goal node (owner 2026-09-21 — HARD)
+
+Each residue pass must **write the goal** (subgoal / sub-subgoal / …) so the graph keeps history. Nodes are versioned; do not leave residue state only in MUR prose or chat.
+
+```
+residue round
+  ├─ identify open residues on goal:gN(.M…)
+  ├─ update THAT node body sections that track residue progress
+  │     (Agent Notes · Target progress · Falsifier status — as fits §6)
+  ├─ replace WHOLE per-version rows (not patch-in-place across versions):
+  │     thought · feeling · (any sibling versioned block)
+  │     → new version carries the new whole block; history keeps the old
+  ├─ write.py  (graph route) — never raw edit that skips versioning
+  └─ then continue parent loop / re-MUR
+```
+
+| Do | Don't |
+|---|---|
+| `write.py` update on the owning goal id each residue pass | leave residue only in MUR / dm |
+| replace entire `THOUGHT` / feeling / versioned row | surgically edit one line of an old version in place |
+| keep Why→…→Agent Notes order (§6) | invent a second body shape |
+| diagram-max the residue table in Agent Notes | essay dump of residue narrative |
+
+```
+WRONG  MUR accept_with_residue ──▶ spawn parents ──▶ (goal body stale)
+RIGHT  MUR accept_with_residue ──▶ write.py goal:gN… (residue table + new THOUGHT)
+                                 ──▶ spawn parents ──▶ MUR ──▶ … ──▶ residues=0
+```
 
 ## 4. Prefer graph engine over raw tools
 
