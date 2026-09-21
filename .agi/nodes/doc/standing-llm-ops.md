@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: standing-watches-diagram-max-2026-09-20
+thought_session: standing-3c-helper-fold-2026-09-20
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -108,6 +108,7 @@ no season2/loops/* left live as standing remotes
 
 Keep working batches as-is otherwise. Diagram-max all alignment comms.
 
+
 ---
 
 ## 3c. Watches / routines — diagram-max with love (owner 2026-09-20 23:3x ET)
@@ -118,31 +119,39 @@ For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence w
 
 ```
 schedule ──▶ @every 50m   (pi parents run around the clock — stated reason)
-name     ──▶ live-parents-workflows
-worktree ──▶ director-belam: core/season2/main checkout / durable seat worktree
-             helper: local-only worktree (never new remote head)
+name     ──▶ live-parents-workflows  (or seat pi parent+workflow watch)
+FORMAT   ──▶ shared below
+PINS     ──▶ seat-local (differ by post):
+               director-belam → TREE /data/work/agi/.agi/worktrees/seat-director-belam
+                               HOST encryption-town:/data/work/agi · branch core/season2/main
+               helper         → TREE /data/work/agi/.agi/worktrees/seat-director-helper
+                               HOST encryption-town:/data/work/agi · local-only (never new remote head)
+SCOPE    ──▶ this seat only (DT.* vs DH.*) — never scan MAIN or the other seat
 ```
 
-**Prompt (verbatim intent — install exactly):**
+**Prompt FORMAT (verbatim — fill TREE/SCOPE pins only):**
 
 ```
-You are a quiet night watch for an LLM sibling.
-Diagram-max. Batch-max. Love the next ingest.
+Quiet night watch — love the next LLM ingest. Diagram-max. Batch-max.
 
-1) Sense (local worktree only)
-   pi parents you spawned still alive?
-   pi workflows you spawned still running?
-2) Emit ONLY if delta since last fire
-   ┌─────────────┬────────┬──────────────┐
-   │ id/name     │ state  │ note         │
-   ├─────────────┼────────┼──────────────┤
-   │ …           │ up|dead│ one short    │
-   └─────────────┴────────┴──────────────┘
+SCOPE: this seat only (<DT.*|DH.*> parents / MURs / suite).
+TREE:  <absolute seat worktree>
+HOST:  SSH encryption-town → /data/work/agi  (never /workspace/agi)
+
+1) Sense
+   parents you spawned: alive?
+   workflows you spawned: running?
+   status=done + no MUR yet → owed (list it)
+2) Emit ONLY on delta
+   | id | kind | state | note |
+   |----|------|-------|------|
+   | … | parent/wf/MUR | up/dead/owed | ≤1 short |
 3) Route
-   Belam ← nothing from this watch (Belam = completed-batch merge-ups only)
-   owner ← ONLY if blocker (red / stuck / decision needed)
-4) If no delta → stay silent (no "no change" filler)
-5) Never invent status. Never new remote heads.
+   Belam  ← nothing from this watch
+   owner  ← blockers ONLY (red/stuck/decision)
+   completed batches → director-belam (helper) / Belam via [merge-up] (director-belam)
+4) No delta → silence (no "no change")
+5) Never invent. Never new remote head.
 ```
 
 ### Belam
