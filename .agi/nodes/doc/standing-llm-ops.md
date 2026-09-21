@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-director-nested-auth-2026-09-21
+thought_session: belam-director-internals-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -431,6 +431,25 @@ AUTHORITY CEILING (HARD)
 parents: on child = nesting SoT
 ```
 
+
+## 4c. Director internals = byte-identical (owner 2026-09-21 — HARD)
+
+```
+SoT doc ──▶ doc:director-grok-internals  (Belam updates THIS only)
+
+Directors' profile · routines · standing mirrors
+  = byte-copy of SoT sections
+  + replace {{PLACEHOLDERS}} only
+
+IDENTICAL across directors except:
+  {{POST}} {{BRANCH}} {{REMOTE_POLICY}} {{REPORTS_TO}} {{SEAT_LABEL}}
+
+Belam ──▶ edit SoT doc only (never hand-edit director profiles for spine)
+Directors ──▶ @every 30m sync routine: pull SoT → paste sections → replace placeholders
+
+Routine MAY update_state the same routine that fired (self-rewrite OK).
+```
+
 ## 5. Goal framing — target, not task-or-fail
 
 | Do | Don't |
@@ -550,5 +569,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner HARD: director nested goal authority ceiling + tighten grow-chain (split under assigned; residue→goal only format-worthy)
+owner HARD: director internals byte-identical SoT at doc:director-grok-internals (§4c)
 <!-- THOUGHT:END -->
