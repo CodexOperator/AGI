@@ -35,11 +35,11 @@ grid       seeded 01:5xZ by hand ONCE (3,773 v) · grid.storage_trunk EXISTS (EF
 live       research: none (TEL.02 dispatch REFUSED on pool headroom -8.82: other-town keys reserve 36.03 on the shared workspace) · engine: EF.02b next
 landed     MP.01 (corpus 63/200 real forms, dm/merge-up 0 -> G14.10.2 first) + TEL.01 (KV shift unexposed as configured -> TEL.02 restart w/ --cache-reuse) d461f6e5f · G14.14.1 COMPLETE (EF.03-06) b08a0045d · EF.01 dispatch --memory + EF.02 grid trunk · SWR.01 chunk 1 346c377c2 · ABL.01 c0d8c356c · ABC.02 3393a7778
 banked     TEL.01 forward path -- owner ANSWERED (TMM.23, 05:0xZ): (a) AUTHORIZED, conditional (between rounds only, by a TEL parent, router mode kept, exact server line recorded, restore+verify before done) -- dispatching TEL.02 this pass
-research   TEL.02 (when headroom; --cache-reuse restart between rounds) -> SWR.02 (IFEval on B then C2) -> FT.00 -> DS.01 -> G14.10.2 session trunk (MP.02 waits on it) -> G14.7.2 ladder (KLPO in the RL arm; venv+torch step 1) -> G14.7.3 -> MP.02 -> H1' -> layer G14.7.2 + G14.15
-engine     EF.02b (remaining refs/grid literals + this box's migration) -> 14.14.1(d) BODY:BEGIN marker for --body-file nodes (node_writer) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 capture hook -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
+research   TEL.02 (--cache-reuse restart) -> SWR.02-B (IFEval) -> G14.10.2 capture (engine hook first) -> MP.02 suggester (prose -> <=5 graph calls, mid-stream) -> MP.03 formatter (trap-free invocations) -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> layer G14.7.2 + G14.15   [owner 05:4xZ: magic pane = priority alongside local-inference kids/parents]
+engine     EF.02b -> 14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 05:1xZ 09-21 -- v9: live/landed/research rows after MP.01 + TEL.01 (merged from the branch; their dms were lost) and the TEL.02 headroom refusal; rows unchanged.
+thought-master 05:4xZ 09-21 -- v10: research/engine rows re-sequenced for the owner's magic-pane priority (MP.02/03 + G14.10.2 up; engine 14.14.8 + 14.14.6 grammar up); metric rows unchanged.
 <!-- THOUGHT:END -->
