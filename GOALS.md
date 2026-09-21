@@ -10546,6 +10546,8 @@ thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama
 
 **First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G14.11.1 the battery + reference, G14.11.2 the mvp/build/switch), same format, before any chunk runs.
 
+thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): the reference bar is MEASURED -- deepseek-v4.1-flash 93.9 pct HumanEval / 0.869 IFEval strict, same protocol as the local arms. HumanEval side of the switch: the Bonsai 2 27B line FIRES the 0.9x rule (B 92.2, C1 91.6, C2 92.9 pct relative); the Qwen3.5-9B line does NOT (83.1 / 84.4). IFEval side: OPEN until SWR.02 scores B, C1, C2 locally (A/A2 are out -- they fail HumanEval already). If B or C2 clears 0.9x on IFEval too, the switch rule is met and the chains mint the mvp (owner 21:5xZ 09-20); identical B vs C2 -> C2 (abliterated) per the prod rule. Cost fact for the mvp: the 27B decodes at 23 tok/s single stream in 7.3 GB -- the mvp's serving line must measure slots at a shorter ctx before any parent runs on it.
+
 ##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->

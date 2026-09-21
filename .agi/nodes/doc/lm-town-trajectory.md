@@ -19,8 +19,8 @@ town: local-maxxing
 ## The metrics chased (one row per measured point; newest first; every number on its node)
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
 |---|---|---|---|---|---|---|---|
-| target | bigger | smaller | longer | usable | within 10 pct of deepseek-v4.1-flash on HumanEval + IFEval | layered: dead-head prune → context/throughput → fine-tune → QAT → telepathy | goal:g14.11 (the switch) |
-| 09-20 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K, 1 stream | 23.0 empty / 18.9 at 16.8K | HumanEval 86.6 pct (142/164); IFEval — ; reference — | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f |
+| target | bigger | smaller | longer | usable | within 10 pct of deepseek-v4.1-flash on HumanEval + IFEval — reference MEASURED 09-21: 93.9 pct HumanEval (154/164) · 0.869 IFEval strict (470/541) | layered: dead-head prune → context/throughput → fine-tune → QAT → telepathy | goal:g14.11 (the switch); experiment:a00-559ee702-d3c7dd |
+| 09-20/21 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K, 1 stream | 23.0 empty / 18.9 at 16.8K | HumanEval 86.6 pct = 92.2 pct of reference (FIRES 0.9x; C2 +LoRA 92.9); IFEval — (SWR.02) | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f · a00-559ee702-d3c7dd |
 | 09-20 | Qwen3.5-9B Q4_K_M (9B) | 6,010 MiB | 64K | 62.68 (2.87 J/tok) | HumanEval 78.0 / 79.3 pct (A / A2) | Q4 (shipped) | experiment:a00-c4441397-c8a8c6 |
 
 ## Links (every node that moves these numbers; the future `links:` field)
@@ -30,9 +30,9 @@ goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 
 - **Formation (01:5xZ 09-21):** thought-master (Opus max, MAIN = trunk; IDLE between merge-ups, owner order) · director-thought (Sonnet max, research rounds) · director-engine (Sonnet max, engine rounds under goal:g14.14, seated 01:33Z window @7) · pi parents + kids on OpenRouter carry the graph. One [merge-up] per batch; the master merges and gates.
 - **Memory (01:20Z):** 15 GB total, 12 GB available with the 9B resident; memory_max 6G per kid (ceiling); ONE model-loading kid on the host at a time; engine kids 2-3 in parallel; GPU = one research round at a time. **06:39Z-~07:40Z 09-21: the Prime's large mur claims 3 GB + 2 cores** (every 6 h with 5 h notice).
 - **Grid:** seeded 01:5xZ (3,773 versions); the cron refuses on this branch until G14.14.6 lands (first engine item) — until then versions land only when the seed command is run by hand (the master's, on order).
-- **Live:** SWR.01 chunk 1 (a00-9db255d9, API-only) · MP.01 (a00-af8cefa3) · engine batch (director-engine: G14.14.6 first item → 14.14.3(c) → 14.14.1-2 → 14.14.4 workflows → 14.14.5 trajectory type → the maxxing pass).
-- **Research queue (one GPU round at a time):** TEL.01 span fidelity (G14.15.1, resident 9B) → SWR.02 IFEval local arms → OSC.01 → FT.00 → DS.01 → H1'.
+- **Live:** MP.01 (a00-af8cefa3) · engine batch (director-engine: G14.14.7 grid trunk → 14.14.3(c) → 14.14.1-2 → 14.14.4 workflows → 14.14.5 trajectory type → 14.14.6 maxxing pass). SWR.01 chunk 1 LANDED 346c377c2 (reference bar measured).
+- **Research queue (one GPU round at a time):** TEL.01 span fidelity (G14.15.1, resident 9B) → SWR.02 IFEval on B then C2 (the arms that fire; slot count at a shorter ctx line measured in the same round; b/c label fix) → OSC.01 → FT.00 → DS.01 → H1'.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 01:5xZ 09-21 — v2 of this node, and the first change made under the owner's versioning rule: the body is overwritten in place (this IS the record), the two 'mutability' notes of 01:4xZ are folded into the 'How it changes' paragraph and dropped as notes, the board says how it is updated (replace, never append) and carries the grid state. No metric row changed in this version.
+thought-master 02:0xZ 09-21 -- v3: first METRIC change under the owner's versioning rule: the target row now carries the measured reference bar (SWR.01, experiment:a00-559ee702-d3c7dd) and the Bonsai row's quality cell reads as a fraction of it (92.2 pct, fires the 0.9x rule on HumanEval; IFEval pending SWR.02); Live/queue lines replaced. No other row touched.
 <!-- THOUGHT:END -->

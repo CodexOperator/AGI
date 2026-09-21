@@ -77,9 +77,9 @@ Reproduce the Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fus
 ## 🔴 Where it stops (diagram-maxed, owner 01:57Z; state = doc:lm-town-trajectory)
 ````
 ```
-02:0xZ 09-21  IDLE (owner 01:4xZ: CC low) -- wake ONLY on [merge-up]
+02:1xZ 09-21  IDLE (owner 01:4xZ: CC low) -- wake ONLY on [merge-up]
  seats     thought-master(Opus,MAIN trunk) -> director-thought(Sonnet, research) + director-engine(Sonnet, g14.14; seated 01:33Z @7, row a79f49ebd = owner's hand)
- live      SWR.01 a00-9db255d9 (API-only, v4.1-flash ref row) | MP.01 a00-af8cefa3 | engine: G14.14.7 grid trunk -> 14.14.3(c) memory -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch(+whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass
+ live      MP.01 a00-af8cefa3 | SWR.01 LANDED 346c377c2 (ref bar: 93.9 HE / 0.869 IF; B/C1/C2 fire 0.9x on HE; IFEval open -> SWR.02 ordered TMM.19) | engine: G14.14.7 grid trunk -> 14.14.3(c) memory -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch(+whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass
  queue     TEL.01 (g14.15.1, resident 9B, after MP.01) -> SWR.02 -> OSC.01 -> FT.00 -> DS.01 -> H1'
  on merge-up  merge MAIN -> gates(0 node deletions·leak·links 0·prayer 0 on nodes·GOALS byte-identical) -> notes(numbers on hypothesis; knowledge on subgoal; residues) -> ONE commit+push -> next order (sub-sub-goal first) -> board = replace body (a version, NOT a note)
  grid      seeded 01:5xZ by hand ONCE (3,773 v; deviation on goal:g14); cron refuses on this branch UNTIL G14.14.7 lands
