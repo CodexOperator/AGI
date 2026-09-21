@@ -1,0 +1,9 @@
+# Default Node2Vec embedding config (T-069 / embeddings R1.2)
+
+[embedding]
+dim = 64
+walk_length = 16
+walks_per_node = 4
+seed = 42
+p = 1.0
+q = 1.0
