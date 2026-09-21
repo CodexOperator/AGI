@@ -1,0 +1,7 @@
+{
+ "model": "Qwen3.5-9B-Q4_K_M",
+ "content": ".\n\nReady.",
+ "tokens_predicted": 5,
+ "tokens_evaluated": 6,
+ "timings_prompt_ms": 68.323
+}

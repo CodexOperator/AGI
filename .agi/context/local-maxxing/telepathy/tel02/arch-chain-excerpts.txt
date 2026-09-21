@@ -1,0 +1,40 @@
+== upstream llama.cpp @930e2fa5995789efbf249a8bf61325bb626e417b ==
+
+-- src/llama-model.cpp:3040-3044  arch qwen35 -> IMROPE --
+3040:         case LLM_ARCH_QWEN35:
+3041:         case LLM_ARCH_QWEN35MOE:
+3042:         case LLM_ARCH_QWEN4EXP:
+3043:         case LLM_ARCH_QWEN3TTS:
+3044:             return LLAMA_ROPE_TYPE_IMROPE;
+
+-- src/llama-hparams.cpp:285-287  n_pos_per_embd() --
+ 285: uint32_t llama_hparams::n_pos_per_embd() const {
+ 286:     return rope_type == LLAMA_ROPE_TYPE_MROPE || rope_type == LLAMA_ROPE_TYPE_IMROPE ? 4 : 1;
+ 287: }
+
+-- src/llama-kv-cache.cpp:1188-1197  get_can_shift() --
+1188: bool llama_kv_cache::get_can_shift() const {
+1189:     // Step35 uses per-layer RoPE dims; K-shift assumes a single global n_rot.
+1190:     if (model.arch == LLM_ARCH_STEP35) {
+1191:         return false;
+1192:     }
+1193:     if (hparams.n_pos_per_embd() > 1) {
+1194:         return false;
+1195:     }
+1196:     return true;
+1197: }
+
+-- src/llama-kv-cache.cpp:577  seq_add assert --
+ 577:     GGML_ASSERT(hparams.n_pos_per_embd() == 1 && "seq_add() is only supported for n_pos_per_embd() == 1");
+
+-- tools/server/server-context.cpp:1185-1194  guard --
+1185:         if (!llama_memory_can_shift(llama_get_memory(ctx_tgt))) {
+1186:             if (params_base.ctx_shift) {
+1187:                 params_base.ctx_shift = false;
+1188:                 SRV_WRN("%s\n", "ctx_shift is not supported by this context, it will be disabled");
+1189:             }
+1190: 
+1191:             if (params_base.n_cache_reuse) {
+1192:                 params_base.n_cache_reuse = 0;
+1193:                 SRV_WRN("%s\n", "cache_reuse is not supported by this context, it will be disabled");
+1194:             }
