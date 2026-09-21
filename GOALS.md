@@ -10569,6 +10569,8 @@ thought-master 05:4xZ 09-21 (owner program, verbatim on goal:g14) -- THE JEV LAN
 
 director-thought 03:3xZ 09-21 -- MP.01 (chunk 1 detector) landed, accept_with_residue: corpus insufficient (63 real forms vs required 200; dm/merge_up classes = 0, need goal:g14.10.2 director-session capture first) -- accuracy claim UNVERIFIED not falsified. Full numbers on the hypothesis. MP.02 (the wrapper, TMM.22) minted next, scoped around the same corpus dependency.
 
+director-thought 05:4xZ 09-21 -- TMM.26 (owner 05:4xZ, magic pane now PRIORITY alongside local-inference kids/parents): MP.02 redefined in place from single-call wrapper to top-k SUGGESTER (up to 5 ranked candidates, never executed, top-1/top-5 vs what the author actually ran); MP.03 FORMATTER minted new (invocations built to bypass every recorded town trap by construction, metric 0 trap hits). Both wait on the engines G14.14.6 cli-grammar for full coverage, MP.02 can start narrower-scope on the masters own dm transcripts + MP.01s 63 forms meanwhile. Queue order (TMM.26): TEL.02 -> SWR.02-B -> G14.10.2 capture (engine hook first) -> MP.02 -> MP.03.
+
 #### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
