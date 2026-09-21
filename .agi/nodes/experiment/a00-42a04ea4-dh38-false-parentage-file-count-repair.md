@@ -5,12 +5,16 @@ type: experiment
 parents:
   - hypothesis:a00-42a04ea4-cbb836
 next_edges: []
-edited_by: a00-42a04ea4
+edited_by: a00-ecb1eee9
 evidence_runs:
   - experiment:a00-42a04ea4-dh38-false-parentage-file-count-repair
 line_ceiling: 40
 loop: goal:g7.27.2@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "[DH.38 parent] parse live body of hypothesis:a00-8e8b49fb-61c438; predicate = lines naming c02ac8bb/07944731 AND goal:g7.27.2; run on pre-repair bytes (git show 537246e0c), live bytes, and a re-introduced mutant", "expected": "pre-repair fires 2 lines; live fires 0; mutant fires 2 (checker not vacuous)", "observed": "pre=2; live=0; mutant=2", "result": "pass"}
+  - {"conjunct": 2, "class": "wire", "cmd": "[DH.38 parent] git show --stat 537246e0c file count vs the body clause 'these <word> node files' on pre-repair, live, and a flipped mutant", "expected": "commit=3; pre clause 'two' mismatches; live clause 'three' matches; mutant 'two' mismatches (comparator not vacuous)", "observed": "commit=3; pre='two' (2!=3); live='three' (3==3); mutant='two' (2!=3)", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "[DH.38 parent] parse the real frontmatter parents of the three annotated nodes and compare each live annotation line to its real parent", "expected": "c02ac8bb=[goal:g7.27]; 07944731=[goal:g7.27]; 6382dec2=[goal:g7.27.2]; annotations agree and no false goal:g7.27.2 survives", "observed": "c02ac8bb=[goal:g7.27] OK; 07944731=[goal:g7.27] OK; 6382dec2=[goal:g7.27.2] OK; live lines match", "result": "pass"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -118,3 +122,10 @@ goal. Same subtree, one extra hop.
 ## Evidence
 
 Raw console output of the post-edit parse check is kept at `.agi/sessions/iter-DH.38/a00-42a04ea4/verify.out` (script `verify.py`, same dir); the key lines are quoted under Residue 2 above.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+(1) INSTRUCTION: the parent brief says "A kid's tests are its CLAIM, not your evidence... Run one negative probe per claim conjunct yourself and record them as `probes:`; a kid that passes its own suite but fails your probe is lean_disproved" and "read each kid's DIFF ... never the result file it wrote".
+(2) MEASURED: `git diff 9de4c6ab2..HEAD` carries exactly the two repairs the order named — hypothesis:a00-8e8b49fb-61c438 lines 38 and 41 changed from `(a child of goal:g7.27.2)` to `(a child of goal:g7.27)`, and experiment:a00-4dfbd4e4-dh24-pi-arm-citation line 151 from `two` to `three` node files — plus this experiment node and its parent hypothesis. My three parent probes all PASS (see `probes:`): the false-parentage predicate fires 2 on pre-repair and 0 on live and 2 on a re-introduced mutant; the commit `537246e0c` stat is 3 files and the live clause says `three` while a flipped copy says `two`; the real parents parse to [goal:g7.27] for the two and [goal:g7.27.2] for the third. `.agi/sessions/write-log.jsonl` carries both update_node entries with actor a00-42a04ea4, so the edits went through the sanctioned writer, not a hand edit. links 3914 resolved / 0 broken.
+(3) NEAR MISS: accepting the kid's report ("ALL CHECKS PASS", verify.out) at face value would have missed that the kid's own `done` committed its work in two commits (945692c51 add, e0939a271 repair), so the parent's `done` owns no commit here; and the kid's deliverable named hypothesis:a00-42a04ea4-cbb836 as its done node while the bytes landed in the experiment node. Both are visible only in the diff, not the result file.
+(4) DEVIATION: the kid parented this experiment under hypothesis:a00-42a04ea4-cbb836 instead of goal:g7.27.2 as the order asked. Property of THIS case that makes it correct: `.agi/context/schemas/[experiment].md` line 31 sets `allowed_parents: [hypothesis, verdict, task, idea, experiment, build]` — `goal` was removed 2026-09-01 under goal:s22 and the spawn gate refused the create by name. Routing the experiment through the scaffold hypothesis is the schema-legal way to sit under the goal, and I accept it rather than bypassing the gate.
+<!-- THOUGHT:END -->
