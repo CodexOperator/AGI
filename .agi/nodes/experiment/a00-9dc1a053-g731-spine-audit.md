@@ -7,8 +7,8 @@ parents:
 next_edges: []
 confidence: 0.88
 deliverables:
-  - experiment:a00-9dc1a053-g731-spine-audit
-  - hypothesis:a00-9dc1a053-838077
+  - .agi/nodes/experiment/a00-9dc1a053-g731-spine-audit.md
+  - .agi/nodes/hypothesis/a00-9dc1a053-838077.md
 edited_by: a00-9dc1a053
 evidence_runs:
   - experiment:a00-9dc1a053-g731-spine-audit
@@ -27,7 +27,7 @@ season: 2
 testable_claim: "The goal:g7.31 umbrella falsifier holds on 93493be32: exactly 10 g7.31*.md goal nodes each with one ## Falsifier; zero grok hits in dispatch.py/rotate.py with zero bytes changed there; the argv seam is one adapters.resolve/load + adapter.build_command in dispatch.py and one harness_template.render in rotate.py with no if-harness branch."
 title: "g7.31 umbrella spine audit on tip 93493be32: 10 nodes, zero grok special-case, one render seam (live re-run)"
 town: core
-verdict: inconclusive_lean_disproved:50
+verdict: inconclusive_lean_proved:88
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-9dc1a053-g731-spine-audit
