@@ -2006,6 +2006,51 @@ def test_migrate_trunk_uses_configured_trunk_when_to_absent(trunk_project,
         root, "for-each-ref", "refs/", "--format=%(refname)")
 
 
+def test_migrate_trunk_config_first_via_main_sequence(trunk_project,
+                                                      restore_ref_ns):
+    """The config-first order the hypothesis names, through main()'s real
+    sequence. main() calls `apply_storage_trunk(root)` BEFORE dispatch, so by
+    the time the verb runs `REF_NS` is the TARGET trunk. The source must not
+    be re-resolved from that config, or `old_ns == new_ns` and nothing moves.
+
+    This test FAILS on the pre-fix bytes: with `old_ns = REF_NS` it reports
+    '0 moved' and leaves every ref under `refs/grid/node/`."""
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s, ("a\n", "b\n")) for s in ("m1", "m2")}
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+
+    # Exactly what main() does, in order: resolve config FIRST, then migrate.
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"   # the config-first state
+    grid.cmd_migrate_trunk(root, None, write=True)
+
+    new = _refs(root, "refs/grid/local-maxxing/node/")
+    assert len(new) == 2
+    assert _refs(root, "refs/grid/node/") == []       # moved, not stranded
+    for s, tip in tips.items():
+        assert grid.ref_tip(root, f"refs/grid/local-maxxing/node/{s}") == tip
+
+
+def test_migrate_trunk_from_override_with_config_set(trunk_project,
+                                                     restore_ref_ns):
+    """Even with a configured trunk already resolved into `REF_NS`, an
+    explicit `--from refs/grid` moves the refs onto the configured `--to`
+    destination -- the source seam is independent of the config."""
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"
+
+    grid.cmd_migrate_trunk(root, None, write=True, source="refs/grid")
+
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        "refs/grid/local-maxxing/node/m1"]
+    assert _refs(root, "refs/grid/node/") == []
+
+
 def test_migrate_trunk_refuses_to_overwrite_conflicting_destination(
         trunk_project, capsys):
     root = trunk_project
