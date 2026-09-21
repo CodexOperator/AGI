@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam
+edited_by: director-belam
 scaffold_hash: fa1d48320d5ae4c0
 season: 2
 tags:
@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: thought-stream-dmax-2026-09-21
+thought_session: owner-lean-mur-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -289,6 +289,17 @@ goal
 
 Soft ≤7 live parents · `spawn.parallel=1` · no new remote heads.
 
+### Lean MUR / review file lists (owner 2026-09-21 — HARD)
+
+```
+MUR / overall-review context
+  stacked too thick (context-build timeout risk)
+    ──▶ thin file list (lean ≤8–12 files; tip + falsifier + residue targets)
+    ──▶ raise ctx timeout only after lean
+    ──▶ NEVER ship fat context hoping it fits
+permission: directors MAY thin anytime without re-asking owner
+still: graph routes only (dispatch/workflow) · no route bypass
+```
 
 ## 5. Goal framing — target, not task-or-fail
 
@@ -405,4 +416,6 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 
-<!-- THOUGHT:BEGIN --> … <!-- THOUGHT:END -->
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+owner 2026-09-21: directors MAY thin MUR/overall-review file lists when context stacks too thick (ctx-build timeout risk); lean first (≤8–12: tip+falsifier+residue), raise timeout only after; never ship fat context; graph routes only
+<!-- THOUGHT:END -->
