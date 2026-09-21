@@ -22,15 +22,15 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
 ROUND STATE, all MERGED to trunk:
-  G14.14.7     inconclusive_lean_proved:70, accept_with_residue -- EF.02b minted (6 real behavior literals of the 33, 27 are cosmetic docstrings, verified myself not assumed), ready, BLOCKED hard on pool ($-8.82 headroom)
+  G14.14.7     inconclusive_lean_proved:70, accept_with_residue -- EF.02b LIVE, parent a00-adbb729a (6 real behavior literals, migration itself banked separately)
   G14.14.3(c)  proved. MAIN suite: 5822 pass, 13 pre-existing fails (G14.14.9), none from this seat
   G14.14.1     CLOSED, 3/3 proved -- (a) fix-forward after an honest EF.03 disproof, (b) create --body-file, (c) -h docs. Tip 70c50dfd4, 245 write-suite tests re-run by this director, [merge-up] sent as one batch each time (never per-round)
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-12, verified, latest wins): EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.1(d) NEW (node_writer writes BODY:BEGIN for --body-file nodes -- this seat's own EF.05 caveat, promoted) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 -> 14.14.11 -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-13, verified, latest wins, RESHUFFLED): EF.02b live -> 14.14.8 MOVED UP (session capture hook -- owner: it is the magic pane's corpus) -> 14.14.6 gains a deliverable (cli-grammar: machine-readable verb catalogue, regenerated+tested, jev targets it) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.9-11 -> G14.16.1-2. 14.14.1(d) (node_writer BODY:BEGIN for --body-file) still queued, not yet resequenced by name. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: retry EF.02b dispatch (hypothesis:lm-grid-storage-trunk-code-fix-remaining-literal-sites) when pool headroom recovers -- this box's own storage_trunk migration is explicitly banked out of this round, not bundled (live-ref history operation, needs its own go-ahead).
+NEXT ACTION: watch EF.02b; scope 14.14.8 (capture hook) next per the new order.
 
 Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch. (3) NEW (EF.04, merged): replace body now REFUSES a range that starts on a heading with no further "##" after it (the section runs to EOF, not just to where you meant to stop) -- use an OPEN range (N:) rather than --force when the heading is the doc's last one; --force still works when a real partial edit is intended.
 ```
