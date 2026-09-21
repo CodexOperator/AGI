@@ -21,8 +21,8 @@ tags:
   - trajectory
   - schema
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
-title: "G7.34.1: B1 [trajectory] schema + allowed parents/links"
+thought_session: belam-graph-only-coord-2026-09-21
+title: "G7.34.1: [trajectory] schema + allowed parents/links"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -50,7 +50,7 @@ No [trajectory] schema yet; town bodies hold TEMP stand-ins. Need typed node wit
 - Engine G7.33.5 duplicate work if already covered — prefer this spine id.
 
 ## Agent Notes
-Parked **town:core**. Parent **goal:g7.34**. B1 only.
+Parked **town:core**. Parent **goal:g7.34**. G7.34.1 only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam 2026-09-21: mint parked unassigned on town:core; geometry/trajectory spine; no director assign; no impl yet
