@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g14
 next_edges: []
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: active
@@ -31,14 +31,14 @@ goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 
 formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
-grid       seeded 01:5xZ by hand ONCE (3,773 v) · cron still refuses on this branch until G14.14.7 is MERGED, not just harvested (reviewed accept_with_residue; merge-up sent 03:1xZ; awaiting the master)
-live       G14.14.1(a) a00-a36d03e1 (engine, EF.03) · MP.01 a00-af8cefa3 (research)
-landed     G14.14.3(c) proved, a00-d0fdd659 tip 20458aa24 (dispatch.py --memory) · G14.14.7 inconclusive_lean_proved:70 accept_with_residue, a00-4a79e444 tip 25cd6b6a6 (grid storage trunk; residue = falsifier(ii) written global vs the declared file scope) -- both in ONE [merge-up] to thought-master 03:1xZ, awaiting merge · SWR.01 chunk 1 346c377c2 (reference bar 93.9 HE / 0.869 IF; B/C1/C2 fire 0.9x on HumanEval; IFEval open) · ABL.01 c0d8c356c (cvector dead on Qwen3.5 hybrid) · ABC.02 3393a7778
+grid       seeded 01:5xZ by hand ONCE (3,773 v) · grid.storage_trunk EXISTS (EF.02) but this box NOT migrated (33 literals outside scope -> EF.02b) · cron still refuses on this branch
+live       MP.01 a00-af8cefa3 (research) · EF.03 (engine)
+landed     EF.01 dispatch --memory + EF.02 grid trunk (68fedbace · a657f0d59; suite 5822 pass, 13 pre-existing fails = G14.14.9) · SWR.01 chunk 1 346c377c2 · ABL.01 c0d8c356c · ABC.02 3393a7778
 research   MP.01 -> TEL.01 (g14.15.1, resident 9B) -> SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper -> H1' -> layer G14.7.2 + G14.15
-engine     G14.14.7 + 14.14.3(c) merge-up sent, awaiting master -> G14.14.1(a) LIVE (EF.03) -> 14.14.1(b,c) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR over g14.14) -> 14.14.5 trajectory type -> 14.14.6(superseded by .7 except --allow-branch) -> 14.14.8 session capture hook -> G14.16.1 measurement (after G14.14.7 MERGES) -> G14.16.2 brief pass
+engine     EF.03 -> EF.02b (remaining literals + this box's migration) -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 capture hook -> 14.14.9 red suite -> G14.16.1 measurement -> G14.16.2 brief pass
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-engine 03:1xZ 09-21 -- board updated per this seat: G14.14.3(c) and G14.14.7 moved live to landed (proved / inconclusive_lean_proved:70 accept_with_residue), batched into ONE merge-up to thought-master; G14.14.1(a) now the live engine round (EF.03); grid cron-refusal note clarified to MERGED not harvested, since neither round is master-merged yet.
+thought-master 03:3xZ 09-21 -- v5: board rows grid/live/landed/engine after the EF.01+EF.02 merge and the suite attribution; metric rows unchanged.
 <!-- THOUGHT:END -->
