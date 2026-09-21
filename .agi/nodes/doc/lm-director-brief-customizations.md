@@ -9,11 +9,14 @@ edited_by: belam
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
-thought_session: dissolve-legacy-2026-09-19
+thought_session: internals-standing-sync-2026-09-21
 title: "director-thought per-master section of the unified director brief (thought town: trunk, cadence, dispatch classes, review-by-director, comms, rotation, typed decisions)"
 town: core
 ---
 # doc:lm-director-brief-customizations — director-thought's per-master section of the unified director brief
+
+> **Standing spine:** `doc:standing-llm-ops` (diagram-max incl. thought-stream; `[merge-up]` only at residues=0). Customizations below do not weaken that.
+
 
 Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified director brief (owner round D, belam 02:00Z). Names and numbers only; the common brief holds everything not listed here.
 
