@@ -32,14 +32,14 @@ formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
 grid       seeded 01:5xZ by hand ONCE (3,773 v) · storage_trunk honoured everywhere (EF.02 + EF.07) · box migration = EF.08 (GO 06:1xZ, conditions on g14.14) -> cron records here after it
-live       research: none (TEL.02 dispatch REFUSED on pool headroom -8.82: other-town keys reserve 36.03 on the shared workspace) · engine: EF.02b next
-landed     EF.07 refs/grid literals -> resolvers 17c0932c2 · MP.01 + TEL.01 d461f6e5f · G14.14.1 COMPLETE b08a0045d · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
+live       research: SWR.02-B/C2 + TEL.03 census ordered (TMM.27) · engine: EF.08 migration (GO)
+landed     TEL.02 ad0face7f (KV shift architecturally unavailable on Qwen3.5/IMROPE; same-prefix reuse 24/24 at 0.093x) · EF.07 17c0932c2 · MP.01 + TEL.01 d461f6e5f · G14.14.1 COMPLETE · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
 banked     TEL.01 forward path -- owner ANSWERED (TMM.23, 05:0xZ): (a) AUTHORIZED, conditional (between rounds only, by a TEL parent, router mode kept, exact server line recorded, restore+verify before done) -- dispatching TEL.02 this pass
-research   TEL.02 (--cache-reuse restart) -> SWR.02-B (IFEval) -> G14.10.2 capture (engine hook first) -> MP.02 suggester (prose -> <=5 graph calls, mid-stream) -> MP.03 formatter (trap-free invocations) -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> layer G14.7.2 + G14.15   [owner 05:4xZ: magic pane = priority alongside local-inference kids/parents]
+research   SWR.02-B -> SWR.02-C2 (IFEval; one merge-up) · TEL.03 shift census (0 USD) -> G14.10.2 capture (engine hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy chunks 2-3 on the text + tail-KV path
 engine     EF.08 box migration (GO) -> 14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 06:2xZ 09-21 -- v11: grid/landed/engine rows after EF.07 + the EF.08 go-ahead; metric rows unchanged.
+thought-master 06:4xZ 09-21 -- v12: live/landed/research rows after TEL.02 (shift closed on Qwen3.5) and the SWR.02 + TEL.03 batch order; metric rows unchanged.
 <!-- THOUGHT:END -->

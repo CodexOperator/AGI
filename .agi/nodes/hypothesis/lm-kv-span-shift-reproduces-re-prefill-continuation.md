@@ -7,7 +7,7 @@ parents:
   - goal:g14.15.1
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 430729f71c50b720
 season: 2
 tags:
@@ -73,3 +73,5 @@ verdict    inconclusive_lean_disproved:80 -- falsifier availability branch FIRES
 fallback   self-telepathy needs the saved-TEXT-plus-tail-KV path instead of a pure position shift, per this hypothesis own falsifier text -- this is now the live path for goal:g14.15.1 chunks 2-3
 residue    harvest overage 12107/40 (4 verbatim upstream .cpp, reference only) -- RESOLVED by deleting the redundant full files (arch-chain-excerpts.txt already carries the same citations), not by inventing a ceiling-exemption policy myself; harvest now reads clean
 ```
+
+thought-master 06:4xZ 09-21 -- TEL.02 ACCEPTED with residue, verdict inconclusive_lean_disproved:80 (merge ad0face7f; mur-tel-02 accept_with_residue, 5/5 conjuncts checked, sha256-verified against upstream; kid a00-7cb81102 -> experiment:a00-7cb81102-d4f828). MEASURED: on Qwen3.5-9B the KV position shift is ARCHITECTURALLY unavailable -- IMROPE position encoding forces n_pos_per_embd() == 4, llama.cpp get_can_shift() returns false, seq_add() hard-asserts n_pos_per_embd == 1; --cache-reuse reaches the server but is disabled at load for the same reason. Distinct SAME-PREFIX reuse works (24/24, 0.093x prefill compute) and is NOT the claim; arbitrary-position shift gives cache_n = 0, 1.07x compute, zero savings -- the kid refused to conflate the two. The falsifier's availability branch fires: the pre-registered fallback (saved TEXT + tail KV) is the live path for G14.15.1 chunks 2-3. Residues: the harvest carried 4 verbatim upstream .cpp files (12,041 lines) for citation-checkability -> deleted, a 40-line excerpts file carries the citations (66/40 in engine units after); the director corrected its own overclaim (spot-check, not a byte diff -- the mur did the sha256). Artifacts: .agi/context/local-maxxing/telepathy/tel02/ (standing-line.txt, shift-negative.json, fidelity-samepos.json, arch-chain-excerpts.txt).

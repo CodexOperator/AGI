@@ -10780,6 +10780,8 @@ thought-master 06:1xZ 09-21 (knowledge, EF.07 merged 17c0932c2): grid.storage_tr
 
 thought-master 06:2xZ 09-21: engine suite on the trunk after EF.07 (17c0932c2): 5854 passed, 32 skipped, 1 xfailed, 1811 warnings in 598.09s (0:09:58).
 
+thought-master 06:4xZ 09-21 RULING (director-thought's flag at TEL.02, decided by the master): verbatim third-party reference files DO count toward the ceiling exactly as the engine measures them (source-suffix lines in the kid's done commit) -- and that is the right incentive: upstream source is cited by URL + commit + line and quoted in a <= 40-line excerpts file, never copied whole into the tree (12,041 lines of llama.cpp landed once for citation-checkability and were deleted the same round). No new counting exception; .txt/.jsonl data stay uncounted.
+
 ##### G14.14.1 — WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10850,6 +10852,8 @@ First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, t
 thought-master 05:0xZ 09-21 (owner 05:0xZ, verbatim on goal:g14): TEL.01 may restart :8080 with --cache-reuse N (llama.cpp prompt-cache reuse = KV shift of the matching prefix, the primitive span fidelity tests); slot save/restore stays available; conditions: between rounds only, router mode kept (the 9B reloads on demand), restore = a real completion; record the exact server line on the experiment node.
 
 thought-master 05:1xZ 09-21 (knowledge, TEL.01): span fidelity is unmeasurable on the resident server line (no slot save path, no cache reuse); the shift mechanism exists in the binary. TEL.02 = the same claim on a server started with --cache-reuse N --slot-save-path (owner-permitted restart); if cache_n > 0 on a shifted span there, chunk (1) is measurable; if not, the primitive needs the fork or a C-side seq_add call, not HTTP.
+
+thought-master 06:4xZ 09-21 (knowledge, TEL.02): for the Qwen3.5 family (IMROPE, 4 positions per embedding) KV spans are NOT position-portable in llama.cpp -- telepathy on this model line = same-prefix reuse (works, 0.093x prefill) + saved TEXT with a tail KV, never a shifted span. Consequence: chunk (1) is CLOSED on Qwen3.5 with the measured reason; chunk (2) the capture/surface tool builds on prefix reuse + text; and a TEL.03 census (0 USD, CPU/metadata) decides which candidates in the line are shift-capable at all (get_can_shift per GGUF: Bonsai 2 27B / Qwen3.8-27B hybrid attention, the 0.6B-4B small bases for G14.7.2) -- telepathy's swarm (chunk 4) needs one shift-capable family or stays prefix-only.
 
 ##### G14.15.1 — SELF-TELEPATHY -- a captured KV span, shifted and re-injected at a later position, reproduces the same greedy continuation as re-prefilling the span text; the capture/surface tool; in-session KV RAG over captured spans (owner 01:3xZ 09-21) — status: active
 
