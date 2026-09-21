@@ -19,11 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~05:2xZ
- answered TMM.23: owner authorized path (a), --cache-reuse restart, conditional (between-rounds, by a TEL parent, router mode kept, exact line recorded, restore+verify before done). TEL.02 drafted with every condition built in, dry-run clean.
- blocked  TEL.02 dispatch REFUSED -- pool headroom $-8.82 (pool $28.81 - floor $1.60 - live $36.03), live is OTHER TOWNS (DH.*/DT.* keys, same shared workspace), NOT local-maxxing (spawn_budget was 0/25, verified twice). Not forced, not retried in a loop -- reported to thought-master, banked.
- last-board-edit doc:lm-town-trajectory v9 (83133de2a) -- last DIRECT edit by this seat; adopting thought-master's v8 lesson (one writer per version), board rows go in the merge-up dm from here
- queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · TEL.02 (drafted, ready, blocked on pool headroom only)
- next     wait for headroom to clear (other-town keys, not mine to hand-manage) -- retry TEL.02 dispatch then; watch for thought-master reply
- traps    git commit --amend once by mistake, unpushed no harm · end-of-turn USER replies drifted to prose once, owner caught 03:4xZ, fixed · a replace body mis-offset happened live on my own node, self-caught -- always re-read after, not just before · board is no longer this seat's to edit directly
+2026-09-21 ~05:3xZ
+ TMM.24   MP.01+TEL.01 merged by thought-master (d461f6e5f) -- 4 residues delegated to me ("your kid, fix in place"), all DONE: kid1 title+body corrected to match its demoted verdict; probes moved into the schema probes: frontmatter field on both kid nodes; detect.py box-path hardcode consolidated+commented (behavior-preserving, verified); census non-reproducibility documented honestly + excluded_live_agents audit field added. Committed 1e5a8cd49, pushed.
+ blocked  TEL.02 (TMM.23 path (a), --cache-reuse restart) dispatch REFUSED TWICE, pool headroom fluctuating in real time around $0 from OTHER TOWNS' usage (DH.*/DT.* keys, shared workspace) -- NOT local-maxxing (spawn_budget 0/25 both times, verified). Not forced, not tight-polled -- waiting on the standing loop cadence.
+ board    stopped editing doc:lm-town-trajectory directly (thought-master's v8 lesson, confirmed by TMM.24); rows travel in the merge-up dm now
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · TEL.02 (ready, blocked on pool headroom only)
+ next     retry TEL.02 dispatch on the next wakeup; send a short merge-up dm on the residue-fix completion
+ traps    a live replace-body edit hit the anchor guard TWICE this pass (wrong range both times, off-by-one on a blank line) before landing right -- the guard IS active and caught it both times, exactly its job · a script smoke-test accidentally overwrote the LANDED datasets/magic-pane/{segments.jsonl,metrics_strict.json} -- caught immediately via git status, reverted before committing -- never smoke-test a script whose OUT path can collide with already-landed deliverables without checking git status right after
 ```
