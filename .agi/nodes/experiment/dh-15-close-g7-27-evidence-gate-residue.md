@@ -6,12 +6,16 @@ parents:
   - hypothesis:a00-7f6f1f95-b253cb
 next_edges: []
 confidence: 0.95
-edited_by: a00-7f6f1f95
+edited_by: a00-4795fa74
 evidence_runs:
   - experiment:dh-15-close-g7-27-evidence-gate-residue
 line_ceiling: 40
 loop: goal:g7.27@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 extensions/agi/bin/evidence_gate.py enforce --dry-run --root .agi", "expected": "0 unevidenced decisive verdict(s), 0 would demote, 0 refused", "observed": "0 unevidenced decisive verdict(s), 0 would demote, 0 refused", "result": "pass"}
+  - {"conjunct": 1, "class": "gate", "cmd": "gate_on_disk with scalar vs list evidence_runs on experiment:s26-...", "expected": "scalar demotes to inconclusive_lean_proved:50; list does not demote", "observed": "scalar -> (True, inconclusive_lean_proved:50); list -> None", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "apply_gate self-citation as experiment (allow_self) vs verdict (refused)", "expected": "experiment self-cite counted; verdict self-cite refused", "observed": "experiment self-cite demoted? False; verdict self-cite demoted? True (no experiment evidence for proved)", "result": "pass"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -114,7 +118,7 @@ re-measured `70 passed in 1.31s` at tip `d48eb062a`; both nodes parse their
 changed: 0 — the only writes are node frontmatter/body via `write.py`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.15 residue round. The parent measured the defect (scalar-vs-list evidence_runs) and this round APPLIED the fix rather than re-deriving it: two write.py set evidence_runs calls via write.py, both verified to parse back as YAML lists. The gate went 2 would-demote to 0 would-demote with no bypass; the fix is in the node data, not in evidence_gate.py, which is correct because the schema already declares a list and the gate already allows an experiment to self-cite (evidence_gate.py:393-397). DEVIATION ONE: the brief one-liner create hypothesis is not the real CLI shape -- create needs a positional slug (create TYPE SLUG --parent ID); the scaffolded hypothesis was reused as the round hypothesis and the experiment created under it, so no goal-to-experiment edge was needed. DEVIATION TWO: the tip label was refreshed only after re-running the three files at d48eb062a (70 passed in 1.31s, not the old 70 in 1.12s at 8b0234685); every file:line citation was re-derived with grep -n, and all hold. Zero production lines: all writes are node data through write.py.
+DH.15 residue round, kid a00-7f6f1f95, reviewed by parent a00-4795fa74. WHAT THE KID DID (kept from its own reasoning): the parent measured the defect (scalar-vs-list evidence_runs) and this round APPLIED the fix rather than re-deriving it — two write.py set evidence_runs calls, both verified to parse back as YAML lists. The gate went 2 would-demote to 0 would-demote with no bypass; the fix is in the node data, not in evidence_gate.py, which is correct because the schema already declares a list and the gate already allows an experiment to self-cite (evidence_gate.py:393-397). DEVIATION ONE: the brief one-liner create hypothesis is not the real CLI shape — create needs a positional slug — so the scaffolded hypothesis was reused as the round hypothesis and the experiment created under it, so no goal-to-experiment edge was needed. DEVIATION TWO: the tip label was refreshed only after re-running the three files at d48eb062a (70 passed in 1.31s, not the old 70 in 1.12s at 8b0234685); every file:line citation was re-derived with grep -n, and all hold. Zero production lines. PARENT REVIEW DELTA: read the diff (kid commit a65dc0a1f plus three uncommitted foreign edits), not the result file. All four named deliverables are in the bytes: feb73f39 gains a LIST self-citation where the field was absent, s26 scalar becomes a LIST, the verdict tip label moves to d48eb062a with the re-measured 1.31s tail, and the round hypothesis+experiment nodes exist with real titles. Three negative probes run by the parent all hold — wire: the production entry point evidence_gate.py enforce --dry-run --root .agi prints 0 unevidenced / 0 would demote / 0 refused; gate: gate_on_disk still demotes a scalar evidence_runs to inconclusive_lean_proved:50 and leaves a LIST alone, so the gate was not weakened, only the data fixed; auth: apply_gate counts an experiment self-citation (allow_self) but still refuses a verdict self-citation, so the self-cite allowance is not a blanket hole. Repairs made as reviewer, through write.py: the round hypothesis was missing the schema-required testable_claim (a pre-existing gap in 125 hypotheses), backfilled from the node own Proved-if text; the parent probes were recorded on this node as probes:. CAVEAT left standing: the newly minted hypothesis joined the pre-existing 125-hypothesis testable_claim gap fixed here only for this node, not systemically. THE NEAR MISS: accepting the previous round on its summary alone would have shipped two nodes that the gate silently demotes at the next grid commit — the residue was real, not cosmetic.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
