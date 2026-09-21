@@ -3,9 +3,9 @@ id: doc:athena-class-model-a
 mint_id: 94e4d014ec8449b9b5065b327f2bcc92
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/athena-class-model-a.md
 scaffold_hash: ed5497861401bfd3
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"athena-class-model-a: Gemma 4 31B Instruct + LoRA r336 merged, Q8_0 only, identity/coherence in the weights (no evals)\""
 town: local-maxxing
 ---

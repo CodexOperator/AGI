@@ -1,0 +1,34 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-belam",
+  "recorded_at": "2026-09-17T19:34:04.248953Z",
+  "result": "detected",
+  "probable_cause": "unknown",
+  "succ_name": "director-belam",
+  "gen": 2,
+  "gen_after": 2,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "",
+  "pred_pids": [
+    1161217
+  ],
+  "row": {
+    "name": "director-belam",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 1161217,
+    "window": "@428",
+    "session_id": "162aa2d0-e5cb-4a0e-b074-5ddbd41d3438",
+    "generation": 1,
+    "worktree": ".agi/worktrees/post-sanctuary-director"
+  },
+  "respawn_outcome": {
+    "name": "director-belam",
+    "generation": 2,
+    "pid": null,
+    "window": null,
+    "reason": "launcher reported no successor process",
+    "row": "skipped"
+  }
+}

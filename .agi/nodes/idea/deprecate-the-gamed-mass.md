@@ -3,9 +3,9 @@ id: idea:deprecate-the-gamed-mass
 mint_id: de4f70aaff7c4b7db9b81520fddb408d
 type: idea
 parents:
-  - goal:g6
+  - goal:g4.10
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 scale: big
 season: 1
 status: open
@@ -13,7 +13,7 @@ tags:
   - engine
   - seed
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Deprecate the gamed mass without deleting it
 ---
 Retire the H3 padding by **stamping** it, never by editing or removing it. What

@@ -3,9 +3,9 @@ id: idea:engine-benchmark
 mint_id: 58187e5dc9dc424fab23a018b8037a9c
 type: idea
 parents:
-  - goal:g3
+  - goal:g3.5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/benchmark.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/benchmark.py

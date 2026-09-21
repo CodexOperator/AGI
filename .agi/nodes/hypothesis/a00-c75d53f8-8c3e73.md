@@ -3,7 +3,7 @@ id: hypothesis:a00-c75d53f8-8c3e73
 mint_id: 46ee3cbbfff7401cb1a518f1ddaa4f2f
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -25,7 +25,7 @@ verdict: pending
 
 ### Testable claim
 
-`goal:g10.1` names the attachment problem and settles it: **attach a chat to
+`goal:g2.24` names the attachment problem and settles it: **attach a chat to
 its end result**, record its inputs as references. It then names the failure
 that has to be controlled for — *"a chat that produces nothing has no owner and
 vanishes"* — and treats it as a case to guard against before building.

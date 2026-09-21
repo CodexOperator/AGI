@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:90
 
 ## Experiment
 
-goal:g15.25 FIX-ONLY build node (SL7.80) — _subheader_in_body is the third
+goal:g6.47 FIX-ONLY build node (SL7.80) — _subheader_in_body is the third
 fence-unaware card reader after the stops scan (SL7.48) and
 _split_card_sections (SL7.62). This round implements the claim and proves it
 on built bytes.

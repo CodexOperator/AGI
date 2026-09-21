@@ -3,9 +3,9 @@ id: idea:engine-graph-core
 mint_id: f21fd8eb1d29439f9ba187f7e586b98d
 type: idea
 parents:
-  - goal:g7
+  - goal:g4.11
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: big
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/src/graph_core"
 unit_kind: src_package
 unit_path: extensions/agi/src/graph_core

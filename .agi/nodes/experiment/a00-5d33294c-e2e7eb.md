@@ -37,7 +37,7 @@ Changes to `extensions/agi/bin/send.py`:
   `_comms_config(root)` — returns the nearest graph root's `comms` block with a
 default for EVERY known key; absent/malformed block = all defaults, never raises
 (via `_main_graph_root` + `locations.load_config`). `verify` is read here but
-ACTED ON by the goal:g15.26 round, never this one.
+ACTED ON by the goal:g6.47.1 round, never this one.
 - `_lockdown_requirements(cfg)` -> `["encrypted-at-rest",
   "custodian-signing-server: optional"]` — the NAMED seam (used by a test),
   no cipher/key-exchange/envelope change.

@@ -22,6 +22,7 @@ Subcommands:
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import os
 import re
@@ -879,6 +880,13 @@ def cmd_rollover(root: Path, args) -> int:
     season_parents, actor), every ladder field it would set, and the branch
     step — and changes nothing.
     """
+    if getattr(args, "global_rollover", False):
+        return cmd_rollover_global(root, args)
+    if getattr(args, "align", False):
+        return cmd_rollover_align(root, args)
+    if (getattr(args, "town", "") or "").strip():
+        print("REFUSED: --town needs --align or --global — a town never rolls alone", file=sys.stderr)
+        return 1
     dry_run = bool(getattr(args, "dry_run_explicit", False)
                    or getattr(args, "dry_run", False))
     allow_unjudged = bool(getattr(args, "allow_unjudged", False))
@@ -1076,8 +1084,245 @@ def cmd_rollover(root: Path, args) -> int:
     print("  * the three advisors each take a vision")
     print("  * perpetual directors bootstrap their goals and hang each under its vision")
 
+# ALIGN (owner 2026-09-18 02:2xZ): ONE season for every town. Dry by default,
+# --apply performs, --delete-old gates every origin delete; each step is
+# VERIFIED before the next and a failure STOPS by name with the cell unwritten
+ARCHIVE_NS = "refs/agi/archive"
+
+def _heads(repo) -> list:
+    return [l for l in _git(repo, "ls-remote", "--heads", "origin").stdout.splitlines() if l.strip()]
+
+def _stop(step: int, name: str, detail: str) -> int:
+    print(f"STOP at step {step}: {name} — {detail}", file=sys.stderr); return 1
+
+def _cut(repo, old, new, apply, tag):
+    """CUT: push the old tip under the new name. RESUME when the new name is
+    already at the old tip (or the old head is gone); a different sha is
+    refused by name. Returns (rc, old_tip_sha)."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    state, sha = st(repo, R + old); ns, nsha = st(repo, R + new)
+    if state == "failed":
+        return _stop(1, "cut", f"origin/{old} unreadable"), ""
+    if state == "absent":
+        if ns != "present":
+            return _stop(1, "cut", f"origin/{old} absent and {new} absent — nothing to cut"), ""
+        print(f"[{tag}] 1 CUT {R}{new} <- {nsha[:12]} (RESUME: old head already gone)")
+        return 0, nsha
+    if ns == "present" and nsha != sha:
+        return _stop(1, "cut", f"origin/{new} exists at {nsha[:12]} != {sha[:12]} — refusing to overwrite"), ""
+    print(f"[{tag}] 1 CUT {R}{new} <- {sha[:12]}" + (" (RESUME: new name already at old tip)" if ns == "present" else ""))
+    if apply and ns != "present":
+        ok, detail, _ = branches.mirror_and_prove(repo, R + new, tip=sha, label="cut")
+        if not ok:
+            return _stop(1, "cut", detail), ""
+    return 0, sha
+
+
+def _fold(repo, head, old, sha, apply, tag, step):
+    """FOLD: git merge --no-ff the old trunk into its ladder head. ADD-ONLY:
+    the push must be a fast-forward of the current head, a fold that would
+    fast-forward is refused by name, and the merge commit is proved TWO-parent."""
+    import cli, tempfile
+    state, htip = cli._post_rename_remote_ref_state_sha(repo, f"refs/heads/{head}")
+    if state != "present":
+        return _stop(step, "fold", f"ladder head {head} is {state} on origin")
+
+    def anc(a, b):
+        return _git(repo, "merge-base", "--is-ancestor", a, b).returncode == 0
+
+    if anc(sha, htip):
+        print(f"[{tag}] {step} FOLD {old} -> {head} (RESUME: already folded)")
+        return 0
+    if anc(htip, sha):
+        return _stop(step, "fold", f"{head} is an ancestor of {old} — would fast-forward, refused by name")
+    print(f"[{tag}] {step} FOLD {old} -> {head} (merge --no-ff)")
+    if not apply:
+        return 0
+    wt = Path(tempfile.mkdtemp(prefix="rollover-fold-"))
+    try:
+        a = _git(repo, "worktree", "add", "--detach", "-q", str(wt), htip)
+        if a.returncode:
+            return _stop(step, "fold", f"worktree add: {a.stderr.strip()}")
+        m = subprocess.run(["git", "-C", str(wt), "merge", "--no-ff", "-q", "-m",
+                            f"rollover: fold {old} into {head}", sha],
+                           capture_output=True, text=True)
+        if m.returncode:
+            return _stop(step, "fold", f"merge: {(m.stderr or m.stdout).strip()}")
+        nsha = _git(wt, "rev-parse", "HEAD").stdout.strip()
+        par = _git(repo, "rev-list", "--parents", "-n1", nsha).stdout.split()
+        if len(par) != 3:
+            return _stop(step, "fold", f"merge commit {nsha[:12]} has {len(par)-1} parents, expected 2")
+        p = _git(repo, "push", "origin", f"{nsha}:refs/heads/{head}")
+        if p.returncode:
+            return _stop(step, "fold", f"push: {p.stderr.strip()}")
+    finally:
+        _git(repo, "worktree", "remove", "--force", str(wt))
     return 0
 
+
+def _archive_delete_cell(root, repo, old, new, sha, cell_id, m, g, history,
+                         apply, delete_old, actor, session, tag, base=2,
+                         cell_field="season", defer=None):
+    """ARCHIVE -> DELETE -> CELL for one trunk. The delete is only with
+    --delete-old and only after the archive ref is proved; the cell bump is
+    gated on the old head being proved GONE from origin. With `defer` (a list)
+    the cell is NOT written here: the descriptor is collected and the caller
+    writes every cell in a second pass, only after ALL trunks verified -- a
+    partial rollover must bump no cell anywhere."""
+    import cli
+    R, st = "refs/heads/", cli._post_rename_remote_ref_state_sha
+    a, d = base, base + 1
+    print(f"[{tag}] {a} ARCHIVE {ARCHIVE_NS}/{old} <- {sha[:12]}")
+    if apply:
+        ok, detail, _ = branches.mirror_and_prove(repo, f"{ARCHIVE_NS}/{old}", tip=sha, label="archive")
+        if not ok:
+            return _stop(a, "archive", detail)
+    if delete_old:
+        if st(repo, R + old)[0] == "absent":
+            print(f"[{tag}] {d} DELETE origin/{old} — already absent (RESUME)")
+        else:
+            print(f"[{tag}] {d} DELETE origin/{old} (containment {R}{new})")
+            if apply:
+                cs, tgt, gsha = cli._rs_containment_state(repo, old, [R + new])
+                if cs != "contained":
+                    return _stop(d, "delete", f"containment {cs} in {tgt or '(none)'}")
+                rc, err = cli._rs_lease_delete(repo, old, gsha)
+                if rc or st(repo, R + old)[0] != "absent":
+                    return _stop(d, "delete", err or f"verify {st(repo, R + old)[0]}")
+    if delete_old and st(repo, R + old)[0] == "absent":
+        now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        hist = [h for h in (history or []) if isinstance(h, dict)] + [
+            {"season": g, "global_season": g, "opened": now, "closed": None}]
+        if defer is not None:
+            defer.append((cell_id, m, g, hist, cell_field))
+            print(f"[{tag}] {d + 1} CELL DEFERRED {cell_id} {m} -> {g} (written only after every trunk verifies)")
+        else:
+            fm = ({"season": g, "season_history": json.dumps(hist)}
+                  if cell_field == "season" else {cell_field: g})
+            print(f"[{tag}] {d + 1} CELL {cell_id} {m} -> {g}")
+            if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+                return _stop(d + 1, "cell", "write.py refused (see stderr above)")
+    else:
+        print(f"[{tag}] {d + 1} CELL HELD {cell_id} stays {m} — old head {old} remains on origin (bump gated on the verified delete)")
+    return 0
+
+
+def _align_town(root, repo, slug, m, g, history, apply, delete_old, actor, session):
+    """Six verified steps aligning one town to the global season."""
+    old = branches.derive_names(slug, m)["town_season_main"]
+    new = branches.derive_names(slug, g)["town_season_main"]
+    tag, n0 = ("APPLY" if apply else "DRY  "), len(_heads(repo))
+    rc, sha = _cut(repo, old, new, apply, tag)
+    if rc:
+        return rc
+    if _archive_delete_cell(root, repo, old, new, sha, f"town:{slug}", m, g, history,
+                            apply, delete_old, actor, session, tag):
+        return 1
+    if apply and _git(repo, "rev-parse", "--verify", "--quiet", "refs/heads/" + old).stdout.strip():
+        print(f"[{tag}] 5 WORKTREE git branch -m {old} {new} (HEAD unchanged)")
+        if _git(repo, "branch", "-m", old, new).returncode:
+            return _stop(5, "worktree", "git branch -m refused")
+    print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
+    return 0
+
+def cmd_rollover_align(root: Path, args) -> int:
+    """Every town's season cell and trunk -> the global season (SKIPs by name)."""
+    import towns
+    apply, delete_old = bool(args.align_apply), bool(args.delete_old)
+    town, actor = (args.town or "").strip(), args.actor or "season.py"
+    try: by = {t.slug: t for t in towns.load_towns(root)}
+    except Exception as exc: print(f"ERR: {exc}", file=sys.stderr); return 1
+    if town and town not in by: print(f"REFUSED: --town {town!r} is not a declared town", file=sys.stderr); return 1
+    g, repo = _get_current_season(root), _find_git_root(root)
+    if repo is None: print("ERR: no git repo found for align", file=sys.stderr); return 1
+    todo = [by[town]] if town else sorted(by.values(), key=lambda t: t.slug)
+    print(f"Align: one season for every town (global G={g})")
+    print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
+    for t in todo:
+        if t.season == g:
+            print(f"SKIP town:{t.slug} — season {t.season} already == G"); continue
+        print(f"town:{t.slug}: season {t.season} -> {g}")
+        if _align_town(root, repo, t.slug, t.season, g, t.season_history,
+                       apply, delete_old, actor, args.session or "season"):
+            return 1  # the failing step named itself; nothing further performed
+    if not apply: print("dry-run: nothing changed")
+    return 0
+
+
+def _preflight_cells(root: Path, cells: list, actor: str) -> int:
+    """PASS 0 (SM.106 auth defect): reach the SAME written_by admission rule
+    write.py enforces, once per cell, BEFORE any step is performed -- so a run
+    whose default actor would be refused at the deferred cell pass refuses by
+    name with NOTHING done, instead of pushing every origin ref and then
+    leaving the ladder and town cells disagreeing. Returns 0 when every cell
+    admits, 1 on the first refusal (already printed)."""
+    import write as _w
+    for cell_id, field, value in cells:
+        decision = {}
+        try:
+            _w._enforce_written_by(
+                root, cell_id.split(":", 1)[0], actor, cell_id, "",
+                set_fm={field: value}, allow_self_row=True,
+                out_decision=decision, preview=True)
+        except Exception as exc:  # noqa: BLE001  (a broken gate refuses, never admits)
+            decision["refusal"] = f"{exc}"
+        if decision.get("refusal"):
+            print(f"REFUSED: {decision['refusal']}", file=sys.stderr)
+            return 1
+    return 0
+
+
+def cmd_rollover_global(root: Path, args) -> int:
+    """GLOBAL rollover G -> G+1: the global trunk AND every town trunk in ONE
+    command (cut, fold --no-ff into the ladder head, archive, delete-old, cell,
+    heads +0); a town never rolls alone."""
+    import towns
+    apply, delete_old = bool(args.align_apply), bool(args.delete_old)
+    if (args.town or "").strip():
+        print("REFUSED: --town with --global — a town never rolls alone", file=sys.stderr); return 1
+    actor, session = args.actor or "season.py", args.session or "season"
+    g, ng, repo = _get_current_season(root), _get_current_season(root) + 1, _find_git_root(root)
+    if repo is None: print("ERR: no git repo found for rollover", file=sys.stderr); return 1
+    try: declared = sorted(towns.load_towns(root), key=lambda t: t.slug)
+    except Exception as exc: print(f"ERR: {exc}", file=sys.stderr); return 1
+    misaligned = [t.slug for t in declared if t.season != g]
+    if misaligned:
+        print(f"REFUSED: town(s) {', '.join(misaligned)} not at global season {g} — align first", file=sys.stderr); return 1
+    tag, n0 = ("APPLY" if apply else "DRY  "), len(_heads(repo))
+    print(f"Rollover: season {g} → {ng} (global; {len(declared)} town(s))")
+    print("[DRY RUN — no changes will be written]" if not apply else "[REAL RUN]")
+    trunks = [(None, "ladder:ladder", None)] + [(t.slug, f"town:{t.slug}", t.season_history) for t in declared]
+    # A cell write happens ONLY with --delete-old (without it every cell is HELD),
+    # so admission is owed only then: a no-delete run must not be pre-flighted.
+    if apply and delete_old:
+        cells = [(cell_id, "current_season" if slug is None else "season", ng)
+                 for slug, cell_id, _h in trunks]
+        if _preflight_cells(root, cells, actor):
+            print("nothing performed", file=sys.stderr)
+            return 1
+    pending = []   # PASS 1 collects cell descriptors; PASS 2 writes them -- only after every trunk verifies
+    for slug, cell_id, history in trunks:
+        old = branches.season_main(g) if slug is None else branches.derive_names(slug, g)["town_season_main"]
+        new = branches.season_main(ng) if slug is None else branches.derive_names(slug, ng)["town_season_main"]
+        head = "master" if slug is None else branches.derive_names(slug, ng)["town_main"]
+        rc, sha = _cut(repo, old, new, apply, tag)
+        if rc: return rc
+        if _fold(repo, head, old, sha, apply, tag, 2): return 1
+        field = "current_season" if slug is None else "season"
+        if _archive_delete_cell(root, repo, old, new, sha, cell_id, g, ng, history,
+                                apply, delete_old, actor, session, tag, base=3,
+                                cell_field=field, defer=pending):
+            return 1
+    # PASS 2: every trunk cut, folded, archived and deleted -- now write every cell.
+    for cell_id, m, gg, hist, cell_field in pending:
+        fm = ({"season": gg, "season_history": json.dumps(hist)}
+              if cell_field == "season" else {cell_field: gg})
+        print(f"[{tag}] 5 CELL {cell_id} {m} -> {gg} (deferred pass; all trunks verified)")
+        if apply and _shell_out_write(root, cell_id, actor=actor, session=session, set_fm=fm):
+            return _stop(5, "cell", f"write.py refused for {cell_id}")
+    print(f"[{tag}] 6 HEADS {n0} -> {len(_heads(repo))}")
+    return 0
 
 # ---------------------------------------------------------------------------
 # merge-up — per-parent branch merge into the recorded base branch
@@ -1787,6 +2032,12 @@ def main(argv: list[str] | None = None) -> int:
     p_rollover.add_argument("--allow-unjudged", action="store_true", default=False,
                             help="proceed even while a season-current overview lacks "
                                  "a judgment")
+    # --align: one-time town align (owner 2026-09-18 02:2xZ)
+    p_rollover.add_argument("--align", action="store_true", default=False)
+    p_rollover.add_argument("--global", dest="global_rollover", action="store_true", default=False)
+    p_rollover.add_argument("--town", default="")
+    p_rollover.add_argument("--apply", dest="align_apply", action="store_true", default=False)
+    p_rollover.add_argument("--delete-old", dest="delete_old", action="store_true", default=False)
     p_rollover.add_argument("--actor", default="",
                             help="edited_by for the ladder write (default: season.py)")
     p_rollover.add_argument("--session", default="",

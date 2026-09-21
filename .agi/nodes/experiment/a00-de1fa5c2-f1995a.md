@@ -68,7 +68,7 @@ the handover file alone satisfies acceptance.)
 
 ## Notes
 
-- Note the kid-tier gate (goal:g15.6): `AGI_TIER=kid` refuses a bare run and
+- Note the kid-tier gate (goal:g6.28): `AGI_TIER=kid` refuses a bare run and
   also refuses positional `path::node` args because the arg string does not end
   in `.py`. Use a `-k` filter, or unset `AGI_TIER` for an explicit ordered
   positional run (needed here for the reverse-order, one-process proof).

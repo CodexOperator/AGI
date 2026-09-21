@@ -81,7 +81,7 @@ live environment (pid recycled / status already reconciled). They import only
 `reconciler`/`spawn_budget`, never `rotate` — no path from this change, and
 pre-existing.
 
-Note: the `AGI_TIER=kid` collection gate (goal:g15.6,
+Note: the `AGI_TIER=kid` collection gate (goal:g6.28,
 `extensions/agi/tests/conftest.py`) refuses a bare-directory suite run; the
 brief's `extensions/agi/tests/test_rotate*.py -q` glob expands to specific
 files and passes the gate, so that is the run reported for the rotate scope.

@@ -4,7 +4,7 @@ mint_id: b0f2d3b27c10494694e9a46c3e808ac9
 type: hypothesis
 parents:
   - idea:l4-g1712-masters-workflows
-  - goal:g17.12
+  - goal:g7.23
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

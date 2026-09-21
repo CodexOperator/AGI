@@ -3,14 +3,15 @@ id: idea:lm-hunch-per-layer-draft-kv-share
 mint_id: 6d807054717240619bfc9f2213d14b17
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.11
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c8a794f41979ac5c
 season: 2
 tags:
   - local-maxxing
   - owner-hunch
+thought_session: dissolve-legacy-2026-09-19
 title: "H2 hierarchical decoding: price per-layer token drafts and KV-of-the-layer-below on the swarm box"
 town: local-maxxing
 ---

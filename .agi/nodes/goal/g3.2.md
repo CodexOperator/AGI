@@ -4,10 +4,9 @@ mint_id: 2ebe967dd60a46da895c03f2a587afcc
 type: goal
 parents:
   - goal:g3
-  - goal:g16.1
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
+edited_by: belam
 goal_id: G3.2
 goal_kind: subgoal
 heading_level: 3
@@ -21,7 +20,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G3.2: Vision-adherence score — the success metric particular to evidence and verdict quality"
 ---
 <!-- BODY:BEGIN -->

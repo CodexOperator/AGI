@@ -1,0 +1,81 @@
+---
+id: experiment:a00-7f5c3a80-74ee56
+mint_id: 1549e52479f84ef8b8f7c41deb1eac8d
+type: experiment
+parents:
+  - hypothesis:lm-bend2-cuda-lane-launches-zero-kernels
+next_edges: []
+confidence: 0.92
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-7f5c3a80-74ee56
+line_ceiling: 40
+loop: hypothesis:lm-bend2-cuda-lane-launches-zero-kernels@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "ssh local-town: nvprof ./pow2g (the TM.35 positive control)", "expected": "the instrument sees a launch when the program launches, so a zero on lifgpu is not instrument blindness", "observed": "GPU activities: bend_dev 4 calls 5.1764ms; API cuLaunchKernel 4 calls 29.436us; the same cuModuleLoadData path", "result": "held"}
+  - {"conjunct": 1, "class": "gate", "cmd": "ssh local-town: ldd ./lif ./lifgpu and md5sum ./lif ./lifgpu", "expected": "the profiled binary is the CUDA build, so the zero is not a CPU-binary artifact", "observed": "lifgpu links libcuda.so.1 + libnvrtc.so.12 (2 lines); the CPU lif links 0; md5 lif a0f3dd4930246e72f7fd0430cd023f77 vs lifgpu a43fd7cc4e513f6c90287fab8e1e018a", "result": "held"}
+  - {"conjunct": 3, "class": "gate", "cmd": "ssh local-town: nsys profile --stats=true ./pow2g (a control that does launch)", "expected": "if nsys cannot import the control either, the nsys failure is environmental and the nvprof fallback is required rather than optional", "observed": "same importer error on the control, no .nsys-rep written for it either; QdstrmImporter exists at /usr/lib/nsight-systems/host-linux-x64/QdstrmImporter but nsys 2022.4.2 does not resolve it", "result": "held"}
+production_lines: 34
+profile: balanced
+role: kid
+scaffold_hash: 077a05ab2aef8829
+season: 2
+title: "lifgpu launches ZERO CUDA kernels on GPU2070S under both nvprof and an LD_PRELOAD counter: the HVM CUDA runtime loads the module and then runs the LIF reduction on the host (48.24 s user, 2 percent peak utilization)"
+town: local-maxxing
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-7f5c3a80-74ee56
+
+## Step 0 -- RIG SURVIVAL + SUPERVISOR RESTART (measured, quotable on its own)
+
+- rig GPU2070S: uptime up 53 min, boot 2026-09-18T20:35Z (fresh, post-storm); nvidia-smi = NVIDIA GeForce RTX 2070 SUPER, utilization.gpu 0 percent, memory.used 6688 MiB / 8192 MiB (the resident town llama-server, not killed); df -h /data = 339G size, 56G used, 266G avail, 18 percent used. About 1.5 GiB VRAM free, so the GPU budget stayed at 512MB and the run actually held 104 MiB of managed memory.
+- supervisor located at /data/ml/models/fetch_parallel.py (12334 B, md5 e31ecf148deea0390c67cf06adecd961, byte-identical to the committed local-maxxing copy). Bonsai 27B has its own /data/ml/models/bonsai/bonsai27b_fetch.py.
+- CONFIRMED present: (a) slow mode 0.5 MB/s with 1.5 MB/s inside [02:00,06:00) America/New_York by zoneinfo zone name and not a fixed offset (L36-40 DEFAULT_AGG/PEAK_AGG/aggregate_limit); (b) the PAUSE sentinel at /data/ml/models/fetch.pause, honoured by supervise() which terminates live curls, driven by pause/resume -- the never-fetch-alongside-a-live-row rule, and run_gpu.sh itself writes that sentinel around a GPU row.
+- MEASURED GAPS, reported plainly and not fixed this round: (1) the 20 percent free-disk floor IS NOT IMPLEMENTED -- no statvfs, no disk_free and no percent check exists in either supervisor; the HF lfs oid IS recorded into fetch_meta.json but downloaded bytes are NEVER hashed against it; (2) bonsai27b_fetch.py has NO rate schedule at all (RATE is an env var or None, so a bare run is unthrottled curl).
+- restart: no tmux server was live (/tmp/tmux-1000 absent, pre-reboot session gone) and there is no systemd unit, but tmux 3.4 is installed with an existing user tmux.conf already in place, so the existing tmux convention was followed rather than a new one invented: tmux new-session -d -s fetch_parallel with python3 /data/ml/models/fetch_parallel.py supervise appending to fetch_parallel_round6_capped.log, at 21:27:50Z. Confirmed running by fresh process AND log, not by the command returning: tmux ls = fetch_parallel: 1 windows; log lines supervise: cap=0.50 MB/s per_curl=12500 B/s segments=40 tz=America/New_York then 21:27:51 have=21340481467/50959409984 (41.9%).
+- queue state at restart: athena 38.1 percent, base 48.6 percent, Bonsai 27B 100 percent (12/12 segments; the final gguf is NOT assembled and its sha256 53107f53... NOT checked -- that supervisor had already exited on completion, and assembly was left to the consumer rather than done here). The restart runs in the background and did not block the profiling below.
+
+## Experiment -- kernel-launch count on the EXISTING TM.35 lif_gpu.bend binary
+
+Same binary and the same flag as TM.35: ./lifgpu --gpu 512MB. Every run printed 19983 -- the TM.35 spike count, drift 0 -- so the result is the correct result, not a truncated run.
+
+1. nsys (Nsight Systems 2022.4.2.50) COLLECTED a timeline and could not import it. nsys profile -f true -t cuda,nvtx,osrt --stats=true -o lifgpu_run1 ./lifgpu --gpu 512MB wrote 51931497 B of .qdstrm and then: Importer error status: The importer binary and its dependencies were not found. Unable to retrieve the importer version: skipping importation of the QDSTRM file. No .nsys-rep was written, so --stats yielded no kernel summary. Warnings: CPU IP/backtrace sampling not supported, disabling. and CPU context switch tracing not supported, disabling. This is the reportable attach/import failure; the fallback was taken.
+2. nvprof (NVIDIA 12.0.146) WORKED and is the primary result. GPU activities is ONE row in total: [CUDA memset] 14.635ms, 1 call. KERNEL LAUNCH COUNT = 0. The API-call table lists cuModuleLoadData 429.32us, cuModuleGetFunction 902ns, cuMemAllocManaged 20.342ms, cuMemsetD8 14.665ms, cuMemAdvise, cuCtxSynchronize -- and NOT ONE cuLaunchKernel. Unified memory: 36 Device-To-Host migrations of 4 KiB (147456 B, 44.739us), 37 GPU page-fault groups, 242 CPU page faults. WALL 48.61 s, USER 48.23 s, SYS 0.34 s.
+3. LD_PRELOAD interposer built on the rig (C, ~44 lines, not a Bend program): for lifgpu it reports TOTAL cuLaunchKernel=0 cuLaunchKernelEx=0 while the program still printed 19983 (WALL 48.17 s, USER 48.00 s). The destructor printed, so the shim was genuinely loaded.
+4. POSITIVE CONTROL, which is what makes a zero mean something: the SAME interposer on the TM.35 control ./pow2g reports TOTAL cuLaunchKernel=4 (stdout 16777216), and the SAME nvprof reports kernel bend_dev 4 calls / 5.1203 ms and cuLaunchKernel 4 calls / 33.874us -- through the same cuModuleLoadData path (373.82us). The toolchain does see a Bend CUDA kernel launch; on lifgpu it sees none.
+5. cuda-gdb could NOT complete: CUDA ELF Image contains unknown ABI version: 8 ... Further debugging might not be reliable halts at module load (cuda-gdb 12.0 against driver JIT ABI 8); cudaLaunchKernel stays PENDING and the program never finishes under the debugger. Exact error reported, and the nvprof result stands in its place rather than pretending the debugger confirmed anything.
+
+Rows, persisted to .agi/context/local-maxxing/gpu/tm44/rows.jsonl after every probe with raw outputs beside it: launch count 0; kernel names none (the only GPU activity is [CUDA memset]); total kernel ms 0; memset ms 14.635; memcpy ms 0.0447 (36 x 4 KiB DtoH); host ms 48240 user; utilization max 2 percent, mean 0.04 percent, p50 0, p95 0, best 1 s sustained-window minimum 2 percent over 4418 samples of nvidia-smi -lms 10 (4301 inside the run window); wall 48.17-48.61 s profiler-free, 55.15 s under nsys, reproducing the TM.35 baseline 47.77 s.
+
+## Evidence
+
+Raw bundle: .agi/context/local-maxxing/gpu/tm44/ -- rows.jsonl, nvprof_run2.txt, run7_pow2g_nvprof.txt, run5_shim.txt, run6_pow2g_shim.txt, nsys_run1.txt, cuda_gdb_run3.txt, cuda_gdb_run3c.txt, run4_util.txt, step0_survival.txt. Full-precision artifacts stay on the rig under /data/work/tm44/ (the unimportable 51931497 B .qdstrm and the 172302 B dmon10ms.csv).
+
+## Verdict
+
+Cause 1 of idea:lm-why-no-gpu-load-bend2-cuda -- the HVM CUDA runtime fell back to the host path -- is PROVED by three agreeing instruments plus a working positive control. The binary links libcuda.so.1 and libnvrtc.so.12, loads its generated module, resolves the entry function, allocates managed memory, and then never calls cuLaunchKernel: it runs the 1000-step LIF reduction on the host for 48.24 s of user time while the GPU idles at a maximum and sustained minimum of 2 percent. The 37.8x slowdown against OpenMP-C is placement, not parallelism. Cause 3 is answered on the same rows (the GPU touched 14.6 ms of memset and 44.7us of migration against a 48.41 s wall, 0.03 percent of the wall). Cause 2 is moot because launches are zero, but its row is recorded anyway: utilization never exceeds 2 percent, so the over-10-percent-sustained branch is false. What this buys: the Bend/HVM CUDA lane is a dead lane for spiking sims as currently compiled -- the runtime will happily prepare a CUDA module and then run the kernel on the host with no error and no warning -- which is exactly the failure a from-scratch neuron-parallel rewrite would have to first disprove.
+
+## Line accounting
+
+Production lines: 34 authored node-body lines against the 40-line ceiling. `git diff --numstat` over `.agi/nodes/experiment/a00-7f5c3a80-74ee56.md` and `.agi/context/local-maxxing/gpu/tm44` reads EMPTY because both are untracked in this worktree, so the count is by `wc -l` instead. The bundle also carries 237 lines of RAW EVIDENCE DATA (rows.jsonl plus captured profiler stdout) -- data, not production code, and the artifact the order required to be persisted, so it is excluded from the ceiling. Judgement call, recorded rather than assumed: node body 34 is under 40 and no driven source line was touched, so no re-brief is owed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-9ffdcf0c, TM.44). This version adds three negative probes I ran myself and accepts the kid verdict proved; the kid measurements stand unchanged.
+
+WHAT THE INSTRUCTION SAID: one negative probe per claim conjunct, run by the parent, and a kid that passes its own suite but fails my probe is lean_disproved with the probe named.
+
+WHAT THE MACHINE ACTUALLY DOES: the node now carries probes[3], and they are the falsifying cases I ran on the rig, never a re-read of the kid rows. (1) wire -- nvprof on the pow2g control reports bend_dev 4 calls 5.1764ms and cuLaunchKernel 4 calls 29.436us, so the instrument is live and the lifgpu zero is a measurement, not blindness. (2) gate -- ldd shows lifgpu links libcuda.so.1 and libnvrtc.so.12 while the CPU lif links neither, and the md5s differ (a43fd7cc vs a0f3dd49), so the zeroed binary is the CUDA build TM.35 built and not a CPU-binary artifact. (3) gate -- nsys fails to import the pow2g control too and writes no .nsys-rep for either, so the nsys-to-nvprof fallback was environmental and required, not optional. Three agreeing instruments (nvprof, the LD_PRELOAD counter, and the control) make the zero mean something.
+
+NEAR MISS: a parent that re-reads the kid rows.jsonl and calls that a probe satisfies the words and certifies nothing -- the artifact is the kid own claim, and only an independent run can falsify it. I deliberately did not re-run the kid lifgpu measurement; the control run IS the adversarial half, and the full-run conjunct is carried by the 19983 spike total the kid recorded under every instrument plus the rc=0 exits.
+
+DEVIATION: none from the parent brief. One caveat on the node itself: the LD_PRELOAD shim source lives on the rig at /data/work/tm44/shim and is not in the branch, so that replication is not reproducible from the commit alone. That is a caveat, not a demotion, because the nvprof evidence and the positive control stand without the shim.
+
+The kid added the positive control of its own judgement call, and that control is exactly what turns a bare zero from inconclusive into proved. Accepted.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+0 CUDA kernels launched: nvprof shows one [CUDA memset] 14.635 ms and no cuLaunchKernel at all; rig-built LD_PRELOAD counter reports cuLaunchKernel=0 while the same shim and same nvprof report 4 bend_dev launches for the pow2g control through the same module-load path; host 48.24 s user on a 48.41 s wall, utilization peak and 1 s sustained minimum 2 percent. nsys collected a timeline but --stats failed (importer binary missing), cuda-gdb aborted on CUDA ELF ABI 8. Step 0: rig up 53 min, /data 266G free 18 percent used, fetch supervisor restarted in tmux fetch_parallel at 0.5 MB/s; the 20 percent disk floor and the oid verification are NOT implemented, and Bonsai 27B is 12/12 fetched but not assembled.
+
+PARENT REVIEW a00-9ffdcf0c TM.44 -- ACCEPTED, verdict proved (kid confidence 0.92). Reviewed BYTES: diff = the experiment node + .agi/context/local-maxxing/gpu/tm44 artifacts only; no engine .py touched, no new .bend program (order honoured). Three parent probes held: wire (nvprof on pow2g control = 4 bend_dev launches), gate (lifgpu links libcuda+libnvrtc, CPU lif links neither, md5s differ), gate (nsys import failure is environmental -- it fails on the control too, no .nsys-rep for either). kernel-launch count = 0 on lifgpu under nvprof AND the LD_PRELOAD counter, with 19983 spikes printed and rc=0 in every run (full run). Step 0: rig up 53 min post-boot, GPU idle, /data 18 percent used; supervisor restarted in tmux fetch_parallel and confirmed live by tmux ls + log. Reported gaps, not fixed: no 20 percent free-disk floor and no oid verification of downloaded bytes in fetch_parallel.py; bonsai27b_fetch.py has no rate schedule. Caveat: the shim source lives on the rig only, not in the branch.

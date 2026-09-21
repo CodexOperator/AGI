@@ -1,0 +1,42 @@
+---
+ts: 2026-09-11T21:26:03.518326+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XII [fda770] @305 | generation 11 -> 12 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 38 | in flight: None
+---
+ts: 2026-09-12T00:07:34.579594+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XIII [ff648e] @311 | generation 12 -> 13 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 44 | in flight: None
+---
+ts: 2026-09-12T03:20:08.496886+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XIV [92eda4] @314 | generation 13 -> 14 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 47 | in flight: None
+---
+ts: 2026-09-12T07:04:08.240387+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XV [68dbd1] @317 | generation 14 -> 15 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 51 | in flight: None
+---
+ts: 2026-09-12T14:17:10.964372+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XVI [49ddab] @326 | generation 15 -> 16 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 59 | in flight: None
+---
+ts: 2026-09-12T17:54:35.867488+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XVII [c7c9e7f2-67c7-471e-bd1e-c8a76fe0fab2] @329 | generation 16 -> 17 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 62 | in flight: None
+---
+ts: 2026-09-12T22:02:49.119029+00:00
+from: belam
+to: sensei-director
+
+[rotation-alert] belam -> belam-S1-L4-XVIII @335 (pre-join: successor ref not yet resolved) | generation 17 -> 18 | trigger: rotate-self | handoff: /home/ubuntu/work/agi/.agi/sessions/seats/belam.handoff.md | seq: 68 | in flight: None

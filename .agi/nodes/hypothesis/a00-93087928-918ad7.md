@@ -3,7 +3,7 @@ id: hypothesis:a00-93087928-918ad7
 mint_id: 4a3c6d4f3d5545dda7ea0bb14e96ef1b
 type: hypothesis
 parents:
-  - goal:g9.4
+  - goal:g2.17
 confidence: 0.3
 edited_by: season.py
 scaffold_hash: 85031ebaddad0f1a

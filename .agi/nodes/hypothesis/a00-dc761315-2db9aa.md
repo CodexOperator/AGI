@@ -3,14 +3,14 @@ id: hypothesis:a00-dc761315-2db9aa
 mint_id: 9f109ad95406412c86400940ad6bb611
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 82e369ebde294048
 season: 1
 testable_claim: "outcome_coverage is a confounded proxy: on the current corpus, at least one of |outcome_coverage - verdict_resolved_rate|, verdict_silent_fraction, or mvp_on_pending_fraction exceeds 0.05"
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 dc761315 2db9aa
 verdict: pending
 ---

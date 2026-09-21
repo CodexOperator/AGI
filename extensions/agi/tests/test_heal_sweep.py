@@ -747,3 +747,163 @@ def test_sweep_byte_equal_copy_is_home(repo_root, monkeypatch):
     text = log.read_text()
     assert "removed a00-3333cc iter=iter-701" in text
     assert "refused a00-4444dd: session dir not home" in text
+
+
+# ---------------------------------------------------------------------------
+# hypothesis:l5-the-sweep-fails-closed-on-a-staged-rename-or-copy-entry
+#
+# `_sweep_dirty_paths` must return the DESTINATION path of a porcelain v1
+# rename/copy entry, not the literal non-path string `ORIG -> DEST`. The
+# pre-fix `ln[3:].strip().strip('"')` produced the arrow literal, which
+# `_sweep_park_leftovers`' `(wt / rel).is_file()` filter then dropped
+# silently (0 files copied, not the fail-closed -1). Exercised against REAL
+# git bytes wherever git can emit the shape; a `C` entry git-status does not
+# emit here is covered by a hand-written line.
+# ---------------------------------------------------------------------------
+def _rename_repo(tmp_path):
+    """A throwaway repo with one committed file — the fixture the rename
+    shapes are read from as real `git status --porcelain` bytes."""
+    repo = tmp_path / "rename-repo"
+    repo.mkdir()
+    _sh("git", "-C", str(repo), "init", "-q", ".")
+    _sh("git", "-C", str(repo), "config", "user.email", "t@e.st")
+    _sh("git", "-C", str(repo), "config", "user.name", "t")
+    (repo / "old.txt").write_text("one\n")
+    _sh("git", "-C", str(repo), "add", "-A")
+    _sh("git", "-C", str(repo), "commit", "-qm", "init")
+    return repo
+
+
+def _porcelain(repo):
+    out = subprocess.run(["git", "-C", str(repo), "status", "--porcelain"],
+                         capture_output=True, text=True, check=True)
+    return out.stdout.splitlines()
+
+
+def test_sweep_dirty_paths_rename_takes_destination(tmp_path):
+    """Real `git mv`: the porcelain line is `R  old.txt -> new.txt`; the
+    function must return the DESTINATION, not the arrow literal."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "new.txt")
+    lines = _porcelain(repo)
+    assert lines == ["R  old.txt -> new.txt"], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert got == ["new.txt"], got
+    assert "old.txt -> new.txt" not in got, "the pre-fix arrow literal leaked"
+
+
+def test_sweep_dirty_paths_rename_with_spaces_quotes_destination(tmp_path):
+    """Git quotes each side separately: `RM old.txt -> "new name.txt"`. The
+    destination keeps its spaces and loses its quotes."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "new name.txt")
+    (repo / "new name.txt").write_text("one\ntwo\n")
+    lines = _porcelain(repo)
+    assert lines == ['RM old.txt -> "new name.txt"'], lines
+    assert heal._sweep_dirty_paths(lines) == ["new name.txt"]
+
+
+def test_sweep_dirty_paths_rename_into_sessions_is_still_filtered(tmp_path):
+    """The `.agi/sessions/` filter must apply to the DESTINATION: a rename
+    INTO the tolerated scratch dir is dropped, not parked."""
+    repo = _rename_repo(tmp_path)
+    (repo / ".agi" / "sessions").mkdir(parents=True)
+    _sh("git", "-C", str(repo), "mv", "old.txt", ".agi/sessions/keep.txt")
+    lines = _porcelain(repo)
+    assert lines == ["R  old.txt -> .agi/sessions/keep.txt"], lines
+    assert heal._sweep_dirty_paths(lines) == []
+
+
+def test_sweep_dirty_paths_rename_dest_containing_arrow(tmp_path):
+    """THE case that must never regress: a destination that itself contains
+    ` -> ` is C-quoted by git, so `split(" -> ")`/`parts[-1]` tears it and
+    yields a path that does not exist — the silent drop this node exists to
+    kill. Real git bytes, real `git mv`."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "b -> c.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "b -> c.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert got == ["b -> c.txt"], got
+    assert (repo / got[0]).is_file(), "the returned path must exist"
+
+
+def test_sweep_dirty_paths_quoted_orig_containing_arrow(tmp_path):
+    """Both sides quoted, both containing the separator: the ORIG side must
+    be consumed quote-awarely or the split tears the destination too."""
+    repo = _rename_repo(tmp_path)
+    (repo / "a -> b.txt").write_text("x\n")
+    _sh("git", "-C", str(repo), "add", "-A")
+    _sh("git", "-C", str(repo), "commit", "-qm", "add")
+    _sh("git", "-C", str(repo), "mv", "a -> b.txt", "c -> d.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  "a -> b.txt" -> "c -> d.txt"'], lines
+    assert heal._sweep_dirty_paths(lines) == ["c -> d.txt"]
+    assert (repo / "c -> d.txt").is_file()
+
+
+def test_sweep_dirty_paths_rename_dest_with_escaped_quote(tmp_path):
+    """A `"` in the destination is escaped (`\\"`) inside the C-quoted side;
+    unquoting must resolve the escape, not leave the backslash in the path."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", 'quote"name.txt')
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "quote\\"name.txt"'], lines
+    assert heal._sweep_dirty_paths(lines) == ['quote"name.txt']
+
+
+def test_sweep_dirty_paths_ordinary_entries_unchanged():
+    """Non-rename entries keep their existing meaning — a copy entry takes
+    the destination, an ordinary modification keeps the whole path."""
+    lines = [" M src/a.py", "?? notes.txt",
+             'R  "old a.txt" -> "new a.txt"',
+             "C  src/base.py -> src/copied.py",
+             "R  malformed-no-arrow"]
+    got = heal._sweep_dirty_paths(lines)
+    assert got == ["src/a.py", "notes.txt", "new a.txt",
+                   "src/copied.py", "malformed-no-arrow"], got
+    assert not any(" -> " in p for p in got), \
+        "no arrow literal may survive as a path"
+
+
+def test_sweep_dirty_paths_rename_nonascii_dest_round_trips(tmp_path):
+    """git C-quotes every byte >= 0x80 as an octal escape, so `git mv old.txt
+    'é.txt'` yields `R  old.txt -> "\\303\\251.txt"`. The unquote must resolve
+    the octal escapes back to the on-disk bytes; assert the PATH exists, not a
+    spelling, so this proves the path rather than the escape."""
+    repo = _rename_repo(tmp_path)
+    _sh("git", "-C", str(repo), "mv", "old.txt", "é.txt")
+    lines = _porcelain(repo)
+    assert lines == ['R  old.txt -> "\\303\\251.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert len(got) == 1, got
+    assert (repo / got[0]).is_file(), \
+        f"returned {got[0]!r} is not a file on disk"
+    assert (repo / got[0]).read_text() == "one\n"
+
+
+def test_sweep_dirty_paths_ordinary_nonascii_entry_round_trips(tmp_path):
+    """A plain untracked non-ASCII entry (`?? "\\303\\251.txt"`) takes the
+    non-rename branch and must also resolve to a path that is_file()."""
+    repo = _rename_repo(tmp_path)
+    (repo / "é.txt").write_text("hi\n")
+    lines = _porcelain(repo)
+    assert lines == ['?? "\\303\\251.txt"'], lines
+    got = heal._sweep_dirty_paths(lines)
+    assert len(got) == 1, got
+    assert (repo / got[0]).is_file(), \
+        f"returned {got[0]!r} is not a file on disk"
+
+
+def test_porcelain_unquote_full_escape_set_round_trips():
+    """The whole C escape set git can emit in one quoted field: the letter
+    escapes, the octal byte escapes (UTF-8 and an invalid byte), a literal
+    backslash and an escaped quote."""
+    # "\303\251" -> é (UTF-8), "\377" -> a raw 0xFF byte (surrogateescape).
+    field = '"a\\tb\\nc\\"d\\\\e\\303\\251\\377.txt"'
+    got = heal._porcelain_unquote(field)
+    expected = ("a\tb\nc\"d\\e" "é" "\udcff" ".txt")
+    assert got == expected, (got, expected)
+    # and it survives a UTF-8 re-encode as the original bytes
+    assert got.encode("utf-8", "surrogateescape") == \
+        b"a\tb\nc\"d\\e\xc3\xa9\xff.txt"

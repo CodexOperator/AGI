@@ -4,7 +4,7 @@ mint_id: 8d2888bd1cfb4f65be698cfb7af6fe8f
 type: hypothesis
 parents:
   - hypothesis:l4-verification-counts-and-engine-root
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: c7dd36e1cc02115f

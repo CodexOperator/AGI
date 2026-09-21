@@ -3,9 +3,9 @@ id: idea:engine-zoom
 mint_id: 5fee111f3e6745bda385ae86c44d68f7
 type: idea
 parents:
-  - goal:g2
+  - goal:g2.7
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/zoom.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/zoom.py

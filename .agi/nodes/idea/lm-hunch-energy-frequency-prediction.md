@@ -3,14 +3,15 @@ id: idea:lm-hunch-energy-frequency-prediction
 mint_id: 221091474c3a4826a186757639ff8b53
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: a8b98a1cd27f3c49
 season: 2
 tags:
   - local-maxxing
   - owner-hunch
+thought_session: dissolve-legacy-2026-09-19
 title: Energy ledger and frequency lock on the flip toy; predict-then-verify gate on the A1
 town: local-maxxing
 ---

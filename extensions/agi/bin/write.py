@@ -224,6 +224,15 @@ def _refuse_marker_value(key: str, value) -> str | None:
 
 def verb_set(edit: Edit, key: str, value: str) -> Edit:
     """`set <key> <value>` — one frontmatter field."""
+    if "." in key:
+        # hypothesis:l4-a-message-that-did-not-land...: a dotted key used to
+        # land as a FLAT frontmatter literal (`comms.foo` as one key), which
+        # no nested reader could ever find. Refuse by name instead: the
+        # caller sets the parent mapping (key.split(".")[0]) as one object.
+        raise EditError(
+            f"cannot set {key!r}: dotted keys are not written as flat "
+            f"frontmatter literals — set the parent mapping "
+            f"{key.split('.', 1)[0]!r} as one object")
     if key in PROTECTED:
         raise EditError(
             f"{key!r} is identity or completion state and no verb may set it. "
@@ -490,6 +499,18 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "adopt": 0}
+#: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+#: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
+#: is a known verb name ending at whitespace or end-of-string; any other `&&`
+#: stays in the current verb's last free-text argument. The literal
+#: `str.split("&&")` this replaces split inside an argument too, and leaked
+#: prose in a note/ref field crashed `links.py links` (experiment:a00-794503d4).
+#: Residual (test-pinned): prose cannot quote a VERB-LED command.
+#: A trailing `&&` (nothing but whitespace after it) is still a separator --
+#: otherwise it leaks into the last argument and verb-only scripts change.
+#: So is a pair that closes a verb name with no space: `-&&adopt&&`.
+_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
+    sorted(VERBS, key=len, reverse=True)))
 
 #: One-line example per verb, for the help epilog. Module-level (not local to
 #: main) so a test can assert each example PARSES as its verb's arity via the
@@ -578,7 +599,7 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     the string is data here, exactly as `commands.py` keeps argv a list.
     """
     out: list[tuple[str, list[str]]] = []
-    for chunk in str(text).split("&&"):
+    for chunk in _VERB_SEP.split(str(text)):
         stripped = chunk.strip()
         if not stripped:
             continue
@@ -1029,6 +1050,100 @@ def _master_sensei_templates_refusal(root, schema, actor, set_fm, unset_fm,
     return None
 
 
+def _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where: str):
+    """Resolve EVERY `actor_rows:` entry for the actor's RESOLVED seat. A
+    `list_key` entry grants its row list (fields/ops/deny_roles), a `field`
+    entry one top-level cell. "" = admitted, None = no entry applies, else a
+    refusal naming the reason. Old rows come from the post-first geometry
+    resolver, never a hardcoded file name."""
+    entries = schema.frontmatter.get("actor_rows")
+    if not isinstance(entries, list):
+        return None
+    seat = _resolve_seat(root, actor)
+    if seat is None:
+        return None
+    for entry in entries:
+        if (not isinstance(entry, dict)
+                or str(entry.get("actor") or "") != seat):
+            continue
+        key, mk = entry.get("list_key"), entry.get("match_key")
+        if key and mk:
+            # (SM.108 defect 2) A grant on a row list grants ONLY that list: a
+            # chained edit that also touches any other top-level key is refused
+            # whole, exactly as `self_row` refuses `touched_top - {list_key}`.
+            bad_top = (set(set_fm or {}) | set(unset_fm or {})) - {key}
+            if bad_top:
+                return (f"the actor grant on `{key}` may write ONLY that "
+                        f"list (touched top-level field(s) "
+                        f"{', '.join(sorted(bad_top))}); those declarations "
+                        "are outside the grant")
+            if key not in (set_fm or {}):
+                continue
+            rows = set_fm[key]
+            if not isinstance(rows, list):
+                return f"`{key}` must be a list of rows, got {type(rows).__name__}"
+            _, resolved = geometry_config.resolve(root)
+            old = (_load_seats(root) if key in (resolved, "posts", "seats")
+                   else (_read_node_fm(root, where) or {}).get(key))
+            old = old if isinstance(old, list) else []
+            old_by = {r.get(mk): r for r in old if isinstance(r, dict)}
+            new_by = {r.get(mk): r for r in rows if isinstance(r, dict)}
+            # SM.115 + SM.115b: the actor's OWN row is co-governed by
+            # `self_row`. A field the type's `self_row` declares (its identity
+            # cells) is not THIS grant's to refuse, so it is exempted
+            # FIELD-LEVEL below; every other own-row field still goes through
+            # the grant's `fields` check, and non-self_row fields (town, ...)
+            # stay admitted exactly as on any other row.
+            _sr = schema.frontmatter.get("self_row")
+            self_row_fields = ([str(f) for f in (_sr.get("fields") or [])]
+                               if isinstance(_sr, dict) else [])
+            fields = [str(f) for f in (entry.get("fields") or [])]
+            ops = [str(o) for o in (entry.get("ops") or ["set"])]
+            deny = [str(r) for r in (entry.get("deny_roles") or [])]
+            for name in list(old_by) + [n for n in new_by if n not in old_by]:
+                o, n = old_by.get(name), new_by.get(name)
+                if o == n:
+                    continue
+                if str(name) in deny:
+                    return f"row {name!r} is in deny_roles {deny} on `{key}`"
+                op = "set" if o is not None and n is not None else (
+                    "retire" if n is None else "create")
+                if op not in ops:
+                    return f"op {op!r} is not granted on `{key}` (ops {ops})"
+                if op in ("set", "create"):
+                    # (SM.108 defect 4) a CREATE row is field-checked exactly
+                    # like a SET row: every key on a brand-new row except
+                    # `match_key` must be in the grant's `fields`.
+                    old_r = o or {}
+                    for f in set(old_r) | set(n):
+                        if (f != mk and old_r.get(f) != n.get(f)
+                                and f not in fields
+                                and not (str(name) == seat
+                                         and f in self_row_fields)):
+                            return (f"field {f!r} is not granted on `{key}` "
+                                    f"rows (fields {fields})")
+            return ""
+        if entry.get("field"):
+            if not (set_fm or unset_fm):
+                continue
+            field = str(entry["field"])
+            touched = set(set_fm or {}) | set(unset_fm or [])
+            if touched - {field} or field not in set_fm:
+                return (f"the actor grant sets only the `{field}` field; "
+                        f"this write touches "
+                        f"{', '.join(sorted(touched)) or 'nothing'}")
+            return ""
+        # (SM.108 defect 3) the actor MATCHED but the entry's shape is one
+        # this resolver does not read (no list_key+match_key, no field) --
+        # refuse BY NAME rather than silently falling through to "no entry
+        # applies". A no-op write is left to the caller's written_by refusal.
+        if set_fm or unset_fm:
+            return (f"actor_rows entry for {seat!r} declares no shape this "
+                    f"resolver reads (need list_key+match_key or field; "
+                    f"entry keys {sorted(entry)})")
+    return None
+
+
 def _sectionize(body: str):
     """Split a node body into {header: text} + a preamble, keyed on `## `.
 
@@ -1470,6 +1585,20 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
                         # which refuses any delta outside the `## facts` section.
                         return
 
+        # GENERIC `actor_rows:` carve-out (hypothesis:l4-the-formation-owner-
+        # writes-config-posts-rows-...): the schema declares as a LIST which
+        # RESOLVED seats may write which row list or single field -- a future
+        # grant is ONE schema line, never a new branch here.
+        if schema.frontmatter.get("actor_rows"):
+            _ar = _actor_rows_refusal(root, schema, actor, set_fm, unset_fm, where)
+            if _ar == "":
+                return
+            if _ar is not None and _refuse(
+                    out_decision, preview,
+                    f"{node_type} nodes ({where}): the actor_rows grant does "
+                    f"not cover this write; {_ar} (schema-declared actor_rows)"):
+                return
+
         # L4.110 prime ruling B carve-out: a SEATED role (a director on a seat,
         # say) is not in `written_by` and yet may update ONE thing — its own seat
         # row, restricted to the fields the type's `self_row` declaration names.
@@ -1756,6 +1885,23 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # hypothesis:l4-write-api-root-resolution — an API caller's `root` is
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
+
+    # A link_ref/payload_ref set outside the repo tree is refused before any
+    # write; the SAME predicate links.py's schema report calls. The ref
+    # resolves against the EFFECTIVE location -- this edit's `location` if it
+    # carries one, else the one already on the node file -- so the refusal and
+    # the report agree in every reachable state (hypothesis:l5-a-verdict-...).
+    _loc = edit.set_fm.get("location")
+    if _loc is None and (_nf := node_writer.find_node_file(root, edit.node_id)):
+        from graph_core.persistence import frontmatter as _fmr
+        try:
+            _loc = _fmr.load_node_file(_nf, body=False).frontmatter.get("location")
+        except Exception:
+            _loc = None
+    for _f in ("link_ref", "payload_ref"):
+        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f), _loc)):
+            raise EditError(
+                f"cannot set {_f!r}: {_p} resolves outside the repo tree")
 
     # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`

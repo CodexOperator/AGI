@@ -4,7 +4,7 @@ mint_id: b16ccddab0584983aaffa1302449ea81
 type: hypothesis
 parents:
   - idea:l4-g179-channels-ab
-  - goal:g17.9
+  - goal:g7.21.1
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

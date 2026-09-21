@@ -3,7 +3,7 @@ id: idea:l4-g176-one-question
 mint_id: 97bf4cb80061445d8ef7fba0442d2f63
 type: idea
 parents:
-  - goal:g17.6
+  - goal:g7.19.1
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

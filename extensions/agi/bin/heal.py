@@ -57,11 +57,13 @@ def _default_tier_for_role(role):
     """The canonical ladder tier a role lives at (mirror of dispatch's)."""
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
-from dispatch import pi_model_args, _reap_pass, _reap_one, _death_class  # noqa: E402
+from dispatch import (pi_model_args, _reap_pass, _reap_one, _death_class,  # noqa: E402
+                      _turn_end_with_live_kid)
 from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid tolerance; ONE death predicate
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver (lifted from _watch_log; send.py's wake outcome line shares it)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 
 
 def _pi_model_args(root: Path, tier: str = "kid",
@@ -354,6 +356,27 @@ def _discover_rounds(root: Path) -> list[tuple[Path, Path]]:
     return rounds
 
 
+#: hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-the-
+#: first — minutes between repeat OVERDUE dms (comms.overdue_repeat_min,
+#: default 30). Read the SAME `comms` block send.py owns.
+_OVERDUE_REPEAT_MIN_DEFAULT = 30
+
+
+def _overdue_repeat_s(root: Path) -> int:
+    """Seconds between repeat overdue dms: `comms.overdue_repeat_min` minutes
+    (default 30; absent/non-positive falls back, never a repeat storm)."""
+    mins = _OVERDUE_REPEAT_MIN_DEFAULT
+    try:
+        import send as _send  # noqa: PLC0415
+        comms = (locations.load_config(_send._main_graph_root(root))
+                 or {}).get("comms") or {}
+        if isinstance(comms, dict) and "overdue_repeat_min" in comms:
+            mins = int(float(comms["overdue_repeat_min"]))
+    except Exception:  # noqa: BLE001 -- a config problem never blocks the watch
+        mins = _OVERDUE_REPEAT_MIN_DEFAULT
+    return (mins if mins > 0 else _OVERDUE_REPEAT_MIN_DEFAULT) * 60
+
+
 def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
     """One watcher pass over one round: death reap (via `_reap_pass`), then a
     timeout check for every agent still `running`.
@@ -447,14 +470,20 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         # `still`; if it has since died, record the death (one status, one dm)
         # instead of mis-recording the elapsed time as a timeout.
         if pid > 0 and not adapter.is_alive(pid):
+            _turn = _turn_end_with_live_kid(iter_dir, agent_id,
+                                            adapter.is_alive)
             death = {
                 "status": "failed",
                 "finished_at": int(time.time()),
-                "fail_reason": f"pid {pid} died (detected by reaper)",
-                "death": _death_class(
+                "fail_reason": (
+                    f"turn-end with live kid {_turn} (headless exit, not a "
+                    f"death)" if _turn
+                    else f"pid {pid} died (detected by reaper)"),
+                "death": dict(_death_class(
                     rec.get("worktree") or "", agent_id,
                     int(time.time()) - int(rec.get("started_at", 0) or 0),
                     agent_dir=iter_dir / agent_id),
+                    **({"evidence": "turn-end"} if _turn else {})),
             }
             rec.update(death)
             rec_path.write_text(json.dumps(rec, indent=2))
@@ -484,10 +513,38 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
         # as still-working so no replacement is cut. The admin heap
         # path that actually TERMs a hung pid is the one place a `timeout`
         # verdict is legal; the watcher never derives it.
+        # hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-
+        # the-first: a live pid overdue past `comms.overdue_repeat_min` gets
+        # ONE more dm per window (a NEW event); status stays `running`.
         if rec.get("overdue_since"):
-            _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} STILL "
-                       f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; "
-                       f"pid {pid} alive)")
+            last = int(rec.get("overdue_last_alarm") or rec["overdue_since"])
+            now = int(time.time())
+            repeat_s = _overdue_repeat_s(root)
+            if now - last >= repeat_s:
+                rec["overdue_last_alarm"] = now
+                rec_path.write_text(json.dumps(rec, indent=2))
+                # hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-
+                # after-the-first, C2: a REPEAT must be distinguishable from the
+                # first firing in the dm the RECIPIENT reads — its body names
+                # the elapsed minutes and the pid, which the first firing's
+                # `iter=... agent=... reason=overdue` does not — and the stamp
+                # is MIRRORED onto the manifest entry, or a manifest-only
+                # reader cannot see the repeat happened at all.
+                for entry in manifest.get("agents", []):
+                    if entry.get("id") == agent_id:
+                        entry["overdue_last_alarm"] = rec["overdue_last_alarm"]
+                manifest_path.write_text(json.dumps(manifest, indent=2))
+                _alarm_dispatcher(rec, iter_dir.name, "overdue", root,
+                                  detail=f"elapsed_m={elapsed // 60} "
+                                         f"pid={pid}")
+                _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} "
+                           f"STILL OVERDUE repeat (elapsed {elapsed // 60}m > "
+                           f"{timeout_s // 60}m; pid {pid} alive; "
+                           f"{repeat_s // 60}m cadence)")
+            else:
+                _watch_log(f"watch: iter={iter_dir.name} agent={agent_id} STILL "
+                           f"OVERDUE (elapsed {elapsed}s > {timeout_s}s; "
+                           f"pid {pid} alive)")
             continue
         rec["overdue_since"] = int(time.time())
         rec["overdue_reason"] = (f"past manifest timeout_seconds={timeout_s} "
@@ -882,6 +939,77 @@ def _sweep_iter_name(wt: Path) -> str:
     return dirs[0].name if dirs else "?"
 
 
+def _porcelain_unquote(field: str) -> str:
+    r"""Undo git's C-quoting for ONE porcelain path field: drop one enclosing
+    quote pair and resolve the FULL escape set git can emit -- `\\`, `\"`,
+    the letter escapes `\a \b \f \n \r \t \v`, and `\ooo` (exactly three
+    octal digits) for any byte git C-quotes. Git C-quotes every byte >= 0x80
+    as an octal escape (`core.quotePath=true` is the default), so a path with
+    a non-ASCII byte comes back as e.g. `"\303\251.txt"`; resolving only
+    `\\`/`\"` leaves the literal string `\303\251.txt`, which is not a path
+    on disk. Escapes are rebuilt as BYTES and decoded UTF-8 with
+    `surrogateescape` so an arbitrary byte sequence round-trips instead of
+    raising. Unquoted fields pass through."""
+    if len(field) < 2 or not (field.startswith('"') and field.endswith('"')):
+        return field
+    body = field[1:-1].encode("utf-8", "surrogateescape")
+    letters = {ord("a"): 7, ord("b"): 8, ord("f"): 12, ord("n"): 10,
+               ord("r"): 13, ord("t"): 9, ord("v"): 11}
+    out = bytearray()
+    i = 0
+    while i < len(body):
+        b = body[i]
+        if b == 0x5C and i + 1 < len(body):  # a backslash escape
+            nxt = body[i + 1]
+            if nxt in (0x22, 0x5C):  # \" or \\
+                out.append(nxt)
+                i += 2
+                continue
+            if nxt in letters:
+                out.append(letters[nxt])
+                i += 2
+                continue
+            if 0x30 <= nxt <= 0x37:  # octal, exactly three digits
+                j = i + 1
+                while j < len(body) and j < i + 4 and 0x30 <= body[j] <= 0x37:
+                    j += 1
+                if j == i + 4:
+                    out.append(int(body[i + 1:j], 8))
+                    i = j
+                    continue
+            out.append(b)  # unknown escape: keep the backslash literally
+            i += 1
+            continue
+        out.append(b)
+        i += 1
+    return bytes(out).decode("utf-8", "surrogateescape")
+
+
+def _porcelain_rename_dest(path: str) -> str:
+    """The DESTINATION of an `ORIG -> DEST` porcelain v1 rename/copy field.
+    Git C-quotes each side independently, so an unquoted side never holds a
+    space: scan the ORIG side quote-awarely when quoted, else split on the
+    FIRST separator; unquote the DEST side. No separator -> unchanged."""
+    if path.startswith('"'):
+        i = 1
+        while i < len(path):
+            if path[i] == "\\":
+                i += 2
+                continue
+            if path[i] == '"':
+                i += 1
+                break
+            i += 1
+        if not path[i:].startswith(" -> "):
+            return path
+        dest = path[i + 4:]
+    else:
+        _orig, sep, dest = path.partition(" -> ")
+        if not sep:
+            return path
+    return _porcelain_unquote(dest)
+
+
 def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     """The `git status --porcelain` entries that are NOT under a worktree's
     own `.agi/sessions/` (per-worktree session scratch is the one tolerated
@@ -889,7 +1017,16 @@ def _sweep_dirty_paths(status_lines: list[str]) -> list[str]:
     without `--force`)."""
     dirty: list[str] = []
     for ln in status_lines:
-        path = ln[3:].strip().strip('"')
+        path = ln[3:].rstrip("\n")
+        # Porcelain v1 rename/copy entries read `XY PATH` where PATH is
+        # `ORIG -> DEST`, never a single path. A naive `ln[3:]` returns the
+        # literal non-path string `ORIG -> DEST`, which the park's
+        # `(wt / rel).is_file()` filter drops silently. Take the DESTINATION:
+        # a rename's bytes live there.
+        if "R" in ln[:2] or "C" in ln[:2]:
+            path = _porcelain_rename_dest(path)
+        else:
+            path = _porcelain_unquote(path)
         if path.startswith(".agi/sessions/"):
             continue
         dirty.append(path)
@@ -2827,7 +2964,14 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     pins, _skipped = _pin_table(root, rows)
     seat_sess = _seat_sessions(registry_dir, windows) if pins else []
     pid_rows = [r for r in rows
-                if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()]
+                if int(r.get("pid", 0) or 0) > 0 and (r.get("name") or "").strip()
+                and boxes.row_is_local(root, r)]
+    foreign = sorted((r.get("name") or "?").strip() for r in rows
+                     if (r.get("name") or "").strip()
+                     and not boxes.row_is_local(root, r))
+    if foreign:
+        _watch_log("watch: skipped foreign-box seat(s) by name: "
+                   + ", ".join(foreign))
     acted: list[dict] = []
     for row in pid_rows:
         summary = _watch_one_seat(root, row, windows, _rotate,
@@ -2841,10 +2985,14 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     return acted
 
 
-def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> None:
+def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path,
+                      detail: str = "") -> None:
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default — a round that
     DIES or TIMES OUT sends the seat that dispatched it exactly ONE dm naming
-    the reason. ids/numbers plus a short reason token only. Absent stamp -> one
+    the reason. ids/numbers plus a short reason token only, and an optional
+    `detail` suffix (hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-
+    minutes-after-the-first uses it so a REPEAT overdue dm names elapsed
+    minutes + pid while the first firing's body stays unchanged). Absent stamp -> one
     stderr line, no crash; an undeliverable dm is logged, never fatal to a heal
     that is already handling a bad day. The dm must go to the ONE shared inbox
     (send.py resolves it through `locations.shared_sessions_dir`), never a
@@ -2859,9 +3007,10 @@ def _alarm_dispatcher(rec: dict, iter_n: int | str, reason: str, root: Path) -> 
         return
     try:
         import send as _send
-        _send.send(root, dispatcher,
-                   f"iter={iter_n} agent={agent_id} reason={reason}",
-                   agent_id)
+        body = f"iter={iter_n} agent={agent_id} reason={reason}"
+        if detail:
+            body = f"{body} {detail}"
+        _send.send(root, dispatcher, body, agent_id)
     except Exception as exc:
         print(f"warn: {reason} dm to {dispatcher} failed: {exc}",
               file=sys.stderr)

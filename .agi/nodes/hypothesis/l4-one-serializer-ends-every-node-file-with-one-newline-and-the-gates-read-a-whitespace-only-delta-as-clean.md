@@ -3,7 +3,7 @@ id: hypothesis:l4-one-serializer-ends-every-node-file-with-one-newline-and-the-g
 mint_id: 8cabfa09b6c747aabc19046bca19d388
 type: hypothesis
 parents:
-  - goal:g15.25
+  - goal:g6.47
   - hypothesis:l4-the-spawn-row-write-and-its-commit-land-in-one-tree-and-the-ack-stages-only-its-own-row
 next_edges: []
 edited_by: a00-ea11bdd1

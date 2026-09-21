@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-P1-d + P2-b + R1 (goal:g15.14) on `rotate.py`. Built on the P1-a/P1-b/P1-c
+P1-d + P2-b + R1 (goal:g6.36) on `rotate.py`. Built on the P1-a/P1-b/P1-c
 inherited from the two prior kids; none of their code changed.
 
 **P1-d — check 5's clear line prefers the ROW's transcript.** In

@@ -3,7 +3,7 @@ id: idea:l4b23-fixture-leak
 mint_id: 4d0d55fa67d94636b45105b4b4f69c31
 type: idea
 parents:
-  - goal:g15.3
+  - goal:g6.25
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

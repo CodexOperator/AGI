@@ -43,6 +43,7 @@ Design source: .agi/context/l3-command-ladder-brief.md §2.3 (Comms).
 from __future__ import annotations
 
 import argparse
+import contextlib
 import fcntl
 import hashlib
 import re
@@ -65,6 +66,7 @@ import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -219,7 +221,7 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
             _pobj = None
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
             _committed = _seats_committed_rows(root)
-            _row = _seat_row_in(_committed, seat) if _committed else None
+            _row = _seat_row_for(root, _committed, seat)
             _row_pub = str((_row or {}).get("pubkey") or "")
             if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
                 return _pobj
@@ -318,6 +320,7 @@ _COMMS_DEFAULTS = {
     # while its kids kept the unread digest moving. The repair runs on its OWN
     # cadence, this many SECONDS apart (default hourly), never on the poll.
     "wake_repair_every_s": 3600,
+    "undelivered_after_minutes": 10,
 }
 
 #: The one warning printed per send and per read/peek when `lockdown` is set.
@@ -1580,6 +1583,34 @@ def _row_is_quiet(root: Path, to: str) -> bool:
     return bool(s and s.get("quiet"))
 
 
+#: The SYSTEM's own senders: a sender naming itself as one of these still
+#: WRITES the dm (the record) but never types a nudge (hypothesis:l4-nudges-
+#: have-classes-...).
+_SERVICE_SENDERS = frozenset({"heal", "watch", "wake-repair", "system"})
+
+
+def _sender_class(root: Path, sender: str | None,
+                  to: str | None = None) -> str:
+    """`"service"` when `sender` names the system itself (`_SERVICE_SENDERS`)
+    or is a SELF-COPY (`sender == to` -- a seat's own-inbox copy wakes
+    nobody), else `"post"`. Derived from the sender, never a call flag."""
+    if not sender or str(sender) in _SERVICE_SENDERS:
+        return "service"
+    if to is not None and str(sender) == str(to):
+        return "service"
+    return "post"
+
+
+def _row_is_quiet_system(root: Path, to: str) -> bool:
+    """True when the row's `settings` carries the `quiet-system` token: the
+    row keeps direct post dm nudges but receives NONE from a service-class
+    sender. `quiet` is still full silence; no token is today's behaviour."""
+    import rotate  # noqa: PLC0415
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    s = rotate._normalize_settings((row or {}).get("settings"))
+    return bool(s and s.get("quiet_system"))
+
+
 def _nudge_marker_path(root: Path, seat: str) -> Path:
     return _inbox_dir(root) / f"{seat}.nudge"
 
@@ -1658,6 +1689,17 @@ def _clear_pending(root: Path, seat: str, observed: int | None = None) -> None:
         pass
 
 
+def _announce_nudge(root: Path, to: str, delivered: bool) -> None:
+    """Conjunct (2): typed -> `[delivered]`; else `[undelivered-yet]`."""
+    if not (row := _seat_row_by_name(_locally_loaded_rows(root), to)) \
+            or not (row.get("window") or row.get("pid")):
+        return
+    t = _comms_config(root).get("undelivered_after_minutes") or 10
+    print(f"[delivered] {to}" if delivered else
+          f"[undelivered-yet] {to} -- pane busy; the sweep retries, you hear "
+          f"[undelivered] after {t:g} min", file=sys.stderr)
+
+
 def _nudge_deferred_path(root: Path, seat: str) -> Path:
     """Sidecar holding the FIRST deferred dm body for a seat (sender+body
     as JSON) -- a dm whose inline line coalesced under a busy pane and must
@@ -1702,15 +1744,29 @@ def _record_deferred_render(root: Path, seat: str, more: int) -> None:
 
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
-    same batch is COUNTED (pending), never overwrites the first. Returns
-    True if it stored (this is the first deferred body), False if one was
-    already pending. Best-effort, never raises."""
-    if _read_deferred(root, seat) is not None:
+    same batch is COUNTED (pending) and appended to `others` so the sender
+    is NOT silently dropped at the undelivered deadline (residue 2 of
+    mur-sm-136: the claim is once per MESSAGE, never once per seat). The
+    inline delivery keeps the FIRST body. Returns True if it stored (this
+    is the first deferred body), False if one was already pending.
+    Best-effort, never raises."""
+    existing = _read_deferred(root, seat)
+    if existing is not None:
+        others = existing.get("others")
+        if not isinstance(others, list):
+            others = []
+            existing["others"] = others
+        others.append({"sender": sender, "body": body, "ts": _now()})
+        try:
+            _nudge_deferred_path(root, seat).write_text(json.dumps(existing))
+        except OSError:
+            pass
         return False
     try:
         p = _nudge_deferred_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({"sender": sender, "body": body}))
+        p.write_text(json.dumps({"sender": sender, "body": body,
+                                 "ts": _now()}))
         return True
     except OSError:
         return False
@@ -2119,6 +2175,13 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     """
     rows = _locally_loaded_rows(root)
     row = _seat_row_by_name(rows, to)
+    if row is not None and not boxes.row_is_local(root, row):
+        # A foreign box's row window/pid are NOT addressable here. Refuse by
+        # name, exactly like the stale-@id and name-window refusals below.
+        print(f"nudge: {to} is a FOREIGN box row "
+              f"(box {row.get('box') or '(default)'}); refusing as a target",
+              file=sys.stderr)
+        return None
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
@@ -2191,6 +2254,11 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
     # we compose none of the nudge side effects — no send-keys, no copy-
     # mode cancel, no marker, no pending/deferred write.
     if _row_is_quiet(root, to):
+        return True
+    if (sender is not None and _row_is_quiet_system(root, to)
+            and _sender_class(root, sender, to) == "service"):
+        # a service sender that NAMES ITSELF never types; `wake` passes no
+        # sender because it DELIVERS a post's pending state.
         return True
     if resolved is not None:
         target, pid, tmux_session = resolved
@@ -2706,6 +2774,60 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
                          window_id=window_id)
 
 
+def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
+    """Conjunct (4): after T min untyped, dm EACH sender ONCE -- the first
+    recorded dm AND every later dm coalesced onto the same busy seat
+    (`others`, appended by `_store_deferred`). Each record is marked
+    notified so the next sweep is a no-op."""
+    t = float(_comms_config(root).get("undelivered_after_minutes") or 10)
+    records = [rec] + [o for o in (rec.get("others") or [])
+                       if isinstance(o, dict)]
+    changed = False
+    for r in records:
+        if r.get("notified") or not (ts := r.get("ts")):
+            continue
+        try:
+            dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+            age = (datetime.now(timezone.utc)
+                   - dt.astimezone(timezone.utc)).total_seconds() / 60.0
+        except ValueError:
+            continue
+        if age < t:
+            continue
+        excerpt = (r.get("body") or "").replace("\n", " ")[:80]
+        try:
+            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+                    f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
+                    f"{int(age)} min", sender="wake-repair")
+        except SystemExit:
+            continue
+        r["notified"] = True
+        changed = True
+    if changed:
+        with contextlib.suppress(OSError):
+            _nudge_deferred_path(root, seat).write_text(json.dumps(rec))
+
+
+def wake_all_local(root: Path, tmux_session: str | None = None) -> bool:
+    """Conjunct (3): retry every LOCAL row with pending work via `wake()`."""
+    any_delivered = False
+    for r in _locally_loaded_rows(root):
+        name = (r.get("name") or "").strip()
+        if not name or not boxes.row_is_local(root, r):
+            continue
+        rec = _read_deferred(root, name)
+        if not (_seat_has_pending(root, name)
+                or _nudge_marker_stale(root, name)):
+            continue
+        ok = wake(root, name, tmux_session)
+        any_delivered = any_delivered or ok
+        if rec is not None and ok:
+            print(f"[delivered-late] {name} {rec.get('ts') or '?'}")
+        elif rec is not None:
+            _notify_undelivered(root, name, rec)
+    return any_delivered
+
+
 def status(root: Path, to: str, tmux_session: str | None = None) -> str:
     """ONE line naming a seat's nudge state: marker age, pending count,
     `in_mode`, and last-read age -- so a director sees a stalled post in one
@@ -2835,7 +2957,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
     if nudge and not _row_is_quiet(root, to):
-        _nudge_window(root, to)
+        _announce_nudge(root, to, _nudge_window(
+            root, to, sender=sender if sender is not None else from_id))
 
     print(inbox.resolve())
     return (from_id, sig_line is not None)
@@ -2958,6 +3081,25 @@ def _alias_canon(root: Path, name: str) -> str | None:
     if canon and str(canon) != name:
         print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
         return str(canon)
+    return None
+
+
+def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
+    """The identity row for ``seat``, resolving the ONE `aliases:` table
+    (old -> new) in the REVERSE direction. At a rename boundary the seats ROW
+    keeps the OLD name while the successor runs as the NEW one (rotate.py's
+    boundary never writes config), so `_seat_row_in(rows, new)` finds nothing
+    -- and a row whose OWN name is an alias OF ``seat`` IS that seat's row.
+    Falls straight through to `_seat_row_in` when no alias matches, so a seat
+    with no rename resolves byte-identically to before (and prints nothing).
+    Reused by `_signing_key_obj` and rotate's `_complete_pending_key_swap`"""
+    row = _seat_row_in(rows, seat)
+    if row is not None:
+        return row
+    for r in rows or ():
+        rn = str(r.get("name") or "")
+        if rn and rn != seat and _alias_canon(root, rn) == seat:
+            return r
     return None
 
 
@@ -3701,6 +3843,26 @@ def peek(root: Path, me: str, wrap: int = 160) -> None:
         _print_blocks_with_labels(root, me, blocks, wrap=wrap)
 
 
+def read_dms(croot: Path, me: str, *, commit: bool = True,
+             wrap: int = 160) -> int:
+    """Sweep every dm conversation naming `me`: print its unread blocks,
+    each line prefixed with its conversation id, marking the conversation
+    read when `commit` (hypothesis:l4-one-read-returns-everything-addressed-
+    to-a-post... clauses 1 and 3). Returns the block count shown."""
+    n = 0
+    d = croot / "dm"
+    for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
+        if me not in path.stem.split("--"):
+            continue
+        blocks = _conv_blocks(path)
+        shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
+                      commit=commit)
+        for line in render_transcript(shown, wrap=wrap):
+            print(f"[dm {path.stem}] {line}")
+        n += len(shown)
+    return n
+
+
 # ── rooms (hypothesis:l3w0-send-rooms) ────────────────────────────────────
 
 
@@ -3730,8 +3892,9 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    _nudge_window(locations.find_project_root(croot) or croot, other,
-                  sender=_detect_sender(sender), body=text)
+    ok = _nudge_window(locations.find_project_root(croot) or croot, other,
+                       sender=_detect_sender(sender), body=text)
+    _announce_nudge(croot, other, ok)
     return path
 
 
@@ -4309,7 +4472,8 @@ WHOIS_MIN_SESSION_ID_PREFIX = 6
 WHOIS_MIN_KEY_PREFIX = 8
 
 
-def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int, str]:
+def _whois_answer(who: dict, match_display: str, claim: str | None,
+                  root: Path | None = None) -> tuple[int, str]:
     """Build the IS-AUTHORIZED/SEAT answer line for one matched row.
     ``match_display`` is the text that stands where the session_ref would
     because the row was found by key prefix or by seat name (``by key: <p>`` /
@@ -4320,7 +4484,13 @@ def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int
     name = who.get("name", "?")
     role = who.get("role", "?")
     win = who.get("window") or ""
-    winpart = f"  window {win}" if win else ""
+    if win and root is not None and not boxes.row_is_local(root, who):
+        # A foreign-box row's @id is another box's tmux; never assert it as
+        # this box's dial-able truth -- name the box instead.
+        winpart = (f"  box {who.get('box') or '(default)'} "
+                   f"(foreign: window {win} not this box's)")
+    else:
+        winpart = f"  window {win}" if win else ""
     if claim:
         ok = (claim == name) or (claim == role)
         verdict = "IS-AUTHORIZED" if ok else "IS-NOT-AUTHORIZED"
@@ -4331,7 +4501,8 @@ def _whois_answer(who: dict, match_display: str, claim: str | None) -> tuple[int
 
 
 def _resolve_rows(rows: list, session_ref: str,
-                  claim: str | None, target: tuple | None = None) -> tuple[int, str]:
+                  claim: str | None, target: tuple | None = None,
+                  root: Path | None = None) -> tuple[int, str]:
     """Answer the is-this-who-they-say question for one ref. Two directions:
     with no --claim, name the seat + role the ref belongs to; with
     --claim NAME, answer whether this ref IS that row (a ref present in the
@@ -4354,7 +4525,7 @@ def _resolve_rows(rows: list, session_ref: str,
         if mode == "seat":
             hits = [r for r in rows if r.get("name") == val]
             if hits:
-                return _whois_answer(hits[0], f"by name: {val}", claim)
+                return _whois_answer(hits[0], f"by name: {val}", claim, root)
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by name: {val!r} belongs to no seat row")
         # mode == "key": a UNIQUE pubkey-prefix match, min 8 chars.
@@ -4372,7 +4543,7 @@ def _resolve_rows(rows: list, session_ref: str,
         if not hits:
             return (WHOIS_NO_MATCH,
                     f"NO-MATCH by key: {val!r} belongs to no seat row's pubkey")
-        return _whois_answer(hits[0], f"by key: {val}", claim)
+        return _whois_answer(hits[0], f"by key: {val}", claim, root)
     hits = [r for r in rows if (r.get("session_ref") == session_ref
                                 or r.get("session_name") == session_ref)]
     if not hits:
@@ -4605,7 +4776,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # tree: answer, but label it UNVERIFIED and exit non-zero. An
         # unauthoritative answer must never exit 0.
         local = _locally_loaded_rows(root)
-        _code, answer = _resolve_rows(local, session_ref, claim, target)
+        _code, answer = _resolve_rows(local, session_ref, claim, target, root)
         # hypothesis:l4-whois-names-the-ref-it-read: name the CANDIDATES the
         # resolver tried (canonical first, legacy fallback) -- never a single
         # unresolved name a reader cannot act on.
@@ -4633,7 +4804,7 @@ def whois(root: Path, session_ref: str, claim: str | None,
         # negative one.
         return WHOIS_UNVERIFIED, text
     rows, sha, live_ref = seeded
-    code, answer = _resolve_rows(rows, session_ref, claim, target)
+    code, answer = _resolve_rows(rows, session_ref, claim, target, root)
     # hypothesis:l4-whois-names-the-ref-it-read: name the ref that ACTUALLY
     # resolved, never the unresolved canonical candidate.
     text = f"{answer}  (verified against {live_ref} @ {sha})"
@@ -4964,6 +5135,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="participant id for read positions (default: sender)")
     p_read.add_argument("--wrap", type=int, default=160,
                         help="wrap message bodies at N columns (0 = raw)")
+    p_read.add_argument("--box-local", dest="box_local", action="store_true",
+                        help="service read: every LOCAL box row's inbox")
 
     p_peek = sub.add_parser("peek", parents=[common], help="peek without marking read")
     p_peek.add_argument("target", nargs="?", default=None,
@@ -5124,7 +5297,9 @@ def main(argv: list[str] | None = None) -> int:
              " (never Enter-only), or wake an idle pane whose seat has "
              "unread; busy/no-op (hypothesis:l4-a-stranded-nudge-is-"
              "resubmitted-by-typing-not-enter)")
-    p_wake.add_argument("target", help="seat name")
+    p_wake.add_argument("target", nargs="?", help="seat name")
+    p_wake.add_argument("--all-local", dest="all_local", action="store_true",
+                        help="sweep every LOCAL seat row with pending work")
 
     p_status = sub.add_parser(
         "status", parents=[common],
@@ -5245,6 +5420,27 @@ def main(argv: list[str] | None = None) -> int:
                                 args.since, sender, all_, wrap=wrap):
                 print(line)
             return 0
+        if getattr(args, "box_local", False):
+            # mail_poll's one service reader: consume every LOCAL row's inbox,
+            # naming each foreign-box row it skips rather than reading it.
+            import boxes
+            for r in _locally_loaded_rows(root):
+                nm = (r.get("name") or "").strip()
+                if not nm:
+                    continue
+                if boxes.row_is_local(root, r):
+                    read(root, nm, sender, wrap=wrap)
+                    # clause (1) for the SERVICE reader too: mail_poll must
+                    # sweep the same row's dm channels, or a dm pushed from
+                    # another box lands in a file this reader never opens
+                    # (hypothesis:l4-one-read-returns-everything-addressed-
+                    # to-a-post...). Same per-row loop, same box gate.
+                    read_dms(croot, nm, wrap=wrap)
+                else:
+                    print(f"mail_poll: skipped foreign-box post {nm} "
+                          f"(box {r.get('box') or '(default)'})",
+                          file=sys.stderr)
+            return 0
         if not args.target:
             print("ERR: read needs a target (inbox) or --room/--dm",
                   file=sys.stderr)
@@ -5258,6 +5454,8 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         read(root, _alias_canon(root, args.target) or args.target, sender,
              wrap=wrap)
+        # clause (1): the same call also consumes every dm naming the post.
+        read_dms(croot, resolved, wrap=wrap)
         return 0
 
     if args.verb == "peek":
@@ -5279,6 +5477,9 @@ def main(argv: list[str] | None = None) -> int:
                   file=sys.stderr)
             return 1
         peek(root, _alias_canon(root, args.target) or args.target, wrap=wrap)
+        # clause (3): peek shows the dm channels too, flipping no cursor.
+        read_dms(croot, _alias_canon(root, args.target) or args.target,
+                 commit=False, wrap=wrap)
         return 0
 
     if args.verb == "rooms":
@@ -5372,6 +5573,11 @@ def main(argv: list[str] | None = None) -> int:
         # exit 0 ONLY when the wake actually delivered a token/strand/deferred
         # to a pane; 1 otherwise. heal.py/rotate.py call send.wake() directly
         # and deliberately ignore the value; only this verb path returns it.
+        if getattr(args, "all_local", False):
+            return 0 if wake_all_local(root) else 1
+        if not args.target:
+            print("ERR: wake needs a target or --all-local", file=sys.stderr)
+            return 1
         return 0 if wake(root, _alias_canon(root, args.target) or
                          args.target) else 1
 

@@ -51,12 +51,17 @@
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
-        "kid": "~deepseek/deepseek-v4-flash-latest",
-        "parent": "~deepseek/deepseek-v4-flash-latest"
+        "kid": "deepseek/deepseek-v4.1-flash",
+        "parent": "deepseek/deepseek-v4.1-flash"
       },
       "allowed_extra": [
-        "~deepseek/deepseek-v4-flash-latest",
-        "~z-ai/glm-flash-latest"
+        "deepseek/deepseek-v4.1-flash",
+        "~z-ai/glm-flash-latest",
+        "anthropic/claude-opus-5"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "pi-local": {
@@ -70,6 +75,10 @@
       },
       "allowed_extra": [
         "Qwen3.5-9B-Q4_K_M"
+      ],
+      "forward_env": [
+        "TYPESAFE_KEY",
+        "TYPESAFE_API_KEY"
       ]
     },
     "claude-code": {
@@ -100,6 +109,18 @@
       "allowed_extra": [
         "auto"
       ]
+    },
+    "grok-bot": {
+      "adapter": "grok_bot",
+      "allowed_extra": [
+        "grok-4",
+        "grok-4-fast"
+      ],
+      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "models": {
+        "kid": "grok-4-fast",
+        "parent": "grok-4"
+      }
     }
   },
   "spawn": {
@@ -112,7 +133,8 @@
       "ttl_minutes": 180,
       "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
     },
-    "parent_max_kids": 10
+    "parent_max_kids": 10,
+    "memory_max": "4G"
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
@@ -123,11 +145,11 @@
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
-    "model": "~deepseek/deepseek-v4-flash-latest",
+    "model": "deepseek/deepseek-v4.1-flash",
     "thinking": "medium",
     "inline_reaper": false
   },
-  "agent_timeout_mins": 20,
+  "agent_timeout_mins": 75,
   "delay_mins": 0,
   "max_iters": 10,
   "injection_file": "context/INJECTION.md",
@@ -143,12 +165,20 @@
     "lockdown": false,
     "verify": "enforcing",
     "nudge_stale_after_minutes": 60,
-    "wake_repair_every_s": 3600
+    "wake_repair_every_s": 3600,
+    "undelivered_after_minutes": 10
   },
   "locations": {
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
+  },
+  "box": {
+    "root": "/home/ubuntu/work/agi",
+    "logs_dir": "/home/ubuntu/logs",
+    "tmux_session": "agi-rc",
+    "user": "ubuntu",
+    "allow": []
   },
   "workflows": {
     "review": {
@@ -157,7 +187,7 @@
       "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
-      "model": "~deepseek/deepseek-v4-flash-latest",
+      "model": "deepseek/deepseek-v4.1-flash",
       "effort": "max",
       "provider": "pi",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."

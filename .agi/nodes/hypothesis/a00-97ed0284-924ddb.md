@@ -3,15 +3,15 @@ id: hypothesis:a00-97ed0284-924ddb
 mint_id: e78154d776a349e1806259dd5ea154d6
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.10
 next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 41baa8ab5e391f2b
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A horizon goal's chains score identically to an active goal's
 verdict: inconclusive_lean_proved:50
 ---

@@ -1706,3 +1706,146 @@ def test_create_still_mints_a_declared_type_at_the_front_end(project):
     res, made = write.create(project, "hypothesis", "still-fine", ["goal:g1"])
     assert res.written and not res.rejected
     assert (project / "nodes" / "hypothesis" / "still-fine.md").exists()
+
+
+# --- the `&&` seam is the verb grammar, not a literal split (l5-verb-split)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb`: `parse_script` used to split on a literal `&&` ANYWHERE,
+# including inside a free-text argument. Measured cost: a note/ref field
+# filled with leaked review prose crashed `links.py links` with
+# `OSError: file name too long` on trunk until hand-unset
+# (experiment:a00-794503d4). These tests pin the new rule and its residual.
+
+
+def test_a_prose_ampersand_that_begins_no_verb_stays_verbatim():
+    """The incident's exact shape: the continuation after `&&` is prose, not
+    a verb name, so nothing splits and the note keeps every byte."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+
+
+def test_a_prose_ampersand_run_that_begins_no_verb_stays_verbatim():
+    """Several `&&` in one argument, none followed by a verb."""
+    assert write.parse_script("note a && b && c") == [
+        ("note", ["a && b && c"])]
+
+
+def test_an_ampersand_before_a_real_verb_still_splits_and_runs_both():
+    """A verb-only script is unchanged: the second `&&` begins `set`."""
+    calls = write.parse_script("note a && set title b")
+    assert calls == [("note", ["a"]), ("set", ["title", "b"])]
+    edit = write.Edit("hypothesis:h1")
+    for name, args in calls:
+        write.apply_verb(edit, name, args)
+    assert edit.body_append == "a" and edit.set_fm.get("title") == "b"
+
+
+def test_a_set_value_keeps_its_own_ampersands_that_begin_no_verb():
+    """`set`'s value is free text too; `b` and `c` are not verbs."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_residual_limit_a_verb_led_prose_ampersand_is_executed():
+    """KNOWN LIMIT, asserted not hidden. `note quote && set status x` DOES
+    split, because `set` after the `&&` begins a verb: a prose argument
+    cannot quote a verb-led command verbatim. The seam is the verb grammar
+    and this is the hole in it — pinned here so no reader is misled."""
+    assert write.parse_script("note quote && set status x") == [
+        ("note", ["quote"]), ("set", ["status", "x"])]
+
+
+def test_an_unknown_first_verb_still_refuses_by_name():
+    """The refusal the front end owes: an unknown FIRST token is named, even
+    when a later `&&` begins a real verb."""
+    calls = write.parse_script("frobnicate a && set title b")
+    assert calls[0] == ("frobnicate", ["a"])
+    with pytest.raises(write.EditError) as exc:
+        write.apply_verb(write.Edit("hypothesis:h1"), *calls[0])
+    assert "frobnicate" in str(exc.value)
+
+
+# --- the trailing `&&` must still separate (l5-verb-split, second round)
+# `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
+# begins-a-verb` clause (2): "a script that is ONLY verbs still parses exactly
+# as today (every existing test_write* case byte-identical)". The verb-lookahead
+# alone made a TRAILING `&&` (nothing after it, so no verb to look ahead at)
+# non-separating, absorbing the pair into the last argument. Pre-fix
+# `note a &&` -> `("note", ["a"])`; it became `("note", ["a &&"])`. These pin
+# the pre-fix behaviour back, without loosening the prose rule above.
+
+
+def test_a_trailing_verb_only_script_still_drops_the_empty_chunk():
+    """Nothing after the `&&` means no verb looks ahead -- but the pair is
+    still a separator, and the empty chunk it makes is skipped as before."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("note a &&   ") == [("note", ["a"])]
+
+
+def test_a_trailing_verb_only_script_keeps_an_existing_argument_clean():
+    """The measured shape: a chained verb line ended with `&&`, and the pair
+    must not leak into the `set` value or the `thought` sentence."""
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+    assert write.parse_script(
+        "set confidence 0.9 && thought why it changed now &&") == [
+        ("set", ["confidence", "0.9"]),
+        ("thought", ["why it changed now"])]
+
+
+def test_a_non_verb_ampersand_run_is_still_not_a_separator():
+    """The prose rule from the first round must not regress: neither `b` nor
+    `c` is a verb, so a trailing pair is the only separator in the line."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+
+
+def test_the_incident_note_and_a_verb_pair_are_still_unchanged():
+    """Both first-round fixes hold: prose after `&&` stays verbatim when it
+    begins no verb, and a real verb after `&&` still starts the next call."""
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && set title b") == [
+        ("note", ["a"]), ("set", ["title", "b"])]
+
+
+# --- a verb-closing `&&` with no space must separate (l5-verb-split, third
+# round) `hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-
+# that-begins-a-verb` clause (2). The lookahead required the verb name to end
+# at whitespace or end-of-string, so when a verb was immediately followed by
+# the NEXT separator (`-&&adopt&&`, `a&&adopt&&`) that `&&` was not a
+# separator and the tail leaked into the last argument. The pre-fix loop
+# (`str.split("&&")`) split it; these pin the pre-fix bytes back.
+
+
+def test_a_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """`body_patch -&&adopt&&`: `adopt` is immediately followed by the next
+    `&&`, with no space. That is still a separator -- the empty trailing chunk
+    is dropped, exactly as the pre-fix loop did."""
+    assert write.parse_script("body_patch -&&adopt&&") == [
+        ("body_patch", ["-"]), ("adopt", [])]
+    assert write.parse_script("note a&&adopt&&") == [
+        ("note", ["a"]), ("adopt", [])]
+
+
+def test_a_spaced_verb_closed_by_the_next_ampersand_pair_still_separates():
+    """The other ordering: a spaced pair then a verb closed by a pair."""
+    assert write.parse_script("note x && adopt&&") == [
+        ("note", ["x"]), ("adopt", [])]
+
+
+def test_the_trailing_ampersand_fix_from_round_two_did_not_regress():
+    """Round two's behaviour, asserted again because the third-round boundary
+    must subsume it, not replace it: a trailing pair still separates."""
+    assert write.parse_script("note a &&") == [("note", ["a"])]
+    assert write.parse_script("set title x &&") == [("set", ["title", "x"])]
+
+
+def test_the_round_two_and_round_one_prose_rules_did_not_regress():
+    """The third-round boundary must not loosen the prose rules: a run whose
+    successor begins no verb stays verbatim."""
+    assert write.parse_script("set title a && b && c") == [
+        ("set", ["title", "a && b && c"])]
+    assert write.parse_script("note probes && open the box") == [
+        ("note", ["probes && open the box"])]
+    assert write.parse_script("note a && setter x") == [
+        ("note", ["a && setter x"])]

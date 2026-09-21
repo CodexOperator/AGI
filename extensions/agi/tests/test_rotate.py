@@ -367,6 +367,91 @@ def test_rotate_complete_pending_key_swap(tmp_path, monkeypatch):
     assert json.loads(key_path2.read_text())["priv_hex"] != succ_priv.hex()
 
 
+def test_rotate_hold_key_accepts_pending_successor_and_names_both_files(
+        tmp_path, monkeypatch):
+    """l5 claim (2): rotate's held-key check uses the SAME preference as the
+    signer (send._signing_key_obj) -- a `.key.pending` whose pub_hex equals
+    the committed row's pubkey IS the held key (guard, already built). A
+    pending key naming neither the live key nor the row is REFUSED, and the
+    refusal names the live `.key` path, the `.key.pending` path and the row
+    pubkey."""
+    import send as bin_send
+    scheme = bin_send.seatsig.get("ed25519")
+    key_path, _live_pub = _mk_seat_key(tmp_path, "seat-a")   # live = A
+    row_priv, row_pub = scheme.keygen()                      # row  = B
+    c_priv, c_pub = scheme.keygen()                          # foreign = C
+    pend = bin_send._seats_dir(tmp_path) / "seat-a.key.pending"
+    row = {"pubkey": row_pub.hex()}
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "seat-a",
+                                       "pubkey": row_pub.hex()}])
+    # (a) GUARD: pending pub == committed row pub -> accepted.
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": row_priv.hex(),
+                                "pub_hex": row_pub.hex(), "gen_after": 2}))
+    os.chmod(pend, 0o600)
+    seat, got_row, how = rotate._caller_hold_key(
+        tmp_path, "seat-a", row, "env")
+    assert seat == "seat-a" and got_row is row and how == "env"
+    # (b) pending names neither the live key nor the row -> refused, naming
+    # the live path, the pending path and the row pubkey.
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": c_priv.hex(),
+                                "pub_hex": c_pub.hex(), "gen_after": 3}))
+    seat, got_row, msg = rotate._caller_hold_key(
+        tmp_path, "seat-a", row, "env")
+    assert seat is None and got_row is None, msg
+    assert str(key_path) in msg, msg
+    assert str(pend) in msg, msg
+    assert row_pub.hex() in msg, msg
+
+
+def test_rotate_complete_pending_swap_retires_old_key(tmp_path, monkeypatch):
+    """l5 claim (3): promoting the pending successor preserves the OLD live
+    `.key` bytes at `<seat>.key.retired-<old_fp>` (0600), never destroys them,
+    and never clobbers an existing same-fp retired file."""
+    import send as bin_send
+    scheme = bin_send.seatsig.get("ed25519")
+    # prior same-fp retired file is evidence and must survive.
+    key_path, old_pub = _mk_seat_key(tmp_path, "s15")
+    succ_priv, succ_pub = scheme.keygen()
+    pend = bin_send._seats_dir(tmp_path) / "s15.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(), "gen_after": 4}))
+    os.chmod(pend, 0o600)
+    retired = bin_send._seats_dir(tmp_path) / \
+        f"s15.key.retired-{bin_send.seatsig.fingerprint(old_pub)}"
+    retired.write_text("PRIOR EVIDENCE")
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "s15",
+                                       "pubkey": succ_pub.hex()}])
+    r = rotate._complete_pending_key_swap(tmp_path, "s15")
+    assert r == "key swap completed (deferred from gen 4)"
+    assert not pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] == succ_priv.hex()
+    assert retired.read_text() == "PRIOR EVIDENCE"
+    # no prior file: the OLD private bytes land there, 0600.
+    key_path2, old_pub2 = _mk_seat_key(tmp_path, "s16")
+    old_obj2 = json.loads(key_path2.read_text())
+    s2_priv, s2_pub = scheme.keygen()
+    pend2 = bin_send._seats_dir(tmp_path) / "s16.key.pending"
+    pend2.write_text(json.dumps({"scheme": "ed25519",
+                                 "priv_hex": s2_priv.hex(),
+                                 "pub_hex": s2_pub.hex(), "gen_after": 5}))
+    os.chmod(pend2, 0o600)
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "s16",
+                                       "pubkey": s2_pub.hex()}])
+    assert rotate._complete_pending_key_swap(tmp_path, "s16") == \
+        "key swap completed (deferred from gen 5)"
+    ret2 = bin_send._seats_dir(tmp_path) / \
+        f"s16.key.retired-{bin_send.seatsig.fingerprint(old_pub2)}"
+    assert ret2.is_file()
+    assert oct(os.stat(ret2).st_mode & 0o777) == oct(0o600)
+    assert json.loads(ret2.read_text())["priv_hex"] == old_obj2["priv_hex"]
+
+
 def test_finish_pending_swap_on_push_fires_only_on_push_ok(tmp_path, monkeypatch):
     """g15.26 claim (b) gate: the ONE shared helper `_finish_pending_swap_on_push`
     completes a deferred swap exactly on a ``push: OK`` line and is a no-op on a
@@ -1030,6 +1115,95 @@ def test_successor_row_write_appends_key_history_once_and_never_shrinks(tmp_path
     assert own["pubkey"] == kr["successor_pub"]
     assert own["key_history"] == existing_hist + [kr["retired"]]
     assert own["key_history"][-1]["pub"] == pred_pub.hex()
+
+
+def test_key_history_appends_a_repeated_generation_pair_with_a_new_fp(
+        tmp_path):
+    """hypothesis:l5-key-history-retires-a-key-by-fingerprint-never-by-
+    generation-pair: the retired entry's IDENTITY is its fingerprint, never
+    the (from, to) generation pair. After a generation-count reset a fresh
+    rotation re-offers a pair an EARLIER epoch already used; the old
+    (from,to) predicate dropped it silently and the outgoing key never
+    entered key_history, so the retired key's last lines read FORGED at an
+    enforcing reader.
+
+    Two assertions: (a) a DIFFERENT fp under an already-present (2,3) pair
+    is APPENDED (len+1); (b) re-offering the SAME fp is still a no-op
+    (len unchanged) -- history never duplicates a key."""
+    existing_hist = [{"pub": "aa" * 32, "fp": "fp-old", "from": 2,
+                      "to": 3, "rotated_by_sig": "sig-old"}]
+    rows = [{"name": "s1", "role": "director",
+             "session_ref": "x", "generation": 3, "window": "",
+             "key_history": list(existing_hist)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    fresh = {"successor_pub": "aa" * 32, "scheme": "ed25519",
+             "retired": {"pub": "bb" * 32, "fp": "fp-new", "from": 2,
+                         "to": 3, "rotated_by_sig": "sig-new"}}
+    out = rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=fresh)
+    assert "config:seats row" in out, out
+    import write as w
+    own = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert own["key_history"] == existing_hist + [fresh["retired"]]
+    assert own["key_history"][-1]["fp"] == "fp-new"
+    # (b) idempotence on the fp: the deliberate retry is a no-op.
+    again = dict(fresh, retired=dict(fresh["retired"],
+                                     rotated_by_sig="sig-retry"))
+    rotate._successor_row_write(
+        graph, actor="s1", seat="s1", role="director",
+        session_ref="x", generation=3, window="", key_rotation=again)
+    own2 = next(r for r in w._load_seats(graph) if r.get("name") == "s1")
+    assert len(own2["key_history"]) == len(own["key_history"])
+
+
+def test_key_history_survives_a_rename_boundary_key_rotation(tmp_path):
+    """hypothesis:l5-key-rotation-at-a-rename-boundary-clobbers-key-history-
+    instead-of-carrying-it: at a RENAME-plus-key-rotation boundary the row
+    that EXISTS carries the OLD name (the round never writes config:seats;
+    L5.02), so the key_history READ must resolve the SAME row the ONE writer
+    updates -- `_row_name`, resolved from `row_seat` -- never `seat`, the
+    post-rename name that has no row yet.
+
+    FALSIFIER (the assertion that fails on the unfixed read keyed on
+    `seat`): `_cur` comes back {}, `_hist` comes back [], and the full
+    cell-replace in `_write_identity_cells` leaves the row carrying exactly
+    ONE entry (the fresh retirement), so the equality below sees
+    len(prior)+1 vs 1 and fails. Measured on the live graph: 31 entries -> 1
+    at the sensei-director -> director-sanctuary boundary.
+
+    Fixture: the OLD-named row already carries a prior history whose
+    generations run 5..9 (max prior `to` == 9); the boundary call passes
+    `row_seat=<old>` and `key_rotation` together, exactly as the live
+    callsite does (rotate.py:~18927).
+    """
+    prior = [{"pub": f"{g:02x}" * 4, "fp": f"fp{g}", "from": g - 1,
+              "to": g, "rotated_by_sig": "sig-prev"}
+             for g in range(5, 10)]
+    rows = [{"name": "sensei-director", "role": "director",
+             "session_ref": "ref-old", "generation": 9,
+             "window": "@OLD", "key_history": list(prior)}]
+    graph = _seed_key_history_graph(tmp_path, rows)
+    kr = {"successor_pub": "aa" * 32, "scheme": "ed25519",
+          "retired": {"pub": "bb" * 32, "fp": "fp10", "from": 9,
+                      "to": 10, "rotated_by_sig": "sig-new"}}
+    out = rotate._successor_row_write(
+        graph, actor="sensei-director", seat="director-sanctuary",
+        role="director", session_ref="", generation=10, window="@NEW",
+        row_seat="sensei-director", key_rotation=kr)
+    assert "config:seats row" in out, out
+    import write as w
+    rows_after = w._load_seats(graph)
+    # the boundary never renames the seats row; no phantom new-named row.
+    assert not [r for r in rows_after
+                if r.get("name") == "director-sanctuary"], rows_after
+    own = next(r for r in rows_after if r.get("name") == "sensei-director")
+    assert own["pubkey"] == kr["successor_pub"]
+    # EVERY prior entry, in order, PLUS the new retired entry.
+    assert own["key_history"] == prior + [kr["retired"]], own["key_history"]
+    # the generation counter continues; it never resets below the max prior.
+    assert max(h["to"] for h in own["key_history"]) == 10
+    assert min(h["from"] for h in own["key_history"]) == 4  # prior kept
 
 
 @pytest.fixture
@@ -2610,21 +2784,31 @@ def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
     assert not list(comms.glob("dm/*.md"))
 
 
-def test_alarms_once_dms_holder_when_due_then_stops(fake_ladder, tmp_path):
-    """At/over threshold: exactly one dm `rotate now` to the holder, nil more."""
+def test_alarms_once_master_rotates_the_due_seat_then_stops(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """At/over threshold: exactly ONE master-path rotate of the due seat
+    under the holder's key, nothing for the seat below the line, and NO dm
+    (SM.135 slice 2, owner ruling 2026-09-19 05:1xZ: the alarms poll rotates
+    a captive director itself; this test asserted the retired dm path)."""
     seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"},
              {"name": "kid-2", "role": "director", "rotated_by": "advisor"}]
     _write_seats_sheet(tmp_path, seats)
     _pin_seat_transcript(tmp_path, "kid-1", tokens=40000)  # 0.40 >= 0.25
     _pin_seat_transcript(tmp_path, "kid-2", tokens=4000)   # 0.04 < 0.25
     comms = tmp_path / "comms"
+    spawns = []
+    monkeypatch.setattr(rotate, "_caller_hold_key",
+                        lambda root, seat, row, how: (seat, row or {}, how))
+    monkeypatch.setattr(rotate, "_spawn_master_rotate",
+                        lambda argv, env, cwd: spawns.append((argv, env)))
     args = SimpleNamespace(holder="advisor", once=True, interval=300,
                            comms_root=str(comms))
     rc = rotate.cmd_alarms(args, tmp_path)
     assert rc == 0
-    dms = list(comms.glob("dm/*.md"))
-    assert len(dms) == 1  # only the due seat was dm'd
-    assert "rotate now" in dms[0].read_text(encoding="utf-8")
+    assert len(spawns) == 1, capsys.readouterr().out  # only the due seat
+    assert spawns[0][0][2:] == ["rotate", "--post", "kid-1"]
+    assert spawns[0][1]["AGI_POST"] == "advisor"
+    assert not list(comms.glob("dm/*.md"))            # the dm path is gone
 
 
 def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,
@@ -6596,10 +6780,12 @@ def test_rotate_self_missing_rotations_node_refuses_before_side_effects(
 
 def test_rotate_self_consumes_template_brief_as_successor_prompt(
         fake_ladder, tmp_path, monkeypatch, capsys):
-    """L4.112 (C): when --prompt-file is NOT given, rotate-self hands the
-    template's brief_file (with `{seat}` substituted) to the successor as its
-    prompt. The director's brief is the seat's quorum scratchpad, so
-    `.agi/sessions/quorum/{seat}.md` becomes `.agi/sessions/quorum/adv-alive.md`."""
+    """L4.112 (C), updated L5.11: when --prompt-file is NOT given, rotate-self
+    hands the template's brief_file (with `{seat}` substituted) to the
+    successor as its prompt. The director's brief is the seat's quorum
+    scratchpad, so `.agi/sessions/quorum/{seat}.md` becomes the post's OWN
+    quorum card -- resolved through `_own_sessions_dir`, never CWD. This
+    MAIN-resident seat resolves to MAIN's absolute path."""
     tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
                           "steps": ["handoff", "spawn", "join"],
                           "telemetry": ["seed", "model"]}}
@@ -6619,7 +6805,9 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert seen["prompt_file"] == ".agi/sessions/quorum/adv-alive.md"
+    assert seen["prompt_file"] == str(
+        rotate._own_sessions_dir(tmp_path, "adv-alive")
+        / "quorum" / "adv-alive.md")
 
 
 def test_rotate_self_prompt_file_flag_overrides_template_brief(
@@ -7424,6 +7612,152 @@ def test_ack_commits_only_own_row_leaves_foreign_unstaged(
         "the ack commit must change belam's own row"
     assert not any('"name": "other"' in ln for ln in changed), \
         "the ack commit must not change the foreign spawn-row hunk"
+
+
+# ── L4.319 (a00-4be93400): the ack own-row dirty gate's ROOT ─────────────
+#    hypothesis:l4-the-continue-ack-own-row-dirty-gate-judges-the-calling-
+#    worktree-never-main. The ONE `_ack_seats_dirty` call site resolves
+#    `_shared_graph_root(root)` -- MAIN -- and the tests below hold that root
+#    choice to account: from a LINKED worktree the gate must still see MAIN's
+#    own-row dirt (the safety invariant), foreign / non-row dirt must never
+#    block, and the MAIN caller is byte-identical. The falsifier pair is the
+#    first test: swapping the call site to the caller's own `root` -- which
+#    nothing ever writes (the ONE writer targets MAIN), so the worktree copy
+#    is stale-but-clean by construction -- would make it silently read CLEAN
+#    on a MAIN own-row dirt and defeat r3b/g15.24.
+
+
+def _ack_main_and_worktree(tmp_path, seat="belam"):
+    """A MAIN checkout + one LINKED worktree, both with a real `.agi` graph
+    and a COMMITTED seats.md carrying one row. Returns (repo, main_root,
+    wt, wt_root)."""
+    repo = tmp_path / "main"
+    repo.mkdir()
+    subprocess.run(["git", "-C", str(repo), "init", "-q", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".gitignore").write_text("sessions/\n", encoding="utf-8")
+    root = repo / ".agi"
+    (root / "nodes").mkdir(parents=True)
+    (root / "config.json").write_text("{}", encoding="utf-8")
+    (root / "sessions").mkdir(parents=True)
+    _write_seats_sheet(root, [{"name": seat, "role": "prime_director",
+                               "model": "x", "effort": "max",
+                               "settings": "", "session_ref": ""}])
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m",
+                    "seats seed"], check=True, capture_output=True)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-a@s2", str(wt), "season/s1"],
+                   check=True, capture_output=True)
+    return repo, root, wt, wt / ".agi"
+
+
+def _ack_continue_args(seat="belam", ref="f52a4c"):
+    return SimpleNamespace(seat=seat, gen=7, ref=ref, answer="continue",
+                           text="", wait=0)
+
+
+def test_ack_from_worktree_sees_main_own_row_dirt(
+        tmp_path, monkeypatch, capsys):
+    """SAFETY INVARIANT (L4.319 #1): the calling worktree's own seats.md is
+    stale-but-CLEAN (nothing writes it -- the ONE writer targets MAIN), so a
+    gate that judged the caller's root would read clean. It must NOT: an
+    own-row dirt written directly on MAIN is REFUSED (rc 3, named) by an ack
+    driven from the linked worktree. This test fails if the `id_root` at the
+    call site is swapped to the caller's `root`."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    main_seats = rotate._ack_seats_path(main_root)
+    wt_seats = rotate._ack_seats_path(wt_root)
+    head_bytes = subprocess.run(
+        ["git", "-C", str(wt), "show", "HEAD:.agi/nodes/.geometry/seats.md"],
+        capture_output=True, text=True).stdout
+    assert wt_seats.read_text(encoding="utf-8") == head_bytes, \
+        "the worktree copy must be clean (== HEAD) or this test is vacuous"
+    main_seats.write_text(main_seats.read_text(encoding="utf-8").replace(
+        '"name": "belam", "role": "prime_director"',
+        '"name": "belam", "role": "pre-dirty"'), encoding="utf-8")
+    before = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    out = capsys.readouterr()
+    assert code == 3, out.err
+    assert "dirty" in out.err and "refuse" in out.err
+    assert subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip() \
+        == before, "a refused ack must make no commit"
+
+
+def test_ack_from_worktree_foreign_main_dirt_does_not_block(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #2: MAIN dirty only with FOREIGN content (another seat's row
+    plus a staged unrelated file) and the worktree clean -> the gate is
+    pathspec- AND own-row-scoped, so the ack is NOT refused; it proceeds and
+    lands its own-row commit on MAIN."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    main_seats = rotate._ack_seats_path(main_root)
+    text = main_seats.read_text(encoding="utf-8")
+    row = next(l for l in text.splitlines() if '"name": "belam"' in l)
+    foreign = '  - {"name": "other", "role": "director", "model": "x", ' \
+              '"effort": "max", "settings": ""}'
+    main_seats.write_text(text.replace(row, row + "\n" + foreign),
+                          encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-q", "-m",
+                    "two rows"], check=True, capture_output=True)
+    # dirty ONLY the FOREIGN row on MAIN + a staged unrelated tracked file.
+    main_seats.write_text(main_seats.read_text(encoding="utf-8").replace(
+        '"name": "other", "role": "director"',
+        '"name": "other", "role": "parent"'), encoding="utf-8")
+    (repo / "notes.txt").write_text("foreign\n", encoding="utf-8")
+    subprocess.run(["git", "-C", str(repo), "add", "notes.txt"], check=True,
+                   capture_output=True)
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    assert code == 0, capsys.readouterr().err
+
+
+def test_ack_from_worktree_non_row_dirt_does_not_block(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #3: `tests/test_workflow.py` uncommitted in the CALLING
+    worktree, MAIN and both seats.md copies clean -> nothing in the ack path
+    blocks it: `_ack_seats_dirty` is blind to any path but seats.md (pathspec)
+    and to any row but the seat's own. Confirms the claim-(3) incident cannot
+    have come from this gate; no other dirty gate exists in `cmd_ack`."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(wt_root)
+    (wt / "tests").mkdir()
+    (wt / "tests" / "test_workflow.py").write_text(
+        "def test_x():\n    assert 1\n", encoding="utf-8")
+    code = rotate.cmd_ack(_ack_continue_args(), wt_root)
+    assert code == 0, capsys.readouterr().err
+
+
+def test_ack_from_main_own_row_dirt_identical(
+        tmp_path, monkeypatch, capsys):
+    """L4.319 #4: from MAIN itself (`_shared_graph_root(root) == root`) the
+    own-row dirt refusal is byte-identical: rc 3, named, no commit."""
+    repo, main_root, wt, wt_root = _ack_main_and_worktree(tmp_path)
+    monkeypatch.chdir(main_root)
+    seats = rotate._ack_seats_path(main_root)
+    seats.write_text(seats.read_text(encoding="utf-8").replace(
+        '"name": "belam", "role": "prime_director"',
+        '"name": "belam", "role": "pre-dirty"'), encoding="utf-8")
+    before = subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                            capture_output=True, text=True).stdout.strip()
+    code = rotate.cmd_ack(_ack_continue_args(), main_root)
+    out = capsys.readouterr()
+    assert code == 3, out.err
+    assert "dirty" in out.err and "refuse" in out.err
+    assert subprocess.run(["git", "-C", str(repo), "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip() \
+        == before, "a refused ack must make no commit"
 
 
 def test_ack_commit_stages_index_only_never_writes_seats(

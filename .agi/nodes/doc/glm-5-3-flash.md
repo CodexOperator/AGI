@@ -3,9 +3,9 @@ id: doc:glm-5-3-flash
 mint_id: 3955a85cedbe47c9a7e78450b6cd51ec
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/glm-5-3-flash.md
 scaffold_hash: 882107a71cfd11b6
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"GLM-5.3-Flash: More Intelligence with Less Compute\""
 town: local-maxxing
 ---

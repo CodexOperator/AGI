@@ -2177,6 +2177,30 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     except (OSError, subprocess.SubprocessError):
         return None
 
+    # hypothesis:l5-a-parent-that-accepts-a-kid-branch-lands-that-branch-on-
+    # its-own-at-done-time: fold each accepted kid's own `--branch` (iter
+    # manifest node_id/branch rows) into this checkout so the parent lands
+    # them; branchless = no-op; a conflicting merge is aborted and named.
+    if owns:
+        rows = {}
+        for mp in (root / "sessions").glob("iter-*/manifest.json"):
+            try:
+                rows.update({a.get("node_id"): a.get("branch") for a in json.loads(mp.read_text()).get("agents") or []})
+            except (OSError, ValueError):
+                pass
+        for nid in owns:
+            br = rows.get(nid)
+            if not br:
+                continue
+            r = subprocess.run(["git", "-C", str(checkout_root), "-c",
+                                "user.email=agi@local", "-c", "user.name=agi",
+                                "merge", "--no-ff", "--no-edit", br],
+                               capture_output=True, text=True)
+            if r.returncode:
+                subprocess.run(["git", "-C", str(checkout_root), "merge",
+                                "--abort"], capture_output=True, text=True)
+                print(f"ERR: owned kid branch {br} ({nid}) did not merge: {r.stderr.strip() or '(no stderr from git)'}", file=sys.stderr)
+
     status = subprocess.run(
         ["git", "-C", str(checkout_root), "status", "--porcelain", "-z",
          "--no-renames", "-uall"],
@@ -2297,6 +2321,45 @@ def cmd_status(args: argparse.Namespace) -> int:
         mark = "(overdue)" if overdue and (not status or status == "running") else ""
         print(f"  {rec['id']}: status={status}{mark} verdict={rec.get('verdict', '-')} pid={rec.get('pid')}")
     return 0
+
+
+#: hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end-
+#: with-a-live-kid-is-named-not-a-death -- the ONE blocking wait a parent uses
+#: INSTEAD of ending its turn (in headless `-p` a turn-end IS process exit,
+#: SM.133: 16 of 16 parent deaths). `--max-seconds` defaults to 540, under the
+#: 600 s harness Bash ceiling so the call always returns before it.
+_WAIT_POLL_SECONDS = 20.0
+_WAIT_MAX_SECONDS = 540.0
+
+
+def cmd_wait(args: argparse.Namespace) -> int:
+    """Block IN-PROCESS until every kid of the round is terminal.
+
+    One heartbeat line per poll (agent, status, elapsed); 0 when all terminal,
+    2 on timeout naming the still-running agents. Never a shell sleep, never a
+    background job. `--agent` narrows the set (repeatable).
+    """
+    sroot = _session_root()
+    manifest = _legacy_fallback(
+        sroot, locations.iteration_dir(sroot, args.iter_n) / "manifest.json")
+    if not manifest.exists():
+        print(f"ERR: no manifest at {manifest}", file=sys.stderr)
+        return 1
+    want = set(args.agent or [])
+    deadline = time.monotonic() + args.max_seconds
+    while True:
+        m = json.loads(manifest.read_text())
+        states = [(a["id"], a.get("status", "running")) for a in m["agents"]
+                  if (a.get("id") in want if want
+                      else a.get("tier", "kid") == "kid")]
+        print(f"wait {args.iter_n}: " + ", ".join(f"{i}={s}" for i, s in states))
+        if states and all(s in TERMINAL_STATUSES for _, s in states):
+            return 0
+        if time.monotonic() >= deadline:
+            print("still running: " + " ".join(
+                i for i, s in states if s not in TERMINAL_STATUSES), file=sys.stderr)
+            return 2
+        time.sleep(min(_WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
 
 
 # ---------------------------------------------------------------------------
@@ -4783,6 +4846,17 @@ def _rs_v3_loops_plan(repo: Path) -> int:
     return 1 if refused else 0
 
 
+def _rs_v3_town_origin_state(repo: Path, town_name: str) -> str:
+    """The ONE origin classification for a planned v3 town trunk, shared by
+    BOTH arms of the town-create leg (hypothesis:l5-reshuffle-dry-run-and-
+    apply-agree-on-an-existing-town-tip). Delegates to the rc-honest
+    three-valued `_post_rename_remote_ref_state`: 'present' -> NO-OP (a
+    create never force-moves a remote-visible trunk), 'absent' -> create/
+    resume leg, 'failed' -> UNKNOWN refused BY NAME. ONE copy of the
+    predicate, so the two arms cannot drift apart again."""
+    return _post_rename_remote_ref_state(repo, f"refs/heads/{town_name}")
+
+
 def _rs_v3_town_push(name: str, dry: bool) -> None:
     """The v3 town CREATE push line. branches.assert_remote_visible(name) is
     called FIRST and raises BY NAME when `name` is not remote-visible — the
@@ -4851,88 +4925,83 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     # blocking the rest of the migration.
     refused: list[str] = []
     if "town_main" in kinds and town_tuples:
-        print(f"  v3 town creates ({len(town_tuples)} towns):")
-        for town_name, tip in _rs_v3_towns_plan(repo, town_tuples):
-            # L5: the DRY-RUN plan is exactly today's delta — a town branch
-            # ALREADY on origin is a NO-OP, only the MISSING towns get a
-            # create. Dry-only; the apply arm keeps its own resume logic below
-            # (a wrong-tip trunk is still REFUSED by name on a real run, never
-            # silently no-op'd).
-            if dry and has_origin and _post_rename_remote_ref_state(
-                    repo, f"refs/heads/{town_name}") == "present":
-                print(f"    [NO-OP] {town_name} already on origin "
-                      f"(no create)")
+        # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-town-
+        # tip (round 3): the create/push legs below are gated `not dry and
+        # has_origin`, so on a tree with NO origin remote they perform
+        # NOTHING while printing [APPLY] -- a verb claiming work that did not
+        # happen. With no remote the origin state is UNKNOWN (the round-1
+        # 'failed' shape), so the WHOLE section is REFUSED BY NAME in BOTH
+        # arms, naming every planned trunk: nothing to classify, nothing to
+        # create, nothing to push, same line either way.
+        planned = _rs_v3_towns_plan(repo, town_tuples)
+        if has_origin:
+            print(f"  v3 town creates ({len(town_tuples)} towns):")
+        else:
+            print(f"ERR: v3 town creates need an origin remote; "
+                  f"{len(planned)} planned trunk(s) not created and not "
+                  f"pushed", file=sys.stderr)
+            refused.extend(name for name, _tip in planned)
+        for town_name, tip in (planned if has_origin else []):
+            # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+            # town-tip: ONE shared classification drives BOTH arms: 'present'
+            # -> NO-OP (dry AND apply), 'absent' -> create/resume leg,
+            # 'failed' -> rc-honest UNKNOWN refused BY NAME. Pre-fix, apply
+            # tested only the LOCAL ref and re-pushed what dry called NO-OP.
+            ostate = (_rs_v3_town_origin_state(repo, town_name)
+                      if has_origin else "absent")
+            if ostate == "failed":
+                print(f"ERR: ls-remote origin {town_name} failed; cannot "
+                      f"confirm it is already pushed — NOT skipped",
+                      file=sys.stderr)
+                refused.append(town_name)
                 continue
-            # hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-
-            # posts-and-master-pushes-by-sha (claim c): the trunk-pair create
-            # is RESUMABLE. Before planning/running the create, resolve the
-            # pre-existing-trunk state: a trunk that already exists AND
-            # already points at the planned tip is a FINISHED JOB on a
-            # resumed run (skip with a [SKIP] line, never an error); one that
-            # exists at a DIFFERENT tip is REFUSED BY NAME (a trunk is never
-            # force-moved). Read-only in dry mode and skipped there, so
-            # --dry-run output is byte-identical.
+            if ostate == "present":
+                cur = _rs_local_commit(repo, town_name) if not dry else ""
+                if cur and cur == _rs_local_commit(repo, tip):
+                    print(f"    [SKIP] {town_name} already at tip and on "
+                          f"origin (resumed run)")
+                else:
+                    print(f"    [NO-OP] {town_name} already on origin "
+                          f"(no create)")
+                continue
+            # hypothesis:l4-apply-runs-the-v3-tail (claim c): the trunk-pair
+            # create is RESUMABLE. origin is ABSENT here, so a local trunk AT
+            # the planned tip is a dead pass's LOCAL-ONLY leftover -- re-push
+            # it (mur-50 residue (c)); one at a DIFFERENT tip is REFUSED BY
+            # NAME (a trunk is never force-moved).
+            # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+            # town-tip (round 2): this LOCAL-tip classification is computed
+            # for BOTH arms -- only the OPERATIONS below are gated on `dry`.
+            # Pre-fix the `not dry` gate made the plan promise a create that
+            # apply refuses, the two arms disagreeing in the other direction.
             resume_state = ""
-            if not dry and has_origin and _post_rename_has_branch(
-                    repo, town_name):
+            if has_origin and _post_rename_has_branch(repo, town_name):
                 cur = _rs_local_commit(repo, town_name)
-                want = _rs_local_commit(repo, tip)
-                if cur and cur == want:
+                if cur and cur == _rs_local_commit(repo, tip):
                     resume_state = "skip"
                 else:
                     resume_state = "wrong"
             if resume_state == "skip":
-                # hypothesis:l4-trunk-create-resume-ls-remote-gates-push-if-
-                # remote-absent: a local trunk AT the planned tip is NOT by
-                # itself a finished job. A first pass that died between
-                # `git branch <town>` and `git push -u origin <town>` leaves
-                # the trunk LOCAL-ONLY, and the old unconditional skip then
-                # `continue`d past the push, stranding it until an operator
-                # pushed it (mur-50 residue (c), REAL). So GATE the skip on
-                # origin, reusing `_post_rename_remote_ref_state` exactly the
-                # way the delete-old resume leg does: 'present' = finished
-                # (skip); 'absent' = resume the push the dead pass never
-                # reached; 'failed' = rc-honest refusal (a failed probe is
-                # UNKNOWN and must never read as absent OR present).
-                rstate = _post_rename_remote_ref_state(
-                    repo, f"refs/heads/{town_name}")
-                if rstate == "failed":
-                    # rc-honest refusal COLLECTED, never an abort (mur-52
-                    # residue 2a): a failed probe is UNKNOWN (never 'absent'
-                    # or 'present'), so refuse this trunk BY NAME and
-                    # CONTINUE to the next planned pair -- exactly like the
-                    # wrong-tip branch below and like --delete-old. One
-                    # summary + non-zero exit at the very end of this
-                    # function, after the post section ran.
-                    print(f"ERR: ls-remote origin {town_name} failed; cannot "
-                          f"confirm it is already pushed — NOT skipped",
-                          file=sys.stderr)
-                    refused.append(town_name)
-                    continue
-                if rstate == "present":
-                    print(f"    [SKIP] {town_name} already at tip and on "
-                          f"origin (resumed run)")
-                    continue
-                # absent: the trunk is LOCAL-ONLY — this is the push the dead
-                # first pass never got to. rc-gated, exactly like the create
-                # leg's push.
-                print(f"    [APPLY] branch push (v3, resume): git push -u "
-                      f"origin {town_name}")
-                pr = subprocess.run(["git", "push", "-u", "origin",
-                                     town_name], cwd=repo, capture_output=True,
-                                    text=True)
-                if pr.returncode != 0:
-                    # mur-52 residue 2a: a failed resume-push is COLLECTED
-                    # and the run CONTINUES, never an abort that skips the
-                    # post section. Reuse the in-scope `refused` list.
-                    print(f"ERR: git push -u origin {town_name} failed: "
-                          f"{pr.stderr.strip()}", file=sys.stderr)
-                    refused.append(town_name)
-                    continue
+                # rc-gated like the create leg's push; a failed resume-push
+                # is COLLECTED, never an abort (mur-52 residue 2a). Under
+                # --dry-run NOTHING runs: the plan prints the same line with
+                # [DRY ] so it still says what apply would do.
+                print(f"    [{'DRY ' if dry else 'APPLY'}] branch push "
+                      f"(v3, resume): git push -u origin {town_name}")
+                if not dry:
+                    pr = subprocess.run(["git", "push", "-u", "origin",
+                                         town_name], cwd=repo,
+                                        capture_output=True, text=True)
+                    if pr.returncode != 0:
+                        print(f"ERR: git push -u origin {town_name} failed: "
+                              f"{pr.stderr.strip()}", file=sys.stderr)
+                        refused.append(town_name)
+                        continue
                 continue
             if resume_state == "wrong":
                 # refused BY NAME, but NEVER force-moved and NEVER an abort:
-                # collect and continue to the next planned pair.
+                # collect and continue to the next planned pair. Printed in
+                # BOTH arms -- a plan reader sees exactly what apply refuses.
                 print(f"ERR: branch-create {town_name} REFUSED: {town_name} "
                       f"already exists at a DIFFERENT tip than the planned "
                       f"{tip}; a trunk-pair create never force-moves a trunk",
@@ -5033,9 +5102,20 @@ def _rs_v3_run(repo: Path, root: Path, kinds: set[str], dry: bool,
     # town block, so `--apply --kinds main,posts,towns` on a moved tip never
     # reached the post section on ANY retry.
     if refused:
-        print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
-              f"{', '.join(refused)}", file=sys.stderr)
-        return 1
+        # hypothesis:l5-reshuffle-dry-run-and-apply-agree-on-an-existing-
+        # town-tip (round 2): a --dry-run PLAN is not a crash, so it NAMES
+        # every refusal on stdout and exits 0 -- exactly like the broken-
+        # town-set plan (cli.py `_rs_v3_run` above). --apply is rc-honest and
+        # exits 1. Same classification, different consequence: a plan
+        # proposes, an apply answers for it.
+        if dry:
+            print(f"plan: v3 town creates: {len(refused)} trunk(s) refused "
+                  f"(a plan is not a crash; --apply exits 1): "
+                  f"{', '.join(refused)}")
+        else:
+            print(f"ERR: v3 town creates: {len(refused)} trunk(s) refused: "
+                  f"{', '.join(refused)}", file=sys.stderr)
+            return 1
     return 0
 
 
@@ -5774,6 +5854,13 @@ def main() -> int:
     p_stat = sub.add_parser("status")
     p_stat.add_argument("iter_n", type=locations.iteration_id)
     p_stat.set_defaults(func=cmd_status)
+
+    p_wait = sub.add_parser("wait")
+    p_wait.add_argument("iter_n", type=locations.iteration_id)
+    p_wait.add_argument("--agent", action="append", default=[],
+                        help="wait for only this kid (repeatable; default: all kids)")
+    p_wait.add_argument("--max-seconds", type=float, default=_WAIT_MAX_SECONDS)
+    p_wait.set_defaults(func=cmd_wait)
 
     p_claim = sub.add_parser("claim")
     p_claim.add_argument("--node-id", required=True)

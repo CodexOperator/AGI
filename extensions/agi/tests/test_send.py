@@ -1095,8 +1095,9 @@ def test_dm_coalesces_no_rendered_box_and_defers_the_body(
                      "sanctuary-director")
     assert not any(c[:2] == ["tmux", "send-keys"] for c in calls), calls
     assert "nudge: coalesced (no rendered box)" in capsys.readouterr().err
-    assert send_mod._read_deferred(project / ".agi", seat) \
-        == {"sender": "sanctuary-director", "body": "the dm body"}, \
+    _rec = send_mod._read_deferred(project / ".agi", seat)
+    assert _rec and _rec.get("sender") == "sanctuary-director" \
+        and _rec.get("body") == "the dm body", \
         "the unrenderable dm must be deferred for an idle retry, not dropped"
 
 
@@ -1715,8 +1716,9 @@ def test_same_sender_stranded_line_does_not_swallow_new_dm(
     assert pane.submitted == ["[nudge: mee]: older body" + " "], pane.submitted
     assert pane.input == ""
     # the NEW body survives -- deferred for a later idle retry, never dropped
-    assert send_mod._read_deferred(root, "adv-alive") \
-        == {"sender": "mee", "body": "newer body"}, \
+    _rec = send_mod._read_deferred(root, "adv-alive")
+    assert _rec and _rec.get("sender") == "mee" \
+        and _rec.get("body") == "newer body", \
         "the new same-sender dm body must be deferred, not lost"
 
 
@@ -2083,8 +2085,9 @@ def test_zero_body_line_is_refused_not_delivered(project: Path,
     calls = _fake_tmux_pane(monkeypatch, [seat], pane, [])
     send_mod.send_dm(project, pathological, seat, "hello", pathological)
     assert _typed(calls) == [], "no zero-body line may be typed"
-    assert send_mod._read_deferred(root, seat) \
-        == {"sender": pathological, "body": "hello"}, \
+    _rec = send_mod._read_deferred(root, seat)
+    assert _rec and _rec.get("sender") == pathological \
+        and _rec.get("body") == "hello", \
         "the unrenderable dm is deferred for a later retry, not dropped"
 
 
@@ -7396,3 +7399,177 @@ def test_l5_pushed_authority_wins_stale_local_is_inert(
     out = capsys.readouterr().out
     assert "VERIFIED seat-a (ed25519)" in out, out
     assert "stale-row" not in out and "main-committed" not in out
+
+
+# ── hypothesis:l4-one-read-returns-everything-addressed-to-a-post-the-inbox- ──
+# ── file-and-every-dm-conversation-with-unread-in-one-call (SM.126) ─────────
+# Clause (1): `read <post>` returns the inbox file's unread AND every dm
+# conversation naming <post>, each line prefixed with the conversation id,
+# marking each channel read in its own store. Clause (3): `peek <post>` shows
+# both channels and flips neither cursor.
+
+
+def test_read_positional_sweeps_dm_channels_once_and_marks_read(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """One `read <post>` consumes the inbox block AND the unread dm block,
+    labelled `[dm <conversation-id>]`; a second read returns neither."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send(project, "sensei-director", "inbox body", "a00-x")
+    send_mod.send_dm(croot, "thought-master", "sensei-director",
+                     "dm body", "thought-master")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "inbox body" in out, out
+    assert "dm body" in out, out
+    assert "[dm sensei-director--thought-master]" in out, out
+    # the dm cursor advanced: the block is marked read in its own channel.
+    state = send_mod._load_state(croot / "dm" /
+                                 "sensei-director--thought-master.md")
+    assert state.get("sensei-director") == 1, state
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    again = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "dm body" not in again, again      # exactly once
+    assert "[dm " not in again, again         # nothing re-swept
+
+
+def test_peek_positional_shows_dm_without_flipping_the_cursor(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """`peek <post>` shows the dm channel (labelled) and advances no cursor:
+    a following read still returns the block."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send_dm(croot, "thought-master", "sensei-director",
+                     "dm body", "thought-master")
+    dm = croot / "dm" / "sensei-director--thought-master.md"
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "peek", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "dm body" in out, out
+    assert "[dm sensei-director--thought-master]" in out, out
+    assert send_mod._load_state(dm).get("sensei-director", 0) == 0
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    assert "dm body" in capsys.readouterr().out
+
+
+def test_read_positional_unchanged_when_no_dm_has_unread(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """FALSIFIER: with no unread dm the positional read prints exactly its
+    inbox output — no `[dm ` line, no cursor write anywhere under dm/."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send(project, "sensei-director", "inbox only", "a00-x")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "sensei-director", "--comms-root",
+                        str(croot), "read", "sensei-director"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "inbox only" in out, out
+    assert "[dm " not in out, out
+    assert not (croot / "dm").is_dir() or not list((croot / "dm").glob("*.json"))
+
+
+def test_dm_sweep_cursor_is_shared_across_a_linked_worktree(
+        tmp_path: Path, capsys, clear_identity, monkeypatch):
+    """ITEM 1's required two-independent-directories falsifier: the dm-sweep
+    cursor is written beside the SHARED dm file (the MAIN checkout's comms
+    root, which is what `comms_root()` resolves to from any worktree), so a
+    FRESH linked worktree's `read <post>` sees the same cursor and never
+    replays the channel. A per-worktree sidecar would fail the second block."""
+    repo = tmp_path / "main"
+    repo.mkdir(parents=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-b", "season/s1"],
+                   check=True, capture_output=True)
+    for cfg in ("user.email", "user.name"):
+        subprocess.run(["git", "-C", str(repo), "config", cfg, "t"],
+                       check=True, capture_output=True)
+    (repo / ".agi" / "nodes" / ".geometry").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (repo / ".agi" / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\ncurrent_season: 5\n---\n")
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True,
+                   capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "commit", "-m", "init"],
+                   check=True, capture_output=True)
+
+    croot = send_mod.comms_root(repo / ".agi")
+    send_mod.send_dm(croot, "seat-a", "seat-b", "dm body", "seat-a")
+    dm = croot / "dm" / "seat-a--seat-b.md"
+    first_wt, second_wt = tmp_path / "wt1", tmp_path / "wt2"
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-a@s2", str(first_wt), "season/s1"],
+                   check=True, capture_output=True)
+    subprocess.run(["git", "-C", str(repo), "worktree", "add", "-b",
+                    "loop/x-b@s2", str(second_wt), "season/s1"],
+                   check=True, capture_output=True)
+
+    _in_project(monkeypatch, first_wt)
+    assert send_mod.main(["--from", "seat-a", "read", "seat-a"]) == 0
+    out1 = capsys.readouterr().out
+    assert "dm body" in out1, out1                 # seeded once, from wt1
+    assert send_mod._load_state(dm).get("seat-a") == 1
+
+    _in_project(monkeypatch, second_wt)
+    assert send_mod.main(["--from", "seat-a", "read", "seat-a"]) == 0
+    out2 = capsys.readouterr().out
+    assert "dm body" not in out2, out2            # wt2 shares wt1's cursor
+    assert "[dm " not in out2, out2
+
+
+def test_box_local_sweeps_dm_channels_for_local_rows_only(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """ITEM (e): `read --box-local` (mail_poll's one service reader) must
+    sweep each LOCAL row's dm channels too, or a dm pushed from another box
+    is never delivered; a foreign-box row is still skipped by name."""
+    import boxes
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    send_mod.send_dm(croot, "post-a", "seat-a", "local dm", "seat-a")
+    send_mod.send_dm(croot, "post-far", "seat-a", "foreign dm", "seat-a")
+    capsys.readouterr()
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows", lambda root: [
+        {"name": "post-a"}, {"name": "post-far", "box": "other"}])
+    monkeypatch.setattr(boxes, "row_is_local",
+                        lambda root, r: r.get("name") == "post-a")
+
+    rc = send_mod.main(["--from", "seat-a", "--comms-root", str(croot),
+                        "read", "--box-local"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "local dm" in out, out
+    assert "[dm post-a--seat-a]" in out, out
+    assert "foreign dm" not in out, out
+    assert "[dm post-far--seat-a]" not in out, out
+
+
+def test_no_pending_signer_is_byte_identical(project, monkeypatch):
+    """l5 claim (3) guard (d): with no `.key.pending`, the signer is
+    byte-identical to the pre-change signer -- the live `.key` signs, and the
+    `sig:` line is exactly what the raw key would produce. The pending
+    preference must never touch a seat that has no deferred swap."""
+    send_mod.keygen(project, "plain-a")
+    live = _seat_key_file(project, "plain-a")
+    obj = json.loads(live.read_text())
+    scheme = send_mod.seatsig.get("ed25519")
+    priv = bytes.fromhex(obj["priv_hex"])
+    pub = scheme.public_from_secret(priv)
+    ts, text = "2026-01-01T00:00:00Z", "hi"
+    got = send_mod._sign_line(project, "plain-a", ts, "recv", text)
+    msg = send_mod._canonical_msg(ts, "plain-a", "recv", text).encode()
+    want = (f"sig: ed25519:{send_mod.seatsig.fingerprint(pub)}:"
+            f"{scheme.sign(priv, msg).hex()}")
+    assert got == want
+    assert not (live.parent / f"{live.name}.pending").exists()

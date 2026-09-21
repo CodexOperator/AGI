@@ -3,9 +3,9 @@ id: doc:l4-formation-1-prime-only
 mint_id: b90eef09d75d4deeb19ec848032a35e8
 type: doc
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 origin: doc-version
 scaffold_hash: f28ce2413e478238
 season: 2
@@ -13,6 +13,7 @@ tags:
   - formation
   - sanctuary
   - owner-verbatim
+thought_session: dissolve-legacy-2026-09-19
 title: "Formation 1 — Prime only (season 1): one seat carried the whole graph"
 town: core
 ---
@@ -68,28 +69,28 @@ owner ──► belam (Prime) ── every role at once: the graph's trajectory 
 
 ## What it bootstraps in the next
 
-Next: **doc:l4-formation-2-texas-two-step** (goal:g17.1).
+Next: **doc:l4-formation-2-texas-two-step** (goal:g7.16).
 
-**Prime/SM reading:** F1 proves the loop itself — one seat can run brief → dispatch → review → merge → rotate end to end — and establishes the Prime's successor chain (`belam-S1-L<n>-<numeral>`) and the handoff/card discipline the later seats copy. Survival mode, the step at F1's edge, proves that a second persistent seat can be trusted with a loop brief without cratering the subscription (L265, L387: "That seemed to work phenomenally last time"). F2 then doubles that one director:
+**Prime/SM reading:** F1 proves the loop itself — one seat can run brief → dispatch → review → merge → rotate end to end — and establishes the Prime's successor chain (`belam-S<season>-L<loop>-<numeral>`, derived from the live ladder cells) and the handoff/card discipline the later seats copy. Survival mode, the step at F1's edge, proves that a second persistent seat can be trusted with a loop brief without cratering the subscription (L265, L387: "That seemed to work phenomenally last time"). F2 then doubles that one director:
 
 > Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work. Act after the workflow finishes. Let the current director take point though and the other one is like a helper to the first. Call it the Texas two step formation, goes under sanctuary goal as subgoal
 
-(goal:g17.1 L26)
+(goal:g7.16 L26)
 
 > They're like the Council, the Keep, and the Masters all rolled into one role since this is survival mode
 
-(goal:g17.1 L28)
+(goal:g7.16 L28)
 
 **Prime/SM reading:** what F1 leaves the two-step is the thing it could not do itself — a director who has already carried a brief alone, so that splitting one brief across point + helper is a small step, not a new trust. What it never bootstraps is the Prime's own relief: even in F3 the owner keeps "Prime resides over core town himself directly during hybrid survival mode." (doc:l4-owner-decisions L773) — the Prime's weight is shed only in F4.
 
 ## Status
 
-Ran: season 1 (the graph's first season, closed at the first rollover). Superseded: survival mode (Prime + one director) by 2026-09-09 (L30), the Texas two-step from 2026-09-09 (goal:g17.1 L26), hybrid survival from 2026-09-12/13. Not a live formation; kept as the baseline every later formation is measured against.
+Ran: season 1 (the graph's first season, closed at the first rollover). Superseded: survival mode (Prime + one director) by 2026-09-09 (L30), the Texas two-step from 2026-09-09 (goal:g7.16 L26), hybrid survival from 2026-09-12/13. Not a live formation; kept as the baseline every later formation is measured against.
 
 ## Sources
 
 - doc:l4-owner-decisions L773-775 (formations order, 2026-09-14 01:06Z); L236 (the Prime's seat, 2026-09-09); L30 (survival mode, 2026-09-09 07:5xZ); L265 (survival mode defined, part 4); L387 (GO in survival mode, part 7)
-- goal:g17.1 L24-28 (the two-step order; "first deliberate step up from survival mode's single director" is Prime prose, L24)
+- goal:g7.16 L24-28 (the two-step order; "first deliberate step up from survival mode's single director" is Prime prose, L24)
 - goal:g15 (parent; the sanctuary goal)
 - vision nodes, season-1 line: `season 1 vision, closed at the first rollover per goal:g12`
 <!-- BODY:END -->

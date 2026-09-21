@@ -113,7 +113,10 @@ def test_stamped_manifest_is_committed_only_and_matches_head_tree(tmp_path):
     assert not any("untracked-only" in p
                    for p in verification._node_manifest(groot))
     doc = json.loads((groot / "sessions" / verification.STATE_FILE).read_text())
-    assert doc["manifest"] == manifest and doc["manifest_sha256"]
+    # kid 1's `_stamped_manifest` records `{path: mint_id}`; the KEYS are the
+    # committed manifest. This assertion still says "committed only".
+    assert isinstance(doc["manifest"], dict)
+    assert sorted(doc["manifest"]) == manifest and doc["manifest_sha256"]
 
 
 def test_parent_probe_inflated_worktree_count_cannot_mask_a_drop(tmp_path):
