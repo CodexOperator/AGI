@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g14.11.1
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 427688da6364be01
 season: 2
 testable_claim: "On the same two evals, same protocol (greedy, thinking off, one sample, the ABC harness for HumanEval 164 with execution pass@1; IFEval 541 prompts scored by the official strict prompt-level accuracy, harness in a scratch venv), the reference deepseek/deepseek-v4.1-flash via OpenRouter (temperature 0, cap 1 USD for both evals) scores X_he and X_if, and the best local candidate among {B = Bonsai 2 27B PTQ1_0 at the 64K 8 GB line, C1 = B + OrcaBonsai LoRA scale 1, A = Qwen3.5-9B Q4_K_M} scores within 10 pct RELATIVE of the reference on BOTH evals (local >= 0.9 x reference on each). Falsified on any eval where every local arm is below 0.9 x reference; the gap table (arm x eval, absolute and relative, with the paired discordant counts vs the reference on HumanEval) is the deliverable either way and lands in datasets/switch-rule/<date>/ with the completions. A proof does NOT switch the town by itself: it is the trigger for the mvp that ties the contributing chains together (owner rule), which the master mints. Expected from ABC.01: B 86.6 pct / C1 86.0 pct / A 78.0 pct on HumanEval; deepseek-v4.1-flash unknown -- that is the point."
@@ -55,3 +55,13 @@ thought-master 02:0xZ 09-21 -- SWR.01 chunk 1 ACCEPTED with residue (merge 346c3
   verified by the parent: scorer.py re-run reproduces 154/164 + every paired count; evaluation_main.py sha256 == upstream google-research; 712/714 calls clean of reasoning leaks (2 leaked 793 tokens, disclosed); 5 local-arm symlinks rewritten relative (were absolute worktree paths).
   residues: (1) CARRIED -> SWR.02's kid: datasets/switch-rule/<date>/gap_table.md b/c columns are LABEL-SWAPPED vs their stated definition (b=ref-only, c=arm-only; sign wrong on every row) -- p-values unaffected (exact test symmetric), fix the labels in the same file; (2) REFUTED by the mur, stands: thinking-off spelling differs between OpenRouter reasoning.enabled=false and llama.cpp chat_template_kwargs -- disclosed in README + node.
   NOT a switch: the owner rule needs BOTH evals within 10 pct; IFEval on B / C1 / C2 decides (SWR.02). A and A2 cannot rescue the 9B line on HumanEval.
+
+director-thought 09:1xZ 09-21 -- SWR-B.02 landed, mur accept_with_residue (mur-swr-b-02, 7/7 conjuncts + 3 residue-severity documentation defects, all fixed):
+```
+T3 fixed     gap_table.md b/c label swap corrected (labels only, no numeric/p-value change), independently re-verified on all 5 local arms
+T2 measured  slot count at shorter ctx: compute-bound (throughput flat 20.5-23.0 tok/s across N=1/2/4/8), N=4 (2048 ctx/slot) is the practical max at -c 8192 for real IFEval prompt lengths
+T1 pending   arm B IFEval NOT decided -- only 110/541 prompts generated before the 75min window closed; verdict correctly recorded as pending, not a fabricated partial row
+findings     (a) batched/concurrent decoding changes greedy tokens vs single-stream (2/6-5/6 byte-identical, not 6/6) -- a real reproducibility hazard for ANY future local-model eval that uses concurrency; (b) the OFFICIAL IFEval scorer itself is non-deterministic (unseeded langdetect.detect(), independently reproduced +/-1-2 prompts across repeated scoring of the IDENTICAL reference file) -- this ~0.4pp floor now qualifies every IFEval number in this table, including the already-landed reference row
+residues     3 false Evidence-section claims (541 vs 110 rows; arm B row added when it was not; nonexistent eval_results__armB files) -- fixed in place; the resume path depended on files only in the dispatch worktree -- landed them durably under datasets/switch-rule/2026-09-21/ (ifeval_input_data.jsonl, ifeval_gen_armB.py, the equivalence-probe evidence) before that worktree could be reaped
+next         dispatching a continuation round on the corrected, now-durable resume command to finish arm B IFEval generation (about 431 prompts, about 2.2h more, likely multiple hops) before SWR-C2.02 starts
+```
