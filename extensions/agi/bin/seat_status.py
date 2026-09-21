@@ -26,6 +26,7 @@ board it has, exactly as `briefing.py` degrades.
 """
 from __future__ import annotations
 
+import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -135,6 +136,36 @@ def _seat_fraction(root: Path, name: str):
         print(f"warn: seat_status could not read meter for {name}: "
               f"{type(exc).__name__}: {exc}", file=sys.stderr)
         return None, "error"
+
+
+def pane_coherent(row: dict, tmux_session: str,
+                  window_path: str | None = None):
+    """Whether a seat row's pane pin matches LIVE tmux (goal:g7.31.2.1).
+
+    Returns `True` when the row's `window` @id is the live window tmux names
+    for that seat; a STRING naming the drift by seat (a pin tmux does not
+    have, or no live window under that name) when it is not; and `None`
+    (fail-open, no crash) when tmux cannot be read at all — no binary and no
+    `window_path` seam, or a seam file that is not there. Reuses rotate's ONE
+    derivation `_successor_window_id`, never a second list-windows parse.
+    """
+    if window_path is None and shutil.which("tmux") is None:
+        return None
+    if window_path is not None and not Path(window_path).exists():
+        return None
+    name = str(row.get("name") or "")
+    pin = str(row.get("window") or "")
+    try:
+        import rotate as _rotate
+        live = _rotate._successor_window_id(name, tmux_session, window_path)
+    except Exception:                                                # noqa: BLE001
+        return None
+    if live is None:
+        return (f"no live tmux window named {name!r} "
+                f"(row pin {pin or '-'})")
+    if pin != live:
+        return f"{name}: row pin {pin or '-'} != live {live}"
+    return True
 
 
 def _ephemeral(root: Path):
@@ -296,6 +327,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="project root (enclosing .agi/ wins); default cwd")
     ap.add_argument("--list", action="store_true",
                     help="print every declared seat with its live state")
+    ap.add_argument("--tmux-session", default=None,
+                    help="tmux session to check pane coherence against")
+    ap.add_argument("--window-path", default=None,
+                    help="window-list seam (a file of `@id name` lines)")
     args = ap.parse_args(argv)
     import locations
     root = Path(args.root)
@@ -306,14 +341,28 @@ def main(argv: list[str] | None = None) -> int:
         if not view.registry_present:
             print("no seat registry yet")
         else:
+            rows = _load_registry_rows(root)[0]
+            sess = args.tmux_session
+            if sess is None:
+                try:
+                    import rotate as _rotate
+                    sess = _rotate.DEFAULT_TMUX_SESSION
+                except Exception:                                    # noqa: BLE001
+                    sess = "agi-rc"
             for s in view.seats:
                 frac = (f"{s['fraction']:.0%}"
                         if s['fraction'] is not None else "")
+                row = next((r for r in rows
+                            if str(r.get("name")) == s['name']), {})
+                coh = pane_coherent(row, sess, args.window_path)
+                coh_cell = ("-" if coh is None else "ok" if coh is True
+                            else f"drift:{coh}")
                 print("\t".join([
                     s['name'], s['role'], s['session_kind'],
                     s.get('town') or 'core',
                     s['rotated_by'] or '-', s['worktree'] or '-',
-                    s['session_ref'] or '-', frac, s['fraction_source']]))
+                    s['session_ref'] or '-', frac, s['fraction_source'],
+                    coh_cell]))
         return 0
     print("\n".join(lines or []))
     return 0
