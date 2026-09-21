@@ -21,7 +21,7 @@ tags:
   - geometry
   - trajectory
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
+thought_session: belam-graph-only-coord-2026-09-21
 title: "G7.34: geometry-town + trajectory spine (umbrella)"
 town: core
 ---
@@ -44,7 +44,7 @@ Umbrella complete when g7.34.1–.5 land: trajectory schema+nodes, town→.geome
 2. Stand-in still sole metrics SoT after .1+.2 complete → target missed.
 
 ## Out of Scope
-- Implementing B1–B5 code this mint (mint-only).
+- Implementing g7.34.1–.5 code this mint (mint-only).
 - Re-nesting live g7.31 / rewriting g7.33.
 - Assigning directors.
 

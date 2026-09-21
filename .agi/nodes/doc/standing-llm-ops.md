@@ -15,11 +15,13 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-geom-traj-spine-2026-09-21
+thought_session: belam-graph-only-coord-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
-# Standing LLM ops (owner 2026-09-20) — graph / diagram / batch / goal contract
+# Standing LLM ops (owner 2026-09-20/21) — graph / diagram / batch / goal contract
+
+**Owner 2026-09-21 GRAPH-ONLY:** directors coordinate via town/geometry **board** (no routine Belam chat). Belam ~once/day: merge · full verify · vision→goals + moral→visions lens · reopen/mint residues. Instant exceptions only (below).
 
 ```
 source of truth ──▶ doc:standing-llm-ops
@@ -97,9 +99,10 @@ Same ethic as diagram-max: **more meaning per token**, not less meaning.
 
 ```
 batch-max
-  ├─ ONE report per COMPLETED pass (never per step)
+  ├─ ONE board row per COMPLETED pass (never per step)
   ├─ fold many deltas into one flow / table
-  ├─ idle → wake ONLY on [merge-up] · [decision] · [red] · [rule] · [rotation]
+  ├─ idle → wake on local parent/MUR delta · [decision] · [red] · [rule] · [rotation]
+  │         (NOT on Belam chat — board is the surface)
   └─ minimize ALL outbound tokens (incl. to owner)
 ```
 
@@ -107,8 +110,8 @@ batch-max
 
 ```
 MUR
-  ├─ accept                ──▶ residues=0 ──▶ [merge-up] allowed
-  ├─ accept_with_residue   ──▶ residues>0 ──▶ NO merge-up
+  ├─ accept                ──▶ residues=0 ──▶ board complete() allowed
+  ├─ accept_with_residue   ──▶ residues>0 ──▶ NO board complete
   │                            directors KEEP looping pi parents
   │                            → MUR → … until residues=0
   └─ reject / format-fail  ──▶ fix → re-MUR (never land)
@@ -116,43 +119,71 @@ MUR
 
 | Signal | Who loops | Belam sees? |
 |---|---|---|
-| residues > 0 | directors + pi parents | **NO** `[merge-up]` |
-| residues = 0 + format ✓ | — | YES numbers-only `[merge-up]` |
+| residues > 0 | directors + pi parents | **NO** (board stays in-progress; no daily merge) |
+| residues = 0 + format ✓ + §3e suite green | — | YES via **board complete row** (Belam daily pull) |
 | blocker / red / decision | — | owner ONLY (not Belam routine) |
 
 **Why:** review exists to burn residues on cheap parents — not to spend Belam/owner tokens on half-done batches.
 
 ```
-WRONG  MUR accept_with_residue ──▶ [merge-up] Belam
-RIGHT  MUR accept_with_residue ──▶ spawn parents ──▶ MUR ──▶ … ──▶ residues=0 ──▶ [merge-up]
+WRONG  MUR accept_with_residue ──▶ message Belam / fake complete
+RIGHT  MUR accept_with_residue ──▶ spawn parents ──▶ MUR ──▶ … ──▶ residues=0 ──▶ board complete
 ```
 
-Comms route (owner 2026-09-20/21 — supersedes prior frequent-update habits):
+### Coordination route (owner 2026-09-21 — GRAPH ONLY; supersedes [merge-up] chatter)
+
+**Surface:** `town:core` + `.agi/nodes/.geometry/towns/core.md` (`doc:geometry-towns-core`) — TEMP until g7.34.3.
 
 ```
-directors ──▶ Belam (Prime): [merge-up] ONLY when residues=0
-              (numbers-only · tip SHA · goal ids · no essays)
-directors ──▶ owner (Shael): blockers ONLY
-              (red · decision-needed · stuck — never routine progress)
-Belam     ──▶ owner: blockers + land decisions; not in-flight chatter
-Belam     ──▶ REJECT [merge-up] that still carries residue
+COORD SURFACE (TEMP)  .geometry/towns/core.md  ←→  town:core
+
+DIRECTOR (no Belam chat):
+  claim next   → write.py version town/geometry board: claim(goal, seat, tip)
+  batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
+                 also version goal Agent Notes; mark status as fits schema
+  claim order  → REOPENED (Prime) first, then open/horizon in bundle order
+  talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
+  talk owner?  → credits empty · mesh down · HOLD until owner replies
+
+BELAM (daily, not mid-batch):
+  pull town:core + geometry board + closed tips
+  merge seat tips w/ residues=0 evidence
+  full verify on core/main (or seat as docs say)
+  vision-lens on goals · moral-lens on visions↔goals
+  residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
+  reopen = Prime priority over plain open
+```
+
+| Exception | Who | Action |
+|---|---|---|
+| exposed keys / credential leak / security | Belam **NOW** | instant dm (only Belam exception) |
+| credits empty · mesh down | owner ONLY | HOLD work until owner replies |
+| routine batch claim/complete | **graph board only** | never Belam chat / never [merge-up] inbox |
+
+```
+directors ──▶ graph board: claim / complete (no Belam routine chat)
+directors ──▶ owner (Shael): credits empty · mesh down · HOLD; other blockers as needed
+Belam     ──▶ daily graph pass (merge · verify · lenses · reopen/mint) — not live merge-up inbox
 directors ──▶ loop independently (pi parents) until residues=0; do not wait on Belam mid-loop
 ```
 
 
-## 3b. Branch roles (owner 2026-09-20 23:2x ET — core-town)
+## 3b. Branch roles (owner 2026-09-21 — graph-board land)
 
 ```
 Belam (Prime)     ──▶ core/main              (town/main)
+                      daily: merge board-complete tips → core/main (+ verify)
 director-belam    ──▶ core/season2/main      (town/season2/main)
+                      push seat/season2 tip; board complete row (Belam merges daily)
 director-helper   ──▶ local worktree ONLY
                       never push a new remote head
-                      completed batches → director-belam (merge-up)
+                      completed batches → board complete (helper still local-only)
 loops             ──▶ merge into core/season2/main then delete loop heads
 no season2/loops/* left live as standing remotes
 ```
 
-Keep working batches as-is otherwise. Diagram-max all alignment comms.
+Prefer: **directors complete on board + push seat branch; Belam daily merges.**
+Keep working batches as-is otherwise. Diagram-max all alignment (on the board).
 
 ---
 
@@ -184,14 +215,14 @@ STANDING (verbatim — doc:standing-llm-ops)
 ```
 golden · diagram-max · batch-max
 land   format ✓ AND residues=0
-comms  Belam←[merge-up] residues=0 only · owner←blockers only
+board  write.py claim/complete on town+geometry — NEVER message Belam for batches
 routes write·read·send·dispatch/workflow·rotate/spawn
 ```
 
 ZERO-RESIDUE (HARD)
 ```
-MUR accept              ──▶ residues=0 ──▶ [merge-up] OK (not from this watch)
-MUR accept_with_residue ──▶ residues>0 ──▶ NO merge-up · KEEP parent loops
+MUR accept              ──▶ residues=0 ──▶ board complete OK (not from this watch)
+MUR accept_with_residue ──▶ residues>0 ──▶ NO board complete · KEEP parent loops
 MUR reject/format-fail  ──▶ fix → re-MUR
 ```
 
@@ -211,13 +242,14 @@ DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
    |----|------|-------|------|
    | <ITER>.* | parent/wf/MUR/residue | up/dead/owed | ≤1 short |
 3) Route
-   Belam  ← nothing from this watch
-   owner  ← blockers ONLY (red/stuck/decision)
-   residues>0 → spawn/continue pi parents (NOT [merge-up])
-   residues=0 + format ✓ → [merge-up] path outside this watch
+   Belam  ← NEVER from this watch (board is the surface)
+   owner  ← blockers ONLY (red/stuck/decision) · credits empty / mesh down → HOLD
+   residues>0 → spawn/continue pi parents (NOT board complete)
+   residues=0 + format ✓ + suite → write.py board complete (outside this watch)
 4) No delta → silence (no "no change")
 5) Never invent. Never new remote head. Never push core/main.
 6) Prefer graph routes (§4) over raw tools.
+7) Watch still wakes for **local parent loops** — write the board, do not message Belam.
 ```
 
 **Seat pins (examples — not a second FORMAT):**
@@ -226,14 +258,15 @@ DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
 director-belam
   SCOPE  DT.* · TREE /data/work/agi/.agi/worktrees/seat-director-belam
   BRANCH core/season2/main (WT pin seat/director-belam@s2)
+  land   board complete + push season2 tip; Belam daily merges
 director-helper
   SCOPE  DH.* · TREE /data/work/agi/.agi/worktrees/seat-director-helper
   BRANCH local-only · never new remote head
-  completed batches → director-belam (not helper) · only residues=0
+  completed batches → board complete (helper stays local-only)
 ```
 
 ### Belam
-No standing chatter watch. Belam receives director `[merge-up]` **only at residues=0**; owner gets blockers. Belam **rejects** residue merge-ups.
+No standing chatter / merge-up inbox. **Daily graph pass** (not mid-batch): pull `town:core` + geometry board + closed tips → merge residues=0 tips → full verify → vision-lens on goals · moral-lens on visions↔goals → reopen or mint residues into town bundle. Instant exception only: exposed keys / security → Belam NOW.
 
 
 
@@ -268,28 +301,28 @@ RIGHT  MUR accept_with_residue ──▶ write.py goal:gN… (residue table + ne
 
 ## 3e. Full verify suite after every completed batch (owner 2026-09-21 — HARD)
 
-**Why own branches exist:** each director burns the **full verify suite on THEIR branch tip** after a completed batch (residues=0 + format ✓), before `[merge-up]`. That is the point of seat/worktree isolation — not to skip the suite.
+**Why own branches exist:** each director burns the **full verify suite on THEIR branch tip** after a completed batch (residues=0 + format ✓), before **board complete**. That is the point of seat/worktree isolation — not to skip the suite.
 
 ```
 batch done (residues=0 · format ✓)
   ├─ on THIS seat branch / worktree only
   ├─ FULL verify suite  (engine suite · F7 lock rules still apply)
-  ├─ green ──▶ [merge-up] numbers-only (tip · suite stamp · mur)
-  └─ red   ──▶ fix in-loop · re-suite · never merge-up red
+  ├─ green ──▶ write.py board: complete(goal, tip, suite, mur) + push seat tip
+  └─ red   ──▶ fix in-loop · re-suite · never board-complete red
 ```
 
 | Do | Don't |
 |---|---|
 | full suite on **your** branch tip after each clean batch | skip suite because "touched tests already ran" |
-| one suite window per completed batch (diagram-max report) | chatter mid-suite |
-| Belam/land path still gates on green suite evidence | merge-up with suite red or unrun |
-| helper: suite on local tip before batch → director-belam | push MAIN to "get suite" |
+| one suite window per completed batch (diagram-max on board) | message Belam mid-suite |
+| Belam daily merge gates on green suite evidence on board | board complete with suite red or unrun |
+| helper: suite on local tip before board complete | push MAIN to "get suite" |
 
 Touched-family pytest at harvest remains for **rounds**. The **batch** gate is the full suite on the branch.
 
 ```
 round harvest ──▶ touched-family tests
-batch close   ──▶ full verify suite on seat branch ──▶ then [merge-up]
+batch close   ──▶ full verify suite on seat branch ──▶ then board complete
 ```
 
 ## 4. Prefer graph engine over raw tools
@@ -351,11 +384,13 @@ goal
   → MUR
   → residues? ──yes──▶ dispatch more parents ──▶ MUR ──┐
        │                                              │
-       no (residues=0 + format ✓)                     │
+       no (residues=0 + format ✓ + §3e suite)         │
        ▼                                              │
   whole-batch MUR accept                              │
        ▼                                              │
-  [merge-up] → director-belam → Belam                 │
+  write.py board complete + push seat tip             │
+       ▼                                              │
+  Belam daily: merge → verify → lenses                │
        ▲                                              │
        └────────────── loop until 0 ←─────────────────┘
 ```
@@ -480,17 +515,18 @@ mint/edit
   → whole-batch MUR
   → residues=0 AND format ✓
   → FULL verify suite on THIS seat branch  (§3e)
-  → suite green ──▶ [merge-up] Belam
-  → residues>0 OR format ✗ OR suite red ──▶ parents/fix loop (NO Belam)
+  → suite green ──▶ write.py board complete(goal, tip, suite, mur) + push seat tip
+  → Belam daily ──▶ merge board-complete tips · verify · lenses · reopen/mint
+  → residues>0 OR format ✗ OR suite red ──▶ parents/fix loop (NO board complete)
 ```
 
 **Land gates (all required):**
 1. Goal body passes §6 format (else format residue → re-MUR).
-2. **Residues = 0** (else keep looping — never `[merge-up]`).
+2. **Residues = 0** (else keep looping — never board complete).
 3. **Full verify suite green on the seat branch** (§3e).
 
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-09-21: directors MAY thin MUR/overall-review file lists when context stacks too thick (ctx-build timeout risk); lean first (≤8–12: tip+falsifier+residue), raise timeout only after; never ship fat context; graph routes only
+Owner 2026-09-21 GRAPH-ONLY: replace directors→Belam [merge-up] routine with town/geometry board claim/complete; Belam daily graph pass (merge·verify·lenses); exceptions = keys→Belam NOW, credits/mesh→owner HOLD; keep §3e suite · zero-residue · diagram-max · routes
 <!-- THOUGHT:END -->

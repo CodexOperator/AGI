@@ -12,7 +12,7 @@ tags:
   - brief
   - director
   - formation
-thought_session: internals-standing-sync-2026-09-21
+thought_session: belam-graph-only-coord-2026-09-21
 title: Unified director brief -- the ROLE every director runs (your card is the STATE), with per-master customizations (sanctuary / thought / prime)
 town: core
 ---
@@ -24,19 +24,23 @@ town: core
 
 **SoT:** `doc:standing-llm-ops`. Re-read on wake. Supersedes conflicting comms/token habits below for every director (incl. Grok Texas two-step).
 
+**Owner 2026-09-21 GRAPH-ONLY:** claim/complete on `town:core` + `.geometry/towns/core.md` board — **never** routine Belam chat. Belam ~once/day merges board-complete tips. Instant: keys/security → Belam NOW; credits/mesh down → owner HOLD.
+
 ```
 golden · diagram-max · batch-max
-land   format ✓ AND residues=0
-comms  Belam/master ← [merge-up] ONLY residues=0 · owner ← blockers only
+land   format ✓ AND residues=0 AND §3e suite green
+board  write.py claim/complete on town+geometry (no Belam [merge-up] chatter)
+owner  ← credits empty · mesh down · HOLD; other blockers as needed
 routes write·read·send·dispatch/workflow·rotate/spawn
 thought-stream · THOUGHT blocks · future-self · internal notes → diagram-max too
 loop   independently on pi parents until residues=0 (accept_with_residue ≠ land)
+reopen = Prime priority over plain open in town bundle
 ```
 
 | Prefer | Avoid |
 |---|---|
-| flows / tables / graphs | essay monologue in thoughts or dms |
-| numbers-only [merge-up] when clean | [merge-up] with open residue |
+| flows / tables / graphs · board rows | essay monologue in thoughts or dms |
+| board complete when clean | message Belam for routine batches |
 
 ---
 

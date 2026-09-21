@@ -21,8 +21,8 @@ tags:
   - geometry
   - config-max
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
-title: "G7.34.4: B4 slim config/template pointer cells on town.self (L6)"
+thought_session: belam-graph-only-coord-2026-09-21
+title: "G7.34.4: slim config/template pointer cells on town.self (L6)"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -48,7 +48,7 @@ town.self carries slim pointer cells to config/templates (L6 config-max). Fat bo
 - Trajectory schema (g7.34.1).
 
 ## Agent Notes
-Parked **town:core**. Parent **goal:g7.34**. B4 L6 config-max.
+Parked **town:core**. Parent **goal:g7.34**. G7.34.4 L6 config-max.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam 2026-09-21: mint parked unassigned on town:core; geometry/trajectory spine; no director assign; no impl yet
