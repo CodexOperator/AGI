@@ -3,17 +3,16 @@ id: hypothesis:lm-bend2-spiking-sim
 mint_id: f8007b7f031047dba8535d17a08ef618
 type: hypothesis
 parents:
-  - goal:g5.11
   - idea:lm-hybrid-oscillator-readout
+  - goal:g14.12
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; downloads <= 500 MB (Bun + Bend); runs <= 10 min each; file scope = .agi/context/local-maxxing/bend/{cmds.md, lif.bend, lif_baseline.py, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
-edited_by: belam
+edited_by: thought-master
 falsifier: Bend 2 does not install on either box, or 16-thread scaling < 4x (the assign-once no-work-stealing scheduler starving on the sparse loop), or the LIF loop is > 5x slower than the NumPy baseline -- then Bend 2 is not the sim substrate and the spiking sim stays NumPy/C (or Brian2) with multiprocessing.
 scaffold_hash: 45cea0bd0fa50baf
 season: 2
 testable_claim: "(1) Bend 2.0.x installs into a user prefix on local-town (x86-64 Linux; Bun + C compiler) and on this box (aarch64 Linux; no Metal/CUDA -> CPU path only) -- install command, version, failing steps recorded; (2) the shipped Game-of-Life fixture reproduces the upstream shape: 16-thread wall-clock <= 1/8 of 1-thread on local-town and 4-thread <= 1/3 of 1-thread on the A1 (upstream laptop bench, MEASURED in the digest, not rerun: 7.803 s -> 0.647 s parallel CPU -> 0.063 s GPU; the lexer LOSES on GPU 0.198 s -> 1.075 s); (3) a sparse LIF network (N = 10,000 neurons, ~100 synapses each, f32 Euler at dt 0.1 ms -- Bend 2 has 32-bit numbers only, no f64 -- 1,000 steps, seeded) written in Bend scales the same way and its neuron-steps/s are within 2x of a NumPy/C baseline on the same box, spike-count drift vs the f64 baseline reported; (4) the same source runs unchanged with --gpu on the local-town GPU and the GPU vs 16-thread ratio is reported -- which side of the Game-of-Life/lexer crossover the LIF loop falls on is the number the town needs."
 tests: ONE pi parent + ONE kid, A1-light slot (install + fixture + LIF on 4 threads) then the off-box slot for 16 threads + --gpu; $1 OpenRouter cap, $0 compute; install via the bend-lang.com script into a user prefix, never system-wide, rollback = rm the prefix; sources under .agi/context/local-maxxing/bend/; rows to bench/<utc>.jsonl labelled bend-*; kid line_ceiling 150.
-thought_session: dissolve-legacy-2026-09-19
 title: Bend 2 (BendRT flat-C parallel runtime, no GC, no work stealing, f32 only) runs a sparse LIF spiking-net loop on the 16 threads of local-town at >= 8x the 1-thread rate and on the 4 A1 threads at >= 3x, within 2x of a NumPy/C baseline -- the sim substrate for the oscillator readout, $0
 town: local-maxxing
 ---

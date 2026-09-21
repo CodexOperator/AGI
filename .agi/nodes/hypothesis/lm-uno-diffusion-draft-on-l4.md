@@ -3,17 +3,16 @@ id: hypothesis:lm-uno-diffusion-draft-on-l4
 mint_id: e4b135df5ee244e2b38dd859d6edab6e
 type: hypothesis
 parents:
-  - goal:g5.5
   - hypothesis:lm-spec-decode-cpu-draft-hybrid
+  - goal:g14.7
 next_edges: []
 ceiling: 1 Camber XS hour (1.50 USD) + 0.03 USD CPU probe, only after the GO; $1 OpenRouter; $0 on our boxes; downloads 0 on our boxes; file scope = .agi/context/local-maxxing/uno/{cmds.md, prompts.jsonl, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
-edited_by: belam
+edited_by: thought-master
 falsifier: < 1.3x at batch 1, or any non-identical greedy output, or the stack does not install on the L4 image within 20 min of the hour -- then diffusion drafting is not the GPU-resident arm at this scale and the spec-decode node keeps its CPU-draft + MTP/EAGLE-3 arms; if the job is billed at more than 2x its wall-clock, no further Camber jobs until the granularity is understood.
 scaffold_hash: 10e342ab749fbb46
 season: 2
 testable_claim: "On one Camber GPU XSMALL (1x L4 24 GB, 8 cores, 32 GB) as a one-shot job (SDK/CLI, never an interactive box): (1) the ifm-ai/uno stack installs (torch cu128, FlashAttention-2 linear sampler; FA3 tree sampler is Hopper-only and is skipped) and s-sahoo/uno-qwen3-8B loads beside its base (16.38 + 0.70 GB bf16 fit 24 GB with an 8k KV); (2) on 20 kid-shaped prompts (the town checklist, greedy, 256 new tokens) the Psi-Spec Linear sampler reaches >= 1.5x tok/s over the base Qwen3-8B at batch 1 and >= 1.3x at batch 8, outputs byte-identical to the base greedy decode (the lossless guarantee, checked per prompt); (3) tokens-per-forward (TPF) and acceptance rate recorded per prompt; (4) total cost = job wall-clock x 1.50 USD/h + the observed billing granularity (the 5-min CPU-XSMALL probe from doc:lm-round0-table runs first, 0.03 USD), the 17 GB download timed on the rental network; every number in bench/<utc>.jsonl labelled uno-*."
 tests: "STEP 2 GO (Prime 13:01Z, VERIFIED belam, on the owner read of Camber usage): ONE pi parent + ONE kid, API slot (the kid drives the Camber CLI from ARM4C; model bytes land on the rental only, never on our boxes). ONE XS GPU job (1x L4 24 GB), HARD CAP 60 min wall INCLUDING spin-up -- submit with a job timeout of <= 50 min so spin-up (~103 s, BILLED) + teardown stay inside the hour; teardown verified (camber job list shows nothing RUNNING) and recorded; billing is per-minute against a MONTHLY allowance (40 CPU-hours; GPU-hours separate), not credits -- report the GPU-minutes charged = billed wall minutes. Inside the hour, in order: (1) install the ifm-ai/uno stack (torch cu128, FA2 linear sampler; skip the Hopper-only FA3 tree sampler), (2) pull uno-qwen3-8B adapter + Qwen3-8B bf16 onto the rental, (3) the 20 committed prompts, greedy, batch 1: base tok/s vs Uno tok/s + byte-identical outputs check, (4) batch 8 the same, (5) rows to bench/<utc>.jsonl with wall + GPU-minutes beside every row, (6) tear down. $1 OpenRouter cap; kid line_ceiling 150; anonymization rule (no host names, IPs, GPU models beyond the rental class, key ids). NO further Camber job of any size without its own per-job line through the Prime. Claim decided by (3): >= 1.5x at batch 1 with identical greedy text = proved; < 1.3x or any mismatch = disproved."
-thought_session: dissolve-legacy-2026-09-19
 title: "BANKED SPEND (one Camber XS hour, needs the Prime GO): uno-qwen3-8B (Qwen3-8B bf16 + 0.7 GB diffusion LoRA, Apache-2.0) on one L4 24 GB reaches >= 1.5x tok/s over base Qwen3-8B at batch 1 and >= 1.3x at batch 8 with byte-identical greedy outputs, for <= 1.50 USD + the download on the rental -- decides whether diffusion drafting is the GPU-resident draft arm of the town"
 town: local-maxxing
 ---

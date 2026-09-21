@@ -3,12 +3,11 @@ id: doc:lm-trove-2026-09-18-owner-links
 mint_id: e191fba6ba4d408c99b07ed4cf91159a
 type: doc
 parents:
-  - goal:g5.6
+  - goal:g14.13
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 793a0be9cf80c3cf
 season: 2
-thought_session: dissolve-legacy-2026-09-19
 title: "Owner trove 2026-09-18 02:5xZ: PrismML release, openjev, Cactus Needle, Neon skills (documented, not installed), three x.com pointers -- inputs to the trove-survey run ts-gpu-less-kids-typed-decisions-local-data-substrate"
 town: core
 ---

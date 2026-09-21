@@ -3,12 +3,11 @@ id: idea:lm-nodes-as-kv-caches
 mint_id: 6d6627067bb94e019ead24b41c21c1ff
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g14.6
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 37d5a66da5dee54a
 season: 2
-thought_session: dissolve-legacy-2026-09-19
 title: "Nodes and messages stored as compressed KV caches: prefill once, load the KV instead of re-reading -- a new messaging layer + node storage paradigm on top of arXiv 2510.03215 + KV-cache compression"
 town: core
 ---

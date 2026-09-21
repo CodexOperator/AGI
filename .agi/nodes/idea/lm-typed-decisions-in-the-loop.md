@@ -3,16 +3,15 @@ id: idea:lm-typed-decisions-in-the-loop
 mint_id: 3dcd4befc3014ccd953308af868342d0
 type: idea
 parents:
-  - goal:g5.9
+  - goal:g14.8
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 0d3c7fefe4b8aa5d
 scale: big
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Replace the loop small classifications (verdict class, evidence-present, defect severity, stops-slot state, inbox tag, brief-touches-real-resource, corpus labels) with TypeSafe typed decisions at ~$0.045/1M in and $0 out — measured first against 200 decisions the by-name reviews already made\""
 town: local-maxxing
 ---
