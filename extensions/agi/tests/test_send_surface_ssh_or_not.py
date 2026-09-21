@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -34,6 +35,29 @@ def _clean_env(monkeypatch):
     monkeypatch.delenv("AGI_BOX", raising=False)
     monkeypatch.delenv("AGI_AGENT_ID", raising=False)
     monkeypatch.setenv("AGI_SEAT", "sender")
+
+
+@pytest.fixture
+def tmux_shim(tmp_path, monkeypatch):
+    """A PATH `tmux` that RECORDS every real invocation and returns nonzero.
+
+    Residue closure: `_list_windows` (send.py:2112) shells out to
+    `tmux list-windows`; the test must assert that seam is NEVER reached,
+    not merely hope the fixture rows keep it unreachable. The shim is
+    scoped by `monkeypatch` (PATH + tmp dir), so it cannot leak.
+    """
+    shim_dir = tmp_path / "shim"
+    shim_dir.mkdir()
+    log = tmp_path / "tmux-invocations.log"
+    tmux = shim_dir / "tmux"
+    tmux.write_text(
+        "#!/bin/sh\n"
+        f'echo "$@" >> "{log}"\n'
+        "exit 1\n")
+    tmux.chmod(0o755)
+    monkeypatch.setenv(
+        "PATH", f"{shim_dir}{os.pathsep}{os.environ.get('PATH', '')}")
+    return log
 
 
 LOCAL = {"name": "local-seat", "pid": 111, "window": "@111"}
@@ -91,9 +115,13 @@ def test_no_is_ssh_in_caller_facing_send_bodies():
 # Only the tmux/capture layer is faked; neither _nudge_window nor
 # _nudge_target is stubbed, so the foreign-box refusal is exercised as built.
 def test_real_path_refuses_foreign_box_and_reaches_local(
-        tmp_path, monkeypatch, capsys):
+        tmp_path, monkeypatch, capsys, tmux_shim):
     root = _graph(tmp_path, [LOCAL, FOREIGN])
     monkeypatch.setattr(send, "_window_id_listed", lambda *a, **k: True)
+    # Residue closure: the by-name fallback (`_window_listed` -> real tmux
+    # `list-windows`) is stubbed too, so no branch shells out. `tmux_shim`
+    # then ASSERTS the property below instead of assuming it.
+    monkeypatch.setattr(send, "_window_listed", lambda *a, **k: True)
     monkeypatch.setattr(send, "_leave_copy_mode", lambda *a, **k: True)
     monkeypatch.setattr(send, "_capture_pane", lambda *a, **k: "")
     monkeypatch.setattr(send, "_registry_status", lambda *a, **k: None)
@@ -121,3 +149,67 @@ def test_real_path_refuses_foreign_box_and_reaches_local(
         blocks = send._conv_blocks(p)
         assert len(blocks) == 1 and blocks[0]["text"] == text
         assert {"ts", "from", "to"} <= set(blocks[0])
+
+    # The no-real-tmux property is ASSERTED, not assumed: `_list_windows`
+    # never ran, so the PATH `tmux` log file does not exist.
+    assert not tmux_shim.exists()
+
+
+# Residue closure: the WINDOWLESS branch is exercised by bytes, not left
+# latent. A row with no `window` cell takes the by-name fallback in
+# `_nudge_target` (`send.py:2217`), the one path that reaches
+# `_window_listed` -> `_list_windows` -> real tmux.
+WINDOWLESS = {"name": "ephemeral-seat", "pid": 333}
+
+
+def test_windowless_row_by_name_fallback_reaches_pane(
+        tmp_path, monkeypatch, tmux_shim):
+    root = _graph(tmp_path, [LOCAL, FOREIGN, WINDOWLESS])
+    monkeypatch.setattr(send, "_locally_loaded_rows",
+                        lambda r: [LOCAL, FOREIGN, WINDOWLESS])
+    looked_up: list[tuple] = []
+
+    def _fake_window_listed(session, name):
+        looked_up.append((session, name))
+        return True
+    monkeypatch.setattr(send, "_window_listed", _fake_window_listed)
+    monkeypatch.setattr(send, "_leave_copy_mode", lambda *a, **k: True)
+    monkeypatch.setattr(send, "_capture_pane", lambda *a, **k: "")
+    monkeypatch.setattr(send, "_registry_status", lambda *a, **k: None)
+    typed: list[tuple] = []
+    monkeypatch.setattr(
+        send, "_send_keys",
+        lambda target, *keys, **kw: typed.append((target, keys)) or True)
+
+    p = send.send_dm(root, "sender", "ephemeral-seat", "hi windowless",
+                     "sender")
+    # the by-name listing WAS consulted (the latent branch is live here), and
+    # a real listed window named after the seat is addressed BY NAME.
+    assert looked_up and looked_up[0][1] == "ephemeral-seat"
+    assert typed and typed[0][0].endswith(":ephemeral-seat")
+    assert isinstance(p, Path) and p.exists()
+    assert send._conv_blocks(p)[0]["text"] == "hi windowless"
+    # ...and still zero real tmux: the listing was stubbed.
+    assert not tmux_shim.exists()
+
+
+def test_windowless_row_unlisted_is_a_named_no_op(
+        tmp_path, monkeypatch, tmux_shim, capsys):
+    root = _graph(tmp_path, [LOCAL, FOREIGN, WINDOWLESS])
+    monkeypatch.setattr(send, "_locally_loaded_rows",
+                        lambda r: [LOCAL, FOREIGN, WINDOWLESS])
+    monkeypatch.setattr(send, "_window_listed", lambda *a, **k: False)
+    monkeypatch.setattr(send, "_leave_copy_mode", lambda *a, **k: True)
+    monkeypatch.setattr(send, "_capture_pane", lambda *a, **k: "")
+    monkeypatch.setattr(send, "_registry_status", lambda *a, **k: None)
+    typed: list[tuple] = []
+    monkeypatch.setattr(
+        send, "_send_keys",
+        lambda target, *keys, **kw: typed.append((target, keys)) or True)
+
+    p = send.send_dm(root, "sender", "ephemeral-seat", "hi nowhere",
+                     "sender")
+    assert typed == []                       # windowless+unlisted: no wake
+    assert isinstance(p, Path) and p.exists()  # the dm still landed
+    assert send._conv_blocks(p)[0]["text"] == "hi nowhere"
+    assert not tmux_shim.exists()            # no real tmux, ever
