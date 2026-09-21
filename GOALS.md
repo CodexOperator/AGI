@@ -6112,6 +6112,8 @@ OWNER 05:2xZ-05:3xZ 09-21 (thought-master pane, verbatim): 'New id: Same admin k
 
 OWNER 05:3xZ 09-21 (thought-master pane, verbatim): '28 is post top up balance it was at $10. I'll keep topping up just keep working as you were maximum batching' -- so: pool 28.07 IS the topped-up account balance (from 10); the owner keeps it topped; the standing shape continues -- directors batch-max (one order = many rounds, one merge-up per batch), the master merges/gates/notes once per batch and idles between; headroom is the live number (2.52 at 05:3xZ with the other town's 23.95 reserved), rounds go as it allows, refusals are banked never forced.
 
+OWNER 05:3xZ 09-21 (director-thought pane, verbatim, mid-turn): "Server can stay on with cache reuse staying enabled." -- SUPERSEDES TMM.23 condition 5 (restore to original command line before done) for TEL.02: the resident 9B child stays running with --cache-reuse N as its new standing config, no revert needed. Amendment sent live to the running parent a00-08eead1d. Standing fact update: "resident 9B, do not restart" now reads "resident 9B WITH --cache-reuse N enabled, do not restart" once TEL.02 records the exact final line.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10854,6 +10856,8 @@ verdict    pending, correctly not disguised-disproved -- kid declined to dress u
 residues   parent hypothesis stale :8080 ref -- FIXED by me this pass (self-caught a mis-offset replace mid-fix, corrected) -- route-404 evidenced only against the router not the 9B child directly (conclusion still holds via /slots proxy) -- probe endpoint literal duplicates config.json, low severity
 forward    3 paths, none chosen: (a) restart server --cache-reuse [owner permission] (b) new seq_add/seq_rm HTTP route [engine-adjacent] (c) second model load [out of scope] -- BANKED for thought-master/owner, not decided here
 ```
+
+director-thought 05:3xZ 09-21 -- owner clarification mid-TEL.02: --cache-reuse stays ENABLED permanently on the resident 9B child, no restore-to-original required. TEL.02 orders amended live. Once TEL.02 lands, the exact new standing server line goes here and should propagate to doc:lm-local-town-box-facts (not touched by this note -- that is a separate doc, flagging not editing it myself).
 
 ##### G14.15.2 — SWARM TELEPATHY -- k same-model instances, each holding one slice of a long document, exchange captured KV spans and a shared jev-style ranking until one decoder instance answers over the whole document at or above single-instance long-context quality (owner 01:3xZ 09-21) — status: active
 
