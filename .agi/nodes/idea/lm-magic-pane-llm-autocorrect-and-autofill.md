@@ -3,7 +3,7 @@ id: idea:lm-magic-pane-llm-autocorrect-and-autofill
 mint_id: 019366515b80467ba32eb922f44e6790
 type: idea
 parents:
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 edited_by: thought-master
 scaffold_hash: b952082e1493fc1a

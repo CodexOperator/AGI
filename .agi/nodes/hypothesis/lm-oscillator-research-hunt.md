@@ -4,7 +4,7 @@ mint_id: 63baed87f7c843ad99fcf04edd395f28
 type: hypothesis
 parents:
   - idea:lm-hybrid-oscillator-readout
-  - goal:g14.12
+  - goal:g5.28
 next_edges: []
 ceiling: "\"$2 OpenRouter for the round own tokens (parent + 3 kids, deepseek-v4-flash class); $0 compute; NO Camber, NO GPU, NO ssh; downloads <= 2 GB on this A1 (bitnet.cpp binary + 2B-4T weights only), removable after the measurement; A1 loadavg < 3 before each kid spawn; never beside the q4-KV bench.\""
 confidence: 0.65

@@ -4,7 +4,7 @@ mint_id: 9b55283281e245f5b140f336295050f1
 type: hypothesis
 parents:
   - idea:lm-typed-decisions-in-the-loop
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 ceiling: $1 OpenRouter + $0.50 TypeSafe; $0 compute; no downloads; no engine file; file scope = .agi/context/local-maxxing/typesafe/{acts_replay.py, acts_replay.jsonl, acts_replay.md, json_cache/} + the kid experiment node + this node (verdict, probes, review lines).
 edited_by: thought-master
