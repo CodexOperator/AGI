@@ -47,6 +47,9 @@ Usage:
   grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
                                     # — the staged copy an author edits (goal:g6.1)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
+  grid.py migrate-trunk [--from NS] [--to NS]   # move every ref onto NS (the
+                                    # configured grid.storage_trunk when --to is
+                                    # absent); dry-run unless --write (goal:g14.14.7)
   grid.py cron install|show|remove  # manage the two-cadence sync cron entries
                                     #   */N: snapshot + push grid refs
                                     #   hourly: push the D1 branch
@@ -1507,6 +1510,91 @@ def cmd_migrate_mint_refs(root: Path, write: bool) -> None:
           f"(no mint_id), {in_collision} id(s) in a ref collision")
 
 
+def _valid_ref(root: Path, ref: str) -> bool:
+    """True iff git would accept `ref` as a refname. Raw subprocess rather
+    than `git()` because an invalid candidate is a refusal to report, not a
+    process to kill."""
+    res = subprocess.run(
+        ["git", "check-ref-format", ref], capture_output=True, text=True,
+    )
+    return res.returncode == 0
+
+
+def cmd_migrate_trunk(root: Path, target: str | None, write: bool,
+                      source: str | None = None) -> None:
+    """Move EVERY ref under a source namespace into a different one
+    (goal:g14.14.7): `refs/grid/node/<x>` -> `<trunk>/node/<x>`, the one
+    ref-shape change `cmd_migrate_refs` and `cmd_migrate_mint_refs` do not
+    cover -- both of those move refs WITHIN `refs/grid/node/`, neither
+    changes the NAMESPACE.
+
+    Ref-driven, not node-file-driven: the source list comes from
+    `git for-each-ref <old>/node/`, so a ref whose node file was deleted or
+    deprecated (or that never had one) still moves. Reuses `_rename_ref`
+    UNCHANGED for the safety-critical mutation -- `update-ref <new> <old_tip>`
+    (same commit object, so the full multi-version chain stays traversable),
+    then a compare-and-swap `update-ref -d <old> <old_tip>` -- so it inherits
+    dry-run-by-default, idempotency and refuse-never-clobber for free.
+
+    `source` is the SOURCE namespace and defaults to `DEFAULT_REF_NS`
+    (`refs/grid`), NOT to the config-resolved `REF_NS`. This is deliberate:
+    `main()` resolves the config into `REF_NS` via `apply_storage_trunk`
+    BEFORE dispatch, so with `grid.storage_trunk` already set the
+    config-resolved value is the TARGET, and using it as the source makes
+    `old_ns == new_ns` and moves nothing (the config-first order the
+    hypothesis names would silently no-op). The verb's job is "move where the
+    refs ARE onto a trunk"; a config-declared trunk is reached with `--to`
+    absent and `--from` left at its default. The migration MUST run before any
+    `commit --all` under the new config, or that commit forks fresh v1 refs
+    under the new namespace while the old history sits unmoved.
+
+    `target` is the DESTINATION namespace; absent, the configured
+    `grid.storage_trunk` (`ref_ns_for`) is used, so the same command is the
+    cut for both `--to` and config-declared trunks. A trailing `/` is
+    stripped from both namespaces (the same one-spelling rule `ref_ns_for`
+    enforces).
+
+    Refuses cleanly (SystemExit, no ref touched) if the destination is empty
+    or not a valid ref namespace. If `new_ns == old_ns` every ref reports
+    unchanged and nothing is moved -- idempotent by construction.
+    """
+    ensure_repo(root)
+    old_ns = (source or DEFAULT_REF_NS).strip().rstrip("/")
+    new_ns = (target or ref_ns_for(root)).strip().rstrip("/")
+    if not new_ns or not _valid_ref(root, f"{new_ns}/node/x"):
+        sys.exit(f"ERR: migrate-trunk: {new_ns!r} is not a valid ref "
+                 f"namespace (use e.g. refs/grid/local-maxxing)")
+
+    prefix = f"{old_ns}/node/"
+    suffixes = [line[len(prefix):] for line in
+                git(root, "for-each-ref", prefix,
+                    "--format=%(refname)").splitlines()
+                if line.startswith(prefix) and len(line) > len(prefix)]
+
+    moved = unchanged = conflicts = 0
+    for suffix in suffixes:
+        old_ref = f"{prefix}{suffix}"
+        new_ref = f"{new_ns}/node/{suffix}"
+        if old_ref == new_ref:
+            unchanged += 1
+            continue
+        status = _rename_ref(root, old_ref, new_ref, write)
+        if status == "moved":
+            print(f"{'MOVE' if write else 'WOULD-MOVE'}  {old_ref} -> {new_ref}")
+            moved += 1
+        elif status == "conflict":
+            conflicts += 1
+            print(f"CONFLICT  {old_ref} -> {new_ref}: destination already "
+                  f"has different history -- not touched", file=sys.stderr)
+        else:  # "unchanged" or "no-history"
+            unchanged += 1
+
+    mode = "write" if write else "dry-run"
+    print(f"grid migrate-trunk ({mode}): {old_ns} -> {new_ns}: {moved} "
+          f"{'moved' if write else 'would-move'}, {unchanged} unchanged, "
+          f"{conflicts} conflict(s)")
+
+
 def cmd_sync(root: Path, remote: str | None) -> None:
     ensure_repo(root)
     remotes = git(root, "remote").splitlines()
@@ -1693,6 +1781,22 @@ def main() -> None:
                              "refs/grid/node/<mint-id>; dry-run unless --write. "
                              "MUST run before commit --all under the new keying.")
     mm.add_argument("--write", action="store_true")
+    mt = sub.add_parser("migrate-trunk",
+                        help="goal:g14.14.7 -- move EVERY ref from a source "
+                             "namespace onto a new trunk (e.g. "
+                             "refs/grid -> refs/grid/local-maxxing), reusing "
+                             "_rename_ref; dry-run unless --write. Config key "
+                             "grid.storage_trunk declares the destination; the "
+                             "source is --from (default refs/grid), never the "
+                             "config-resolved namespace.")
+    mt.add_argument("--from", dest="from_ns", default=DEFAULT_REF_NS,
+                    help="source namespace (default: refs/grid); deliberately "
+                         "NOT the configured trunk -- run this BEFORE any "
+                         "commit --all under the new config")
+    mt.add_argument("--to", default=None,
+                    help="destination namespace (default: the configured "
+                         "grid.storage_trunk); a trailing / is stripped")
+    mt.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
     cr = sub.add_parser("cron")
@@ -1735,6 +1839,8 @@ def main() -> None:
         cmd_migrate_refs(root, args.write)
     elif args.cmd == "migrate-mint-refs":
         cmd_migrate_mint_refs(root, args.write)
+    elif args.cmd == "migrate-trunk":
+        cmd_migrate_trunk(root, args.to, args.write, args.from_ns)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
     elif args.cmd == "cron":
