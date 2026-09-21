@@ -3,15 +3,16 @@ id: hypothesis:a00-8e139c40-f77c9b
 mint_id: 49ae71949eaa4d0da7ef93e6cc7d4fbc
 type: hypothesis
 parents:
-  - goal:g17.14.2
+  - goal:g7.25.2
 next_edges: []
-edited_by: a00-8e139c40
+edited_by: belam
 loop: goal:g17.14.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
 scaffold_hash: 158606546566e673
 season: 2
+thought_session: parent-residue-g14-g17-remap
 title: config-row-only grok-bot harness resolves without dispatch.py
 town: core
 ---
