@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-4dfbd4e4-0b7729
 next_edges: []
 confidence: 0.95
-edited_by: a00-d035f2bb
+edited_by: a00-42a04ea4
 evidence_runs:
   - experiment:a00-4dfbd4e4-dh24-pi-arm-citation
 line_ceiling: 40
@@ -148,7 +148,7 @@ Conjunct coverage is unchanged: 1 = wire (`pi_adapter.build_command` reaches
 `harness_template.render`), 2 = auth (`pi` is dispatch-only, refused as a
 rotate seat), 3 = gate (`evidence_gate.py enforce --dry-run` reports 0
 unevidenced / 0 would demote / 0 refused after the LIST normalization). Zero
-production lines; the only files touched are these two node files.
+production lines; the only files touched are these three node files.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 (1) INSTRUCTION: the parent brief says "Run one negative probe per claim conjunct yourself and record them as `probes:`; a kid that passes its own suite but fails your probe is lean_disproved", and the MUR residue mur-g7-27-2-dh-24-3d25a1ebf says the three parent-run probes "live in HYPOTHESIS frontmatter ... Move/duplicate probes onto the experiment node in schema shape {conjunct,class,cmd,expected,observed,result}".
