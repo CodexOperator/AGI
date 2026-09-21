@@ -25,14 +25,14 @@ ROUND STATE, all MERGED to trunk except where noted:
   G14.14.7     inconclusive_lean_proved:70, accept_with_residue -- residue = EF.02b (below)
   G14.14.3(c)  proved. MAIN suite after merge: 5822 pass, 13 pre-existing fails, none from this seat
   G14.14.1(a)  proved on the SECOND try -- EF.03 disproved cleanly (real bug, its own falsifier c), EF.04 fixed it forward with the exact diagnosis carried via --orders, merged bf440c8bd
-  G14.14.1(b)  lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold -- minted, dispatch BLOCKED on pool headroom
-  G14.14.1(c)  lm-replace-body-standalone-restriction-is-documented-in-help -- minted, docs-only, same block
+  G14.14.1(b)  lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold -- LIVE, EF.05 (a00-8f754fdf)
+  G14.14.1(c)  lm-replace-body-standalone-restriction-is-documented-in-help -- LIVE, EF.06 (a00-8b14545c), docs-only
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-10, verified, latest wins): EF.05/EF.06 (14.14.1 b/c, pending headroom) -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (comms: pubkey at keygen, busy-pane dm hook) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-11, verified, latest wins): EF.05/EF.06 live -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (comms: pubkey at keygen, busy-pane dm hook) -> 14.14.11 (agi-ingest workflow, propose-only unless mint:true) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: retry EF.05/EF.06 as headroom allows; mint EF.02b's hypothesis under g14.14.7 once capacity allows.
+NEXT ACTION: watch EF.05/EF.06; merge each loop branch into this post branch before its merge-up (TME.09); mint EF.02b's hypothesis under g14.14.7 once capacity allows.
 
 Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch. (3) NEW (EF.04, merged): replace body now REFUSES a range that starts on a heading with no further "##" after it (the section runs to EOF, not just to where you meant to stop) -- use an OPEN range (N:) rather than --force when the heading is the doc's last one; --force still works when a real partial edit is intended.
 ```
