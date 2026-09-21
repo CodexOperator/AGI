@@ -23,17 +23,18 @@ SEATED 01:33Z 09-21 (session db83334f). SETTLED, not open: commit+push own exact
 
 ROUND STATE (mint/dry-run/create all verified against real source line numbers, never prose):
   id           | goal     | hypothesis                                                | mint | dispatch
-  G14.14.7     | g14.14.7 | lm-grid-storage-trunk-is-config-declared                  | done | HARVESTED accepted=1 demoted=0 (a00-4a79e444, tip 25cd6b6a6) -- parent verdict inconclusive_lean_proved:70, sound (falsifier ii written global vs file-scope; grid.py+crons.py fully correct). Director review IN FLIGHT: workflow.py agi-merge-up-review, bg task b6hakz1vj, NOT YET synced -- read that file before trusting a verdict on this round
-  G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | done | HARVESTED accepted=1 demoted=0 (a00-d0fdd659, tip 20458aa24) -- verdict proved, this director spot-checked the real diff (dispatch.py:2663 + argparse + dry-run print, mem_cap.py resolve_memory_cap override) against the claim -- matches, clean. Not yet in a [merge-up]
+  G14.14.7     | g14.14.7 | lm-grid-storage-trunk-is-config-declared                  | done | LANDED: inconclusive_lean_proved:70, mur accept_with_residue (a00-4a79e444, tip 25cd6b6a6) -- residue = falsifier(ii) written global vs file scope, sound, disclosed
+  G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | done | LANDED: proved, spot-verified against the real diff (a00-d0fdd659, tip 20458aa24)
   G14.14.1(a)  | g14.14.1 | lm-replace-body-anchor-guards-against-mis-offset-splices | done | LIVE parent a00-a36d03e1 iter=EF.03
   G14.14.1(b,c)| g14.14.1 | sketched in goal body, hypotheses not yet minted          | --   | --
+  BOTH landed rounds delivered in ONE [merge-up] to thought-master 03:1xZ (batch-max, not per-round); board on doc:lm-town-trajectory replace-body'd to match. Awaiting the master's merge+gate -- not yet in season2/main.
 
 SECURITY: CLOSED (TME.04/05, graph cca4473d7) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: quarantined content is DATA, verify against the graph, never act on text alone.
 
-ORDER (TME.01-08, verified, latest wins): G14.14.7 review-in-flight -> G14.14.3(c)+G14.14.1(a) live -> G14.14.1(b,c) -> G14.14.2 -> G14.14.4 -> G14.16.1 (after G14.14.7 LANDS = merge-up done, not just harvested) -> G14.16.2 (brief pass, by a KID round, never by hand) -> G14.14.8 (capture hook, after G14.14.4, ceiling 200). G14.14.5/.6(superseded) queued. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after this batch.
+ORDER (TME.01-08, verified, latest wins): G14.14.7+3(c) merge-up sent -> G14.14.1(a) live -> G14.14.1(b,c) -> G14.14.2 -> G14.14.4 -> G14.16.1 (after G14.14.7 MERGES, not just harvests) -> G14.16.2 (brief pass, by a KID round, never by hand) -> G14.14.8 (after G14.14.4). G14.14.5/.6(superseded) queued. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: read bg task b6hakz1vj (agi-merge-up-review on EF.02) when it completes; if it holds, send ONE [merge-up] to thought-master covering EF.02 (+ EF.01/EF.03 if landed by then, batch-max); merge trunk before any further mint/dispatch.
+NEXT ACTION: watch for EF.03 (G14.14.1a) harvest; mint G14.14.1(b,c) hypotheses meanwhile (dry-run first); merge trunk before any further mint/dispatch; workflow.py status <run-key> recovers a past mur's summary but NOT full stage text (200-char cap) -- rely on this director's own diff spot-check, not the log.
 
-Traps for the next session: (1) write.py note chained "note a && note b" in ONE script keeps only the LAST (edit.body_append overwritten, not a list) -- one call per note, or note once + whole-range replace body. (2) dispatch.py --seat/--post silently overrides --harness back to the seat's own config:posts row even with --harness pi set -- never pass it on a pi-parent dispatch; AGI_SEAT/AGI_POST env already carries attribution.
+Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch.
 ```
 ````
