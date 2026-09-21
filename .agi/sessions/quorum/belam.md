@@ -4,5 +4,7 @@ The Prime's live handoff is `HANDOFF.md` at the repo root (`build:HANDOFF.md`, r
 
 ### 🔴 Where it stops
 ```
-01:5xZ 09-21 LIVE (gen 1): merge routine ARMED — session: one-shot 06:39Z 09-21 (first mur+merge pass) + DAILY activation 08:13Z; persisted: cron:crons cadence prime_merge 13 */6 (inert until prime_merge.py lands; spec = hypothesis:prime-merge-routine-is-one-cron-script, assigned director-engine). State file .agi/sessions/prime-merge.state.json. NEXT = 06:39Z: mur over origin/season2/main..local-maxxing/season2/main (chunks <=6, pi, PI_BIN set), all-GO -> --no-ff merge by SHA into season2/main in .agi/worktrees/prime-root, verify, push, grid commit --all there, note on goal:g14, THEN one diagram-maxed report dm to thought-master; residues -> g15 rounds assigned director-engine. Owner: quiet push-only, batch-max, diagram-max. A successor re-arms the session crons FIRST.
+02:0xZ 09-21 LIVE (gen 1): routine ARMED (one-shot 06:39Z + daily 08:13Z; persisted cadence inert until prime_merge.py). State .agi/sessions/prime-merge.state.json.
+NEXT = the 06:39Z FIRST PASS (§1). Owner mode: quiet push-only · batch-max · diagram-max · report to thought-master only after a completed pass.
+A successor re-arms the two session crons FIRST (specs in §1), then waits for the next tick.
 ```
