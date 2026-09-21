@@ -19,6 +19,8 @@ sys.path.insert(0, str(BIN))
 
 import adapters  # noqa: E402
 
+from adapters import tmux_hold  # noqa: E402
+
 grok = adapters.load("grok_bot")
 
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
@@ -158,6 +160,74 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+
+
+# ------------------------------------------------- restart -> tmux_hold seam
+# residue 5 (`goal:g7.31.1.2`): the `RESTART_HARNESS` above carries no tmux
+# cell, so `grok_bot_adapter.restart`'s tmux branch was unguarded in-repo.
+# This harness enables it and a fake tmux is installed via the SAME global
+# `subprocess.run` the conftest guard patches (our body patch wins).
+TMUX_HARNESS = dict(RESTART_HARNESS, tmux=True, tmux_session="agi-rc")
+SEAT = tmux_hold.pane_name("a00-test")
+
+
+class _FakeTmuxHold:
+    """A session holding ONE held pane; `respawn-pane` swaps its pid in place."""
+
+    def __init__(self):
+        self.calls: list[list[str]] = []
+        self.pid = 7000
+
+    def run(self, cmd, *a, **k):
+        import subprocess as _sp
+        self.calls.append(list(cmd))
+        rc, out = 0, ""
+        if cmd[1] == "list-panes":
+            out = f"{SEAT} %42 {self.pid}\n"
+        elif cmd[1] == "respawn-pane":
+            self.pid += 1
+        return _sp.CompletedProcess(cmd, rc, out, "")
+
+
+def test_restart_reaches_tmux_hold_and_stamps_the_record(monkeypatch, tmp_path):
+    """A tmux-enabled harness routes `restart` through `tmux_hold.reattach`:
+    the held pane is respawned by its immutable `%pane_id` (never a second
+    `new-window`), and the pane identity is stamped on the record and the
+    tombstone `agent.json` (`goal:g7.31.1.2`)."""
+    import json as _json
+    import subprocess as _sp
+
+    fake = _FakeTmuxHold()
+    monkeypatch.setattr(_sp, "run", fake.run)
+
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=TMUX_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == 7001  # the respawned pane's pid, not a Popen pid
+    verbs = [c[1] for c in fake.calls]
+    assert "respawn-pane" in verbs
+    assert "new-window" not in verbs and "new-session" not in verbs
+    assert any(c[1] == "respawn-pane" and c[c.index("-t") + 1] == "%42"
+               for c in fake.calls)  # immutable pane_id
+    assert rec["tmux"] == {"created": False, "pane_id": "%42"}
+    assert rec["pid"] == 7001 and rec["status"] == "restarted"
+    written = _json.loads((sess / "agent.json").read_text())
+    assert written["tmux"] == {"created": False, "pane_id": "%42"}
+
+
+def test_tmux_harness_resolves_the_box_session_from_config(live_cfg_raw):
+    """The session a held seat is born into is the box cell -- ONE source of
+    truth (`goal:g7.31.1.2`, config_max), carried into the resolved harness
+    so `harness_spec` records it for restart. A harness-local literal would
+    fail this."""
+    _, row = adapters.resolve(live_cfg_raw, "grok-bot")
+    assert row["tmux_session"] == live_cfg_raw["box"]["tmux_session"]
+    assert row["tmux_session"] != "agi-hold"  # the retired literal
+    assert tmux_hold.enabled(row) is True
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the

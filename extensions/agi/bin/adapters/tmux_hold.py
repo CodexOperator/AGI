@@ -9,8 +9,7 @@ from __future__ import annotations
 import hashlib
 import shlex
 import subprocess
-
-DEFAULT_SESSION = "agi-hold"
+from pathlib import Path
 
 
 def enabled(harness: dict) -> bool:
@@ -22,8 +21,32 @@ def pane_name(agent_id: str) -> str:
     return "seat-" + hashlib.sha1(str(agent_id).encode()).hexdigest()[:12]
 
 
+def _box_session() -> str:
+    """The box cell `box.tmux_session` -- the ONE source of the session name.
+
+    `adapters.resolve` normally carries it into `harness["tmux_session"]` and
+    dispatch records it in `harness_spec`; this reads the live config so a
+    restart of an older record still lands in the box's own session instead of
+    a second hardcoded literal (`goal:g7.31.1.2`).
+    """
+    try:
+        import locations
+        root = locations.find_project_root(Path(__file__).resolve().parent)
+        if root is not None:
+            cfg = locations.load_config(root) or {}
+            return str((cfg.get("box") or {}).get("tmux_session") or "").strip()
+    except Exception:  # noqa: BLE001 -- no config: no box session to name
+        pass
+    return ""
+
+
 def _session(harness: dict) -> str:
-    return str(harness.get("tmux_session") or DEFAULT_SESSION)
+    sess = str(harness.get("tmux_session") or "").strip() or _box_session()
+    if not sess:
+        raise RuntimeError(
+            "tmux_hold: no session name -- harness carries no `tmux_session` "
+            "and the box cell is unreadable (`goal:g7.31.1.2`)")
+    return sess
 
 
 def panes(harness: dict) -> list[tuple[str, str, str]]:

@@ -107,7 +107,14 @@ def test_panes_enumerates_session_wide(fake):
     _session_with_seat_and_foreign_current(fake)
     rows = tmux_hold.panes(HARNESS)
     assert [r[0] for r in rows] == [SEAT, "other"]
-    assert "-s" in fake.calls[0]
+    # The first call is `new-session`, which carries `-s` for the SESSION --
+    # so `assert "-s" in fake.calls[0]` was green even if `list-panes`
+    # dropped its own `-s`. Bind the assert to the panes()/list-panes call
+    # and prove the two calls are distinguishable in the fake.
+    assert fake.calls[0][1] == "new-session" and "-s" in fake.calls[0]
+    list_calls = [c for c in fake.calls if c[1] == "list-panes"]
+    assert list_calls, "panes() issued no list-panes call"
+    assert "-s" in list_calls[0]
 
 
 def test_reattach_addresses_by_pane_id_not_current_window(fake):
