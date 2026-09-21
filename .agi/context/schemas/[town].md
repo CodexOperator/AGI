@@ -13,6 +13,7 @@ fields:
   season_history: {type: list}   # [{season, global_season, opened, closed}]
   written_by: {type: list}       # [prime_director, owner] — never a kid
   location: {type: str}          # mesh host alias (WireGuard/SSH name); e.g. encryption-town, local-town — SEPARATE from town id / branch derivation
+  seeds: {type: list}             # PERSISTENT INFRA this town stands up (posts/crons/workflows/formation instances) — NOT a child-goal registry; parents on children remain nesting SoT for goals
   branches: {type: str, refuse: "DERIVED, never a cell — refused BY NAME at MINT (write.py create gate) and at READ (towns.py loader); see body"}  # branch names fall out of the cells, never a cell
 validation:
   required: [visions, council, season]  # location OPTIONAL until all live towns are backfilled; MUST for live mesh towns once backfilled (core→encryption-town, local-maxxing→local-town; sanctuary/streaming-suite/web-app-suite TBD empty)
@@ -67,6 +68,15 @@ NOT the town slug and NOT a stored branch list. Town id drives `derive_names`;
 live town is backfilled; live MUST: core→encryption-town, local-maxxing→
 local-town. sanctuary / streaming-suite / web-app-suite remain empty (TBD)
 for this commit.
+
+
+## `seeds:` — persistent infra, NOT child-goal registry
+
+`town.seeds` (when present) lists **persistent infrastructure this town stands
+up**: posts, crons, workflows, formation instances, and similar long-lived
+ops artefacts. It is **not** a registry of child goals. Goal nesting SoT
+remains **parents on children** (and derived `seeds:` on goal nodes via
+snapshot). Do not hang goals under a town via `town.seeds`.
 
 ## `visions: auto`
 
