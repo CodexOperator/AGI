@@ -79,6 +79,25 @@ History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
          --no-history to skip one command
 """
 
+#: Env names `grok-bot-cli@0.3.1`'s SOURCE actually reads, measured VERBATIM in
+#: the DT.29 experiment. Commands (scratch `measure-0.3.1/`):
+#:   npm install grok-bot-cli@0.3.1 --no-audit --no-fund
+#:   grep -rn 'AGI_MODEL' node_modules/grok-bot-cli/src      # no matches, exit 1
+#:   grep -rhoE 'process\.env\.[A-Za-z_][A-Za-z0-9_]*' \
+#:       node_modules/grok-bot-cli/src | sort -u
+#: (`process.env.S` seen under the narrower `[A-Z_]+` class is the truncation of
+#: `process.env.SystemRoot` -- named here, not dropped.)
+RECORDED_CLI_SOURCE_ENV_0_3_1 = frozenset({
+    "CURSOR_ACCESS_TOKEN", "CURSOR_API_BASE_URL",
+    "GROK_BOT_ACCESS_TOKEN", "GROK_BOT_AGENTS_DIR",
+    "GROK_BOT_GATEWAY_HEADERS", "GROK_BOT_GATEWAY_TOKEN",
+    "GROK_BOT_GATEWAY_URL", "GROK_BOT_HISTORY", "GROK_BOT_HISTORY_DIR",
+    "SAND_ACCESS_TOKEN", "SAND_AGENTS_DIR", "SAND_BACKEND_URL",
+    "SAND_BOX_NAMESPACE", "SAND_CLIENT_VERSION", "SAND_DATA_ROOT",
+    "SAND_GATEWAY_TOKEN", "SAND_HOST_GATEWAY_TOKEN",
+    "SAND_HOST_GATEWAY_URL", "SAND_HOST_PORT", "SystemRoot",
+})
+
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
 #: for a `grok-bot` harness name.
 HARNESS = {"adapter": "grok_bot",
@@ -231,6 +250,32 @@ def _unbound_tokens(argv: list[str]) -> list[str]:
             if tok.startswith("-") and tok not in documented]
 
 
+def test_agi_model_is_not_read_by_the_0_3_1_cli_source():
+    """DT.29 D2: the CLI's SOURCE, not just its `--help`, re-scopes the stamp.
+
+    `grep -rn AGI_MODEL node_modules/grok-bot-cli/src` exits 1 (no matches) on
+    the published 0.3.1 source, and the env set the CLI reads is exactly
+    `RECORDED_CLI_SOURCE_ENV_0_3_1` (commands in its docstring). So on THIS
+    CLI the adapter's `AGI_MODEL` stamping is **compat/no-delivery**: the
+    configured tier does NOT reach grok-bot through the environment, and
+    model selection stays the app/profile field. The stamp is kept -- a later
+    CLI that adds the name would receive it -- but nothing here claims
+    delivery, and "absent from the recorded help" is NOT called closed.
+
+    The one `model` token in that source is `model: resumed.model`
+    (`codex-bridge.js:489`), a passthrough of a Codex daemon response field,
+    NOT a selector -- named so it is not mistaken for one.
+    """
+    assert "AGI_MODEL" not in RECORDED_CLI_SOURCE_ENV_0_3_1
+    assert not any("MODEL" in name.upper()
+                   for name in RECORDED_CLI_SOURCE_ENV_0_3_1), (
+        "the CLI reads a model-selecting env name; re-measure and re-scope")
+    # The stamp really is carried -- and it really is not in what the CLI
+    # reads. The two facts together are the re-scope, not a closure.
+    env = grok.child_env(harness=HARNESS, base={}, tier="kid")
+    assert env["AGI_MODEL"] == "grok-kid"
+
+
 def test_the_binding_predicate_is_falsifiable():
     """Negative control for the binding (DT.27 R2): the predicate rejects the
     retired stub flags and accepts documented ones, so it can fail."""
@@ -354,6 +399,52 @@ def test_restart_spawns_a_live_process_and_is_killable(monkeypatch, tmp_path):
         _time.sleep(0.25)
         assert grok.is_alive(pid) is True, (
             "restart respawn exited immediately -- a no-op argv was spawned")
+    finally:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+        try:
+            os.waitpid(pid, 0)
+        except (ChildProcessError, OSError):
+            pass
+
+
+def test_liveness_guard_goes_red_on_a_noop_argv(monkeypatch, tmp_path):
+    """DT.29 D1 negative control: the liveness guard CAN read DEAD.
+
+    The committed suite exercised the guard only on an argv that is ALIVE
+    (`test_restart_spawns_a_live_process_and_is_killable`); the red half lived
+    in an uncommitted scratch probe. An argv whose real process exits
+    immediately -- the SHAPE of the measured real respawn, which prints help
+    and exits 0 -- is driven through `restart` and must read DEAD after the
+    0.25 s window. A guard that can only return True cannot pass this test.
+
+    The published 0.3.1 binary is not installed on this box, so the argv is a
+    self-owned immediate-exit program; the SHAPE (exit before the window) is
+    what is measured. Real-binary measurement, from the DT.29 scratch dir,
+    the bare resolved bin with NO subcommand (the exact respawn argv):
+        is_alive t=0: True   is_alive t=0.25: False   exit 0
+    The process is SIGKILLed (harmless if already gone) and `waitpid`-reaped
+    in `finally`, so no child is left behind.
+    """
+    import signal
+    import time as _time
+
+    argv = [sys.executable, "-c", "raise SystemExit(0)"]
+    monkeypatch.setattr(grok, "build_command", lambda **kw: list(argv))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       agent_record={"worktree": str(tmp_path)})
+    assert pid is not None
+    try:
+        _time.sleep(0.25)
+        assert grok.is_alive(pid) is False, (
+            "the liveness guard read an already-exited process as ALIVE -- "
+            "it cannot go red, so its green certifies nothing")
     finally:
         try:
             os.kill(pid, signal.SIGKILL)

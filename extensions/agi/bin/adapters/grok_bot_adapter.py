@@ -70,7 +70,14 @@ def child_env(*, harness: dict, base: dict[str, str],
     tier was silently dropped. Stamp it here from the ROW that owns the tier so
     every spawn path carries the same resolved model. The row's `models` cell
     is authoritative (dispatch has already landed ladder/seat overrides into
-    it), so it WINS over a stale inherited `AGI_MODEL`."""
+    it), so it WINS over a stale inherited `AGI_MODEL`.
+
+    MEASURED, DT.29 -- compat/no-delivery on this CLI: the 0.3.1 SOURCE reads
+    no `AGI_MODEL` (`grep -rn 'AGI_MODEL' node_modules/grok-bot-cli/src` exits
+    1), so the stamp reaches the process env but NOT grok-bot's model choice.
+    Model selection stays the app/profile field; this is kept for a CLI that
+    later reads the name, not a claim of delivery. Test:
+    `test_agi_model_is_not_read_by_the_0_3_1_cli_source`."""
     env = {**base, **{k: str(v) for k, v in (harness.get("env") or {}).items()}}
     model_val = (harness.get("models") or {}).get(tier) if tier else None
     if model_val:
