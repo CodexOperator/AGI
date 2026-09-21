@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-1b9a8e7e-9f618e
 next_edges: []
-edited_by: a00-610eb183
+edited_by: a00-28f031ee
 evidence_runs: experiment:a00-1b9a8e7e-profile-sync
 line_ceiling: 80
 loop: goal:g7.31.5.1@s2
@@ -20,7 +20,7 @@ probes:
   - {"conjunct": 2, "class": "auth", "cmd": "scratch repo: write.py hypothesis:h2 'note hello' on a node with NO profile_ref; profile_sync.py hypothesis:h2 --check", "expected": "rc=0 no-op, no artifact created, 'no profile_ref' line", "observed": "updated: hypothesis:h2 rc=0; no new file under repo; profile_sync printed 'hypothesis:h2: no profile_ref' rc=0", "result": "held"}
   - {"conjunct": 3, "class": "gate", "cmd": "scratch repo: sync then mutate artifact; profile_sync.py hypothesis:h1 --check", "expected": "non-zero, DRIFT line, artifact untouched", "observed": "DRIFT ... rc=1; artifact still 'mutated'", "result": "held"}
   - {"conjunct": 4, "class": "gate", "cmd": "scratch repo: profile_ref '/tmp/evil-escape.md'; profile_ref 'linkdir/escape.md' (symlink out of repo); profile_ref '.agi/nodes/hypothesis/evil.md' via write.py", "expected": "rc=2 refused by name for each; no artifact outside repo, none under .agi/nodes", "observed": "all three REFUSED rc=2; /tmp/evil-escape.md absent; no symlink leak; evil.md absent. FINDING: on the refused write.py path the NODE body was already updated before the refusal (grep smuggled==1) -- the artifact is refused, the graph write lands, rc=2", "result": "held"}
-production_lines: 80
+production_lines: 81
 profile: balanced
 push_further: "Next kid (goal:g7.31.5.1): (a) bind profile_ref to the real Grok Bot profile/settings artefact once goal:g7.30 lands the adapter surfaces; (b) make a refused profile_ref non-partial -- either refuse BEFORE node_writer.update_node or record the node write as landed + a named repair, since today rc=2 while the node body already changed; (c) turn directory-target and missing-node into named refusals instead of uncaught IsADirectoryError/FileNotFoundError; (d) expose a machine-readable drift result for goal:g7.31.5.3 to consume."
 rebrief_answer: proceed-with-80
