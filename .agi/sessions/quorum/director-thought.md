@@ -19,9 +19,8 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~07:2xZ
- landed   TEL.03 proved (mur running, agi-director-thought-tel03, bg poll bpjfwinrm) -- clean census, 0 ceiling issues (production_lines=0, correctly appended to the shared excerpts file): Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) cannot shift; ONLY Bonsai-1.7B (qwen3, NEOX) can; Qwen3.8-27B/0.6B/4B absent from the box. Swarm telepathy (g14.15.2) on the bigger families needs the saved-TEXT-plus-tail-KV fallback -- not yet noted on the goal, do after the mur.
- live     SWR-B.02 a00-3684ab04 (pid 2133963, ~54min, GPU, cap $2) -- IFEval arm B + slot-count + gap_table.md b/c fix, still running
- next     read TEL.03 mur -> note hypothesis+g14.15.2 -> merge-up dm for TEL.03; watch SWR-B.02 land -> dispatch SWR-C2.02 sequentially, one merge-up for the pair
- traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked, append-only, holds full history) alongside send.py read's own tracked view -- a round's cli.py done --notes lands there and may not surface via send.py read until its own next poll; if send.py read comes back empty right after a round should have finished, check ps/manifest directly before assuming truly nothing landed · replace-body anchor guard caught 2 real mis-offsets this session · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter must be digits-only)
+2026-09-21 ~08:1xZ
+ landed   TEL.03 proved, accept_with_residue (mur-tel-03, 11/11 conjuncts) -- clean census: Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) cannot shift; ONLY Bonsai-1.7B (qwen3, NEOX) can; Qwen3.8-27B/0.6B/4B absent from the box. Swarm telepathy (g14.15.2) on the bigger families needs the saved-TEXT-plus-tail-KV fallback, noted there+hypothesis. Fixed one wrong upstream citation (3020->3025, self-verified against real bytes first) in the shared excerpts file + this node's table; left the parent's own probes/THOUGHT untouched as the honest record.
+ next     🔴 send ONE merge-up dm for TEL.03 -- then watch SWR-B.02 (pid 2133963, ~1h19m, GPU, cap $2) land -> dispatch SWR-C2.02 sequentially, one merge-up for the pair
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked, append-only, holds full history) alongside send.py read's tracked view -- if send.py read comes back empty right after a round should have finished, check ps/manifest directly · replace-body anchor guard treats a markdown TABLE as one paragraph too -- widen to the whole table, not one row, when it refuses · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter digits-only)
 ```
