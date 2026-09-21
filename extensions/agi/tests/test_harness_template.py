@@ -167,8 +167,18 @@ def _harness_branch_offenders(source: str) -> list[str]:
     """Harness-id literals decided against a harness READ, whatever the LHS
     shape. Flagged: a string constant compared with `==`/`!=` whose OTHER
     operand reads the harness (`getattr(args, 'harness', None) == 'grok'`),
-    and every string inside a container tested by `in`/`not in` against such
-    a read (`harness in ('grok', 'x')`). Shipped ids stay allowed."""
+    and every KNOWN harness id inside a container tested by `in`/`not in`
+    against such a read (`harness in ('grok', 'x')` reports `grok`, not the
+    harmless neighbouring `x`). Shipped ids stay allowed.
+
+    HEURISTIC, NOT EXHAUSTIVE, on purpose: the container arm is intersected
+    with `_KNOWN_HARNESS_IDS`, so a genuinely NOVEL id sitting in a container
+    (`harness in ('newharness', 'x')`) is invisible to this arm -- only the
+    literal scan could see it, and only if the id is known to it too. A
+    novel id smuggled into a membership test is still gate-blind; extend
+    `_KNOWN_HARNESS_IDS` when a new harness is proposed. The `==`/`!=` arm
+    is NOT narrowed: a bare comparison against a harness read names the id
+    directly, so any string there is a harness decision."""
     tree = ast.parse(source)
     found = set()
     for node in ast.walk(tree):
@@ -186,7 +196,10 @@ def _harness_branch_offenders(source: str) -> list[str]:
             if isinstance(op, (ast.In, ast.NotIn)) and \
                     not isinstance(left, ast.Constant) and \
                     _mentions_harness(left):
-                found.update(_string_constants(right))
+                # NARROW (DH.28): only KNOWN ids are harness decisions; a
+                # harmless neighbouring string in the container is not.
+                found.update(set(_string_constants(right))
+                             & _KNOWN_HARNESS_IDS)
     return sorted(found - _SHIPPED_HARNESS_IDS)
 
 
@@ -292,12 +305,29 @@ def test_gate_flags_getattr_harness_comparison():
 
 def test_gate_flags_harness_membership_container():
     """Parent probe 2 (GATE): `harness in ("grok", "x")` is a membership
-    dispatch; every string in the container is reported, so an unshipped id
-    cannot hide next to a harmless one."""
+    dispatch; the unshipped KNOWN id is reported, and the harmless
+    neighbouring `"x"` is NOT -- only known ids are harness decisions
+    (DH.28 narrow: over-flagging `x` was a false positive)."""
     src = ('def f(harness):\n'
            '    if harness in ("grok", "x"):\n'
            '        return ["grokbin"]\n')
-    assert _harness_branch_offenders(src) == ["grok", "x"]
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_ignores_a_container_of_only_harmless_strings():
+    """Non-vacuity in the other direction for the NARROWED container arm: a
+    membership test whose container holds no known harness id is not a
+    harness dispatch and must return [] -- otherwise the arm is just "flag
+    every `in`". Also pins the documented blind spot: a novel id in a
+    container is invisible."""
+    src = ('def f(harness):\n'
+           '    if harness in ("harmless", "also-harmless"):\n'
+           '        return ["not-a-harness"]\n')
+    assert _harness_branch_offenders(src) == []
+    novel = ('def f(harness):\n'
+             '    if harness in ("newharness", "x"):\n'
+             '        return ["novel"]\n')
+    assert _harness_branch_offenders(novel) == []  # documented blind spot
 
 
 def test_gate_flags_underscored_token_builder():
