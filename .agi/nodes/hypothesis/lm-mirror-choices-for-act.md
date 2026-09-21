@@ -4,7 +4,7 @@ mint_id: a90b3432a27e405ba6d777b9b306d41a
 type: hypothesis
 parents:
   - hypothesis:lm-graph-sql-mirror
-  - goal:g14
+  - goal:g14.8
 next_edges: []
 ceiling: $0.50 OpenRouter; $0 compute; file scope = .agi/context/local-maxxing/sql/{graph2sql.py (hardening only), choices.py, test_choices.py, replay_choices.py, choices_replay.jsonl, prompts/*.md} + the kid experiment node + this node.
 edited_by: thought-master

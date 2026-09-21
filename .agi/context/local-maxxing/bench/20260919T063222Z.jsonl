@@ -1,0 +1,40 @@
+{"probe": "corpus", "n_rows_raw": 510, "n_acts_raw": 170, "n_acts_usable": 169, "n_rows_usable": 507, "resolvable_graph_acts": 40}
+{"probe": "split_shape", "split": "gold", "n_acts": 169, "n_unanimous_acts": 169, "n_contested_acts": 0, "contested_fraction": 0.0}
+{"probe": "seed", "split": "gold", "seed": 20260918, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 85, "n_rows_held": 255, "too_thin": false, "T_fit": 15.1687, "ece_before": 0.3279, "ece_temp_after": 0.2728, "ece_iso_after": 0.1449}
+{"probe": "seed", "split": "gold", "seed": 1, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 85, "n_rows_held": 255, "too_thin": false, "T_fit": 17.3325, "ece_before": 0.3017, "ece_temp_after": 0.2392, "ece_iso_after": 0.0669}
+{"probe": "seed", "split": "gold", "seed": 7, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 85, "n_rows_held": 255, "too_thin": false, "T_fit": 7.6403, "ece_before": 0.353, "ece_temp_after": 0.1189, "ece_iso_after": 0.1492}
+{"probe": "seed", "split": "gold", "seed": 42, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 85, "n_rows_held": 255, "too_thin": false, "T_fit": 13.7905, "ece_before": 0.3269, "ece_temp_after": 0.2027, "ece_iso_after": 0.1022}
+{"probe": "seed", "split": "gold", "seed": 1234, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 85, "n_rows_held": 255, "too_thin": false, "T_fit": 10.9724, "ece_before": 0.3143, "ece_temp_after": 0.256, "ece_iso_after": 0.1696}
+{"probe": "split_shape", "split": "self", "n_acts": 169, "n_unanimous_acts": 163, "n_contested_acts": 6, "contested_fraction": 0.0355}
+{"probe": "seed", "split": "self", "seed": 20260918, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 15.1687, "ece_before": 0.3345, "ece_temp_after": 0.2747, "ece_iso_after": 0.1465}
+{"probe": "seed", "split": "self", "seed": 20260918, "group": "contested", "n_acts_train": 3, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "self", "seed": 1, "group": "unanimous", "n_acts_train": 83, "n_acts_held": 80, "n_rows_held": 240, "too_thin": false, "T_fit": 17.0054, "ece_before": 0.3136, "ece_temp_after": 0.2373, "ece_iso_after": 0.0618}
+{"probe": "seed", "split": "self", "seed": 1, "group": "contested", "n_acts_train": 1, "n_acts_held": 5, "n_rows_held": 15, "too_thin": true}
+{"probe": "seed", "split": "self", "seed": 7, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 7.7872, "ece_before": 0.3667, "ece_temp_after": 0.1249, "ece_iso_after": 0.1552}
+{"probe": "seed", "split": "self", "seed": 7, "group": "contested", "n_acts_train": 3, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "self", "seed": 42, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 13.7905, "ece_before": 0.3383, "ece_temp_after": 0.2019, "ece_iso_after": 0.105}
+{"probe": "seed", "split": "self", "seed": 42, "group": "contested", "n_acts_train": 3, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "self", "seed": 1234, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 11.1834, "ece_before": 0.3234, "ece_temp_after": 0.2664, "ece_iso_after": 0.1839}
+{"probe": "seed", "split": "self", "seed": 1234, "group": "contested", "n_acts_train": 3, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "split_shape", "split": "corr", "n_acts": 169, "n_unanimous_acts": 164, "n_contested_acts": 5, "contested_fraction": 0.0296}
+{"probe": "seed", "split": "corr", "seed": 20260918, "group": "unanimous", "n_acts_train": 82, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 15.1687, "ece_before": 0.3345, "ece_temp_after": 0.2747, "ece_iso_after": 0.1504}
+{"probe": "seed", "split": "corr", "seed": 20260918, "group": "contested", "n_acts_train": 2, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "corr", "seed": 1, "group": "unanimous", "n_acts_train": 84, "n_acts_held": 80, "n_rows_held": 240, "too_thin": false, "T_fit": 17.3325, "ece_before": 0.3136, "ece_temp_after": 0.2386, "ece_iso_after": 0.0667}
+{"probe": "seed", "split": "corr", "seed": 1, "group": "contested", "n_acts_train": 0, "n_acts_held": 5, "n_rows_held": 15, "too_thin": true}
+{"probe": "seed", "split": "corr", "seed": 7, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 83, "n_rows_held": 249, "too_thin": false, "T_fit": 7.7872, "ece_before": 0.3584, "ece_temp_after": 0.1208, "ece_iso_after": 0.1481}
+{"probe": "seed", "split": "corr", "seed": 7, "group": "contested", "n_acts_train": 3, "n_acts_held": 2, "n_rows_held": 6, "too_thin": true}
+{"probe": "seed", "split": "corr", "seed": 42, "group": "unanimous", "n_acts_train": 82, "n_acts_held": 82, "n_rows_held": 246, "too_thin": false, "T_fit": 14.0558, "ece_before": 0.3383, "ece_temp_after": 0.2033, "ece_iso_after": 0.1072}
+{"probe": "seed", "split": "corr", "seed": 42, "group": "contested", "n_acts_train": 2, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "corr", "seed": 1234, "group": "unanimous", "n_acts_train": 81, "n_acts_held": 83, "n_rows_held": 249, "too_thin": false, "T_fit": 11.1834, "ece_before": 0.3157, "ece_temp_after": 0.2607, "ece_iso_after": 0.1817}
+{"probe": "seed", "split": "corr", "seed": 1234, "group": "contested", "n_acts_train": 3, "n_acts_held": 2, "n_rows_held": 6, "too_thin": true}
+{"probe": "split_shape", "split": "graph", "n_acts": 40, "n_unanimous_acts": 33, "n_contested_acts": 7, "contested_fraction": 0.175}
+{"probe": "seed", "split": "graph", "seed": 20260918, "group": "unanimous", "n_acts_train": 17, "n_acts_held": 16, "n_rows_held": 48, "too_thin": false, "T_fit": 6.079, "ece_before": 0.3027, "ece_temp_after": 0.1837, "ece_iso_after": 0.2652}
+{"probe": "seed", "split": "graph", "seed": 20260918, "group": "contested", "n_acts_train": 3, "n_acts_held": 4, "n_rows_held": 12, "too_thin": true}
+{"probe": "seed", "split": "graph", "seed": 1, "group": "unanimous", "n_acts_train": 16, "n_acts_held": 17, "n_rows_held": 51, "too_thin": false, "T_fit": 1.1156, "ece_before": 0.3184, "ece_temp_after": 0.2945, "ece_iso_after": 0.264}
+{"probe": "seed", "split": "graph", "seed": 1, "group": "contested", "n_acts_train": 4, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "graph", "seed": 7, "group": "unanimous", "n_acts_train": 16, "n_acts_held": 17, "n_rows_held": 51, "too_thin": false, "T_fit": 1.2039, "ece_before": 0.2116, "ece_temp_after": 0.1795, "ece_iso_after": 0.2353}
+{"probe": "seed", "split": "graph", "seed": 7, "group": "contested", "n_acts_train": 4, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "graph", "seed": 42, "group": "unanimous", "n_acts_train": 16, "n_acts_held": 17, "n_rows_held": 51, "too_thin": false, "T_fit": 7.937, "ece_before": 0.1229, "ece_temp_after": 0.4135, "ece_iso_after": 0.3571}
+{"probe": "seed", "split": "graph", "seed": 42, "group": "contested", "n_acts_train": 4, "n_acts_held": 3, "n_rows_held": 9, "too_thin": true}
+{"probe": "seed", "split": "graph", "seed": 1234, "group": "unanimous", "n_acts_train": 14, "n_acts_held": 19, "n_rows_held": 57, "too_thin": false, "T_fit": 1.6644, "ece_before": 0.1765, "ece_temp_after": 0.1532, "ece_iso_after": 0.1681}
+{"probe": "seed", "split": "graph", "seed": 1234, "group": "contested", "n_acts_train": 6, "n_acts_held": 1, "n_rows_held": 3, "too_thin": true}

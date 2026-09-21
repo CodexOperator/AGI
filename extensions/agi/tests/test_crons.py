@@ -12,6 +12,7 @@ the real `crontab` binary in write mode — every apply/remove goes through
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -171,6 +172,7 @@ def make_project(tmp_path, name="proj", crons_live=True, cadences=None,
 def test_load_valid_node(tmp_path):
     cad = dict(DEFAULT_CADENCES)
     cad["mail_poll"] = {"every_mins": 5, "enabled": True}
+    cad["nudge_sweep"] = {"every_mins": 2, "enabled": True}
     root = make_project(tmp_path, cadences=cad)
     node = crons.load_crons_node(root)
     assert node["crons_live"] is True
@@ -570,6 +572,30 @@ def test_grid_sync_apply_not_chain_downstream_of_grid(tmp_path):
     crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
     assert f"&& python3 {crons_py} apply" not in grid_sync_line
     assert f"; python3 {crons_py} apply" in grid_sync_line
+
+
+# --------------- goal:g14.14.7 -- the push refspec is config-declared ------ -
+
+
+def test_grid_sync_pushes_the_configured_storage_trunk(tmp_path):
+    """The rendered cron line derives its push refspec from
+    `grid.storage_trunk` through grid.py's ONE resolver -- never a second
+    literal. This is the line that was hardcoded at crons.py:549."""
+    root = make_project(tmp_path)
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/t1/"}}))
+    _, _cfg, repo_root, engine_root, node = crons._resolve(root)
+    line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
+    assert "'refs/grid/t1/*:refs/grid/t1/*'" in line
+    assert "'refs/grid/*:refs/grid/*'" not in line
+
+
+def test_grid_sync_default_push_refspec_is_unchanged(tmp_path):
+    """No `storage_trunk` key -> the cron line is byte-identical to today's."""
+    root = make_project(tmp_path)
+    _, _cfg, repo_root, engine_root, node = crons._resolve(root)
+    line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
+    assert "'refs/grid/*:refs/grid/*'" in line
 
 
 def test_grid_sync_grid_step_still_logs_not_suppressed(tmp_path):
@@ -1380,7 +1406,8 @@ def test_audit_flags_a_foreign_agi_block_and_extra_unit(tmp_path, capsys):
     assert "agi-ghost-99.service" in out
 
 
-def test_audit_clean_fixture_exits_zero(tmp_path, capsys):
+def test_audit_clean_fixture_exits_zero(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
     root = make_project(tmp_path, cadences={
         "grid_sync": {"every_mins": 5, "enabled": True}})
     fixture = tmp_path / "crontab.fixture"
@@ -1441,3 +1468,89 @@ def test_audit_is_silent_on_another_projects_unit(tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert "deadbeef" not in out
+
+
+def test_audit_default_scans_the_user_unit_dir(tmp_path, monkeypatch, capsys):
+    """SM.124 corrective: with no `--unit-dir`, plain `crons.py audit`
+    scans `$HOME/.config/systemd/user` instead of skipping the unit loop, so
+    an undeclared unit that actually runs is named, not reported clean.
+    HOME is monkeypatched at a fixture dir — never the box's real units."""
+    home = tmp_path / "home"
+    hud = home / ".config" / "systemd" / "user"
+    hud.mkdir(parents=True)
+    (hud / "claude-remote-control.service").write_text("[Unit]\n")
+    monkeypatch.setenv("HOME", str(home))
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    found = crons.cmd_audit(root, crontab_file=fixture)
+    assert any("claude-remote-control.service" in f for f in found), found
+    rc = crons.main(["audit", "--root", str(root), "--crontab-file",
+                     str(fixture)])
+    assert rc == 1
+    assert "claude-remote-control.service" in capsys.readouterr().out
+
+
+def test_audit_explicit_unit_dir_never_reads_home(tmp_path, monkeypatch):
+    """`--unit-dir` stays the override/test seam: the explicit fixture dir
+    is what gets scanned and HOME is not consulted, however dirty HOME is."""
+    home = tmp_path / "home"
+    hud = home / ".config" / "systemd" / "user"
+    hud.mkdir(parents=True)
+    (hud / "ghost-in-home.service").write_text("[Unit]\n")
+    monkeypatch.setenv("HOME", str(home))
+    root = make_project(tmp_path, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": True}})
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    ud = tmp_path / "units"
+    ud.mkdir()
+    (ud / "some-tool.service").write_text("[Unit]\n")
+    found = crons.cmd_audit(root, crontab_file=fixture, unit_dir=ud)
+    assert any("some-tool.service" in f for f in found), found
+    assert not any("ghost-in-home" in f for f in found), found
+
+
+# --- the nudge_sweep known job + why_box (l5 undelivered-nudge round) -----
+
+
+def test_nudge_sweep_renders_on_every_box_and_is_not_a_generic_cmd(tmp_path):
+    """`nudge_sweep` is a KNOWN job: it renders the `wake --all-local` sweep
+    (never a hardcoded seat list) and an absent `box` key means EVERY box."""
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True}}
+    root = make_project(tmp_path, cadences=cad)
+    node = crons.load_crons_node(root)
+    assert "nudge_sweep" in node["jobs"]
+    assert "cmd" not in node["jobs"]["nudge_sweep"]
+    for box in ("core-town", "local-town", ""):
+        lines = crons.render_managed_lines(root, root, root, node, box_name=box)
+        assert len(lines) == 1
+        assert lines[0].startswith("*/2 * * * *")
+        assert "wake --all-local" in lines[0]
+        assert "send.py" in lines[0]
+        assert lines[0].endswith(f">> {crons._log_path(root)} 2>&1")
+
+
+def test_audit_flags_a_gated_known_job_without_why_box(tmp_path, monkeypatch):
+    """A `box` list is the exception and must say why in `why_box`; the
+    audit names the job and the missing field."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
+                           "box": "local-town"}}
+    root = make_project(tmp_path, cadences=cad)
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    found = crons.cmd_audit(root, crontab_file=fixture)
+    assert any("nudge_sweep" in f and "why_box" in f for f in found), found
+
+
+def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    cad = {"nudge_sweep": {"every_mins": 2, "enabled": True,
+                           "box": "local-town",
+                           "why_box": "the sweep only reads local rows"}}
+    root = make_project(tmp_path, cadences=cad)
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    assert crons.cmd_audit(root, crontab_file=fixture) == []

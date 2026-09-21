@@ -4,10 +4,10 @@ mint_id: b21fa765e96d4a8d833ea7a4b475af38
 type: hypothesis
 parents:
   - idea:lm-typed-decisions-in-the-loop
-  - goal:g14
+  - goal:g14.8
 next_edges: []
 ceiling: $2 OpenRouter for the rounds own tokens (parent + 3 kids, deepseek-v4-flash class); $0 compute; no GPU, no ssh, no Camber, no model download; kid line_ceiling 120, <= 40 tool calls per kid, <= 45 min wall per kid; nothing touches .env/Doppler/<keeper-dir>; no TypeSafe key used or needed for this round.
-edited_by: director-thought
+edited_by: thought-master
 falsifier: Any digest visits fewer than 12 distinct pages with no stated reason, or contains a claim with no URL, no date, or no MEASURED/ESTIMATE tag -- demote of that kid. The synthesis names fewer than 8 loop sites, or any site in it lacks a falsifier, a dollar-per-1000-decisions figure, or a named engine seam -- demote of that row, and if fewer than 8 rows survive with all three, demote of the round.
 file_scope: ".agi/nodes/hypothesis/lm-jev-docs-hunt.md (TM ordered, director mints; parent edits verdict + probes + review lines only) - .agi/nodes/experiment/<kid-id>.md x3 (kids write) - .agi/context/local-maxxing/troves/2026-09-18-typesafe/{concepts-api.md, recipes-integrations.md, pricing-legal.md, synthesis.md} (hunt_args.json is READ-ONLY input, already committed). Nothing else: no extensions/, skills/, src/, .env, Doppler, <keeper-dir>, config.json, no edit to hunt_args.json, no other node."
 scaffold_hash: 60237f0bba1a2031

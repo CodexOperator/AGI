@@ -3,7 +3,7 @@ id: idea:lm-kda-constant-state-kv-bytes
 mint_id: 80c7345ea2de428cbe0b600f06243e9e
 type: idea
 parents:
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 7c8fabec3f2c0e02

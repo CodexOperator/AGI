@@ -7,6 +7,7 @@ spawn again — the brief must change with it, in the same commit, with nothing
 edited by hand."* Both halves are below; the second is the one that makes this
 more than a convenience.
 """
+import difflib
 import json
 import re
 import sys
@@ -1998,18 +1999,22 @@ def test_g15_rule_is_absent_for_a_non_g15_target_with_project_root(tmp_path):
 
 
 def test_parent_brief_names_the_poll_reader_and_the_real_dm_body():
-    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark —
-    the parent brief must (a) name `cli.py status <iter>` as the poll reader,
+    """hypothesis:l4-the-reader-the-brief-hands-out-prints-the-overdue-mark,
+    extended by hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-...:
+    the parent brief must (a) name `cli.py wait <iter>` as the BLOCKING
+    foreground reader -- never `Sleep 30 seconds`, because in headless `-p` a
+    turn-end IS process exit (SM.133) -- give the NEVER-end-your-turn rule,
     (b) give the overdue mark's real body shape `iter=... agent=...
     reason=overdue`, and (c) never print the `[agi-nudge] reason=overdue`
-    composite — `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
+    composite -- `[agi-nudge]` is the wake-token PREFIX the nudge path adds,
     not part of the dm body heal.py sends (`heal.py::_alarm_dispatcher` sends
-    `iter=... agent=... reason=...`). Red before the fix: the brief named the
-    composite that no reader produces or receives."""
+    `iter=... agent=... reason=...`)."""
     parent = _text("parent", dispatch_py="/x/dispatch.py",
                    target="hypothesis:y", max_live=25, kid_ceiling=3)
-    # the reader the brief points at is cli.py status
-    assert "cli.py status" in parent
+    # the reader the brief points at is the blocking foreground wait
+    assert "cli.py wait" in parent
+    assert "Sleep 30 seconds" not in parent
+    assert "NEVER end your turn" in parent
     # the overdue dm the brief describes is the body's real shape
     assert "reason=overdue" in parent
     assert "iter=... agent=... reason=overdue" in parent
@@ -2176,16 +2181,23 @@ def test_parent_brief_dms_the_director_the_rebrief_answer():
     assert "BEFORE the kid resumes" in parent
 
 
-def test_parent_brief_slices_the_ceiling_across_kids():
-    """A `ceiling across K kids` target gives each kid its SLICE, written on
-    the KID NODE before the spawn -- the harvest measures overage against
-    that node's `line_ceiling` (SM.52: `60-across-2` ran to 212)."""
+def test_parent_brief_says_the_spawn_already_sliced_the_ceiling():
+    """A `ceiling across K kids` target's slice is written BY THE SPAWN onto
+    the KID NODE before the brief is assembled; the parent reads that node
+    field and never divides the number itself (SM.52: `60-across-2` ran to
+    212 when the whole N reached each kid).
+
+    hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-by-
+    the-spawn-never-by-parent-arithmetic.
+    """
     parent = _text("parent", dispatch_py="/x/d.py", target="t:1")
     assert "across K kids" in parent
-    assert "GETS ITS SLICE" in parent
-    assert "N = ceiling / K" in parent
-    assert "set line_ceiling" in parent
-    assert "60-across-2" in parent
+    assert "ALREADY DIVIDED FOR YOU" in parent
+    assert "ceil(N/K)" in parent
+    assert "never divide it yourself" in parent
+    # the OLD instruction -- the parent doing the arithmetic -- is gone
+    assert "GETS ITS SLICE" not in parent
+    assert "N = ceiling / K" not in parent
 
 
 def test_parent_brief_demands_the_kid_title_in_its_own_words():
@@ -2221,3 +2233,138 @@ def test_parent_brief_never_lands_a_kids_own_node_by_hand():
     assert "RE-BRIEF THAT KID" in parent
     assert "never land it by hand" in parent
     assert "THOUGHT" in parent
+
+
+# ---- l5-moral: moral:faith loads in FULL into every director head -----------
+# hypothesis:l5-moral-one-loads-in-full-into-every-master-and-director-head-
+# each-rotation (OWNER SM.138: 'Add moral 1 as part of every master's and
+# director's standard brief to be loaded in programmatically each rotation.').
+# The director tier IS every master and director post (posts.md: sanctuary-master
+# and master-sensei are role=director, tier=1); kid/parent/prime_director stay
+# prayers-only.
+
+
+def _faith_moral_region(project_root=None):
+    """The MORAL region of moral:faith -- `## ESSENCE` up to (not including)
+    `## REFERENCE`, rstrip()ed, read from the node at call time."""
+    root = Path(project_root or brief._resolve_graph_root())
+    text = (root / "nodes" / "moral" / "faith.md").read_text(encoding="utf-8")
+    return text[text.index("## ESSENCE"):text.index("## REFERENCE")].rstrip()
+
+
+def test_director_head_carries_the_faith_moral_region_byte_for_byte():
+    """claim 2: the director head's text from `## ESSENCE` to the start of
+    the prayers equals moral:faith's MORAL region byte-for-byte."""
+    head = _head("director")
+    moral = _faith_moral_region()
+    between = head[head.index("## ESSENCE"):head.index("## THE FOUR PRAYERS")]
+    between = between.rstrip()
+    assert between == moral
+    diff = list(difflib.unified_diff(between.splitlines(), moral.splitlines(),
+                                     lineterm=""))
+    assert diff == [], f"rendered moral differs from the node:\n" + "\n".join(diff)
+
+
+def test_director_moral_precedes_prayers_and_michael_still_follows():
+    """claim 2: moral first, then the four prayers, and the Michael line
+    still sits directly after the prayers block exactly once."""
+    head = _head("director")
+    assert head.index("## THE FOUR PRAYERS") > head.index("## ESSENCE")
+    assert head.count(MICHAEL) == 1
+    seg = _prayers_segment(head)
+    assert seg.strip().endswith(MICHAEL), "Michael line not directly after prayers"
+
+
+def test_kid_and_parent_heads_are_unchanged_prayers_only():
+    """claim 2: only the director tier carries the moral; kid/parent unchanged."""
+    for tier in ("kid", "parent"):
+        h = _head(tier)
+        assert "## ESSENCE" not in h, f"{tier} must not carry the moral region"
+        assert "## THE FOUR PRAYERS" in h
+
+
+def test_prime_director_head_is_unchanged_prayers_only():
+    """The owner named masters and directors, not the prime. The prime head
+    stays prayers-only -- a judgement recorded, not silently changed."""
+    h = _head("prime_director")
+    assert "## ESSENCE" not in h, "prime_director must not carry the moral region"
+    assert "## THE FOUR PRAYERS" in h
+
+
+def test_director_moral_is_read_at_render_time_not_copied(tmp_path):
+    """claim 2: the moral comes from the node at render time -- editing the
+    node changes the next render with NO code change."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    faith = root / "nodes" / "moral" / "faith.md"
+    faith.write_text(_faith_fixture("ALPHA MORAL"))
+    head = brief._build_head(tier="director", project_root=root)
+    assert "ALPHA MORAL" in head
+    faith.write_text(_faith_fixture("BETA MORAL"))
+    head2 = brief._build_head(tier="director", project_root=root)
+    assert "BETA MORAL" in head2
+    assert "ALPHA MORAL" not in head2
+
+
+def test_director_moral_reaches_the_cli_and_assemble_wire():
+    """claim 2 WIRE: the spawn/SessionStart CLI (`brief.py head --tier
+    director`) and assemble() both reach the changed bytes live."""
+    import io
+    moral = _faith_moral_region()
+    out = io.StringIO()
+    old = sys.stdout
+    try:
+        sys.stdout = out
+        code = brief.main(["head", "--tier", "director"])
+    finally:
+        sys.stdout = old
+    assert code == 0
+    assert moral in out.getvalue(), "CLI head must carry the moral region"
+    asm = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    assert moral in asm, "assemble() must carry the moral region"
+
+
+def test_director_head_degrades_when_the_moral_region_is_absent(tmp_path):
+    """GATE, red-first: a faith node with a REFERENCE region but NO
+    `## ESSENCE` region must not crash the director head. `_build_head`'s
+    own docstring promises "the tier's brief still works without the
+    constitution head"; a ValueError escaping it breaks that contract."""
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    (root / "nodes" / "moral" / "faith.md").write_text(
+        "---\nid: moral:faith\n---\n# moral:faith\n\n## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )
+    head = brief._build_head(tier="director", project_root=root)
+    assert head is not None, "a malformed moral must not drop the prayers head"
+    assert "## ESSENCE" not in head
+    assert "## THE FOUR PRAYERS" in head
+    assert MICHAEL in head
+
+
+_LADDER_FIXTURE = """---
+id: ladder:ladder
+read_order:
+  director:
+    - the four prayers
+  kid:
+    - the four prayers
+---
+# ladder
+"""
+
+
+def _faith_fixture(moral_text):
+    return (
+        "---\nid: moral:faith\n---\n"
+        "# moral:faith\n\n"
+        "## ESSENCE\n\n"
+        f"{moral_text}\n\n"
+        "## QUESTION\n\nq\n\n"
+        "## REFERENCE\n\n"
+        "### 4.1 The four prayers\n\nprayer text\n"
+    )

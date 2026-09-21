@@ -598,12 +598,12 @@ Paywall-then-open-source works cleanly with any of these: the engine is the thin
   nodes/                             the graph (27 nodes)
   context/  sessions/                generated / gitignored
   SPEC.md  src/  test/               the game itself
-  agi/                               ← GITIGNORED drop-in clone of CodexOperator/agi
+  agi/                               ← GITIGNORED drop-in clone of CodexOperator/AGI
 ```
 
 `fantasia/.gitignore` carries exactly the right comment:
 ```
-# agi research-loop engine (drop-in clone of CodexOperator/agi — never commit here)
+# agi research-loop engine (drop-in clone of CodexOperator/AGI — never commit here)
 agi/
 ```
 
@@ -856,7 +856,7 @@ Verified: 29,422 node files present (14,579 verdict, 14,559 experiment, 101 hypo
 ### C2. Archive `github.com/CodexOperator/autoresearch-tree` — P1 (gated on bug-sweep clearance)
 **Rationale:** Repo is folded into agi.
 **Action (post-bug-sweep):**
-1. Update `CodexOperator/autoresearch-tree` README with prominent pointer to `CodexOperator/agi`.
+1. Update `CodexOperator/autoresearch-tree` README with prominent pointer to `CodexOperator/AGI`.
 2. `gh repo archive CodexOperator/autoresearch-tree`.
 3. Verify `gh repo view CodexOperator/autoresearch-tree --json isArchived` returns `true`.
 

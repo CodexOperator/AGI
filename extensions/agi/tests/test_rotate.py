@@ -367,6 +367,91 @@ def test_rotate_complete_pending_key_swap(tmp_path, monkeypatch):
     assert json.loads(key_path2.read_text())["priv_hex"] != succ_priv.hex()
 
 
+def test_rotate_hold_key_accepts_pending_successor_and_names_both_files(
+        tmp_path, monkeypatch):
+    """l5 claim (2): rotate's held-key check uses the SAME preference as the
+    signer (send._signing_key_obj) -- a `.key.pending` whose pub_hex equals
+    the committed row's pubkey IS the held key (guard, already built). A
+    pending key naming neither the live key nor the row is REFUSED, and the
+    refusal names the live `.key` path, the `.key.pending` path and the row
+    pubkey."""
+    import send as bin_send
+    scheme = bin_send.seatsig.get("ed25519")
+    key_path, _live_pub = _mk_seat_key(tmp_path, "seat-a")   # live = A
+    row_priv, row_pub = scheme.keygen()                      # row  = B
+    c_priv, c_pub = scheme.keygen()                          # foreign = C
+    pend = bin_send._seats_dir(tmp_path) / "seat-a.key.pending"
+    row = {"pubkey": row_pub.hex()}
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "seat-a",
+                                       "pubkey": row_pub.hex()}])
+    # (a) GUARD: pending pub == committed row pub -> accepted.
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": row_priv.hex(),
+                                "pub_hex": row_pub.hex(), "gen_after": 2}))
+    os.chmod(pend, 0o600)
+    seat, got_row, how = rotate._caller_hold_key(
+        tmp_path, "seat-a", row, "env")
+    assert seat == "seat-a" and got_row is row and how == "env"
+    # (b) pending names neither the live key nor the row -> refused, naming
+    # the live path, the pending path and the row pubkey.
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": c_priv.hex(),
+                                "pub_hex": c_pub.hex(), "gen_after": 3}))
+    seat, got_row, msg = rotate._caller_hold_key(
+        tmp_path, "seat-a", row, "env")
+    assert seat is None and got_row is None, msg
+    assert str(key_path) in msg, msg
+    assert str(pend) in msg, msg
+    assert row_pub.hex() in msg, msg
+
+
+def test_rotate_complete_pending_swap_retires_old_key(tmp_path, monkeypatch):
+    """l5 claim (3): promoting the pending successor preserves the OLD live
+    `.key` bytes at `<seat>.key.retired-<old_fp>` (0600), never destroys them,
+    and never clobbers an existing same-fp retired file."""
+    import send as bin_send
+    scheme = bin_send.seatsig.get("ed25519")
+    # prior same-fp retired file is evidence and must survive.
+    key_path, old_pub = _mk_seat_key(tmp_path, "s15")
+    succ_priv, succ_pub = scheme.keygen()
+    pend = bin_send._seats_dir(tmp_path) / "s15.key.pending"
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(), "gen_after": 4}))
+    os.chmod(pend, 0o600)
+    retired = bin_send._seats_dir(tmp_path) / \
+        f"s15.key.retired-{bin_send.seatsig.fingerprint(old_pub)}"
+    retired.write_text("PRIOR EVIDENCE")
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "s15",
+                                       "pubkey": succ_pub.hex()}])
+    r = rotate._complete_pending_key_swap(tmp_path, "s15")
+    assert r == "key swap completed (deferred from gen 4)"
+    assert not pend.exists()
+    assert json.loads(key_path.read_text())["priv_hex"] == succ_priv.hex()
+    assert retired.read_text() == "PRIOR EVIDENCE"
+    # no prior file: the OLD private bytes land there, 0600.
+    key_path2, old_pub2 = _mk_seat_key(tmp_path, "s16")
+    old_obj2 = json.loads(key_path2.read_text())
+    s2_priv, s2_pub = scheme.keygen()
+    pend2 = bin_send._seats_dir(tmp_path) / "s16.key.pending"
+    pend2.write_text(json.dumps({"scheme": "ed25519",
+                                 "priv_hex": s2_priv.hex(),
+                                 "pub_hex": s2_pub.hex(), "gen_after": 5}))
+    os.chmod(pend2, 0o600)
+    monkeypatch.setattr(bin_send, "_seats_committed_rows",
+                        lambda root: [{"name": "s16",
+                                       "pubkey": s2_pub.hex()}])
+    assert rotate._complete_pending_key_swap(tmp_path, "s16") == \
+        "key swap completed (deferred from gen 5)"
+    ret2 = bin_send._seats_dir(tmp_path) / \
+        f"s16.key.retired-{bin_send.seatsig.fingerprint(old_pub2)}"
+    assert ret2.is_file()
+    assert oct(os.stat(ret2).st_mode & 0o777) == oct(0o600)
+    assert json.loads(ret2.read_text())["priv_hex"] == old_obj2["priv_hex"]
+
+
 def test_finish_pending_swap_on_push_fires_only_on_push_ok(tmp_path, monkeypatch):
     """g15.26 claim (b) gate: the ONE shared helper `_finish_pending_swap_on_push`
     completes a deferred swap exactly on a ``push: OK`` line and is a no-op on a
@@ -2699,21 +2784,31 @@ def test_alarms_once_holds_below_threshold(fake_ladder, tmp_path, capsys):
     assert not list(comms.glob("dm/*.md"))
 
 
-def test_alarms_once_dms_holder_when_due_then_stops(fake_ladder, tmp_path):
-    """At/over threshold: exactly one dm `rotate now` to the holder, nil more."""
+def test_alarms_once_master_rotates_the_due_seat_then_stops(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """At/over threshold: exactly ONE master-path rotate of the due seat
+    under the holder's key, nothing for the seat below the line, and NO dm
+    (SM.135 slice 2, owner ruling 2026-09-19 05:1xZ: the alarms poll rotates
+    a captive director itself; this test asserted the retired dm path)."""
     seats = [{"name": "kid-1", "role": "director", "rotated_by": "advisor"},
              {"name": "kid-2", "role": "director", "rotated_by": "advisor"}]
     _write_seats_sheet(tmp_path, seats)
     _pin_seat_transcript(tmp_path, "kid-1", tokens=40000)  # 0.40 >= 0.25
     _pin_seat_transcript(tmp_path, "kid-2", tokens=4000)   # 0.04 < 0.25
     comms = tmp_path / "comms"
+    spawns = []
+    monkeypatch.setattr(rotate, "_caller_hold_key",
+                        lambda root, seat, row, how: (seat, row or {}, how))
+    monkeypatch.setattr(rotate, "_spawn_master_rotate",
+                        lambda argv, env, cwd: spawns.append((argv, env)))
     args = SimpleNamespace(holder="advisor", once=True, interval=300,
                            comms_root=str(comms))
     rc = rotate.cmd_alarms(args, tmp_path)
     assert rc == 0
-    dms = list(comms.glob("dm/*.md"))
-    assert len(dms) == 1  # only the due seat was dm'd
-    assert "rotate now" in dms[0].read_text(encoding="utf-8")
+    assert len(spawns) == 1, capsys.readouterr().out  # only the due seat
+    assert spawns[0][0][2:] == ["rotate", "--post", "kid-1"]
+    assert spawns[0][1]["AGI_POST"] == "advisor"
+    assert not list(comms.glob("dm/*.md"))            # the dm path is gone
 
 
 def test_rotate_self_dry_run_reuses_plain_name_no_roman(fake_ladder, tmp_path,

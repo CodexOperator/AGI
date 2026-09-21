@@ -3,7 +3,7 @@ id: doc:athena-class-model-a
 mint_id: 94e4d014ec8449b9b5065b327f2bcc92
 type: doc
 parents:
-  - goal:g14
+  - goal:g14.7
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/athena-class-model-a.md

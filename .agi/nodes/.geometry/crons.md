@@ -9,25 +9,38 @@ cadences:
     every_mins: 5
     enabled: true
     mirror_towns: true
-    box: core-town
   branch_push:
     schedule: 7 * * * *
     enabled: true
-    box: [core-town, local-town]
   mail_poll:
     every_mins: 5
     enabled: true
     box: local-town
+    why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
   publish_engine:
     schedule: 37 * * * *
     enabled: false
   engine_push:
     schedule: 47 * * * *
     enabled: false
+  nudge_sweep:
+    every_mins: 2
+    enabled: true
+  prime_merge:
+    schedule: 13 */6 * * *
+    enabled: true
+    box: local-town
+    why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g14); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
+    cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
 crons_live: true
-edited_by: ubuntu
+edited_by: belam
 season: 1
 services:
+  agi-alarms-sanctuary-master:
+    enabled: true
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/rotate.py alarms --holder sanctuary-master --root {root}
+    restart: on-failure
+    working_directory: "{repo_root}"
   agi-reaper:
     enabled: true
     exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30

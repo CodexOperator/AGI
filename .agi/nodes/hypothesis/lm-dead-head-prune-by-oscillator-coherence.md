@@ -4,7 +4,7 @@ mint_id: 9c0d3a846d2d4a7687e464c26766cf22
 type: hypothesis
 parents:
   - idea:lm-dead-head-coupling-scan
-  - goal:g14
+  - goal:g14.6
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; <= 10 GB downloads; file scope = .agi/context/local-maxxing/deadhead/{scan.py, scan.jsonl, prune.md, proxy.jsonl, sync.jsonl} + the kid experiment node + this node; no engine file; no served model touched.
 edited_by: thought-master

@@ -1,0 +1,13 @@
+{
+  "role": "parent",
+  "verdict": "harvest accepted=1 demoted=0 failed=2",
+  "mur": "accept_with_residue",
+  "agent_id": "a00-a2d302eb",
+  "scrub_redactions": {
+    "ip_decimal": 209,
+    "ip_hex": 867,
+    "ip_dotted": 12,
+    "hex40_key": 10,
+    "email": 7
+  }
+}

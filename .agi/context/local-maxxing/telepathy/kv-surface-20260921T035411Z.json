@@ -1,0 +1,85 @@
+{
+  "utc": "2026-09-21T03:54:10.127809Z",
+  "base": "http://127.0.0.1:8080",
+  "model": "Qwen3.5-9B-Q4_K_M",
+  "v1_models": {
+    "status": 200,
+    "body": "{\"data\":[{\"id\":\"Qwen3.5-35B-A3B-Q3_K_M\",\"aliases\":[],\"tags\":[],\"object\":\"model\",\"owned_by\":\"llamacpp\",\"created\":1789962850,\"status\":{\"value\":\"unloaded\",\"args\":[\"/app/llama-server\",\"--host\",\"127.0.0.1\",\"--jinja\",\"--port\",\"0\",\"--alias\",\"Qwen3.5-35B-A3B-Q3_K_M\",\"--fit\",\"on\",\"--model\",\"/models/Qwen3.5-35B-A3B-Q3_K_M.gguf\",\"--parallel\",\"1\"],\"preset\":\"[Qwen3.5-35B-A3B-Q3_K_M]\\njinja = 1\\nfit = on\\nmodel = /models/Qwen3.5-35B-A3B-Q3_K_M.gguf\\nparallel = 1\\n\\n\"},\"architecture\":{\"input_modalities\":[\"text\"],\"output_modalities\":[\"text\"]},\"source\":\"models_dir\",\"can_remove\":false},{\"id\":\"Qwen3.5-9B-Q4_K_M\",\"aliases\":[],\"tags\":[],\"object\":\"model\",\"owned_by\":\"llamacpp\",\"created\":1789962850,\"status\":{\"value\":\"loaded\",\"args\":[\"/app/llama-server\",\"--host\",\"127.0.0.1\",\"--jinja\",\"--port\",\"54437\",\"--alias\",\"Qwen3.5-9B-Q4_K_M\",\"--fit\",\"on\",\"--model\",\"/models/Qwen3.5-9B-Q4_K_M.gguf\",\"--parallel\",\"1\"],\"preset\":\"[Qwen3.5-9B-Q4_K_M]\\njinja = 1\\nfit = on\\nmodel = /models/Qwen3.5-9B-Q4_K_M.gguf\\nparallel = 1\\n\\n\"},\"architecture\":{\"input_modalities\":[\"text\"],\"output_modalities\":[\"text\"]},\"source\":\"models_dir\",\"can_remove\":false,\"meta\":{\"vocab_type\":true,\"n_vocab\":248320,\"n_ctx\":49408,\"n_ctx_train\":262144,\"n_embd\":4096,\"n_params\":8953803264,\"size\":5669554176,\"ftype\":\"Q4_K - Medium\"}},{\"id\":\"bonsai\",\"aliases\":[],\"tags\":[],\"object\":\"model\",\"owned_by\":\"llamacpp\",\"created\":1789962850,\"status\":{\"value\":\"unloaded\",\"args\":[\"/app/llama-server\",\"--host\",\"127.0.0.1\",\"--jinja\",\"--port\",\"0\",\"--alias\",\"bonsai\",\"--fit\",\"on\",\"--model\",\"/models/bonsai/Ternary-Bonsai-1.7B-PQ2_0.gguf\",\"--parallel\",\"1\"],\"preset\":\"[bonsai]\\njinja = 1\\nfit = on\\nmodel = /models/bonsai/Ternary-Bonsai-1.7B-PQ2_0.gguf\\nparallel = 1\\n\\n\"},\"architecture\":{\"input_modalities\":[\"text\"],\"output_modalities\":[\"text\"]},\"source\":\"models_dir\",\"can_remove\":false}],\"object\":\"list\"}"
+  },
+  "slots": {
+    "status": 200,
+    "body": "[{\"id\":0,\"n_ctx\":49408,\"speculative\":false,\"is_processing\":false,\"id_task\":30987,\"n_prompt_tokens\":11,\"n_prompt_tokens_processed\":0,\"n_prompt_tokens_cache\":0,\"params\":{\"seed\":4294967295,\"temperature\":0.0,\"dynatemp_range\":0.0,\"dynatemp_exponent\":1.0,\"top_k\":40,\"top_p\":0.949999988079071,\"min_p\":0.05000000074505806,\"top_n_sigma\":-1.0,\"xtc_probability\":0.0,\"xtc_threshold\":0.10000000149011612,\"typical_p\":1.0,\"repeat_last_n\":64,\"repeat_penalty\":1.0,\"presence_penalty\":0.0,\"frequency_penalty\":0.0,\"dry_multiplier\":0.0,\"dry_base\":1.75,\"dry_allowed_length\":2,\"dry_penalty_last_n\":64,\"mirostat\":0,\"mirostat_tau\":5.0,\"mirostat_eta\":0.10000000149011612,\"adaptive_target\":-1.0,\"adaptive_decay\":0.8999999761581421,\"max_tokens\":1,\"n_predict\":1,\"n_keep\":0,\"n_discard\":0,\"ignore_eos\":false,\"stream\":false,\"n_probs\":0,\"min_keep\":0,\"chat_format\":\"Content-only\",\"reasoning_format\":\"deepseek\",\"reasoning_in_content\":false,\"generation_prompt\":\"\",\"samplers\":[\"penalties\",\"dry\",\"top_n_sigma\",\"top_k\",\"typ_p\",\"top_p\",\"min_p\",\"xtc\",\"temperature\"],\"speculative.types\":\"none\",\"timings_per_token\":false,\"post_sampling_probs\":false,\"backend_sampling\":false,\"lora\":[]},\"next_token\":[{\"has_next_token\":false,\"has_new_line\":false,\"n_remain\":-1,\"n_decoded\":0}]}]"
+  },
+  "slot_actions": {
+    "save": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "restore": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "erase": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "shift": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "seq_add": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "seq_rm": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "seq_cp": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "truncate": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    },
+    "keep": {
+      "status": 501,
+      "body": "{\"error\":{\"code\":501,\"message\":\"This server does not support slots action. Start it with `--slot-save-path`\",\"type\":\"not_supported_error\"}}"
+    }
+  },
+  "routes": {
+    "/kv": 404,
+    "/seq": 404,
+    "/sequence": 404,
+    "/cache": 404,
+    "/kv-cache": 404,
+    "/apply-template": 404
+  },
+  "cache_probe": [
+    {
+      "req": "r1_A_S_B",
+      "status": 200,
+      "cache_n": 0,
+      "prompt_n": 770,
+      "prompt_ms": 577.202,
+      "prompt_per_second": 1334.0217116364809
+    },
+    {
+      "req": "r2_A_S_B_repeat",
+      "status": 200,
+      "cache_n": 766,
+      "prompt_n": 4,
+      "prompt_ms": 86.767,
+      "prompt_per_second": 46.10047598741457
+    },
+    {
+      "req": "r3_X_S_B_shifted",
+      "status": 200,
+      "cache_n": 0,
+      "prompt_n": 770,
+      "prompt_ms": 528.493,
+      "prompt_per_second": 1456.9729400389408
+    }
+  ]
+}
