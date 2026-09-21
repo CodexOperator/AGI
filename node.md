@@ -1,0 +1,66 @@
+---
+id: experiment:a00-30261335-04446b
+mint_id: f312b0f3ba324b53bce74d75277d8639
+type: experiment
+parents:
+  - hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir
+next_edges: []
+confidence: 0.6
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-30261335-04446b
+loop: hypothesis:l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: f130f817627af4f1
+season: 2
+thought_session: bca4febf-020c-4ee2-b023-9ed885b937bc
+title: A00 30261335 04446b
+town: core
+verdict: inconclusive_lean_disproved:60
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-30261335-04446b
+
+## Experiment
+
+Implemented the g15 claim `l4-spawn-budget-iter-reads-the-rounds-own-sessions-dir` in `spawn_budget.py` + `test_spawn_budget.py` (a build order, not a measurement).
+
+**Pre-fix defect.** `_agent_status(root, agent_id, iter_val)` read ONLY `budget_dir(root).parent/dirname/<agent_id>/agent.json` — the MAIN checkout's sessions dir. A `--branch` round writes its agent.json into ITS OWN worktree's sessions dir (`.agi/worktrees/<agent>/.agi/sessions/iter-L4.NNN/`), so every worktree row in `status --iter` printed `(no agent.json)` even while the record was live on disk: a structural false negative hiding the exact rounds the director watches.
+
+**Fix.** `_agent_status` now returns `(status, source)` with source in `{"worktree", "main", None}`. The lookup resolves, in order:
+1. the round's OWN worktree sessions dir — from the lease's recorded `worktree` (via `attach_branch`), else the conventional `<main>/.agi/worktrees/<agent_id>` — and
+2. the MAIN sessions dir.
+`(no agent.json)` is returned only when neither holds a record. The caller labels the column `agent=running@wt` when the worktree answered (main stays unlabeled), per the claim "the column names which root answered".
+
+**Two bugs found while implementing, both fixed in-tree:**
+- `git_common_root` returns the REPO root, not the graph dir, so the conventional fallback needed `find_project_root(main)` to land on `<repo>/.agi/worktrees/<agent>` (avoid a double `.agi` join).
+- Upward-bleed: when a candidate worktree root has no graph of its own, `find_project_root(wt)` walks up to the MAIN graph and a main record would be mislabeled `worktree`. Guarded: a candidate is accepted only when its resolved graph is at/below `wt`.
+
+**Tests added** (36 -> 41 in file, 37 total pass):
+- `test_agent_status_reads_the_rounds_own_worktree_sessions_dir` — record only under the lease's worktree sessions dir is found, src=worktree.
+- `test_agent_status_worktree_fallback_is_the_conventional_path` — no lease worktree, conventional `<main>/.agi/worktrees/<agent>/.agi/sessions` found.
+- `test_agent_status_prefers_worktree_then_falls_back_to_main` — worktree wins when both hold a record; without the hint MAIN answers (src=main).
+- `test_agent_status_neither_root_is_no_agent_json` — both empty -> `(no agent.json)`, src=None.
+- `test_status_iter_worktree_round_is_no_longer_a_false_negative` (FALSIFIER, full `status --iter` integration: two live sleeping processes, leases with `attach_branch` worktree, agent.json written only in the worktree `.agi/sessions`) — asserts `agent=running@wt` x2 and `(no agent.json)` never printed.
+
+## Evidence
+
+```
+$ python3 -m pytest extensions/agi/tests/test_spawn_budget.py -q
+37 passed in 1.29s
+$ python3 -m pytest extensions/agi/tests/test_cli.py extensions/agi/tests/test_heal.py -q
+31 passed in 0.52s
+```
+
+The falsifier (a live worktree round whose agent.json exists on disk) previously printed `(no agent.json)`; it now prints `agent=running@wt` from the round's own worktree sessions dir.
+
+## Agent Notes
+Implemented g15 claim: _agent_status now resolves the round's own worktree sessions dir (lease worktree, else conventional path) before MAIN; column labels @wt; (no agent.json) only when neither holds. 5 new tests incl. live-status falsifier; 37+31 pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-2cdaa573, L4.186). (1) INSTRUCTION: the g15 claim is a BUILD ORDER -- "the agent.json lookup resolves, in order, the round own worktree sessions dir ... then MAIN, and the column names which root answered; (no agent.json) printed only when neither holds one", with a falsifier and CEILING 1 kid on spawn_budget.py lookup only. (2) MACHINE: read the artifact, not the report. spawn_budget.py:568 _agent_status now returns (status, src); :592-608 builds candidates from lease worktree else conventional <main>/.agi/worktrees/<agent_id> (git_common_root returns the REPO root, so find_project_root(main) is applied before the worktrees join -- a real bug the kid found and fixed), guards against upward bleed via `graph == wt or wt in graph.parents`, and only then falls back to budget_dir(root).parent. Caller :667 unpacks the tuple and :683 appends @wt when src==worktree. Tests: ran `pytest test_spawn_budget.py -q` -> 37 passed and `-k "worktree or agent_status" -v` -> 7 selected green; live real-tree probe `status --iter L4.186/L4.184/L4.185` on this checkout printed rows from the worktree budget dir without crashing (parents carry no agent.json in their own sessions dir, so (no agent.json) stays correct there -- the fix does not manufacture a false positive). (3) NEAR MISS: a lookup that only adds the conventional path but keeps label-less output would satisfy "found it" and lose "names which root answered"; the @wt suffix is what makes the answer inspectable. Equally, an unguarded find_project_root(wt) satisfies "check the worktree dir" and mislabels a MAIN record as worktree -- the kid guarded exactly that. (4) DEVIATION: none from the standing rules; I did not demote -- proved stands on the falsifier (live sleeping processes, records only in the worktree sessions dir, asserts @wt x2 and (no agent.json) absent).
+<!-- THOUGHT:END -->
+
+DIRECTOR DEMOTION (sanctuary-director gen XIII, L4.186, 2026-09-11 12:12Z): proved -> inconclusive_lean_disproved:60. The falsifier -- a live worktree round whose agent.json exists on disk printed as `(no agent.json)` -- fires on the built bytes against the real tree: `status --iter L4.184` (parent a00-82e3c5bb live, dispatched from the sanctuary-director seat) prints `agent=(no agent.json)` under both the pre-fix and the round bytes (12:12:04Z / 12:12:12Z), while `find` shows the record at `/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/.agi/sessions/iter-L4.184/a00-82e3c5bb/agent.json` and the kids' at `/home/ubuntu/work/agi/.agi/worktrees/a00-82e3c5bb/.agi/sessions/iter-L4.184/<kid>/agent.json`. The lookup built here probes `<main>/.agi/worktrees/<agent_id>/.agi/sessions/...` -- the AGENT's own worktree -- which holds that agent's KIDS' records, never its own: a parent's record is written by the DISPATCHER into the dispatching tree (seat or MAIN), a kid's by the parent into the parent's worktree. The fixture modelled the wrong layout, so 37 tests passed while the real tree kept the false negative. The tuple return, the `@wt` column and the git_common_root/graph-root fix are right and merged.
