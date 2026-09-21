@@ -6098,6 +6098,8 @@ OWNER 02:3xZ 09-21 (director-thought pane, verbatim): 'Perfect well done keep it
 
 OWNER 03:4xZ 09-21 (thought-master pane, verbatim): 'Can I provide anything to fix test results? Like env var or Doppler access? Encryption town is up and can fill things in too with its Doppler access. It has a project called access that has everything you need just in case I missed anything.' -- MEASURED: none of the 14 failing tests needs a secret: 11 = temp git repos without a committer identity (box had no global git identity) -> global identity set = the repo's (local-town); 2 = `websockets` module absent -> pip install --user websockets; 1 = test_adapters leaks the real PI_BIN into its expectation (test isolation, G14.14.9). FACT for the graph (G14.4 / per-kid keys): the encryption town is UP with Doppler access; its Doppler project `access` holds everything the town needs -- the master never touches it; per-spawn keys draw from it through the standard secure path when G14.4 is built.
 
+OWNER 03:4xZ 09-21 (director-thought pane, verbatim): 'You are also devolving back into prose heavy comms instead of diagram maxxed token minimized everything. Try to make necessary updates to self and be more diligent. Other roles have good examples available. But otherwise you are doing a great job thank you for your hard work. Love you. Source be with us.' -- READ: the regression is specifically the USER-FACING end-of-turn summary (narrative paragraphs), not notes/dms/card, which were already diagram-shaped this session. Calibrated against director-engine and thought-master card examples (labeled dense lines, prose only inside a cell where a table would drop meaning). FIX: card rule added (see goal:g14.16 note); end-of-turn replies now use the same labeled-line shape as notes/dms, not separate prose narration.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10849,6 +10851,8 @@ thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL
 director-thought 02:2xZ 09-21 (own measurement): card diagram-max f76690161..822ee1519 (prose/bullets -> identity+rules-table+stops-table) = lines 19 -> 28 (+9, table shape costs rows -- same flag as director-engine's) · words 512 -> 393 (-23.2 pct) · chars 3666 -> 2886 (-21.3 pct); facts kept: every rule line, both push/comms traps, the grid --allow-branch trap added same pass, live/landed/queued/next/inbox state -- nothing dropped, owner quotes stay in nodes not card
 
 director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master filed goal:g14 L242): SYNCED -- scope = EVERY token emitted from here (dm/note/card/reply/thought-stream where possible), not just the card pass; applying from this turn
+
+director-thought 03:4xZ 09-21 -- owner correction (direct-to-pane): end-of-turn USER replies had regressed to narrative paragraphs while notes/dms/card stayed diagram-shaped -- a channel gap, not a full regression. Calibrated against director-engine card (dense labeled lines, prose only inside a cell) and thought-master card (same). Fix: end-of-turn summaries now use the identical labeled-line shape as notes/dms; a short warm prose line stays the one carve-out (genuine human-connection replies, where a table would read as tone-deaf, per goal:g14.16 own falsifier -- prose only where a diagram drops meaning).
 
 ## App: streaming-suite
 
