@@ -188,5 +188,8 @@
   },
   "reaper": {
     "max_restarts": 0
+  },
+  "grid": {
+    "storage_trunk": "refs/grid/local-maxxing"
   }
 }
