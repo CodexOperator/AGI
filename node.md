@@ -1,0 +1,54 @@
+---
+id: goal:g15.15
+mint_id: 5c46f02b89ac423c96b0a7591745f3f2
+type: goal
+parents:
+  - goal:g15
+  - build:bin-rotate
+  - build:hooks-cc-session-start.sh
+next_edges: []
+confidence: 0.7
+edited_by: sensei-director
+goal_id: G15.15
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: 0680e85cd94cdf4b
+season: 2
+seeds:
+  - hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one
+status: active
+tags:
+  - goal
+  - subgoal
+  - l4
+  - sanctuary-director
+thought_session: sensei-director-genI-L1
+title: "G15.15: 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one"
+town: core
+---
+<!-- BODY:BEGIN -->
+**0b-b: every spawn path exports `AGI_SEAT` and writes the bootstrap record BEFORE the successor's `claude` starts, so the SessionStart hook copy fires at turn one on the live path.** The brief is the point's stub `hypothesis:l4-startup-first-turn-is-performed-by-the-service-and-the-hook-fires-at-turn-one` (taken over by this seat on the Prime's 16:1xZ order; the point had it queued behind g15-28 and had not cut it) — its claim, falsifiers, file scope and ceiling stand unchanged; this goal is where the round is tracked.
+
+## Why this exists
+
+- `goal:g15` is the parent because g15-7 (merge-up 27 review by name, wf_6699487e-b72) is a bugfix finding fixed in-loop: "the hook copy keys on AGI_SEAT, which NO spawn path exports, and the bootstrap record is written AFTER the spawn — the SessionStart injection cannot fire at turn one on the live path". Measured on today's bytes: `_shell_cmd` exports only the reaper knob (+ the ultracode knob), `_write_bootstrap` is called in `cmd_rotate_self` after `spawn_window` returns, and `cc-session-start.next.sh:236` reads `BOOTSTRAP_SEAT="${AGI_SEAT:-}"`.
+- `build:bin-rotate` is the parent because the spawn path (`_shell_cmd` -> `_launch_window`, `cmd_rotate_self`'s bootstrap step) is the mechanism that changes: the export rides in front of the launch line the way the reaper knob already does, and the bootstrap write moves ahead of the spawn.
+- `build:hooks-cc-session-start.sh` is the parent because the hook (its `.next.sh` COPY is the proof surface; the LIVE hook and `~/.claude/settings.json` are the Prime's install, deferred to this round's merge-up) is the consumer whose turn-one injection the export and the record order exist for.
+
+## Tracking
+
+Dispatch target = the hypothesis (seeds). Serial gates named on the node (L4.127, g15-6) are both harvested (merge-ups 28, 31). The Prime installs into the live global hook and verifies with a fresh session at THIS round's merge-up (L4.94 rule); the round proves on the COPY only.
+
+## Agent Notes
+SL1.07 HARVESTED (sensei-director L2): (i) the service after_join performer landed — rotate.run_after_join + run_after_join_for_seat, callers: rotate-self fallback when inline_reaper is truthy, heal.py watch loop when false (live); (v) AGI_SEAT exported for spawn/loop; (iv) bootstrap-before-spawn proven by code order; a tmux placeholder false-positive refusal fixed. NOT landed: (ii) join-only refused, (iii) briefs stripped — carried to the g15.17 cut (same region). Director fix-ups: fixture-seam after_join delay 0 (five selfreap fixtures slept 20 s each for real); succ_ref = the ack's ListAgents ref, not the JOIN's uuid. RESIDUE: the captive after_join dm's diff line still names {succ_ref} from the JOIN when the ack has none; live tmux/ps not exercised by any fixture (the kid says so); the service path (heal.py watch) is unmeasured live until the next rotation on this box.
+
+PRIME XI SL1#1 verdict line (7), checked against SL1#2: cmd_spawn / cmd_loop --seat DO export AGI_SEAT since SL1.07 kid a00-f0612463 (test_cmd_spawn_and_loop_forward_seat, test_spawn_window_agi_seat_export_and_byte_identical_absent, in season/s2 at 0dec5a8f9) — the title no longer overstates. STILL OWED (fix-only, the g15.17 region): a failed spawn leaves the pre-spawn record behind; the post-join record writes pending: resolved after join for model_refusal_fallback and successor_live_model even when the join resolved nothing — name the skip.
+
+(sensei-director L3): Prime XI line (7) second half — a failed spawn leaves the pre-spawn record in place; the post-join record says pending: resolved after join when the join resolved nothing — folded into the SL3.01 cut (g15.21 autopsy, same spawn region) as its named residue items; not cut separately.
+
+Prime XI line (7) second half CLOSED at SL3.01 (sensei-director L3): a failed spawn removes its pre-spawn bootstrap record; a no-op join writes unresolved: join found nothing within Ns, never pending: resolved after join (test_noop_join_bootstrap_prints_unresolved_not_pending).
+
+2026-09-12T00:34Z Prime XIII ask (00:33Z, P2 after SL6.01-03; owner: 'No surprise fable please.' — verbatim in doc:l4-owner-decisions): cmd_spawn --seat ignores the row it resolved at 1561 and launches args.model/args.effort/args.settings (1570-1580) — the stream-master dry-run (row claude-sonnet-5) built claude-fable-5-1 from the tier default; seats-launch 2694, rotate-self 9518 and heal's respawn 1715 all take the row. Briefed as hypothesis:l4-cmd-spawn-with-a-seat-takes-the-rows-model-effort-and-settings-never-the-tier-default, round SL6.04, rotate.py — dispatched only after SL6.01 lands (same file).
+
+2026-09-12T00:41Z LANDED by Prime XIII on the owner's direct order at 6463e6aef (cmd_spawn --seat: row model/effort/settings/role, flags override; test_spawn_seat_row_is_the_model_source_flags_only_override; 184 green) — SL6.04 NOT dispatched; the record is experiment:l4-record-cmd-spawn-seat-row-is-the-model-source-landed-by-the-prime-at-6463e6aef (verdict proved, evidence = that commit + test) under the SL6.04 brief.
