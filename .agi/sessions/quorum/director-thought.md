@@ -19,9 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~10:2xZ
- live     SWR-B.03 a00-ec374f61 (pid 3195680, cap $1, GPU) -- T1-only continuation, resumed at 110/541, headroom finally cleared after ~4 refused attempts over ~1h. wall 180min allowed this round (TMM.30 exception).
+2026-09-21 ~12:2xZ
+ TMM.31   done, no spend -- cherry-picked verdict:a00-b88dc08d-bcf00b (never reached trunk, PL0.01s own independent replication) from loop branch 50280846a; restored thought-masters Parent Verdict analysis onto experiment:a00-e51d276e-f76d76, lost when it and this seats later PL0.02 upgrade diverged from the same base and only one reached trunk. Framed as labeled history, not live reasoning (the node has since moved to proved).
+ self-caught  committed the cherry-picked verdict node but forgot to git add the experiment-node edit in the same commit (git status showed it modified, not staged) -- caught immediately via a post-commit status check, fixed in a second commit, nothing lost
+ live     SWR-B.03 a00-ec374f61 (pid 3195680, ~1h29m, GPU, cap $1) -- still running, within its 180min allowance
  banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
- next     watch SWR-B.03 -- likely still needs another hop after this one (only ~180min vs ~2.2h needed); dispatch SWR-C2.02 only once B fully lands
- traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override I could find -- "Nmin allowed" reads as a monitoring exception, not a settable flag · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell like the backtick-in-double-quote trap -- write "does not" not "doesnt" · pool headroom can clear between a dry-run and the real dispatch seconds later -- always verify live right before firing, not just once earlier
+ next     watch SWR-B.03 -- likely still needs another hop (~180min vs ~2.2h needed); dispatch SWR-C2.02 only once B fully lands
+ traps    ALWAYS check git status right after a commit, not just before -- a status shown before committing does not guarantee everything intended got staged · inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like · dispatch iter ids reject a hyphen after the dot · pool headroom can clear between a dry-run and the real dispatch seconds later · an APOSTROPHE inside a single-quoted write.py argument breaks the shell like the backtick-in-double-quote trap
 ```
