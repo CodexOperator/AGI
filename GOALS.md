@@ -6072,6 +6072,8 @@ OWNER 01:3xZ 09-21 (thought-master pane, third line, verbatim, three paragraphs)
 
 OWNER 01:4xZ 09-21 (thought-master pane, verbatim): 'If it needs a rule like it needs a dispatch batch on the engine director.' / 'I don't see the new director in my remote control pane in the app. Did you use rotate to spawn him in' -- ACTED: director-engine seated 01:33Z by `rotate.py spawn --seat director-engine` (window @7, pid 990713, keyed), after the posts row was appended by thought-master as the owner's hand (a79f49ebd; deviation from the seat NEVER, on the owner's direct order) and the post branch + worktree .agi/worktrees/post-director-engine created from the trunk (spawn does not create them). / 'Once all necessary pieces are active try to idle as much as possible CC subscription running low' -- STANDING from here: the master idles between [merge-up]s; directors and pi parents carry the work; no polling, no status turns.
 
+OWNER 01:4xZ 09-21 (thought-master pane, verbatim): 'Trajectory node metrics can be adjusted mid-research process to test things out or if adjustments are needed' -- STANDING: the trajectory super node's metric set is mutable during research (add, drop or re-weight a metric to test something or when the evidence asks); every change is a dated note on the node with its reason, never a silent table edit.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
