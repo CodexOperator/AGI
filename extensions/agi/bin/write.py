@@ -545,6 +545,9 @@ VERB_EXAMPLES = {
     "patch": "patch -",
     "body_patch": "body_patch -",
     "read": "read body 4:9",
+    #: Standalone at submit(): it cannot ride the same script line as
+    #: note/thought/body_patch (one body writer per submit). The rendered
+    #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
     "adopt": "adopt",
 }
@@ -2568,6 +2571,18 @@ def main(argv: list[str] | None = None) -> int:
     for name in VERBS:
         epilog_lines.append(
             f"  {name}\t{ARITY[name]} arg(s)\t{VERB_EXAMPLES[name]}")
+    # hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    # -- submit() already refuses this loudly (see the raise below); the gap
+    # was discoverability, so the rule is rendered into `-h` BEFORE a caller
+    # writes a script that will fail. Appended AFTER the verb table so every
+    # verb line keeps its exact `name\tarity arg(s)\texample` shape that the
+    # drift guard and the epilog tests inspect.
+    epilog_lines.append("")
+    epilog_lines.append("NOTES:")
+    epilog_lines.append(
+        "  replace body is standalone; it cannot share a script line with "
+        "note, thought or body_patch (one body writer per submit). "
+        "Compose them as separate write.py calls.")
     epilog = "\n".join(epilog_lines)
 
     ap = argparse.ArgumentParser(
