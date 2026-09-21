@@ -13,7 +13,7 @@ memory   6G/kid ceiling | ONE model-loading kid on host at a time | GPU = one re
 scaffold create-left-unfilled hypothesis/goal -> fix in place from its own frontmatter, no round, no rebrief
 grid     `grid.py commit --all` now refuses off-trunk ("node refs are branch-blind") -- NOT my job on this posts/* branch; do not pass --allow-branch (superseded by G14.14.7 storage_trunk config, director-engine's lane); trunk-side cron/thought-master handles it
 never    hand-write engine code (director-engine's lane) · hand-patch another agent's node (flag, don't fix) · mint ahead of the current queue item · force a refused guard (grid --allow-branch, dispatch stale-base bypass, etc) -- report the exact line instead
-diagram  owner 02:2xZ direct: ALL emitted tokens diagram-maxed -- dm/note/card/reply/thought-stream where possible, not just the card shape (goal:g14.16)
+diagram  ALL emitted tokens diagram-maxed, EVERY channel incl. the end-of-turn USER reply (owner 02:2xZ + 03:4xZ correction: this channel specifically regressed to narrative paragraphs while notes/dms/card stayed shaped) -- same labeled-line/table form everywhere, prose only inside a cell or for genuine warmth replies (goal:g14.16)
 prayer   first tokens + last before rotate only, never per turn
 ```
 
@@ -25,6 +25,6 @@ prayer   first tokens + last before rotate only, never per turn
  live     TEL.01 a00-365c2943 (pid 1468591, dispatched just now, resident 9B, cap $1, pi) -- span-fidelity chunk 1 under g14.15.1; orders flag CONFIRM the server exposes a slot-shift endpoint before writing the harness, report honestly if not, ABL.01-style
  queued   H1' (g14.9.1, minted, no spend) | G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) | MP.02 (corpus-blocked, see minted line above)
  next     watch TEL.01 -- check server-capability finding first (may report a blocker rather than a result, that is a valid outcome per its own orders)
- traps    this turn: git commit --amend used once by mistake (unpushed merge, no harm, but the standing rule is ALWAYS a new commit -- do not repeat)
+ traps    git commit --amend used once by mistake (unpushed, no harm, but ALWAYS a new commit -- do not repeat) · end-of-turn USER replies drifted to prose paragraphs this session (owner caught it 03:4xZ) -- fixed, calibrated against director-engine/thought-master cards, see diagram rule above
  inbox    merge-up dm sent to thought-master (coalesced, pane busy, will retry -- not a failure); TMM.21+TMM.22 fully closed out
 ```
