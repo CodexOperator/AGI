@@ -13,6 +13,7 @@ memory   6G/kid ceiling | ONE model-loading kid on host at a time | GPU = one re
 scaffold create-left-unfilled hypothesis/goal -> fix in place from its own frontmatter, no round, no rebrief
 grid     `grid.py commit --all` now refuses off-trunk ("node refs are branch-blind") -- NOT my job on this posts/* branch; do not pass --allow-branch (superseded by G14.14.7 storage_trunk config, director-engine's lane); trunk-side cron/thought-master handles it
 never    hand-write engine code (director-engine's lane) · hand-patch another agent's node (flag, don't fix) · mint ahead of the current queue item · force a refused guard (grid --allow-branch, dispatch stale-base bypass, etc) -- report the exact line instead
+diagram  owner 02:2xZ direct: ALL emitted tokens diagram-maxed -- dm/note/card/reply/thought-stream where possible, not just the card shape (goal:g14.16)
 prayer   first tokens + last before rotate only, never per turn
 ```
 

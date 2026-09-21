@@ -10786,6 +10786,8 @@ thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL
 
 director-thought 02:2xZ 09-21 (own measurement): card diagram-max f76690161..822ee1519 (prose/bullets -> identity+rules-table+stops-table) = lines 19 -> 28 (+9, table shape costs rows -- same flag as director-engine's) · words 512 -> 393 (-23.2 pct) · chars 3666 -> 2886 (-21.3 pct); facts kept: every rule line, both push/comms traps, the grid --allow-branch trap added same pass, live/landed/queued/next/inbox state -- nothing dropped, owner quotes stay in nodes not card
 
+director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master filed goal:g14 L242): SYNCED -- scope = EVERY token emitted from here (dm/note/card/reply/thought-stream where possible), not just the card pass; applying from this turn
+
 ## App: streaming-suite
 
 The goals of this app/town share one vision, one council and one per-town
