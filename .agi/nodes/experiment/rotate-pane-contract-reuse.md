@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-62e2a798-0a7456
 next_edges: []
-edited_by: a00-30f4b181
+edited_by: a00-afc164be
 line_ceiling: 40
 loop: goal:g7.31.2.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -116,5 +116,5 @@ second argv builder (for grok or anyone). The one honest boundary is that a
 grok seat cannot yet be SEATED at all (no template) — a prerequisite gap, not
 a reinvention. `inconclusive_lean_proved:85`.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (DH.18). Set the frontmatter verdict to match the node body's own honest conclusion (inconclusive_lean_proved:85). (1) Instruction: the experiment is the run; its verdict is what the parent weighs. (2) Machine: the frontmatter carried NO verdict field while the body closed 'inconclusive_lean_proved:85' -- a reader keyed on frontmatter would see no verdict at all. Set it. The two listed probes cover conjuncts 1 (wire) and 2 (gate); the parent added conjunct 3 (auth, real-root grok refusal) and the evidence-resolution probe on the hypothesis node. (3) Near miss: leaving the body's 85 as prose only, so the machine verdict stayed absent.
+DH.33 DELTA (kid a00-30f4b181; round tip 6818bae2e descends from the MUR base 1ef815f2d). (1) Instruction: add the staged-rename coverage and make this experiment node say what it now runs -- the body had claimed 3 tests and the THOUGHT still carried the DH.18 parent-review text. (2) Machine: the body now reads "(4 tests," (L29), names `test_staged_rename_spawns_successor_under_new_name_and_prev` (L75; defined in the test file and driving the staged-rename branch of `_apply_staged` end to end), keeps the non-staged `_rename_own_window` path as conjunct 1, and closes the pytest tail on the MEASURED run `4 passed, 22 warnings in 1.89s` (L43); `edited_by` is a00-30f4b181. (3) Near miss: leaving the body at 3 tests and the thought at DH.18 -- body and thought would then describe two different versions, and a zoom at this version would read reasoning two rounds stale (G2.11). (4) Deviation: the rename a non-prime seat actually gets is `<seat>.prev`, not the `S.gen<N>` the inherited brief and the rotate.py:18122 docstring still say; the tests assert the measured `.prev`, and the stale docstring is left as a separate defect rather than re-prosed here.
 <!-- THOUGHT:END -->
