@@ -5,14 +5,14 @@ type: experiment
 parents:
   - hypothesis:a00-ac47d671-4fc781
 next_edges: []
-edited_by: a00-fa22ed68
+edited_by: a00-e1e6807b
 evidence_runs:
   - experiment:tmux-seam-residue-closed-a00-ac47d671
 line_ceiling: 40
 loop: goal:g7.31.4.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - {"conjunct": 1, "class": "wire", "cmd": "grep the corrected evidence tail and the sibling experiment body for the served count", "expected": "the corrected body tail is the remeasured 7 passed and the sibling record still reads SEVEN, so the two records agree", "observed": "corrected Evidence tail: 7 passed in 6.08s; the stale 6 passed / Six tests strings survive only inside the THOUGHT as the quoted residue; sibling experiment:module-wide-no-real-tmux-guard-a00-768e0fd0 records SEVEN", "result": "held"}
+  - {"conjunct": 1, "class": "wire", "cmd": "grep the corrected evidence tail and the sibling experiment body for the served count", "expected": "the corrected body tail is the remeasured 7 passed and the sibling record still reads SEVEN, so the two records agree", "observed": "DH.51 amendment. corrected Evidence tail: 7 passed in 6.08s; the stale '6 passed' string survived at TWO loci -- the THOUGHT quote in this experiment AND the Agent Notes of hypothesis:a00-ac47d671-4fc781 -- while the stale 'Six tests' string lived only in the THOUGHT quote. hypothesis:a00-ac47d671-4fc781 was closed in DH.51 (now reads 7 / SEVEN); the sibling experiment:module-wide-no-real-tmux-guard-a00-768e0fd0 records SEVEN", "result": "held"}
   - {"conjunct": 2, "class": "wire", "cmd": "python3 -m pytest extensions/agi/tests/test_send_surface_ssh_or_not.py -q and grep -c \"^def test_\" on the module", "expected": "7 passed and 7 test defs, matching the rewritten record", "observed": "7 passed in 4.18s; grep -c -> 7", "result": "held"}
   - {"conjunct": 3, "class": "gate", "cmd": "git status --porcelain -- extensions/agi/bin/send.py and git diff --cached --numstat on send.py", "expected": "both empty; the round adds 0 production lines", "observed": "both empty", "result": "held"}
   - {"conjunct": 4, "class": "wire", "cmd": "grep -c \"^```\" fences in the corrected node before and after the parent repair", "expected": "an even fence count; the kid bytes had an odd count from a lost opening fence", "observed": "kid version: 5 fences (odd, opening fence lost by replace body 39:62); after parent replace body 39:39: 6", "result": "repaired_by_parent"}
