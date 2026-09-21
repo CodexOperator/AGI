@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-42a04ea4-cbb836
 next_edges: []
-edited_by: a00-ecb1eee9
+edited_by: a00-e1fbd6cf
 evidence_runs:
   - experiment:a00-42a04ea4-dh38-false-parentage-file-count-repair
 line_ceiling: 40
@@ -62,8 +62,8 @@ through the sanctioned writer:
         | python3 extensions/agi/bin/write.py hypothesis:a00-8e8b49fb-61c438 'replace body 24:24 -'
     updated: hypothesis:a00-8e8b49fb-61c438
 
-THOUGHT block untouched; body line numbers below the edits are 1:1, so the
-`-e` noise in the THOUGHT block is preserved exactly as authored.
+The DH.38 round edited the body only; the DH.44 corrective round replaced the
+DH.32-scaffold THOUGHT block it left behind. Body line numbers below the edits are 1:1.
 
 ### Residue 2 — wrong file count
 
@@ -124,8 +124,8 @@ goal. Same subtree, one extra hop.
 Raw console output of the post-edit parse check is kept at `.agi/sessions/iter-DH.38/a00-42a04ea4/verify.out` (script `verify.py`, same dir); the key lines are quoted under Residue 2 above.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-(1) INSTRUCTION: the parent brief says "A kid's tests are its CLAIM, not your evidence... Run one negative probe per claim conjunct yourself and record them as `probes:`; a kid that passes its own suite but fails your probe is lean_disproved" and "read each kid's DIFF ... never the result file it wrote".
-(2) MEASURED: `git diff 9de4c6ab2..HEAD` carries exactly the two repairs the order named — hypothesis:a00-8e8b49fb-61c438 lines 38 and 41 changed from `(a child of goal:g7.27.2)` to `(a child of goal:g7.27)`, and experiment:a00-4dfbd4e4-dh24-pi-arm-citation line 151 from `two` to `three` node files — plus this experiment node and its parent hypothesis. My three parent probes all PASS (see `probes:`): the false-parentage predicate fires 2 on pre-repair and 0 on live and 2 on a re-introduced mutant; the commit `537246e0c` stat is 3 files and the live clause says `three` while a flipped copy says `two`; the real parents parse to [goal:g7.27] for the two and [goal:g7.27.2] for the third. `.agi/sessions/write-log.jsonl` carries both update_node entries with actor a00-42a04ea4, so the edits went through the sanctioned writer, not a hand edit. links 3914 resolved / 0 broken.
-(3) NEAR MISS: accepting the kid's report ("ALL CHECKS PASS", verify.out) at face value would have missed that the kid's own `done` committed its work in two commits (945692c51 add, e0939a271 repair), so the parent's `done` owns no commit here; and the kid's deliverable named hypothesis:a00-42a04ea4-cbb836 as its done node while the bytes landed in the experiment node. Both are visible only in the diff, not the result file.
-(4) DEVIATION: the kid parented this experiment under hypothesis:a00-42a04ea4-cbb836 instead of goal:g7.27.2 as the order asked. Property of THIS case that makes it correct: `.agi/context/schemas/[experiment].md` line 31 sets `allowed_parents: [hypothesis, verdict, task, idea, experiment, build]` — `goal` was removed 2026-09-01 under goal:s22 and the spawn gate refused the create by name. Routing the experiment through the scaffold hypothesis is the schema-legal way to sit under the goal, and I accept it rather than bypassing the gate.
+(1) INSTRUCTION: the DH.44 corrective brief orders this experiment THOUGHT rewritten from scratch through the sanctioned writer, keeping the four-part form, with the commit-chain sentence corrected to what git actually prints and no sentence kept that the bytes contradict.
+(2) MEASURED: git log --format=%h %s 9de4c6ab..ca14004be prints exactly FOUR commits: 945692c51 (kid add), e0939a271 (kid repair), 34850f271 (kid de-scaffold; git show --stat 34850f271 = 1 file changed, 4 deletions, .agi/nodes/hypothesis/a00-42a04ea4-cbb836.md), and ca14004be (parent a00-ecb1eee9 done; git show --stat ca14004be = the experiment node, 12 insertions 1 deletion, which wrote this THOUGHT block). So the kid own done committed its work in THREE commits, and the range also carries the parent done commit ca14004be, which DID change this file.
+(3) NEAR MISS: the previous THOUGHT said the kid committed in two commits and that the parent done owns no commit here. Both halves are false against the bytes: the chain is three kid commits plus one parent commit, and ca14004be is the parent done and it changed this file. Accepting the old sentence would have understated the chain and erased the parent own THOUGHT write from its provenance.
+(4) DEVIATION: this experiment is parented to hypothesis:a00-42a04ea4-cbb836 instead of goal:g7.27.2 because .agi/context/schemas/[experiment].md allowed_parents excludes goal (removed 2026-09-01 under goal:s22); routing through the scaffold hypothesis is the schema-legal way to sit under the goal rather than bypassing the spawn gate. Body claims that remain true (the parentage repairs, the 537246e0c file count) are left as measured.
 <!-- THOUGHT:END -->
