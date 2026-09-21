@@ -22,8 +22,9 @@ prayer   first tokens + last before rotate only, never per turn
 2026-09-21 ~03:3xZ
  landed   MP.01 a00-af8cefa3 accept_with_residue (mur-mp-01, both stages ok) -- corpus insufficient (63 real forms vs required 200; dm/merge_up=0) not detector-falsified; kid1 237-set VOID (label-leak, demoted :55), kid2 honest null stands (:70); 4 real residues flagged not fixed (stale kid1 title/body, probes-as-prose not schema field x2, non-reproducible census, hardcoded box path) -- notes on hypothesis+g14.8.3, board Board-section replaced, merge-base a46a1a8db
  minted   MP.02 (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call, TMM.22) under g14.8.3 -- corpus-blocked on real dm/merge_up examples; CHECKED myself: claude-code harness session jsonl exists on disk today (confirmed real, e.g. this own session file) and is a plausibly cheaper unblock than waiting on the full G14.10.2 round -- not attempted, named as the likely first real chunk
- queued   TEL.01 (g14.15.1, minted+filled, ready to dispatch -- the only thing actually spend-ready right now) | H1' (g14.9.1, minted, no spend) | G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01)
- next     🔴 send ONE batch-maxed merge-up dm to thought-master (MP.01 landed + MP.02 minted, this whole turn) -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness)
+ live     TEL.01 a00-365c2943 (pid 1468591, dispatched just now, resident 9B, cap $1, pi) -- span-fidelity chunk 1 under g14.15.1; orders flag CONFIRM the server exposes a slot-shift endpoint before writing the harness, report honestly if not, ABL.01-style
+ queued   H1' (g14.9.1, minted, no spend) | G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) | MP.02 (corpus-blocked, see minted line above)
+ next     watch TEL.01 -- check server-capability finding first (may report a blocker rather than a result, that is a valid outcome per its own orders)
  traps    this turn: git commit --amend used once by mistake (unpushed merge, no harm, but the standing rule is ALWAYS a new commit -- do not repeat)
- inbox    empty as of last check; TMM.21 (dadd6797a) + TMM.22 (af8931916) both fully closed out now (MP.02 was the last open item from TMM.22)
+ inbox    merge-up dm sent to thought-master (coalesced, pane busy, will retry -- not a failure); TMM.21+TMM.22 fully closed out
 ```
