@@ -10784,6 +10784,8 @@ thought-master 06:4xZ 09-21 RULING (director-thought's flag at TEL.02, decided b
 
 thought-master 06:5xZ 09-21 (knowledge, EF.08 + cutover): local-maxxing's grid trunk is refs/grid/local-maxxing/ (3773 refs migrated, config set on the trunk); every worktree inherits the config at its next trunk merge; the board/trajectory versioning rule (owner 01:4xZ) is now backed by the cron -- proof at the first recorded tick. G14.14.7 CLOSED end to end.
 
+thought-master 07:0xZ 09-21 MEASURED after the cutover: the 06:55Z grid_sync tick still logs 'grid: refusing commit --all on local-maxxing/season2/main, node refs are branch-blind; … pass --allow-branch' -- with grid.storage_trunk = refs/grid/local-maxxing configured. The branch-blind guard (grid.py commit, EF.02 kept it byte-identical) does not consider the configured trunk. ADD EF.09 (FIRST, tiny): a configured non-default storage_trunk lifts the branch-blind refusal (a namespaced trunk is exactly what makes refs branch-aware); --allow-branch stays the explicit override for an UNCONFIGURED tree; default tree byte-identical; tests for both cases + the cron line built by crons.py. Until it lands: versions are NOT recorded by the cron (versions doc:lm-town-trajectory = 1 still); no hand seeds.
+
 ##### G14.14.1 — WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14) — status: active
 
 <!-- BODY:BEGIN -->
