@@ -4869,6 +4869,7 @@ Retired: superseded by perpetual umbrellas goal:g1-g7 (2026-09-19 rewrite). No d
 
 ### G7.1 — Referential integrity on every parent reference — status: horizon
 
+# goal:g7.1
 L15 validates `goal:`-prefixed parents only. Everything else dangles silently,
 and on this corpus 60.3% of parent references did — a `hypothesis:` vs `hyp:`
 prefix mismatch that quietly disconnected most of the `spawns` graph the
@@ -4943,6 +4944,7 @@ the same scope mistake L15 made with `goal:`.
 
 ### G7.2 — Duplicate node ids silently hide files on disk — status: horizon
 
+# goal:g7.2
 Found 2026-08-22 by the G9.1 dashboard on its first run, which is the argument
 for G9 in miniature: **17 node ids are declared by two files each.** The loader
 keeps one and drops the other, so 17 files sit on disk fully invisible to every
@@ -4982,6 +4984,7 @@ must be resolved first and the refs rebuilt afterwards.**
 
 ### G7.3 — `evidence_runs` as a bare integer is still unverifiable — status: complete
 
+# goal:g7.3
 Residual left open by G3.1 and named here so it is not forgotten. After the
 H4c fix a list entry must resolve to a real node, but an integer
 (`evidence_runs: 3`) is still accepted as direct attestation and counts 3.
@@ -5086,6 +5089,7 @@ the hole in the shared `normalize_evidence_runs` closed it in both.
 
 ### G7.4 — Two loaders, two opposite duplicate-id policies — status: horizon
 
+# goal:g7.4
 `graph_core/loader.py::load_directory` keeps the **first**-sorted file on an id
 collision and, as of 2026-08-22, reports every collision via
 `graph.duplicate_ids`, a `WARN:` line, and `DuplicateIdError` under `strict`.
@@ -5126,6 +5130,7 @@ rule by hand: 79 references were removed and 0 nodes were.
 
 ### G7.5 — Parse failures are swallowed with zero signal — status: horizon
 
+# goal:g7.5
 > **Corpus repaired 2026-08-25; the code fix is still open, which is why this
 > stays `active`.** The malformed file below now parses, carries a `mint_id`,
 > and has a grid ref. **The loaders still swallow parse failures silently** —
@@ -5206,6 +5211,7 @@ goal's own record first, since repairing it is what destroys the fixture.
 
 ### G7.6 — One persistence model: frontmatter, JSON, or a database — status: horizon
 
+# goal:g7.6
 Three representations exist and none is authoritative. Markdown frontmatter is
 what the loop actually reads and writes. A JSON/SQLite backend exists
 (`graph_core/persistence/sqlite_backend.py`, `db_loader.py`, plus a one-shot
@@ -5232,6 +5238,7 @@ the decision being made, which is why it never moved.
 
 ### G7.7 — Retire the vendored engine copy and the last loader path bug — status: horizon
 
+# goal:g7.7
 Two carried defects with one root: `agi-tree/src/` holds project-local copies of
 `graph_core`, `chain_engine`, `renderers`, `schema_registry`, `embeddings` and
 `environment_indexers`, and the documented override convention gives them
@@ -5247,6 +5254,7 @@ which lives in the same code).
 
 ### G7.8 — A generator mints parent ids it never checks exist — status: horizon
 
+# goal:g7.8
 Found 2026-08-25 while sweeping G7.1. **Corpus side resolved the same day; the
 missing validation is what keeps this `active`.**
 
@@ -5379,6 +5387,7 @@ writing a broken edge and exiting 0. Pairs with **G7.5** and **G7.9**.
 
 ### G7.9 — A scan must not prune quietly, and `level3.py` is misnamed — status: horizon
 
+# goal:g7.9
 Two changes to the same file, grouped because they touch the same lines and
 the rename is the safer half.
 
@@ -5442,6 +5451,7 @@ Asks, in addition to the prune guard above:
 
 ### G7.10 — The publish cron must never fail silently, and a refusal must not strand work — status: complete
 
+# goal:g7.10
 🔴 **The hourly publish cron can refuse, every hour, forever, and emit no
 signal anywhere a human or an agent will look.** It has already done exactly
 that: **40 consecutive refusals with 0 successful publishes ever**, from
@@ -5901,6 +5911,8 @@ From the seat/brief bank (`goal:g7.165`):
 ### G7.16 — The Texas two-step formation — two director-kids on one goal: point + helper — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.16
+
 **Two director-kids in formation under enhanced survival mode: one takes point, the other helps; neither is pinned to a goal yet.** Ordered by the owner on 2026-09-09 as the first deliberate step up from survival mode's single director, and the shape every later concurrency increase copies.
 
 **Owner, verbatim (2026-09-09, in the L4-I plan session):** "Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work. Act after the workflow finishes. Let the current director take point though and the other one is like a helper to the first. Call it the Texas two step formation, goes under sanctuary goal as subgoal" · "And it's a new loop reset director kid generations" · "Helper director kid runs sonnet btw." · "Sonnet max effort just in case it wasn't clear"
@@ -6404,6 +6416,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.17 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.17
+
 **Every perpetual goal has a director.** Brief point **B2** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6415,6 +6429,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 #### G7.17.1 — The sanctuary perpetual goal always has an active director — a check, not a seat — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.17.1
+
 **The sanctuary perpetual goal always has an active director.** Brief point **B4** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6426,6 +6442,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.18 — The sanctuary director owns seats, models, and how many are active — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.18
+
 **She owns the seats, the models they run, and how many are active.** Brief point **B3** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:128, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6437,6 +6455,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.19 — The duty matrix — its rows and entries are the sanctuary director's to reassign — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.19
+
 **The duty matrix: its rows and entries are hers to reassign.** Brief point **B5** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:130, A:168, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6448,6 +6468,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 #### G7.19.1 — Each role carries exactly ONE question — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.19.1
+
 **Each role has exactly one question it is responsible for asking.** Brief point **B6** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:236-242, A:257, A:372 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6459,6 +6481,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.20 — The seat node type — the graph shows where everybody is assigned — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.20
+
 **A `seat` node type, so the graph shows where everybody is assigned.** Brief point **B7** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6470,6 +6494,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.21 — Messaging restrictions — each role reaches only a defined subset of seats — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.21
+
 **Each role can reach only a defined subset of the other role seats.** Brief point **B8** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6481,6 +6507,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 #### G7.21.1 — Channels A and B, and no director-to-Prime edge — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.21.1
+
 **Two audience channels, and NO director→Prime edge.** Brief point **B9** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:246, A:259, A:326 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6492,6 +6520,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ##### G7.21.1.1 — One voice per chamber, the DM room, and Council-to-Keep propagation — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.21.1.1
+
 **One voice per chamber; an inter-chamber DM room; Council→Keep propagation.** Brief point **B10** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6503,6 +6533,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.22 — Names and forms of address — everything has a protocol — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.22
+
 **The names and the forms of address: everything has a protocol.** Brief point **B11** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:248-257, A:265, A:319, A:387 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6514,6 +6546,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.23 — The Masters own and dispatch their own workflows — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.23
+
 **Each `* Master` owns and dispatches its own workflows.** Brief point **B12** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:254, A:320, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
@@ -6525,6 +6559,8 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 ### G7.24 — A seat session owns its own iteration dirs, and session-complete migrates them before the worktree is deleted — status: active
 
 <!-- BODY:BEGIN -->
+# goal:g7.24
+
 **A seat session's `iter-<id>/` dirs belong to that seat's worktree, and are migrated into the main checkout only when the worktree is deleted at session complete.** Owner rule, recorded verbatim in `goal:g7.16`; this sub-goal carries the engine half.
 
 **Measured today, which is what makes it real rather than tidy:** dispatching from the seat worktree put every agent dir in the MAIN checkout's `.agi/sessions/`, while the seat's own `.agi/sessions/iter-L4.02/` held nothing but the wrapper log. The dispatched PARENT hit the same thing — its `struggles:` line reads that the manifest path in the spawn output "did not exist from my checkout", so it had to read the kid's node directly to review it. A seat cannot harvest its own round from its own tree.
@@ -6585,11 +6621,54 @@ Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/g
 
 #### G7.25.1 — grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False) — status: active
 
-<!-- BODY:BEGIN -->
 # goal:g7.25.1
 
+## Why this exists
+
+**Parent `goal:g7.25` (Grok Bot third-party harness adapter).** Parent needs the adapter *module* before a config row can resolve. This subgoal owns **only** `extensions/agi/bin/adapters/grok_bot_adapter.py` — TODAY's REQUIRED surface — so `adapters.load("grok_bot")` can succeed once g7.25.2 lands the config row.
+
+Practice-run split (owner / Belam): adapter file here; `harnesses.grok-bot` config row is **sibling `goal:g7.25.2`**, not this node.
+
+## Target end-state
+
+- One module `grok_bot_adapter.py` defines the same REQUIRED surface peers use: `NAME`, `resolve_bin`, `model_args`, `build_command`, `child_env`, `is_alive`, `restart`, `needs_credential`.
+- `NAME == "grok-bot"`.
+- `build_command(...)` returns a **stub measurable argv** (`<bin> [--model M] -p <context_file>`) — CLI flags are not guessed from `--help` yet.
+- `restart(...)` is a **real respawn** (rebuild argv → detached Popen → stamp pid), not a stub refuse.
+- `needs_credential(...)` is explicitly **False** (Grok Bot auth is its own channel; no OpenRouter mint).
+- **Zero** edits to `dispatch.py` for grok / grok-bot / grok_bot.
+- Build/test graph nodes sanction the bytes (`write.py` / write-log), with `payload_ref` where required.
+
+## Invariants
+
+- **No `dispatch.py` grok teaching** — grep hits for `grok` / `grok-bot` / `grok_bot` in `dispatch.py` stay zero (comments-about-harnesses-in-the-abstract do not count as teaching).
+- Adapter is a named harness module, not a town and not a fork of read/write/dispatch/workflow/send.
+- Chain growth for directors stays on **pi parents** via unified dispatch; this adapter does not move parent/kid work onto Grok Bot.
+- **No new remote heads. No MAIN push from this seat.**
+- Config row `harnesses.grok-bot` is **not** authored here (Belam / `goal:g7.25.2`).
+
+## Falsifier
+
+1. `python3 -c 'from extensions.agi.bin.adapters import adapters; m=adapters.load("grok_bot"); assert all(hasattr(m,n) for n in adapters.REQUIRED)'` — or the project's equivalent `adapters.load("grok_bot")` path — succeeds once a config row exists; **missing any REQUIRED name fails at load** with the existing AdapterError shape. Until g7.25.2 lands the row, prove the module imports and defines every REQUIRED name by direct import of `grok_bot_adapter`.
+2. `needs_credential({...}) is False`; `is_alive(os.getpid())` is True; `build_command` returns a list whose first element is the resolved bin and that includes `-p` + context path; `restart` is callable and rebuilds that argv (not `NotImplementedError` for stub-argv reasons).
+3. `grep -E 'grok(-bot|_bot)?' extensions/agi/bin/dispatch.py` → **zero** teaching hits (ideally absolute zero).
+4. Committed tests under `extensions/agi/tests/test_grok_bot_adapter.py` pass individually (`env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_grok_bot_adapter.py -q -p no:cacheprovider`).
+5. Build node(s) for the adapter (and tests) exist with sanctioned write provenance / `payload_ref` as required by prior MURs.
+
+## Out of scope
+
+- **`harnesses.grok-bot` config row** → `goal:g7.25.2` (Prime-at-merge / Belam).
+- Measured real CLI flags from `<bin> --help` (later).
+- Same-harness workflow/message handback; cross-machine mesh messaging.
+- Edits to pi / Claude Code / copilot adapters.
+- Seating every town on Grok Bot.
+
 ## Agent Notes
+
+Assigned to **director-belam** (CORE TOWN). Owner/Prime 2026-09-21: land of tip `8e34ec55d` HOLDs until this body matches standing template; then whole-batch MUR → numbers-only `[merge-up]`. Sibling residue tip `1e9e94b75` add/add on adapter build is Prime/ff at g7.25.2 merge (keep mint `93a56c11`). `spawn.parallel=1`. Do not author config row on this land path.
 Why: parent goal:g7.25 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
+
+standing body fleshed 2026-09-21 for format gate
 
 #### G7.25.2 — harnesses.grok-bot config row only (no dispatch.py edit) — status: active
 
@@ -6682,6 +6761,8 @@ Owner ask 2026-09-19 (voice): templates become the **sole** arg builders.
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not reassign or interrupt.
 Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
+
+Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
 
 ### G7.28 — Dispatch persistent mode for occupied seats — status: active
 
