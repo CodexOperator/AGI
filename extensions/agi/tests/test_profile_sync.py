@@ -24,7 +24,8 @@ THOUGHT = ("<!-- THOUGHT:BEGIN — authored, not derived -->\n"
            "why this version\n<!-- THOUGHT:END -->\n")
 
 
-def _repo(tmp_path: Path, ref: str | None = "profile/h1.md") -> Path:
+def _repo(tmp_path: Path, ref: str | None = "profile/h1.md",
+          payload_ref: str | None = None) -> Path:
     """A throwaway repo: `.agi/nodes/hypothesis/h1.md`, optionally linked."""
     graph = tmp_path / ".agi"
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
@@ -34,6 +35,8 @@ def _repo(tmp_path: Path, ref: str | None = "profile/h1.md") -> Path:
           'status: pending\n')
     if ref is not None:
         fm += f'profile_ref: "{ref}"\n'
+    if payload_ref is not None:
+        fm += f'payload_ref: "{payload_ref}"\n'
     fm += "---\n\n"
     (graph / "nodes" / "hypothesis" / "h1.md").write_text(
         fm + BODY + "\n" + THOUGHT)
@@ -107,3 +110,49 @@ def test_escaping_and_node_refs_are_refused_by_name(tmp_path, ref):
     assert not (repo / "profile").exists()
     assert not (tmp_path.parent / "escape.md").exists()
     assert not (repo / ".agi" / "nodes" / "evil.md").exists()
+
+
+def test_no_project_root_is_refused_by_name(tmp_path):
+    """cwd outside any `.agi` -> named refusal, never Path(None) TypeError."""
+    bare = tmp_path / "bare"
+    bare.mkdir()
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "hypothesis:h1"], cwd=bare, capture_output=True,
+                       text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr
+    assert "no project root" in r.stderr
+    assert "TypeError" not in r.stderr
+
+
+def test_a_directory_target_is_refused_by_name(tmp_path):
+    """`dest.is_dir()` -> named refusal, never an uncaught IsADirectoryError."""
+    repo = _repo(tmp_path, ref="profile_dir")
+    (repo / "profile_dir").mkdir()
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "hypothesis:h1", "--check"], cwd=repo,
+                       capture_output=True, text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr and "directory" in r.stderr
+    assert "IsADirectoryError" not in r.stderr
+
+
+def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
+    """Residue 4: the projection does not advance ahead of a failed payload."""
+    repo = _repo(tmp_path, payload_ref="payloads/missing.txt")
+    dest = repo / "profile" / "h1.md"
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    assert dest.read_bytes() == BODY.encode()
+    src = tmp_path / "src.txt"
+    src.write_text("new payload bytes\n")
+    r = _cli(["hypothesis:h1", f"note changed && payload {src}"], repo)
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "does not exist" in r.stderr
+    # The write failed; the derived projection must not have moved.
+    assert dest.read_bytes() == BODY.encode()
+    # Non-vacuous: the node body DID advance, so the current projection
+    # differs from what the artifact still holds — the reorder is what keeps
+    # the projection from running ahead of the payload.
+    _p, projected = profile_sync.project(repo / ".agi", "hypothesis:h1")
+    assert projected != BODY.encode()
+    assert dest.read_bytes() != projected

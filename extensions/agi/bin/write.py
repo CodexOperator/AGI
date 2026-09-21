@@ -2020,13 +2020,11 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                                   log_extra=_log_provenance(actor))
     # goal:g7.31.5.1 — same-action projection: a node declaring `profile_ref`
     # gets its artifact rewritten when its body lands; no ref is a no-op.
-    if res.status != node_writer.REJECTED:
-        try:
-            profile_sync.sync_node(root, edit.node_id)
-        except profile_sync.NoRef:
-            pass
-        except profile_sync.Refused as exc:
-            raise EditError(f"profile projection refused: {exc}") from exc
+    # Ordered AFTER the payload write on purpose (residue 4): the artifact is
+    # a derived projection of a write that may yet fail, so advancing it first
+    # would leave the projection ahead of an (unwritten) payload on any
+    # payload failure. Attempt the payload write first; only a payload that
+    # lands lets the projection move.
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
@@ -2042,6 +2040,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
+    if res.status != node_writer.REJECTED:
+        try:
+            profile_sync.sync_node(root, edit.node_id)
+        except profile_sync.NoRef:
+            pass
+        except profile_sync.Refused as exc:
+            raise EditError(f"profile projection refused: {exc}") from exc
     return res
 
 
