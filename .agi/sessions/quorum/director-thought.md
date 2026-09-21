@@ -19,12 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~03:3xZ
- landed   MP.01 a00-af8cefa3 accept_with_residue (mur-mp-01, both stages ok) -- corpus insufficient (63 real forms vs required 200; dm/merge_up=0) not detector-falsified; kid1 237-set VOID (label-leak, demoted :55), kid2 honest null stands (:70); 4 real residues flagged not fixed (stale kid1 title/body, probes-as-prose not schema field x2, non-reproducible census, hardcoded box path) -- notes on hypothesis+g14.8.3, board Board-section replaced, merge-base a46a1a8db
- minted   MP.02 (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call, TMM.22) under g14.8.3 -- corpus-blocked on real dm/merge_up examples; CHECKED myself: claude-code harness session jsonl exists on disk today (confirmed real, e.g. this own session file) and is a plausibly cheaper unblock than waiting on the full G14.10.2 round -- not attempted, named as the likely first real chunk
- live     TEL.01 a00-365c2943 (pid 1468591, ~26min elapsed, healthy, status=running) -- kid1 already found the real answer: slot-save/seq/kv HTTP routes all 501/404, but libllama-server-impl.so DOES carry seq_add/seq_rm/can_shift -- mechanism exists, not exposed. Declined a same-position cache-reuse proxy as a substitute (would have faked a shift result). Verdict trending `pending`, honest, exactly the ABL.01-style outcome the orders asked for. Bonus correction: :8080 is the ROUTER not the model; the 9B child is on :54437 -- fix this on the hypothesis node once the round lands.
- queued   H1' (g14.9.1, minted, no spend) | G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) | MP.02 (corpus-blocked, see minted line above)
- next     let TEL.01 finish (parent still deciding continue/adjust/done) -- not yet landed
- traps    git commit --amend used once by mistake (unpushed, no harm, but ALWAYS a new commit -- do not repeat) · end-of-turn USER replies drifted to prose paragraphs this session (owner caught it 03:4xZ) -- fixed, calibrated against director-engine/thought-master cards, see diagram rule above
- inbox    merge-up dm sent to thought-master (coalesced, pane busy, will retry -- not a failure); TMM.21+TMM.22 fully closed out
+2026-09-21 ~04:0xZ
+ landed   TEL.01 a00-365c2943 tip 312a42fb7, verdict pending (honest, not disguised-disproved) -- shift mechanism EXISTS in the binary (seq_add/seq_rm/can_shift) but NO enabled HTTP surface reaches it (9/9 slot actions 501, 6/6 candidate routes 404); cache_prompt r2/r3 confirms no shift happens today (cache_n 766 same-pos vs 0 shifted); kid declined to dress up same-position reuse as a shift result; parent independently re-probed and confirmed every number; spot-checked myself, all real. Port correction found: :8080=router not the model, 9B child on :54437.
+ mur      running (agi-director-thought-tel01, bg poll bx4d5lgzu) -- verify before merge-up note, same discipline as every round this session
+ banked   forward-path decision is director/owner-level, not mine alone: (a) restart resident server with --cache-reuse [needs owner permission] vs (b) add a seq_add/seq_rm HTTP route [engine-adjacent, director-engine's lane] vs (c) second model load [out of scope, memory rule] -- will bank this explicitly once the mur clears, not decide unilaterally
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked, see prior landing)
+ next     read the mur result -> note hypothesis+g14.15.1 -> board replace -> bank the (a)/(b)/(c) forward-path choice -> merge-up dm
+ traps    git commit --amend used once by mistake this session (unpushed, no harm, but ALWAYS a new commit) · end-of-turn USER replies had drifted to prose (owner caught 03:4xZ, fixed, see diagram rule)
 ```
