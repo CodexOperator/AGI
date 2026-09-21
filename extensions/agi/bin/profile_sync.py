@@ -8,7 +8,7 @@ its body (frontmatter and THOUGHT stripped); the graph is the SoT. It is NOT
 `.agi/nodes/`, is refused by name and never written.
 """
 from __future__ import annotations
-import argparse, hashlib, os, sys
+import argparse, hashlib, os, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations, node_writer  # noqa: E402
@@ -52,16 +52,36 @@ def project(root, node_id):
     return artifact_path(root, str(ref)), _projected_bytes(nf)
 
 
+def _raw_profile_ref(text):
+    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+    return m.group(1).strip().strip("\"'") if m else ""
+
+
 def check_all(root):
     """Sweep every node with `profile_ref` under `nodes/**` (the retired
     sibling included, goal:g2.10). Returns a dict per linked node with
-    status ok|drift|missing|refused; an unlinked node is not swept.
+    status ok|drift|missing|refused|unreadable; an unlinked node is not
+    swept. An unparseable file never raises: if its raw bytes carry no
+    `profile_ref:` hint it is not a profile-linked node and is skipped;
+    if they do, it cannot be proven in sync and is named `unreadable`.
     """
     if root is None:
         raise Refused("no project root — no enclosing .agi/config.json")
     out = []
     for f in sorted((Path(root) / "nodes").rglob("*.md")):
-        nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
+        try:
+            nf = fmr.load_node_file(f)
+        except Exception as e:
+            raw = f.read_text(encoding="utf-8", errors="replace")
+            if "profile_ref:" not in raw:
+                continue  # unparseable but not profile-linked: not ours
+            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
+                        "actual": None, "expected": None, "path": str(f),
+                        "status": "unreadable",
+                        "detail": f"{type(e).__name__}: {e}"})
+            continue
+        ref = nf.frontmatter.get("profile_ref")
         if not ref:
             continue
         r = {"node_id": str(nf.frontmatter.get("id") or f.stem),
@@ -101,8 +121,9 @@ def main(argv=None):
             print(f"REFUSED: {e}", file=sys.stderr); return 2
         bad = [r for r in rows if r["status"] != "ok"]
         for r in rows:
-            print(f"{r['status'].upper()} {r['node_id']} {r['artifact']} "
-                  f"sha256={r['expected']}")
+            where = r.get("path") or r["node_id"]
+            print(f"{r['status'].upper()} {where} {r['artifact']} "
+                  f"sha256={r['expected'] or 'unavailable'}")
         print(f"{len(rows)} linked, {len(bad)} not ok")
         return 1 if bad else 0
     if not a.node_id:
