@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: residue-goal-version-2026-09-21
+thought_session: suite-per-batch-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -249,6 +249,32 @@ RIGHT  MUR accept_with_residue ──▶ write.py goal:gN… (residue table + ne
                                  ──▶ spawn parents ──▶ MUR ──▶ … ──▶ residues=0
 ```
 
+## 3e. Full verify suite after every completed batch (owner 2026-09-21 — HARD)
+
+**Why own branches exist:** each director burns the **full verify suite on THEIR branch tip** after a completed batch (residues=0 + format ✓), before `[merge-up]`. That is the point of seat/worktree isolation — not to skip the suite.
+
+```
+batch done (residues=0 · format ✓)
+  ├─ on THIS seat branch / worktree only
+  ├─ FULL verify suite  (engine suite · F7 lock rules still apply)
+  ├─ green ──▶ [merge-up] numbers-only (tip · suite stamp · mur)
+  └─ red   ──▶ fix in-loop · re-suite · never merge-up red
+```
+
+| Do | Don't |
+|---|---|
+| full suite on **your** branch tip after each clean batch | skip suite because "touched tests already ran" |
+| one suite window per completed batch (diagram-max report) | chatter mid-suite |
+| Belam/land path still gates on green suite evidence | merge-up with suite red or unrun |
+| helper: suite on local tip before batch → director-belam | push MAIN to "get suite" |
+
+Touched-family pytest at harvest remains for **rounds**. The **batch** gate is the full suite on the branch.
+
+```
+round harvest ──▶ touched-family tests
+batch close   ──▶ full verify suite on seat branch ──▶ then [merge-up]
+```
+
 ## 4. Prefer graph engine over raw tools
 
 Every graph touch goes through the **five pane-facing routes** (see also `goal:g7.31.3`). Raw shell/git under `.agi/nodes` is last resort.
@@ -432,19 +458,21 @@ Assigned to **<post>**. <owner one-liners only.>
 
 ```
 mint/edit
-  → snapshot-goals --render (same commit as notes)
-  → links/schema when batch closes
+  → snapshot-goals --render (same commit as notes) when goals changed
+  → links/schema as needed
   → whole-batch MUR
-  → residues=0 AND format ✓  ──▶  [merge-up] Belam
-  → residues>0 OR format ✗   ──▶  parents loop (NO Belam)
+  → residues=0 AND format ✓
+  → FULL verify suite on THIS seat branch  (§3e)
+  → suite green ──▶ [merge-up] Belam
+  → residues>0 OR format ✗ OR suite red ──▶ parents/fix loop (NO Belam)
 ```
 
-**Land gates (both required):**
+**Land gates (all required):**
 1. Goal body passes §6 format (else format residue → re-MUR).
-2. **Residues = 0** (else keep looping — never `[merge-up]` / never Belam land).
+2. **Residues = 0** (else keep looping — never `[merge-up]`).
+3. **Full verify suite green on the seat branch** (§3e).
 
 `accept_with_residue` is a **continue signal**, not a land signal.
-
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 owner 2026-09-21: directors MAY thin MUR/overall-review file lists when context stacks too thick (ctx-build timeout risk); lean first (≤8–12: tip+falsifier+residue), raise timeout only after; never ship fat context; graph routes only
