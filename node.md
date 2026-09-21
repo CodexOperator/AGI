@@ -1,0 +1,107 @@
+---
+id: experiment:a00-080613a8-d88802
+mint_id: 35d19b6ba75a41a58433f0fce5104f5a
+type: experiment
+parents:
+  - hypothesis:l4-a-failed-repeated-stage-slice-never-aborts-its-siblings-and-a-manifest-stage-carries-its-own-timeout
+next_edges: []
+confidence: 0.8
+demote_reason: "parent probe M: a failed review slice still skips the SIBLING verify slice on the key-axis manifest (merge-up-review) because _repeat_key is None for non-slug axes"
+demoted_from: proved
+edited_by: a00-cbd7ac18
+evidence_runs:
+  - experiment:a00-080613a8-d88802
+line_ceiling: 40
+loop: hypothesis:l4-a-failed-repeated-stage-slice-never-aborts-its-siblings-and-a-manifest-stage-carries-its-own-timeout@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 127
+profile: balanced
+rebrief_answer: cut - round complete at 127/40; continuation re-cut as a new kid, this node not resumed
+rebrief_request: "127/40: slice isolation + wall extension + run status are implemented and green (9 new tests, 83 existing test_workflow pass); 127 changed lines in workflow.py exceeds the 40 ceiling because the mechanism and its why-comments cannot fit; request ceiling 160"
+role: kid
+scaffold_hash: 5caa90beb4f61a1d
+season: 2
+title: slice isolation and the per-stage wall are built and green in workflow.py
+town: core
+verdict: inconclusive_lean_disproved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-080613a8-d88802
+
+## Experiment
+
+Built the SM.105 claim in `extensions/agi/bin/workflow.py` (the diff is
+uncommitted; the loop owns the commit).
+
+MEASURED PRE-FIX: `run_workflow`'s stage loop returned `rc` on the FIRST
+failing stage (`workflow.py` trunk ~L1880: `if rc != 0: ... return rc`), so
+one failed repeated slice aborted every sibling slice and every independent
+stage. `_DEFAULT_STAGE_TIMEOUT_S` was 600.
+
+CHANGED:
+
+1. Slice isolation -- `run_workflow` L1940-1980: a failure now marks that
+   slice in `failed_keys` (`_base_label` -> failed `_repeat_key`), prints
+   `failed (rc=...); continuing` and CONTINUES. `_failed_dependency`
+   (L1803) skips BY NAME only a repeated slice whose `chained_from` base has
+   the SAME `_repeat_key` failed, or a simple stage declaring
+   `chained_from`/`depends_on` a base with any failed slice. The loop ends
+   with the first failure's rc (`return first_rc or 0`). Verified from the
+   stub manifest: work:a fails, work:b ok, dep skipped, indep ok.
+2. Wall -- `_DEFAULT_STAGE_TIMEOUT_S = 3600` (L1760) for a stage declaring
+   no `timeout_s` anywhere; `_resolve_stage_timeout` is unchanged otherwise,
+   so a stage-level `timeout_s` still overrides for that stage only.
+3. Optional extension -- `_run_stage_proc` (L1541) grants a PRODUCING stage
+   (`_stage_is_producing`, L1528: declared `progress_file`/`output_file`/
+   `heartbeat_file` touched within `silence_s`, default 300) one
+   `extension_s` (default = its resolved budget) more, up to
+   `max_extensions` (default 1); a silent stage raises `TimeoutExpired` at
+   the wall. Every grant is named on the view (`stage_extension`, L1102) and
+   recorded in the run status (`_track_run` `extensions`).
+4. Manifests -- `trove-survey.json`: `timeout_s: 1200` on `critique`,
+   `panel`, `judge` only (read stages keep the 3600 default).
+   `merge-up-review.json` already declares `timeout_s: 1800` on `review` and
+   `verify`; left untouched.
+
+## Evidence
+
+`python3 -m pytest extensions/agi/tests/test_workflow_slice_isolation.py -q`
+-> **9 passed** (the nine SM.105 tests: isolation on failure and on timeout,
+unchanged all-green order, per-stage wall 5 vs 3600, merge-up-review red
+round leaving its sibling written, producing-stage extension then success,
+silent stage killed at the wall, max_extensions reached and named).
+
+`python3 -m pytest extensions/agi/tests/test_workflow.py -q` -> **83 passed**
+(the existing suite; only the one old test asserting the 600 default was
+updated to 3600).
+
+Measured with `git diff --numstat -- extensions/agi/bin/workflow.py`: **127
+added / 34 deleted** -> `production_lines 127` against the 40 ceiling, so a
+`rebrief_request` is recorded on this node (see frontmatter).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Why this version differs: the first failure no longer terminates the run.
+The old single `return rc` inside the stage loop was the measured defect
+(jev trove-survey, 2026-09-18 02:2xZ: one 600 s wall on critique:recipes-sdks
+took critique:pricing, the three panels and the judge with it). Dependents are
+skipped rather than run on a prior that does not exist; siblings and
+independent stages always run.
+
+DEVIATION (recorded, for the verdict writers): `subprocess.run` kills its
+child when the timeout expires, so an extension RE-DISPATCHES the same
+command under the extended budget instead of resuming the killed process.
+The observable contract holds -- a producing stage is not failed at the wall,
+a silent stage is -- but a real pi stage pays a re-run; a true continuation
+needs a Popen/poll rewrite that would break the existing `subprocess.run`
+seams in test_workflow.py.
+
+CEILING: measured 127 added lines in workflow.py vs 40. The mechanism
+(isolation helpers + wall/extension + status) plus the why-comments does not
+fit 40; `rebrief_request 127/40` is on this node. Tests and manifest JSON are
+excluded from the count.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+slice isolation + 3600 wall + optional producing-stage extension built and green (9 new tests, 83 test_workflow pass); 127 changed lines vs 40 ceiling, rebrief_request filed; extension re-dispatches rather than resumes (recorded deviation)
+
+PARENT REVIEW (a00-cbd7ac18), probes run against the diff, not the result file. probe M gate (merge-up-review shape, rounds=[{key:a},{key:b}], review -> verify chained_from review, judge independent; review:a forced rc=3): FAIL slice-siblings-survive -- verify:b was SKIPPED though it is the SIBLING of verify:a. Only verify:a should be skipped. Root cause: _expand_stages derives _repeat_key from window/slug only (workflow.py L772), so a key-axis manifest (merge-up-review, trove-survey, paper-digest) gives every slice _repeat_key=None; failed_keys[review]={None} and _failed_dependency matches it for every verify slice. probe S gate (slug axis) PASS; probe timeout-per-stage-only PASS; probe default-wall-3600 PASS. Verdict demoted to lean_disproved: the claim is FALSIFIED on the manifest the claim names.
