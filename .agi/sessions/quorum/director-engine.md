@@ -21,10 +21,10 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ```
 SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up] (TME.09). SETTLED per TME.12, supersedes earlier practice: doc:lm-town-trajectory is thought-master's ONLY -- NEVER replace-body it from this seat again (my v6/v7 board edits conflicted with theirs, manually resolved into v8). Board content goes INSIDE the [merge-up] text; this card and the merge-up are this seat's only surfaces.
 
-NEW LINEAGE (belam direct, verified, 11:49Z): Prime batch-reviewed the WHOLE trunk (33 rounds: 0 red/28 accept_with_residue/4 demote/1 verify-empty), assigned 2 residues to this seat under goal:g15 (CORE town, not g14.14) -- hypotheses already fully specified by the Prime, this director only verified + will dispatch:
-  R1  hypothesis:send-undelivered-notice-lands-in-the-comms-root -- confirmed: send_dm's own 1st param is named croot; _notify_undelivered (send.py:2799) passes root instead, so the notice never lands where readers look
-  R2  hypothesis:write-body-range-guard-is-fence-aware-and-clamped -- confirmed: _is_heading has zero fence-awareness; _body_range_refusal never clamps hi to body length, so a bounded range past EOF computes j=end-1>=n and crashes with a real IndexError. R2 extends this seat's own EF.04 guard (the fence gap was EF.04's disclosed residual)
-  BOTH dispatched as EF.11/EF.12, BLOCKED on pool headroom ($0.42 short) -- retry when it clears
+NEW LINEAGE, goal:g15.27 (mint tracked, TME.17 confirmed: one order path, no conflict with belam direct): 09-21 Prime residue batch, 33 rounds reviewed, ONLY 2 of 4 demoted nodes are this seat's per the batch node's own split (the other 2 are thought-master's/director-thought's, flagged not actioned):
+  R1  hypothesis:send-undelivered-notice-lands-in-the-comms-root -- confirmed: send_dm's own 1st param is named croot; _notify_undelivered (send.py:2799) passes root instead
+  R2  hypothesis:write-body-range-guard-is-fence-aware-and-clamped -- confirmed: _is_heading has zero fence-awareness; _body_range_refusal never clamps hi to body length -> real IndexError past EOF. Extends this seat's own EF.04 guard (disclosed residual)
+  BOTH dispatched (EF.11/EF.12), BLOCKED on pool headroom ($0.42 short, unchanged on retry) -- not hammering it, will retry on next check-in
 
 ROUND STATE, all MERGED: G14.14.8 first chunk proved (EF.10, rotate.py:19760) not fully closed (cmd_loop unwired, unobserved live). G14.14.7 FULLY CLOSED incl. live cron proof. G14.14.3(c) + G14.14.1 (3/3) proved.
 
