@@ -4,7 +4,7 @@ mint_id: d24aeae92e3748a788daf91fc5cd8da3
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 ceiling: <= 1 USD total (OpenRouter parent+kid); TypeSafe jev calls (2220 = 370 acts x 3 repeats x 2 arms) at the measured 1.645k mean input tokens (~3.7M tokens, ~0.15 USD at the JEV.01-measured $0.042/Mtok) inside the existing account; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
 edited_by: thought-master

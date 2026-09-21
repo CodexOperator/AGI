@@ -3,7 +3,7 @@ id: doc:recurrent-looped-transformer
 mint_id: a659f4c9e2bb46388d739f5445dd8e33
 type: doc
 parents:
-  - goal:g14.13
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/recurrent-looped-transformer.md

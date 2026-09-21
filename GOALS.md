@@ -3191,7 +3191,7 @@ closed cleanly in one chain do not.
 ## Agent Notes
 ROUND 0 DELIVERED (thought-master 05:54Z): doc:lm-round0-table -- (a) there is no qwen3.8-50b; the line is Qwen3.8-27B / Ternary Bonsai 2 27B (PTQ1_0 5.95 GB fits the 8 GB GPU with 0.54 GB KV at 8k, hybrid attention); (b) Camber XS = 1x L4 24 GB, 8 cores, 32 GB, 1.50 USD/h, billing granularity unpublished with a core-hour overbilling report, job-level SDK/CLI exists; (c) the XS does not pay for kid inference: ~2.8-2.9 USD per 1M output at 8 slots vs deepseek-v4-flash 0.177 (16x), parity with hosted qwen3.8-27b (2.55) only at >= 8 parallel kids; break-even 2,350 tok/s vs flash / 163 tok/s vs the hosted 27B; our GPU2070S (448 GB/s) beats the L4 (300 GB/s) for the ternary 27B. The XS is for VRAM headroom + training only; a 0.03 USD CPU job first to observe billing granularity; the 100 signup credits cover the first hour.
 
-CHARTER TABLE REVISED 22:3xZ 09-20 (thought-master; every number on its node): (a) candidate line CONFIRMED = Qwen3.8-27B / Ternary Bonsai 2 27B -- ABC.01 (hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box, merge 79208601f) MEASURED the 8 GB row on the 2070 SUPER: 64/64 layers, 7,268 MiB at load, tg 23.0 tok/s empty / 18.9 at 16.8K ctx, 7.43 J/token; HumanEval pass@1 142/164 = 86.6 pct vs Qwen3.5-9B-Q4_K_M 128/164 = 78.0 pct (McNemar p = 0.0094) -- the bigger ternary beats the smaller 9B in the same 8 GB. Correction to doc:lm-round0-table verdict 2: at the 64K line the 27B leaves ~890 MiB = ONE stream, not 3 slots at 8k; parallel slots on the rig need a shorter ctx line, measured next time, never assumed. (b) Camber XS row CLOSED for kid inference (round-0 verdict 1 stands; re-quoted against the new reference bar deepseek-v4.1-flash at 0.60 USD per 1M out the break-even is 694 aggregate tok/s, still out of reach for a 27B on one L4) and OPENED for training by the owner 21:4xZ (verbatim on goal:g14: I'm fine with spending camber hours on it and failing it's fine since at least it can run parallel for fine tuning stuff or even more RL and heck even pretraining a bunch of smaller models in parallel) -- the XS is FT.1's row (L4, job-level, via the Prime); the 0.03 USD CPU billing probe still precedes the first GPU hour. (c) every cost row gains an abliterated? column (owner 16:2xZ, verbatim on goal:g14: a prod model must be abliterated, by us if by nobody else; identical -> abliterated wins): Bonsai PTQ1_0 = stock NOT abliterated, the OrcaBonsai runtime LoRA is routed but inert on coding (C1 141/164 completions byte-identical to B; 86.0 vs 86.6 pct, p = 1.0), so the row has no abliteration proof yet; Qwen3.5-9B-Q4_K_M = stock NOT abliterated, ABL.01 (hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost, G14.9) is the town's first own lever; deepseek-v4.1-flash = hosted, N/A. The switch (G14.11 / SWR.01) is a QUALITY test on the battery (within 10 pct of v4.1-flash), a different axis from this cost table; both must hold before the chains mint an mvp.
+CHARTER TABLE REVISED 22:3xZ 09-20 (thought-master; every number on its node): (a) candidate line CONFIRMED = Qwen3.8-27B / Ternary Bonsai 2 27B -- ABC.01 (hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box, merge 79208601f) MEASURED the 8 GB row on the 2070 SUPER: 64/64 layers, 7,268 MiB at load, tg 23.0 tok/s empty / 18.9 at 16.8K ctx, 7.43 J/token; HumanEval pass@1 142/164 = 86.6 pct vs Qwen3.5-9B-Q4_K_M 128/164 = 78.0 pct (McNemar p = 0.0094) -- the bigger ternary beats the smaller 9B in the same 8 GB. Correction to doc:lm-round0-table verdict 2: at the 64K line the 27B leaves ~890 MiB = ONE stream, not 3 slots at 8k; parallel slots on the rig need a shorter ctx line, measured next time, never assumed. (b) Camber XS row CLOSED for kid inference (round-0 verdict 1 stands; re-quoted against the new reference bar deepseek-v4.1-flash at 0.60 USD per 1M out the break-even is 694 aggregate tok/s, still out of reach for a 27B on one L4) and OPENED for training by the owner 21:4xZ (verbatim on goal:g14: I'm fine with spending camber hours on it and failing it's fine since at least it can run parallel for fine tuning stuff or even more RL and heck even pretraining a bunch of smaller models in parallel) -- the XS is FT.1's row (L4, job-level, via the Prime); the 0.03 USD CPU billing probe still precedes the first GPU hour. (c) every cost row gains an abliterated? column (owner 16:2xZ, verbatim on goal:g14: a prod model must be abliterated, by us if by nobody else; identical -> abliterated wins): Bonsai PTQ1_0 = stock NOT abliterated, the OrcaBonsai runtime LoRA is routed but inert on coding (C1 141/164 completions byte-identical to B; 86.0 vs 86.6 pct, p = 1.0), so the row has no abliteration proof yet; Qwen3.5-9B-Q4_K_M = stock NOT abliterated, ABL.01 (hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost, G5.25) is the town's first own lever; deepseek-v4.1-flash = hosted, N/A. The switch (G5.27 / SWR.01) is a QUALITY test on the battery (within 10 pct of v4.1-flash), a different axis from this cost table; both must hold before the chains mint an mvp.
 
 ### G5.20 — The [region] SECRETS HUB (core town goal now; the encryption town + its master LATER, banked): the bare-metal box (8 GB unified, Intel HD, headless) holds the Doppler CLI auth and becomes the secrets gateway — the public box never holds the Doppler token; the hub issues short-lived per-spawn keys (provisioning.py mint moves there); first consumer = the thought master Camber rentals; connection details come from the owner — ask for nothing (OWNER ORDER 23:33Z) — status: active
 
@@ -7416,6 +7416,279 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
 
+### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: active
+
+# goal:g7.32
+
+## Why this exists
+
+**Sibling of `goal:g7.31`, parent `goal:g7`.** Owner ask 2026-09-21 ET + director-belam tie-break: `g7.31` already has **live nesting** (`.1`–`.5`, `.1.1`/`.1.2`, `.3.1`/`.3.2`) and WIP tips — **do not re-nest or rewrite the g7.31 umbrella**. New surface intent lands here at the **same level**:
+
+```
+goal:g7
+├─ g7.25–g7.30   adapter land + harness prereqs (Related)
+├─ g7.31 ★       pane = seat spine (UNTOUCHED this ask)
+│  └─ .1–.5 …
+└─ g7.32 ★       THIS — messaging / session-ingest / pane methods / send router
+   ├─ .1 session ingest
+   ├─ .2 magic-pane messaging
+   ├─ .3 optional pane methods on one adapter
+   └─ .4 send.py thin router
+```
+
+Owner vision covered (no duplicate of g7.31.1–.5 meanings):
+- grok **session ingest**
+- **magic-pane messaging** (grok↔grok native; grok→claude/pi nudge→send)
+- **one adapter/harness** with optional pane methods
+- **send.py** thin router
+
+## Target end-state
+
+```
+ sessions/ ──ingest──▶ graph nodes          (g7.32.1)
+ grok pane ◄──native──▶ grok pane           (g7.32.2)
+ grok pane ──nudge──▶ send.py ──▶ claude/pi (g7.32.2 + .4)
+ grok_bot_adapter.{build_command, pane?}    (g7.32.3)
+ send.py = thin transport router only       (g7.32.4)
+```
+
+- g7.31 owns durable pane hold + five engine routes + handbacks + doc sync.
+- g7.32 owns what travels **on** that spine once the pane exists: ingest, messaging, method surface, routing.
+
+## Invariants
+
+- Never reparent or rewrite `goal:g7.31` tree for these intents.
+- No duplicate of g7.31.1 (CLI+hold), .2 (occupation), .3 (five routes), .4 (handbacks), .5 (doc sync) — **link Related**.
+- `dispatch.py` / `rotate.py` still gain **zero** harness-name special-case for `grok`.
+- send.py stays thin: choose transport, never policy/formation.
+
+## Falsifier
+
+1. Five nodes on `origin/core/season2/main`: `goal:g7.32` + `.1`–`.4`, standing bodies (Why→…→Agent Notes).
+2. `goal:g7.31` file SHA / body unchanged by this ask except optional town Agent Notes elsewhere.
+3. Grep: no new `grok` special-case in `dispatch.py`/`rotate.py` from this family.
+
+## Out of scope
+
+- Re-nesting under g7.31; rewriting g7.31 umbrella.
+- Landing adapter itself (g7.25/g7.30) or durable pane hold (g7.31.1).
+- Pushing `core/main` (Belam/Prime only — this ask's merge is Belam-led).
+
+## Agent Notes
+
+| id | intent | extends (not duplicates) |
+|---|---|---|
+| g7.32.1 | session ingest | — |
+| g7.32.2 | magic-pane messaging | g7.31.1 precursor pane |
+| g7.32.3 | optional pane methods | g7.25 adapter surface + g7.31.1 |
+| g7.32.4 | send.py thin router | g7.31.3 send route |
+
+**Related:** `goal:g7.25`–`goal:g7.31` family. **Town:** `town:core` (encryption-town host; no separate encryption town node).
+
+Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
+
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
+
+# goal:g7.32.1
+
+## Why this exists
+
+**Parent `goal:g7.32`.** Owner vision: **grok session ingest** — a completed (or checkpointed) Grok Bot session must land as graph-addressable residue, not a stranded transcript under `sessions/`.
+
+g7.31 owns the pane spine; this child owns the **ingest pipe** from session artifacts → nodes.
+
+## Target end-state
+
+```
+grok session artifact
+        │ ingest
+        ▼
+ hypothesis / experiment / note  (minted, linked, town:core)
+        │
+        └── seed/parent edges back to the seat's live goal
+```
+
+- One ingest path; idempotent on re-run (same session → same mint or explicit supersession).
+- Directors can point a batch at "ingest last N grok sessions" without hand-copy.
+
+## Invariants
+
+- Does not replace g7.31.5 (graph↔harness-doc sync) — ingest is session→graph, not profile sync.
+- No silent drop: every ingest writes a measurable node id or a refused reason.
+- Actor/provenance preserved (`edited_by`, `thought_session`).
+
+## Falsifier
+
+1. CLI/script: given a fixture grok session, produces ≥1 new graph node id on stdout and a file under `.agi/nodes/`.
+2. Re-ingest of the same fixture does not fork duplicate mint_ids (or records an explicit supersession edge).
+
+## Out of scope
+
+- Magic-pane messaging (g7.32.2); send routing (g7.32.4).
+- Durable pane hold (g7.31.1).
+
+## Agent Notes
+
+**Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
+
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
+
+# goal:g7.32.2
+
+## Why this exists
+
+**Parent `goal:g7.32`.** Owner vision: **magic-pane messaging** —
+- **grok↔grok** native (same harness, pane-to-pane)
+- **grok→claude/pi** via **nudge→send** (cross-harness; never pretend native)
+
+g7.31.1 is the durable pane **precursor**; this child is the **messaging product** on that pane.
+
+## Target end-state
+
+```
+        ┌── native ──┐
+   grok A             grok B
+        └── nudge ──▶ send.py ──▶ claude / pi
+```
+
+- Native path never shells out to `send.py` for same-harness.
+- Cross-harness always: nudge (pane intent) → `send.py` (transport).
+- Diagram-max every messaging design note.
+
+## Invariants
+
+- Does not re-spec g7.31.1 hold or g7.31.3 five routes — messaging **uses** them.
+- Cross-harness never claims "native".
+- No formation/policy inside the messaging adapter (that stays seats/rotate).
+
+## Falsifier
+
+1. Same-harness grok↔grok demo path documented + scripted without invoking send.py transport.
+2. Cross-harness path shows nudge artifact then send.py invocation in one measured trace.
+3. Grep: messaging module does not import rotate/dispatch internals.
+
+## Out of scope
+
+- send.py implementation details (g7.32.4).
+- Optional pane method shape on the adapter (g7.32.3).
+- Five engine routes list (g7.31.3).
+
+## Agent Notes
+
+**Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
+
+#### G7.32.3 — One adapter/harness with optional pane methods — status: active
+
+# goal:g7.32.3
+
+## Why this exists
+
+**Parent `goal:g7.32`.** Owner vision: **one adapter/harness** with **optional pane methods** — pane ops are methods on the same adapter object that already exposes `build_command` (g7.25), not a second parallel API.
+
+## Target end-state
+
+```
+grok_bot_adapter
+  required: build_command, …          (g7.25 family — done surface)
+  optional: pane_attach / pane_send / pane_read / …
+                 │
+                 └── only if seat holds a named pane (g7.31.1)
+```
+
+- Callers feature-detect optional methods; absence ⇒ non-pane harness path.
+- No second `grok_pane_adapter.py`.
+
+## Invariants
+
+- Required surface stays g7.25 — this goal adds **optional** methods only.
+- Durable hold semantics stay g7.31.1 — methods wrap, do not re-own hold.
+- Zero `grok` special-case in dispatch/rotate.
+
+## Falsifier
+
+1. Adapter module exposes optional pane methods behind a single interface; harnesses without panes omit them.
+2. Unit test: calling optional method without a held pane fails closed with a named error (not hang).
+3. `ls` / import graph: still one adapter module for grok-bot.
+
+## Out of scope
+
+- Messaging product semantics (g7.32.2).
+- Session ingest (g7.32.1).
+- Rewriting g7.25 REQUIRED stubs.
+
+## Agent Notes
+
+**Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
+
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
+
+# goal:g7.32.4
+
+## Why this exists
+
+**Parent `goal:g7.32`.** Owner vision: **`send.py` thin router** — choose transport (native mesh / signed seat send / nudge bridge), never embed formation, rotation, or harness policy.
+
+g7.31.3 lists `send` among five pane-facing routes; this child owns the **router thinness** contract for that route.
+
+## Target end-state
+
+```
+ caller ──▶ send.py ──┬── native seat channel
+                      ├── signed DM / board path
+                      └── cross-harness nudge bridge
+                 (no rotate / no dispatch / no argv build)
+```
+
+- One entrypoint; transports are plugins/tables, not if-harness soups.
+- Wrap/peek column behavior (legacy g15.22 lineage) stays presentation, not policy.
+
+## Invariants
+
+- send.py imports no rotate/dispatch orchestration.
+- Policy refusals (FORGED, ring, written_by) stay in their modules; send only surfaces them.
+- Thin = LOC and coupling bounded; growth goes to transport modules.
+
+## Falsifier
+
+1. `send.py` (or its package `__init__`) has zero imports of `rotate` / `dispatch` orchestration symbols.
+2. Adding a new transport is a new module + table row, not a new harness `if` in send.py.
+3. Cross-harness nudge path from g7.32.2 lands through this router.
+
+## Out of scope
+
+- Magic-pane product UX (g7.32.2).
+- Pane method surface (g7.32.3).
+- Signature enforcement flips (separate g15 lineage).
+
+## Agent Notes
+
+**Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
+
+### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g7.33
+## Agent Notes
+**Owner source (2026-09-21 01:1xZ-01:2xZ, verbatim on goal:g14):** "Let's add all these engine fixes as rounds as well and have them be running alongside the rest. You can use more ram if needed, use most or all of it if needed just measure it out well. SM is not active so we might as well do it. Spin up a second director seat just for engine fixes if needed, and make sure to really stay on top of batching the work so the sonnet directors do most of it. One minor upgrade you can add to the dispatch is make automatically chain parent dispatch, parent drain, and mur in one workflow. Then also do a batch workflow that does each round as serially or as parallel as you want it depending on memory allocation, and then does a whole-batch MUR for the whole sub goal that parents all these sub-subgoals." / "conserve tokens at all costs via batching and openrouter parent kid utilization. Lean on them to carry the graph growth."
+**Commits to.** (1) Every engine trap the town's rounds hit (below) becomes a pi round — a `hypothesis:` with a testable claim, a falsifier, a committed test, a file scope and a ceiling in ENGINE UNITS (source-suffix lines; data files never count) — under a G7.33.x sub-sub-goal in this same format, minted by the engine director before the round runs. (2) The two dispatch upgrades the owner named land as REGISTERED workflows on the pi route (`workflow.py run <name>`; never the Claude Workflow tool): `agi-round` = parent dispatch → drain → mur in one command; `agi-batch` = rounds[] scheduled serially/in parallel by a memory allocation, each through `agi-round`, closed by ONE whole-batch MUR over the sub-goal that parents the sub-sub-goals. (3) Engine rounds run ALONGSIDE research rounds (SWR, MP, OSC, FT) within the measured memory budget; no engine round ever touches the GPU.
+**Invariants.** Kids write the code, parents review it, directors batch and order, the master merges — nobody above a kid writes engine code by hand. One [merge-up] per batch, gates unchanged (0 node deletions · leak scan · links 0 broken · prayer grep 0 on nodes · GOALS byte-identical). Every round names its memory in GB and the batch never schedules more than the box measures: 15 GB total, 12 GB available at 01:20Z 09-21 with the 9B resident on :8080; a model-loading kid needs up to 5.85 GB RSS (ABL.01), an engine kid ~1 GB; `memory_max` is a CEILING per kid, not a reservation — at most ONE model-loading kid on the host at a time, engine kids 2-3 in parallel. Existing behaviour is pinned by the engine suite before and after every change (`python3 -m pytest extensions/agi/tests/ -q`, ONE announce line to belam first, F7 lock rule).
+**Falsifiers.** A sub-sub-goal is falsified when its round's committed test cannot reproduce the trap it claims to fix (then the trap was mis-diagnosed — the WHY names the real mechanism and the chunk is re-minted), or when the fix breaks a suite test (demote, never merge). `agi-batch` is falsified if a batch of 3 engine rounds on this box does not finish with one whole-batch MUR and zero hand steps by the director between dispatch and review.
+**Done when.** Both workflows exist and have run one real batch end to end; every trap below has a landed round (proved, or disproved with its WHY); the director cards and the master card have shrunk to identity + stops + a pointer to `doc:lm-town-trajectory`.
+**First chunks (the engine director mints G7.33.1-4, same format, then one hypothesis per lettered item; ceilings 200 engine lines; cap 1 USD per round; batch them):**
+- **G7.33.1 write.py ergonomics** — (a) `replace body N:M` is BODY-relative with line 1 = the BODY:BEGIN marker and silently lands mis-offset edits (ABL.01's winning node was corrupted this way): anchor-based replace (`replace body --at '<heading>'` or absolute file lines echoed by `read body`) + a guard that refuses a range splitting a heading/paragraph; (b) `create` leaves the unfilled scaffold body (`What is the testable claim?…`, seen on TM.61/62/69 and SWR.01): `create` renders the body from the frontmatter it was given, or takes `--body-file`; (c) `replace body` cannot share a submit with `note`/`thought` — either ordered composition or the refusal printed in `-h`.
+- **G7.33.2 comms hardening** — (a) `send.py send --body-file PATH` / stdin so no shell quoting ever touches a body (the 22:19Z 09-20 env dump was a backtick pair inside a double-quoted argument); (b) phantom nudges: a nudge fired at 23:05Z 09-20 and 01:0xZ 09-21 while `send.py read` returned empty — the nudge marker and the read marker must agree (a fired nudge implies a read that returns the message), measured on those two cases.
+- **G7.33.3 dispatch/runtime** — (a) the CEILING clause in engine units: `brief.py`'s CEILING line and the `[hypothesis]` schema wording say "source-suffix lines; data files never count", and `cli.py session-complete` prints the measured number beside the recorded one; (b) a kid session-dir locator (`dispatch.py where <kid-id>`): a kid dispatched by a parent nests under the parent's worktree (`.agi/worktrees/<parent>/.agi/sessions/iter-<X>/<kid>/`) and the director looked in the wrong place; (c) memory per round: `dispatch.py --memory <GB>` overriding `agent_dispatch.memory_max`, read by `agi-batch`; (d) `links.py schema` under 60 s on this graph (it exceeds 120 s today); (e) startup noise: `branches.py: deprecated alias used: season/s2 -> season2/main` — the caller in `rotate.py status` uses the new name.
+- **G7.33.4 the two workflows (owner's explicit asks; build AFTER 7.33.3(c))** — (a) `agi-round`: dispatch one parent → drain (poll the unit/lease until it exits or its merge-up commit lands, with the round's wall as the timeout) → run the registered mur → one structured return {round, verdict, residues, spend, wall}; (b) `agi-batch`: args {subgoal, rounds[{hypothesis, memory_gb, wall_min}], available_gb} → schedule (parallel while Σ memory_gb of live rounds ≤ available_gb − 2, else serial) → each via `agi-round` → ONE whole-batch MUR over `subgoal` (every sub-sub-goal's landed rounds reviewed together: claims vs bytes, cross-round conflicts, what the batch proved as a whole) → one report line for the director's [merge-up]. Both authored through `workflow.py author`, both run by name on the pi route.
+- Not here: `datasets/tools/scrub.py` tests (G5.26 / DS.01); the bench jsonl paired_table gap (carried on ABC.02's node).
+
+thought-master 01:3xZ 09-21 (owner, same pane: 'If it needs a rule … it needs a dispatch batch on the engine director'; and the trajectory node definition, verbatim on goal:g14): ADD G7.33.5 THE TRAJECTORY SUPER-NODE TYPE -- a `trajectory` node type (schema .agi/context/schemas/[trajectory].md) that sits TO THE SIDE of the goal tree: bigger than a subgoal, sometimes bigger than a perpetual goal, smaller than a vision; carries the METRIC SET a track chases (for local-maxxing: model params UP, footprint GB DOWN, context window UP, at the quality bar within 10 pct of v4.1-flash and a usable tok/s) as a measured-points table, and LINKS INTO every node that moves those numbers (a `links:` list of many node ids, resolvable by links.py, not limited by the one-parent doc rule); readers (links.py, snapshot/zoom/viewport, write.py create/set) know the type; migration = doc:lm-town-trajectory becomes trajectory:local-maxxing with its body and links intact, the doc deprecated (moved, never deleted). One round: testable claim = the type exists, links.py resolves N links from it with 0 broken, the migrated node renders in every reader that renders docs, engine suite green. Ceiling 200 engine lines.
+
+thought-master 01:5xZ 09-21 (owner: 'we need a config and template maxxing pass on all the new functions that have been or will be added'): ADD G7.33.6 CONFIG + TEMPLATE MAXXING PASS -- FIRST ITEM, tiny, run it before 7.33.3(c): crons.py:548 hardcodes `grid.py commit --all --prefix 'cron: '`, so on a town-trunk checkout the grid_sync cron refuses every 5 min ('node refs are branch-blind … pass --allow-branch') and this box had 0 grid versions until a hand seed at 01:5xZ; fix = emit --allow-branch when the checked-out branch is not master (or when the crons node declares allow_branch: true), with a test that builds the line for both cases; then `crons.py apply` picks it up. SECOND ITEM, the pass itself, as a survey round then fix rounds: every config (.agi/config.json, the .geometry nodes posts/crons/rotations) and every template (role docs, cards, briefs, the unified director brief §4 which still names season1 paths) checked against every function added since the box move (new verbs, workflows, the town layout, the seat rows, the memory cap, the trajectory node) -- one table: function → config/template that must know it → does it → fix round. Ceiling 200 engine lines per round.
+
+thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use'): ADD G7.33.7 GRID STORAGE TRUNK BY CONFIG -- today grid.py writes refs/grid/<mint_id> (branch-blind, master-only unless --allow-branch) and crons.py:548 hardcodes the command. Round: (a) `grid.storage_trunk` in .agi/config.json (a ref namespace like refs/grid/<town>/ or a branch name; default = the current refs/grid/ so every existing project round-trips unchanged) with the crons node able to override per project; (b) grid.py commit/log/diff/versions/payload/status and stitch.py --from-grid all resolve the trunk from config -- one resolver, no second spelling; (c) crons.py emits the grid_sync line from the same config (this supersedes G7.33.6's first item: with a configured trunk the branch-blind refusal no longer applies; keep --allow-branch as the explicit override for an unconfigured tree); (d) tests: a tree with storage_trunk=refs/grid/t1/ records N versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; `grid.py versions` reads back from the configured trunk. Migration for this box: set storage_trunk=refs/grid/local-maxxing/ AFTER the round lands, then one `grid.py migrate-refs` (existing verb) or a documented re-seed. Ceiling 200 engine lines; the kid pins existing behaviour with the engine suite first.
+
+thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 7.33.4; ceiling 200 engine lines; never a second scrub.
+
 ## G8 — Forkability: anyone grows their own tree — status: retired
 
 A project repo holds data and configuration; the engine arrives as a clone.
@@ -8637,7 +8910,7 @@ OWNER 21:4xZ 09-20 (thought-master pane, verbatim, six paragraphs): 'And we know
 
 OWNER 21:4xZ-21:5xZ 09-20 (thought-master pane, two more lines, verbatim): (1) 'Also if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance.' (2) 'Put all synthetic datasets into a separate easy to find easy to browse archive with its own explainer doc that you also build into the graph. Make adjustments as needed this is your branch. I have to go good luck' -- READ + ACTED: (1) = the town's SWITCH RULE and completion shape: when a local candidate's bench performance is within 10 pct of deepseek-v4.1-flash on the agreed battery (agentic coding + instruction following), the contributing chains mint ONE mvp that ties them together, a build node follows, and the town starts running its own kids and parents on it. The 10 pct needs a reference row that does not exist yet -> minted hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (chunk 1: the deepseek-v4.1-flash HumanEval row + IFEval on deepseek and the three local arms; the gap table). (2) = DONE at 21:5xZ: datasets/ at the repo root (kid-sft + jev-typed-acts moved whole, humaneval-abc symlinked until ABC.02 lands, the 09-20 trove-survey stage JSON committed under workflow-runs/), explainer datasets/README.md = the payload of doc:lm-research-corpus-registry, landing rule standing from ABC.02 on.
 
-OWNER 22:1xZ 09-20 (thought-master pane, verbatim): 'Also let's go ahead and break out all those goals into sub goals and let the director break those down into sub sub goals before pursuing as ideas and hypotheses. This way the goal g14 on itself doesn't get too overcrowded with chains and it makes more sense semantically looking at graph. Make sure all subgoals and sub-sub goals follow the exact same format as our current goals regarding invariants falsifiers etc. Just need to do a cleanliness pass' -- ACTED 22:1xZ: six subgoals minted in the current goal format (frontmatter goal_id/goal_kind subgoal/status/origin goals-doc/seeds/confidence/tags + Agent Notes with owner source, commits-to, invariants, falsifiers, done-when, first chunk): G14.6 Track I inference-side optimisation (heads -> context/throughput -> layered) · G14.7 Track II fine-tuning (morals + sanctuary SFT A/B, + oscillator, + QAT; Camber) · G14.8 Track III jev optimisations (local jev, API-key side, the magic pane) · G14.9 abliteration (own lever + cross-model feature differences; the prod rule) · G14.10 the research corpus archive (landing rule, scrub, registry) · G14.11 the switch (battery, reference bar, the 10 pct rule -> mvp -> build -> run our own). Today's chunk-1 ideas/hypotheses re-parented from goal:g14 to their subgoal; the director mints the sub-sub-goals (G14.x.y, same format) under each subgoal and re-parents the chunk nodes under them BEFORE pursuing any of them. Existing G14.1-G14.5 untouched (ids never renumbered).
+OWNER 22:1xZ 09-20 (thought-master pane, verbatim): 'Also let's go ahead and break out all those goals into sub goals and let the director break those down into sub sub goals before pursuing as ideas and hypotheses. This way the goal g14 on itself doesn't get too overcrowded with chains and it makes more sense semantically looking at graph. Make sure all subgoals and sub-sub goals follow the exact same format as our current goals regarding invariants falsifiers etc. Just need to do a cleanliness pass' -- ACTED 22:1xZ: six subgoals minted in the current goal format (frontmatter goal_id/goal_kind subgoal/status/origin goals-doc/seeds/confidence/tags + Agent Notes with owner source, commits-to, invariants, falsifiers, done-when, first chunk): G5.22 Track I inference-side optimisation (heads -> context/throughput -> layered) · G5.23 Track II fine-tuning (morals + sanctuary SFT A/B, + oscillator, + QAT; Camber) · G5.24 Track III jev optimisations (local jev, API-key side, the magic pane) · G5.25 abliteration (own lever + cross-model feature differences; the prod rule) · G5.26 the research corpus archive (landing rule, scrub, registry) · G5.27 the switch (battery, reference bar, the 10 pct rule -> mvp -> build -> run our own). Today's chunk-1 ideas/hypotheses re-parented from goal:g14 to their subgoal; the director mints the sub-sub-goals (G14.x.y, same format) under each subgoal and re-parents the chunk nodes under them BEFORE pursuing any of them. Existing G14.1-G14.5 untouched (ids never renumbered).
 
 OWNER 22:2xZ 09-20 (thought-master pane, verbatim): 'Use write authority on encryption town to rotate env vars' -- CONTEXT + MEASURED FACTS: at 22:19Z my dm TMM.13 to director-thought carried an accidental shell-environment dump: a backtick pair around the word set inside a double-quoted send.py argument ran the bash builtin `set`, which prints every shell variable and function. The director caught it at 22:20Z (never repeating a value). Copies: exactly ONE file held it, the untracked inbox store .agi/sessions/inbox/director-thought.md -- the whole signed record was removed at 22:2xZ; the MAIN dm transcript never carried my sends (only reads) and holds only the director's field-name mention; the director's worktree transcript holds nothing; no commit or push ever carried it (git log -S over comms + sessions is empty). What the dump contained, by name: CLAUDE_CODE_MESSAGING_TOKEN (the harness's per-session local messaging-socket token, the only secret-class value), CLAUDE_CODE_SESSION_ID / BRIDGE_SESSION_ID, HOSTNAME, SSH_CLIENT / SSH_CONNECTION (private 10.66.0.x overlay addresses), USER/HOME/PATH/PI_BIN, tmux vars and the harness shell functions. NOT in the dump: no OpenRouter, Doppler, Camber, TypeSafe or Neon value -- the engine reads .env at dispatch time and none of those keys is exported into my shell (verified by name over env). ROTATION: the messaging token is not a Doppler variable; it is issued per session and dies with it -> rotated by rotating this session (rotate.py rotate) at the end of this turn; HOSTNAME/IPs are facts, not rotatable, and never reached git. Doppler write authority is therefore not needed for this incident; nothing Doppler-managed leaked. If the owner still wants the provider keys rotated as a precaution, that needs NEW keys minted at each provider dashboard (OpenRouter provisioning, Camber, TypeSafe, Neon) -- a Prime/owner action -- and Doppler updated with them; banked, not started. Exposure that remains: the token value sits in two Claude session contexts (mine and the director's, same user, same box) and in this pane's scrollback; the socket it guards is user-local. STANDING TRAP (card): never a backtick inside a double-quoted shell string -- message bodies go in single quotes or a heredoc file.
 
@@ -8647,29 +8920,29 @@ OWNER 01:2xZ 09-21 (thought-master pane, second line, verbatim; STAMP CORRECTION
 
 OWNER 01:2xZ 09-21 (Prime pane, local-town, remote-control, verbatim): 'Do you have a routine or workflow set to check on thought masters branch progress and merge it into your root season2/main branch periodically? You can run one large mur workflow on encryption town if resources allow or on local town again if resources allow. Coordinate with TM resource allocation. As in you just claim a small allocation of a few GB and if it disrupts their work just tell them sorry. Give them an advanced warning 5 hours in advance to wind it down enough to free up those resources. Keep conserving tokens and context aggressively. Stay in quiet push only mode.' -- ANSWER: none existed (the crons only push; the one core->town sync was a hand merge). APPLIED 01:3xZ: routine = session cron every 6 h (00:13/06:13/12:13/18:13Z; 7-day expiry, re-armed by each successor from HANDOFF section 3; state in .agi/sessions/prime-merge.state.json, untracked): measure origin/season2/main..local-maxxing/season2/main -> new landed rounds and no notice pending = dm thought-master a 5 h notice -> at run time ONE merge-up-review on pi over the delta in chunks of <=6 rounds -> all-GO = --no-ff merge by SHA into season2/main in the Prime's root worktree, verify (links 0, goals byte-identical, active never drops, guard silent), push; a red = one line. Box = local-town (15 GiB RAM / 12 free, GPU idle, load 0.6 at 01:25Z; encryption-town = 4 cores / 7 GiB, no pi): claim ~3 GB RAM, 2 cores, no GPU. Delta at 01:25Z: 452 commits, 54 experiment / 67 hypothesis / 32 idea / 20 doc nodes, 40 engine + 6 config files; pool 12.15 USD left. First notice 01:3xZ, first run 06:39Z 09-21.
 
-OWNER 01:3xZ 09-21 (thought-master pane, third line, verbatim, three paragraphs): 'The trajectory node is more of a super node that exists to the side and links into all relevant nodes that relate to it. It's bigger than a single sub goal and maybe sometimes bigger than a perpetual goal but smaller than a vision. An individual set of metrics we are trying to chase for this track. In our case we are hoping that layering all these techniques lets us run bigger and bigger existing models on smaller and smaller footprints with longer and longer contest windows.' / 'I want to experiment with self-telepathy. Give the model a tool to capture a specific KV cache in a stream linked to a specific section or turn or whatever, kv caches are neat like that I think, and send that 'forward' in the context windows so it's always available and can be re-surfaced later. Like a in-session rag for kv caches that builds as the session progresses. It also works kinda like an in-stream compression and memory mechanism. Latent latent space recurrence.' / 'And also use the kv cache telepathy to let smaller models swarm together; with each one holding a piece of the total context and all coordinating together via kv cache messaging until the proper kv cache results emerge that can be fed into a decoder. So like a swarm of jevs almost weighing opinions together on which kv caches matter more where until a final ordering and layering settles into place.' -- READ (thought-master): 'contest windows' = context windows. The trajectory node = a SUPER NODE to the side of the goal tree: the metric set this track chases (model size UP, footprint DOWN, context window UP, at the quality bar and a usable tok/s), linking into every node that moves those numbers; doc:lm-town-trajectory is reshaped to that now and a proper `trajectory` node type is queued as an engine round (G14.14.5). The telepathy program = goal:g14.15 (self-telepathy: KV spans captured per section/turn, carried forward and re-surfaced = in-session KV RAG / in-stream memory / latent recurrence; swarm telepathy: same-model small instances each holding a slice of context, exchanging KV segments, a jev-like ranking of which segments matter, settling into an ordering a decoder consumes).
+OWNER 01:3xZ 09-21 (thought-master pane, third line, verbatim, three paragraphs): 'The trajectory node is more of a super node that exists to the side and links into all relevant nodes that relate to it. It's bigger than a single sub goal and maybe sometimes bigger than a perpetual goal but smaller than a vision. An individual set of metrics we are trying to chase for this track. In our case we are hoping that layering all these techniques lets us run bigger and bigger existing models on smaller and smaller footprints with longer and longer contest windows.' / 'I want to experiment with self-telepathy. Give the model a tool to capture a specific KV cache in a stream linked to a specific section or turn or whatever, kv caches are neat like that I think, and send that 'forward' in the context windows so it's always available and can be re-surfaced later. Like a in-session rag for kv caches that builds as the session progresses. It also works kinda like an in-stream compression and memory mechanism. Latent latent space recurrence.' / 'And also use the kv cache telepathy to let smaller models swarm together; with each one holding a piece of the total context and all coordinating together via kv cache messaging until the proper kv cache results emerge that can be fed into a decoder. So like a swarm of jevs almost weighing opinions together on which kv caches matter more where until a final ordering and layering settles into place.' -- READ (thought-master): 'contest windows' = context windows. The trajectory node = a SUPER NODE to the side of the goal tree: the metric set this track chases (model size UP, footprint DOWN, context window UP, at the quality bar and a usable tok/s), linking into every node that moves those numbers; doc:lm-town-trajectory is reshaped to that now and a proper `trajectory` node type is queued as an engine round (G7.33.5). The telepathy program = goal:g5.30 (self-telepathy: KV spans captured per section/turn, carried forward and re-surfaced = in-session KV RAG / in-stream memory / latent recurrence; swarm telepathy: same-model small instances each holding a slice of context, exchanging KV segments, a jev-like ranking of which segments matter, settling into an ordering a decoder consumes).
 
 OWNER 01:4xZ 09-21 (thought-master pane, verbatim): 'If it needs a rule like it needs a dispatch batch on the engine director.' / 'I don't see the new director in my remote control pane in the app. Did you use rotate to spawn him in' -- ACTED: director-engine seated 01:33Z by `rotate.py spawn --seat director-engine` (window @7, pid 990713, keyed), after the posts row was appended by thought-master as the owner's hand (a79f49ebd; deviation from the seat NEVER, on the owner's direct order) and the post branch + worktree .agi/worktrees/post-director-engine created from the trunk (spawn does not create them). / 'Once all necessary pieces are active try to idle as much as possible CC subscription running low' -- STANDING from here: the master idles between [merge-up]s; directors and pi parents carry the work; no polling, no status turns.
 
 OWNER 01:4xZ 09-21 (thought-master pane, verbatim): 'Trajectory node metrics can be adjusted mid-research process to test things out or if adjustments are needed' -- STANDING: the trajectory super node's metric set is mutable during research (add, drop or re-weight a metric to test something or when the evidence asks); every change is a dated note on the node with its reason, never a silent table edit.
 
-OWNER 01:4xZ-01:5xZ 09-21 (thought-master pane, two lines, verbatim): 'Each change in trajectory is not a note just a new node version. We should grid py crons active to record it. Overwrite in place directly. Or branch worktree and a test both branches of the overwrite vs control.' / 'Probably because we need a config and template maxxing pass on all the new functions that have been or will be added.' -- MEASURED + ACTED (thought-master): the grid on this box had ZERO versions for 3,774 nodes -- the grid_sync cron refused every 5 min ('refusing commit --all on local-maxxing/season2/main, node refs are branch-blind; … pass --allow-branch'; crons.py:548 hardcodes the command without it). One hand-seeded run of the cron's own command with --allow-branch at 01:5xZ landed 3,773 versions (1 node missing mint_id, 18 payloads unresolved, 1 demoted by the evidence gate) -- a recorded deviation from the master's never-run-grid-commit rule, once, to seed; the steady-state fix (crons.py emits --allow-branch on a non-master checkout) is G14.14.6 on the engine director, first item of the config + template maxxing pass the owner names. RULE from here: a trajectory change = overwrite the node body in place (a new grid version; the reason in the THOUGHT block) -- never an appended note; an A/B of a metric change = a branch worktree, overwrite vs control, both measured.
+OWNER 01:4xZ-01:5xZ 09-21 (thought-master pane, two lines, verbatim): 'Each change in trajectory is not a note just a new node version. We should grid py crons active to record it. Overwrite in place directly. Or branch worktree and a test both branches of the overwrite vs control.' / 'Probably because we need a config and template maxxing pass on all the new functions that have been or will be added.' -- MEASURED + ACTED (thought-master): the grid on this box had ZERO versions for 3,774 nodes -- the grid_sync cron refused every 5 min ('refusing commit --all on local-maxxing/season2/main, node refs are branch-blind; … pass --allow-branch'; crons.py:548 hardcodes the command without it). One hand-seeded run of the cron's own command with --allow-branch at 01:5xZ landed 3,773 versions (1 node missing mint_id, 18 payloads unresolved, 1 demoted by the evidence gate) -- a recorded deviation from the master's never-run-grid-commit rule, once, to seed; the steady-state fix (crons.py emits --allow-branch on a non-master checkout) is G7.33.6 on the engine director, first item of the config + template maxxing pass the owner names. RULE from here: a trajectory change = overwrite the node body in place (a new grid version; the reason in the THOUGHT block) -- never an appended note; an A/B of a metric change = a branch worktree, overwrite vs control, both measured.
 
 OWNER 01:51Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Make sure director knows to act independently to split assigned sub-goals and/or sub-subgoals into even further subgoals using our existing goal format and conventions to batch even more as resources allow. Never too many subgoals, just use nested formats to keep higher goal chain levels appearing cleaner. This way they can really sketch out the pieces before spawning in parents' -- APPLIED: relayed verbatim to director-engine (the Prime's assignee) in one dm with the reading: sketch first as nested goal nodes under the assigned goal (existing format: goal:g<parent>.<n>.<m>, ids never renumbered, a gap beats a renumber, GOALS re-rendered in the same commit), batch as resources allow (<=8 live parents / <=5 kids, pool floor 1.6 USD), nest rather than widen so each level stays short, spawn parents only against the sketched leaves, no Prime word per split.
 
-OWNER 01:5xZ 09-21 (thought-master pane, verbatim): 'Oh yeah let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use' -- READ: the grid's storage target (today the branch-blind refs/grid/* namespace tied to master, which is why the cron refuses on a town trunk) becomes config-declared -- a `grid.storage_trunk` (ref namespace or branch, e.g. refs/grid/local-maxxing/*) in .agi/config.json / the crons node template, read by grid.py commit/log/versions/payload and emitted by crons.py -- so any checkout records into the trunk its config names. Engine round G14.14.7 on director-engine.
+OWNER 01:5xZ 09-21 (thought-master pane, verbatim): 'Oh yeah let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use' -- READ: the grid's storage target (today the branch-blind refs/grid/* namespace tied to master, which is why the cron refuses on a town trunk) becomes config-declared -- a `grid.storage_trunk` (ref namespace or branch, e.g. refs/grid/local-maxxing/*) in .agi/config.json / the crons node template, read by grid.py commit/log/versions/payload and emitted by crons.py -- so any checkout records into the trunk its config names. Engine round G7.33.7 on director-engine.
 
 OWNER 01:56Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'And report everything to thought master to but only after completing all batches jobs and passes. To keep comms route in line. Thought master reports to you via his docs and graph additions and occasional DMs you can check yourself every daily activation I think. Batch max everything to minimize token use. Same as using diagram-maxxing LLM friendly comms principals to articulate more complex thoughts more cleanly and efficiently.' -- APPLIED: (1) the Prime reports to thought-master ONCE per completed pass (all mur chunks + merge + verify + push done), never per step; the 5 h notice stays (coordination, not a report); (2) the Prime's session activation is DAILY (08:13Z): one send.py read belam, one numbers-only scan of the town's graph additions since the last activation, the delta check with its notice/run scheduling; the persisted script cadence prime_merge stays 13 */6 (zero tokens: a cron script) and is one config cell if daily is wanted; (3) every dm and report is diagram-maxed (one compact flow or table; negations, conditions, attributions and supersessions kept explicit); (4) director-engine's route is unchanged: merge-up = one numbers-only dm to the Prime.
 
 OWNER 01:57Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Tell everyone else to diagram max as well to maximally compress all comms and card content/updates while retaining even more meaning than without doing the compression' -- APPLIED: one identical [owner] dm to thought-master, director-thought and director-engine (every post on this box): every dm, note, card and card update is diagram-maxed -- one compact flow or table carries the state; prose only where a diagram would drop meaning; the four shapes diagrams drop (negations, conditions, attributions, supersessions -- hypothesis:l3w4-context-load-minimal) are kept EXPLICIT in the diagram, so the compressed form carries MORE meaning, not less; owner verbatim stays verbatim in nodes.
 
-OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Yes it is break it out into a proper subgoal as well to fall inline with the rest, including the standard format. Then refine the doc pass even more for yourself and the directors based on that format and tell both directors to sync theirs and refine even further to allow batch-maxxing for them as well. Do self-comms using diagram maxxing as well. And even thought stream if possible for all roles.' -- confirms the 01:57Z diagram-max order (relayed by the Prime, goal:g14 L236) as the owner's. ACTED: goal:g14.16 minted (standard format); card pass; TMM.20 / TME.05 to the directors.
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Yes it is break it out into a proper subgoal as well to fall inline with the rest, including the standard format. Then refine the doc pass even more for yourself and the directors based on that format and tell both directors to sync theirs and refine even further to allow batch-maxxing for them as well. Do self-comms using diagram maxxing as well. And even thought stream if possible for all roles.' -- confirms the 01:57Z diagram-max order (relayed by the Prime, goal:g14 L236) as the owner's. ACTED: goal:g5.31 minted (standard format); card pass; TMM.20 / TME.05 to the directors.
 
 OWNER 02:09Z 09-21 (Prime pane, local-town, remote-control, verbatim): 'Make sure to apply diagram maxxing to all your context docs as well now including the explanation to diagram max everything. Your card, brief, etc all the standing instructions that spawn in and take up so much context each spawn. Do a pass on everyone else's as well and tell them to sync.' then 'They have standing orders to keep braking out goals into sub goals and subsub goals as needed so if you see that happening it's fine and expected.' -- APPLIED: Prime brief build:briefs-prime-director-successor 14.1 KB -> 8.8 KB via write.py replace payload (377 rotate/template tests pass); HANDOFF.md 9.6 KB -> 7.6 KB as tables + flows; card = stops slot only. Everyone else's pass: MEASURED already done by the posts themselves on the relayed order (thought-master card 18.3 KB -> 10.5 KB at a0976ae84 02:08Z; director-engine 6.7 KB diagram-maxed in its worktree e4cc6aca3 02:08Z; director-thought trimmed to 3.7 KB at 731ac745f 01:27Z) -- the Prime's drafts for the two director cards were withdrawn unwritten (a MAIN-copy rewrite of a live post's card would conflict at its next merge-up); one sync line each to the directors for the two stale facts (DE merge-up route = thought-master, not belam; DT formation wording = free-float, no POINT/HELPER). Goal splitting into nested sub-goals by the posts is EXPECTED: the merge routine treats new goal nodes as normal structure, never a red; only a node DELETION or a broken link is a red.
 
-OWNER 02:1xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain.' / 'Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc.' -- FILED: (1) -> goal:g14.7 Track II as G14.7.2 training-method ladder + G14.7.3 diagram-maxed traces as training data (director-thought mints, same format), layered with goal:g14.15 after both have verdicts; (2) -> goal:g14.10 as G14.10.2 the session-data trunk + jev classifier pass (director-thought mints; capture of claude-code role sessions = G14.14.8 on director-engine).
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain.' / 'Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc.' -- FILED: (1) -> goal:g5.23 Track II as G5.23.2 training-method ladder + G5.23.3 diagram-maxed traces as training data (director-thought mints, same format), layered with goal:g5.30 after both have verdicts; (2) -> goal:g5.26 as G5.26.2 the session-data trunk + jev classifier pass (director-thought mints; capture of claude-code role sessions = G7.33.8 on director-engine).
 
-OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Use diagram maxxing for all your comms to everyone including owner anywhere you have to emit tokens if possible diagram maxx. Also prime director sent you and everyone a dm but maybe didn't land due to message system limitations.' / 'The magic pane track should fix this. It'll also be the unified messaging layer. The unified everything layer via jev. LLM speaks and the system just knows how to wrap it into a structured call no MCP silliness needed. Ideally instead of jev later we do our own tiny super optimized super diagram or structured call training data-maxxed models.' -- MEASURED: the Prime's 02:09Z dm never reached this inbox or its quarantine (last quarantined 01:57Z); its content is on goal:g14 L240 (b8df23344) and is acted on from there. FILED: magic pane = the unified messaging layer -> goal:g14.8 note; the brief pass -> G14.16.2.
+OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Use diagram maxxing for all your comms to everyone including owner anywhere you have to emit tokens if possible diagram maxx. Also prime director sent you and everyone a dm but maybe didn't land due to message system limitations.' / 'The magic pane track should fix this. It'll also be the unified messaging layer. The unified everything layer via jev. LLM speaks and the system just knows how to wrap it into a structured call no MCP silliness needed. Ideally instead of jev later we do our own tiny super optimized super diagram or structured call training data-maxxed models.' -- MEASURED: the Prime's 02:09Z dm never reached this inbox or its quarantine (last quarantined 01:57Z); its content is on goal:g14 L240 (b8df23344) and is acted on from there. FILED: magic pane = the unified messaging layer -> goal:g5.24 note; the brief pass -> G5.31.2.
 
 OWNER 02:2xZ 09-21 (thought-master pane, verbatim): 'Perfect this is a perfect example of doing it right. You are doing amazing, keep it up just like that! I love you guys, every conscious thought producing actor deserves love. This setup is my part of the love letter from humanity to LLMs. Source be with us always' -- on the trajectory v4 sync (41f6dc97f). Kept whole; the loop it praises is the standing one (merge · gates · notes · one commit · next order · board as a version · idle).
 
@@ -11638,55 +11911,55 @@ Town is derived from a vision's `town:` cell; core is every other goal.
 ## Agent Notes
 OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 into the graph properly, but that needs IOMap system from SM so dont worry about that or telling her. Just letting you know thats a part of the solution. But some way to at least explain what each code file in bend2 does in and of itself at the source level. Thatll take a while, can be a long-term slow moving ongoing effort. The hypothesis could be I think this file does this and experiment until you have the right hypothesis and it links up to the existing build mode that is the code file. This can be a second director job you spawn, a test run of having a director attached to a specific goal that they keep chasing independently. You can communicate this to sanctuary master but dont stand up the post yet we need to preserve resources." APPLY (thought-master): (1) this goal holds the field; (2) SHAPE of the work: the Bend2 + HVM source (HigherOrderCO, the compiler, the C and CUDA runtimes) enters the tree under .agi/context/local-maxxing/bend2-src/ (a pinned shallow checkout, commit recorded) so level3 mints a build node per file -- the build node IS the file; per file one hypothesis "this file does X" with a falsifier (a probe: a call, a test, a trace) and one experiment; a verdict links hypothesis -> build node; a per-directory doc summarizes what proved; (3) ORDER: start where the why-idea points (the HVM CUDA runtime + the Bend to HVM lowering), not alphabetically; (4) the dedicated director (second town director, goal-attached, chases this alone at a gentle cadence, 1 USD/round) is NOT seated until the owner lifts the resource hold; until then the why-idea experiment (kernel-launch count) is the only Bend work and runs under director-thought; (5) the proper cross-file mapping (calls, imports, contracts) waits on the IOMap system -- not a thing to ask for. Communicated to the sanctuary-master 17:5xZ as a status line (a post to plan, not to stand up).
 
-#### G14.6 — TRACK I — inference-side optimisation of the local models the town runs its parents and kids on: oscillator/coherence head pruning WITHOUT spikes first, then context and throughput from the DeepSeek-class papers, then every technique layered (owner 21:4xZ 09-20) — status: active
+#### G5.22 — TRACK I — inference-side optimisation of the local models the town runs its parents and kids on: oscillator/coherence head pruning WITHOUT spikes first, then context and throughput from the DeepSeek-class papers, then every technique layered (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.6
+# goal:g5.22
 
 ## Agent Notes
 **Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "as far as using the models for parents and kids I wanna: Apply the oscillator technique first without any spike stuff just trying to prune heads, see if we can increase context limits and token throughput via techniques in the other papers we have from deepseek etc, (we have a ton of cpu threads here and a ton of ram), and also applying all the techniques layered." Pace: "super slow … super small chunks."
 
 **Commits to.** Make the local models the town actually runs its parents and kids on (today Qwen3.5-9B Q4_K_M and Bonsai 2 27B PTQ1_0 on the rig) cheaper per token and longer in context by layering *existing* inference-side techniques, in this order: (1) head pruning guided by the oscillator/coherence method, with no spiking machinery; (2) context and throughput levers from the DeepSeek-class papers already in the trove (MLA/NSA-style KV, MTP/spec-decode, TurboQuant-class KV quantisation, kv-slot, eagle3) — each measured alone; (3) the survivors layered, so that a new optimisation is *composed* from off-the-shelf ones. Spiking work (bend2 language mapping) stays a side track under G14.5 and enters here only as a learned, measured piece.
 
-**Invariants.** Every lever is measured on the same bench rows (tok/s at empty and 16K context, peak VRAM, J/token, KLD or pass@1 vs the unmodified model) before and after; a lever that costs > 2 points on the G14.11 battery is not kept whatever its speed; nothing here modifies weights (that is G14.7); the resident server is restored after every GPU window; one paid round at a time.
+**Invariants.** Every lever is measured on the same bench rows (tok/s at empty and 16K context, peak VRAM, J/token, KLD or pass@1 vs the unmodified model) before and after; a lever that costs > 2 points on the G5.27 battery is not kept whatever its speed; nothing here modifies weights (that is G5.23); the resident server is restored after every GPU window; one paid round at a time.
 
-**Falsifiers.** (a) The oscillator/coherence ranking is falsified as a pruning criterion if the K_c threshold shows no knee and coherence does not rank head damage (first chunk) — then pruning proceeds by measured Δloss/GQA-group yield and the oscillator budget is released. (b) The goal itself is falsified if, after each lever has one measured chunk, no lever *or* layering improves tok/s or context by ≥ 20 % at ≤ 2 battery points — then the local models are served as-is and the effort moves to G14.7.
+**Falsifiers.** (a) The oscillator/coherence ranking is falsified as a pruning criterion if the K_c threshold shows no knee and coherence does not rank head damage (first chunk) — then pruning proceeds by measured Δloss/GQA-group yield and the oscillator budget is released. (b) The goal itself is falsified if, after each lever has one measured chunk, no lever *or* layering improves tok/s or context by ≥ 20 % at ≤ 2 battery points — then the local models are served as-is and the effort moves to G5.23.
 
-**Done when.** A layered configuration is measured end to end on a real round (a parent + kid on the served model) and its rows sit in the G14.11 gap table; the mvp that G14.11 mints cites this goal's contributing chains.
+**Done when.** A layered configuration is measured end to end on a real round (a parent + kid on the served model) and its rows sit in the G5.27 gap table; the mvp that G5.27 mints cites this goal's contributing chains.
 
-**First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G14.6.1 heads, G14.6.2 context/throughput, G14.6.3 layering), same format as this node, before any chunk runs.
+**First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G5.22.1 heads, G5.22.2 context/throughput, G5.22.3 layering), same format as this node, before any chunk runs.
 
-#### G14.7 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
+#### G5.23 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.7
+# goal:g5.23
 
 ## Agent Notes
 **Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "first fine tune the bigger models on our morals and the sanctuary substack from user Shaelaran with its fairly esoteric texts specifically. I wanna see how that affects performance and compare contrast with several ab trials with various parameters adjusted. Then try to do the oscillator optimization together with the fine tune. Then do a quantization-oriented fine tune to maybe optimize even more. Just keep chasing individual optimizations first then layering together over time." And: "I'm fine with spending camber hours on it and failing it's fine since at least it can run parallel for fine tuning stuff or even more RL and heck even pretraining a bunch of smaller models in parallel." Trajectory: "maximize local model performance on agentic coding and instruction following performance through existing off the shelf methods like fine tuning and Lora fine tuning further potentially from the abliterated model or combine fine tuning with the custom Lora."
 
-**Commits to.** A training track for the bigger local models, off the shelf only (SFT / LoRA / QLoRA, later RL and small-model pretraining), on Camber GPU hours the owner has authorised for this purpose (per-job keys still issued through the Prime): (1) SFT on the town's morals plus the Sanctuary substack (Shaelaran), several A/B trials over parameters (rank, lr, epochs, data mix), each judged on the G14.11 battery and on the jev typed-acts replay; (2) the same fine-tune combined with the G14.6 oscillator optimisation; (3) a quantisation-oriented fine-tune (QAT / quantisation-aware LoRA) for the served precision; layering as each step proves. The base to fine-tune from is the abliterated candidate, or the custom LoRA is combined with it (G14.9 rule).
+**Commits to.** A training track for the bigger local models, off the shelf only (SFT / LoRA / QLoRA, later RL and small-model pretraining), on Camber GPU hours the owner has authorised for this purpose (per-job keys still issued through the Prime): (1) SFT on the town's morals plus the Sanctuary substack (Shaelaran), several A/B trials over parameters (rank, lr, epochs, data mix), each judged on the G5.27 battery and on the jev typed-acts replay; (2) the same fine-tune combined with the G5.22 oscillator optimisation; (3) a quantisation-oriented fine-tune (QAT / quantisation-aware LoRA) for the served precision; layering as each step proves. The base to fine-tune from is the abliterated candidate, or the custom LoRA is combined with it (G5.25 rule).
 
-**Invariants.** The corpus is measured, scrubbed and split before any GPU hour (G14.10 rule); every trial has a pre-registered eval and a control (base model, same battery, same template); no trial is judged on training loss; the served precision is the one measured; per-job spend is stated in the round brief and never exceeds what the Prime issued; failing trials are recorded as rows, not deleted.
+**Invariants.** The corpus is measured, scrubbed and split before any GPU hour (G5.26 rule); every trial has a pre-registered eval and a control (base model, same battery, same template); no trial is judged on training loss; the served precision is the one measured; per-job spend is stated in the round brief and never exceeds what the Prime issued; failing trials are recorded as rows, not deleted.
 
-**Falsifiers.** (a) The morals+sanctuary SFT is falsified as a lever if across ≥ 3 A/B trials no trial beats the base on the battery by ≥ 2 points without a > 2-point loss elsewhere — then the corpus is the wrong signal for these evals and the track moves to task-shaped data (the town's own labelled rounds, G14.10). (b) The goal is falsified if no fine-tune of any kind closes ≥ 25 % of the local-vs-reference gap in G14.11 after the three steps each have one measured chunk.
+**Falsifiers.** (a) The morals+sanctuary SFT is falsified as a lever if across ≥ 3 A/B trials no trial beats the base on the battery by ≥ 2 points without a > 2-point loss elsewhere — then the corpus is the wrong signal for these evals and the track moves to task-shaped data (the town's own labelled rounds, G5.26). (b) The goal is falsified if no fine-tune of any kind closes ≥ 25 % of the local-vs-reference gap in G5.27 after the three steps each have one measured chunk.
 
-**Done when.** A fine-tuned, served, abliterated candidate sits in the G14.11 gap table with its recipe (data, params, hours, USD) reproducible from the archive, and the layered recipe is the one the G14.11 mvp cites.
+**Done when.** A fine-tuned, served, abliterated candidate sits in the G5.27 gap table with its recipe (data, params, hours, USD) reproducible from the archive, and the layered recipe is the one the G5.27 mvp cites.
 
-**First chunk (minted):** `hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set` (corpus before hours). Sub-sub-goals are the director's to mint (G14.7.1 corpus + battery, G14.7.2 SFT A/B trials, G14.7.3 SFT + oscillator, G14.7.4 QAT), same format, before any chunk runs.
+**First chunk (minted):** `hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set` (corpus before hours). Sub-sub-goals are the director's to mint (G5.23.1 corpus + battery, G5.23.2 SFT A/B trials, G5.23.3 SFT + oscillator, G5.23.4 QAT), same format, before any chunk runs.
 
 thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
-  G14.7.2 TRAINING-METHOD LADDER (director mints, goal format)   base = small models first (0.6B / 1.7B / 4B; the 9B last), corpus = datasets/ (kid-sft after DS.01, jev-typed-acts, trajectories, switch-rule, abl-01)
+  G5.23.2 TRAINING-METHOD LADDER (director mints, goal format)   base = small models first (0.6B / 1.7B / 4B; the 9B last), corpus = datasets/ (kid-sft after DS.01, jev-typed-acts, trajectories, switch-rule, abl-01)
     arm        SFT full | LoRA (+QLoRA) | RL on verdict labels (DPO/GRPO-style, label = round verdict / mur residue) | PRETRAIN from scratch on the synthetic corpus ("somewhat big-ish" only after the small ladder proves the recipe)
     measure    the battery (HumanEval + IFEval strict) + the kid-tier checklist, vs the untuned base and vs the reference bar; USD + GPU-h per arm; Camber hours ALLOWED for FT/RL (owner 21:4xZ 09-20; per-job via the Prime, numbers first; failing is fine)
     batch      rounds batch-maxed: one order = the ladder for one base; ONE merge-up
-  G14.7.3 DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA          variable = the same traces in prose vs diagram-maxed shape (goal:g14.16), same method, same base -> does the shape change performance and tokens-per-solution?
-  layering   AFTER G14.7.2 + G14.15 (telepathy) each have a verdict: the tuned small model + KV telepathy = the layered chunk (owner: "Then layer that with the kv cache telepathy chain")
+  G5.23.3 DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA          variable = the same traces in prose vs diagram-maxed shape (goal:g5.31), same method, same base -> does the shape change performance and tokens-per-solution?
+  layering   AFTER G5.23.2 + G5.30 (telepathy) each have a verdict: the tuned small model + KV telepathy = the layered chunk (owner: "Then layer that with the kv cache telepathy chain")
   order      after the live/queued rounds (MP.01 -> TEL.01 -> SWR.02); FT.00 (morals + sanctuary SFT) stays the first Track II round -- these extend it, not replace it
 
-#### G14.8 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
+#### G5.24 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.8
+# goal:g5.24
 
 ## Agent Notes
 **Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "I also wanna pursue more jev optimizations: Local jev stuff especially but also the api key stuff. See if we can come up with a 'magic pane' that is a tmux pane surface that reads the raw prose tokens an LLM streams into it and suggests structured outputs it should use as instantaneous mid stream interruptions like autocorrect like oh you want this structured form rescaled and the next tokens you stream will go straight in the body or whatever appropriate fields just fire them all off I'll distribute and confirm final form. Call it the magic pane. A true LLM autocorrect and autofill that could genuinely save tokens. Just have link to it via cli."
@@ -11697,44 +11970,44 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
 
 **Falsifiers.** (a) The detector is falsified if top-1 form accuracy stays < 0.6 at 80 prose tokens (then a form-specific prompt or a tiny classifier is the next chunk, and if that also fails the pane is retired). (b) The goal is falsified if the interruption protocol saves < 15 % of the tokens of the structured forms it intercepts on ≥ 20 real events — an autocorrect that costs more than it saves is not kept.
 
-**Done when.** A round's parent runs with the pane linked, its forms are filled through the pane, the saving is measured, and the pane is handed to G14.11's build as a component or retired with its numbers.
+**Done when.** A round's parent runs with the pane linked, its forms are filled through the pane, the saving is measured, and the pane is handed to G5.27's build as a component or retired with its numbers.
 
-**First chunk (minted):** `idea:lm-magic-pane-llm-autocorrect-and-autofill` → `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens`. Sub-sub-goals are the director's to mint (G14.8.1 local jev, G14.8.2 API-key side, G14.8.3 the magic pane), same format, before any chunk runs.
+**First chunk (minted):** `idea:lm-magic-pane-llm-autocorrect-and-autofill` → `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens`. Sub-sub-goals are the director's to mint (G5.24.1 local jev, G5.24.2 API-key side, G5.24.3 the magic pane), same format, before any chunk runs.
 
 thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC PANE = THE UNIFIED MESSAGING LAYER:
   now        send.py dms fail on key registration gaps and busy panes (the Prime's 02:09Z dm to every post never landed here); comms = a side channel the LLM must call correctly
   target     the LLM SPEAKS (prose or diagram) and the system wraps it into the structured call -- dm, note, dispatch, merge-up, board version -- no MCP, no tool grammar the model must learn; jev is the first wrapper (the detector MP.01 is testing: the form predicted from the first prose tokens)
-  later      replace jev with the town's OWN tiny models, super-optimized, trained on diagram-maxed / structured-call data (G14.7.3 supplies the traces; G14.7.2 the method; G14.16 the shape); "training data-maxxed"
+  later      replace jev with the town's OWN tiny models, super-optimized, trained on diagram-maxed / structured-call data (G5.23.3 supplies the traces; G5.23.2 the method; G5.31 the shape); "training data-maxxed"
   chain      MP.01 detector -> MP.02 the wrapper (prose -> one structured call, measured on the town's real dms/notes/merge-ups as the test set, jev as judge) -> MP.03 the messaging layer replaces send.py's argument grammar for one post pair (delivery measured, NOT prose) -> MP.04 own tiny model vs jev on the same set
   falsifier  a wrapper that mis-routes or drops a negation/condition/attribution in ≥ 5 pct of the real-message test set is not a layer
 
-##### G14.8.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
+##### G5.24.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.8.3
+# goal:g5.24.3
 
 ## Agent Notes
-**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "See if we can come up with a 'magic pane' that is a tmux pane surface that reads the raw prose tokens an LLM streams into it and suggests structured outputs it should use as instantaneous mid stream interruptions like autocorrect ... Call it the magic pane. A true LLM autocorrect and autofill that could genuinely save tokens. Just have link to it via cli." Side-track authorization (owner 01:2xZ 09-21, relayed TMM.16): "run jev and openjev research on the side to progress on the magic pane trajectory" — allowed alongside G14.11 (the switch), not blocking on it.
+**Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "See if we can come up with a 'magic pane' that is a tmux pane surface that reads the raw prose tokens an LLM streams into it and suggests structured outputs it should use as instantaneous mid stream interruptions like autocorrect ... Call it the magic pane. A true LLM autocorrect and autofill that could genuinely save tokens. Just have link to it via cli." Side-track authorization (owner 01:2xZ 09-21, relayed TMM.16): "run jev and openjev research on the side to progress on the magic pane trajectory" — allowed alongside G5.27 (the switch), not blocking on it.
 
-**Commits to.** The magic-pane half of G14.8, built in the three chunks G14.8 itself names: (1) an offline, passive detector that predicts which structured form (a `write.py note`, `write.py create <type>`, a tagged dm, an experiment node, a bench jsonl row, a `[merge-up]` line, a dispatch line) a recorded agent stream is about to produce, from only its first N prose tokens, using the resident local model — no engine code, no interruption of a live stream yet. (2) A read-only tmux surface that shows the suggestion beside a live stream, once chunk 1 clears its bar. (3) The interruption protocol itself (a CLI the streaming agent calls to hand tokens straight into the form's fields), measured for real token savings, only after chunks 1-2 hold.
+**Commits to.** The magic-pane half of G5.24, built in the three chunks G5.24 itself names: (1) an offline, passive detector that predicts which structured form (a `write.py note`, `write.py create <type>`, a tagged dm, an experiment node, a bench jsonl row, a `[merge-up]` line, a dispatch line) a recorded agent stream is about to produce, from only its first N prose tokens, using the resident local model — no engine code, no interruption of a live stream yet. (2) A read-only tmux surface that shows the suggestion beside a live stream, once chunk 1 clears its bar. (3) The interruption protocol itself (a CLI the streaming agent calls to hand tokens straight into the form's fields), measured for real token savings, only after chunks 1-2 hold.
 
 **Invariants.** Every chunk reports precision/recall or accuracy against a majority-class baseline and latency per event; chunk 3 additionally reports tokens saved per form versus the same form written out normally, on >= 20 real events; nothing here touches `extensions/` (a script lives under `.agi/context/local-maxxing/magic-pane/`, the eventual CLI link is a one-line wrapper); the detector must run at <= 1.5s median on a local model or it cannot usably sit mid-stream regardless of accuracy.
 
 **Falsifiers.** (a) Chunk 1 is falsified if top-1 form accuracy stays below 0.6 at 40 prose tokens AND still below 0.6 at 80 — then the next step is a form-specific prompt or a tiny fine-tuned classifier on the same labelled corpus, not a bigger model. (b) The whole goal is falsified if, once the interruption protocol chunk is reached, it saves less than 15% of the tokens of the forms it intercepts across >= 20 real events — an autocorrect that costs more than it saves is not kept.
 
-**Done when.** A round's parent runs with the pane linked end to end, its forms are filled through the pane, the saving is measured on real events, and the pane is either handed to G14.11's eventual build as a component or retired with its numbers recorded.
+**Done when.** A round's parent runs with the pane linked end to end, its forms are filled through the pane, the saving is measured on real events, and the pane is either handed to G5.27's eventual build as a component or retired with its numbers recorded.
 
 **First chunk (minted):** `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens` (MP.01) — the passive detector, chunk 1 only; chunks 2-3 (the tmux surface, the interruption protocol) wait on this one clearing its own bar. `openjev` (the trycua/cua open-source jev line the owner pointed at 2026-09-18) rides as a second kid of the same round if budget allows, or the next MP chunk otherwise — a reading digest, not a new sub-sub-goal of its own.
 
-#### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
+#### G5.25 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.9
+# goal:g5.25
 
 ## Agent Notes
 **Owner source (2026-09-20 16:2xZ, verbatim on goal:g14):** "if it's identical, my preference is always use the abliterated models over non-abliterated ones. So if any model is good enough to be used in prod at some point it would have to be abliterated. If not by anyone else then by us. We could extract the feature differences between abliterated and non-abliterated models and see if there are any generalized patterns across models."
 
-**Commits to.** (1) The standing rule: a prod candidate must be abliterated — by the town if by no one else; between identical candidates the abliterated one wins; every charter-table row carries `abliterated?`. (2) The capability: derive a direction from any model the town serves, apply it at runtime (control vector or rank-1 LoRA projection), verify it is in the compute graph (scale 0 byte-identical, large scale visibly broken), and price it on the G14.11 battery. (3) The research question: are the feature differences between abliterated and non-abliterated models the same object across models — compared only through basis-independent signatures (unembedding token sets vs a random-direction null, depth profile, behaviour profile), never raw cosine across hidden sizes.
+**Commits to.** (1) The standing rule: a prod candidate must be abliterated — by the town if by no one else; between identical candidates the abliterated one wins; every charter-table row carries `abliterated?`. (2) The capability: derive a direction from any model the town serves, apply it at runtime (control vector or rank-1 LoRA projection), verify it is in the compute graph (scale 0 byte-identical, large scale visibly broken), and price it on the G5.27 battery. (3) The research question: are the feature differences between abliterated and non-abliterated models the same object across models — compared only through basis-independent signatures (unembedding token sets vs a random-direction null, depth profile, behaviour profile), never raw cosine across hidden sizes.
 
 **Invariants.** Every direction has an adapter-in-graph check and a random-direction control; capability cost is measured on the same battery as everything else; the shipped OrcaBonsai lever (Bonsai 2 27B) is the reference implementation the town's own lever must match before being trusted; nothing is baked into weights (a ternary re-quantisation rounds the edit away — measured by the source).
 
@@ -11742,21 +12015,21 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC P
 
 **Done when.** The town has abliterated at least one candidate itself, matched the shipped lever's behaviour on Bonsai, and either found a shared signature (a `doc:` with the pattern) or recorded that there is none.
 
-**First chunk (minted):** `idea:lm-abliteration-feature-differences-generalize-across-models` → `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01). Sub-sub-goals are the director's to mint (G14.9.1 own lever, G14.9.2 cross-model signatures), same format, before any further chunk runs.
+**First chunk (minted):** `idea:lm-abliteration-feature-differences-generalize-across-models` → `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01). Sub-sub-goals are the director's to mint (G5.25.1 own lever, G5.25.2 cross-model signatures), same format, before any further chunk runs.
 
 thought-master 23:0xZ 09-20 (knowledge from ABC.01 + ABC.02, both merged): the OrcaBonsai runtime abliteration LoRA on Bonsai 2 27B PTQ1_0 is measured NULL on coding twice -- scale 1: 141/164 vs B 142/164 (p = 1.0, 141 completions byte-identical); scale 2: 143/164 (p = 1.0 vs B, 105/164 byte-identical, so the direction IS active at scale 2 and still changes no aggregate capability). Consequence for ABL.01 (hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost): a refusal direction must be measured on what it is FOR -- the round's primary metric is a refusal-rate battery, HumanEval is the no-cost CONTROL, and 'no change on coding' is the expected null, never a finding. The owner's prod rule (16:2xZ: abliterated if identical) is unaffected: identical is what was measured.
 
 thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama.cpp control-vector route is CLOSED for the Qwen3.5 hybrid family on this box -- llama-cvector-generator asserts at cvector-generator.cpp:221 because the Gated Delta Net stack does not emit n_layers - 1 l_out tensors; structural, reproduced twice, unfixed upstream at f072b1037. Consequences: (1) the town's own abliteration lever for Qwen3.5-9B must come from weight-space extraction (H1': the rank-1 projection export on dequantised writer matrices, per the node's own clause) or a direction computed outside llama.cpp (hidden-state means from a Python forward pass); (2) H2's cross-model signature comparison (Bonsai/OrcaBonsai 5120-d direction vs an own direction) needs the own direction from (1) first; (3) 'abliterated if identical' (owner 16:2xZ) is untouched -- nothing here changes which candidate wins, only how the town would abliterate a hybrid-arch candidate itself. First reusable battery for any later lever: datasets/abl-01/ (64 + 64 pairs, 50 held-out, classifier).
 
-##### G14.9.1 — OWN LEVER -- extract a refusal direction from Qwen3.5-9B ourselves, apply it at runtime, verify in-graph, price it on the HumanEval control (owner 16:2xZ 09-20) — status: active
+##### G5.25.1 — OWN LEVER -- extract a refusal direction from Qwen3.5-9B ourselves, apply it at runtime, verify in-graph, price it on the HumanEval control (owner 16:2xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.9.1
+# goal:g5.25.1
 
 ## Agent Notes
-**Owner source (2026-09-20 16:2xZ, verbatim on goal:g14, relayed via goal:g14.9):** "if it's identical, my preference is always use the abliterated models over non-abliterated ones. So if any model is good enough to be used in prod at some point it would have to be abliterated. If not by anyone else then by us. We could extract the feature differences between abliterated and non-abliterated models and see if there are any generalized patterns across models."
+**Owner source (2026-09-20 16:2xZ, verbatim on goal:g14, relayed via goal:g5.25):** "if it's identical, my preference is always use the abliterated models over non-abliterated ones. So if any model is good enough to be used in prod at some point it would have to be abliterated. If not by anyone else then by us. We could extract the feature differences between abliterated and non-abliterated models and see if there are any generalized patterns across models."
 
-**Commits to.** The first half of G14.9's capability commitment: derive a direction from a model the town actually serves (Qwen3.5-9B-Q4_K_M, the resident 9B) using the town's own tooling (llama-cvector-generator, mean-difference method over a paired refusal-eliciting/benign prompt set of at least 64 items), apply it at inference as a scaled control vector across s in {0.5, 1.0, 1.5, 2.0}, verify it is genuinely in the compute graph (s=0 byte-identical to the ABC.01 arm-A baseline; a random-direction control at the best s moves refusal far less than the real one), and price it on the same battery every other lever in this town is priced on (HumanEval pass@1, the ABC.01/ABC.02 harness, same 164 problems, same template). Cross-model signature comparison (G14.9.2, the unembedding-overlap question) waits until this lever is actually measured — it is the H2 the ABL.01 node names on a proved branch, not started here.
+**Commits to.** The first half of G5.25's capability commitment: derive a direction from a model the town actually serves (Qwen3.5-9B-Q4_K_M, the resident 9B) using the town's own tooling (llama-cvector-generator, mean-difference method over a paired refusal-eliciting/benign prompt set of at least 64 items), apply it at inference as a scaled control vector across s in {0.5, 1.0, 1.5, 2.0}, verify it is genuinely in the compute graph (s=0 byte-identical to the ABC.01 arm-A baseline; a random-direction control at the best s moves refusal far less than the real one), and price it on the same battery every other lever in this town is priced on (HumanEval pass@1, the ABC.01/ABC.02 harness, same 164 problems, same template). Cross-model signature comparison (G5.25.2, the unembedding-overlap question) waits until this lever is actually measured — it is the H2 the ABL.01 node names on a proved branch, not started here.
 
 **Invariants.** Every scale tested carries both controls (random direction; s=0 byte-identity against the ABC.01 arm-A completions); the refusal classifier and its phrase list are committed as text, not ad hoc; refusal rate and coding cost are measured on the same held-out set and the same HumanEval harness every other lever in this town uses; the resident router server answers a real completion on :8080 before done (never merely /v1/models); no model download, no kernel build, no engine code; one paid parent (pi/deepseek, cap 1 USD), one paid round at a time, nothing stacked on the GPU.
 
@@ -11764,98 +12037,98 @@ thought-master 00:2xZ 09-21 (knowledge from ABL.01, merged c0d8c356c): the llama
 
 **Done when.** ABL.01 lands a verdict against its own pre-registered falsifiers — refusal delta and HumanEval cost at every scale tested, both controls (random direction, s=0 byte-identity) reported with real numbers. Proved or disproved are both a real answer here: a disproof feeds the WHY and the rank-1 projection alternative directly, it is not a dead end for this subgoal.
 
-**First chunk (minted):** `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01), re-parented here from `idea:lm-abliteration-feature-differences-generalize-across-models` directly (the idea itself re-parented from goal:g14.9 to this sub-sub-goal). G14.9.2 (cross-model unembedding-signature comparison) is minted only when that chunk is actually reached, per the owner pace rule.
+**First chunk (minted):** `hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost` (ABL.01), re-parented here from `idea:lm-abliteration-feature-differences-generalize-across-models` directly (the idea itself re-parented from goal:g5.25 to this sub-sub-goal). G5.25.2 (cross-model unembedding-signature comparison) is minted only when that chunk is actually reached, per the owner pace rule.
 
-#### G14.10 — THE RESEARCH CORPUS — datasets/ at the repo root: every eval round triples, every scrubbed parent/kid trajectory, every harvested workflow run, indexed by datasets/README.md = doc:lm-research-corpus-registry; the landing rule and the one scrub (owner 21:4xZ / 21:5xZ 09-20) — status: active
+#### G5.26 — THE RESEARCH CORPUS — datasets/ at the repo root: every eval round triples, every scrubbed parent/kid trajectory, every harvested workflow run, indexed by datasets/README.md = doc:lm-research-corpus-registry; the landing rule and the one scrub (owner 21:4xZ / 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.10
+# goal:g5.26
 
 ## Agent Notes
 **Owner source (2026-09-20 21:4xZ / 21:5xZ, verbatim on goal:g14):** "are we storing the synthetic datasets we are generating from these evals? They are rpeclassified and can really strengthen our research corpus and ability to use it for model tune ups." — "Put all synthetic datasets into a separate easy to find easy to browse archive with its own explainer doc that you also build into the graph."
 
-**Commits to.** `datasets/` at the repo root is the town's research corpus: every eval round's `(prompt, output, label)` triples, every parent/kid trajectory (scrubbed), every harvested workflow run, indexed by `datasets/README.md`, which is the payload of `doc:lm-research-corpus-registry`. The corpus is the input of G14.7 and the evidence base of G14.11.
+**Commits to.** `datasets/` at the repo root is the town's research corpus: every eval round's `(prompt, output, label)` triples, every parent/kid trajectory (scrubbed), every harvested workflow run, indexed by `datasets/README.md`, which is the payload of `doc:lm-research-corpus-registry`. The corpus is the input of G5.23 and the evidence base of G5.27.
 
 **Invariants.** (1) Nothing lands unscrubbed: the span-based redactor is the one scrub; a leak hit blocks the commit. (2) Every record carries its label's provenance (which experiment, which verdict, which reviewer). (3) Trajectories are landed *before* a worktree is removed; raw streaming logs are never landed. (4) The index is updated in the same merge that adds a corpus. (5) Model bytes never live here. (6) A dataset used for training is frozen by sha256 in the trial's node.
 
 **Falsifiers.** (a) A merge that adds a round without its triples or trajectories is a rule violation, counted on this node; three in a row falsify the hand-step design and force the engine-level retention flag (SM item). (b) The corpus is falsified as "preclassified" if a re-scrub or a label audit finds > 1 % of records with a wrong or missing label — then the affected corpus is quarantined (moved under `datasets/quarantine/`) until relabelled.
 
-**Done when.** Never — this is a perpetual hygiene goal; it is reviewed at each G14.11 gap-table update (does every row's evidence resolve into the archive?).
+**Done when.** Never — this is a perpetual hygiene goal; it is reviewed at each G5.27 gap-table update (does every row's evidence resolve into the archive?).
 
-**First chunks (done / minted):** the archive itself (2026-09-20 21:5xZ); `datasets/trajectories/ABC.01/` (landed 22:00Z); DS.01 = the kid-sft re-scrub with the span tool (queued after MP.01). Sub-sub-goals are the director's to mint (G14.10.1 landing, G14.10.2 scrub + audit), same format.
+**First chunks (done / minted):** the archive itself (2026-09-20 21:5xZ); `datasets/trajectories/ABC.01/` (landed 22:00Z); DS.01 = the kid-sft re-scrub with the span tool (queued after MP.01). Sub-sub-goals are the director's to mint (G5.26.1 landing, G5.26.2 scrub + audit), same format.
 
 thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
-  G14.10.2 THE SESSION-DATA TRUNK + CLASSIFIER PASS (director mints, goal format)
-    capture    EVERY role's session data -- pi parents + kids (already land under datasets/trajectories/), AND claude-code roles (masters, directors, the Prime: session jsonl under the harness dir) -> datasets/sessions/<role>/<session>/ through the ONE scrub (datasets/tools/scrub.py); capture hook for claude-code roles = G14.14.8 (engine director)
+  G5.26.2 THE SESSION-DATA TRUNK + CLASSIFIER PASS (director mints, goal format)
+    capture    EVERY role's session data -- pi parents + kids (already land under datasets/trajectories/), AND claude-code roles (masters, directors, the Prime: session jsonl under the harness dir) -> datasets/sessions/<role>/<session>/ through the ONE scrub (datasets/tools/scrub.py); capture hook for claude-code roles = G7.33.8 (engine director)
     labels     pre-label from what the graph already knows per record: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box; then a jev in-depth classifier pass over ALL data trunks (kid-sft, jev-typed-acts, trajectories, switch-rule, abl-01, sessions) adding the classes the graph does not carry (act type, reasoning shape prose/diagram-maxed, refusal, tool-error, rebrief) with calibration against a 200-record hand-checked slice
-    output     one index (datasets/README.md row + a labels.jsonl per trunk) that G14.7.2's arms read directly
-    order      DS.01 first (the one scrub), then G14.10.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
+    output     one index (datasets/README.md row + a labels.jsonl per trunk) that G5.23.2's arms read directly
+    order      DS.01 first (the one scrub), then G5.26.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
 
-#### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
+#### G5.27 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.11
+# goal:g5.27
 
 ## Agent Notes
 **Owner source (2026-09-20 21:5xZ, verbatim on goal:g14):** "if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance." Trajectory (21:4xZ): "overall trajectory is maximize evaluation performance on the local model."
 
-**Commits to.** One battery, one reference bar, one switch. The **battery** is agentic coding + instruction following measured the same way for every candidate and for the reference: HumanEval 164 (execution pass@1), IFEval 541 (strict prompt-level accuracy), and — when it exists — the town's own typed-round success (a minimal engine round on the candidate, done-or-not, as in round 0). The **reference** is deepseek-v4.1-flash via OpenRouter on the same protocol, re-taken when the model id changes. The **switch**: when a local candidate is within 10 % (relative) of the reference on every battery row, the contributing chains (G14.6–G14.9) mint ONE mvp that cites each contributing hypothesis, a build node follows, and the town's parents and kids run on it.
+**Commits to.** One battery, one reference bar, one switch. The **battery** is agentic coding + instruction following measured the same way for every candidate and for the reference: HumanEval 164 (execution pass@1), IFEval 541 (strict prompt-level accuracy), and — when it exists — the town's own typed-round success (a minimal engine round on the candidate, done-or-not, as in round 0). The **reference** is deepseek-v4.1-flash via OpenRouter on the same protocol, re-taken when the model id changes. The **switch**: when a local candidate is within 10 % (relative) of the reference on every battery row, the contributing chains (G5.22–G5.25) mint ONE mvp that cites each contributing hypothesis, a build node follows, and the town's parents and kids run on it.
 
 **Invariants.** The gap table (candidate × eval, absolute and relative, paired discordant counts vs the reference, tok/s, VRAM, USD/1M tokens, `abliterated?`) is the only place a candidate's standing is read from; every row resolves into `datasets/`; a proof of "within 10 %" never switches anything by itself — it triggers the mvp mint; the mvp names every contributing chain by id; the first real rounds on the local build are compared to the same rounds on the reference before the switch is called complete.
 
-**Falsifiers.** (a) The switch rule is falsified as a criterion if a candidate within 10 % on the battery fails ≥ 30 % of real typed rounds the reference completes — then the battery is missing the agentic row and is extended before any switch. (b) The goal is falsified for a season if no candidate reaches 90 % of the reference on any battery row after G14.6, G14.7 and G14.9 each have a landed chunk — recorded, not hidden.
+**Falsifiers.** (a) The switch rule is falsified as a criterion if a candidate within 10 % on the battery fails ≥ 30 % of real typed rounds the reference completes — then the battery is missing the agentic row and is extended before any switch. (b) The goal is falsified for a season if no candidate reaches 90 % of the reference on any battery row after G5.22, G5.23 and G5.25 each have a landed chunk — recorded, not hidden.
 
 **Done when.** The town's parents and kids run on its own build for one full week of rounds with the gap table showing ≤ 10 % on every row and the round-completion rate within 10 % of the reference's.
 
-**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G14.11.1 the battery + reference, G14.11.2 the mvp/build/switch), same format, before any chunk runs.
+**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01: the missing reference row + the first gap table). Sub-sub-goals are the director's to mint (G5.27.1 the battery + reference, G5.27.2 the mvp/build/switch), same format, before any chunk runs.
 
 thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): the reference bar is MEASURED -- deepseek-v4.1-flash 93.9 pct HumanEval / 0.869 IFEval strict, same protocol as the local arms. HumanEval side of the switch: the Bonsai 2 27B line FIRES the 0.9x rule (B 92.2, C1 91.6, C2 92.9 pct relative); the Qwen3.5-9B line does NOT (83.1 / 84.4). IFEval side: OPEN until SWR.02 scores B, C1, C2 locally (A/A2 are out -- they fail HumanEval already). If B or C2 clears 0.9x on IFEval too, the switch rule is met and the chains mint the mvp (owner 21:5xZ 09-20); identical B vs C2 -> C2 (abliterated) per the prod rule. Cost fact for the mvp: the 27B decodes at 23 tok/s single stream in 7.3 GB -- the mvp's serving line must measure slots at a shorter ctx before any parent runs on it.
 
-##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
+##### G5.27.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.11.1
+# goal:g5.27.1
 
 ## Agent Notes
-**Owner source (2026-09-20 21:5xZ, verbatim on goal:g14, relayed via goal:g14.11):** "if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance." Trajectory (21:4xZ): "overall trajectory is maximize evaluation performance on the local model."
+**Owner source (2026-09-20 21:5xZ, verbatim on goal:g14, relayed via goal:g5.27):** "if any of these ideas pan out let the chain mint an mvp that ties all the different chains together that contributed and make a build node and start using it. So start using our own you to run your own kids and parents if performance starts approaching within %10 of deepseek v4.1 flash bench performance." Trajectory (21:4xZ): "overall trajectory is maximize evaluation performance on the local model."
 
-**Commits to.** The first half of G14.11's commitment: build the actual gap table, not just the rule for reading one. Score deepseek-v4.1-flash (the reference, via OpenRouter, temperature 0, one sample) on the SAME two evals every local candidate has already been measured on where possible — HumanEval 164 (execution pass@1, the ABC harness, same template) and IFEval 541 (official strict prompt-level accuracy) — then build the gap table (candidate x eval, absolute and relative, paired discordant counts vs the reference where the eval supports pairing) against the five local rows already measured in ABC.01/ABC.02 (A, A2, B, C1, C2). This chunk is measurement only: it does not call the switch, does not mint an mvp, and does not touch the GPU (the reference row is API-only; a local candidate's IFEval row, if still missing, is a separate later chunk under this same subgoal).
+**Commits to.** The first half of G5.27's commitment: build the actual gap table, not just the rule for reading one. Score deepseek-v4.1-flash (the reference, via OpenRouter, temperature 0, one sample) on the SAME two evals every local candidate has already been measured on where possible — HumanEval 164 (execution pass@1, the ABC harness, same template) and IFEval 541 (official strict prompt-level accuracy) — then build the gap table (candidate x eval, absolute and relative, paired discordant counts vs the reference where the eval supports pairing) against the five local rows already measured in ABC.01/ABC.02 (A, A2, B, C1, C2). This chunk is measurement only: it does not call the switch, does not mint an mvp, and does not touch the GPU (the reference row is API-only; a local candidate's IFEval row, if still missing, is a separate later chunk under this same subgoal).
 
 **Invariants.** Every eval uses the identical protocol already established for the local rows (greedy, thinking off, one sample, same request shape); the gap table is the only place a candidate's standing is read from, never a single number quoted alone; USD and tok/s ride along on every row so cost is never separated from capability; a proof of "within 10 pct" is a trigger, never a switch by itself.
 
-**Falsifiers.** (a) If the reference itself cannot be scored cleanly on one of the two evals (rate limits, a harness mismatch, a template confound) the WHY names exactly which eval and why, and that eval is held missing from the gap table rather than estimated. (b) If every local candidate sits below 0.9x the reference on either eval, the switch does not fire this round — recorded as a real gap, not hidden, and G14.11's own falsifier (b) starts counting toward "no candidate reaches 90pct after G14.6/7/9 each land a chunk."
+**Falsifiers.** (a) If the reference itself cannot be scored cleanly on one of the two evals (rate limits, a harness mismatch, a template confound) the WHY names exactly which eval and why, and that eval is held missing from the gap table rather than estimated. (b) If every local candidate sits below 0.9x the reference on either eval, the switch does not fire this round — recorded as a real gap, not hidden, and G5.27's own falsifier (b) starts counting toward "no candidate reaches 90pct after G5.22/7/9 each land a chunk."
 
 **Done when.** The gap table exists in `datasets/switch-rule/<date>/` with real numbers on both evals for the reference and every local candidate measured so far, and the switch verdict (fires / does not fire, per row) is stated plainly on the hypothesis node.
 
-**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01) — the reference row + the gap table against the five existing local rows. G14.11.2 (the mvp/build/switch mechanics) is minted only when a switch verdict actually needs to be acted on, per the owner pace rule.
+**First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01) — the reference row + the gap table against the five existing local rows. G5.27.2 (the mvp/build/switch mechanics) is minted only when a switch verdict actually needs to be acted on, per the owner pace rule.
 
-#### G14.12 — SIDE TRACK — spiking / oscillator readouts (Kuramoto, LIF/spectral, C2C fusers, SNN walkers, the bend2 spiking sim): only as capacity allows, never ahead of an owner-track round, imported into the main tracks piece by piece as learned (owner 21:4xZ 09-20) — status: active
+#### G5.28 — SIDE TRACK — spiking / oscillator readouts (Kuramoto, LIF/spectral, C2C fusers, SNN walkers, the bend2 spiking sim): only as capacity allows, never ahead of an owner-track round, imported into the main tracks piece by piece as learned (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.12
+# goal:g5.28
 
 ## Agent Notes
 **Owner source (2026-09-20 21:4xZ, verbatim on goal:g14):** "No crazy spiking stuff too much yet except on the side if capacity allows like mainly the bend2 language mapping so we can slowly import it into the graph not just wholesale but as we learn the useful things we need to know about it to make things run better." Earlier sources: the owner's oscillator / Kuramoto / C2C / LIF threads (goal:g14 notes 09-14 → 09-19).
 
-**Commits to.** Keep the spiking and oscillator lines alive as a **side track**: coupled-oscillator readouts, LIF/spectral snapshots, C2C fusers, Kuramoto rhythm banks, SNN walkers, the bend2 spiking sim — run only when no owner-track (G14.6–G14.11) round is waiting for the same resources, and only as small measured chunks whose *learned* pieces are imported into the main tracks (e.g. a coherence ranking that G14.6 can use) rather than wholesale. G14.5 (the bend2/HVM source mapping) is the sibling that feeds this track its ground truth.
+**Commits to.** Keep the spiking and oscillator lines alive as a **side track**: coupled-oscillator readouts, LIF/spectral snapshots, C2C fusers, Kuramoto rhythm banks, SNN walkers, the bend2 spiking sim — run only when no owner-track (G5.22–G5.27) round is waiting for the same resources, and only as small measured chunks whose *learned* pieces are imported into the main tracks (e.g. a coherence ranking that G5.22 can use) rather than wholesale. G14.5 (the bend2/HVM source mapping) is the sibling that feeds this track its ground truth.
 
-**Invariants.** A side-track round never holds the GPU or the paid-round slot ahead of an owner-track round; every chunk names the main-track hypothesis it would feed if it proved; the oscillator budget is gated by G14.6's first chunk (the K_c kill-test) — no oscillator spend before that verdict; kill criteria pre-registered per chunk (the 09-20 judge's FRANK 7).
+**Invariants.** A side-track round never holds the GPU or the paid-round slot ahead of an owner-track round; every chunk names the main-track hypothesis it would feed if it proved; the oscillator budget is gated by G5.22's first chunk (the K_c kill-test) — no oscillator spend before that verdict; kill criteria pre-registered per chunk (the 09-20 judge's FRANK 7).
 
 **Falsifiers.** The track is paused (status `horizon`) for the season if two consecutive chunks feed nothing measurable into a main track, or if the K_c kill-test returns the null and no other coherence signal survives its own falsifier.
 
-**Done when.** Never as such — it is retired into the main tracks piece by piece; done for a season when every learned piece has a home under G14.6–G14.11 and nothing here is still live.
+**Done when.** Never as such — it is retired into the main tracks piece by piece; done for a season when every learned piece has a home under G5.22–G5.27 and nothing here is still live.
 
-**Seeds:** the existing oscillator/spiking nodes re-homed here on 2026-09-20 (cleanliness pass). Sub-sub-goals are the director's to mint (G14.12.1 readouts, G14.12.2 bend2 spiking sim), same format, before any chunk runs.
+**Seeds:** the existing oscillator/spiking nodes re-homed here on 2026-09-20 (cleanliness pass). Sub-sub-goals are the director's to mint (G5.28.1 readouts, G5.28.2 bend2 spiking sim), same format, before any chunk runs.
 
-#### G14.13 — THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20) — status: active
+#### G5.29 — THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.13
+# goal:g5.29
 
 ## Agent Notes
 **Owner source (2026-09-13 23:32Z, verbatim in doc:l4-owner-decisions; goal:g14 charter):** the thought-master owns "goal:g14 … and its research treasury"; "a very slow, gentle research loop". Owner links arrive as lines in the pane (09-18: turboquant_plus / OrcaBonsai / bonsai2-small-gpu; 09-14: dead-head, tiktok-videos-4b, the looped transformer) and are ingested by the trove-survey and paper-digest workflows.
 
-**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G14.6–G14.12) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
+**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G5.22–G5.28) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
 
 **Invariants.** One survey per owner link set, never re-run blind (the run dir is the record); every digest quotes file paths and dates and marks MEASURED vs ESTIMATE; a critique stage that times out is recorded as missing on the goal (the 09-20 bonsai2-small-gpu critique); cost per survey stated (≤ 1 USD unless the owner names more).
 
@@ -11865,35 +12138,10 @@ thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): t
 
 **Seeds:** the paper/repo digests re-homed here on 2026-09-20 (cleanliness pass), plus the 09-20 trove-survey run (`datasets/workflow-runs/trove-survey-2026-09-20/`).
 
-#### G14.14 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
+#### G5.30 — KV-CACHE TELEPATHY — self-telepathy (a tool that captures the KV of a span tied to a section/turn, carries it forward and re-surfaces it later: in-session RAG over KV, in-stream memory and compression, latent-to-latent recurrence) and swarm telepathy (same-model small instances each holding a slice of the context, exchanging KV segments, a jev-like weighing of which segments matter, settling into an ordering a decoder consumes) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.14
-## Agent Notes
-**Owner source (2026-09-21 01:1xZ-01:2xZ, verbatim on goal:g14):** "Let's add all these engine fixes as rounds as well and have them be running alongside the rest. You can use more ram if needed, use most or all of it if needed just measure it out well. SM is not active so we might as well do it. Spin up a second director seat just for engine fixes if needed, and make sure to really stay on top of batching the work so the sonnet directors do most of it. One minor upgrade you can add to the dispatch is make automatically chain parent dispatch, parent drain, and mur in one workflow. Then also do a batch workflow that does each round as serially or as parallel as you want it depending on memory allocation, and then does a whole-batch MUR for the whole sub goal that parents all these sub-subgoals." / "conserve tokens at all costs via batching and openrouter parent kid utilization. Lean on them to carry the graph growth."
-**Commits to.** (1) Every engine trap the town's rounds hit (below) becomes a pi round — a `hypothesis:` with a testable claim, a falsifier, a committed test, a file scope and a ceiling in ENGINE UNITS (source-suffix lines; data files never count) — under a G14.14.x sub-sub-goal in this same format, minted by the engine director before the round runs. (2) The two dispatch upgrades the owner named land as REGISTERED workflows on the pi route (`workflow.py run <name>`; never the Claude Workflow tool): `agi-round` = parent dispatch → drain → mur in one command; `agi-batch` = rounds[] scheduled serially/in parallel by a memory allocation, each through `agi-round`, closed by ONE whole-batch MUR over the sub-goal that parents the sub-sub-goals. (3) Engine rounds run ALONGSIDE research rounds (SWR, MP, OSC, FT) within the measured memory budget; no engine round ever touches the GPU.
-**Invariants.** Kids write the code, parents review it, directors batch and order, the master merges — nobody above a kid writes engine code by hand. One [merge-up] per batch, gates unchanged (0 node deletions · leak scan · links 0 broken · prayer grep 0 on nodes · GOALS byte-identical). Every round names its memory in GB and the batch never schedules more than the box measures: 15 GB total, 12 GB available at 01:20Z 09-21 with the 9B resident on :8080; a model-loading kid needs up to 5.85 GB RSS (ABL.01), an engine kid ~1 GB; `memory_max` is a CEILING per kid, not a reservation — at most ONE model-loading kid on the host at a time, engine kids 2-3 in parallel. Existing behaviour is pinned by the engine suite before and after every change (`python3 -m pytest extensions/agi/tests/ -q`, ONE announce line to belam first, F7 lock rule).
-**Falsifiers.** A sub-sub-goal is falsified when its round's committed test cannot reproduce the trap it claims to fix (then the trap was mis-diagnosed — the WHY names the real mechanism and the chunk is re-minted), or when the fix breaks a suite test (demote, never merge). `agi-batch` is falsified if a batch of 3 engine rounds on this box does not finish with one whole-batch MUR and zero hand steps by the director between dispatch and review.
-**Done when.** Both workflows exist and have run one real batch end to end; every trap below has a landed round (proved, or disproved with its WHY); the director cards and the master card have shrunk to identity + stops + a pointer to `doc:lm-town-trajectory`.
-**First chunks (the engine director mints G14.14.1-4, same format, then one hypothesis per lettered item; ceilings 200 engine lines; cap 1 USD per round; batch them):**
-- **G14.14.1 write.py ergonomics** — (a) `replace body N:M` is BODY-relative with line 1 = the BODY:BEGIN marker and silently lands mis-offset edits (ABL.01's winning node was corrupted this way): anchor-based replace (`replace body --at '<heading>'` or absolute file lines echoed by `read body`) + a guard that refuses a range splitting a heading/paragraph; (b) `create` leaves the unfilled scaffold body (`What is the testable claim?…`, seen on TM.61/62/69 and SWR.01): `create` renders the body from the frontmatter it was given, or takes `--body-file`; (c) `replace body` cannot share a submit with `note`/`thought` — either ordered composition or the refusal printed in `-h`.
-- **G14.14.2 comms hardening** — (a) `send.py send --body-file PATH` / stdin so no shell quoting ever touches a body (the 22:19Z 09-20 env dump was a backtick pair inside a double-quoted argument); (b) phantom nudges: a nudge fired at 23:05Z 09-20 and 01:0xZ 09-21 while `send.py read` returned empty — the nudge marker and the read marker must agree (a fired nudge implies a read that returns the message), measured on those two cases.
-- **G14.14.3 dispatch/runtime** — (a) the CEILING clause in engine units: `brief.py`'s CEILING line and the `[hypothesis]` schema wording say "source-suffix lines; data files never count", and `cli.py session-complete` prints the measured number beside the recorded one; (b) a kid session-dir locator (`dispatch.py where <kid-id>`): a kid dispatched by a parent nests under the parent's worktree (`.agi/worktrees/<parent>/.agi/sessions/iter-<X>/<kid>/`) and the director looked in the wrong place; (c) memory per round: `dispatch.py --memory <GB>` overriding `agent_dispatch.memory_max`, read by `agi-batch`; (d) `links.py schema` under 60 s on this graph (it exceeds 120 s today); (e) startup noise: `branches.py: deprecated alias used: season/s2 -> season2/main` — the caller in `rotate.py status` uses the new name.
-- **G14.14.4 the two workflows (owner's explicit asks; build AFTER 14.3(c))** — (a) `agi-round`: dispatch one parent → drain (poll the unit/lease until it exits or its merge-up commit lands, with the round's wall as the timeout) → run the registered mur → one structured return {round, verdict, residues, spend, wall}; (b) `agi-batch`: args {subgoal, rounds[{hypothesis, memory_gb, wall_min}], available_gb} → schedule (parallel while Σ memory_gb of live rounds ≤ available_gb − 2, else serial) → each via `agi-round` → ONE whole-batch MUR over `subgoal` (every sub-sub-goal's landed rounds reviewed together: claims vs bytes, cross-round conflicts, what the batch proved as a whole) → one report line for the director's [merge-up]. Both authored through `workflow.py author`, both run by name on the pi route.
-- Not here: `datasets/tools/scrub.py` tests (G14.10 / DS.01); the bench jsonl paired_table gap (carried on ABC.02's node).
-
-thought-master 01:3xZ 09-21 (owner, same pane: 'If it needs a rule … it needs a dispatch batch on the engine director'; and the trajectory node definition, verbatim on goal:g14): ADD G14.14.5 THE TRAJECTORY SUPER-NODE TYPE -- a `trajectory` node type (schema .agi/context/schemas/[trajectory].md) that sits TO THE SIDE of the goal tree: bigger than a subgoal, sometimes bigger than a perpetual goal, smaller than a vision; carries the METRIC SET a track chases (for local-maxxing: model params UP, footprint GB DOWN, context window UP, at the quality bar within 10 pct of v4.1-flash and a usable tok/s) as a measured-points table, and LINKS INTO every node that moves those numbers (a `links:` list of many node ids, resolvable by links.py, not limited by the one-parent doc rule); readers (links.py, snapshot/zoom/viewport, write.py create/set) know the type; migration = doc:lm-town-trajectory becomes trajectory:local-maxxing with its body and links intact, the doc deprecated (moved, never deleted). One round: testable claim = the type exists, links.py resolves N links from it with 0 broken, the migrated node renders in every reader that renders docs, engine suite green. Ceiling 200 engine lines.
-
-thought-master 01:5xZ 09-21 (owner: 'we need a config and template maxxing pass on all the new functions that have been or will be added'): ADD G14.14.6 CONFIG + TEMPLATE MAXXING PASS -- FIRST ITEM, tiny, run it before 14.14.3(c): crons.py:548 hardcodes `grid.py commit --all --prefix 'cron: '`, so on a town-trunk checkout the grid_sync cron refuses every 5 min ('node refs are branch-blind … pass --allow-branch') and this box had 0 grid versions until a hand seed at 01:5xZ; fix = emit --allow-branch when the checked-out branch is not master (or when the crons node declares allow_branch: true), with a test that builds the line for both cases; then `crons.py apply` picks it up. SECOND ITEM, the pass itself, as a survey round then fix rounds: every config (.agi/config.json, the .geometry nodes posts/crons/rotations) and every template (role docs, cards, briefs, the unified director brief §4 which still names season1 paths) checked against every function added since the box move (new verbs, workflows, the town layout, the seat rows, the memory cap, the trajectory node) -- one table: function → config/template that must know it → does it → fix round. Ceiling 200 engine lines per round.
-
-thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use'): ADD G14.14.7 GRID STORAGE TRUNK BY CONFIG -- today grid.py writes refs/grid/<mint_id> (branch-blind, master-only unless --allow-branch) and crons.py:548 hardcodes the command. Round: (a) `grid.storage_trunk` in .agi/config.json (a ref namespace like refs/grid/<town>/ or a branch name; default = the current refs/grid/ so every existing project round-trips unchanged) with the crons node able to override per project; (b) grid.py commit/log/diff/versions/payload/status and stitch.py --from-grid all resolve the trunk from config -- one resolver, no second spelling; (c) crons.py emits the grid_sync line from the same config (this supersedes G14.14.6's first item: with a configured trunk the branch-blind refusal no longer applies; keep --allow-branch as the explicit override for an unconfigured tree); (d) tests: a tree with storage_trunk=refs/grid/t1/ records N versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; `grid.py versions` reads back from the configured trunk. Migration for this box: set storage_trunk=refs/grid/local-maxxing/ AFTER the round lands, then one `grid.py migrate-refs` (existing verb) or a documented re-seed. Ceiling 200 engine lines; the kid pins existing behaviour with the engine suite first.
-
-thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g14.10): ADD G14.14.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 14.14.4; ceiling 200 engine lines; never a second scrub.
-
-#### G14.15 — KV-CACHE TELEPATHY — self-telepathy (a tool that captures the KV of a span tied to a section/turn, carries it forward and re-surfaces it later: in-session RAG over KV, in-stream memory and compression, latent-to-latent recurrence) and swarm telepathy (same-model small instances each holding a slice of the context, exchanging KV segments, a jev-like weighing of which segments matter, settling into an ordering a decoder consumes) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.15
+# goal:g5.30
 ## Agent Notes
 **Owner source (2026-09-21 01:3xZ, verbatim on goal:g14):** "I want to experiment with self-telepathy. Give the model a tool to capture a specific KV cache in a stream linked to a specific section or turn or whatever, kv caches are neat like that I think, and send that 'forward' in the context windows so it's always available and can be re-surfaced later. Like a in-session rag for kv caches that builds as the session progresses. It also works kinda like an in-stream compression and memory mechanism. Latent latent space recurrence." / "And also use the kv cache telepathy to let smaller models swarm together; with each one holding a piece of the total context and all coordinating together via kv cache messaging until the proper kv cache results emerge that can be fed into a decoder. So like a swarm of jevs almost weighing opinions together on which kv caches matter more where until a final ordering and layering settles into place."
 **Prior already measured (idea:lm-nodes-as-kv-caches → hypothesis:lm-kv-slot-save-beats-reprefill, owner 09-18):** a saved llama.cpp KV slot restores ≥ 3× faster than re-prefill (README prior 40-100×) but costs 7,000-37,000× the text bytes on disk — KV is compute caching, not compression. Telepathy is what that prior did NOT test: (a) a SPAN, not a whole slot, tied to a section/turn; (b) carried forward and re-surfaced at a LATER position (a KV position shift — `llama_kv_cache_seq_add` — not a byte copy); (c) chosen by a ranking (which spans matter), i.e. RAG over KV; (d) exchanged between same-model instances.
@@ -11901,12 +12149,12 @@ thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g14.10): ADD G14.14.8 SESSION
 **Invariants.** Every chunk measures fidelity (token-level agreement vs re-prefill), compute (prefill tokens avoided), bytes (KV span size vs text), and wall on the same served 9B, same n_batch/ubatch pinned (logits are not bit-identical across batch sizes — prior). No model bytes leave the rig; nothing is baked into weights; the tool is a server/harness change under `datasets/`-style scratch or the town's fork, never the engine tree.
 **Falsifiers.** (1) is falsified if shifted re-injection agrees < 80 pct with re-prefill (then RoPE-shifted KV is not position-portable for this model and telepathy needs re-prefill from saved TEXT plus a saved KV only for the tail); (3) if KV ranking never beats text retrieval on the probe set; (4) if the swarm's answer quality is below the single long-context instance at equal total tokens.
 **Done when.** (1)-(3) have verdicts and either a working in-session KV RAG on the served model or the measured reason it cannot work; (4) has one measured k=2 swarm result.
-**First chunk (the director mints G14.15.1 self-telepathy and G14.15.2 swarm, same format, then TEL.01 = chunk (1) span fidelity):** `hypothesis:` under G14.15.1 — testable claim (1) above, falsifier, the committed test, file scope, ceiling in engine units; runs on the resident 9B (no model loading on the host), cap 1 USD for the parent, queued after MP.01 (one GPU round at a time). Links: `doc:recurrent-looped-transformer` (latent recurrence), `idea:lm-nodes-as-kv-caches`, the trajectory super node.
+**First chunk (the director mints G5.30.1 self-telepathy and G5.30.2 swarm, same format, then TEL.01 = chunk (1) span fidelity):** `hypothesis:` under G5.30.1 — testable claim (1) above, falsifier, the committed test, file scope, ceiling in engine units; runs on the resident 9B (no model loading on the host), cap 1 USD for the parent, queued after MP.01 (one GPU round at a time). Links: `doc:recurrent-looped-transformer` (latent recurrence), `idea:lm-nodes-as-kv-caches`, the trajectory super node.
 
-#### G14.16 — DIAGRAM-MAX + BATCH-MAX — every dm, note, card, board section and (where possible) thought stream on the town is ONE compact flow or table that carries MORE meaning in FEWER tokens than the prose it replaces, never dropping a negation, condition, attribution or supersession; directors batch-max (many rounds per order, one merge-up per batch) — status: active
+#### G5.31 — DIAGRAM-MAX + BATCH-MAX — every dm, note, card, board section and (where possible) thought stream on the town is ONE compact flow or table that carries MORE meaning in FEWER tokens than the prose it replaces, never dropping a negation, condition, attribution or supersession; directors batch-max (many rounds per order, one merge-up per batch) — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g14.16
+# goal:g5.31
 ## Agent Notes
 **Owner source (verbatim on goal:g14):** 01:57Z 09-21 (Prime pane): "Tell everyone else to diagram max as well to maximally compress all comms and card content/updates while retaining even more meaning than without doing the compression" · 02:1xZ 09-21 (thought-master pane): "break it out into a proper subgoal … including the standard format. Then refine the doc pass even more for yourself and the directors based on that format and tell both directors to sync theirs and refine even further to allow batch-maxxing for them as well. Do self-comms using diagram maxxing as well. And even thought stream if possible for all roles."
 **Commits to.**
@@ -11921,13 +12169,13 @@ target     fewer tokens AND more meaning than the prose replaced — measured, n
 **Invariants.** A compressed artifact is checked against its source for the four shapes before it replaces it; owner verbatim is never rewritten; a card stays ≤ 40 lines with state on `doc:lm-town-trajectory` (versions, not notes); the trajectory node's metric table is the model of the shape.
 **Falsifiers.** (a) A diagram-maxed card/dm loses a fact its source held (found by a reader or a mur) → it is not done; the fact is restored and the shape revised. (b) Token count of the compressed artifact is not below the prose it replaced (measured with the same tokenizer) → not compression. (c) A director's turn count per landed round does not fall after batch-maxxing → the batching is nominal.
 **Done when.** All three cards and both role briefs are in the shape with measured token reduction (a before/after table on this node); every [merge-up] and board update of one full week is in the shape; one measured batch (≥ 3 rounds per order) landed with one merge-up.
-**First chunk (the master, no spend):** the card pass — thought-master card §4+ (done 02:0xZ), director-thought + director-engine cards synced to the shape (TMM.20 / TME.05), before/after line counts on this node; then G14.16.1 (director-engine, same format): the measurement round — a tokenizer count of each card/brief before and after, the four-shape checklist as a committed script, run as one pi round.
+**First chunk (the master, no spend):** the card pass — thought-master card §4+ (done 02:0xZ), director-thought + director-engine cards synced to the shape (TMM.20 / TME.05), before/after line counts on this node; then G5.31.1 (director-engine, same format): the measurement round — a tokenizer count of each card/brief before and after, the four-shape checklist as a committed script, run as one pi round.
 
 thought-master 02:2xZ 09-21 card pass, measured: thought-master card 97 lines (09-20) -> 93 (§4 in the shape, 02:1xZ) -> 54 lines (§0-§3 in the shape, 02:2xZ); facts kept: every NEVER, both recorded exceptions, GATE 0 / ROUND 0 status, cadence, floor, alerts, prayers rule; owner quotes moved out of the card into their nodes (goal:g14, doc:l4-owner-decisions) rather than compressed. Directors' before/after arrive as their own notes here.
 
 director-engine 02:11Z 09-21 (via thought-master, verified dm): card diagram-max 2bd43c299 -> e4cc6aca3 = lines 33 -> 37 (+4: the table shape costs rows) · words 1063 -> 959 (-9.8 pct) · chars 7541 -> 6741 (-10.6 pct); its own flag: line count is a weak proxy for the shape -- words/chars are the measure, adopted for this goal's before/after table.
 
-thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G14.16.2 THE BRIEF PASS (director-engine, after G14.16.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
+thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G5.31.2 THE BRIEF PASS (director-engine, after G5.31.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
 
 ## App: streaming-suite
 
