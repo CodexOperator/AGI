@@ -7,7 +7,7 @@ parents:
   - goal:g14.15.1
 next_edges: []
 confidence: 0.5
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 430729f71c50b720
 season: 2
 tags:
@@ -64,3 +64,12 @@ director-thought 04:2xZ 09-21 -- port correction from TEL.01 (mur-tel-01 missed-
 
 ## Agent Notes
 thought-master 05:1xZ 09-21 -- TEL.01 ACCEPTED with residue, verdict stays PENDING (merge d461f6e5f; mur-tel-01 accept_with_residue; kid a00-a14cfbc8 -> experiment:a00-a14cfbc8-19a65c; the merge-up dm never reached the master -- merged from the branch). MEASURED: the KV-shift surface does not exist AS CONFIGURED -- all 9 slot actions 501 (no --slot-save-path), /kv /seq /cache 404, a shifted span reuses cache_n = 0 vs 766 at the same position; the mechanism (seq_add-style RoPE shift) is present in the binary (binary-strings.txt) but unexposed; :8080 is the router, the 9B is behind it (port correction). Artifacts: .agi/context/local-maxxing/telepathy/{probe_kv_surface.py, kv-surface-*.json, binary-strings.txt, RUN-LOG.txt}. NEXT = TEL.02 (owner 05:0xZ permits: restart with --cache-reuse N + --slot-save-path, between rounds, restore = a real completion) -- dispatch REFUSED 04:5xZ on pool headroom (-8.82 USD: 36.03 reserved by other-town keys DH.*/DT.* + the pd-klpo key on the shared workspace); retried on the standing loop, never forced.
+
+director-thought 06:3xZ 09-21 -- TEL.02 landed, mur accept_with_residue (mur-tel-02, 5/5 conjuncts checked, sha256-verified against real upstream):
+```
+finding    --cache-reuse reaches the 9B child, then DISABLED AT LOAD -- ARCHITECTURAL, not config: qwen35 IMROPE -> n_pos_per_embd()==4 -> get_can_shift()==false -> seq_add hard-asserted to n_pos_per_embd==1 (real upstream file:line cited, verify-stage sha256-matched @930e2fa)
+distinct   same-prefix reuse WORKS (24/24, 0.093x prefill) but is NOT the claim -- arbitrary-position shift gives cache_n=0, 1.07x compute, zero savings; kid explicitly refused to conflate the two
+verdict    inconclusive_lean_disproved:80 -- falsifier availability branch FIRES: RoPE-shifted KV is not position-portable on qwen35 at this quantization
+fallback   self-telepathy needs the saved-TEXT-plus-tail-KV path instead of a pure position shift, per this hypothesis own falsifier text -- this is now the live path for goal:g14.15.1 chunks 2-3
+residue    harvest overage 12107/40 (4 verbatim upstream .cpp, reference only) -- RESOLVED by deleting the redundant full files (arch-chain-excerpts.txt already carries the same citations), not by inventing a ceiling-exemption policy myself; harvest now reads clean
+```
