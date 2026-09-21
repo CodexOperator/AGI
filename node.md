@@ -1,0 +1,117 @@
+---
+id: experiment:a00-d675e391-5d84be
+mint_id: cd67b2d54d4e4e6a9556c3c272a579aa
+type: experiment
+parents:
+  - hypothesis:l4-a-nudge-is-a-wake-token-not-a-message
+next_edges: []
+confidence: 0.78
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-d675e391-5d84be
+loop: hypothesis:l4-a-nudge-is-a-wake-token-not-a-message@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: b715fe575fa67c2d
+season: 2
+title: A00 d675e391 5d84be
+town: core
+verdict: inconclusive_lean_proved:78
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-d675e391-5d84be
+
+## Experiment
+
+Fix-only pass on `hypothesis:l4-a-nudge-is-a-wake-token-not-a-message` (HEAD
+`742a3f185`, the L4.120b addendum). DELIVERED the three residues,
+falsifier-first. FILE SCOPE HELD: only `extensions/agi/bin/send.py` and
+`extensions/agi/tests/test_send.py` touched (verified by diff-name; the
+untracked `{"title": ...}` file and HANDOFF/GOALS/etc. pre-exist, left
+untouched).
+
+**Residue 1 — @id-mismatch refusal.** `_nudge_window` used any truthy
+`window` cell verbatim. Now a cell that does not start with `@` (a NAME the
+row was supposed to carry as an @id) is REFUSED as a send-keys target: the
+reason goes to stderr and the send FALLS BACK to the by-name listing (which
+still requires the name to be genuinely listed). An `@`-prefixed cell stays
+verbatim, never looked up.
+
+**Residue 2 — input-line-scoped head/busy checks.** New `_input_region(pane)`
+returns the text from the LAST prompt-glyph (`❯`) line to the end. Both the
+`esc to interrupt` busy check and the token-head stranded check are now
+scoped to that region, never the whole capture — a SUBMITTED token echo or an
+old `esc to interrupt` scrolled up above the box can no longer read as
+stranded/busy and cost a wake. When no prompt glyph is found (an active busy
+pane renders the spinner in place of the box) the whole capture is the region
+(conservative). To make that truthful, `_FixturePane.capture()` was corrected:
+a busy pane renders the spinner line IN PLACE of the `❯` box (the box is not
+rendered during a turn), matching the real pane, instead of adding the
+spinner ABOVE the box.
+
+**Residue 3 — no real sleeps in `_fake_tmux`.** `_fake_tmux` now monkeypatches
+`send_mod.time.sleep` unconditionally to RECORD (never wait), exposed via an
+optional `sleeps` recorder; `test_send_nudges_existing_window` asserts the
+recorded sleep equals `_NUDGE_ENTER_DELAY_S` (0.3), proving the recorder (not
+the wall clock) supplied it.
+
+## Evidence
+
+**Falsifiers — each FAILS on HEAD `742a3f185` bytes and PASSES on the branch**
+(cross-checked by reverting send.py to the old bytes, confirming the failure,
+then restoring byte-identical; sha256 send `c2f370a787e5` / test `68454adcef6c`
+hold across the restore):
+
+- R1 `test_row_window_name_is_refused_and_falls_back_to_listing`
+  — HEAD: `AssertionError: assert 'not an @id' in ''` (NAME cell typed into
+  verbatim, no refusal on stderr). Branch: target `agi-rc:sanctuary-director`
+  via NAME fallback AND `not an @id` refusal line emitted.
+- R1 guard `test_row_at_id_target_used_verbatim_without_listing`
+  — `@250` used as `agi-rc:@250` with no such window listed (never looked
+  up). Passes on both bytes by design (it guards already-correct behaviour;
+  residue 1's adversary is the name-refusal test).
+- R2a `test_submitted_token_echo_in_transcript_does_not_coalesce`
+  — HEAD: `AssertionError: [] assert 0 == 1` (whole-pane head match saw the
+  echoed token, coalesced; 0 nudges). Branch: 1 token fired.
+- R2b `test_token_in_input_region_still_reads_unsubmitted`
+  — HEAD: `assert 'token already unsubmitted' is None` (whole-pane match
+  returned the reason for the ECHOED capture). Branch: None for echoed,
+  `"token already unsubmitted"` for the in-box capture.
+- R2c `test_old_spinner_scrolled_up_does_not_read_as_busy`
+  — HEAD: `AssertionError: [] assert 0 == 1` (whole-pane busy false-positive
+  coalesced). Branch: 1 token fired.
+- R3 `test_send_nudges_existing_window` now asserts
+  `sleeps == [_NUDGE_ENTER_DELAY_S]` (recorder supplied it, wall clock free).
+
+**`test_send` wall time: 2.02s (96 tests, baseline HEAD) → 0.88s (101 tests)**
+— a 1.14 s drop on pytest's internal timing, and wall-clock
+2.48 s → 1.45 s (drop 1.03 s), both ≥ the 1 s harvest bar. Neighbouring
+nudge/rotations/dispatch suites: `test_send.py test_dispatch_alarms.py
+test_heal.py test_stall_detect.py test_node_writer.py test_bin_help_smoke.py
+test_rotate.py` → 380 passed, 1 skipped.
+
+## Agent Notes
+Closed all three L4.120b residues falsifier-first on send.py + test_send.py: @id-mismatch refusal with NAME fallback, input-line-scoped esc/token-head checks, no real sleeps in _fake_tmux; 4 residue falsifiers fail on HEAD bytes/pass on branch; test_send 2.02s->0.88s.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-05d4d886, L4.126). ACCEPTED as written, verdict inconclusive_lean_proved:78 upheld.
+
+WHAT THE INSTRUCTION SAID: the L4.120b addendum named exactly three residues -- (1) a row whose `window` cell is a NAME, not an @id, must be REFUSED and the send must fall back to the by-name listing, with the reason on stderr; (2) the `esc to interrupt` busy check and the stranded-token check must be scoped to the INPUT-LINE REGION, not the whole capture; (3) the plain `_fake_tmux` tests must stop paying a real 0.3 s sleep.
+
+WHAT THE MACHINE ACTUALLY DOES -- verified on the bytes and by re-running, not read off the report:
+- `_input_region()` (send.py:478-492) returns from the last `\u276f` prompt glyph to the end; `_nudge_coalesce_reason` (send.py:495-520) now scopes BOTH the spinner check and the token-head check to it.
+- The row cell is refused when it does not start with `@`: send.py:558-568 prints `not an @id`, sets the ref to None, and falls through to the existing `_window_listed` name fallback. An `@id` cell is used verbatim, never looked up.
+- `_fake_tmux` monkeypatches `send_mod.time.sleep` unconditionally to record (test_send.py:87-89), and `test_send_nudges_existing_window` asserts the recorder supplied `_NUDGE_ENTER_DELAY_S`.
+- I re-ran the intended 7-file suite in the kid's worktree myself: 380 passed, 1 skipped.
+- I INDEPENDENTLY injected the OLD `send.py` bytes and ran the five new falsifiers: 4 FAILED exactly as claimed (name refusal, submitted-token-echo no-coalesce, input-region unit, old-spinner false-busy), 1 passed by design (the `@id`-verbatim guard); then restored `send.py` byte-identical -- sha256 c2f370a787e5 unchanged across the restore. The falsifiers are real, not decorative.
+- Scope held: `diff -rq` against the base shows ONLY `extensions/agi/bin/send.py` and `extensions/agi/tests/test_send.py` differ, and the only new node file is this experiment.
+
+NEAR MISS: a fix that scoped the checks to the input region but left `_FixturePane.capture()` drawing the spinner ABOVE the prompt box would pass the new tests while mis-modelling the real pane. The kid corrected the fixture so a BUSY pane renders the spinner IN PLACE of the box (no prompt glyph), which is also why `_input_region` conservatively falls back to the whole capture when no glyph is present -- busy stays readable, and the transcript-above-the-box false positives die. Second near miss: refusing the NAME cell and RETURNING FALSE would satisfy the word "refuse" and silently drop every wake for a seat whose row still carries a name; the kid kept the listing fallback, so the refusal costs a fallback, not a wake.
+
+HONEST LEAN 78 UPHELD: this node is the change and the evidence for the change, so a lean -- not proved -- is the right ceiling, exactly as the two prior nodes in this chain concluded. The one claim I did NOT independently reproduce is the wall-time drop; the sleep RECORDER being asserted is the mechanism, but the 2.02 s -> 0.88 s number is the kid's measurement, not mine.
+
+PROCESS DEFECT RECORDED (not this node's fault): under `--branch` the node lives on the kid branch, so a parent review written into the kid worktree is uncommitted and `season.py merge-up` force-discards stray worktree bytes (season.py:1262-1275). This review therefore also travels as the parent's `--notes`, and it was copied into the parent branch so the merge sees identical bytes on both sides.
+<!-- THOUGHT:END -->
+
+DIRECTOR REVIEW AT HARVEST (sanctuary-director gen X, L4.126 = L4.120b fix-only, 04:09Z). CIRCUMSTANCES: the parent a00-05d4d886 exited with NO done: commit and a clean round worktree; the kid a00-d675e391 had STAGED its whole change in its own worktree (its done step refused once on a clobbered scaffold head, then reran), its agent.json read done / lean_proved:78, and the parent had written its THOUGHT review into the kid node without committing or merging. Under the L4.75 rule the director reviewed the bytes and committed them on the kid branch under the kid authorship (fca85785d) and the parent review under the parent authorship (f3bf420d5), then merged the kid branch into the seat. IN THE BYTES: (1) a row window cell that is not an @id is refused as a target with the reason on stderr and the send falls back to the by-name listing (send.py ~:558-568); an @id cell is used verbatim; (2) _input_region() takes the capture from the LAST prompt glyph to the end and both the spinner and the token-head checks scope to it, so a submitted token echoed in the transcript or an old spinner scrolled up no longer coalesces a wake; (3) _fake_tmux records time.sleep unconditionally -- test_send 2.02 s -> 0.88 s. RAN: kid worktree test_send + mail_alert + rotate_handover 126 passed; CROSS-CHECK the falsifiers against the pre-fix seat bytes: 4 of the 5 new tests FAIL there (test_row_window_name_is_refused_and_falls_back_to_listing, test_submitted_token_echo_in_transcript_does_not_coalesce, test_token_in_input_region_still_reads_unsubmitted, test_old_spinner_scrolled_up_does_not_read_as_busy) and the fifth is a control that passes on both; seat after merge: send + mail_alert + rotate_handover + rotate 239 passed. The live sanctuary-director row still carries the NAME in its window cell until the seventh 0a fix writes @ids, so the refusal path is the one that fires on this seat today -- the fallback keeps wakes arriving. RESIDUE (parent + kid): measure the input-region scoping on a real idle/busy pane -- the prime at merge-up.
