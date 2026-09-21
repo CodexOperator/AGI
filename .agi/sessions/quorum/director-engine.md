@@ -26,13 +26,14 @@ ROUND STATE:
   G14.14.7     | g14.14.7 | lm-grid-storage-trunk-is-config-declared                  | MERGED to trunk (3edd4bfd7/68fedbace/a657f0d59). inconclusive_lean_proved:70, accept_with_residue -- residue = EF.02b (below)
   G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | MERGED to trunk, proved. MAIN suite after merge: 5822 pass, 13 fail = same 13 pre-existing (thought-master's parallel baseline confirms), none from this seat
   G14.14.1(a)  | g14.14.1 | lm-replace-body-anchor-guards-against-mis-offset-splices | DISPROVED (inconclusive_lean_disproved:70, a00-a36d03e1): guard's end-on-heading refusal fires unconditionally, wrongly blocks a legit whole-section replace on a childless sub-heading. Fix-forward LIVE: EF.04 (a00-1e2bdb76), exact diagnosis carried via --orders
-  G14.14.1(b,c)| g14.14.1 | sketched in goal body, hypotheses not yet minted          | --
+  G14.14.1(b)  | g14.14.1 | lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold | minted, dispatch BLOCKED (pool headroom -$1.48, director-thought TEL.01 live)
+  G14.14.1(c)  | g14.14.1 | lm-replace-body-standalone-restriction-is-documented-in-help       | minted, docs-only round, same block
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-09, verified, latest wins): EF.04 live -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope: rotate.py/unify.py/cli.py/verify_unified.py + tests, THEN this box's migration to storage_trunk=refs/grid/local-maxxing/, ceiling 200) -> 14.14.1(b,c) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (NEW: the 13 pre-existing suite reds + PI_BIN env test) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-10, verified, latest wins): EF.04 live -> EF.05/EF.06 (14.14.1 b/c, minted+ready, pending headroom) -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (NEW: comms -- pubkey lands in the pushed row at keygen; busy-pane dm delivery via a turn-start hook, not just a nudge) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: watch EF.04; mint EF.02b's hypothesis under g14.14.7 once EF.04 lands (dry-run first); merge each loop branch into this post branch before the next [merge-up].
+NEXT ACTION: watch EF.04; retry EF.05 (b) / EF.06 (c) as headroom allows; mint EF.02b's hypothesis under g14.14.7 once capacity allows; merge each loop branch into this post branch before the next [merge-up].
 
 Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch.
 ```
