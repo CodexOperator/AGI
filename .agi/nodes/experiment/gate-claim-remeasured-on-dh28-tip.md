@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-bc25f6f9-5c369a
 next_edges: []
-edited_by: a00-bc25f6f9
+edited_by: a00-3634b942
 evidence_runs:
   - experiment:gate-claim-remeasured-on-dh28-tip
 line_ceiling: 40
@@ -38,7 +38,7 @@ run instead of the DH.19-demoted `hypothesis:a00-bc652841-541f5f`.
 
 Probe driver: `sessions/iter-DH.28/a00-bc25f6f9/probe_gate.py`. It imports
 the four detectors from `extensions/agi/tests/test_harness_template.py`,
-loads the live `extensions/agi/bin/rotate.py` (1,087,444 bytes) and runs:
+loads the live `extensions/agi/bin/rotate.py` (1,089,136 bytes) and runs:
 
 | # | class | probe | expected | observed | result |
 |---|---|---|---|---|---|
@@ -59,7 +59,7 @@ non-vacuous on the artifact it guards rather than on a fixture alone.
 ```
 $ python3 .../probe_gate.py
 {"probes": [...], "verdict": "refused"}   # all 7 refused
-live rotate.py length: 1087444 bytes; wired length: 1087512 bytes
+live rotate.py length: 1089136 bytes; wired length: 1089204 bytes
 
 $ python3 -m pytest extensions/agi/tests/test_harness_template.py -q
 52 passed in 2.95s
@@ -70,3 +70,7 @@ $ git diff --numstat -- extensions/agi/bin/
 
 0 production lines. `rotate.py` untouched; the gate is test-only, which is
 the falsifier's whole point.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.34 hygiene: corrected the live rotate.py byte count from the stale 1,087,444 to the measured 1,089,136, and the paired wired length from 1087512 to 1089204 (same 68-byte injection, live+68). No probe, verdict or claim change.
+<!-- THOUGHT:END -->

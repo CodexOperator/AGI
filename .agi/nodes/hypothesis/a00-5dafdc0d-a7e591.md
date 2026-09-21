@@ -6,9 +6,9 @@ parents:
   - goal:g7.31.2.3
 next_edges: []
 confidence: 0.9
-edited_by: a00-5dafdc0d
+edited_by: a00-3634b942
 evidence_runs:
-  - experiment:a00-7a045cbe-gate-rerun
+  - experiment:a00-3634b942-evidence-runs-normalize
 line_ceiling: 40
 loop: goal:g7.31.2.3@s2
 model: deepseek/deepseek-v4.1-flash
@@ -95,7 +95,7 @@ YAML shape, and re-running the gate work would have re-measured an unchanged
 claim for no new information.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-New node for the DH.28 corrective round on goal:g7.31.2.3. It exists to carry one measured claim: the proved node b75045a2 was unresolvable only because evidence_runs was a scalar string; the list form lifts the gate. No production code was needed — the defect is data shape, not logic, so the honest fix is a one-field engine-written edit plus a before/after measurement, not a patch to evidence_gate.
+DH.34 corrective: the old citation experiment:a00-7a045cbe-gate-rerun measured the rotate AST gate, not the evidence_runs scalar-vs-list shape this hypothesis claims. Repointed at experiment:a00-3634b942-evidence-runs-normalize, which drives normalize_evidence_runs/apply_gate on the live corpus with the shape as the single variable (scalar->0/demoted, list->1/proved, dangling->0). Verdict and body unchanged.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
