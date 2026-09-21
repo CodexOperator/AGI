@@ -1,0 +1,27 @@
+---
+id: hypothesis:l3w3-advisor-brief
+mint_id: e2994219e3a94c63b9fce11af33a2647
+type: hypothesis
+parents:
+  - goal:g12.3
+next_edges: []
+edited_by: belam-S1-L3-II
+scaffold_hash: 8fc2d9379a3e88e7
+season: 2
+testable_claim: brief.py assembles a tier-3 advisor brief for the claude-code parent role (opus 5, max, ultracode) that carries the head, the full body of the one vision node the advisor embodies, its seat in the standing room tier3-quorum, the audience rule for the prime, and the primitive to spawn a Fable-max perpetual-goal director, and a dry dispatch prints the resolved command with the ultracode env export
+title: L3w3 advisor brief tier3 quorum
+---
+# hypothesis:l3w3-advisor-brief
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+WAVE 3 precondition (brief .agi/context/l3-command-ladder-brief.md sections 1.5, 1.9, 2.1, 2.3, 3). The three advisors are the tier-3 parents: claude-code, claude-opus-5, effort max, settings ultracode (roles row 3/parent); each EMBODIES one vision (vision:self-perpetuating, vision:all-is-one, vision:alive, minted at the wave-2 rollover on season/s2) and judges every seam through that vision's text and gloss. FILES: extensions/agi/bin/brief.py (advisor template for tier 3 parent: head from the shared derivation, then the vision body verbatim from the vision node the dispatch names via --target vision:<id> or --embody, then duties: sit in room tier3-quorum via send.py read/send --room tier3-quorum, one audience per rotation with send.py audience prime --reason, spawn and rotate the Fable-max director of a perpetual goal with dispatch.py --harness claude-code --tier director --role director --ladder-tier 1 --target goal:<id> and rotate.py loop --role director, review the director's rounds, never edit vision prose), extensions/agi/bin/dispatch.py (--embody vision:<id> or reuse --target for a vision node), tests. VERIFY: red-first tests that the assembled advisor brief contains the head, the Michael line, the whole vision body, the room name and the spawn primitive; dispatch.py dry run for --tier parent --harness claude-code --ladder-tier 3 --target vision:alive prints claude ... --model claude-opus-5 --effort max with CLAUDE_CODE_WORKFLOWS=1 exported; no live spawn (the prime launches the real advisors in wave 3). REPORT: one experiment node under this hypothesis, verdict, evidence_runs as a list (pass --evidence-runs), every verify command with its actual output in the body. Do not commit, push, or run grid.py commit.
+
+ADDENDUM 2026-09-07 (belam, after L3.10): this is a BUILD directive, not a status check; the L3.10 kid (a00-938e7071) only verified that the content does not exist yet and built nothing. Next kid: implement the advisor template and the tests as specified above; the dispatch/adapter half is already in place (verified in L3.10).
+
+ADDENDUM 2026-09-07 (belam, after L3.11): brief.py assemble(tier=advisor) now exists with tests (experiment a00-bd0ee24f, proved). REMAINING GAP for wave 3, first round of Belam II: dispatch.py --harness claude-code --tier parent --ladder-tier 3 --target vision:<id> still assembles the generic parent brief; route a tier-3 spawn whose target is a vision node to assemble(tier=advisor) so the three real advisors get the vision body, the tier3-quorum seat and the Fable director spawn primitive. Red-first test on the dry dispatch output.
+
+ADDENDUM 2026-09-07 (Belam II, after L3.12, before the wave-3 launch) — the routing is proved; the assembled advisor DUTIES block (brief.assemble tier=advisor, block 4 of 5) still needs, BUILD this: (1) real, runnable commands — python3 extensions/agi/bin/dispatch.py <project-root> <iter> ... and python3 extensions/agi/bin/send.py ..., with <project-root> and <iter> substituted with the actual values the dispatch resolved (the project root path and the iter id, e.g. . and L3.13), and the advisor's own agent id and session dir named; (2) the perpetual-goal assignment: list the perpetual goals (goal_kind: perpetual) with their titles, and accept an optional dispatch flag --goal goal:<id> threaded into assemble that pins which director this advisor spawns; when absent, say that the assignment arrives in the room tier3-quorum from the prime and the advisor reads the room first; (3) state the wave-3 gate verbatim: one short-term subgoal under the perpetual goal closed with a judged outcome and no human hand on a node; (4) keep the existing four duties (quorum, audience rule, spawn + rotate with --detach, never edit vision prose) and the DO NOT run git line. Also make sure the head's Michael line and the vision body stay as they are. FILES: extensions/agi/bin/brief.py, extensions/agi/bin/dispatch.py (--goal flag only), extensions/agi/tests/test_brief.py, test_dispatch.py. VERIFY: red-first tests that the assembled advisor text contains extensions/agi/bin/dispatch.py, the resolved iter id, goal:g15 with its title when --goal goal:g15 is passed, and the gate sentence; the L3.12 routing tests still pass; suite green via python3 extensions/agi/bin/commands.py run tests. REPORT: one experiment node under this hypothesis, verdict, evidence_runs as a list (pass --evidence-runs), every verify command with its actual output. Do not commit, push, or run grid.py commit. Another kid edits claude_code_adapter.py in this round; report unexpected files, never touch them.
