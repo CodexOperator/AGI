@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: standing-3c-helper-fold-2026-09-20
+thought_session: land-dir-3c-98c7b6d2f
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -108,10 +108,9 @@ no season2/loops/* left live as standing remotes
 
 Keep working batches as-is otherwise. Diagram-max all alignment comms.
 
-
 ---
 
-## 3c. Watches / routines — diagram-max with love (owner 2026-09-20 23:3x ET)
+## 3c. Watches / routines — diagram-max with love (owner 2026-09-20/21)
 
 For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence when nothing changed.
 
@@ -119,23 +118,19 @@ For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence w
 
 ```
 schedule ──▶ @every 50m   (pi parents run around the clock — stated reason)
-name     ──▶ live-parents-workflows  (or seat pi parent+workflow watch)
-FORMAT   ──▶ shared below
-PINS     ──▶ seat-local (differ by post):
-               director-belam → TREE /data/work/agi/.agi/worktrees/seat-director-belam
-                               HOST encryption-town:/data/work/agi · branch core/season2/main
-               helper         → TREE /data/work/agi/.agi/worktrees/seat-director-helper
-                               HOST encryption-town:/data/work/agi · local-only (never new remote head)
-SCOPE    ──▶ this seat only (DT.* vs DH.*) — never scan MAIN or the other seat
+name     ──▶ live-parents-workflows
+FORMAT   ──▶ shared (below)
+pins     ──▶ seat-local TREE / SCOPE / HOST only
 ```
 
-**Prompt FORMAT (verbatim — fill TREE/SCOPE pins only):**
+**Prompt FORMAT (install exactly; substitute seat pins):**
 
 ```
 Quiet night watch — love the next LLM ingest. Diagram-max. Batch-max.
 
-SCOPE: this seat only (<DT.*|DH.*> parents / MURs / suite).
+SCOPE: this seat only (<ITER>.* parents / this-director MURs / suite).
 TREE:  <absolute seat worktree>
+BRANCH:<this director's branch role>
 HOST:  SSH encryption-town → /data/work/agi  (never /workspace/agi)
 
 1) Sense
@@ -145,13 +140,25 @@ HOST:  SSH encryption-town → /data/work/agi  (never /workspace/agi)
 2) Emit ONLY on delta
    | id | kind | state | note |
    |----|------|-------|------|
-   | … | parent/wf/MUR | up/dead/owed | ≤1 short |
+   | <ITER>.* | parent/wf/MUR | up/dead/owed | ≤1 short |
 3) Route
-   Belam  ← nothing from this watch
+   Belam  ← nothing from this watch (Belam = completed-batch [merge-up] only)
    owner  ← blockers ONLY (red/stuck/decision)
-   completed batches → director-belam (helper) / Belam via [merge-up] (director-belam)
+   completed batches → director-belam → Belam (not from this watch)
 4) No delta → silence (no "no change")
-5) Never invent. Never new remote head.
+5) Never invent. Never new remote head. Never push core/main.
+```
+
+**Seat pins (examples — not a second FORMAT):**
+
+```
+director-belam
+  SCOPE  DT.* · TREE /data/work/agi/.agi/worktrees/seat-director-belam
+  BRANCH core/season2/main (WT pin seat/director-belam@s2)
+director-helper
+  SCOPE  DH.* · TREE /data/work/agi/.agi/worktrees/seat-director-helper
+  BRANCH local-only · never new remote head
+  completed batches → director-belam (not helper)
 ```
 
 ### Belam
