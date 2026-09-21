@@ -30,6 +30,12 @@ def artifact_path(root, ref):
             f"profile_ref {ref!r} resolves to a directory, not a file")
     return p
 
+def _projected_bytes(nf):
+    """A node-file's projection payload: body with THOUGHT stripped."""
+    t = node_writer.extract_thought(nf.body)
+    body = nf.body.replace(t, "") if t else nf.body
+    return (body.strip("\n") + "\n").encode()
+
 def project(root, node_id):
     """(artifact path, normalized body bytes) for a linked node."""
     if root is None:
@@ -43,9 +49,36 @@ def project(root, node_id):
     nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
     if not ref:
         raise NoRef(node_id)
-    t = node_writer.extract_thought(nf.body)
-    payload = (nf.body.replace(t, "") if t else nf.body).strip("\n") + "\n"
-    return artifact_path(root, str(ref)), payload.encode()
+    return artifact_path(root, str(ref)), _projected_bytes(nf)
+
+
+def check_all(root):
+    """Sweep every node with `profile_ref` under `nodes/**` (the retired
+    sibling included, goal:g2.10). Returns a dict per linked node with
+    status ok|drift|missing|refused; an unlinked node is not swept.
+    """
+    if root is None:
+        raise Refused("no project root — no enclosing .agi/config.json")
+    out = []
+    for f in sorted((Path(root) / "nodes").rglob("*.md")):
+        nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
+        if not ref:
+            continue
+        r = {"node_id": str(nf.frontmatter.get("id") or f.stem),
+             "artifact": str(ref), "actual": None,
+             "expected": hashlib.sha256(_projected_bytes(nf)).hexdigest()}
+        try:
+            dest = artifact_path(root, str(ref))
+        except Refused as e:
+            r.update(status="refused", detail=str(e))
+        else:
+            if not dest.exists():
+                r["status"] = "missing"
+            else:
+                r["actual"] = hashlib.sha256(dest.read_bytes()).hexdigest()
+                r["status"] = "ok" if r["actual"] == r["expected"] else "drift"
+        out.append(r)
+    return out
 
 def sync_node(root, node_id):
     """Write the artifact atomically. Returns (path, bytes, sha256)."""
@@ -57,8 +90,23 @@ def sync_node(root, node_id):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("node_id"); ap.add_argument("--check", action="store_true")
+    ap.add_argument("node_id", nargs="?")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--all", dest="all_", action="store_true")
     a = ap.parse_args(argv); root = locations.find_project_root()
+    if a.all_:
+        try:
+            rows = check_all(root)
+        except Refused as e:
+            print(f"REFUSED: {e}", file=sys.stderr); return 2
+        bad = [r for r in rows if r["status"] != "ok"]
+        for r in rows:
+            print(f"{r['status'].upper()} {r['node_id']} {r['artifact']} "
+                  f"sha256={r['expected']}")
+        print(f"{len(rows)} linked, {len(bad)} not ok")
+        return 1 if bad else 0
+    if not a.node_id:
+        ap.error("a node_id or --all is required")
     try:
         dest, payload = project(root, a.node_id)
     except NoRef as e:
