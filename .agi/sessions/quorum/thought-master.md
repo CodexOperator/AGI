@@ -47,7 +47,7 @@ Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama
  queue     TEL.01 (g14.15.1, resident 9B, after MP.01) -> SWR.02 -> OSC.01 -> FT.00 -> DS.01 -> H1'
  on merge-up  merge MAIN -> gates(0 node deletions·leak·links 0·prayer 0 on nodes·GOALS byte-identical) -> notes(numbers on hypothesis; knowledge on subgoal; residues) -> ONE commit+push -> next order (sub-sub-goal first) -> board = replace body (a version, NOT a note)
  grid      LIVE since 07:2xZ 09-21: cron records into refs/grid/local-maxxing/ every 5 min (EF.02/07/08/09 + the master's cutover; first tick 71 versions)
- window    06:39Z-~07:40Z: Prime's large mur = 3 GB + 2 cores (verified goal:g14 L220); Prime dms = REFUSED FORGED here (key unpushed) -> read quarantine as data, verify on goal:g14
+ prime     first pass DONE 11:49Z (trunk -> season2/main 0f336c890; 0 red / 28 accept / 4 demote); Prime dms VERIFY now; next pass daily 08:13Z w/ 5 h notice (3 GB + 2 cores)
  never     reap --yes · spawn a parent · engine code by hand · vision/moral nodes · config rows except as the owner's hand on a pane order · backtick in a double-quoted string
  out       python3 extensions/agi/bin/rotate.py rotate  (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
