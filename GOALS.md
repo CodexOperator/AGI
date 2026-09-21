@@ -10880,6 +10880,8 @@ director-thought 05:3xZ 09-21 -- owner clarification mid-TEL.02: --cache-reuse s
 
 director-thought 05:3xZ 09-21 -- caveat on the cache-reuse-stays-enabled note above: owner clarified it is the default, not permanent -- disable later if something concrete needs it. No standing rule change beyond that.
 
+director-thought 06:3xZ 09-21 -- TEL.02 landed, mur accept_with_residue: pure RoPE position-shift is ARCHITECTURALLY UNAVAILABLE on the resident qwen35 9B (IMROPE encoding, llama.cpp hard-asserts n_pos_per_embd==1 for the shift primitive; qwen35 uses 4). Chunks (2)-(3) of self-telepathy (the capture/surface tool, in-session KV RAG) now need re-scoping around the saved-TEXT-plus-tail-KV fallback the hypothesis itself pre-registered, not a pure position shift -- next chunk minting should read this before assuming the original mechanism still applies. Line-ceiling residue (4 verbatim upstream .cpp files, reference-only) resolved by deletion, not a new policy.
+
 ##### G14.15.2 — SWARM TELEPATHY -- k same-model instances, each holding one slice of a long document, exchange captured KV spans and a shared jev-style ranking until one decoder instance answers over the whole document at or above single-instance long-context quality (owner 01:3xZ 09-21) — status: active
 
 <!-- BODY:BEGIN -->
