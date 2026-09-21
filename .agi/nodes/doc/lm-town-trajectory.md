@@ -20,7 +20,7 @@ town: local-maxxing
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
 |---|---|---|---|---|---|---|---|
 | target | bigger | smaller | longer | usable | within 10 pct of deepseek-v4.1-flash on HumanEval + IFEval — reference MEASURED 09-21: 93.9 pct HumanEval (154/164) · 0.869 IFEval strict (470/541) | layered: dead-head prune → context/throughput → fine-tune → QAT → telepathy | goal:g14.11 (the switch); experiment:a00-559ee702-d3c7dd |
-| 09-20/21 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K, 1 stream | 23.0 empty / 18.9 at 16.8K | HumanEval 86.6 pct = 92.2 pct of reference (FIRES 0.9x; C2 +LoRA 92.9); IFEval — (SWR.02) | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f · a00-559ee702-d3c7dd |
+| 09-20/21 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K single; 8K at N=4 | 20.5-23.0 tok/s aggregate, COMPUTE-BOUND: flat across 1/2/4/8 slots (SWR.02-B) | HumanEval 86.6 pct = 92.2 pct of reference (FIRES 0.9x; C2 +LoRA 92.9); IFEval PENDING 110/541 (SWR-B.03) | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f · a00-559ee702-d3c7dd · a00-e699a4ec-a83259 |
 | 09-20 | Qwen3.5-9B Q4_K_M (9B) | 6,010 MiB | 64K | 62.68 (2.87 J/tok) | HumanEval 78.0 / 79.3 pct (A / A2) | Q4 (shipped) | experiment:a00-c4441397-c8a8c6 |
 
 ## Links (every node that moves these numbers; the future `links:` field)
@@ -32,8 +32,8 @@ formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
 grid       LIVE: cron records every 5 min into refs/grid/local-maxxing/ (first tick 71 versions; refs 3812) -- this node's overwrites are versions now
-live       research: SWR.02-B (GPU, IFEval on the 27B; then C2) · engine: 14.14.8 capture hook
-landed     TEL.03 shift census 7b3cef17f (only Bonsai-1.7B can shift; IMROPE families cannot) · EF.08 + EF.09 (grid LIVE) · TEL.02 · EF.07 · MP.01 + TEL.01 · G14.14.1 · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
+live       research: SWR-B.03 (T1 resume, single-stream, wall 180) waits on headroom (-3.93: pool 21.25, other-town live 23.59) · engine: 14.14.8 capture hook
+landed     SWR.02-B partial ea0d48897 (compute-bound slots; single-stream rule; IFEval +/-0.4 pp floor) · TEL.03 · EF.08 + EF.09 (grid LIVE) · TEL.02 · EF.07 · MP.01 + TEL.01 · G14.14.1 · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
 banked     TEL.01 forward path -- owner ANSWERED (TMM.23, 05:0xZ): (a) AUTHORIZED, conditional (between rounds only, by a TEL parent, router mode kept, exact server line recorded, restore+verify before done) -- dispatching TEL.02 this pass
 research   SWR.02-B -> SWR.02-C2 (one merge-up) -> G14.10.2 capture (hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy: text+tail-KV for big models; k=2 shift swarm on Bonsai-1.7B; fork can_shift probe
 engine     14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
@@ -41,5 +41,5 @@ comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 08:0xZ 09-21 -- v14: rows after TEL.03 (shift census); metric rows unchanged.
+thought-master 09:2xZ 09-21 -- v15: METRIC CHANGE on the Bonsai row (tok/s cell: 20.5-23.0 aggregate, compute-bound, flat across 1-8 slots; ctx line 8K at N=4; IFEval pending 110/541), from experiment:a00-e699a4ec-a83259; live/landed rows updated.
 <!-- THOUGHT:END -->
