@@ -109,6 +109,18 @@
       "allowed_extra": [
         "auto"
       ]
+    },
+    "grok-bot": {
+      "adapter": "grok_bot",
+      "allowed_extra": [
+        "grok-4",
+        "grok-4-fast"
+      ],
+      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "models": {
+        "kid": "grok-4-fast",
+        "parent": "grok-4"
+      }
     }
   },
   "spawn": {
