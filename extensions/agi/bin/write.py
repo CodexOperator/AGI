@@ -145,6 +145,12 @@ class Edit:
     replace_range: str = ""
     replace_from: str = ""
     replace_text: str = ""
+    # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+    # the explicit consent that admits a body range the structural guard
+    # would otherwise refuse (`_body_range_refusal`). Spelled as a prefix on
+    # the source argument (`replace body 4:9 --force -`), so the positional
+    # range/source grammar is unchanged; an API caller sets the field.
+    replace_force: bool = False
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -417,6 +423,15 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     if target not in ("payload", "body"):
         raise EditError(
             f"replace target must be 'payload' or 'body', got {target!r}")
+    # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+    # `--force` rides the source argument as a PREFIX (`... 4:9 --force -`),
+    # the one free-text positional, so the range/target grammar does not
+    # change and an old script parses identically. Only a prefix followed by
+    # a space is consumed; a bare `--force` stays a (nonexistent) path and
+    # refuses loudly rather than silently deleting the range.
+    if source.startswith("--force "):
+        edit.replace_force = True
+        source = source[len("--force "):].strip()
     _parse_range(rng)   # validates and raises early, so a typo refuses here
     edit.replace_target = target
     edit.replace_range = rng
@@ -1993,10 +2008,21 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             raise EditError(
                 "replace body is standalone; it cannot share a line with "
                 "note, thought or body_patch (one body writer per submit)")
-        _spliced = _splice_range(
-            _target_text(root, edit, edit.replace_target,
-                         payload_ref, location),
-            edit.replace_range, edit.replace_text)
+        _current = _target_text(root, edit, edit.replace_target,
+                                payload_ref, location)
+        # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
+        # splices -- the body-only structural guard, before the splice and
+        # before any write. A payload is arbitrary bytes and is never
+        # structure-checked; `read body N:M` stays unguarded too.
+        if edit.replace_target == "body" and not edit.replace_force:
+            _refusal = _body_range_refusal(_current, edit.replace_range)
+            if _refusal:
+                raise EditError(
+                    f"{_refusal} "
+                    f"(hypothesis:lm-replace-body-anchor-guards-against-mis-"
+                    f"offset-splices)")
+        _spliced = _splice_range(_current, edit.replace_range,
+                                 edit.replace_text)
         if edit.replace_target == "body":
             body = _spliced
         else:
@@ -2106,6 +2132,117 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     if new_lines and new_lines[-1] == "":
         new_lines.pop()
     return "\n".join(lines[:start] + new_lines + lines[end:])
+
+
+# --------------------------------------------------------------------------
+# The structural guard (hypothesis:lm-replace-body-anchor-guards-against-mis-
+# offset-splices). `replace body N:M` is offset-free, but the RANGE is still
+# chosen by hand: a range one line short of a section end splits a heading
+# from its text and the write is silent. This guard catches exactly that
+# class before `_splice_range` runs -- on the BODY only, because a payload is
+# arbitrary bytes and a partial `read` must stay unguarded -- and always names
+# `--force` plus the node id, so the refusal is an instruction, not a wall.
+# --------------------------------------------------------------------------
+
+_HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:\s|$)")
+
+
+def _is_heading(line: str) -> bool:
+    """One strict CommonMark heading rule, shared by the whole guard."""
+    return bool(_HEADING_RE.match(line))
+
+
+def _heading_level(line: str) -> int:
+    """The ATX heading level (1..6), or 0 for a non-heading line."""
+    m = _HEADING_RE.match(line)
+    return len(m.group(1)) if m else 0
+
+
+def _section_end(lines: list[str], idx: int) -> int:
+    """The 0-based EXCLUSIVE end of the section headed by `lines[idx]`.
+
+    The next line at the same-or-higher level, or the end of the text. This
+    is the guard's own rule for "where the heading's text stops", and the
+    whole-section case is measured against it rather than guessed at.
+    """
+    level = _heading_level(lines[idx])
+    j = idx + 1
+    while j < len(lines):
+        if _is_heading(lines[j]) and _heading_level(lines[j]) <= level:
+            break
+        j += 1
+    return j
+
+
+def _plain(line: str) -> bool:
+    """A line that is neither blank nor a heading -- paragraph content."""
+    return bool(line.strip()) and not _is_heading(line)
+
+
+def _has_content(lines: list[str], a: int, b: int) -> bool:
+    """Any non-blank line in the 0-based half-open `[a, b)`.
+
+    Blank lines are not orphaned text, so a heading followed only by blanks
+    may be a range's last line without refusing: the body always ends in a
+    newline, and punishing that would be a false positive on the working
+    case.
+    """
+    return any(ln.strip() for ln in lines[a:b])
+
+
+def _body_range_refusal(text: str, rng: str) -> str | None:
+    """The refusal text for a body range that splits structure, or None.
+
+    Three shapes, each naming the offending line and the escape hatch:
+
+    (a) the range STARTS strictly inside a paragraph;
+    (b) the range ENDS strictly inside a paragraph;
+    (c) the range STARTS on a heading but stops before the end of that
+        heading's own section, orphaning non-blank text under it (only a
+        BOUNDED upper bound can stop short -- `N:` runs to EOF and covers
+        the section);
+    (d) the range ENDS exactly on a heading -- `### A.1` -- whose own section
+        still holds non-blank text: the heading is removed and its text
+        survives, the same split from the other edge.
+
+    The childless tail -- a section whose last line is a deeper heading with
+    nothing under it -- matches none of the four and is ADMITTED, because
+    that heading IS the correct end of the outer section (falsifier (c) of
+    the hypothesis, measured on experiment:a00-29883877-7abb3b).
+    """
+    lo, hi = _parse_range(rng)
+    lines = text.split("\n")
+    n = len(lines)
+    start = 0 if lo is None else lo - 1
+    end = n if hi is None else hi
+    if start >= n or end <= start:
+        return None
+    if start > 0 and _plain(lines[start]) and _plain(lines[start - 1]):
+        return (f"replace body {rng} starts inside a paragraph at line "
+                f"{start + 1} ({lines[start]!r}) -- it would cut the "
+                f"paragraph in half. Widen the range to a blank line or a "
+                f"heading, or pass --force")
+    if end < n and _plain(lines[end - 1]) and _plain(lines[end]):
+        return (f"replace body {rng} ends inside a paragraph at line {end} "
+                f"({lines[end - 1]!r}) -- the rest of the paragraph would be "
+                f"orphaned. Widen the range to a blank line or a heading, "
+                f"or pass --force")
+    if hi is not None and _is_heading(lines[start]):
+        sec = _section_end(lines, start)
+        if end < sec and _has_content(lines, end, sec):
+            return (f"replace body {rng} starts on the heading "
+                    f"{lines[start]!r} but stops before the end of its "
+                    f"section (line {sec}) -- that splits the heading from "
+                    f"its text. Widen the range or pass --force")
+    j = end - 1
+    if _is_heading(lines[j]):
+        sec = _section_end(lines, j)
+        if sec > j + 1 and _has_content(lines, j + 1, sec):
+            return (f"replace body {rng} ends on the heading {lines[j]!r} "
+                    f"-- the heading is removed while its text (line "
+                    f"{j + 2}..{sec}) survives. Widen the range past its "
+                    f"section or pass --force")
+    return None
 
 
 def _read_payload_text(root, ref: str, location: str | None, rng: str) -> str:
@@ -2697,6 +2834,12 @@ def main(argv: list[str] | None = None) -> int:
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
         if edit.replace_target:
+            if edit.replace_target == "body" and not edit.replace_force:
+                _refusal = _body_range_refusal(
+                    _target_text(root, edit, "body"), edit.replace_range)
+                if _refusal:
+                    print(f"ERR: {_refusal}", file=sys.stderr)
+                    return 2
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
