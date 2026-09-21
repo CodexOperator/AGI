@@ -23,7 +23,8 @@ town: local-maxxing
 
 ## Hypothesis
 
-**Claim:** on the resident Qwen3.5-9B-Q4_K_M served locally (`:8080`, n_batch/ubatch
+**Claim:** on the resident Qwen3.5-9B-Q4_K_M served locally (child port `:54437`
+behind the `:8080` router, TEL.01-measured, n_batch/ubatch
 pinned, no restart), for >= 50 held-out prompt continuations: a KV span captured
 at position range `[a:b]` during a first pass, then re-injected via a KV position
 shift (`llama_kv_cache_seq_add` or equivalent — a position shift, NOT a byte copy)
@@ -56,3 +57,7 @@ shape. Queued after MP.01 clears (one GPU research round at a time).
 saved slot restores >= 3x faster than re-prefill but costs 7,000-37,000x the text
 bytes on disk — that was a whole-slot byte copy, not a span, and not shifted to a
 new position. This hypothesis tests exactly the thing that prior left untested.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought 04:2xZ 09-21 -- port correction from TEL.01 (mur-tel-01 missed-item): :8080 is the router, the 9B child is on :54437; claim text updated to name both. Self-caught mid-edit: first replace body call mis-offset onto the blank line before Claim (not Claim itself), producing a duplicate -- exactly the ABL.01-class hazard goal:g14.14.1(a) exists to guard against. Fixed with a second read+replace against the actual corrupted state, verified clean. No other content changed.
+<!-- THOUGHT:END -->
