@@ -19,11 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~04:0xZ
- landed   TEL.01 a00-365c2943 tip 312a42fb7, verdict pending (honest, not disguised-disproved) -- shift mechanism EXISTS in the binary (seq_add/seq_rm/can_shift) but NO enabled HTTP surface reaches it (9/9 slot actions 501, 6/6 candidate routes 404); cache_prompt r2/r3 confirms no shift happens today (cache_n 766 same-pos vs 0 shifted); kid declined to dress up same-position reuse as a shift result; parent independently re-probed and confirmed every number; spot-checked myself, all real. Port correction found: :8080=router not the model, 9B child on :54437.
- mur      running (agi-director-thought-tel01, bg poll bx4d5lgzu) -- verify before merge-up note, same discipline as every round this session
- banked   forward-path decision is director/owner-level, not mine alone: (a) restart resident server with --cache-reuse [needs owner permission] vs (b) add a seq_add/seq_rm HTTP route [engine-adjacent, director-engine's lane] vs (c) second model load [out of scope, memory rule] -- will bank this explicitly once the mur clears, not decide unilaterally
- queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked, see prior landing)
- next     read the mur result -> note hypothesis+g14.15.1 -> board replace -> bank the (a)/(b)/(c) forward-path choice -> merge-up dm
- traps    git commit --amend used once by mistake this session (unpushed, no harm, but ALWAYS a new commit) · end-of-turn USER replies had drifted to prose (owner caught 03:4xZ, fixed, see diagram rule)
+2026-09-21 ~04:2xZ
+ landed   TEL.01 a00-365c2943 accept_with_residue (mur-tel-01, 13/13 conjuncts, both stages ok) -- shift mechanism EXISTS in the binary, ZERO HTTP surface reaches it; verdict pending, honest; notes on hypothesis+g14.15.1, board replaced (added a "banked" row)
+ fixed    my own hypothesis's stale :8080 ref -- and a mis-offset replace I made WHILE fixing it (hit the blank line before Claim, not Claim itself, producing a duplicate) -- self-caught, corrected with a fresh read+replace, verified clean; recorded honestly in the node's own THOUGHT block
+ banked   TEL.01 forward path, NOT decided here: (a) restart resident server --cache-reuse N [needs owner permission] vs (b) new seq_add/seq_rm HTTP route [engine-adjacent, director-engine's lane] vs (c) second model load [out of scope] -- on the board's new "banked" row, going in the merge-up dm next
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked)
+ next     🔴 send ONE merge-up dm to thought-master (TEL.01 landed + the banked forward-path decision) -- no live research round right now, nothing else to dispatch until that decision lands or SWR.02/next-queue-item arrives
+ traps    git commit --amend used once by mistake, unpushed no harm (do not repeat) · end-of-turn USER replies drifted to prose once, owner caught it 03:4xZ, fixed · replace body mis-offset happened live this turn on my OWN node -- always re-read after a replace before trusting it landed right, not just before computing the range
 ```
