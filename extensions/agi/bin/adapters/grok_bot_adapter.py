@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 import adapters
+from adapters import tmux_hold
 
 NAME = "grok-bot"
 
@@ -133,6 +134,18 @@ def restart(
         ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
+    if tmux_hold.enabled(harness):
+        # Durable named pane hold (`goal:g7.31.1.2`): same pane identity across
+        # pid churn. Opt-in via `harness["tmux"]`; unset keeps the Popen path.
+        new_pid = tmux_hold.reattach(
+            harness, agent_id, args,
+            cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file)
+        if new_pid is not None and agent_record is not None:
+            agent_record["pid"] = new_pid
+            agent_record["status"] = "restarted"
+            agent_record["restarted_at"] = int(time.time())
+            (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        return new_pid
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
