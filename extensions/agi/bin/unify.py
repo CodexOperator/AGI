@@ -912,10 +912,13 @@ def fetch_grid_refs(engine: Path, tree: Path, *, remote_name: str = REMOTE_NAME)
     source_count = count_grid_refs(tree)
     # Source and target each declare their own namespace, so the refspec maps
     # one to the other (goal:g14.14.7). Unconfigured on both sides this is
-    # `+refs/grid/*:refs/grid/*`, byte-for-byte the old constant.
+    # exactly `refs/grid/*:refs/grid/*` — the old `GRID_FETCH_REFSPEC` literal,
+    # with NO leading `+`. The `+` would force-update a non-fast-forward ref,
+    # which the original single-namespace literal never did; `grid.push_spec_for`
+    # carries that `+` and is the wrong helper for this fetch.
     src_ns = grid_ref_namespace(tree)
     dst_ns = grid_ref_namespace(engine)
-    _git(engine, "fetch", "-q", remote_name, f"+{src_ns}/*:{dst_ns}/*")
+    _git(engine, "fetch", "-q", remote_name, f"{src_ns}/*:{dst_ns}/*")
     after = count_grid_refs(engine)
 
     if after != source_count:
