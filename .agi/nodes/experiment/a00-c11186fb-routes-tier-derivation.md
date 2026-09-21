@@ -6,8 +6,9 @@ parents:
   - hypothesis:a00-c11186fb-49e24c
 next_edges: []
 confidence: 0.9
-edited_by: a00-c11186fb
-evidence_runs: experiment:a00-c11186fb-routes-tier-derivation
+edited_by: a00-0606c809
+evidence_runs:
+  - experiment:a00-c11186fb-routes-tier-derivation
 line_ceiling: 40
 loop: goal:g7.31.3.1@s2
 model: deepseek/deepseek-v4.1-flash
@@ -30,7 +31,7 @@ Residue closed: the MUR's retyped tier contract in the routes falsifier.
 `extensions/agi/tests/test_brief.py` carried
 `_ROUTES_TIERS = ("kid", "parent", "director", "prime_director", "liaison")`,
 a hand-maintained copy of `brief.TIERS` (minus `advisor`) at
-`extensions/agi/bin/brief.py:55`. Claim (c) of `hypothesis:a00-b4418bfa-fbae51`
+`extensions/agi/bin/brief.py:55`. Claim (c) of `hypothesis:a00-118f74e1-af3a3d`
 — "the falsifier covers every tier that can render the segment" — rots the
 moment a tier is added to `brief.TIERS`: the new tier is silently uncovered
 and the test still passes.
@@ -83,3 +84,7 @@ test raises `pytest.skip.Exception` naming `advisor`; probe 2 monkeypatches
 
 `git diff --numstat -- extensions/agi/tests/test_brief.py` = 41 12; test file,
 so production lines 0, ceiling 40.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Corrective DT.36: (1) evidence_runs was a scalar string, which normalize_evidence_runs counts as 0, so the commit-path gate would demote the proved verdict — repaired to a schema-conformant YAML list of one real node id; (2) the body attributed claim (c) "the falsifier covers every tier that can render the segment" to hypothesis:a00-b4418bfa-fbae51, which does not carry that text — corrected to hypothesis:a00-118f74e1-af3a3d, which does. Verdict proved left untouched; the point is that it survives the gate.
+<!-- THOUGHT:END -->
