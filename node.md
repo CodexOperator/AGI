@@ -219,6 +219,7 @@ director-helper
 No standing chatter watch. Belam receives director `[merge-up]` **only at residues=0**; owner gets blockers. Belam **rejects** residue merge-ups.
 
 
+
 ## 3d. Residue rounds → version the goal node (owner 2026-09-21 — HARD)
 
 Each residue pass must **write the goal** (subgoal / sub-subgoal / …) so the graph keeps history. Nodes are versioned; do not leave residue state only in MUR prose or chat.
