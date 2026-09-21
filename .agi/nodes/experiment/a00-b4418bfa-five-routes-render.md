@@ -3,9 +3,9 @@ id: experiment:a00-b4418bfa-five-routes-render
 mint_id: 5fd4ad92fddf4e5c958a361c84d54980
 type: experiment
 parents:
-  - hypothesis:a00-13a360dc-c2aae9
+  - hypothesis:a00-b4418bfa-fbae51
 next_edges: []
-edited_by: a00-b4418bfa
+edited_by: a00-118f74e1
 line_ceiling: 40
 loop: goal:g7.31.3.1@s2
 model: deepseek/deepseek-v4.1-flash
@@ -27,7 +27,8 @@ town: core
 routes by their `goal:g7.31.3` contract names.
 
 **Claim under test:** `brief.assemble()` renders `brief._ROUTES_SEGMENT` into
-every FULL-profile tier brief (kid, parent, director, prime_director) under the
+every FULL-profile tier brief that can render (kid, parent, director,
+prime_director, liaison, and advisor with a vision target) under the
 real default profile resolution, naming all five contract names and all six
 engine seams; the `survival` profile deliberately omits it.
 
@@ -44,30 +45,24 @@ unchanged by this run: the segment is already committed on this base branch
 **Exact command (from the repo root of this worktree):**
 
 ```
-PYTHONPATH=extensions/agi/bin python3 \
-  .agi/sessions/iter-DT.25/a00-b4418bfa/probe_five_routes.py
+python3 -m pytest extensions/agi/tests/test_brief.py -q -k five_pane_routes
 ```
 
-The probe imports the real `brief` module, calls
-`brief.assemble(tier=..., agent_id="a00-b4418bfa", iter_n=1, cli_py="/x/cli.py")`
-for each of `kid, parent, director, prime_director` with `scaffold=`/`target=`
-as the repo tests do and NO `profile=` kwarg (so the default resolution runs),
-and asserts the contract names and seams. It then renders `profile="survival"`
-and asserts the segment is absent.
+The falsifier is committed at `extensions/agi/tests/test_brief.py` (the
+`goal:g7.31.3.1` block, ~line 1143): it calls `brief.assemble()` for every
+full-profile tier that can render and asserts every contract name, every
+engine seam and `brief._ROUTES_SEGMENT` itself are present in the RENDERED
+text; the survival-profile companion test asserts the segment is absent.
+Reproducible from a fresh checkout — no gitignored path, no `brief.py` change.
 
 ## Evidence
 
-Raw output of the command above (saved at
-`.agi/sessions/iter-DT.25/a00-b4418bfa/probe_output.txt`):
+Raw output of the committed falsifier (base tip `e94b10619`):
 
 ```
-effective_profile(default) = full
-tier=kid: names_missing=[] seams_missing=[] segment=True chars=10091
-tier=parent: names_missing=[] seams_missing=[] segment=True chars=14821
-tier=director: names_missing=[] seams_missing=[] segment=True chars=10406
-tier=prime_director: names_missing=[] seams_missing=[] segment=True chars=8344
-tier=kid profile=survival: segment=False heading=False chars=4450
-RESULT: PASS
+$ python3 -m pytest extensions/agi/tests/test_brief.py -q -k five_pane_routes
+.                                                                        [100%]
+1 passed, 152 deselected in 0.88s
 ```
 
 Route names grepped, verbatim: `write`, `read`, `send`, `dispatch|workflow`,
@@ -76,8 +71,10 @@ Route names grepped, verbatim: `write`, `read`, `send`, `dispatch|workflow`,
 
 ## Probe log (three conjuncts)
 
-1. **wire / full-profile tiers** — all four tiers carry all five names, all six
-   seams, and `brief._ROUTES_SEGMENT` itself. **held.** Default resolution
+1. **wire / full-profile tiers** — every tier that can render (kid, parent,
+   director, prime_director, liaison, and advisor with a vision target)
+   carries all five names, all six seams, and `brief._ROUTES_SEGMENT` itself.
+   **held.** Default resolution
    reports `effective_profile(default) = full` (config `operating_mode: full`).
 2. **gate / survival profile** — `brief._ROUTES_SEGMENT` absent and the
    `FIVE PANE-FACING ROUTES` heading absent, at 4450 chars vs the full kid
@@ -94,3 +91,16 @@ Route names grepped, verbatim: `write`, `read`, `send`, `dispatch|workflow`,
   the six-seam assertion covers `commands.py` and not the `viewport` word.
 - No sixth route or second workflow invoker was added; `dispatch.py` /
   `rotate.py` are untouched by this run.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Corrective round a00-118f74e1 after the MUR on `goal:g7.31.3.1`. The claimed
+bytes did not change — `_ROUTES_SEGMENT` and its `_finish()` seam are
+untouched. Three procedural repairs: (1) `parents:` now points at
+`hypothesis:a00-b4418bfa-fbae51`, the hypothesis that actually cites this node
+in its `evidence_runs`, so the provenance edge and the evidence citation
+agree; (2) the counted evidence is now the committed falsifier in
+`extensions/agi/tests/test_brief.py`, reproducible from a fresh checkout,
+replacing a gitignored `.agi/sessions/` probe; (3) the falsifier was widened to
+the tiers that can actually render the segment (`liaison`, and `advisor` when a
+vision node exists), which the shared `_ALL_TIERS` never covered.
+<!-- THOUGHT:END -->

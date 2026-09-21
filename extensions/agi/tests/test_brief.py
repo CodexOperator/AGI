@@ -1139,13 +1139,34 @@ _FIVE_ROUTES = ("write", "read", "send", "dispatch|workflow",
 _ROUTE_SEAMS = ("write.py", "commands.py", "send.py", "dispatch.py",
                 "workflow.py", "rotate.py")
 
+#: Tiers this falsifier iterates. Local to the routes test, NOT the shared
+#: `_ALL_TIERS` above (other tests key on that tuple being the four ladder
+#: tiers): `_ROUTES_SEGMENT` rides every FULL-profile brief, so `liaison`
+#: must be covered too, and `advisor` is added below when a vision node
+#: exists to embody (its required target).
+_ROUTES_TIERS = ("kid", "parent", "director", "prime_director", "liaison")
+
+
+def _live_vision_target():
+    """A `vision:<stem>` target for the advisor brief, discovered from the
+    live graph so no derived address is hardcoded; None when the graph
+    carries no vision node."""
+    vdir = brief._resolve_graph_root(None) / "nodes" / "vision"
+    paths = sorted(vdir.glob("*.md")) if vdir.is_dir() else []
+    return f"vision:{paths[0].stem}" if paths else None
+
 
 def test_full_brief_lists_the_five_pane_routes_with_their_seams():
     """goal:g7.31.3.1 -- the assembled cold-seat brief (the `goal:g7.26`
     custom-instruction surface) lists all five routes by their contract
     names and names every engine seam. Rendered, not source-grepped."""
-    for tier in _ALL_TIERS:
-        txt = _text(tier, scaffold=SCAFFOLD, target="goal:g7.31.3.1")
+    tiers = list(_ROUTES_TIERS)
+    vision = _live_vision_target()
+    if vision:
+        tiers.append("advisor")
+    for tier in tiers:
+        target = vision if tier == "advisor" else "goal:g7.31.3.1"
+        txt = _text(tier, scaffold=SCAFFOLD, target=target)
         for name in _FIVE_ROUTES:
             assert name in txt, f"{tier} brief missing route name {name!r}"
         for seam in _ROUTE_SEAMS:
