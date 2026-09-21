@@ -21,8 +21,8 @@ tags:
   - geometry
   - pass1
   - parked
-thought_session: belam-geom-traj-spine-2026-09-21
-title: "G7.34.3: B3 town → .geometry/towns/<slug>/.self (Pass 1 raw)"
+thought_session: belam-graph-only-coord-2026-09-21
+title: "G7.34.3: town → .geometry/towns/<slug>/.self (Pass 1 raw)"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -49,7 +49,7 @@ Each live town has `.geometry/towns/<slug>/.self` Pass-1 raw (no formation recur
 - Trajectory mint (g7.34.2) except cross-links if needed.
 
 ## Agent Notes
-Parked **town:core**. Parent **goal:g7.34**. B3 Pass-1 raw only.
+Parked **town:core**. Parent **goal:g7.34**. G7.34.3 Pass-1 raw only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam 2026-09-21: mint parked unassigned on town:core; geometry/trajectory spine; no director assign; no impl yet

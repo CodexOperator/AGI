@@ -13,7 +13,7 @@ location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: belam-geom-traj-spine-2026-09-21
+thought_session: belam-graph-only-coord-2026-09-21
 town: core
 visions:
   - vision:local-maxxing
@@ -37,6 +37,11 @@ trajectory:local-maxxing (soon) ──▶ KG coordination
 type (`goal:g7.34.1` / `.2` on town:core). Until mint+migrate, this town
 body carries the stand-in. Metrics/links tables move to the trajectory node;
 ops bundle stays on town.
+
+## COORDINATION POINTER (core protocol)
+
+`town:core` uses GRAPH-ONLY board protocol (`doc:standing-llm-ops` §3 + `.geometry/towns/core.md`).
+This town (`local-maxxing`) stays **research**; follow the same graph-board rule if/when claiming core-adjacent engine work — do not message Belam for routine batches.
 
 ## GOAL BUNDLE
 

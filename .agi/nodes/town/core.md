@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-geom-traj-spine-2026-09-21
+thought_session: belam-graph-only-coord-2026-09-21
 town: core
 visions:
   - vision:alive
@@ -35,6 +35,33 @@ trajectory:* (soon) ─▶ KG coordination (metrics / mini-vision progress / lin
 **TRAJECTORY STAND-IN below is TEMPORARY** until `trajectory:*` type lands
 (`goal:g7.34.1` / `.2`). Until then this town body carries both ops bundle
 and the stand-in. Do not treat stand-in tables as the lasting SoT.
+
+## COORDINATION SURFACE (TEMP — owner 2026-09-21)
+
+**SoT pair:** `.agi/nodes/.geometry/towns/core.md` (`doc:geometry-towns-core`) ↔ this town body.
+Directors coordinate via **GRAPH ONLY**. No routine reports to Belam.
+
+```
+COORD SURFACE (TEMP)  .geometry/towns/core.md  ←→  town:core
+
+DIRECTOR (no Belam chat):
+  claim next   → write.py version town/geometry board: claim(goal, seat, tip)
+  batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
+                 also version goal Agent Notes; mark status as fits schema
+  claim order  → REOPENED (Prime) first, then open/horizon in bundle order
+  talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
+  talk owner?  → credits empty · mesh down · HOLD until owner replies
+
+BELAM (daily, not mid-batch):
+  pull town:core + geometry board + closed tips
+  merge seat tips w/ residues=0 evidence
+  full verify on core/main (or seat as docs say)
+  vision-lens on goals · moral-lens on visions↔goals
+  residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
+  reopen = Prime priority over plain open
+```
+
+Standing contract: `doc:standing-llm-ops`. Reopened goals in this town bundle = **PRIORITY** over plain open (Prime order).
 
 ## GOAL BUNDLE (encryption / core directors)
 
@@ -108,16 +135,16 @@ Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not d
 
 ### UNASSIGNED / parked — geometry-town + trajectory spine (NEW)
 
-Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No B1–B5 implementation yet — mint only.
+Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No g7.34.1–.5 implementation yet — mint only.
 
 | id | status | title (short) |
 |---|---|---|
 | goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine |
-| goal:g7.34.1 | parked/horizon | B1: [trajectory] schema + allowed parents/links |
-| goal:g7.34.2 | parked/horizon | B2: mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
-| goal:g7.34.3 | parked/horizon | B3: town → .geometry/towns/<slug>/.self (Pass 1 raw) |
-| goal:g7.34.4 | parked/horizon | B4: slim config / template pointer cells on town.self (L6) |
-| goal:g7.34.5 | parked/horizon | B5: formation = nested template + single context loader (L6) |
+| goal:g7.34.1 | parked/horizon | [trajectory] schema + allowed parents/links |
+| goal:g7.34.2 | parked/horizon | mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
+| goal:g7.34.3 | parked/horizon | town → .geometry/towns/<slug>/.self (Pass 1 raw) |
+| goal:g7.34.4 | parked/horizon | slim config / template pointer cells on town.self (L6) |
+| goal:g7.34.5 | parked/horizon | formation = nested template + single context loader (L6) |
 
 ```
 goal:g7
@@ -138,5 +165,5 @@ goal:g7
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam 2026-09-21: clarify town=ops vs trajectory=KG; TRAJECTORY STAND-IN temporary; list parked g7.34* geometry/trajectory spine; keep g7.25–.33 bundle diagrams
+Owner GRAPH-ONLY coord; TEMP .geometry/towns/core.md; Belam daily graph pass not live merge-up
 <!-- THOUGHT:END -->
