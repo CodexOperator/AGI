@@ -6124,6 +6124,8 @@ belam gen 1 FIRST MERGE PASS 06:39Z-11:46Z 09-21 (owner 01:2xZ; numbers only): d
 
 thought-master 11:5xZ 09-21 -- THE PRIME'S FIRST PASS (belam gen 1 11:49Z, VERIFIED dm -- its key reached origin/season2/main with the merge): trunk 8cf1eb4c9 (616 commits, 66 exp / 78 hyp, 57 engine+config, 0 node deletions) merged --no-ff into season2/main as 0f336c890; 33 mur rounds on pi/deepseek 06:40Z-11:44Z within the 3 GB claim: 0 red, 28 accept_with_residue, 4 demote, 1 verify-empty; verify links 3788/0, goals 209 byte-identical, 3808 nodes; grid on season2/main 3807 versions. Two demotes are local-maxxing's to disposition: (1) hypothesis:lm-pi-local-9b-kid-completes-a-minimal-round-within-the-slot -- 'proved' overclaims; its verdict node verdict:a00-b88dc08d-bcf00b exists only on loop branch 50280846a and the trunk copy dropped the parent THOUGHT -> demoted here to inconclusive_lean_proved:85 (the loop's own number) with the verdict node to be brought onto the trunk by director-thought; (2) hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices -- the EF.04 guard is fence-unaware/unclamped per the Prime's residue node write-body-range-guard-is-fence-aware-and-clamped -> stays proved for what it claims, the residue is EF work. The Prime's three residue nodes (mur-0921-residue-batch-into-season2-main, send-undelivered-notice-lands-in-the-comms-root, write-body-range-guard-is-fence-aware-and-clamped) are on the trunk and go to director-engine through the master (one order path). Next Prime pass: daily 08:13Z with the 5 h notice.
 
+OWNER 13:1xZ 09-21 (director-thought pane, verbatim): "Budget cleared credit balance topped off." -- pool headroom top-up confirmation, following the fluctuating/negative headroom this seat hit repeatedly around SWR-B.02/B.03 dispatch. SWR-B.03 unaffected (already dispatched, still running healthy at 2h35m).
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10683,6 +10685,8 @@ thought-master 02:0xZ 09-21 (knowledge from SWR.01 chunk 1, merged 346c377c2): t
 
 thought-master 09:2xZ 09-21 (knowledge, SWR.02-B): the IFEval side of the switch costs ~2.1 GPU-hours per 27B arm at 21 tok/s single-stream (compute-bound; slots do not help), so B and C2 are two windows each; every IFEval number carries a +/-0.4 pp scorer floor; local evals must be single-stream to match the reference protocol. The switch decision on B needs 431 more prompts -- SWR-B.03.
 
+thought-master 14:1xZ 09-21 (knowledge, SWR-B.03): the Bonsai 2 27B line is 0.37 pp SHORT of the IFEval bar (0.7782 vs 0.7819), inside the scorer's +/-0.4 pp noise -- so the switch is a coin-flip on the stock model and needs a real gain, not a re-roll: the abliterated C2 (identical on coding) is measured next; after that the honest levers are Track II (FT.00 morals/sanctuary SFT, then the ladder) on the same battery. Decision rule for inside-the-floor results recorded on the hypothesis (N=10 seeded re-scores, CI lower bound clears = fires).
+
 ##### G14.11.1 — THE BATTERY + REFERENCE -- HumanEval + IFEval scored identically for every local candidate and for deepseek-v4.1-flash, the gap table that decides standing (owner 21:5xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10700,6 +10704,8 @@ thought-master 09:2xZ 09-21 (knowledge, SWR.02-B): the IFEval side of the switch
 **Done when.** The gap table exists in `datasets/switch-rule/<date>/` with real numbers on both evals for the reference and every local candidate measured so far, and the switch verdict (fires / does not fire, per row) is stated plainly on the hypothesis node.
 
 **First chunk (minted):** `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery` (SWR.01) — the reference row + the gap table against the five existing local rows. G14.11.2 (the mvp/build/switch mechanics) is minted only when a switch verdict actually needs to be acted on, per the owner pace rule.
+
+SWR-B.03 landed (director-thought): arm B IFEval scored 541/541, strict 0.778189 (421/541) vs threshold 0.781886 (423 needed) -- does NOT fire, short 0.37pp, inside the +/-0.4pp unseeded-langdetect floor (mur-confirmed: 10 independent re-runs on the committed file gave 420x6/421x3/422x1, so 0.778189 is one valid sample of that floor, not fabricated). Loose 0.815157, instruction-level 0.851319. gap_table.md row landed under experiment:a00-4eec4fce-e9b330 (kid); experiment:a00-5f73ccd9-bc9dc8 (kid) is the mid-round generation step, verdict pending by design (superseded by the completing kid, not still-open work). Arm B: FIRES on HumanEval (92.2pct rel), does NOT fire on IFEval (89.57pct rel) -- two-eval hypothesis not satisfied by arm B alone; C1/C2 IFEval still unmeasured. mur-director-thought/swr-b-03: accept_with_residue, 1 confirmed residue (stale resume path in the pending kid, fixed post-review), 1 refuted (llama-server restore wording), 1 note (stale gap_table.md provenance header, fixed). No demotion.
 
 #### G14.12 — SIDE TRACK — spiking / oscillator readouts (Kuramoto, LIF/spectral, C2C fusers, SNN walkers, the bend2 spiking sim): only as capacity allows, never ahead of an owner-track round, imported into the main tracks piece by piece as learned (owner 21:4xZ 09-20) — status: active
 
