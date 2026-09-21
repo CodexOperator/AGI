@@ -1786,6 +1786,46 @@ def test_replace_body_guard_leaves_a_payload_alone(tmp_path):
     assert payload.read_text().startswith("PATCHED")
 
 
+def test_replace_body_guard_refuses_a_fence_split(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    A '#' line INSIDE a ``` (or ~~~) block is code, not a heading. Before
+    the fix `_is_heading` matched it, `_section_end` truncated `## A`'s
+    section to the fake heading, and `2:4` -- which removes the opening
+    fence and orphans the fenced body -- was ADMITTED. Both fence
+    characters must refuse it by line and name the `--force` hatch.
+    """
+    for i, fence in enumerate(("```", "~~~")):
+        body = (f"\n## A\na\n{fence}\n# not a heading\ncode\n{fence}\n")
+        graph = tmp_path / f"case{i}" / ".agi"
+        path = _guard_node(graph, body)
+        before = path.read_text()
+        with pytest.raises(write.EditError) as ei:
+            _replace_body(graph, "2:4", "X")
+        msg = str(ei.value)
+        assert "line 4" in msg and "--force" in msg, msg
+        assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_range_past_eof(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    Before the clamp, `end = hi` let `2:999` reach `_is_heading(lines[end-1])`
+    and raise IndexError. It must instead refuse by name and `--force` must
+    still land (the splice naturally clamps past-EOF).
+    """
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "2:999", "X")
+    msg = str(ei.value)
+    assert "past the end" in msg and "--force" in msg, msg
+    assert path.read_text() == before
+    res = _replace_body(graph, "2:999", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+
+
 # --------------------------------------------------------------------------
 # hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
 # --------------------------------------------------------------------------
