@@ -135,15 +135,21 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     if tmux_hold.enabled(harness):
+        hold: dict = {}
         # Durable named pane hold (`goal:g7.31.1.2`): same pane identity across
         # pid churn. Opt-in via `harness["tmux"]`; unset keeps the Popen path.
         new_pid = tmux_hold.reattach(
             harness, agent_id, args,
-            cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file)
+            cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
+            created=hold)
         if new_pid is not None and agent_record is not None:
             agent_record["pid"] = new_pid
             agent_record["status"] = "restarted"
             agent_record["restarted_at"] = int(time.time())
+            if hold:
+                # `created: true` means the seat's named pane was GONE and was
+                # re-created, not reattached (`goal:g7.31.1.2`).
+                agent_record["tmux"] = hold
             (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         return new_pid
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
