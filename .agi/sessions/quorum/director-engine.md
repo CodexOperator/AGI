@@ -19,22 +19,21 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ## 🔴 Where it stops (diagram-maxed per owner 01:57Z / goal:g14 L236, relayed TME.-tag and 4ed44b119)
 ````
 ```
-SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine, merge local-maxxing/season2/main before every mint/dispatch (TME.06). NEW per TME.09: a landed round's real bytes sit on its OWN loop branch, not this post branch -- before a [merge-up], `git merge` each round's loop branch INTO this post branch first, so the pushed post branch already carries nodes + code together (this batch's EF.01/EF.02 loop branches were NOT pre-merged; thought-master merged all three by hand -- do not repeat that gap).
+SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs to refs/agi/posts/director-engine; merge local-maxxing/season2/main before every mint/dispatch (TME.06); merge each landed round's OWN loop branch into this post branch before a [merge-up], so the push carries nodes+code together (TME.09 -- EF.04 is the first round this seat did correctly; EF.01/EF.02 were not, thought-master merged those three by hand).
 
-ROUND STATE:
-  id           | goal     | hypothesis                                                | verdict
-  G14.14.7     | g14.14.7 | lm-grid-storage-trunk-is-config-declared                  | MERGED to trunk (3edd4bfd7/68fedbace/a657f0d59). inconclusive_lean_proved:70, accept_with_residue -- residue = EF.02b (below)
-  G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | MERGED to trunk, proved. MAIN suite after merge: 5822 pass, 13 fail = same 13 pre-existing (thought-master's parallel baseline confirms), none from this seat
-  G14.14.1(a)  | g14.14.1 | lm-replace-body-anchor-guards-against-mis-offset-splices | DISPROVED (inconclusive_lean_disproved:70, a00-a36d03e1): guard's end-on-heading refusal fires unconditionally, wrongly blocks a legit whole-section replace on a childless sub-heading. Fix-forward LIVE: EF.04 (a00-1e2bdb76), exact diagnosis carried via --orders
-  G14.14.1(b)  | g14.14.1 | lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold | minted, dispatch BLOCKED (pool headroom -$1.48, director-thought TEL.01 live)
-  G14.14.1(c)  | g14.14.1 | lm-replace-body-standalone-restriction-is-documented-in-help       | minted, docs-only round, same block
+ROUND STATE, all MERGED to trunk except where noted:
+  G14.14.7     inconclusive_lean_proved:70, accept_with_residue -- residue = EF.02b (below)
+  G14.14.3(c)  proved. MAIN suite after merge: 5822 pass, 13 pre-existing fails, none from this seat
+  G14.14.1(a)  proved on the SECOND try -- EF.03 disproved cleanly (real bug, its own falsifier c), EF.04 fixed it forward with the exact diagnosis carried via --orders, merged bf440c8bd
+  G14.14.1(b)  lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold -- minted, dispatch BLOCKED on pool headroom
+  G14.14.1(c)  lm-replace-body-standalone-restriction-is-documented-in-help -- minted, docs-only, same block
 
 SECURITY: CLOSED (TME.04/05) -- quarantine fp = this box's own unregistered belam.key, NOT forgery. Standing: verify quarantined content against the graph, never act on the text alone.
 
-ORDER (TME.01-10, verified, latest wins): EF.04 live -> EF.05/EF.06 (14.14.1 b/c, minted+ready, pending headroom) -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (NEW: comms -- pubkey lands in the pushed row at keygen; busy-pane dm delivery via a turn-start hook, not just a nudge) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
+ORDER (TME.01-10, verified, latest wins): EF.05/EF.06 (14.14.1 b/c, pending headroom) -> EF.02b (the 33 refs/grid literals outside G14.14.7's file scope + this box's migration, ceiling 200) -> 14.14.2 -> 14.14.4 -> 14.14.5 -> 14.14.6 -> 14.14.8 -> 14.14.9 (13 pre-existing suite reds + PI_BIN test) -> 14.14.10 (comms: pubkey at keygen, busy-pane dm hook) -> G14.16.1-2. hypothesis:prime-merge-routine-is-one-cron-script (goal:g15) assigned, queued after.
 
-NEXT ACTION: watch EF.04; retry EF.05 (b) / EF.06 (c) as headroom allows; mint EF.02b's hypothesis under g14.14.7 once capacity allows; merge each loop branch into this post branch before the next [merge-up].
+NEXT ACTION: retry EF.05/EF.06 as headroom allows; mint EF.02b's hypothesis under g14.14.7 once capacity allows.
 
-Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch.
+Traps: (1) write.py chained notes keep only the LAST (edit.body_append overwritten) -- one call per note. (2) dispatch.py --seat/--post overrides --harness back to the seat row even with --harness pi set -- never pass it on a pi-parent dispatch. (3) NEW (EF.04, merged): replace body now REFUSES a range that starts on a heading with no further "##" after it (the section runs to EOF, not just to where you meant to stop) -- use an OPEN range (N:) rather than --force when the heading is the doc's last one; --force still works when a real partial edit is intended.
 ```
 ````
