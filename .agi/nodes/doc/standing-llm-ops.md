@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: watch-zero-residue-2026-09-21
+thought_session: thought-stream-dmax-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -45,7 +45,13 @@ Default: diagram. Exception: owner-verbatim quotes (protected, stay prose).
 
 ## 2. Diagram-max — every token emitted
 
-Scope: dm · note · card · watch · instruction · profile · handoff · thought · user chat · future-self.
+Scope: dm · note · card · watch · instruction · profile · handoff · **thought / thought-stream** · user chat · future-self · director↔director · director↔Belam.
+
+```
+thought-stream ──▶ same rule as outbound comms
+                ──▶ flows / tables / graphs — not essay monologue
+                ──▶ keep never/only-if/unless + who/when explicit
+```
 
 ```
 emit ──▶ one flow OR table
@@ -113,6 +119,7 @@ directors ──▶ owner (Shael): blockers ONLY
               (red · decision-needed · stuck — never routine progress)
 Belam     ──▶ owner: blockers + land decisions; not in-flight chatter
 Belam     ──▶ REJECT [merge-up] that still carries residue
+directors ──▶ loop independently (pi parents) until residues=0; do not wait on Belam mid-loop
 ```
 
 
