@@ -122,6 +122,10 @@ Minimize outbound tokens. Sync from doc:director-grok-internals + town:core + ge
 name: director-internals-sync
 schedule: */30 * * * *   (reason: mesh directors + live parents need standing sync while seats run)
 prompt: (intent) Pull doc:director-grok-internals + re-read standing pointer. For each SECTION:* fence, copy bytes into matching bot surface (profile description / named routine prompts). Replace only {{PLACEHOLDERS}} with this seat's values. Do not invent prose. If SoT unchanged (scaffold/hash or body hash), stay quiet. May update_state this same routine if SoT changes the sync recipe.
+  AFTER apply → VERIFY parse:
+    profile/routine surfaces must have REAL newlines
+    FAIL if literal \\n or mangled quotes visible
+    on FAIL → re-apply from SoT with real newlines (never leave broken mirror)
 ```
 
 ---
