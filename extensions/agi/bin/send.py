@@ -2796,7 +2796,13 @@ def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
             continue
         excerpt = (r.get("body") or "").replace("\n", " ")[:80]
         try:
-            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+            # `root` here is the GRAPH root (`_nudge_deferred_path`/
+            # `_comms_config` need it); the dm itself must land in the same
+            # comms root every other send_dm caller uses, or no reader ever
+            # sees it (hypothesis:send-undelivered-notice-lands-in-the-
+            # comms-root).
+            send_dm(comms_root(root), "wake-repair",
+                    r.get("sender") or "unknown",
                     f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
                     f"{int(age)} min", sender="wake-repair")
         except SystemExit:
@@ -3894,7 +3900,13 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # delivery, the file is the record.
     ok = _nudge_window(locations.find_project_root(croot) or croot, other,
                        sender=_detect_sender(sender), body=text)
-    _announce_nudge(croot, other, ok)
+    # `_announce_nudge` reads the SEATS row and the comms config, both of
+    # which live under the GRAPH root -- the same root `_nudge_window` is
+    # handed one line above. Handing it the raw `croot` (the comms root)
+    # silently dropped the plain `[undelivered-yet]` line whenever the graph
+    # root could not be reached by a rebase (a test fixture, or any layout
+    # without a git common root): the announcement vanished with no error.
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
     return path
 
 
