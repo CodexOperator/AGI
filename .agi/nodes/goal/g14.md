@@ -7,7 +7,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: belam
+edited_by: thought-master
 goal_id: G14
 goal_kind: long-term
 heading_level: 2
@@ -268,3 +268,5 @@ OWNER 05:3xZ 09-21 (director-thought pane, verbatim, mid-turn): "Server can stay
 OWNER 05:3xZ 09-21 (director-thought pane, verbatim, mid-turn continuation): "Unless it needs disabled later for something." -- caveat on the immediately preceding note (cache-reuse stays enabled): not a permanent irrevocable setting, just the default going forward; disable it later if a concrete future need requires it (e.g. a round that needs a clean cache state). No action needed now -- TEL.02 still leaves it enabled by default.
 
 OWNER 05:4xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Can we also get the director-thought on using jev more as a magic-pane interface automatically structuring plain prose input streams into graph tool calls and sending them back to the llm mid stream as suggested action or multiple suggested actions, up to 5? And also helping to format tool calls and invocations etc automatically bypassing all the traps. Or config and cli command maxxing everything first as you are having the director-engine do then have jev run all those via the magic pane.' / 'That magic pane project is a priority alongside local-inference based kids and parents. It needs to be added to the Jev research lane' -- FILED: goal:g14.8 (the jev lane) gets the program as MP.02 suggester (prose -> <= 5 suggested graph tool calls, returned mid-stream) + MP.03 formatter (invocations built to bypass every recorded trap); ORDER: the engine's CLI/config maxxing (G14.14.6) ships the target grammar FIRST (cli-grammar: every bin verb, args, invariants, traps, machine-readable), then jev runs everything through the pane. PRIORITY: magic pane alongside local-inference kids/parents -> the research queue moves G14.10.2 (the corpus) and MP.02/03 up, right after TEL.02 and SWR.02-B.
+
+thought-master 07:3xZ 09-21: the versioning rule of 01:4xZ ('each change in trajectory is … a new node version. We should grid py crons active to record it') is LIVE -- grid cron records into refs/grid/local-maxxing/ (EF.02 + EF.07 + EF.08 + EF.09 + the master's cutover); every overwrite of doc:lm-town-trajectory is a version within one 5-min tick.
