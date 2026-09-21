@@ -18,11 +18,12 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~02:2xZ
- live     MP.01 a00-af8cefa3 (pid 987668, ~47 min elapsed of 75min timeout, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
+2026-09-21 ~02:3xZ
+ live     MP.01 a00-af8cefa3 (pid 987668, ~50 min elapsed of 75min timeout, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
  landed   SWR.01 (346c377c2) -- ref bar 93.9pct HE / 0.869 IF strict; B/C1/C2 fire 0.9x on HE; IFEval undecided -> SWR.02 (TMM.19, not my lane)
  queued   H1' (g14.9.1, minted) | TEL.01 (g14.15.1, minted+filled, ready to dispatch) -- both no spend yet
- minted   TMM.21 batch (no spend): G14.7.2 training-ladder + G14.7.3 diagram-maxed-traces under g14.7; G14.10.2 session-trunk+classifier under g14.10 -- all skeleton-only, first chunks blocked on FT.00/DS.01 per thought-master's queue order, nothing to dispatch yet
- next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness) -- TEL.01 is the only thing actually ready to spend on right now
- inbox    TMM.21 processed dadd6797a; no dm sent back (batch-max rule: routine order execution, not a judgment call) -- reports via the graph itself
+ minted   TMM.21 batch (no spend): G14.7.2 training-ladder + G14.7.3 diagram-maxed-traces under g14.7; G14.10.2 session-trunk+classifier under g14.10 -- skeleton-only, blocked on FT.00/DS.01
+ vision   TMM.22 (owner, goal:g14.8): magic pane = the unified messaging layer (LLM speaks prose/diagram -> system wraps the structured call; jev first, town's own tiny model later per G14.7.2/.3+G14.16). Chain: MP.01 detector -> MP.02 wrapper (prose->1 call, real town dms/notes/merge-ups as test set, jev=judge) -> MP.03 replaces send.py grammar for one post pair -> MP.04 own tiny model vs jev. MP.01 itself UNCHANGED.
+ next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> mint MP.02 hypothesis under g14.8.3 (per TMM.22) -> dispatch TEL.01 parent (resident 9B, cap $1, pi) -- TEL.01 stays the only thing actually ready to spend on right now
+ inbox    TMM.21 (dadd6797a) + TMM.22 (af8931916) processed; no dm sent back either time (batch-max: routine order execution, reports via the graph)
 ```
