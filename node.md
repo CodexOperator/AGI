@@ -9,6 +9,7 @@ confidence: 0.9
 edited_by: belam
 goal_id: G7.32
 goal_kind: subgoal
+heading_level: 3
 origin: goals-doc
 scaffold_hash: 93fa8e801200a683
 season: 2
@@ -25,7 +26,7 @@ tags:
   - session-ingest
   - magic-pane
   - send-router
-thought_session: owner-ask-2026-09-21
+thought_session: belam-rename-g14-batch-2026-09-21
 title: "G7.32: Session ingest + magic-pane messaging + adapter pane methods + send.py thin router"
 town: core
 ---
