@@ -62,7 +62,13 @@ line and generated 110 of the 541 responses in official order into
 written here until all 541 exist** — a partial numerator over the full-set
 reference would overstate the metric. Measured effective rate is ~20.8 tokens/s
 (~19 s/prompt), so the full run is ~2.9 h; the continuation resumes the same
-command (see the SWR-B.02 experiment node).
+command (see the SWR-B.02 experiment node). SWR-B.03 (2026-09-21) resumed the
+same command on the same 64K single-stream fork (`start_fork_np.sh 1 65536`, now
+tracked at `datasets/switch-rule/2026-09-21/start_fork_np.sh`) and generated
+**283 / 541** by its window close, cleanly (0 errors, still an exact prefix of
+official order); the detached generator was left running under the round's
+authorized 180-min resume, so the next round resumes it and scores once 541
+rows exist (exact command in `experiment:a00-5f73ccd9-bc9dc8`).
 
 *Measurement floor.* The official harness re-scores the **reference** at
 469–472/541 across runs of the same file: `instruction_following_eval/
