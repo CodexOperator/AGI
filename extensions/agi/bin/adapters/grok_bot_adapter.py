@@ -57,9 +57,24 @@ def model_args(harness: dict, tier: str) -> list[str]:
 
 def child_env(*, harness: dict, base: dict[str, str],
               tier: str | None = None) -> dict[str, str]:
-    """Apply the ONE credential-none rule here so no spawn path drifts from
-    the mint gate (hypothesis:l4-needs-credential-is-provider-gated)."""
+    """The environment a `grok-bot` process runs in.
+
+    Applies the ONE credential-none rule here so no spawn path drifts from
+    the mint gate (hypothesis:l4-needs-credential-is-provider-gated).
+
+    `goal:g7.31.1.1` residue 3 (DT.27 close): the measured 0.3.1 `--help` has
+    no `--model`, so the configured tier can only reach `grok-bot` as
+    `AGI_MODEL`. dispatch.py exports it on the main spawn path, but the
+    `restart` path inherits whatever `os.environ` it was invoked from -- under
+    heal/rotate that env may carry no `AGI_MODEL` at all, and the configured
+    tier was silently dropped. Stamp it here from the ROW that owns the tier so
+    every spawn path carries the same resolved model. The row's `models` cell
+    is authoritative (dispatch has already landed ladder/seat overrides into
+    it), so it WINS over a stale inherited `AGI_MODEL`."""
     env = {**base, **{k: str(v) for k, v in (harness.get("env") or {}).items()}}
+    model_val = (harness.get("models") or {}).get(tier) if tier else None
+    if model_val:
+        env["AGI_MODEL"] = str(model_val)
     return adapters.forward_named_env(
         adapters.drop_unneeded_credential(env, harness), harness)
 
