@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: standing-llm-ops-batchmax-2026-09-20
+thought_session: standing-comms-route-2026-09-20
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -77,18 +77,17 @@ batch-max
   ├─ ONE report per COMPLETED pass (never per step)
   ├─ fold many deltas into one flow / table
   ├─ idle → wake ONLY on [merge-up] · [decision] · [red] · [rule] · [rotation]
-  └─ user may get frequent updates; Belam does NOT (Belam = completed batches only)
+  └─ minimize ALL outbound tokens (incl. to owner)
 ```
 
-Example spine (owner-shaped):
+Comms route (owner 2026-09-20 23:1x ET — supersedes prior "user may get frequent updates"):
 
 ```
-owner lines ──banked──▶ goal/doc node (pushed)
-   │
-   ├─ comms route ─▶ directors → Prime: merge-up = numbers-only dm
-   │                 directors → user: as often as useful (diagram-maxxed)
-   ├─ cadence    ──▶ watches = delta tables, not essays
-   └─ diagram-max──▶ every dm/note/card = one flow or table
+directors ──▶ Belam (Prime): routine batch updates ONLY
+              (completed pass / numbers-only [merge-up])
+directors ──▶ owner (Shael): blocker updates ONLY
+              (red · decision-needed · stuck — never routine progress)
+Belam     ──▶ owner: blockers + land decisions; not in-flight chatter
 ```
 
 ---
