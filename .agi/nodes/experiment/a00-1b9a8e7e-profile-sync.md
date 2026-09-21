@@ -5,8 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-1b9a8e7e-9f618e
 next_edges: []
-edited_by: a00-28f031ee
-evidence_runs: experiment:a00-1b9a8e7e-profile-sync
+edited_by: a00-9fa7f4f5
+evidence_runs:
+  - experiment:a00-1b9a8e7e-profile-sync
 line_ceiling: 80
 loop: goal:g7.31.5.1@s2
 model: deepseek/deepseek-v4.1-flash
