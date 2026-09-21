@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-graph-only-coord-2026-09-21
+thought_session: belam-director-nested-auth-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -378,24 +378,26 @@ Prefer dm-by-node-id over pasting bodies. Grok Bot: `SendToAgent` / owner chat u
 ### chain growth (residue loop is the point)
 
 ```
-goal
-  → split (mint)
+assigned goal
+  → split (mint) MUST stay nested under ASSIGNED goal
   → dispatch pi parents
   → MUR
-  → residues? ──yes──▶ dispatch more parents ──▶ MUR ──┐
-       │                                              │
-       no (residues=0 + format ✓ + §3e suite)         │
-       ▼                                              │
-  whole-batch MUR accept                              │
-       ▼                                              │
-  write.py board complete + push seat tip             │
-       ▼                                              │
-  Belam daily: merge → verify → lenses                │
-       ▲                                              │
-       └────────────── loop until 0 ←─────────────────┘
+  → residues? ──yes──▶ format-worthy? ──yes──▶ mint nested goal ──▶ dispatch ──▶ MUR ──┐
+       │                      │ keep as residue line                                  │
+       │                      └──no───────────────────────────────────────────────────┤
+       no (residues=0 + format ✓ + §3e suite)                                         │
+       ▼                                                                              │
+  whole-batch MUR accept                                                              │
+       ▼                                                                              │
+  write.py board complete + push seat tip                                             │
+       ▼                                                                              │
+  Belam daily: merge → verify → lenses                                                │
+       ▲                                                                              │
+       └──────────────────────── loop until 0 ←───────────────────────────────────────┘
 ```
 
 Soft ≤7 live parents · `spawn.parallel=1` · no new remote heads.
+residue→goal **only** when format-worthy (full Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes).
 
 ### Lean MUR / review file lists (owner 2026-09-21 — HARD)
 
@@ -407,6 +409,26 @@ MUR / overall-review context
     ──▶ NEVER ship fat context hoping it fits
 permission: directors MAY thin anytime without re-asking owner
 still: graph routes only (dispatch/workflow) · no route bypass
+```
+
+## 4b. Director nested goal authority (owner 2026-09-21 — HARD)
+
+```
+Directors = directors (not scripted workflow stand-ins)
+
+BREAK OUT assigned gN.M / gN.M.K → further nested goals as needed
+  so each pi parent has a crisp goal: to own
+
+MUR residue big enough for full goal format?
+  → mint nested goal (Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes)
+  → format completeness = tie-breaker YES mint vs keep as residue line
+
+AUTHORITY CEILING (HARD)
+  YES  g*.*.x · g*.*.*.x · deeper under an ASSIGNED parent
+  NO   new umbrella under g7 like g7.39 / g7.35 / any new gN top-level sibling
+       (only Belam/Prime mints new g7.N / top-level under umbrella roots)
+
+parents: on child = nesting SoT
 ```
 
 ## 5. Goal framing — target, not task-or-fail
@@ -528,5 +550,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 2026-09-21 GRAPH-ONLY: replace directors→Belam [merge-up] routine with town/geometry board claim/complete; Belam daily graph pass (merge·verify·lenses); exceptions = keys→Belam NOW, credits/mesh→owner HOLD; keep §3e suite · zero-residue · diagram-max · routes
+owner HARD: director nested goal authority ceiling + tighten grow-chain (split under assigned; residue→goal only format-worthy)
 <!-- THOUGHT:END -->
