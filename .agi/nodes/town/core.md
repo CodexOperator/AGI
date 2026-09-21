@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-engine-to-core-2026-09-21
+thought_session: belam-geom-traj-spine-2026-09-21
 town: core
 visions:
   - vision:alive
@@ -23,7 +23,20 @@ visions:
 <!-- BODY:BEGIN -->
 # town:core
 
-## GOAL BUNDLE + TRAJECTORY STAND-IN (encryption / core directors)
+## town = ops · trajectory = KG (stand-in TEMPORARY)
+
+```
+town:core ──────────▶ OPS home (who / bundle / what's left / location)
+                         location: encryption-town
+trajectory:* (soon) ─▶ KG coordination (metrics / mini-vision progress / links→chain)
+.geometry/towns/<slug> ─▶ Pass-1 raw self + formation templates (see g7.34*)
+```
+
+**TRAJECTORY STAND-IN below is TEMPORARY** until `trajectory:*` type lands
+(`goal:g7.34.1` / `.2`). Until then this town body carries both ops bundle
+and the stand-in. Do not treat stand-in tables as the lasting SoT.
+
+## GOAL BUNDLE (encryption / core directors)
 
 LOCATION ──▶ encryption-town
 
@@ -31,7 +44,7 @@ LOCATION ──▶ encryption-town
 encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank encryption master LATER)
                     │
                     ▼
- directors' active spine (stand-in trajectory)
+ directors' active spine (stand-in trajectory — TEMP)
  ┌─────────────────────────────────────────────┐
  │ g7.25*  adapter REQUIRED surface            │
  │ g7.26   post briefs = custom instructions   │
@@ -84,22 +97,46 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 
 Town schema `parents:` = ladder only → spine listed here / Agent Notes, not town→goal parents.
 
-### UNASSIGNED / parked (engine from local-maxxing) — until directors finish current batches
+### UNASSIGNED / parked (engine) — until directors finish current batches
 
-Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.** Parked unassigned until g7.25–g7.32 batches clear.
+Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.**
 
 | id | status | title (short) | note |
 |---|---|---|---|
-| goal:g7.33 | parked | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | moved from town:local-maxxing; nested G7.33.* not yet minted as separate nodes |
+| goal:g7.33 | parked | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | nested G7.33.* not yet minted as separate nodes |
 | goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later under town:core when work starts |
+
+### UNASSIGNED / parked — geometry-town + trajectory spine (NEW)
+
+Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No B1–B5 implementation yet — mint only.
+
+| id | status | title (short) |
+|---|---|---|
+| goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine |
+| goal:g7.34.1 | parked/horizon | B1: [trajectory] schema + allowed parents/links |
+| goal:g7.34.2 | parked/horizon | B2: mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
+| goal:g7.34.3 | parked/horizon | B3: town → .geometry/towns/<slug>/.self (Pass 1 raw) |
+| goal:g7.34.4 | parked/horizon | B4: slim config / template pointer cells on town.self (L6) |
+| goal:g7.34.5 | parked/horizon | B5: formation = nested template + single context loader (L6) |
+
+```
+goal:g7
+└─ g7.34 ★ geometry-town + trajectory spine (parked)
+   ├─ .1  [trajectory] schema
+   ├─ .2  mint trajectory:core / :local-maxxing
+   ├─ .3  town → .geometry/towns/<slug>/.self
+   ├─ .4  slim config/template cells on town.self
+   └─ .5  formation nested template + context loader
+```
 
 ## Agent Notes
 
 - Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
 - g7.31 tree untouched this ask; town points at it as spine.
 - Actor Belam; master cell = sanctuary-master.
-- Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked** — no director assignment, no SendToAgent.
+- Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
+- Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: park engine goal:g7.33 (moved from town:local-maxxing) under town:core GOAL BUNDLE as UNASSIGNED until directors finish current g7.25–g7.32 batches; no SendToAgent / no director assignment
+Belam 2026-09-21: clarify town=ops vs trajectory=KG; TRAJECTORY STAND-IN temporary; list parked g7.34* geometry/trajectory spine; keep g7.25–.33 bundle diagrams
 <!-- THOUGHT:END -->
