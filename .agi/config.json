@@ -119,7 +119,7 @@
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.5,
       "ttl_minutes": 180,
-      "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
+      "workspace_id": "e31711fe-f121-4904-abe3-c54e7bcbe7e6"
     },
     "parent_max_kids": 10,
     "memory_max": "6G"

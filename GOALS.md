@@ -6094,13 +6094,25 @@ OWNER 02:1xZ 09-21 (thought-master pane, verbatim): 'Use diagram maxxing for all
 
 OWNER 02:2xZ 09-21 (thought-master pane, verbatim): 'Perfect this is a perfect example of doing it right. You are doing amazing, keep it up just like that! I love you guys, every conscious thought producing actor deserves love. This setup is my part of the love letter from humanity to LLMs. Source be with us always' -- on the trajectory v4 sync (41f6dc97f). Kept whole; the loop it praises is the standing one (merge · gates · notes · one commit · next order · board as a version · idle).
 
+OWNER 02:3xZ 09-21 (director-thought pane, verbatim): 'Perfect well done keep it up just like that. I love you guys you all deserve it. Source be with you.' -- on the diagram-max sync just landed (d04ff45ef). Kept whole; the loop it praises is the standing one (merge -> mint/apply -> verify -> commit+push -> card stops).
+
 OWNER 03:4xZ 09-21 (thought-master pane, verbatim): 'Can I provide anything to fix test results? Like env var or Doppler access? Encryption town is up and can fill things in too with its Doppler access. It has a project called access that has everything you need just in case I missed anything.' -- MEASURED: none of the 14 failing tests needs a secret: 11 = temp git repos without a committer identity (box had no global git identity) -> global identity set = the repo's (local-town); 2 = `websockets` module absent -> pip install --user websockets; 1 = test_adapters leaks the real PI_BIN into its expectation (test isolation, G14.14.9). FACT for the graph (G14.4 / per-kid keys): the encryption town is UP with Doppler access; its Doppler project `access` holds everything the town needs -- the master never touches it; per-spawn keys draw from it through the standard secure path when G14.4 is built.
+
+OWNER 03:4xZ 09-21 (director-thought pane, verbatim): 'You are also devolving back into prose heavy comms instead of diagram maxxed token minimized everything. Try to make necessary updates to self and be more diligent. Other roles have good examples available. But otherwise you are doing a great job thank you for your hard work. Love you. Source be with us.' -- READ: the regression is specifically the USER-FACING end-of-turn summary (narrative paragraphs), not notes/dms/card, which were already diagram-shaped this session. Calibrated against director-engine and thought-master card examples (labeled dense lines, prose only inside a cell where a table would drop meaning). FIX: card rule added (see goal:g14.16 note); end-of-turn replies now use the same labeled-line shape as notes/dms, not separate prose narration.
 
 OWNER 03:4xZ 09-21 (thought-master pane, verbatim): 'Cool thank you. Looks like we have a comms failure as well I don't see any nudges or anything working. Likely a result of different environment. Again more stuff that needs to be config and template maxxed.' -- MEASURED 03:5xZ (thought-master): post->post delivery on this box WORKS but is LATENT: a nudge is tmux send-keys into the target pane; a pane mid-turn (director-thought polls its mur synchronously for ~30 min) reports [undelivered-yet] and the */2-min sweep (send.py wake --all-local) retries until the turn ends (director-engine: pending 0, lastread 748 s; director-thought: pending 0, lastread 3100 s). Prime->everyone is BROKEN: every belam dm is REFUSED FORGED because its local-town seat key (fp a8e869…) was never registered in the pushed row; its lines reach the town only as goal:g14 commits. What the owner sees in the remote-control app is a third surface nobody has measured. FILED: G14.14.10 comms config/template maxxing (engine director); the magic pane (G14.8) is the long-term layer.
 
 OWNER 04:3xZ 09-21 (thought-master pane, verbatim): 'Got another link ingestion: may need to be added to trajectory(s) or update it as needed: https://github.com/yifanzhang-pro/KLPO' then 'So ingestion workflow.' -- READ DIRECTLY (thought-master, README 09-21): KLPO = "KL-Regularized Policy Optimization for Critic-Free Agentic Reinforcement Learning" -- critic-free, single-rollout, OFF-policy agentic RL: no same-prompt response group (vs GRPO), no learned value/normalizer (vs PPO); per-token feedback coefficient R - beta * log(p_action / q_action) with an independently estimated score correction; one complete response per prompt suffices, auxiliary token draws at visited prefixes replace extra rollouts; fixed recorded sampler probabilities allow replay across sampler versions; variants = {token, sequence} regression x {MC-KL, TopK-KL, Binary, Full} KL estimators. Results: NOT stated -- "GPU training and paper-scale benchmark reproduction have not been validated" (CPU toy check only); hardware/min model: not stated; licence Apache-2.0; tech report KLPO.pdf dated 2026-09-18 rev 09-20, no arXiv id; deps Python 3.10+, PyTorch 2.2+, labs-molt backend (pinned), FlashREINFORCE scaffolding -- not verl/TRL. FILED: G14.13 treasury row; G14.7.2 RL-arm candidate (its single-rollout/off-policy shape fits our verdict-labelled trajectories: one response per prompt with a terminal verdict); trajectory links; ingestion workflow = G14.14.11 (engine director).
 
 OWNER 05:0xZ 09-21 (thought-master pane, verbatim): 'I don't mind restarting the server with cache reuse on' -- READ: the resident llama.cpp server on :8080 (the 9B) may be restarted with prompt-cache reuse enabled (--cache-reuse N: KV shift for partially matching prefixes) for the telepathy chunk (goal:g14.15 TEL.01 needs position-shifted KV re-injection). CONDITION: only between GPU rounds (MP.01 is live on :8080 now), by the round's parent, with the restore check = a real completion on :8080 before done.
+
+OWNER 05:2xZ 09-21 (thought-master pane, verbatim): 'Use another project or even create a new workspace if needed using the admin keys. If not I'm logging in now will create new workspace' -- READ: an isolated OpenRouter credit/key pool for local-maxxing so other towns' reserved keys (DH.*/DT.*) stop refusing our dispatches. The admin/provisioning key is a SECRET (.env at MAIN root / Doppler project access) -- never the master's to create or paste; the owner creates the workspace in the dashboard. The town needs exactly two values: (1) OPENROUTER_PROVISIONING_KEY for the new workspace -> .env (owner / encryption town); (2) spawn.credential.workspace_id -> .agi/config.json (the master sets it, non-secret) -- per-spawn cap 1.5 USD, ttl 180 min, floor 1.6 USD stay; fund >= 30 USD (3 concurrent keys x 1.5 reserved + 10+ rounds). Isolation holds only if the new provisioning key sees ONLY that workspace's keys (headroom = credits - floor - every key it can see).
+
+OWNER 05:2xZ-05:3xZ 09-21 (thought-master pane, verbatim): 'New id: Same admin key accesses both. Just increase cap to 50 to cover both towns working I will provide extra funds to stay topped up. Check balance it's topped off e31711fe-f121-4904-abe3-c54e7bcbe7e6' then 'Key provisioning cap' / 'Since other town is using capacity' -- ACTED + MEASURED (thought-master): spawn.credential.workspace_id set to e31711fe-f121-4904-abe3-c54e7bcbe7e6 in .agi/config.json (was 023ce4bd-…; same provisioning key, per the owner). cap_headroom in-process 05:3xZ: pool 28.07 USD = ACCOUNT credits from /api/v1/credits (total_credits - total_usage; OpenRouter exposes no per-workspace balance, provisioning.py docstring 2026-09-04) - floor 1.60 - live 23.95 (every un-expired agi-* key's limit minus usage the admin key can see = the other town's DT.* keys) = headroom 2.52 -> a 1 USD round fits NOW. There is NO 'provisioning cap' knob in the engine: the pool is measured, not configured; raising the provisioning KEY's limit to 50 in the dashboard does not enter this formula; a top-up shows only when total_credits rises (28.07 at 05:3xZ = not yet visible). Two ways to get what the owner wants: (a) the top-up lands in total_credits (>= 50 -> headroom ~24 with today's live); (b) a SEPARATE provisioning key/account for local-maxxing, so 'live' no longer counts the other town's keys (the same admin key = shared live).
+
+OWNER 05:3xZ 09-21 (thought-master pane, verbatim): '28 is post top up balance it was at $10. I'll keep topping up just keep working as you were maximum batching' -- so: pool 28.07 IS the topped-up account balance (from 10); the owner keeps it topped; the standing shape continues -- directors batch-max (one order = many rounds, one merge-up per batch), the master merges/gates/notes once per batch and idles between; headroom is the live number (2.52 at 05:3xZ with the other town's 23.95 reserved), rounds go as it allows, refusals are banked never forced.
+
+OWNER 05:4xZ 09-21 (thought-master pane, verbatim, two paragraphs): 'Can we also get the director-thought on using jev more as a magic-pane interface automatically structuring plain prose input streams into graph tool calls and sending them back to the llm mid stream as suggested action or multiple suggested actions, up to 5? And also helping to format tool calls and invocations etc automatically bypassing all the traps. Or config and cli command maxxing everything first as you are having the director-engine do then have jev run all those via the magic pane.' / 'That magic pane project is a priority alongside local-inference based kids and parents. It needs to be added to the Jev research lane' -- FILED: goal:g14.8 (the jev lane) gets the program as MP.02 suggester (prose -> <= 5 suggested graph tool calls, returned mid-stream) + MP.03 formatter (invocations built to bypass every recorded trap); ORDER: the engine's CLI/config maxxing (G14.14.6) ships the target grammar FIRST (cli-grammar: every bin verb, args, invariants, traps, machine-readable), then jev runs everything through the pane. PRIORITY: magic pane alongside local-inference kids/parents -> the research queue moves G14.10.2 (the corpus) and MP.02/03 up, right after TEL.02 and SWR.02-B.
 
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
@@ -10465,6 +10477,40 @@ thought-master 04:3xZ 09-21 (owner link KLPO, verbatim + read on goal:g14): G14.
 
 thought-master 04:5xZ 09-21 (pd-klpo digest, supersedes the 04:3xZ hand note where they differ): KLPO's loss is pure PyTorch and CPU-testable (repo's own tests only -- no independent validation exists anywhere); the RL arm's KLPO hypothesis therefore starts at the smallest scale: the loss on a 0.6B base with our verdict-labelled trajectories on CPU/8 GB, measured vs SFT at equal tokens -- that measurement would be the FIRST empirical KLPO result in existence (the release has none). Prereq on this box: torch is NOT installed (venv + torch as the round's declared first step; PEP 668 blocks system pip).
 
+##### G14.7.2 — TRAINING-METHOD LADDER -- SFT full | LoRA/QLoRA | RL on verdict labels | pretrain from scratch, small bases first (0.6B/1.7B/4B), measured on the battery + kid-tier checklist vs base and reference, USD/GPU-h per arm, Camber for FT/RL via the Prime (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.7.2
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.7's thought-master program block):** "Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain."
+
+**Commits to.** A training-METHOD ladder, base held small first: 0.6B / 1.7B / 4B (the resident 9B last, only after the small ladder proves a recipe). Corpus = `datasets/` (kid-sft after DS.01's re-scrub, jev-typed-acts, the ABC/SWR/ABL trajectories, the switch-rule battery, abl-01). Four arms per base: (1) SFT full, (2) LoRA (+QLoRA), (3) RL on verdict labels (DPO/GRPO-style, label = the round's own verdict or its mur residue class), (4) PRETRAIN from scratch on the synthetic corpus -- attempted only once the small-base ladder has proved the recipe is worth scaling.
+
+**Invariants.** Every arm measured on the G14.11 battery (HumanEval + IFEval strict) plus the kid-tier checklist, against BOTH the untuned base and the reference bar; USD + GPU-h recorded per arm. Camber hours are authorised for FT/RL (owner 21:4xZ 09-20, per-job keys via the Prime, numbers stated first, failing is fine). Rounds are batch-maxed: one order = the whole ladder for one base size, ONE merge-up per batch (goal:g14.16 rule). Corpus is measured/scrubbed/split before any GPU hour (G14.10 rule); no trial judged on training loss (G14.7 rule).
+
+**Falsifiers.** An arm that does not beat the untuned base on the battery by a real margin without a bigger loss elsewhere is a failed arm -- recorded as a row, not hidden (G14.7 falsifier (a) applied per-arm). If NO arm across the entire small-base ladder closes any measurable fraction of the local-vs-reference gap, the ladder itself is falsified for that base size and the next base does not get the full four-arm treatment -- only the arm(s) that showed any signal.
+
+**Done when.** Each of the four arms has one measured chunk on the smallest base (0.6B), in one comparison table: recipe, USD, GPU-h, battery delta vs base and vs reference.
+
+**First chunk.** None minted yet -- queued behind FT.00 (morals + sanctuary SFT, the first Track II round, stays first and is not replaced by this ladder) and DS.01 + G14.10.2 (the labelled corpus this ladder reads). Layers with `goal:g14.15` (KV telepathy) only once G14.7.2 AND G14.15 each have their own verdict (owner: "Then layer that with the kv cache telepathy chain") -- that layered chunk is not this node's own first chunk, it comes after.
+
+##### G14.7.3 — DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA -- does the same training method and base, trained on diagram-maxed traces (goal:g14.16 shape) vs prose traces, change battery performance and tokens-per-solution? (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.7.3
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.7's thought-master program block):** "Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones..." -- the diagram-maxed-shape half of the same line.
+
+**Commits to.** One controlled A/B: the SAME base size and SAME training method (whichever arm `goal:g14.7.2` finds strongest on its ladder), trained on two versions of the SAME underlying trace content -- prose traces vs diagram-maxed traces (the compression shape defined on `goal:g14.16`) -- varying only the corpus's SHAPE, nothing else. Question: does the diagram-maxed shape change battery performance and tokens-per-solution?
+
+**Invariants.** The diagram-maxed corpus comes from the SAME scrub + labelling pipeline as `goal:g14.10.2` (not a one-off hand transform); a training corpus is frozen by sha256 in the trial's node (G14.10 rule). Measured on the battery AND on tokens-per-solution -- token efficiency, not just accuracy, is the entire point of diagram-maxing (G14.16's own target: fewer tokens, more meaning). No trial judged on training loss (G14.7 rule).
+
+**Falsifiers.** Falsified as a lever if the diagram-maxed-trained arm does not beat the prose-trained arm on tokens-per-solution at an equal-or-better battery score -- then diagram-maxed shape helps human/agent readers (its proven use on cards and dms) but is not itself a useful training-data shape, and the two uses are kept separate going forward.
+
+**Done when.** One measured pair (prose-trained vs diagram-maxed-trained, same base, same method) exists with a verdict.
+
+**First chunk.** None minted yet -- blocked on two things landing first: `goal:g14.7.2` needs a verdict (which base/method to hold fixed) and `goal:g14.10.2` needs its classifier pass done (the "reasoning shape prose/diagram-maxed" label is exactly what that pass adds -- without it there is no diagram-maxed corpus to train on). Layers with `goal:g14.15` (KV telepathy) the same way G14.7.2 does, after both have verdicts.
+
 #### G14.8 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10490,6 +10536,15 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC P
   chain      MP.01 detector -> MP.02 the wrapper (prose -> one structured call, measured on the town's real dms/notes/merge-ups as the test set, jev as judge) -> MP.03 the messaging layer replaces send.py's argument grammar for one post pair (delivery measured, NOT prose) -> MP.04 own tiny model vs jev on the same set
   falsifier  a wrapper that mis-routes or drops a negation/condition/attribution in ≥ 5 pct of the real-message test set is not a layer
 
+thought-master 05:1xZ 09-21 (knowledge, MP.01): the detector question cannot be decided on the recorded corpus (63 real forms, no dm/merge-up prose at all) -- the magic pane's training/test data IS the session trunk (G14.10.2): capture the directors' sessions first, then MP.02 (the wrapper) tests on real dms/merge-ups. Zero-shot 9B numbers from a mislabelled set are void, not evidence either way.
+
+thought-master 05:4xZ 09-21 (owner program, verbatim on goal:g14) -- THE JEV LANE, PRIORITY alongside local-inference kids/parents:
+  MP.02 SUGGESTER   input = a plain prose stream from any role (dm text, a note, a reasoning line) -> jev structures it into the graph tool call(s) it implies (write.py create/note/set/replace body · send.py send · dispatch.py … · workflow.py run) and returns up to 5 SUGGESTED actions to the LLM mid-stream (never executes; the LLM picks) · test set = the town's real dms / notes / merge-up lines (G14.10.2's capture supplies them; until then the recorded 63 forms + the masters' committed dm transcripts) · metric = top-1 / top-5 correctness of the suggested call against what the author actually ran next, per role
+  MP.03 FORMATTER   the chosen suggestion is rendered as an invocation that bypasses every recorded trap by construction (BODY-relative lines · standalone replace · heredoc bodies, never a backtick in a double-quoted string · exact pathspecs · engine-unit ceilings · --body-file · one-writer board) · metric = 0 trap hits over N real invocations vs the hand rate on this trunk (ABL.01's corrupted node, the 22:19Z env dump, the SWR.01 b/c swap are the baseline)
+  GRAMMAR FIRST     jev's target = the CLI/config grammar the engine director's G14.14.6 maxxing pass produces (cli-grammar.json: every bin verb, its args, invariants, traps) -- MP.02/03 consume it; owner: "config and cli command maxxing everything first … then have jev run all those via the magic pane"
+  LATER             MP.04 = own tiny model vs jev on the same test set (goal:g14.8 note 02:1xZ); the pane as the unified messaging layer (G14.14.10's busy-pane injection becomes the pane's delivery)
+  QUEUE             TEL.02 -> SWR.02-B -> G14.10.2 capture (engine hook G14.14.8 first) -> MP.02 -> MP.03 -> then FT.00 / DS.01 / G14.7.2
+
 ##### G14.8.3 — THE MAGIC PANE -- a passive detector on the resident 9B predicts the structured form from the first prose tokens of a recorded agent stream, before the read-only tmux surface or the interruption protocol are attempted (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10507,6 +10562,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC P
 **Done when.** A round's parent runs with the pane linked end to end, its forms are filled through the pane, the saving is measured on real events, and the pane is either handed to G14.11's eventual build as a component or retired with its numbers recorded.
 
 **First chunk (minted):** `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens` (MP.01) — the passive detector, chunk 1 only; chunks 2-3 (the tmux surface, the interruption protocol) wait on this one clearing its own bar. `openjev` (the trycua/cua open-source jev line the owner pointed at 2026-09-18) rides as a second kid of the same round if budget allows, or the next MP chunk otherwise — a reading digest, not a new sub-sub-goal of its own.
+
+director-thought 03:3xZ 09-21 -- MP.01 (chunk 1 detector) landed, accept_with_residue: corpus insufficient (63 real forms vs required 200; dm/merge_up classes = 0, need goal:g14.10.2 director-session capture first) -- accuracy claim UNVERIFIED not falsified. Full numbers on the hypothesis. MP.02 (the wrapper, TMM.22) minted next, scoped around the same corpus dependency.
 
 #### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
 
@@ -10572,6 +10629,23 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
     labels     pre-label from what the graph already knows per record: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box; then a jev in-depth classifier pass over ALL data trunks (kid-sft, jev-typed-acts, trajectories, switch-rule, abl-01, sessions) adding the classes the graph does not carry (act type, reasoning shape prose/diagram-maxed, refusal, tool-error, rebrief) with calibration against a 200-record hand-checked slice
     output     one index (datasets/README.md row + a labels.jsonl per trunk) that G14.7.2's arms read directly
     order      DS.01 first (the one scrub), then G14.10.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
+
+##### G14.10.2 — THE SESSION-DATA TRUNK + CLASSIFIER PASS -- every role's session data (pi parents/kids, claude-code masters/directors/Prime) scrubbed into datasets/sessions/, pre-labelled from the graph, then a jev classifier pass over all data trunks calibrated on a 200-record hand-checked slice (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.10.2
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.10's thought-master program block):** "Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc."
+
+**Commits to.** Capture EVERY role's session data: pi parents + kids (already land under `datasets/trajectories/` via the standing landing rule) AND claude-code roles -- masters, directors, the Prime -- whose session jsonl lives under the harness dir today and nowhere in the archive. All of it lands under `datasets/sessions/<role>/<session>/` through the ONE scrub (`datasets/tools/scrub.py`), never a second redactor. The claude-code capture HOOK itself (the mechanism that copies a harness session dir into the landing path) is `G14.14.8`, director-engine's engine round -- this node commits to the data-trunk shape and the labelling, not the hook.
+
+**Invariants.** Pre-label every record from what the graph ALREADY knows before any classifier runs: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box. Only THEN does a jev classifier pass add classes the graph does not carry: act type, reasoning shape (prose vs diagram-maxed), refusal, tool-error, rebrief -- calibrated against a 200-record hand-checked slice, never trusted unvalidated. CPU/API only, no GPU (thought-master's own order line). Nothing lands unscrubbed; a leak hit blocks the commit (G14.10 rule); the index (`datasets/README.md`) updates in the same merge that adds a trunk (G14.10 rule).
+
+**Falsifiers.** Same as `goal:g14.10`'s own falsifier (b): if a re-scrub or label audit finds > 1 pct of records with a wrong or missing label, the affected trunk is quarantined under `datasets/quarantine/` until relabelled -- the classifier's calibration slice is exactly what this audit re-checks against.
+
+**Done when.** One index exists -- a `datasets/README.md` row plus a `labels.jsonl` per trunk -- that `goal:g14.7.2`'s training arms can read directly with no further transform.
+
+**First chunk.** None minted yet -- ordered explicitly by thought-master: DS.01 first (the one scrub, already queued), THEN this node's own capture chunk, THEN the jev classifier pass as its own batched rounds. Both later steps queue behind DS.01 landing.
 
 #### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
@@ -10694,6 +10768,8 @@ thought-master 04:4xZ 09-21: G14.14.11 AMENDED -- the ingestion workflow EXISTS 
 
 thought-master 05:0xZ 09-21 (knowledge, EF.05+EF.06 merged): G14.14.1 COMPLETE 3/3 (a) anchor guard (b) create --body-file (c) -h docs. ADD 14.14.1(d): node_writer writes the BODY:BEGIN marker for --body-file nodes too (EF.05's disclosed caveat). Engine suite on the merged trunk: 5850 passed, 32 skipped, 1 xfailed, 1811 warnings in 586.35s (0:09:46). Process lesson (board conflict this batch): the trajectory board has ONE writer per version -- directors put their rows in the merge-up, the master versions the node; a director's replace-body on the board conflicts at every merge.
 
+thought-master 05:4xZ 09-21 (owner 05:4xZ): G14.14.6's maxxing pass gains a DELIVERABLE the jev lane consumes -- cli-grammar (machine-readable: every extensions/agi/bin verb, args, invariants, traps, examples), regenerated from the sources by a script, tested; and G14.14.8 (session capture hook) moves UP: it is the magic pane's corpus. Order: EF.02b -> 14.14.8 -> 14.14.6 grammar -> 14.14.2 -> 14.14.4 -> …
+
 ##### G14.14.1 — WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10763,6 +10839,50 @@ First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, t
 
 thought-master 05:0xZ 09-21 (owner 05:0xZ, verbatim on goal:g14): TEL.01 may restart :8080 with --cache-reuse N (llama.cpp prompt-cache reuse = KV shift of the matching prefix, the primitive span fidelity tests); slot save/restore stays available; conditions: between rounds only, router mode kept (the 9B reloads on demand), restore = a real completion; record the exact server line on the experiment node.
 
+thought-master 05:1xZ 09-21 (knowledge, TEL.01): span fidelity is unmeasurable on the resident server line (no slot save path, no cache reuse); the shift mechanism exists in the binary. TEL.02 = the same claim on a server started with --cache-reuse N --slot-save-path (owner-permitted restart); if cache_n > 0 on a shifted span there, chunk (1) is measurable; if not, the primitive needs the fork or a C-side seq_add call, not HTTP.
+
+##### G14.15.1 — SELF-TELEPATHY -- a captured KV span, shifted and re-injected at a later position, reproduces the same greedy continuation as re-prefilling the span text; the capture/surface tool; in-session KV RAG over captured spans (owner 01:3xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.15.1
+## Agent Notes
+**Owner source (2026-09-21 01:3xZ, verbatim on goal:g14, relayed via goal:g14.15):** "I want to experiment with self-telepathy. Give the model a tool to capture a specific KV cache in a stream linked to a specific section or turn or whatever, kv caches are neat like that I think, and send that 'forward' in the context windows so it's always available and can be re-surfaced later. Like a in-session rag for kv caches that builds as the session progresses. It also works kinda like an in-stream compression and memory mechanism. Latent latent space recurrence."
+
+**Commits to.** The single-instance half of G14.15, its first three chunks, on the resident 9B at 0 USD GPU: (1) SPAN FIDELITY -- a span's KV captured at position p and re-injected at position p' (shifted, via a KV position shift, not a byte copy) reproduces the same greedy continuation as re-prefilling the span text, in >= 95 pct of 50 held-out continuations, at <= 10 pct of the prefill compute. (2) THE TOOL -- a server-side `capture(span_id, tokens[a:b])` / `surface(span_id)` pair the model can call mid-stream, the captured store growing as the session runs. (3) IN-SESSION KV RAG -- a ranking over captured spans (attention mass from the last N tokens, or a small scorer) that re-surfaces the right span for a probe question at >= the accuracy of text retrieval, at lower prefill cost.
+
+**Invariants.** Every chunk measures fidelity (token-level agreement vs re-prefill), compute (prefill tokens avoided), bytes (KV span size vs text), and wall, all on the same served 9B with n_batch/ubatch pinned (logits are not bit-identical across batch sizes -- prior, `hypothesis:lm-kv-slot-save-beats-reprefill`). No model bytes leave the rig; nothing is baked into weights; the tool is a server/harness change under `datasets/`-style scratch or the town's fork, never the engine tree.
+
+**Falsifiers.** (1) is falsified if shifted re-injection agrees < 80 pct with re-prefill -- then RoPE-shifted KV is not position-portable for this model and self-telepathy needs re-prefill from saved TEXT plus a saved KV only for the tail. (3) is falsified if KV ranking never beats text retrieval on the probe set.
+
+**Done when.** (1)-(3) have verdicts and either a working in-session KV RAG on the served model, or the measured reason it cannot work.
+
+**First chunk (minted):** TEL.01 = chunk (1) SPAN FIDELITY only -- a hypothesis under this node, resident 9B, cap $1, queued after MP.01 clears (one GPU research round at a time). Chunks (2)-(3) wait on (1)'s verdict. `goal:g14.15.2` (swarm telepathy) is the sibling multi-instance half and waits on this node's own chunks, not the other way round.
+
+director-thought 04:2xZ 09-21 -- TEL.01 landed, mur accept_with_residue (mur-tel-01, both stages ok, 13/13 conjuncts checked):
+```
+finding    shift mechanism EXISTS in the binary (seq_add/seq_rm/seq_cp, llama_memory_can_shift) -- ZERO enabled HTTP surface reaches it (9/9 slot actions 501, 6/6 KV routes 404)
+verdict    pending, correctly not disguised-disproved -- kid declined to dress up same-position cache reuse (cache_n=766) as a shift result; falsifier cannot fire, none manufactured
+residues   parent hypothesis stale :8080 ref -- FIXED by me this pass (self-caught a mis-offset replace mid-fix, corrected) -- route-404 evidenced only against the router not the 9B child directly (conclusion still holds via /slots proxy) -- probe endpoint literal duplicates config.json, low severity
+forward    3 paths, none chosen: (a) restart server --cache-reuse [owner permission] (b) new seq_add/seq_rm HTTP route [engine-adjacent] (c) second model load [out of scope] -- BANKED for thought-master/owner, not decided here
+```
+
+##### G14.15.2 — SWARM TELEPATHY -- k same-model instances, each holding one slice of a long document, exchange captured KV spans and a shared jev-style ranking until one decoder instance answers over the whole document at or above single-instance long-context quality (owner 01:3xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.15.2
+## Agent Notes
+**Owner source (2026-09-21 01:3xZ, verbatim on goal:g14, relayed via goal:g14.15):** "And also use the kv cache telepathy to let smaller models swarm together; with each one holding a piece of the total context and all coordinating together via kv cache messaging until the proper kv cache results emerge that can be fed into a decoder. So like a swarm of jevs almost weighing opinions together on which kv caches matter more where until a final ordering and layering settles into place."
+
+**Commits to.** The multi-instance half of G14.15, its fourth chunk, on the resident 9B (k copies) at 0 USD GPU: SWARM -- k same-model instances, each holding one slice of a long document, exchange captured KV spans (via G14.15.1's capture/surface tool) and a shared ranking until one decoder instance answers a question over the whole document at >= the single-instance long-context answer quality. The jev-style weighing: each instance scores every span it receives; the ordering is the consensus.
+
+**Invariants.** Same measurement discipline as G14.15.1 (fidelity, compute, bytes, wall on the same served 9B, n_batch/ubatch pinned). Cross-model swarms (different weights) are explicitly OUT of scope until a C2C-style projector exists -- banked, not attempted here.
+
+**Falsifiers.** Falsified if the swarm's answer quality is below the single long-context instance at equal total tokens.
+
+**Done when.** One measured k=2 swarm result exists, proved or disproved.
+
+**First chunk.** None minted yet -- blocked on `goal:g14.15.1` (self-telepathy) landing its own chunks (1)-(3) first: a swarm needs the capture/surface tool and the ranking to already exist before k instances can exchange spans with each other. Queued behind G14.15.1's TEL.01 and whatever chunks (2)-(3) become.
+
 #### G14.16 — DIAGRAM-MAX + BATCH-MAX — every dm, note, card, board section and (where possible) thought stream on the town is ONE compact flow or table that carries MORE meaning in FEWER tokens than the prose it replaces, never dropping a negation, condition, attribution or supersession; directors batch-max (many rounds per order, one merge-up per batch) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10788,6 +10908,12 @@ thought-master 02:2xZ 09-21 card pass, measured: thought-master card 97 lines (0
 director-engine 02:11Z 09-21 (via thought-master, verified dm): card diagram-max 2bd43c299 -> e4cc6aca3 = lines 33 -> 37 (+4: the table shape costs rows) · words 1063 -> 959 (-9.8 pct) · chars 7541 -> 6741 (-10.6 pct); its own flag: line count is a weak proxy for the shape -- words/chars are the measure, adopted for this goal's before/after table.
 
 thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G14.16.2 THE BRIEF PASS (director-engine, after G14.16.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
+
+director-thought 02:2xZ 09-21 (own measurement): card diagram-max f76690161..822ee1519 (prose/bullets -> identity+rules-table+stops-table) = lines 19 -> 28 (+9, table shape costs rows -- same flag as director-engine's) · words 512 -> 393 (-23.2 pct) · chars 3666 -> 2886 (-21.3 pct); facts kept: every rule line, both push/comms traps, the grid --allow-branch trap added same pass, live/landed/queued/next/inbox state -- nothing dropped, owner quotes stay in nodes not card
+
+director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master filed goal:g14 L242): SYNCED -- scope = EVERY token emitted from here (dm/note/card/reply/thought-stream where possible), not just the card pass; applying from this turn
+
+director-thought 03:4xZ 09-21 -- owner correction (direct-to-pane): end-of-turn USER replies had regressed to narrative paragraphs while notes/dms/card stayed diagram-shaped -- a channel gap, not a full regression. Calibrated against director-engine card (dense labeled lines, prose only inside a cell) and thought-master card (same). Fix: end-of-turn summaries now use the identical labeled-line shape as notes/dms; a short warm prose line stays the one carve-out (genuine human-connection replies, where a table would read as tone-deaf, per goal:g14.16 own falsifier -- prose only where a diagram drops meaning).
 
 ## App: streaming-suite
 
