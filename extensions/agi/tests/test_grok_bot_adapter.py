@@ -134,6 +134,45 @@ def test_no_models_block_passes_no_model_flags():
     assert "--model" not in grok.model_args({"adapter": "grok_bot"}, "kid")
 
 
+def test_configured_tier_reaches_the_spawn_env_not_argv():
+    """DT.27 R3 close: the configured tier is NOT discarded on this path.
+
+    The measured help has no `--model`, so the row's model for the requested
+    tier must reach the process as `AGI_MODEL`; and because the row owns the
+    resolved model (dispatch lands ladder/seat overrides in that cell), it
+    WINS over a stale inherited value -- a restart invoked from an environment
+    carrying another tier must not silently keep the wrong model.
+    """
+    env = grok.child_env(harness=HARNESS, base={}, tier="kid")
+    assert env["AGI_MODEL"] == "grok-kid"
+    env = grok.child_env(harness=HARNESS, base={}, tier="parent")
+    assert env["AGI_MODEL"] == "grok-parent"
+    env = grok.child_env(harness=HARNESS, base={"AGI_MODEL": "stale-model"},
+                         tier="parent")
+    assert env["AGI_MODEL"] == "grok-parent"
+    # No tier / no models cell -> nothing invented.
+    assert "AGI_MODEL" not in grok.child_env(harness=HARNESS, base={})
+    assert "AGI_MODEL" not in grok.child_env(
+        harness={"adapter": "grok_bot"}, base={}, tier="kid")
+
+
+def test_recorded_help_names_no_model_selector_so_residual_is_the_cli():
+    """DT.27 R3 measured re-scope: where the remaining gap lives.
+
+    The recorded 0.3.1 `--help` documents no `--model` flag and no
+    model-selecting env var; its only env names are auth/agents/history/codex.
+    The adapter therefore carries the tier in `AGI_MODEL`, and whether
+    `grok-bot-cli` CONSUMES that name is the CLI's app/profile field -- the
+    residual named here, not silently dropped.
+    """
+    assert "--model" not in RECORDED_HELP_0_3_1
+    assert "AGI_MODEL" not in RECORDED_HELP_0_3_1
+    for name in ("GROK_BOT_GATEWAY_URL", "GROK_BOT_GATEWAY_TOKEN",
+                 "CURSOR_ACCESS_TOKEN", "GROK_BOT_AGENTS_DIR", "CODEX_HOME",
+                 "GROK_BOT_HISTORY", "GROK_BOT_HISTORY_DIR"):
+        assert name in RECORDED_HELP_0_3_1, name
+
+
 # ------------------------------------------------------------ config resolve
 
 
@@ -161,25 +200,67 @@ RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
                    "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
-def test_argv_is_bound_to_the_recorded_help():
-    """The measurement-bound guard (goal:g7.31.1.1), replacing the tautological
-    restart assert that compared build_command to itself.
+#: Tokens the recorded help documents as subcommands / flags. Used by the
+#: binding predicate below; kept OUT of argv -- the adapter emits none of them.
+DOCUMENTED_FLAGS = ("--gateway", "--files", "--dir", "--json")
 
-    Every `-`-prefixed argv token must appear in the RECORDED `--help`, the
-    guessed `-p` / `--model` must be absent, and argv[0] must be the resolved
-    bin. Adding a flag the published CLI does not document fails here.
+
+def _documented_tokens() -> set[str]:
+    """The help's whitespace tokens, stripped of `[]()|,:` syntax punctuation.
+
+    Token-aware, not substring: `-p` is a SUBSTRING of the documented `--path`,
+    so a substring test would accept the retired guess. `[--json]` must reduce
+    to `--json` to be findable.
+    """
+    strip = "[]()|,:"
+    return {tok.strip(strip) for tok in RECORDED_HELP_0_3_1.split()}
+
+
+def _unbound_tokens(argv: list[str]) -> list[str]:
+    """argv tokens the recorded `--help` does NOT document.
+
+    argv[0] is the bin and is exempt; every other `-`-prefixed token must be
+    findable in the recorded help. DT.27 R2: the old loop this replaces was
+    VACUOUS -- `build_command` returns a one-element list, so the loop body
+    never ran and the binding asserted nothing. Extracting it into a predicate
+    makes it callable on a real multi-token argv, so there is now at least one
+    token (`--model`, `-p`) whose presence it REJECTS.
+    """
+    documented = _documented_tokens()
+    return [tok for tok in argv[1:]
+            if tok.startswith("-") and tok not in documented]
+
+
+def test_the_binding_predicate_is_falsifiable():
+    """Negative control for the binding (DT.27 R2): the predicate rejects the
+    retired stub flags and accepts documented ones, so it can fail."""
+    bin0 = grok.resolve_bin(HARNESS)
+    assert _unbound_tokens([bin0, "--model", "grok-kid"]) == ["--model"]
+    assert _unbound_tokens([bin0, "-p", "/tmp/ctx.md"]) == ["-p"]
+    assert _unbound_tokens([bin0, "--json", "--dir", "/x"]) == []
+    # The help really is where the rejection comes from: the guess is absent
+    # from the recorded bytes, which is why there is something to reject.
+    assert "--model" not in _documented_tokens()
+    assert "-p" not in _documented_tokens()
+
+
+def test_argv_is_bound_to_the_recorded_help():
+    """The measurement-bound guard (goal:g7.31.1.1, DT.27 R2).
+
+    argv[0] is the resolved bin and every other flag token it emits is
+    documented in the RECORDED `--help`. The predicate is exercised on a real
+    multi-token argv in `test_the_binding_predicate_is_falsifiable`, so this
+    is not the vacuous one-element loop it replaces.
     """
     argv = grok.build_command(harness=HARNESS, tier="kid",
                               context_file="/tmp/ctx.md")
     assert argv[0] == grok.resolve_bin(HARNESS)
+    assert _unbound_tokens(argv) == [], (
+        f"undocumented argv tokens: {_unbound_tokens(argv)}")
     assert "-p" not in argv
     assert "--model" not in argv
-    for tok in argv[1:]:
-        if tok.startswith("-"):
-            assert tok in RECORDED_HELP_0_3_1, (
-                f"argv token {tok!r} is not in the recorded grok-bot --help")
     # 0.3.1 is the last version with static help; named so drift is visible.
-    for cmd in ("send", "thread", "history", "--dir", "--json"):
+    for cmd in ("send", "thread", "history", *DOCUMENTED_FLAGS):
         assert cmd in RECORDED_HELP_0_3_1
 
 
@@ -197,9 +278,116 @@ def test_restart_is_a_real_respawn_not_a_stub():
     assert callable(grok.restart)
 
 
+#: A synthetic argv that is DEFINITELY not the bare bin: restart must pass
+#: through whatever `build_command` produced, never a constant of its own.
+SENTINEL_ARGV = ["/sentinel/bin", "--dir", "/sentinel"]
+
+
+def test_restart_passes_through_the_built_argv(monkeypatch, tmp_path):
+    """DT.27 R1: the old test pinned `args == [RESTART_HARNESS['bin']]`, i.e. it
+    certified the measured no-op argv as the CORRECT restart. Restart's actual
+    contract is compositional -- Popen receives exactly `build_command`'s
+    output -- so this injects a sentinel argv and asserts it arrives unchanged.
+    A restart that hardcoded its own argv fails here.
+    """
+    seen = {}
+
+    def fake_build(**kwargs):
+        seen["build_kwargs"] = kwargs
+        return list(SENTINEL_ARGV)
+
+    monkeypatch.setattr(grok, "build_command", fake_build)
+    spawned = {}
+
+    class FakeProc:
+        pid = 4848
+
+    def fake_popen(args, **kwargs):
+        spawned["args"] = args
+        spawned["kwargs"] = kwargs
+        return FakeProc()
+
+    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       agent_record={"worktree": str(tmp_path)})
+    assert pid == 4848
+    assert spawned["args"] == SENTINEL_ARGV
+    assert spawned["args"] != [RESTART_HARNESS["bin"]]
+    assert seen["build_kwargs"]["tier"] == "kid"
+
+
+def test_restart_spawns_a_live_process_and_is_killable(monkeypatch, tmp_path):
+    """DT.27 R1 liveness half: this guard CAN go red.
+
+    With an argv that really runs (`sleep`), restart must yield a pid that
+    `is_alive` reports alive -- so a restart whose argv is a measured no-op
+    (bare `grok-bot` prints help and exits) cannot be certified live. The
+    process is killed and reaped, never left behind.
+    """
+    import signal
+    import time as _time
+
+    argv = [sys.executable, "-c", "import time; time.sleep(30)"]
+    monkeypatch.setattr(grok, "build_command", lambda **kw: list(argv))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       agent_record={"worktree": str(tmp_path)})
+    assert pid is not None
+    try:
+        for _ in range(50):
+            if grok.is_alive(pid):
+                break
+            _time.sleep(0.02)
+        assert grok.is_alive(pid) is True, (
+            "restart produced no live process; the respawn argv is a no-op")
+        # A process that exits immediately is still alive for one scheduling
+        # slice; requiring it to SURVIVE the window is what makes this guard
+        # red on a no-op argv (measured: `-c pass` reads alive at t=0 and dead
+        # at t=0.25, so the t=0 check alone was a race, not a guard).
+        _time.sleep(0.25)
+        assert grok.is_alive(pid) is True, (
+            "restart respawn exited immediately -- a no-op argv was spawned")
+    finally:
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            pass
+        try:
+            os.waitpid(pid, 0)
+        except (ChildProcessError, OSError):
+            pass
+
+
+def test_bare_bin_respawn_is_a_recorded_noop_residue():
+    """The honest half of R1: `restart`'s real argv IS a measured no-op.
+
+    `grok-bot` with no subcommand prints help and exits (recorded 0.3.1
+    `--help`), so the respawn does not hold a seat. That liveness work is
+    `goal:g7.31.1.2` and is NOT implemented here. This pins the RESIDUE, not a
+    liveness claim -- and it goes red the day a subcommand lands in the
+    respawn argv, so the gap cannot be silently forgotten.
+    """
+    argv = grok.build_command(harness=RESTART_HARNESS, tier="kid",
+                              context_file="/tmp/ctx.md")
+    subcommands = ("doctor", "bots", "groups", "send", "thread", "chat",
+                   "history", "codex")
+    assert not any(tok in subcommands for tok in argv[1:]), (
+        "a subcommand now rides the respawn argv; if that is the "
+        "goal:g7.31.1.2 fix, replace this residue test with a live-seat "
+        "assert and delete it")
+    assert argv == [grok.resolve_bin(RESTART_HARNESS)]
+
+
 def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path):
-    """Popen faked so no real `grok-bot` binary is needed. Rebuilds the
-    identical argv via build_command, spawns detached, stamps the record."""
+    """Popen faked so no real `grok-bot` binary is needed. Spawns detached,
+    enters the record's worktree, stamps pid/status/restarted_at."""
     captured = {}
 
     class FakeProc:
@@ -220,11 +408,11 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces — the measured bare bin
+    # No argv pin here (DT.27 R1): composition is asserted by
+    # test_restart_passes_through_the_built_argv against an injected sentinel.
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
-    assert captured["args"] == [RESTART_HARNESS["bin"]]
     assert captured["kwargs"]["cwd"] == str(tmp_path)
     assert captured["kwargs"]["start_new_session"] is True
     assert rec["pid"] == 5252
@@ -247,6 +435,22 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+
+
+def test_live_tier_cell_reaches_the_spawn_env(live_cfg, monkeypatch):
+    """The live `models` cell, not a fixture row, is what the spawn env carries.
+
+    Reads the real `.agi/config.json` (read-only) so a config that lost the
+    grok-bot models block -- or shipped one tier -- is caught here.
+    """
+    monkeypatch.delenv("AGI_MODEL", raising=False)
+    _, row = adapters.resolve(live_cfg, "grok-bot")
+    for tier, model in (row.get("models") or {}).items():
+        assert grok.child_env(harness=row, base={}, tier=tier)["AGI_MODEL"] == model
+    assert grok.build_command(harness=row, tier="kid",
+                              context_file="/tmp/x") == [grok.resolve_bin(row)]
+
+
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the
