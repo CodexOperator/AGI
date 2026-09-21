@@ -24,7 +24,7 @@ SEATED 01:33Z 09-21 (session db83334f). SETTLED: commit+push own exact pathspecs
 NEW LINEAGE, goal:g15.27 (mint tracked, TME.17 confirmed: one order path, no conflict with belam direct): 09-21 Prime residue batch, 33 rounds reviewed, ONLY 2 of 4 demoted nodes are this seat's per the batch node's own split (the other 2 are thought-master's/director-thought's, flagged not actioned):
   R1  hypothesis:send-undelivered-notice-lands-in-the-comms-root -- confirmed: send_dm's own 1st param is named croot; _notify_undelivered (send.py:2799) passes root instead
   R2  hypothesis:write-body-range-guard-is-fence-aware-and-clamped -- confirmed: _is_heading has zero fence-awareness; _body_range_refusal never clamps hi to body length -> real IndexError past EOF. Extends this seat's own EF.04 guard (disclosed residual)
-  BOTH dispatched (EF.11/EF.12), BLOCKED on pool headroom ($0.42 short, unchanged on retry) -- not hammering it, will retry on next check-in
+  BOTH LIVE: EF.11 R2 (a00-ef771cab), EF.12 R1 (a00-302e563b) -- credits topped up (owner), dispatched cleanly
 
 ROUND STATE, all MERGED: G14.14.8 first chunk proved (EF.10, rotate.py:19760) not fully closed (cmd_loop unwired, unobserved live). G14.14.7 FULLY CLOSED incl. live cron proof. G14.14.3(c) + G14.14.1 (3/3) proved.
 
