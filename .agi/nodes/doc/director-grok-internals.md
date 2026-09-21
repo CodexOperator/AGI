@@ -23,6 +23,7 @@ town: core
 # doc:director-grok-internals
 
 **SoT for director profile · routines · standing mirrors** (owner 2026-09-21 — HARD). Belam edits THIS only. Directors `@every 30m` sync: pull → paste `SECTION:*` regions → replace `{{PLACEHOLDERS}}` only.
+**HARD Belam rule · diagram-max:** Belam / Prime edit `doc:director-grok-internals` + `doc:standing-llm-ops` only; NEVER hand-edit director Grok Bot profile / routines / standing mirrors.
 
 ```
 Belam ──▶ edit this doc only (never hand-edit director profiles for spine)

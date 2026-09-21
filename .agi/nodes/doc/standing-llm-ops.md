@@ -448,6 +448,14 @@ Belam ──▶ edit SoT doc only (never hand-edit director profiles for spine)
 Directors ──▶ @every 30m sync routine: pull SoT → paste sections → replace placeholders
 
 Routine MAY update_state the same routine that fired (self-rewrite OK).
+
+HARD Belam rule diagram-max:
+Belam / Prime modify director spine ONLY by editing:
+  doc:director-grok-internals (+ this standing doc)
+NEVER hand-edit director Grok Bot profile / routines / standing mirrors
+Directors */30 sync applies SoT → bots (byte-identical routine; placeholders from seat labels)
+Harness offload: grok-bot tools temporary bridge until graph engine drives seats
+  (same path as Claude/pi — each harness widens graph compat; graph builds itself)
 ```
 
 ## 5. Goal framing — target, not task-or-fail
