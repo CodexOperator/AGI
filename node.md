@@ -1,0 +1,145 @@
+---
+id: experiment:a00-a14cfbc8-19a65c
+mint_id: ee0121f73ce449659a8457fa852ac26f
+type: experiment
+parents:
+  - hypothesis:lm-kv-span-shift-reproduces-re-prefill-continuation
+next_edges: []
+confidence: 0.9
+edited_by: a00-365c2943
+evidence_runs:
+  - experiment:a00-a14cfbc8-19a65c
+line_ceiling: 40
+loop: hypothesis:lm-kv-span-shift-reproduces-re-prefill-continuation@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 70
+profile: balanced
+role: kid
+scaffold_hash: bf4abd8e6b80440b
+season: 2
+title: "TEL.01: the KV shift surface does not exist as configured — all 9 slot actions 501, /kv /seq /cache 404, and a shifted span reuses cache_n=0 vs 766 same-position, so span fidelity is unmeasurable until --cache-reuse or a seq_add route exists"
+town: local-maxxing
+verdict: pending
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-a14cfbc8-19a65c
+
+## Experiment — TEL.01 / chunk (1) SPAN FIDELITY: the mechanism is NOT reachable as configured
+
+Target under test: `hypothesis:lm-kv-span-shift-reproduces-re-prefill-continuation`
+(a KV span shifted and re-injected at position p' reproduces the greedy
+continuation of re-prefilling the same text, >= 95 pct of 50 held-out
+continuations, at <= 10 pct of the prefill compute).
+
+**What the harness needed.** One HTTP path that (a) captures the KV of a token
+span `[a:b]` from the resident 9B and (b) re-injects that KV at a *different*
+position p' — an internal `seq_add`-style RoPE position shift, not a byte copy
+and not same-position prefix reuse. Without (a)+(b) the fidelity claim is
+untestable: every comparison available today is re-prefill vs re-prefill.
+
+**What was done** (0 model loads, 0 restarts, ~19 read-only requests).
+`probe_kv_surface.py` (70 lines, stdlib urllib, under
+`.agi/context/local-maxxing/telepathy/`) recorded raw responses into
+`kv-surface-20260921T035411Z.json`; `binary-strings.txt` reproduces the internals
+evidence. Then the one empirical number this configuration *can* yield: a
+3-request greedy `cache_prompt` probe on the resident 9B (`A+S+B`, repeat,
+`X+S+B`) checking whether the server performs any shifted reuse by itself.
+
+**What the server exposes (raw).**
+- `GET /v1/models` -> 200. Loaded 9B entry `status.args`:
+  `[/app/llama-server, --host, 127.0.0.1, --jinja, --port, 54437, --alias,
+  Qwen3.5-9B-Q4_K_M, --fit, on, --model, /models/Qwen3.5-9B-Q4_K_M.gguf,
+  --parallel, 1]` — no `--slot-save-path`, no `--cache-reuse`, no checkpoint
+  flag. (The address this round was given, `127.0.0.1:8080`, is the *router*:
+  `/props` there returns `role: router, model_path: none, n_ctx: 0`; the 9B child
+  listens on `54437`. Both answer `/slots` with the same slot 0 and both 501 the
+  actions below. A completion sent to 8080 with `model: Qwen3.5-9B-Q4_K_M` comes
+  back echoing that id, so the 9B is the model measured.)
+- `GET /slots?model=Qwen3.5-9B-Q4_K_M` -> 200, one slot, `n_ctx 49408`,
+  `is_processing: false`.
+- `POST /slots/0?action=X` for X in `save, restore, erase, shift, seq_add,
+  seq_rm, seq_cp, truncate, keep`, body `{"model":"Qwen3.5-9B-Q4_K_M"}` ->
+  **HTTP 501 for all nine**, verbatim:
+  `{"error":{"code":501,"message":"This server does not support slots action. Start it with \`--slot-save-path\`","type":"not_supported_error"}}`
+- `GET /kv /seq /sequence /cache /kv-cache /apply-template` -> **404** for all six.
+- `binary-strings.txt` (39 matching lines) contains
+  `_ZNK13common_memory7seq_addEiiii` (`common_memory::seq_add`),
+  `_ZNK13common_memory6seq_rmEiii`, `_ZNK13common_memory6seq_cpEiiii`,
+  `llama_memory_can_shift`, `_Z25common_context_can_seq_rm...`, the `--cache-reuse`
+  help text ("Min chunk size to attempt reusing from the cache via KV shifting"),
+  and the `common_prompt_checkpoint` / `server_context_impl::create_checkpoint`
+  machinery (including the literal "context checkpoints disabled").
+
+**The one empirical number** (3 greedy requests, temperature 0, n_predict 1):
+
+| req | prompt | cache_n | prompt_n | prompt_ms |
+|---|---|---|---|---|
+| r1 | `A + S + B` (80 + 150 + 20 words) | 0 | 770 | 577.2 |
+| r2 | `A + S + B` again | **766** | 4 | 86.8 |
+| r3 | `X + S + B` (S at a SHIFTED position) | **0** | 770 | 528.5 |
+
+Same-position prefix reuse (r2) works. A shifted span (r3) gives `cache_n = 0`:
+the server neither shifts nor reuses S at p'. This is a capability probe, NOT
+the fidelity test — no agreement percentage was computed and none can be.
+
+**Exactly what is missing.** The shift primitive exists in the binary but no
+enabled surface exposes it: (1) the slot-action surface is gated behind
+`--slot-save-path`, unset on the resident process; (2) even with it, the actions
+are whole-slot save/restore/erase — an arbitrary user-chosen span at an arbitrary
+new position has no route at all; (3) the binary's own
+`common_memory::seq_add/seq_rm/seq_cp` are not reachable over HTTP in this build.
+Answer to "is ANY currently-enabled HTTP path able to re-inject a captured
+span's KV at a shifted position?": **No.**
+
+**Forward paths, cheapest first.**
+- (a) Restart the resident server with `--cache-reuse N` (+ context checkpoints;
+  both strings are present). Gives internal KV shifting during *prefill*, no
+  fork — but still no arbitrary user-chosen span, and it needs the owner's
+  permission to restart the resident server.
+- (b) Add a small server route in `/app/tools/server/` wrapping
+  `common_memory::seq_add` and `common_memory::seq_rm` (the two symbols named
+  above) onto a slot's memory. A fork; the first path on which the hypothesis's
+  `capture[a:b]` + `re-inject at p'` is literally expressible. Must pin
+  `n_batch`/`ubatch` so logits stay comparable (prior:
+  `hypothesis:lm-kv-slot-save-beats-reprefill`).
+- (c) In-process harness linking `/app/libllama.so` and calling the same memory
+  ops. OUT OF SCOPE this round: a second model load (`memory_max` 6G, no new
+  model load).
+- (d) No second model is loaded either, so `--cache-reuse`'s behaviour could not
+  be checked on a throwaway instance. If the budget reopens, that is the cheapest
+  next measurement — it needs no restart of the resident 9B.
+
+**Verdict: `pending`.** The fidelity claim was NOT measured — it is unreachable
+as configured. Not `disproved`: nothing here says RoPE-shifted KV is not
+position-portable; it says the rig cannot shift a span yet. Reproduce with
+`python3 .agi/context/local-maxxing/telepathy/probe_kv_surface.py --cache`.
+
+## Evidence
+
+`probe_kv_surface.py` (70 source lines), `kv-surface-20260921T035411Z.json` (raw
+status + body for every route and slot action, plus the three timing blocks),
+`binary-strings.txt` (39 internals strings), `RUN-LOG.txt` (one-screen summary) —
+all four under `.agi/context/local-maxxing/telepathy/`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. -->
+The brief arrived with one load-bearing error I corrected on the ground: it names
+`127.0.0.1:8080` as "the resident server", but 8080 is the *router* (`/props`->
+`role: router, model_path: none, n_ctx: 0`); the 9B child listens on 54437. I
+probed 8080 as instructed (it proxies `/slots` to the same slot 0 and 501s
+identically) and ran completions with an explicit `model: Qwen3.5-9B-Q4_K_M` so
+the measurement is unambiguous about which model produced `cache_n`. Second
+deviation: the brief asked for <= 70 source lines while the ceiling is 40
+(2x = 80); I landed on exactly 70 rather than let the output pretty-printing push
+it over. Third, and the one that matters: I declined the tempting proxy — r2's
+`cache_n=766` proves same-position reuse works and would have been easy to dress
+up as "KV reuse measured". It tests nothing about a shift, and the brief forbids
+exactly that substitution. `pending` is the honest state: the mechanism is in the
+binary and gated off, and the round's claim cannot be evaluated until path (a) or
+(b) exists.
+<!-- THOUGHT:END -->
+Raw output, screenshots, logs.
+
+## Agent Notes
+Span-shift fidelity is UNMEASURABLE as configured: all 9 /slots/0 actions 501 (--slot-save-path unset), /kv /seq /sequence /cache /kv-cache /apply-template all 404, yet libllama-server-impl.so carries common_memory::seq_add/seq_rm/seq_cp + llama_memory_can_shift + --cache-reuse strings. The one measurable number: greedy cache_prompt reuse gives cache_n=766 same-position (r2) but cache_n=0 for the same span at a shifted position (r3, prompt_n=770 both r1 and r3) -> no shift happens today. Also corrected the brief: 8080 is the router (role:router, model_path:none); the 9B child is on 54437. Forward paths: (a) restart with --cache-reuse N (needs owner permission), (b) server route wrapping common_memory::seq_add/seq_rm in /app/tools/server/, (c) in-process libllama.so harness = second model load, out of scope.
+
+PARENT REVIEW a00-365c2943 TEL.01: ACCEPTED. Read the bytes, not the summary -- node, probe_kv_surface.py (70 src lines), kv-surface-20260921T035411Z.json, binary-strings.txt (39 lines); every named deliverable exists. My own adversarial probes reproduce it: POST /slots/0?action in save,restore,erase,shift,seq_add,seq_rm,seq_cp,truncate,keep -> 501 on both :8080 and :54437; GET /kv /seq /sequence /cache /kv-cache /apply-template -> 404; the loaded 9B status.args carry neither --slot-save-path nor --cache-reuse; cache_prompt r2 same-position cache_n=766 vs r3 shifted cache_n=0. Two live routes the kid did not enumerate (POST /v1/streams/lookup -> 200 [], DELETE /v1/stream?conv_id -> 204) are stream management, not KV state, so the no-shift-path conclusion stands. Verdict stays pending: the fidelity claim was NOT measured and nothing here disproves RoPE position portability -- the rig simply cannot shift a span. The next move (restart with --cache-reuse, or add a seq_add route) is a director/owner call, so no second kid is dispatched.
