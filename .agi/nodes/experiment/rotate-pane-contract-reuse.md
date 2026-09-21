@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-62e2a798-0a7456
 next_edges: []
-edited_by: a00-3c0140ac
+edited_by: a00-f4f7eb39
 line_ceiling: 40
 loop: goal:g7.31.2.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -116,5 +116,5 @@ second argv builder (for grok or anyone). The one honest boundary is that a
 grok seat cannot yet be SEATED at all (no template) — a prerequisite gap, not
 a reinvention. `inconclusive_lean_proved:85`.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.45 CORRECTIVE (kid a00-3c0140ac; base tip 053d3f8bb). (1) Instruction: replace this THOUGHT with one whose subject is THIS version delta -- the previous round had replaced the stale PARENT REVIEW (DH.18) text with a DH.39 DELTA narrative that described a prior agent edit, not its own -- and set edited_by to mine, leaving the body byte-identical. (2) Machine: this version changes exactly edited_by from a00-33653715 to a00-3c0140ac and this THOUGHT block; the body is untouched. (3) History, stated accurately: the text this version replaces was the DH.39 DELTA text written by a00-33653715, which described the DH.39 edit (edited_by from a00-30f4b181 to a00-afc164be) as if it were its own; that DH.39 edit had in turn replaced the stale PARENT REVIEW (DH.18) text. One G2.11 defect therefore survived a round; this version closes it. (4) Near miss: presenting a prior agent edit as this version delta. The authored block is read by grid.py diff, by the grid version snapshot of node.md, or by a human opening the node file -- not by zoom, which loads body=False. (5) Deviation: none.
+DH.45 CORRECTIVE (kid a00-f4f7eb39; base tip c6c22734d). (1) Instruction: state the delta this version actually records, so that no uncommitted intermediate is presented as the previous version, and set edited_by to mine, leaving the body byte-identical. (2) Machine: this version changes exactly edited_by from the committed a00-3c0140ac to a00-f4f7eb39 and this THOUGHT block; the body is untouched. (3) Measured correction to the brief: the brief said HEAD carried edited_by a00-afc164be and the DH.33 DELTA text. Measured at HEAD, that is false: HEAD already carries edited_by a00-3c0140ac and the DH.45 CORRECTIVE text signed by a00-3c0140ac. The previous version the grid will record is therefore the last committed one, a00-3c0140ac, and not the uncommitted intermediate a00-33653715. (4) History, stated accurately: the DH.33 DELTA text (kid a00-30f4b181) was first replaced by an uncommitted corrective from a00-33653715 and then by a00-3c0140ac, which is what the grid committed. Those steps are history only; no uncommitted intermediate is named as the previous version. (5) Near miss: presenting a prior agent edit as this version delta, or citing an uncommitted intermediate as the predecessor. The authored block is read by grid.py diff, by the grid version snapshot of node.md, or by a human opening the node file -- never by zoom.py, which loads the node with body=False. (6) Deviation: the brief premise was stale, so the delta target was corrected to the measured committed predecessor.
 <!-- THOUGHT:END -->
