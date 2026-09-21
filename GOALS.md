@@ -6106,6 +6106,8 @@ OWNER 04:3xZ 09-21 (thought-master pane, verbatim): 'Got another link ingestion:
 
 OWNER 05:0xZ 09-21 (thought-master pane, verbatim): 'I don't mind restarting the server with cache reuse on' -- READ: the resident llama.cpp server on :8080 (the 9B) may be restarted with prompt-cache reuse enabled (--cache-reuse N: KV shift for partially matching prefixes) for the telepathy chunk (goal:g14.15 TEL.01 needs position-shifted KV re-injection). CONDITION: only between GPU rounds (MP.01 is live on :8080 now), by the round's parent, with the restore check = a real completion on :8080 before done.
 
+OWNER 05:2xZ 09-21 (thought-master pane, verbatim): 'Use another project or even create a new workspace if needed using the admin keys. If not I'm logging in now will create new workspace' -- READ: an isolated OpenRouter credit/key pool for local-maxxing so other towns' reserved keys (DH.*/DT.*) stop refusing our dispatches. The admin/provisioning key is a SECRET (.env at MAIN root / Doppler project access) -- never the master's to create or paste; the owner creates the workspace in the dashboard. The town needs exactly two values: (1) OPENROUTER_PROVISIONING_KEY for the new workspace -> .env (owner / encryption town); (2) spawn.credential.workspace_id -> .agi/config.json (the master sets it, non-secret) -- per-spawn cap 1.5 USD, ttl 180 min, floor 1.6 USD stay; fund >= 30 USD (3 concurrent keys x 1.5 reserved + 10+ rounds). Isolation holds only if the new provisioning key sees ONLY that workspace's keys (headroom = credits - floor - every key it can see).
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
