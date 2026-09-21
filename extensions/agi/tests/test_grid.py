@@ -3,6 +3,7 @@
 import fcntl
 import functools
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -1848,4 +1849,61 @@ def _hold_grid_lock_at(lock, seconds):
     t = threading.Thread(target=_hold, daemon=True)
     t.start()
     return t
+
+
+# --------------- goal:g14.14.7 -- storage trunk is config-declared --------
+
+
+@pytest.fixture()
+def restore_ref_ns():
+    """`apply_storage_trunk` mutates module globals; no test may leak them."""
+    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC)
+    yield
+    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC = saved
+
+
+def _configure(agi, config):
+    (agi / "config.json").write_text(json.dumps(config))
+    return agi
+
+
+def test_default_tree_resolves_refs_grid(tmp_path, restore_ref_ns):
+    """Falsifier (i), the heaviest one: a tree with no `storage_trunk` key
+    resolves exactly `refs/grid` and records its version there, byte-for-byte
+    as before. A silent default change would strand every existing history."""
+    agi = _configure(_make_g11_project(tmp_path), {})
+    assert grid.ref_ns_for(agi) == "refs/grid"
+    assert grid.apply_storage_trunk(agi) == "refs/grid"
+    assert grid.REF_NS == "refs/grid"
+    assert grid.PUSH_SPEC == "refs/grid/*:refs/grid/*"
+    assert grid.FETCH_SPEC == "+refs/grid/*:refs/grid/*"
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/grid", "--format=%(refname)")
+    assert f"refs/grid/node/{MINT_X}" in refs
+
+
+def test_configured_trunk_isolates_versions(tmp_path, restore_ref_ns):
+    """Falsifier (iii): a configured trunk records its versions there, the
+    default `refs/grid/node/*` path stays untouched, and the history reads
+    back through the resolved namespace.
+
+    `refs/grid/t1/` (trailing slash) is the spelling the goal names, and it
+    must not mint `refs/grid/t1//node/...`."""
+    agi = _configure(_make_g11_project(tmp_path),
+                     {"grid": {"storage_trunk": "refs/grid/t1/"}})
+    assert grid.ref_ns_for(agi) == "refs/grid/t1"   # trailing slash stripped
+    grid.apply_storage_trunk(agi)
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/t1/node/{MINT_X}" in refs
+    assert f"refs/grid/node/{MINT_X}" not in refs
+    assert "refs/grid/t1//" not in refs
+    assert versions(agi, "idea:g") == 1             # reads back
+
+
+def test_crons_py_has_no_namespace_literal():
+    """Falsifier (ii): the second spelling is gone. crons.py names the
+    namespace only through grid.py's own resolver."""
+    crons_src = (BIN.with_name("crons.py")).read_text()
+    assert "refs/grid" not in crons_src
 

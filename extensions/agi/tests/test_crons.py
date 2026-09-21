@@ -12,6 +12,7 @@ the real `crontab` binary in write mode — every apply/remove goes through
 """
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -571,6 +572,30 @@ def test_grid_sync_apply_not_chain_downstream_of_grid(tmp_path):
     crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
     assert f"&& python3 {crons_py} apply" not in grid_sync_line
     assert f"; python3 {crons_py} apply" in grid_sync_line
+
+
+# --------------- goal:g14.14.7 -- the push refspec is config-declared ------ -
+
+
+def test_grid_sync_pushes_the_configured_storage_trunk(tmp_path):
+    """The rendered cron line derives its push refspec from
+    `grid.storage_trunk` through grid.py's ONE resolver -- never a second
+    literal. This is the line that was hardcoded at crons.py:549."""
+    root = make_project(tmp_path)
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/t1/"}}))
+    _, _cfg, repo_root, engine_root, node = crons._resolve(root)
+    line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
+    assert "'refs/grid/t1/*:refs/grid/t1/*'" in line
+    assert "'refs/grid/*:refs/grid/*'" not in line
+
+
+def test_grid_sync_default_push_refspec_is_unchanged(tmp_path):
+    """No `storage_trunk` key -> the cron line is byte-identical to today's."""
+    root = make_project(tmp_path)
+    _, _cfg, repo_root, engine_root, node = crons._resolve(root)
+    line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
+    assert "'refs/grid/*:refs/grid/*'" in line
 
 
 def test_grid_sync_grid_step_still_logs_not_suppressed(tmp_path):
