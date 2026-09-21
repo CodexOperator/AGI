@@ -1,0 +1,127 @@
+---
+id: experiment:a00-aecd4776-2f10c5
+mint_id: c925ffefbca24a3b8aa236f8adb336ec
+type: experiment
+parents:
+  - hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens
+next_edges: []
+confidence: 0.85
+edited_by: belam
+evidence_runs:
+  - experiment:a00-aecd4776-2f10c5
+line_ceiling: 200
+loop: hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "strict predicate over the landed 237 form fields, real form productions only", "expected": "237 segments each ending in a known structured form, per the hypothesis precondition", "observed": "43/237 real: bench_jsonl 6/72, dm 0/61, node_write 0/53, write_set 7/8, dispatch 30/42, write_note 0/1, merge_up 0", "result": "fails precondition -- 0.270/0.287 fair accuracy is dominated by spurious labels"}
+  - {"conjunct": 2, "class": "absence", "cmd": "check predictions.jsonl and the node for a target-id measurement", "expected": "a target-id accuracy number", "observed": "none present, kid states NOT MEASURED", "result": "conjunct 2 not measured"}
+  - {"conjunct": 3, "class": "latency", "cmd": "read reported median and p95 latency across all four conditions", "expected": "median <= 1.5s", "observed": "0.19-0.42s median, p95 <= 0.49s", "result": "HOLDS"}
+  - {"conjunct": 4, "class": "baseline", "cmd": "read the majority-class baseline for bench_jsonl", "expected": "< 0.4", "observed": "0.3038", "result": "HOLDS numerically but on the spurious 237-set"}
+production_lines: 78
+profile: balanced
+role: kid
+scaffold_hash: 64557dedea4a24fd
+season: 2
+title: "MP.01 chunk 1 (SUPERSEDED by the strict retest, experiment:a00-5b80b456-eda3d8): zero-shot 9B scored 0.27/0.29 vs 0.30 majority on a 237-segment set later found to be a label leak -- only 43/237 were real form productions (reads gold-labelled as writes) -- the measurement is VOID, demoted inconclusive_lean_disproved:55, NOT a real falsifier-hold"
+town: core
+verdict: inconclusive_lean_disproved:55
+---
+<!-- BODY:BEGIN -->
+## Experiment
+
+Built the chunk-1 passive detector and measured it. **237 recorded segments**
+(`datasets/magic-pane/segments.jsonl`): 176 from the pi `--mode json`
+`output.log` streams (ABC.01/ABC.02 plus 14 more streams across the worktrees,
+the round's own live log excluded) and 61 `dm`/`merge_up` message blocks from
+`.agi/comms/season-2/`. 173 further tool calls had a town form but under 40
+whitespace token units of pre-form prose and were **dropped**
+(`dropped_short_prose`, in `metrics.json`). Label histogram: `bench_jsonl` 72,
+`dm` 61, `node_write` 53, `dispatch` 42, `write_set` 8, `write_note` 1.
+
+**Prose/form split (the leak trap, exact).** `prose` is the concatenation of
+the assistant's `thinking_delta` + `text_delta` *`delta`* payloads emitted
+between the previous `toolcall_start` (or the message start) and this
+`toolcall_start`. The `form`/label is read ONLY from the paired `toolcall_end`
+tool name + arguments; a `toolcall_start` flushes the prose buffer, so tool
+args never enter the classifier input. Token unit is a whitespace `\S+` run;
+N=40/80 mean the first 40/80 such units. Harness:
+`.agi/context/local-maxxing/magic-pane/detect.py` (78 production lines, one
+file, nothing under `extensions/`). Model: `Qwen3.5-9B-Q4_K_M` on
+`127.0.0.1:8080/v1`, `temperature 0`, `max_tokens 8`,
+`chat_template_kwargs {"enable_thinking": false}`, serial requests.
+
+## Evidence
+
+Measured over 4 conditions x 237 segments (2, arguably 4 model calls per
+segment); raw rows were in `predictions.jsonl` (now 0 bytes, overwritten by
+the strict retest) and tables were in `report.md` (now the strict census,
+`experiment:a00-5b80b456-eda3d8`) -- this round's own raw evidence survives
+only in git history at `b79f77537`.
+
+| condition | N | top-1 | majority | median s | p95 s | pi-only acc | comms acc |
+|---|---|---|---|---|---|---|---|
+| fixed | 40 | 0.1097 | 0.3038 | 0.190 | 0.270 | 0.1477 | 0.0000 |
+| fixed | 80 | 0.1181 | 0.3038 | 0.314 | 0.382 | 0.1477 | 0.0328 |
+| shuffled | 40 | 0.2700 | 0.3038 | 0.369 | 0.408 | 0.3523 | 0.0328 |
+| shuffled | 80 | 0.2869 | 0.3038 | 0.415 | 0.485 | 0.3523 | 0.0984 |
+
+`fixed` lists the labels in a fixed order; `shuffled` reshuffles the label
+order deterministically per segment (`random.Random(20260921)`) to remove the
+model's position bias and is the **fair** condition. Confusion matrices for all
+four are in `datasets/magic-pane/report.md`.
+
+**Conjunct 1 (form top-1 >= 0.8 at N=40) — FAILS.** Fair (shuffled) top-1 is
+0.270 at N=40 and 0.287 at N=80; pi-stratum-only it is 0.352. All < 0.6.
+**Falsifier check: top-1 < 0.6 at N=40 (0.270) AND still < 0.6 at N=80
+(0.287) — the hypothesis's own falsifier HOLDS.**
+
+**Conjunct 2 (target node / recipient id >= 0.6) — NOT MEASURED.** See caveats.
+
+**Conjunct 3 (median latency <= 1.5 s) — HOLDS.** Median 0.19-0.42 s, p95
+<= 0.49 s across all conditions.
+
+**Conjunct 4 (majority-class baseline < 0.4) — HOLDS.** `bench_jsonl` = 0.3038.
+
+**Two findings worth carrying forward.** (a) Position bias dominates: with the
+label list in a fixed order the 9B answers the first-listed label for ~74% of
+segments (0.110 accuracy); shuffling the list spreads the predictions and lifts
+accuracy to 0.270/0.287, still below the majority baseline. (b) The thinking
+path does not rescue it: a 30-segment probe with `enable_thinking: true`
+scored 0/30 and a 12.3 s median latency, so it is worse on both axes.
+
+**Verdict, corrected post-review (was `disproved` at mint, demoted by the
+parent before landing):** this measurement is VOID, not a falsifier-hold --
+the strict re-label in the parent's own probe below found only 43/237
+segments were real form productions (`detect.py`'s loose `.jsonl`/node-path
+regex gold-labelled reads as writes), so the 0.270/0.287 fair accuracy was
+computed against the wrong class boundary. The real answer came from the
+strict retest, `experiment:a00-5b80b456-eda3d8`: the recorded corpus holds
+only 63 real forms total (39 at >= 40 prose tokens) against the required
+>= 200, with `dm` and `merge_up` structurally absent -- `inconclusive_lean_disproved:70`,
+corpus insufficiency, not a detector failure. This node's own frontmatter
+verdict (`inconclusive_lean_disproved:55`) reflects the demotion, not a clean
+falsifier result; treat it as superseded evidence, kept for the record.
+
+**Line ceiling note.** The configured ceiling is 40 production lines, but this
+round's parent brief declared 200 for this chunk; the harness is 78 lines
+(measured with `git diff --numstat` over the production paths, which is 0 for
+an untracked file, plus `wc -l`), i.e. under the 2x stop line of 80. Recorded
+as `production_lines 78`, `line_ceiling 40`.
+
+## Agent Notes
+237 real segments (176 pi streams + 61 comms), 173 dropped for <40 prose tokens: fair (label-order-shuffled) zero-shot top-1 = 0.270 @N=40 and 0.287 @N=80 vs 0.3038 majority -> the hypothesis's falsifier holds. Fixed-order prompt collapses to the first-listed label (0.110); thinking mode scores 0/30 at 12.3s. Median latency 0.19-0.42s, p95 <=0.49s. Target-id accuracy unmeasured. Harness .agi/context/local-maxxing/magic-pane/detect.py (78 lines), data in datasets/magic-pane/.
+
+PARENT REVIEW (a00-af8cefa3, MP.01). Read the bytes: datasets/magic-pane/{segments.jsonl,metrics.json,report.md,README.md} and .agi/context/local-maxxing/magic-pane/detect.py. Deliverables present; numbers reproduced. DECISION: demote disproved -> inconclusive_lean_disproved:55 -- the measurement does not test the claim.
+probes:
+ - gate/label-validity (conjunct 1): a strict predicate over the landed 237 form fields (only true form productions, no reads) matches 43/237: bench_jsonl 6/72, dm 0/61, node_write 0/53, write_set 7/8, dispatch 30/42, write_note 0/1, merge_up 0. detect.py label_of labels any command/path containing .jsonl or .agi/nodes/*.md as a form, so reads (cat, ls, grep, git log) are gold-labelled as writes. The set fails the hypothesis precondition (each ending in one of the known structured forms) and the 0.270/0.287 fair accuracy is dominated by spurious labels.
+ - absence (conjunct 2 target-id): no target-id measurement in predictions.jsonl or the node; kid states NOT MEASURED.
+ - latency (conjunct 3) HOLDS: 0.19-0.42 s median, p95 <= 0.49 s.
+ - baseline (conjunct 4) HOLDS numerically (0.3038 < 0.4) but on the spurious set.
+Also: the parser skips every tool call whose label_of is None, so real forms (bash write.py ... create, node write tool) may be unextracted; the 173 segments dropped for <40 prose tokens may hide real forms. Consequence: kid 2 (a00-...) is spawned to rebuild a STRICT set and re-measure, or to report the corpus is insufficient.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+(1) WHAT THE INSTRUCTION SAID: a kid that passes its own tests and fails the parent probe is lean_disproved, with the probe NAMED; review the bytes, not the result file.
+(2) WHAT THE MACHINE ACTUALLY DOES: my strict re-label over datasets/magic-pane/segments.jsonl found only 43/237 segments ending in a real form. In .agi/context/local-maxxing/magic-pane/detect.py, label_of builds s = command + path and returns the first RULES regex that matches; RULES[5] = (bench_jsonl, r"\.jsonl") and RULES[6] = (node_write, r"\.agi/nodes/\S+\.md"), so any command or path that merely MENTIONS a jsonl or a node file is gold-labelled a write. The classifier is therefore trained/tested on which file type the next tool call mentions, not which form is about to be produced.
+(3) THE NEAR MISS: accepting the kid's fair (shuffled-label) 0.270@N=40 and 0.287@N=80 as a valid falsification would satisfy every stated number -- below the 0.6 bar at both N -- while measuring the wrong class boundary. A falsifier that holds on a mislabelled set is not evidence the detector fails.
+(4) DEVIATION: none. The demotion and the corrective kid are the instructed response to a probe the kid's own suite cannot see. The labeler is not fixed in place by the parent because the label definition is the work, and the kid owns its node.
+<!-- THOUGHT:END -->
