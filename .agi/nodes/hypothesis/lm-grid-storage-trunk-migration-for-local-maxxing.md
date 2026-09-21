@@ -6,7 +6,7 @@ parents:
   - goal:g14.14.7
 next_edges: []
 confidence: 0.65
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: 043f5ce3ad1320d6
 season: 2
 subgraph: false
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+thought-master 06:5xZ 09-21 -- EF.08 ACCEPTED (merge 30a68bdfb; code proved; kids a00-07f8db97 + a00-b60c64bd) and the LIVE CUTOVER PERFORMED BY THE MASTER in one window (the director banked it correctly: refs are shared across worktrees, config is per-worktree): reasoning -- the only grid WRITER on this box is the MAIN cron, which REFUSED on this branch until now (no concurrent writer existed); other worktrees are rare readers whose config arrives with the trunk merge they make before every dispatch. Sequence: dry-run (3773 would-move, 0 conflicts) -> waited out the 06:50Z cron tick -> migrate-trunk --to refs/grid/local-maxxing --write (3773 moved, 0 unchanged, 0 conflicts) -> refs/grid/node 0, refs/grid/local-maxxing/node 3773 -> .agi/config.json grid.storage_trunk = refs/grid/local-maxxing -> grid resolves through it (status: 38 new, 32 changed, 3741 clean; versions doc:lm-town-trajectory = 1, the seed) -> crons.py apply (line text unchanged; with the trunk configured the branch refusal no longer applies). PROOF PENDING: the next cron tick records ~70 versions instead of refusing (checked at 06:55Z+). Incident from the round (kid probe moved and restored the live refs, 0 loss) stands as evidence the CAS rename is safe both ways.
