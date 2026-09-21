@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g14
 next_edges: []
-edited_by: thought-master
+edited_by: director-engine
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: active
@@ -26,19 +26,19 @@ town: local-maxxing
 ## Links (every node that moves these numbers; the future `links:` field)
 goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 · goal:g14.11 · goal:g14.12 · goal:g14.13 · goal:g14.14 · goal:g14.15 · doc:lm-round0-table · doc:lm-local-town-box-facts · doc:lm-research-corpus-registry · doc:recurrent-looped-transformer · idea:lm-nodes-as-kv-caches · hypothesis:lm-kv-slot-save-beats-reprefill · hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box · hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost · hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b · hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens · hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point · hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set
 
-## Board (formation · live · queue — replaced in place, never appended; 02:2xZ 09-21)
+## Board (formation · live · queue — replaced in place, never appended; 03:1xZ 09-21)
 ```
 formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
-grid       seeded 01:5xZ by hand ONCE (3,773 v) · cron refuses on this branch UNTIL G14.14.7 (live: a00-4a79e444)
-live       MP.01 a00-af8cefa3 (research) · G14.14.7 a00-4a79e444 (engine)
-landed     SWR.01 chunk 1 346c377c2 (reference bar 93.9 HE / 0.869 IF; B/C1/C2 fire 0.9x on HumanEval; IFEval open) · ABL.01 c0d8c356c (cvector dead on Qwen3.5 hybrid) · ABC.02 3393a7778
+grid       seeded 01:5xZ by hand ONCE (3,773 v) · cron still refuses on this branch until G14.14.7 is MERGED, not just harvested (reviewed accept_with_residue; merge-up sent 03:1xZ; awaiting the master)
+live       G14.14.1(a) a00-a36d03e1 (engine, EF.03) · MP.01 a00-af8cefa3 (research)
+landed     G14.14.3(c) proved, a00-d0fdd659 tip 20458aa24 (dispatch.py --memory) · G14.14.7 inconclusive_lean_proved:70 accept_with_residue, a00-4a79e444 tip 25cd6b6a6 (grid storage trunk; residue = falsifier(ii) written global vs the declared file scope) -- both in ONE [merge-up] to thought-master 03:1xZ, awaiting merge · SWR.01 chunk 1 346c377c2 (reference bar 93.9 HE / 0.869 IF; B/C1/C2 fire 0.9x on HumanEval; IFEval open) · ABL.01 c0d8c356c (cvector dead on Qwen3.5 hybrid) · ABC.02 3393a7778
 research   MP.01 -> TEL.01 (g14.15.1, resident 9B) -> SWR.02 (IFEval on B then C2; slots at shorter ctx; b/c label fix) -> FT.00 -> DS.01 -> G14.10.2 session trunk + jev pass -> G14.7.2 ladder (one base per order) -> G14.7.3 diagram-maxed traces -> MP.02 wrapper -> H1' -> layer G14.7.2 + G14.15
-engine     G14.14.7 grid trunk -> 14.14.3(c) memory/round -> 14.14.1-2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR over g14.14) -> 14.14.5 trajectory type -> 14.14.6 maxxing pass -> 14.14.8 session capture hook -> G14.16.1 measurement -> G14.16.2 brief pass
+engine     G14.14.7 + 14.14.3(c) merge-up sent, awaiting master -> G14.14.1(a) LIVE (EF.03) -> 14.14.1(b,c) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR over g14.14) -> 14.14.5 trajectory type -> 14.14.6(superseded by .7 except --allow-branch) -> 14.14.8 session capture hook -> G14.16.1 measurement (after G14.14.7 MERGES) -> G14.16.2 brief pass
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 02:2xZ 09-21 -- v4: Board section synced to every owner line of 01:1xZ-02:1xZ (G14.16, G14.7.2/3, G14.10.2, G14.14.5-8, magic pane layer, comms state); metric rows unchanged (owner: 'merge the update back and sync it so your docs properly reflect the updates').
+director-engine 03:1xZ 09-21 -- board updated per this seat: G14.14.3(c) and G14.14.7 moved live to landed (proved / inconclusive_lean_proved:70 accept_with_residue), batched into ONE merge-up to thought-master; G14.14.1(a) now the live engine round (EF.03); grid cron-refusal note clarified to MERGED not harvested, since neither round is master-merged yet.
 <!-- THOUGHT:END -->
