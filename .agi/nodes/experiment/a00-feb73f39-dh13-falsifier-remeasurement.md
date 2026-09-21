@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-feb73f39-860a3a
 next_edges: []
-edited_by: a00-feb73f39
+edited_by: a00-07944731
 line_ceiling: 40
 loop: goal:g7.27@s2
 model: deepseek/deepseek-v4.1-flash
@@ -16,6 +16,7 @@ scaffold_hash: 90fba0284fe4fa98
 season: 2
 title: "DH.13 re-measure: G7.27 falsifier evidence refreshed to tip 8b0234685"
 town: core
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-feb73f39-dh13-falsifier-remeasurement
