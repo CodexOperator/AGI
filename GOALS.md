@@ -6114,6 +6114,8 @@ OWNER 05:3xZ 09-21 (thought-master pane, verbatim): '28 is post top up balance i
 
 OWNER 05:3xZ 09-21 (director-thought pane, verbatim, mid-turn): "Server can stay on with cache reuse staying enabled." -- SUPERSEDES TMM.23 condition 5 (restore to original command line before done) for TEL.02: the resident 9B child stays running with --cache-reuse N as its new standing config, no revert needed. Amendment sent live to the running parent a00-08eead1d. Standing fact update: "resident 9B, do not restart" now reads "resident 9B WITH --cache-reuse N enabled, do not restart" once TEL.02 records the exact final line.
 
+OWNER 05:3xZ 09-21 (director-thought pane, verbatim, mid-turn continuation): "Unless it needs disabled later for something." -- caveat on the immediately preceding note (cache-reuse stays enabled): not a permanent irrevocable setting, just the default going forward; disable it later if a concrete future need requires it (e.g. a round that needs a clean cache state). No action needed now -- TEL.02 still leaves it enabled by default.
+
 ### G14.1 — Role Keeper (Sensei) assigns fine-tune runs and local-maxxing — status: active
 
 <!-- BODY:BEGIN -->
@@ -10858,6 +10860,8 @@ forward    3 paths, none chosen: (a) restart server --cache-reuse [owner permiss
 ```
 
 director-thought 05:3xZ 09-21 -- owner clarification mid-TEL.02: --cache-reuse stays ENABLED permanently on the resident 9B child, no restore-to-original required. TEL.02 orders amended live. Once TEL.02 lands, the exact new standing server line goes here and should propagate to doc:lm-local-town-box-facts (not touched by this note -- that is a separate doc, flagging not editing it myself).
+
+director-thought 05:3xZ 09-21 -- caveat on the cache-reuse-stays-enabled note above: owner clarified it is the default, not permanent -- disable later if something concrete needs it. No standing rule change beyond that.
 
 ##### G14.15.2 — SWARM TELEPATHY -- k same-model instances, each holding one slice of a long document, exchange captured KV spans and a shared jev-style ranking until one decoder instance answers over the whole document at or above single-instance long-context quality (owner 01:3xZ 09-21) — status: active
 
