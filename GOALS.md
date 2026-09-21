@@ -10532,6 +10532,8 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14) -- THE MAGIC P
 
 **First chunk (minted):** `hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens` (MP.01) — the passive detector, chunk 1 only; chunks 2-3 (the tmux surface, the interruption protocol) wait on this one clearing its own bar. `openjev` (the trycua/cua open-source jev line the owner pointed at 2026-09-18) rides as a second kid of the same round if budget allows, or the next MP chunk otherwise — a reading digest, not a new sub-sub-goal of its own.
 
+director-thought 03:3xZ 09-21 -- MP.01 (chunk 1 detector) landed, accept_with_residue: corpus insufficient (63 real forms vs required 200; dm/merge_up classes = 0, need goal:g14.10.2 director-session capture first) -- accuracy claim UNVERIFIED not falsified. Full numbers on the hypothesis. MP.02 (the wrapper, TMM.22) minted next, scoped around the same corpus dependency.
+
 #### G14.9 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->

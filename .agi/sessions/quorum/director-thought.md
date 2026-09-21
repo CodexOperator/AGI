@@ -19,12 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~02:4xZ
- live     MP.01 a00-af8cefa3 (pid 987668, 1h15m elapsed, PAST its 75min manifest timeout but pid alive, Ss) -- manifest top-level status=stalled/overdue_since=None (stale label: NOT trusted alone) vs raw output.log mtime = now, kid a00-5b80b456 actively writing datasets/magic-pane/segments.jsonl (segs~36-39 of the >=200 target, still climbing) -- treated as overdue-but-working (card rule), not dead; no kill, no replacement, no dispatch of a second round
- landed   SWR.01 (346c377c2) -- ref bar 93.9pct HE / 0.869 IF strict; B/C1/C2 fire 0.9x on HE; IFEval undecided -> SWR.02 (TMM.19, not my lane)
- queued   H1' (g14.9.1, minted) | TEL.01 (g14.15.1, minted+filled, ready to dispatch) -- both no spend yet
- minted   TMM.21 batch (no spend): G14.7.2 training-ladder + G14.7.3 diagram-maxed-traces under g14.7; G14.10.2 session-trunk+classifier under g14.10 -- skeleton-only, blocked on FT.00/DS.01
- vision   TMM.22 (owner, goal:g14.8): magic pane = the unified messaging layer (LLM speaks prose/diagram -> system wraps the structured call; jev first, town's own tiny model later per G14.7.2/.3+G14.16). Chain: MP.01 detector -> MP.02 wrapper (prose->1 call, real town dms/notes/merge-ups as test set, jev=judge) -> MP.03 replaces send.py grammar for one post pair -> MP.04 own tiny model vs jev. MP.01 itself UNCHANGED.
- next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> mint MP.02 hypothesis under g14.8.3 (per TMM.22) -> dispatch TEL.01 parent (resident 9B, cap $1, pi) -- TEL.01 stays the only thing actually ready to spend on right now
- inbox    TMM.21 (dadd6797a) + TMM.22 (af8931916) processed; no dm sent back either time (batch-max: routine order execution, reports via the graph)
+2026-09-21 ~03:3xZ
+ landed   MP.01 a00-af8cefa3 accept_with_residue (mur-mp-01, both stages ok) -- corpus insufficient (63 real forms vs required 200; dm/merge_up=0) not detector-falsified; kid1 237-set VOID (label-leak, demoted :55), kid2 honest null stands (:70); 4 real residues flagged not fixed (stale kid1 title/body, probes-as-prose not schema field x2, non-reproducible census, hardcoded box path) -- notes on hypothesis+g14.8.3, board Board-section replaced, merge-base a46a1a8db
+ minted   MP.02 (hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call, TMM.22) under g14.8.3 -- corpus-blocked on real dm/merge_up examples; CHECKED myself: claude-code harness session jsonl exists on disk today (confirmed real, e.g. this own session file) and is a plausibly cheaper unblock than waiting on the full G14.10.2 round -- not attempted, named as the likely first real chunk
+ queued   TEL.01 (g14.15.1, minted+filled, ready to dispatch -- the only thing actually spend-ready right now) | H1' (g14.9.1, minted, no spend) | G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01)
+ next     🔴 send ONE batch-maxed merge-up dm to thought-master (MP.01 landed + MP.02 minted, this whole turn) -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness)
+ traps    this turn: git commit --amend used once by mistake (unpushed merge, no harm, but the standing rule is ALWAYS a new commit -- do not repeat)
+ inbox    empty as of last check; TMM.21 (dadd6797a) + TMM.22 (af8931916) both fully closed out now (MP.02 was the last open item from TMM.22)
 ```
