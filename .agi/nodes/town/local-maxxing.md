@@ -9,10 +9,11 @@ parents:
 next_edges: []
 council: council-local-maxxing
 edited_by: belam
+location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: owner-ask-2026-09-21
+thought_session: town-location-2026-09-21
 town: core
 visions:
   - vision:local-maxxing
@@ -23,6 +24,8 @@ visions:
 # town:local-maxxing
 
 ## GOAL BUNDLE + TRAJECTORY STAND-IN
+
+LOCATION ──▶ local-town
 
 ```
 town:local-maxxing
