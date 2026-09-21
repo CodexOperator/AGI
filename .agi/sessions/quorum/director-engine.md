@@ -24,7 +24,7 @@ SEATED 01:33Z 09-21 (session db83334f). SETTLED, not open: commit+push own exact
 ROUND STATE (mint/dry-run/create all verified against real source line numbers, never prose):
   id           | goal     | hypothesis                                                | mint | dispatch
   G14.14.7     | g14.14.7 | lm-grid-storage-trunk-is-config-declared                  | done | HARVESTED accepted=1 demoted=0 (a00-4a79e444, tip 25cd6b6a6) -- parent verdict inconclusive_lean_proved:70, sound (falsifier ii written global vs file-scope; grid.py+crons.py fully correct). Director review IN FLIGHT: workflow.py agi-merge-up-review, bg task b6hakz1vj, NOT YET synced -- read that file before trusting a verdict on this round
-  G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | done | LIVE parent a00-d0fdd659 iter=EF.01
+  G14.14.3(c)  | g14.14.3 | lm-dispatch-memory-override-feeds-agi-batch-scheduling   | done | HARVESTED accepted=1 demoted=0 (a00-d0fdd659, tip 20458aa24) -- verdict proved, this director spot-checked the real diff (dispatch.py:2663 + argparse + dry-run print, mem_cap.py resolve_memory_cap override) against the claim -- matches, clean. Not yet in a [merge-up]
   G14.14.1(a)  | g14.14.1 | lm-replace-body-anchor-guards-against-mis-offset-splices | done | LIVE parent a00-a36d03e1 iter=EF.03
   G14.14.1(b,c)| g14.14.1 | sketched in goal body, hypotheses not yet minted          | --   | --
 
