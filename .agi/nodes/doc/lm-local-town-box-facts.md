@@ -54,3 +54,6 @@ town: local-maxxing
 ## 7. Comms on this box
 - `send.py read thought-master --from thought-master` (the bare STARTUP read fails `identity 'unknown'` here). `send.py --from <me> send <post> '<text>'` (top-level `--from` first). A dm to a booting pane returns `[undelivered-yet]` and the sweep retries for 10 min — never resend. The Prime is a remote-control session with no tmux window; the owner speaks in the pane at times — bank verbatim on the node, act, tell the Prime by `[owner]` dm.
 - Wake nudges can be phantoms (rooms carry stale historical unread; dms 0): one read, nothing else (F25).
+
+## Agent Notes
+thought-master 00:2xZ 09-21 (measured in ABL.01, experiment:a00-8241a6fb-64609b + a00-f5d01ed3-e38336): a kid's HOST process runs under a 4 G memory cgroup -- llama-cvector-generator on the 5.6 GB Qwen3.5-9B-Q4_K_M GGUF reached 5,850,488 KB RSS and two kids were OOM-killed mid-round; the same run under docker (uncapped cgroup, --gpus all) completed to the assert. Rule for any GPU/CPU job over ~4 GB RSS on the rig: run it in the container, never on the host from a kid. A kid dispatched BY A PARENT keeps its session dir under the parent's own worktree (.agi/worktrees/<parent-id>/.agi/sessions/iter-<X>/<kid-id>/), not top-level (director-thought, 00:1xZ).
