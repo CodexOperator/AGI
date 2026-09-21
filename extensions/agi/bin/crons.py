@@ -80,6 +80,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import grid  # noqa: E402 -- grid.push_spec_for: ONE spelling of the ref namespace
 
 import yaml
 
@@ -546,7 +547,7 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         # not a failure domain.
         cmd = (
             f"python3 {grid_py} commit --all --prefix 'cron: ' >> {log} 2>&1; "
-            f"git -C {repo_root} push -q origin 'refs/grid/*:refs/grid/*' >> {log} 2>&1; "
+            f"git -C {repo_root} push -q origin '{grid.push_spec_for(root)}' >> {log} 2>&1; "
             f"python3 {crons_py} apply --unit-dir {udir} >> {log} 2>&1"
         )
         lines.append(f"{sched} cd {root} && {cmd}")
