@@ -3,15 +3,14 @@ id: idea:lm-token-state-feedback-merge
 mint_id: 61b24ef5923c4c0194917b3f73e71094
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g14.12
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 590396603c052ca1
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: "One d-vector of cross-token state via a 3d² gated merge: +3% weights, one measured win"
 town: local-maxxing
 ---
