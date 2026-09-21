@@ -404,3 +404,40 @@ def test_own_row_field_in_neither_list_still_refused(project):
     assert "owning_goal" in msg and "actor_rows" in msg
     assert "owning_goal" not in \
         (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+# --- 9. DH.29 residue: the master's seating write carries `prompt_marker` ----
+
+def test_sanctuary_master_sets_prompt_marker_on_a_posts_row(project):
+    """ACCEPTANCE (DH.29): `prompt_marker` is in the sanctuary-master
+    actor_rows grant, so the master seating a post that carries the cell is
+    ADMITTED — before the fix only owner/prime could set it."""
+    rows = _clone_rows()
+    rows[2]["prompt_marker"] = ">>> "
+    res = write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert res.status == node_writer.UPDATED
+    assert "prompt_marker" in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_non_master_prompt_marker_on_posts_row_refused_by_name(project):
+    """The grant must NOT widen: a non-master actor (`director-belam`) writing
+    ANOTHER seat's posts row `prompt_marker` is still refused by name (a seated
+    role may update only its OWN row)."""
+    rows = _clone_rows()
+    rows[1]["prompt_marker"] = ">>> "  # master-sensei's row, not the actor's
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(rows), actor="director-belam")
+    assert "seated role" in str(ei.value)
+    assert "prompt_marker" not in \
+        (project / "nodes/.geometry/posts.md").read_text(encoding="utf-8")
+
+
+def test_master_field_still_outside_grant_refused(project):
+    """Bound (DH.29): adding `prompt_marker` does not admit `owning_goal` on a
+    posts row — the grant's fields check still refuses by name."""
+    rows = _clone_rows()
+    rows[2]["owning_goal"] = "goal:g99"
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, _posts_edit(rows), actor="sanctuary-master")
+    assert "owning_goal" in str(ei.value)
