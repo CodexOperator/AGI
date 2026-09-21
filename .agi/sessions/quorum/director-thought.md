@@ -19,11 +19,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~05:4xZ
- live     TEL.02 a00-08eead1d (pid 1772128, ~13min elapsed, healthy) -- --cache-reuse restart; owner amended MID-ROUND to STAY enabled (not restore-to-original), amendment dm'd live to the parent, banked on goal:g14+g14.15.1
- TMM.26   owner: magic pane now PRIORITY alongside local-inference kids/parents. MP.02 REDEFINED in place (single-call wrapper -> top-k SUGGESTER, up to 5 ranked candidates, never executed, top-1/top-5 metric); MP.03 FORMATTER minted new (bypass every recorded trap by construction, 0 trap hits). Both no-spend, queued after G14.10.2's capture.
- queue    (TMM.26, current) TEL.02 (live) -> SWR.02-B -> G14.10.2 capture (engine hook G14.14.8 first) -> MP.02 -> MP.03 -> FT.00 -> DS.01 -> G14.7.2
- board    stopped editing doc:lm-town-trajectory directly (thought-master's v8 lesson); rows travel in the merge-up dm now
- next     watch TEL.02 land -- confirm the amendment was actually followed (server left running WITH --cache-reuse, not reverted) before accepting the round
- traps    replace-body anchor guard caught a real mis-offset twice this session, working as intended · a script smoke-test overwrote landed deliverables once, caught+reverted via git status right after
+2026-09-21 ~06:2xZ
+ landed   TEL.02 a00-08eead1d, tip f10eef594 -- DECISIVE finding: --cache-reuse reaches the 9B child then is DISABLED AT LOAD, architecturally: qwen35 IMROPE -> n_pos_per_embd()==4 -> get_can_shift()==false -> seq_add hard-asserted to n_pos_per_embd==1 (real upstream llama.cpp cited by file:line, spot-checked by me against the actual copied source, matches exactly). Same-prefix reuse WORKS (24/24, 0.093x prefill) but is a different weaker mechanism than the arbitrary-position shift the hypothesis needs (shifted-span negative: cache_n=0, 1.07x compute -- no savings at all). Kid explicitly refused to conflate the two. Verdict inconclusive_lean_disproved:80 -- the fallback (saved-TEXT-plus-tail-KV, already named in the hypothesis) is now the live path for telepathy chunks 2-3.
+ flagged  harvest DM overage 12107/40 no-rebrief -- INVESTIGATED: node's own production_lines=66 (the kid's real script) is correct; the other ~12041 lines are FOUR VERBATIM unmodified upstream llama.cpp .cpp files copied in only so the file:line citations are checkable against real bytes, never executed/modified. Spot-checked myself: real #include headers, cited lines match exactly. This reads like reference material (should be exempt like .txt/.jsonl) not authored code, but I did not rule on it myself -- put to the mur explicitly, not decided unilaterally.
+ mur      running (agi-director-thought-tel02, bg poll bccnsgnow)
+ TMM.26   MP.02 redefined to SUGGESTER, MP.03 FORMATTER minted -- both no-spend, queued after G14.10.2's capture (see prior commit for detail)
+ board    stopped editing doc:lm-town-trajectory directly; rows travel in the merge-up dm now
+ next     read the mur result -> notes on hypothesis+g14.15.1 -> merge-up dm (numbers + the ceiling-exemption question, banked for thought-master) -> next queue item is SWR.02-B, not mine
 ```
