@@ -2,10 +2,13 @@
 name: town
 written_by: [prime_director, owner]   # list-shaped; links.parse_written_by reads a list (L4.50 flip) — town rows are prime/owner-written, like config:vetoes and config:rotations
 derived_from: owner ruling 2026-09-12 (doc:l4-owner-decisions body 697-717 @e6d090a77, Prime XVII 18:48Z)
+actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: the town `master` cell (the config:posts row that owns this town's branch pair until council activation) is settable by the RESOLVED sanctuary-master seat through write.py's generic `actor_rows` grant. The DERIVED `branches:` cell stays refused BY NAME at mint (create field-level `refuse:`) and at read (towns.load_towns).
+  - {actor: sanctuary-master, field: master}
 structural: true
 fields:
   visions: {type: list}          # vision node ids this town owns. `core` may spell the list or the literal `auto`, meaning "every vision node no other town claims" — `auto` is RESOLVED BY THE LOADER, never hardcoded.
   council: {type: str}           # the NAME of a row in config:posts (`posts.md` is the post-first spelling; `.geometry/seats.md` is the deprecated alias, accepted in this window)
+  master: {type: str}            # the NAME of the config:posts row that OWNS this town's branch pair until council activation (owner 2026-09-18 00:1xZ: each master owns its town branch; '' or absent = the Prime holds it)
   season: {type: int}            # the town's OWN counter (core 2, streaming-suite 1, web-app-suite 1 — owner ruling)
   season_history: {type: list}   # [{season, global_season, opened, closed}]
   written_by: {type: list}       # [prime_director, owner] — never a kid

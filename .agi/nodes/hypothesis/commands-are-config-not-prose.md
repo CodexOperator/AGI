@@ -43,12 +43,12 @@ reaches `INJECTION.md` without any agent being told to look it up.
   `--smoke` path, so a cold session is handed it with no motion spent.
 - A test asserts every declared command points at a file that exists — the
   failure a cold session would otherwise hit first.
-- The node holds **no absolute path**, so it survives a clone (`goal:g8.2`).
+- The node holds **no absolute path**, so it survives a clone (`goal:g1.24`).
 
 ### What would disprove it
 
 - The table becoming a fifth copy: declared, rendered, and never read by code.
-  `goal:g10.2`'s rule is that a `.geometry` node is the input a code path
+  `goal:g2.25`'s rule is that a `.geometry` node is the input a code path
   resolves against, not documentation about one.
 - The table growing without bound. The owner's scope — *"not a command for
   every custom test call, just the commands used during standard workflows"* —

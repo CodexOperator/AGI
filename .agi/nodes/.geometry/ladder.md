@@ -4,6 +4,7 @@ mint_id: 5f6bbbfff8634f36ba0ba67defa52a66
 type: ladder
 parents:
   - goal:g12.3
+alarms_idle_minutes: 20
 budget_usd_week: 30
 caps:
   moral: 5
@@ -11,10 +12,14 @@ caps:
   director_kids: 3
 caps_apply_from_season: 2
 caps_vision_scope: town
+captive_rotate_masters: false
+captive_rotate_ratio: 0.85
+card_capture_minutes: 10
+current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam
+edited_by: director-sanctuary
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -32,10 +37,10 @@ roles:
   - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode"}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
-  - {"tier": 1, "role": "parent", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""}
+  - {"tier": 1, "role": "parent", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
   - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "parent", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "kid", "harness": "pi", "model": "~deepseek/deepseek-v4-flash-latest", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "parent", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "kid", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
 season: 1
 season_names:
   1: genesis

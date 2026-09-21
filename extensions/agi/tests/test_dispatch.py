@@ -1503,6 +1503,90 @@ def test_scaffold_push_further_stamps_pushed_from(tmp_path):
     assert fm["pushed_from"] == node_id
 
 
+def test_dispatch_mints_an_across_k_ceiling_slice_on_the_kid_node(
+        tmp_path, monkeypatch):
+    """hypothesis:l5-an-across-k-kids-ceiling-is-divided-onto-each-kid-node-
+    by-the-spawn-never-by-parent-arithmetic: the SPAWN divides, the parent
+    does not. A kid minted under `CEILING: <=44 production lines across 2
+    kids` carries `line_ceiling: 22` in its frontmatter BEFORE the brief is
+    assembled, so the brief and the harvest read one number. A K-less clause
+    writes NO field (byte-identical to today).
+
+    FALSIFIED if the inline `extra_fm` write in dispatch.main is removed: the
+    minted node then carries no `line_ceiling` and the harvest falls back.
+    """
+    import json as _json
+    import yaml as _yaml
+
+    def _project(name: str, clause: str) -> Path:
+        root = tmp_path / name
+        graph = root / ".agi"
+        (graph / "nodes" / "hypothesis").mkdir(parents=True)
+        (graph / "config.json").write_text(_json.dumps({
+            "metric_primary": "outcome_coverage",
+            "spawn": {"harness": "pi", "parallel": 1},
+            "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
+                                 "models": {"kid": "~z-ai/glm-flash-latest"},
+                                 "allowed_extra": ["~z-ai/glm-flash-latest"]}}}))
+        (graph / "nodes" / "hypothesis" / "across.md").write_text(
+            "---\nid: hypothesis:across\ntype: hypothesis\n"
+            f"testable_claim: \"build it. {clause}\"\n---\n")
+        return root
+
+    class _Proc:
+        pid = 4242
+
+        def poll(self):
+            return None
+
+    class _Adapter:
+        def build_command(self, **kw):
+            return [sys.executable, "-c", "pass"]
+
+        def child_env(self, **kw):
+            return {}
+
+        def needs_credential(self, *a, **k):
+            return False
+
+        def is_alive(self, pid):
+            return True
+
+    class _Run:
+        returncode = 0
+        stdout = "ctx\n"
+        stderr = ""
+
+    monkeypatch.setattr(dispatch.adapters, "load", lambda name: _Adapter())
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _Proc())
+    monkeypatch.setattr(dispatch.subprocess, "run", lambda *a, **k: _Run())
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch.provisioning, "available", lambda root=None: False)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_key_floor",
+                        lambda cfg, root=None, iter_n=None: (True, None))
+    monkeypatch.setattr(dispatch.provisioning, "check_account_floor",
+                        lambda cfg, root=None: (True, None))
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.delenv("AGI_SEAT", raising=False)
+
+    def _mint(project: Path):
+        monkeypatch.setattr(sys, "argv", [
+            str(BIN / "dispatch.py"), str(project), "1", "--tier", "kid",
+            "--target", "hypothesis:across", "--harness", "pi",
+            "--detach"])
+        assert dispatch.main() == 0
+        exps = list((project / ".agi" / "nodes" / "experiment").glob("*.md"))
+        assert len(exps) == 1, exps
+        return _yaml.safe_load(exps[0].read_text().split("---", 2)[1])
+
+    assert _mint(_project("k2", "CEILING: <=44 production lines across 2 kids.")
+                 ).get("line_ceiling") == 22
+    assert "line_ceiling" not in _mint(
+        _project("k1", "CEILING: <=44 production lines."))
+
+
 # --------------------------- the model/provider guard on the SPAWN path ----
 
 def _guard_project(tmp_path: Path, model: str) -> Path:
@@ -2094,6 +2178,39 @@ def test_town_of_branch_resolver_is_exact_equality(tmp_path, monkeypatch):
     # A branch listed in NO town's opaque map (a seat/loop branch) maps to
     # None -> the guard keeps the plain season/s2 base, byte-for-byte.
     _git(repo, "checkout", "-b", "loop/slug-aaaa@s2")
+    assert _current_town_branch(repo, nodes) is None
+
+
+def test_v3_post_branch_resolves_its_own_town_trunk(tmp_path):
+    """hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    main: a v3 town-first post/loop branch (`<town>/season<m>/posts/<seat>/
+    main`) resolves the trunk of ITS tuple, never core's main -- the shape
+    the thought town's director actually carries."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b",
+         "local-maxxing/season1/posts/director-thought/loops/hyp-a00-abc123/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+
+
+def test_v3_town_trunk_without_ladder_row_integrates_against_itself(tmp_path):
+    """A v3 town TRUNK whose town has no `town_branches` row is measured
+    against itself on origin (owner 01:0xZ 09-19: towns are independent and
+    batched). A trunk whose town HAS a row (core) keeps today's path: the
+    exact-equality lookup misses `core/season2/main` vs `season/s2` and the
+    resolver still returns None (the caller's season/sN fallback)."""
+    repo = _git_repo(tmp_path, branch="season/s2")
+    _town_ladder(repo, season=2)
+    from dispatch import _current_town_branch
+    nodes = repo / ".agi" / "nodes"
+    _git(repo, "checkout", "-b", "local-maxxing/season1/main")
+    assert _current_town_branch(repo, nodes) == "local-maxxing/season1/main"
+    _git(repo, "checkout", "-b", "core/season2/main")
     assert _current_town_branch(repo, nodes) is None
 
 
@@ -2932,3 +3049,107 @@ def test_l4p6_composition_real_check_key_floor_through_dispatch(
     assert mints2 == [], "a refused pre-flight must never reach a spawn"
     assert "iteration 1" in err2, \
         f"refusal must name the owning iter: {err2}"
+
+
+# --- hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end
+# with-a-live-kid-is-named-not-a-death, conjunct 3 (the reaper label) -------
+
+
+class _KidAlive:
+    """Parent pid dead, kid pid alive -- the turn-end shape."""
+
+    def __init__(self, alive_pid):
+        self.alive_pid = alive_pid
+
+    def is_alive(self, pid):
+        return pid == self.alive_pid
+
+
+def _turn_end_round(tmp_path, last_event=None, kid=True, kid_pid=555):
+    graph = _reap_project(tmp_path)
+    it = graph / "sessions" / "iter-T"
+    (it / "parent-p").mkdir(parents=True)
+    lines = [json.dumps({"type": "message_end"})]
+    if last_event is not None:
+        lines.append(json.dumps(last_event))
+    (it / "parent-p" / "output.log").write_text("\n".join(lines) + "\n")
+    if kid:
+        (it / "kid-k").mkdir(parents=True)
+        (it / "kid-k" / "agent.json").write_text(json.dumps(
+            {"id": "kid-k", "status": "running", "pid": kid_pid,
+             "spawned_by_agent": "parent-p",
+             "node_id": "experiment:kid-1"}))
+    rec = {"id": "parent-p", "tier": "parent", "status": "running",
+           "pid": 999, "started_at": 0}
+    return graph, it, rec
+
+
+def test_success_tail_with_live_kid_is_a_turn_end_not_a_death(tmp_path):
+    """A parent pid gone whose log ends in a completed turn AND whose kid is
+    still live is labelled a headless turn-end, never 'died'."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "turn-end with live kid experiment:kid-1 (headless exit, not a death)")
+    assert out["record"]["death"]["evidence"] == "turn-end"
+    assert "turn-end with live kid" in out["message"]
+
+
+def test_claude_code_success_result_is_also_a_turn_end(tmp_path):
+    """The claude-code harness spells the same fact `result`/`success`."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "result", "subtype": "success"})
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert "turn-end with live kid" in out["record"]["fail_reason"]
+    assert out["record"]["death"]["evidence"] == "turn-end"
+
+
+def test_truncated_log_keeps_the_honest_died_label(tmp_path):
+    """A killed-mid-turn parent (no success tail) must keep the exact old
+    text and carry no turn-end evidence -- no regression of the death label."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(tmp_path)
+    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+class _AlwaysAlive:
+    """The production pi adapter answers True for pid 0 (it falls back to
+    os.kill(0, 0), which signals the caller's own process group)."""
+
+    def is_alive(self, pid):
+        return True
+
+
+def test_pid_null_kid_is_never_a_live_kid(tmp_path):
+    """A kid record with `pid: null` is UNKNOWN, not alive -- the success
+    tail keeps the honest died label even though is_alive(0) is True."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=None)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"
+
+
+def test_pid_zero_kid_is_never_a_live_kid(tmp_path):
+    """`pid: 0` is unknown too; is_alive(0) answering True must not make it
+    a live kid."""
+    d = _load_dispatch()
+    graph, it, rec = _turn_end_round(
+        tmp_path, last_event={"type": "turn_end"}, kid_pid=0)
+    out = d._reap_one(graph, it, _AlwaysAlive(), rec, "parent-p", 999,
+                      cap=5, cfg={}, restart_ok=False)
+    assert out["record"]["fail_reason"] == (
+        "pid 999 died (detected by reaper)")
+    assert out["record"]["death"]["evidence"] != "turn-end"

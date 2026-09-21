@@ -12,7 +12,7 @@ THROUGH `commands.py` from `command:commands`
 (`.agi/nodes/.geometry/commands.md`) — never argv written literally here.
 
 Levels (`--level quick|rotation|full`, default `rotation`):
-  quick    = links + goals-check + write-guard        (pre-commit set, <15s)
+  quick    = links + goals-check + write-guard + anonymize   (pre-commit set)
   rotation = quick + smoke + viewport-verify + dispatch-help + budget
   full     = rotation + schema + credentials + secrets + crons
 NO level runs pytest. `--suite` is OPT-IN and ORTHOGONAL to level: it adds the
@@ -97,6 +97,15 @@ EXIT_SUITE_LOCKED = 2
 # --suite completion and read by the no-suite rotation check so "a new
 # bin/*.py needs the suite" is a CHECK, not a memo (goal:g15.10).
 SUITE_TS_FILE = "verify-suite-ts.json"  # under <groot>/sessions/
+#: The all-green --suite marker, read by `cli.py --delete-old`'s freshness
+#: gate (cli.py:5336) at exactly `<groot>/sessions/verified.stamp`. That gate
+#: tests EXISTENCE only, so this is a presence marker, not a ledger; its body
+#: names the sha the run executed and the wall clock so a human can date it.
+#: Before this, the only writers were test fixtures -- a real production
+#: `--suite` never created it, so the gate could never be satisfied by real
+#: work (hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-
+#: green-suite-run).
+VERIFIED_STAMP_FILE = "verified.stamp"  # under <groot>/sessions/
 
 
 @dataclass
@@ -456,34 +465,112 @@ def _node_dirt(groot: Path) -> list[str] | None:
     return [ln[3:].strip() for ln in out.splitlines() if ln.strip()]
 
 
-def _moved_deprecated(prior: list | None, manifest: list | None
-                       ) -> tuple[list[str], list[str]]:
-    """Partition baseline-manifest paths absent at HEAD into MOVEs and
-    LOSSes, so a deprecation is counted as a move, never as a node lost.
+def _manifest_mint_ids(groot: Path, paths: list[str]) -> dict[str, str] | None:
+    """The `mint_id` frontmatter cell of each HEAD blob, read in ONE
+    `git cat-file --batch` (never one subprocess per path). `""` when a blob
+    carries none; None when git cannot answer — no proof of a move."""
+    from frontmatter import read_frontmatter
+    if not paths:
+        return {}
+    try:
+        r = subprocess.run(["git", "cat-file", "--batch"], cwd=str(groot),
+                           input="".join(f"HEAD:./{p}\n" for p in paths)
+                           .encode(), capture_output=True, timeout=120)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if r.returncode != 0:
+        return None
+    out, ids, i, n = r.stdout, {}, 0, 0
+    while i < len(out):
+        nl = out.find(b"\n", i)
+        if nl < 0:
+            return None
+        head = out[i:nl].split()
+        i = nl + 1
+        if len(head) != 3 or head[1] != b"blob" or not head[2].isdigit():
+            return None
+        size = int(head[2])
+        blob = out[i:i + size]
+        i += size + 1
+        # `--batch` answers in INPUT order but echoes the resolved sha, not
+        # the spec, so the path comes from `paths` by index, never the header.
+        if n >= len(paths):
+            return None
+        fm = read_frontmatter(blob.decode("utf-8", "replace")) or {}
+        mid = fm.get("mint_id")
+        ids[paths[n]] = mid.strip() if isinstance(mid, str) else ""
+        n += 1
+    return ids if n == len(paths) else None
+
+
+def _stamped_manifest(groot: Path, manifest: list[str] | None):
+    """The manifest cell to STAMP: `{path: mint_id}` (old path list if no git)."""
+    if manifest is None:
+        return None
+    ids = _manifest_mint_ids(groot, manifest)
+    return ids if ids is not None else manifest
+
+
+def _legacy_baseline(prior: list | dict | None) -> bool:
+    """A baseline that carries no mint-id identity: the old path LIST, or a
+    dict whose values are all empty (a defensive read of a malformed record).
+    A legacy baseline can PROVE no move; it proves nothing at all, so it is
+    MIGRATED to the dict form, never trusted for one more run."""
+    if isinstance(prior, list):
+        return True
+    if isinstance(prior, dict):
+        return not any(isinstance(v, str) and v for v in prior.values())
+    return True
+
+
+def _moved_deprecated(groot: Path, prior: list | dict | None,
+                      manifest: list | None,
+                      ) -> tuple[list[str], list[str], list[str]]:
+    """Partition baseline-manifest paths absent at HEAD into MOVEs, LOSSes
+    and UNPROVABLE candidates, so a deprecation is counted as a move, never as
+    a node lost.
 
     A retire moves a node from `nodes/<type>/<name>.md` to
     `nodes/deprecated/<type>/<name>.md`: active falls and deprecated rises
     while the TOTAL (active+deprecated) is unchanged. A baseline path absent
-    at HEAD whose basename exists under `nodes/deprecated/<type>/` at HEAD is
-    a MOVE; any other missing path is a genuine LOSS the H0/H0b gate must
-    name. `prior` not a list, or `manifest` None (not a git tree), yields no
+    at HEAD is a MOVE only when its deprecated twin exists at HEAD AND its
+    frontmatter `mint_id` EQUALS the one the baseline recorded -- mint id
+    equality is the proof, so an unrelated new file at the matching deprecated
+    path is a LOSS, named. A LEGACY baseline (`_legacy_baseline`: path list,
+    or a dict of only empty ids) carries no identity, so a basename twin
+    CANNOT be proven a move -- but it cannot be called a LOSS either, since
+    the total is what H0/H0b gates on. Those go to `unprovable`, which
+    `compare_count` migrates in ONE visible run instead of failing forever.
+    `prior` not a list/dict, or `manifest` None (not a git tree), yields no
     classifier: nothing is nameable and reads fall back to counts-only.
     """
-    if not isinstance(prior, list) or manifest is None:
-        return [], []
+    if not isinstance(prior, (list, dict)) or manifest is None:
+        return [], [], []
     have = set(manifest)
-    moves, losses = [], []
-    for p in prior:
-        if p in have:
-            continue
+    absent = [p for p in prior if p not in have]
+    cand = {}
+    for p in absent:
         parts = p.split("/")
         if len(parts) == 3 and parts[0] == "nodes" and parts[1] != "deprecated":
             moved = f"nodes/deprecated/{parts[1]}/{parts[2]}"
             if moved in have:
+                cand[p] = moved
+    legacy = _legacy_baseline(prior)
+    ids = (_manifest_mint_ids(groot, sorted(set(cand.values())))
+           if cand and not legacy else {})
+    moves, losses, unprovable = [], [], []
+    for p in absent:
+        if p in cand:
+            if legacy:
+                unprovable.append(p)
+                continue
+            base = prior.get(p)
+            if (isinstance(base, str) and base and ids is not None
+                    and ids.get(cand[p]) == base):
                 moves.append(p)
                 continue
         losses.append(p)
-    return moves, losses
+    return moves, losses, unprovable
 
 
 def compare_count(groot: Path, current: dict | None,
@@ -553,7 +640,8 @@ def compare_count(groot: Path, current: dict | None,
             state = None
     if state is None:
         if can_stamp and head_sha:
-            _write_state(groot, current, head_sha, why, manifest)
+            _write_state(groot, current, head_sha, why,
+                         _stamped_manifest(groot, manifest))
             return CheckResult(
                 "node-count", "PASS", time.monotonic() - start, current,
                 note=f"baseline recorded (sha={head_sha}){stale}",
@@ -589,7 +677,7 @@ def compare_count(groot: Path, current: dict | None,
         baseline_total = (len(prior) if isinstance(prior, list)
                           else int(state.get("active", 0))
                           + int(state.get("deprecated", 0)))
-    moves, losses = _moved_deprecated(prior, manifest)
+    moves, losses, unprovable = _moved_deprecated(groot, prior, manifest)
     if measured_total < baseline_total or losses:
         parts = []
         if losses:
@@ -612,8 +700,31 @@ def compare_count(groot: Path, current: dict | None,
                      if losses else "")),
             message=("committed node total below recorded baseline: "
                      f"{measured_total} < {baseline_total}; {detail}"))
+    if unprovable:
+        # A legacy baseline proves nothing, so each basename twin is
+        # UNPROVABLE, not lost. The total is steady and every absent path has
+        # a deprecated home -- H0/H0b is untouched because a genuine loss (no
+        # twin) is in `losses` and a dropped total already FAILed above. The
+        # one-run fail-open window is unavoidable (the baseline carries no
+        # identity) and is bounded: this stamp rewrites the manifest in dict
+        # form, so from the next run the strict mint-id rule applies.
+        kind = ("legacy list baseline" if isinstance(prior, list)
+                else "legacy baseline")
+        migrated = ("migrated unprovable move(s) to mint-id baseline: "
+                    + ", ".join(unprovable[:5]) + f" ({kind} proved nothing)")
+        if can_stamp and head_sha:
+            _write_state(groot, current, head_sha, why,
+                         _stamped_manifest(groot, manifest))
+            note = f"{migrated}; baseline updated (sha={head_sha}){stale}"
+        else:
+            note = f"{migrated}; NOT STAMPED: {why}{stale}"
+        message = (f"{label} steady: {measured_total} >= baseline "
+                   f"{baseline_total}; {migrated}")
+        return CheckResult("node-count", "PASS", time.monotonic() - start,
+                           current, note=note, message=message)
     if can_stamp and head_sha:
-        _write_state(groot, current, head_sha, why, manifest)
+        _write_state(groot, current, head_sha, why,
+                     _stamped_manifest(groot, manifest))
         note = f"node total steady; baseline updated (sha={head_sha}){stale}"
     else:
         note = f"node total steady; NOT STAMPED: {why}{stale}"
@@ -627,14 +738,16 @@ def compare_count(groot: Path, current: dict | None,
 
 
 def _write_state(groot: Path, current: dict, sha: str | None,
-                 reason: str, manifest: list[str] | None = None) -> None:
+                 reason: str, manifest: list[str] | dict[str, str] | None = None) -> None:
     """The stamped baseline carries provenance: the counts, the head sha, the
     moment, and WHY it was stamped — so a hand reset is never needed and a
     stale baseline can be REPORTED rather than silently trusted.
 
     It carries the committed FILE MANIFEST too (sorted relative paths + its
-    sha256), so a later drop can name the file it lost. The `reason` cell is
-    left byte-for-byte as before; the manifest is named by `manifest_sha256`.
+    sha256), so a later drop can name the file it lost. The manifest cell is
+    `{path: mint_id}` when git could answer, so a move is proven by identity;
+    an old-record path LIST still loads. The `reason` cell is left
+    byte-for-byte as before; the manifest is named by `manifest_sha256`.
     """
     path = _state_path(groot)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -648,8 +761,9 @@ def _write_state(groot: Path, current: dict, sha: str | None,
     }
     if manifest is not None:
         doc["manifest"] = manifest
+        keys = sorted(manifest) if isinstance(manifest, dict) else manifest
         doc["manifest_sha256"] = hashlib.sha256(
-            "\n".join(manifest).encode("utf-8")).hexdigest()
+            "\n".join(keys).encode("utf-8")).hexdigest()
     path.write_text(json.dumps(doc), encoding="utf-8")
 
 
@@ -868,6 +982,64 @@ def _suite_ts_path(groot: Path) -> Path:
     return rotate._sessions_dir(groot) / SUITE_TS_FILE
 
 
+def _verified_stamp_path(groot: Path) -> Path:
+    """The path `cli.py --delete-old` reads: `_find_root()/sessions/verified.stamp`.
+
+    `cli._find_root()` is `locations.find_project_root()` from the CALLER's
+    cwd, and the gate reads `root / "sessions/verified.stamp"` literally
+    (`cli.py:5336`). A seat running the gate from a linked worktree resolves
+    that worktree's graph, so the read is the LOCAL graph dir there -- not the
+    shared one `_suite_ts_path` resolves. This writer must land on the gate's
+    own expression exactly, or a green worktree run certifies nothing.
+    """
+    root = locations.find_project_root(groot) or groot
+    return root / "sessions" / VERIFIED_STAMP_FILE
+
+
+def _verified_stamp_paths(groot: Path) -> list[Path]:
+    """Every path a `--delete-old` gate can read, local graph first.
+
+    ONE all-green run must satisfy both the worktree it ran in (the local
+    join above) and the main checkout whose shared sessions dir the gate
+    reads when run from there. Duplicates collapse to one write.
+    """
+    out = [_verified_stamp_path(groot)]
+    shared = _suite_ts_path(groot).parent / VERIFIED_STAMP_FILE
+    if shared != out[0]:
+        out.append(shared)
+    return out
+
+
+def _write_verified_stamp(groot: Path, *, ran_at: float | None,
+                          ran_on: str | None) -> None:
+    """Certify an all-green `--suite` run where the freshness gate looks.
+
+    Called only when no result is FAIL (the same predicate main() returns on),
+    so a red run writes nothing and the stamp's absence is honest.
+    """
+    ts = ran_at if ran_at is not None else time.time()
+    stamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(ts))
+    body = f"green suite {stamp_utc} on {ran_on or 'unknown'}\n"
+    for path in _verified_stamp_paths(groot):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding="utf-8")
+
+
+def _retract_verified_stamp(groot: Path) -> None:
+    """Retract an earlier green certification after a RED `--suite` run.
+
+    `cli.py:5336`'s gate tests `stamp.exists()` and nothing else, so a stamp
+    left behind by a previous green run would certify a suite that has since
+    gone red -- the gate would pass `--delete-old` on red evidence. The
+    predicate here is the SAME one `main()` returns its rc on, so
+    "rc==0 iff certified" holds in both directions: green writes, red
+    retracts. Missing files are not an error (a first red run retracts
+    nothing).
+    """
+    for path in _verified_stamp_paths(groot):
+        path.unlink(missing_ok=True)
+
+
 def _read_suite_ts(groot: Path) -> float | None:
     """Epoch of the last recorded --suite completion, or None if never."""
     try:
@@ -1066,6 +1238,23 @@ def _seat_transcript(groot: Path, seat: str) -> tuple[Path | None, str]:
     if not lp.exists():
         return None, reason
     return lp, ""
+
+
+def check_anonymize(groot: Path) -> CheckResult:
+    """SM.122 — FAIL when staged text carries a token read from this box."""
+    start = time.monotonic()
+    argv = [sys.executable,
+            str(Path(__file__).resolve().parent / "anonymize.py"),
+            "check", "--root", str(groot)]
+    try:
+        proc = subprocess.run(argv, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return CheckResult("anonymize", "FAIL", time.monotonic() - start,
+                           note=f"could not execute: {exc}")
+    tail = (proc.stdout + proc.stderr).strip().splitlines()
+    return CheckResult("anonymize", "PASS" if proc.returncode == 0 else "FAIL",
+                       time.monotonic() - start,
+                       note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
 
 
 def check_seat_model(groot: Path) -> CheckResult:
@@ -1361,6 +1550,8 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
         # explicit --stamp the recorded baseline is never re-stamped.
         names.append("smoke")
     results = [run_check(groot, n, verbose) for n in names]
+    # SM.122 — the write-seam guard, appended at EVERY level, as a built-in.
+    results.append(check_anonymize(groot))
     if level in ("rotation", "full"):
         # A fresh bin/*.py needs the suite, and needs it seen at rotation, not
         # only under --suite. Before the count compare so node-count stays the
@@ -1703,6 +1894,19 @@ def main(argv: list[str] | None = None) -> int:
                          wall_s=_suite_res.elapsed if _suite_res else None,
                          slowest_15=(_suite_res.durations
                                      if _suite_res else None))
+        # An ALL-GREEN suite run certifies itself at the exact path
+        # `cli.py --delete-old` reads. The predicate is the SAME one the return
+        # code uses, so "green" and rc==0 can never disagree. A red run writes
+        # NOTHING -- the stamp is a pass marker, and absence is the correct
+        # state on FAIL (never a stale marker claiming a green run that did
+        # not happen).
+        if not any(r.status == "FAIL" for r in results):
+            _write_verified_stamp(groot, ran_at=_run_ts, ran_on=_run_sha)
+        else:
+            # A RED run RETRACTS any earlier certification at every path the
+            # gate can read, so the stamp can never outlive the green run it
+            # recorded (cli.py:5336 tests existence only).
+            _retract_verified_stamp(groot)
 
     if args.json:
         print(json.dumps(render_json(args.level, args.suite, results,

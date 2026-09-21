@@ -3,14 +3,15 @@ id: idea:lm-kv-bytes-ledger-q4-cache
 mint_id: fa319016535e4378853a2934e47a560e
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: cd059c7373cb095e
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: "q4_0 KV on the swarm box: does halving KV bytes move Qwen3-0.6B tok/s at 4-8K context?"
 town: local-maxxing
 ---
@@ -26,7 +27,7 @@ The source demonstrates only that 4-bit main-KV storage is viable after QAT (glo
 If q4_0 tg is >= 1.2x f16 tg at depth 4096, every agent-length (4-8K) decode on the swarm box gets 1.2-1.7x for one flag with zero training, and H3 is answered positive — KV bytes bind on this iron, which licenses the cross-layer KV reuse (T2) and 1-bit-KV-floor threads as bandwidth plays; a null answers H3 negative and redirects effort to loop-count-as-effort (T9) and SWA bounded replay (T5).
 
 ## First falsifier
-On the swarm box, /home/ubuntu/src/llama.cpp/build/bin/llama-bench -m ~/.cache/lm-models/Qwen3-0.6B-Q8_0.gguf -fa 1 -d 4096 -ctk f16,q8_0,q4_0 -ctv f16,q8_0,q4_0 -r 3: if q4_0 tg < 1.2x f16 tg at depth 4096, or depth-0 tg falls under q4_0, KV bytes are not the bottleneck at this context and the lever is dead (SDOT is present on this arm64-N1, so a dequant-cost loss would be a measured fact, not the pre-judged one).
+On the swarm box, /home/ubuntu/src/llama.cpp/build/bin/llama-bench -m ~/.cache/lm-models/Qwen3-0.6B-Q8_0.gguf -fa 1 -d 4096 -ctk f16,q8_0,q4_0 -ctv f16,q8_0,q4_0 -r 3: if q4_0 tg < 1.2x f16 tg at depth 4096, or depth-0 tg falls under q4_0, KV bytes are not the bottleneck at this context and the lever is dead (SDOT is present on this arm64, so a dequant-cost loss would be a measured fact, not the pre-judged one).
 
 ## Cheapest test on our iron
 One llama-bench sweep on the swarm box (arm-cloud 4c, 23 GB, models and binary already on disk): 3 KV types x depths 0/2048/4096/8192 x 3 reps on Qwen3-0.6B-Q8_0, then one Qwen3.5-4B-Q4_K_M point at depth 4096 after checking the qwen35 header for which blocks carry full-attention KV; $0, no GPU, no training, wall-clock unmeasured but under an hour by prefill-token count.

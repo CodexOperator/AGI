@@ -3,7 +3,7 @@ id: hypothesis:verbs-before-keystrokes
 mint_id: 6ee87e315e8447f4b9df4fea9546e725
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges:
   - experiment:both-callers-one-edit
 confidence: 0.85
@@ -19,7 +19,7 @@ verdict: pending
 
 ## Hypothesis
 
-`goal:g13.1` insists its two callers run the *same* operations: a human drives
+`goal:g4.18` insists its two callers run the *same* operations: a human drives
 a modal shell, an LLM serialises the whole session into one `&&`-joined
 command, and *"a keystroke an agent cannot spell is a verb that exists only for
 humans"*.
@@ -29,7 +29,7 @@ humans"*.
 If that constraint is real, **the nameable verb set is the artefact with a
 right and a wrong answer and the shell is skin over it.** Building the shell
 first would produce verbs shaped by keybindings — one-character, positional,
-stateful — which is precisely the split `goal:g9.7` forbids on the read side.
+stateful — which is precisely the split `goal:g2.19` forbids on the read side.
 
 Concretely: a verb layer plus a serial form can be built and falsified **with
 no interactive code at all**, and the modal shell then binds keys to verbs that
@@ -54,7 +54,7 @@ already exist.
 - A verb that only makes sense as a keystroke — one that needs a cursor, a
   selection, or a mode to mean anything. That would show the operations
   genuinely differ between callers and the shell must come first.
-- Needing a parser. `goal:g13.1` says if edit mode needs its own parser or its
+- Needing a parser. `goal:g4.18` says if edit mode needs its own parser or its
   own file-writing code, the seam is wrong and `goal:g13` has not unified
   anything. Splitting on `&&` is not a parser; anything more would be.
 

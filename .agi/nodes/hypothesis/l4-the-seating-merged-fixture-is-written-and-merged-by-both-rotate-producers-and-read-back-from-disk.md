@@ -3,12 +3,13 @@ id: hypothesis:l4-the-seating-merged-fixture-is-written-and-merged-by-both-rotat
 mint_id: 2b80aea5b8fc4a03968e10ceee621f6b
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 scaffold_hash: 1abd2ac3aac1a611
 season: 2
 testable_claim: "SL7.128 residue (a), belam wf_220dcbe2-987 (GO 11:11Z), last link of this residue chain: the seating_merged fixture in extensions/agi/tests/test_sensei_rotate_out_audit.py (_write_root_join_absent, :624-640 at cdc1d9364) INLINES the merger body (copies rotate.py:5348-5350, merged = dict(rec.get(handover) or {}); merged.update(handover)), so a change to rotate._seating_record_merge_handover ITSELF stays green. Fix, test-only, ONE kid: build prev by (1) rotate._write_seating_record(graph, rec) where rec = rotate._seating_record(seat=SEAT, role=prime_director, source=rotate, ..., transcript_path=str(tr), generation=GEN) with recorded_at pinned to the PREV_STAMP value, tmp_path only; (2) path = rotate._seating_record_merge_handover(graph, {seat: SEAT, recorded_at: <same>, handover: {seating_row_commit: abc123}}) and assert path names the file (1) wrote (the merger returns \"\" when no record matches seat+recorded_at or the record already carries a handover - rotate.py:5330-5340 - so a producer drift fails HERE); (3) read that file back from disk as prev. The writer names the file by utcnow (rotate.py:5302), not recorded_at: the fixture may rename the written file onto the PREV_STAMP slot AFTER the merge, but the CONTENT must be the two producers output, never a dict built in the test. The fixture then locks BOTH producers (record shape AND merger); both parametrized tests (:648 predecessor_resolves, :662 e2e) stay green over near_miss, first_seating, seating_merged. Falsifier: a mutation of the merger that drops prior handover keys (rec[handover] = handover) or a renamed key in _seating_record leaves the suite green. Ceiling: the test file only, no rotate.py change. Carried caveat (b): non-prime seating records are genless (rotate.py:5263) - stays on THOUGHT, out of scope; its live form (both sensei audit verbs key on b_generation, which rotate no longer writes) is a separate node."
+thought_session: dissolve-legacy-2026-09-19
 title: L4 the seating merged fixture is written and merged by both rotate producers and read back from disk
 town: core
 ---

@@ -48,6 +48,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
 import geometry_config  # noqa: E402
 import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it without importing it)
@@ -189,6 +190,36 @@ def _death_class(worktree, agent_id, runtime_s, agent_dir=None) -> dict:
         cls = "died-no-work"
     return {"class": cls, "evidence": evidence, "runtime_s": runtime_s,
             "dirty_paths": dirty, "kids": kids}
+
+
+def _turn_end_with_live_kid(iter_dir, agent_id, is_alive) -> "str | None":
+    """Name of a still-live kid when this agent's LAST log event is a
+    COMPLETED turn (pi `turn_end` or claude-code `result`/`success`), else
+    None. hypothesis:l5-a-parent-waits-...: in headless -p a turn-end IS
+    process exit; a truncated log answers None, so the honest 'died' label
+    stays."""
+    try:
+        lines = [l for l in (Path(iter_dir) / agent_id / "output.log")
+                 .read_text(errors="replace").splitlines() if l.strip()]
+        ev = json.loads(lines[-1])
+    except (OSError, ValueError, IndexError):
+        return None
+    if not ((ev.get("type") == "result" and ev.get("subtype") == "success")
+            or ev.get("type") == "turn_end"):
+        return None
+    for ap in sorted(Path(iter_dir).glob("*/agent.json")):
+        try:
+            krec = json.loads(ap.read_text())
+        except (OSError, ValueError):
+            continue
+        if (krec.get("spawned_by_agent") != agent_id
+                and krec.get("dispatched_by") != agent_id):
+            continue
+        kpid = _rec_pid(krec)
+        if (krec.get("status") in (None, "running")
+                and kpid > 0 and is_alive(kpid)):
+            return krec.get("node_id") or ap.parent.name
+    return None
 
 
 def _rec_pid(rec: dict) -> int:
@@ -352,6 +383,10 @@ def _looks_like_secret(name: str, value: str) -> bool:
     """Secret by name pattern (KEY/TOKEN/SECRET/PASSWORD) or value shape."""
     upper = str(name).upper()
     if any(p in upper for p in _SECRET_NAME_PATTERNS):
+        return True
+    # A forwarded `.env` value is registered by NAME in `adapters` -- the name
+    # need not carry a KEY/TOKEN substring, so the name half alone would leak.
+    if str(name) in adapters._FORWARDED_NAMES:
         return True
     v = str(value)
     return v.startswith("sk-") or v.startswith("sk-or-v1-")
@@ -635,12 +670,31 @@ def _current_town_branch(git_root: Path, nodes_dir) -> str | None:
         _parsed = branches.parse(branch)
     except ValueError:
         _parsed = None
-    if _parsed is not None and _parsed["kind"] in ("post", "loop"):
+    # hypothesis:lm-dispatch-stale-base-measures-a-town-post-against-core-
+    # main: the v3 TOWN-FIRST spellings every live seat actually carries
+    # (`<town>/season<m>/posts/<seat>/main`, `.../loops/...`) parse as
+    # `v3_post` / `v3_loop`, which the tuple below did not name -- so a town
+    # director's spawn fell through to the ladder lookup, matched no row and
+    # was measured against CORE's main, forcing a merge of core's main into
+    # its post branch before every dispatch (owner 01:1xZ 09-19: "merging
+    # into prim branch ... needs urgent fix"). `merge_target` already resolves
+    # the v3 trunk of the same tuple.
+    if _parsed is not None and _parsed["kind"] in (
+            "post", "loop", "v3_post", "v3_loop"):
         return branches.merge_target(branch)
     town = spawn_gate.town_of_branch(nodes_dir, branch)
-    if not town:
-        return None
-    return spawn_gate.town_integration_branch(nodes_dir, town)
+    if town:
+        return spawn_gate.town_integration_branch(nodes_dir, town)
+    # A v3 town TRUNK whose town has NO `town_branches` row at all integrates
+    # against ITSELF on origin (owner 01:0xZ 09-19: every master's town is
+    # independent and batched -- it is never measured against core's main).
+    # A town WITH a row (core: the row's own season branch) keeps today's exact-equality path
+    # and its None fallback, byte-for-byte.
+    if (_parsed is not None and _parsed["kind"] == "v3_town_season_main"
+            and _parsed.get("town")
+            and _parsed["town"] not in spawn_gate.read_town_branches(nodes_dir)):
+        return branch
+    return None
 
 
 def loop_branch_name(target: str | None, agent_id: str, season: int) -> str:
@@ -2384,6 +2438,11 @@ def main() -> int:
             }
             extra_fm = ({"pushed_from": args.target}
                         if args.push_further and args.target else None)
+            if args.tier == "kid" and target:
+                _slice, _k, _ = spawn_budget.node_line_ceiling(
+                    child_graph, target, cfg)
+                if _k > 1:
+                    extra_fm = dict(extra_fm or {}, line_ceiling=_slice)
             scaffold_info = _scaffold_node_for_agent(
                 child_graph, args.iter_n, agent_id, level, target, role,
                 stamp=child_stamp, extra_fm=extra_fm)
@@ -2587,10 +2646,12 @@ def main() -> int:
         # warning and a 5xx signature is a dead round nobody re-runs. The
         # lease is held by THIS process here, so a re-spawn lands under the
         # SAME lease, agent id, worktree and log.
+        _mem_cap = mem_cap.resolve_memory_cap(cfg)
+
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    spawn_args,
+                    mem_cap.wrap_argv(spawn_args, _mem_cap),
                     stdout=logf,
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
@@ -2699,6 +2760,9 @@ def main() -> int:
             "harness_spec": dict(dispatch_harness),
             "tier": args.tier,
             "command": " ".join(shlex.quote(a) for a in spawn_args),
+            # SM.112 -- the cap this round was launched under (None = no
+            # wrapper), so a capped death can be NAMED from the record.
+            "memory_max": _mem_cap,
             # hypothesis:l4-a-round-alarms-its-dispatcher-by-default --
             # WHO must be alarmed when this round finishes, stamped at spawn
             # with NO flag. The dispatcher is the resolved seat (-x-exported
@@ -3340,21 +3404,26 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
     # the reason it failed). The inline reaper (restart_ok=True) keeps the
     # full paused/restart/budget decision below.
     if not restart_ok:
+        _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+            pid, rec.get("memory_max")) else "")
+        _turn = _turn_end_with_live_kid(iter_dir, agent_id, adapter.is_alive)
+        _reason = (f"turn-end with live kid {_turn} (headless exit, not a death)" if _turn else f"pid {pid} died (detected by reaper){_cap}")
+        _death = _death_class(
+            rec.get("worktree") or "", agent_id,
+            int(time.time()) - int(rec.get("started_at", 0) or 0),
+            agent_dir=iter_dir / agent_id)
+        if _turn:
+            _death["evidence"] = "turn-end"
         return {
             "record": {
                 "status": "failed",
                 "finished_at": int(time.time()),
-                "fail_reason": f"pid {pid} died (detected by reaper)",
+                "fail_reason": _reason,
                 # hypothesis:l4-a-reaped-parent-record-names-its-death-class-
-                # and-staged-work… — the class rides BESIDE fail_reason; the
-                # fail_reason text is deliberately unchanged.
-                "death": _death_class(
-                    rec.get("worktree") or "", agent_id,
-                    int(time.time()) - int(rec.get("started_at", 0) or 0),
-                    agent_dir=iter_dir / agent_id),
+                # and-staged-work… — the class rides BESIDE fail_reason.
+                "death": _death,
             },
-            "message": (f"agent {agent_id} failed (pid {pid} died — death "
-                        f"recorded by the reaper service)"),
+            "message": f"agent {agent_id} failed ({_reason})",
         }
 
     # hypothesis:l3-reaper-restarts-through-stop — a dead pid is not
@@ -3377,10 +3446,13 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
 
     restarts = int(rec.get("restart_count", 0))
     max_restarts = int(((cfg or {}).get("reaper") or {}).get("max_restarts", 1))
+    _cap = (" memory-cap" if mem_cap.reaped_cap_death(
+        pid, rec.get("memory_max")) else "")
     failed = {
         "status": "failed",
         "finished_at": int(time.time()),
-        "fail_reason": f"pid {pid} disappeared (detected by inline reaper)",
+        "fail_reason": (f"pid {pid} disappeared (detected by inline "
+                        f"reaper){_cap}"),
     }
     if restarts >= max_restarts:
         return {"record": failed,

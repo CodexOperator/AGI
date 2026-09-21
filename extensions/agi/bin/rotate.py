@@ -69,6 +69,8 @@ import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock
 import geometry_config  # noqa: E402
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
+import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
+import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -80,6 +82,9 @@ DEFAULT_DIRECTOR_CONTEXT_TOKENS = 1_000_000
 #: Default rotate-at fraction when the ladder node does not declare one.
 DEFAULT_DIRECTOR_ROTATE_AT = 0.47
 
+#: Default minutes a held seat may sit idle below the line before `alarms`
+#: dms `rotate now` (ladder cell `alarms_idle_minutes`).
+DEFAULT_ALARMS_IDLE_MINUTES = 20
 #: Engine root for resolving <engine> placeholders.
 ENGINE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
@@ -135,6 +140,8 @@ DEFAULT_CC_ROLES = {
 SETTINGS_ALIASES = {
     "ultracode": {"ultracode": True},
     "quiet": {"quiet": True},
+    # a row that keeps post dm nudges but never a service-class one
+    "quiet-system": {"quiet_system": True},
 }
 
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
@@ -820,6 +827,55 @@ def _derive_successor_name(windows: list[str], prefix: str = "belam") -> str:
     return f"{best_base}-{_int_to_roman(best_val + 1)}"
 
 
+_CHAIN_TOKEN_RE = re.compile(r"-S(\d+)-L(\d+)(?:$|[-.])")
+
+
+def _chain_token(name: str | None) -> tuple[int, int] | None:
+    """The (season, loop) token of a prime chain window, or None.
+
+    `belam-S2-L5-III` -> (2, 5); a plain `belam` or a pre-token window such
+    as `belam-S1-L3` -> None. ONE reader, so the name resolver, the chain
+    grep and the reap order can never disagree on what a token is."""
+    if not name:
+        return None
+    m = _CHAIN_TOKEN_RE.search(name)
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def prime_window_name(root: Path | None, predecessor: str | None,
+                      prefix: str = "belam") -> str:
+    """The Prime successor window name: `<prefix>-S<season>-L<loop>-<ROM>`.
+
+    Season and loop come from the LIVE cells (ladder `current_season` +
+    `current_loop`), never by copying the predecessor's prefix. The numeral
+    CONTINUES from the predecessor ONLY when the predecessor carries the
+    SAME S/L token; on a token change it restarts at I, so a season or loop
+    rollover never inherits the old name (hypothesis:l4-the-prime-successor-
+    window-name-derives-from-the-season-and-loop-cells-...). When the ladder
+    has no cells (a fixture root) the predecessor's own token is kept, so a
+    pre-cell root stays byte-identical."""
+    season = load_ladder_field(root, "current_season", None) if root else None
+    loop = load_ladder_field(root, "current_loop", None) if root else None
+    ptok = _chain_token(predecessor)
+    if season is None or loop is None:
+        tok = ptok or (1, 1)
+    else:
+        tok = (int(season), int(loop))
+    val = 1
+    if predecessor and ptok == tok:
+        val = _split_roman_suffix(predecessor)[1] + 1
+    return f"{prefix}-S{tok[0]}-L{tok[1]}-{_int_to_roman(val)}"
+
+
+def _window_seniority(w: str) -> tuple:
+    """Reap sort key, OLDEST first: (S/L token, then numeral).
+
+    Sorting by numeral ALONE reaps the NEWEST window after a season/loop
+    token change (`belam-S2-L5-I`, numeral 1, outranks `belam-S1-L4-V`). A
+    pre-token window sorts before any token window."""
+    return (_chain_token(w) or (0, 0), _split_roman_suffix(w)[1])
+
+
 def _session_label(row: dict | None, gen: int) -> str | None:
     """goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-on-
     every-surface-seatings-key-on-session-id-and-the-label-is-the-post-name-
@@ -839,21 +895,15 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 
 def _build_claude_command(name: str, prompt_text: str, debug_file: str,
                           model=None, effort=None, settings=None) -> list[str]:
-    """The remote-control argv: `claude --remote-control NAME ... <prompt>`."""
-    cmd = [
-        "claude",
-        "--remote-control", name,
-        "--permission-mode", "bypassPermissions",
-        "--debug-file", debug_file,
-    ]
-    if model:
-        cmd += ["--model", str(model)]
-    if effort:
-        cmd += ["--effort", str(effort)]
-    if settings:
-        cmd += ["--settings", json.dumps(settings)]
-    cmd.append(prompt_text)
-    return cmd
+    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
+
+    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
+    so no claude flag literal lives in this file (hypothesis:harness-arg-
+    builders-are-templates-only).
+    """
+    return harness_template.render(
+        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
+        model=model, effort=effort, settings=settings)
 
 
 def _harness_row(root: Path | None, harness: str | None) -> dict:
@@ -868,12 +918,60 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
 
 
-# The harness ids rotate.py can actually BUILD an argv for. Anything else is
-# refused by name rather than silently fallen back to claude (goal:g15,
-# hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-
-# claude-code-and-pi). "claude-code" is the built-in default and is always
-# accepted (its argv is today's `claude --remote-control`).
-_KNOWN_HARNESSES = ("claude-code", "copilot-cli")
+def _resolve_seat_role(root: Path, harness: str | None, tier: str,
+                       model, effort, settings):
+    """Resolve `(model, effort, settings)` from the harness template's SOURCE.
+
+    `ladder` and `row` are the two closed sources `harness_template.role_source`
+    admits; the choice is DATA in the template, so a fourth harness declares it
+    and this file is not edited (hypothesis:harness-arg-builders-are-templates-
+    only). A `row` harness's settings are a Claude Code concept its argv
+    ignores, so the caller's value is left untouched.
+    """
+    hid = harness or "claude-code"
+    if harness_template.role_source(hid) == "ladder":
+        if not model:
+            model = load_role(root, tier, "model")
+        if not effort:
+            effort = load_role(root, tier, "effort")
+        if settings is None:
+            settings = load_role(root, tier, "settings")
+    else:  # "row": THIS harness's own config row
+        hrow = _harness_row(root, hid)
+        if not model:
+            models = hrow.get("models") or {}
+            model = models.get(tier) or models.get("director") or None
+        if not effort:
+            e = hrow.get("effort")
+            effort = (e.get(tier) if isinstance(e, dict) else e) or None
+    return model, effort, settings
+
+
+# The harness ids rotate.py can BUILD an argv for, DERIVED from the
+# templates on disk: a harness with a template is buildable, so a fourth
+# harness adds a `.toml` and edits nothing here (hypothesis:harness-arg-
+# builders-are-templates-only). Anything else is refused by name rather than
+# silently fallen back to claude (goal:g15). "claude-code" is the built-in
+# default (its argv is today's `claude --remote-control`). `rotate = false`
+# opts a template out of the seat set (pi is headless, not a rotate seat).
+#
+# PER-TEMPLATE FAILURE ISOLATION: one malformed `.toml` excludes ONLY itself
+# and is NAMED on stderr; the other templates stay buildable. The
+# `("claude-code",)` fallback is reserved for the case where the enumeration
+# ITSELF cannot run (`available()` raises) -- a bad file no longer hides
+# every sibling, the same silent-claude class one file over.
+def _known_harnesses() -> tuple[str, ...]:
+    try:
+        loaded, broken = harness_template.load_all()
+    except Exception as exc:
+        print(f"ERR: cannot enumerate harness templates ({exc}); "
+              f"falling back to 'claude-code'", file=sys.stderr)
+        return ("claude-code",)
+    for hid in sorted(broken):
+        print(f"ERR: harness template {hid!r} is malformed, excluded from "
+              f"the seat set: {broken[hid]}", file=sys.stderr)
+    return tuple(sorted(h for h, data in loaded.items()
+                        if data.get("rotate", True)))
 
 
 def _validate_harness(root: Path | None,
@@ -894,20 +992,20 @@ def _validate_harness(root: Path | None,
     if not harness or harness == "claude-code":
         return 0, ""
     if root is None:
-        declared = list(_KNOWN_HARNESSES)
+        declared = list(_known_harnesses())
     else:
         declared = sorted((_config_json(root).get("harnesses") or {}).keys())
     if harness not in declared:
         print(f"ERR: no harness {harness!r} in config; declared: {declared}",
               file=sys.stderr)
         return 1, ""
-    if harness not in _KNOWN_HARNESSES:
+    if harness not in _known_harnesses():
         # Declared but not buildable here: `pi` is a dispatch.py harness with
         # no rotate argv builder, so letting it through would fall to the
         # claude branch -- the exact silent-claude fallback this validator
         # exists to stop, one name further out.
         print(f"ERR: harness {harness!r} is declared but rotate.py cannot "
-              f"build it; buildable: {list(_KNOWN_HARNESSES)}",
+              f"build it; buildable: {list(_known_harnesses())}",
               file=sys.stderr)
         return 1, ""
     return 0, ""
@@ -918,49 +1016,36 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
                            extra_args=None) -> list[str]:
     """The interactive GitHub Copilot CLI argv for a seat.
 
-    Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
-
-        copilot [--model M] [--effort E] --allow-all --remote -i <card>
-
+    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
+    construction lives here; this is the thin hook that names the template.
     `-i, --interactive <prompt>` starts interactive mode (the post stays up
-    in the tmux window and `send.py` can type into its input box) and executes
-    the card as the first prompt. `--remote` enables remote control from GitHub
-    web and mobile while the interactive seat remains attached to its tmux
-    pane.
-
-    `--allow-all-tools` is required for a non-interactive `-p` run and is kept
-    here so the first tool call does not block on a confirmation; `-i` keeps
-    the session alive, which is what a SEAT (not a fire-and-forget kid) needs.
+    in the tmux window and `send.py` can type into its input box); `--remote`
+    enables remote control from GitHub web and mobile; `--allow-all` keeps the
+    first tool call from blocking on a confirmation, which is what a SEAT (not
+    a fire-and-forget kid) needs.
     """
-    args = [bin_path or "copilot"]
-    if model:
-        args += ["--model", str(model)]
-    if effort:
-        args += ["--effort", str(effort)]
-    args += ["--allow-all"]
-    args += ["--remote"]
-    args += [str(a) for a in (extra_args or [])]
-    args += ["-i", prompt_text]
-    return args
+    return harness_template.render(
+        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
+        bin_path=bin_path, extra_args=extra_args)
 
 
 def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
                            bin_path: str | None = None) -> list[str]:
-    """The argv for the resolved harness, claude by default.
+    """The argv for the resolved harness, DISPATCHED ON ITS TEMPLATE.
 
-    The ONE seam a third harness enters `spawn_window` through. `harness`
-    absent/`claude-code` returns `_build_claude_command` byte-identically, so
-    every existing spawn line is unchanged; `copilot-cli` returns the
-    interactive copilot argv instead.
+    The ONE seam a harness enters `spawn_window` through. `harness` absent or
+    `claude-code` renders `claude-code.toml` byte-identically to the old
+    hand-built claude argv; any other harness renders ITS OWN template. There
+    is no `if harness == "..."` branch here: a harness with a template on disk
+    is built, and one without raises `UnknownHarnessError` by name rather than
+    silently falling back to claude (goal:g15).
     """
-    if harness == "copilot-cli":
-        return _build_copilot_command(
-            prompt_text=prompt_text, model=model, effort=effort,
-            bin_path=bin_path)
-    return _build_claude_command(name, prompt_text, debug_file, model=model,
-                                 effort=effort, settings=settings)
+    return harness_template.render(
+        harness or "claude-code", prompt=prompt_text, model=model,
+        effort=effort, settings=settings, name=name, debug_file=debug_file,
+        bin_path=bin_path)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -1576,8 +1661,14 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
-def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
+def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
+                   cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success.
+
+    `cwd` (hypothesis:l4-spawn-cds-into-the-row-worktree-cell-when-set) is
+    the directory the launch line cds into. Absent/None is byte-for-byte
+    today's line (`os.getcwd()`, the spawner process cwd); a seated spawn
+    passes the seat row's resolved `worktree` cell instead.
 
     Two failures were live here until 2026-09-08 and both were silent, which
     is why three primes in a row saw `loop` report a rotation that had not
@@ -1599,7 +1690,7 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str) -> int:
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
-    launch_cmd = f"cd {shlex.quote(os.getcwd())} && {shell_cmd}"
+    launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
     if len(launch_cmd) > _TMUX_ARG_SAFE:
         fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
                                       suffix=".sh")
@@ -1644,7 +1735,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  seat: str | None = None,
                  rc_name: str | None = None,
                  successor_argv: str | None = None,
-                 harness: str | None = None) -> tuple[int, str]:
+                 harness: str | None = None,
+                 cwd: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1704,28 +1796,16 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     if hr_rc:
         return hr_rc, ""
 
-    # Resolve model / effort / settings (caller flags override role defaults)
+    # Resolve model / effort / settings for the harness's DECLARED SOURCE
+    # (hypothesis:harness-arg-builders-are-templates-only): `ladder` or `row`
+    # is template data, so a harness's name never branches the resolution.
     if root is not None:
-        if harness == "copilot-cli":
-            # A third harness's cells live in ITS OWN row. The ladder/claude-
-            # code fallback load_role() resolves would hand a copilot seat a
-            # claude model name, so the whole resolution is owned here.
-            hrow = _harness_row(root, harness)
-            if not model:
-                models = hrow.get("models") or {}
-                model = models.get(tier) or models.get("director") or None
-            if not effort:
-                e = hrow.get("effort")
-                effort = (e.get(tier) if isinstance(e, dict) else e) or None
-            # settings are a Claude Code concept (ultracode); the copilot
-            # argv ignores them. Leave whatever the caller passed untouched.
-        else:
-            if not model:
-                model = load_role(root, tier, "model")
-            if not effort:
-                effort = load_role(root, tier, "effort")
-            if settings is None:
-                settings = load_role(root, tier, "settings")
+        try:
+            model, effort, settings = _resolve_seat_role(
+                root, harness, tier, model, effort, settings)
+        except harness_template.HarnessTemplateError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 1, ""
 
     if root is not None and not debug_file:
         # (w2) route the DEFAULT debug log through `_sessions_dir` (the ONE
@@ -1746,9 +1826,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical.
-        _bin = None
-        if harness == "copilot-cli":
-            _bin = _harness_row(root, harness).get("bin") or None
+        _bin = _harness_row(root, harness).get("bin") or None
         # A non-prime seat spawned with no explicit --prompt-file gets its body
         # from the assembled brief. assemble() already inserts the constitution
         # head, so we skip successor_prompt() — calling both would double-insert it
@@ -1766,7 +1844,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
-                print(f"ERR: prompt file not found: {prompt_file}", file=sys.stderr)
+                print(f"ERR: prompt file not found: {prompt_file} "
+                      f"(resolved {pf}, root {root})", file=sys.stderr)
                 return 1, ""
             claude_cmd = _successor_command(
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
@@ -1789,7 +1868,14 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
               file=sys.stderr)
         return 1, ""
 
-    rc = _launch_window(tmux_session, name, shell_cmd)
+    # `cwd` is passed ONLY when set: the default call keeps today's exact
+    # three-positional shape, so callers/tests that stub `_launch_window`
+    # with a 3-arg fake stay valid (hypothesis:l4-spawn-cds-into-the-row-
+    # worktree-cell-when-set).
+    if cwd:
+        rc = _launch_window(tmux_session, name, shell_cmd, cwd=cwd)
+    else:
+        rc = _launch_window(tmux_session, name, shell_cmd)
     return rc, shell_cmd
 
 
@@ -1852,6 +1938,33 @@ def _row_launch_refusal(args, row):
                     f"settings {row.get('settings') or ''}; row changes only "
                     f"via write.py by the Prime/owner ahead of the rotation")
     return None
+
+
+def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
+    """The cwd a seated `cmd_spawn` launches in: the row's `worktree` cell.
+
+    The cell is RELATIVE to graph_root (schemas/[config].md); an absolute
+    cell is used as-is. Resolution mirrors `_own_sessions_dir` -- relative
+    cells resolve against `locations.git_common_root(root) or root`, NEVER
+    `os.getcwd()`.
+
+    Empty/absent cell -> None: today's spawner cwd, byte-identical. A cell
+    that does not resolve to a directory is ALSO None, with a
+    `[seating]`-tagged warning: a `cd` into a missing dir would kill the
+    tmux window instantly and silently (this hypothesis, decision 4).
+    """
+    wt = str((row or {}).get("worktree") or "").strip()
+    if not wt or root is None:
+        return None
+    p = Path(wt)
+    if not p.is_absolute():
+        p = Path(locations.git_common_root(root) or root) / wt
+    if not p.is_dir():
+        print(f"[seating] worktree cell {wt!r} does not resolve to a "
+              f"directory ({p}); launching in {os.getcwd()}",
+              file=sys.stderr)
+        return None
+    return str(p)
 
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
@@ -2084,6 +2197,7 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         seat=seat,
         extra=startup_block,
         harness=getattr(args, "harness", None),
+        cwd=_seat_worktree_cwd(root, _srow),
     )
     if rc != 0:
         # A FAILED spawn removes the pre-window first-seating bootstrap record
@@ -3223,6 +3337,12 @@ def cmd_status(args: argparse.Namespace, root: Path | None = None) -> int:
             return 1
         for row in _load_seats(root):
             seat = row.get("name") or "?"
+            if not boxes.row_is_local(root, row):
+                # A foreign box's row: its pin log is that box's file, not
+                # this one's. Name the seat and the box, never a false age=?.
+                print(f"{seat}\tbox={row.get('box') or '(default)'}\t"
+                      f"skipped: foreign box")
+                continue
             gen = _read_generation(root, seat)
             frac = _seat_fraction(root, row)
             frac_str = "?" if frac is None else f"{frac:.3f}"
@@ -3550,6 +3670,53 @@ def _rename_post_segment(branch: str, old: str, name: str) -> str:
     return branch.replace(f"/posts/{old}", f"/posts/{name}")
 
 
+def _own_sessions_dir(root: Path, seat: str) -> Path:
+    """The sessions dir of the tree the POST ITSELF lives in: its worktree's
+    `.agi/sessions`, or MAIN's shared dir for a MAIN-resident post (the seat
+    row's `worktree` cell empty/absent). The root comes from the ROW CELL,
+    never from a path guess -- the same rule `_prepare_merge_target` uses to
+    tell a MAIN post from a worktree one. Used by every surface that IS the
+    post's own (the quorum card, which `_own_card_path` writes worktree-
+    first, hypothesis SL2.01 #3); shared-room surfaces (meter pins, inbox,
+    seat handoffs, budget) stay on `_sessions_dir`. L5.11."""
+    wt = str((_find_seat(root, seat) or {}).get("worktree") or "").strip()
+    if wt:
+        p = Path(wt)
+        if not p.is_absolute():
+            p = Path(locations.git_common_root(root) or root) / wt
+        if p.is_dir():
+            return p / ".agi" / "sessions"
+    return _sessions_dir(root)
+
+
+def _resolve_brief_file(root: Path, seat: str, brief_file: str) -> str:
+    """The successor brief resolved through the SAME root the rename boundary
+    uses -- `_own_sessions_dir(root, seat)` -- never through CWD. A post's
+    quorum card IS its own file (`_own_card_path`, worktree-first); the
+    boundary renames it there, so the successor must read it there. An
+    ABSOLUTE path passes through unchanged (an explicit `--prompt-file` and
+    `extensions/agi/briefs/prime-director-successor.md` keep their own roots);
+    a RELATIVE path whose first two parts are `.agi`/`sessions` re-roots on
+    the post's own sessions dir (prefix dropped, tail rejoined); ANY other
+    relative path is returned unchanged (today's behaviour).
+
+    `seat` is the name whose ROW locates the post's tree -- the PRE-rename
+    name at a rename boundary, never the substituted card name. The boundary
+    `_rename_surfaces` renames the card under the OLD row's tree, so the
+    successor must ask for the OLD row even though the card on disk carries
+    the NEW name. L5.11."""
+    s = str(brief_file or "").strip()
+    if not s:
+        return s
+    p = Path(s)
+    if p.is_absolute():
+        return s
+    parts = p.parts
+    if len(parts) >= 2 and parts[0] == ".agi" and parts[1] == "sessions":
+        return str(_own_sessions_dir(root, seat).joinpath(*parts[2:]))
+    return s
+
+
 def _rename_surfaces(root: Path, old: str, new: str,
                      branches_reader=None) -> list[dict]:
     """Enumerate EVERY surface the post name `old` touches as {kind, src,
@@ -3576,13 +3743,24 @@ def _rename_surfaces(root: Path, old: str, new: str,
         seen.setdefault(src, item)
 
     sessions = _sessions_dir(root)
+    own_sessions = _own_sessions_dir(root, old)
+    # the rename PLAN file is not itself a rename surface: at staging time it
+    # does not exist, at boundary-apply time it does, and including it would
+    # make every re-derived table drift from the staged one (L5.02).
+    _stage_self = sessions / "seats" / f"{old}.rename.json"
     for sub in ("", "seats", "quorum", "inbox"):
-        base = sessions if not sub else sessions / sub
+        # the quorum CARD is the post's own file (`_own_card_path`, worktree-
+        # first); seats/ (handoffs), inbox/ and the top-level pins/logs are
+        # the SHARED room and stay MAIN-rooted on `_sessions_dir`. L5.11.
+        if sub == "quorum":
+            base = own_sessions / "quorum"
+        else:
+            base = sessions if not sub else sessions / sub
         dirs = [base] if base.is_dir() else []
         if not dirs:
             continue
         for p in sorted(base.glob(f"{old}*")):
-            if not p.is_file():
+            if not p.is_file() or p == _stage_self:
                 continue
             dst = p.parent / (p.name.replace(old, new, 1))
             add("session-file", str(p), str(dst), "rename-file")
@@ -3895,20 +4073,36 @@ def newk_present_in(data: dict, newk: str) -> bool:
     return newk in data
 
 
+def _refusal_names(names, limit: int = 5) -> str:
+    """`a, b, c (+N more)` -- a refusal names the offending surfaces/paths,
+    capped at `limit` so a large drift never floods the line."""
+    shown = ", ".join(str(n) for n in names[:limit])
+    return shown + (f" (+{len(names) - limit} more)"
+                    if len(names) > limit else "")
+
+
 def _apply_staged(root: Path, old: str, delete_old: bool = False,
-                  run_git=None, run_tmux=None, live: bool = False) -> int:
+                  run_git=None, run_tmux=None, live: bool = False,
+                  boundary: bool = False, record: dict | None = None) -> int:
     """The BOUNDARY apply: read `.agi/sessions/seats/<old>.rename.json` and
     apply EVERY appliable surface in ONE pass. This is what the next
     rotate-self of `old` runs between the predecessor rotate-out and the
     successor spawn, so the successor seats under the NEW name (never
-    mid-generation). The rotating predecessor IS the live holder of the
-    pid when it runs this, so there is deliberately NO liveness refusal
-    here (that gate lives on the --now/--apply operator path in
-    cmd_rename_post). A privileged caller (the Prime, at merge-up) may pass
-    run_git=lambda *a: rotate._live_git(root, *a) (and the tmux analog) to
-    run the boundary apply for REAL; the default (None) keeps the print-only
-    seams. Returns 0 when applied or already applied (stage gone -> no-op),
-    1 on a malformed stage."""
+    mid-generation). The rotating predecessor IS the live holder of the pid
+    when it runs this, so there is deliberately NO liveness refusal here
+    (that gate lives on the --now/--apply operator path in cmd_rename_post).
+
+    The json is a PLAN, never trusted stale: the fresh table is RE-DERIVED
+    from `_rename_surfaces(root, old, new)` at apply time and compared
+    keyed on `(kind, src, dst)`; any surface present on one side only, or
+    with a differing `action`, is DRIFT -- refused by NAME, nothing applied,
+    the stage left intact. With `boundary=True` a non-churn dirty tree is
+    refused first (cron churn excluded by `_prepare_dirty_paths`).
+
+    Returns 0 applied/already-applied (stage gone -> no-op), 1 malformed or
+    nameless stage, 2 drift or dirty-tree refusal. `record` (optional dict)
+    receives `applied_rename` so the boundary caller can carry the applied
+    surfaces into the rotation record."""
     stage = _sessions_dir(root) / "seats" / f"{old}.rename.json"
     if not stage.exists():
         return 0  # already applied / never staged -> no-op
@@ -3917,19 +4111,50 @@ def _apply_staged(root: Path, old: str, delete_old: bool = False,
     except Exception:  # noqa: BLE001
         print(f"rename-post: malformed stage {stage}", file=sys.stderr)
         return 1
-    surfaces = data.get("surfaces") or []
-    # The boundary apply runs inside the rotating predecessor's OWN rotate-
-    # self, between its rotate-out and the successor spawn -- i.e. always on
-    # a LIVE pid (the caller's own). A live-pid refusal therefore refuses
-    # exactly the window this function exists to serve. The liveness gate
-    # belongs to the --now/--apply OPERATOR verb (cmd_rename_post), not
-    # here: this path applies the staged table UNCONDITIONALLY and consumes
-    # it on success (a second call, stage gone, is a no-op).
-    _apply_surfaces(root, surfaces, delete_old=delete_old,
-                    run_git=run_git, run_tmux=run_tmux, live=live)
+    new = str(data.get("new") or "").strip()
+    if not new:
+        print(f"rename-post: stage {stage} names no new name",
+              file=sys.stderr)
+        return 1
+    if boundary:
+        dirty = _prepare_dirty_paths(
+            _git_maybe(root, "status", "--porcelain"), root,
+            _git_toplevel(root))
+        if dirty:
+            print("rename-post REFUSED: dirty tree -- "
+                  + _refusal_names(dirty), file=sys.stderr)
+            return 2
+
+    def _tbl(rows: list[dict]) -> dict:
+        return {(str(s.get("kind")), str(s.get("src")), str(s.get("dst"))):
+                s.get("action") for s in rows}
+
+    try:
+        fresh = _rename_surfaces(root, old, new)
+    except RenameTownRefusal as exc:
+        print(f"rename-post REFUSED: {exc}", file=sys.stderr)
+        return 2
+    staged_t, fresh_t = _tbl(data.get("surfaces") or []), _tbl(fresh)
+    drift = sorted(k for k in set(staged_t) | set(fresh_t)
+                   if staged_t.get(k) != fresh_t.get(k))
+    if drift:
+        print("rename-post REFUSED: staged plan drifted -- "
+              + _refusal_names([f"{k[0]}: {k[1]} -> {k[2]}" for k in drift]),
+              file=sys.stderr)
+        return 2
+
+    applied, skipped = _apply_surfaces(
+        root, fresh, delete_old=delete_old, run_git=run_git,
+        run_tmux=run_tmux, live=live)
     # consume the stage once applied so the next boundary call is a no-op
     if stage.exists():
         stage.unlink()
+    if record is not None:
+        record["applied_rename"] = {
+            "old": old, "new": new, "applied": applied, "skipped": skipped,
+            "surfaces": [{"kind": s["kind"], "src": str(s["src"]),
+                          "dst": str(s["dst"]), "action": s["action"]}
+                         for s in fresh]}
     return 0
 
 
@@ -5277,6 +5502,8 @@ def _write_rotation_record(root: Path, record: dict,
     _preserve_audit(record, path)
     # (clause a) nor the OUTCOME rewrite: 0 of 18 records carried the seal.
     _preserve_stops_sha(record, path)
+    # (L5.02) nor the boundary rename's applied-surface table.
+    _preserve_applied_rename(record, path)
     path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -5376,6 +5603,8 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     # (SL7.134) nor the Sensei's `audit` block, written on this same file
     #     between the join and the outcome rewrite (mechanism (A)).
     _preserve_audit(rec, path)
+    # (L5.02) nor the boundary rename's applied-surface table.
+    _preserve_applied_rename(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
 
@@ -5391,6 +5620,22 @@ def _preserve_stops_sha(rec: dict, existing_path: Path | None) -> None:
             _old = json.loads(existing_path.read_text(encoding="utf-8"))
             if _old.get("stops_sha256"):
                 rec["stops_sha256"] = _old["stops_sha256"]
+    except Exception:                        # noqa: BLE001
+        pass
+
+
+def _preserve_applied_rename(rec: dict, existing_path: Path | None) -> None:
+    """(L5.02) merge the boundary `applied_rename` fact back from the
+    on-disk rotation record, so a later rewrite of the SAME file never drops
+    the surfaces the rename boundary applied (mechanism (A), same as
+    `_preserve_stops_sha`). Absent on disk -> leaves `rec` unchanged."""
+    if "applied_rename" in rec or existing_path is None:
+        return
+    try:
+        if existing_path.exists():
+            _old = json.loads(existing_path.read_text(encoding="utf-8"))
+            if _old.get("applied_rename"):
+                rec["applied_rename"] = _old["applied_rename"]
     except Exception:                        # noqa: BLE001
         pass
 
@@ -6944,20 +7189,49 @@ def _seat_fraction(root: Path, row: dict) -> float | None:
     return calculate_fraction(usage, context_tokens)
 
 
+def _seat_idle_minutes(root: Path, seat: str) -> float | None:
+    """Minutes since the seat's own last work act (last_act.py's ONE clock),
+    or None when that act is unmeasurable (P7: unmeasurable reads NOT idle)."""
+    try:
+        import last_act  # local: same dir, read-only accessor
+        ts = last_act.last_act_ts(Path(root), seat)
+    except Exception:  # noqa: BLE001 — a broken clock must never false-alarm
+        return None
+    if ts is None:
+        return None
+    return max(0.0, (time.time() - ts) / 60.0)
+
+
 def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     """Meter every seat whose registry row names `--holder` as `rotated_by`.
 
-    For each such seat: at/over `director_rotate_at` (0.47) send exactly ONE
-    dm `rotate now` to the holder (never more), nothing else — no spawn, no
-    tmux. Below threshold prints `hold <seat> <fraction>`. `--once` meters
-    each held seat once and returns so the parent's regression test is
-    deterministic; without it the loop meters every `--interval` seconds.
+    For each such seat at/over `director_rotate_at` (0.47) OR idle for >=
+    `alarms_idle_minutes` (ladder, default 20) AND at/over `captive_rotate_ratio`
+    x the line (ladder; ABSENT = the idle lane is OFF by name): trigger (b) of
+    the owner ruling 05:1xZ ROTATES the seat directly by the MASTER PATH —
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller) — and sends NO dm; the dm is what the ruling
+    replaced. An unmeasurable last act reads NOT idle (never a false alarm).
+    Below both lines prints `hold <seat> <fraction>`. `--once` meters each held
+    seat once and returns so the parent's regression test is deterministic;
+    without it the loop meters every `--interval` seconds.
     """
+    root = Path(getattr(args, "root", None) or root)
     holder = args.holder
     threshold = load_ladder_field(root, "director_rotate_at",
                                   DEFAULT_DIRECTOR_ROTATE_AT)
-    import send  # local: same dir
-    croot = Path(args.comms_root) if args.comms_root else send.comms_root(root)
+    idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                               DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        idle_m = float(idle_m)
+    except (TypeError, ValueError):
+        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+    except (TypeError, ValueError):
+        ratio = None                       # absent/garbage = idle lane off
+    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                  ).strip().lower() in ("1", "true", "yes", "on")
     due = 0
     for row in _load_seats(root):
         if row.get("rotated_by") != holder:
@@ -6968,24 +7242,60 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
             print(f"warn: no pin/usage for seat {seat!r} — skipping",
                   file=sys.stderr)
             continue
-        if frac < threshold:
+        reason = None
+        if frac >= float(threshold):
+            reason = f"fraction {frac:.4f}"
+        else:
+            idle = _seat_idle_minutes(root, seat)
+            if (ratio is not None and frac >= ratio * float(threshold)
+                    and idle is not None and idle >= idle_m):
+                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+        if reason is None:
             print(f"hold {seat} {frac:.4f}")
             continue
-        # at/over threshold: one dm to the holder, plain "rotate now".
-        try:
-            send.send_dm(croot, holder, seat, "rotate now",
-                         sender=holder)
-        except SystemExit as exc:
-            print(f"warn: could not dm holder {holder!r} for {seat!r}: {exc}",
-                  file=sys.stderr)
+        if _master_rotate(root, holder, seat, row, masters):
             continue
-        print(f"rotate now -> {seat} (fraction {frac:.4f})")
+        print(f"rotate -> {seat} ({reason})")
         due += 1
     if args.once:
         return 0
     while True:
         time.sleep(args.interval)
         return cmd_alarms(args, root)
+
+
+def _master_rotate(root: Path, holder: str, seat: str, row: dict,
+                   masters: bool) -> int:
+    """Trigger (b): rotate `seat` by the MASTER PATH — spawn
+    `rotate.py rotate --post <seat>` detached with `AGI_POST=<holder>` (the
+    holder's key is the caller; NEVER a dm). A DIRECTOR only, never the Prime;
+    a *master* seat only when the ladder's `captive_rotate_masters` is on.
+    Refuses BY NAME and spawns nothing when the holder's own key does not load
+    (the child would otherwise refuse after cmd_alarms printed success)."""
+    role = str(row.get("role") or "")
+    if role != "director" or _is_prime_role(role) or ("master" in seat
+                                                      and not masters):
+        print(f"captive rotate refused: {seat!r} is not a captive row",
+              file=sys.stderr)
+        return 1
+    who, _row, how = _caller_hold_key(root, holder, _find_seat(root, holder),
+                                      "env")
+    if who is None:
+        print(f"captive rotate refused: holder {holder!r}: {how}",
+              file=sys.stderr)
+        return 1
+    b = Path(__file__).resolve().parent
+    _spawn_master_rotate(["python3", str(b / "rotate.py"), "rotate",
+                          "--post", seat],
+                         {**os.environ, "AGI_POST": holder}, root)
+    return 0
+
+
+def _spawn_master_rotate(argv: list, env: dict, cwd: Path) -> None:
+    """The ONE detached-child seam for trigger (b); tests monkeypatch THIS."""
+    subprocess.Popen(argv, env=env, cwd=str(cwd), stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL,
+                     start_new_session=True)
 
 
 # --- driven handoff writer (hypothesis:l4-rotate-self-drives-the-handoff-
@@ -9131,7 +9441,9 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                          session_id: str | None = None,
                          session_name: str = "",
                          key_rotation: dict | None = None,
-                         first_key_cells: dict | None = None) -> str:
+                         first_key_cells: dict | None = None,
+                         row_seat: str | None = None,
+                         session_label: str | None = None) -> str:
     """Write the successor's config:seats ROW via `write.py submit` (s6).
 
     Sets the seat's own row's `session_ref`/`session_id`/`window`/`pid` and —
@@ -9195,9 +9507,25 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # first spawn write, beside session_name; the ack back-fill never passes
     # it, so it stays what the spawn row write set.
     import write as _w  # local: same dir (send.py pattern, no import cycle)
-    cells["session_label"] = _session_label(
-        next((r for r in _w._load_seats(_shared_graph_root(root))
-              if r.get("name") == seat), {}), generation) or ""
+    # L5.02 clause 2: after a boundary rename the seats ROW still carries the
+    # OLD name (the round never writes config), so the successor's row lookup
+    # keys on `row_seat` (the applied rename's old name) and resolves through
+    # the one `aliases:` table when the row itself was already renamed. The
+    # label is passed EXPLICITLY by the boundary caller (the same string the
+    # spawn passes as --remote-control), so the GUI label and the stored cell
+    # AGREE. `_write_identity_cells` writes the RESOLVED row, never a phantom
+    # new-named one; an unresolved row is the named skip below, never silent.
+    _rows = _w._load_seats(_shared_graph_root(root))
+    _want = row_seat or seat
+    _row = next((r for r in _rows if r.get("name") == _want), None)
+    if _row is None:
+        _alias = _rename_aliases(_shared_graph_root(root)).get(_want)
+        if _alias:
+            _row = next((r for r in _rows if r.get("name") == _alias), None)
+    _row_name = (_row or {}).get("name") or _want
+    cells["session_label"] = (
+        session_label if session_label is not None
+        else _session_label(_row or {}, generation)) or ""
 
     if pid is not None:
         cells["pid"] = pid
@@ -9208,15 +9536,25 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # (MAIN's), so the append is against the live list, not a worktree copy.
     if key_rotation:
         import write  # local: same dir (send.py pattern, no import cycle)
+        # goal:g15.25 line (2) + hypothesis:l5-key-rotation-at-a-rename-
+        # boundary-clobbers-key-history-instead-of-carrying-it: the history
+        # READ must resolve the SAME row the ONE writer below updates, i.e.
+        # `_row_name` (the row that EXISTS -- the OLD name after a boundary
+        # rename, resolved above through `row_seat` / the `aliases:` bridge),
+        # NOT `seat`. Keying the read on `seat` (the post-rename name) found
+        # no row at read time, so `_cur == {}` and `_hist == []` and the
+        # cell-replace below destroyed every prior entry.
         _cur = next((r for r in write._load_seats(_shared_graph_root(root))
-                     if r.get("name") == seat), {})
+                     if r.get("name") == _row_name), {})
         _ret = key_rotation.get("retired")
         cells["pubkey"] = key_rotation.get("successor_pub")
         cells["sig_scheme"] = (_cur.get("sig_scheme")
                                or key_rotation.get("scheme"))
+        # l5-key-history-...-never-by-generation-pair: dedupe by the retired
+        # key's fingerprint (fp, fallback pub), never its (from,to) pair.
         _hist = list(_cur.get("key_history") or [])
-        if _ret and not any(h.get("from") == _ret.get("from")
-                            and h.get("to") == _ret.get("to")
+        if _ret and not any((h.get("fp") or h.get("pub"))
+                            == (_ret.get("fp") or _ret.get("pub"))
                             for h in _hist if isinstance(h, dict)):
             _hist.append(_ret)
         cells["key_history"] = _hist
@@ -9225,8 +9563,8 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
     # never a second `_write_identity_cells` call, never a second commit.
     if first_key_cells:
         cells.update(first_key_cells)
-    if not _write_identity_cells(root, seat=seat, actor=actor, role=role,
-                                 cells=cells):
+    if not _write_identity_cells(root, seat=_row_name, actor=_row_name,
+                                 role=role, cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
@@ -10866,9 +11204,9 @@ def _belam_oldest(live: list[str], successor: str, prefix: str) -> str | None:
         return None
     if not live_belam:
         return None
-    # oldest = lowest line value; a bare base (no Roman) is line 1
-    by_line = sorted(live_belam,
-                     key=lambda w: _split_roman_suffix(w)[1])
+    # oldest = lowest (S/L token, numeral); across prefixes too, so a
+    # season/loop token change never reaps the newest window.
+    by_line = sorted(live_belam, key=_window_seniority)
     return by_line[0]
 
 
@@ -11002,37 +11340,91 @@ ACK_JOIN_POLL_S = 3
 
 
 def _successor_window_id(seat: str, tmux_session: str,
-                         window_path: str | None = None) -> str | None:
+                         window_path: str | None = None,
+                         aliases: list[str] | None = None) -> str | None:
     """The successor window's tmux @id (the `@<N>` token), or None.
 
     With `window_path` (test seam, s3) the @id comes from a window-path line
     of the form `@<N> <name>`; a plain `<name>` line yields None, so existing
     plain-name fixtures never trip the JOIN. Real tmux parses
     `list-windows -F '#{window_id} #{window_name}'` and name-matches. The @id
-    (never the session prefix) is what the registry JOIN keys on."""
+    (never the session prefix) is what the registry JOIN keys on.
+
+    `aliases` (L5.15) is an ORDERED list of ADDITIONAL names tried after
+    `seat`, by the SAME exact equality -- never a substring. A rename boundary
+    supplies them from the record's OWN `applied_rename` fact (`<new>` first,
+    then the `<new>.prev` window the boundary leaves behind). Absent/empty
+    aliases is byte-for-byte the old behaviour."""
+    wanted = [seat] + [str(a) for a in (aliases or ())
+                       if a and str(a) != seat]
+    plain: list[str] = []
     if window_path is not None:
         p = Path(window_path)
         if p.exists():
-            for ln in p.read_text(encoding="utf-8").splitlines():
-                ln = ln.strip()
-                if not ln.startswith("@"):
-                    continue
-                ident, _, name = ln.partition(" ")
-                if name.strip() == seat:
-                    return ident.strip()
-        return None
-    try:
-        out = subprocess.run(
-            ["tmux", "list-windows", "-t", tmux_session,
-             "-F", "#{window_id} #{window_name}"],
-            capture_output=True, text=True, timeout=5).stdout
-        for ln in out.splitlines():
+            plain = [ln.strip() for ln in
+                     p.read_text(encoding="utf-8").splitlines()
+                     if ln.strip().startswith("@")]
+    else:
+        try:
+            plain = subprocess.run(
+                ["tmux", "list-windows", "-t", tmux_session,
+                 "-F", "#{window_id} #{window_name}"],
+                capture_output=True, text=True, timeout=5
+            ).stdout.splitlines()
+        except Exception:  # noqa: BLE001
+            plain = []
+    # name preference order (identical to the old first-match when no aliases)
+    for want in wanted:
+        for ln in plain:
             ident, _, name = ln.partition(" ")
-            if name.strip() == seat:
+            if name.strip() == want:
                 return ident.strip()
-    except Exception:  # noqa: BLE001
-        pass
     return None
+
+
+def _record_names_prev_as_successor(rec: dict | None, new: str) -> bool:
+    """True ONLY when the record's OWN bytes name `<new>.prev` as its
+    successor window. `rotate-self` writes that fact at
+    `handover.successor_window.name` (rotate.py:18951); a crash-recovery
+    record carries the same shape top-level. Absent, malformed or a different
+    name -> False, so `.prev` is never a candidate on a guess."""
+    want = f"{new}.prev"
+    rec = rec if isinstance(rec, dict) else {}
+    hov = rec.get("handover")
+    cands = []
+    if isinstance(hov, dict):
+        cands.append(hov.get("successor_window"))
+    cands.append(rec.get("successor_window"))
+    for sw in cands:
+        nm = sw.get("name") if isinstance(sw, dict) else sw
+        if nm and str(nm) == want:
+            return True
+    return False
+
+
+def _rename_boundary_names(seat: str, rec: dict | None) -> list[str]:
+    """The successor-window names a record's OWN `applied_rename` fact
+    licenses, in preference order: the renamed target first, then -- ONLY
+    when the record's own bytes name it the successor -- the `<new>.prev`
+    window. Returns [] for a record with no rename (absent, or old == new),
+    so nothing is ever guessed.
+
+    The OLD name is deliberately NOT a candidate: after the boundary applied,
+    no live window answers to it, so matching it could only join a foreign
+    window. `.prev` is the PREDECESSOR's own window carried aside by step (2)
+    of the boundary, NEVER the successor -- accepting it unconditionally
+    would turn an unresolved join into a WRONG one (the predecessor joined as
+    the successor). It is licensed only by `handover.successor_window.name`."""
+    ar = (rec or {}).get("applied_rename")
+    if not isinstance(ar, dict):
+        return []
+    old, new = ar.get("old"), ar.get("new")
+    if not old or not new or str(old) == str(new):
+        return []
+    names = [str(new)]
+    if _record_names_prev_as_successor(rec, str(new)):
+        names.append(f"{new}.prev")
+    return names
 
 
 def transcript_from_registry(registry_json: Path) -> Path | None:
@@ -14494,11 +14886,49 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
             "record_path": str(record_path) if record_path else None}
 
 
+#: L5.15 -- files the rename-boundary fallback will read from the FRONT of
+#: the recency-ordered listing before giving up. A record matching by NAME is
+#: never affected; this bounds only the no-name-match scan.
+_RENAME_FALLBACK_SCAN_MAX = 200
+
+
+def _record_accepted(rec) -> bool:
+    """A rotation record's acceptance rules, in ONE place so the named lookup
+    and the rename-boundary fallback can never drift apart."""
+    if not isinstance(rec, dict):
+        return False
+    ok_result = rec.get("result") in ("started", "success")
+    # A crash-recovery `result: respawned` record is a rotation the service
+    # must pick up too (L4.292): the recovered seat's after_join (join ->
+    # pin -> pending ack) runs exactly as a rotated seat's does.
+    crash_ok = (rec.get("rotation") == "crash-recovery"
+                and rec.get("result") == "respawned")
+    return bool(ok_result or crash_ok)
+
+
+def _record_stamp_key(path: Path) -> str:
+    """The `<stamp>` token of `<name>.<stamp>.json`, so recency ordering works
+    across DIFFERENT seat names (a filename sort orders by name FIRST).
+    Unparseable -> '' so it sorts last."""
+    stem = path.name[:-5] if path.name.endswith(".json") else path.name
+    return stem.rsplit(".", 1)[-1] if "." in stem else ""
+
+
 def _latest_rotate_record(root: Path, seat: str):
     """The seat's newest recorded rotation document ({..}.json) whose result
     marks a rotation that happened (started/success), or None. Best-effort
     discovery for the SERVICE: a rotation's after_join runs against the records
-    rotate-self wrote."""
+    rotate-self wrote.
+
+    (L5.15) RENAME BOUNDARY. `_apply_staged` renames the seat BEFORE
+    `_rotate_self_started_path` names its record, so the record file is
+    `<NEW>.<stamp>.json` -- while the watch loop still asks by the seats ROW
+    name (it iterates rows, which the boundary never renames). A
+    `<seat>.*.json`-only glob returns None and the changed join bytes are never
+    reached. So when nothing matches by NAME, fall back to a record whose OWN
+    `applied_rename.old == seat` -- the record's measured fact, never a guessed
+    name -- newest-first and bounded. A name match means the fallback never
+    runs, so existing behaviour is byte-for-byte unchanged."""
     try:
         pat = _rotations_dir(root) / f"{seat}.*.json"
         files = sorted(pat.parent.glob(pat.name))
@@ -14509,14 +14939,25 @@ def _latest_rotate_record(root: Path, seat: str):
             rec = json.loads(f.read_text())
         except (OSError, json.JSONDecodeError):
             continue
-        # A crash-recovery `result: respawned` record is a rotation the service
-        # must pick up too (L4.292): the recovered seat's after_join (join ->
-        # pin -> pending ack) runs exactly as a rotated seat's does. One-line
-        # widening of the accepted results for that rotation only.
-        ok_result = rec.get("result") in ("started", "success")
-        crash_ok = (rec.get("rotation") == "crash-recovery"
-                    and rec.get("result") == "respawned")
-        if isinstance(rec, dict) and (ok_result or crash_ok):
+        if _record_accepted(rec):
+            return rec, f
+    # No record answers to this seat's NAME. The rename-boundary fallback: the
+    # record the boundary wrote under the NEW name still carries
+    # `applied_rename.old == seat` in its own bytes.
+    try:
+        all_files = [p for p in pat.parent.glob("*.json")]
+    except OSError:
+        return None
+    all_files.sort(key=_record_stamp_key, reverse=True)
+    for f in all_files[:_RENAME_FALLBACK_SCAN_MAX]:
+        try:
+            rec = json.loads(f.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        ar = rec.get("applied_rename") if isinstance(rec, dict) else None
+        if not isinstance(ar, dict) or str(ar.get("old") or "") != str(seat):
+            continue
+        if _record_accepted(rec):
             return rec, f
     return None
 
@@ -14552,6 +14993,8 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                             sleep_impl=None, send_dm=None,
                             type_input=None,
                             performer: str = "watch",
+                            tmux_session: str | None = None,
+                            window_path: str | None = None,
                             _rec_pair=None, _row=None, _joined=None,
                             _values=None, _force_due=False,
                             _delay_override=None) -> dict | None:
@@ -14657,6 +15100,19 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
     # @id does NO join and behaves as before.
     join = _record_join(rec)
     window_id = str(join.get("window_id") or "")
+    # (L5.15) RENAME BOUNDARY. The watch loop discovers seats by the seats ROW,
+    # which the boundary never renames, so it asks for the OLD name; the live
+    # successor window answers to the NEW name the record's OWN `applied_rename`
+    # fact measured. Resolve both halves from that fact -- never a guess, never
+    # a second rename: `succ_name` (the template `join` grep) becomes the
+    # renamed target, and an empty captured @id is resolved to the live renamed
+    # window (then its `.prev`) so the code JOIN and the pin still fire.
+    _bnd_names = _rename_boundary_names(seat, rec)
+    succ_name = _bnd_names[0] if _bnd_names else seat
+    if _bnd_names and not window_id:
+        window_id = (_successor_window_id(
+            succ_name, tmux_session or DEFAULT_TMUX_SESSION, window_path,
+            aliases=_bnd_names[1:]) or "")
     # (SL7.98) the own tail injects its OWN join result (_joined) so the
     # dead-seat skip cannot fire for the seat rotating ITSELF; the watch path
     # re-joins through the same `_join_successor` as before.
@@ -14768,7 +15224,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
         # refused for an empty placeholder on a live rotation.
         values = _first_turn_values(
             root, seat=seat, gen=gen_str,
-            succ_name=seat, succ_ref=str(sref),
+            succ_name=succ_name, succ_ref=str(sref),
             succ_transcript=str(transcript),
             pred_pids=_derive_pred_pids(root, seat, rec))
         # pid/from the live join (never the stale record), informational on
@@ -16497,6 +16953,7 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
 
 def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
                           gen_before: int, gen_after: int,
+                          key_seat: str | None = None,
                           dry_run: bool = False) -> dict | None:
     """goal:g15.25 line (2) SUCCESSOR KEY half (hypothesis l4-rotate-self-
     is-key-gated-mints-the-successor-key-and-retires-its-own-into-key-
@@ -16534,14 +16991,19 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
     ``--dry-run`` mints nothing, replaces nothing, writes nothing: it
     returns a ``{dry_run: True, note}`` dict that names the retirement it
     would perform.
+
+    L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
+    not-the-renamed-seat): ``key_seat`` is the name the successor key is
+    written UNDER on a RENAME; the PREDECESSOR is still read from ``seat``.
     """
     if not row or not row.get("pubkey"):
         return None
     import send  # local: same dir (send.py pattern, no import cycle)
     scheme_name = str(row.get("sig_scheme") or send.seatsig.DEFAULT_SCHEME)
     scheme = send.seatsig.get(scheme_name)  # KeyError names an unknown scheme
-    key_path = send._seat_key_path(root, seat)
-    if not key_path.is_file():
+    key_path = send._seat_key_path(root, key_seat or seat)
+    pred_path = send._seat_key_path(root, seat)
+    if not pred_path.is_file():
         return None
     if dry_run:
         _fp = send.seatsig.fingerprint(
@@ -16558,7 +17020,7 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
     # (a) read the PREDECESSOR private key (to sign the retirement) BEFORE
     #     the atomic replace destroys the file on disk.
     try:
-        _obj = json.loads(key_path.read_text())
+        _obj = json.loads(pred_path.read_text())
         _pred_priv = bytes.fromhex(str(_obj.get("priv_hex") or ""))
         _pred_pub = scheme.public_from_secret(_pred_priv)
     except (ValueError, OSError, TypeError):
@@ -16598,6 +17060,9 @@ def _rotate_successor_key(root: Path, seat: str, row: dict | None, *,
             "path": str(key_path),
             "scheme": scheme_name,
             "priv_hex": _succ_priv.hex(),
+            # L5.16 (set ONLY on a rename): the apply preserves these bytes.
+            "pred_path": (str(pred_path) if pred_path != key_path else ""),
+            "gen_from": gen_before,
         },
         "note": (f"retired seat {seat!r}'s key {_retired['fp']} "
                  f"(gen {gen_before}->{gen_after}); successor key minted "
@@ -16620,6 +17085,20 @@ def _apply_successor_key_pending(pending: dict) -> str:
                           "priv_hex": pending["priv_hex"]})
     _dir = key_path.parent
     _dir.mkdir(parents=True, exist_ok=True)
+    # L5.16: on a RENAME rotation the boundary already MOVED `<old>.key` into
+    # `<key_path>` -- MOVE it aside before the replace (the Prime's 22:43Z
+    # hand name, `.gen<from>-pre-rename`) so it is never destroyed.
+    if pending.get("pred_path"):
+        _pred = Path(str(pending["pred_path"]))
+        _src = _pred if _pred.is_file() else key_path
+        _bak = _dir / (f"{key_path.name}.gen"
+                       f"{pending.get('gen_from', '?')}-pre-rename")
+        try:
+            os.replace(_src, _bak)
+        except OSError:
+            if _src.is_file():  # cross-device move: copy, never drop bytes
+                _bak.write_bytes(_src.read_bytes())
+                os.chmod(_bak, send.SEAT_KEY_MODE)
     _tmp = _dir / f".{key_path.name}.tmp"
     _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
                   send.SEAT_KEY_MODE)
@@ -16722,7 +17201,7 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     # HEAD's committed row is origin's row right now (the push just
     # succeeded): only a full match flips the key.
     _committed = send._seats_committed_rows(root)
-    _row = send._seat_row_in(_committed, seat) if _committed else None
+    _row = send._seat_row_for(root, _committed, seat) if _committed else None
     _row_pub = str((_row or {}).get("pubkey") or "")
     _gen = str(_obj.get("gen_after") or _obj.get("gen") or "?")
     if not _row or _row_pub != _pend_pub:
@@ -16743,6 +17222,23 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
                 pass
             raise
         os.chmod(_tmp, send.SEAT_KEY_MODE)
+        # l5 claim (3): keep the OLD live private bytes as evidence, 0600,
+        # under the successor -- the swap never destroys the predecessor key.
+        try:
+            _old = json.loads(_key.read_text())
+            _ofp = send.seatsig.fingerprint(
+                send.seatsig.get(str(_old.get("scheme") or "ed25519"))
+                .public_from_secret(bytes.fromhex(_old["priv_hex"])))
+            _ret = _key.parent / f"{_key.name}.retired-{_ofp}"
+            if not _ret.exists():
+                _rfd = os.open(_ret,
+                               os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                               send.SEAT_KEY_MODE)
+                with os.fdopen(_rfd, "w") as _rf:
+                    _rf.write(_key.read_text())
+                os.chmod(_ret, send.SEAT_KEY_MODE)
+        except Exception:  # noqa: BLE001 -- retirement never blocks the swap
+            pass
         os.replace(_tmp, _key)
         _pend.unlink()
     except (OSError, ValueError):
@@ -17233,6 +17729,16 @@ def _stops_push(root: Path, label: str = "stops") -> str | None:
 DEFAULT_RANKS = ["prime_director", "director", "helper"]  # highest first
 
 
+def _seat_read_root(root: Path, seat: str | None = None) -> Path:
+    """The identity WRITER's tree; root's copy only when it has no such row."""
+    shared = _shared_graph_root(root)
+    if shared == root:
+        return root
+    locations.refuse_live_resolution(root, shared)
+    under = _find_seat(shared, seat) if seat else _load_seats(shared)
+    return shared if under else root
+
+
 def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     """The post whose signing key the caller holds, or (None, None, refusal).
     Returns (post, row, how | refusal) -- `how` on success is 'env' or
@@ -17244,7 +17750,7 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     import send  # local: same dir, no import cycle (send.py pattern)
     seat = os.environ.get("AGI_POST") or os.environ.get("AGI_SEAT")
     if seat:
-        row = _find_seat(root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             return None, None, (
                 f"no key holder identity: {seat!r} is not in the seats "
@@ -17253,9 +17759,11 @@ def _caller_post(root: Path) -> tuple[str | None, dict | None, str]:
     top = _git_toplevel(Path.cwd())
     seat = row = None
     if top is not None:
-        for r in _load_seats(root):
+        _trees = (_seat_read_root(root), root)
+        for r in (r for _t in _trees for r in _load_seats(_t)):
             if r.get("worktree") and Path(str(r.get("worktree"))) == top:
-                seat, row = r.get("name"), r
+                seat = r.get("name")
+                row = _find_seat(_seat_read_root(root, seat), seat) or r
                 break
     if seat is None:
         _where = top if top is not None else "a non-repo cwd"
@@ -17290,9 +17798,12 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
         return None, None, (
             f"post {seat!r}: could not compare the held key to the committed row")
     if ours != row_fp:
+        _pend = key_path.parent / f"{key_path.name}.pending"
+        _where = str(key_path) + (f" and {_pend}" if _pend.is_file() else "")
         return None, None, (
-            f"post {seat!r}: held key fingerprint {ours} does not match the "
-            f"committed row {row_fp}; {KEYGEN_LINE.format(seat=seat)} first")
+            f"post {seat!r}: held key fingerprint {ours} at {_where} does not "
+            f"match the committed row {row_fp} (pubkey "
+            f"{row.get('pubkey')}); {KEYGEN_LINE.format(seat=seat)} first")
     return seat, row, how
 
 
@@ -18110,8 +18621,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # numeral in the chain (its numeral is the successor's minus one line)
         _chain_live = [w for w in _existing_for_chain
                        if w == seat or w.startswith(seat + "-")]
+        # numeral ALONE ranks `belam-S1-L4-XXXI` above `belam-S2-L5-I` after a
+        # season/loop token change, so the successor restarted at `-I` and
+        # collided with the live window (belam-S2-L5-I rotate, 2026-09-18
+        # 23:1xZ). Rank by (token, numeral) -- the reap key, one reader.
         own_chain_name = max(
-            _chain_live, key=lambda w: _split_roman_suffix(w)[1],
+            _chain_live, key=_window_seniority,
             default=None)
         # L4.122 merge-up 24 residue (G): gen_before for a CHAIN seat comes
         # from the ROW/numeral — the predecessor's own window's line value —
@@ -18121,7 +18636,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # the counter only when no chain window is live yet (a fresh prime).
         gen_before = (_split_roman_suffix(own_chain_name)[1]
                       if own_chain_name else _read_generation(root, seat))
-        spawn_name = _derive_successor_name(_existing_for_chain, prefix=seat)
+        spawn_name = prime_window_name(root, own_chain_name, prefix=seat)
         _, gen = _split_roman_suffix(spawn_name)   # generation IS the numeral
         new_name = None   # the own-window rename is plain-seat only
     else:
@@ -18176,8 +18691,22 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _done = _complete_pending_key_swap(root, seat)
         if _done:
             print(_done, file=sys.stderr)
+    # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
+    # not-the-renamed-seat): the successor runs as AGI_SEAT=<new> and resolves
+    # `<new>.key`, but the boundary (0.9) applies the rename AFTER this mint
+    # -- so PEEK the staged plan's `new` (the same field `_apply_staged`
+    # reads) and mint under it. A later refusal returns before any write.
+    _key_seat = seat
+    _peek_stage = _sessions_dir(root) / "seats" / f"{seat}.rename.json"
+    if not getattr(args, "dry_run", False) and _peek_stage.exists():
+        try:
+            _key_seat = (str(json.loads(_peek_stage.read_text()).get("new")
+                             or "").strip() or seat)
+        except Exception:  # noqa: BLE001 -- a malformed stage is refused by
+            _key_seat = seat  # the boundary, never a crash in the mint
     _key_rotation = _rotate_successor_key(
         root, seat, row, gen_before=gen_before, gen_after=gen,
+        key_seat=_key_seat,
         dry_run=bool(getattr(args, "dry_run", False)))
     if _key_rotation:
         _kn = _key_rotation.get("note")
@@ -18198,6 +18727,62 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             rec_path, seat=seat, steps=steps_reached,
             gen_before=gen_before, gen_after=gen,
             template_source=geom_src, stops_sha256=_ss, role=role)
+
+    # (0.9) RENAME BOUNDARY (hypothesis:l5-rotate-wires-apply-staged-into-
+    # the-rotation-boundary): a staged `seats/<seat>.rename.json` is
+    # RE-DERIVED and applied HERE -- before the handoff, the bootstrap and
+    # the spawn -- so the successor is seated under the NEW name. A refusal
+    # (drift / dirty tree / malformed) returns WITHOUT spawning. The
+    # boundary NEVER writes config: the row name and prose mentions stay
+    # PRINTED `ship` lines, so the seats row still reads the OLD name here
+    # and `--rc-label` keeps that row's label (documented deviation).
+    _stage_path = _sessions_dir(root) / "seats" / f"{seat}.rename.json"
+    _applied_rename = None
+    # which name the own window will ACTUALLY carry at step (2): the boundary
+    # renames tmux only under real seams; with the default print-only seam the
+    # window keeps the OLD name.
+    _own_from = seat
+    if _stage_path.exists():
+        if args.dry_run:
+            print(f"(0.9) rename boundary: {_stage_path.name} staged; would "
+                  f"re-derive and apply before the spawn (dry-run, nothing "
+                  f"touched)")
+        else:
+            _bnd_rec: dict = {}
+            _live_seams = bool(getattr(args, "live", False))
+            _old_seat = seat
+            _brc = _apply_staged(
+                root, seat, boundary=True, live=_live_seams,
+                run_git=(lambda *a: _live_git(root, *a)) if _live_seams
+                else None,
+                run_tmux=(lambda *a: _live_tmux(root, *a)) if _live_seams
+                else None,
+                record=_bnd_rec)
+            if _brc != 0:
+                print(f"ERR: rename boundary refused (rc={_brc}); no "
+                      f"successor spawned", file=sys.stderr)
+                return _brc
+            _applied_rename = _bnd_rec.get("applied_rename") or {}
+            seat = _applied_rename.get("new") or seat
+            spawn_name = seat
+            _own_from = seat if _live_seams else _old_seat
+            if not is_chain_seat:
+                # the own-window rename must target the name the window
+                # ACTUALLY carries: with real tmux seams the boundary already
+                # renamed `old` -> `new`; with the default print-only seam the
+                # window is untouched, so rename the OLD name aside.
+                new_name = f"{seat if _live_seams else _old_seat}.prev"
+                pred_name = new_name
+            dbg = args.debug_file or str(_sessions_dir(root) /
+                                         f"{seat}.log")
+            if rec_path is not None:
+                _rec0 = json.loads(Path(rec_path).read_text())
+                _rec0["applied_rename"] = _applied_rename
+                Path(rec_path).write_text(
+                    json.dumps(_rec0, indent=2) + "\n", encoding="utf-8")
+            print(f"(0.9) rename boundary: {_applied_rename.get('old')} -> "
+                  f"{seat}: {_applied_rename.get('applied')} applied, "
+                  f"{_applied_rename.get('skipped')} skipped; stage consumed")
 
     # (1) handoff — the successor's identity travels in the handoff HEADER so
     # it wakes already knowing its own session_ref (kid-2 step 5).
@@ -18233,14 +18818,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     else:
         if not args.dry_run:
             _renamed_own_id = _rename_own_window(
-                seat, new_name, tmux_session, args.window_path)
+                _own_from, new_name, tmux_session, args.window_path)
             _rs_mark(steps_reached, tmpl_steps, "rename", "2")
             _write_rotate_self_started(rec_path, seat=seat,
                                        steps=steps_reached,
                                        gen_before=gen_before, gen_after=gen,
                                        template_source=geom_src,
                                        stops_sha256=_ss, role=role)
-        print(f"(2) rename own window {seat!r} -> {new_name!r}")
+        print(f"(2) rename own window {_own_from!r} -> {new_name!r}")
 
     # (2.5) STARTUP first_turn (hypothesis:l4-startup-is-one-script-or-a-
     #     driven-prompt, 0b round) — resolve and (unless dry-run) RUN each
@@ -18276,7 +18861,17 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     prompt_file = args.prompt_file
     if (not args.dry_run and prompt_file is None
             and tmpl is not None and tmpl.get("brief_file")):
-        prompt_file = str(tmpl["brief_file"]).replace("{seat}", seat)
+        # L5.11: resolve the template brief through the post's OWN tree, so
+        # the successor reads the same card the boundary renames -- never a
+        # CWD coincidence. At a rename boundary the card was renamed under
+        # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
+        # SUBSTITUTION stays the NEW name because that is the card's name on
+        # disk. `--prompt-file` still overrides (it never enters this branch)
+        # and is not re-rooted.
+        _brief_root_seat = (_applied_rename or {}).get("old") or seat
+        prompt_file = _resolve_brief_file(
+            root, _brief_root_seat,
+            str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
         # --ask-diff leg: the predecessor wrote `diff-requested`; the
         # successor's ONE wake call is the diff review, exactly one call
@@ -18380,7 +18975,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # at the successor generation, passed as the --remote-control NAME. The
     # tmux WINDOW name stays `spawn_name` (seat / numeral) — decoupled here,
     # never renames the window (pane addressing keys on the window name).
-    _rc_label = _session_label(row, gen)
+    # L5.02 clause 1 (hypothesis:l5-rotate-wires-apply-staged-into-the-
+    # rotation-boundary): after a boundary rename the successor's app-GUI
+    # identity is the NEW name. The rows row still reads the OLD name here
+    # (the round never writes config), so the label is derived from the NEW
+    # seat name the successor was actually seated under, never the stale
+    # pre-boundary row. No stage existed -> byte-identical to the old path.
+    if _applied_rename:
+        _rc_label = _session_label({"name": seat, "role": role}, gen)
+    else:
+        _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
         prompt_file=prompt_file,
@@ -18702,6 +19306,11 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 session_name=((joined or {}).get("name", "")
                               if (joined and joined.get("found")) else ""),
                 generation=gen,
+                # L5.02 clause 2: the row that EXISTS (old name) is the one
+                # the identity cells are written into; the label is the NEW
+                # name, passed explicitly so GUI and cell agree.
+                row_seat=(_applied_rename or {}).get("old"),
+                session_label=(_rc_label if _applied_rename else None),
                 # goal:g15.25 line (2): the successor pubkey + key_history
                 # cells ride this ONE spawn-row write (and the ONE
                 # `_commit_spawn_row` below) -- never a second submit.
@@ -19874,6 +20483,326 @@ def _add_rotate_self_flags(p: argparse.ArgumentParser, *, name_required: bool,
                         "push) -- a live close-out is the real run.")
 
 
+def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, SOURCE SIDE (SM.123): one verb moves a post to another
+    box. This round builds the PLAN and the ONE signed migrate record; the
+    card gate, the carryover commit, the ref push, the target receive and the
+    seated line are named as steps and shipped by later slices (they run on
+    the target's tick / the landing, never as a kid's git). `--dry-run`
+    prints every step by alias and touches nothing. Refusals print BY NAME.
+    """
+    import migrate_channel
+    import send
+    if root is None:
+        print("ERR: migrate needs an agi project root.", file=sys.stderr)
+        return 1
+    root = Path(root).resolve()
+    if getattr(args, "receive", False):
+        return cmd_migrate_receive(args, root)
+    if not args.post:
+        print("REFUSED: migrate needs --post <post> (nothing touched)")
+        return 1
+    try:
+        source = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot move
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    if not args.to:
+        print("REFUSED: migrate needs --to <box> (nothing touched)")
+        return 1
+    if args.to == source:
+        print(f"REFUSED: a migrate to the box the post is already on "
+              f"({source}) (nothing touched)")
+        return 1
+    if args.mode is not None and args.mode not in migrate_channel.MODES:
+        print(f"REFUSED: unknown mode {args.mode!r} "
+              f"(one of {'|'.join(migrate_channel.MODES)}); nothing touched")
+        return 1
+    mode = args.mode or _migrate_default_mode(root, args.post)
+    session_id = str(args.session_id or "").strip()
+    if mode == "fork" and not session_id and args.mode is None:
+        # R2: the meter chose fork; supply the post's own live session id.
+        session_id = str(
+            _migrate_row(root, args.post).get("session_id") or "").strip()
+    if mode == "fork" and not session_id:
+        print("REFUSED: fork mode needs --session-id (a blank transcript id "
+              "composes a broken `claude --resume  --fork-session` that "
+              "silently loses context); nothing touched")
+        return 1
+    branch = f"refs/agi/posts/{args.post}"
+    print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
+    for i, step in enumerate((
+            "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
+            "carryover commit: the post worktree's diffs as ONE commit on its branch",
+            f"push: {branch} (the post branch rides git)",
+            "record: ONE migrate record, signed with the post key",
+            "target receive: the mail_poll tick seats the successor from the ref",
+            "seated line: ONE answer back on the same channel",
+    ), 1):
+        print(f"  step {i}: {step}")
+    if args.dry_run:
+        print("dry-run: nothing touched")
+        return 0
+    rec = migrate_channel.record(post=args.post, mode=mode,
+                                 source_box=source, target_box=args.to,
+                                 branch=branch, tip=args.tip,
+                                 session_id=session_id or None, ts=send._now())
+    text = migrate_channel.format_record(rec, sign_root=root, signer=args.post)
+    out = send.comms_root(root) / migrate_channel.SUBDIR / migrate_channel.record_name(rec)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text, encoding="utf-8")
+    signed = "signed" if "sig:" in text else "UNSIGNED"
+    print(f"record: {migrate_channel.record_name(rec)} ({signed} with the "
+          f"{args.post} key)")
+    print("next: the target box's mail_poll tick receives it; the ref push is "
+          "the landing, never this verb")
+    return 0
+
+
+def _migrate_fork_below(root: Path) -> float:
+    """`config:rotations` rotate_defaults.migrate_fork_below, default 0.30."""
+    try:
+        return float(_load_rotate_defaults(root).get("migrate_fork_below", 0.30))
+    except (TypeError, ValueError):
+        return 0.30
+
+
+def _migrate_default_mode(root: Path, post: str) -> str:
+    """`rotate` (a fresh seating from the card, no transcript transport)
+    unless the post's meter reads below the config threshold -- fork is the
+    extra, chosen only when the line is not close. An unmeasurable meter
+    never blocks the move: it falls back to `rotate`."""
+    try:
+        frac = _seat_fraction(root, _migrate_row(root, post))
+    except Exception:  # noqa: BLE001 -- an unreadable meter is not a fork
+        return "rotate"
+    if frac is not None and frac < _migrate_fork_below(root):
+        return "fork"
+    return "rotate"
+
+
+def _migrate_row(root: Path, post: str) -> dict:
+    """The post's committed identity row (MAIN's graph), {} when absent."""
+    import write
+    try:
+        rows = write._load_seats(_shared_graph_root(root))
+    except Exception:  # noqa: BLE001 -- no readable graph = no known row
+        return {}
+    for r in rows:
+        if r.get("name") == post:
+            return r
+    return {}
+
+
+def _fork_resume_command(session_id: str) -> str:
+    """The EXACT line a fork seating runs in the new worktree -- one
+    command, never a second spelling."""
+    return f"claude --resume {session_id} --fork-session"
+
+
+def _migrate_transcript_dest(worktree: Path, session_id) -> Path:
+    """The path `claude --resume` actually READS: the ONE derivation
+    (`transcript_from_registry_dict`), never a worktree-local copy nothing
+    reads. It also yields the canonical slug (every '/' AND '.' -> '-') the
+    remote path must use (SLICE 3 SHOULD FIX a + b)."""
+    return Path(transcript_from_registry_dict(
+        {"cwd": str(worktree), "session_id": str(session_id or "")}))
+
+
+def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
+    """Seam: copy the source session's transcript 0600 to the destination
+    `claude --resume` reads. Production pulls it from the SOURCE BOX ALIAS
+    over ssh (never an address); tests monkeypatch this."""
+    dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
+    subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
+                    str(dest)], check=False)
+    try:
+        dest.chmod(0o600)
+    except OSError:
+        pass
+    return dest
+
+
+def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> dict:
+    """Seam: create the post worktree from the pushed ref and seat the
+    successor on THIS box (mode rotate = the ordinary spawn from row+card;
+    mode fork = the transcript copy + the exact resume command). Returns the
+    identity cells the seating produced; tests monkeypatch THIS."""
+    ref = rec.get("branch") or f"refs/agi/posts/{post}"
+    # R1: the worktree path is the row's OWN configured cell when it carries
+    # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
+    # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
+    # convention. The cell written back is the same spelling used to create
+    # it, or the next rotation silently runs in MAIN.
+    main = locations.git_common_root(root) or root
+    cell = str(row.get("worktree") or "").strip()
+    if cell:
+        _p = Path(cell)
+        wt = _p if _p.is_absolute() else (main / cell)
+    else:
+        wt = main / ".agi" / "worktrees" / f"post-{post}"
+        cell = f".agi/worktrees/post-{post}"
+    wt.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "--force",
+                    str(wt), ref], check=False)
+    argv = [sys.executable, str(Path(__file__).resolve()), "spawn",
+            "--name", post, "--seat", post,
+            "--tier", str(row.get("role") or "director")]
+    if rec.get("mode") == "fork":
+        _migrate_copy_transcript(root, rec, wt)
+        argv += ["--successor-argv",
+                 _fork_resume_command(str(rec.get("session_id") or ""))]
+    subprocess.run(argv, cwd=str(wt), check=False)
+    after = _migrate_row(root, post)
+    return {"box": box, "worktree": cell,
+            "window": after.get("window"), "pid": after.get("pid"),
+            "session_id": after.get("session_id"),
+            "session_name": after.get("session_name")}
+
+
+def _migrate_seating_actor(root: Path) -> str:
+    """The RESOLVED seat the schema grants the SEATING cells (`box`,
+    `worktree`) on the geometry list -- read from `context/schemas/[config].md`
+    `actor_rows`, never a literal post name in this module (SM.123 slice 5:
+    seating cells are the master's authority, self_row stays untouched).
+    Returns '' when no entry covers BOTH cells, so the caller names the skip."""
+    import geometry_config  # noqa: PLC0415
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001 -- no schema, no grant
+        return ""
+    main_root = _shared_graph_root(root)
+    _, list_key = geometry_config.resolve(main_root)
+    try:
+        schema = load_schemas_from_dir(
+            main_root / "context" / "schemas").get("config")
+    except Exception:  # noqa: BLE001
+        return ""
+    entries = schema.frontmatter.get("actor_rows") if schema else None
+    if not isinstance(entries, list):
+        return ""
+    for e in entries:
+        if (not isinstance(e, dict)
+                or str(e.get("list_key") or "") != str(list_key)
+                or not e.get("match_key")):
+            continue
+        fields = {str(f) for f in (e.get("fields") or [])}
+        if {"box", "worktree"} <= fields:
+            return str(e.get("actor") or "")
+    return ""
+
+
+def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
+    """QUICK-MIGRATE, TARGET SIDE (SM.123): the mail_poll tick's receive.
+    For every `stage: request` record addressed to THIS box whose signature
+    verifies against the post's pinned key, seats the successor once and
+    answers with ONE `stage: seated` line on the same channel. An unverified
+    record or a row already live is REFUSED BY NAME and nothing is seated."""
+    import migrate_channel
+    import send
+    try:
+        me = boxes.this_box(root)
+    except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
+        print(f"REFUSED: {exc} (nothing touched)")
+        return 1
+    cdir = send.comms_root(root) / migrate_channel.SUBDIR
+    records = sorted(cdir.glob("*.md")) if cdir.exists() else []
+    handled = 0
+    for path in records:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        rec = migrate_channel.parse_record(text)
+        if rec is None or rec.get("stage") != "request":
+            continue
+        if rec.get("target_box") != me:
+            continue
+        if getattr(args, "post", None) and rec.get("post") != args.post:
+            continue
+        handled += 1
+        post = str(rec["post"])
+        row = _migrate_row(root, post)
+        pub = str(row.get("pubkey") or "")
+        if not migrate_channel.verify_record(text, pub):
+            print(f"REFUSED: migrate record {path.name} for {post} does not "
+                  f"verify against its pinned key (nothing touched)")
+            continue
+        raw_pid = row.get("pid")
+        try:
+            pid = int(raw_pid) if raw_pid not in (None, "") else 0
+        except (TypeError, ValueError):
+            print(f"SKIP: migrate record {path.name} for {post} carries a "
+                  f"non-numeric pid {raw_pid!r} (record skipped, tick lives)")
+            continue
+        # MUST FIX (SLICE 3): the row's session_id/pid are the SOURCE box's
+        # when the post is being moved here. Only a row that is POSITIVELY
+        # live on THIS box is two-live-on-one-row; an undeclared row's
+        # liveness belongs to the box the record came from.
+        live_here = boxes.row_is_local(root, row)
+        if not str(row.get("box") or "").strip() and str(
+                rec.get("source_box") or "") != me:
+            live_here = False
+        if live_here and (row.get("session_id") or (pid and _pid_alive(pid))):
+            print(f"REFUSED: {post} is already live on {me} (pid {pid}) -- "
+                  f"two live on one row (nothing touched)")
+            continue
+        if rec.get("mode") == "fork" and not str(
+                rec.get("session_id") or "").strip():
+            print(f"REFUSED: migrate record {path.name} for {post} is fork "
+                  f"with no session_id (a blank resume loses context); "
+                  f"nothing touched")
+            continue
+        if getattr(args, "dry_run", False):
+            print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
+                  f"ref {rec.get('branch')}); nothing touched")
+            continue
+        try:
+            cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
+        except OSError as exc:
+            # R4: a `worktree add` that left `wt` absent must skip by name.
+            print(f"SKIP: migrate record {path.name} for {post} could not seat "
+                  f"({exc}); record skipped, tick lives")
+            continue
+        # SM.123 slice 5: SESSION cells are the post's own self_row write;
+        # SEATING cells (box, worktree) are the master's authority, written
+        # through the actor_rows grant resolved from the schema -- a post may
+        # never re-seat itself (L4.110 ruling B).
+        session_cells = {k: cells[k] for k in
+                         ("window", "pid", "session_id", "session_name")
+                         if cells.get(k) is not None}
+        seat_cells = {k: cells[k] for k in ("box", "worktree")
+                      if cells.get(k) is not None}
+        line = ""
+        if session_cells:
+            line = _write_identity_cells(
+                root, seat=post, actor=post,
+                role=str(row.get("role") or "director"), cells=session_cells)
+        master = _migrate_seating_actor(root) if seat_cells else ""
+        if seat_cells and master:
+            seated_line = _write_identity_cells(
+                root, seat=post, actor=master, role="", cells=seat_cells)
+            line = f"{line}; {seated_line}" if line else seated_line
+        elif seat_cells:
+            # SLICE 6: no seating grant -> no ack, request record left as it
+            # was (a receive that could not seat has not seated).
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(the seating cells were not written)")
+            continue
+        ack = migrate_channel.seat_record(rec, ts=send._now())
+        ack_path = cdir / migrate_channel.record_name(ack)
+        ack_path.write_text(
+            migrate_channel.format_record(ack, sign_root=root, signer=post),
+            encoding="utf-8")
+        print(f"seated {post} on {me} (mode {rec.get('mode')}); "
+              f"{line or 'no identity row'}; answered {ack_path.name}")
+    if handled == 0:
+        print(f"receive on {me}: no migrate records addressed here")
+    return 0
+
+
 def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     """The BARE rotation verb (SL7.115, owner order 22:2xZ via the Sensei):
     `rotate` IS `rotate-self` for the post whose SIGNING KEY the caller holds
@@ -19903,7 +20832,7 @@ def cmd_rotate(args: argparse.Namespace, root: Path) -> int:
     # target = --post or --name or the caller's own post.
     target = args.post or args.name or caller_post
     if target != caller_post:
-        target_row = _find_seat(root, target)
+        target_row = _find_seat(_seat_read_root(root, target), target)
         if target_row is None:
             print(f"rotate refused: no seat {target!r} in the seats registry "
                   f"(nothing delegated)", file=sys.stderr)
@@ -20261,6 +21190,9 @@ def main(argv: list[str] | None = None) -> int:
     p_alarms.add_argument("--interval", type=int, default=300,
                           help="seconds between meters when not --once "
                           "(default: 300)")
+    p_alarms.add_argument("--root", default=None,
+                          help="project root override (default: resolve from "
+                          "cwd; the detached unit passes the resolved root)")
     p_alarms.add_argument("--comms-root", default=None,
                           help="override the comms root (tests)")
     p_alarms.set_defaults(func=cmd_alarms)
@@ -20397,6 +21329,39 @@ def main(argv: list[str] | None = None) -> int:
     # the SL7.114 resolvers, every rotate-self flag an override, --post
     # rotating a LOWER-RANKED post only (downward rank-gated). Delegates to
     # cmd_rotate_self with a Namespace carrying EVERY rotate-self attribute.
+    # migrate --post <post> --to <box> [--mode rotate|fork] [--dry-run]:
+    # QUICK-MIGRATE (SM.123), source side. --dry-run prints every step by
+    # alias and touches nothing; without it, ONE signed migrate record lands
+    # under the season comms root. The ref push and the target receive are
+    # named steps, shipped later -- this verb never runs a kid's git.
+    p_mig = sub.add_parser(
+        "migrate", help="move a post to another box as a fresh rotation "
+                        "(--mode rotate) or a transcript fork (--mode fork); "
+                        "--dry-run prints the plan and touches nothing")
+    p_mig.add_argument("--post", default=None, help="the post to move")
+    p_mig.add_argument("--to", dest="to", default=None,
+                       help="the TARGET box name (never a path or address)")
+    p_mig.add_argument("--mode", default=None, choices=["rotate", "fork"],
+                       help="rotate = a fresh seating from the card "
+                            "(default); fork = resume the transcript copy. "
+                            "Absent, the mode derives: fork only when the "
+                            "meter is below rotate_defaults.migrate_fork_below")
+    p_mig.add_argument("--session-id", default=None,
+                       help="with --mode fork: the source session id to "
+                            "resume on the target")
+    p_mig.add_argument("--tip", default=None,
+                       help="the post branch tip the target receives from")
+    p_mig.add_argument("--dry-run", action="store_true",
+                       help="print every step by alias and touch nothing")
+    p_mig.add_argument("--receive", action="store_true",
+                       help="TARGET side: seat every verified migrate record "
+                            "addressed to THIS box and answer with ONE seated "
+                            "line (the mail_poll tick's half)")
+    p_mig.add_argument("--root", default=None,
+                       help="project root override (default: resolve from cwd)")
+    p_mig.set_defaults(func=cmd_migrate)
+
+    # rotate --post <name>: the bare rotation verb
     p_r = sub.add_parser(
         "rotate", help="rotate-self for the post whose key the caller "
                         "holds: name/timeout/force/stops derived, every "
@@ -20569,6 +21534,10 @@ def main(argv: list[str] | None = None) -> int:
     p_lw.set_defaults(func=cmd_launch_wrapper)
 
     args = ap.parse_args(argv)
+
+    # migrate resolves --root itself, else the nearest project
+    if args.cmd == "migrate":
+        return args.func(args, getattr(args, "root", None) or find_project_root())
 
     # complete works purely from its explicit paths + git; no project root.
     if args.cmd == "complete":

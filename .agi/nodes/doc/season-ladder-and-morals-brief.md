@@ -3,7 +3,7 @@ id: doc:season-ladder-and-morals-brief
 mint_id: ca811e85531d40238d3374b614c83bfe
 type: doc
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: belam-S1-L3-III
 link_ref: .agi/context/season-ladder-and-morals-brief.md

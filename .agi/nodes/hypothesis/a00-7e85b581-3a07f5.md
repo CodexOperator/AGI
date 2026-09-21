@@ -3,7 +3,7 @@ id: hypothesis:a00-7e85b581-3a07f5
 mint_id: 4c891b93952a4d0389e74078453286e3
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -19,7 +19,7 @@ verdict: pending
 
 **Claim:** Shape 3 (real install via `pip install agi-engine` / `uv tool install agi-engine`) is incompatible with forkability (g8) because a machine-global install conflicts with per-project engine ownership.
 
-**Why this matters:** `goal:g8.1` lists three candidate distribution shapes — drop-in clone (today), skill package, and real install — and says nothing about which is viable. Siblings under this goal cover the L9 pinning gap (3 variants, two leaning proved), a hybrid-split proposal (engine=clone, integration=package, pending), and shape-2 (skill package) unviability (pending). **Shape 3 is the only candidate no sibling has examined.**
+**Why this matters:** `goal:g1.23` lists three candidate distribution shapes — drop-in clone (today), skill package, and real install — and says nothing about which is viable. Siblings under this goal cover the L9 pinning gap (3 variants, two leaning proved), a hybrid-split proposal (engine=clone, integration=package, pending), and shape-2 (skill package) unviability (pending). **Shape 3 is the only candidate no sibling has examined.**
 
 **Structural problem:** The engine design is built on three invariants that a pip/uv install breaks:
 

@@ -40,6 +40,7 @@ ranks:
   - director
   - helper
 rotate_defaults:
+  migrate_fork_below: 0.3
   timeout_s:
     prime_director: 900
     director: 900
@@ -128,7 +129,7 @@ templates:
         - {"label": "join", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep {succ_name}", "why": "(the ListAgents name<->ref join is the service's registry read, not a shell stage — judge-cleaned by the Prime L4-X 15:4xZ so the WHOLE templates value passes the L4.234 gate) call 4-5: the name<->ref<->@id join, derived by rotate-self at spawn (L4.114)"}
         - {"label": "pin", "cmd": "python3 extensions/agi/bin/rotate.py meter --pin {pin_ref} --session-log {succ_transcript}", "why": "call 5: the pin claim on the successor's own transcript, path derived from ~/.claude/sessions/<pid>.json"}
         - {"label": "reap-proof", "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '{pred_pids}'", "why": "(empty output = predecessor chain gone; the || fallback was an unmodeled operator — judge-cleaned by the Prime L4-X 15:4xZ) calls 3, 9: the predecessor's process tree checked twice by hand"}
-        - {"label": "belam-chain", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep belam-S1", "why": "the chain must be five"}
+        - {"label": "belam-chain", "cmd": "tmux list-windows -t {tmux_session} -F '#{window_id} #{window_name}' | grep -E 'belam-S[0-9]+-L[0-9]+'", "why": "the chain must be five; the S/L token derives from the live ladder cells, so the grep matches the pattern, never the literal belam-S1"}
       delivery: "first_turn outputs are appended to the successor's first input turn after the head and the brief, under `## STARTUP OUTPUT (rotate-self ran these for you; you ran nothing)`. after_join is PERFORMED BY THE SERVICE (the persistent watcher, or rotate-self's post-spawn tail) after_join_delay_s after spawn as ONE flow — the agent runs nothing; its outputs are written into the rotation record and delivered as the successor's SECOND input (one dm through the fixed nudge); where a decision remains (only `diff` against the handoff) the dm is CAPTIVE: it prints the exact next tokens to emit (owner 2026-09-11 03:0xZ). The prime's `verify-suite` stays a granted-window command and is NOT run at startup; the Belam chain is kept by predecessor pins (hypothesis:l4-the-pin-is-the-lease), not by a reap step. SHAPE (owner 2026-09-12 22:3xZ, wordy outputs are a cost): one line per entry, label + exit; detail only on REFUSED or non-zero; the record is named as the graph address (`rotate.py status --record latest`), never as a filesystem path."
       after_join_delay_s: 20
       first_turn_timeout_s: 120

@@ -3,7 +3,7 @@ id: cron:crons
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
 type: cron
 parents:
-  - goal:g10.2
+  - goal:g2.25
 cadences:
   grid_sync:
     every_mins: 5
@@ -12,23 +12,36 @@ cadences:
   branch_push:
     schedule: 7 * * * *
     enabled: true
+  mail_poll:
+    every_mins: 5
+    enabled: true
+    box: local-town
+    why_box: "the remote-box reader: mail_poll consumes inboxes fetched from the hub"
   publish_engine:
     schedule: 37 * * * *
     enabled: false
   engine_push:
     schedule: 47 * * * *
     enabled: false
+  nudge_sweep:
+    every_mins: 2
+    enabled: true
 crons_live: true
-edited_by: ubuntu
+edited_by: a00-e2ea2536
 season: 1
 services:
+  agi-alarms-sanctuary-master:
+    enabled: true
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/rotate.py alarms --holder sanctuary-master --root {root}
+    restart: on-failure
+    working_directory: "{repo_root}"
   agi-reaper:
     enabled: true
-    exec_start: /usr/bin/python3 /home/ubuntu/work/agi/extensions/agi/bin/heal.py watch --root /home/ubuntu/work/agi --poll-s 30
+    exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30
     restart: on-failure
-    working_directory: /home/ubuntu/work/agi
+    working_directory: "{repo_root}"
     environment:
-      AGI_REAPER_LOG: /home/ubuntu/logs/agi-reaper-agi-2f118e6f.log
+      AGI_REAPER_LOG: "{logs}/agi-reaper-agi-2f118e6f.log"
 status: active
 tags:
   - geometry
@@ -89,13 +102,13 @@ authored reasoning regions (marked with the paired HTML comment this schema
 uses for exactly one such region per node) — the previous version's, about
 retiring the `publish_engine`/`engine_push` cadences after `goal:g11`, left
 at the top; and an older one below it, about correcting this node's own mint
-from parentless to `parents: [goal:g10.2]`, from the version before that.
+from parentless to `parents: [goal:g2.25]`, from the version before that.
 Past edits added a new region at the top without removing the one
 underneath, which the schema does not allow — exactly one such region per
 node, rewritten from scratch per version. Both are merged into this single
 one. The
 parentage fix from the older block is still true and is why `parents:
-[goal:g10.2]` is set above; that fact now lives in the frontmatter itself; it
+[goal:g2.25]` is set above; that fact now lives in the frontmatter itself; it
 does not need to be restated at length here. The cadence-retirement reasoning
 from the newer block is still current and now lives in the body below,
 unchanged in substance.

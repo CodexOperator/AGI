@@ -3,14 +3,15 @@ id: idea:lm-eagle3-head-per-byte
 mint_id: 8362bfbd9a524bbbb750a56b0de41186
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 47c98c84704e2888
 season: 2
 tags:
   - local-maxxing
   - treasury
+thought_session: dissolve-legacy-2026-09-19
 title: "EAGLE-3 head on Qwen3.5-4B: 233 MB draft steps amortise a 2.74 GB target read"
 town: local-maxxing
 ---

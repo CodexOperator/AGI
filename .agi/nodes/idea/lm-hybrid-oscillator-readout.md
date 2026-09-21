@@ -3,9 +3,9 @@ id: idea:lm-hybrid-oscillator-readout
 mint_id: 683642bace844c8388723445e4fa45b9
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.11
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 4bafd0efecfeec50
 scale: big
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - hunch
+thought_session: dissolve-legacy-2026-09-19
 title: "\"Hybrid timeless/timeful architecture: the LLM keeps the what-token-comes-next matrix shape; a sparse spiking oscillator network reads KV-cache and head-activation bits through 10-200 subscribed read sites per neuron, with energy = frequency alignment and a small rhythm-neuron subnetwork as the metronome — the subscription set IS the weight\""
 town: local-maxxing
 ---
@@ -44,3 +45,6 @@ read sites per neuron 10-200; weights clamped to two non-zero bands (positive, n
 
 ## Provenance
 Verbatim pane line (2026-09-16 21:5xZ): "Idk yet how to incorporate spiking networks into an LLM, the best approach feels like a hybrid system that constantly reads kv-caches and head activations and uses those as on/off signal bit triggers, so it becomes a hybrid timeless/timeful architecture. LLM for literally "what token comes next" matrix computation shape with bespoke spike-based attention heads via oscillatory projection? Idk just something that uses the oscillators as both measures of system energy and its predicted value. But energy could be based on alignment, so if frequencies align it takes little energy to propagate. But if they don't align, it takes lots of energy to make them align via selective subscription of downstream neurons. That's the other idea I had, the spike neurons form relatively sparse connections of only 10-200 "read sites" where it "picks" specific neurons whose bits to read for spike flip signals. And the subscription set IS the weight adjustment, though each info source is also weighted between two clamped non-zero positive/negative values. The neurons try to maintain frequency bands but not through a set cadence hardcoded into every neuron, but rather through subscribing to a small network of rhythm neurons who help keep the metronome beat going for the rest, offering lots of steady tones that other neurons can hone in on. And the overall frequency outputs/inputs across all neurons are mostly quantized not due to forced hardcoding but due to the natural energy mechanics of the system. Neurons don't have to maintain strict layer hierarchy, it's not meant to be as organized as matrix multiplication. It's meant to be an oscillator steady-state system that shifts states as sentence meaning evolves." Minted by thought-master 2026-09-16 21:5xZ; no spend follows until a hypothesis names its cap; the natural next hypothesis is a C2 round 2 once ORDER 3's lap lands.
+
+## Agent Notes
+OWNER 2026-09-18 06:14Z (thought-master pane), verbatim: "Btw I was thinking for one ingest these and queue model downloads if it makes sense. https://arxiv.org/abs/2609.04010 https://arxiv.org/abs/2510.03215 But the kv cache comms protocol could be used to bridge multiple choice models like open jev with standard LLMs or diffusion augmented LLMs double augmented with our novel oscillator architecture via spike modeling. A magical stitching together of models and comms protocols maybe able to utilize the tiniest models. All seem to be qwen based which is nice. Or many at least." APPLY (thought-master): the double augmentation = the receiver LLM KV (after a C2C fusion) read by the spiking oscillator readout through its subscribed read sites -- that is this idea composed with hypothesis:lm-c2c-kv-bridge-released-fusers; it gets its own hypothesis only after (1) the C2C bridge reproduces on our box and (2) hypothesis:lm-bend2-spiking-sim / lm-pufferlib-oscillator-policy give a working readout -- chain no longer than the evidence.

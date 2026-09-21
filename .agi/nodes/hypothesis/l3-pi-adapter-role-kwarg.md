@@ -3,9 +3,9 @@ id: hypothesis:l3-pi-adapter-role-kwarg
 mint_id: c3b44a95ba2a444ba0332e24ccd3ea5c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: a00-4ad19971
+edited_by: belam
 loop: goal:g15@s2
 model: claude-fable-5-1
 profile: balanced
@@ -13,7 +13,7 @@ role: director
 scaffold_hash: e7f4f6c7d25e195c
 season: 2
 testable_claim: "Since iter-L3.13 (c080596d2) dispatch.py passes role= and ladder_tier= to every adapter build_command, but only claude_code_adapter accepts them; any pi dispatch (kid, parent, tier-0 director) dies with TypeError before spawning. Adding the two kwargs to pi_adapter.build_command (accepted, unused: pi has no tool bundle) restores every pi row. Proved by a red-first test that calls pi_adapter.build_command with role=parent, ladder_tier=0 and by a live tier-0 parent spawn; disproved if a pi spawn still fails or a claude-code spawn regresses."
-thought_session: iter-L3.14
+thought_session: dissolve-legacy-2026-09-19
 title: pi_adapter.build_command rejects the role/ladder_tier kwargs dispatch now passes, so no pi agent can be spawned
 ---
 # hypothesis:l3-pi-adapter-role-kwarg

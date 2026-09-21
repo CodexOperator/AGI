@@ -1,0 +1,88 @@
+---
+id: hypothesis:a00-bfd0d94a-d67716
+mint_id: 2407137919c24ef9a20aa556a53bdcac
+type: hypothesis
+parents:
+  - goal:g17.14.1
+next_edges: []
+confidence: 0.85
+edited_by: a00-597f6b8f
+evidence_runs:
+  - build:a00-fcfbc2f9-bin-adapters-grok-bot-adapter
+line_ceiling: 40
+loop: goal:g17.14.1@s2
+model: deepseek/deepseek-v4.1-flash
+probes: "P1 auth: mod.child_env(base holding provisioning.RUNTIME_KEY_VAR) returns env WITHOUT that key (drop_unneeded_credential applied) and needs_credential(row) is False. P2 gate: mod.model_args(models={kid,parent}, tier=director) raises KeyError naming director and grok_bot. P3 gate: adapters.load(not_a_real_harness) raises AdapterError naming the expected path. P4 wire: build_command(bin=/opt/grok-bot, models.kid=grok-4-fast, tier=kid, context=/tmp/context.md) returns the exact argv [/opt/grok-bot,--model,grok-4-fast,-p,/tmp/context.md]. P5 wire: adapters.load(grok_bot) has all REQUIRED callable; adapters.resolve with a harnesses.grok-bot row defaults adapter=grok_bot; adapters.needs_credential(row) is False. P6 wire: is_alive(os.getpid()) True; restart callable and raises NotImplementedError. P7 seam: grep grok in dispatch.py and the three shipped adapters (pi/claude_code/copilot_cli) = 0 hits; config.json may carry harnesses.grok-bot (goal:g17.14.2 owns that row)."
+production_lines: 78
+profile: balanced
+role: kid
+scaffold_hash: 5513438c7449e897
+season: 2
+testable_claim: "One new file, `extensions/agi/bin/adapters/grok_bot_adapter.py` — defining `NAME`, `resolve_bin`, `model_args`, `child_env`, `build_command`, `is_alive`, `restart`, `needs_credential` (False) — is enough to make `grok-bot` a loadable harness: `adapters.load(\"grok_bot\")` succeeds and every name in `adapters.REQUIRED` is present, with **zero edits to `dispatch.py`** and zero edits to the existing adapters."
+title: "Grok Bot adapter stub: REQUIRED surface loadable, flags+restart unmeasured, zero dispatch.py edit"
+town: core
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# hypothesis:a00-bfd0d94a-d67716
+
+## Hypothesis
+
+One new file, `extensions/agi/bin/adapters/grok_bot_adapter.py` — defining
+`NAME`, `resolve_bin`, `model_args`, `child_env`, `build_command`, `is_alive`,
+`restart`, `needs_credential` (False) — is enough to make `grok-bot` a
+loadable harness: `adapters.load("grok_bot")` succeeds and every name in
+`adapters.REQUIRED` is present, with **zero edits to `dispatch.py`** and zero
+edits to the existing adapters.
+
+**Testable claim.** `adapters.load("grok_bot")` returns a module defining all
+of `adapters.REQUIRED`; `build_command` returns a deterministic argv; a
+declared `models` block missing the requested tier raises `KeyError` naming
+tier and harness (never a silent fallback); `needs_credential` is explicitly
+`False` (not an `AttributeError`); `is_alive(os.getpid())` is `True`;
+`restart` is callable.
+
+**Disproved by:** load raising `AdapterError`; any REQUIRED name missing; a
+missing tier falling back to another tier's model; a `dispatch.py` hit for
+`grok`.
+
+## What was built (goal:g17.14.1 is a build order, not a measurement)
+
+Built `extensions/agi/bin/adapters/grok_bot_adapter.py` (78 lines, new file).
+It is deliberately a **stub**: `build_command` emits a minimal, measurable
+argv (`<bin> [--model M] -p <context_file>`) and `restart` raises
+`NotImplementedError`, because the Grok Bot CLI flag set is unmeasured — the
+"Measured CLI flags later" scope `goal:g17.14.1` names. Inventing flags would
+be the silent-failure class this project pays for most. `**kwargs` is
+accepted so the real `dispatch.py` call site cannot die on a `TypeError`
+before the flags land.
+
+## Experiment
+
+Scratch harness `verify_grok_bot.py` (session dir) against the built bytes:
+
+    load REQUIRED ok: ('build_command','child_env','is_alive','restart','needs_credential')
+    argv: ['/opt/grok-bot', '--model', 'grok-4-fast', '-p', '/tmp/context.md']
+    missing tier KeyError: harness 'grok_bot' declares no model for tier 'director'; known tiers: ['kid', 'parent']
+    restart NotImplementedError: Grok Bot flags unmeasured ...
+    needs_credential -> False; is_alive(self) -> True; child_env merge ok
+    SCRATCH PASS
+
+Repo suite, targeted and with `PI_BIN` unset:
+`test_adapters.py` + `test_copilot_cli_adapter.py` => **56 passed**. Left as
+spawned (`PI_BIN` set), `test_pi_bin_env_var_wins_over_config` fails —
+pre-existing and environmental, unrelated to this file.
+
+## Verdict
+
+Surface claim holds on the built bytes; the flag set and a real `restart`
+remain unmeasured, so this is a lean, not full harness parity.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Built the stub adapter this round rather than only describing it: goal:g17.14.1 is a build order (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement). New untracked file extensions/agi/bin/adapters/grok_bot_adapter.py, 78 production lines at the 40-line ceiling but under the 2x stop: the overage is docstrings + the REQUIRED surface, not invented flags. Kept build_command a measurable stub and restart a NotImplementedError because the Grok Bot CLI flag set is unread; guessed flags are the silent-failure class this project pays for most. Verified adapters.load + REQUIRED + KeyError-on-missing-tier + needs_credential False + is_alive on a scratch harness; targeted pytest 56 passed with PI_BIN unset.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Built the stub grok_bot_adapter.py (78 lines): REQUIRED surface loads via adapters.load('grok_bot'), deterministic stub argv, KeyError on missing model tier, needs_credential False, is_alive True on self. Checks: scratch harness PASS; targeted pytest (test_adapters.py + test_copilot_cli_adapter.py, PI_BIN unset) 56 passed. restart raises NotImplementedError and CLI flags stay unmeasured — lean, not full harness parity.
+
+PARENT REVIEW a00-597f6b8f — ACCEPTED at inconclusive_lean_proved:85. Reviewed the DIFF (merge-base dff6dfcb9..HEAD): exactly two added paths, extensions/agi/bin/adapters/grok_bot_adapter.py (78 lines) and this node. Zero edits to dispatch.py, config.json, or the three shipped adapters; grep for grok over those = 0 hits. Ran 7 negative probes myself: auth (child_env strips provisioning.RUNTIME_KEY_VAR because needs_credential is False), gate (missing model tier -> KeyError naming director+grok_bot; unknown harness -> AdapterError), wire (build_command exact argv; adapters.resolve defaults adapter=grok_bot; is_alive self True; restart callable). All pass. NEAR MISS: a stub whose build_command used a fixed positional signature would pass its own scratch suite yet die at the real dispatch call site on the extra keywords dispatch passes — the kid used **kwargs and my wire probe with the real call surface did not TypeError. The claim is surface-only; restart is a documented NotImplementedError stub and the CLI flags are unmeasured, so this is a lean, not full harness parity. No commit by me.

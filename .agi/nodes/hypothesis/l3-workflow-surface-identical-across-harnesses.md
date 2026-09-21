@@ -3,13 +3,13 @@ id: hypothesis:l3-workflow-surface-identical-across-harnesses
 mint_id: a45f04511a2f4c2180322c65257c97ee
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: d67900f67ff176e8
 season: 2
 testable_claim: After the change, one workflow run through workflow.py presents the same surface on both harnesses - the same stage tree, the same per-stage progress, the same final summary - so a reader cannot tell from the presentation which harness executed it, proven by running one workflow both ways and diffing the rendered views.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: "A workflow presents a different surface depending on the harness it runs on: the Claude Code path renders the native interactive workflow view and the pi path prints flat log lines, so the same workflow is two different experiences"
 ---
 <!-- BODY:BEGIN -->
@@ -29,7 +29,7 @@ WHAT IS BEING ASKED. `workflow.py run <name>` is the unified route (owner, 2026-
 The owner's phrase "if at all possible" is an honest hedge and you should treat it as one: the pi path cannot literally become the Claude Code UI. What it CAN be is the same INFORMATION in the same SHAPE, rendered from one description of the run rather than two. That is the target.
 
 WHAT TO BUILD.
-1. ONE run model, two renderers. The runner should emit a structured stream of run events - stage started, agent spawned, stage finished, stage failed, run summarized - and BOTH harness paths should feed that same stream. Nothing should be able to appear in one view and not the other, because there is only one source. This is the same "one render, two readers" shape `viewport.py --verify` already proves for the graph (`goal:g9.7`); read that first and follow it rather than inventing a second pattern. If `viewport.py`'s emitter can be reused rather than duplicated, reuse it and say so.
+1. ONE run model, two renderers. The runner should emit a structured stream of run events - stage started, agent spawned, stage finished, stage failed, run summarized - and BOTH harness paths should feed that same stream. Nothing should be able to appear in one view and not the other, because there is only one source. This is the same "one render, two readers" shape `viewport.py --verify` already proves for the graph (`goal:g2.19`); read that first and follow it rather than inventing a second pattern. If `viewport.py`'s emitter can be reused rather than duplicated, reuse it and say so.
 2. A pi-harness renderer that draws the stage tree as it runs, not a transcript after the fact. Live enough to watch. It does not need color or animation; it needs to show which stages exist, which are running, which are done, and what each returned.
 3. The final summary must be byte-identical in content across harnesses - same stages, same counts, same outcomes - even where the live rendering differs.
 

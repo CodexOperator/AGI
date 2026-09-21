@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:70
 
 ## Experiment
 
-BUILT the goal:g15.25 line (3) rotate-out half in extensions/agi/bin/rotate.py
+BUILT the goal:g6.47 line (3) rotate-out half in extensions/agi/bin/rotate.py
 (the claim is behaviour to build, not a hypothesis to measure). The rotate-out
 is now ONE call when `--stops` is given.
 

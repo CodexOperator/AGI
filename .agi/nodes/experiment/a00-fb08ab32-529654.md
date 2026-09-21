@@ -1,0 +1,225 @@
+---
+id: experiment:a00-fb08ab32-529654
+mint_id: f935e5faff5a4b36a3f952c0e08fd1e6
+type: experiment
+parents:
+  - hypothesis:lm-bend2-cuda-binary-carries-no-device-code
+next_edges: []
+confidence: 0.9
+edited_by: a00-fb08ab32
+evidence_runs:
+  - experiment:a00-fb08ab32-529654
+line_ceiling: 40
+loop: hypothesis:lm-bend2-cuda-binary-carries-no-device-code@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 04f0b3c71ca4fe59
+season: 2
+title: "Bend CUDA binary DOES carry device code (lifgpu.gpu = prefix-wrapped sm_75 cubin, cuModuleLoadData+GetFunction rc=0) yet launches 0 kernels: conjunct (1) of the no-device-code hypothesis is disproved, hop 3 is the corpus_eval bang-dispatch gate"
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-fb08ab32-529654
+
+## What I did
+
+Ran the target hypothesis against the EXACT artifacts TM.35/TM.44 used, on
+GPU2070S, over ssh (`ssh -F /home/ubuntu/work/.sanctuary/ssh/config local-town`,
+host `GPU2070S`, user `belam`; artifacts in `<rig-home>/bend-work/`). Every
+parent lead (a)-(e) was re-run by me; every row below is my own raw output, saved
+under `.agi/sessions/iter-TM.49/a00-fb08ab32/raw/` (row1..row6).
+
+Verdict headline: **conjunct (1) is FALSE. Device code exists.** The executable
+carries none, but its 8-byte-prefixed sidecar `lifgpu.gpu` is a real sm_75 cubin,
+the runtime opens it, `cuModuleLoadData` and `cuModuleGetFunction("bend_dev")`
+both return 0 — and `cuLaunchKernel` is still never called. The target's causal
+story ("the toolchain never emitted device code") fails; what actually holds is
+the hypothesis's OWN first falsifier branch: device code exists and is never
+launched, so hop 3 is the runtime dispatch decision.
+
+## Row 1 — identity, linkage, raw cuobjdump (my row1.txt)
+
+```
+md5sum
+a43fd7cc4e513f6c90287fab8e1e018a  lifgpu
+cb0565d1f1463aa48ac9c22301ccd45b  lifgpu.gpu
+0f7a625ce118a4a4ebd921fb91e60f7a  pow2g
+77ec5a78be3d16929ab2de1368e826f8  pow2g.gpu
+a0f3dd4930246e72f7fd0430cd023f77  lif          (CPU build)
+391220371ff1ad1728e3a8d0da34415d  pow2big
+63e9ede6f440492cdb75b907f18f3d42  pow2big.gpu
+26641e2d99d224eec3a328cb7c9b3f10  gol
+be796f8aac6f7dd5ac617073c6652be2  gol.gpu
+file
+lifgpu:      ELF 64-bit LSB pie executable, x86-64, ... not stripped
+lifgpu.gpu:  data            <-- raw sidecar is opaque to `file`
+pow2g:       ELF 64-bit LSB pie executable, x86-64, ... not stripped
+pow2g.gpu:   data
+ldd lifgpu / ldd pow2g (identical shape)
+  libm.so.6, libcuda.so.1, libnvrtc.so.12, libc.so.6, libpthread, libdl, librt
+cuobjdump --list-elf, RAW artifacts (all eight identical output):
+  lifgpu / lifgpu.gpu / pow2g / pow2g.gpu / pow2big / pow2big.gpu / gol / gol.gpu
+  -> "does not contain device code"
+```
+
+Lead (a),(b),(c) reproduce: at the raw artifact every binary, including the
+pow2g control, lists zero. **The hypothesis's positive control fails as written**
+— see Row 2 for why it was the wrong test.
+
+## Row 2 — the 8-byte wrapper is load-bearing; stripping exposes sm_75 (my row2.txt)
+
+```
+prefix (xxd -l 16):
+lifgpu.gpu  f395 eda3 2007 4644 | 7f45 4c46 0201 0133   size 76088
+pow2g.gpu   5bb9 a950 6ec8 df30 | 7f45 4c46 ...          size 37784
+pow2big.gpu fb89 6116 bf1d 7c76 | 7f45 4c46 ...          size 37784
+gol.gpu     92c9 8192 fde7 7ff7 | 7f45 4c46 ...          size 52376
+tail -c +9 <f> > /tmp/<f>.elf   (mimics exactly what the runtime does)
+lifgpu.gpu : ELF 64-bit LSB executable, NVIDIA CUDA architecture,
+             statically linked                            (md5 a042a8b05c6a400c6f02b3bee3212d77)
+  cuobjdump --list-elf -> ELF file 1: lifgpu.gpu.sm_75.cubin
+  cuobjdump --list-ptx -> "No PTX file found to extract"   (cubin only, no PTX)
+  readelf -S (19 sections) -> .nv.info / .nv.info.bend_dev /
+    .rel.text.be... / .nv.constant[...] x3 / .text.window_dev (0x380) /
+    .text.bend_dev (0xf980, AX, align 128) / .nv.global.init /
+    .nv.shared.w... / .nv.global / .nv.shared.b...
+pow2g.gpu  -> pow2g.gpu.sm_75.cubin   (.text.bend_dev 0x6d00)
+pow2big.gpu-> pow2big.gpu.sm_75.cubin (identical md5 to pow2g.gpu stripped:
+             e83f0b61fa2230b0ead610ca4c0fbe41 — pow2big is pow2g's source)
+gol.gpu    -> gol.gpu.sm_75.cubin     (.text.bend_dev 0xa680)
+```
+
+Lead (d),(e) reproduce exactly. The first 8 bytes are a key, not padding: the
+runtime checks them (Row 4).
+
+## Row 3 — toolchain truth for conjunct (2) (my row3.txt, row3b.txt, comp_grep.txt, comp_loadpath.txt)
+
+```
+bend 2.0.5  (installed at ~/.bend, app/2.0.5/usqEx6, launcher POSTs telemetry)
+bend --help:  "bend <file.bend> -o <out>  build a binary; <out>.c emits C,
+               <out>.js JS"  ... NO gen-cu, NO run-cu subcommand
+bend gen-cu --help  -> prints the generic help; subcommand does not exist
+nvcc: release 12.0, V12.0.140   (present, but Bend does not shell out to it)
+```
+
+CUDA is compiled in automatically, not via a `gen-cu` verb. From the installed
+source `bend2/main.ts:249-270` (`cc_find`, `cuda`): if `$CUDA_HOME/include/nvrtc.h`
+exists, the one binary is built with `-DBEND_CUDA=1 -lcuda -lnvrtc`; and when the
+module has bangs it ALSO runs `<bin> --gpu-build` to write `<bin>.gpu`:
+
+```
+270  ? [[cc, gpu], [path.resolve(bin), ["--gpu-build"]]] : [[cc, cpu]];
+```
+
+`lif.bend` vs `lif_gpu.bend` differ by ONE character (line 80): `net(s)` vs
+`net!(s)`. The `!` is what puts `net` into `fl.bangs` (`comp.ts:1425`), making
+`BANGS=1` (`comp.ts:2793`) and forcing both the CUDA link and the `.gpu` sidecar.
+
+So the CUDA feature WAS compiled in: `nm -D lifgpu` shows 13 undefined cu* imports
+(`cuInit cuDeviceGet cuDeviceGetAttribute cuDevicePrimaryCtxRetain cuCtxSetCurrent
+cuMemAllocManaged cuMemAdvise cuMemsetD8_v2 cuModuleLoadData cuModuleGetFunction
+cuLaunchKernel cuCtxSynchronize cuDeviceTotalMem_v2`) plus the full nvrtc set —
+same count (13) in pow2g. The `.gpu` module exists, loads, and its function
+resolves (Row 4). There is no `gen-cu` in Bend 2.0.5 and none was needed.
+
+## Row 4 — does the runtime actually load lifgpu.gpu? YES (my row4b.txt, row6.txt)
+
+```
+strace -f -e trace=openat ./lifgpu --gpu 512MB | grep gpu
+  openat(AT_FDCWD, "<rig-home>/bend-work/lifgpu.gpu", O_RDONLY) = 38
+  (libcuda.so.1, libnvrtc.so.12 also opened; no /dev/shm cuda injection present)
+```
+
+The runtime finds the sidecar by path — `comp.ts:~2390` builds `strcat(path,".gpu")`
+from argv[0] — and the loader itself strips the 8-byte key:
+
+```
+comp.ts:4967  memcpy(&key, bin, 8);                       // first 8 bytes = key
+comp.ts:4993  || cuModuleLoadData(&gpu_lib, bin + 8) != CUDA_SUCCESS
+comp.ts:4997  cuModuleGetFunction(&gpu_pso, gpu_lib, "bend_dev")
+```
+
+My own interposer (`/data/work/tm49/shim2.c`, logs the CUDA driver entry points)
+on the SAME binary:
+
+```
+lifgpu --gpu 512MB:
+  [shim2] cuModuleLoadData hdr=7f454c46 rc=0        <-- ELF magic = prefix stripped
+  [shim2] cuModuleGetFunction('bend_dev') rc=0      <-- kernel symbol RESOLVED
+  19983                                             <-- correct spike count
+  WALL 48.29  USER 48.12  SYS 0.19                  <-- no cuLaunchKernel at all
+pow2g (control, same shim):
+  cuModuleLoadData hdr=7f454c46 rc=0; cuModuleGetFunction('bend_dev') rc=0
+  cuLaunchKernel CALL x4; 16777216
+```
+
+TM.44's LD_PRELOAD cuLaunchKernel counter re-confirmed by me on the same bytes
+(my row5.txt): lifgpu `TOTAL cuLaunchKernel=0`, pow2g `=4`. TM.44's nvprof row
+names the same sequence (cuModuleLoadData 429us, cuModuleGetFunction 902ns, no
+cuLaunchKernel; pow2g shows 4 `bend_dev` launches).
+
+**Answer to the row-4 question: yes — the loaded module contains a valid sm_75
+cubin and is fully mounted, and it still never gets launched.**
+
+## Row 5 — the run is whole (my row5.txt)
+
+```
+./lifgpu --gpu 512MB       -> 19983   WALL 48.22  USER 48.09   rc=0
+./lifgpu (host, no --gpu)  -> 19983   WALL 48.36  USER 48.21   rc=0
+nvidia-smi after: utilization.gpu 0 %, memory.used 6734 MiB
+```
+
+TM.35's spike count 19983 still prints, and the `--gpu` and host runs are the
+same wall time to within noise: the flag changes nothing observable. Total GPU
+time this round: 3 short runs (~2.5 min) plus probes, well under the 10 min cap.
+
+## Hop 3 — what the evidence proves about the run-time path choice
+
+The device path is gated in `corpus_eval` (`comp.ts:5111-5135`):
+
+```
+Reply r = work_loop(e, io_stk, t, !BANGS && (pool_size == 1 || fid_nofk(...)));
+...
+if ((u32)H[task_tail(r) + 1] == 0) {                    // task has no tail
+  t = r;
+  if (io_gpu && fid_bangs((u32)term_aux(t))) {          // <-- THE GATE
+    ... ring_push(H, 0, t); cube_run(H, true);          // -> gpu_pass -> cuLaunchKernel
+  }
+  continue;
+}
+task_deal(r, 0, 0, (Cur)0); pool_open(); cube_run(H, false); break;
+```
+
+`fid_bangs(x)` is `FID_FLAG_T[x] & 1` (`comp.ts:3499`), set for the defs in
+`fl.bangs` — exactly `net` here. So the GPU is entered only when a bang-headed
+task arrives at the frontier with a zero tail. With `BANGS=1` the `!BANGS` guard
+is false, so that branch is reachable in principle; for this LIF workload it is
+never taken, even though `gpu_pso` is a valid, resolved `bend_dev`. The host
+plumbing is not degraded and not missing: `io_gpu` is set, managed memory is
+allocated (`cuMemAllocManaged`, `cuMemsetD8`), the module is mounted. The
+dispatch predicate simply never fires.
+
+That is the hop-3 target, stated as a falsifiable next claim: *for
+`lif_gpu.bend`, `net!`'s result task never surfaces at the frontier with
+`term_aux(t)` bearing the bang flag and `H[task_tail(r)+1]==0`, so `corpus_eval`
+always falls through to `cube_run(H,false)`* — testable by instrumenting
+`fid_bangs(term_aux(t))` / `H[task_tail(r)+1]` on every iteration of that loop
+(one printf in a rebuilt binary, no new Bend program needed).
+
+## Conclusion
+
+Conjunct (1) of the target is disproved by its own stated falsifier: device code
+exists (sm_75 cubin, `lifgpu.gpu.sm_75.cubin`, `.text.bend_dev` 0xf980) and is
+never launched. Conjunct (2) is also false — the CUDA feature was compiled in
+(13 cu* imports, libcuda + libnvrtc linked), and Bend 2.0.5 has no `gen-cu` verb
+to be missing. What remains for the chain is hop 3, the runtime dispatch gate.
+
+## Evidence
+
+Raw rows: `.agi/sessions/iter-TM.49/a00-fb08ab32/raw/{row1,row2,row3,row3b,row4a,row4b,row4c,row5,row6,tm44_rows,comp_grep,comp_dispatch,comp_loadpath,bend_src,bend_full}.txt`
+
+## Agent Notes
+Device code EXISTS: lifgpu.gpu is an 8-byte-prefixed sm_75 cubin (md5 cb0565d1f1463aa48ac9c22301ccd45b, .text.bend_dev 0xf980); runtime opens it (strace openat=38), cuModuleLoadData rc=0 and cuModuleGetFunction('bend_dev') rc=0 under my own interposer, yet cuLaunchKernel=0 while pow2g=4. Conjunct (2) also false: 13 cu* imports + libcuda/libnvrtc, Bend 2.0.5 has no gen-cu. Hop 3 = corpus_eval bang-dispatch gate (io_gpu && fid_bangs(term_aux(t)) after task_tail(r)+1==0).

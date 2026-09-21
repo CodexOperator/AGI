@@ -1,0 +1,3 @@
+# the mirror is rebuilt from .agi/nodes, never committed (target node ceiling)
+*.sqlite
+*.sqlite-journal

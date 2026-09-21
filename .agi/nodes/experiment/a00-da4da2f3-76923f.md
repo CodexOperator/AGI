@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-Built the goal:g15.17 residue claim in `extensions/agi/bin/rotate.py` and proved it on the built bytes. Parts a/b/e are in `cmd_spawn`, c in `cmd_ack`, d(ii) in `cmd_rotate_self`; all five falsifiers are now tests.
+Built the goal:g6.39 residue claim in `extensions/agi/bin/rotate.py` and proved it on the built bytes. Parts a/b/e are in `cmd_spawn`, c in `cmd_ack`, d(ii) in `cmd_rotate_self`; all five falsifiers are now tests.
 
 (a) **`spawn --seat S` with root None.** Before: the seat tail called `_first_seating_run(root, …)` whose `_resolve_template` reached `_rotations_node_path(Path(None))` -> `TypeError` (the SL2.02 refuter's crash). Now: `cmd_spawn` short-circuits when `seat is not None and root is None`, prints `[seating] no project root: template + bootstrap skipped`, and still seats the window (empty `extra`, no template/record/pin).
 

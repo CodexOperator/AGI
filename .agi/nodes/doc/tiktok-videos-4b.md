@@ -3,9 +3,9 @@ id: doc:tiktok-videos-4b
 mint_id: 6b47004b48144fc1ae50946421f3e7af
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.8
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 link_ref: .agi/context/local-maxxing/papers/tiktok-videos-4b.md
 scaffold_hash: 460abf6ec9e26c77
 season: 2
@@ -13,6 +13,7 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
+thought_session: dissolve-legacy-2026-09-19
 title: "\"TikTok Videos: 4.5 billion posts dataset\" (pretty_name \"TikTok Videos, 4.5 Billion\")"
 town: local-maxxing
 ---

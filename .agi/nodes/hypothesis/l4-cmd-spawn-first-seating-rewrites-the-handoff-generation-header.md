@@ -3,12 +3,13 @@ id: hypothesis:l4-cmd-spawn-first-seating-rewrites-the-handoff-generation-header
 mint_id: 8db777f74de4476d9dbed75fa4b2c1b8
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: c273769852dd6705
 season: 2
 testable_claim: "goal:g15 Prime finding (belam gen22 09:0xZ dm, g15 lane item 2). MEASURED (belam, live): cmd_spawn's first-seating path never rewrites seats/<post>.handoff.md's generation header -- sanctuary-director's handoff header read 32 (stamped at its 09-14 rotation) while its live pin was 31 (its 09-16 seating); belam hand-corrected that one header to 31, the writer gap is the actual defect. CLAIM: on every cmd_spawn first-seating run, the seat's own seats/<post>.handoff.md generation header is rewritten to the spawn's resolved generation (the same value threaded into _first_seating_run by the sibling node l4-cmd-spawn-passes-generation-to-first-seating-run), so the gen-less fallback a reader takes when config:seats own generation cell is absent or stale never reads an older rotations number. FALSIFIERS: a first-seating spawn whose seats/<post>.handoff.md header generation differs from the rows generation immediately after spawn. TESTS (<=3, fixture handoff.md with a stale header + a fresh spawn): header rewritten to the new generation; a row with no generation cell still gets a header written, never left blank; re-spawn of an already-correct header is idempotent, no needless diff. FILE SCOPE: rotate.py (cmd_spawn first-seating write path), its test file. CEILING: <=25 production lines, ONE kid. ORDER: after l4-cmd-spawn-passes-generation-to-first-seating-run (same call-site family) to avoid two kids touching the same lines at once."
+thought_session: dissolve-legacy-2026-09-19
 title: L4 cmd spawn first seating rewrites the handoff generation header
 town: core
 ---

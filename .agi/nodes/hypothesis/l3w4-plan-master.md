@@ -3,13 +3,13 @@ id: hypothesis:l3w4-plan-master
 mint_id: 8dbdfa576c384be28d07f9ef98a58153
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: e5c23e9229f75373
 season: 2
 testable_claim: "config:seats gains a plan-master row (director, tier 1, claude-opus-5, effort high, settings ultracode, rotated_by: sanctuary-master, owning_goal: goal:g17) that dispatch.py --seat plan-master --role director --ladder-tier 1 --dry-run resolves to opus-5/high with CLAUDE_CODE_WORKFLOWS=1 exported and Workflow in --tools; the plan-master seat supersedes hypothesis:l3w4-drafter-seat's seat by answering the identical send.py send --to <name> request shape and two-stage acceptance gate (the workflow's critic pass, then the requester's own reply) under the name plan-master instead of drafter; its summon/accept cycle calls the unedited extensions/agi/workflows/agi-brief-drafting.js and mints via write.py create hypothesis only the slugs absent from the returned critic.left; and new plan_master.py record-run appends one {ts,iter,n_drafts,n_fixed,fixes_per_draft} line per summon to a seat-local log that plan_master.py trend --last N reads back to report whether fixes_per_draft is rising, falling, or flat."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Stand up the Plan Master seat
 ---
 <!-- BODY:BEGIN -->

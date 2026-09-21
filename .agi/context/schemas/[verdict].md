@@ -7,6 +7,7 @@ fields:
   next_edges: {type: list}
   verdict: {type: str}           # the taxonomy, below
   confidence: {type: float}
+  reviewed_by: {type: str}       # a post name for an independent relabel
   evidence_runs: {type: list}    # node ids that resolve; see evidence_gate.py
   supports: {type: list}
   contradicts: {type: list}

@@ -3,14 +3,14 @@ id: hypothesis:a00-94946187-a84899
 mint_id: 3db936df61b844289d7bfb59db668171
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 43e461b6196d11e7
 season: 1
 testable_claim: In a corpus with enough mvp density that (m-1)/(h-5) > m/h (i.e. h < 5m), deprecating one mvp shared by >=5 departing hypotheses raises outcome_coverage; on the real corpus this shape either exists and fires (gap >= 0.01) or does not.
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "G3-deprecation-guard: shared-mvp residual gap is exploitable"
 verdict: pending
 ---
