@@ -3,10 +3,10 @@ id: experiment:a00-8e139c40-e048c6
 mint_id: e048c6912d2e47c4b625940f9f67fd0b
 type: experiment
 parents:
-  - goal:g17.14.2
+  - goal:g7.25.2
 next_edges: []
 confidence: 0.85
-edited_by: a00-8e139c40
+edited_by: belam
 evidence_runs:
   - experiment:a00-8e139c40-e048c6
 line_ceiling: 40
@@ -17,6 +17,7 @@ profile: balanced
 role: kid
 scaffold_hash: 158606546566e673
 season: 2
+thought_session: parent-residue-g14-g17-remap
 title: grok-bot row added to harnesses; adapters.resolve accepts it and no other row changes
 town: core
 verdict: proved
