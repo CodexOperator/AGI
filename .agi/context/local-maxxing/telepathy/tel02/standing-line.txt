@@ -1,0 +1,29 @@
+TEL.02 STANDING LINE — captured 2026-09-21, host a00-08eead1d worktree
+========================================================================
+docker inspect llama-server  -> Config.Cmd (verbatim JSON):
+["--host","127.0.0.1","--port","8080","--models-dir","/models","--models-max","1","--fit","on","--jinja","-np","1","--cache-reuse","8"]
+
+Config.Image    : ghcr.io/ggml-org/llama.cpp:server-cuda
+Config.Entrypoint: ["/app/llama-server"]
+HostConfig.NetworkMode : host
+HostConfig.RestartPolicy: {"Name":"unless-stopped","MaximumRetryCount":0}
+HostConfig.Binds : ["/data/ml/models:/models"]
+HostConfig.DeviceRequests: [{"Driver":"","Count":-1,"DeviceIDs":null,"Capabilities":[["gpu"]],"Options":{}}]
+
+Equivalent standing command line (what the container runs):
+  /app/llama-server --host 127.0.0.1 --port 8080 --models-dir /models \
+    --models-max 1 --fit on --jinja -np 1 --cache-reuse 8
+  image ghcr.io/ggml-org/llama.cpp:server-cuda, network host, --gpus all, \
+    -v /data/ml/models:/models, restart unless-stopped
+
+GET :8080/v1/models  (router) forwards --cache-reuse 8 into every child argv, e.g.
+  Qwen3.5-9B-Q4_K_M  status.args:
+  ["/app/llama-server","--cache-reuse","8","--host","127.0.0.1","--jinja","--port","49525",
+   "--alias","Qwen3.5-9B-Q4_K_M","--fit","on","--model","/models/Qwen3.5-9B-Q4_K_M.gguf","--parallel","1"]
+
+docker logs llama-server  line 57 (verbatim):
+  [49525] 0.35.299.702 W srv    load_model: cache_reuse is not supported by this context, it will be disabled
+(9B child port this session = 49525; TEL.01 saw 54437 — router-managed port is dynamic.)
+
+Server-alive check (POST :8080/completion, model Qwen3.5-9B-Q4_K_M, n_predict 8, T=0):
+  content "." + newlines + "Ready.", tokens_predicted 5, tokens_evaluated 6 -> see server-alive-8080.json
