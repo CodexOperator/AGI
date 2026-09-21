@@ -272,6 +272,18 @@ def test_explicit_tmux_false_beats_the_adapter_default():
     assert tmux_hold.enabled(grok.hold_harness(row)) is False
 
 
+def test_pane_hold_does_not_leak_to_a_non_holding_adapter():
+    """The opt-in is the adapter's OWN declaration, not a resolve-wide
+    switch: `pi` resolved from the same config keeps no `tmux`/`pane` cell
+    and `tmux_hold.enabled` stays False (`goal:g7.31.1.2`). This conjunct
+    needs no tmux stub, so it is a plain committed test."""
+    cfg = {"harnesses": {"grok-bot": dict(HARNESS), "pi": {"adapter": "pi"}},
+           "box": {"tmux_session": "agi-rc"}}
+    _, row = adapters.resolve(cfg, "pi")
+    assert "tmux" not in row and "pane" not in row
+    assert tmux_hold.enabled(row) is False
+
+
 def test_explicit_tmux_false_keeps_the_direct_popen_path(monkeypatch, tmp_path):
     """`tmux: False` really leaves tmux alone (`goal:g7.31.1.2`):
     `tmux_hold.reattach` is never called and the restart returns a real Popen
