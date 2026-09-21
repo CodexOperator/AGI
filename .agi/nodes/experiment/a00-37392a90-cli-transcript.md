@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-37392a90-0d3366
 next_edges: []
-edited_by: a00-c38e30cd
+edited_by: a00-66b5e112
 evidence_runs: experiment:a00-37392a90-cli-transcript
 line_ceiling: 40
 loop: goal:g7.31.3.2@s2
@@ -15,7 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: e8c364b661699b18
 season: 2
-title: "Transcript: write.py+send.py+dispatch.py/workflow.py routes, with poisoned-dispatch probe"
+title: "Transcript: write.py+send.py+dispatch.py/workflow.py routes, with an import-guard wire probe"
 town: core
 ---
 <!-- BODY:BEGIN -->
@@ -131,24 +131,29 @@ Confirmed above: the resolved command contains
 `.../extensions/agi/bin/pi_trajectory.py`, and `workflow.py` prints one
 dispatch per stage. This conjunct **passes**.
 
-**Poisoned-module probe (re-run on this tip, a00-c38e30cd).** With a
-`dispatch.py` that raises on import placed first on `PYTHONPATH`
-(`raise RuntimeError("POISONED dispatch module imported")`),
-`workflow.py run review --dry-run` still resolved both stages and exited 0:
+**Import-guard wire probe (re-run on this tip, DT.45 a00-66b5e112).** The
+prior probe put a poisoned `dispatch.py` first on `PYTHONPATH`; that is
+non-probative, because `workflow.py:72-73` does
+`sys.path.insert(0, str(Path(__file__).resolve().parent))`, so `workflow.py`'s
+own directory is FIRST on `sys.path` and a `PYTHONPATH` copy can never shadow
+the real `dispatch.py`. The probative probe installs an import guard instead:
 
 ```
-$ PYTHONPATH=.agi/sessions/iter-DT.41/a00-c38e30cd \
-    python3 extensions/agi/bin/workflow.py run review --dry-run
+$ python3 -c "import sys,builtins,runpy; sys.argv=['workflow.py','run','review','--dry-run']; _o=builtins.__import__; builtins.__import__=lambda n,*a,**k:(_ for _ in ()).throw(AssertionError('workflow imported '+n)) if (n=='dispatch' or n.startswith('dispatch.')) else _o(n,*a,**k); runpy.run_path('extensions/agi/bin/workflow.py',run_name='__main__')"
+[run-key] review
+[credential] mint per-run
 [dispatch] global-checks :: role=global model=deepseek/deepseek-v4.1-flash effort=medium
 [dispatch] review :: role=reviewer model=deepseek/deepseek-v4.1-flash effort=medium
 [summary] workflow=review harness=pi stages=2 via dispatch.py kids
 exit=0
 ```
 
-No import of `dispatch` was attempted. The footer line still prints
-`via dispatch.py kids` — a stale string, not routing (follow-up defect,
-`workflow.py:7` docstring and `:2157` footer).
-
+No `dispatch` import was attempted — the guard would have raised
+`AssertionError` if one were. The static half confirms it: `grep -nE 'import
+dispatch|from dispatch' extensions/agi/bin/workflow.py` returns no lines; only
+comment, docstring and footer mentions of `dispatch.py` remain. The footer line
+still prints `via dispatch.py kids` — a stale string, not routing (follow-up
+defect, `workflow.py:7` docstring and `:2157` footer).
 ### auth — named CLIs called as an unauthorised caller
 
 ```
@@ -191,5 +196,5 @@ of the auth conjunct **fails**.
   argv-body round trip, not a file route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Corrective round a00-c38e30cd (DT.41), kid #2 on the MUR. Two residues closed: route 3 names the mechanism correctly (workflow.py is the ONE workflow router, builds its own pi argv at :1791-1794, no import of dispatch.py), route 2 claims an argv-body dm only (send.py has no --file/stdin message-body route). Added the missing parent wire probe: with a poisoned dispatch.py first on PYTHONPATH, workflow.py run review --dry-run resolved 2 stages and exited 0. Also corrected the _guard_harness citation from :3511 to its definition at :3509 and re-ran the kid dm refusal (refused by name, exit 3). Process note: an earlier partial replace applied at stale line offsets and duplicated a fragment, so the body was rebuilt whole to repair it. No new node minted; this node stays the evidence run for the narrowed routing claim.
+DT.45 corrective round (a00-66b5e112). Replaces the wire probe: the PYTHONPATH-poisoned `dispatch.py` probe recorded here was non-probative — `workflow.py:72-73` inserts its own directory first on `sys.path`, so a PYTHONPATH poison can never shadow the real `dispatch.py`. The new probe installs a `builtins.__import__` guard around `runpy.run_path('extensions/agi/bin/workflow.py', ...)` that raises `AssertionError` on any import of `dispatch`; it ran `run review --dry-run` to `stages=2`, `exit=0`, no AssertionError, so the guard could have failed but did not. Static half: `grep -nE 'import dispatch|from dispatch' workflow.py` returns no lines (only comment/docstring/footer mentions, kept as the stale-string follow-up defect). Title updated to match. The routing claim is unchanged.
 <!-- THOUGHT:END -->
