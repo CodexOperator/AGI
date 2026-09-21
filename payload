@@ -1,0 +1,32 @@
+{
+  "_comment": "unit_path -> goal node id. Declared deliberately by a human or a verdict decision; decompose-engine.py never infers this from the file tree. A unit absent from `mappings` is emitted parentless and reported as NO_GOAL. Each entry answers 'which long-term commitment does this surface serve?', not 'what does this file do'.",
+  "mappings": {
+    "extensions/agi/driver.sh": "goal:g1",
+    "extensions/agi/bin/cli.py": "goal:g1",
+    "extensions/agi/lib/find-root.sh": "goal:g1",
+    "extensions/agi/bin/zoom.py": "goal:g2",
+    "extensions/agi/src/embeddings": "goal:g2",
+    "extensions/agi/src/agi_algos": "goal:g2.1",
+    "extensions/agi/bin/metrics.py": "goal:g3",
+    "extensions/agi/bin/evidence_gate.py": "goal:g3.1",
+    "extensions/agi/bin/post_wire.py": "goal:g3.1",
+    "extensions/agi/bin/benchmark.py": "goal:g3",
+    "extensions/agi/src/chain_engine": "goal:g3",
+    "extensions/agi/bin/dispatch.py": "goal:g4",
+    "extensions/agi/bin/heal.py": "goal:g4",
+    "extensions/agi-bridge/index.ts": "goal:g4",
+    "extensions/agi/bin/snapshot-goals.py": "goal:g5",
+    "extensions/agi/bin/snapshot-build-site.py": "goal:g5",
+    "extensions/agi/src/schema_registry": "goal:g5",
+    "extensions/agi/bin/grid.py": "goal:g7",
+    "extensions/agi/src/graph_core": "goal:g7",
+    "extensions/agi/scripts/migrate_to_sqlite.py": "goal:g7",
+    "extensions/agi/bin/render-context.py": "goal:g9",
+    "extensions/agi/src/renderers": "goal:g9",
+    "extensions/agi/hooks/cc-session-start.sh": "goal:g9",
+    "extensions/agi/bin/dashboard.py": "goal:g9.1",
+    "extensions/agi/bin/decompose-engine.py": "goal:g6.1",
+    "extensions/agi/bin/level3.py": "goal:g2.1",
+    "extensions/agi/bin/stitch.py": "goal:g6.1"
+  }
+}
