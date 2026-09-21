@@ -1,13 +1,13 @@
 ---
-id: goal:g7.25
+id: goal:g17.14
 mint_id: 3a7b92ce2fbe4623aecf159b072750b4
 type: goal
 parents:
-  - goal:g7
+  - goal:g17
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G7.25
+goal_id: G17.14
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -21,11 +21,11 @@ tags:
   - harness
   - grok-bot
   - adapter
-thought_session: g1-g7-rewrite-2026-09-19
-title: "G7.25: Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code"
+thought_session: texas-two-step-belam
+title: "G17.14: Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code"
 ---
 <!-- BODY:BEGIN -->
-# goal:g7.25
+# goal:g17.14
 
 ## Why this exists
 
