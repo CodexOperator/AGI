@@ -3,8 +3,14 @@
 import json, glob, re, os, collections
 LAB = ["write_note", "write_set", "dm", "merge_up", "dispatch", "bench_jsonl", "node_write"]
 OUT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../datasets/magic-pane"))
-PI = ["/data/work/agi/.agi/worktrees/*/.agi/sessions/iter-*/*/output.log", "/data/work/agi/.agi/sessions/iter-*/*/output.log"]
-LIVE = {os.path.basename(p)[:-6] for p in glob.glob("/data/work/agi/.agi/sessions/.spawn-budget/*.lease")}  # a leased agent's stream is not recorded
+# MAIN, not derived from __file__: this script (like spawn_budget.py) must anchor to the ONE
+# tree that holds every worktree as a sibling under .agi/worktrees/*, not to whichever worktree
+# happens to run it -- deriving from __file__ here would only scan the caller's own (usually
+# empty) nested .agi/worktrees/, silently undercounting (mur-mp-01 residue: flagged, not solved,
+# since a real fix needs a shared root resolver, not a per-script guess -- see bin/locations.py).
+ROOT = "/data/work/agi"
+PI = [f"{ROOT}/.agi/worktrees/*/.agi/sessions/iter-*/*/output.log", f"{ROOT}/.agi/sessions/iter-*/*/output.log"]
+LIVE = {os.path.basename(p)[:-6] for p in glob.glob(f"{ROOT}/.agi/sessions/.spawn-budget/*.lease")}  # a leased agent's stream is not recorded -- NOT a reproducible census: which streams are still growing changes minute to minute (mur-mp-01: 39 -> 49 on a rerun 49min later); excluded_live_agents below names the exact set this run used
 def tok(s): return re.findall(r"\S+", s)
 def strict(name, args):
     a = args or {}; p = str(a.get("path") or ""); c = a.get("command") or ""
@@ -43,7 +49,8 @@ def main():
     hist = collections.Counter(s["label"] for s in segs); n = len(segs)
     metrics = {"strict": True, "n_real_segments": n, "label_histogram": dict(hist.most_common()), "dropped_short_prose": dict(drop.most_common()), "dropped_total": sum(drop.values()),
                "missing_classes": [l for l in LAB if hist[l] == 0], "thin_classes": [l for l in LAB if 0 < hist[l] < 5], "majority_baseline": round(max(hist.values()) / n, 4) if n else None,
-               "corpus_sufficient": n >= 200, "measurements": [], "measured": False}
+               "corpus_sufficient": n >= 200, "measurements": [], "measured": False,
+               "excluded_live_agents": sorted(LIVE)}  # audit trail for the non-reproducible census (mur-mp-01 residue): exactly which streams this run treated as still-growing
     json.dump(metrics, open(os.path.join(OUT, "metrics_strict.json"), "w"), indent=1)
     print(json.dumps({k: metrics[k] for k in ("n_real_segments", "label_histogram", "dropped_total", "missing_classes", "corpus_sufficient")}))
 if __name__ == "__main__": main()
