@@ -19,11 +19,9 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~06:2xZ
- landed   TEL.02 a00-08eead1d, tip f10eef594 -- DECISIVE finding: --cache-reuse reaches the 9B child then is DISABLED AT LOAD, architecturally: qwen35 IMROPE -> n_pos_per_embd()==4 -> get_can_shift()==false -> seq_add hard-asserted to n_pos_per_embd==1 (real upstream llama.cpp cited by file:line, spot-checked by me against the actual copied source, matches exactly). Same-prefix reuse WORKS (24/24, 0.093x prefill) but is a different weaker mechanism than the arbitrary-position shift the hypothesis needs (shifted-span negative: cache_n=0, 1.07x compute -- no savings at all). Kid explicitly refused to conflate the two. Verdict inconclusive_lean_disproved:80 -- the fallback (saved-TEXT-plus-tail-KV, already named in the hypothesis) is now the live path for telepathy chunks 2-3.
- flagged  harvest DM overage 12107/40 no-rebrief -- INVESTIGATED: node's own production_lines=66 (the kid's real script) is correct; the other ~12041 lines are FOUR VERBATIM unmodified upstream llama.cpp .cpp files copied in only so the file:line citations are checkable against real bytes, never executed/modified. Spot-checked myself: real #include headers, cited lines match exactly. This reads like reference material (should be exempt like .txt/.jsonl) not authored code, but I did not rule on it myself -- put to the mur explicitly, not decided unilaterally.
- mur      running (agi-director-thought-tel02, bg poll bccnsgnow)
- TMM.26   MP.02 redefined to SUGGESTER, MP.03 FORMATTER minted -- both no-spend, queued after G14.10.2's capture (see prior commit for detail)
- board    stopped editing doc:lm-town-trajectory directly; rows travel in the merge-up dm now
- next     read the mur result -> notes on hypothesis+g14.15.1 -> merge-up dm (numbers + the ceiling-exemption question, banked for thought-master) -> next queue item is SWR.02-B, not mine
+2026-09-21 ~06:4xZ
+ landed   TEL.02 accept_with_residue (mur-tel-02, 5/5 conjuncts, sha256-verified) -- DECISIVE: KV position-shift architecturally unavailable on qwen35 (IMROPE, n_pos_per_embd()==4, get_can_shift()==false); same-prefix reuse works but is a distinct weaker mechanism, honestly not conflated. inconclusive_lean_disproved:80 -- fallback (saved-TEXT-plus-tail-KV) now the live path for g14.15.1 chunks 2-3, noted there+hypothesis.
+ fixed    ceiling residue (12107/40, 4 verbatim upstream .cpp reference files) -- deleted the redundant full copies (arch-chain-excerpts.txt already carries the same citations), harvest now reads clean. Also self-caught and corrected my own overclaim in the node (said I did a byte-for-byte diff; I only spot-checked -- the mur's verify stage did the real sha256 compare).
+ next     🔴 send ONE merge-up dm (TEL.02 numbers + the ceiling-exemption question as a future-policy flag, not a decision) -- then idle, SWR.02-B is next in queue and not mine to dispatch
+ traps    replace-body anchor guard caught 2 real mis-offsets this session (own node, twice), working as intended -- always widen to the FULL paragraph, not a single line, when it refuses
 ```
