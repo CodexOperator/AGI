@@ -90,16 +90,16 @@ Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not d
 
 | id | status | title (short) | note |
 |---|---|---|---|
-| goal:g14.14 | parked | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | moved from town:local-maxxing; nested G14.14.* not yet minted as separate nodes |
-| goal:g14.14.* | pending | sub-chunks under g14.14 body (14.1–14.8) | mint later under town:core when work starts |
+| goal:g7.33 | parked | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | moved from town:local-maxxing; nested G7.33.* not yet minted as separate nodes |
+| goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later under town:core when work starts |
 
 ## Agent Notes
 
 - Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
 - g7.31 tree untouched this ask; town points at it as spine.
 - Actor Belam; master cell = sanctuary-master.
-- Owner ask 2026-09-21: engine goals (g14.14) relocated from local-maxxing → core; **UNASSIGNED / parked** — no director assignment, no SendToAgent.
+- Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked** — no director assignment, no SendToAgent.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: park engine goal:g14.14 (moved from town:local-maxxing) under town:core GOAL BUNDLE as UNASSIGNED until directors finish current g7.25–g7.32 batches; no SendToAgent / no director assignment
+owner ask 2026-09-21: park engine goal:g7.33 (moved from town:local-maxxing) under town:core GOAL BUNDLE as UNASSIGNED until directors finish current g7.25–g7.32 batches; no SendToAgent / no director assignment
 <!-- THOUGHT:END -->

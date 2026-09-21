@@ -3,7 +3,7 @@ id: idea:lm-cua-bench-as-typed-acts-source
 mint_id: 64698ac4e443426e8e3d5d52e1dbd05e
 type: idea
 parents:
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 edited_by: thought-master
 scaffold_hash: fbedb60a8ca2dc76

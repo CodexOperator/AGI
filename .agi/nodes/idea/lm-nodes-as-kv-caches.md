@@ -3,7 +3,7 @@ id: idea:lm-nodes-as-kv-caches
 mint_id: 6d6627067bb94e019ead24b41c21c1ff
 type: idea
 parents:
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 37d5a66da5dee54a

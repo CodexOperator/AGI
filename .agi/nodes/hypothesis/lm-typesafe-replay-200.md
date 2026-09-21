@@ -4,7 +4,7 @@ mint_id: a3f5c442245148598e8fcb3eac4fdf80
 type: hypothesis
 parents:
   - idea:lm-typed-decisions-in-the-loop
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 ceiling: "\"$1 OpenRouter for the round own tokens (parent + kid, deepseek-v4-flash class); TypeSafe <= $0.10 = <= 2M input tokens, on the owner TypeSafe account (Prime 23:55Z), ledger line required; $0 compute; no plugin install (banked for the owner); no GPU, no ssh; A1 loadavg < 3.\""
 confidence: 0.9
