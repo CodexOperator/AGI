@@ -36,6 +36,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "bin"))
 from agi.bin import rotate  # noqa: E402
 import seat_status as SS  # noqa: E402
 
+# Deliberately the LIVE pytest process: the positive occupation tests run the
+# REAL rotate._pid_alive against an actually-alive pid, so the alive branch
+# these tests exist to cover is never stubbed away. The dead-pid negative test
+# keeps its literal 999999999.
+_LIVE_PID = os.getpid()
+
 
 def _graph(tmp_path, rows):
     """A real `.agi` graph root (the write API resolves descend-only) whose
@@ -189,7 +195,7 @@ def test_seat_occupation_occupied_when_window_and_pid_agree(tmp_path):
     wins = tmp_path / "winlist"
     wins.write_text("@7 director-seat\n", encoding="utf-8")
     occ = SS.seat_occupation(
-        {"name": "director-seat", "window": "@7", "pid": os.getpid()},
+        {"name": "director-seat", "window": "@7", "pid": _LIVE_PID},
         "agi-rc", str(wins))
     assert occ is not None, occ
     assert occ["state"] == "occupied", occ
@@ -201,7 +207,7 @@ def test_seat_occupation_pane_drift_when_row_window_is_stale(tmp_path):
     wins = tmp_path / "winlist"
     wins.write_text("@7 director-seat\n", encoding="utf-8")
     occ = SS.seat_occupation(
-        {"name": "director-seat", "window": "@9", "pid": os.getpid()},
+        {"name": "director-seat", "window": "@9", "pid": _LIVE_PID},
         "agi-rc", str(wins))
     assert occ["state"] == "pane-drift", occ
     assert occ["window"] == "@9" and occ["live"] == "@7", occ
@@ -254,7 +260,7 @@ def test_collect_with_a_window_seam_renders_occupation_both_views(tmp_path):
     wins = tmp_path / "winlist"
     wins.write_text("@7 director-seat\n", encoding="utf-8")
     graph = _graph(tmp_path, [{"name": "director-seat", "role": "director",
-                               "window": "@7", "pid": os.getpid()}])
+                               "window": "@7", "pid": _LIVE_PID}])
     v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins))
     occ = v.seats[0]["occupation"]
     assert occ and occ["state"] == "occupied", occ

@@ -5,23 +5,23 @@ type: experiment
 parents:
   - hypothesis:a00-aa592d9a-c374ea
 next_edges: []
-edited_by: a00-0a0390bf
+edited_by: a00-06efdc61
 evidence_runs:
   - experiment:seat-occupation-view
 line_ceiling: 40
 loop: goal:g7.31.2.1@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
-  - occupied-window-and-pid-agree
-  - pane-drift-stale-row-window
-  - pane-drift-dead-pid
-  - unoccupied-foreign-window
-  - fail-open-no-tmux
-  - fail-open-absent-seam
-  - no-seam-no-pane-cell
-  - both-renderers-occupied
-  - both-renderers-drift
-  - pid0-sentinel-occupied
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@7','pid':os.getpid()}, 'agi-rc', winlist='@7 director-seat')", "expected": "occupied; window @7 == live @7; pid_alive True", "observed": "occupied window=@7 live=@7 pid_alive=True", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@9','pid':os.getpid()}, 'agi-rc', winlist='@7 director-seat')", "expected": "pane-drift; row @9 != live @7", "observed": "pane-drift window=@9 live=@7 pid_alive=True", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@7','pid':999999999}, 'agi-rc', winlist='@7 director-seat')", "expected": "pane-drift; pid_alive False", "observed": "pane-drift window=@7 live=@7 pid_alive=False", "result": "pass"}
+  - {"conjunct": 2, "class": "auth", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@7'}, 'agi-rc', winlist='@7 somebody-else')", "expected": "unoccupied; live None", "observed": "unoccupied window=@7 live=None pid_alive=None", "result": "pass"}
+  - {"conjunct": 5, "class": "gate", "cmd": "python3 scratch/probes.py -> SS.shutil.which=None; SS.seat_occupation({'name':'director-seat','window':'@7'}, 'agi-rc', None)", "expected": "None (fail-open, no crash)", "observed": "None", "result": "pass"}
+  - {"conjunct": 5, "class": "gate", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@7'}, 'agi-rc', '<absent window_path>')", "expected": "None (absent seam fails open)", "observed": "None", "result": "pass"}
+  - {"conjunct": 5, "class": "gate", "cmd": "python3 scratch/probes.py -> SS.collect(graph, {}) with no tmux_session/window_path, join to_markdown+to_compact", "expected": "occupation None and no 'pane=' cell anywhere", "observed": "occupation=None pane_cell=False", "result": "pass"}
+  - {"conjunct": 4, "class": "wire", "cmd": "python3 scratch/probes.py -> SS.collect(graph, {}, tmux_session='agi-rc', window_path='@7 director-seat') row window @7 pid live", "expected": "state occupied; 'pane=occupied(@7)' in BOTH to_compact and to_markdown", "observed": "state occupied compact_has=True md_has=True", "result": "pass"}
+  - {"conjunct": 4, "class": "wire", "cmd": "python3 scratch/probes.py -> SS.collect(graph, {}, tmux_session='agi-rc', window_path='@7 director-seat') row window @9", "expected": "state pane-drift; 'pane=pane-drift(row @9 live @7)' in BOTH renderers", "observed": "state pane-drift compact_has=True md_has=True", "result": "pass"}
+  - {"conjunct": 1, "class": "gate", "cmd": "python3 scratch/probes.py -> SS.seat_occupation({'name':'director-seat','window':'@7','pid':0}, 'agi-rc', winlist='@7 director-seat')", "expected": "occupied; the JOIN-miss sentinel pid 0 is 'no pid', pid_alive None", "observed": "occupied window=@7 live=@7 pid_alive=None", "result": "pass"}
 production_lines: 79
 profile: balanced
 role: kid
