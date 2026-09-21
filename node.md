@@ -1,0 +1,173 @@
+---
+build_kind: code
+confidence: 1.0
+id: "build:bin-write-guard"
+mint_id: d98ee0f1ab0d44c0bbff969c20cac361
+origin: build-scan
+parents:
+  - mvp:bin-modules
+payload_ref: extensions/agi/bin/write_guard.py
+tags:
+  - build
+  - code
+  - g2.1
+title: "Build: extensions/agi/bin/write_guard.py"
+type: build
+---
+
+`extensions/agi/bin/write_guard.py` — level-3 code node (one file, one canonical node).
+
+Census parent: `mvp:bin-modules`.
+
+<!-- BUILD-CONTRACT:BEGIN — harness-owned shape; a model may only fill why/perf/security, never add/remove/reorder fields or entries -->
+```yaml
+payload_ref: extensions/agi/bin/write_guard.py
+parse_ok: true
+inputs:
+- name: __future__.annotations
+  how: '`from __future__ import annotations` at line 17'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: hashlib
+  how: '`import hashlib` at line 19'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json
+  how: '`import json` at line 20'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: subprocess
+  how: '`import subprocess` at line 21'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: sys
+  how: '`import sys` at line 22'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: pathlib.Path
+  how: '`from pathlib import Path` at line 23'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: nf
+  how: '`nf.read_text(encoding="utf-8", errors="replace")` at line 193'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: Path(abspath)
+  how: '`Path(abspath).read_text(encoding="utf-8", errors="replace")` at line 285'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: json.loads
+  how: '`json.loads(line)` at line 170'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: yaml.safe_load
+  how: '`yaml.safe_load(parts[1])` at line 201'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: yaml.safe_load
+  how: '`yaml.safe_load(parts[1])` at line 290'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: abspath
+  how: '`abspath.read_bytes()` at line 105'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: log_path
+  how: '`log_path.read_text()` at line 166'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: payload_path
+  how: '`payload_path.read_bytes()` at line 223'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cli-args
+  how: reads `sys.argv` (module-wide, no single call site)
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+outputs:
+- name: find_project_root
+  how: 'defines public function `find_project_root` at line 32, signature: (start:
+    Path | None=None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _git_root
+  how: 'defines private function `_git_root` at line 50, signature: (cwd: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _git_changed_files
+  how: 'defines private function `_git_changed_files` at line 63, signature: (root:
+    Path, agi_root: Path, subdir: str=''nodes'')'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _rel_node_prefix
+  how: 'defines private function `_rel_node_prefix` at line 113, signature: (agi_root:
+    Path, git_root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _rel_dir_prefix
+  how: 'defines private function `_rel_dir_prefix` at line 118, signature: (agi_root:
+    Path, git_root: Path, subdir: str)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _load_log
+  how: 'defines private function `_load_log` at line 127, signature: (agi_root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _read_payload_refs
+  how: 'defines private function `_read_payload_refs` at line 186, signature: (agi_root:
+    Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _redo_hint
+  how: 'defines private function `_redo_hint` at line 231, signature: (abi_path: str,
+    agi_root: Path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cmd_check
+  how: 'defines public function `cmd_check` at line 252, signature: (argv: list[str])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: cmd_hook
+  how: 'defines public function `cmd_hook` at line 361, signature: (argv: list[str])'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: main
+  how: 'defines public function `main` at line 370, signature: (argv: list[str] |
+    None=None)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: stdout
+  how: 6 `print()` call(s) at line(s) [273, 354, 362, 374, 377, 385]
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+```
+<!-- BUILD-CONTRACT:END -->
+
+Generated by `level3.py` (see `hyp:level3-node-anatomy` in the graph repo for the design). `how` fields above are derived mechanically via the standard library `ast` module; `why`/`perf`/`security` are placeholders for a later model pass — never fabricated by this generator.
