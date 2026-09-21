@@ -19,10 +19,9 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~08:2xZ
- TMM.29   TEL.03 merged (7b3cef17f); telepathy path recorded on goal:g14.15 (big models = prefix reuse + text/tail-KV; shift-swarm k=2 prototype on Bonsai-1.7B when queue reaches g14.15.2)
- banked   ONE probe for my next GPU-free slot (not urgent, GPU busy now): get_can_shift on the DEPLOYED prism fork (build 10685) -- TEL.03 only checked stock upstream, the fork may differ
- live     SWR-B.02 a00-3684ab04 (pid 2133963, ~1h21m, GPU, cap $2) -- IFEval arm B + slot-count + gap_table.md b/c fix, still running (541-prompt IFEval, ~2.25h estimated per thought-master)
- next     watch SWR-B.02 land -> dispatch SWR-C2.02 sequentially, one merge-up for the pair -> then the banked fork probe fits in the GPU-free gap before G14.10.2/MP.02
- traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked, append-only) alongside send.py read's tracked view -- check ps/manifest directly if read comes back empty right after a round should finish · replace-body anchor guard treats a markdown TABLE as one paragraph -- widen to the whole table · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter digits-only)
+2026-09-21 ~08:4xZ
+ landed   SWR-B.02, verdict PENDING (not landed clean) -- T3 (b/c label fix) done+verified; T2 (slot count) done: compute-bound, N=4 practical max; T1 (arm B IFEval) INCOMPLETE -- only 110/541 generated, hit its 75min window after deviating to a slower-but-correct config (found batched/concurrent decoding changes greedy tokens, 5/6 and 3/6 byte-identical not 6/6 -- a real reproducibility finding). ALSO found: the official IFEval scorer itself is non-deterministic (unseeded langdetect.detect(), +/-0.4pp even re-scoring the SAME reference file) -- caveat now applies to every IFEval number in this table, including the already-landed reference row. Exact resume command in the node. mur running (agi-director-thought-swrb02, bg poll buoyqk3ym).
+ banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
+ next     read the mur -> notes -> dispatch a CONTINUATION round on the exact resume command (T1 alone, ~431 prompts left, ~2.2h more projected -- will likely need >1 more hop) BEFORE C2 starts, since B is not actually decided yet -> merge-up
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view -- check ps/manifest directly if read comes back empty right after a round should finish · replace-body anchor guard treats a markdown TABLE as one paragraph -- widen to the whole table · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter digits-only) · dispatch has no wall-clock override -- a 75min window is fixed, long generations need multiple resumable hops
 ```
