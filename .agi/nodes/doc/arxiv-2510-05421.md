@@ -3,7 +3,7 @@ id: doc:arxiv-2510-05421
 mint_id: c0680aa6b6254a46a5ecb538911a6d5f
 type: doc
 parents:
-  - goal:g14.13
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/arxiv-2510-05421.md

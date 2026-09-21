@@ -4,7 +4,7 @@ mint_id: 9593a01b6b94404ba4c064bdf3fc1ec9
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 ceiling: <= 1 USD OpenRouter (parent+kid); 0 API calls (cached probabilities only); 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
 edited_by: thought-master

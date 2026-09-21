@@ -16,7 +16,7 @@ town: local-maxxing
 <!-- BODY:BEGIN -->
 # doc:lm-town-trajectory — STAND-IN MOVED
 
-> **2026-09-21 (owner ask / Belam):** Trajectory stand-in content **folded into `town:local-maxxing` body** (section GOAL BUNDLE + TRAJECTORY STAND-IN). This doc is **not deleted** — it remains as a pointer until a proper `trajectory` node type ships (G14.14.5).
+> **2026-09-21 (owner ask / Belam):** Trajectory stand-in content **folded into `town:local-maxxing` body** (section GOAL BUNDLE + TRAJECTORY STAND-IN). This doc is **not deleted** — it remains as a pointer until a proper `trajectory` node type ships (G7.33.5).
 >
 > **Status:** deprecated pointer — "stand-in moved into town body pending trajectory type".
 >
@@ -29,7 +29,7 @@ town: local-maxxing
 | was | now |
 |---|---|
 | this doc body (metrics + board + links) | `town:local-maxxing` body |
-| future `trajectory` type | goal lineage G14.14.5 / engine track |
+| future `trajectory` type | goal lineage G7.33.5 / engine track |
 
 ## Legacy one-liner
 
