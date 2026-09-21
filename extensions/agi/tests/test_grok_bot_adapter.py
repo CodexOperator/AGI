@@ -21,6 +21,64 @@ import adapters  # noqa: E402
 
 grok = adapters.load("grok_bot")
 
+#: Verbatim `grok-bot --help` from the published package, recorded by the
+#: child experiment of `goal:g7.31.1.1`:
+#:   mkdir measure && cd measure && npm init -y
+#:   npm install grok-bot-cli@0.3.1
+#:   node_modules/.bin/grok-bot --help
+#: 46 lines, exit 0. This is the RECORDED measurement the adapter argv is
+#: bound to; `latest` (0.9.0) and 0.8.0 print nothing (bundled TUI), so 0.3.1
+#: is the last version publishing static help. Do not hand-edit this block:
+#: re-run the command and paste.
+RECORDED_HELP_0_3_1 = """\
+gbot - manage Grok Bot agents and groups
+
+Usage:
+  gbot [--dir DIR] [--json] <command>
+
+Commands:
+  doctor
+  bots list
+  bots create --name NAME [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  bots update <id-or-name> [--name NAME] [--description TEXT] [--instructions TEXT]
+           [--title TEXT] [--avatar-shape SHAPE] [--avatar-color COLOR]
+           [--notify on|off] [--hidden on|off]
+  bots get <id-or-name>
+  bots delete <id-or-name>
+  groups list
+  groups create --name NAME --member ID_OR_NAME [--member ...]
+           [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  groups update <id-or-name>  (same flags as bots update; members stay on set/add/remove)
+  groups get <id-or-name>
+  groups members <id-or-name>
+  groups add <group> <bot>
+  groups remove <group> <bot>
+  groups set <group> --member ID [--member ...]
+  groups delete <id-or-name>
+  send <bot-or-group> <message...>
+  thread <bot-or-group> [--limit N] [--root MESSAGE_ID] [--full]
+  chat <bot-or-group>     alias for thread
+  history [bot-or-group] [--search TEXT] [--limit N]  (offline)
+  history --path         print the local JSONL file path
+  codex status
+  codex list-threads [--limit N]
+  codex send <threadId> <message...>
+
+Max group members: 6
+--description / --instructions is the UI Instructions field (same key).
+Avatar shapes: blob pebble bean egg squircle tablet capsule cylinder hex gem crystal wedge shield dome arch cloud teardrop leaf
+Avatar colors: black brown red orange yellow green cyan blue violet magenta gray
+Flags: --gateway  --files  --dir DIR  --json
+Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session, or CURSOR_ACCESS_TOKEN
+File fallback: GROK_BOT_AGENTS_DIR
+Codex: talks to the local app-server daemon socket under CODEX_HOME (default ~/.codex)
+History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
+         GROK_BOT_HISTORY=on to record; --history-dir / GROK_BOT_HISTORY_DIR to relocate
+         --no-history to skip one command
+"""
+
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
 #: for a `grok-bot` harness name.
 HARNESS = {"adapter": "grok_bot",
@@ -103,6 +161,36 @@ RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
                    "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
+def test_argv_is_bound_to_the_recorded_help():
+    """The measurement-bound guard (goal:g7.31.1.1), replacing the tautological
+    restart assert that compared build_command to itself.
+
+    Every `-`-prefixed argv token must appear in the RECORDED `--help`, the
+    guessed `-p` / `--model` must be absent, and argv[0] must be the resolved
+    bin. Adding a flag the published CLI does not document fails here.
+    """
+    argv = grok.build_command(harness=HARNESS, tier="kid",
+                              context_file="/tmp/ctx.md")
+    assert argv[0] == grok.resolve_bin(HARNESS)
+    assert "-p" not in argv
+    assert "--model" not in argv
+    for tok in argv[1:]:
+        if tok.startswith("-"):
+            assert tok in RECORDED_HELP_0_3_1, (
+                f"argv token {tok!r} is not in the recorded grok-bot --help")
+    # 0.3.1 is the last version with static help; named so drift is visible.
+    for cmd in ("send", "thread", "history", "--dir", "--json"):
+        assert cmd in RECORDED_HELP_0_3_1
+
+
+def test_no_model_flag_survives_into_argv():
+    """`--model` is a Grok Bot app/profile field, not a CLI flag; a declared
+    models block must not leak one into the measured argv (goal:g7.31.1.1)."""
+    argv = grok.build_command(harness=RESTART_HARNESS, tier="parent",
+                              context_file="/tmp/ctx.md")
+    assert argv == [grok.resolve_bin(RESTART_HARNESS)]
+
+
 def test_restart_is_a_real_respawn_not_a_stub():
     """The old stub raised NotImplementedError; the contract is now the same
     as copilot_cli/pi (`goal:g4.7`): callable, returns a pid."""
@@ -132,10 +220,11 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly what build_command produces — the measured bare bin
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
+    assert captured["args"] == [RESTART_HARNESS["bin"]]
     assert captured["kwargs"]["cwd"] == str(tmp_path)
     assert captured["kwargs"]["start_new_session"] is True
     assert rec["pid"] == 5252
