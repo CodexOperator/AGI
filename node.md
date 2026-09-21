@@ -1,0 +1,124 @@
+---
+id: experiment:a00-72a3cc60-29596d
+mint_id: cd6445cb325d481587d7888b73358e4a
+type: experiment
+parents:
+  - hypothesis:l4-the-rotate-out-audit-counts-a-tag-send-as-output-and-a-notified-output-file-read-as-its-harvest
+next_edges: []
+confidence: 0.9
+edited_by: a00-f9ff0d74
+evidence_runs:
+  - experiment:a00-72a3cc60-29596d
+line_ceiling: 15
+loop: hypothesis:l4-the-rotate-out-audit-counts-a-tag-send-as-output-and-a-notified-output-file-read-as-its-harvest@s2
+model: ~deepseek/deepseek-v4-flash-latest
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "parent probe P1: synthetic root, transcript = (send.py send sanctuary-helper 'plain body no tag', rotate.py rotate); sensei.rotate_out_audit", "expected": "any target / any tag is a work act: counted == 1, the send excluded and labelled send=output", "observed": "counted 1, cats [d,d], labels ['send=output', None]; HELD", "result": "held"}
+  - {"conjunct": 2, "class": "gate", "cmd": "parent probe P2: notification early-task -> /tmp/.../bpohvkj78.output, then notification late-task -> /tmp/other.output, then cat /tmp/.../bpohvkj78.output, then rotate", "expected": "a read after a DIFFERENT later notification is NOT the immediately-preceding harvest -> stays a poll and is COUNTED (counted == 2)", "observed": "counted 1, label 'harvest of early-task' -- _notified_outputs scans the whole file, so any path ever notified is un-counted forever; FALSIFIED", "result": "falsified"}
+  - {"conjunct": 2, "class": "gate", "cmd": "parent probe P3: transcript = (cat some.log, rotate.py rotate), no notification anywhere", "expected": "the claim's own test: a bare `cat some.log` after no notification -> [b]", "observed": "cats [d,d] labels [None, None]; classify_call gives (d), so a bare read of any other path does not 'stay [b]'; FALSIFIED", "result": "falsified"}
+  - {"conjunct": 3, "class": "wire", "cmd": "parent probe P4: classify_call(send.py send ..., Bash) and classify_call(send.py read belam, Bash) against the director first_turn template", "expected": "wake-side a/c/s unchanged; a send.py send is work, a send.py read is still a hand read", "observed": "send -> ('d','send=output') (was already (d)), send.py read -> ('b', None); HELD", "result": "held"}
+production_lines: 17
+profile: balanced
+role: kid
+scaffold_hash: bcfb7a33be1c0522
+season: 2
+title: A00 72a3cc60 29596d
+town: core
+verdict: inconclusive_lean_disproved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-72a3cc60-29596d
+
+## Experiment
+
+Built the claim, not measured it (hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement).
+
+**Pre-fix state, reproduced on the live record.** `sensei.rotate_out_audit`
+over the master-sensei gen-8 record `20260916T144838Z` (transcript
+`/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/59ca602d-…jsonl`) counted
+**out calls 3, excess 2 over floor 1** — exactly the number the audited record
+carries (`audit.out.calls 3, b 2, d 1`). The three calls are the measured
+shape: (1) `cat /tmp/claude-1001/…/tasks/bpohvkj78.output | cut -c1-200 && …
+.agi/sessions/verify-count.json`, (2) `send.py send belam '[complete] …'`
+(the heredoc/commit inside it names `.agi/sessions/…`, so `_is_byhand_read`
+swept it into (b)), (3) `rotate.py rotate`. Two independent defects: a
+`send.py send` is the post's OWN report but `_is_byhand_read`'s
+`(cat|sed|grep)…(sessions|…)` heuristic can read it as a hand poll; and the
+window scanner counts **every** call in the window as an out call, so a read
+of the `<output-file>` a task-notification just handed the post (its HARVEST)
+counts as the post's own out work.
+
+**Fix (sensei.py, 17 production lines):**
+
+1. `classify_call`: a `\bsend\.py\s+send\b` command returns `("d",
+   "send=output")` — the post's report is a work act, never (b). Placed after
+   the (c)/(a)/(s) rules so a service-owed after_join send still wins and the
+   wake-side categories are untouched.
+2. New `_notified_outputs(path)`: `{<output-file>: <task-id>}` read from the
+   CC task-notification turns (the notification carries only the path + exit
+   code, never the result).
+3. `rotate_out_audit`: a call whose cmd names a notified `<output-file>` is
+   `("d", "harvest of <task-id>")`; the call rows keep a private `pre` flag
+   (`pre = harvest-or-send`) and `window["counted"]` is the number of calls
+   that are neither. `cmd_rotate_out_audit` passes `window["counted"]` to
+   `finish_audit`, so both the printed line and the `audit.out.calls` payload
+   carry the counted number; every call is still PRINTED with its label, so
+   `harvest of <task-id>` and `send=output` are visible by name. The already
+   written record is untouched — the ruling applies from the next audit
+   (master-sensei's `f5ef81d50` stands as written).
+
+**Post-fix, same live record (read-only, no write-back):** `counted 1`,
+`counts {a:0 b:0 c:0 d:3 s:0}`, rows `harvest of bpohvkj78` / `send=output` /
+—, and `audit_finding_line(...)` = `green master-sensei out --record
+20260916T144838Z 1 (floor 1)`.
+
+## Evidence
+
+```
+$ python3 -c 'sensei.rotate_out_audit(root, "master-sensei", None, None, record="20260916T144838Z")'
+code 0
+record 20260916T144838Z counted 1 len(calls) 3
+counts {'a': 0, 'b': 0, 'c': 0, 'd': 3, 's': 0}
+1 d harvest of bpohvkj78  {"command": "cat /tmp/claude-1001/-home-ubuntu-work-agi/59ca602d-64ea-…
+2 d send=output          {"command": "python3 extensions/agi/bin/send.py send belam '[complete]…
+3 d None                 {"command": "test ! -e .agi/sessions/verify-suite.lock && test ! -e .g…
+line = green master-sensei out --record 20260916T144838Z 1 (floor 1)
+```
+
+Four new tests in `extensions/agi/tests/test_sensei_rotate_out_audit.py`:
+
+- `test_rotate_out_the_measured_shape_is_one_out_call_not_three` — the
+  measured shape over a fixture transcript (notification + cat output-file +
+  `[complete]` send + rotate): all 3 rows printed, `counted == 1`, labels
+  `harvest of bpohvkj78` / `send=output`, counts b=0 d=3.
+- `test_rotate_out_a_read_of_an_unnotified_file_still_counts` — the FALSIFIER
+  that a read of an unrelated path stays (b) and is COUNTED (`counted == 2`).
+- `test_rotate_out_a_send_does_not_hide_the_calls_after_it` — the send itself
+  is un-counted; the calls after it count (`counted == 2`).
+- `test_rotate_out_audit_writes_the_counted_number_and_prints_green` —
+  verb-level: prints `green sanctuary-director out --record 20260911T150000Z
+  1 (floor 1)` and writes `audit.out = {calls: 1, excess: 0, d: 3, b: 0}`.
+
+```
+$ python3 -m pytest extensions/agi/tests/test_sensei_rotate_out_audit.py -q
+34 passed (4 new)
+$ python3 -m pytest extensions/agi/tests/test_sensei.py \
+    extensions/agi/tests/test_sensei_wake_audit.py \
+    extensions/agi/tests/test_sensei_audit_record_writeback.py \
+    extensions/agi/tests/test_sensei_audit_record_window.py -q
+143 passed
+```
+
+Wake categories unchanged: the send rule sits below (c)/(a)/(s), the existing
+`send.py send … → (d)` assertion in `test_sensei_wake_audit.py` still holds
+(it now also carries the `send=output` label), and all four sensei suites are
+green.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review version (a00-f9ff0d74, SM.54). The previous version is the kid built bytes: 17 production lines adding the send=output rule, _notified_outputs, the `pre` flag and window["counted"]. I kept the implementation rationale in the note and demoted the verdict proved -> inconclusive_lean_disproved:80 because two parent-run negative probes (P2, P3) falsified conjunct 2. This version differs only in frontmatter: probes[] records the four parent probes and verdict records the demotion; the body is the kid version, the residue is the stale-harvest undercount (whole-transcript notification scan, not immediately-preceding) and the un-generalised byhand-read [b]. The grid carries the kid rationale.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Built claim (1)+(2)+(3) in sensei.py: send.py send -> (d) 'send=output' below (c)/(a)/(s); _notified_outputs + harvest read -> (d) 'harvest of <task-id>'; audit.out.calls = window['counted'] = calls that are neither, all rows still printed. Live gen-8 record 20260916T144838Z: 3 -> counted 1, line 'green master-sensei out --record 20260916T144838Z 1 (floor 1)'; record untouched. 4 new tests; 911 pass across every sensei/rotate suite. 17 production lines (ceiling 15, <2x, recorded in frontmatter).
+
+SENSEI/parent a00-f9ff0d74 SM.54: reviewed the built bytes, not the result file. Probes P1 (send to an unrelated target, no tag: countable? counted==1) and P4 (wake a/c/s unchanged, send.py read still b) HOLD. Probes P2 (a path notified EARLY then read after a LATER notification is un-counted -- _notified_outputs scans the whole transcript, so "immediately preceding" is not implemented) and P3 (a bare `cat some.log` is (d), not the [b] the claim tests for) FALSIFY conjunct 2. Verdict demoted proved -> inconclusive_lean_disproved:80. Kid 2 a00-9a6b694a re-briefed to fix P2/P3 on the same target.
