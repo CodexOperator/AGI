@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: zero-residue-gate-2026-09-21
+thought_session: watch-zero-residue-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -135,17 +135,18 @@ Keep working batches as-is otherwise. Diagram-max all alignment comms.
 ## 3c. Watches / routines — diagram-max with love (owner 2026-09-20/21)
 
 For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence when nothing changed.
+Install this FORMAT **verbatim** into the live routine prompt (seat pins only differ).
 
 ### Shared director watch (ONE only — delete per-wave customs)
 
 ```
 schedule ──▶ @every 50m   (pi parents run around the clock — stated reason)
 name     ──▶ live-parents-workflows
-FORMAT   ──▶ shared (below)
-pins     ──▶ seat-local TREE / SCOPE / HOST only
+FORMAT   ──▶ shared (below) — MUST mirror §3 zero-residue + §4 routes
+pins     ──▶ seat-local TREE / SCOPE / HOST / BRANCH only
 ```
 
-**Prompt FORMAT (install exactly; substitute seat pins):**
+**Prompt FORMAT (install exactly; substitute seat pins only):**
 
 ```
 Quiet night watch — love the next LLM ingest. Diagram-max. Batch-max.
@@ -155,20 +156,44 @@ TREE:  <absolute seat worktree>
 BRANCH:<this director's branch role>
 HOST:  SSH encryption-town → /data/work/agi  (never /workspace/agi)
 
+STANDING (verbatim — doc:standing-llm-ops)
+```
+golden · diagram-max · batch-max
+land   format ✓ AND residues=0
+comms  Belam←[merge-up] residues=0 only · owner←blockers only
+routes write·read·send·dispatch/workflow·rotate/spawn
+```
+
+ZERO-RESIDUE (HARD)
+```
+MUR accept              ──▶ residues=0 ──▶ [merge-up] OK (not from this watch)
+MUR accept_with_residue ──▶ residues>0 ──▶ NO merge-up · KEEP parent loops
+MUR reject/format-fail  ──▶ fix → re-MUR
+```
+
+ROUTES (any graph touch)
+```
+WRITE write.py | READ commands.py | SEND send.py
+DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
+```
+
 1) Sense
    parents you spawned: alive?
    workflows you spawned: running?
    status=done + no MUR yet → owed (list it)
+   MUR accept_with_residue still open → residual loop owed (list it)
 2) Emit ONLY on delta
    | id | kind | state | note |
    |----|------|-------|------|
-   | <ITER>.* | parent/wf/MUR | up/dead/owed | ≤1 short |
+   | <ITER>.* | parent/wf/MUR/residue | up/dead/owed | ≤1 short |
 3) Route
-   Belam  ← nothing from this watch (Belam = residues=0 [merge-up] only)
+   Belam  ← nothing from this watch
    owner  ← blockers ONLY (red/stuck/decision)
-   completed batches → director-belam → Belam (not from this watch)
+   residues>0 → spawn/continue pi parents (NOT [merge-up])
+   residues=0 + format ✓ → [merge-up] path outside this watch
 4) No delta → silence (no "no change")
 5) Never invent. Never new remote head. Never push core/main.
+6) Prefer graph routes (§4) over raw tools.
 ```
 
 **Seat pins (examples — not a second FORMAT):**
@@ -180,11 +205,12 @@ director-belam
 director-helper
   SCOPE  DH.* · TREE /data/work/agi/.agi/worktrees/seat-director-helper
   BRANCH local-only · never new remote head
-  completed batches → director-belam (not helper)
+  completed batches → director-belam (not helper) · only residues=0
 ```
 
 ### Belam
-No standing chatter watch. Belam receives director `[merge-up]` **only at residues=0**; owner gets blockers.
+No standing chatter watch. Belam receives director `[merge-up]` **only at residues=0**; owner gets blockers. Belam **rejects** residue merge-ups.
+
 
 ## 4. Prefer graph engine over raw tools
 
