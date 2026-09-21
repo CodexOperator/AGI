@@ -920,6 +920,38 @@ def test_push_real_runner_pushes_season2_main_then_refgrids_from_main(
     assert pushed[1][4:] == ["origin", "refs/grid/*:refs/grid/*"]
 
 
+def test_push_refspec_reads_the_projects_storage_trunk(tmp_path, monkeypatch):
+    """The closeout's refs/grid push resolves its refspec through
+    `grid.push_spec_for` (goal:g14.14.7), not a literal: a project declaring
+    `grid.storage_trunk` moves the pushed namespace. Unconfigured, the test
+    above proves it is still `refs/grid/*:refs/grid/*`."""
+    import subprocess as _sp
+    g, main = _git_sole_repo(tmp_path)
+    real_run = _sp.run
+    pushed: list[list[str]] = []
+
+    def recorder(argv, **kw):
+        if argv and argv[0] == "git" and len(argv) >= 4 and argv[3] == "push":
+            pushed.append([str(a) for a in argv])
+
+            class _R:
+                returncode = 0
+                stderr = ""
+                stdout = ""
+            return _R()
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(rotate.subprocess, "run", recorder)
+    monkeypatch.setattr(rotate.grid, "push_spec_for",
+                        lambda root: "refs/grid/t9/*:refs/grid/t9/*")
+    seams = rotate._make_closeout_seams(g, {})
+    ok, res, det = seams["push"]()
+    assert ok is True and res == "ok", det
+    assert len(pushed) == 2, pushed
+    assert pushed[0][4:] == ["origin", "season2/main"]
+    assert pushed[1][4:] == ["origin", "refs/grid/t9/*:refs/grid/t9/*"]
+
+
 # --- hypothesis:l4-the-closeout-merge-up-gate-ignores-cron-owned-dirty- ---
 # paths-and-blocks-only-on-a-dirty-path-the-merge-touches: the merge_up
 # gate must (a) ignore cron-owned dirty paths, (b) block only on a dirty

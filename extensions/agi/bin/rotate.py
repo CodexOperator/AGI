@@ -67,6 +67,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
@@ -9062,21 +9063,27 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         main = _closeout_main(root)
         if main is None:
             return (False, "refused", "push: could not resolve MAIN")
+        # The grid refspec comes from grid.py's ONE resolver, keyed on the
+        # MAIN graph root (goal:g14.14.7). `main` is a git toplevel, not a
+        # graph root, so `push_spec_for(main)` would read no config and return
+        # the default for the wrong reason; `_shared_graph_root(root)` is the
+        # graph root this closeout already trusts for the veto above.
+        grid_spec = grid.push_spec_for(_shared_graph_root(root))
         p1 = _git_proc(main, "push", "origin", _CLOSEOUT_MERGE_TARGET)
         if p1 is None or p1.returncode != 0:
             _e = (p1.stderr or p1.stdout or "nonzero exit").strip() \
                 if p1 is not None else "push could not run"
             return (False, "refused",
                     f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
-        p2 = _git_proc(main, "push", "origin", "refs/grid/*:refs/grid/*")
+        p2 = _git_proc(main, "push", "origin", grid_spec)
         if p2 is None or p2.returncode != 0:
             _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
                 if p2 is not None else "push could not run"
             return (False, "refused",
-                    "push: push origin refs/grid/*:refs/grid/* refused: "
+                    f"push: push origin {grid_spec} refused: "
                     f"{_e}")
         return (True, "ok",
-                f"push origin {_CLOSEOUT_MERGE_TARGET} + refs/grid from MAIN")
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
 
     def _verify_stamp():
         # verification --level rotation --stamp in MAIN (cwd).
