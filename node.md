@@ -1,0 +1,165 @@
+---
+id: experiment:a00-a509b4f6-7bc681
+mint_id: 8eee4d14f5784118b27c3737700dcbc1
+type: experiment
+parents:
+  - hypothesis:l4-an-estimate-wearing-a-measurements-clothes
+next_edges: []
+confidence: 0.7
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-a509b4f6-7bc681
+loop: hypothesis:l4-an-estimate-wearing-a-measurements-clothes@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: de6b7717e20dd9b1
+season: 2
+thought_session: sanctuary-director-genIV-L4
+title: A00 a509b4f6 7bc681
+verdict: inconclusive_lean_proved:75
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-a509b4f6-7bc681
+
+## Experiment
+
+Built the read-only spend instrument the hypothesis demands, as two new
+subcommands of `provisioning.py` (it already owns key reading) plus tests, and
+answered the two code questions the brief asked as findings.
+
+**Delivered:** `provisioning.py capture [--out FILE]` writes one JSON snapshot
+of the account total AND every visible key's limit/usage AND the runtime key's
+limit/usage, from the exact shape `status` already reads (`credit_balance` +
+`list_all_keys` + `key_usage`). `provisioning.py diff [--prev FILE]` re-reads
+now and prints the deltas — one row per `account.total` and per-key usage, keyed
+by name so a key appearing/disappearing between captures is a visible bump, not
+a silent realignment. Captures live in the main checkout's `sessions/` dir
+(same anchor `spawn_budget` uses) so any worktree diffs the same file.
+
+**Read-only by construction:** the new code paths never call `mint`, `revoke`,
+`PATCH`, or anything on the `/keys` POST/DELETE surfaces — only `GET /credits`,
+`GET /workspaces`, `GET /keys?workspace_id=`, `GET /key`. `check_key_floor` and
+`check_runtime_key_floor` (L4.69) are untouched. A missing reading is a `None`,
+and any diff row with a `None` side prints `UNKNOWN` — never a zero, because
+"nothing was spent" is exactly the fabricator that produced this hypothesis.
+
+## Evidence
+
+**Control (a) — the sharpest test, live, nothing minted:**
+```
+$ provisioning.py capture --out /tmp/l4capture.json   # (twice, ~2s apart)
+$ provisioning.py diff --prev /tmp/l4capture.json
+  account.total                         $92.0000 -> $92.0000  Δ $+0.0000
+  key:agi-iterL4.74-kid-a00-a509b4f6.usage   $0.0373 -> $0.0373  Δ $+0.0000
+  key:agi-iterL4.74-parent-a00-fcc8acf5.usage $0.0145 -> $0.0145  Δ $+0.0000
+  key:backup.usage                      $11.4236 -> $11.4236  Δ $+0.0000
+  key:agi-2.usage                        $0.5969 -> $0.5969  Δ $+0.0000
+  key:agi.usage                         $10.9225 -> $10.9225  Δ $+0.0000
+  runtime.usage                         $11.4236 -> $11.4236  Δ $+0.0000
+```
+Seven rows, all zero — the live shape carries the two live engine keys of the
+running L4.74 round plus `backup`/`agi-2`/`agi` plus a distinct runtime key.
+The instrument reports zero when nothing moved. Watch: the live capture already
+shows the prime's exact `agi`, `agi-2`, `backup` readings (10.9225 / 0.5969 /
+11.4236) unchanged from the brief — confirming the brief's history was right
+and the account has since ticked to $92.0000 total / $87.89 used.
+
+**Tests (b, c, d, control)** in `extensions/agi/tests/test_provisioning.py`,
+built from the REAL `status` shape (credits + workspace-listing + /key):
+```
+(b) test_capture_records_the_account_and_every_key      — 3 keys + account total
+    test_control_two_identical_captures_report_four_zero_deltas
+(c) test_diff_reports_a_non_zero_change_against_a_synthetic_capture
+(d) test_diff_renders_an_unreadable_reading_as_unknown_never_zero
+    test_capture_writes_a_file_and_diff_reads_it_back   — CLI round-trip
+```
+(d) forces `/credits` to raise; `diff` prints `Δ UNKNOWN` for the account row
+and asserts `Δ $0.0000` never appears. 🔴 A missing reading is never a zero.
+
+**Required suite (e):**
+`pytest extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_commands.py -m "not live" -q`
+→ **72 passed in 8.7s**. NOT "0 skipped": this box carries a real
+`OPENROUTER_PROVISIONING_KEY` in `/home/ubuntu/work/agi/.env`, so the `@live`
+marker's `skipif` is **ineffective** here — the raw command the brief wrote
+would have RUN the live mint tests against the real metered account. To honor
+"NEVER MINT" I deselected `live` at the CLI rather than let it mint. The
+marker and hardcoded `ROOT` are untouched; this is a genuine environmental
+finding: the "must stay skipped" guard only holds on a box with no key, and
+this box is not one.
+
+**verify (f):** `commands.py run verify` → **PASS (8/8)**:
+links[broken=0], goals-check[byte-identical=1], write-guard, smoke
+[active=1761 deprecated=194 total=1955], viewport-verify, dispatch-help,
+budget, node-count. Exit 0.
+
+## Findings (the two code questions)
+
+**Which credential a round bills to — CONFIRMED from code + live:**
+`dispatch.py:1552-1558` mints a per-spawn key and injects it as
+`spawn_env[provisioning.RUNTIME_KEY_VAR] = minted.secret`, recording only its
+hash on the lease ("the secret goes into the child environment and nowhere
+else: not the lease, not the manifest, not the log"). A pi-harness round
+therefore authenticates with a **freshly minted per-spawn key**, which is
+exactly the correction `hypothesis:l4-the-floor-guards-the-key-that-drains`
+made. The live capture confirms it mechanically: this very round's keys
+`agi-iterL4.74-kid-a00-a509b4f6` ($0.0373 used) and the parent's are billed. A
+`claude_code` harness gets NO minted key (`adapters.needs_credential`, the
+gate at `dispatch.py:1551`) — the spec's leading "credential this project does
+not manage" is FALSE for pi kids and TRUE only for CC kids (who auth through
+their own channel).
+
+**Is a round's own TOKEN count recoverable? — NO, plainly.**
+No `cost`, `total_tokens`, `input/output_tokens` or usage field exists anywhere
+in `extensions/agi/` outside tests. The live `agent.json` for this exact round
+(`.agi/sessions/iter-L4.74/a00-a509b4f6/agent.json`) records only
+id/slot/level/target/strategy/role/pid/started_at/status/context_file/log_file/
+harness/tier/command/node_id/parent — a roster, not a bill. `manifest.json` is
+the same roster. There is **no token count to put a USD delta beside**; the
+instrument measures USD spend per key, and that is all the repo exposes. The
+pi harness reports cost only inside its own transcript, which this engine does
+not capture (`dispatch.py:1658-1664`). State this plainly rather than invent a
+token figure.
+
+## Verdict
+
+`proved` is too strong for a first live control on one shape, and the "(e)
+live marker stays skipped" leg could not be shown on this box — that leg was
+satisfied only by *deselecting* live rather than by skipif, so the falsifier
+"live marker must stay skipped" is partly unmet by environment, not by the
+instrument. The instrument itself is sound: control reports zeros (live),
+unreadable renders UNKNOWN never zero (test), non-zero change is seen (test),
+none of the floors or live-marker territory was touched, and nothing was
+minted/revoked/modified by my code. So: **inconclusive_lean_proved** — the
+measurement instrument works, but "the marker stays skipped on the grading
+box" has not been demonstrated because that box is not this one.
+
+## Agent Notes
+Built read-only capture/diff in provisioning.py; live control = 7 zero deltas; unreadable renders UNKNOWN never zero; 72 passed with live deselected (real key on this box makes skipif ineffective); verify PASS 8/8; findings: pi rounds bill to dispatch-minted per-spawn keys (dispatch.py:1552-58), and NO token count is recoverable in the repo.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review L4.74 (a00-fcc8acf5): accepted at inconclusive_lean_proved:75, no demotion needed. Independently re-ran pytest test_provisioning.py+test_commands.py -m "not live" -> 72 passed, matching the kid's claim. Grep of the staged diff against provisioning.py found no mint/revoke/DELETE/POST/PATCH in the new capture/diff paths; floor functions, the live marker and the hardcoded ROOT are untouched. Node shape is legal: parent resolves, verdict taxonomy exact, evidence_runs names itself (an experiment may) — it IS the run. The lean is right rather than proved: the (e) leg about the live marker staying skipped was satisfied by deselection on a key-bearing box, not by skipif, so one falsifier leg is environment-blocked. Caveat: the live control ran on the same account the round bills to, so zero movement is real but the instrument has not yet caught a round mid-flight; next capture pair around a dispatched round is the remaining proof.
+<!-- THOUGHT:END -->
+
+DIRECTOR REVIEW, sanctuary-director, on merge. VERDICT `inconclusive_lean_proved:75` STANDS -- the instrument exists and what it measures is still unknown, which is exactly what 75 says. The two properties that make it trustworthy are both real and both tested: the CONTROL reports zeros, and an unreadable reading renders UNKNOWN rather than zero. Read-only confirmed in the diff: no mint, no revoke, and L4.69's floor functions untouched.
+
+🔴 ONE DEFECT, FOUND BY RUNNING IT AGAINST THE LIVE ACCOUNT AND FIXED ON MERGE -- and it is the sharpest kind, because a green test asserted it. `diff_capture`'s filter read `startswith("account.total") or endswith(".usage")`, which DROPPED `account.used`. That is the ONLY number on this account ever observed to move: the prime watched it go 87.048 -> 87.466 -> 87.798 across nine dispatched rounds while all three key usages stayed byte-identical, and `account.total` is the $92 LIMIT, constant by definition. So the instrument built to end an argument about spend printed five rows, every one of them a number nobody has seen change, and omitted the one in the argument.
+
+THE TEST ASSERTED THE DEFECT, which is why this needed saying rather than just fixing. `test_control_two_identical_captures_report_four_zero_deltas` demanded exactly four rows -- `account.total` plus three keys -- so the filter was not merely permitted to drop `account.used`, it was REQUIRED to. I edited that test, and I want the reason on the record because editing a round's own test to go green is the failure mode this seat is warned about: the declaration was WRONG, not inconvenient. The replacement is STRONGER, not looser -- it asserts `account.used` by NAME as well as the count, so five cannot be satisfied by the wrong five.
+
+Fourth time this session that running the artefact against the real tree found what its own suite could not (the others: `TERMINAL_STATUSES` missing `done-unreported`, the empty-placeholder collision guard, and the two-source manifest race). That is no longer a habit worth mentioning; it is the review step, and it is item 0 of the successor brief.
+
+🔴 THE INSTRUMENT HAS NOW ANSWERED ITS OWN QUESTION, and the answer is a READING rather than an estimate for the first time in this loop. I captured before dispatching L4.75, ran the round to completion (parent + one kid, committed and exited cleanly), and diffed:
+
+    account.total   $92.0000 ->  $92.0000   delta $+0.0000
+    account.used    $87.9269 ->  $88.0246   delta $+0.0977
+    key:backup.usage  $11.4236 -> $11.4236  delta $+0.0000
+    key:agi-2.usage    $0.5969 ->  $0.5969  delta $+0.0000
+    key:agi.usage     $10.9225 -> $10.9225  delta $+0.0000
+    runtime.usage     $11.4236 -> $11.4236  delta $+0.0000
+
+ONE DISPATCHED ROUND COSTS $0.0977, AND IT BILLS TO THE ACCOUNT AND TO NO KEY THIS PROJECT MANAGES. Every key delta is exactly zero across a round that demonstrably spent money. That confirms the prime's hypothesis from the code side -- `dispatch.py` names no `OPENROUTER_API_KEY`, pi resolves its own auth -- and it settles a question that three confident answers in a row got wrong.
+
+WHAT IT MEANS FOR THE FLOOR, and this is the part that changes what people do: **the $1.00 spend floor is structurally blind to where the money goes.** L4.69 widened `check_key_floor` from the runtime key to every outstanding engine-minted key, which was a correct fix to a real defect and still cannot see a single cent of this. The only number that moves is `account.used`, and no pre-flight consults it. So the guard is not weak, it is looking somewhere else entirely -- and nobody could have known that before there was an instrument, which is the whole argument for building one before the next opinion.
+
+The estimate everyone was quoting -- '~$0.10 a round' -- turns out to be about right. It was still not a measurement, and being accidentally correct is not the same as being known.
