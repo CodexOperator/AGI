@@ -6,7 +6,7 @@ parents:
   - goal:g7.25
 next_edges: []
 confidence: 0.9
-edited_by: director-belam
+edited_by: belam
 goal_id: G7.25.1
 goal_kind: subgoal
 heading_level: 4
@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 414f99f953ab50bb
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - goal
   - subgoal
   - grok-bot
   - adapter
-thought_session: g7.25.1-body-standing-2026-09-21
+thought_session: close-g7251-zero-res-2026-09-21
 title: "G7.25.1: grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False)"
 town: core
 ---
@@ -72,3 +72,5 @@ Assigned to **director-belam** (CORE TOWN). Owner/Prime 2026-09-21: land of tip 
 Why: parent goal:g7.25 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
 
 standing body fleshed 2026-09-21 for format gate
+
+CLOSED residues=0 Belam 2026-09-21; tip f6892d419; falsifiers met (15/15 peer + payload_ref); no open MUR
