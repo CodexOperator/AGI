@@ -119,6 +119,10 @@ schedule: */30 * * * *   (reason: mesh seats need standing sync while live)
 prompt intent:
   Pull doc:grok-harness-internals-sync + this seat's per-post SoT doc id (from standing/profile pointer).
   For each SECTION:* in the per-post SoT, byte-copy into matching bot surface.
+  AFTER apply → VERIFY parse:
+    profile/routine surfaces must have REAL newlines
+    FAIL if literal \\n or mangled quotes visible
+    on FAIL → re-apply from SoT with real newlines (never leave broken mirror)
   Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake seat names into this routine.
   Quiet if SoT hash unchanged.
   May update_state THIS same routine if SoT changes the sync recipe (keeps routine byte-identical across posts).
