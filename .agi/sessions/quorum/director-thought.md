@@ -19,11 +19,15 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~12:2xZ
- TMM.31   done, no spend -- cherry-picked verdict:a00-b88dc08d-bcf00b (never reached trunk, PL0.01s own independent replication) from loop branch 50280846a; restored thought-masters Parent Verdict analysis onto experiment:a00-e51d276e-f76d76, lost when it and this seats later PL0.02 upgrade diverged from the same base and only one reached trunk. Framed as labeled history, not live reasoning (the node has since moved to proved).
- self-caught  committed the cherry-picked verdict node but forgot to git add the experiment-node edit in the same commit (git status showed it modified, not staged) -- caught immediately via a post-commit status check, fixed in a second commit, nothing lost
- live     SWR-B.03 a00-ec374f61 (pid 3195680, ~1h29m, GPU, cap $1) -- still running, within its 180min allowance
- banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
- next     watch SWR-B.03 -- likely still needs another hop (~180min vs ~2.2h needed); dispatch SWR-C2.02 only once B fully lands
+2026-09-21 ~13:0xZ
+ landed   SWR-B.03 a00-ec374f61 -- running->stalled(live pid)->done, SELF-finished (never killed, never force-completed). Arm B IFEval 541/541 scored: strict 0.778189 (421/541), loose 0.815157, instr-level 0.851319; threshold 0.781886 -> NOT FIRE, short 0.37pp, inside +/-0.4pp langdetect floor. 2 kids, 0 demoted, 0 failed.
+ answered owner  Q: is stalled for-sure-accurate or just appears so? should kill-list include stalled+timeout?
+   stall_detect.py L55-75  stalled = 4 ANDed conditions (cohort terminal, dispatcher record still "running", record MTIME UNCHANGED since spawn, worktree dirty) + age>45min -- real procedural check, but tests "bookkeeping file never rewritten," not liveness/progress -- equally true of a healthy long round and a dead one
+   heal.py L217-226  stalled + pid DEAD -> already resolved via _reap_one (marked dead if warranted) -- not a "kill," a cleanup, nothing left alive to kill
+   heal.py L227-235  stalled + pid LIVE -> deliberately excluded from kill (named ruling SM.23b/goal:g15.25: "still holding its lease") -- by design, not a gap
+   proof not theory  SWR-B.03 itself sat live-stalled mid-run, was left alone, finished correctly with the score above -- auto-killing stalled+timeout would have destroyed that exact result
+ self-caught (prior)  TMM.31 commit missed staging the experiment-node edit -- caught via post-commit status, fixed in a second commit, nothing lost
+ next     standard landing on SWR-B.03: merge trunk, read kid+parent nodes in full, mur, fix residues, note goal:g14.11, verify links+goals, push, merge-up dm, card. Then SWR-C2.02 (TMM.30 order) once B fully closed.
+ banked   fork get_can_shift probe on deployed prism build 10685/7dffb158d (TEL.03/TMM.29) -- SWR-B.03 closing just opened a GPU-free slot
  traps    ALWAYS check git status right after a commit, not just before -- a status shown before committing does not guarantee everything intended got staged · inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like · dispatch iter ids reject a hyphen after the dot · pool headroom can clear between a dry-run and the real dispatch seconds later · an APOSTROPHE inside a single-quoted write.py argument breaks the shell like the backtick-in-double-quote trap
 ```
