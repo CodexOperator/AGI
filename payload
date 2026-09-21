@@ -1,0 +1,1264 @@
+#!/usr/bin/env python3
+"""viewport.py — the live graph viewport. `goal:g9.4`, under `goal:g9.7`.
+
+**One render, two readers.** The window a human pans across and the context a
+kid is spawned with are the *same* frame stream at two grains — not two
+renderers that happen to agree. `goal:g9.7`'s falsifier is mechanical: change
+what the stream emits and both outputs change in the same commit, with nothing
+edited by hand. `--emit both` puts them side by side; `--verify` asserts it.
+
+That invariant is the reason this file exists rather than a fourth ASCII
+renderer. Before it there were at least five render paths and **none** shared
+between what a human sees and what an agent is handed:
+
+    zoom.py           3 internal renderers (big, legacy-small, numeric-level)
+    renderers/ascii   1, reached only by render-context.py -> INJECTION.md
+    dashboard.py      its own render_goals/metrics/health/activity
+
+So no human had ever looked at what a kid actually receives, because no
+instrument pointed there. Tuning the view here tunes every agent's context in
+the same edit.
+
+## Three axes, chosen by the owner 2026-09-02
+
+**space**  pan and zoom a window across a graph far larger than the screen.
+**time**   step through iterations and a node's grid versions.
+**live**   agents rendered where they are working, moving as they move.
+
+Deliberately NOT built: stepping a chain node-by-node. Recorded so a later
+reader does not re-propose it as an oversight.
+
+## INVARIANT: reader, never writer (inherited from `goal:g9`)
+
+Safe to run at any moment, including mid-iteration of the loop it is watching.
+It opens nothing for writing, creates no directory, and runs no mutating git
+command. `git` is reached only through `grid.py`'s read-only subcommands.
+
+It also renders the graph's **damage** rather than a flattering picture of it:
+dangling parents, unevidenced decisive verdicts and deprecated mass are drawn
+in place, not hidden behind a clean summary.
+
+## Usage
+
+    viewport.py                              # interactive, curses
+    viewport.py --emit human                 # one static frame, to stdout
+    viewport.py --emit llm                   # exactly what a kid is handed
+    viewport.py --emit both                  # both, from ONE frame stream
+    viewport.py --verify                     # assert g9.7's invariant
+    viewport.py --anchor goal:g13 --depth 3
+    viewport.py --iter 104                   # time axis: one iteration
+    viewport.py --live                       # live axis: agents as spiders
+
+Keys (interactive): arrows/hjkl pan · +/- depth · [/] time · a live · q quit
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+BIN = Path(__file__).resolve().parent
+PLUGIN_ROOT = BIN.parent
+sys.path.insert(0, str(BIN))
+
+import locations  # noqa: E402
+import zoom  # noqa: E402  — the unified read path, imported not reimplemented
+
+
+# --------------------------------------------------------------------------
+# The frame stream — ONE traversal, consumed by every formatter below.
+# --------------------------------------------------------------------------
+
+#: Glyphs are data, not literals scattered through the formatters, because
+#: `goal:g9.7` requires that changing the view is one edit.
+GLYPH = {
+    "root": "●",      # ●
+    "branch": "○",    # ○
+    "leaf": "·",      # ·
+    "damaged": "✗",   # ✗  dangling parent / broken edge
+    "spider": "✶",    # ✶  an agent, working here
+    "seat": "◆",     # ◆  a perpetual seat, sitting on this node
+    "apex": "◆",     # ◆  the prime director at the top of the hierarchy
+    "advisor": "◈",   # ◈  a quorum advisor, one per vision node
+    "director": "◎",  # ◎  a director-kid owning a perpetual goal
+    "mantle": "✦",    # ✦  a mantled spirit in the sanctuary theme
+    "wisp": "≈",      # ≈  a probe / ephemeral wisp in the sanctuary theme
+}
+
+#: Node type -> single-letter tag. Kept short: at level 1 the tag is all the
+#: width there is for a type.
+TYPE_TAG = {
+    "goal": "G", "vision": "V", "idea": "I", "hypothesis": "H",
+    "experiment": "E", "verdict": "D", "mvp": "M", "outcome": "O",
+    "bigger_outcome": "B", "build": "b", "task": "t", "doc": "d",
+}
+
+
+@dataclass(frozen=True)
+class Frame:
+    """One node's appearance in the stream.
+
+    Every formatter reads only these fields. A formatter that reaches back
+    into the graph for something not on a Frame has broken `goal:g9.7` --
+    that is the seam where two views start to drift, so the dataclass is
+    frozen and the traversal is the only thing that fills it.
+    """
+    node_id: str
+    type: str
+    depth: int
+    kind: str            # root | branch | leaf
+    title: str
+    verdict: str
+    damaged: str         # "" when sound, else why
+    agents: tuple        # agent ids working here (live axis)
+    town: str = ""      # town of nearest vision (hyp:l4-towns-...), "" when unknown
+
+
+def _title_of(node, fm: dict) -> str:
+    t = (fm.get("title") or "").strip().strip('"')
+    if t:
+        return t
+    return node.id.split(":", 1)[-1]
+
+
+def frame_stream(g, fm_by_id: dict, anchor: str | None, max_depth: int,
+                 agents_at: dict | None = None,
+                 hide_deprecated: bool = False,
+                 nodes_dir: str | None = None) -> list[Frame]:
+    """Walk the graph once from `anchor` and emit frames in display order.
+
+    Ordering is `(depth, node_id)` and is deterministic: two runs over an
+    unchanged corpus emit byte-identical streams, which is what makes
+    `--verify` meaningful and what lets the time axis diff two points.
+
+    ## `hide_deprecated` — two consumers that genuinely want opposite things
+
+    The human viewport **shows** retired nodes on purpose: this file's own
+    contract is to render the graph's damage rather than a flattering picture
+    of it, and deprecated mass is part of that picture. Default `False`.
+
+    The **injected map must hide them** (`goal:s23`): an agent handed a
+    retired node as a live chain head will extend it, which is the whole
+    reason retirement exists. `render-context.py` did this with a `_LiveOnly`
+    graph view, and when `inject.py` replaced it on 2026-09-03 the filter was
+    dropped — the map looked correct only because the one retired build node
+    happened to sit outside depth 3 of any root. Anchoring on its parent
+    showed it immediately.
+
+    A view, never a removal: `g` keeps every node, and `by_type` counts still
+    include retired ones exactly as they did before — the numbers describe the
+    corpus, the tree describes what is live to work on.
+    """
+    agents_at = agents_at or {}
+    if anchor and not g.has_node(anchor):
+        raise SystemExit(f"viewport: --anchor '{anchor}' is not in the graph")
+
+    roots = [anchor] if anchor else default_roots(g, fm_by_id)
+    seen: set[str] = set()
+    out: list[Frame] = []
+
+    # Depth-first PRE-ORDER, children sorted. Breadth-first was the obvious
+    # implementation and it is wrong for a tree view: it emits every depth-0
+    # node, then every depth-1 node, so a child never appears beneath its own
+    # parent and the indentation describes a nesting the order contradicts.
+    # Caught by reading the first default render rather than by a test, which
+    # is the argument for `goal:g9` in one line -- a view nobody looks at is
+    # a view that can be wrong for free.
+    def _retired(nid: str) -> bool:
+        return str((fm_by_id.get(nid) or {}).get("status") or "").strip().lower() \
+            == "deprecated"
+
+    # hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the
+    # town a node belongs to, derived through the shared helper (the same one
+    # node_writer, brief and zoom use). Memoized per node_id so a large graph
+    # only pays the BFS up the parents edge once per node actually in view.
+    _town_cache: dict = {}
+
+    def _town_of(nid: str) -> str:
+        if not nodes_dir:
+            return ""
+        t = _town_cache.get(nid)
+        if t is None:
+            import spawn_gate
+            t = spawn_gate.nearest_vision_town(nodes_dir, [nid])
+            _town_cache[nid] = t
+        return t
+
+    def walk(nid: str, depth: int) -> None:
+        if nid in seen or depth > max_depth:
+            return
+        if hide_deprecated and _retired(nid):
+            # Hidden WITH its subtree: a live node reached only through a
+            # retired parent is not a live chain head either, and `_LiveOnly`
+            # dropped incident edges for the same reason.
+            seen.add(nid)
+            return
+        seen.add(nid)
+        node = g.get_node(nid)
+        if node is None:
+            return
+        fm = fm_by_id.get(nid, {})
+        kids = sorted(getattr(node, "children", set()) or [])
+        out.append(Frame(
+            node_id=nid,
+            type=node.type or "?",
+            depth=depth,
+            kind="root" if depth == 0 else ("branch" if kids else "leaf"),
+            title=_title_of(node, fm),
+            verdict=str(fm.get("verdict") or ""),
+            damaged=_damage_of(g, node, fm),
+            agents=tuple(agents_at.get(nid, ())),
+            town=_town_of(nid),
+        ))
+        if depth < max_depth:
+            for k in kids:
+                walk(k, depth + 1)
+
+    sys.setrecursionlimit(max(sys.getrecursionlimit(), 10_000))
+    for r in roots:
+        walk(r, 0)
+    return out
+
+
+def _damage_of(g, node, fm: dict) -> str:
+    """What is wrong with this node, in a few words, or "".
+
+    `goal:g9` is explicit that the view must render damage rather than hide
+    it, so this is computed in the traversal and carried on the Frame -- a
+    formatter cannot choose to omit it without the omission being visible in
+    the code.
+    """
+    for p in (node.parents or []):
+        if not g.has_node(p):
+            return f"dangling parent {p}"
+    v = str(fm.get("verdict") or "")
+    if v in ("proved", "disproved"):
+        ev = fm.get("evidence_runs")
+        if not ev:
+            return "decisive verdict, no evidence"
+    return ""
+
+
+def _all_ids(g) -> list[str]:
+    """Every node id, however this Graph spells that.
+
+    `Graph.node_ids` is a set attribute here, not a method, and calling it
+    crashed the whole default (no-anchor) view. It survived a first pass
+    because the smoke check grepped stdout for a glyph -- absent output and a
+    traceback on stderr look identical to `grep`. Tolerating both spellings
+    costs three lines and removes a way for this to break again.
+    """
+    ids = getattr(g, "node_ids", None)
+    if callable(ids):
+        ids = ids()
+    if ids is None:
+        ids = getattr(g, "nodes", {})
+        ids = ids.keys() if hasattr(ids, "keys") else ids
+    return sorted(ids)
+
+
+def default_roots(g, fm_by_id: dict) -> list[str]:
+    """What the viewport opens on when nothing is anchored.
+
+    **Active goals, not every parentless node.** The graph has hundreds of
+    natural roots, and a "single view" that opens on all of them is a dump
+    rather than a view -- the exact failure `goal:g9` names, where an
+    artefact is technically complete and practically unreadable. Active goals
+    are what the project says it is working on, so they are the honest
+    default entry point, and `--anchor` reaches anything else.
+
+    Falls back to natural roots only if nothing is marked active, so a fresh
+    project with no goals still renders something.
+    """
+    active = sorted(
+        nid for nid in _all_ids(g)
+        if (fm_by_id.get(nid, {}).get("status") == "active"
+            and (g.get_node(nid).type if g.get_node(nid) else "") == "goal")
+    )
+    if active:
+        return active
+    return [nid for nid in _all_ids(g)
+            if (n := g.get_node(nid)) is not None
+            and (not n.parents or not any(g.has_node(p) for p in n.parents))]
+
+
+# --------------------------------------------------------------------------
+# Formatters. BOTH consume `frames` and nothing else.
+# --------------------------------------------------------------------------
+
+def render_human(frames: list[Frame], top: int, left: int,
+                 height: int, width: int, status: str = "",
+                 brief=None, seats=None, occupants=None, anchors=None,
+                 layer="graph") -> list[str]:
+    """The terminal viewport: a window onto a graph larger than the screen.
+
+    `brief` is the same `Briefing` object `render_llm` receives, rendered
+    compactly — the numbers a human watches change, without the rules text a
+    human reading their own graph does not need restated every frame.
+
+    `occupants` is an `OccupantIndex` (hypothesis:l3w4-seat-graph-view): the
+    perpetual seats it maps are drawn INLINE on the node they sit on, and the
+    seats it lists as idle are drawn in a named idle band beneath the window
+    so none is invisible. The same object reaches `render_llm`.
+
+    `anchors` is an `AnchorIndex` (round 2 — the layered map): the agent
+    hierarchy layer. `layer` is which of the two layers is on top; the layer
+    beneath is rendered faint (`~ `-prefixed) so it peeks around the top one.
+    Both formatters read the SAME `anchors` and `layer`, so goal:g9.7 holds.
+    """
+    lines: list[str] = []
+    for f in frames:
+        glyph = GLYPH["damaged"] if f.damaged else GLYPH[f.kind]
+        spider = (" " + GLYPH["spider"] * len(f.agents)) if f.agents else ""
+        tag = TYPE_TAG.get(f.type, "?")
+        v = f" [{f.verdict}]" if f.verdict and f.verdict != "pending" else ""
+        note = f"   {GLYPH['damaged']} {f.damaged}" if f.damaged else ""
+        seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
+        seat_mark = "".join(f" {GLYPH['seat']}{nm}" for nm in seats_here)
+        town_mark = f" [town:{f.town}]" if f.town and f.town != "core" else ""
+        lines.append(f"{'  ' * f.depth}{glyph} {tag} {f.title}{town_mark}{v}{spider}{seat_mark}{note}")
+
+    # Round 2 — stacked layers. Top renders full; the layer beneath is
+    # faint-prefixed so it peeks around the top one in a plain terminal.
+    if anchors is not None:
+        hier = hierarchy_lines(anchors)
+        if layer == "hierarchy":
+            body = hier + ["~ " + ln for ln in lines]
+        else:
+            body = lines + ["~ " + ln for ln in hier]
+    else:
+        body = lines
+
+    window = body[top:top + height]
+    out = [ln[left:left + width].ljust(width) for ln in window]
+
+    # Named idle band: seats with no current node, so empty seats are seen,
+    # not erased. Rendered beneath the window slice, distinct glyph + label.
+    if occupants is not None and occupants.idle:
+        idle_ln = (f"{GLYPH['seat']} idle: " + ", ".join(occupants.idle))
+        out.append((idle_ln[left:left + width]).ljust(width))
+
+    head = []
+    if brief is not None:
+        import briefing as _briefing
+        head = [ln[:width] for ln in _briefing.to_compact(brief)]
+    if seats is not None:
+        import seat_status as _ss
+        head += [ln[:width] for ln in _ss.to_compact(seats)]
+    if anchors is not None:
+        head += [f"map layers: on top = {layer}, other = "
+                 + ("agent hierarchy" if layer == "graph" else "graph")]
+    if head:
+        head += ["-" * min(width, 80)]
+    out = head + out
+    return out + ([status[:width]] if status else [])
+
+
+def render_llm(frames: list[Frame], top: int, left: int,
+               height: int, width: int, status: str = "",
+               brief=None, seats=None, occupants=None, anchors=None,
+               layer="graph") -> str:
+    """Exactly what a kid is handed for this position.
+
+    Same frames, same slice, same order. The markdown wrapper differs because
+    the consumer differs -- that is the ONLY thing allowed to differ, and it
+    is why this takes the identical arguments as `render_human`.
+
+    `brief` adds the nine briefing sections `INJECTION.md` carries — the
+    metric, the chain rules, the taxonomy, the attractors, the declared
+    commands. Without it this view was **45 lines against INJECTION.md's
+    271**, and the missing 226 were the entire contract a kid's work is judged
+    against. A "view of what an LLM sees" that omits the rules is not a view
+    of what an LLM sees.
+
+    `anchors` / `layer` (round 2) state the same hierarchy layer and on-top
+    fact the human pane does: the graph frame lines are kept un-prefixed so
+    `_FRAME_LINE` still parses them, and the two layers are marked instead of
+    visually stacked.
+    """
+    body = []
+    for f in frames[top:top + height]:
+        v = f" verdict={f.verdict}" if f.verdict else ""
+        dmg = f" DAMAGE={f.damaged}" if f.damaged else ""
+        who = f" agents={','.join(f.agents)}" if f.agents else ""
+        seats_here = occupants.seats_at(f.node_id) if occupants is not None else ()
+        seating = f" seats={','.join(seats_here)}" if seats_here else ""
+        tn = f" town={f.town}" if f.town and f.town != "core" else ""
+        body.append(f"{'  ' * f.depth}- `{f.node_id}` ({f.type}) {f.title}{tn}{v}{dmg}{who}{seating}")
+    head = [
+        "# graph viewport",
+        f"_frames {top}-{min(top + height, len(frames))} of {len(frames)}_",
+        "",
+    ]
+    if status:
+        head.append(f"> {status}")
+        head.append("")
+    if brief is not None:
+        import briefing as _briefing
+        head += [*_briefing.to_markdown(brief), ""]
+    if seats is not None:
+        import seat_status as _ss
+        head += [*_ss.to_markdown(seats), ""]
+    if occupants is not None and occupants.idle:
+        head += ["## idle seats", "",
+                 *[f"- seat {nm}" for nm in occupants.idle], ""]
+    if anchors is not None:
+        head += ["## agent hierarchy", "",
+                 *hierarchy_markdown(anchors),
+                 "",
+                 f"_map_layer_on_top: {layer}_", ""]
+    head += ["## the graph", ""]
+    return "\n".join(head + body) + "\n"
+
+
+# --------------------------------------------------------------------------
+# The keep theme — a third live render, per goal:g9.4 under goal:g9.7
+# (hypothesis:l3w4-sanctuary-theme). `--theme keep`; the theme is a VIEW of
+# the keep, so the flag names the view, never a town (goal:g8.2).
+#
+# Same one-render-two-readers discipline as the graph frame: `sanctuary_frame`
+# builds a single frozen `SanctuaryScene` and `render_sanctuary_human` /
+# `render_sanctuary_llm` read it and nothing else. Content: a tree on an
+# outcrop houses one mantled spirit per tier-3 seat; tier-1 director seats and
+# live ephemeral leases draw as wisps; a rotating seat draws a light strand
+# naming its `rotated_by` holder.
+# --------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class SanctuaryScene:
+    """One sanctuary frame — the mirror of `Frame`, for the theme renderers."""
+    spirits: tuple          # of {name, label, fraction} — mantled tier-3 avatars
+    probes: tuple           # of {name, label, fraction} — tier-1 director wisps
+    ephemeral_wisps: int    # live ephemeral lease count
+    rotating: tuple         # (holder, seat) when a seat's window is ren-gen'd
+    registry_present: bool  # False => the seats registry is absent
+
+
+def sanctuary_frame(seat_rows: list, ephemeral_leases, rotating):
+    """Build one `SanctuaryScene` from `config:seats` rows (hypothesis L3.24).
+
+    Sprits are the `tier == 3` rows (Belam and the advisors, wearing their
+    mantles) plus any mantled non-tier-3 row (a seated Sanctuary Master sits on
+    her mantle, not her tier). Everything else — the tier-1 director rows — is a
+    probe wisp.
+    """
+    spirits, probes = [], []
+    for r in seat_rows or []:
+        rec = {
+            "name": str(r.get("name") or ""),
+            "label": str(r.get("role") or ""),
+            "fraction": r.get("fraction"),
+            "town": str(r.get("town") or "core"),
+        }
+        if r.get("tier") == 3 or r.get("mantled"):
+            spirits.append(rec)
+        else:
+            probes.append(rec)
+    # goal:g15.25 SM.32 -- group by the row's REAL town, sanctuary rows first
+    # (the keep's own people), core rows after. STABLE: within a town the
+    # registry order is preserved, so a fixture whose rows all read `core`
+    # keeps its original order. `towns.row_town` resolves a row still
+    # spelling `town: all`.
+    spirits.sort(key=lambda x: x["town"] == "core")
+    probes.sort(key=lambda x: x["town"] == "core")
+    return SanctuaryScene(tuple(spirits), tuple(probes),
+                          len(ephemeral_leases or []), rotating, True)
+
+
+def load_seat_rows(root: Path, fm_by_id: dict):
+    """`(rows, registry_present)` — telemetry when available, else seats.md.
+
+    Matches telemetry's own fallback (`l3w4-telemetry-seat-status`): prefer
+    `seat_status.collect(...).seats` when that module exists, otherwise read
+    `config:seats`'s `seats:` list from `.geometry/seats.md` with `fraction`
+    unset. Whichever lane lands first is safe to render.
+    """
+    try:
+        import seat_status
+        sv = seat_status.collect(root, fm_by_id)
+        rows = getattr(sv, "seats", None)
+        if rows:
+            return list(rows), True
+    except Exception:
+        pass
+    import geometry_config as _gc
+    cfg = _gc.geometry_config_path(root)
+    present = cfg is not None and cfg.is_file()
+    rows = []
+    if present:
+        # The view derives from the one reader (hypothesis:l3w4-hierarchy-
+        # one-source): both seat sources are read through hierarchy.py, never
+        # re-parsed here, so the renderings cannot drift from the chart.
+        try:
+            import hierarchy as _hier
+            rows = _hier.load_seats(root)
+        except Exception:
+            # zoom frontmatter is keyed by file-id+list-key; the renamed
+            # layout (`config:posts`.`posts`) precedes the deprecated
+            # `config:seats`.`seats` (hypothesis:l4-a-seat-is-a-post-everywhere).
+            gf = zoom._frontmatter_for(root, ".geometry")
+            rows = (gf.get("config:posts") or {}).get("posts")
+            if not rows:
+                rows = (gf.get("config:seats") or {}).get("seats")
+            rows = rows or []
+        try:
+            import towns as _towns
+            rows = [{**r, "town": _towns.row_town(root, r)} for r in rows]
+        except Exception:  # noqa: BLE001  (a row still renders without a town)
+            pass
+    return list(rows), present
+
+
+_ROTATING_RE = re.compile(r"^(.+)\.(?:gen\d+|prev)$")
+
+
+def rotating_seat(seat_rows: list, windows: list):
+    """`(holder, seat)` for the seat whose tmux window is renamed aside.
+
+    goal:g15.25 (hypothesis:l4-non-prime-posts-are-generation-less-...): the
+    rotation loop now names a rotating NON-PRIME seat's window `<seat>.prev`
+    (one predecessor window at a time, no generation); the LEGACY `<seat>.
+    gen<digits>` spelling (`l3w4-seat-rotation-loops`, still emitted by the
+    prime chain) is accepted too. Resolve either to the row's `rotated_by`
+    holder. Never invented: no matching window returns `None`.
+    """
+    names = {str(r.get("name") or ""): r for r in seat_rows or []}
+    for w in windows or []:
+        m = _ROTATING_RE.match((w or "").strip())
+        if not m:
+            continue
+        row = names.get(m.group(1))
+        if row is not None:
+            return row.get("rotated_by"), m.group(1)
+    return None
+
+
+def render_sanctuary_human(scene: SanctuaryScene, width: int = 120) -> list[str]:
+    """The terminal frame: tree, spirits, probes, wisps, and the light strand."""
+    if not scene.registry_present:
+        return ["no seat registry yet"]
+    lines = [
+        "   ~   ~   ~",
+        "  _/ outcrop \\_",
+        "  / tree of mantled spirits \\",
+        "",
+    ]
+    for s in scene.spirits:
+        frac = f"  {s['fraction']:.0%}" if s["fraction"] is not None else ""
+        lines.append(f"  {GLYPH['mantle']}  {s['name']}  {s['label']} "
+                     f"[{s['town']}]{frac}")
+    for p in scene.probes:
+        frac = f"  {p['fraction']:.0%}" if p["fraction"] is not None else ""
+        lines.append(f"  {GLYPH['wisp']}  {p['name']}  {p['town']} probe{frac}")
+    lines.append(f"  {scene.ephemeral_wisps} ephemeral wisps")
+    if scene.rotating:
+        holder, seat = scene.rotating
+        lines.append(f"  {holder} ~~~✧~~~> {seat} (rotating)")
+    return lines
+
+
+def render_sanctuary_llm(scene: SanctuaryScene) -> str:
+    """Exactly what a kid is handed, from the same `SanctuaryScene`."""
+    if not scene.registry_present:
+        return "# sanctuary viewport\n\nno seat registry yet\n"
+    body = [f"- spirit {s['name']} ({s['label']}) town={s['town']}"
+            for s in scene.spirits]
+    body += [f"- probe {p['name']} ({p['label']}) town={p['town']}"
+             for p in scene.probes]
+    body.append(f"- ephemeral_wisps: {scene.ephemeral_wisps}")
+    if scene.rotating:
+        body.append(f"- rotating: {scene.rotating[0]} ~~~✧~~~> {scene.rotating[1]}")
+    return "# sanctuary viewport\n\n" + "\n".join(body) + "\n"
+
+
+def _render_keep(args, root: Path, fm_by_id: dict) -> int:
+    """Static `--theme keep` path for `--emit human|llm|both`."""
+    seat_rows, present = load_seat_rows(root, fm_by_id)
+    ephemeral = []
+    try:
+        import spawn_budget
+        ephemeral = spawn_budget.live_agents(root)
+    except Exception:
+        pass
+    windows = []
+    try:
+        import rotate as _rotate
+        windows = _rotate._existing_windows(_rotate.DEFAULT_TMUX_SESSION)
+    except Exception:
+        pass
+    scene = sanctuary_frame(seat_rows, ephemeral, rotating_seat(seat_rows, windows))
+    status = f"theme=keep registry={'yes' if present else 'absent'}"
+    mode = args.emit or "human"
+    if mode in ("human", "both"):
+        if mode == "both":
+            print("=" * args.width)
+            print("HUMAN VIEW — sanctuary".center(args.width))
+            print("=" * args.width)
+        for ln in render_sanctuary_human(scene, args.width):
+            print(ln[:args.width])
+    if mode in ("llm", "both"):
+        if mode == "both":
+            print("\n" + "=" * args.width)
+            print("LLM VIEW  — same scene".center(args.width))
+            print("=" * args.width)
+        print(render_sanctuary_llm(scene), end="")
+    return 0
+
+
+# --------------------------------------------------------------------------
+# The time axis.
+# --------------------------------------------------------------------------
+
+def iteration_points(root: Path) -> list[str]:
+    """Iterations this project has run, oldest first. Read-only."""
+    sess = root / "sessions"
+    if not sess.is_dir():
+        return []
+    return sorted(p.name for p in sess.iterdir()
+                  if p.is_dir() and p.name.startswith("iter-"))
+
+
+def agents_of_iteration(root: Path, iter_name: str) -> dict:
+    """`{node_id: [agent_id, ...]}` for one iteration. Read-only.
+
+    Reads the manifest and each agent's `agent.json`, which is where a
+    parent's `owns` list and a kid's `node_id` live. This is the live axis's
+    data source too -- an agent is "at" the node it is writing.
+    """
+    out: dict[str, list[str]] = {}
+    d = root / "sessions" / iter_name
+    mf = d / "manifest.json"
+    if not mf.is_file():
+        return out
+    try:
+        agents = json.loads(mf.read_text()).get("agents", [])
+    except (json.JSONDecodeError, OSError):
+        return out
+    for a in agents:
+        aid = a.get("id") or ""
+        targets: list[str] = []
+        if a.get("node_id"):
+            targets.append(a["node_id"])
+        aj = d / aid / "agent.json"
+        if aj.is_file():
+            try:
+                rec = json.loads(aj.read_text())
+            except (json.JSONDecodeError, OSError):
+                rec = {}
+            if rec.get("node_id"):
+                targets.append(rec["node_id"])
+            targets.extend(rec.get("owns") or [])
+        if not targets and a.get("target"):
+            targets.append(a["target"])
+        for t in dict.fromkeys(targets):
+            out.setdefault(t, []).append(aid)
+    return out
+
+
+@dataclass(frozen=True)
+class OccupantIndex:
+    """Who sits where, as ONE object both formatters render (hypothesis
+    l3w4-seat-graph-view). Mirrors the `Frame`/`SeatsView` discipline: built
+    once, read by both `render_human` and `render_llm`.
+
+    `at_nodes` — `{node_id: tuple[seat_name, ...]}` — seats rendered INLINE on
+    the node they are working today.
+    `idle` — `tuple[seat_name, ...]` — seats with no resolvable current node,
+    rendered in a named idle band so none is invisible.
+
+    Ephemeral round agents ride the existing `Frame.agents` spider glyph;
+    this index carries only the perpetual seats, which is what the owner asked
+    to see ON the graph and what was missing.
+    """
+    at_nodes: tuple = ()          # node_id -> tuple[seat_name, ...]
+    idle: tuple = ()              # tuple[seat_name, ...]
+
+    @classmethod
+    def _from(cls, at_nodes: dict, idle) -> "OccupantIndex":
+        return cls(tuple((k, tuple(v)) for k, v in (at_nodes or {}).items()),
+                   tuple(idle or ()))
+
+    def seats_at(self, node_id: str) -> tuple:
+        for k, v in self.at_nodes:
+            if k == node_id:
+                return v
+        return ()
+
+
+def _manifest_agents(root: Path, iter_name: str) -> list[dict]:
+    """The `agents` list of one iteration's manifest.json, or []. Read-only."""
+    mf = Path(root) / "sessions" / iter_name / "manifest.json"
+    if not mf.is_file():
+        return []
+    try:
+        agents = json.loads(mf.read_text()).get("agents", [])
+        return [a for a in agents if isinstance(a, dict)]
+    except (json.JSONDecodeError, OSError):
+        return []
+
+
+_SESSIONS_MARK = re.compile(r"(?:^|[/\\])sessions[/\\]([^/\\]+)[/\\]")
+
+
+def _agent_id_of_session(sess_text: str) -> str | None:
+    """The agent id a session path names: the dir right under `sessions/`.
+
+    A seat's meter pin names its current transcript, whose path runs
+    `.../sessions/<agent_id>/...`. The agent id is how the seat's session
+    joins to a manifest row's `target`.
+    """
+    m = _SESSIONS_MARK.search(sess_text or "")
+    return m.group(1) if m else None
+
+
+def _seat_sessions(root: Path, registry_rows) -> dict:
+    """`{seat_name: pin_text}` from each seat's meter pin, best-effort.
+
+    `.agi/sessions/<name>.meter` holds the transcript path the seat is
+    currently working on (seat-stable via AGI_SEAT, `config:seats` `pin_ref`).
+    Absent or unreadable pin -> the seat simply has no session, which is the
+    honest "idle" state, never an error.
+    """
+    out: dict[str, str] = {}
+    for r in registry_rows or []:
+        name = str(r.get("name") or "")
+        if not name:
+            continue
+        pin = locations.shared_sessions_dir(root) / f"{name}.meter"
+        if pin.is_file():
+            try:
+                out[name] = pin.read_text(encoding="utf-8").strip()
+            except OSError:
+                pass
+    return out
+
+
+def seat_index(manifest_agents: list, registry_rows: list,
+               session_by_seat: dict) -> tuple[dict, list]:
+    """`(at_nodes, idle)` — join each seat to the node it is working on.
+
+    `manifest_agents` — one iteration's manifest `agents` rows; each carries
+    `id` and `target` (the node that agent is writing right now).
+    `registry_rows` — `config:seats`'s `seats:` list.
+    `session_by_seat` — `{seat_name: session_path}` from each seat's meter pin
+    (see `_seat_sessions`).
+
+    Resolution, newest iteration wins (the caller hands the newest manifest):
+    a seat's pinned session names the agent id it currently runs; that agent's
+    manifest `target` is the node the seat sits on. A seat with no pin, or a
+    pin whose agent has no manifest row, is IDLE — shown in the idle band,
+    never invented onto a node it is not on.
+    """
+    by_agent = {str(a.get("id")): a for a in (manifest_agents or [])
+                if a.get("id") is not None}
+    at_nodes: dict[str, list[str]] = {}
+    seated: set[str] = set()
+    for r in registry_rows or []:
+        seat = str(r.get("name") or "")
+        if not seat:
+            continue
+        sess = (session_by_seat or {}).get(seat)
+        node = None
+        if sess:
+            row = by_agent.get(_agent_id_of_session(sess) or "")
+            if row and row.get("target"):
+                node = row["target"]
+        if node:
+            at_nodes.setdefault(node, []).append(seat)
+            seated.add(seat)
+    idle = [str(r.get("name")) for r in (registry_rows or [])
+            if r.get("name") and str(r.get("name")) not in seated]
+    return at_nodes, idle
+
+
+# --------------------------------------------------------------------------
+# ROUND 2 — the layered map (hypothesis:l3w4-seat-graph-view, owner's fuller
+# design). TWO layers over one structure, not two views: the AGENT HIERARCHY
+# (seats by tier, each drawn at its anchor) and the GRAPH (goals, visions,
+# hypotheses). The layer on top renders full; the layer beneath peeks through
+# faintly. One keypress swaps which is on top. Both layers read the SAME
+# `AnchorIndex`, so goal:g9.7 holds one level down from the frame stream.
+#
+# THE TIE IS THE POINT: every non-ephemeral seat is anchored at a graph node
+# -- each quorum advisor by `personality_ref` to ONE vision, each director-kid
+# by `owning_goal` to ONE perpetual goal. Both ties were already on disk in
+# `config:seats`; this renders them for the first time.
+# --------------------------------------------------------------------------
+
+#: Hierarchy role -> glyph. Unknown roles fall back to the plain seat mark, so
+#: a future role renders rather than disappearing.
+HIER_GLYPH = {
+    "prime_director": "apex",
+    "parent": "advisor",
+    "director": "director",
+}
+
+_HIER_ROLE_ORDER = {
+    "prime_director": 0,
+    "parent": 1,
+    "director": 2,
+    "kid": 3,
+}
+
+
+def _anchor_sort_key(rec: dict):
+    """Deterministic hierarchy order: tier desc, then role, then name."""
+    return (-int(rec.get("tier") or 0),
+            _HIER_ROLE_ORDER.get(str(rec.get("role") or ""), 9),
+            str(rec.get("name") or ""))
+
+
+@dataclass(frozen=True)
+class AnchorIndex:
+    """The hierarchy layer as ONE object both formatters render.
+
+    `anchored` — `{name, role, tier, anchor}` for seats whose tie to a graph
+    node resolves (the advisor->vision, director-kid->goal bindings).
+    `unanchored` — `{name, role, tier}` for seats with no resolvable anchor;
+    they still appear in the hierarchy, marked unanchored, never invented onto
+    a node. Mandatory for `add_directory`/parity: both readers consume this
+    same object (goal:g9.7 one level down).
+    """
+    anchored: tuple = ()
+    unanchored: tuple = ()
+
+    @classmethod
+    def _from(cls, anchored, unanchored) -> "AnchorIndex":
+        return cls(tuple(anchored or ()), tuple(unanchored or ()))
+
+
+
+def build_anchor_index(registry_rows: list, fm_by_id: dict) -> AnchorIndex:
+    """Read the tie off `config:seats` rows.
+
+    For each seat, anchor = `personality_ref` if it resolves to a node that
+    exists, else `owning_goal` if that resolves, else unanchored. Absent or
+    unresolvable -> unanchored, never a fabricated tie. Fail-open, read-only.
+    """
+    anchored, unanchored, seen = [], [], set()
+    for r in registry_rows or []:
+        name = str(r.get("name") or "")
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        pr = str(r.get("personality_ref") or "").strip()
+        og = str(r.get("owning_goal") or "").strip()
+        cand = ""
+        if pr and pr in fm_by_id:
+            cand = pr
+        elif og and og in fm_by_id:
+            cand = og
+        rec = {"name": name,
+               "role": str(r.get("role") or ""),
+               "tier": r.get("tier") or 0}
+        if cand:
+            rec["anchor"] = cand
+            anchored.append(rec)
+        else:
+            unanchored.append(rec)
+    return AnchorIndex._from(anchored, unanchored)
+
+
+
+def _hier_glyph(role: str) -> str:
+    return GLYPH[HIER_GLYPH.get(str(role or ""), "seat")]
+
+
+
+def hierarchy_lines(anchors: AnchorIndex, width: int = 100_000) -> list:
+    """The agent-hierarchy layer for the human pane: tiered command tree,
+    each seat at its anchor, `→` naming the graph node it is tied to."""
+    if anchors is None:
+        return []
+    rows = sorted(list(anchors.anchored) + list(anchors.unanchored),
+                  key=_anchor_sort_key)
+    lines = ["agent hierarchy  (tier · role · → graph anchor)"]
+    if not rows:
+        lines.append("(no seats)")
+        return lines
+    for r in rows:
+        ln = (f"{_hier_glyph(r['role'])} {r['name']}  "
+              f"{r['role'] or '?'}  tier{r['tier']}")
+        if r.get("anchor"):
+            ln += f"  → {r['anchor']}"
+        else:
+            ln += "  (unanchored)"
+        lines.append(ln)
+    return [ln[:width] for ln in lines]
+
+
+
+def hierarchy_markdown(anchors: AnchorIndex) -> list:
+    """The same hierarchy layer for the llm pane. `- seat …` lines never match
+    `_FRAME_LINE` (no backtick), so the graph ids in `## the graph` stay
+    parseable -- the invariant `--verify` leans on."""
+    if anchors is None:
+        return [""]
+    rows = sorted(list(anchors.anchored) + list(anchors.unanchored),
+                  key=_anchor_sort_key)
+    out = []
+    for r in rows:
+        if r.get("anchor"):
+            out.append(f"- seat {r['name']} ({r['role']}, tier {r['tier']}) "
+                       f"→ {r['anchor']}")
+        else:
+            out.append(f"- seat {r['name']} ({r['role']}, tier {r['tier']}) "
+                       f"(unanchored)")
+    return out or ["- (no seats)"]
+
+
+
+def _anchor_index(root: Path, fm_by_id: dict) -> AnchorIndex:
+    """Build an `AnchorIndex` for the live map from `config:posts` (the
+    renamed geometry config; `config:seats`/`seats` is the one-season alias).
+    Read-only; the Sanctuary Master owns the registry -- we only read it."""
+    try:
+        gf = zoom._frontmatter_for(root, ".geometry")
+        rows = (gf.get("config:posts") or {}).get("posts")
+        if not rows:
+            rows = (gf.get("config:seats") or {}).get("seats")
+        rows = rows or []
+    except Exception:                                   # noqa: BLE001
+        rows = []
+    return build_anchor_index(rows, fm_by_id)
+
+
+def grid_versions(node_id: str) -> list[str]:
+    """A node's grid versions, newest last. Read-only (`grid.py versions`)."""
+    try:
+        r = subprocess.run(
+            [sys.executable, str(BIN / "grid.py"), "versions", node_id],
+            capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if r.returncode != 0:
+        return []
+    return [ln.strip() for ln in r.stdout.splitlines() if ln.strip()]
+
+
+# --------------------------------------------------------------------------
+# Interactive shell.
+# --------------------------------------------------------------------------
+
+def interactive(root: Path, g, fm_by_id, args) -> int:
+    import curses
+
+    def run(scr) -> int:
+        curses.curs_set(0)
+        scr.nodelay(False)
+        top = left = 0
+        depth = args.depth
+        anchor = args.anchor
+        iters = iteration_points(root)
+        t_idx = len(iters) - 1
+        live = args.live
+        layer = getattr(args, "layer", "graph") or "graph"
+        msg = ""
+
+        while True:
+            h, w = scr.getmaxyx()
+            iter_name = iters[t_idx] if iters and t_idx >= 0 else None
+            agents = agents_of_iteration(root, iter_name) if (live and iter_name) else {}
+            frames = frame_stream(g, fm_by_id, anchor, depth, agents)
+
+            seats = None
+            occupants = None
+            anchors = None
+            if live:
+                try:
+                    import seat_status as _ss
+                    seats = _ss.collect(root, fm_by_id)
+                    occ_rows = getattr(seats, "seats", [])
+                    at_nodes, idle = seat_index(
+                        _manifest_agents(root, iter_name), occ_rows,
+                        _seat_sessions(root, occ_rows))
+                    occupants = OccupantIndex._from(at_nodes, idle)
+                except Exception:                                    # noqa: BLE001
+                    pass
+                try:
+                    anchors = _anchor_index(root, fm_by_id)
+                except Exception:                                    # noqa: BLE001
+                    anchors = None
+
+            status = (f"anchor={anchor or 'roots'} depth={depth} "
+                      f"frames={len(frames)} "
+                      f"time={iter_name or '-'} live={'on' if live else 'off'}"
+                      + (f" layer_top={layer}" if anchors is not None else "")
+                      + (f" | {msg}" if msg else ""))
+            body = render_human(frames, top, left, h - 2, w - 1, seats=seats,
+                                occupants=occupants, anchors=anchors,
+                                layer=layer)
+
+            scr.erase()
+            for i, ln in enumerate(body[:h - 2]):
+                try:
+                    scr.addstr(i, 0, ln[:w - 1])
+                except curses.error:
+                    pass
+            try:
+                scr.addstr(h - 2, 0, status[:w - 1], curses.A_REVERSE)
+                scr.addstr(h - 1, 0,
+                           "arrows/hjkl pan  +/- depth  [/] time  a live  "
+                           "m swap layer  q quit"[:w - 1])
+            except curses.error:
+                pass
+            scr.refresh()
+
+            k = scr.getch()
+            msg = ""
+            if k in (ord("q"), 27):
+                return 0
+            elif k == ord("m") and anchors is not None:
+                layer = "hierarchy" if layer == "graph" else "graph"
+                msg = f"map layer: {layer} on top"
+                top = 0
+            elif k in (curses.KEY_DOWN, ord("j")):
+                top += 1
+            elif k in (curses.KEY_UP, ord("k")):
+                top = max(0, top - 1)
+            elif k in (curses.KEY_RIGHT, ord("l")):
+                left += 4
+            elif k in (curses.KEY_LEFT, ord("h")):
+                left = max(0, left - 4)
+            elif k == curses.KEY_NPAGE:
+                top += h - 3
+            elif k == curses.KEY_PPAGE:
+                top = max(0, top - (h - 3))
+            elif k in (ord("+"), ord("=")):
+                depth += 1
+            elif k == ord("-"):
+                depth = max(0, depth - 1)
+            elif k == ord("["):
+                t_idx = max(0, t_idx - 1)
+            elif k == ord("]"):
+                t_idx = min(len(iters) - 1, t_idx + 1)
+            elif k == ord("a"):
+                live = not live
+            elif k == ord("g"):
+                top = 0
+            top = max(0, min(top, max(0, len(frames) - 1)))
+
+    return curses.wrapper(run)
+
+
+# --------------------------------------------------------------------------
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description="Live graph viewport — one render, two readers (goal:g9.7).")
+    ap.add_argument("--project", default=None)
+    ap.add_argument("--anchor", default=None, help="node id to view from")
+    ap.add_argument("--depth", type=int, default=3)
+    ap.add_argument("--emit", choices=("human", "llm", "both"), default=None,
+                    help="static render instead of the interactive viewport")
+    ap.add_argument("--verify", action="store_true",
+                    help="assert goal:g9.7 — both formatters read one stream")
+    ap.add_argument("--iter", default=None, help="time axis: an iter-NNN name")
+    ap.add_argument("--live", action="store_true", help="draw agents as spiders")
+    ap.add_argument("--top", type=int, default=0)
+    ap.add_argument("--left", type=int, default=0)
+    ap.add_argument("--height", type=int, default=40)
+    ap.add_argument("--width", type=int, default=120)
+    ap.add_argument("--theme", choices=("graph", "keep"), default="graph",
+                    help="live-axis view theme (default: graph)")
+    ap.add_argument("--layer", choices=("graph", "hierarchy"), default="graph",
+                    help="layered map (round 2): which layer sits on top")
+    args = ap.parse_args()
+
+    root = Path(args.project) if args.project else locations.find_project_root(Path.cwd())
+    if root is None:
+        print("viewport: no project found (no enclosing .agi/ with a config)",
+              file=sys.stderr)
+        return 2
+    root = Path(root)
+
+    try:
+        g, _loaded = zoom._load_wired_graph(root)
+    except Exception as e:                                   # noqa: BLE001
+        print(f"viewport: could not load the graph: {e}", file=sys.stderr)
+        return 2
+
+    fm_by_id: dict = {}
+    for d in sorted((root / "nodes").glob("*")):
+        if d.is_dir():
+            fm_by_id.update(zoom._frontmatter_for(root, d.name))
+
+    if args.theme == "keep":
+        return _render_keep(args, root, fm_by_id)
+
+    iter_name = args.iter
+    if args.live and not iter_name:
+        pts = iteration_points(root)
+        iter_name = pts[-1] if pts else None
+    agents = agents_of_iteration(root, iter_name) if iter_name else {}
+
+    frames = frame_stream(g, fm_by_id, args.anchor, args.depth, agents,
+                          nodes_dir=str(root / "nodes"))
+
+    # goal:g9.7, L1.04 — the briefing is built ONCE and handed to both
+    # formatters, exactly as the frame stream is. Failing to build it is not
+    # fatal: a viewport that can still draw the graph is worth more than one
+    # that refuses to start because the metric config is unreadable.
+    brief = None
+    try:
+        import briefing as _briefing
+        brief = _briefing.build(root, g)
+    except Exception as exc:                                     # noqa: BLE001
+        print(f"viewport: briefing unavailable ({type(exc).__name__}: {exc})",
+              file=sys.stderr)
+
+    # Live seat status (hypothesis:l3w4-telemetry-seat-status): one `SeatsView`
+    # computed once, handed to both formatters like the frame stream and the
+    # briefing. Only on `--live` — the static graph view has no business reading
+    # the seat board. Fails open to an absent registry, never a traceback.
+    occupants = None
+    seats = None
+    anchors = None
+    if args.live:
+        try:
+            import seat_status as _ss
+            seats = _ss.collect(root, fm_by_id)
+            # hypothesis:l3w4-seat-graph-view — join seats to the nodes they
+            # sit on (manifest target + each seat's meter pin), newest
+            # iteration wins; build ONE OccupantIndex both readers render.
+            occ_rows = getattr(seats, "seats", [])
+            at_nodes, idle = seat_index(
+                _manifest_agents(root, iter_name), occ_rows,
+                _seat_sessions(root, occ_rows))
+            occupants = OccupantIndex._from(at_nodes, idle)
+        except Exception as exc:                                   # noqa: BLE001
+            print(f"viewport: seat status unavailable "
+                  f"({type(exc).__name__}: {exc})", file=sys.stderr)
+        # round 2 — the layered map's hierarchy layer (agent anchors).
+        # Read-only from config:seats, fails open; never printed early.
+        try:
+            anchors = _anchor_index(root, fm_by_id)
+        except Exception:                                   # noqa: BLE001
+            anchors = None
+
+    # RUNG 3 human gate visibility (hypothesis:l4-a-veto-freezes-never-frees):
+    # a frozen scope shows up in `--live` by name. Read-only from the vetoes
+    # geometry cell; fails open to silence, never a traceback.
+    freeze_lines = []
+    if args.live:
+        try:
+            from seatsig import veto as _veto
+
+            _g = _veto.read(root)
+            for _gate in _g.get("active_gates") or []:
+                if isinstance(_gate, dict) and not _gate.get("answered"):
+                    freeze_lines.append(
+                        f"GATE-FROZEN scope={_gate.get('scope')} since="
+                        f"{_gate.get('since')} veto={_gate.get('veto_ref')} "
+                        f"(human gate; waits for an owner answer)")
+        except Exception:  # noqa: BLE001  (read-only, never a crash)
+            freeze_lines = []
+
+    if args.verify:
+        return _verify(frames, args, brief)
+
+    if args.emit is None and sys.stdout.isatty():
+        return interactive(root, g, fm_by_id, args)
+
+    mode = args.emit or "human"
+    status = (f"anchor={args.anchor or 'roots'} depth={args.depth} "
+              f"frames={len(frames)} time={iter_name or '-'} "
+              f"layer={args.layer if anchors is not None else '-'}")
+    if freeze_lines:
+        status = f"{' | '.join(freeze_lines)} — " + status
+    if mode in ("human", "both"):
+        if mode == "both":
+            print("=" * args.width)
+            print("HUMAN VIEW".center(args.width))
+            print("=" * args.width)
+        print("\n".join(render_human(frames, args.top, args.left,
+                                     args.height, args.width, status, brief,
+                                     seats, occupants, anchors, args.layer)))
+    if mode in ("llm", "both"):
+        if mode == "both":
+            print("\n" + "=" * args.width)
+            print("LLM VIEW  — same frames, same slice".center(args.width))
+            print("=" * args.width)
+        print(render_llm(frames, args.top, args.left,
+                         args.height, args.width, status, brief, seats,
+                         occupants, anchors, args.layer), end="")
+    return 0
+
+
+#: A frame line in the llm view, and ONLY a frame line: `- \`id\` (type) …`.
+#: Matching "any line with a backtick" was correct until the briefing arrived,
+#: at which point `metric_primary`, the verdict taxonomy and every declared
+#: command became false positives. The stricter pattern is the point: a
+#: verifier that silently starts measuring different lines has stopped
+#: verifying (L1.04).
+_FRAME_LINE = re.compile(r"^\s*-\s+`([^`]+)`\s+\(")
+
+
+def _verify(frames: list[Frame], args, brief=None) -> int:
+    """`goal:g9.7`'s falsifier, as an executable check.
+
+    Both formatters must read the same frames, in the same order, over the
+    same slice. The test is not that the two strings match -- they must not,
+    the consumers differ -- but that **every node id in one appears in the
+    other, in the same order**, and that neither invents or drops a frame.
+
+    Since L1.04 it also checks the **briefing**: both readers are handed the
+    same `Briefing`, so the facts each states must agree. The llm view carries
+    the full contract and the human view a compact projection, and the numbers
+    in the projection have to be the numbers in the contract -- otherwise the
+    two readers are being told different things about the same graph, which is
+    exactly what `goal:g9.7` forbids one layer up.
+    """
+    top, height = args.top, args.height
+    sl = frames[top:top + height]
+
+    human = render_human(frames, top, 0, height, 10_000, brief=brief)
+    llm = render_llm(frames, top, 0, height, 10_000, brief=brief)
+
+    ok = True
+    llm_ids = [m.group(1) for m in
+               (_FRAME_LINE.match(ln) for ln in llm.splitlines()) if m]
+    if llm_ids != [f.node_id for f in sl]:
+        print("FAIL: llm view's node order differs from the frame stream")
+        ok = False
+
+    human_titles = [ln.strip() for ln in human if ln.strip()]
+    if len(human_titles) < len(sl):
+        print(f"FAIL: human view dropped frames ({len(human_titles)} < {len(sl)})")
+        ok = False
+
+    for f in sl:
+        if f.damaged and f.damaged not in llm:
+            print(f"FAIL: damage on {f.node_id} is missing from the llm view")
+            ok = False
+
+    if brief is not None:
+        # The facts both readers were handed must appear in both renderings.
+        human_blob = "\n".join(human)
+        for label, needle in (("node count", str(brief.node_count)),
+                              ("primary metric", brief.primary),
+                              ("coverage", f"{brief.coverage:.3f}")):
+            if needle not in llm or needle not in human_blob:
+                print(f"FAIL: {label} ({needle!r}) is not in both views")
+                ok = False
+        if "## chain rules" not in llm:
+            print("FAIL: the llm view omits the chain rules a kid is judged on")
+            ok = False
+
+    print(f"frames in slice: {len(sl)}   human lines: {len(human_titles)}   "
+          f"llm ids: {len(llm_ids)}   briefing: "
+          f"{'yes' if brief is not None else 'absent'}")
+    print("PASS — one stream, two formatters, same nodes in the same order"
+          if ok else "FAILED")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
