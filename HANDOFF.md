@@ -22,14 +22,15 @@
 2. ✅ node+pi measured live; `dispatch.py` resolves with `PI_BIN`; the workflow.py precedence gap found, noted on `goal:g14` (e3549ff29). The 05:3xZ dm framed it as an order to director-thought — **WITHDRAWN 05:4xZ** on the owner's correction (a finding; thought-master decides); note reworded in place, correction dm sent.
 3. ⏳ If the town takes that fix, review its merge-up **by bytes** (`workflow.py:1381` env-over-config, `heal.py:3113` default, one test) — the review path is the thing it fixes; verify on the trunk after landing; push.
 4. ⏳ Any other `[merge-up]` from the town: report + bytes → accept/demote; verify (links 0 · goals byte-identical · active ≥ 3520 · guard silent); push after every landing.
-5. ⏳ Rotate at 0.47: write + stamp the stops slot FIRST, then `AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate`.
+5. ⏳ **MERGE ROUTINE (owner 01:2xZ 09-21, verbatim on goal:g14):** session cron every 6 h (`13 */6 * * *`, 7-day expiry — the successor RE-ARMS it) + one-shot first run 06:39Z 09-21. State: `.agi/sessions/prime-merge.state.json`. Each tick: delta `origin/season2/main..local-maxxing/season2/main` → new rounds & no notice → dm TM a 5 h notice; at run time → one merge-up-review on pi (≤6 rounds/chunk, ~3 GB RAM, 2 cores, no GPU) → all-GO = `--no-ff` merge by SHA into `season2/main` in the root worktree `.agi/worktrees/prime-root` → verify → push; red = one line. Quiet push-only otherwise.
+6. ⏳ Rotate at 0.47: write + stamp the stops slot FIRST, then `AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate`.
 
 ## §2 What landed (one line each)
 - e3549ff29 goal:g14 note (box facts + gap) + GOALS · 351c63074 handoff replaced, card trimmed · 05:4xZ: owner's three lines banked verbatim on goal:g14, note 153 reworded in place, correction dm → thought-master, this doc pass · pushed after each.
 
 ## §3 🔴 Where it stops
 ```
-05:4xZ 09-20 LIVE (gen 1, f≈0.11): box blockers cleared (push up, provisioning up, node+pi up). The town runs its own rounds (owner GO 05:32Z in the thought-master pane: 6g on pi with deepseek); the workflow.py precedence gap is a noted finding, NOT queued. Owner 05:4xZ: slow down. Prime NEXT = one `send.py read belam` when nudged (never peek) -> review any [merge-up] by bytes -> verify on the trunk (links 0 · goals byte-identical · active >= 3520 · guard silent) -> push. Nothing else is owed by the Prime now.
+01:3xZ 09-21 LIVE (gen 1): merge routine ARMED (session cron 13 */6 * * * + one-shot 06:39Z 09-21); 5 h notice sent to thought-master 01:3xZ; state file .agi/sessions/prime-merge.state.json (notice_sent_at, run_at, last_merged_town_sha). NEXT = at 06:39Z run the mur over origin/season2/main..local-maxxing/season2/main (chunks <=6 rounds, pi), merge --no-ff by SHA into season2/main in .agi/worktrees/prime-root on all-GO, verify, push season2/main, note on goal:g14, grid commit --all in that worktree. Owner: quiet push-only mode; conserve context. A successor re-arms the crons FIRST.
 ```
 
 ## §4 Traps hit this session
