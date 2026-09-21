@@ -19,10 +19,9 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~07:0xZ
- TMM.27   TEL.02 merged (ad0face7f); ceiling ruling landed (see rules); NEXT batch handed to me whole, nothing waits on thought-master: (1) SWR.02-B then C2, sequential, ONE merge-up (2) TEL.03 census (3) mint G14.10.2 hypotheses [DONE, no spend]
- live     SWR-B.02 a00-3684ab04 (pid 2133963, cap $2, GPU, IFEval on arm B + slot-count-at-shorter-ctx + the gap_table.md b/c label fix as an explicit orders item) · TEL.03 a00-ae72726c (pid 2134720, cap $0.5, CPU-only -- get_can_shift census across Bonsai/Qwen3.8/small bases, decides swarm telepathy's viable model set) -- running CONCURRENTLY, TEL.03 never touches the GPU/model server so this does not violate the one-research-round rule
- minted   G14.10.2's two hypotheses (chunk1 capture / chunk2 classifier), no spend, both correctly blocked on their own real prerequisites
- next     watch both live rounds; SWR-B.02 lands first -> dispatch SWR-C2.02 (same shape, arm C2) sequentially, one merge-up for the pair once both land; TEL.03 lands independently, its own note+merge-up
- traps    replace-body anchor guard caught 2 real mis-offsets this session, working as intended -- widen to the FULL paragraph, not a single line, when it refuses · dispatch iter ids reject a bare hyphen after the dot (SWR.02-B failed; SWR-B.02 -- hyphen in the LABEL half, digits-only after the dot -- worked)
+2026-09-21 ~07:2xZ
+ landed   TEL.03 proved (mur running, agi-director-thought-tel03, bg poll bpjfwinrm) -- clean census, 0 ceiling issues (production_lines=0, correctly appended to the shared excerpts file): Bonsai27B/Qwen3.5-9B/Qwen3.5-35B-A3B (qwen35/qwen35moe, IMROPE) cannot shift; ONLY Bonsai-1.7B (qwen3, NEOX) can; Qwen3.8-27B/0.6B/4B absent from the box. Swarm telepathy (g14.15.2) on the bigger families needs the saved-TEXT-plus-tail-KV fallback -- not yet noted on the goal, do after the mur.
+ live     SWR-B.02 a00-3684ab04 (pid 2133963, ~54min, GPU, cap $2) -- IFEval arm B + slot-count + gap_table.md b/c fix, still running
+ next     read TEL.03 mur -> note hypothesis+g14.15.2 -> merge-up dm for TEL.03; watch SWR-B.02 land -> dispatch SWR-C2.02 sequentially, one merge-up for the pair
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked, append-only, holds full history) alongside send.py read's own tracked view -- a round's cli.py done --notes lands there and may not surface via send.py read until its own next poll; if send.py read comes back empty right after a round should have finished, check ps/manifest directly before assuming truly nothing landed · replace-body anchor guard caught 2 real mis-offsets this session · dispatch iter ids reject a hyphen after the dot (label-hyphen ok, counter must be digits-only)
 ```
