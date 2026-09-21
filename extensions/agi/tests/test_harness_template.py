@@ -7,6 +7,7 @@ to a FROZEN LITERAL argv (the old hand-built shape), never to
 `harness_template.render`: the builders ARE that render, so comparing the two
 is a tautology that pins nothing about the seat argv.
 """
+import ast
 import json
 import sys
 from pathlib import Path
@@ -81,14 +82,151 @@ def test_claude_builder_renders_frozen_argv(model, effort, settings):
     assert got == expected
 
 
-def test_no_named_harness_builders_in_rotate_source():
-    """goal:g7.27.1: the dead per-harness builders are gone, and stay gone.
-    The sole rotate argv seam is `_build_harness_command`; a reintroduced
-    `_build_claude_command` / `_build_copilot_command` is drift the invariant
-    forbids. Greps the SOURCE, so an unused redefinition still fails."""
-    src = (Path(rotate.__file__)).read_text(encoding="utf-8")
-    assert "_build_claude_command" not in src
-    assert "_build_copilot_command" not in src
+# ---------------------------------------------------------------------------
+# goal:g7.31.2.3 -- the GENERAL gate: rotate.py stays orchestration.
+#
+# The old test here (goal:g7.27.1) asserted two hard-coded substrings,
+# `_build_claude_command` and `_build_copilot_command`. It would NOT have
+# caught `_build_grok_command`, `_build_grok_argv`, `_grok_command`, or an
+# `if harness == "grok":` branch -- i.e. exactly the drift a FOURTH harness
+# invites. These three detectors scan rotate.py's SOURCE via `ast` (so a
+# docstring mention is not a builder) and report every offender BY NAME.
+
+#: The ONE function allowed to build a harness argv (goal:g7.27/g7.29).
+ARGV_SEAM = "_build_harness_command"
+
+#: Every argv-suffixed def in rotate.py at the time of writing, each reviewed
+#: as NOT a harness argv builder: two wrap the seam, the rest build tmux /
+#: launch-wrapper / session-resume argvs. A NEW name in this shape is
+#: reported, so this list grows by review, never by accident.
+_ALLOWED_ARGV_HELPERS = frozenset({
+    ARGV_SEAM,                       # the sole harness argv seam
+    "_successor_command",            # wraps ARGV_SEAM
+    "_assembled_successor_command",  # wraps ARGV_SEAM
+    "_launch_wrapper_argv",          # launch-wrapper argv, not a harness
+    "_wm_tool_argv",                 # tmux window-manager argv, not a harness
+    "_ack_call_args",                # ack-call args, not a harness
+    "_run_after_join_command",       # shell cmd run after join
+    "_fork_resume_command",          # session-resume argv
+})
+_ARGV_SUFFIX = ("_command", "_argv", "_args")
+
+#: Shipped harness ids whose `harness ==` literals already exist (the default
+#: validation in `_validate_harness`). Any OTHER literal is a fourth-harness
+#: branch -- the very thing that must not reappear.
+_KNOWN_HARNESS_BRANCHES = frozenset({"claude-code", "copilot-cli"})
+
+
+def _argv_builder_offenders(source: str) -> list[str]:
+    """Names of functions in `source` whose name says "argv builder" but
+    which are neither the seam nor an allowlisted non-harness helper."""
+    tree = ast.parse(source)
+    return sorted({
+        node.name for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name.endswith(_ARGV_SUFFIX)
+        and node.name not in _ALLOWED_ARGV_HELPERS
+    })
+
+
+def _harness_branch_offenders(source: str) -> list[str]:
+    """Harness-id literals compared against a bare `harness` Name in an
+    `==`/`!=`, minus the shipped ids whose branches already exist."""
+    tree = ast.parse(source)
+    found = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Compare) and \
+                isinstance(node.left, ast.Name) and node.left.id == "harness":
+            for op, comp in zip(node.ops, node.comparators):
+                if isinstance(op, (ast.Eq, ast.NotEq)) and \
+                        isinstance(comp, ast.Constant) and \
+                        isinstance(comp.value, str):
+                    found.add(comp.value)
+    return sorted(found - _KNOWN_HARNESS_BRANCHES)
+
+
+def _render_call_owners(source: str) -> list[str]:
+    """Functions in `source` that call `harness_template.render(...)` -- the
+    template seam. Only the seam itself may."""
+    tree = ast.parse(source)
+    owners = []
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Call) and \
+                    isinstance(node.func, ast.Attribute) and \
+                    node.func.attr == "render" and \
+                    isinstance(node.func.value, ast.Name) and \
+                    node.func.value.id == "harness_template":
+                owners.append(fn.name)
+    return sorted(set(owners))
+
+
+def test_rotate_stays_orchestration_only():
+    """goal:g7.31.2.3 falsifier: rotate.py grows ZERO new harness argv
+    builders. Reports the offender by name rather than a bare assertion."""
+    src = Path(rotate.__file__).read_text(encoding="utf-8")
+    offenders = (_argv_builder_offenders(src)
+                 + _harness_branch_offenders(src)
+                 + [o for o in _render_call_owners(src) if o != ARGV_SEAM])
+    assert offenders == [], (
+        "rotate.py grew a harness argv builder (goal:g7.31.2.3: "
+        f"orchestration only, sole seam {ARGV_SEAM!r}). Offenders: "
+        f"{offenders}")
+
+
+def test_gate_flags_a_synthetic_grok_builder():
+    """Non-vacuity: the gate must SEE an added builder. A gate that cannot
+    fail is theater."""
+    for name in ("_build_grok_command", "_build_grok_argv",
+                 "_grok_command"):
+        src = f"def {name}(*a, **k):\n    return ['grokbin']\n"
+        offenders = _argv_builder_offenders(src)
+        assert name in offenders, f"gate blind to {name}"
+
+
+def test_gate_flags_a_synthetic_grok_branch():
+    """Non-vacuity for per-harness BRANCHES: `if harness == "grok":` is a
+    fourth-harness dispatch and is reported by its literal."""
+    src = ('def f(harness):\n'
+           '    if harness == "grok":\n'
+           '        return ["grokbin"]\n')
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_flags_a_second_render_seam():
+    """Non-vacuity: a second `harness_template.render` call outside the seam
+    is reported by its enclosing function."""
+    src = ("def _grok_command(harness):\n"
+           "    return harness_template.render('grok')\n")
+    assert _render_call_owners(src) == ["_grok_command"]
+
+
+def test_gate_leaves_legit_helpers_alone():
+    """Non-vacuity in the other direction: the allowlisted, non-harness argv
+    helpers and the shipped-id branch are NOT offenders, so the gate is not
+    merely "flag every `_*_command`"."""
+    src = ("def _build_harness_command(): ...\n"
+           "def _successor_command(): ...\n"
+           "def _assembled_successor_command(): ...\n"
+           "def _launch_wrapper_argv(): ...\n"
+           "def _wm_tool_argv(): ...\n")
+    assert _argv_builder_offenders(src) == []
+    assert _harness_branch_offenders(
+        'def _validate_harness(harness):\n'
+        '    if not harness or harness == "claude-code":\n'
+        '        return 0\n') == []
+
+
+def test_gate_ignores_a_docstring_mention():
+    """The gate reads DEFINITIONS, not text: documenting a retired builder by
+    name must not fail the suite the way a naive substring grep would."""
+    src = ('def f():\n'
+           '    """no `if harness == "grok"` branch, no _build_grok_command"""\n'
+           '    return 1\n')
+    assert _argv_builder_offenders(src) == []
+    assert _harness_branch_offenders(src) == []
 
 
 def test_available_includes_shipped_harnesses():
