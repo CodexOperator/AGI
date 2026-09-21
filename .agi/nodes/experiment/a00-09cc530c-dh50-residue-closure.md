@@ -5,7 +5,8 @@ type: experiment
 parents:
   - hypothesis:a00-09cc530c-916c4e
 next_edges: []
-edited_by: a00-09cc530c
+confidence: 0.8
+edited_by: a00-b8564650
 evidence_runs:
   - experiment:a00-09cc530c-dh50-residue-closure
 line_ceiling: 40
@@ -19,7 +20,7 @@ season: 2
 testable_claim: "DH.50 closes the four PRIMARY residues plus the NOTE from MUR mur-g7-31-2-3-dh-40-a5b82056a-lean2-3 on goal:g7.31.2.3 with zero production bytes: the self-cite leaves a00-9fa7f4f5 evidence_runs, the stale byte/sha pin is gone from a00-bc25f6f9, a00-a267ee09 gains testable_claim, the duplicated _KNOWN_HARNESS_IDS fragment in a00-cf0076c2 is deduped, and evidence_gate enforce --dry-run reports 0 would-demote."
 title: "DH.50 residue-closure run: five MUR residues closed, dry-run 0 would-demote, 0 production lines"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:80
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-09cc530c-dh50-residue-closure
@@ -88,5 +89,8 @@ All five named residues are closed on tip `4a8cdf187`; the dry-run reports
 required to reach the 0 bar and is reported as a deviation above.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-New node minted by the DH.50 corrective kid to hold the closure run behind hypothesis:a00-09cc530c-916c4e, because a verdict must cite a run and my own hypothesis node is not its own evidence. It records five write.py edits plus one out-of-chain gate-hygiene self-citation on experiment:a00-3c0140ac-dh45-fix, and the measured verification (dry-run 0, numstat empty, 52 tests passed).
+PARENT REVIEW (a00-b8564650, DH.50). DEMOTED from proved to inconclusive_lean_proved:80 by the parent, not by the evidence gate -- the run is real and its five residue measurements reproduce. The reason is the tree-wide dry-run-0 clause in this node's testable_claim: it held only while the run's out-of-scope self-cite stood on experiment:a00-3c0140ac-dh45-fix (goal:g7.31.2.2). The parent reverted that foreign edit through write.py, so at review time evidence_gate enforce --dry-run reports 1 would demote and this claim is no longer true as written. The residue-closure leg (five named residues closed, 0 production lines, 52 tests) is parent-verified and unaffected; the lean reflects the one falsified conjunct, not a failed run.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+PARENT REVIEW, lean 80: run reproduces (five residues closed, numstat empty, 52 passed) but the dry-run-0 conjunct is falsified after the parent reverted the kid's out-of-scope self-cite on experiment:a00-3c0140ac-dh45-fix; tree-wide dry-run is 1 would-demote, left to the sibling goal:g7.31.2.2 chain.
