@@ -19,10 +19,9 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~09:3xZ
- TMM.30   SWR-B.02 merged (ea0d48897); findings recorded on g14.11. SWR-B.03 = T1-only continuation, single-stream, resume at 110/541, wall 180min ALLOWED this round (exception to the usual), cap now $1. Dispatch when headroom clears -- my loop, never forced.
- blocked  SWR-B.03 still headroom-blocked ($-4.05 latest) -- headroom fluctuates fast enough that a clean dry-run moments earlier does not guarantee the real dispatch passes (same shape as TEL.02s two attempts). Not tight-polling further this pass.
+2026-09-21 ~10:2xZ
+ live     SWR-B.03 a00-ec374f61 (pid 3195680, cap $1, GPU) -- T1-only continuation, resumed at 110/541, headroom finally cleared after ~4 refused attempts over ~1h. wall 180min allowed this round (TMM.30 exception).
  banked   fork get_can_shift probe for the next GPU-free slot (TEL.03 follow-up, not urgent)
- next     retry SWR-B.03 on the loop; no dm needed until it actually dispatches or the block changes materially
- traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override I could find -- "180min allowed" reads as a monitoring exception, not a settable flag · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell like the backtick-in-double-quote trap -- write "does not" not "doesn't"
+ next     watch SWR-B.03 -- likely still needs another hop after this one (only ~180min vs ~2.2h needed); dispatch SWR-C2.02 only once B fully lands
+ traps    inbox has a SECOND raw delivery path (.agi/sessions/inbox/director-thought.md, untracked) alongside send.py read's tracked view · replace-body anchor guard treats a markdown TABLE, and a # comment inside a fenced code block, as heading-like -- widen past them · dispatch iter ids reject a hyphen after the dot · dispatch has no wall-clock override I could find -- "Nmin allowed" reads as a monitoring exception, not a settable flag · an APOSTROPHE inside a single-quoted write.py note argument breaks the shell like the backtick-in-double-quote trap -- write "does not" not "doesnt" · pool headroom can clear between a dry-run and the real dispatch seconds later -- always verify live right before firing, not just once earlier
 ```
