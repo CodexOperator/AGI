@@ -99,6 +99,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import locations  # noqa: E402
 
 # The ENGINE's graph_core, never a project's vendored src/ — same precedent as
@@ -126,8 +127,20 @@ SYMLINK_MODE = "120000"
 #: this name before adding it, so a retry after a partial failure still works.
 REMOTE_NAME = "agi-unify-source"
 
-GRID_REF_NAMESPACE = "refs/grid"
-GRID_FETCH_REFSPEC = "refs/grid/*:refs/grid/*"
+
+
+def grid_ref_namespace(repo: Path) -> str:
+    """The grid ref namespace for the project `repo` belongs to (goal:g14.14.7).
+
+    Replaces the module constants `GRID_REF_NAMESPACE` / `GRID_FETCH_REFSPEC`:
+    a constant cannot see the project config, so it can only ever spell one
+    namespace. `repo` is a git repo root or a graph root, so the GRAPH root is
+    resolved first -- handing the bare repo root to `grid.ref_ns_for` would
+    find no config and return the default for the wrong reason. A project with
+    no `grid.storage_trunk` keeps exactly `refs/grid`.
+    """
+    repo = Path(repo)
+    return grid.ref_ns_for(locations.find_project_root(repo) or repo)
 
 GRAFT_COMMIT_MESSAGE = (
     "goal:g11 — graft the graph's history under .agi/\n\n"
@@ -245,7 +258,7 @@ def count_grid_refs(repo: Path) -> int:
     """Number of refs under `refs/grid/` in `repo`. A ref is the only home of
     every payload byte (goal:g7) — this is the number step 5 asserts across
     unchanged, and the number `preflight` records before anything happens."""
-    out = _git(repo, "for-each-ref", GRID_REF_NAMESPACE)
+    out = _git(repo, "for-each-ref", grid_ref_namespace(repo))
     return len([line for line in out.splitlines() if line.strip()])
 
 
@@ -316,9 +329,12 @@ def find_stale_payloads(tree: Path, engine: Path) -> list[str]:
 
     The grid is the authority (**goal:g6.3** — the graph holds the bytes and
     the engine tree is what falls out), so the comparison is against
-    `refs/grid/node/<mint-id>:payload` read straight out of the tree clone with
-    plumbing. No import of `grid.py`: this check must keep working even if that
-    module is mid-edit, which during an engine migration it plausibly is.
+    `<ns>/node/<mint-id>:payload` (read through `grid_ref_namespace`) straight
+    out of the tree clone with plumbing. The payload BYTES are read with raw
+    git rather than through `grid.py`'s readers, so this check keeps working
+    even if that module is mid-edit, which during an engine migration it
+    plausibly is; only the namespace string comes from the one resolver, which
+    is a pure function with no git behind it.
 
     A node with no grid ref yet is skipped rather than reported — it has no
     recorded bytes to disagree with, and `find_missing_payloads` already covers
@@ -336,7 +352,7 @@ def find_stale_payloads(tree: Path, engine: Path) -> list[str]:
             continue
         res = subprocess.run(
             ["git", "-C", str(tree), "cat-file", "blob",
-             f"refs/grid/node/{mint_id}:payload"],
+             f"{grid_ref_namespace(tree)}/node/{mint_id}:payload"],
             capture_output=True,
         )
         if res.returncode != 0:
@@ -894,7 +910,15 @@ def fetch_grid_refs(engine: Path, tree: Path, *, remote_name: str = REMOTE_NAME)
 
     before = count_grid_refs(engine)
     source_count = count_grid_refs(tree)
-    _git(engine, "fetch", "-q", remote_name, GRID_FETCH_REFSPEC)
+    # Source and target each declare their own namespace, so the refspec maps
+    # one to the other (goal:g14.14.7). Unconfigured on both sides this is
+    # exactly `refs/grid/*:refs/grid/*` — the old `GRID_FETCH_REFSPEC` literal,
+    # with NO leading `+`. The `+` would force-update a non-fast-forward ref,
+    # which the original single-namespace literal never did; `grid.push_spec_for`
+    # carries that `+` and is the wrong helper for this fetch.
+    src_ns = grid_ref_namespace(tree)
+    dst_ns = grid_ref_namespace(engine)
+    _git(engine, "fetch", "-q", remote_name, f"{src_ns}/*:{dst_ns}/*")
     after = count_grid_refs(engine)
 
     if after != source_count:
@@ -1044,7 +1068,8 @@ def preflight_rollback(engine: Path, *, force: bool = False,
         "prestate": prestate,
         "current_head": current_head,
         "grid_refs_to_delete": sorted(
-            r for r in _all_refs(engine) if r.startswith(GRID_REF_NAMESPACE + "/")
+            r for r in _all_refs(engine)
+            if r.startswith(grid_ref_namespace(engine) + "/")
         ),
         "pushed_to": pushed_to,
         "force": force,
@@ -1072,7 +1097,8 @@ def perform_rollback(engine: Path, pre: dict) -> dict:
 
     _git(engine, "reset", "--hard", pre_head)
 
-    delete_cmds = _git(engine, "for-each-ref", "--format=delete %(refname)", GRID_REF_NAMESPACE)
+    delete_cmds = _git(engine, "for-each-ref", "--format=delete %(refname)",
+                       grid_ref_namespace(engine))
     if delete_cmds.strip():
         _git_stdin(engine, ["update-ref", "--stdin"], delete_cmds)
 

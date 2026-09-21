@@ -140,6 +140,29 @@ def test_good_pair_passes_every_check(good_pair):
     assert len(results) == 8
 
 
+def test_grid_refs_reads_the_projects_storage_trunk(good_pair, monkeypatch):
+    """`_grid_refs` keys on `grid.ref_ns_for` (goal:g14.14.7): under a
+    configured trunk the two `refs/grid/node/*` refs are no longer seen, and
+    the git command carries the configured namespace. Unconfigured (the
+    good-pair checks above) it is still `refs/grid/`.
+    """
+    before, after = good_pair
+    assert verify_unified._grid_refs(before) != {}
+
+    seen: list[list[str]] = []
+    real_run = verify_unified.subprocess.run
+
+    def recorder(argv, **kw):
+        seen.append([str(a) for a in argv])
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(verify_unified.subprocess, "run", recorder)
+    monkeypatch.setattr(verify_unified.grid, "ref_ns_for",
+                        lambda root: "refs/grid/t9")
+    assert verify_unified._grid_refs(before) == {}
+    assert any("refs/grid/t9/" in a for argv in seen for a in argv), seen
+
+
 def test_good_pair_cli_exits_zero(good_pair, capsys):
     before, after = good_pair
     rc = verify_unified.main(["--before", str(before), "--after", str(after)])
