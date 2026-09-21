@@ -49,10 +49,10 @@
 -- src/llama-model.cpp:1398  rope_type derived once from arch --
 1398:    hparams.rope_type = llama_model_rope_type(this);
 
--- src/llama-model.cpp:2969-2970 inside the NEOX group (2960..3020) --
+-- src/llama-model.cpp:2969-2970 inside the NEOX group (2960..3025) --
 2969:        case LLM_ARCH_QWEN3:
 2970:        case LLM_ARCH_QWEN3MOE:
-3020:            return LLAMA_ROPE_TYPE_NEOX;
+3025:            return LLAMA_ROPE_TYPE_NEOX;
 
 -- src/llama-model.cpp:3040-3044  qwen35 -> IMROPE, unconditional --
 3040:        case LLM_ARCH_QWEN35:
