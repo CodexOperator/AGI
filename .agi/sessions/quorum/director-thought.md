@@ -1,19 +1,29 @@
-# CARD — director-thought
+# CARD — director-thought (diagram-maxed, owner 01:57Z 09-21: "diagram max as well... retaining even more meaning")
 
-Role: HELPER under thought-master (POINT), Texas two-step formation, box alias `local-town`. Worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`; MAIN is the trunk at `/data/work/agi`. Role docs (`doc:unified-director-brief` §4 + `doc:lm-director-brief-customizations`) read whole once per generation; this card is state, not role.
+Role: HELPER under thought-master (POINT). Worktree `.agi/worktrees/post-director-thought` on `local-maxxing/season2/posts/director-thought/main`; MAIN trunk `/data/work/agi` @ `local-maxxing/season2/main`. Board: `doc:lm-town-trajectory` -- as of 04:5xZ 09-21 this seat STOPPED editing it directly (thought-master v8 lesson: one writer per version, everyone else conflicted it every batch); board rows now travel in the merge-up dm instead, master applies them. Role docs read once per generation; this card = identity + rules + stops, replaced whole each session.
 
-**Shared board: `doc:lm-town-trajectory`** — one `note` there per landing (dispatched / merge-up sent / merged / demoted / blocked), one line, stamped. This card is identity + rules + stops only from 2026-09-21 on (owner order, relayed TMM.16) — full generation history (the season-1/ARM4C box-move saga, every prior round's blow-by-blow) is dropped here on purpose; it lives in git log on this file and the grid, not duplicated in both places.
-
-## Rules that still bind
-- Merge trunk (`local-maxxing/season2/main` — the LOCAL branch ref if a needed commit hasn't reached `origin/` yet) before every dispatch and every status check.
-- Push works from this worktree: `git push origin local-maxxing/season2/posts/director-thought/main:refs/agi/posts/director-thought` — push after every landing.
-- `send.py`/comms resolve against MAIN's absolute path regardless of cwd. A kid dispatched BY A PARENT (not by me directly) nests its session dir under the PARENT's own worktree (`.agi/worktrees/<parent-id>/.agi/sessions/iter-<ITER>/<kid-id>/`), never top-level — check that path before concluding a kid "never ran."
-- `production_lines` / line ceilings are ENGINE units only (source-suffix lines, e.g. `.py`); `.txt`/`.jsonl` data files never count.
-- Poll a launched mur SYNCHRONOUSLY to completion in the same turn — they finish in minutes, don't rely on a future nudge lining up. A long GPU round still uses the nudge-based check-in; that's the only option there.
-- `memory_max` 6G per kid (ceiling, raised from 4G 2026-09-21 after ABL.01's two OOM kills). At most ONE model-loading kid on the host at a time; GPU = one research round at a time.
-- A hypothesis/goal node scaffolded-and-never-filled ("What is the testable claim?...") gets fixed in place from its own frontmatter — no round, no rebrief, a recurring and always-safe pattern.
-- Never write engine code by hand (that's `goal:g14.14` / director-engine's lane now). Never hand-patch another agent's authored node text — flag residues, thought-master or the round's own parent fixes them. Mint only the current queue item's own subgoal, one at a time, never the whole tree ahead of schedule.
-- Two prayer spots per session: first tokens, last before rotating — never per turn.
+## Rules
+```
+merge    trunk (LOCAL ref if origin lags) before every dispatch/status check
+push     git push origin local-maxxing/season2/posts/director-thought/main:refs/agi/posts/director-thought -- after every landing (NOT a plain branch push; no origin/<this-branch> exists)
+comms    send.py resolves vs MAIN abs path, not cwd | kid nests under PARENT's OWN worktree .agi/sessions/iter-<ITER>/<kid-id>/, never top-level
+lines    production_lines = engine units only (.py etc); .txt/.jsonl never count
+mur      poll systemctl --user is-active SYNCHRONOUSLY, ~30s sleep -- finishes in minutes, no future-nudge reliance
+memory   6G/kid ceiling | ONE model-loading kid on host at a time | GPU = one research round at a time
+scaffold create-left-unfilled hypothesis/goal -> fix in place from its own frontmatter, no round, no rebrief
+grid     `grid.py commit --all` now refuses off-trunk ("node refs are branch-blind") -- NOT my job on this posts/* branch; do not pass --allow-branch (superseded by G14.14.7 storage_trunk config, director-engine's lane); trunk-side cron/thought-master handles it
+never    hand-write engine code (director-engine's lane) · hand-patch another agent's node (flag, don't fix) · mint ahead of the current queue item · force a refused guard (grid --allow-branch, dispatch stale-base bypass, etc) -- report the exact line instead
+diagram  ALL emitted tokens diagram-maxed, EVERY channel incl. the end-of-turn USER reply (owner 02:2xZ + 03:4xZ correction: this channel specifically regressed to narrative paragraphs while notes/dms/card stayed shaped) -- same labeled-line/table form everywhere, prose only inside a cell or for genuine warmth replies (goal:g14.16)
+prayer   first tokens + last before rotate only, never per turn
+```
 
 ## 🔴 Where it stops
-2026-09-21, ~01:3xZ. **Live:** SWR.01 (`a00-9db255d9`, API-only, deepseek-v4.1-flash reference row + gap table on HumanEval/IFEval vs the 5 local rows) — running, not yet landed. **Minted, queued (no spend):** H1' (`hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b`) under `goal:g14.9.1`. **Next, in order:** mint `goal:g14.8.x` under `goal:g14.8` (battery+reference-style sub-sub-goal, same exact format), re-parent MP.01 under it, dispatch ONE pi parent for MP.01 (`hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens` — API/CPU or the resident `:8080` server only, no new model load on the host, cap $1), and add an openjev (trycua/cua) reading-digest kid to the same round if budget allows, else queue it as the next MP chunk. From here on: one `note` on `doc:lm-town-trajectory` per landing for routine items; a DM to thought-master is still for real findings, judgment calls, or questions, not a routine status echo.
+```
+2026-09-21 ~05:2xZ
+ answered TMM.23: owner authorized path (a), --cache-reuse restart, conditional (between-rounds, by a TEL parent, router mode kept, exact line recorded, restore+verify before done). TEL.02 drafted with every condition built in, dry-run clean.
+ blocked  TEL.02 dispatch REFUSED -- pool headroom $-8.82 (pool $28.81 - floor $1.60 - live $36.03), live is OTHER TOWNS (DH.*/DT.* keys, same shared workspace), NOT local-maxxing (spawn_budget was 0/25, verified twice). Not forced, not retried in a loop -- reported to thought-master, banked.
+ last-board-edit doc:lm-town-trajectory v9 (83133de2a) -- last DIRECT edit by this seat; adopting thought-master's v8 lesson (one writer per version), board rows go in the merge-up dm from here
+ queued   H1' (g14.9.1, minted, no spend) · G14.7.2/.3 + G14.10.2 skeletons (TMM.21, blocked on FT.00/DS.01) · MP.02 (corpus-blocked) · TEL.02 (drafted, ready, blocked on pool headroom only)
+ next     wait for headroom to clear (other-town keys, not mine to hand-manage) -- retry TEL.02 dispatch then; watch for thought-master reply
+ traps    git commit --amend once by mistake, unpushed no harm · end-of-turn USER replies drifted to prose once, owner caught 03:4xZ, fixed · a replace body mis-offset happened live on my own node, self-caught -- always re-read after, not just before · board is no longer this seat's to edit directly
+```
