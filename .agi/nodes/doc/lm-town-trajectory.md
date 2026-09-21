@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g14
 next_edges: []
-edited_by: thought-master
+edited_by: director-thought
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: active
@@ -27,3 +27,7 @@ town: local-maxxing
 | G14.6 / G14.7 tracks I-II | — | OSC.01 → FT.00 | — |
 | G14.10 corpus | — | DS.01 kid-sft re-scrub + scrub.py tests | humaneval-abc + trajectories ABC.01/02/ABL.01 landed |
 | G14.14 engine fixes | — (director-engine pending) | G14.14.1-4 (write.py · comms · dispatch/runtime · the two workflows) | — |
+
+2026-09-21 01:3xZ director-thought: MP.01 dispatched (a00-af8cefa3, pi, cap $1) -- detector chunk 1 under G14.8.3
+
+2026-09-21 01:4xZ director-thought: SWR.01 merge-up sent -- reference row landed (deepseek-v4.1-flash 93.9pct HumanEval / 86.9pct IFEval), 3 local arms (B/C1/C2) clear 0.9x on HumanEval, IFEval undecided (no local row yet), inconclusive_lean_proved:60, mur running
