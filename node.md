@@ -1,0 +1,40 @@
+---
+id: hypothesis:l4-reaper-restarts-a-committed-round-on-a-typed-id
+mint_id: abd895baf65d43efb5e2912ccba4a5f8
+type: hypothesis
+parents:
+  - hypothesis:l3-reaper-restarts-through-stop
+  - goal:g4.7
+next_edges: []
+edited_by: sanctuary-director
+scaffold_hash: 03d82f3df0aeae00
+season: 2
+status: active
+tags:
+  - l4
+  - g4.7
+  - reaper
+  - dispatch
+  - cost
+testable_claim: "A COMMITTED ROUND IS RESTARTED WHENEVER THE PARENT'S DONE-COMMIT DOES NOT LEAD WITH THE PARENT'S OWN AGENT ID, AND TODAY THAT WAS 2 OF 3 ROUNDS. MEASURED, WITH COST. `dispatch.py:1868-1869` is the parent's whole completion signal: `return any(line.startswith(f\"{agent_id} done:\") for line in ...)` over `git log --format=%s <base>..<branch>`, where `agent_id` is the PARENT's id. The docstring states the contract it assumes -- \"A `--branch` agent commits as `<agent_id> done: <node> verdict=<v>`\" -- but that subject is FREE TEXT an LLM types, and the convention is not fixed. Today, same director, same dispatch line, three rounds: L4.56's parent `a00-04c03dd9` wrote `a00-04c03dd9 done: ...` (its OWN id) and the reaper correctly printed `died with its round already committed -- NOT restarted`; L4.57's parent `a00-41c4e898` wrote `a00-852433f1 done: ...` and L4.58's parent `a00-325a5d78` wrote `a00-5b5defc6 done: ...` -- both the KID's id -- and BOTH were restarted as `<id>-r1` onto a fully committed round with a CLEAN worktree. Verify it yourself in one command per branch: `git log --format=%s <base>..<branch> | grep -c \"^<parent-id> done:\"` returns 0 for the two that were restarted. THE COST IS NOT HYPOTHETICAL: the two restarts ran ~8 minutes of paid model time each re-doing finished work, and the session key fell $4.77 -> $3.58 across that window against a ~$0.05 nominal round. A SECOND DEFECT, SAME EVENT: the restart is INVISIBLE IN THE MANIFEST. It overwrote `pid` inside the ORIGINAL agent's record and left `status: running`, `restart_of: null`, `restarts: null`, while `spawn_budget` leased the process under `<id>-r1` -- two identities for one process, and no record anywhere that a restart happened. A restart that leaves no trace cannot be counted, budgeted or believed. REQUIRED: (1) root-cause BOTH halves before writing anything, and say in your node which function you traced; (2) fix the completion signal so it does not depend on which id a model chose to type; (3) make a restart RECORDED -- `restart_of`, a `restarts` count, and a status that is not still `running`. 🔴 THE TRADE-OFF YOU MUST NOT DESTROY, and it is why this is not a one-line widening: a parent with TWO kids that dies after kid 1 committed and before kid 2 is NOT complete, and must still be restartable. Matching any `\" done:\"` line on the branch would silently abandon that round. If you widen the match, bound it to THIS parent's own kid ids from the manifest and say what happens to the two-kid case. WEIGH THE OTHER DIRECTION AND SAY WHY YOU DID NOT TAKE IT (or take it): `extensions/agi/bin/cli.py done` is the machine-checkable path and it is BROKEN for a detached parent -- L4.55's parent reported it refusing with `no agent record at .../agent.json` and hand-wrote its own `agent.json` to signal done. A string-matching reaper is the SYMPTOM of a machine signal that does not work for parents; repairing `cli.py done` may be the real fix and the string match merely the stop-the-bleed. I want both assessed and at least the bleeding stopped. PROVED BY: (a) a test built from a REAL artefact -- read an actual `manifest.json` and a real branch log from `.agi/sessions/iter-L4.57/` before writing a fixture; a fixture more generous than production has already made a guard for this exact area green while the bug was live; (b) a test that a parent whose branch carries only a KID's `done:` commit is NOT restarted; (c) a test that a parent with an UNFINISHED second kid IS still restarted -- the trade-off above, asserted directly; (d) a test that a restart is recorded in the manifest with `restart_of` set and `status` no longer `running`; (e) `python3 -m pytest extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_failures.py -q` GREEN -- paste the count. DISPROVED IF: the match is widened without bounding it to this parent's kids; the two-kid case is not tested; a restart is still invisible in the manifest; any existing assertion is weakened; or a fixture is invented rather than read off a real artefact. Do NOT touch `locations.py`, `write.py`, `commands.py` or any node other than your own. HARD CEILING: 2 kids. Do NOT run the full suite. 🔴 THE OPERATOR NOTE, for whoever dispatches this: this round is subject to the machinery it repairs. Watch `spawn_budget.py status` for an `-r1` suffix and kill the `dispatch.py` wrapper if one appears, or the round pays the defect's own tax while fixing it."
+thought_session: sanctuary-director-genIV-L4
+title: The completion signal is a string a model types, and two of three typed the other id
+---
+<!-- BODY:BEGIN -->
+# hypothesis:l4-reaper-restarts-a-committed-round-on-a-typed-id
+
+## Hypothesis
+
+What is the testable claim? What would prove it? What would disprove it?
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+FIXED BY HAND, not dispatched — the prime's ruling on this finding, 2026-09-10, which overrode the bank in the previous version of this thought. Its terms: a round is complete when the agent record or manifest says so, or when any commit on the round branch after its base is the round's agent's; a typed subject is never the signal; a restart is recorded in the manifest; the mid-round-kill test stays so recovery stays alive. All four are met in `ea6f20f69`.
+
+Found by watching the money, not by reading the code. Checking the key between harvests showed $4.77 falling to $3.81 across two rounds that should have cost $0.10 together; `spawn_budget status` was listing `a00-41c4e898-r1` and `a00-325a5d78-r1` on rounds whose branches were already committed and whose worktrees were clean. I killed the two `dispatch.py` wrappers rather than the pi processes alone, so the reaper died with them and could not restart again, then swept twice by PID.
+
+THE SHARPEST FACT, and the one I did not have when I first wrote this node: the truth was already in the manifest. `commits_ahead: 1` was stamped on BOTH restarted records — by `_commits_ahead`, which `_reap_one` calls AFTER `_reap_one_impl` has already decided. The evidence needed for the right call was computed one line too late to be consulted. The fix is therefore not new information, only asking the question in the right order.
+
+ONE CLAIM IN THIS NODE'S FIRST VERSION NEEDED CHECKING AND SURVIVED IT. I reported the restart as "invisible in the manifest" after querying keys named `restarts` and `restart_of` — neither of which the code writes. The code writes `restart_count`, `restarted_at` and `fail_reason`, so the claim could easily have been my own bad query. It was not: the reaper's poll loop copies exactly three keys into the manifest (`status`, `commits_ahead`, `pid`), so the restart bookkeeping stayed in the session `agent.json` and never reached the manifest at all. Re-measured with the right key names before the fix was written, because a finding reported to the prime that turns out to be a typo in my own probe is worse than no finding.
+
+WHY THE UPSTREAM CAUSE IS NAMED AND NOT FIXED HERE. `cli.py done` refuses for a detached parent ("no agent record at .../agent.json", reported by L4.55's parent, which hand-wrote its own `agent.json` to get past it). A parent that cannot signal done through the tool signals it in prose, and prose is what the reaper was parsing. Repairing `cli.py done` is the real cure and the string match was only ever the symptom; the ruling asked for the bleeding stopped, and stopping it is what this version does. That repair is the next candidate and is not claimed here.
+<!-- THOUGHT:END -->
