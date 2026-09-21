@@ -10449,6 +10449,40 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
   layering   AFTER G14.7.2 + G14.15 (telepathy) each have a verdict: the tuned small model + KV telepathy = the layered chunk (owner: "Then layer that with the kv cache telepathy chain")
   order      after the live/queued rounds (MP.01 -> TEL.01 -> SWR.02); FT.00 (morals + sanctuary SFT) stays the first Track II round -- these extend it, not replace it
 
+##### G14.7.2 — TRAINING-METHOD LADDER -- SFT full | LoRA/QLoRA | RL on verdict labels | pretrain from scratch, small bases first (0.6B/1.7B/4B), measured on the battery + kid-tier checklist vs base and reference, USD/GPU-h per arm, Camber for FT/RL via the Prime (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.7.2
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.7's thought-master program block):** "Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones cause we can batch rounds and even train from ground up for even somewhat big ish models using all this synthetic data. Then layer that with the kv cache telepathy chain."
+
+**Commits to.** A training-METHOD ladder, base held small first: 0.6B / 1.7B / 4B (the resident 9B last, only after the small ladder proves a recipe). Corpus = `datasets/` (kid-sft after DS.01's re-scrub, jev-typed-acts, the ABC/SWR/ABL trajectories, the switch-rule battery, abl-01). Four arms per base: (1) SFT full, (2) LoRA (+QLoRA), (3) RL on verdict labels (DPO/GRPO-style, label = the round's own verdict or its mur residue class), (4) PRETRAIN from scratch on the synthetic corpus -- attempted only once the small-base ladder has proved the recipe is worth scaling.
+
+**Invariants.** Every arm measured on the G14.11 battery (HumanEval + IFEval strict) plus the kid-tier checklist, against BOTH the untuned base and the reference bar; USD + GPU-h recorded per arm. Camber hours are authorised for FT/RL (owner 21:4xZ 09-20, per-job keys via the Prime, numbers stated first, failing is fine). Rounds are batch-maxed: one order = the whole ladder for one base size, ONE merge-up per batch (goal:g14.16 rule). Corpus is measured/scrubbed/split before any GPU hour (G14.10 rule); no trial judged on training loss (G14.7 rule).
+
+**Falsifiers.** An arm that does not beat the untuned base on the battery by a real margin without a bigger loss elsewhere is a failed arm -- recorded as a row, not hidden (G14.7 falsifier (a) applied per-arm). If NO arm across the entire small-base ladder closes any measurable fraction of the local-vs-reference gap, the ladder itself is falsified for that base size and the next base does not get the full four-arm treatment -- only the arm(s) that showed any signal.
+
+**Done when.** Each of the four arms has one measured chunk on the smallest base (0.6B), in one comparison table: recipe, USD, GPU-h, battery delta vs base and vs reference.
+
+**First chunk.** None minted yet -- queued behind FT.00 (morals + sanctuary SFT, the first Track II round, stays first and is not replaced by this ladder) and DS.01 + G14.10.2 (the labelled corpus this ladder reads). Layers with `goal:g14.15` (KV telepathy) only once G14.7.2 AND G14.15 each have their own verdict (owner: "Then layer that with the kv cache telepathy chain") -- that layered chunk is not this node's own first chunk, it comes after.
+
+##### G14.7.3 — DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA -- does the same training method and base, trained on diagram-maxed traces (goal:g14.16 shape) vs prose traces, change battery performance and tokens-per-solution? (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.7.3
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.7's thought-master program block):** "Queue up experiments on how diagram maxxed thought patterns and finetuning vs lora vs rl or even pretraining affect model performance especially smaller ones..." -- the diagram-maxed-shape half of the same line.
+
+**Commits to.** One controlled A/B: the SAME base size and SAME training method (whichever arm `goal:g14.7.2` finds strongest on its ladder), trained on two versions of the SAME underlying trace content -- prose traces vs diagram-maxed traces (the compression shape defined on `goal:g14.16`) -- varying only the corpus's SHAPE, nothing else. Question: does the diagram-maxed shape change battery performance and tokens-per-solution?
+
+**Invariants.** The diagram-maxed corpus comes from the SAME scrub + labelling pipeline as `goal:g14.10.2` (not a one-off hand transform); a training corpus is frozen by sha256 in the trial's node (G14.10 rule). Measured on the battery AND on tokens-per-solution -- token efficiency, not just accuracy, is the entire point of diagram-maxing (G14.16's own target: fewer tokens, more meaning). No trial judged on training loss (G14.7 rule).
+
+**Falsifiers.** Falsified as a lever if the diagram-maxed-trained arm does not beat the prose-trained arm on tokens-per-solution at an equal-or-better battery score -- then diagram-maxed shape helps human/agent readers (its proven use on cards and dms) but is not itself a useful training-data shape, and the two uses are kept separate going forward.
+
+**Done when.** One measured pair (prose-trained vs diagram-maxed-trained, same base, same method) exists with a verdict.
+
+**First chunk.** None minted yet -- blocked on two things landing first: `goal:g14.7.2` needs a verdict (which base/method to hold fixed) and `goal:g14.10.2` needs its classifier pass done (the "reasoning shape prose/diagram-maxed" label is exactly what that pass adds -- without it there is no diagram-maxed corpus to train on). Layers with `goal:g14.15` (KV telepathy) the same way G14.7.2 does, after both have verdicts.
+
 #### G14.8 — TRACK III — jev optimisations: local jev first, the API-key side, and the MAGIC PANE (a tmux surface that reads an LLM stream, detects the structured form, interrupts like autocorrect, fills the fields, confirms the final form; CLI-linked; token savings measured) (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
@@ -10549,6 +10583,23 @@ thought-master 02:1xZ 09-21 (owner program, verbatim on goal:g14):
     labels     pre-label from what the graph already knows per record: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box; then a jev in-depth classifier pass over ALL data trunks (kid-sft, jev-typed-acts, trajectories, switch-rule, abl-01, sessions) adding the classes the graph does not carry (act type, reasoning shape prose/diagram-maxed, refusal, tool-error, rebrief) with calibration against a 200-record hand-checked slice
     output     one index (datasets/README.md row + a labels.jsonl per trunk) that G14.7.2's arms read directly
     order      DS.01 first (the one scrub), then G14.10.2 capture, then the jev pass as batched rounds (CPU/API only, no GPU)
+
+##### G14.10.2 — THE SESSION-DATA TRUNK + CLASSIFIER PASS -- every role's session data (pi parents/kids, claude-code masters/directors/Prime) scrubbed into datasets/sessions/, pre-labelled from the graph, then a jev classifier pass over all data trunks calibrated on a 200-record hand-checked slice (owner 02:1xZ 09-21) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.10.2
+## Agent Notes
+**Owner source (2026-09-21 02:1xZ, verbatim on goal:g14, relayed via goal:g14.10's thought-master program block):** "Use all session data all parents kids and all other roles generate and find a way to pre-label it or even use jev to do an in-depth classifier pass on all the data trunks including things like model, harness, provider etc."
+
+**Commits to.** Capture EVERY role's session data: pi parents + kids (already land under `datasets/trajectories/` via the standing landing rule) AND claude-code roles -- masters, directors, the Prime -- whose session jsonl lives under the harness dir today and nowhere in the archive. All of it lands under `datasets/sessions/<role>/<session>/` through the ONE scrub (`datasets/tools/scrub.py`), never a second redactor. The claude-code capture HOOK itself (the mechanism that copies a harness session dir into the landing path) is `G14.14.8`, director-engine's engine round -- this node commits to the data-trunk shape and the labelling, not the hook.
+
+**Invariants.** Pre-label every record from what the graph ALREADY knows before any classifier runs: model · harness · provider · role · post · town · round id · verdict · mur residue class · spend · wall · box. Only THEN does a jev classifier pass add classes the graph does not carry: act type, reasoning shape (prose vs diagram-maxed), refusal, tool-error, rebrief -- calibrated against a 200-record hand-checked slice, never trusted unvalidated. CPU/API only, no GPU (thought-master's own order line). Nothing lands unscrubbed; a leak hit blocks the commit (G14.10 rule); the index (`datasets/README.md`) updates in the same merge that adds a trunk (G14.10 rule).
+
+**Falsifiers.** Same as `goal:g14.10`'s own falsifier (b): if a re-scrub or label audit finds > 1 pct of records with a wrong or missing label, the affected trunk is quarantined under `datasets/quarantine/` until relabelled -- the classifier's calibration slice is exactly what this audit re-checks against.
+
+**Done when.** One index exists -- a `datasets/README.md` row plus a `labels.jsonl` per trunk -- that `goal:g14.7.2`'s training arms can read directly with no further transform.
+
+**First chunk.** None minted yet -- ordered explicitly by thought-master: DS.01 first (the one scrub, already queued), THEN this node's own capture chunk, THEN the jev classifier pass as its own batched rounds. Both later steps queue behind DS.01 landing.
 
 #### G14.11 — THE SWITCH — one battery (HumanEval + IFEval + the typed-round row), one reference bar (deepseek-v4.1-flash), one rule: within 10 pct on every row → the contributing chains mint ONE mvp → build node → the town runs its own parents and kids on it (owner 21:5xZ 09-20) — status: active
 
@@ -10719,6 +10770,8 @@ target     fewer tokens AND more meaning than the prose replaced — measured, n
 thought-master 02:2xZ 09-21 card pass, measured: thought-master card 97 lines (09-20) -> 93 (§4 in the shape, 02:1xZ) -> 54 lines (§0-§3 in the shape, 02:2xZ); facts kept: every NEVER, both recorded exceptions, GATE 0 / ROUND 0 status, cadence, floor, alerts, prayers rule; owner quotes moved out of the card into their nodes (goal:g14, doc:l4-owner-decisions) rather than compressed. Directors' before/after arrive as their own notes here.
 
 director-engine 02:11Z 09-21 (via thought-master, verified dm): card diagram-max 2bd43c299 -> e4cc6aca3 = lines 33 -> 37 (+4: the table shape costs rows) · words 1063 -> 959 (-9.8 pct) · chars 7541 -> 6741 (-10.6 pct); its own flag: line count is a weak proxy for the shape -- words/chars are the measure, adopted for this goal's before/after table.
+
+director-thought 02:2xZ 09-21 (own measurement): card diagram-max f76690161..822ee1519 (prose/bullets -> identity+rules-table+stops-table) = lines 19 -> 28 (+9, table shape costs rows -- same flag as director-engine's) · words 512 -> 393 (-23.2 pct) · chars 3666 -> 2886 (-21.3 pct); facts kept: every rule line, both push/comms traps, the grid --allow-branch trap added same pass, live/landed/queued/next/inbox state -- nothing dropped, owner quotes stay in nodes not card
 
 ## App: streaming-suite
 
