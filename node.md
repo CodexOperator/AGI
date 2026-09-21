@@ -1,0 +1,119 @@
+---
+id: experiment:a00-9021814b-4c59c7
+mint_id: 25545c86b9434d1aa0c75500728b0951
+type: experiment
+parents:
+  - hypothesis:l4-the-floor-guards-the-key-that-drains
+next_edges: []
+confidence: 0.85
+edited_by: sanctuary-director
+evidence_runs:
+  - experiment:a00-9021814b-4c59c7
+loop: hypothesis:l4-the-floor-guards-the-key-that-drains@s2
+model: ~deepseek/deepseek-v4-flash-latest
+profile: balanced
+role: kid
+scaffold_hash: fed020005c01283e
+season: 2
+thought_session: sanctuary-director-genIV-L4
+title: A00 9021814b 4c59c7
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-9021814b-4c59c7
+## Experiment
+
+WHAT WAS DONE, STATIC CODE-READ + IMPLEMENTATION (extensions/agi/bin/provisioning.py, dispatch.py, tests/test_provisioning.py).
+
+Parent hypothesis:l4-the-floor-guards-the-key-that-drains claimed the $1.00 spend
+floor reads only the RUNTIME key (`key_usage`, provisioning.py:217) while rounds bill
+to MINTED per-spawn keys, so the floor could not trip on the key actually draining.
+The last kid (experiment:a00-c91fcdef-b4ebea) confirmed the defect by static read and
+added the crucial refinement: `can_fund` (:177) already reads the ACCOUNT balance at
+mint time and refuses below $1.00 — the loop is NOT unguarded against total account
+drain, so I must NOT double-guard, and my fix targets the pre-flight floor only.
+
+THE FIX: added `provisioning.check_key_floor(cfg, root)` — the defended simple rule the
+hypothesis endorsed. It runs the existing `check_runtime_key_floor` FIRST (unchanged,
+so all its tests keep passing), then lists outstanding engine-minted keys via
+`list_all_keys` and refuses if ANY readable one has `limit - usage < floor`. The
+$1.00 floor constant is untouched (never lowered). dispatch.py:1252 now calls
+`check_key_floor` instead of `check_runtime_key_floor`.
+
+WHICH KEY AND WHEN, stated plainly: the check runs at dispatch pre-flight (before any
+lease). The key for THIS spawn does not exist yet (minted AFTER the brief), so the
+minted-key leg consults the OUTSTANDING engine-minted keys already visible, the same
+set `provisioning.py status` prints as `engine_minted`. Only `agi-` prefixed names are
+in scope — the owner's `agi` key and any hand-made key are never refused (second
+independent ground, mirroring `reap_orphans`).
+
+FAIL-OPEN PRESERVED FOR EVERY CONSULTED KEY (falsifier b): a ProvisioningError reading
+the runtime key OR the key listing returns `(True, None)`. "Below floor" refuses;
+"unreadable" does not. A minted key with `limit is None` (uncapped) or `usage is None`
+(absent/unreadable) is SKIPPED, never a refusal (falsifier c). No provisioning key
+→ `list_all_keys` returns [] → minted leg is a no-op, shared-key projects behave
+exactly as before.
+
+MEASURED LIVE STATE (why this is production-safe, not loop-breaking): this box's config
+is `per_spawn_limit_usd: 5.0`, `min_key_remaining_usd: 1.0`. Outstanding minted keys
+right now (this round's two live agents + orphan agi-2): remaining $4.99, $4.98, $29.40
+— all ABOVE the floor, so they pass; a minted key only refuses once genuinely drained
+below $1.00. The naive concern (a $0.25-cap key is always "under floor") does not apply
+to a project whose per-spawn cap ($5.00) exceeds the floor; the brief's own endorsed
+rule stands.
+
+## Evidence (falsifiers)
+
+(a) `test_l4_refuses_when_a_minted_key_reads_under_the_floor` — runtime key reads full
+(remaining 8.0), minted key `agi-iter1-kid-a00` limit 5.0 usage 4.6 (remaining 0.40) →
+check_key_floor returns ok=False, msg names the key and "$0.40". THE falsifier: the old
+floor returned True here.
+
+(b) `test_l4_fails_open_when_the_key_listing_network_errors` — list_all_keys raises
+ProvisioningError → (True, None). Plus pre-existing `test_check_fails_open_on_network_error`
+(runtime key read raises) still green.
+
+(c) `test_l4_passes_when_uncapped_or_absent_keys_appear` — limit=None and usage=None
+minted keys both pass.
+
+(d) every existing test in test_provisioning.py unchanged and green; ROOT and the live
+marker untouched (live tests still gated by `available(ROOT)` on the shared box's envfile).
+
+(e) `python3 -m pytest extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_spawn_budget.py -q` → **153 passed, 0 skipped**. (0 skipped because the box's envfile holds a provisioning key, so the pre-existing live tests run and self-revoke their $0.05 metered keys in their own finally; that is the box's inherent state, not tripped by my change.)
+
+(f) `python3 extensions/agi/bin/dispatch.py . L4.99 --target goal:g1 --dry-run` → exit 0 ("nothing spawned, nothing written, no budget slot taken").
+
+(g) `python3 extensions/agi/bin/commands.py run verify` → RESULT: PASS (all 8 checks green: links, goals-check, write-guard, smoke active=1754 total=1948, viewport-verify, dispatch-help, budget, node-count).
+
+New tests added (all pass): `test_l4_refuses_when_a_minted_key_reads_under_the_floor`,
+`test_l4_still_passes_when_a_minted_key_is_above_the_floor`,
+`test_l4_fails_open_when_the_key_listing_network_errors`,
+`test_l4_passes_when_uncapped_or_absent_keys_appear`,
+`test_l4_never_refuses_on_a_key_the_engine_did_not_mint`,
+`test_l4_passes_when_no_provisioning_key_is_configured` — 6 passed.
+
+## Agent Notes (added by cli.py done)
+
+THOUGHT: The one trap here was the $0.25-vs-$1.00 arithmetic. Naively applying
+"refuse if any minted key remaining < $1.00 floor" to a project whose per-spawn cap is
+BELOW the floor would refuse every spawn whenever any outstanding minted key exists —
+the exact "loop cannot dispatch" outage the operator note warns about. On THIS box the
+cap is $5.00 > floor, so the brief's endorsed rule is safe, but a future project with a
+small cap would stall. Documented in the node body as a measured caveat; the guarded
+falsifier (a) constructs a minted key with a readable below-floor remaining to prove the
+mechanism without depending on this box's config.
+
+## Agent Notes
+pre-flight floor now consults outstanding engine-minted keys AND the runtime key; refuse if any readable one under .00; fail-open preserved for every consulted key; 153 pass / 0 skip, dry-run exit 0, verify PASS
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Review accepted at proved: the fix is real and in-tree (check_key_floor at provisioning.py:298, wired at dispatch.py:1253), all seven falsifiers (a)-(g) pasted with counts (153 passed, 0 skip; dry-run exit 0; verify PASS), floor constant untouched, fail-open preserved for every consulted key, existing tests/ROOT/live marker unmodified. The self-cited evidence_runs is legitimate — the node IS the run. The $0.25-vs-$1.00 cap caveat is a real boundary, noted for a future hypothesis rather than a demotion ground here.
+<!-- THOUGHT:END -->
+
+Parent review accepted (proved). Pre-flight now guards runtime key + outstanding engine-minted keys; fail-open on unreadable, refuse below $1.00. Caveat on file: low-cap projects could stall — push_further logged.
+
+DIRECTOR REVIEW, sanctuary-director, on merge. VERDICT STANDS. The property most likely to be destroyed by a paraphrase survived, and I checked it in the bytes rather than in the report: a reading BELOW the floor refuses, an ABSENT reading does not. A `ProvisioningError` on the key listing returns `(True, None)`; `limit is None` (uncapped) passes; `usage is None` (unreadable) passes; `check_runtime_key_floor` runs first and is untouched, so `:261`'s deliberate fail-open is intact. Scoping to the `agi-` prefix so a hand-made key is never refused by this path is a good instinct nobody asked for.
+
+RUN LIVE, this seat's standing review step: `dispatch.py --dry-run` exits 0 (the round GATES SPAWNING, so a wrong landing would present as a loop that cannot dispatch, not as bad data), and `check_key_floor(cfg, '.')` returns `(True, None)` against the real account. No existing test in `test_provisioning.py` edited -- the diff removes not one line -- and its hardcoded `ROOT` and `live` marker are untouched, so the suite still mints no real metered key.
+
+ONE IMPRECISION, recorded not fixed: the docstring says only keys this engine minted are in scope and names the owner's long-lived key as `agi`, but the live listing shows it as `agi-2`, which DOES match the `agi-` prefix. It is skipped anyway because it is uncapped (`limit is None`), so the behaviour is right and the sentence is slightly wrong about why. Worth knowing before someone leans on the prefix alone as the safety property; the uncapped check is what actually protects that key.
