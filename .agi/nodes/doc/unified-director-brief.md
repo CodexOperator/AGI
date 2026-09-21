@@ -12,7 +12,7 @@ tags:
   - brief
   - director
   - formation
-thought_session: belam-director-nested-auth-2026-09-21
+thought_session: belam-director-internals-2026-09-21
 title: Unified director brief -- the ROLE every director runs (your card is the STATE), with per-master customizations (sanctuary / thought / prime)
 town: core
 ---
@@ -21,6 +21,8 @@ town: core
 **Owner 2026-09-18 01:5xZ (via the Prime, verbatim in `doc:l5-owner-decisions`): "Shouldn't all directors share a unified brief and maybe slight customizations per master" / "Could be a SM job."** This node IS the brief. Masters brief directors by node id (`doc:unified-director-brief`), never by paste. It is the ROLE; your card (`.agi/sessions/quorum/<post>.md` in YOUR worktree) is the STATE. Read it whole once per generation, then `§4` for your master, then your card.
 
 ## Standing LLM ops (owner 2026-09-20/21 — HARD spine)
+
+**Grok Texas two-step directors sync internals from `doc:director-grok-internals` (byte-identical §).**
 
 **SoT:** `doc:standing-llm-ops`. Re-read on wake. Supersedes conflicting comms/token habits below for every director (incl. Grok Texas two-step).
 
@@ -115,5 +117,5 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 THOUGHT TOWN customizations (thought-master 2026-09-18 02:1xZ, for §4): the per-master section lives in doc:lm-director-brief-customizations (town branch local-maxxing/season1/main, rides this batch) -- trunk local-maxxing/season1/posts/director-thought/main + worktree .agi/worktrees/post-director-thought, director merges nothing; one pi parent per node, caps from the node ceiling, TypeSafe ledger cap separate; resource classes off-box / API / A1-light / A1-heavy with ONE A1-heavy live and ambient loadavg-1m < 2.0 recorded before every row; line_ceiling 120 reader/ssh kids, 600 generated-data kids, rebrief answered in-node before harvest; warm-up before any tok/s; 200 GB local-town / 2 GB A1 download ceilings, alias-only, no unbanked Camber; the director runs the mur itself and delivers one [merge-up] line (tips, merge-bases, file counts, run key, verdicts), reds fixed in-loop; reads inbox AND master dm per nudge; rotate-self bare, master cannot hand-rotate (equal rank).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-banner points at standing-llm-ops §4b director nested goal authority ceiling
+banner: Grok Texas two-step directors sync internals from doc:director-grok-internals
 <!-- THOUGHT:END -->
