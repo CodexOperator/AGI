@@ -1414,6 +1414,78 @@ def test_allow_branch_message_mentions_branch_name_and_flag(guard_project, capsy
     assert "--allow-branch" in err
 
 
+# --- hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal ---
+#
+# The guard exists ONLY because refs are branch-blind under the DEFAULT
+# `refs/grid`: every branch writes the same `refs/grid/node/<mint-id>`. A tree
+# declaring a non-default `grid.storage_trunk` keeps its refs in its own
+# namespace, so commit --all on a non-season branch no longer refuses there.
+# An UNCONFIGURED tree must refuse byte-for-byte as before; `--allow-branch`
+# stays its override; session (D3) commits stay ungated either way.
+
+
+def _configure_guard_trunk(root, trunk):
+    """Write `grid.storage_trunk` into the guard fixture's config."""
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": trunk}}))
+    return root
+
+
+def test_configured_trunk_lifts_refusal_on_non_season_branch(
+        guard_project, restore_ref_ns):
+    """Falsifier (a): configured non-default trunk + non-season branch ->
+    commit --all succeeds with NO --allow-branch, recording in that trunk."""
+    _configure_guard_trunk(guard_project, "refs/grid/local-maxxing")
+    grid.apply_storage_trunk(guard_project)
+    assert grid.REF_NS == "refs/grid/local-maxxing"
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_unconfigured_tree_still_refuses_on_non_season_branch(
+        guard_project, capsys):
+    """Falsifier (b), the regression guard: with no `grid.storage_trunk` the
+    refusal is unchanged -- exit 2, no ref, message names --allow-branch."""
+    _on_branch(guard_project, "work")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    assert "--allow-branch" in capsys.readouterr().err
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is None
+
+
+def test_allow_branch_still_overrides_unconfigured_refusal(guard_project):
+    """Falsifier (c): --allow-branch remains the explicit override on an
+    unconfigured tree's non-season branch."""
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None,
+                    allow_branch=True)
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_session_commit_ungated_configured_and_unconfigured(
+        guard_project, restore_ref_ns):
+    """Falsifier (d): session (D3) commits stay ungated on a non-season branch
+    whether the trunk is configured or not."""
+    f = guard_project / "nodes" / "idea" / "x.md"
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [str(f)], do_all=False,
+                    session=("1", "a01"))
+    assert grid.ref_tip(
+        guard_project, grid.session_ref("1", "a01", "idea:x")) is not None
+
+    _configure_guard_trunk(guard_project, "refs/grid/local-maxxing")
+    grid.apply_storage_trunk(guard_project)
+    grid.cmd_commit(guard_project, [str(f)], do_all=False,
+                    session=("1", "a02"))
+    assert grid.ref_tip(
+        guard_project, grid.session_ref("1", "a02", "idea:x")) is not None
+
+
 # --------------------------------------------- evidence gate on the commit path
 #
 # hypothesis:gate-must-sit-on-the-commit-path (goal:g7). The falsifier the
