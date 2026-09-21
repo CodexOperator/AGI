@@ -38,3 +38,31 @@
 1192:                 params_base.n_cache_reuse = 0;
 1193:                 SRV_WRN("%s\n", "cache_reuse is not supported by this context, it will be disabled");
 1194:             }
+
+-- TEL.03 additions: GGUF-string mapping + qwen3 vs qwen35 rope type (same commit 930e2fa...) --
+
+-- src/llama-arch.cpp:36,41-42  GGUF general.architecture string -> LLM_ARCH_* --
+ 36:    { LLM_ARCH_QWEN3,            "qwen3"            },
+ 41:    { LLM_ARCH_QWEN35,           "qwen35"           },
+ 42:    { LLM_ARCH_QWEN35MOE,        "qwen35moe"        },
+
+-- src/llama-model.cpp:1398  rope_type derived once from arch --
+1398:    hparams.rope_type = llama_model_rope_type(this);
+
+-- src/llama-model.cpp:2969-2970 inside the NEOX group (2960..3020) --
+2969:        case LLM_ARCH_QWEN3:
+2970:        case LLM_ARCH_QWEN3MOE:
+3020:            return LLAMA_ROPE_TYPE_NEOX;
+
+-- src/llama-model.cpp:3040-3044  qwen35 -> IMROPE, unconditional --
+3040:        case LLM_ARCH_QWEN35:
+3041:        case LLM_ARCH_QWEN35MOE:
+3044:            return LLAMA_ROPE_TYPE_IMROPE;
+
+-- src/llama-model.cpp:3047,3049,3052  gated arches (GLM4/GLM4_MOE/HUNYUAN_VL) --
+3047:            return model->hparams.use_mrope() ? LLAMA_ROPE_TYPE_MROPE : LLAMA_ROPE_TYPE_NORM;
+-- src/llama-hparams.cpp:351-352 --
+351: bool llama_hparams::use_mrope() const {
+352:     return rope_sections[0] > 0 && rope_sections[1] > 0;
+=> qwen35/qwen35moe = IMROPE => n_pos_per_embd 4 => can_shift false, regardless of
+   the GGUF [11,11,10,0] sections; qwen3 = NEOX => 1 => true. No box arch is gated.
