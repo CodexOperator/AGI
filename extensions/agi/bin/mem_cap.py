@@ -14,15 +14,27 @@ _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 
 
-def resolve_memory_cap(cfg: dict) -> "str | None":
-    """`spawn.memory_max`: absent -> '4G'; null/'none'/'' -> None; else as-is."""
-    spawn = (cfg or {}).get("spawn") or {}
-    if "memory_max" not in spawn:
-        return "4G"
-    val = spawn.get("memory_max")
+def _normalise_cap(val) -> "str | None":
+    """None / 'none' / 'null' / '' -> None; else the value verbatim."""
     if val is None or str(val).strip().lower() in ("", "none", "null"):
         return None
     return str(val)
+
+
+def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None":
+    """`spawn.memory_max`: absent -> '4G'; null/'none'/'' -> None; else as-is.
+
+    `override` (hypothesis:lm-dispatch-memory-override-feeds-agi-batch-
+    scheduling) is a per-invocation cap: when it is not None it wins over the
+    config value, normalised the same way, and `cfg` is never mutated -- the
+    override is request-scoped, not written back to disk.
+    """
+    if override is not None:
+        return _normalise_cap(override)
+    spawn = (cfg or {}).get("spawn") or {}
+    if "memory_max" not in spawn:
+        return "4G"
+    return _normalise_cap(spawn.get("memory_max"))
 
 
 def _as_bytes(spec: str) -> int:
