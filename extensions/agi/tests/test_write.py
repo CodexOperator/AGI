@@ -229,6 +229,33 @@ def test_help_epilog_lists_every_verb_and_arity(capsys):
             f"epilog missing {name} (arity {write.ARITY[name]})"
 
 
+def test_help_documents_replace_body_standalone_restriction(capsys):
+    """hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    -- `replace body` already REFUSES to share a submit with note, thought or
+    body_patch (one body writer per submit). That refusal is correct and
+    unchanged; what was missing is discoverability from `-h`, so a caller
+    learns the rule before writing a script that will fail. The rendered help
+    must name `replace` and at least one of note/thought/body_patch together.
+
+    Fails on the pre-change help (the only `replace` line then was the bare
+    `replace body 4:9 path/to/file` example, which names no other writer) and
+    passes once the NOTES block is rendered."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    restricted = [
+        line for line in out.splitlines()
+        if "replace" in line.lower()
+        and any(w in line.lower() for w in ("note", "thought", "body_patch"))
+    ]
+    assert restricted, (
+        "write.py -h never names the replace-body standalone restriction "
+        "(replace + note/thought/body_patch together); a caller can only "
+        "learn it by hitting the refusal")
+
+
 def test_help_epilog_drift_guard_refuses_a_verb_without_an_example(monkeypatch):
     """The epilog is fail-closed: if a verb appears in VERBS but has no
     entry in VERB_EXAMPLES (or in ARITY), `write.py -h` must REFUSE rather
