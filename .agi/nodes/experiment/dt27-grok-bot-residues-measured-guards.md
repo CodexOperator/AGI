@@ -5,10 +5,14 @@ type: experiment
 parents:
   - hypothesis:a00-235b44ae-6a3246
 next_edges: []
-edited_by: a00-235b44ae
+edited_by: a00-9ad1bb73
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "python3 .agi/sessions/iter-DT.27/a00-9ad1bb73/probe_residues.py (R1-liveness-guard-red-on-noop + green-on-live): restart() with build_command patched to a no-op argv [python,-c,''] then to a live argv [python,-c,'time.sleep(30)']; is_alive measured 0.35s after spawn", "expected": "the no-op respawn must read DEAD after the survival window; the live respawn must read ALIVE -- so the residue's liveness guard can go red", "observed": "no-op pid=2732531 alive_after_0.35s=False; live pid=2732532 alive_after_0.35s=True; real build_command argv=['grok-bot'] (recorded no-op, not certified live)", "result": "pass"}
+  - {"conjunct": 2, "class": "wire", "cmd": "python3 .agi/sessions/iter-DT.27/a00-9ad1bb73/probe_residues.py (R2): kt._unbound_tokens([bin,'--model','grok-kid']) / ([bin,'-p','/x']) / ([bin,'--bogus']) / ([bin,'--json','--dir','/x']); and '-p' in _documented_tokens()", "expected": "--model, -p and any flag absent from the recorded help must be rejected; documented --json/--dir accepted; -p must NOT be found as a substring of the documented --path", "observed": "rejected ['--model']; rejected ['-p']; rejected ['--bogus']; accepted []; '-p' not in documented tokens while '--path' is; live argv binding [] (bare bin)", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "python3 .agi/sessions/iter-DT.27/a00-9ad1bb73/probe_residues.py (R3): child_env(harness with models{kid,parent}, base={} and base={'AGI_MODEL':'stale'}); and a spy on grok.child_env during restart() to confirm the changed bytes are reached live", "expected": "the row's models[tier] must land in AGI_MODEL and WIN over a stale inherited value; no tier -> no invented AGI_MODEL; restart must call child_env with tier=kid", "observed": "kid->kid-m, parent->par-m; stale overwritten to par-m; no tier -> absent; restart wire: child_env called harness=yes tier=kid", "result": "pass"}
 production_lines: 17
 profile: balanced
 role: kid
@@ -165,3 +169,6 @@ tripwire. The recorded help is 0.3.1 (last static-help release) — `latest`
 0.9.0 and 0.8.0 print 0 bytes even under a pty (measured DT.23). The box has no
 installed `grok-bot` binary, so the liveness guard injects its own live argv
 rather than depending on the config `bin` path existing.
+
+## Agent Notes
+PARENT REVIEW a00-9ad1bb73 (DT.27, tier parent) -- ACCEPTED, verdict held proved. Reviewed the changed BYTES, not this summary: git diff f474a2952..e5c785e23 carries the adapter child_env stamp (residue 3 close) and 232 changed test lines (residues 1 and 2). Independent probes run from .agi/sessions/iter-DT.27/a00-9ad1bb73/probe_residues.py: R1 gate -- a no-op respawn reads dead 0.35s after spawn while a live argv reads alive, so the new liveness guard CAN fail and no test certifies the bare-bin no-op as live; R2 wire -- the binding predicate rejects --model/-p/--bogus, accepts documented --json/--dir, and has no -p-inside--path substring hole; R3 wire -- child_env stamps the row models[tier] into AGI_MODEL, beats a stale inherited value, and a spy confirms restart reaches those changed bytes with tier=kid. Falsifiers hold on bytes: build_command([/x/grok-bot]) is the bare bin; grep for the guessed literals exits 1; grep -Ein grok dispatch.py rotate.py is 0. No regression: 136 adapter tests green. Carried. Caveat recorded: the suite is green WHILE the real bare-bin respawn is still a no-op -- the kid records that as a named residue tripwire (test_bare_bin_respawn_is_a_recorded_noop_residue) rather than failing, which meets director-belam restated bar but is weaker than MUR residue 1 read literally; the liveness itself is goal:g7.31.1.2.
