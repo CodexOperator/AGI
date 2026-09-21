@@ -6621,11 +6621,54 @@ Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/g
 
 #### G7.25.1 — grok_bot_adapter.py REQUIRED surface (stub build_command; needs_credential False) — status: active
 
-<!-- BODY:BEGIN -->
 # goal:g7.25.1
 
+## Why this exists
+
+**Parent `goal:g7.25` (Grok Bot third-party harness adapter).** Parent needs the adapter *module* before a config row can resolve. This subgoal owns **only** `extensions/agi/bin/adapters/grok_bot_adapter.py` — TODAY's REQUIRED surface — so `adapters.load("grok_bot")` can succeed once g7.25.2 lands the config row.
+
+Practice-run split (owner / Belam): adapter file here; `harnesses.grok-bot` config row is **sibling `goal:g7.25.2`**, not this node.
+
+## Target end-state
+
+- One module `grok_bot_adapter.py` defines the same REQUIRED surface peers use: `NAME`, `resolve_bin`, `model_args`, `build_command`, `child_env`, `is_alive`, `restart`, `needs_credential`.
+- `NAME == "grok-bot"`.
+- `build_command(...)` returns a **stub measurable argv** (`<bin> [--model M] -p <context_file>`) — CLI flags are not guessed from `--help` yet.
+- `restart(...)` is a **real respawn** (rebuild argv → detached Popen → stamp pid), not a stub refuse.
+- `needs_credential(...)` is explicitly **False** (Grok Bot auth is its own channel; no OpenRouter mint).
+- **Zero** edits to `dispatch.py` for grok / grok-bot / grok_bot.
+- Build/test graph nodes sanction the bytes (`write.py` / write-log), with `payload_ref` where required.
+
+## Invariants
+
+- **No `dispatch.py` grok teaching** — grep hits for `grok` / `grok-bot` / `grok_bot` in `dispatch.py` stay zero (comments-about-harnesses-in-the-abstract do not count as teaching).
+- Adapter is a named harness module, not a town and not a fork of read/write/dispatch/workflow/send.
+- Chain growth for directors stays on **pi parents** via unified dispatch; this adapter does not move parent/kid work onto Grok Bot.
+- **No new remote heads. No MAIN push from this seat.**
+- Config row `harnesses.grok-bot` is **not** authored here (Belam / `goal:g7.25.2`).
+
+## Falsifier
+
+1. `python3 -c 'from extensions.agi.bin.adapters import adapters; m=adapters.load("grok_bot"); assert all(hasattr(m,n) for n in adapters.REQUIRED)'` — or the project's equivalent `adapters.load("grok_bot")` path — succeeds once a config row exists; **missing any REQUIRED name fails at load** with the existing AdapterError shape. Until g7.25.2 lands the row, prove the module imports and defines every REQUIRED name by direct import of `grok_bot_adapter`.
+2. `needs_credential({...}) is False`; `is_alive(os.getpid())` is True; `build_command` returns a list whose first element is the resolved bin and that includes `-p` + context path; `restart` is callable and rebuilds that argv (not `NotImplementedError` for stub-argv reasons).
+3. `grep -E 'grok(-bot|_bot)?' extensions/agi/bin/dispatch.py` → **zero** teaching hits (ideally absolute zero).
+4. Committed tests under `extensions/agi/tests/test_grok_bot_adapter.py` pass individually (`env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_grok_bot_adapter.py -q -p no:cacheprovider`).
+5. Build node(s) for the adapter (and tests) exist with sanctioned write provenance / `payload_ref` as required by prior MURs.
+
+## Out of scope
+
+- **`harnesses.grok-bot` config row** → `goal:g7.25.2` (Prime-at-merge / Belam).
+- Measured real CLI flags from `<bin> --help` (later).
+- Same-harness workflow/message handback; cross-machine mesh messaging.
+- Edits to pi / Claude Code / copilot adapters.
+- Seating every town on Grok Bot.
+
 ## Agent Notes
+
+Assigned to **director-belam** (CORE TOWN). Owner/Prime 2026-09-21: land of tip `8e34ec55d` HOLDs until this body matches standing template; then whole-batch MUR → numbers-only `[merge-up]`. Sibling residue tip `1e9e94b75` add/add on adapter build is Prime/ff at g7.25.2 merge (keep mint `93a56c11`). `spawn.parallel=1`. Do not author config row on this land path.
 Why: parent goal:g7.25 needs one adapter module with TODAY REQUIRED surface. This subgoal owns extensions/agi/bin/adapters/grok_bot_adapter.py only — NAME, resolve_bin, model_args, build_command (stub measurable argv), child_env, is_alive, restart, needs_credential=False. Zero dispatch.py. Measured CLI flags later.
+
+standing body fleshed 2026-09-21 for format gate
 
 #### G7.25.2 — harnesses.grok-bot config row only (no dispatch.py edit) — status: active
 
@@ -6952,6 +6995,82 @@ Assigned to **director-belam (point)** with umbrella + `.3`. May further split; 
 
 **Related:** `goal:g7.25` family (REQUIRED surface), `goal:g7.30` (land adapter), `goal:g7.28` (persistent hold).
 
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
+
+##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: active
+
+# goal:g7.31.1.1
+
+## Why this exists
+
+**Parent `goal:g7.31.1`.** Falsifiers on the parent were multi-headed: measured CLI argv vs durable pane hold. This leaf owns **measured CLI** — `build_command` argv matches a recorded `grok-bot --help`, and stub-only guessed flags (e.g. lone `-p`) are gone from the landed adapter path on `core/season2/main`.
+
+## Target end-state
+
+- `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+- Stub-only guessed flags are absent from the landed adapter path on `core/season2/main`.
+- Measurement is CLI/grep-answerable, not vibes.
+
+## Invariants
+
+- Restart/pane hold is OOS here (`goal:g7.31.1.2`).
+- No second argv path; seam stays `goal:g7.27` / `goal:g7.28`.
+- Does not special-case the string `grok` inside `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. `adapters.load("grok_bot").build_command(...)` argv matches a pasted `--help` measurement recorded on this node or a child experiment.
+2. Stub-only guessed flags (e.g. lone `-p`) are gone from the landed adapter path on `core/season2/main` (grep/diff proof).
+
+## Out of scope
+
+- Durable named tmux pane restart/reattach (`goal:g7.31.1.2`).
+- Pane ↔ post/pin wiring (`goal:g7.31.2`).
+- Five unified routes (`goal:g7.31.3` family).
+
+## Agent Notes
+
+Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
+
+##### G7.31.1.2 — Durable named tmux pane restart/reattach hold — status: active
+
+# goal:g7.31.1.2
+
+## Why this exists
+
+**Parent `goal:g7.31.1`.** Falsifiers on the parent were multi-headed. This leaf owns **durable named tmux pane hold** — kill the seat process; `restart` (or persistent-dispatch restart) reattaches to the **same** tmux pane name the seat keeps.
+
+## Target end-state
+
+- Adapter `restart` (or documented true impossibility) re-attaches to the same named tmux pane.
+- Pane name is stable across adapter restarts; seat occupation is visible independently of process pid churn.
+- Precursor to magic pane — durable hold first; magic UX later.
+
+## Invariants
+
+- One named pane per seat; no anonymous fire-and-forget for persistent grok seats.
+- Restart goes through the same adapter/template seam as first spawn (`goal:g7.27` / `goal:g7.28`).
+- Measured CLI argv shape is OOS here (`goal:g7.31.1.1`).
+- Does not special-case `grok` inside `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. Kill the seat process; `restart` (or persistent-dispatch restart) reattaches to the **same** tmux pane name; `tmux list-panes` / capture shows the seat still there.
+
+## Out of scope
+
+- Measuring CLI flags / retiring stub argv (`goal:g7.31.1.1`).
+- Magic-pane product chrome.
+- Pane ↔ post/pin (`goal:g7.31.2`).
+
+## Agent Notes
+
+Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g7.28`, `goal:g7.31.1.1`.
+
 #### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
 # goal:g7.31.2
@@ -7055,6 +7174,79 @@ Historical L4 owner language named **three** (viewing / writing / dispatching). 
 Assigned to **director-belam (point)** with umbrella + `.1`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `doc:standing-llm-ops` §4, `goal:g1.14`, `command:commands`, `goal:g7.26`, `goal:g7.27`.
+
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
+
+##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: active
+
+# goal:g7.31.3.1
+
+## Why this exists
+
+**Parent `goal:g7.31.3`.** Falsifiers on the parent were multi-headed. This leaf owns the **cold seat brief / custom-instruction surface** listing the five pane-facing routes by contract names (write / read / send / dispatch|workflow / rotate|spawn).
+
+## Target end-state
+
+- A cold seat brief or custom-instruction surface lists the five routes by the names in `goal:g7.31.3` table (or records a deliberate rename with old→new).
+- Names are the contract; engine renames update the parent table + this falsifier in one edit.
+
+## Invariants
+
+- ONE workflow router (`goal:g1.14`).
+- Routes are harness-agnostic at the engine boundary.
+- Sample agent-action proof is OOS here (`goal:g7.31.3.2`).
+- No sixth "special grok route" in `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. A cold seat brief / custom-instruction surface lists the five routes by the names in the `goal:g7.31.3` table (or records a deliberate rename with old→new). Grep/read proof on the brief artifact.
+
+## Out of scope
+
+- Running sample write+send+dispatch through CLIs (`goal:g7.31.3.2`).
+- Durable pane hold (`goal:g7.31.1` family).
+- SSH handbacks / profile sync (`.4` / `.5`).
+
+## Agent Notes
+
+Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Via `goal:g7.26` / `goal:g7.27` surfaces, not a second path. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `doc:standing-llm-ops` §4, `goal:g7.26`, `goal:g7.27`, `goal:g7.31.3.2`.
+
+##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: active
+
+# goal:g7.31.3.2
+
+## Why this exists
+
+**Parent `goal:g7.31.3`.** Falsifiers on the parent were multi-headed. This leaf owns **sample agent action** for write + send + one dispatch/workflow run going through the named CLIs (`write.py` / `send.py` / `dispatch.py`+`workflow.py`), not a parallel script.
+
+## Target end-state
+
+- Sample agent action for write + send + one dispatch/workflow run goes through the named CLIs.
+- Evidence is a recorded transcript / experiment with command lines cited — not a vibes claim.
+
+## Invariants
+
+- ONE workflow router (`goal:g1.14`).
+- Message bodies are files/stdin, never backtick-laden argv (L4 message ruling).
+- Brief listing of the five names is OOS here (`goal:g7.31.3.1`).
+- No sixth "special grok route" in `dispatch.py` / `rotate.py`.
+
+## Falsifier
+
+1. Sample agent action for write + send + one dispatch/workflow run goes through the named CLIs, not a parallel script (transcript/experiment proof).
+
+## Out of scope
+
+- Authoring the cold brief list (`goal:g7.31.3.1`).
+- Durable pane hold / pin wiring / handbacks / doc sync.
+
+## Agent Notes
+
+Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
+
+**Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
