@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: standing-comms-route-2026-09-20
+thought_session: standing-branch-roles-2026-09-20
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -91,6 +91,22 @@ Belam     ──▶ owner: blockers + land decisions; not in-flight chatter
 ```
 
 ---
+
+---
+
+## 3b. Branch roles (owner 2026-09-20 23:2x ET — core-town)
+
+```
+Belam (Prime)     ──▶ core/main              (town/main)
+director-belam    ──▶ core/season2/main      (town/season2/main)
+director-helper   ──▶ local worktree ONLY
+                      never push a new remote head
+                      completed batches → director-belam (merge-up)
+loops             ──▶ merge into core/season2/main then delete loop heads
+no season2/loops/* left live as standing remotes
+```
+
+Keep working batches as-is otherwise. Diagram-max all alignment comms.
 
 ## 4. Prefer graph engine over raw tools
 
