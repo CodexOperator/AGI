@@ -3,9 +3,9 @@ id: idea:lm-abliteration-feature-differences-generalize-across-models
 mint_id: d958b0dbda99457fa04124c4cb460e39
 type: idea
 parents:
-  - goal:g14.9
+  - goal:g14.9.1
 next_edges: []
-edited_by: thought-master
+edited_by: director-thought
 scaffold_hash: 4b8fd854ab844288
 season: 2
 title: "OWNER 16:2xZ 09-20: abliterate our own prod candidates (by us if by no one else) and extract the feature differences between abliterated and non-abliterated models to look for generalized patterns across models"

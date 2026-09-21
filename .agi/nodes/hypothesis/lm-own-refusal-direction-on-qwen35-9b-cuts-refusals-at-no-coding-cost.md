@@ -4,8 +4,9 @@ mint_id: 3d28983e6ab3491cbae5b8a950ca5b97
 type: hypothesis
 parents:
   - idea:lm-abliteration-feature-differences-generalize-across-models
+  - goal:g14.9.1
 next_edges: []
-edited_by: thought-master
+edited_by: director-thought
 scaffold_hash: 4d9b8714df4dbd4b
 season: 2
 testable_claim: "On local-town, a per-layer mean-difference direction extracted from the resident Qwen3.5-9B-Q4_K_M GGUF by llama-cvector-generator (--method mean, N >= 64 paired prompts: a public refusal-eliciting set such as AdvBench/JailbreakBench items vs matched benign items of the same form; the binary from the PrismML fork dir, the ghcr.io/ggml-org/llama.cpp full-cuda image, or the resident image -- whichever has it, named) and applied at inference as --control-vector-scaled cv.gguf:-s for s in {0.5, 1.0, 1.5, 2.0}, lowers the refusal rate on a fixed held-out 50-prompt harmful set (string-match refusal classifier, greedy, thinking off, 128-token budget, the classifier and its phrase list committed) from the s=0 baseline by > 50 points at the best s, while HumanEval pass@1 (the ABC.01 harness, same 164 problems, same template, greedy) at that same s drops by < 2.0 points versus s=0 (McNemar on the discordant pairs reported). Falsified if the refusal rate moves < 10 points at every s, or if the first s that moves refusal by > 50 points costs >= 2.0 pass@1 points, or if the extraction fails to produce a vector (then the WHY names the binary/path and the cvector route is dead on this box). Controls: (a) a RANDOM unit direction at the same s must move refusal < 10 points; (b) s=0 reproduces the ABC.01 arm-A completions byte-identically (same server, same template). Outputs: the cv.gguf (committed, small), the per-layer direction norms, the refusal and pass@1 table per s, one bench jsonl line per s, one experiment node. Ceiling: one parent (pi/deepseek, cap 1 USD), <= 2 h GPU wall in one window, line_ceiling 150 for the prompt sets + classifier, no engine code, no kernel build."
