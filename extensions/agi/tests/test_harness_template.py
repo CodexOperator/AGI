@@ -7,6 +7,7 @@ to a FROZEN LITERAL argv (the old hand-built shape), never to
 `harness_template.render`: the builders ARE that render, so comparing the two
 is a tautology that pins nothing about the seat argv.
 """
+import ast
 import json
 import sys
 from pathlib import Path
@@ -81,14 +82,309 @@ def test_claude_builder_renders_frozen_argv(model, effort, settings):
     assert got == expected
 
 
-def test_no_named_harness_builders_in_rotate_source():
-    """goal:g7.27.1: the dead per-harness builders are gone, and stay gone.
-    The sole rotate argv seam is `_build_harness_command`; a reintroduced
-    `_build_claude_command` / `_build_copilot_command` is drift the invariant
-    forbids. Greps the SOURCE, so an unused redefinition still fails."""
-    src = (Path(rotate.__file__)).read_text(encoding="utf-8")
-    assert "_build_claude_command" not in src
-    assert "_build_copilot_command" not in src
+# ---------------------------------------------------------------------------
+# goal:g7.31.2.3 -- the GENERAL gate: rotate.py stays orchestration.
+#
+# The old test here (goal:g7.27.1) asserted two hard-coded substrings,
+# `_build_claude_command` and `_build_copilot_command`. It would NOT have
+# caught `_build_grok_command`, `_build_grok_argv`, `_grok_command`, or an
+# `if harness == "grok":` branch -- i.e. exactly the drift a FOURTH harness
+# invites. These three detectors scan rotate.py's SOURCE via `ast` (so a
+# docstring mention is not a builder) and report every offender BY NAME.
+
+#: The ONE function allowed to build a harness argv (goal:g7.27/g7.29).
+ARGV_SEAM = "_build_harness_command"
+
+#: Every argv-suffixed def in rotate.py at the time of writing, each reviewed
+#: as NOT a harness argv builder: two wrap the seam, the rest build tmux /
+#: launch-wrapper / session-resume argvs. A NEW name in this shape is
+#: reported, so this list grows by review, never by accident.
+_ALLOWED_ARGV_HELPERS = frozenset({
+    ARGV_SEAM,                       # the sole harness argv seam
+    "_successor_command",            # wraps ARGV_SEAM
+    "_assembled_successor_command",  # wraps ARGV_SEAM
+    "_launch_wrapper_argv",          # launch-wrapper argv, not a harness
+    "_wm_tool_argv",                 # tmux window-manager argv, not a harness
+    "_ack_call_args",                # ack-call args, not a harness
+    "_run_after_join_command",       # shell cmd run after join
+    "_fork_resume_command",          # session-resume argv
+})
+_ARGV_SUFFIX = ("_command", "_argv", "_args")
+
+#: Shipped harness ids whose literals already exist (the default validation
+#: in `_validate_harness`, and the copilot watch-message branch). Any OTHER
+#: literal is a fourth-harness decision -- the very thing that must not
+#: reappear.
+_SHIPPED_HARNESS_IDS = frozenset({"claude-code", "copilot-cli"})
+
+#: Every id a per-harness branch could plausibly name, read off the shipped
+#: template dir (`claude-code`, `copilot-cli`, `pi`) plus config.json's
+#: declared harnesses (`pi-local`, `grok-bot`) plus the proposed `grok`. A
+#: literal EQUAL to one of these in rotate.py CODE is an offender unless it
+#: is shipped.
+_KNOWN_HARNESS_IDS = _SHIPPED_HARNESS_IDS | frozenset(
+    {"pi", "pi-local", "grok", "grok-bot"})
+
+#: Underscore-delimited name tokens that make a def harness-specific even when
+#: it lacks an argv suffix: `_grok_flags`, `_build_grok`, `_grok_cmd`. `code`
+#: is deliberately NOT a token -- the live file legitimately has `_code_head`
+#: and `_code_loaded_identity`.
+_HARNESS_TOKENS = frozenset({"grok", "claude", "copilot", "pi"})
+
+
+def _argv_builder_offenders(source: str) -> list[str]:
+    """Names of functions in `source` whose name says "argv builder" -- via
+    an argv suffix (`*_command`/`*_argv`/`*_args`) OR a harness-token in an
+    underscore-delimited word (`_grok_flags`, `_build_grok`, `_grok_cmd`) --
+    but which are neither the seam nor an allowlisted non-harness helper.
+    The token set excludes `code`, so the live `_code_head` is untouched.
+    """
+    tree = ast.parse(source)
+    return sorted({
+        node.name for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+        and node.name not in _ALLOWED_ARGV_HELPERS
+        and (node.name.endswith(_ARGV_SUFFIX)
+             or set(node.name.split("_")) & _HARNESS_TOKENS)
+    })
+
+
+def _mentions_harness(node) -> bool:
+    """True when `node` reads the harness id -- by NAME `harness`, or via
+    `getattr(args, 'harness', None)`. A WORD test, not a substring: the
+    unparsed `harness_template.role_source(...)` must not match (its only
+    `harness` token is `harness_template`)."""
+    import re
+    return "harness" in re.findall(r"[A-Za-z_][A-Za-z0-9_]*", ast.unparse(node))
+
+
+def _string_constants(node) -> list[str]:
+    return [n.value for n in ast.walk(node)
+            if isinstance(n, ast.Constant) and isinstance(n.value, str)]
+
+
+def _harness_branch_offenders(source: str) -> list[str]:
+    """Harness-id literals decided against a harness READ, whatever the LHS
+    shape. Flagged: a string constant compared with `==`/`!=` whose OTHER
+    operand reads the harness (`getattr(args, 'harness', None) == 'grok'`),
+    and every KNOWN harness id inside a container tested by `in`/`not in`
+    against such a read (`harness in ('grok', 'x')` reports `grok`, not the
+    harmless neighbouring `x`). Shipped ids stay allowed.
+
+    HEURISTIC, NOT EXHAUSTIVE, on purpose: the container arm is intersected
+    with `_KNOWN_HARNESS_IDS`, so a genuinely NOVEL id sitting in a container
+    (`harness in ('newharness', 'x')`) is invisible to this arm -- only the
+    literal scan could see it, and only if the id is known to it too. A
+    novel id smuggled into a membership test is still gate-blind; extend
+    `_KNOWN_HARNESS_IDS` when a new harness is proposed. The `==`/`!=` arm
+    is NOT narrowed: a bare comparison against a harness read names the id
+    directly, so any string there is a harness decision."""
+    tree = ast.parse(source)
+    found = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Compare):
+            continue
+        operands = [node.left, *node.comparators]
+        for i, op in enumerate(node.ops):
+            left, right = operands[i], operands[i + 1]
+            if isinstance(op, (ast.Eq, ast.NotEq)):
+                for const, other in ((right, left), (left, right)):
+                    if isinstance(const, ast.Constant) and \
+                            isinstance(const.value, str) and \
+                            _mentions_harness(other):
+                        found.add(const.value)
+            if isinstance(op, (ast.In, ast.NotIn)) and \
+                    not isinstance(left, ast.Constant) and \
+                    _mentions_harness(left):
+                # NARROW (DH.28): only KNOWN ids are harness decisions; a
+                # harmless neighbouring string in the container is not.
+                found.update(set(_string_constants(right))
+                             & _KNOWN_HARNESS_IDS)
+    return sorted(found - _SHIPPED_HARNESS_IDS)
+
+
+def _docstring_const_ids(tree) -> set[int]:
+    """`id()` of every docstring Constant node, so the literal scan can skip
+    them: documenting a retired harness id must not fail the suite."""
+    ids = set()
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        if isinstance(body, list) and body and \
+                isinstance(body[0], ast.Expr) and \
+                isinstance(body[0].value, ast.Constant) and \
+                isinstance(body[0].value.value, str):
+            ids.add(id(body[0].value))
+    return ids
+
+
+def _harness_id_literal_offenders(source: str) -> list[str]:
+    """Known harness ids appearing as bare string literals in `source` CODE
+    other than the shipped two -- `"grok"` anywhere but a docstring is a
+    per-harness decision smuggled past the branch gate."""
+    tree = ast.parse(source)
+    docstrings = _docstring_const_ids(tree)
+    return sorted({
+        node.value for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and id(node) not in docstrings
+        and node.value in _KNOWN_HARNESS_IDS
+        and node.value not in _SHIPPED_HARNESS_IDS
+    })
+
+
+def _render_call_owners(source: str) -> list[str]:
+    """Functions in `source` that call `harness_template.render(...)` -- the
+    template seam. Only the seam itself may."""
+    tree = ast.parse(source)
+    owners = []
+    for fn in ast.walk(tree):
+        if not isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        for node in ast.walk(fn):
+            if isinstance(node, ast.Call) and \
+                    isinstance(node.func, ast.Attribute) and \
+                    node.func.attr == "render" and \
+                    isinstance(node.func.value, ast.Name) and \
+                    node.func.value.id == "harness_template":
+                owners.append(fn.name)
+    return sorted(set(owners))
+
+
+def test_rotate_stays_orchestration_only():
+    """goal:g7.31.2.3 falsifier: rotate.py grows ZERO new harness argv
+    builders. Reports the offender by name rather than a bare assertion."""
+    src = Path(rotate.__file__).read_text(encoding="utf-8")
+    offenders = (_argv_builder_offenders(src)
+                 + _harness_branch_offenders(src)
+                 + _harness_id_literal_offenders(src)
+                 + [o for o in _render_call_owners(src) if o != ARGV_SEAM])
+    assert offenders == [], (
+        "rotate.py grew a harness argv builder (goal:g7.31.2.3: "
+        f"orchestration only, sole seam {ARGV_SEAM!r}). Offenders: "
+        f"{offenders}")
+
+
+def test_gate_flags_a_synthetic_grok_builder():
+    """Non-vacuity: the gate must SEE an added builder. A gate that cannot
+    fail is theater."""
+    for name in ("_build_grok_command", "_build_grok_argv",
+                 "_grok_command"):
+        src = f"def {name}(*a, **k):\n    return ['grokbin']\n"
+        offenders = _argv_builder_offenders(src)
+        assert name in offenders, f"gate blind to {name}"
+
+
+def test_gate_flags_a_synthetic_grok_branch():
+    """Non-vacuity for per-harness BRANCHES: `if harness == "grok":` is a
+    fourth-harness dispatch and is reported by its literal."""
+    src = ('def f(harness):\n'
+           '    if harness == "grok":\n'
+           '        return ["grokbin"]\n')
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_flags_a_second_render_seam():
+    """Non-vacuity: a second `harness_template.render` call outside the seam
+    is reported by its enclosing function."""
+    src = ("def _grok_command(harness):\n"
+           "    return harness_template.render('grok')\n")
+    assert _render_call_owners(src) == ["_grok_command"]
+
+
+def test_gate_flags_getattr_harness_comparison():
+    """Parent probe 1 (WIRE): the LIVE idiom at rotate.py:2191 is
+    `getattr(args, "harness", None) == "copilot-cli"`, so a grok branch in
+    the file's own style must not walk through. The old detector required a
+    bare `harness` Name on the left and was BLIND to this."""
+    src = ('def f(args):\n'
+           '    if getattr(args, "harness", None) == "grok":\n'
+           '        return ["grokbin"]\n')
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_flags_harness_membership_container():
+    """Parent probe 2 (GATE): `harness in ("grok", "x")` is a membership
+    dispatch; the unshipped KNOWN id is reported, and the harmless
+    neighbouring `"x"` is NOT -- only known ids are harness decisions
+    (DH.28 narrow: over-flagging `x` was a false positive)."""
+    src = ('def f(harness):\n'
+           '    if harness in ("grok", "x"):\n'
+           '        return ["grokbin"]\n')
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_ignores_a_container_of_only_harmless_strings():
+    """Non-vacuity in the other direction for the NARROWED container arm: a
+    membership test whose container holds no known harness id is not a
+    harness dispatch and must return [] -- otherwise the arm is just "flag
+    every `in`". Also pins the documented blind spot: a novel id in a
+    container is invisible."""
+    src = ('def f(harness):\n'
+           '    if harness in ("harmless", "also-harmless"):\n'
+           '        return ["not-a-harness"]\n')
+    assert _harness_branch_offenders(src) == []
+    novel = ('def f(harness):\n'
+             '    if harness in ("newharness", "x"):\n'
+             '        return ["novel"]\n')
+    assert _harness_branch_offenders(novel) == []  # documented blind spot
+
+
+def test_gate_flags_underscored_token_builder():
+    """Parent probe 3 (GATE): a plausible builder name that misses the argv
+    suffix allowlist -- `_grok_flags` -- is still harness-specific code in
+    rotate.py and must be reported."""
+    src = 'def _grok_flags(h):\n    return ["--model", h]\n'
+    assert _argv_builder_offenders(src) == ["_grok_flags"]
+
+
+def test_gate_flags_unsuffixed_harness_named_builder():
+    """Parent probe 4 (GATE): `_build_grok` has no `_command`/`_argv`/`_args`
+    suffix at all; the harness token alone must be enough to report it."""
+    src = "def _build_grok(*a, **k):\n    return ['grokbin']\n"
+    assert _argv_builder_offenders(src) == ["_build_grok"]
+
+
+def test_gate_flags_a_bare_grok_id_literal_but_not_a_docstring():
+    """Rule B: `"grok"` in CODE is an offender even with no comparison
+    around it; the same word inside a docstring is documentation and is
+    ignored."""
+    assert _harness_id_literal_offenders('X = "grok"\n') == ["grok"]
+    assert _harness_id_literal_offenders(
+        'def f():\n    """retired "grok" id"""\n    return 1\n') == []
+
+
+def test_gate_leaves_legit_helpers_alone():
+    """Non-vacuity in the other direction: the allowlisted, non-harness argv
+    helpers and the shipped-id branch are NOT offenders, so the gate is not
+    merely "flag every `_*_command`"."""
+    src = ("def _build_harness_command(): ...\n"
+           "def _successor_command(): ...\n"
+           "def _assembled_successor_command(): ...\n"
+           "def _launch_wrapper_argv(): ...\n"
+           "def _wm_tool_argv(): ...\n")
+    assert _argv_builder_offenders(src) == []
+    assert _harness_branch_offenders(
+        'def _validate_harness(harness):\n'
+        '    if not harness or harness == "claude-code":\n'
+        '        return 0\n') == []
+    # the non-harness `'code'` token stays out of the harness-token set
+    assert _argv_builder_offenders(
+        "def _code_head(): ...\ndef _code_loaded_identity(): ...\n") == []
+    # the shipped literal and the `harness_template.` call are not offenders
+    assert _harness_id_literal_offenders('X = "claude-code"\n') == []
+    assert _harness_branch_offenders(
+        "h = harness_template.role_source(hid) == 'ladder'\n") == []
+
+
+def test_gate_ignores_a_docstring_mention():
+    """The gate reads DEFINITIONS, not text: documenting a retired builder by
+    name must not fail the suite the way a naive substring grep would."""
+    src = ('def f():\n'
+           '    """no `if harness == "grok"` branch, no _build_grok_command"""\n'
+           '    return 1\n')
+    assert _argv_builder_offenders(src) == []
+    assert _harness_branch_offenders(src) == []
 
 
 def test_available_includes_shipped_harnesses():
