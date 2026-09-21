@@ -18,11 +18,11 @@ prayer   first tokens + last before rotate only, never per turn
 
 ## 🔴 Where it stops
 ```
-2026-09-21 ~02:1xZ
- live     MP.01 a00-af8cefa3 (pid 987668, ~35 min elapsed, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
+2026-09-21 ~02:2xZ
+ live     MP.01 a00-af8cefa3 (pid 987668, ~47 min elapsed of 75min timeout, Ss healthy) -- magic-pane detector chunk 1, goal:g14.8.3, cap $1
  landed   SWR.01 (346c377c2) -- ref bar 93.9pct HE / 0.869 IF strict; B/C1/C2 fire 0.9x on HE; IFEval undecided -> SWR.02 (TMM.19, not my lane)
- queued   H1' (hypothesis:lm-hidden-state-mean-direction-cuts-refusals-on-qwen35-9b, g14.9.1) -- minted, no spend yet
- prepped  G14.15.1 (self-telepathy) + G14.15.2 (swarm) minted under goal:g14.15, filled; TEL.01 hypothesis (span fidelity, chunk 1) minted+filled under G14.15.1, no spend -- ready to dispatch the moment MP.01's slot frees, no further prep needed
- next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness)
- inbox    empty this check; card/trajectory-doc both caught up to trunk tip via merge, no unread DM pending
+ queued   H1' (g14.9.1, minted) | TEL.01 (g14.15.1, minted+filled, ready to dispatch) -- both no spend yet
+ minted   TMM.21 batch (no spend): G14.7.2 training-ladder + G14.7.3 diagram-maxed-traces under g14.7; G14.10.2 session-trunk+classifier under g14.10 -- all skeleton-only, first chunks blocked on FT.00/DS.01 per thought-master's queue order, nothing to dispatch yet
+ next     on MP.01 landing: review kid DIFF not report -> mur if warranted -> merge-up note+numbers on board -> dispatch TEL.01 parent (resident 9B, cap $1, pi harness) -- TEL.01 is the only thing actually ready to spend on right now
+ inbox    TMM.21 processed dadd6797a; no dm sent back (batch-max rule: routine order execution, not a judgment call) -- reports via the graph itself
 ```
