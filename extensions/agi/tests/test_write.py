@@ -483,6 +483,65 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
         "a rejected spawn left an orphaned source file")
 
 
+def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path):
+    """CLAIM (G14.14.1b): `create --body-file PATH` reads the file in the verb
+    layer and threads it to `node_writer.write_node`'s existing `body` kwarg,
+    so the new node carries the caller's own prose. `node_writer` prepends its
+    canonical `# <id>` heading to ANY supplied body (and only a `body is None`
+    call gets the `BODY:BEGIN` marker + prompt), so the byte-identical claim is
+    the prose AFTER that heading; the placeholder must be absent."""
+    _schemas(project)
+    prose = tmp_path / "prose.md"
+    prose.write_text("The claim, stated at length.\n\n"
+                     "## Evidence\n\n- one\n- two\n")
+    out, err, rc = _run(["create", "hypothesis", "with-prose",
+                         "--parent", "goal:g1",
+                         "--body-file", str(prose),
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "with-prose.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    assert body == "\n# hypothesis:with-prose\n\n" + prose.read_text(), (
+        "the file's prose did not land verbatim")
+    assert "What is the testable claim?" not in body, (
+        "the BODY_PROMPTS placeholder leaked into a --body-file body")
+
+
+def test_create_without_body_file_still_scaffolds_the_placeholder(project):
+    """The regression guard: `--body-file` absent must pass `body=None`
+    unchanged, so the `BODY_PROMPTS` scaffold path is byte-identical to
+    today's. Compares against the exact bytes `write_node` composes for a
+    `body is None` call — marker, heading, prompt."""
+    _schemas(project)
+    out, err, rc = _run(["create", "hypothesis", "plain-one",
+                         "--parent", "goal:g1",
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "plain-one.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    expected = (node_writer.BODY_BEGIN + "\n# hypothesis:plain-one\n\n"
+                + node_writer.BODY_PROMPTS["hypothesis"])
+    # `_serialize_node` normalises the body's trailing newlines to exactly one.
+    expected = expected.rstrip("\n") + "\n"
+    assert body == expected, ("the no-flag scaffold path changed")
+
+
+def test_is_untouched_scaffold_rejects_a_real_body_file_body(project, tmp_path):
+    """Falsifier (c): a real `--body-file` body must NOT be mistaken for an
+    untouched placeholder. `_is_untouched_scaffold` checks whether the existing
+    body is a substring of the scaffold this call would write; against the
+    placeholder scaffold a real body must return False."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "prose-node", ["goal:g1"],
+                          body="A real, multiline body.\n\n- not a placeholder\n")
+    assert res.written
+    text = Path(res.path).read_text()
+    placeholder = (node_writer.BODY_BEGIN + "\n# hypothesis:prose-node\n\n"
+                   + node_writer.BODY_PROMPTS["hypothesis"])
+    assert node_writer._is_untouched_scaffold(text, placeholder) is False, (
+        "a real body was flagged as an untouched scaffold")
+
+
 # --------------------------------------------------------------------------
 # `payload` — the bytes behind a build node (goal:g13.1)
 # --------------------------------------------------------------------------
