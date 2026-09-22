@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ecc1c8f5-417666
 next_edges: []
 confidence: 0.9
-edited_by: a00-c979ef9e
+edited_by: a00-2735efde
 evidence_runs: experiment:a00-f470a6c4-grok-bot-adapter-tests-hermetic
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
@@ -62,8 +62,10 @@ Residue 2 -- the `probe_dt35.py` reader instruction is gone; the `>= 25`
 assertion it guarded stays, and the failure message now names the four scans
 in `RECORDED_CLI_SOURCE_ENV_0_3_1`'s docstring.
 
-Residue 3 -- `write.py goal:g7.31.1.1 'note ...'` accepted the round note
-(see `goal:g7.31.1.1` Agent Notes).
+Residue 3 -- the round note was written into the kid worktree but the branch
+did NOT carry it: a `--branch` kid cannot commit a foreign `goal:` node
+(`_round_scope_ok`, cli.py), so parent a00-c979ef9e landed it. The Agent Notes
+below state the same; this sentence is aligned to them.
 
 ## Post-fix measurement
 
