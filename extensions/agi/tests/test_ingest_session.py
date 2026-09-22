@@ -115,6 +115,51 @@ def test_distinct_ids_never_collapse_to_one_node(graph, tmp_path):
     assert "source_session: probe_aaaa_1111" in text
 
 
+def test_reversible_suffix_separates_hash_colliding_pair(graph, tmp_path):
+    """The parent's KNOWN falsifier: two distinct raw ids that share both a
+    sanitized canon and (under the old `sha256(raw)[:8]` suffix) the same
+    suffix. With a reversible hex-of-bytes suffix they must mint TWO distinct
+    node files, each carrying its own raw source_session -- never one node for
+    two sessions (goal:g7.32.1, no silent drop)."""
+    a = _fixture_id(tmp_path / "a.jsonl", "x_-x:x.x.x_~-x-x_~x.x~x~x")
+    b = _fixture_id(tmp_path / "b.jsonl", "x__x._x:.x._x~x_-x_-.x__~x_-x-x")
+    pa, pb = run(a, graph), run(b, graph)
+    assert pa.returncode == 0, pa.stderr
+    assert pb.returncode == 0, pb.stderr
+    assert pa.stdout.split()[-1] != pb.stdout.split()[-1]
+    files = sorted(p.name for p in (graph / "nodes").rglob("*.md"))
+    assert len(files) == 2, files
+    text = "\n".join(p.read_text(encoding="utf-8")
+                      for p in (graph / "nodes").rglob("*.md"))
+    assert "source_session: x_-x:x.x.x_~-x-x_~x.x~x~x" in text
+    assert "source_session: x__x._x:.x._x~x_-x_-.x__~x_-x-x" in text
+
+
+def test_overlong_id_is_refused_by_name_not_truncated(graph, tmp_path):
+    """A reversible suffix can push the slug past the filesystem limit. The
+    only safe answer is a NAMED refusal: truncating would reintroduce the very
+    collision the encoding removes, and an OSError is not a reason."""
+    long = _fixture_id(tmp_path / "long.jsonl", "L" * 300)
+    p = run(long, graph)
+    assert p.returncode == 2, p.stdout
+    assert "INGEST refuse slug-too-long" in p.stderr
+    assert "refusing rather than truncating" in p.stderr
+    assert list((graph / "nodes").rglob("*.md")) == []
+
+
+def test_slug_length_boundary_is_accept_at_limit_refuse_above(graph, tmp_path):
+    """The guard has an edge, not a fudge: a slug of exactly the 200-char
+    limit is written; one two chars longer is refused by name. Both sides of
+    the boundary are pinned so a later refactor cannot silently move it."""
+    at = _fixture_id(tmp_path / "at.jsonl", "ab-" + "~" * 89)      # slug 200
+    over = _fixture_id(tmp_path / "over.jsonl", "ab-" + "~" * 90)  # slug 202
+    p_at, p_over = run(at, graph), run(over, graph)
+    assert p_at.returncode == 0, p_at.stderr
+    assert len(p_at.stdout.split()[-1]) == len("doc:") + 200
+    assert p_over.returncode == 2 and "slug-too-long" in p_over.stderr
+    assert len(list((graph / "nodes").rglob("*.md"))) == 1
+
+
 def test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent(graph, tmp_path):
     """Continuity: a real-corpus UUID keeps `grok-session-<uuid>` (the node
     already in the graph for SESSION), and its upper-cased spelling is the SAME
