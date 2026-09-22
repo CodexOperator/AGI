@@ -21,21 +21,51 @@ def read_session(path):
         raise ValueError(f"unreadable-input: {exc}")
     records = []
     for lineno, line in enumerate(text.splitlines(), 1):
-        if line.strip():
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError as exc:
-                raise ValueError(f"malformed-jsonl: line {lineno}: {exc.msg}")
-    session = next((r for r in records if r.get("type") == "session"), None)
+        if not line.strip():
+            continue
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"malformed-jsonl: line {lineno}: {exc.msg}")
+        # Every JSONL record is used as an object below; a bare list/number/str
+        # line must be a NAMED refusal, not an AttributeError traceback and
+        # exit 1 (goal:g7.32.1 residue 1).
+        if not isinstance(rec, dict):
+            raise ValueError(
+                f"malformed-record: line {lineno}: expected JSON object, "
+                f"got {type(rec).__name__}")
+        records.append((lineno, rec))
+    session = next((r for _, r in records if r.get("type") == "session"), None)
     if session is None:
         raise ValueError('no-session-record: no {"type":"session"} line')
     sid = str(session.get("id") or "").strip()
     if not sid:
         raise ValueError("no-session-id: the session record has no id")
-    msgs = [r for r in records if r.get("type") == "message"]
-    texts = [b.get("text", "") for m in msgs
-             for b in (m.get("message") or {}).get("content") or []
-             if b.get("type") == "text" and b.get("text")]
+    msgs = [(ln, r) for ln, r in records if r.get("type") == "message"]
+    texts = []
+    for lineno, m in msgs:
+        message = m.get("message")
+        if message is None:
+            message = {}
+        # Same discipline one level down: a `message` that is not an object, a
+        # `content` that is not a list, or a content block that is not an
+        # object is refused by name rather than crashing on `.get`.
+        if not isinstance(message, dict):
+            raise ValueError(
+                f"malformed-message: line {lineno}: message is not an object")
+        content = message.get("content")
+        if content is None:
+            content = []
+        if not isinstance(content, list):
+            raise ValueError(
+                f"malformed-content: line {lineno}: content is not a list")
+        for block in content:
+            if not isinstance(block, dict):
+                raise ValueError(
+                    f"malformed-content: line {lineno}: content block is "
+                    f"not an object")
+            if block.get("type") == "text" and block.get("text"):
+                texts.append(block["text"])
     return sid, {"messages": len(msgs), "cwd": str(session.get("cwd") or ""),
                  "first": " ".join(" ".join(texts).split())[:280]}
 
