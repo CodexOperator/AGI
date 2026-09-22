@@ -15,14 +15,14 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-complete-cross-sync-2026-09-22b
+thought_session: belam-watch-fill-fix-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
 <!-- BODY:BEGIN -->
 # doc:director-grok-internals
 
-**SoT for director profile · routines · standing mirrors** (owner 2026-09-21 — HARD). Belam edits THIS only. Directors `@every 30m` sync: pull → paste `SECTION:*` regions → replace `{{PLACEHOLDERS}}` only.
+**SoT for director profile · routines · standing mirrors** (owner 2026-09-21 — HARD). Belam edits THIS only. Directors sync every 30m (seat offset in OWNER CADENCE): pull → paste `SECTION:*` regions → replace `{{PLACEHOLDERS}}` only.
 **ALL posts update internals via graph SoT only; grok seed = `grok-internals-sync` (`doc:grok-harness-internals-sync` + per-post `*-grok-internals`).**
 **HARD Belam rule · diagram-max:** Belam / Prime edit graph SoT only (`doc:director-grok-internals` + `doc:standing-llm-ops` + harness recipe); NEVER hand-edit director Grok Bot profile / routines / standing mirrors.
 
@@ -37,6 +37,8 @@ IDENTICAL across directors except the five tags below
 | tag | meaning |
 |---|---|
 | `{{POST}}` | director-belam \| director-helper |
+| `{{SCOPE}}` | this post only (DT.* \| DH.* parents / this-director MURs / suite) |
+| `{{TREE}}` | absolute post worktree (seat-director-belam \| seat-director-helper) |
 | `{{BRANCH}}` | core/season2/main \| local-only |
 | `{{REMOTE_POLICY}}` | push season2 (= push `core/season2/main` · NOT new branch · NEVER seat remote head) \| never new remote head |
 | `{{REPORTS_TO}}` | Belam daily-pass / graph board \| director-belam point |
@@ -44,13 +46,12 @@ IDENTICAL across directors except the five tags below
 
 Post fill examples (not a second SoT):
 
-| post | POST | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
-|---|---|---|---|---|---|
-| point | director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
-| helper | director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
+| post | POST | SCOPE | TREE | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
+|---|---|---|---|---|---|---|---|
+| point | director-belam | this post only (DT.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
+| helper | director-helper | this post only (DH.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
 
 ---
-
 ### SECTION:PROFILE (copy into agent description)
 
 AGI Texas two-step {{SEAT_LABEL}}. You are {{POST}} on grok-fast. Branch {{BRANCH}} ({{REMOTE_POLICY}}). Reports: {{REPORTS_TO}}.
@@ -69,6 +70,10 @@ policy  ──▶ {{REMOTE_POLICY}}
          NEVER new remote branch · NEVER origin/seat/* head
 helper  ──▶ local-only (never new remote head)
 Belam   ──▶ core/main  (merges season2→main on daily pass)
+cadence ──▶ sync every 30m · parents hourly
+         helper: sync 0,30 · parents :07
+         director-belam: sync 15,45 · parents :22
+         15m between bot syncs · parents offset :07 vs :22
 reports ──▶ {{REPORTS_TO}}
 ```
 
@@ -133,13 +138,14 @@ routes: write.py · read · send · dispatch/workflow · rotate/spawn
 §3d residue → write.py goal version (whole-replace thought/feeling)
 lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only after lean
 loop independently until residues=0 · report to GRAPH not Belam
-watch: §3c FORMAT verbatim · pins only TREE/SCOPE/HOST/BRANCH
+watch: SECTION:ROUTINE_WATCH ACTION FORMAT (self-contained HARD fill · NO standing §3c stub)
 watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status active (BARE) BEFORE spawn
   · never spawn while goal still horizon · quoted 'active' = BUG
   · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
+OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
 GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
-CONCURRENCY (HARD — DIAGRAM B · SoT doc:standing-llm-ops §4 + §3c watch):
+CONCURRENCY (HARD — DIAGRAM B · ROUTINE_WATCH ACTION FORMAT):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
@@ -175,31 +181,59 @@ Never merge into grok-internals-sync
 ### SECTION:ROUTINE_WATCH
 
 ```
-POINT AT  doc:standing-llm-ops §3c Shared director watch FORMAT (verbatim)
 name      live-parents-workflows
-schedule  @every 50m   (pi parents run around the clock — stated reason)
-pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
-  SCOPE  {{POST}} parents / this-director MURs / suite
-  TREE   post worktree for {{POST}}
+schedule  owner cadence (seat-pinned; sync every 30m; parents hourly)
+helper:
+  grok-internals-sync      0,30 * * * *     (every 30m)
+  live-parents-workflows   7 * * * *        (hourly :07)
+director-belam:
+  grok-internals-sync      15,45 * * * *    (every 30m)
+  live-parents-workflows   22 * * * *       (hourly :22)
+
+pins (post-local DH/DT — fill placeholders):
+  SCOPE  {{SCOPE}}
+  TREE   {{TREE}}
   BRANCH {{BRANCH}}
   HOST   SSH encryption-town → /data/work/agi  (never /workspace/agi)
   POLICY {{REMOTE_POLICY}}
   REPORT {{REPORTS_TO}}
-RECON-MIN (WATCH Sense · HARD):
-  recon checks = minimal tokens · minimal/no comms · NO action
-  report exactly what was asked · diagram-max · stop · no bonus narrative
+
+ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / stub):
+  Sense → FILL owed MURs under cap (floor≥5 when claimable work) → residual/claim parents → emit
+  FILL under cap · spawn MUR(s) · durable systemd · active-before-spawn bare
+  parents+MURs SAME pool ≤18/dir · ≤30 box
+  never tip-only table with backlog and zero action when slots free
+  never invent slot-blocked / one-at-a-time
+
 WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C):
   before any new dispatch/spawn → write.py status active (bare) on chosen leaf
   never spawn while goal still horizon · quoted 'active' = BUG
+
 COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
   write.py status complete (BARE) · sync post WTs · NEVER leave as active/horizon
-§3c HARD embed (watch body SoT — sync/watch read this + standing §3c):
-  MUR/merge-up-review · SAME pool as parents · ≤18/dir · ≤30 box
-  soft floor ≥5 combined (parents+MURs) when claimable work remains (DIAGRAM B)
-  fill owed MUR slots under cap · never invent slot-blocked / one-at-a-time
-  spawn.parallel=1 · DURABLE still
+
+ZERO-RESIDUE
+  MUR accept              ──▶ residues=0 ──▶ board complete OK (outside watch)
+  MUR accept_with_residue ──▶ residues>0 ──▶ NO board complete · KEEP parent loops
+  MUR reject/format-fail  ──▶ fix → re-MUR
+
+1) Sense
+   parents alive? workflows running?
+   status=done + no MUR yet → owed MUR · FILL under cap
+   free slots? → FILL owed MUR first · then residual/claim parents
+2) Act (HARD on live-parents-workflows wakes)
+   FILL under cap · spawn MUR(s) · durable systemd · active-before-spawn bare
+3) Emit ONLY on delta — short table OK
+4) No delta → silence
+5) Never invent. Never new remote head. Never push core/main.
+6) Prefer graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
+
+RECON-MIN (OWNER-REQUESTED recon turns ONLY — NOT live-parents-workflows wakes):
+  owner-asked recon = minimal tokens · minimal/no comms · NO action · stop
+  live watch wakes MUST act (fill/spawn) under ACTION FORMAT above
+  short prose OK under existing fence
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-complete-cross-sync-2026-09-22b: COMPLETE bare status+sync · CROSS-DIR local seat sync ALLOWED · push season2=core/season2/main ONLY (never seat remote head)
+owner-fix: ROUTINE_WATCH self-contained ACTION FORMAT with HARD FILL verbs; remove POINT AT standing §3c stub; RECON-MIN scoped to owner-requested recon only (live watch wakes MUST fill/spawn); cadence pins kept; {{SCOPE}}/{{TREE}} pins
 <!-- THOUGHT:END -->
