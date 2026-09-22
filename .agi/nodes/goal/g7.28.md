@@ -14,14 +14,14 @@ origin: goals-doc
 scaffold_hash: 67e36e432b34d525
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
   - dispatch
   - seat
   - persistent
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.28: Dispatch persistent mode for occupied seats"
 town: core
 ---

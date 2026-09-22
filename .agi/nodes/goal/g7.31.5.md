@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1038c716b8cbf405
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - write
   - sync
   - profile
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.31.5: Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless"
 town: core
 ---
