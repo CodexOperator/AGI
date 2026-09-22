@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-graph-sot-seat-sync-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -469,6 +469,11 @@ NEVER hand-edit Grok Bot profile / routines / standing mirrors
 */30 sync applies SoT → bots
 Harness offload: grok-bot tools temporary bridge until graph engine drives seats
   (same path as Claude/pi — each harness widens graph compat; graph builds itself)
+
+After ANY graph SoT land → push tips + sync LOCAL
+  seat-director-belam · seat-director-helper to tip
+  (ff-only / merge keep WIP; local HEAD must show SoT; no ping)
+  Detail: doc:belam-grok-internals PROFILE §GRAPH SoT LAND
 ```
 
 ## 5. Goal framing — target, not task-or-fail
@@ -590,5 +595,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-hot-top-4b HARD nest-multiple-kids claim-order status-horizon
+§4c pointer: after graph SoT land → push tips + sync LOCAL seat-director-belam/helper; detail in doc:belam-grok-internals PROFILE §GRAPH SoT LAND
 <!-- THOUGHT:END -->
