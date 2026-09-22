@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: concurrency-standing-belam-profile-2026-09-22
+thought_session: concurrency-ceilings-belam-profile-2026-09-22
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -120,6 +120,7 @@ Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
 CONCURRENCY (HARD — SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
   concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
+  ≤3 live parents / director · ≤5 box-wide total if needed
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
@@ -133,5 +134,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-CONCURRENCY PROFILE pin for Belam/Prime parity with director STANDING strip (SoT doc:standing-llm-ops §4)
+PROFILE CONCURRENCY ceilings ≤3/director · ≤5 box-wide — parity with director HARD pin / standing §4
 <!-- THOUGHT:END -->
