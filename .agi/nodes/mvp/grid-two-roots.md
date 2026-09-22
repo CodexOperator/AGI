@@ -3,10 +3,10 @@ id: mvp:grid-two-roots
 mint_id: d278e324a81c454789bf301fc2512423
 type: mvp
 parents:
-  - goal:g11
+  - goal:g4.13
 next_edges: []
 confidence: 0.92
-edited_by: season.py
+edited_by: belam
 season: 1
 source_files:
   - extensions/agi/bin/grid.py
@@ -17,7 +17,7 @@ tags:
   - grid
   - resolver
 tests_pass: true
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: grid.py runs every git command against the repo root, not the graph root
 ---
 # mvp:grid-two-roots

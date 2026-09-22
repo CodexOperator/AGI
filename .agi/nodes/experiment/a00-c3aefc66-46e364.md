@@ -23,7 +23,7 @@ verdict: inconclusive_lean_proved:40
 
 ## Experiment
 
-goal:g15.25 FIX-ONLY, SL7.40 kid 2 — this run CLOSED the two gaps the SL7.24
+goal:g6.47 FIX-ONLY, SL7.40 kid 2 — this run CLOSED the two gaps the SL7.24
 parent measured in kid 1's cut (experiment:a00-b2032401-bfe4ad): the
 after_join confirm filled ONLY `successor_live_model`; `model_refusal_fallback`
 (conjunct (a)'s SECOND join-only fact, HEAD 7114-7115: `None, "last

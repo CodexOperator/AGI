@@ -4,10 +4,10 @@ mint_id: 2653523d61094c8c909cbfc765466fd7
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14
+  - goal:g5.24
 next_edges: []
 ceiling: <= 1 USD OpenRouter (parent+kid); 0 API calls; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
-edited_by: refuter
+edited_by: thought-master
 falsifier: Pooled jev scrubbed q1 agreement is at or above the per-kind body-blind prior (0.615) -- the pooled gap is not composition -- OR the per-kind kind-priors do not both exceed the 0.507 global base (no composition effect to find).
 scaffold_hash: 86afb3c861f3c1cc
 season: 2

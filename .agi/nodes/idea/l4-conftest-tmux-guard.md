@@ -3,7 +3,7 @@ id: idea:l4-conftest-tmux-guard
 mint_id: 7d7b219d811e4845bcbcd4fcb42a0035
 type: idea
 parents:
-  - goal:g15.8
+  - goal:g6.30
 next_edges: []
 edited_by: sanctuary-helper
 scaffold_hash: 5cedb2cbc80bac00

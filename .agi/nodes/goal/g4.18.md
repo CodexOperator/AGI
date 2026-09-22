@@ -1,0 +1,159 @@
+---
+id: goal:g4.18
+mint_id: 7a1f4d02c6b84e39ae5c30b7f2481d6e
+type: goal
+parents:
+  - goal:g4
+confidence: 1.0
+edited_by: belam
+goal_id: G4.18
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+season: 1
+seeds:
+  - build:bin-node-writer
+  - build:bin-locations
+  - build:bin-write
+  - build:bin-links
+  - build:tests-test-write
+status: active
+tags:
+  - goal
+  - subgoal
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G4.18: Edit mode: a modal shell over the read and write paths, so a human edit is an engine action"
+---
+**The write-side counterpart of the viewport, and the reason it is a separate
+goal from it.** `goal:g2.17` gave the graph a *reader* a human can drive.
+Everything a human does to *change* the graph is still a text editor and a
+commit — which is to say, outside the engine entirely.
+
+**The owner's statement of the problem, and it is the sharpest framing of it:**
+
+> This allows us to edit configs or other nodes using engine-native paths
+> rather than just lodge a completely stray and untraceable commit from my end.
+
+**A hand edit is currently an undeclared write.** It bypasses
+`node_writer.write_node`, so it bypasses the `scaffold_hash` stamp, the
+evidence gate, schema validation, and every guard the write path exists to
+apply. The node changes and nothing records that a human changed it or why.
+Under `goal:g1`'s config-maxxing framing this is the last large improvised
+action in the system: the engine's own owner is the one actor who cannot edit
+the graph mechanically.
+
+## What it is
+
+**A modal shell, in the vim sense.** One command enters edit mode; from there
+it **drives the CLI completely** until a submit signal ends it. Inside the
+mode, keys and short verbs act on the node under the cursor; on submit, every
+accumulated change goes out through `write.py` as one recorded operation.
+
+**It composes nothing new.** The renderer draws, the writer writes, and this
+goal is the interactive wrapper around them — *"relies on the renderer and the
+writer to do everything in the background but just wraps it in a more dynamic
+and interactive shell for ease-of-use."* If edit mode needs its own parser or
+its own file-writing code, the seam is wrong and `goal:g13` has not actually
+unified anything.
+
+**Deliberately separate from the viewport.** `goal:g2.17` is the spiderweb view:
+read-only, safe to run mid-iteration, `goal:g9`'s invariant. This is a
+*different instrument* that happens to share a renderer. Folding them would put
+a writer inside the one surface this project has promised is a reader — the
+invariant `goal:g9` states in bold and that `viewport.py` enforces with a test
+that greps its own source. **Edit mode may call the same renderer; the viewport
+must never gain a write path.**
+
+## The two callers are not the same, and that is the design
+
+**For a human**, the mode is the point: modal editing, a cursor, live
+re-render after each change, and one submit.
+
+**For an LLM**, the owner notes the whole session serialises into a single
+`&&`-joined command. That is not a lesser path — it is the *same* operations
+with the interaction removed, and it is the reason the verbs must be nameable
+rather than only keystrokes. **A keystroke an agent cannot spell is a verb that
+exists only for humans**, which would split the write path exactly as
+`goal:g2.19` forbids splitting the read path.
+
+So: one set of named operations; a modal shell that binds keys to them; a
+serial form that runs the identical operations non-interactively. The
+`goal:g2.19` argument, applied to writing.
+
+## What it must not become
+
+**Not a second way to write.** If a change can be made in edit mode that
+`write.py` cannot make, edit mode has become a bypass rather than a front end
+— reintroducing the stray untraceable write it was built to eliminate.
+
+**Not a text editor.** The unit is a node operation, not a buffer. Dropping to
+`$EDITOR` for a body is legitimate; hand-editing frontmatter is the thing being
+replaced.
+
+**Provenance is the payoff, so it must actually be recorded.** A submitted
+edit should say who made it and why — `thought_session:` is reserved in
+frontmatter for exactly this (`goal:g2.7`, `goal:g2.24`) and nothing writes it
+yet. An edit mode that produces an untraceable change has delivered the
+convenience and none of the reason.
+
+## Falsifier
+
+Make the same node change three ways — by hand, through edit mode, and through
+the serialised single-command form — and get byte-identical results, with the
+hand edit being the only one that fails a validation the other two pass. Then
+confirm the viewport still holds `goal:g9`'s reader-only invariant with edit
+mode installed beside it.
+
+## Depends on
+
+**`goal:g13`'s write half**, which does not exist yet — `read.py`'s equivalent
+landed 2026-09-02 and `write.py` did not. This goal is the first real consumer
+of it, so it is also the thing that will say whether that seam is right.
+**`goal:s31`** is the first defect it should be able to fix from the inside.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted 2026-09-02 at the owner's direction, alongside `goal:g1.10`, and filed
+`active` on their explicit instruction that they will use it immediately —
+accepting that it pushes `goals_active` further past the configured cap. Their
+call, recorded rather than quietly absorbed.
+
+Written as a subgoal of `goal:g13` rather than of `goal:g9` because its
+dependency is the *writer*, not the view. It shares a renderer with the
+viewport the way two programs share a library; the thing it cannot exist
+without is `write.py`.
+
+The paragraph insisting the viewport never gains a write path is the one most
+likely to be eroded later, because "edit where you are looking" is an obvious
+and appealing feature. It is recorded as a prohibition now, while nothing has
+been built and the cost of the rule is zero — `goal:g9`'s reader-only
+invariant is currently enforced by a test that greps `viewport.py` for write
+surfaces, and that test is what would have to be deleted to break it.
+
+The human/LLM symmetry section is the load-bearing design claim and it is
+deliberately stated as a constraint on the verbs rather than as a feature. It
+is `goal:g2.19` one surface over: there, one render for two readers; here, one
+set of operations for two drivers. Stating it now is what stops edit mode
+shipping as keystroke handlers with no nameable operations behind them, which
+is the shape it would naturally take if built for the human case first.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Sensei ask 12:04Z (master-sensei wake-audit 11:52Z): a one-line write.py replace body on config:rotations re-serialized two unrelated first_turn entries (em-dash -> \u2014: node_writer._render_value renders a list-of-dict entry as json.dumps with ensure_ascii=True, node_writer.py:338, on EVERY write verb) — brief hypothesis:l4-a-container-entry-in-frontmatter-round-trips-its-utf8-unchanged-through-every-write-verb (parents g13.1 + g15), fix fully known (one keyword argument, one round-trip test), dispatching as SL7.43.
+
+SL7.43 harvested 12:19Z (Sensei ask 11:52Z, seat b6713f896): node_writer._render_value renders a list-of-dict frontmatter entry with json.dumps(i, ensure_ascii=False), so a container entry carrying non-ASCII round-trips byte-identical through every write.py verb and an unrelated one-line edit no longer rewrites a first_turn entry's em-dash to an escape; a pre-escaped entry normalizes ONCE to the literal characters on its next engine write (the four rotations.md entries will, on the next engine write of config:rotations). Kid experiment:a00-6b82217f-dbef27 proved 0.9 (fix reverted: both new tests fail on the claim; restored: pass); test_node_writer 75 + test_write 99 passed.
+
+mur digest wf_438874da-7a6 (Prime XV 13:45Z, all 18 rounds accepted) line (8), the SL7.43 residue, minted as a brief by sensei-director gen XIII 13:58Z (cite 615ba5b48): hypothesis:l4-a-frontmatter-container-entry-escapes-the-yaml-line-break-code-points-nel-ls-ps-explicitly — node_writer.py:338 ensure_ascii=False now emits U+0085 (and U+2028/U+2029) literally and yaml.safe_load (frontmatter.py:67) reads NEL as a line break; escape those three explicitly, everything else stays literal.
+
+SL7.51 harvested 14:13Z (mur digest line (8), sensei-director gen XIII, seat merge): node_writer.py now post-processes the list-of-dict JSON through a three-entry _YAML_LINEBREAK_ESCAPES table (U+0085, U+2028, U+2029 to their JSON escapes) while ensure_ascii stays False; measured pre-fix, PyYAML folded a literal NEL to a SPACE on the next read (the lossy code point the digest named), LS/PS round-tripped on this PyYAML but are YAML 1.1 line breaks and are escaped for spec-correctness; em-dash and ASCII assert literal; kid experiment:a00-a10c470c-bd572d proved 0.9; test_node_writer.py 80/80; nbhd 589/3.
+
+Prime XVI mur-SL2.22 digest (wf_1ed7196d-141, 15:23Z: all ten SL7.44-53 accepted) residue lines minted as briefs by sensei-director gen XIII 15:27Z (measured by the Prime at 0cd8c5c87; kids re-measure by function name): line (4) SL7.51 -> hypothesis:l4-the-scalar-frontmatter-path-escapes-nel-ls-ps-and-the-fixpoint-is-a-test-through-read-frontmatter (the scalar path at node_writer._scalar still emits NEL literally and the node becomes unreadable; fixpoint test through frontmatter.read_frontmatter; only NEL is lossy on PyYAML 6.0.3).
+
+SL7.61 harvested 15:35Z (mur-SL2.22 line (4), sensei-director gen XIII, seat merge): node_writer's scalar frontmatter path now quotes a value carrying U+0085/U+2028/U+2029 and escapes it through the same _escape_yaml_linebreaks table, so a scalar with NEL round-trips byte-identical and the node stays readable; the two-write fixpoint is a test through frontmatter.read_frontmatter; the kid names precisely that only NEL is lossy on PyYAML 6.0.3 (LS/PS escaped for YAML 1.1 correctness); kid experiment:a00-bd45ec38-a21c23 proved 0.92.
+
+17:11Z (sensei-director gen XIV): Prime line (d), SL7.61 residue → one FIX-ONLY brief: the list-of-plain-scalars render path escapes through the same scalar escaper, _scalar decides quoting on the raw value before stripping newlines, fixpoint corpus + live-tree round trip
+
+SL7.81 harvested 17:48Z (Prime line (d)): the list-of-plain-scalars path escapes through the one scalar escaper; _scalar quotes on the raw value before stripping; fixpoint corpus + live-tree scan (2800 nodes, 0 unreadable, 0 drift, 91 representation-only diffs classified) (kids lean_proved 85/90; nbhd 355/3)
+
+mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-item-round-trips-as-empty-string-and-the-live-tree-fixpoint-names-the-pending-representation-change — '' list item read back as null after SL7.81; 91 live nodes carry a pending one-time representation change (0 value drift)
+
+SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item (and a top-level '') round-trips as '' — None stays null; live-tree fixpoint over 2860 nodes: value drift 0, 91 nodes named as the pending one-time representation change from SL7.81; kid proved 0.9; node_writer + write + frontmatter tests green. Rides SL2#26

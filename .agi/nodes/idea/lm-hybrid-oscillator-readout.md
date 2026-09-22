@@ -3,7 +3,7 @@ id: idea:lm-hybrid-oscillator-readout
 mint_id: 683642bace844c8388723445e4fa45b9
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.28
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 4bafd0efecfeec50

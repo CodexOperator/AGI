@@ -3,13 +3,13 @@ id: hypothesis:a00-1419d5e4-cd6750
 mint_id: 68416e0c40fc4abe8372b705fd7fcda9
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 6eafefb85b150408
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 1419d5e4 cd6750
 verdict: pending
 ---

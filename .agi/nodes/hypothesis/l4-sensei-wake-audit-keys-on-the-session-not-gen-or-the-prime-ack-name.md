@@ -3,13 +3,14 @@ id: hypothesis:l4-sensei-wake-audit-keys-on-the-session-not-gen-or-the-prime-ack
 mint_id: e5a69a0389724552a313a97822ac0315
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 origin: master-sensei
 scaffold_hash: 400fb8b626e9cb62
 season: 2
 testable_claim: sensei.py wake-audit resolves a non-prime post record and ack by the post SESSION key -- ack seats/<post>.ack.<session_id8>.json (rotate.py:2239-2256, landed 1c7072101) and the record whose handover.join.session_id matches -- with --gen optional and never required for a non-prime post; a fixture with two session-keyed acks and two records for one post selects the matching session, and the Prime legacy .ack.json still resolves. Today (sensei.py:595-660) selection is by generation and the ack name is spelled .ack.json only, so a session-keyed post audits as missing.
+thought_session: dissolve-legacy-2026-09-19
 title: L4 sensei wake audit keys on the session not gen or the prime ack name
 town: core
 ---

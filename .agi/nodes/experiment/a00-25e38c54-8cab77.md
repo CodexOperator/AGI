@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-SM.24b clause (1) IDENTITY — BUILD ONLY (goal:g15.25 /
+SM.24b clause (1) IDENTITY — BUILD ONLY (goal:g6.47 /
 hypothesis:l4-non-prime-genless-remaining-five-identity-records-latch-readers-
 sensei-handoff). A non-prime seating is keyed on `session_id`, not a
 generation; the prime chain stays byte-identical.

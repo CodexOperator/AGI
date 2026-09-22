@@ -3,7 +3,7 @@ id: hypothesis:a00-23fc51e6-3ffbe3
 mint_id: 6ed295a1ec6e421c98426ed09ba33907
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.55
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: inconclusive_lean_proved:55
 
 ## Hypothesis
 
-**Claim:** the L9 pinning gap that `goal:g8.1` calls out — "the clone is
+**Claim:** the L9 pinning gap that `goal:g1.23` calls out — "the clone is
 unpinned and silently stale ... nothing declares which engine version a
 project expects and nothing warns on drift" — can be closed today, before any
 of the three distribution shapes (drop-in clone / skill package / real
@@ -42,7 +42,7 @@ instead), or if the three-shape decision changes *where* the config file and
 the clone even live in a way that makes this field meaningless before the
 shape is picked.
 
-**Why this is worth stating separately from the shape decision:** `goal:g8.1`
+**Why this is worth stating separately from the shape decision:** `goal:g1.23`
 already says the pinning gap is "cheap under any of the three shapes" — this
 hypothesis makes that claim testable and gives the goal a first child that
 does not have to wait on the harder drop-in/skill/install choice. Two sibling

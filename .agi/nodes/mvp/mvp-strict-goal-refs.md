@@ -3,16 +3,16 @@ id: mvp:strict-goal-refs
 mint_id: 62c0d6be59164db5917a13974abb465b
 type: mvp
 parents:
-  - goal:g5
+  - goal:g4.10
 confidence: 0.95
-edited_by: season.py
+edited_by: belam
 evidence_runs: []
 season: 1
 subgraph: false
 tags:
   - g5
   - integrity
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Add --strict-goals flag to make goal refs fail loudly
 ---
 **What --strict does today:** 

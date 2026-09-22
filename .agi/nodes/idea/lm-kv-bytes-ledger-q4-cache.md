@@ -3,7 +3,7 @@ id: idea:lm-kv-bytes-ledger-q4-cache
 mint_id: fa319016535e4378853a2934e47a560e
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: cd059c7373cb095e

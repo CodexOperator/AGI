@@ -3,15 +3,15 @@ id: hypothesis:a00-6b4ad6b2-a60b78
 mint_id: 0424071f93d341469470382026663232
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges:
   - experiment:a00-00cde6d0-57851d
 confidence: 0.75
-edited_by: season.py
+edited_by: belam
 evidence_runs: 0
 scaffold_hash: 02ebd71abf062329
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 6b4ad6b2 a60b78
 verdict: pending
 wired_at: 1788276861

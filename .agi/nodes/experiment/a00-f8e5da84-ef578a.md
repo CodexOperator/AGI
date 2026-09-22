@@ -38,7 +38,7 @@ This node is the BUILD for hypothesis:l4-the-must-implement-rule-is-g15-lineage-
 
 **Proved on the built bytes.**
 - `pytest test_brief.py test_dispatch.py test_commands.py -q` → **255 passed**.
-- Real-graph resolution: `hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated` → True, `goal:g15` → True, `hypothesis:l3-parent-never-told-to-iterate` → True; `goal:g11` → False, `goal:g17.1` → False.
+- Real-graph resolution: `hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated` → True, `goal:g15` → True, `hypothesis:l3-parent-never-told-to-iterate` → True; `goal:g11` → False, `goal:g7.16` → False.
 
 ## Evidence
 
@@ -51,7 +51,7 @@ hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -> True
 goal:g15                     -> True
 hypothesis:l3-parent-never-told-to-iterate -> True
 goal:g11                     -> False
-goal:g17.1                   -> False
+goal:g7.16                   -> False
 ```
 
 ## Agent Notes
@@ -62,7 +62,7 @@ Gated the "THIS KID MUST IMPLEMENT THE FIX" review rule on g15 lineage.
 
 (1) WHAT THE INSTRUCTION SAID. The target's claim: "the rule renders only when the target's parent lineage (walk `parents:` up through the graph, bounded) reaches goal:g15; for any other target the block is absent; the test pins BOTH shapes ... and the L4.175 newline assertion moves to the g15 case."
 
-(2) WHAT THE MACHINE ACTUALLY DOES. I ran it on the round bytes, not the report. `pytest extensions/agi/tests/test_brief.py -q` -> 118 passed; `test_brief.py test_dispatch.py test_commands.py -q` -> 255 passed. I then rendered the brief myself with `brief.assemble(tier="parent", ...)`: target `hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated` -> rule present and `"measurement).\n4. DO NOT" in parent` True with `").4. DO NOT"` False (the L4.175 glue defect stays dead); target `goal:g11` -> rule absent. `brief._is_g15_lineage(_resolve_graph_root(), ...)`: g15-descended targets True, `goal:g11` and `goal:g17.1` False, unresolvable `t:1` False. Implementation is `brief.py` `_parents_of` (live-first `nodes/` then `nodes/deprecated/`, both type and file derived from the id) + `_is_g15_lineage` (bounded 20-hop BFS with a `seen` set, so a cycle cannot spin).
+(2) WHAT THE MACHINE ACTUALLY DOES. I ran it on the round bytes, not the report. `pytest extensions/agi/tests/test_brief.py -q` -> 118 passed; `test_brief.py test_dispatch.py test_commands.py -q` -> 255 passed. I then rendered the brief myself with `brief.assemble(tier="parent", ...)`: target `hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated` -> rule present and `"measurement).\n4. DO NOT" in parent` True with `").4. DO NOT"` False (the L4.175 glue defect stays dead); target `goal:g11` -> rule absent. `brief._is_g15_lineage(_resolve_graph_root(), ...)`: g15-descended targets True, `goal:g11` and `goal:g7.16` False, unresolvable `t:1` False. Implementation is `brief.py` `_parents_of` (live-first `nodes/` then `nodes/deprecated/`, both type and file derived from the id) + `_is_g15_lineage` (bounded 20-hop BFS with a `seen` set, so a cycle cannot spin).
 
 (3) THE NEAR MISS. A plausible implementation that satisfies the words and loses the mechanism: gating on the target's id string or its type directory (`"g15" in target`) instead of walking `parents:` -- it would render the rule for any node whose slug happens to contain g15 and drop it for a genuine descendant named otherwise. Also note the slug-strip hazard the kid actually hit and fixed: `str.rstrip(".md")` is a character-set strip that turns `gated` into `gate`; the committed bytes use `if slug.endswith(".md"): slug = slug[:-3]`, correct.
 

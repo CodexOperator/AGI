@@ -3,7 +3,7 @@ id: idea:lm-cross-layer-topk-index-reuse
 mint_id: fc38a3de53314cddb02fb2a1d33ad5cd
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 16c4b462efb82d97

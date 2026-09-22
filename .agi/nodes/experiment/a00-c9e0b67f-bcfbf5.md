@@ -27,7 +27,7 @@ verdict: inconclusive_lean_proved:85
 
 CLOSED the parent's measured gap in `extensions/agi/bin/rotate.py`: the
 only-behind MERGE commit (push line 2) is now pushed before the spawn. The
-goal:g15.25 line (3) claim is behaviour to build, not a hypothesis to
+goal:g6.47 line (3) claim is behaviour to build, not a hypothesis to
 measure — the dry-run printed `push line 2` but the live `cmd_rotate_self`
 performed ONE push; the checklist's captive-3 merge commit sat unpushed at
 spawn. Now the live flow runs the second push too.

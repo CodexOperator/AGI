@@ -83,7 +83,7 @@ Open leaders for the next kid on this chain (out of line (1)'s mint half, in
 line (2), deliberately NOT in this small slice): the SUCCESSOR keypair mint at
 rotate handover, the predecessor-signed rotation record / row commit /
 `rotated_by_sig`, the `key_history` retirement append, and the short
-`<seat>#<fp>` label flip (goal:g15.26 / line (3)).
+`<seat>#<fp>` label flip (goal:g6.47.1 / line (3)).
 
 ## Evidence
 

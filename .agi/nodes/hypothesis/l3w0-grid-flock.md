@@ -3,12 +3,13 @@ id: hypothesis:l3w0-grid-flock
 mint_id: e19553798097485b9a831c4f8c39e1a5
 type: hypothesis
 parents:
-  - goal:g7
+  - goal:g4.13
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 147f92f29d865e6a
 season: 1
 testable_claim: grid.py commit --all takes an exclusive flock for the duration of the commit so a manual director commit and the 5-minute grid_sync cron on the same box serialize instead of racing on the same node refs
+thought_session: dissolve-legacy-2026-09-19
 title: L3w0 grid flock
 ---
 # hypothesis:l3w0-grid-flock

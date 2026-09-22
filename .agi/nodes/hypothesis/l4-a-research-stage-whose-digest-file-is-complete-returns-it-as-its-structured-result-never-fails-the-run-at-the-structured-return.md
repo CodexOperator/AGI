@@ -3,12 +3,13 @@ id: hypothesis:l4-a-research-stage-whose-digest-file-is-complete-returns-it-as-i
 mint_id: be9e4290f0354ce9a41d36b4b1477f1f
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 4a5954dca18c902b
 season: 2
 testable_claim: "In the trove-survey workflow (extensions/agi/workflows/agi-trove-survey.js + workflow.py stage return handling ~898-946), a read/critique stage whose per-page digest file is complete on disk returns that file as its structured result: when the model stdout carries no valid structured block (unstructured=N) or the kid exits at the wall, the stage resolves from the digest file (schema-validated from the file, marked resolved-from-digest in the run status) and the run continues to critique / panel / judge; a stage fails only when neither a structured block nor a complete digest exists. Measured: 4 of 4 runs on 2026-09-18 (kv-compression 05:1xZ, round0 05:2xZ, paper-2609 06:2xZ, staged 06:4xZ) ended the read stage rc=2 with unstructured=N failed=1 although every digest was complete (<= 100 lines per page), so critique / panel / judge never ran and every survey was judged by hand. Falsifier: a complete digest with an unstructured stdout still fails the stage; an incomplete digest is accepted as a result; a valid structured block is ignored in favour of the file; the resolved-from-digest mark is missing from the status."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.111 (owner 06:5xZ via thought-master, added to the finish set): a research stage whose digest file is complete returns it as its structured result -- the run never fails at the structured return when the work is on disk"
 town: core
 ---

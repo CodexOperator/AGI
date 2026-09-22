@@ -1,0 +1,10 @@
+{
+  "role": "kid2",
+  "verdict": "died (OOM mid-exploration)",
+  "mur": "n/a (stub node, real work preserved here)",
+  "agent_id": "a00-271bc548",
+  "scrub_redactions": {
+    "ip_decimal": 20,
+    "ip_hex": 61
+  }
+}

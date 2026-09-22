@@ -3,7 +3,7 @@ id: doc:l3-command-ladder-brief
 mint_id: 31e1d7400c88454fb361f406e327acf6
 type: doc
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: belam-S1-L3-XV
 link_ref: .agi/context/l3-command-ladder-brief.md
@@ -133,7 +133,7 @@ Owner quotes 11 (Belam-only predecessor chain; jump-in reserve for every other s
 ### item 50 (2026-09-08)
 - "I'm fine deep search being Claude and review I just want it to work the other way as well. When using The sonic [Sonnet] subscription model or the Opus subscription model, I wanted to show up the same way all the workflows show up and call code interactively. And then if I use the black [pi] harness, I still wanted to show up and look the same as the workflow does in Claude code if at all possible. I'm fine using the weaker models on open router or honestly just sawn it [Sonnet] on the review. And then using Opus high on the research one."
 - " — **both directions must work.** Model values: `review` → weak OpenRouter models or Sonnet (owner explicitly relaxed); `deep-search` → **Opus at HIGH effort** (it is the research loop and the owner wants it strong); `drafting` → unchanged. **The director sets these values at review time; a kid must never pick them.** Recorded onto `hypothesis:l3-workflow-model-crosses-harness-namespace` while that round was live, with the standing warning that the fix is not "
-- " — a premium model chosen deliberately per harness is the correct outcome, an expensive model arrived at by accident is the bug, and the fail-closed guard must let the first through while refusing the second. **The second half is a new build, and it is the larger one:** a workflow must **present identically on both harnesses** — the same stage tree, the same live progress, the same summary — so a reader cannot tell which harness executed it. Minted as `hypothesis:l3-workflow-surface-identical-across-harnesses` (g15), pointed at `goal:g9.7`'s already-proven one-render-two-readers shape rather than a second invented pattern. The owner's "
+- " — a premium model chosen deliberately per harness is the correct outcome, an expensive model arrived at by accident is the bug, and the fail-closed guard must let the first through while refusing the second. **The second half is a new build, and it is the larger one:** a workflow must **present identically on both harnesses** — the same stage tree, the same live progress, the same summary — so a reader cannot tell which harness executed it. Minted as `hypothesis:l3-workflow-surface-identical-across-harnesses` (g15), pointed at `goal:g2.19`'s already-proven one-render-two-readers shape rather than a second invented pattern. The owner's "
 
 ### item 52 (2026-09-08)
 - "Can we also clean handoff from stale entries and text that isn't needed anymore to conserve rotation space? We can put that in as part of Belam rotation duties to help keep handoff manageable in a round."

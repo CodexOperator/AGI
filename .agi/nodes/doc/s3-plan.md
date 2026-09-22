@@ -3,11 +3,12 @@ id: doc:s3-plan
 mint_id: f901c99259e6409584af4adfed0b07f5
 type: doc
 parents:
-  - goal:g19
+  - goal:g1.21
 next_edges: []
 edited_by: belam
 scaffold_hash: 62a287c4a4a66029
 season: 2
+thought_session: dissolve-legacy-2026-09-19
 title: L6 plan
 town: core
 ---

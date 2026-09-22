@@ -3,12 +3,13 @@ id: hypothesis:l4-a-named-env-key-reaches-a-spawned-kid-through-a-config-forward
 mint_id: b6fab9da31e946bd91679fa6c93db62c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 660f24306b052b09
 season: 2
 testable_claim: "With config.json harnesses.<h>.forward_env: [NAMES] (names only, never values), dispatch reads each named key from the MAIN-root .env via envfile.read_env at spawn time and injects it into that spawn environment exactly like the minted OpenRouter key (per spawn, scrubbed from every log/record/transcript line), so a kid under harness <h> sees TYPESAFE_KEY when the list names it; a name absent from .env is skipped with one named notice, never a crash; an unlisted key never crosses; harnesses.<h>.env literals keep their current behaviour. Falsifier: a kid reads the key from its environ without the list; or the value appears in any log, agent.json or transcript; or a listed name absent from .env aborts the spawn; or the dispatcher process environ leaks a key into a kid."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.103 (thought-master finding 02:0xZ 09-18, owner priority TypeSafe): a named env key reaches a spawned kid through a config forward_env name list read from the MAIN .env at spawn -- never a literal in config, never the dispatcher environ"
 town: core
 ---

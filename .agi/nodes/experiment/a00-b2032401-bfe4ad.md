@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:40
 
 ## Experiment
 
-goal:g15.25 FIX-ONLY — measured the pre-fix defect by reading the code, then
+goal:g6.47 FIX-ONLY — measured the pre-fix defect by reading the code, then
 BUILT the claim and proved it on the built bytes.
 
 Pre-fix state (read-only, confirmed on the tree): (i) the ONE

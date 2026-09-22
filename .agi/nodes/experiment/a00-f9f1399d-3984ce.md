@@ -36,7 +36,7 @@ The fix (extensions/agi/bin/verification.py) routes the read through the season 
   - `_stamp_context` accepts `cur` if it matches ANY candidate (canonical or legacy), and treats the read as pushed if HEAD is an ancestor of ANY `origin/<candidate>` — so BOTH rename directions stamp: a legacy-declared ladder on a canonical-checked-out tree, and a canonical-declared ladder on a still-legacy tree.
   - the `status` tip line resolves the FIRST candidate whose origin ref actually exists, so a pre-rename tree (pushed only under `origin/season/s2`) still shows a real tip rather than an unresolved canonical.
 
-The season is never hardcoded: `ref_candidates` derives the canonical from whatever the declared value resolves to (goal:g10.2 "never hardcoded").
+The season is never hardcoded: `ref_candidates` derives the canonical from whatever the declared value resolves to (goal:g2.25 "never hardcoded").
 
 Tests added to extensions/agi/tests/test_verification_kept_merge.py (fixtures built with a split helper whose declared-ladder branch and checked-out-git branch can DIFFER):
   - legacy declared `season/s2`, tree checked out on canonical `season2/main` -> STAMPS (the defect, flipped and pinned).

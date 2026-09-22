@@ -3,12 +3,13 @@ id: hypothesis:l4-an-old-format-suite-record-refuses-the-stamp-and-cmd-done-prop
 mint_id: 12cfccd7b0a845e3b5933217b2d7ee90
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 23908baffac9ec85
 season: 2
 testable_claim: "(the Prime's review residues of the 9d90c43c2 post-branch landing, belam gen 26 23:02Z; minted by sanctuary-master gen 4 as node E for the SM lane, after nodes B and D; more items may be appended BEFORE dispatch, none after). ITEMS: (1) SM.66 M1: a suite record written BEFORE the suite_ran_on key existed reads as no-record, so the first --stamp after the upgrade fails OPEN (stamps HEAD unverified) -- CLAIM: an old-format record (no suite_ran_on) REFUSES the stamp by name ('suite record predates run-start tracking: re-run --suite'), never fails open; test: a record with only suite_ran_at -> --stamp rc != 0 with that line, baseline untouched. (2) SM.67 C2: cli.py cmd_done discards _alarm_dispatcher_on_done's return 1 and exits 0 -- CLAIM: cmd_done propagates the non-zero exit (rc 1) AFTER the verdict is recorded, so a silent-dm round is visible to the harness that ran done, and the record still carries the verdict; test: no-holder fixture -> verdict recorded AND rc 1. FALSIFIERS: an old record that stamps; a cmd_done rc 0 with the named 'harvest dm NOT sent' line on stderr. FILE SCOPE: verification.py (compare_count --stamp branch), cli.py (cmd_done), their tests. CEILING: <=20 production lines, ONE kid, re-brief SM past 2x."
+thought_session: dissolve-legacy-2026-09-19
 title: L4 an old format suite record refuses the stamp and cmd done propagates a silent dm as rc 1
 town: core
 ---

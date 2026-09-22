@@ -3,13 +3,13 @@ id: hypothesis:a04-2d9894b0-3af562
 mint_id: e29f2f988bf84cf3b4340cb74f49d690
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.7
 next_edges: []
 confidence: 0.5
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 428dac6f90990834
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "G3-L4: goal-to-outcome attribution scoring resists hop-inflation"
 verdict: pending
 ---

@@ -4,7 +4,7 @@ mint_id: 986a3480ca5f4e5490307066fd437502
 type: hypothesis
 parents:
   - idea:l4-g175-duty-matrix
-  - goal:g17.5
+  - goal:g7.19
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

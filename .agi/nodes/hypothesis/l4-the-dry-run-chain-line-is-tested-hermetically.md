@@ -3,14 +3,14 @@ id: hypothesis:l4-the-dry-run-chain-line-is-tested-hermetically
 mint_id: 59c3b8cf4d86489f97e714659db273c9
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
   - hypothesis:l4-the-dry-run-names-the-oldest-it-would-reap
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 97dcd992aa9a8a58
 season: 2
 testable_claim: "AMENDED BUILD ORDER (sanctuary-director 163547Z session, re-measured on the seat bytes at d17180366, 16:5xZ; the original g15-28 finding is in Agent Notes with its d0465c36a line numbers). Today: the r5 Belam-cap dry-run plan lives INSIDE `if is_chain_seat:` (rotate.py:5389-5432) while the LIVE cap at :5794-5806 runs for ANY seat whose handover carries `belam_cap.oldest_to_reap` — and :5606 derives that for `role == 'prime_director' OR --belam-prefix` — so a PLAIN seat given `--belam-prefix` reaps live but its dry-run prints no (r5) plan; the plain-seat r4/s12 own-chain dry-run (:5440-5475) prints `pane pid N -> ps -e chain [...]` but test_rotate_selfreap.py::test_dry_run_enumerates_s2_s12 (:235-262) asserts headings only, never those lines. CLAIM: (1) a HERMETIC test in test_rotate_selfreap.py (the file's existing `_ps_table` + `_pane_pid` monkeypatch + windows.txt seam) asserts the EXACT dry-run lines for a plain seat (own @id + pane pid + chain, deepest-first order) and for a chain seat (oldest + @id + chain); (2) a plain seat run with `--belam-prefix <pfx>` prints the (r5) cap-reap plan it WOULD run, through the same `_belam_oldest` call path as :5606/:5794, read-only, and the hermetic test asserts it; (3) both chain lines print in the order they would be TERM'd (deepest-first) under the DEEPEST-FIRST label. FALSIFIER: a plain-seat `--belam-prefix` dry-run that prints no (r5) plan while the live path would reap; or a test that passes with `_descendant_chain` patched to return the chain reversed. DEFERRED, NOT IN THIS ROUND: the original clause (4) `_restore_shield_signals` in a `finally` (:5891) — a try/finally around the tail of cmd_rotate_self re-indents the first_turn/bootstrap/spawn/handoff regions the sensei-director's live rounds SL1.02/SL1.04 are editing, and rotate-self is a CLI that returns to main() and exits right after, so the missing finally has no live consequence; it lands as its own minimal round after those merge. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/rotate.py — ONLY the dry-run r4/r5 block of cmd_rotate_self (today :5385-5475) — plus extensions/agi/tests/test_rotate_selfreap.py. EXCLUDED: every other region of rotate.py (first_turn/bootstrap/spawn/handoff/prepare/status are the sensei-director's or landed), every other file. PARALLEL with SL1.02/SL1.04 on disjoint regions of the same file; the parent merges kid branches before done."
-thought_session: sanctuary-director-gen12
+thought_session: dissolve-legacy-2026-09-19
 title: "rotate-self --dry-run: the pids/chain line has a hermetic test and a plain seat with --belam-prefix names the cap reap it would run"
 town: core
 ---

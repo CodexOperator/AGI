@@ -3,9 +3,9 @@ id: doc:l4-formation-3-hybrid-gradual-expansion
 mint_id: 6d67d8c4c0e847dc8f82a61d89fcd579
 type: doc
 parents:
-  - goal:g15
+  - goal:g6.21
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 origin: doc-version
 scaffold_hash: 7a160090971d18df
 season: 2
@@ -13,6 +13,7 @@ tags:
   - formation
   - sanctuary
   - owner-verbatim
+thought_session: dissolve-legacy-2026-09-19
 title: Formation 3 — hybrid survival with gradual expansion (the figure-eight)
 town: core
 ---
@@ -89,7 +90,7 @@ Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z
 ## Sources
 
 - doc:l4-owner-decisions L725-731 (SM stood up, director-sanctuary free-floating, lightest hybrid), L745 (Sensei has no director), L757 (council review), L763-767 (thought master, keep-only, figure-eight, town masters), L773-775 (town split, formation order)
-- goal:g17.1 L24-28 (the preceding formation, doc:l4-formation-2-texas-two-step)
+- goal:g7.16 L24-28 (the preceding formation, doc:l4-formation-2-texas-two-step)
 - config:posts (live rows: names, models, windows)
 - sanctuary-master card §0.5-§0.6 (formation diagrams this one is built from)
 <!-- BODY:END -->

@@ -3,7 +3,7 @@ id: doc:tiktok-videos-4b
 mint_id: 6b47004b48144fc1ae50946421f3e7af
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/tiktok-videos-4b.md

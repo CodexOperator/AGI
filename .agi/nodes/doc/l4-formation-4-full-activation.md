@@ -3,9 +3,9 @@ id: doc:l4-formation-4-full-activation
 mint_id: fcb97289f4704f9a98734871f834ff76
 type: doc
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 origin: doc-version
 scaffold_hash: e26fb36ebe0ccbcc
 season: 2
@@ -13,6 +13,7 @@ tags:
   - formation
   - sanctuary
   - owner-verbatim
+thought_session: dissolve-legacy-2026-09-19
 title: "F4 — full activation (not yet): one Keep, councils per town, every master up, directors pinned per perpetual goal"
 town: core
 ---
@@ -51,7 +52,7 @@ Prime/SM reading: the owner has never described F4 directly; its shape is the ne
 
 > Once the actual persistent director system is up then they'll get pinned to a goal, for now they're free floating the way masters and keepers will be kinda free-floating.
 
-(goal:g17.1 L28)
+(goal:g7.16 L28)
 
 > Prime council assigns work to directors, who return results or other comms to sanctuary council. Sanctuary council assigns work to correct master based on comms received and those masters report findings to Prime Council. Cycle continues. Belam involved as needed. All do their one simple job and stay narrow.
 
@@ -105,6 +106,6 @@ Not yet. Owner 2026-09-14 01:06Z: "we aren’t ready for that yet" (doc:l4-owner
 ## Sources
 
 - doc:l4-owner-decisions L232–L395 (2026-09-09 plan parts 4–7: names, councils, channels, figure eight, survival mode, GO), L729–L731 (23:0xZ lightest hybrid), L739 + L761 (next-season rungs 5-8, key hardening), L763–L767 (23:32Z hybrid figure-eight; what is not pulled up), L773–L775 (01:06Z formations order).
-- goal:g17.1 L24–L34 (F2; directors pinned only once the persistent director system is up) · goal:g15 (parent) · sanctuary-master post card §0.5/§0.6 (current formation diagrams).
+- goal:g7.16 L24–L34 (F2; directors pinned only once the persistent director system is up) · goal:g15 (parent) · sanctuary-master post card §0.5/§0.6 (current formation diagrams).
 - Siblings: doc:l4-formation-1-prime-only · doc:l4-formation-2-texas-two-step · doc:l4-formation-3-hybrid-gradual-expansion.
 <!-- BODY:END -->

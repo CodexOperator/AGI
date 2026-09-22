@@ -246,3 +246,149 @@ def test_declared_but_unbuildable_harness_refused(tmp_path, capsys):
     assert shell == ""
     assert "cannot build it" in err
     assert "bogus" not in err
+
+
+# --- the resolution SOURCE is template data (hypothesis:harness-arg-builders-
+# are-templates-only). The harness NAME must not branch the resolution; the
+# template's `[roles] source` decides it. `_wire_template_dir` flips that field
+# and shows the SAME harness follow a DIFFERENT source -- the falsifier that a
+# hidden name branch survives.
+
+
+def _wire_template_dir(tmp_path, copilot_source):
+    """A copy of the shipped templates with copilot's `roles.source` flipped."""
+    import re
+    import shutil
+    td = tmp_path / ("tmpl-" + copilot_source)
+    td.mkdir()
+    real = (Path(rotate.__file__).resolve().parent.parent
+            / "templates" / "harness")
+    for p in real.glob("*.toml"):
+        shutil.copy(p, td / p.name)
+    cop = td / "copilot-cli.toml"
+    cop.write_text(re.sub(r'source = "row"',
+                          f'source = "{copilot_source}"', cop.read_text()))
+    return td
+
+
+def _add_ladder(root, model):
+    geom = root / "nodes" / ".geometry"
+    geom.mkdir(parents=True, exist_ok=True)
+    (geom / "ladder.md").write_text(
+        "---\nroles:\n  - role: director\n"
+        f"    model: {model}\n    effort: ladder-effort\n"
+        "    tier: 2\nclosed: false\n---\n# ladder\n")
+
+
+def _patch_templates(monkeypatch, td):
+    monkeypatch.setattr(rotate.harness_template, "template_dir", lambda: td)
+    import agi.bin.harness_template as ht
+    monkeypatch.setattr(ht, "template_dir", lambda: td)
+
+
+def test_copilot_resolution_follows_the_declared_source_not_its_name(
+        tmp_path, capsys, monkeypatch):
+    """WIRE PROBE: flip `[roles] source` and copilot's resolved model flips with
+    it. `row` -> its own config row; `ladder` -> the shared ladder. If flipping
+    the FIELD changes nothing, the branch moved into a helper, not into data."""
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    root = _root_with_harnesses(tmp_path, {"director": "ROW-MODEL"})
+    _add_ladder(root, "LADDER-MODEL")
+
+    _patch_templates(monkeypatch, _wire_template_dir(tmp_path, "ladder"))
+    rc, from_ladder = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="copilot-cli", root=root)
+    capsys.readouterr()
+
+    _patch_templates(monkeypatch, _wire_template_dir(tmp_path, "row"))
+    rc2, from_row = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="copilot-cli", root=root)
+
+    assert rc == 0 and rc2 == 0
+    assert "--model LADDER-MODEL" in from_ladder
+    assert "--model ROW-MODEL" in from_row
+    assert from_ladder != from_row
+
+
+def test_fourth_harness_resolves_from_its_own_row_with_no_rotate_edit(
+        tmp_path, capsys, monkeypatch):
+    """A synthetic fourth template declaring `source = "row"` resolves its model
+    from its own `harnesses.<id>` config row; rotate.py is not touched."""
+    td = tmp_path / "tmpl4"
+    td.mkdir()
+    (td / "fake4.toml").write_text(
+        'id = "fake4"\nbin = "/fake/bin/fake4"\n'
+        '[roles]\nsource = "row"\n'
+        '[[argv]]\nflag = "--model"\nslot = "model"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    _patch_templates(monkeypatch, td)
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "fake4": {"adapter": "x", "bin": "/fake/bin/fake4",
+                  "models": {"director": "ROW4"}}}}))
+
+    rc, shell = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="fake4", root=root)
+    assert rc == 0
+    assert "--model ROW4" in shell
+
+
+def test_bogus_role_source_is_a_named_error_never_a_default(
+        tmp_path, capsys, monkeypatch):
+    """A template declaring an unknown `roles.source` fails closed by name."""
+    td = tmp_path / "tmplbogus"
+    td.mkdir()
+    (td / "bogus.toml").write_text(
+        'id = "bogus"\nbin = "/fake/bin/bogus"\n'
+        '[roles]\nsource = "cosmic"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    _patch_templates(monkeypatch, td)
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "bogus": {"adapter": "x"}}}))
+
+    rc, shell = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="bogus", root=root)
+    err = capsys.readouterr().err
+    assert rc != 0
+    assert shell == ""
+    assert "unknown roles.source 'cosmic'" in err
+
+
+def test_non_table_roles_refuses_the_seat_by_name_not_a_crash(
+        tmp_path, capsys, monkeypatch):
+    """A top-level `roles = "ladder"` (not a `[roles]` table) must reach the
+    seat path's `except HarnessTemplateError` catch: rc != 0, empty command,
+    `ERR:` on stderr -- never an AttributeError escaping the named refusal."""
+    td = tmp_path / "tmplnontable"
+    td.mkdir()
+    (td / "nontable.toml").write_text(
+        'id = "nontable"\nbin = "/fake/bin/nontable"\n'
+        'roles = "ladder"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    _patch_templates(monkeypatch, td)
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "nontable": {"adapter": "x"}}}))
+
+    rc, shell = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt), dry_run=True,
+        harness="nontable", root=root)
+    err = capsys.readouterr().err
+    assert rc != 0
+    assert shell == ""
+    assert "roles is not a table" in err

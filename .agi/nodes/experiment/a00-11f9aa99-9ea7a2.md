@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD-ORDER round for `hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-before-declaring-a-crash` (goal:g15.23 fix-only #3). A rotation that just FINISHED must not read as a crash. The root cause: `_rotation_in_flight` (heal.py) honoured ONLY a `started` record, never a success, so a gen-N row with a dead predecessor pid and a gone @id — sitting under a fresh success record gen N -> N+1 — read DEAD and `_recover_seat` respawned against the live successor's window.
+BUILD-ORDER round for `hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-before-declaring-a-crash` (goal:g6.45 fix-only #3). A rotation that just FINISHED must not read as a crash. The root cause: `_rotation_in_flight` (heal.py) honoured ONLY a `started` record, never a success, so a gen-N row with a dead predecessor pid and a gone @id — sitting under a fresh success record gen N -> N+1 — read DEAD and `_recover_seat` respawned against the live successor's window.
 
 What I did (all in `extensions/agi/bin/heal.py` + tests; rotate.py NEVER edited):
 

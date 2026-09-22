@@ -3,13 +3,13 @@ id: hypothesis:l3w4-master-sensei
 mint_id: 7c7fc65605a643e8b8748340d49191c4
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 scaffold_hash: 4dfeda184df78b84
 season: 2
 testable_claim: "dispatch.py --seat master-sensei --tier director --role director --ladder-tier 1 --dry-run resolves claude-opus-5 at effort high, and new sensei.py's apply --since TS calls write.py <node> \"note SENSEI: ...\" exactly once, and only once a reply after TS exists on every required dm/room thread (the target role's own dm plus its rotated_by-resolved supervisor dm/room, or the supervisor thread alone for a target absent from config:seats), while the identical apply against belam or a tier-3 parent (an advisor) never calls write.py without an explicit --owner-approved flag and instead writes a draft file under .agi/sessions/sensei/drafts/ and dms liaison."
-thought_session: L3.27
+thought_session: dissolve-legacy-2026-09-19
 title: Seat the Master Sensei
 ---
 <!-- BODY:BEGIN -->
