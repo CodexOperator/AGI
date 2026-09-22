@@ -986,6 +986,31 @@ def _serialize_node(fm_lines: list[str], body: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+def _clear_stale_does_not_set_stamp(root, node_type, old_fm, fm, set_fm):
+    """Drop a stale 'does not set' spawn stamp an update has falsified.
+
+    Only this exact reason text for the type's own discriminator, and only
+    when the update supplies it; a real unverified reason is kept. The text
+    comes from `spawn_gate`, not a second copy here.
+    """
+    reason = old_fm.get("spawn_check_reason")
+    if not reason or "spawn_check" not in old_fm:
+        return
+    schema = spawn_gate.gate_for_root(root)[0].get(node_type)
+    if schema is None or not schema.discriminator:
+        return
+    disc = schema.discriminator
+    if disc not in (set_fm or {}):
+        return
+    value = fm.get(disc)
+    if not isinstance(value, str) or not value.strip():
+        return
+    if reason != spawn_gate.does_not_set_reason(schema.name, disc):
+        return
+    fm.pop("spawn_check", None)
+    fm.pop("spawn_check_reason", None)
+
+
 def update_node(
     root,
     node_id,
@@ -1055,6 +1080,8 @@ def update_node(
     # The verdict/confidence delta wins over anything the duplicate carried,
     # so it is applied AFTER the absorb -- never clobbered by a body block.
     fm.update(set_fm or {})
+    _clear_stale_does_not_set_stamp(root, res.node_type, nf.frontmatter, fm,
+                                    set_fm)
 
     if fm == nf.frontmatter and new_body == nf.body:
         res.status = UNCHANGED

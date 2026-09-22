@@ -142,6 +142,17 @@ class Rule:
     season_parents_allowed: frozenset = frozenset()
 
 
+def does_not_set_reason(schema_name: str, discriminator: str) -> str:
+    """The reason emitted when a node omits its schema discriminator.
+
+    One generator, because `node_writer.update_node` recognises this exact
+    text to clear a stamp a later update has falsified. A second copy would
+    drift from `SpawnSchema.rule_for` and silently stop matching.
+    """
+    return (f"schema '{schema_name}' is discriminated on "
+            f"'{discriminator}', which this node does not set")
+
+
 @dataclass
 class SpawnSchema:
     """The `spawn:` block of one `[<type>].md`, parsed."""
@@ -163,10 +174,7 @@ class SpawnSchema:
             return self.flat, ""
         value = (fm or {}).get(self.discriminator)
         if not isinstance(value, str) or not value.strip():
-            return None, (
-                f"schema '{self.name}' is discriminated on "
-                f"'{self.discriminator}', which this node does not set"
-            )
+            return None, does_not_set_reason(self.name, self.discriminator)
         rule = self.variants.get(value.strip())
         if rule is None:
             return None, (
