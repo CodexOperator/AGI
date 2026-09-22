@@ -109,6 +109,18 @@
       "allowed_extra": [
         "auto"
       ]
+    },
+    "grok-bot": {
+      "adapter": "grok_bot",
+      "allowed_extra": [
+        "grok-4",
+        "grok-4-fast"
+      ],
+      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "models": {
+        "kid": "grok-4-fast",
+        "parent": "grok-4"
+      }
     }
   },
   "spawn": {
@@ -122,7 +134,7 @@
       "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
     },
     "parent_max_kids": 10,
-    "memory_max": "4G"
+    "memory_max": "6G"
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,

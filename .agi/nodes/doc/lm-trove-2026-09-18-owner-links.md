@@ -3,7 +3,7 @@ id: doc:lm-trove-2026-09-18-owner-links
 mint_id: e191fba6ba4d408c99b07ed4cf91159a
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 793a0be9cf80c3cf

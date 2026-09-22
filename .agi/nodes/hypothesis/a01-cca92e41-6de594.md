@@ -3,7 +3,7 @@ id: hypothesis:a01-cca92e41-6de594
 mint_id: d23110a3ce364e508f464f921d06179c
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -26,7 +26,7 @@ self-registering `agi install` script inside the repo that sets up the two
 symlinks and one hook entry. This eliminates the need for any package format
 (skill or pip) to carry the integration layer.
 
-**Why this matters:** `goal:g8.1` poses the three candidate shapes as mutually
+**Why this matters:** `goal:g1.23` poses the three candidate shapes as mutually
 exclusive and asks which one the engine should *be*. The hybrid-split sibling
 answers "both: clone for engine code, package for integration" — which
 doubles the delivery surface (two artifacts to maintain, two install paths).
@@ -117,7 +117,7 @@ g8.1's outcome space from three contenders to two (clone vs. clone+package),
 which is progress on the shape decision regardless.
 
 <!-- THOUGHT:BEGIN -->
-First version — fills scaffolded node a01-cca92e41-6de594 under goal:g8.1.
+First version — fills scaffolded node a01-cca92e41-6de594 under goal:g1.23.
 Tests a claim no sibling covers: whether shape 1 (drop-in clone) alone is
 sufficient, by verifying the pi integration layer can be auto-provisioned
 from within the clone rather than requiring a separate package format.

@@ -3,7 +3,7 @@ id: hypothesis:l2w2-write-owner-and-payload-types
 mint_id: cfdadb9f117e4964b59b1eabeb9b0b04
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: season.py
 scaffold_hash: 67d24f171f7f4eec

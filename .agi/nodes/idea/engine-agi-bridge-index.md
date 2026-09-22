@@ -3,9 +3,9 @@ id: idea:engine-agi-bridge-index
 mint_id: 625b5d5dfb744d24a19f9019d10e76ed
 type: idea
 parents:
-  - goal:g4
+  - goal:g5.14
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi-bridge/index.ts"
 unit_kind: entry_point
 unit_path: extensions/agi-bridge/index.ts

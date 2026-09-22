@@ -3,12 +3,13 @@ id: hypothesis:l4-the-prime-successor-window-name-derives-from-the-season-and-lo
 mint_id: 8baaa7dc7fd84d6daeac36edfbf0f7a4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: cca9f88ed25e3617
 season: 2
 testable_claim: "rotate.py step 3 (spawn) names the Prime successor belam-S<season>-L<loop>-<numeral> from the live cells (config:ladder season; the live loop id from the ladder/plan cell), the numeral restarting at I when the S/L token changes and continuing (+1, _split_roman_suffix) when it does not; it never copies the predecessor window prefix. The after_join belam-chain grep in config:rotations matches the pattern belam-S[0-9]+-L[0-9]+ and the tests that pin the literal belam-S1 assert the pattern; the five-window chain reap orders windows by seniority (numeral, then age) ACROSS prefixes so a token change never splits the chain or reaps the wrong window. Measured: gen 31 seated 05:26Z 09-18 as belam-S1-L4-XXXI while the ladder reads season 2 and L5 closed. Falsifier: a successor spawned under season 2 / loop 5 carries S1 or L4; the numeral does not restart at I on a token change; a chain grep or test still pins belam-S1; a token change leaves an older-prefix window unreaped or reaps the newest."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.106 (owner 05:2xZ 09-18, added to the finish set): the Prime successor window name derives from the season + loop cells (belam-S<season>-L<loop>-<numeral>) instead of copying the predecessor prefix; the belam-chain grep and the belam-S1 test literals move to a pattern; the chain reaps by seniority across prefixes"
 town: core
 ---

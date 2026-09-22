@@ -3,13 +3,13 @@ id: hypothesis:l3-pi-install-patch-not-durable
 mint_id: 8673d4c5b17d4070bdc9c960044640dc
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam
 scaffold_hash: d44f906a82340dd4
 season: 2
 testable_claim: "After the change, an installed pi whose edit tool lacks the forgiveness normalisation cannot pass unnoticed: either the repo re-applies it at spawn or adapter load, or a preflight assertion fails loudly and early naming the fix; proven by a red-first test that simulates an install missing the normalisation and asserts the loud failure or the re-application, rather than asserting only that the patch is present today."
-thought_session: belam-S1-L3-IX
+thought_session: dissolve-legacy-2026-09-19
 title: The edit-tool forgiveness patch lives in the untracked pi install, so a pi upgrade silently reverts it and every kid quietly pays the turn again
 ---
 <!-- BODY:BEGIN -->

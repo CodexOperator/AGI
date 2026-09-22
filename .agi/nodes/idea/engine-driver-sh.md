@@ -3,9 +3,9 @@ id: idea:engine-driver-sh
 mint_id: b49e475bf00449d2897085f064867e8f
 type: idea
 parents:
-  - goal:g1
+  - goal:g1.19
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/driver.sh"
 unit_kind: entry_point
 unit_path: extensions/agi/driver.sh

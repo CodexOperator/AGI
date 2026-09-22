@@ -3,7 +3,7 @@ id: hypothesis:write-py-set-must-preserve-scalar-types
 mint_id: 26b7410b6c9d41a087f2ff91e39aa222
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: season.py
 scaffold_hash: add0a3b1cb712b7a

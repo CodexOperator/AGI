@@ -3,12 +3,13 @@ id: hypothesis:l3w4-branch-shared-state
 mint_id: 640aec54a4b64946af54c1c65f20e08f
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.14
 next_edges: []
-edited_by: belam-S1-L3-VIII
+edited_by: belam
 scaffold_hash: 21875ae15f6f24f9
 season: 2
 testable_claim: After the change, an agent whose cwd is .agi/worktrees/<agent> reads OPENROUTER_API_KEY from the main checkout's .env resolved through git_common_root, and write.py <node-id> resolves and writes that node without needing an explicit --root, both proven by red-first tests plus one live worktree run quoted verbatim in the evidence.
+thought_session: dissolve-legacy-2026-09-19
 title: A worktree shares .env and the graph with the main checkout
 ---
 <!-- BODY:BEGIN -->

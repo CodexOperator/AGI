@@ -3,12 +3,13 @@ id: hypothesis:l2w6-telemetry-rollup
 mint_id: 8ab76841dcd546f8adbdca54ebb790c1
 type: hypothesis
 parents:
-  - goal:g16
+  - goal:g6.12
 next_edges: experiment:a00-6856367d-7b307d
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: c6fcbfd659d755ea
 season: 1
 testable_claim: A roll-up walks each report node's parents field to sum tokens_in/out, cost_usd and accepted_bytes from its descendant kid nodes, attaches the sums to the report (outcome sums its loop's kid nodes, bigger_outcome its LT goal, overview its season), and prints cost-per-aligned-outcome as a ranking number, never read by any agent choosing what to do
+thought_session: dissolve-legacy-2026-09-19
 title: L2w6 telemetry rollup
 ---
 # hypothesis:l2w6-telemetry-rollup

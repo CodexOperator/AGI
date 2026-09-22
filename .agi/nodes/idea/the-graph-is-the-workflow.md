@@ -3,17 +3,17 @@ id: idea:the-graph-is-the-workflow
 mint_id: 6d0a0d74ca6d423b8f4b7e0ca05c9020
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.15
 next_edges: []
 confidence: 0.75
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 47d0c421c39a2fa4
 season: 1
 status: active
 tags:
   - idea
   - autocatalysis
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "The graph is the workflow: structure that invites its own completion"
 ---
 # idea:the-graph-is-the-workflow

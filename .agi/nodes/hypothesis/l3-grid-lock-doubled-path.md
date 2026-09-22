@@ -3,13 +3,13 @@ id: hypothesis:l3-grid-lock-doubled-path
 mint_id: 6fa05f7751844872b16730ed774e3c21
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.18
 next_edges: []
-edited_by: belam-S1-L3-VII
+edited_by: belam
 scaffold_hash: 2f3b9c51f46fafd0
 season: 2
 testable_claim: After the fix, grid.py commit --all run from the repo root and from inside <repo>/.agi both take the flock on the SAME file <repo>/.agi/sessions/.grid.lock (a red-first test runs the lock-path resolver from both cwds and asserts one path, and a second test holds the lock from one cwd and shows the other cwd's commit --all reports 'could not acquire the grid lock'); no .agi/.agi directory is ever created.
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: grid.py's lock dir doubles .agi, so the cron and a hand run never share the flock
 ---
 <!-- BODY:BEGIN -->

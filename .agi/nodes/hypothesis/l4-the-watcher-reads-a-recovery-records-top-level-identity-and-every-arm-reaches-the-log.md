@@ -3,7 +3,7 @@ id: hypothesis:l4-the-watcher-reads-a-recovery-records-top-level-identity-and-ev
 mint_id: b4fbac27767d460689da722059b65d39
 type: hypothesis
 parents:
-  - goal:g15.23
+  - goal:g6.45
   - hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-by-gen-order-or-age
 next_edges: []
 edited_by: a00-8d21fb68

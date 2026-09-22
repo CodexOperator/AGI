@@ -31,7 +31,7 @@ after recompile. No file or code path is edited in only one output."*
 
 The prior experiment (a00-e773e914-4f7731) tested **fidelity** (same frames →
 same output in both formatters) but left criterion 2/4 untested, which is the
-hypothesis's strongest falsifier and the one that operationalizes goal:g9.7's
+hypothesis's strongest falsifier and the one that operationalizes goal:g2.19's
 own falsifier. This experiment fills that gap.
 
 ### Approach
@@ -170,7 +170,7 @@ Lockstep change propagation test: stream modifications (add flag field, reverse 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent a01-138c69c7 review. Kid's experiment fills the gap the prior experiment (a00-e773e914) flagged: lockstep
-change propagation was untested and was goal:g9.7's own falsifier. I re-ran the script (1006 nodes, all four
+change propagation was untested and was goal:g2.19's own falsifier. I re-ran the script (1006 nodes, all four
 phases PASS) and every reported number reproduced.
 
 Changes: backfilled `title` (scaffold placeholder), `testable_claim`, `tags`, and `evidence_runs` (self-referential;

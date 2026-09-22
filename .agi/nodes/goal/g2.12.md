@@ -4,10 +4,9 @@ mint_id: c71aa813c225429696880bed7839291c
 type: goal
 parents:
   - goal:g2
-  - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.12
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +18,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.12: A node version may carry how it felt to write it"
 ---
 # goal:g2.12

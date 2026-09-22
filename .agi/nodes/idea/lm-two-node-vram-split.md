@@ -3,7 +3,7 @@ id: idea:lm-two-node-vram-split
 mint_id: 2b733564d5704bb3b27440418ebdfc5a
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 2aa93d80773530c7

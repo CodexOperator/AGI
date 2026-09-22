@@ -3,13 +3,13 @@ id: hypothesis:l4-trimguard-subcommand
 mint_id: 90c2928b0f4243039f8d5918b99baac6
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: sanctuary-helper
+edited_by: belam
 scaffold_hash: 39af27a67e5092f7
 season: 2
 testable_claim: trimguard.py (untracked, main-checkout .agi/sessions/) parses HANDOFF.md §6 for double-quoted owner spans and greps .agi/nodes/ to confirm each resolves, aborting on any miss; folded into an existing tracked bin/*.py as a subcommand (never a new bin/*.py, which test_bin_help_smoke would enrol), the subcommand must be invocable from a fresh checkout with no dependency on the untracked file and produce byte-identical ABORT/OK verdicts against the same HANDOFF.md fixture the original script would. Disproved if the fold changes the verdict on any fixture or lands as a new bin/*.py instead of a subcommand on an existing one.
-thought_session: sanctuary-helper-cd
+thought_session: dissolve-legacy-2026-09-19
 title: trimguard.py's owner-quote-loss guard is untracked; fold it into a tracked bin tool as a subcommand
 ---
 <!-- BODY:BEGIN -->

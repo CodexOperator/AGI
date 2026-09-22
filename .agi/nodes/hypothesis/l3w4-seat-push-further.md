@@ -3,13 +3,13 @@ id: hypothesis:l3w4-seat-push-further
 mint_id: 543ee356159948559515a23646e8b320
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam
 scaffold_hash: 3b865451f76e9549
 season: 2
 testable_claim: "rotate.py's cmd_loop gains an optional --push-further TEXT flag plus a new _seat_job_metric(root, seat_row) that returns ('alignment_rate', aligned/(aligned+adjust)) tallied from fm.get('alignment') on this season's outcome/bigger_outcome/overview nodes whose parents directly name the seat's config:seats row owning_goal when that field is set, else ('generation', the seat's last handoff generation); given the flag, the seat's handoff is stamped push_further/job_metric and, only when owning_goal is set, write.py create idea additionally mints one idea node under it carrying the same text and metric, except when the seat is belam or its row's personality_ref is non-empty (the three advisors), in which case no idea is minted and send.py send_room posts the note to room tier3-quorum instead; and the successor inherits the note because spawn_window's existing extra parameter -- already used for the ROTATION CONTINUATION line -- gets a 'PUSH FURTHER (left by <seat>): <text> (<metric>=<value>)' line appended whenever the predecessor supplied one."
-thought_session: L3.26
+thought_session: dissolve-legacy-2026-09-19
 title: Give every seat a push-further loop
 ---
 <!-- BODY:BEGIN -->

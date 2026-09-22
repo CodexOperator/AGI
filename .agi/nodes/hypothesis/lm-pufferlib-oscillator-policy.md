@@ -4,7 +4,7 @@ mint_id: e7a4b3c86386417dbec299c4ad01cfc4
 type: hypothesis
 parents:
   - idea:lm-hybrid-oscillator-readout
-  - goal:g14
+  - goal:g5.28
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; downloads <= 1.5 GB (clone + wheels); CPU <= 30 min per training run, counted against the A1 share; file scope = .agi/context/local-maxxing/puffer/{cmds.md, rhythm_bank_env.py, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

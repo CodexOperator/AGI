@@ -3,7 +3,7 @@ id: idea:l4-write-api-root-resolution
 mint_id: 5daaab267dcd43a89e6784305044cee5
 type: idea
 parents:
-  - goal:g15.9
+  - goal:g6.31
 next_edges: []
 edited_by: sanctuary-helper
 scaffold_hash: 42b42cf2099a17f2

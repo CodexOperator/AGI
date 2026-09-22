@@ -3,7 +3,7 @@ id: idea:l4-oom-watchdog-signal
 mint_id: 36d2b20fd62d44b0845400c6d34cd7af
 type: idea
 parents:
-  - goal:g15.7
+  - goal:g6.29
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

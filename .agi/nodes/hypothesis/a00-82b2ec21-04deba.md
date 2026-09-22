@@ -3,12 +3,12 @@ id: hypothesis:a00-82b2ec21-04deba
 mint_id: 40efc3d33d9f43fdbda07b134728966e
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: dfcf8f325857b198
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 82b2ec21 04deba
 ---
 # hypothesis:a00-82b2ec21-04deba

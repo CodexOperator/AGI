@@ -66,7 +66,7 @@ All checks run against the real main graph (2115 active nodes) and a fresh
 fixture `.agi`:
 
 - `python3 extensions/agi/bin/graphweb.py -h` -> exit 0.
-- `graph.json`: layer0 has `goal:g9`, NOT `goal:g17.1`; layer1 has `goal:g17.1`
+- `graph.json`: layer0 has `goal:g9`, NOT `goal:g7.16`; layer1 has `goal:g7.16`
   (sanctuary descendant) and NOT `goal:g9`; `goal:g17` is in BOTH layers;
   16 seats in layer 1, 16 `seat` edges. sanctuary subtree = 300 nodes.
   Deterministic: two builds byte-identical.

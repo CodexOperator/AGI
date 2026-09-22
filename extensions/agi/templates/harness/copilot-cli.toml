@@ -1,0 +1,41 @@
+# copilot-cli spawn argv. Top-level = the rotate SEAT shape (`-i`); the
+# headless DISPATCH shape (`-p`) is [shapes.dispatch] below.
+id = "copilot-cli"
+bin = "copilot"
+
+# Seat role cells come from THIS harness's own `harnesses.copilot-cli` row --
+# a claude model name is never borrowed (hyp:l4-copilot-cli-is-a-third-...).
+[roles]
+source = "row"
+
+[[argv]]
+flag = "--model"
+slot = "model"
+
+[[argv]]
+flag = "--effort"
+slot = "effort"
+
+[[argv]]
+const = "--allow-all"
+
+[[argv]]
+const = "--remote"
+
+[[argv]]
+spread = "extra_args"
+
+[[argv]]
+flag = "-i"
+slot = "prompt"
+
+# Headless dispatch (copilot_cli_adapter.build_command): the one-turn `-p`
+# replaces the seat's interactive `-i`.
+[shapes.dispatch]
+argv = [
+  {spread = "model_args"},
+  "--allow-all",
+  "--remote",
+  {spread = "extra_args"},
+  {flag = "-p", slot = "prompt"},
+]

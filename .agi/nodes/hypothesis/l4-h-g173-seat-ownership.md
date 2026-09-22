@@ -4,7 +4,7 @@ mint_id: 7ef80a3c40c54edb84b143d14bb1c765
 type: hypothesis
 parents:
   - idea:l4-g173-seat-ownership
-  - goal:g17.3
+  - goal:g7.18
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

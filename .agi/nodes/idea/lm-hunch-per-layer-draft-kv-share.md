@@ -3,7 +3,7 @@ id: idea:lm-hunch-per-layer-draft-kv-share
 mint_id: 6d807054717240619bfc9f2213d14b17
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: c8a794f41979ac5c

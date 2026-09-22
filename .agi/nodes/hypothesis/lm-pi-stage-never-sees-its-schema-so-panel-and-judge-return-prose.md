@@ -7,6 +7,8 @@ parents:
 next_edges: []
 builds_on: hypothesis:l5-a-one-shot-structured-stage-carries-no-prayer-rule
 ceiling: engine change 25 lines or fewer inside workflow.py (the pi prompt assembly only; never the parser, never the claude-code path) plus the two result_file lines and two closing sentences in extensions/agi/workflows/trove-survey.json plus the tests; 1 USD OpenRouter for the live re-run; no other file; kids write it, tests green before the parent lands.
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
 edited_by: director-thought
 falsifier: "With the RETURN SHAPE block present in the rendered prompt (unit test: the prompt string handed to the pi binary contains every required key of the stage schema and the rendered result_file path), a re-run of the trove-survey panel stage on the SAVED cua digest with deepseek-v4.1-flash still returns unstructured on 2 or more of the 3 seats, OR the block regresses a stage that returned structured before (critique falls below 3/3 on the same digest), OR the change exceeds its ceiling."
 scaffold_hash: a7644330be3be515
@@ -15,7 +17,7 @@ testable_claim: "On the pi harness workflow.py _run_pi_stage never puts a stage 
 tests: "red-first: (1) test_workflow: the rendered pi prompt for a schema-bearing stage contains the schema required keys and, when declared, the rendered result_file path; (2) a stage without a schema renders byte-identical to before; (3) trove-survey.json panel and judge declare result_file. Then pytest extensions/agi/tests/test_workflow.py extensions/agi/tests/test_workflow_result_file.py -q green (no regression). Then the live check: workflow.py run trove-survey --harness pi on the cua sources (same 3 sources, same 3 angles) counting structured returns per stage; panel 3/3 or 2/3 with judge structured = proved."
 title: Lm pi stage never sees its schema so panel and judge return prose
 town: local-maxxing
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:lm-pi-stage-never-sees-its-schema-so-panel-and-judge-return-prose

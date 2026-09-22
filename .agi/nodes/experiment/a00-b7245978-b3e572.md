@@ -31,7 +31,7 @@ verdict: inconclusive_lean_proved:85
 
 ## Experiment
 
-Built the `rotate` verb on `rotate.py` (SL7.115, round 2 of 2 of goal:g15.25).
+Built the `rotate` verb on `rotate.py` (SL7.115, round 2 of 2 of goal:g6.47).
 MEASURED PRE-FIX: `rotate.py rotate` did not exist (no such subparser in `main`;
 `main()`'s root-resolution tuple lacked `'rotate'`). The rotate-self flag list
 was inlined once under `p_rs`.

@@ -4,7 +4,7 @@ mint_id: 7ef48e115ae5405ab7fcbd459467b8a7
 type: hypothesis
 parents:
   - idea:lm-two-node-vram-split
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 ceiling: $0.50 OpenRouter; $0 compute; 0 downloads on CPU8G (the GGUF copied by scp and removed after); file scope = .agi/context/local-maxxing/rpc/{cmds.md, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

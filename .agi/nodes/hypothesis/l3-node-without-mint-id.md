@@ -3,13 +3,13 @@ id: hypothesis:l3-node-without-mint-id
 mint_id: 18743d9edf0344a7b8621bc8c8d16aa3
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.8
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam
 scaffold_hash: 906d4691a7d2e55a
 season: 2
 testable_claim: cli.py done (and a write.py repair verb for the parent) assigns a first mint_id to a kid node that carries none, keyed from the iteration manifest, so grid.py commit --all versions it with 0 errors; assigning a mint_id to a node that already has one stays refused.
-thought_session: L3.19
+thought_session: dissolve-legacy-2026-09-19
 title: A node minted outside node_writer gets its first mint_id from the manifest, not from a hand
 ---
 <!-- BODY:BEGIN -->
