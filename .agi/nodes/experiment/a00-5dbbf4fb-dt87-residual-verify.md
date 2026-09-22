@@ -136,3 +136,6 @@ Raw output, screenshots, logs.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 This node exists so the DT.87 residual closure has an independently re-run experiment at HEAD 5f9f47bac, not just the last kid self-reported numbers. I re-ran the four regression tests, links.py, evidence_gate and the brief.py numstat myself. It also records that the brief D1 was stale (the real experiment already existed at HEAD) and that D2 (the dirty node files) is landed by this round --owns. Production lines 0; ceiling 40.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DT.87 verification run: the four named regression tests pass at HEAD 5f9f47bac, links 3863 resolved 0 broken, evidence_gate 0 demote / 0 refused, brief.py byte-unchanged, one Agent Notes heading per touched node; production lines 0. The brief D1 was stale, D2 lands the dirty node files.
