@@ -64,7 +64,15 @@ def read_session(path):
                 raise ValueError(
                     f"malformed-content: line {lineno}: content block is "
                     f"not an object")
-            if block.get("type") == "text" and block.get("text"):
+            if block.get("type") != "text" or "text" not in block:
+                continue
+            # A PRESENT `text` that is not a string reaches `" ".join` below
+            # and raises TypeError / exit 1 -- the same no-silent-drop breach
+            # the container guards close, one level deeper (goal:g7.32.1).
+            if not isinstance(block["text"], str):
+                raise ValueError(
+                    f"malformed-content: line {lineno}: text is not a string")
+            if block["text"]:
                 texts.append(block["text"])
     return sid, {"messages": len(msgs), "cwd": str(session.get("cwd") or ""),
                  "first": " ".join(" ".join(texts).split())[:280]}
