@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: owner-go-durable-spawn-2026-09-22
+thought_session: belam-concurrency-18-30-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -407,18 +407,18 @@ concurrency    = spawn multiple parents for multiple goals
                = one parent per goal via separate dispatches
 
 targets
-  ≤3 live parents per director
-  ≤5 box-wide total if needed
+  ≤18 live parents per director
+  ≤30 box-wide total if needed
 
 spawn.parallel = same-goal fan-out dispatch feature
                — NOT for cross-goal concurrency
 
 never     raise spawn.parallel above 1 to get cross-goal concurrency
 never     use spawn.parallel for cross-goal fan-out
-only-if   scopes disjoint → may approach ≤5 box-wide
+only-if   scopes disjoint → may approach ≤30 box-wide
 ```
 
-Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ≤5; per-director target ≤3.
+Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ≤30; per-director target ≤18.
 
 ### DURABLE SPAWN (owner 2026-09-22 — HARD)
 
@@ -521,7 +521,7 @@ After ANY graph SoT land → push tips + sync LOCAL post trees
 |---|---|
 | target end-state | "finish today or failed" |
 | measurable falsifiers | vibes-done |
-| multi-parent ≤3 (soft ≤2) | duplicate claims under two roots |
+| multi-parent ≤18 | duplicate claims under two roots |
 
 ---
 
@@ -634,5 +634,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22 ET: HARD DURABLE SPAWN rule added under §4 — parents MUST land under systemd --user scope via dispatch durable path (start_new_session + mem_cap); never SSH/bash children; each parent own WT a00-…. Keep CONCURRENCY ≤3/dir · ≤5 box-wide · spawn.parallel=1.
+Owner GO 2026-09-22 ET: raise CONCURRENCY ceilings ≤18/director · ≤30 box-wide (was ≤3/≤5). spawn.parallel stays 1/goal; multi-parent×multi-goal unchanged; DURABLE SPAWN unchanged.
 <!-- THOUGHT:END -->

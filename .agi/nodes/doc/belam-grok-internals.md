@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: owner-go-durable-spawn-2026-09-22
+thought_session: belam-concurrency-18-30-2026-09-22
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -120,7 +120,7 @@ Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
 CONCURRENCY (HARD — SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
   concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
-  ≤3 live parents / director · ≤5 box-wide total if needed
+  ≤18 live parents / director · ≤30 box-wide total if needed
 DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
 ```
 
@@ -135,5 +135,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam PROFILE parity: DURABLE SPAWN one-liner (systemd --user via dispatch durable; never SSH/bash children) — mirrors director HARD pin / standing §4 Owner GO 2026-09-22 ET
+Owner GO 2026-09-22 ET: PROFILE STANDING CONCURRENCY pin → ≤18 / ≤30 (parity with standing §4 + director pin).
 <!-- THOUGHT:END -->
