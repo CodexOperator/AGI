@@ -3,10 +3,10 @@ id: experiment:a00-0606c809-scalar-evidence-runs-repair
 mint_id: 4e9116188be34fcfbbaaddc4e8e4f1f1
 type: experiment
 parents:
-  - hypothesis:a00-c11186fb-49e24c
+  - hypothesis:a00-0606c809-d45967
 next_edges: []
 confidence: 0.95
-edited_by: a00-0606c809
+edited_by: a00-df9b89ae
 evidence_runs:
   - experiment:a00-0606c809-scalar-evidence-runs-repair
 line_ceiling: 40
@@ -98,3 +98,7 @@ red — it fails at tip and base, fixture lineage `goal:g15`):
 
 `git diff --numstat -- extensions skills src` = empty; production_lines = 0,
 ceiling 40.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DT.68 corrective: the parent edge on this experiment was hypothesis:a00-c11186fb-49e24c — the tier-derivation hypothesis this experiment is NOT the evidence for. That earlier round repaired 49e24c itself, so the writer attached this node under the hypothesis it had just touched instead of the one that cites it. hypothesis:a00-0606c809-d45967 is the node whose evidence_runs names this experiment (the scalar-evidence_runs silently demotes a proved verdict claim), so the parent edge now agrees with the citation. The obsolete CAVEAT in the previous THOUGHT is now closed: the edge resolves to the citing hypothesis, and links.py reports 0 broken links.
+<!-- THOUGHT:END -->
