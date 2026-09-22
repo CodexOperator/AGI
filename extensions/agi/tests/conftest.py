@@ -359,7 +359,7 @@ def _no_real_tmux(monkeypatch):
     real_run = subprocess.run
 
     def _guarded_run(cmd, *a, **k):
-        if isinstance(cmd, (list, tuple)) and cmd[:1] in (["tmux"], ["ssh"]):
+        if isinstance(cmd, (list, tuple)) and tuple(cmd[:1]) in (("tmux",), ("ssh",)):
             # goal:g7.31.4: a mesh argv ["ssh", alias, "tmux", "send-keys",
             # ...] must not sail past a tmux-only guard to a REAL host; any
             # ssh-first argv is answered with the same safe rc-1 process.

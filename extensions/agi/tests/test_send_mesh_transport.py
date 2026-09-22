@@ -322,3 +322,25 @@ def test_foreign_wake_is_gated_by_pending_and_digest(tmp_path, monkeypatch,
     assert len([c for c in calls if c[:1] == ["ssh"]]) == n1, \
         "an unchanged foreign unread state must not be retyped"
     assert "nothing-pending" in capsys.readouterr().out
+
+
+# ── (12) DEFECT 1 (DT.85 residue): a DECISIVE test for the `_nudge_mesh`
+#        marker-coalesce block. Two `send()` calls to the same foreign mesh
+#        seat inside `_NUDGE_COALESCE_WINDOW_S` must type ONCE. The second
+#        must attempt NO new ssh argv and stderr must name `coalesced [mesh]`.
+#        Deleted coalesce -> second send types again -> both assertions fail.
+
+def test_mesh_double_send_inside_window_types_once(tmp_path, monkeypatch,
+                                                   capsys):
+    root = _graph(tmp_path, [FOREIGN])
+    calls = _fake_run(monkeypatch)
+    send_mod.send(root, "director", "first message", "a00-xxxx")
+    n_first = len([c for c in calls if c[:1] == ["ssh"]])
+    assert n_first > 0, "the first send must reach the ssh transport"
+    capsys.readouterr()
+    send_mod.send(root, "director", "second message", "a00-xxxx")
+    err = capsys.readouterr().err
+    assert "coalesced [mesh]" in err, \
+        "the second send inside the window must name the mesh coalesce"
+    assert len([c for c in calls if c[:1] == ["ssh"]]) == n_first, \
+        "a send inside the marker window must attempt no new ssh argv"
