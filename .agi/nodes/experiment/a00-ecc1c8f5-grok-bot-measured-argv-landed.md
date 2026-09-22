@@ -86,7 +86,7 @@ rejects `--model`/`-p` against the recorded help and accepts `--json`/`--dir`;
 Production-line measure (`git diff --numstat`, adapter only; test excluded):
 `59  17` -> **76** changed lines against ceiling 40 (<2x, no re-brief owed).
 
-## Agent Notes
+## Run Notes (kid 2)
 
 This is the EVIDENCE node that kid 1 left untracked: it is committed on this
 branch by `cli.py done` (the `--node-id`), closing the `SL7.136` shape where the
