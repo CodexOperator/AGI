@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ecc1c8f5-417666
 next_edges: []
 confidence: 0.9
-edited_by: a00-2735efde
+edited_by: a00-a3782a91
 evidence_runs: experiment:a00-f470a6c4-grok-bot-adapter-tests-hermetic
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
@@ -75,6 +75,10 @@ $ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_grok_bot_
 $ grep -nE 'os\.fork\(|time\.sleep\(30\)|SystemExit\(0\)|probe_dt35' extensions/agi/tests/test_grok_bot_adapter.py
 CLEAN
 ```
+
+(At THIS run the file held 27 tests. DT.81's kid `a00-149468fd` later added the
+zombie test, so the tip file collects 28 -- recorded here, not overwritten, so
+this node's measured count stays true to its own run.)
 
 Hermeticity probe (scratch `hermetic_probe.py`, loaded with `-p
 hermetic_probe`): `os.fork` and the real `subprocess.Popen` are replaced with
