@@ -15,7 +15,7 @@ tags:
   - geometry
   - town
   - board
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: belam-daily-town-pass-2026-09-22
 title: TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)
 town: core
 ---
@@ -54,9 +54,9 @@ BELAM (daily, not mid-batch):
 
 | goal | seat | state | tip | suite | mur | note |
 |---|---|---|---|---|---|---|
-| g7.31.1.2 | director-belam | in-progress | ac9dca87d | — | residues>0 | active hot chain: durable pane hold |
-| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | active hot chain: cold brief routes |
-| g7.31.3.2 | director-belam | in-progress | fdb1449a8 | — | residues>0 | active hot chain: sample graph routes |
+| g7.31.1.2 | director-belam | in-progress | 51ae16535 | — | residues>0 | DT.56 a00-005ce11b live; BASE 51ae16535 post-DT.47 MUR AWR |
+| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | DT.57 a00-7f12739a live; BASE 88da0784c |
+| g7.31.3.2 | director-belam | in-progress | bf876667b | — | MUR-owed lean | DT.52 DONE tip bf876667b; lean MUR mur-g7-31-3-2-dt-52-bf876667b running |
 | g7.25; g7.26–.30; other g7.31 leaves; g7.32*; g7.33; g7.34* | — | horizon | — | — | — | unclaimed / not in-flight; complete unchanged |
 
 ### State vocabulary
@@ -75,5 +75,5 @@ HOLD = credits empty / mesh down (owner ONLY)
 - Unified director role → `doc:unified-director-brief`
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon vocab aligns goal status
+Belam daily town:core pass 2026-09-22T09:50ET · merges:none (no board-complete; claimed rows residues>0/MUR-owed) · verify:FAIL tests=15f/5889p TestMergeUp Committer-identity-unknown in pytest temps (host global git user unset) · secrets PROBLEM OPENROUTER_API_KEY empty · goals-check red-at-run then smoke rewrote GOALS.md · bin-suite-fresh no-stamp · vision/moral: no reopen/mint (directors mid-batch DT.72/73/74 burning residues; Agent Notes no format-worthy orphans)
 <!-- THOUGHT:END -->

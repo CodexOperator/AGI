@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: belam-daily-town-pass-2026-09-22
 town: core
 visions:
   - vision:alive
@@ -162,5 +162,7 @@ goal:g7
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon pass agent notes
+Belam daily 2026-09-22T09:50ET: no board-complete tips; suite red on host git-identity in TestMergeUp + empty OPENROUTER_API_KEY; lenses clear — no reopen/mint while directors burn residues mid-batch.
 <!-- THOUGHT:END -->
+
+Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
