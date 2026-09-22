@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-sot-unify-2026-09-22
+thought_session: belam-watch-fill-fix-2026-09-22
 title: Grok harness internals sync — post-agnostic seed + ROUTINE_SYNC recipe
 town: core
 ---
@@ -69,18 +69,20 @@ name: grok-internals-sync
 schedule: */30 * * * *   (reason: mesh posts need standing sync while live)
 prompt intent:
   Pull doc:grok-harness-internals-sync (THIS doc) for SECTION:ROUTINE_SYNC recipe.
-  Pull this post's per-post SoT id (from profile/standing pointer) for SECTION:PROFILE only.
-  Apply ONLY:
+  Pull this post's per-post SoT id (from profile/standing pointer) for SECTION:PROFILE (+ ROUTINE_WATCH if present).
+  Apply:
     SECTION:PROFILE      → from per-post SoT → profile description
     SECTION:ROUTINE_SYNC → from THIS doc only (self) → this routine
-  Do NOT paste SECTION:ROUTINE_WATCH (or any other routine) into grok-internals-sync.
-  ROUTINE_WATCH → separate routine live-parents-workflows if present on per-post SoT.
+    SECTION:ROUTINE_WATCH (if present on per-post SoT) → update_state routine live-parents-workflows
+      (title + schedule + prompt from that fence; fill {{PLACEHOLDERS}})
+      whenever that section hash changes — same self-apply rule as PROFILE / ROUTINE_SYNC
+  Do NOT paste SECTION:ROUTINE_WATCH body INTO grok-internals-sync itself (separate routine).
   Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake post names into this routine.
   AFTER apply → VERIFY parse: real newlines; FAIL if literal backslash-n or mangled quotes; on FAIL re-apply from SoT.
   Quiet if SoT hash unchanged.
   May update_state THIS same routine if SECTION:ROUTINE_SYNC in THIS doc changes (keeps every grok post's sync routine byte-identical).
+  May update_state live-parents-workflows if SECTION:ROUTINE_WATCH on per-post SoT changes (MUST — watch is not manual-only).
 ```
-
 ---
 
 ### STANDING RULE (all posts, all harnesses)
@@ -106,5 +108,5 @@ Graph builds itself
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22: one-line note that per-post SoT is self-contained; structure/PURPOSE (ROUTINE_SYNC recipe) unchanged.
+owner-fix: ROUTINE_SYNC must update_state live-parents-workflows from per-post SECTION:ROUTINE_WATCH whenever that section hash changes (same as PROFILE/ROUTINE_SYNC self-apply); watch not manual-only
 <!-- THOUGHT:END -->
