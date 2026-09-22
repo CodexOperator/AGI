@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: concurrency-standing-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -399,7 +399,27 @@ assigned goal
        └──────────────────────── loop until 0 ←───────────────────────────────────────┘
 ```
 
-Soft ≤7 live parents · `spawn.parallel=1` · no new remote heads.
+### CONCURRENCY / spawn practice (owner 2026-09-22 — HARD)
+
+```
+spawn.parallel = 1 per goal (config + orders)
+concurrency    = spawn multiple parents for multiple goals
+               = one parent per goal via separate dispatches
+
+targets
+  ≤4 live parents per director
+  ~7 box-wide when scopes disjoint
+
+spawn.parallel = same-goal fan-out dispatch feature
+               — NOT for cross-goal concurrency
+
+never     raise spawn.parallel above 1 to get cross-goal concurrency
+never     use spawn.parallel for cross-goal fan-out
+only-if   scopes disjoint → may approach ~7 box-wide
+```
+
+Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ~7; per-director target ≤4.
+
 residue→goal **only** when format-worthy (full Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes).
 
 ### Lean MUR / review file lists (owner 2026-09-21 — HARD)
