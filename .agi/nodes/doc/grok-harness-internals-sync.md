@@ -16,14 +16,14 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 title: Grok harness internals sync — post-agnostic seed + ROUTINE_SYNC recipe
 town: core
 ---
 <!-- BODY:BEGIN -->
 # doc:grok-harness-internals-sync — post-agnostic grok harness seed + sync recipe
 
-**SoT recipe for ANY grok-bot post** (Prime · directors · future seats). Belam edits THIS via write.py only. Per-post spine lives in `doc:<post>-grok-internals` (or town board pointer).
+**SoT recipe for ANY grok-bot post** (Prime · directors · future posts). Belam edits THIS via write.py only. Per-post spine lives in `doc:<post>-grok-internals` (or town board pointer).
 
 ```
 recipe ──▶ this doc          (THE ONE SECTION:ROUTINE_SYNC SoT)
@@ -40,17 +40,17 @@ copy identically: NAME grok-internals-sync · schedule */30 * * * * · prompt = 
      doc:<post>-grok-internals  OR  town board pointer
 2. Create routine grok-internals-sync
      from SECTION:ROUTINE_SYNC BELOW verbatim
-     (0 seat bytes in routine)
-3. schedule  */30 * * * *   (mesh seats)
-4. Seat labels live in profile/standing already
+     (0 post bytes in routine)
+3. schedule  */30 * * * *   (mesh posts)
+4. Post labels live in profile/standing already
      sync reads them at runtime to fill {{…}} when pasting PROFILE
 ```
 
 | step | do | never |
 |---|---|---|
-| 1 | mint/link per-post SoT | bake seat name into shared recipe |
+| 1 | mint/link per-post SoT | bake post name into shared recipe |
 | 2 | copy ROUTINE_SYNC fence bytes | hand-edit bot surfaces for spine |
-| 3 | `*/30` on mesh seats | ad-hoc profile UpdateAgent after bootstrap |
+| 3 | `*/30` on mesh posts | ad-hoc profile UpdateAgent after bootstrap |
 | 4 | fill {{PLACEHOLDERS}} from live profile/standing | hardcode POST/BRANCH in routine |
 
 ---
@@ -64,16 +64,16 @@ Directors / Prime — copy these routine fields IDENTICALLY from this doc ONLY:
 
 ```
 name: grok-internals-sync
-schedule: */30 * * * *   (reason: mesh seats need standing sync while live)
+schedule: */30 * * * *   (reason: mesh posts need standing sync while live)
 prompt intent:
   Pull doc:grok-harness-internals-sync (THIS doc) for SECTION:ROUTINE_SYNC recipe.
-  Pull this seat's per-post SoT id (from profile/standing pointer) for SECTION:PROFILE only.
+  Pull this post's per-post SoT id (from profile/standing pointer) for SECTION:PROFILE only.
   Apply ONLY:
     SECTION:PROFILE      → from per-post SoT → profile description
     SECTION:ROUTINE_SYNC → from THIS doc only (self) → this routine
   Do NOT paste SECTION:ROUTINE_WATCH (or any other routine) into grok-internals-sync.
   ROUTINE_WATCH → separate routine live-parents-workflows if present on per-post SoT.
-  Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake seat names into this routine.
+  Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake post names into this routine.
   AFTER apply → VERIFY parse: real newlines; FAIL if literal backslash-n or mangled quotes; on FAIL re-apply from SoT.
   Quiet if SoT hash unchanged.
   May update_state THIS same routine if SECTION:ROUTINE_SYNC in THIS doc changes (keeps every grok post's sync routine byte-identical).
