@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: f7e2e4fc9ba22145
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
   - magic-pane
   - messaging
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.32.2: Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send"
 town: core
 ---

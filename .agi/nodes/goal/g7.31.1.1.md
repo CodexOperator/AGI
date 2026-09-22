@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1e10ebb759c9d056
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - adapter
   - cli
   - measured
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.31.1.1: Measured CLI argv matches grok-bot --help; stub flags retired"
 town: core
 ---
