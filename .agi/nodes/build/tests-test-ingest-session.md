@@ -1,20 +1,21 @@
 ---
-build_kind: code
-confidence: 1.0
-id: "build:tests-test-ingest-session"
+id: build:tests-test-ingest-session
 mint_id: fcd809931ac9420cb1516eaff672db20
-origin: build-scan
+type: build
 parents:
   - mvp:tests
+build_kind: code
+confidence: 1.0
+edited_by: a00-4c9e6d97
+origin: build-scan
 payload_ref: extensions/agi/tests/test_ingest_session.py
 tags:
   - build
   - code
   - g2.1
+thought_session: iter-DT.90
 title: "Build: extensions/agi/tests/test_ingest_session.py"
-type: build
 ---
-
 `extensions/agi/tests/test_ingest_session.py` — level-3 code node (one file, one canonical node).
 
 Census parent: `mvp:tests`.
@@ -168,6 +169,17 @@ outputs:
 - name: test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent
   how: 'defines public function `test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent`
     at line 226, signature: (graph, tmp_path)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: _scope_check
+  how: 'defines private function `_scope_check` at line 242, signature: (*own)'
+  why: TODO(model)
+  perf: TODO(model)
+  security: TODO(model)
+- name: test_residue_node_is_committable_exactly_when_owned
+  how: defines public function `test_residue_node_is_committable_exactly_when_owned`
+    at line 251
   why: TODO(model)
   perf: TODO(model)
   security: TODO(model)
