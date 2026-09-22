@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-concurrency-18-30-2026-09-22
+thought_session: belam-watch-claim-parallel-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -69,12 +69,13 @@ Belam   ──▶ core/main
 reports ──▶ {{REPORTS_TO}}
 ```
 
-## GRAPH COORD (owner 2026-09-21) — SoT `doc:standing-llm-ops`
+## GRAPH COORD (owner 2026-09-21/22) — SoT `doc:standing-llm-ops`
 ```
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
-CLAIM    REOPENED (Prime) > smallest unclaimed leaf under live/hot top
-IDLE     deepen hot top; only open second top when hot top has no free leaf
-STATUS   claimed/worked=active · rest of town:core bundle=horizon
+CLAIM    REOPENED > horizon OR any leaf in town:core (claimable)
+         NOT only already-active · director activates THEMSELF
+         distribute durable across depth · ≤18/dir · ≤30 box
+STATUS   = coord · active=claimed/worked · horizon=free/claimable
          maintain status on ALL goals in the bundle
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip
          → write.py board complete + goal Agent Notes (NOT Belam chat)
@@ -89,9 +90,9 @@ EXCEPT   exposed keys/leak → Belam NOW
 ```
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
   (not one fat same-level sibling).
-CLAIM: REOPENED > smallest unclaimed leaf under hot top
-  idle: prefer deepen hot top; open second top only when hot has no free leaf
-STATUS: claimed/worked=active · rest of town:core bundle=horizon
+CLAIM: REOPENED > horizon OR any leaf · activate self to concurrent sense
+  distribute durable across depth · spawn.parallel=1/goal · ≤18/dir · ≤30 box
+STATUS: active=claimed · horizon=free/claimable (coord surface)
 NO new g7.N (Belam only) · self-coord via geometry board
 ```
 
@@ -113,6 +114,7 @@ routes: write·read·send·dispatch/workflow·rotate/spawn
 lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only after lean
 loop independently until residues=0 · report to GRAPH not Belam
 watch: §3c FORMAT verbatim · pins only TREE/SCOPE/HOST/BRANCH
+watch-claim (HARD): horizon|leaf claimable · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
   spawn.parallel=1 per goal (config + orders)
@@ -158,5 +160,5 @@ pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22 ET: PROFILE STANDING CONCURRENCY pin → ≤18 live parents / director · ≤30 box-wide (parity with standing §4).
+-
 <!-- THOUGHT:END -->
