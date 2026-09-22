@@ -138,3 +138,22 @@ def test_conftest_guard_intercepts_ssh_prefixed_tmux():
     )
     assert ssh_ok.returncode == 1
     assert ssh_ok.stdout is None
+
+
+def test_conftest_guard_intercepts_ssh_prefixed_tmux_tuple():
+    """Defect 2 (DT.85 residue): the guard's membership test is
+    `cmd[:1] in (["tmux"], ["ssh"])`. For a TUPLE `cmd`, `cmd[:1]` is a tuple,
+    so the comparison against list literals can never match and the argv is
+    passed through to a REAL ssh. A tuple ssh-first argv must ALSO be answered
+    with the safe rc-1 CompletedProcess (list behaviour byte-identical).
+
+    Red-first: before the tuple(cmd[:1]) equality this test fails -- the real
+    ssh runs (rc 255 or FileNotFoundError), never rc 1 with stdout None."""
+    ssh_ok = subprocess.run(
+        ("ssh", "some-alias", "tmux", "send-keys", "-l", "-t",
+         "agi-rc:@246", "[agi-nudge] unread for director"),
+        capture_output=True,
+        text=True,
+    )
+    assert ssh_ok.returncode == 1
+    assert ssh_ok.stdout is None
