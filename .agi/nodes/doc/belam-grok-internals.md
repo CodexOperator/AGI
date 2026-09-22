@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-status-hygiene-sot-2026-09-22
+thought_session: belam-complete-cross-sync-2026-09-22b
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -75,7 +75,10 @@ HOST      ──▶ SSH encryption-town → /data/work/agi  (never /workspace/ag
 ```
 you     ──▶ {{BRANCH}}
 policy  ──▶ {{REMOTE_POLICY}}
-season2 ──▶ core/season2/main  (directors land here; Belam merges)
+season2 ──▶ core/season2/main  (directors land/push here; Belam merges→main)
+         director-belam REMOTE_POLICY push season2 = push core/season2/main ONLY
+         NEVER new remote branch · NEVER origin/seat/* head
+         helper = local-only (never new remote head)
 reports ──▶ {{REPORTS_TO}}
 ```
 
@@ -83,7 +86,10 @@ reports ──▶ {{REPORTS_TO}}
 ```
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    directors write.py board · Belam daily pass reads board
-DONE     residues=0 · format✓ · §3e suite green on tip → board complete
+DONE     residues=0 · format✓ · §3e suite green on tip (leaf/trunk)
+         → write.py set status complete (BARE YAML · never quoted)
+         → sync ALL post WTs · NEVER leave closed work as active/horizon
+         → board complete
 BELAM    ~once/day: merge · full verify · vision→goals + moral→visions lens
          · reopen/mint residues · NO mid-batch director chatter
 RECON-MIN (daily DIAGRAM B · HARD):
@@ -99,13 +105,20 @@ EXCEPT   exposed keys/leak → Belam NOW
 After ANY graph SoT modification (standing / internals / town) — ALL three roles
 (Belam · director-belam · director-helper):
   1. write.py ONLY (engine write.py route) · no UpdateAgent / profile hand-edit · no ping
-  2. push origin tips (core/season2/main + core/main as roles say)
+  2. push origin tips as roles say:
+       director-belam → origin/core/season2/main ONLY (NEVER seat remote head / new remote branch)
+       Belam → merge season2→main + push origin/core/main
+       helper → local-only (never new remote head)
   3. ALWAYS sync ALL post worktrees to that tip:
        seat-director-belam · seat-director-helper · any other grok post WTs
        (paths under /data/work/agi/.agi/worktrees/)
        prefer ff-only; if dirty → merge tip in without wiping WIP (never reset --hard)
+       CROSS-DIR LOCAL SYNC ALLOWED: either director may ff|merge-keep-WIP
+         the other's seat-director-* worktree (never reset --hard)
   4. Do NOT rely on remote-only — local HEAD must show the SoT
   5. No ping — graph + local trees; their grok-internals-sync picks PROFILE on next */30
+  COMPLETE: when leaf/trunk done (residues=0 · format✓ · suite✓) → write.py status complete (BARE)
+         · sync post WTs · NEVER leave closed work as active/horizon
 ```
 
 ## AUTHORITY
@@ -129,6 +142,7 @@ CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spaw
   soft floor ≥5 combined / director when claimable work remains (directors enforce; Belam awareness)
 DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
 ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never spawn while goal still horizon · quoted 'active' = BUG
+COMPLETE (leaf/trunk · residues=0 · format✓ · suite✓): write.py status complete (BARE) · sync post WTs · not leave active/horizon
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
@@ -142,5 +156,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-status-hygiene-sot-2026-09-22: refine DIAGRAM A land (all 3 roles + all post WTs) · DIAGRAM B recon-min · STANDING SoT-edit HARD + floor≥5 awareness + bare active
+belam-complete-cross-sync-2026-09-22b: COMPLETE bare+sync · CROSS-DIR local seat sync ALLOWED · season2 push = core/season2/main only (never seat head) · Belam merges→main
 <!-- THOUGHT:END -->
