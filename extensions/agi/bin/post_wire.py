@@ -33,10 +33,9 @@ import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
 
-#: The one heading every note writer shares (see cli.py and write.py's `note`
-#: verb). Testing only whether the note TEXT is already present is what let a
-#: node carrying a DIFFERENT note get a second heading appended.
-NOTES_HEADING = "## Agent Notes"
+#: Shared heading, declared in `node_writer`; testing only for the note TEXT
+#: is what let a node with a DIFFERENT note get a second heading.
+NOTES_HEADING = node_writer.NOTES_HEADING
 
 # --- reuse snapshot-goals.py's write_frontmatter --------------------------
 # Loaded by file path (not `import`) because the filename has a hyphen and is
@@ -482,12 +481,9 @@ def cmd_wire(args: argparse.Namespace) -> int:
             # LINE-anchored: a `## Agent Notes` mentioned inline inside THOUGHT
             # prose is not a section, and matching it appended the note bare.
             if notes and notes.strip() not in body:
-                note = notes.rstrip()
-                if any(ln.strip() == NOTES_HEADING
-                       for ln in body.splitlines()):
-                    body += f"\n\n{note}\n"
-                else:
-                    body += f"\n\n{NOTES_HEADING}\n{note}\n"
+                # UNDER the heading, not at end of body -- a trailing THOUGHT
+                # block would take the note outside its own section.
+                body = node_writer.merge_agent_notes(body, notes.rstrip())
             _update_via_writer(root, node_id, node_path,
                                original_fm, fm, original_body, body)
             updated_nodes.append(node_id)

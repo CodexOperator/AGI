@@ -405,6 +405,50 @@ def test_a_note_appends_under_an_existing_heading_rather_than_adding_a_second(pr
     assert "an earlier note" in text and "a later note" in text
 
 
+def test_an_inline_mention_of_the_heading_is_not_a_section(project):
+    """The `note` verb's predicate must be LINE-anchored. A `## Agent Notes`
+    named inline inside THOUGHT prose is not a section, and a substring test
+    finds it, then appends the note bare with no heading of its own."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text('---\nid: "hypothesis:h1"\ntype: hypothesis\n'
+                    'mint_id: abc123\ntitle: "t"\n'
+                    'testable_claim: "c"\nscaffold_hash: deadbeef\n'
+                    'status: pending\n---\n\nthe body\n\n'
+                    "<!-- THOUGHT:BEGIN — authored, not derived -->\n"
+                    "prose mentioning `## Agent Notes` inline\n"
+                    "<!-- THOUGHT:END -->\n")
+
+    e = write.Edit("hypothesis:h1")
+    write.verb_note(e, "a later note")
+    write.submit(project, e, actor="t")
+
+    text = path.read_text()
+    headings = [ln for ln in text.splitlines()
+                if ln.strip() == "## Agent Notes"]
+    assert len(headings) == 1, text
+    assert "a later note" in text
+
+
+def test_a_note_lands_before_a_trailing_thought_block(project):
+    """`## Agent Notes` mid-body with the THOUGHT block after it -- the
+    `goal:g7.31.3.1` shape. Appending at end of body would put the note after
+    `<!-- THOUGHT:END -->`, outside its own section."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text('---\nid: "hypothesis:h1"\ntype: hypothesis\n'
+                    'mint_id: abc123\ntitle: "t"\n'
+                    'testable_claim: "c"\nscaffold_hash: deadbeef\n'
+                    'status: pending\n---\n\nthe body\n\n'
+                    "## Agent Notes\nan earlier note\n\n" + THOUGHT + "\n")
+
+    e = write.Edit("hypothesis:h1")
+    write.verb_note(e, "a later note")
+    write.submit(project, e, actor="t")
+
+    text = path.read_text()
+    assert text.count("## Agent Notes") == 1, text
+    assert text.index("a later note") < text.index("<!-- THOUGHT:BEGIN"), text
+
+
 # --------------------------------------------------------------------------
 # L1.07 — `create`: the half that was missing when `edit` became `write`
 # --------------------------------------------------------------------------

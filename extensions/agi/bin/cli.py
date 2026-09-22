@@ -53,11 +53,9 @@ CANONICAL_NODE_TYPES = node_writer.CANONICAL_NODE_TYPES
 TYPE_ALIASES = node_writer.TYPE_ALIASES
 NODE_TYPES = node_writer.NODE_TYPES
 
-#: The one heading every note writer shares. `write.py`'s `note` verb already
-#: merges under it; `done` and `post_wire` used to test only whether the note
-#: TEXT was present, so a node arriving with a DIFFERENT note under this
-#: heading got a second heading -- measured on hypothesis:a00-c1f23fe9-865e62.
-NOTES_HEADING = "## Agent Notes"
+#: Shared heading, declared in `node_writer`; testing only for the note TEXT
+#: is what let a second heading onto hypothesis:a00-c1f23fe9-865e62.
+NOTES_HEADING = node_writer.NOTES_HEADING
 
 
 def _find_root() -> Path:
@@ -2063,13 +2061,10 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
                 # a `## Agent Notes` mentioned inline inside THOUGHT prose is
                 # not a section, and matching it appended the note bare with
                 # no heading at all (measured on this round's authored node).
-                new_body = nf2.body.rstrip()
-                note = notes.rstrip()
-                if any(ln.strip() == NOTES_HEADING
-                       for ln in new_body.splitlines()):
-                    new_body += f"\n\n{note}\n"
-                else:
-                    new_body += f"\n\n{NOTES_HEADING}\n{note}\n"
+                # UNDER the heading, not at end of body -- a trailing THOUGHT
+                # block would take the note outside its own section.
+                new_body = node_writer.merge_agent_notes(
+                    nf2.body, notes.rstrip())
                 res2 = node_writer.update_node(
                     root, node_id, body=new_body)
                 if res2.status == node_writer.REJECTED:
