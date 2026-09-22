@@ -1968,6 +1968,10 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         if guard:
             print(guard, file=sys.stderr)
             return 1
+        # NO `_check_profile_drift` here, deliberately (Residue 4.1,
+        # goal:g7.31.5.3): raw window-spawn primitive, also used for helpers
+        # and --dry-run name previews; the two SUCCESSOR-spawning primitives
+        # (`cmd_loop`, `cmd_rotate_self`) hold the gate before calling in.
 
     # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
     # name-for-every-non-prime-post): a NON-prime --seat names the window.
@@ -3019,6 +3023,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+
+    # goal:g7.31.5.3: as in `cmd_rotate_self`, drift refuses BEFORE the meter
+    # (which writes) and before any spawn. Same guard, same text.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:

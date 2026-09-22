@@ -52,6 +52,21 @@ def project(root, node_id):
     return artifact_path(root, str(ref)), _projected_bytes(nf)
 
 
+def _frontmatter_text(text):
+    """The YAML frontmatter block of raw node bytes, never the body: a
+    malformed node whose BODY mentions `profile_ref:` is not linked."""
+    lines = text.splitlines()
+    if not (lines and lines[0].strip() == "---"):
+        # No leading fence: leading block up to the first blank line, so a
+        # fence-less malformed header still surfaces rather than being skipped.
+        return "\n".join(lines[:next((i for i, ln in enumerate(lines)
+                                      if not ln.strip()), len(lines))])
+    for i, ln in enumerate(lines[1:], start=1):
+        if ln.strip() == "---":
+            return "\n".join(lines[1:i])
+    return "\n".join(lines[1:])
+
+
 def _raw_profile_ref(text):
     """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
     m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
@@ -73,10 +88,20 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except OSError as re_:
+                # Cannot read it back, so cannot prove it linked or in sync:
+                # name it `unreadable`, never traceback out of the sweep.
+                out.append({"node_id": f.stem, "artifact": "",
+                            "actual": None, "expected": None,
+                            "path": str(f), "status": "unreadable",
+                            "detail": f"{type(re_).__name__}: {re_}"})
+                continue
+            fm = _frontmatter_text(raw)
+            if "profile_ref:" not in fm:
                 continue  # unparseable but not profile-linked: not ours
-            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
+            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(fm),
                         "actual": None, "expected": None, "path": str(f),
                         "status": "unreadable",
                         "detail": f"{type(e).__name__}: {e}"})
