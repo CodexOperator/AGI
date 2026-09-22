@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -72,25 +72,29 @@ reports ──▶ {{REPORTS_TO}}
 ## GRAPH COORD (owner 2026-09-21) — SoT `doc:standing-llm-ops`
 ```
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
-CLAIM    write.py board · order: REOPENED (Prime) > open/horizon
+CLAIM    REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+IDLE     deepen hot top; only open second top when hot top has no free leaf
+STATUS   claimed/worked=active · rest of town:core bundle=horizon
+         maintain status on ALL goals in the bundle
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip
          → write.py board complete + goal Agent Notes (NOT Belam chat)
 BELAM    no mid-batch talk · daily graph pass only
 REOPEN   = Prime priority over plain open batches
+COORD    self-coordinate via geometry board only (§4b)
 EXCEPT   exposed keys/leak → Belam NOW
          credits empty · mesh down → owner ONLY + HOLD until reply
 ```
 
 ## NESTED GOAL AUTHORITY (HARD) — shared  (`doc:standing-llm-ops` §4b)
 ```
-you = director (not a scripted workflow stand-in)
-BREAK OUT assigned gN.M / gN.M.K → further nested goals so each parent owns a crisp goal
-MUR residue format-worthy? → mint nested goal (full Why→…→Agent Notes)
-  format completeness = tie-breaker to mint vs keep residue line
-YES  g*.*.x · deeper under ASSIGNED parent
-NO   new umbrella g7.N / top-level sibling (Belam only)
-parents: on child = nesting SoT
+Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
+  (not one fat same-level sibling).
+CLAIM: REOPENED > smallest unclaimed leaf under hot top
+  idle: prefer deepen hot top; open second top only when hot has no free leaf
+STATUS: claimed/worked=active · rest of town:core bundle=horizon
+NO new g7.N (Belam only) · self-coord via geometry board
 ```
+
 
 ## STANDING — byte-identical across directors (from this SoT)
 ```
@@ -144,5 +148,5 @@ pins ONLY (seat-local; rest = byte-copy of §3c FORMAT):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROFILE+WATCH only; ROUTINE_SYNC pointer to harness; watch is live-parents-workflows
+pointer standing-llm-ops §4b HARD nest/claim/status
 <!-- THOUGHT:END -->

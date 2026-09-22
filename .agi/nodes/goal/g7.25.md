@@ -14,14 +14,14 @@ origin: goals-doc
 scaffold_hash: 0fda225eb2dba49a
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - harness
   - grok-bot
   - adapter
-thought_session: g1-g7-rewrite-2026-09-19
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.25: Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code"
 ---
 <!-- BODY:BEGIN -->
@@ -73,5 +73,5 @@ Adding it is **one** `harnesses.grok-bot` config entry + **one** `bin/adapters/g
 - Cross-machine mesh messaging.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Tightened 2026-09-19 by interim Belam after owner chose practice-run scope: match today's adapter surface only. Handback vision deferred. Directors still dispatch pi parents for chain growth.
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->

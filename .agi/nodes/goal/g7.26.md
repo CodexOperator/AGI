@@ -14,11 +14,11 @@ origin: goals-doc
 scaffold_hash: 527f96977cacb583
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
-thought_session: g1-g7-rewrite-2026-09-19
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.26: Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump)"
 town: core
 ---
@@ -55,3 +55,7 @@ Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be se
 
 - Cross-cut: `goal:g4.20` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
 # goal:g7.26
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

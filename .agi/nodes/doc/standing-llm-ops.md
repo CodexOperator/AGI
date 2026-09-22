@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -417,22 +417,18 @@ still: graph routes only (dispatch/workflow) · no route bypass
 ## 4b. Director nested goal authority (owner 2026-09-21 — HARD)
 
 ```
-Directors = directors (not scripted workflow stand-ins)
+Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
+  (not one fat same-level sibling).
 
-BREAK OUT assigned gN.M / gN.M.K → further nested goals as needed
-  so each pi parent has a crisp goal: to own
+CLAIM: REOPENED > smallest unclaimed leaf under hot top
+  idle: prefer deepen hot top; open second top only when hot has no free leaf
 
-MUR residue big enough for full goal format?
-  → mint nested goal (Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes)
-  → format completeness = tie-breaker YES mint vs keep as residue line
+STATUS: claimed/worked=active · rest of town:core bundle=horizon
+  maintain status on ALL goals in town:core bundle
 
-AUTHORITY CEILING (HARD)
-  YES  g*.*.x · g*.*.*.x · deeper under an ASSIGNED parent
-  NO   new umbrella under g7 like g7.39 / g7.35 / any new gN top-level sibling
-       (only Belam/Prime mints new g7.N / top-level under umbrella roots)
-
-parents: on child = nesting SoT
+NO new g7.N (Belam only) · self-coord via geometry board
 ```
+
 
 
 ## 4c. ALL posts — harness mirrors ← graph SoT only (owner 2026-09-21 — HARD)
@@ -594,5 +590,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-§4c single-file recipe: harness=ROUTINE_SYNC SoT; per-post=PROFILE+optional WATCH
+owner-hot-top-4b HARD nest-multiple-kids claim-order status-horizon
 <!-- THOUGHT:END -->

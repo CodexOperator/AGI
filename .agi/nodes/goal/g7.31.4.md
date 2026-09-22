@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: a8d684b726c362da
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - send
   - handback
   - mesh
-thought_session: magic-pane-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.31.4: Native handbacks SSH-or-not — same function surface; engine fills mesh gaps"
 town: core
 ---
@@ -77,3 +77,7 @@ engine gap-fill
 Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

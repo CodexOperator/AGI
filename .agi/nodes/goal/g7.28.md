@@ -14,14 +14,14 @@ origin: goals-doc
 scaffold_hash: 67e36e432b34d525
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - dispatch
   - seat
   - persistent
-thought_session: texas-two-step-belam-voice-2026-09-19
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.28: Dispatch persistent mode for occupied seats"
 town: core
 ---
@@ -59,3 +59,7 @@ town: core
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Depends on / pairs with `goal:g7.27` for restart argv source.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 986ff4e54a717896
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - adapter
   - pane-methods
-thought_session: owner-ask-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.32.3: One adapter/harness with optional pane methods"
 town: core
 ---
@@ -66,5 +66,5 @@ grok_bot_adapter
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-standing body whole-replace owner-ask-2026-09-21
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->

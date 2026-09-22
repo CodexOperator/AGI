@@ -14,14 +14,14 @@ origin: goals-doc
 scaffold_hash: d584c8888a19d9cf
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - harness
   - template
   - spawn
-thought_session: texas-two-step-belam-voice-2026-09-20
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.27: Templates are the sole harness arg builders"
 town: core
 ---
@@ -64,3 +64,7 @@ Assigned to **director-helper**. Point director-belam stays on current batch —
 Owner voice 2026-09-19: templates sole arg builders; thin hook only when format cannot capture.
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->
