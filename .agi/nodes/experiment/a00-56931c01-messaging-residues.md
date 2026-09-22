@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-56931c01-45f6df
 next_edges: []
-edited_by: a00-56931c01
+edited_by: a00-1c474b6e
 line_ceiling: 40
 loop: goal:g7.32.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -15,7 +15,7 @@ role: kid
 scaffold_hash: 610e81cef144fbd4
 season: 2
 testable_claim: "Four residues left by r1/r2 are closed: decorative canary deleted, dead _RealSend binding exercised, both messaging files grid-covered, r2 prose overclaim corrected; messaging.py byte-unchanged"
-title: A00 56931c01 messaging residues
+title: "Messaging residue closure: grid mint, canary deleted, binding exercised"
 town: core
 ---
 # experiment:a00-56931c01-messaging-residues
@@ -112,3 +112,10 @@ Production lines over the given production path: **0** against
   the file.
 
 Raw output, screenshots, logs.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent set this node's title (DT.82) because the kid left the auto-derived title 'A00 56931c01 messaging residues'. The harvest's _auto_titled check (cli.py:757) compares the field to node_writer._derive_title(stem) and would have named the node untitled. No body or claim was changed by the parent.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+parent a00-1c474b6e: title repaired from the auto-derived string; node bytes otherwise the kid's.
