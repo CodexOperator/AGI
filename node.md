@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1038c716b8cbf405
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - write
   - sync
   - profile
-thought_session: magic-pane-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.31.5: Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless"
 town: core
 ---
@@ -73,3 +73,7 @@ graph nodes   ◄── no durable drift
 Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->
