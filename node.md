@@ -417,21 +417,25 @@ still: graph routes only (dispatch/workflow) · no route bypass
 ## 4b. Director nested goal authority (owner 2026-09-21 — HARD)
 
 ```
-Directors = directors (not scripted workflow stand-ins)
+Directors continuously break goals → nested sub/sub-sub as long as residues are format-worthy.
 
-BREAK OUT assigned gN.M / gN.M.K → further nested goals as needed
-  so each pi parent has a crisp goal: to own
+RESIDUE format-worthy (full Why→…→Agent Notes)?
+  → likely MULTIPLE goals of that format
+  → mint several nested kids UNDER the goal that yielded the residue
+  → NOT one fat same-level sibling at next-free gN.M
+  Tie-breaker: nest under yielding goal (prefer deepen hot chain)
 
-MUR residue big enough for full goal format?
-  → mint nested goal (Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes)
-  → format completeness = tie-breaker YES mint vs keep as residue line
+CLAIM (geometry board + goal status):
+  REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+  idle director: prefer deepen hot top; only open second top when hot top has no free leaf
+  maintain up-to-date status on ALL goals in town:core bundle
 
-AUTHORITY CEILING (HARD)
-  YES  g*.*.x · g*.*.*.x · deeper under an ASSIGNED parent
-  NO   new umbrella under g7 like g7.39 / g7.35 / any new gN top-level sibling
-       (only Belam/Prime mints new g7.N / top-level under umbrella roots)
+STATUS:
+  claimed / being worked → active
+  rest of town:core bundle (incl. parked spines not touched) → horizon
 
-parents: on child = nesting SoT
+NO new g7.N umbrella (Belam only)
+Self-coord via graph board only
 ```
 
 
