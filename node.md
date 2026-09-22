@@ -72,24 +72,30 @@ reports ──▶ {{REPORTS_TO}}
 ## GRAPH COORD (owner 2026-09-21) — SoT `doc:standing-llm-ops`
 ```
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
-CLAIM    write.py board · order: REOPENED (Prime) > open/horizon
+CLAIM    REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+IDLE     deepen hot top; only open second top when hot top has no free leaf
+STATUS   claimed / being worked → active
+         rest of town:core bundle (incl. parked spines not touched) → horizon
+         maintain status on ALL goals in the bundle
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip
          → write.py board complete + goal Agent Notes (NOT Belam chat)
 BELAM    no mid-batch talk · daily graph pass only
 REOPEN   = Prime priority over plain open batches
+COORD    self-coordinate via graph board only
 EXCEPT   exposed keys/leak → Belam NOW
          credits empty · mesh down → owner ONLY + HOLD until reply
 ```
 
 ## NESTED GOAL AUTHORITY (HARD) — shared  (`doc:standing-llm-ops` §4b)
 ```
-you = director (not a scripted workflow stand-in)
-BREAK OUT assigned gN.M / gN.M.K → further nested goals so each parent owns a crisp goal
-MUR residue format-worthy? → mint nested goal (full Why→…→Agent Notes)
-  format completeness = tie-breaker to mint vs keep residue line
-YES  g*.*.x · deeper under ASSIGNED parent
-NO   new umbrella g7.N / top-level sibling (Belam only)
-parents: on child = nesting SoT
+Directors continuously break goals → nested sub/sub-sub as long as residues are format-worthy.
+RESIDUE format-worthy (full Why→…→Agent Notes)?
+  → likely MULTIPLE goals of that format
+  → mint several nested kids UNDER the goal that yielded the residue
+  → NOT one fat same-level sibling at next-free gN.M
+  Tie-breaker: nest under yielding goal (prefer deepen hot chain)
+NO new g7.N umbrella (Belam only)
+Self-coord via graph board only
 ```
 
 ## STANDING — byte-identical across directors (from this SoT)
