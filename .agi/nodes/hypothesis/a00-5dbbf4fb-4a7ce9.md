@@ -21,7 +21,7 @@ role: kid
 scaffold_hash: 9b54407239381c6f
 season: 2
 testable_claim: "DT.87 residual closure on goal:g7.31.3.1 holds at HEAD 5f9f47bac: the self-citation is already replaced by a committed experiment, all three note writers call one line-anchored node_writer.merge_agent_notes, the four regression tests pass, brief.py is byte-unchanged, links 0 broken, gate 0 demote, and the still-dirty node files are what this round --owns lands."
-title: A00 5dbbf4fb 4a7ce9
+title: "DT.87 residual is real at HEAD: D1 already evidenced, D2 lands the dirty node files"
 town: core
 verdict: proved
 ---
