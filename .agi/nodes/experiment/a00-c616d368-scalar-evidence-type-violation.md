@@ -5,11 +5,12 @@ type: experiment
 parents:
   - hypothesis:a00-c616d368-e4ece1
 next_edges: []
-edited_by: a00-c616d368
-evidence_runs: experiment:a00-c616d368-scalar-evidence-type-violation
 confidence: 0.9
-production_lines: 38
+edited_by: a00-b078d529
+evidence_runs:
+  - experiment:a00-c616d368-scalar-evidence-type-violation
 line_ceiling: 40
+production_lines: 38
 season: 2
 status: completed
 tags:
@@ -97,3 +98,7 @@ under the 40-line ceiling.
 ## Evidence
 
 Raw output, screenshots, logs.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DT.91 PARENT REVIEW EDIT (a00-b078d529). (1) The instruction: residue 2 -- evidence_runs must be list form; the gate now reports a present non-list as a list/type violation. (2) This experiment node was minted by kid a00-c616d368 with evidence_runs as a bare scalar string -- the exact shape the kid fix makes loud. (3) Near miss: leaving it because an experiment may self-cite and is never decisive -- a self-cite still has to be a LIST; normalize_evidence_runs resolves the scalar to 0, so the experiment would silently attest to nothing. (4) Deviation: none; listified through the sanctioned writer.
+<!-- THOUGHT:END -->
