@@ -172,8 +172,9 @@ def test_normalize_evidence_runs_mixed_list_counts_only_resolvable():
     "value,violations",
     [
         (None, []),
-        (0, []),
-        ("3", []),
+        (0, [0]),
+        ("3", ["3"]),
+        ("exp:real", ["exp:real"]),   # scalar id-shaped string: a list/type violation
         (["exp:real"], []),
         (["synthetic"], ["synthetic"]),
         (["exp:real", "synthetic"], ["synthetic"]),
@@ -183,6 +184,22 @@ def test_normalize_evidence_runs_mixed_list_counts_only_resolvable():
 )
 def test_evidence_runs_violations(value, violations):
     assert eg.evidence_runs_violations(value) == violations
+
+
+def test_scalar_evidence_runs_rejects_a_decisive_verdict_as_a_type_violation():
+    """MUR mur-g7-31-4-dt-85: `evidence_runs: experiment:x` (a scalar string,
+    not a list) used to resolve to 0 and be demoted as "no evidence". It is a
+    schema list/type violation and must be reported as one — even though the
+    string is shaped exactly like a node id and resolves in the corpus.
+
+    This is the case that used to slip through because the string *looks*
+    like a node id: the gate never saw the missing list wrapper."""
+    res = eg.apply_gate("proved", "exp:real", corpus={"exp:real"},
+                        self_id="hypothesis:x", node_type="hypothesis")
+    assert res.rejected is True
+    assert not res.demoted
+    assert "type violation" in res.reason
+    assert res.taxonomy_violations == ["exp:real"]
 
 
 def test_is_node_id_shaped():
