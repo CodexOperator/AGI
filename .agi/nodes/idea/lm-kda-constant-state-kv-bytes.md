@@ -3,15 +3,14 @@ id: idea:lm-kda-constant-state-kv-bytes
 mint_id: 80c7345ea2de428cbe0b600f06243e9e
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g5.22
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 7c8fabec3f2c0e02
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: 3:1 KDA:MLA hybrid to hold per-token sequence-mixing bytes flat on bandwidth-bound decode
 town: local-maxxing
 ---

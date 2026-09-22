@@ -3,15 +3,14 @@ id: idea:lm-online-draft-distillation-cpu-split
 mint_id: 7fe3cdf3536c46838ba019ddcbd2408d
 type: idea
 parents:
-  - goal:g5.13
+  - goal:g5.22
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 05bb47f1114e1dae
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: Online draft distillation from verify logits, trainer split off the decode box (Qwen3.5-0.8B draft)
 town: local-maxxing
 ---

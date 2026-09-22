@@ -3,15 +3,14 @@ id: idea:lm-self-spec-small-draft-head
 mint_id: f49c4449e600445b9bc1f068176acdf2
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g5.22
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 2f971700686e40ee
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: "Self-speculation on a 0.6B: shallow split + factored draft head, gated by batch-verify cost"
 town: local-maxxing
 ---

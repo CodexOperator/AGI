@@ -3,15 +3,14 @@ id: idea:lm-hunch-graphgents-snn-walkers-on-the-thoughtgraph
 mint_id: bef51fc3993649b5982e3be168205582
 type: idea
 parents:
-  - goal:g5.12
+  - goal:g5.28
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 201b3215b736ff19
 season: 2
 tags:
   - local-maxxing
   - owner-hunch
-thought_session: dissolve-legacy-2026-09-19
 title: "Graphgents: SNN state and tiny-model walkers on the thoughtgraph, three $0 tests"
 town: local-maxxing
 ---

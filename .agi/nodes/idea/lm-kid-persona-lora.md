@@ -3,16 +3,15 @@ id: idea:lm-kid-persona-lora
 mint_id: ee55c6e7ee3647e1bf03ca14f5cf5ba3
 type: idea
 parents:
-  - goal:g5.6
+  - goal:g5.23
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: e4f560d8c4d4dc1c
 scale: big
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Train our own kid: a QLoRA on a small open base (Qwen3.5-4B/9B class) toward an earnest, tool-first, short-turn kid persona, trained WITH the disclosure preamble, on the town own 1,943 kid transcripts + 1,295 experiment nodes; Camber XS hours are for exactly this\""
 town: local-maxxing
 ---

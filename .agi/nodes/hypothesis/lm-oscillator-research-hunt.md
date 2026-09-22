@@ -3,12 +3,12 @@ id: hypothesis:lm-oscillator-research-hunt
 mint_id: 63baed87f7c843ad99fcf04edd395f28
 type: hypothesis
 parents:
-  - goal:g5.6
   - idea:lm-hybrid-oscillator-readout
+  - goal:g5.28
 next_edges: []
 ceiling: "\"$2 OpenRouter for the round own tokens (parent + 3 kids, deepseek-v4-flash class); $0 compute; NO Camber, NO GPU, NO ssh; downloads <= 2 GB on this A1 (bitnet.cpp binary + 2B-4T weights only), removable after the measurement; A1 loadavg < 3 before each kid spawn; never beside the q4-KV bench.\""
 confidence: 0.65
-edited_by: belam
+edited_by: thought-master
 evidence_runs:
   - experiment:a00-7fcf31f1-43592b
   - experiment:a00-288aec4d-1f6c77
@@ -19,7 +19,6 @@ scaffold_hash: 20f74dfdc9dc0181
 season: 2
 testable_claim: "\"Three kids, each with the verbatim reader brief from .agi/context/local-maxxing/troves/2026-09-16-oscillatory/hunt_args.json (sources[].prompt: oscillatory, diffusion-llm, one-bit; fetch by curl, no paid API), deliver .agi/context/local-maxxing/troves/2026-09-16-oscillatory/<key>.md digests such that (1) every claim carries URL + date and is tagged MEASURED or ESTIMATE, (2) each of >= 8 papers per digest has the mechanism, the headline number, code + licence, CPU-toy feasibility and the ONE sketch element it maps to, (3) the oscillatory digest names the 3 closest mechanisms to the metronome idea and the smallest numpy experiment, (4) the diffusion digest answers whether Mercury has open weights (yes/no, cited) and names the ONE open dLLM runnable on local-town 8 GB or Camber XS 24 GB, (5) the one-bit digest answers whether a ternary dLLM exists (cited) and gives a CPU tok/s figure for BitNet-b1.58-2B-4T on an ARM CPU (MEASURED from a source, or run bitnet.cpp on this A1 if it installs from a release binary in <= 20 min — else ESTIMATE, flagged); and the parent synthesises the three angles from hunt_args.json (angles[]: metronome-toy, hybrid-readout, iron-fit) into synthesis.md: a ranked top 8-12 by knowledge-per-token with a falsifier each, the round-0 $0 measurements, and the only planned Camber minutes against the 3 GPU-hours/MONTH budget.\""
 tests: "\"ONE pi parent, THREE kids (oscillatory, diffusion-llm, one-bit), READ-ONLY web + this box: fetch with curl -sL + python3 tag-stripping, no pip installs, no model downloads except the bitnet.cpp release binary + the 2B-4T weights (~1.2 GB) for conjunct (5) IF it installs without pip in <= 20 min, no ssh, no GPU, no paid API; each kid <= 40 tool calls, <= 45 min wall; kids write their digest + an experiment node each; the parent spawns all three (spawn.json x3), authors no experiment node, writes synthesis.md from the angles, re-probes one citation per digest by opening it, writes probes: per numbered conjunct, sets verdicts; proved needs the kids in evidence_runs. This round is file I/O + curl on the A1: it MAY run beside TM.21; it must NOT run beside the q4-KV bench (if q4-KV is live, wait).\""
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Research hunt for the metronome: three kid readers (oscillatory/energy/prediction models; diffusion LLMs incl. Mercury open-weights status; 1-bit/ternary quantisation incl. any ternary dLLM) each mapped line-by-line onto the owner sketch, synthesised by the parent into a ranked list with the smallest $0 numpy metronome experiment\""
 town: local-maxxing
 verdict: inconclusive_lean_proved:65

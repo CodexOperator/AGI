@@ -1,0 +1,76 @@
+{
+ "type": "object",
+ "properties": {
+  "source": {
+   "type": "string"
+  },
+  "unsupported_claims": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "errors_found": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "missing_angles": {
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "strongest_seed": {
+   "type": "string"
+  },
+  "weakest_seed": {
+   "type": "string"
+  },
+  "confidence": {
+   "type": "number",
+   "description": "0-1 that the reading is reliable"
+  }
+ },
+ "required": [
+  "source",
+  "unsupported_claims",
+  "errors_found",
+  "missing_angles",
+  "strongest_seed",
+  "weakest_seed",
+  "confidence"
+ ],
+ "source": "tq-main",
+ "unsupported_claims": [
+  "Central thesis 'V compression is nearly free; all quality loss is K-side' is presented as the repo's settled finding, but the cited doc docs/papers/asymmetric-kv-compression.md contains later contradicting entries the reader omitted: @Madreag (2026-04-01) reports 'V type dominates PPL' and 'K precision matters less than V precision'; the vLLM PR fix changed default value_quant_bits 4->8 because 'value precision is the quality bottleneck'; @sjoerdmaessen CORRECTION (2026-04-02) reports asymmetric q8_0-K/turbo3-V produces corrupt output (U+003F '?') while symmetric turbo3 works. The reading quotes the abstract's framing and not the corrections.",
+  "Boundary V 'recovers 55%/37%/91%/42%' is quoted from docs/benchmarks.md, but docs/papers/layer-aware-v-compression.md's own Addendum Part 3 says the hybrid-model numbers (incl. the 91% MoE figure) are CONFOUNDED by a layer-selection bug ('Only layer 63 is both a boundary layer AND a KV layer. 1 out of 16 KV layers upgraded.') and that 'the apparent 91% recovery ... may partially reflect the boundary policy accidentally upgrading a high-impact KV layer'. The same paper concludes 'Uniform turbo3 remains the cleaner practical default'. The reader presents these as clean mechanism.",
+  "reusable_assets says benchmarks/validate_real_model.py is 'CPU-runnable (transformers optional)'. The file header says 'Requires: pip install transformers torch accelerate' and imports torch unconditionally at line 15. transformers is NOT optional; this is factually wrong, and it contradicts the reading's own summary claim that the Python is 'NumPy/SciPy only - no torch required'.",
+  "key_fact 'upstream llama.cpp has merged only Hadamard KV rotation (#21038) plus FWHT kernels CPU #22631, CUDA #23615, Vulkan #23687' is labelled MEASURED, but it is the repo's own self-report in README.md lines 3/16; the reader did not independently verify any of those external PRs. It should be marked as a source claim, not a measurement.",
+  "key_fact 3 states 'Norm is per-vector (per token-per-head), not per-channel group' while the same bullet says 'one norm per block'. docs/papers/block-size-experiment.md is explicit that the production turbo3 format stores a 16-bit norm per 32-element storage block, and norm correction is per 128-element rotation group. The per-vector framing is true only of the Python prototype (polar_quant.py `np.linalg.norm(x, axis=1)`), not the llama.cpp codec the reading is advising a port of.",
+  "Seed 2 asserts q8_0-K + turbo4-V 'is strictly safer than symmetric turbo' for 'any untested Q4_K_M model'. The source shows the catastrophe is model-family-dependent: Mistral-24B Q4_K_M symmetric turbo3 = PPL 4.987 healthy, Llama-70B +11.4%, Command-R+ 104B +3.6%; only Qwen is catastrophic. 'Strictly safer for any model' overgeneralizes the source.",
+  "Seed 6 asserts 'upstream's FWHT CPU kernels (#22631) already supply the expensive primitive'. docs/upstream-pr-plan.md states the CPU path uses DENSE O(d^2) rotation in C, that CPU and Metal 'may not implement the same algorithm variant', and lists 'CPU path end-to-end validation' and 'CPU llama-bench' as NOT YET done (lines 150/157/234/236/241). The claim is unverified and in tension with the plan."
+ ],
+ "errors_found": [
+  "Omission of the 2026-04-02 corruption correction in docs/papers/asymmetric-kv-compression.md (line ~252): the exact production recommendation the reading elevates ('q8_0-K + turbo-V rescues Q4_K_M models') was found in production to emit literal '?' characters; speed-only benchmarks masked it. This is the single most load-bearing omission and it directly undercuts seed 2.",
+  "Source-internal depth conflict not flagged: docs/benchmarks.md gives Qwen3.5-35B MoE 64L and Qwen3.5-27B Dense 36L, while docs/papers/layer-aware-v-compression.md gives MoE 40L (10 KV) and Dense 64L (16 KV). The reading copied the benchmarks.md numbers verbatim without noting the two source tables disagree.",
+  "Norm granularity error: 'per-vector (per token-per-head)' vs the block-size paper's per-32-element storage block (and per-128 rotation group). The reading conflates the prototype and the production codec.",
+  "validate_real_model.py 'transformers optional' is false (unconditional `from transformers import ...` and `import torch`).",
+  "Upstream-merge facts are the repo's self-claims and should not be marked MEASURED without opening the PRs.",
+  "Minor: turbo2 '6.4-7.5x' merges the README main table (6.4x) with the architecture-diagram/Python-prototype number (7.5x); the range is not a single measurement.",
+  "The reader treats docs/benchmarks.md's 'norm per block' and its own 'per-vector' summary as consistent; they are not, and the block-size paper resolves the question the reader left open."
+ ],
+ "missing_angles": [
+  "The asymmetric-K/V corruption correction and its lesson (speed-only benchmarks masked garbage output, discovered only by reading chatbot responses) — directly relevant to the town's 'failures included' moral and to seed 2's safety premise.",
+  "Model-family specificity: the town's target is Qwen3.5-9B Q4_K_M, a Qwen-family model, which IS the sensitive family. The reading states the universal 'K is everything' rule but never says the specific target is the one family where symmetric turbo is catastrophic (and where the asymmetric rescue was later found to corrupt).",
+  "No CPU turbo implementation exists anywhere: every measured tokens/s number in the repo is Metal/CUDA/HIP. For the CPU box the repo supplies only the NumPy reference codec, REFRACT, and the quality methodology — the reader lists this as an open question but does not make it the headline caveat it is.",
+  "The port plan's dense O(d^2) rotation on CPU is a first-class cost/risk (upstream-pr-plan.md: 'O(d^2) rotation is per-batch, not per-token ... If bad, implement FWHT for CPU'); the reading notes it only obliquely in open question 5.",
+  "REFRACT's CPU feasibility is bounded by generation speed and the R-NIAH refusal artifact the reading itself lists in failures_and_lessons; the reader did not connect the two (slow CPU generation + timeout/truncation can reintroduce the noise floor it already documented).",
+  "Cross-source link: the bonsai2-small-gpu source mentions a 'qwen 3.8 mtp head', which is the likely referent for the unresolved 'qwen3.8 50b' id the reading leaves as an external open question; the reader did not point at the sibling source.",
+  "The reading never states the REFRACT PLAD axis definition or whether PLAD/R-NIAH can be run at CPU token rates, despite recommending REFRACT as the CPU validation oracle."
+ ],
+ "strongest_seed": "Seed 1 (upstream llama.cpp's merged Hadamard rotation + stock q4_0 reproduces most of turbo4's quality gain on CPU). It is the cheapest decisive test in the set (<1 CPU-hour, already-upstream code, no GPU), and it directly probes the repo's foundational claim that rotation is first-order and the codebook second-order. A true or false result both transfer to the town's CPU-only box, which is the highest knowledge-per-token of any seed.",
+ "weakest_seed": "Seed 2 (q8_0-K + turbo4-V / Boundary V is within +1-2% PPL and 'strictly safer than symmetric turbo' for any untested Q4_K_M model). Its premise is contradicted inside the cited source: asymmetric q8_0-K/turbo3-V produced corrupt output in production (2026-04-02 correction), the vLLM fix raised value bits 4->8, and @Madreag found V type dominates PPL. It is also a GPU-targeted seed (2-4 CPU-hours) aimed at the 2070 SUPER, not at the CPU-only aim, so even a positive result buys little for the town.",
+ "confidence": 0.62
+}

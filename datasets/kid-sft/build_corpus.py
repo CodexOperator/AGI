@@ -35,7 +35,7 @@ WT = "/home/ubuntu/work/agi/.agi/worktrees/a00-d511add6"
 SESSIONS = "/home/ubuntu/work/agi/.agi/sessions"
 PI_TRAJ = "/home/ubuntu/.pi/agent/sessions"
 NODES = os.path.join(WT, ".agi/nodes/experiment")
-OUT_DIR = os.path.join(WT, ".agi/context/local-maxxing/kid-sft")
+OUT_DIR = os.path.join(WT, "datasets/kid-sft")  # moved 2026-09-20 (owner: separate datasets archive)
 OUT_JSONL = os.path.join(OUT_DIR, "kid_sft.jsonl")
 
 KID_PREAMBLE = (

@@ -3,15 +3,14 @@ id: idea:lm-tiktok-captions-free-label-ruler
 mint_id: b3f7e020069d4346a8a68d8e57400dd8
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g5.26
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 50faf4d5e89d8ba2
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: 4.5 B free engagement labels as the town's accuracy-per-weight-byte ruler
 town: local-maxxing
 ---

@@ -2,8 +2,9 @@
 """towns.py — load town:* super nodes (g15 round I-3b).
 
 A town is a super node (owner ruling 2026-09-12): its cells are `visions`,
-`council`, `season`, `season_history` — and its BRANCH NAMES are DERIVED from
-those cells, never stored. Reading `town:*` nodes is what `crons.py apply`
+`council`, `season`, `season_history`, `location` (mesh host alias; optional
+carry-through) — and its BRANCH NAMES are DERIVED from those cells, never
+stored. Reading `town:*` nodes is what `crons.py apply`
 does for `crons.md`; the towns are the declared rows.
 
 Readers alive + deprecated, live first (CLAUDE.md convention): every glob of
@@ -66,6 +67,7 @@ class Town:
     season: int = 0
     season_history: list = field(default_factory=list)
     mint_id: str = ""
+    location: str = ""  # mesh host alias (WireGuard/SSH); carry-through only
     # True if the node spelled `visions: auto` (kept for provenance).
     visions_was_auto: bool = False
 
@@ -133,6 +135,7 @@ def _load_one(path: Path) -> Town:
     season = fm.get("season")
     season_history = fm.get("season_history") or []
     mint_id = str(fm.get("mint_id", ""))
+    location = str(fm.get("location") or "")
     if season is None:
         season = 0
     elif not isinstance(season, int):
@@ -151,6 +154,7 @@ def _load_one(path: Path) -> Town:
         season=season,
         season_history=list(season_history),
         mint_id=mint_id,
+        location=location,
         visions_was_auto=(visions == AUTO),
     )
 
@@ -378,7 +382,8 @@ def _main(argv=None) -> int:
         else:
             for t in load_towns(args.root):
                 print(f"{t.slug} council={t.council} season={t.season} "
-                      f"visions={t.visions} derives={t.derives}")
+                      f"location={t.location!r} visions={t.visions} "
+                      f"derives={t.derives}")
     except TownError as e:
         print(f"towns.py: {e}", file=sys.stderr)
         return 1

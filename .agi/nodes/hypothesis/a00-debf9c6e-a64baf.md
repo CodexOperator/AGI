@@ -3,10 +3,10 @@ id: hypothesis:a00-debf9c6e-a64baf
 mint_id: b69527b743a74b99a88424c50c377228
 type: hypothesis
 parents:
-  - goal:g17.14.3
+  - goal:g7.25.3
 next_edges: []
 confidence: 0.75
-edited_by: a00-8ee9bdff
+edited_by: belam
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
 line_ceiling: 40
@@ -19,6 +19,7 @@ role: kid
 scaffold_hash: 6c703b2fe83de13c
 season: 2
 testable_claim: "A test-only mirror of the adapter interface suite for the `grok-bot` harness guards the `goal:g4.6` seam by HARD-loading `adapters.load(\"grok_bot\")` with no importorskip: against the real `goal:g17.14.1` adapter and the real `goal:g17.14.2` config row it is green (8 passed); a missing OR present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip; `NAME` is pinned to the harness literal `grok-bot`; and `restart` is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags."
+thought_session: parent-residue-g14-g17-remap
 title: Grok-bot mirror hard-loads the adapter (importorskip removed)
 town: core
 verdict: proved

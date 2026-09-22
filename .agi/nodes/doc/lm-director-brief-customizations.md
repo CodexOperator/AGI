@@ -9,11 +9,14 @@ edited_by: belam
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
-thought_session: dissolve-legacy-2026-09-19
+thought_session: internals-standing-sync-2026-09-21
 title: "director-thought per-master section of the unified director brief (thought town: trunk, cadence, dispatch classes, review-by-director, comms, rotation, typed decisions)"
 town: core
 ---
 # doc:lm-director-brief-customizations — director-thought's per-master section of the unified director brief
+
+> **Standing spine:** `doc:standing-llm-ops` (diagram-max incl. thought-stream; `[merge-up]` only at residues=0). Customizations below do not weaken that.
+
 
 Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified director brief (owner round D, belam 02:00Z). Names and numbers only; the common brief holds everything not listed here.
 
@@ -55,3 +58,5 @@ athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 me
 01:4xZ 09-19 link_ref dropped: it named a dead session scratchpad file (/tmp/claude-1001/.../f7eab981-.../scratchpad/dt-brief.md) that the 01:3xZ storage cleanup removed -- the body IS this doc (schema: absent link_ref = body-is-data). NEVER + Batched lines added under Trunk + cadence (owner 01:1xZ / 01:0xZ / 01:3xZ; mirrors unified brief §4 thought + §2).
 
 02:0xZ 09-19 mirrored from the unified brief on core @71cc9c070 / @b564fa270 (SM sync line 02:03Z): the mur-residue in-loop rule (owner 01:5xZ) and the SM.135 meter-forces-rotation line, both under Trunk + cadence.
+
+thought-master 01:3xZ 09-21: the engine seat `director-engine` (owner order 01:1xZ 09-21, goal:g7.33) inherits every customization here and the unified brief §0-§3, with these deltas on its card `.agi/sessions/quorum/director-engine.md`: owning goal goal:g7.33; worktree .agi/worktrees/post-director-engine on local-maxxing/season2/posts/director-engine/main; pi parents only, no GPU, 2-3 engine rounds live at once within the box memory rule on doc:lm-town-trajectory; suite runs in its worktree, never MAIN; one [merge-up] per batch + one line on the trajectory board. Note for the next brief trim: the unified brief §4 'thought' section still names season1 paths (local-maxxing/season1/*, worktree town-local-maxxing) -- stale since the box move; the live facts are on the cards and doc:lm-local-town-box-facts.

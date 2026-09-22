@@ -3,10 +3,10 @@ id: hypothesis:a00-bfd0d94a-d67716
 mint_id: 2407137919c24ef9a20aa556a53bdcac
 type: hypothesis
 parents:
-  - goal:g17.14.1
+  - goal:g7.25.1
 next_edges: []
 confidence: 0.85
-edited_by: a00-597f6b8f
+edited_by: belam
 evidence_runs:
   - build:a00-fcfbc2f9-bin-adapters-grok-bot-adapter
 line_ceiling: 40
@@ -19,6 +19,7 @@ role: kid
 scaffold_hash: 5513438c7449e897
 season: 2
 testable_claim: "One new file, `extensions/agi/bin/adapters/grok_bot_adapter.py` — defining `NAME`, `resolve_bin`, `model_args`, `child_env`, `build_command`, `is_alive`, `restart`, `needs_credential` (False) — is enough to make `grok-bot` a loadable harness: `adapters.load(\"grok_bot\")` succeeds and every name in `adapters.REQUIRED` is present, with **zero edits to `dispatch.py`** and zero edits to the existing adapters."
+thought_session: parent-residue-g14-g17-remap
 title: "Grok Bot adapter stub: REQUIRED surface loadable, flags+restart unmeasured, zero dispatch.py edit"
 town: core
 verdict: inconclusive_lean_proved:85

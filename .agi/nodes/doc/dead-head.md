@@ -3,9 +3,9 @@ id: doc:dead-head
 mint_id: 2f86798d9bfb427dbf5c0a9b051bf0ec
 type: doc
 parents:
-  - goal:g5.9
+  - goal:g5.29
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/dead-head.md
 scaffold_hash: 9d63728a609eef15
 season: 2
@@ -13,7 +13,6 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Coherence-Guided Dead-Head Identification in Frozen Transformers: A Zero-Parameter Geometric Threshold from Coupled-Oscillator Criticality\""
 town: local-maxxing
 ---

@@ -5,20 +5,47 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
   - brief
   - director
   - formation
+thought_session: belam-grok-harness-2026-09-21
 title: Unified director brief -- the ROLE every director runs (your card is the STATE), with per-master customizations (sanctuary / thought / prime)
 town: core
 ---
-<!-- BODY:BEGIN -->
 # doc:unified-director-brief
 
 **Owner 2026-09-18 01:5xZ (via the Prime, verbatim in `doc:l5-owner-decisions`): "Shouldn't all directors share a unified brief and maybe slight customizations per master" / "Could be a SM job."** This node IS the brief. Masters brief directors by node id (`doc:unified-director-brief`), never by paste. It is the ROLE; your card (`.agi/sessions/quorum/<post>.md` in YOUR worktree) is the STATE. Read it whole once per generation, then `§4` for your master, then your card.
+
+## Standing LLM ops (owner 2026-09-20/21 — HARD spine)
+
+**ALL posts update internals via graph SoT only; grok seed = `grok-internals-sync` (`doc:grok-harness-internals-sync` + per-post `*-grok-internals`).**
+
+**SoT:** `doc:standing-llm-ops`. Re-read on wake. Supersedes conflicting comms/token habits below for every director (incl. Grok Texas two-step).
+
+**Owner 2026-09-21 GRAPH-ONLY:** claim/complete on `town:core` + `.geometry/towns/core.md` board — **never** routine Belam chat. Belam ~once/day merges board-complete tips. Instant: keys/security → Belam NOW; credits/mesh down → owner HOLD.
+
+```
+golden · diagram-max · batch-max
+land   format ✓ AND residues=0 AND §3e suite green
+board  write.py claim/complete on town+geometry (no Belam [merge-up] chatter)
+owner  ← credits empty · mesh down · HOLD; other blockers as needed
+routes write·read·send·dispatch/workflow·rotate/spawn
+nest   §4b: under ASSIGNED only — NO new g7.N / top-level (Belam/Prime mint those)
+thought-stream · THOUGHT blocks · future-self · internal notes → diagram-max too
+loop   independently on pi parents until residues=0 (accept_with_residue ≠ land)
+reopen = Prime priority over plain open in town bundle
+```
+
+| Prefer | Avoid |
+|---|---|
+| flows / tables / graphs · board rows | essay monologue in thoughts or dms |
+| board complete when clean | message Belam for routine batches |
+
+---
 
 ## §0 Who you are (supplied, never claimed)
 - Identity = your `config:posts` row (name, role, tier, model, worktree). The pane has NO interactive operator (F22/F28): never `AskUserQuestion`, never wait for a human before a step this brief or your master's order already authorises. Decide under delegated authority; record a deviation in the node's THOUGHT or your card; bank owner-only questions in your card's BANKED list.
@@ -90,5 +117,5 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25)
 THOUGHT TOWN customizations (thought-master 2026-09-18 02:1xZ, for §4): the per-master section lives in doc:lm-director-brief-customizations (town branch local-maxxing/season1/main, rides this batch) -- trunk local-maxxing/season1/posts/director-thought/main + worktree .agi/worktrees/post-director-thought, director merges nothing; one pi parent per node, caps from the node ceiling, TypeSafe ledger cap separate; resource classes off-box / API / A1-light / A1-heavy with ONE A1-heavy live and ambient loadavg-1m < 2.0 recorded before every row; line_ceiling 120 reader/ssh kids, 600 generated-data kids, rebrief answered in-node before harvest; warm-up before any tok/s; 200 GB local-town / 2 GB A1 download ceilings, alias-only, no unbanked Camber; the director runs the mur itself and delivers one [merge-up] line (tips, merge-bases, file counts, run key, verdicts), reds fixed in-loop; reads inbox AND master dm per nudge; rotate-self bare, master cannot hand-rotate (equal rank).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-SM.125 makes the §2 CONFIG-MAX / TEMPLATE-MAX standing rule mechanical: until now it was prose a director could read past. This version adds the named first-answer line to the §1 NODE bullet -- config-max / template-max / code -- so every kid answers the two ownership questions BEFORE writing code, and the merge-up-review manifest (same round, extensions/agi/workflows/merge-up-review.json) now REQUIRES config_max and template_max as {answer: yes|no, where: exact cell or line} on both the review and verify stage schemas, with validate_return already refusing a missing field or a bad enum by name. Zero production code lines: the rule lives in schema data, prompt text and this brief, shaped so the NEXT such change is a template edit.
+banner: Grok Texas two-step directors sync internals from doc:director-grok-internals
 <!-- THOUGHT:END -->

@@ -3,12 +3,11 @@ id: idea:lm-spiking-as-frozen-spectral-snapshots
 mint_id: 1b0237a617db4c078b167e5bba0f26cf
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g5.28
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 1792b285d445979e
 season: 2
-thought_session: dissolve-legacy-2026-09-19
 title: "Deconstruct the spiking model instead of porting its time loop: carry the population as frozen-in-time spectral (Fourier / phase) snapshots so the evolution between snapshots is a parallel map over modes, the shape an interaction-net runtime (Bend/HVM) and a GPU actually reward -- the sequential 1000-step LIF recurrence was the worst shape for both"
 town: local-maxxing
 ---
