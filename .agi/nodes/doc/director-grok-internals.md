@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-status-hygiene-sot-2026-09-22
+thought_session: belam-complete-cross-sync-2026-09-22b
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -38,7 +38,7 @@ IDENTICAL across directors except the five tags below
 |---|---|
 | `{{POST}}` | director-belam \| director-helper |
 | `{{BRANCH}}` | core/season2/main \| local-only |
-| `{{REMOTE_POLICY}}` | push season2 \| never new remote head |
+| `{{REMOTE_POLICY}}` | push season2 (= push `core/season2/main` · NOT new branch · NEVER seat remote head) \| never new remote head |
 | `{{REPORTS_TO}}` | Belam daily-pass / graph board \| director-belam point |
 | `{{SEAT_LABEL}}` | short post name |
 
@@ -46,7 +46,7 @@ Post fill examples (not a second SoT):
 
 | post | POST | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
 |---|---|---|---|---|---|
-| point | director-belam | core/season2/main | push season2 | Belam daily-pass / graph board | director CORE TOWN |
+| point | director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
 | helper | director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
 
 ---
@@ -65,7 +65,10 @@ location ──▶ encryption-town  (town.location — pull town:core)
 ```
 you     ──▶ {{BRANCH}}
 policy  ──▶ {{REMOTE_POLICY}}
-Belam   ──▶ core/main
+         push season2 = push origin/core/season2/main ONLY
+         NEVER new remote branch · NEVER origin/seat/* head
+helper  ──▶ local-only (never new remote head)
+Belam   ──▶ core/main  (merges season2→main on daily pass)
 reports ──▶ {{REPORTS_TO}}
 ```
 
@@ -81,11 +84,16 @@ ACTIVE-BEFORE-SPAWN (HARD · DIAGRAM C + WATCH CLAIM):
          quoted 'active' = BUG · always bare active
 STATUS   = coord · active=claimed/worked · horizon=free/claimable
          maintain status on ALL goals in the bundle · parents w/ open kids = active
-DONE     residues=0 · format✓ · §3e suite green on YOUR tip
-         → write.py board complete + goal Agent Notes (NOT Belam chat)
+DONE     residues=0 · format✓ · §3e suite green on YOUR tip (leaf/trunk)
+         → write.py set status complete (BARE YAML · never quoted)
+         → sync ALL post WTs · NEVER leave closed work as active/horizon
+         → board Agent Notes (NOT Belam chat)
 GRAPH SoT (all 3 roles: Belam · director-belam · director-helper):
          after ANY graph doc SoT mod → write.py route ONLY · push tips as roles say
          → sync ALL post WTs (seat-director-belam · seat-director-helper · other grok post WTs)
+         → CROSS-DIR LOCAL SYNC ALLOWED: either director may ff|merge-keep-WIP
+            the other's /data/work/agi/.agi/worktrees/seat-director-* (never reset --hard)
+         → push season2 = core/season2/main ONLY · NEVER seat remote head · no new remote branch
          → no UpdateAgent/profile hand-edit · no ping
 BELAM    no mid-batch talk · daily graph pass only
 REOPEN   = Prime priority over plain open batches
@@ -119,6 +127,7 @@ DIAGRAM-MAX (HARD — every token):
         ──▶ keep never/only-if/unless · conditions · who/when · supersessions
         ──▶ owner verbatim stays verbatim
 land gate: format ✓ · residues=0 · FULL suite green on post (§3e)
+  → write.py status complete (BARE) on done leaf/trunk · sync post WTs · not leave active/horizon
 routes: write.py · read · send · dispatch/workflow · rotate/spawn
   (engine routes wording — prefer named CLIs / write.py route over raw tools)
 §3d residue → write.py goal version (whole-replace thought/feeling)
@@ -129,7 +138,7 @@ watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status activ
   · never spawn while goal still horizon · quoted 'active' = BUG
   · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
-GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role · sync ALL post WTs · no UpdateAgent · no ping
+GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
 CONCURRENCY (HARD — DIAGRAM B · SoT doc:standing-llm-ops §4 + §3c watch):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
@@ -182,6 +191,8 @@ RECON-MIN (WATCH Sense · HARD):
 WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C):
   before any new dispatch/spawn → write.py status active (bare) on chosen leaf
   never spawn while goal still horizon · quoted 'active' = BUG
+COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
+  write.py status complete (BARE) · sync post WTs · NEVER leave as active/horizon
 §3c HARD embed (watch body SoT — sync/watch read this + standing §3c):
   MUR/merge-up-review · SAME pool as parents · ≤18/dir · ≤30 box
   soft floor ≥5 combined (parents+MURs) when claimable work remains (DIAGRAM B)
@@ -190,5 +201,5 @@ WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-status-hygiene-sot-2026-09-22: refine GRAPH COORD/NESTED/STANDING/WATCH in-place — active-before-spawn bare · floor≥5 · graph SoT sync all post WTs · recon-min · SoT-edit HARD meta
+belam-complete-cross-sync-2026-09-22b: COMPLETE bare status+sync · CROSS-DIR local seat sync ALLOWED · push season2=core/season2/main ONLY (never seat remote head)
 <!-- THOUGHT:END -->
