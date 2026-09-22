@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: owner-go-durable-spawn-2026-09-22
+thought_session: belam-concurrency-18-30-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -118,7 +118,7 @@ CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
-  ≤3 live parents / director · ≤5 box-wide total if needed
+  ≤18 live parents / director · ≤30 box-wide total if needed
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
 DURABLE SPAWN (HARD — SoT doc:standing-llm-ops §4 DURABLE SPAWN):
   parents MUST land under systemd --user scope/service (dispatch durable path)
@@ -158,5 +158,5 @@ pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22 ET: PROFILE STANDING pin DURABLE SPAWN (parity with doc:standing-llm-ops §4).
+Owner GO 2026-09-22 ET: PROFILE STANDING CONCURRENCY pin → ≤18 live parents / director · ≤30 box-wide (parity with standing §4).
 <!-- THOUGHT:END -->
