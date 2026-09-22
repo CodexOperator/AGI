@@ -20,6 +20,7 @@ thought_session: belam-grok-harness-2026-09-21
 title: Grok harness internals sync — post-agnostic seed + ROUTINE_SYNC recipe
 town: core
 ---
+<!-- BODY:BEGIN -->
 # doc:grok-harness-internals-sync — post-agnostic grok harness seed + sync recipe
 
 **SoT recipe for ANY grok-bot post** (Prime · directors · future seats). Belam edits THIS via write.py only. Per-post spine lives in `doc:<post>-grok-internals` (or town board pointer).
