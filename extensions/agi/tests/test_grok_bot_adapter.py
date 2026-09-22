@@ -156,12 +156,19 @@ def test_adapter_implements_the_whole_interface():
 
 
 def test_is_alive_tracks_a_live_pid_and_not_a_reaped_one():
+    """Hermetic (DT.79 residue 1): no forked child, no reaped child.
+
+    The live case is this interpreter's own pid. The dead case is a number
+    above the kernel's `pid_max`, which the kernel can never hand out, so
+    `/proc/<pid>/stat` is deterministically absent and `os.kill` raises -- a
+    nonexistent pid covers both the never-existed and the reaped cases
+    without forking a child to race against.
+    """
     assert grok.is_alive(os.getpid()) is True
-    pid = os.fork()
-    if pid == 0:
-        os._exit(0)
-    os.waitpid(pid, 0)
-    assert grok.is_alive(pid) is False
+    pid_max = int(Path("/proc/sys/kernel/pid_max").read_text(encoding="utf-8"))
+    never_a_pid = pid_max + 1
+    assert not Path(f"/proc/{never_a_pid}/stat").exists()
+    assert grok.is_alive(never_a_pid) is False
 
 
 def test_needs_no_openrouter_credential():
@@ -330,8 +337,8 @@ def test_recorded_cli_source_env_has_the_aliased_reads():
     DT.32 exact-22 claim missed. RED on any regression to 22.
     """
     assert len(RECORDED_CLI_SOURCE_ENV_0_3_1) >= 25, (
-        "constant shrank below the corrected >=25 union; re-run "
-        "extensions/agi/tests/probes/probe_dt35.py")
+        "constant shrank below the corrected >=25 union; re-measure the "
+        "four scans named in the constant's docstring")
     assert RECORDED_CLI_ALIASED_ENV_0_3_1 <= RECORDED_CLI_SOURCE_ENV_0_3_1, (
         "aliased-read names dropped from the constant; they are read via "
         "env.<NAME> and no process.env.<NAME> grep can see them")
@@ -429,95 +436,68 @@ def test_restart_passes_through_the_built_argv(monkeypatch, tmp_path):
     assert seen["build_kwargs"]["tier"] == "kid"
 
 
-def test_restart_spawns_a_live_process_and_is_killable(monkeypatch, tmp_path):
-    """DT.27 R1 liveness half: this guard CAN go red.
+def test_restart_returns_a_live_pid_through_the_popen_seam(monkeypatch, tmp_path):
+    """DT.27 R1 liveness half, made hermetic (DT.79 residue 1).
 
-    With an argv that really runs (`sleep`), restart must yield a pid that
-    `is_alive` reports alive -- so a restart whose argv is a measured no-op
-    (bare `grok-bot` prints help and exits) cannot be certified live. The
-    process is killed and reaped, never left behind.
+    The pre-DT.79 version spawned `sys.executable -c sleep(30)` through
+    restart's unpatched Popen and killed/reaped it. Rewritten against a fake
+    Popen seam that returns THIS interpreter's pid -- a pid `is_alive`
+    reports alive for real -- so restart's composition (it returns Popen's
+    pid, not a constant) and the liveness predicate are both still exercised
+    without a child process. Nothing is created, so nothing is left behind
+    and nothing needs killing.
     """
-    import signal
-    import time as _time
+    live_pid = os.getpid()
 
-    argv = [sys.executable, "-c", "import time; time.sleep(30)"]
-    monkeypatch.setattr(grok, "build_command", lambda **kw: list(argv))
+    class FakeProc:
+        pid = live_pid
+
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: FakeProc())
     sess = tmp_path / "sess"
     sess.mkdir()
     pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
                        context_file=str(tmp_path / "context.md"),
                        agent_id="a00-test", iter_n=1, sess_dir=sess,
                        agent_record={"worktree": str(tmp_path)})
-    assert pid is not None
-    try:
-        for _ in range(50):
-            if grok.is_alive(pid):
-                break
-            _time.sleep(0.02)
-        assert grok.is_alive(pid) is True, (
-            "restart produced no live process; the respawn argv is a no-op")
-        # A process that exits immediately is still alive for one scheduling
-        # slice; requiring it to SURVIVE the window is what makes this guard
-        # red on a no-op argv (measured: `-c pass` reads alive at t=0 and dead
-        # at t=0.25, so the t=0 check alone was a race, not a guard).
-        _time.sleep(0.25)
-        assert grok.is_alive(pid) is True, (
-            "restart respawn exited immediately -- a no-op argv was spawned")
-    finally:
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except OSError:
-            pass
-        try:
-            os.waitpid(pid, 0)
-        except (ChildProcessError, OSError):
-            pass
+    assert pid == live_pid, "restart must return Popen's pid, not a constant"
+    assert grok.is_alive(pid) is True, (
+        "restart produced no live pid; the respawn seam is not "
+        "liveness-bearing")
 
 
-def test_liveness_guard_goes_red_on_a_noop_argv(monkeypatch, tmp_path):
-    """DT.29 D1 negative control: the liveness guard CAN read DEAD.
+def test_liveness_guard_reads_a_dead_popen_pid_as_dead(monkeypatch, tmp_path):
+    """DT.29 D1 negative control, made hermetic (DT.79 residue 1).
 
     The committed suite exercised the guard only on an argv that is ALIVE
-    (`test_restart_spawns_a_live_process_and_is_killable`); the red half lived
-    in an uncommitted scratch probe. An argv whose real process exits
+    (`test_restart_returns_a_live_pid_through_the_popen_seam`); the red half
+    lived in an uncommitted scratch probe. An argv whose real process exits
     immediately -- the SHAPE of the measured real respawn, which prints help
-    and exits 0 -- is driven through `restart` and must read DEAD after the
-    0.25 s window. A guard that can only return True cannot pass this test.
+    and exits 0 -- was driven through `restart` and read DEAD after a 0.25 s
+    window. Rewritten against a fake Popen seam returning a pid the kernel
+    can never hand out (above `pid_max`): `is_alive` reads it dead -- the red
+    half of the predicate -- with no child spawned, killed or reaped.
 
-    The published 0.3.1 binary is not installed on this box, so the argv is a
-    self-owned immediate-exit program; the SHAPE (exit before the window) is
-    what is measured. Real-binary measurement, from the DT.29 scratch dir,
-    the bare resolved bin with NO subcommand (the exact respawn argv):
+    Real-binary measurement, from the DT.29 scratch dir, the bare resolved
+    bin with NO subcommand (the exact respawn argv):
         is_alive t=0: True   is_alive t=0.25: False   exit 0
-    The process is SIGKILLed (harmless if already gone) and `waitpid`-reaped
-    in `finally`, so no child is left behind.
     """
-    import signal
-    import time as _time
+    pid_max = int(Path("/proc/sys/kernel/pid_max").read_text(encoding="utf-8"))
+    dead_pid = pid_max + 1
 
-    argv = [sys.executable, "-c", "raise SystemExit(0)"]
-    monkeypatch.setattr(grok, "build_command", lambda **kw: list(argv))
+    class FakeProc:
+        pid = dead_pid
+
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: FakeProc())
     sess = tmp_path / "sess"
     sess.mkdir()
     pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
                        context_file=str(tmp_path / "context.md"),
                        agent_id="a00-test", iter_n=1, sess_dir=sess,
                        agent_record={"worktree": str(tmp_path)})
-    assert pid is not None
-    try:
-        _time.sleep(0.25)
-        assert grok.is_alive(pid) is False, (
-            "the liveness guard read an already-exited process as ALIVE -- "
-            "it cannot go red, so its green certifies nothing")
-    finally:
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except OSError:
-            pass
-        try:
-            os.waitpid(pid, 0)
-        except (ChildProcessError, OSError):
-            pass
+    assert pid == dead_pid
+    assert grok.is_alive(pid) is False, (
+        "the liveness guard read a dead pid as ALIVE -- it cannot go red, "
+        "so its green certifies nothing")
 
 
 def test_bare_bin_respawn_is_a_recorded_noop_residue():
