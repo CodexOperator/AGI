@@ -85,3 +85,43 @@ def test_malformed_input_is_refused_by_name(graph, tmp_path, body):
     assert "INGEST refuse" in p.stderr
     assert "no-session-record" in p.stderr
     assert list((graph / "nodes").rglob("*.md")) == []
+
+
+def _fixture_id(path, sid):
+    rows = [{"type": "session", "version": 3, "id": sid, "cwd": "/tmp"},
+            {"type": "message", "id": "m1",
+             "message": {"role": "user", "content": [{"type": "text", "text": "hi"}]}}]
+    path.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    return path
+
+
+def test_distinct_ids_never_collapse_to_one_node(graph, tmp_path):
+    """The falsifier: two DISTINCT session ids that sanitize alike must yield
+    two distinct node files (or a named refusal) -- never one node for two
+    sessions (goal:g7.32.1, no silent drop)."""
+    a = _fixture_id(tmp_path / "a.jsonl", "Probe-aaaa-1111")
+    b = _fixture_id(tmp_path / "b.jsonl", "probe_aaaa_1111")
+    pa, pb = run(a, graph), run(b, graph)
+    assert pa.returncode == 0, pa.stderr
+    assert pb.returncode == 0, pb.stderr
+    assert pa.stdout.split()[-1] != pb.stdout.split()[-1]
+    files = sorted(p.name for p in (graph / "nodes").rglob("*.md"))
+    assert len(files) == 2, files
+    assert {f"{i.split(':')[-1]}.md" for i in (pa.stdout.split()[-1], pb.stdout.split()[-1])} == set(files)
+    # and each node carries its OWN raw id, so neither session's identity is lost
+    text = "\n".join(p.read_text(encoding="utf-8")
+                      for p in (graph / "nodes").rglob("*.md"))
+    assert "source_session: Probe-aaaa-1111" in text
+    assert "source_session: probe_aaaa_1111" in text
+
+
+def test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent(graph, tmp_path):
+    """Continuity: a real-corpus UUID keeps `grok-session-<uuid>` (the node
+    already in the graph for SESSION), and its upper-cased spelling is the SAME
+    session, not a second node."""
+    low = _fixture_id(tmp_path / "low.jsonl", SESSION)
+    up = _fixture_id(tmp_path / "up.jsonl", SESSION.upper())
+    pl, pu = run(low, graph), run(up, graph)
+    assert pl.stdout.strip() == f"INGEST ok doc:grok-session-{SESSION}"
+    assert pu.stdout.strip() == f"INGEST skip doc:grok-session-{SESSION}"
+    assert len(list((graph / "nodes").rglob("*.md"))) == 1
