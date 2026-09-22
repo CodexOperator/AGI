@@ -56,11 +56,6 @@ class _RecordingPane:
         self.calls.append((to, text))
 
 
-class _ExplodingSend:
-    def send(self, to, text):
-        raise AssertionError("native path must never call send.py transport")
-
-
 def test_native_send_never_touches_transport_and_types_exactly():
     pane = _RecordingPane()
     trace = messaging.native_send(pane, sender_harness="grok-bot",
@@ -68,10 +63,6 @@ def test_native_send_never_touches_transport_and_types_exactly():
                                   to="grok-b", text="hello")
     assert pane.calls == [("grok-b", "hello")]
     assert trace["route"] == "native"
-    # The exploding stub is never wired in -- proving the native call above
-    # cannot have reached transport. This line is a live canary, not decoration.
-    with pytest.raises(AssertionError):
-        _ExplodingSend().send("grok-b", "hello")
 
 
 # ------------------------------------------- (c) cross-harness trace order
@@ -196,7 +187,8 @@ def test_native_path_never_reaches_real_send_py(tmp_path, monkeypatch):
         def send(self, to, text):
             return send_mod.send(self.root, to, text, self.sender, nudge=False)
 
-    _RealSend(tmp_path, "grok-bot")  # bound exactly as the cross path binds it
+    with pytest.raises(AssertionError):
+        _RealSend(tmp_path, "grok-bot").send("grok-b", "hello")
 
     pane = _RecordingPane()
     trace = messaging.native_send(pane, sender_harness="grok-bot",
