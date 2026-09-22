@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: mur-same-pool-2026-09-22
+thought_session: mur-watch-fill-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -116,13 +116,15 @@ loop independently until residues=0 · report to GRAPH not Belam
 watch: §3c FORMAT verbatim · pins only TREE/SCOPE/HOST/BRANCH
 watch-claim (HARD): horizon|leaf claimable · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
-CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
+CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY + §3c watch):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
   ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
+  watch MUST fill owed MUR slots under that cap (HARD)
+  never invent slot-blocked / one-at-a-time when slots free
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
-  never serialize MURs one-at-a-time when slots free under cap
+  DURABLE still
 DURABLE SPAWN (HARD — SoT doc:standing-llm-ops §4 DURABLE SPAWN):
   parents MUST land under systemd --user scope/service (dispatch durable path)
   never leave parents as children of interactive SSH/bash (disconnect kills them)
@@ -158,8 +160,12 @@ pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
   HOST   SSH encryption-town → /data/work/agi  (never /workspace/agi)
   POLICY {{REMOTE_POLICY}}
   REPORT {{REPORTS_TO}}
+§3c HARD embed (watch body SoT — sync/watch read this + standing §3c):
+  MUR/merge-up-review · SAME pool as parents · ≤18/dir · ≤30 box
+  fill owed MUR slots under cap · never invent slot-blocked / one-at-a-time
+  spawn.parallel=1 · DURABLE still
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
--
+Owner GO 2026-09-22 ET: expand STANDING CONCURRENCY + ROUTINE_WATCH §3c HARD embed so grok-internals-sync PROFILE paste and watch SoT both carry MUR fill-under-cap (parents+MURs SAME pool ≤18/≤30; never invent slot-blocked). Live routine body left for sync/watch — do not hand update_state.
 <!-- THOUGHT:END -->
