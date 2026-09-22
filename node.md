@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 5e06ad0f4163378e
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - session-ingest
   - grok-bot
-thought_session: owner-ask-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.32.1: Grok session ingest — sessions land as graph nodes"
 town: core
 ---
@@ -67,5 +67,5 @@ grok session artifact
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-standing body whole-replace owner-ask-2026-09-21
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->
