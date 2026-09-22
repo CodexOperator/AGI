@@ -65,6 +65,21 @@ SCHEMAS = {
     "[overview].md": "allowed_parents: [bigger_outcome]\n  min_parents: 1\n  max_parents: 2",
     "[idea].md": "allowed_parents: [goal]\n  min_parents: 0\n  max_parents: 1",
     "[task].md": "allowed_parents: [hypothesis]\n  min_parents: 1\n  max_parents: 1",
+    # Discriminated schema, so a create that omits the discriminator is
+    # unverified (not rejected) and a later update can supply it -- the
+    # stale-stamp case hypothesis:l4-stale-spawn-check... covers.
+    "[build].md": (
+        "discriminator: build_kind\n"
+        "  variants:\n"
+        "    code:\n"
+        "      allowed_parents: [mvp, build, goal]\n"
+        "      min_parents: 1\n"
+        "      max_parents: 2\n"
+        "    prose:\n"
+        "      allowed_parents: [mvp, build, goal]\n"
+        "      min_parents: 1\n"
+        "      max_parents: 2"
+    ),
 }
 
 
@@ -343,6 +358,57 @@ def test_every_write_ends_with_exactly_one_newline(project):
     write_body("# goal:eofprobe\n\n## Facts\n\ngolden fact\n")
     nw.update_node(project, res.node_id, set_fm={"status": "u4"})
     assert b"## Facts\n\ngolden fact\n" in path.read_bytes()
+
+
+# --------------------------------------------------------------------------
+# the stale 'does not set' spawn stamp must not outlive the missing field
+# --------------------------------------------------------------------------
+
+def test_a_later_discriminator_clears_the_stale_does_not_set_stamp(project):
+    """An update that supplies the discriminator drops the false stamp.
+
+    hypothesis:l4-stale-spawn-check-does-not-survive-the-discriminator — a
+    build node created without `build_kind` is stamped unverified with
+    "schema 'build' is discriminated on 'build_kind', which this node does
+    not set". Nothing revisited `spawn_check` on update, so the stamp
+    outlived the field it claimed was missing.
+    """
+    import yaml
+    res = nw.write_node(project, "build", "no-kind", ["mvp:m1"])
+    assert res.written, res.reason
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["spawn_check"] == "unverified"
+    assert "does not set" in fm["spawn_check_reason"]
+
+    upd = nw.update_node(project, res.node_id, set_fm={"build_kind": "code"})
+    assert upd.status == nw.UPDATED, upd.reason
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["build_kind"] == "code"
+    assert "spawn_check" not in fm
+    assert "spawn_check_reason" not in fm
+
+
+def test_a_real_unverified_reason_is_not_cleared_by_a_discriminator(project):
+    """The guard: only the exact does-not-set text goes.
+
+    An unresolved parent is a legitimate unverified cause. Setting the
+    discriminator on such a node must keep both the stamp and its reason --
+    the blanket-clear failure mode the invariant above must not have.
+    """
+    import yaml
+    res = nw.write_node(project, "build", "dangling-build", ["build:missing"],
+                        extra_fm={"build_kind": "code"})
+    assert res.written, res.reason
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["spawn_check"] == "unverified"
+    assert "does not set" not in fm["spawn_check_reason"]
+
+    upd = nw.update_node(project, res.node_id,
+                         set_fm={"build_kind": "code", "title": "still dangling"})
+    assert upd.status == nw.UPDATED, upd.reason
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["spawn_check"] == "unverified"
+    assert "build:missing" in fm["spawn_check_reason"]
 
 
 # --------------------------------------------------------------------------
