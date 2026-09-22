@@ -3,12 +3,11 @@ id: idea:lm-two-node-vram-split
 mint_id: 2b733564d5704bb3b27440418ebdfc5a
 type: idea
 parents:
-  - goal:g5.12
+  - goal:g5.22
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 2aa93d80773530c7
 season: 2
-thought_session: dissolve-legacy-2026-09-19
 title: "Split inference load across local-town (8 GB) + a rented Camber XS (24 GB) = ~32 GB VRAM in bursts: job-level split is workable, layer/tensor split across the tunnel is not"
 town: core
 ---

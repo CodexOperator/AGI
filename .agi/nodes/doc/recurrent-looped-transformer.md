@@ -3,9 +3,9 @@ id: doc:recurrent-looped-transformer
 mint_id: a659f4c9e2bb46388d739f5445dd8e33
 type: doc
 parents:
-  - goal:g5.8
+  - goal:g5.29
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/recurrent-looped-transformer.md
 scaffold_hash: f993e963daf1c937
 season: 2
@@ -13,7 +13,6 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
-thought_session: dissolve-legacy-2026-09-19
 title: "\"Recurrent Looped Transformer\""
 town: local-maxxing
 ---

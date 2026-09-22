@@ -3,15 +3,14 @@ id: idea:lm-draft-refit-own-traffic
 mint_id: 3f6ffb60848b449fac862b7048f5b8ab
 type: idea
 parents:
-  - goal:g5.5
+  - goal:g5.22
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 141aa815e47aeadb
 season: 2
 tags:
   - local-maxxing
   - treasury
-thought_session: dissolve-legacy-2026-09-19
 title: Refit a small draft on target-regenerated town prompts; measure accept rate with llama.cpp speculation
 town: local-maxxing
 ---

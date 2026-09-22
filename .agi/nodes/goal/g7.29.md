@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 33a6961718b2c8b8
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - rotate
   - orchestration
-thought_session: texas-two-step-belam-voice-2026-09-19
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.29: Shrink rotate.py to pure orchestration (no harness argv)"
 town: core
 ---
@@ -58,3 +58,7 @@ town: core
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Consumes `goal:g7.27` + `goal:g7.28`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

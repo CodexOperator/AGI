@@ -6,14 +6,16 @@ parents:
   - goal:g7.31
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-belam
 goal_id: G7.31.1
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: 6999bdaf7388b52b
 season: 2
-seeds: []
+seeds:
+  - goal:g7.31.1.1
+  - goal:g7.31.1.2
 status: active
 tags:
   - goal
@@ -69,3 +71,5 @@ restart            ──▶▶▶ re-attach same pane name
 Assigned to **director-belam (point)** with umbrella + `.3`. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `goal:g7.25` family (REQUIRED surface), `goal:g7.30` (land adapter), `goal:g7.28` (persistent hold).
+
+Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.

@@ -3,9 +3,9 @@ id: doc:typesafe-ai-skill
 mint_id: a87dc85e997b41bb883f99a4ec65e01b
 type: doc
 parents:
-  - goal:g5.8
+  - goal:g5.24
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/typesafe-ai.md
 scaffold_hash: f32229754741eda8
 season: 2
@@ -13,7 +13,6 @@ tags:
   - local-maxxing
   - treasury
   - ingestion
-thought_session: dissolve-legacy-2026-09-19
 title: "\"TypeSafe (typesafe.ai): typed decisions with probabilities (noul / choice / score) from a small model — POST /v1/systemone; owner-stated $0.045 per 1M input tokens, output free; MIT skill; key + install banked\""
 town: local-maxxing
 ---

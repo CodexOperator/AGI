@@ -3,10 +3,10 @@ id: hypothesis:a00-fcfbc2f9-7d809f
 mint_id: f4c5e6f225664a2cb8bfab4a59db0523
 type: hypothesis
 parents:
-  - goal:g17.14.1
+  - goal:g7.25.1
 next_edges: []
 confidence: 0.9
-edited_by: a00-fcfbc2f9
+edited_by: belam
 evidence_runs:
   - experiment:grok-bot-bare-bin-config-max
 loop: goal:g17.14.1@s2
@@ -16,6 +16,7 @@ role: kid
 scaffold_hash: 2f175f37378ff087
 season: 2
 testable_claim: Adopting grok_bot_adapter.py with a bare DEFAULT_BIN="grok-bot" removes the config_max box literal while resolve_bin precedence ($GROK_BOT_BIN > harness bin > DEFAULT_BIN) is unchanged, adapters.load("grok_bot") satisfies all of adapters.REQUIRED, and zero edits to dispatch.py are needed
+thought_session: parent-residue-g14-g17-remap
 title: Grok Bot adapter adopts a bare PATH DEFAULT_BIN, box path moves to config bin cell
 town: core
 verdict: proved
