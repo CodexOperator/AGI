@@ -18,7 +18,7 @@ seeds:
   - goal:g7.32.2
   - goal:g7.32.3
   - goal:g7.32.4
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -26,7 +26,7 @@ tags:
   - session-ingest
   - magic-pane
   - send-router
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.32: Session ingest + magic-pane messaging + adapter pane methods + send.py thin router"
 town: core
 ---
