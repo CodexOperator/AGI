@@ -180,13 +180,18 @@ def evidence_runs_violations(value) -> list:
     an id-*shaped* entry that simply doesn't exist in the corpus is not a
     violation, it just doesn't count (see `normalize_evidence_runs`).
 
-    Non-list values (int, bool, numeric string, None) have no entries to
-    check and always return `[]` — they are not the vector this defect
-    used.
+    A **present, non-list** value is itself the violation: the schema
+    declares `evidence_runs` a list, so `evidence_runs: experiment:x` (a
+    scalar string) is a type error, not an entry to check. It used to slip
+    through as `[]` and merely resolve to zero (MUR mur-g7-31-4-dt-85),
+    which named it "no evidence" instead of naming it malformed. `None` is
+    absent, not malformed, and stays `[]`.
     """
+    if value is None:
+        return []
     if isinstance(value, (list, tuple, set)):
         return [v for v in value if not is_node_id_shaped(v)]
-    return []
+    return [value]
 
 
 class CorpusRootError(ValueError):
@@ -381,11 +386,16 @@ def apply_gate(
       is downgraded to an honest `inconclusive_lean_*:50`; the node is kept.
     - **Rejected** (new, H4c): `evidence_runs` contains a taxonomy
       violation — a value that isn't even shaped like a node id (e.g. the
-      `synthetic` sentinel). Writing that is an active false claim, not an
-      absence of evidence, so it is treated like a malformed verdict:
-      nothing is written. Callers surface this as a hard failure.
-      Bypassed and non-decisive (`pending` / `inconclusive_lean_*`)
-      verdicts never reach this branch.
+      `synthetic` sentinel), or a present, non-list value (a scalar string
+      like `evidence_runs: experiment:x` — MUR mur-g7-31-4-dt-85). Writing
+      that is an active false claim, not an absence of evidence, so it is
+      treated like a malformed verdict: nothing is written. Callers surface
+      this as a hard failure. An int/bool/numeric-string count is the
+      separate, softer goal:g7.3 case: an honest unverifiable attestation,
+      which demotes rather than rejects (`cli.py` collapses
+      `--evidence-runs 3` to its count for exactly this reason). Bypassed
+      and non-decisive (`pending` / `inconclusive_lean_*`) verdicts never
+      reach this branch.
 
     Never raises. The caller decides what "rejected" means for its own
     exit behaviour (`cli.py done` turns it into exit 2, matching the
@@ -406,18 +416,30 @@ def apply_gate(
     if not requires_evidence(verdict):
         return res
 
-    if violations and not bypass:
+    # A present, non-list value is a schema type violation (see
+    # `evidence_runs_violations`). The one exception is a scalar count —
+    # int / bool / numeric string, including the literal `0` `cli.py` passes
+    # for `--evidence-runs 0`: that is the separate, softer goal:g7.3 case,
+    # an honest unverifiable attestation, which demotes rather than rejects.
+    scalar_count = (
+        isinstance(evidence_runs, (bool, int))
+        or (isinstance(evidence_runs, str)
+            and evidence_runs.strip().isdigit())
+    )
+    if violations and not bypass and not scalar_count:
         res.rejected = True
         res.reason = (
-            f"evidence_runs contains non-id value(s) {violations!r} — a "
-            "taxonomy violation (TODO.md H4c), not evidence"
+            f"evidence_runs must be a list of node ids; {violations!r} is "
+            "a list/type violation (a taxonomy violation per TODO.md H4c), "
+            "not evidence"
         )
         res.messages.append(
             f"EVIDENCE-GATE REJECTED: '{verdict}' requires evidence_runs to "
-            f"name real experiment ids; {violations!r} is not a node id and "
-            "cannot be resolved. This is a taxonomy violation, not an "
-            "absence of evidence — cite a real experiment id, drop the bad "
-            "entry, or write an honest inconclusive_lean_* instead. "
+            f"be a list naming real experiment ids; {violations!r} is not a "
+            "node id, or evidence_runs is not a list at all. This is a "
+            "list/type violation, not an absence of evidence — cite a real "
+            "experiment id as a list entry, or write an honest "
+            "inconclusive_lean_* instead. "
             "(--no-evidence-gate bypasses this for historical backfills.)"
         )
         return res
