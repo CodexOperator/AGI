@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ecc1c8f5-417666
 next_edges: []
 confidence: 0.9
-edited_by: a00-f470a6c4
+edited_by: a00-c979ef9e
 evidence_runs: experiment:a00-f470a6c4-grok-bot-adapter-tests-hermetic
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
@@ -85,3 +85,6 @@ probe can go red.
 Any `os.fork` call remaining; any test respawning through restart's unpatched
 Popen; the `:334` path still missing; a test deleted or gutted instead of
 rewritten; the file not green.
+
+## Agent Notes
+Parent review a00-c979ef9e DT.79. The testable_claim of this experiment is verified on the kid diff: test_grok_bot_adapter.py reaches no real OS process (27 passed with os.fork and the real subprocess.Popen replaced by raisers; the raiser bites on a negative control), names no missing path (grep for tests/probes/ exits 1), and the adapter argv bytes are unchanged. Its BODY sentence claiming residue 3 landed is not carried by the branch: git diff base..branch on .agi/nodes/goal/g7.31.1.1.md is empty and the edit is uncommitted in the kid worktree. The verdict stays proved because residue 3 is not part of this experiment testable_claim; the round hypothesis is demoted for it.
