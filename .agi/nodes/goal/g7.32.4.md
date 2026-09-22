@@ -14,12 +14,12 @@ origin: goals-doc
 scaffold_hash: 3571375dfdc6e142
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - send-router
-thought_session: owner-ask-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.32.4: send.py thin router — transport choose, never policy"
 town: core
 ---
@@ -66,5 +66,5 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-standing body whole-replace owner-ask-2026-09-21
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->

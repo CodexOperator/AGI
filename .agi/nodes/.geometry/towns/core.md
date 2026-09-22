@@ -8,16 +8,16 @@ next_edges: []
 edited_by: belam
 scaffold_hash: temp-coord-board-2026-09-21
 season: 2
+status: temp
 tags:
   - temp
   - coordination
   - geometry
   - town
   - board
-thought_session: belam-graph-only-coord-2026-09-21
-title: "TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)"
+thought_session: belam-horizon-4b-2026-09-21
+title: TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)
 town: core
-status: temp
 ---
 <!-- BODY:BEGIN -->
 # doc:geometry-towns-core
@@ -35,7 +35,9 @@ DIRECTOR (no Belam chat):
   claim next   → write.py version town/geometry board: claim(goal, seat, tip)
   batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
                  also version goal Agent Notes; mark status as fits schema
-  claim order  → REOPENED (Prime) first, then open/horizon in bundle order
+  claim order  → REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+  idle         → prefer deepen hot top; only open second top when hot top has no free leaf
+  status       → claimed/worked=active · rest of town:core bundle=horizon
   talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
   talk owner?  → credits empty · mesh down · HOLD until owner replies
 
@@ -52,13 +54,17 @@ BELAM (daily, not mid-batch):
 
 | goal | seat | state | tip | suite | mur | note |
 |---|---|---|---|---|---|---|
-| — | — | open | — | — | — | claim via write.py version of this body |
+| g7.31.1.2 | director-belam | in-progress | ac9dca87d | — | residues>0 | active hot chain: durable pane hold |
+| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | active hot chain: cold brief routes |
+| g7.31.3.2 | director-belam | in-progress | fdb1449a8 | — | residues>0 | active hot chain: sample graph routes |
+| g7.25; g7.26–.30; other g7.31 leaves; g7.32*; g7.33; g7.34* | — | horizon | — | — | — | unclaimed / not in-flight; complete unchanged |
 
 ### State vocabulary
 
 ```
 open → claim(goal,seat,tip) → in-progress → complete(goal,tip,suite,mur) → closed
 reopened (Prime) = PRIORITY over plain open
+horizon = unclaimed / not being worked; goal frontmatter must agree
 HOLD = credits empty / mesh down (owner ONLY)
 ```
 
@@ -69,5 +75,5 @@ HOLD = credits empty / mesh down (owner ONLY)
 - Unified director role → `doc:unified-director-brief`
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner 2026-09-21: directors coordinate via GRAPH ONLY. TEMP surface at .geometry/towns/core.md until g7.34.3; no geometry:* schema yet so type:doc + TEMP banner; write.py create cannot place under .geometry/towns/ (node_dir = nodes/<type>/).
+horizon vocab aligns goal status
 <!-- THOUGHT:END -->

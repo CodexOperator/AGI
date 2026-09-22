@@ -18,7 +18,7 @@ seeds:
   - goal:g7.32.2
   - goal:g7.32.3
   - goal:g7.32.4
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -26,7 +26,7 @@ tags:
   - session-ingest
   - magic-pane
   - send-router
-thought_session: belam-rename-g14-batch-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.32: Session ingest + magic-pane messaging + adapter pane methods + send.py thin router"
 town: core
 ---
@@ -100,5 +100,5 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner ask 2026-09-21: g7.31 live-nested — mint same-level g7.32 for messaging/session-ingest/adapter-pane/send-router; standing body whole-replace
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->

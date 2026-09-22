@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: ae72206c9d0fb32b
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -24,7 +24,7 @@ tags:
   - pin
   - formation
   - rotate
-thought_session: magic-pane-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.31.2: Pane anchor registers seat occupation across post/pin/formation/auto-rotation"
 town: core
 ---
@@ -72,3 +72,7 @@ pane anchor
 Assigned to **director-helper** with `.4` + `.5` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `goal:g7.28`, `goal:g7.29`, `goal:g7.30`, `goal:g7.31.1`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

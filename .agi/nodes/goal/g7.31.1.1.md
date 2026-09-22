@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1
 next_edges: []
 confidence: 0.9
-edited_by: director-belam
+edited_by: belam
 goal_id: G7.31.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1e10ebb759c9d056
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - adapter
   - cli
   - measured
-thought_session: magic-pane-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.31.1.1: Measured CLI argv matches grok-bot --help; stub flags retired"
 town: core
 ---
@@ -61,3 +61,7 @@ town: core
 Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->

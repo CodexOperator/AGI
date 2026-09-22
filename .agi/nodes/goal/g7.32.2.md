@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: f7e2e4fc9ba22145
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - magic-pane
   - messaging
-thought_session: owner-ask-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.32.2: Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send"
 town: core
 ---
@@ -69,5 +69,5 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-standing body whole-replace owner-ask-2026-09-21
+horizon-pass not in-flight unclaimed on board
 <!-- THOUGHT:END -->

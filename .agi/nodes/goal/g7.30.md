@@ -14,14 +14,14 @@ origin: goals-doc
 scaffold_hash: 1d93355cd41ddb58
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - harness
   - grok-bot
   - adapter
-thought_session: texas-two-step-belam-voice-2026-09-19
+thought_session: belam-horizon-4b-2026-09-21
 title: "G7.30: Land grok-bot adapter + post template on core/season2/main"
 town: core
 ---
@@ -60,3 +60,7 @@ town: core
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Prerequisite: measure real CLI. Soft-depends on `goal:g7.27` (template) and `goal:g7.29` (harness-blind rotate) for the "no special-case seat" claim; adapter+config land can proceed earlier.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->
