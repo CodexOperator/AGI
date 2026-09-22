@@ -7200,6 +7200,57 @@ def test_prime_seat_name_comes_from_the_prime_director_row(tmp_path, monkeypatch
     assert send_mod.main(["--from", "alive", "send", "prime-x", "status"]) == 3
 
 
+# hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-per-
+# round -- the kid-dm gate must be provable from a MERGED tip, not from one
+# agent's ephemeral worktree record. These two tests are the durable probe:
+# they CONSTRUCT the sessions state `_kid_parent_id` reads (a controlled
+# `<sessions>/iter-*/<kid>/agent.json` carrying `spawned_by_agent`), so the
+# refusal arm and the fail-open arm both reproduce from the merged tree with
+# nothing live in any agent's worktree. Regression reported by DT.50: an
+# earlier probe recorded a REFUSED that in fact fails open here.
+def _kid_gate_root(tmp_path, monkeypatch):
+    root = _prime_gate_root(tmp_path, monkeypatch)
+    monkeypatch.delenv("AGI_TIER", raising=False)
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: root)
+    return root
+
+
+def test_kid_dm_gate_refuses_a_non_parent_by_name(tmp_path, monkeypatch,
+                                                  capsys):
+    """Arm (a): a kid whose record carries `spawned_by_agent` may dm only
+    that parent -- refused by name (exit 3) BEFORE any inbox write."""
+    root = _kid_gate_root(tmp_path, monkeypatch)
+    rec = root / ".agi" / "sessions" / "iter-99" / "kid-probe" / "agent.json"
+    rec.parent.mkdir(parents=True)
+    rec.write_text(json.dumps({"spawned_by_agent": "parent-x"}))
+    monkeypatch.setenv("AGI_TIER", "kid")
+    monkeypatch.setenv("AGI_AGENT_ID", "kid-probe")
+    rc = send_mod.main(["send", "parent-other", "probe text"])
+    assert rc == 3
+    err = capsys.readouterr().err
+    assert err.strip() == ("REFUSED: kid kid-probe may dm only its parent "
+                           "parent-x, not parent-other"), err
+    assert not (root / ".agi" / "sessions" / "inbox"
+                / "parent-other.md").exists()
+
+
+def test_kid_dm_gate_fails_open_without_a_parent_record(tmp_path, monkeypatch,
+                                                       capsys):
+    """Arm (b): no record carries `spawned_by_agent` -- the gate fails OPEN
+    with one stderr warn and writes the dm (rc=0). This is the honest arm the
+    stale sibling probe denied."""
+    root = _kid_gate_root(tmp_path, monkeypatch)
+    monkeypatch.setenv("AGI_TIER", "kid")
+    monkeypatch.setenv("AGI_AGENT_ID", "kid-norec")
+    rc = send_mod.main(["send", "parent-other", "probe text"])
+    assert rc == 0, rc
+    err = capsys.readouterr().err
+    assert "has no spawned_by_agent record; the dm gate fails open" in err, err
+    assert (root / ".agi" / "sessions" / "inbox"
+            / "parent-other.md").is_file()
+
+
 # ── hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-quoted- ──
 # block-reads-as-marked-data -- a body carrying harness-shaped text must never
 # be displayed or forwarded raw. The signature list is ONE constant
