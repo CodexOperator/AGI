@@ -30,6 +30,18 @@ def artifact_path(root, ref):
             f"profile_ref {ref!r} resolves to a directory, not a file")
     return p
 
+def validate_ref(root, ref):
+    """Resolve `ref` and refuse it BY NAME without writing anything.
+
+    write.py calls this BEFORE `node_writer.update_node` so a refused
+    `profile_ref` cannot leave a partial write (the node body landing while
+    the projection refuses). Returns the resolved artifact path.
+    """
+    if root is None:
+        raise Refused("no project root — no enclosing .agi/config.json")
+    return artifact_path(root, ref)
+
+
 def _projected_bytes(nf):
     """A node-file's projection payload: body with THOUGHT stripped."""
     t = node_writer.extract_thought(nf.body)
