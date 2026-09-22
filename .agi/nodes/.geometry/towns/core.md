@@ -11,69 +11,110 @@ season: 2
 status: temp
 tags:
   - temp
-  - coordination
+  - assignment
+  - tracker
   - geometry
   - town
-  - board
-thought_session: belam-daily-town-pass-2026-09-22
-title: TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)
+thought_session: owner-go-bundle-tracker-2026-09-22
+title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
-<!-- BODY:BEGIN -->
 # doc:geometry-towns-core
 
-> **TEMP (g7.34.3 not landed).** Path `.agi/nodes/.geometry/towns/core.md` is the
-> owner coordination surface until Pass-1 raw `.self` exists. Not the lasting
-> geometry-town schema. Mirror lives on `town:core` § COORDINATION SURFACE.
+> **TEMP until `goal:g7.34.3`.** Path `.agi/nodes/.geometry/towns/core.md` =
+> **TOTAL GOAL BUNDLE ASSIGNMENT TRACKER** for `town:core`.
+> Stand-in until Pass-1 raw `.self` exists — not the lasting geometry-town schema.
 
-## COORD SURFACE (TEMP)
-
-```
-COORD SURFACE (TEMP)  .geometry/towns/core.md  ←→  town:core
-
-DIRECTOR (no Belam chat):
-  claim next   → write.py version town/geometry board: claim(goal, seat, tip)
-  batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
-                 also version goal Agent Notes; mark status as fits schema
-  claim order  → REOPENED (Prime) > smallest unclaimed leaf under live/hot top
-  idle         → prefer deepen hot top; only open second top when hot top has no free leaf
-  status       → claimed/worked=active · rest of town:core bundle=horizon
-  talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
-  talk owner?  → credits empty · mesh down · HOLD until owner replies
-
-BELAM (daily, not mid-batch):
-  pull town:core + geometry board + closed tips
-  merge post tips w/ residues=0 evidence
-  full verify on core/main (or post as docs say)
-  vision-lens on goals · moral-lens on visions↔goals
-  residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
-  reopen = Prime priority over plain open
-```
-
-## Board rows (living)
-
-| goal | seat | state | tip | suite | mur | note |
-|---|---|---|---|---|---|---|
-| g7.31.1.2 | director-belam | in-progress | 51ae16535 | — | residues>0 | DT.56 a00-005ce11b live; BASE 51ae16535 post-DT.47 MUR AWR |
-| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | DT.57 a00-7f12739a live; BASE 88da0784c |
-| g7.31.3.2 | director-belam | in-progress | bf876667b | — | MUR-owed lean | DT.52 DONE tip bf876667b; lean MUR mur-g7-31-3-2-dt-52-bf876667b running |
-| g7.25; g7.26–.30; other g7.31 leaves; g7.32*; g7.33; g7.34* | — | horizon | — | — | — | unclaimed / not in-flight; complete unchanged |
-
-### State vocabulary
+## WHAT THIS SURFACE IS
 
 ```
-open → claim(goal,seat,tip) → in-progress → complete(goal,tip,suite,mur) → closed
-reopened (Prime) = PRIORITY over plain open
-horizon = unclaimed / not being worked; goal frontmatter must agree
-HOLD = credits empty / mesh down (owner ONLY)
+encryption-town host == town:core (ops home)
+        │
+        ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │  THIS FILE  = assignment SoT (who owns which top)        │
+ │  town:core  = ops bundle / spine diagrams / location     │
+ │  goal:*     = live status · Agent Notes · write.py active│
+ │  sessions   = who's mid-batch right now                  │
+ └──────────────────────────────────────────────────────────┘
+
+NOT this file:  DT.*/MUR columns · tip/suite tracking · what's-running board
+YES this file:  tops / major splits only (leaves shift — keep them on goal nodes)
+```
+
+## ASSIGNMENT — tops / major splits
+
+| goal | seat | status | what |
+|---|---|---|---|
+| g7.25 | unassigned | horizon | Grok Bot third-party harness adapter (umbrella) |
+| g7.25.1–.3 | — | complete | adapter surface · config row · mirror tests |
+| g7.26 | unassigned | horizon | Post briefs self-sufficient |
+| g7.27 | unassigned | horizon | Templates sole harness arg builders |
+| g7.28 | unassigned | horizon | Dispatch persistent mode |
+| g7.29 | unassigned | horizon | Shrink rotate.py orchestration |
+| g7.30 | unassigned | horizon | Land grok-bot adapter + post template |
+| g7.31 | belam | active | Pane = seat spine (umbrella) |
+| g7.31.1 | belam | active | Measured CLI + durable pane hold |
+| g7.31.2 | unassigned | horizon | Pane anchor ↔ post/pin/formation |
+| g7.31.3 | belam | active | Five unified engine routes |
+| g7.31.4 | unassigned | horizon | Native handbacks SSH-or-not |
+| g7.31.5 | unassigned | horizon | Graph↔harness-doc sync |
+| g7.32 | unassigned | horizon | Session ingest + messaging + pane methods + send router |
+| g7.33 | unassigned | horizon | ENGINE FIXES — parked; do not assign yet |
+| g7.34 | unassigned | horizon | geometry-town + trajectory spine — parked |
+
+```
+town:core bundle                         seat          status
+────────────────────────────────────────────────────────────────
+g7.25  harness adapter                   unassigned    horizon
+  └─ .1–.3                               —             complete
+g7.26–.30  briefs/templates/dispatch/…   unassigned    horizon
+g7.31  pane = seat spine ★               belam         active
+  ├─ .1  measured CLI + durable hold ★   belam         active
+  ├─ .2  pane anchor                     unassigned    horizon
+  ├─ .3  five engine routes ★            belam         active
+  ├─ .4  native handbacks                unassigned    horizon
+  └─ .5  graph↔harness sync              unassigned    horizon
+g7.32  ingest/messaging/pane/send        unassigned    horizon
+  └─ .1–.4  (same seat/status)           unassigned    horizon
+g7.33  engine fixes (parked)             unassigned    horizon
+g7.34  geometry + trajectory (parked)    unassigned    horizon
+  └─ .1–.5  (minted; no impl yet)        unassigned    horizon
+```
+
+**vocab:** `active` = seat owns the top · `horizon` = free/claimable · `complete` = done  
+**seat:** `belam` | `helper` | `unassigned` — coarse assignment only (not mid-batch who)
+
+## LIVE ACTIVITY → GRAPH (not here)
+
+```
+who's running what  ──▶  goal status / Agent Notes / write.py active / sessions
+assignment SoT      ──▶  THIS FILE
+```
+
+Do **not** put DT.*/MUR / tip / suite / residues columns back on this surface.
+
+## CLAIM / DONE (short)
+
+Full spine: `doc:director-grok-internals`. Standing stub: `doc:standing-llm-ops`.
+
+```
+CLAIM   REOPENED (Prime) > smallest unclaimed leaf under live/hot top
+        deepen hot top before opening a second top
+DONE    residues=0 · format✓ · suite green on tip
+        → version goal Agent Notes · mark status to fit schema
+        → update THIS assignment row only if seat/status changed
+HOLD    credits empty / mesh down → owner only
+talk    Belam? NEVER mid-batch (exposed keys / cred leak ONLY)
+        owner? HOLD cases until reply
 ```
 
 ## Cross-links
 
 - Ops bundle / spine diagrams → `town:core`
-- Standing contract → `doc:standing-llm-ops`
+- Director CLAIM/DONE + loop spine → `doc:director-grok-internals`
 - Unified director role → `doc:unified-director-brief`
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily town:core pass 2026-09-22T09:50ET · merges:none (no board-complete; claimed rows residues>0/MUR-owed) · verify:FAIL tests=15f/5889p TestMergeUp Committer-identity-unknown in pytest temps (host global git user unset) · secrets PROBLEM OPENROUTER_API_KEY empty · goals-check red-at-run then smoke rewrote GOALS.md · bin-suite-fresh no-stamp · vision/moral: no reopen/mint (directors mid-batch DT.72/73/74 burning residues; Agent Notes no format-worthy orphans)
+Owner GO 2026-09-22: clean-pass reformat living DT/MUR board into TOTAL GOAL BUNDLE ASSIGNMENT TRACKER (tops/major splits only; live activity on goal nodes).
+<!-- THOUGHT:END -->
 <!-- THOUGHT:END -->
