@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-watch-fill-fix-2026-09-22
+thought_session: belam-sot-land-reconmin-drop-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -83,6 +83,7 @@ SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    REOPENED > horizon OR any leaf in town:core (claimable)
          NOT only already-active · director activates THEMSELF
          distribute durable across depth · ≤18/dir · ≤30 box
+         NEST+FILL (HARD · multi-leaf): nest format-worthy residues as MULTIPLE kids · FILL MUR/parent slots under cap across leaves
 ACTIVE-BEFORE-SPAWN (HARD · DIAGRAM C + WATCH CLAIM):
          before ANY dispatch/spawn → write.py route: set status active (BARE YAML)
          on the chosen subgoal / nested leaf · NEVER spawn while still horizon
@@ -110,7 +111,7 @@ EXCEPT   exposed keys/leak → Belam NOW
 ## NESTED GOAL AUTHORITY (HARD) — shared  (`doc:standing-llm-ops` §4b)  [DIAGRAM E]
 ```
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
-  (not one fat same-level sibling).
+  (multi-leaf nest · not one fat same-level sibling) · FILL under cap across those leaves.
 CLAIM: REOPENED > horizon OR any leaf · activate self to concurrent sense
   distribute durable across depth · spawn.parallel=1/goal · ≤18/dir · ≤30 box
 ACTIVE-BEFORE-SPAWN: write.py status active (bare) on leaf BEFORE dispatch · never spawn on horizon
@@ -199,8 +200,8 @@ pins (post-local DH/DT — fill placeholders):
   REPORT {{REPORTS_TO}}
 
 ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / stub):
-  Sense → FILL owed MURs under cap (floor≥5 when claimable work) → residual/claim parents → emit
-  FILL under cap · spawn MUR(s) · durable systemd · active-before-spawn bare
+  Sense → multi-leaf nest owed work → FILL owed MURs under cap (floor≥5 when claimable work) → residual/claim parents → emit
+  FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · active-before-spawn bare
   parents+MURs SAME pool ≤18/dir · ≤30 box
   never tip-only table with backlog and zero action when slots free
   never invent slot-blocked / one-at-a-time
@@ -222,18 +223,14 @@ ZERO-RESIDUE
    status=done + no MUR yet → owed MUR · FILL under cap
    free slots? → FILL owed MUR first · then residual/claim parents
 2) Act (HARD on live-parents-workflows wakes)
-   FILL under cap · spawn MUR(s) · durable systemd · active-before-spawn bare
+   FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · active-before-spawn bare
 3) Emit ONLY on delta — short table OK
 4) No delta → silence
 5) Never invent. Never new remote head. Never push core/main.
 6) Prefer graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
 
-RECON-MIN (OWNER-REQUESTED recon turns ONLY — NOT live-parents-workflows wakes):
-  owner-asked recon = minimal tokens · minimal/no comms · NO action · stop
-  live watch wakes MUST act (fill/spawn) under ACTION FORMAT above
-  short prose OK under existing fence
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: ROUTINE_WATCH self-contained ACTION FORMAT with HARD FILL verbs; remove POINT AT standing §3c stub; RECON-MIN scoped to owner-requested recon only (live watch wakes MUST fill/spawn); cadence pins kept; {{SCOPE}}/{{TREE}} pins
+owner-fix: drop RECON-MIN from parent-check ROUTINE_WATCH (live wakes always FILL/spawn); reinforce multi-leaf nest+FILL inside existing DIAGRAM A / DIAGRAM E / WATCH ACTION FORMAT fences (no new micro-fence); cadence + {{SCOPE}}/{{TREE}} pins kept
 <!-- THOUGHT:END -->
