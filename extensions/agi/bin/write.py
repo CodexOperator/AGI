@@ -1380,6 +1380,15 @@ def _preview_dry_run_gate(root, edit, args):
     no editor, spends no nonce (`preview` -> remember=None). Without this a
     dry run of a write the gate would refuse (short of quorum, stale, or
     replayed nonce) printed as if it would succeed."""
+    # DH.72 residue 1: the SAME effective-ref judgement submit() runs, from
+    # the one helper -- a dry run of a write the real run refuses must refuse
+    # here too, by name (hypothesis:a00-1b6e88a9-a0bde5).
+    try:
+        profile_sync.refuse_effective_ref(root, edit.node_id, edit.set_fm,
+                                          edit.unset_fm)
+    except profile_sync.Refused as exc:
+        print(f"ERR: profile projection refused: {exc}", file=sys.stderr)
+        return 2
     from seatsig import rings as _pr  # noqa: PLC0415
     _prev: dict = {}
     try:
@@ -2021,21 +2030,11 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # The EFFECTIVE ref: this edit's `set profile_ref` if it carries one, else
     # the one already on the node file. An edit that unsets the ref validates
     # nothing (the dead value is never resolved).
-    if "profile_ref" not in edit.unset_fm:
-        _pref = set_fm.get("profile_ref")
-        if _pref is None and (_pnf := node_writer.find_node_file(
-                root, edit.node_id)):
-            from graph_core.persistence import frontmatter as _pfmr
-            try:
-                _pref = _pfmr.load_node_file(
-                    _pnf, body=False).frontmatter.get("profile_ref")
-            except Exception:
-                _pref = None
-        if _pref:
-            try:
-                profile_sync.validate_ref(root, str(_pref))
-            except profile_sync.Refused as exc:
-                raise EditError(f"profile projection refused: {exc}") from exc
+    try:
+        profile_sync.refuse_effective_ref(root, edit.node_id, set_fm,
+                                          edit.unset_fm)
+    except profile_sync.Refused as exc:
+        raise EditError(f"profile projection refused: {exc}") from exc
 
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,

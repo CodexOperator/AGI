@@ -8,6 +8,7 @@ points under `.agi/nodes/` is refused by name, never written.
 """
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import sys
 from pathlib import Path
@@ -273,3 +274,71 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# --- DH.72 / hypothesis:a00-1b6e88a9-a0bde5: the two DH.69-c8ec39312 residues.
+
+
+def _node_sha(repo: Path) -> str:
+    p = repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def test_dry_run_refuses_an_illegal_effective_profile_ref(tmp_path):
+    """`--dry-run` returned before `submit`, so a body-only edit on a node
+    whose on-disk ref is illegal previewed as admissible while the real run
+    refused. ONE helper, two callers, no drift."""
+    repo = _repo(tmp_path, ref="../escape.md")
+    before = _node_sha(repo)
+    r = _cli(["hypothesis:h1", "replace body 1:9 -", "--dry-run"], repo,
+             stdin="new body\n")
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert "outside the repo root" in r.stderr
+    assert _node_sha(repo) == before, "a refused dry run writes nothing"
+    assert not (tmp_path.parent / "escape.md").exists()
+    assert not (repo / "profile").exists()
+
+
+def test_dry_run_refuses_an_illegal_ref_the_edit_itself_sets(tmp_path):
+    repo = _repo(tmp_path, ref=None)
+    before = _node_sha(repo)
+    r = _cli(["hypothesis:h1", "set profile_ref ../escape.md", "--dry-run"],
+             repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert _node_sha(repo) == before
+    assert not (tmp_path.parent / "escape.md").exists()
+
+
+def test_dry_run_on_a_legal_ref_still_previews_the_ring_gate(tmp_path):
+    repo = _repo(tmp_path, ref="profile/h1.md")
+    r = _cli(["hypothesis:h1", "replace body 1:9 -", "--dry-run"], repo,
+             stdin="new body\n")
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "RING-GATE PREVIEW: admitted" in r.stdout
+    assert not (repo / "profile" / "h1.md").exists(), "dry run writes nothing"
+
+
+def test_dry_run_on_the_unset_repair_path_is_not_gated(tmp_path):
+    """`unset profile_ref` is the repair path for an illegal on-disk ref and
+    must preview rc=0, matching live behaviour (the dead value is never
+    resolved)."""
+    repo = _repo(tmp_path, ref="../escape.md")
+    r = _cli(["hypothesis:h1", "unset profile_ref", "--dry-run"], repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "RING-GATE PREVIEW: admitted" in r.stdout
+
+
+def test_a_missing_node_id_is_a_named_refusal(tmp_path):
+    """`project()` raised a bare FileNotFoundError that `main()` did not
+    catch, so the CLI tracebacked at rc=1; it is now a named refusal."""
+    repo = _repo(tmp_path)
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "hypothesis:nope"], cwd=repo, capture_output=True,
+                       text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr and "hypothesis:nope" in r.stderr
+    assert "no node file" in r.stderr
+    assert "FileNotFoundError" not in r.stderr
+    assert "Traceback" not in r.stderr
