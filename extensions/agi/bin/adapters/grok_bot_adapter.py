@@ -154,6 +154,12 @@ def restart(
         ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
+    # The SAME child env the first-spawn seam and the non-hold path pass.
+    # `respawn-pane` inherits the tmux SERVER's environment, not the dispatch
+    # child's, so a restart that omits `env=` comes back stripped of the
+    # seat's harness env cells and `AGI_*` identity (`goal:g7.31.1.2`,
+    # parent probe of the previous kid: DT67_PROBE empty after reattach).
+    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     hold = hold_harness(harness)
     if tmux_hold.enabled(hold):
         # Durable named pane hold (`goal:g7.31.1.2`): same pane identity across
@@ -163,7 +169,7 @@ def restart(
         new_pid = tmux_hold.reattach(
             hold, agent_id, args,
             cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
-            created=created)
+            created=created, env=env)
         if new_pid is not None and agent_record is not None:
             agent_record["pid"] = new_pid
             agent_record["status"] = "restarted"
@@ -174,7 +180,6 @@ def restart(
                 agent_record["tmux"] = created
             (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         return new_pid
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
