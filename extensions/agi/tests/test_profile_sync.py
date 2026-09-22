@@ -230,10 +230,82 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+def _loop_args(tmp_path: Path, **kw) -> "object":
+    from types import SimpleNamespace
+    wins = tmp_path / "windows.txt"
+    wins.write_text("belam\n")
+    a = dict(force=True, session_log=None, role="prime_director",
+             tmux_session="t", window_path=str(wins), name="belam-X",
+             name_prefix="belam", prompt_file="p", model=None, effort=None,
+             settings=None, dry_run=True, debug_file=str(tmp_path / "d.log"),
+             successor_argv=None, seat=None, harness=None, timeout=0)
+    a.update(kw)
+    return SimpleNamespace(**a)
+
+
+def test_cmd_loop_refuses_on_drift_and_never_reaches_the_spawn(
+        tmp_path, monkeypatch, capsys):
+    """Residue 2: a BEHAVIOURAL wire probe, not a source grep. If `cmd_loop`
+    ever drops the guard call, dry-run proceeds to the spawn and this fails."""
+    import rotate  # noqa: E402
+    monkeypatch.setattr(rotate, "_check_branch_guard", lambda root: None)
+    repo = _repo(tmp_path)
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")
+
+    def _boom(*a, **k):
+        raise AssertionError("spawn_window reached despite profile drift")
+    monkeypatch.setattr(rotate, "spawn_window", _boom)
+    rc = rotate.cmd_loop(_loop_args(tmp_path), repo / ".agi")
+    err = capsys.readouterr().err
+    assert rc == 1, (rc, err)
+    assert "profile drift" in err and "hypothesis:h1" in err
+
+
+def test_cmd_loop_proceeds_on_a_clean_repo(tmp_path, monkeypatch, capsys):
+    """The guard is really invoked and does NOT block when the sweep is green."""
+    import rotate  # noqa: E402
+    monkeypatch.setattr(rotate, "_check_branch_guard", lambda root: None)
+    calls = []
+    real_guard = rotate._check_profile_drift
+
+    def _spy(root):
+        calls.append(root)
+        return real_guard(root)
+    monkeypatch.setattr(rotate, "_check_profile_drift", _spy)
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    reached = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **k: (reached.append(k["name"]), (0, None))[1])
+    rc = rotate.cmd_loop(_loop_args(tmp_path), repo / ".agi")
+    assert rc == 0, capsys.readouterr().err
+    assert calls == [repo / ".agi"], "the guard was not invoked on cmd_loop"
+    assert reached, "a clean repo must still reach the spawn"
+
+
+def test_cmd_rotate_self_refuses_on_drift_before_the_geometry_guard(
+        tmp_path, monkeypatch, capsys):
+    """Same wire, the other successor primitive: drift refuses before any
+    later side effect (the geometry resolution runs only after it)."""
+    from types import SimpleNamespace
+    import rotate  # noqa: E402
+    monkeypatch.setattr(rotate, "_rotate_human_gate",
+                        lambda root, name: (None, None))
+    monkeypatch.setattr(rotate, "_check_branch_guard", lambda root: None)
+    repo = _repo(tmp_path)
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")
+
+    def _boom(root):
+        raise AssertionError("_geometry_resolution_root reached past drift")
+    monkeypatch.setattr(rotate, "_geometry_resolution_root", _boom)
+    rc = rotate.cmd_rotate_self(SimpleNamespace(name="belam-X",
+                                                prepare=False),
+                                repo / ".agi")
+    err = capsys.readouterr().err
+    assert rc == 1, (rc, err)
+    assert "profile drift" in err and "hypothesis:h1" in err
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
@@ -273,3 +345,38 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+def test_body_only_profile_ref_mention_is_not_unreadable(tmp_path):
+    """Residue 4.2: the heuristic reads the YAML FRONTMATTER only — prose in
+    the body naming `profile_ref:` must not mark a malformed file linked."""
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    p = _broken(repo / ".agi", "body.md")
+    p.write_text(p.read_text()
+                 + 'prose: see profile_ref: "profile/b.md"\n')
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "body.md" not in r.stdout
+
+
+def test_permission_denied_file_never_raises_out_of_check_all(
+        tmp_path, monkeypatch):
+    """Residue 4.3: an unreadable file is named `unreadable`, never a
+    traceback out of `check_all`."""
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    p = repo / ".agi" / "nodes" / "hypothesis" / "locked.md"
+    p.write_text('---\nid: "hypothesis:locked"\ntype: hypothesis\n'
+                 'profile_ref: "profile/locked.md"\n---\n\nbody\n')
+    real = Path.read_text
+
+    def denied(self, *a, **k):
+        if self == p:
+            raise PermissionError(13, "Permission denied", str(self))
+        return real(self, *a, **k)
+    monkeypatch.setattr(Path, "read_text", denied)
+    rows = profile_sync.check_all(repo / ".agi")  # must not raise
+    locked = [r for r in rows if r.get("path") == str(p)]
+    assert locked and locked[0]["status"] == "unreadable", rows
