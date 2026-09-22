@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: a00-2b046d3e
+edited_by: a00-810b8e08
 link_ref: extensions/agi/bin/workflow.py
 location: source_root
 loop: hypothesis:l3w4-workflows-config-maxxed@s2
@@ -18,8 +18,6 @@ profile: balanced
 role: kid
 scaffold_hash: de20b368238357c6
 season: 2
-spawn_check: unverified
-spawn_check_reason: schema 'build' is discriminated on 'build_kind', which this node does not set
 tags:
   - build
   - code
