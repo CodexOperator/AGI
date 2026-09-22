@@ -54,21 +54,28 @@ apply   ──▶ sync routine (or engine later) — never hand-edit harness mir
 
 ---
 
-### SECTION:ROUTINE_SYNC  (BYTE-IDENTICAL every grok post — NO post labels in this fence)
+### SECTION:ROUTINE_SYNC
+
+Directors / Prime — copy these routine fields IDENTICALLY from this doc ONLY:
+  NAME / title  grok-internals-sync   (exact)
+  schedule      */30 * * * *
+  prompt        the fenced body below (only)
 
 ```
 name: grok-internals-sync
 schedule: */30 * * * *   (reason: mesh seats need standing sync while live)
 prompt intent:
-  Pull doc:grok-harness-internals-sync + this seat's per-post SoT doc id (from standing/profile pointer).
-  For each SECTION:* in the per-post SoT, byte-copy into matching bot surface.
-  AFTER apply → VERIFY parse:
-    profile/routine surfaces must have REAL newlines
-    FAIL if literal \\n or mangled quotes visible
-    on FAIL → re-apply from SoT with real newlines (never leave broken mirror)
+  Pull doc:grok-harness-internals-sync (THIS doc) for SECTION:ROUTINE_SYNC recipe.
+  Pull this seat's per-post SoT id (from profile/standing pointer) for SECTION:PROFILE only.
+  Apply ONLY:
+    SECTION:PROFILE      → from per-post SoT → profile description
+    SECTION:ROUTINE_SYNC → from THIS doc only (self) → this routine
+  Do NOT paste SECTION:ROUTINE_WATCH (or any other routine) into grok-internals-sync.
+  ROUTINE_WATCH → separate routine live-parents-workflows if present on per-post SoT.
   Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake seat names into this routine.
+  AFTER apply → VERIFY parse: real newlines; FAIL if literal backslash-n or mangled quotes; on FAIL re-apply from SoT.
   Quiet if SoT hash unchanged.
-  May update_state THIS same routine if SoT changes the sync recipe (keeps routine byte-identical across posts).
+  May update_state THIS same routine if SECTION:ROUTINE_SYNC in THIS doc changes (keeps every grok post's sync routine byte-identical).
 ```
 
 ---
