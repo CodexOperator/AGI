@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.3.2
 next_edges: []
 confidence: 0.85
-edited_by: a00-bbcb43fa
+edited_by: a00-75145740
 evidence_runs:
   - experiment:a00-1cbef27c-router-transcript
   - experiment:a00-37392a90-cli-transcript
@@ -70,11 +70,9 @@ the narrowed routing claim but are kept so they are not silently dropped
 not route through it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DT.45 corrective round. Kid a00-66b5e112 changed the claim markers 1./2./3. -> (1)/(2)/(3) so the engine conjunct regex _CLAIM_ITEM_RE (cli.py:1136) counts them: cli._claim_conjunct_numbers now returns [1, 2, 3] instead of []. The kid's `replace body` range was off by one and duplicated two lines and dropped the `**Claim (exactly these conjuncts).**` header; parent a00-bbcb43fa repaired body 10:24 through write.py and re-verified the block and the count. The routing claim is unchanged: write+send+dispatch/workflow run through the named CLIs, workflow.py is the ONE workflow router building its own pi argv at :1791-1794.
+DT.46 corrective round (a00-75145740). Residue 2 (NOTE): the body carried two ## Agent Notes headings (file lines 76 and 79); collapsed to ONE heading with both notes content merged under it. A first replace body 49:52 was off by one and duplicated the heading; repaired in place with replace body 48:49 and re-read to confirm exactly one heading remains. Routing claim unchanged; DT.45 reasoning (parenthesised markers, parent body repair) is in the grid diff.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Narrowed fork of goal:g7.31.3.2 routing claim: write+send ran live, dispatch/workflow dry-run on this tip; workflow.py named as the ONE workflow router building its own pi argv (no dispatch.py import), send.py file/stdin route not claimed, fired refusal gates moved to prior-art section on the legacy hypothesis.
-
-## Agent Notes
-DT.45 corrective round: residues 1-3 closed; parent repaired the kid's off-by-one body garble; decisive verdict so the probe gate runs
+DT.45 corrective round: residues 1-3 closed; parent repaired the kid's off-by-one body garble; decisive verdict so the probe gate runs.
