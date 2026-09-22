@@ -594,5 +594,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ALL-POSTS harness mirrors ← graph SoT only; grok recipe doc:grok-harness-internals-sync + per-post *-grok-internals; Belam→doc:belam-grok-internals
+§4c single-file recipe: harness=ROUTINE_SYNC SoT; per-post=PROFILE+optional WATCH
 <!-- THOUGHT:END -->
