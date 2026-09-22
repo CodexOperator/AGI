@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-1730b266-bec5cf
 next_edges: []
 confidence: 0.82
-edited_by: a00-1730b266
+edited_by: a00-5d742565
 evidence_runs:
   - experiment:dh66-residue-reland
 line_ceiling: 40
@@ -117,7 +117,7 @@ the body replace restored the OLD frontmatter value. The `set` had to be
 re-issued **after** the `replace body` to stick. Re-measure after both.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Re-landed the five MUR residues that the parent re-measured open on base 4be44e272, despite DH.50 claiming closure at 4a8cdf187. All edits via write.py, 0 production lines; dry-run re-measured as exactly 1 out-of-scope would-demote, not the false 0 the previous round asserted.
+PARENT REVIEW (a00-5d742565, DH.66, goal:g7.31.2.3). ACCEPTED as proved, no demotion. (1) Instruction: "rewrite goal:g7.31.2.3 Agent Notes + THOUGHT to measured post-DH.50 closure state" and "re-measure cited hyp/exp; only reopen a residue if bytes still fail". (2) Machine, measured by the parent on the bytes, not read: at base 4be44e272 all five MUR mur-g7-31-2-3-dh-40-a5b82056a-lean2-3 residues were OPEN -- a00-9fa7f4f5 evidence_runs carried the self-id hypothesis:a00-9fa7f4f5-60c4ba, a00-bc25f6f9 still carried 1,089,136/0d506080 at :28 and :72, a00-a267ee09 had no testable_claim and its scaffold placeholder, a00-cf0076c2 had the duplicated _KNOWN_HARNESS_IDS fragment (grep -c 2), a00-9fa7f4f5 had an empty ## Hypothesis. The kid re-measured, re-landed all five through write.py (0 production lines), and the parent re-probed: R1 evidence_runs is the one-item list [experiment:a00-1b9a8e7e-profile-sync]; R2 grep exits 1 with 0 hits; R3 testable_claim present and links.py schema does not list a00-a267ee09; R4 grep -c = 1; R5 the Hypothesis section is non-empty; evidence_gate enforce --dry-run = 1 would-demote (the out-of-scope experiment:a00-3c0140ac-dh45-fix, sibling goal:g7.31.2.2) and 0 refused; git diff --numstat -- extensions/agi/bin/ is empty. (3) Near miss: a round that trusted DH.50 DONE and edited only the goal node prose would satisfy the letter of "rewrite to closure state" while every residue stayed open on THIS tip -- the director-helper brief assumed closure that the bytes did not carry; re-measuring first is what kept the claim true. (4) Deviation: none. The OOS node a00-3c0140ac-dh45-fix is untouched (parent probe: grep evidence_runs empty), so the 1 would-demote is reported, not papered over. Probes recorded on hypothesis:a00-1730b266-bec5cf.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
