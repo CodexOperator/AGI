@@ -2649,15 +2649,17 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        # Durable named pane hold (`goal:g7.31.1.2`): when the adapter
+        # declares its seats keep one (`HOLD_PANE` / `hold_harness`), the
+        # pane is founded on the first spawn and the process runs inside it --
+        # so a later restart re-enters the same pane instead of fabricating
+        # one. No harness name is special-cased: the seam asks the adapter
+        # that was resolved for this seat. Resolved once HERE so the dead-seat
+        # guard below reads the same decision `_open_round` spawns under.
+        _holder = getattr(adapter, "hold_harness", None)
+        hold = _holder(dispatch_harness) if _holder else dispatch_harness
+
         def _open_round(mode: str):
-            # Durable named pane hold (`goal:g7.31.1.2`): when the adapter
-            # declares its seats keep one (`HOLD_PANE` / `hold_harness`), the
-            # pane is founded HERE, on the first spawn, and the process runs
-            # inside it -- so a later restart re-enters the same pane instead
-            # of fabricating one. No harness name is special-cased: the seam
-            # asks the adapter that was resolved for this seat.
-            holder = getattr(adapter, "hold_harness", None)
-            hold = holder(dispatch_harness) if holder else dispatch_harness
             if tmux_hold.enabled(hold):
                 held = tmux_hold.spawn(
                     hold, agent_id, mem_cap.wrap_argv(spawn_args, _mem_cap),
@@ -2747,6 +2749,24 @@ def main() -> int:
                     _orders_file.unlink(missing_ok=True)
                 _report_unregistered_scaffold(root, scaffold_info, agent_id)
                 return 4
+        # A held seat whose pane PROCESS has already died is not a running
+        # seat: `HeldProc.poll` reports a nonzero rc, so the transient branch
+        # above ran, and a non-transient death lands here with a live pane but
+        # a dead process (`remain-on-exit`). Never register it
+        # `status: running`; refuse by name and give the slot back, as every
+        # other no-agent-record abort seam does (`goal:g7.31.1.2`).
+        if tmux_hold.enabled(hold) and proc.returncode is not None:
+            print(f"ERR: dispatch {agent_id} held pane process died "
+                  f"(rc {proc.returncode}); refusing", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
+            spawn_budget.release(lease)
+            if _orders_file is not None:
+                _orders_file.unlink(missing_ok=True)
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"held pane process died (rc {proc.returncode})")
+            return 6
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
         # Until this line the reservation is held by THIS process; after it,
         # by the agent. That is what makes the bound survive a dispatcher

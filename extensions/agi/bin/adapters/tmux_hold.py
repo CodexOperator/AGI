@@ -99,7 +99,11 @@ class HeldProc:
             return self.returncode
         if self.pid and _alive(self.pid):
             return None
-        self.returncode = 0 if self.pid else 1
+        # A dead pane process is a DEATH, never a clean rc 0. dispatch's
+        # `_await_startup(proc) or proc.returncode == 0` reads rc 0 as a clean
+        # startup and skips the transient-death classification; a nonzero rc
+        # sends the held seat down the same branch a direct `Popen` takes.
+        self.returncode = 1
         return self.returncode
 
 
