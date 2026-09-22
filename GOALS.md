@@ -4939,10 +4939,36 @@ the same scope mistake L15 made with `goal:`.
 <!-- BODY:BEGIN -->
 # goal:g7.legacy-direct
 
-### G7.2 — Town nodes as in-graph containers — status: active
+### G7.2 — G7.2-birth (retired g26): Town ops containers (not goal:g7.2 duplicate-ids) — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g26.towns
+
+## Why
+Birth goal (historical label **G7.2 under retired `goal:g26`**) for in-graph
+**town** containers. Not `goal:g7.2` (duplicate node ids — different node).
+
+## Target
+Town nodes (`town:*`) are the ops SUPER-node containers; type stays `town`
+(PROTECTED). Nesting SoT for goals remains parents-on-children — towns do not
+registry child-goals via `seeds`.
+
+## Invariants
+- `town` type protected; parents = ladder (schema spawn).
+- `town.seeds` (when present) = persistent infra this town stands up
+  (posts/crons/workflows/formation instances) — **not** a child-goal registry.
+
+## Falsifier
+1. `ls .agi/nodes/town/` empty on a live mesh → birth incomplete.
+2. Town `seeds:` used as goal child list → schema/comment violated.
+
+## Out of Scope
+- Trajectory type / geometry Pass-1 (see `goal:g7.34*`).
+- Engine fixes (`goal:g7.33`).
+
+## Agent Notes
+Under retired umbrella `goal:g26` (folded to `goal:g7`). Title clarified
+2026-09-21 Belam. Live towns: `town:core`, `town:local-maxxing`, …
 
 ### G7.2 — Duplicate node ids silently hide files on disk — status: horizon
 
@@ -6571,7 +6597,7 @@ L4 CLOSED (belam gen 27, 12:0xZ 09-17, goal:g2.27 sequence executed): queue drai
 
 🔴 **What must NOT move:** `locations.git_common_root` (`locations.py:212-227`) deliberately routes SHARED state — the spawn budget, the comms root, the meter pins — to the main checkout, because a tree-wide concurrency bound that splits per worktree is not a bound. That stays. Only the iteration dirs, which are per-session and not shared, move.
 
-### G7.25 — Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code — status: active
+### G7.25 — Grok Bot is a third-party harness adapter with the same hooks as pi and Claude Code — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g7.25
@@ -6752,7 +6778,7 @@ A grok-bot adapter test module mirrors the existing adapter interface suite: `ad
 
 No parent dispatch. Format repaired at close.
 
-### G7.26 — Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump) — status: active
+### G7.26 — Post briefs are self-sufficient custom instructions (spawn injects brief/worktree/pin/key; after-rotate dump) — status: horizon
 
 # goal:g7.26
 
@@ -6788,7 +6814,7 @@ Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be se
 - Cross-cut: `goal:g4.20` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
 # goal:g7.26
 
-### G7.27 — Templates are the sole harness arg builders — status: active
+### G7.27 — Templates are the sole harness arg builders — status: horizon
 
 # goal:g7.27
 
@@ -6830,7 +6856,7 @@ Owner voice 2026-09-19: templates sole arg builders; thin hook only when format 
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
 
-### G7.28 — Dispatch persistent mode for occupied seats — status: active
+### G7.28 — Dispatch persistent mode for occupied seats — status: horizon
 
 # goal:g7.28
 
@@ -6867,7 +6893,7 @@ Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Depends on / pairs with `goal:g7.27` for restart argv source.
 
-### G7.29 — Shrink rotate.py to pure orchestration (no harness argv) — status: active
+### G7.29 — Shrink rotate.py to pure orchestration (no harness argv) — status: horizon
 
 # goal:g7.29
 
@@ -6904,7 +6930,7 @@ Depends on / pairs with `goal:g7.27` for restart argv source.
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Consumes `goal:g7.27` + `goal:g7.28`.
 
-### G7.30 — Land grok-bot adapter + post template on core/season2/main — status: active
+### G7.30 — Land grok-bot adapter + post template on core/season2/main — status: horizon
 
 # goal:g7.30
 
@@ -7063,7 +7089,7 @@ Assigned to **director-belam (point)** with umbrella + `.3`. May further split; 
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
 
-##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: active
+##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: horizon
 
 # goal:g7.31.1.1
 
@@ -7137,7 +7163,7 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g7.28`, `goal:g7.31.1.1`.
 
-#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
+#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: horizon
 
 # goal:g7.31.2
 
@@ -7314,7 +7340,7 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
-#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
+#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: horizon
 
 # goal:g7.31.4
 
@@ -7363,11 +7389,30 @@ engine gap-fill
 
 ## Agent Notes
 
-Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
+DT.91 residual round (parent a00-b078d529). MUR `mur-g7-31-4-dt-85-c14378fb3`
+(`accept_with_residue`, tip `c14378fb3`) raised five residues; the table below
+records each and how this round closed it. Standing assignment:
+**director-helper** holds `g7.31.2` + `g7.31.4` + `g7.31.5` and keeps the
+`g7.26`–`g7.30` land batch; this round was cut from `c14378fb3` to close the MUR
+before the next merge-up.
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
-#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
+### Residue round (MUR mur-g7-31-4-dt-85-c14378fb3 @~21:09Z -- accept_with_residue)
+
+| sev | defect | locus | close |
+|-----|--------|-------|-------|
+| primary | `hypothesis:a00-752a05cb-923dbb` self-contradicted: FM `verdict: proved` vs body `## Verdict inconclusive_lean_proved` | `.agi/nodes/hypothesis/a00-752a05cb-923dbb.md` | FM aligned to the authored reasoning → `verdict: inconclusive_lean_proved:88` (the node's own `confidence: 0.88`). |
+| primary | `evidence_runs` scalar/non-list silently accepted (`evidence_runs_violations` returned `[]` for a non-list; `normalize_evidence_runs` returned 0 for a str) | `extensions/agi/bin/evidence_gate.py`; `hypothesis:a00-8890af1d-ed52a9`; `experiment:a00-752a05cb-mesh-transport-loci` | Gate returns `[value]` for a present non-list and names the list/type violation (kid `a00-c616d368`, parent probe held); both named nodes repaired to list form. |
+| note | `experiment:a00-752a05cb-mesh-transport-loci` parents named `hypothesis:a00-8890af1d-ed52a9` while also cited by `923dbb` | `.agi/nodes/experiment/a00-752a05cb-mesh-transport-loci.md` | Second parent `hypothesis:a00-752a05cb-923dbb` added — the experiment carries both the four-loci run and the coalesce test; schema `max_parents=2`. |
+| note | `GOALS.md` not regenerated after the goal body edit | `GOALS.md` | Regenerated via `snapshot-goals.py --render`. |
+| 3d | Agent Notes / residue table stale vs tip; duplicate-heading risk | this node | Whole-replaced with this one `## Agent Notes` heading and the table above. |
+
+Residual round parent `a00-b078d529`, cut from tip `c14378fb3`. Kid
+`a00-c616d368`: `hypothesis:a00-c616d368-e4ece1` proved + its experiment.
+Parent probes A (gate) and B (wire) held. No MAIN. Next: merge-up.
+
+#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: horizon
 
 # goal:g7.31.5
 
@@ -7416,7 +7461,7 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
 
-### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: active
+### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: horizon
 
 # goal:g7.32
 
@@ -7487,7 +7532,7 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
-#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: horizon
 
 # goal:g7.32.1
 
@@ -7531,7 +7576,7 @@ grok session artifact
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
-#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: horizon
 
 # goal:g7.32.2
 
@@ -7577,7 +7622,7 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.3 — One adapter/harness with optional pane methods — status: active
+#### G7.32.3 — One adapter/harness with optional pane methods — status: horizon
 
 # goal:g7.32.3
 
@@ -7620,7 +7665,7 @@ grok_bot_adapter
 
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: horizon
 
 # goal:g7.32.4
 
@@ -7664,7 +7709,7 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
-### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
+### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g7.33
@@ -7688,6 +7733,174 @@ thought-master 01:5xZ 09-21 (owner: 'we need a config and template maxxing pass 
 thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use'): ADD G7.33.7 GRID STORAGE TRUNK BY CONFIG -- today grid.py writes refs/grid/<mint_id> (branch-blind, master-only unless --allow-branch) and crons.py:548 hardcodes the command. Round: (a) `grid.storage_trunk` in .agi/config.json (a ref namespace like refs/grid/<town>/ or a branch name; default = the current refs/grid/ so every existing project round-trips unchanged) with the crons node able to override per project; (b) grid.py commit/log/diff/versions/payload/status and stitch.py --from-grid all resolve the trunk from config -- one resolver, no second spelling; (c) crons.py emits the grid_sync line from the same config (this supersedes G7.33.6's first item: with a configured trunk the branch-blind refusal no longer applies; keep --allow-branch as the explicit override for an unconfigured tree); (d) tests: a tree with storage_trunk=refs/grid/t1/ records N versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; `grid.py versions` reads back from the configured trunk. Migration for this box: set storage_trunk=refs/grid/local-maxxing/ AFTER the round lands, then one `grid.py migrate-refs` (existing verb) or a documented re-seed. Ceiling 200 engine lines; the kid pins existing behaviour with the engine suite first.
 
 thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 7.33.4; ceiling 200 engine lines; never a second scrub.
+
+### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34
+
+## Why
+Need a durable spine for geometry-town (.geometry/towns) and trajectory:* KG nodes. Town bodies currently carry TEMP trajectory stand-ins; ops vs KG roles are conflated until type+geometry land.
+
+## Target
+Umbrella complete when g7.34.1–.5 land: trajectory schema+nodes, town→.geometry/.self Pass-1, slim config cells, formation loader — town=ops / trajectory=KG split is real, stand-ins retired.
+
+## Invariants
+- Children nest under this umbrella only (parent goal:g7).
+- Parked/horizon unassigned on town:core until directors finish g7.25–g7.32 batches.
+- No director assignment / SendToAgent from this mint alone.
+
+## Falsifier
+1. Any of g7.34.1–.5 missing as nodes → umbrella incomplete.
+2. Stand-in still sole metrics SoT after .1+.2 complete → target missed.
+
+## Out of Scope
+- Implementing g7.34.1–.5 code this mint (mint-only).
+- Re-nesting live g7.31 / rewriting g7.33.
+- Assigning directors.
+
+## Agent Notes
+Parked on **town:core**. Parent **goal:g7**. Children: g7.34.1–.5. Schema status=horizon (parked).
+
+#### G7.34.1 — [trajectory] schema + allowed parents/links — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34.1
+
+## Why
+No [trajectory] schema yet; town bodies hold TEMP stand-ins. Need typed node with allowed parents/links so KG coordination is first-class.
+
+## Target
+`.agi/context/schemas/[trajectory].md` exists; spawn/parents/links rules documented; write.py create trajectory:* accepted; links.py resolves trajectory links.
+
+## Invariants
+- Schema declares allowed parents/links explicitly.
+- Does not steal town ops fields (location/council/master).
+- Parents-on-children remain goal nesting SoT.
+
+## Falsifier
+1. `test -f .agi/context/schemas/[trajectory].md` fails → not done.
+2. write.py create trajectory:… refused without documented reason → not done.
+3. links.py broken count >0 on a sample trajectory node → not done.
+
+## Out of Scope
+- Minting trajectory:core / :local-maxxing (g7.34.2).
+- Geometry Pass-1 (g7.34.3+).
+- Engine G7.33.5 duplicate work if already covered — prefer this spine id.
+
+## Agent Notes
+Parked **town:core**. Parent **goal:g7.34**. G7.34.1 only.
+
+#### G7.34.2 — mint trajectory:core + local-maxxing; town→traj; traj→chain — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34.2
+
+## Why
+Stand-ins in town:core / town:local-maxxing bodies must become real trajectory:* nodes with town→traj and traj→chain links.
+
+## Target
+trajectory:core + trajectory:local-maxxing minted from stand-ins; town bodies point to them; traj nodes link into chain/metric movers; doc:lm-town-trajectory deprecated pointer only.
+
+## Invariants
+- Migration moves content (never silent delete).
+- Town keeps ops bundle; traj owns metrics/progress/links.
+- mint_id preserved on any rename/migrate path.
+
+## Falsifier
+1. `ls .agi/nodes/trajectory/` missing core or local-maxxing → not done.
+2. town body still sole metrics SoT with no traj link → not done.
+3. links.py reports broken traj→chain edges → not done.
+
+## Out of Scope
+- Authoring [trajectory] schema (g7.34.1).
+- .geometry/towns Pass-1 (g7.34.3).
+- Research round execution.
+
+## Agent Notes
+Parked **town:core**. Parent **goal:g7.34**. G7.34.2 only. Depends on goal:g7.34.1.
+
+#### G7.34.3 — town → .geometry/towns/<slug>/.self (Pass 1 raw) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34.3
+
+## Why
+Towns lack Pass-1 raw .geometry/towns/<slug>/.self materialization; geometry home planned but not stood up.
+
+## Target
+Each live town has `.geometry/towns/<slug>/.self` Pass-1 raw (no formation recursion). town node references the path. No recursive formation expansion in this pass.
+
+## Invariants
+- Pass 1 = raw self only; no formation recursion.
+- Slug matches town id leaf (core, local-maxxing).
+- Does not rewrite goal parents.
+
+## Falsifier
+1. Missing `.geometry/towns/core/.self` or local-maxxing equivalent → not done.
+2. Pass-1 performs formation recursion → invariant broken.
+
+## Out of Scope
+- Slim config cells (g7.34.4).
+- Formation loader (g7.34.5).
+- Trajectory mint (g7.34.2) except cross-links if needed.
+
+## Agent Notes
+Parked **town:core**. Parent **goal:g7.34**. G7.34.3 Pass-1 raw only.
+
+#### G7.34.4 — slim config/template pointer cells on town.self (L6) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34.4
+
+## Why
+town.self needs L6 config-max: slim config / template pointer cells, not fat inlined blobs.
+
+## Target
+town.self carries slim pointer cells to config/templates (L6 config-max). Fat bodies refused by convention; pointers resolve.
+
+## Invariants
+- Pointers over copies.
+- Compatible with Pass-1 .self from g7.34.3.
+- No second SoT for posts/crons beyond existing config nodes.
+
+## Falsifier
+1. town.self inlines full template bodies → not done.
+2. Pointers dangling (missing targets) → not done.
+
+## Out of Scope
+- Formation nested template loader (g7.34.5).
+- Trajectory schema (g7.34.1).
+
+## Agent Notes
+Parked **town:core**. Parent **goal:g7.34**. G7.34.4 L6 config-max.
+
+#### G7.34.5 — formation nested template + single context loader (L6) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.34.5
+
+## Why
+Formation should be nested template + single context loader (L6 renderer), not ad-hoc multi-loaders.
+
+## Target
+One formation renderer: nested template + single context loader. Documented seam; old multi-loader paths retired or pointed.
+
+## Invariants
+- Single loader entrypoint.
+- Nested templates only (no parallel ad-hoc render paths for the same formation).
+- Does not recurse in Pass-1 (g7.34.3 stays raw).
+
+## Falsifier
+1. Two live loaders for the same formation context → not done.
+2. Pass-1 raw .self requires formation recursion to exist → scope leak.
+
+## Out of Scope
+- Pass-1 raw .self (g7.34.3).
+- Trajectory KG work (g7.34.1/.2).
+
+## Agent Notes
+Parked **town:core**. Parent **goal:g7.34**. G7.34.5 L6 renderer.
 
 ## G8 — Forkability: anyone grows their own tree — status: retired
 
