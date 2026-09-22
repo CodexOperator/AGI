@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-f0d769b5-7a5ace
 next_edges: []
-edited_by: a00-f0d769b5
+edited_by: a00-f46503aa
 loop: goal:g7.31.3.1@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -97,7 +97,7 @@ Five-route claim untouched:
 Tip gates on the committed bytes:
 
     $ python3 extensions/agi/bin/links.py links
-    links: 3858 resolved, 0 broken (18 retired payload(s), not damage)
+    links: 3860 resolved, 0 broken (18 retired payload(s), not damage)
     $ python3 extensions/agi/bin/evidence_gate.py enforce --dry-run --root .
     evidence-gate enforce: 0 unevidenced decisive verdict(s), 0 would demote, 0 refused
 
@@ -112,13 +112,16 @@ identity and `git config --global user.name` is unset, so its `git merge` dies
 "Committer identity unknown". It runs with `notes=""`, so the notes branch this
 round changed is never entered.
 
-Provenance ground truth — the DT.36 MUR run on MAIN:
+Provenance ground truth — the COMMITTED DT.36 residue table in
+`goal:g7.31.3.1`, landed in commit `88da0784c`:
 
-    .agi/sessions/workflows/runs/mur-g7-31-3-1-dt-36-748d4344ce2/review_DT.36-g7.31.3.1-748d4344ce2.json
-    defects: parent-edge residue; schema-list note; probes-note (not in the goal table)
+    defects: parent-edge residue (corrective exp parented to the wrong hypothesis);
+             schema-list note ([experiment].md:10 list-typed, validation.types omits it)
 
-The gitignored-probe and self-citation rows are absent from that defects list,
-so the goal table now labels them found during the DT.78 corrective round.
+The gitignored session-dir run JSON this section used to cite is not
+committable (`.gitignore:100` ignores `.agi/sessions/*`), so a fresh checkout
+could not verify it. The gitignored-probe and self-citation rows are absent
+from the committed table; they were found during the DT.78 corrective round.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DT.84: this experiment node exists so the residual round has a real citable run behind its proved verdict. It carries the commands and their verbatim output for the four residues and the engine root-cause fix. The fix was measured against the reverted writers before the fixed bytes were restored from scratch copies, because no git write is permitted. production_lines 29 of 40.
