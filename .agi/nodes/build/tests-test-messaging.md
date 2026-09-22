@@ -8,7 +8,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: a00-56931c01
+edited_by: a00-7d52f792
 link_ref: extensions/agi/tests/test_messaging.py
 location: source_root
 loop: goal:g7.32.2@s2
@@ -19,8 +19,6 @@ profile: balanced
 role: kid
 scaffold_hash: f71934093206efe9
 season: 2
-spawn_check: unverified
-spawn_check_reason: schema 'build' is discriminated on 'build_kind', which this node does not set
 tags: build code
 title: Tests test messaging
 town: core
