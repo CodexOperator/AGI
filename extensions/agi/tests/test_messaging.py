@@ -128,3 +128,79 @@ def test_cross_harness_send_refuses_same_harness():
                                      sender_harness="grok-bot",
                                      recipient_harness="grok-bot",
                                      to="grok-b", text="hi")
+
+# ------------------------------------ (f) whitespace-only harness is unknown
+
+@pytest.mark.parametrize("sender,recipient", [("  ", "  "),
+                                              ("  ", "grok-bot"),
+                                              ("grok-bot", "\t")])
+def test_whitespace_only_harness_is_unknown(sender, recipient):
+    with pytest.raises(messaging.UnknownHarness):
+        messaging.route(sender, recipient)
+
+
+def test_padded_harness_routes_by_stripped_identity():
+    assert messaging.route(" grok-bot ", "grok-bot") == "native"
+    assert messaging.route(" grok-bot ", " claude-code ") == "nudge_send"
+
+
+# ------------------- (g) the trace invokes the REAL send.py transport
+
+def test_cross_harness_trace_invokes_real_send_py(tmp_path):
+    import send as send_mod  # the module under bin/, already on sys.path
+
+    nudge_artifact = tmp_path / "nudge_artifact.txt"
+    events = []
+
+    class _Nudge:
+        def write(self, to, text):
+            nudge_artifact.write_text(f"{to}:{text}", encoding="utf-8")
+            events.append(("nudge.write", to, text))
+
+    class _RealSend:
+        def __init__(self, root, sender):
+            self.root, self.sender = root, sender
+
+        def send(self, to, text):
+            events.append(("send.send", to, text))
+            return send_mod.send(self.root, to, text, self.sender,
+                                 nudge=False)
+
+    trace = messaging.cross_harness_send(
+        _RealSend(tmp_path, "grok-bot"), _Nudge(),
+        sender_harness="grok-bot", recipient_harness="claude-code",
+        to="claude-a", text="hi from grok")
+
+    inbox = tmp_path / "sessions" / "inbox" / "claude-a.md"
+    assert nudge_artifact.exists()
+    assert nudge_artifact.read_text(encoding="utf-8") == "claude-a:hi from grok"
+    assert inbox.exists(), f"real send.py wrote no inbox at {inbox}"
+    block = inbox.read_text(encoding="utf-8")
+    assert "hi from grok" in block
+    assert [step[0] for step in trace["steps"]] == ["nudge.write", "send.send"]
+    assert events == trace["steps"]
+
+
+def test_native_path_never_reaches_real_send_py(tmp_path, monkeypatch):
+    import send as send_mod
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("native path must never call real send.py")
+
+    monkeypatch.setattr(send_mod, "send", _boom)
+
+    class _RealSend:
+        def __init__(self, root, sender):
+            self.root, self.sender = root, sender
+
+        def send(self, to, text):
+            return send_mod.send(self.root, to, text, self.sender, nudge=False)
+
+    _RealSend(tmp_path, "grok-bot")  # bound exactly as the cross path binds it
+
+    pane = _RecordingPane()
+    trace = messaging.native_send(pane, sender_harness="grok-bot",
+                                  recipient_harness="grok-bot",
+                                  to="grok-b", text="hello")
+    assert pane.calls == [("grok-b", "hello")]
+    assert trace["route"] == "native"
