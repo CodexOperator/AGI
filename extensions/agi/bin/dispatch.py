@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+from adapters import tmux_hold  # noqa: E402 -- durable named pane hold (goal:g7.31.1.2)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
@@ -2649,6 +2650,23 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
+            # Durable named pane hold (`goal:g7.31.1.2`): when the adapter
+            # declares its seats keep one (`HOLD_PANE` / `hold_harness`), the
+            # pane is founded HERE, on the first spawn, and the process runs
+            # inside it -- so a later restart re-enters the same pane instead
+            # of fabricating one. No harness name is special-cased: the seam
+            # asks the adapter that was resolved for this seat.
+            holder = getattr(adapter, "hold_harness", None)
+            hold = holder(dispatch_harness) if holder else dispatch_harness
+            if tmux_hold.enabled(hold):
+                held = tmux_hold.spawn(
+                    hold, agent_id, mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    cwd=branch_root, log_file=log_file, env=spawn_env)
+                if held is None:
+                    raise OSError(
+                        f"tmux pane hold: could not seat {agent_id} "
+                        f"in a named pane")
+                return held
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),

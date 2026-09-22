@@ -100,7 +100,10 @@ def test_bare_row_defaults_the_adapter_to_the_module_stem():
 # ----------------------------------------------------------------- restart
 
 RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
-                   "models": {"kid": "grok-kid", "parent": "grok-parent"}}
+                   "models": {"kid": "grok-kid", "parent": "grok-parent"},
+                   # Unit tests below exercise the direct-Popen restart path;
+                   # the pane hold is covered by the real-tmux test.
+                   "tmux": False}
 
 
 def test_restart_is_a_real_respawn_not_a_stub():
