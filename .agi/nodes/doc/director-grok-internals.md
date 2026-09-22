@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: concurrency-standing-2026-09-22
+thought_session: concurrency-ceilings-lower-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -118,7 +118,7 @@ CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
-  ≤4 live parents / director · ~7 box-wide when scopes disjoint
+  ≤3 live parents / director · ≤5 box-wide total if needed
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
 ```
 
