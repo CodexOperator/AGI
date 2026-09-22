@@ -143,6 +143,6 @@ pins ONLY (seat-local; rest = byte-copy of §3c FORMAT):
   REPORT {{REPORTS_TO}}
 ```
 
-<!-- THOUGHT:BEGIN -->
-owner HARD: director internals SoT = byte-identical PROFILE + ROUTINE_SYNC + WATCH pointer; placeholders only differ across seats
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PROFILE+WATCH only; ROUTINE_SYNC pointer to harness; watch is live-parents-workflows
 <!-- THOUGHT:END -->
