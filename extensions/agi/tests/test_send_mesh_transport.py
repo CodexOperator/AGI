@@ -171,3 +171,76 @@ def test_foreign_row_still_has_no_local_address(tmp_path, monkeypatch):
     root = _graph(tmp_path, [FOREIGN])
     monkeypatch.setattr(send_mod, "_window_id_listed", lambda *a, **k: True)
     assert send_mod._nudge_target(root, "director", None) is None
+
+
+# ── (6) DEFECT 1: the mesh path refuses a NAME-addressed window, exactly
+#        as _nudge_target refuses it locally. The @246-only test above never
+#        exercised this, which is how the bypass shipped. ──────────────────
+
+@pytest.mark.parametrize("window", ["sanctuary-master", None])
+def test_mesh_refuses_name_or_absent_window(tmp_path, monkeypatch, capsys,
+                                            window):
+    root = _graph(tmp_path, [dict(FOREIGN, window=window)])
+    calls = _fake_run(monkeypatch)
+    send_mod.send(root, "director", "the body", "a00-xxxx")
+    err = capsys.readouterr().err
+    assert "not an @id" in err, "the refusal is named on stderr"
+    assert not [c for c in calls if c and c[0] == "ssh"], \
+        "a NAME/absent window must never reach the ssh transport"
+    assert not [c for c in calls if c[:2] == ["tmux", "send-keys"]], \
+        "no token may be typed into a name-addressed foreign pane"
+
+
+# ── (7) DEFECT 2: the graph `location` is validated before it becomes ssh
+#        argv; a leading-dash option is refused, a bare host still meshises. ─
+
+def test_mesh_refuses_leading_dash_location(tmp_path, monkeypatch, capsys):
+    root = _graph(tmp_path, [FOREIGN],
+                  town_location="-oProxyCommand=sh -c id")
+    calls = _fake_run(monkeypatch)
+    assert send_mod._nudge_transport(root, "director") == ("none", []), \
+        "an unsafe location reads as no transport, never as an ssh prefix"
+    send_mod.send(root, "director", "the body", "a00-xxxx")
+    err = capsys.readouterr().err
+    assert "mail_poll delivers the inbox" in err
+    assert not [c for c in calls if c and c[0] == "ssh"], \
+        "no ssh argv may carry a leading-dash token"
+
+
+def test_valid_location_still_yields_the_mesh_prefix(tmp_path):
+    root = _graph(tmp_path, [FOREIGN], town_location="local-town")
+    assert send_mod._nudge_transport(root, "director") == \
+        ("mesh", ["ssh", "local-town"])
+
+
+# ── (8) DEFECT 3: `wake` on a foreign no-mesh seat tells the truth. ─────────
+
+def test_wake_foreign_no_mesh_is_not_reported_delivered(tmp_path, monkeypatch,
+                                                        capsys):
+    root = _graph(tmp_path, [FOREIGN], town_location=None)
+    _fake_run(monkeypatch)
+    assert send_mod.wake(root, "director") is False, \
+        "nothing reached a pane, so the exit is 1"
+    cap = capsys.readouterr()
+    assert "mail_poll delivers the inbox" in cap.err
+    assert "typed-token" not in cap.out, \
+        "a non-delivery must not wear the delivery label"
+
+
+# ── (9) DEFECT 4: a stored deferred dm rides the mesh inline. ──────────────
+
+def test_mesh_delivers_stored_deferred_dm_inline(tmp_path, monkeypatch):
+    root = _graph(tmp_path, [FOREIGN])
+    calls = _fake_run(monkeypatch)
+    dpath = send_mod._nudge_deferred_path(root, "director")
+    dpath.parent.mkdir(parents=True, exist_ok=True)
+    dpath.write_text(json.dumps({"sender": "a00-xxxx",
+                                 "body": "DEFERRED_BODY_XYZ"}))
+    send_mod.send(root, "director", "inbox text", "a00-xxxx")
+    ssh = [c for c in calls if c[:2] == ["ssh", "local-town"]]
+    assert ssh, "a mesh seat with a deferred dm must still be typed"
+    typed = ssh[0][-1]
+    assert "DEFERRED_BODY_XYZ" in typed, "the deferred BODY rides inline"
+    assert "agi-nudge" not in typed and "unread for" not in typed, \
+        "the fixed wake token must not be typed in place of the deferred dm"
+    assert not dpath.exists(), "a delivered deferred body is cleared"
