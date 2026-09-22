@@ -24,7 +24,7 @@ town: core
 # doc:belam-grok-internals — Belam/Prime harness SoT (TEMP stand-in)
 
 Belam edits THIS (+ standing) via write.py ONLY.
-`*/30` routine `grok-internals-sync` pastes SECTION fences → bot surfaces.
+`*/30` routine `grok-internals-sync` (title+body from doc:grok-harness-internals-sync ONLY) pastes PROFILE from this SoT → bot surfaces.
 NEVER `update_state` profile / UpdateAgent for spine after bootstrap.
 
 ```
@@ -117,6 +117,6 @@ Pointer only — recipe lives in `doc:grok-harness-internals-sync` (THE ONE SECT
 Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
-<!-- THOUGHT:BEGIN -->
-TEMP stand-in Belam/Prime harness SoT; ROUTINE_SYNC byte-identical to doc:grok-harness-internals-sync; shared name grok-internals-sync
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+per-post PROFILE only; sync title+body from harness doc ONLY
 <!-- THOUGHT:END -->
