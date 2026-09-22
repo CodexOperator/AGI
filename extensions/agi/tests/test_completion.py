@@ -356,6 +356,42 @@ def test_notes_merge_under_an_existing_agent_notes_heading(project, monkeypatch)
     assert notes in text, text
 
 
+def test_notes_heading_inline_in_thought_still_gets_a_real_heading(
+        project, monkeypatch):
+    """A `## Agent Notes` mentioned INLINE inside THOUGHT prose is not a
+    section. The predicate must be LINE-anchored, or the substring match finds
+    the inline mention and appends the note bare, with no heading at all --
+    measured live on this round's authored node, whose THOUGHT names the
+    heading.
+    """
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n\n"
+                    "<!-- THOUGHT:BEGIN — authored, not derived; carried "
+                    "across regenerating scans. The reasoning behind THIS "
+                    "version. -->\n"
+                    "prose mentioning `## Agent Notes` inline\n"
+                    "<!-- THOUGHT:END -->\n")
+    monkeypatch.chdir(project)
+    notes = "a later note"
+    iter_dir = project / "sessions" / "iter-001"
+    (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+    (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+        {"id": "a1", "status": "done", "node_id": res.node_id,
+         "notes": notes, "verdict": "pending"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600, "agents": [
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "parent": "hypothesis:h1", "notes": notes}]}))
+    import argparse
+    pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    headings = [ln for ln in text.splitlines()
+                if ln.strip() == "## Agent Notes"]
+    assert len(headings) == 1, text
+    assert notes in text, text
+
+
 # --------------------------------------------------------------------------
 # `_gate` precedence — the two ways frontmatter-primary went wrong
 # --------------------------------------------------------------------------
