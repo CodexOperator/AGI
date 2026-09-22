@@ -3,7 +3,7 @@ id: hypothesis:a01-4013d44d-a188b8
 mint_id: 7f85894cbd4746229f408d674658342f
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -39,7 +39,7 @@ This means the grid versioning feature — which CLAUDE.md explicitly commits
 to ("Per-node version history is baked into this repo as `refs/grid/*`") —
 holds for consumer projects under every shape, and holds for the engine itself
 only under a shape that ships the engine as a git checkout. None of the 13
-sibling hypotheses under `goal:g8.1` examines either half.
+sibling hypotheses under `goal:g1.23` examines either half.
 
 **What would prove it:**
 
@@ -57,7 +57,7 @@ sibling hypotheses under `goal:g8.1` examines either half.
 
 3. **Shape 2/3 preserves a `.git` somehow.** If a skill package or pip install includes the engine as a git subtree, shallow clone, or embedded `.git` directory, then the refs survive. The sibling `a00-bad7df6a` (shape 2 unviability) argues this is a stretch of the skill format; the sibling `a00-7e85b581` (shape 3 breaks forkability) argues pip install is incompatible. Neither tests for grid presence, but both imply no engine `.git` survives the packaging step.
 
-**Why this is distinct from all 13 sibling hypotheses under goal:g8.1:**
+**Why this is distinct from all 13 sibling hypotheses under goal:g1.23:**
 
 | Sibling | Focus | How this differs |
 |---|---|---|
@@ -70,7 +70,7 @@ sibling hypotheses under `goal:g8.1` examines either half.
 | `a01-c70bfcf6`, `a01-e3478ffd`, `a01-abd43b16`, `a00-2bf7847c` (empty scaffolds) | No content | N/A. |
 | `a00-98dac77b` (mootness) | Argues the three-shape frame is already decided by construction | Written in the same iteration as this node; it aggregates sibling arrows, it does not test grid provenance. |
 
-**Cost of being wrong:** If grid refs survive shape 2/3 (e.g., via the project's own `.git` namespace, or via embedded refs in node files), then the grid feature imposes no constraint on the distribution shape decision, and `goal:g8.1` can be decided without considering grid provenance. But being wrong is still useful — it would be the first empirical check that the grid is distribution-shape-agnostic, which no sibling has verified.
+**Cost of being wrong:** If grid refs survive shape 2/3 (e.g., via the project's own `.git` namespace, or via embedded refs in node files), then the grid feature imposes no constraint on the distribution shape decision, and `goal:g1.23` can be decided without considering grid provenance. But being wrong is still useful — it would be the first empirical check that the grid is distribution-shape-agnostic, which no sibling has verified.
 
 
 <!-- THOUGHT:BEGIN -->

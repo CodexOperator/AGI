@@ -4,7 +4,7 @@ mint_id: 2ba014df906b4a658c31aa90610dd1e0
 type: hypothesis
 parents:
   - idea:lm-draft-refit-own-traffic
-  - goal:g14
+  - goal:g5.22
 next_edges: []
 ceiling: 1 USD OpenRouter per round (pi parent + kid); 0 USD compute (rig only, 0 rental); <= 6 h training wall; kid line_ceiling 120; downloads slow mode only
 edited_by: thought-master

@@ -4,7 +4,7 @@ mint_id: e4b135df5ee244e2b38dd859d6edab6e
 type: hypothesis
 parents:
   - hypothesis:lm-spec-decode-cpu-draft-hybrid
-  - goal:g14
+  - goal:g5.23
 next_edges: []
 ceiling: 1 Camber XS hour (1.50 USD) + 0.03 USD CPU probe, only after the GO; $1 OpenRouter; $0 on our boxes; downloads 0 on our boxes; file scope = .agi/context/local-maxxing/uno/{cmds.md, prompts.jsonl, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

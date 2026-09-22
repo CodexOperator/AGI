@@ -3,14 +3,14 @@ id: hypothesis:l4-provisioning-absent-refuses-late
 mint_id: d72f161a46d44ef2a7bfd60ba57f207d
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 0d9026580e2783cb
 season: 2
 status: deprecated
 testable_claim: "When provisioning.available(root) is False AND the runtime key (OPENROUTER_API_KEY) is absent or unusable, dispatch.py's pre-flight currently admits the spawn (check_runtime_key_floor fail-opens on key_usage()==None) rather than refusing before a budget slot is spent. Falsifiable: reproduce that exact state (no provisioning key, no/invalid runtime key) and confirm a spawn is admitted and the spawned agent's first LLM call 401s, before a fix; after the fix, the same state must refuse pre-flight with a named message. Disproved if the current pre-flight already refuses this state somewhere not yet found."
-thought_session: sanctuary-helper-cd
+thought_session: goal-glom-2026-09-19
 title: Pre-flight fails open when neither provisioning nor a usable runtime key exist; a spawned kid discovers the 401 mid-round instead
 ---
 <!-- BODY:BEGIN -->

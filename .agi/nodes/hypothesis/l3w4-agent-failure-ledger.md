@@ -3,13 +3,13 @@ id: hypothesis:l3w4-agent-failure-ledger
 mint_id: edae3df7721142c8b5bac5f6208ca536
 type: hypothesis
 parents:
-  - goal:g16
+  - goal:g6.12
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 scaffold_hash: 1d35deef8d61c89c
 season: 2
 testable_claim: Given a fixture iteration whose manifest.json/agent.json, evidence-gate stamps, write-log.jsonl and output.log reproduce all 8 closed failure categories (died, demoted, rejected, overclaim, broken_frontmatter, session_limit, wrong_file, no_build_probe_only), failures.py ledger appends exactly one row per event — keyed by sha256(agent_id+category+detail) — into a new build:g16-failure-ledger node's payload via write.py, appends zero new rows on an immediate rerun (idempotent), and failures.py rates --by model|role|harness prints per-axis counts summing to the total row count, while failures.py never calls node_writer.write_node/update_node directly on any node's frontmatter.
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: Build the agent failure ledger
 ---
 <!-- BODY:BEGIN -->

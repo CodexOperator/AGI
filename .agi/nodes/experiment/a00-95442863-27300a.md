@@ -30,11 +30,11 @@ REAL subprocesses on a fixture root.
 
 **Pre-fix measurement (the falsifier was real):**
 ```
-write.py goal:g17.1 note "hello world" --root <fixture>   # the OLD two-positional
+write.py goal:g7.16 note "hello world" --root <fixture>   # the OLD two-positional
 ERR: note: wrong arguments (verb_note() missing 1 required positional argument: 'text')
 rc=2
-write.py goal:g17.1 "note hello world" --root <fixture>    # ONE script arg
-updated: goal:g17.1
+write.py goal:g7.16 "note hello world" --root <fixture>    # ONE script arg
+updated: goal:g7.16
 rc=0
 ```
 write.py's verb grammar (`ARITY = {"note": 1, ...}`) is ONE script argument
@@ -43,7 +43,7 @@ text into the unused `slug` slot → rc 2. The live `_g17_1_note` runner
 (rotate.py:6617 pre-fix) made exactly that call.
 
 **Fixes landed (rotate.py):**
-1. `_g17_1_note` now builds argv `[write.py, goal:g17.1, "note <text>",
+1. `_g17_1_note` now builds argv `[write.py, goal:g7.16, "note <text>",
    "--root", root]` + `--actor seat` + `--role role`, `cwd=root` — the ONE
    script arg the grammar wants, project resolved from root by name and cwd.
 2. The live call site (`_closeout_run_steps`) now passes
@@ -60,7 +60,7 @@ text into the unused `slug` slot → rc 2. The live `_g17_1_note` runner
 
 **Proof on built bytes (tests appended to test_rotate_closeout_steps.py):**
 - `test_g17_1_note_real_runner_writes_one_arg_note_on_a_fixture` — real
-  write.py subprocess on a tmp agi project; note lands on goal:g17.1 with the
+  write.py subprocess on a tmp agi project; note lands on goal:g7.16 with the
   numbers line composed from the record (non-empty).
 - `test_write_py_two_positional_note_form_is_the_rc2_regression` — pins the
   rc-2 two-positional regression and the one-arg success.
@@ -89,7 +89,7 @@ $ python3 -m pytest extensions/agi/tests/test_rotate.py \
 SL7.90 re-cut built+proved: _g17_1_note now calls write.py with ONE script arg 'note <text>' + --root/--actor/--role cwd=root (was two-positional rc2); call site passes record=; pathspec_commit refuses a failed record commit; _render runs --render+--check with cwd=root + --project. 5 new fixture-root real-runner tests + rc2 regression, 33 pass
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW a00-ddcebd2c SL7.103: accepted, proved. Read the artifact not the report. rotate.py _g17_1_note builds argv [write.py, goal:g17.1, note <text>, --root, root, optional --actor/--role] with cwd=root — the ONE script arg write.py ARITY note=1 wants (write.py:489). Pre-fix argv put text in a 4th positional so script=note had 0 args and text rode the unused slug slot, rc 2 (pinned by test_write_py_two_positional_note_form_is_the_rc2_regression). NEAR MISS: a fix that keeps two positionals and only appends --root still reads correct in source and still exits rc 2 at the live call — the rc-2 test is the falsifier. Call site now reads the in-progress record JSON from rec_path and passes record= (rotate.py:14462-14472). pathspec_commit accepts only stop_commit: committed / rotation_record_commit: committed prefixes (matches rotate.py:14174 and 7955), so FAILED/SKIPPED now returns (False, refused). _render runs --render then --render --check with cwd=root and --project root (snapshot-goals.py:20 accepts --project). Re-ran built bytes: 33 passed test_rotate_closeout_steps.py, 372 passed rotate/closeout/write nbhd. No demotion.
+PARENT REVIEW a00-ddcebd2c SL7.103: accepted, proved. Read the artifact not the report. rotate.py _g17_1_note builds argv [write.py, goal:g7.16, note <text>, --root, root, optional --actor/--role] with cwd=root — the ONE script arg write.py ARITY note=1 wants (write.py:489). Pre-fix argv put text in a 4th positional so script=note had 0 args and text rode the unused slug slot, rc 2 (pinned by test_write_py_two_positional_note_form_is_the_rc2_regression). NEAR MISS: a fix that keeps two positionals and only appends --root still reads correct in source and still exits rc 2 at the live call — the rc-2 test is the falsifier. Call site now reads the in-progress record JSON from rec_path and passes record= (rotate.py:14462-14472). pathspec_commit accepts only stop_commit: committed / rotation_record_commit: committed prefixes (matches rotate.py:14174 and 7955), so FAILED/SKIPPED now returns (False, refused). _render runs --render then --render --check with cwd=root and --project root (snapshot-goals.py:20 accepts --project). Re-ran built bytes: 33 passed test_rotate_closeout_steps.py, 372 passed rotate/closeout/write nbhd. No demotion.
 <!-- THOUGHT:END -->
 
 mur-SL2.26 (Prime XVIII 23:40Z, applied by sensei-director): DEMOTED to inconclusive_lean_disproved:60 — the live Prime closeout still refuses at g17_1_note (the in-progress record carries no facts/commit/goals); the pathspec_commit no-card fallback is always SKIPPED. Re-cut assigned by Sanctuary Master

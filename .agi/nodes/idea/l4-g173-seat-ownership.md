@@ -3,7 +3,7 @@ id: idea:l4-g173-seat-ownership
 mint_id: 4a78b08d994442728cc19993c8aaa0df
 type: idea
 parents:
-  - goal:g17.3
+  - goal:g7.18
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

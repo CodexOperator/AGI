@@ -62,7 +62,7 @@ New helper surface in `last_act.py` (+32 lines): `INTERNAL_ENV`,
 
 ### (B) The closeout hazard — CHECKED, and closed
 
-`rotate.py`'s Prime closeout runs `write.py goal:g17.1 'note <numbers>' --actor
+`rotate.py`'s Prime closeout runs `write.py goal:g7.16 'note <numbers>' --actor
 <seat>` as a SUBPROCESS (`rotate.py:8577`, `_g17_1_note`) AFTER the rotation
 wrote the seat's card. With the stamp wired in, that engine-internal
 bookkeeping call would stamp the seat's last-act after its own card and the
@@ -72,7 +72,7 @@ reintroduced through the engine's own call path.
 **Measured, both halves, one fixture** (`test_last_act.py::
 test_rotate_closeout_note_never_restales_the_card_it_just_wrote`):
 
-* the SAME `write.py goal:g17.1 note ... --actor seat-a` call with no marker
+* the SAME `write.py goal:g7.16 note ... --actor seat-a` call with no marker
   leaves `seats/seat-a.last-act` and `last_act.card_stale(...)[0] is True`
   (the hazard is real, not theoretical);
 * the REAL `_g17_1_note` seam writes the note (`"42 | abc1234"` lands in the

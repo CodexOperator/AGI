@@ -4,10 +4,10 @@ mint_id: 9593a01b6b94404ba4c064bdf3fc1ec9
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14
+  - goal:g5.24
 next_edges: []
 ceiling: <= 1 USD OpenRouter (parent+kid); 0 API calls (cached probabilities only); 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
-edited_by: brainstorm
+edited_by: thought-master
 falsifier: Verdict-subgroup held-out ECE stays above 0.10 after per-group fitting (the miscalibration is not a temperature/pooling problem and the confidence carries no usable group-level signal) OR per-group fitting moves argmax agreement by more than 0.02 (the split or the fit is broken) OR experiment-subgroup ECE rises above 0.10 after fitting (overfitting).
 scaffold_hash: 48a4c540e3067c4a
 season: 2

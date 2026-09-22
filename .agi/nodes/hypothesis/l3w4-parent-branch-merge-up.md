@@ -3,13 +3,13 @@ id: hypothesis:l3w4-parent-branch-merge-up
 mint_id: b1669b9bf65c46ae88faf1013fb85e5d
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-VIII
+edited_by: belam
 scaffold_hash: f142db59b92e1804
 season: 2
 testable_claim: A parent dispatched with --branch runs in its own git worktree on loop/<target-slug>@s<N>, its kids edit only that worktree, its iteration commit lands on that branch, and season.py merge-up merges it --no-ff into season/sN only when the full suite is green on the merged tree, so two parents whose kids edit the same file run at once without touching each other's bytes; proved by red-first tests plus a rehearsal-repo run of two concurrent dispatches on rotate.py-editing briefs merged up green.
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: Per-parent branch with seat-managed merge upward
 ---
 <!-- BODY:BEGIN -->

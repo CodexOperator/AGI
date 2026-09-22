@@ -3,10 +3,10 @@ id: hypothesis:a00-8ee9bdff-40419b
 mint_id: fb89742081464157ae1a14411c67ef81
 type: hypothesis
 parents:
-  - goal:g17.14.3
+  - goal:g7.25.3
 next_edges: []
 confidence: 0.9
-edited_by: a00-f912f8dd
+edited_by: belam
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
 loop: goal:g17.14.3@s2
@@ -17,6 +17,7 @@ role: kid
 scaffold_hash: d59ba94cc7858fba
 season: 2
 testable_claim: The corrected `extensions/agi/tests/test_grok_bot_adapter.py` is green (8 passed) against the real `goal:g17.14.1` adapter and `goal:g17.14.2` config row, and fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter; it pins `NAME == "grok-bot"` and asserts the locked `NotImplementedError` stub `restart`.
+thought_session: parent-residue-g14-g17-remap
 title: Corrected grok-bot mirror is green on real bytes and loud on a broken adapter
 town: core
 verdict: proved

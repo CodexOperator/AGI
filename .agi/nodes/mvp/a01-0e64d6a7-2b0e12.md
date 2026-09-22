@@ -38,7 +38,7 @@ A test drives `body` against a scratch node, writes through a mock editor (or di
 
 ### What this is not
 
-**A file bulk-edit rewriter.** `goal:g9.7` forbids splitting the write path. The file for a source-typed payload is not the body of a node.
+**A file bulk-edit rewriter.** `goal:g2.19` forbids splitting the write path. The file for a source-typed payload is not the body of a node.
 
 **A diff viewer, a merge tool, or a git integration.** The editor is a composition surface; everything before and after is `write.py` accumulating and submitting.
 

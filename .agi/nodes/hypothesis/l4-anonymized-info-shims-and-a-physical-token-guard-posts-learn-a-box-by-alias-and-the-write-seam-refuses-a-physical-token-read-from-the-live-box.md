@@ -3,12 +3,13 @@ id: hypothesis:l4-anonymized-info-shims-and-a-physical-token-guard-posts-learn-a
 mint_id: aee6cf7caa5140de931d3d7bc9fe8787
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: dc0a8092a4c3f854
 season: 2
 testable_claim: "(1) `agi-boxinfo` (bin, on PATH via the same symlink pattern as the agi command) prints ONLY sanctioned facts: box alias (AGI_BOX from the MAIN-root .env, default from the posts node's default_box cell -- SM.117's resolver), GPU class alias + VRAM, RAM, disk free, load, uptime; never hostname, board, product, serial, MAC, IP. (2) PATH shims for post users (extensions/agi/shims/: nvidia-smi, dmidecode, lshw, hostnamectl, lspci) route to filtered output -- GPU class + memory pass, board/product/serial/host/MAC/IP lines are dropped -- and the brief rule reads: posts run agi-boxinfo, never the raw tools; a shim test proves each tool's physical lines are absent from the shimmed output on this box. (3) THE GUARD at the write seam: `anonymize.py check` builds a denylist AT CHECK TIME from the live box (hostname -f, ip -o addr, ip -o link MACs, /sys/class/dmi/id board/product/serial, plus every value of the keys config:secrets names in the MAIN-root .env), never committed and never printed, and refuses BY NAME (the token's class, never its value) a staged commit or a verification run whose added text carries one; it is wired as a MAIN pre-commit hook installed by `anonymize.py install-hook` (box-local .git/hooks, never a tracked file) and as a `verification.py` quick-level check (\"anonymize\"), so both the human commit path and the rotation check refuse the same way. (4) a commit whose added text carries only aliases passes byte-identical to today; the tests build a fake box (env + fixture denylist source) and prove refuse/pass both ways without touching this box's values. CEILING ~80 production lines + the shims; config:box alias resolution at render time is S3-L1, not this round."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.122 (owner 20:5xZ via the Prime 20:46Z, sibling of SM.117 = the box rails): ANONYMIZED INFO SHIMS + a PHYSICAL-TOKEN GUARD -- posts learn a box only through agi-boxinfo (sanctioned facts by alias), raw hardware tools are shimmed to filtered output, and the write seam refuses any commit or verification whose text carries a physical token read from the live box at check time, never from a committed list"
 town: core
 ---

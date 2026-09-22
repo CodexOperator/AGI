@@ -3,13 +3,13 @@ id: hypothesis:l3-parent-never-told-to-iterate
 mint_id: eb9c2af3f472407d9bd590c2a0602b31
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 1e192743e0840662
 season: 2
 testable_claim: "After the change, a parent dispatched at one target keeps working that target across successive kids until it judges the work done: it reviews each kid, judges continue or adjust or done, spawns the next kid with what the previous one learned, and stops on an explicit bounded condition - proven by ONE live pi parent landing two or more kid nodes from a single dispatch, with the second kid's brief demonstrably carrying the first's result."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: brief.py calls the parent a loop and never tells it to run one, so every parent spawns exactly one kid and exits — the continue/adjust vocabulary exists only in the director block one tier up
 ---
 <!-- BODY:BEGIN -->

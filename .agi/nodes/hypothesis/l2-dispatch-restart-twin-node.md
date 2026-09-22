@@ -3,12 +3,13 @@ id: hypothesis:l2-dispatch-restart-twin-node
 mint_id: a7f0850d1dbc4c2b914f6dd735b7f384
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 47dcee2e73594fc5
 season: 1
 testable_claim: When a kid pi process dies mid-run, heal.py/dispatch.py's restart reuses the original scaffolded node id instead of minting a second node for the same agent slot, and cli.py done persists evidence_runs into frontmatter so self-cited evidence survives the grid-commit gate
+thought_session: dissolve-legacy-2026-09-19
 title: L2 dispatch restart twin node
 ---
 # hypothesis:l2-dispatch-restart-twin-node

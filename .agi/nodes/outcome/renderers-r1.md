@@ -7,7 +7,7 @@ parents:
 next_edges:
   - bigger_outcome:renderers-r1
 edited_by: season.py
-judged_against: goal:g9.4
+judged_against: goal:g2.17
 lens: goal:g9
 season: 1
 subgraph: false

@@ -3,14 +3,14 @@ id: hypothesis:a00-b315c6a4-b89059
 mint_id: cdf857c7159b4709be9d35d2adc2f4a0
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.4
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: a58f91021358ee56
 season: 1
 testable_claim: "For hypothesis nodes with a definitive verdict (proved or disproved) and a confidence field, there is no statistically significant correlation between confidence and verdict outcome: AUC < 0.65, or Mann-Whitney U p > 0.05, or mean proved confidence within 0.1 of mean disproved confidence."
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Confidence prediction bias — hypothesis confidence does not predict verdict outcome
 verdict: pending
 ---

@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-BUILT the goal:g15.25 claim (FIX-ONLY) — the after_join ack entry, the dm's
+BUILT the goal:g6.47 claim (FIX-ONLY) — the after_join ack entry, the dm's
 captive line, the dm byte budget, and the ack utcnow stamp. Pre-fix state was
 already measured in the claim (seat tip 1dc9f96b2): `--gen 0` on belam, an
 EMPTY `--ref` arg-poison on the Sensei, `--seat` in the captive line, a 43 KB

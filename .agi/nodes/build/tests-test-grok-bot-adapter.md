@@ -1,68 +1,45 @@
 ---
 id: build:tests-test-grok-bot-adapter
-mint_id: 6b858472e209402298c13385b3240240
+mint_id: e659085120824239a16e616608262610
 type: build
 parents:
-  - mvp:grok-bot-mirror-test-deliverable
+  - mvp:unified-spawn-path
 next_edges: []
 build_kind: code
 confidence: 0.9
-edited_by: a00-8ee9bdff
+edited_by: a00-8f215541
 link_ref: extensions/agi/tests/test_grok_bot_adapter.py
 location: source_root
-loop: goal:g17.14.3@s2
-model: deepseek/deepseek-v4.1-flash
-origin: mvp
+loop: goal:g7.25.1@s2
+origin: build-version
 payload_ref: extensions/agi/tests/test_grok_bot_adapter.py
-profile: balanced
 role: kid
-scaffold_hash: 55ed064d08bb694f
 season: 2
+status: active
 tags:
   - build
   - code
-  - g17.14.3
+  - adapter
+  - grok-bot
   - test
-title: Grok-bot adapter interface mirror test file
+title: Grok Bot adapter tests — interface mirror plus the ungated peers-resolve check
 town: core
 ---
 <!-- BODY:BEGIN -->
-## Build
+# build:tests-test-grok-bot-adapter
 
-`extensions/agi/tests/test_grok_bot_adapter.py` — the pytest mirror of the
-`grok-bot` adapter surface, minted from `mvp:grok-bot-mirror-test-deliverable`
-(`goal:g17.14.3`). One file, one canonical node; test-only, no production code.
-
-Eight tests, all of them guards rather than smoke:
-
-- `test_name_is_the_harness_literal` — `NAME == "grok-bot"`.
-- `test_adapter_implements_the_whole_interface` — every `adapters.REQUIRED`
-  name callable, and `restart` raises the locked `NotImplementedError`.
-- `test_is_alive_tracks_a_live_pid_and_not_a_reaped_one`.
-- `test_needs_no_openrouter_credential` — explicit `False`.
-- `test_missing_tier_is_a_named_error_not_a_fallback`.
-- `test_no_models_block_passes_no_model_flags`.
-- `test_config_entry_resolves_to_this_adapter`.
-- `test_bare_row_defaults_the_adapter_to_the_module_stem`.
-
-The module is loaded at import time (`grok = adapters.load("grok_bot")`), so a
-missing or broken adapter is a collection error. That is the whole point of
-the file: the previous `pytest.importorskip` guard turned a real regression
-into an anonymous skip.
-
-## Verified
-
-Green (`8 passed`) against the sibling bytes from
-`season2/loops/goal-g17.14.2-helper-cfg-land` in a scratch tree; four negative
-probes (missing adapter, adapter raising `ImportError`, mutated `NAME`, stub
-`restart` returning `0`) each reproduced the intended loud failure. See
-`experiment:grok-bot-mirror-green-and-loud`.
+`extensions/agi/tests/test_grok_bot_adapter.py` — the interface and tier
+contract tests for the fourth harness, carried from the same `goal:g17.14`
+lineage as the adapter and then given ONE change: the module-scoped `live_cfg`
+fixture is split so `test_live_config_peers_still_resolve` reads a non-gated
+`live_cfg_raw` fixture instead. It now asserts that the four rows that already
+ship (`pi`, `claude-code`, `pi-local`, `copilot-cli`) resolve to their adapter
+stems, and it runs whether or not `harnesses.grok-bot` exists. The two
+grok-specific live tests stay gated and skip with a named reason.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by DT.07 (a00-8ee9bdff) as the build half of the g17.14.3 chain:
-verdict proved -> mvp -> this node. Parent shape is `[mvp]`, the new-file
-origin; `payload_ref` points at the source file directly (goal:g11 — no staged
-payload copy). `origin: mvp` rather than `build-scan` because this file was
-specified by the mvp, not discovered by a source scan. Title set in this
-session's own words so the node does not render as a derived slug.
+Why THIS version exists: DT.23 residue 3. On the sibling tips the peers test sat behind the same `live_cfg` fixture as the three grok-specific tests, and that fixture `pytest.skip`s when Belam's `harnesses.grok-bot` row is absent — so the regression it guards (a shipped row lost, or an adapter stem mis-derived by `adapters.resolve`) was swallowed by a gate that has nothing to do with it. The row is not landing in this round (Belam owns it, `goal:g7.25.2`), so the test is split rather than un-gated wholesale: `live_cfg_raw` reads the real `.agi/config.json` with no gate, `live_cfg` keeps the grok gate for the two tests that genuinely need the row, and the peers test now reads the raw fixture and covers all four shipped rows. No non-live assertion is weakened; the only assertion changed is the peers test's, and it gained two rows (`claude-code`, `pi-local`). `mint_id e6590851…` is the g17.14-lineage canonical id for this test node; its former parent `mvp:grok-bot-live-config-test` does not resolve on this tip, so the node parents to `mvp:unified-spawn-path` — the same design node as the adapter build node — keeping the two files one lineage. Recorded here so the next level3 scan does not re-mint a duplicate.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DT.24 (a00-8f215541): re-landed through write.py in place so the write log carries a sanctioned update_node entry keyed to this node canonical mint id; the DT.23 landing was hand-written and left no write-log record. Parents, payload_ref, link_ref and build_kind are unchanged and the test payload is byte-identical.

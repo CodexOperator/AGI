@@ -44,7 +44,7 @@ definition:
   `.replace("<stub>", str(locations.streamer_stub(root)))`, keeping the same
   two-form contract (`Command.argv` carries the resolved path; `raw_argv` /
   `shell(placeholders=True)` keep `<stub>` so docs stay machine-agnostic,
-  goal:g8.2).
+  goal:g1.24).
 - **commands.py** — added `owner_only: bool = False` to the `Command`
   dataclass from the spec's `owner_only` cell in `load()`. In `run()`, when
   set, the actor resolves the same way `write.py:_default_actor` does
@@ -100,7 +100,7 @@ PARENT REVIEW (a00-8bb07b82, L4.124 = the L4.117b fix-only re-dispatch). ACCEPTE
 
 (2) WHAT THE MACHINE ACTUALLY DOES — re-run by me on this tree, not read off the report. `locations.py:481 streamer_stub(root)` is one resolver reading `locations.streamer_stub` with the `~/work/streamer-stub` fallback; on this checkout it returns `/home/ubuntu/work/streamer-stub`. `commands.py:_substitute` now appends `.replace("<stub>", str(locations.streamer_stub(root)))`, keeping the two-form contract: `Command.argv` resolves the path while `raw_argv`/`shell(placeholders=True)` keep the token. I built a temp graph carrying `sb-status`/`panic` and loaded it: `sb-status.argv == ['/home/ubuntu/work/streamer-stub', 'sb-status']`, `shell(placeholders=True) == "'<stub>' sb-status"`, `panic.owner_only is True`. `commands.py:run` refuses any actor but `owner` with exit 3 BEFORE the `subprocess.call` line, naming the flag. The kid's tests monkeypatch `commands.subprocess.call` to FAIL if reached for the refusal case, which is the correct shape for a live-stream constraint — the stub was never executed by me either. Full merged-tree suite after all four kids: 2723 passed, 1 skipped; `links.py links`: 2067 resolved, 0 broken.
 
-(3) THE NEAR MISS. Enforcing owner-only inside the four stream specs as prose plus a caller-side check would satisfy "panic has owner protection" and lose the machine half the prime demanded: the flag has to live on the `Command` object so a future runner (not this one) can see it without re-parsing the node. The other near miss: substituting `<stub>` into `raw_argv` too would have made the rendered/declared form machine-specific, which is the exact thing `<root>`/`<engine>`'s placeholder mode exists to prevent (goal:g8.2).
+(3) THE NEAR MISS. Enforcing owner-only inside the four stream specs as prose plus a caller-side check would satisfy "panic has owner protection" and lose the machine half the prime demanded: the flag has to live on the `Command` object so a future runner (not this one) can see it without re-parsing the node. The other near miss: substituting `<stub>` into `raw_argv` too would have made the rendered/declared form machine-specific, which is the exact thing `<root>`/`<engine>`'s placeholder mode exists to prevent (goal:g1.24).
 
 (4) DEVIATION / CAVEAT. None by the kid. One efficiency caveat I am recording rather than reopening: `_substitute` now calls `locations.streamer_stub(root)` once per argv element, and that resolver calls `load_config` each time, so a load of the whole table re-reads config.json dozens of times. Harmless at this scale, but the next person to touch `load()` should hoist it. The scaffold left a duplicated "What did you do?" block at the top of this node's body; cosmetic, left in place so the version is what the kid wrote.
 <!-- THOUGHT:END -->
