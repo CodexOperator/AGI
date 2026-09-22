@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.34.3
 next_edges: []
-edited_by: belam
+edited_by: owner-go
 scaffold_hash: temp-coord-board-2026-09-21
 season: 2
 status: temp
@@ -54,9 +54,9 @@ BELAM (daily, not mid-batch):
 
 | goal | seat | state | tip | suite | mur | note |
 |---|---|---|---|---|---|---|
-| g7.31.1.2 | director-belam | in-progress | ac9dca87d | — | residues>0 | active hot chain: durable pane hold |
-| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | active hot chain: cold brief routes |
-| g7.31.3.2 | director-belam | in-progress | fdb1449a8 | — | residues>0 | active hot chain: sample graph routes |
+| g7.31.1.2 | director-belam | in-progress | 51ae16535 | — | residues>0 | DT.56 a00-005ce11b live; BASE 51ae16535 post-DT.47 MUR AWR |
+| g7.31.3.1 | director-belam | in-progress | 88da0784c | — | residues>0 | DT.57 a00-7f12739a live; BASE 88da0784c |
+| g7.31.3.2 | director-belam | in-progress | bf876667b | — | MUR-owed lean | DT.52 DONE tip bf876667b; lean MUR mur-g7-31-3-2-dt-52-bf876667b running |
 | g7.25; g7.26–.30; other g7.31 leaves; g7.32*; g7.33; g7.34* | — | horizon | — | — | — | unclaimed / not in-flight; complete unchanged |
 
 ### State vocabulary
@@ -75,5 +75,5 @@ HOLD = credits empty / mesh down (owner ONLY)
 - Unified director role → `doc:unified-director-brief`
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon vocab aligns goal status
+Owner GO 2026-09-22T07:24Z ET: zombies DT.51/55+DH.55 failed+leases cleared; lean MUR DT.52 launched; respawned DT.56@1.2 + DT.57@3.1 durable 8G; helper DH.54+DH.56 live; board tips/MUR cells refreshed; goals status=active.
 <!-- THOUGHT:END -->
