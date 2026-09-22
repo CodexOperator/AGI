@@ -134,7 +134,7 @@
       "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
     },
     "parent_max_kids": 10,
-    "memory_max": "6G"
+    "memory_max": "8G"
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
