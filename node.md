@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -30,11 +30,11 @@ NEVER `update_state` profile / UpdateAgent for spine after bootstrap.
 ```
 source ──▶ this doc + doc:standing-llm-ops + doc:grok-harness-internals-sync
 edit   ──▶ write.py graph only
-sync   ──▶ grok-internals-sync */30  (shared seed; 0 seat bytes in routine)
+sync   ──▶ grok-internals-sync */30  (shared seed; 0 post bytes in routine)
 never  ──▶ hand-edit Belam/Prime Grok profile · routines · standing mirrors
 ```
 
-### PLACEHOLDERS (Belam seat — usually fixed)
+### PLACEHOLDERS (Belam post — usually fixed)
 
 | tag | Belam fill |
 |---|---|
@@ -91,6 +91,19 @@ EXCEPT   exposed keys/leak → Belam NOW
          credits empty · mesh down → owner ONLY + HOLD until reply
 ```
 
+## GRAPH SoT LAND (HARD — diagram-max)
+```
+After ANY graph SoT land (standing / internals / town):
+  1. push origin tips (core/season2/main + core/main as roles say)
+  2. ALWAYS sync LOCAL post trees of other grok posts to that tip
+     seat-director-belam · seat-director-helper
+     (paths under /data/work/agi/.agi/worktrees/)
+     prefer ff-only; if dirty → merge tip in without wiping WIP
+  3. Do NOT rely on remote-only — local HEAD must show the SoT
+  4. No ping — graph + local trees; their grok-internals-sync
+     picks PROFILE on next */30
+```
+
 ## AUTHORITY
 ```
 you = Prime / Belam (not a director scripted stand-in)
@@ -118,5 +131,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-per-post PROFILE only; sync title+body from harness doc ONLY
+Graph SoT LAND HARD: after any standing/internals/town land → push tips + sync local post trees seat-director-belam/helper (ff-only or merge keep WIP); local HEAD must show SoT; no ping
 <!-- THOUGHT:END -->
