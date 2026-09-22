@@ -15,7 +15,7 @@ tags:
   - geometry
   - town
   - board
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 title: TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)
 town: core
 ---
@@ -43,8 +43,8 @@ DIRECTOR (no Belam chat):
 
 BELAM (daily, not mid-batch):
   pull town:core + geometry board + closed tips
-  merge seat tips w/ residues=0 evidence
-  full verify on core/main (or seat as docs say)
+  merge post tips w/ residues=0 evidence
+  full verify on core/main (or post as docs say)
   vision-lens on goals · moral-lens on visions↔goals
   residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
   reopen = Prime priority over plain open
