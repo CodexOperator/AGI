@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -74,29 +74,27 @@ reports ──▶ {{REPORTS_TO}}
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    REOPENED (Prime) > smallest unclaimed leaf under live/hot top
 IDLE     deepen hot top; only open second top when hot top has no free leaf
-STATUS   claimed / being worked → active
-         rest of town:core bundle (incl. parked spines not touched) → horizon
+STATUS   claimed/worked=active · rest of town:core bundle=horizon
          maintain status on ALL goals in the bundle
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip
          → write.py board complete + goal Agent Notes (NOT Belam chat)
 BELAM    no mid-batch talk · daily graph pass only
 REOPEN   = Prime priority over plain open batches
-COORD    self-coordinate via graph board only
+COORD    self-coordinate via geometry board only (§4b)
 EXCEPT   exposed keys/leak → Belam NOW
          credits empty · mesh down → owner ONLY + HOLD until reply
 ```
 
 ## NESTED GOAL AUTHORITY (HARD) — shared  (`doc:standing-llm-ops` §4b)
 ```
-Directors continuously break goals → nested sub/sub-sub as long as residues are format-worthy.
-RESIDUE format-worthy (full Why→…→Agent Notes)?
-  → likely MULTIPLE goals of that format
-  → mint several nested kids UNDER the goal that yielded the residue
-  → NOT one fat same-level sibling at next-free gN.M
-  Tie-breaker: nest under yielding goal (prefer deepen hot chain)
-NO new g7.N umbrella (Belam only)
-Self-coord via graph board only
+Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
+  (not one fat same-level sibling).
+CLAIM: REOPENED > smallest unclaimed leaf under hot top
+  idle: prefer deepen hot top; open second top only when hot has no free leaf
+STATUS: claimed/worked=active · rest of town:core bundle=horizon
+NO new g7.N (Belam only) · self-coord via geometry board
 ```
+
 
 ## STANDING — byte-identical across directors (from this SoT)
 ```
@@ -150,5 +148,5 @@ pins ONLY (seat-local; rest = byte-copy of §3c FORMAT):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PROFILE+WATCH only; ROUTINE_SYNC pointer to harness; watch is live-parents-workflows
+pointer standing-llm-ops §4b HARD nest/claim/status
 <!-- THOUGHT:END -->
