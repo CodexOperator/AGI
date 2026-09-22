@@ -5163,20 +5163,15 @@ def register_delivery(name: str, handler, *, priority: int = 0):
     return row
 
 
-def _deliver_default(root: Path, kind: str, path, payload, **kw) -> bool:
-    """Built-in transport: append to the file, or nudge the pane."""
-    if kind == "file":
-        with open(path, "a") as f:
-            f.write(payload)
-        return True
-    if kind == "nudge":
-        ok = _nudge_window(root, path, sender=kw.get("sender"), body=payload)
-        _announce_nudge(kw.get("croot", root), path, ok)
-        return True
-    return False
+# Discovery seam (goal:g7.32.4 falsifier 2): every module in
+# send_transports/ that defines register(...) signs up here, the built-in
+# file/nudge transports included. A new transport is a dropped file only --
+# no edit to this selection loop and no import added to send.py.
+import send_transports  # noqa: E402
 
-
-register_delivery("default", _deliver_default)
+send_transports.discover(register_delivery, {
+    "nudge_window": lambda *a, **k: _nudge_window(*a, **k),
+    "announce_nudge": lambda *a, **k: _announce_nudge(*a, **k)})
 
 
 def _deliver(root: Path, kind: str, path, payload, **kw) -> bool:
