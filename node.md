@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-belam
 goal_id: G7.31.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1e10ebb759c9d056
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
