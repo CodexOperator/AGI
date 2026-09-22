@@ -323,6 +323,75 @@ def test_notes_land_once_even_when_both_writers_run(project, monkeypatch):
     assert text.count(notes) == 1, text
 
 
+def test_notes_merge_under_an_existing_agent_notes_heading(project, monkeypatch):
+    """A node ALREADY carrying a different note under `## Agent Notes` gets the
+    new note appended under that one heading -- never a second heading.
+
+    The first version tested only whether the note TEXT was present, so a
+    node arriving with any other Agent Notes section got a second heading
+    appended -- measured live on hypothesis:a00-c1f23fe9-865e62 (two headings,
+    DT.78). `write.py`'s `note` verb already merged under an existing heading;
+    `post_wire` and `cli.py done` did not.
+    """
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n"
+                    "\n## Agent Notes\nan earlier note\n")
+    monkeypatch.chdir(project)
+    notes = "a different later note"
+    iter_dir = project / "sessions" / "iter-001"
+    (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+    (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+        {"id": "a1", "status": "done", "node_id": res.node_id,
+         "notes": notes, "verdict": "pending"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600, "agents": [
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "parent": "hypothesis:h1", "notes": notes}]}))
+    import argparse
+    pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    assert text.count("## Agent Notes") == 1, text
+    assert "an earlier note" in text, text
+    assert notes in text, text
+
+
+def test_notes_heading_inline_in_thought_still_gets_a_real_heading(
+        project, monkeypatch):
+    """A `## Agent Notes` mentioned INLINE inside THOUGHT prose is not a
+    section. The predicate must be LINE-anchored, or the substring match finds
+    the inline mention and appends the note bare, with no heading at all --
+    measured live on this round's authored node, whose THOUGHT names the
+    heading.
+    """
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n\n"
+                    "<!-- THOUGHT:BEGIN — authored, not derived; carried "
+                    "across regenerating scans. The reasoning behind THIS "
+                    "version. -->\n"
+                    "prose mentioning `## Agent Notes` inline\n"
+                    "<!-- THOUGHT:END -->\n")
+    monkeypatch.chdir(project)
+    notes = "a later note"
+    iter_dir = project / "sessions" / "iter-001"
+    (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+    (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+        {"id": "a1", "status": "done", "node_id": res.node_id,
+         "notes": notes, "verdict": "pending"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600, "agents": [
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "parent": "hypothesis:h1", "notes": notes}]}))
+    import argparse
+    pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    headings = [ln for ln in text.splitlines()
+                if ln.strip() == "## Agent Notes"]
+    assert len(headings) == 1, text
+    assert notes in text, text
+
+
 # --------------------------------------------------------------------------
 # `_gate` precedence — the two ways frontmatter-primary went wrong
 # --------------------------------------------------------------------------
