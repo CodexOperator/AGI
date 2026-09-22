@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 5e06ad0f4163378e
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
   - session-ingest
   - grok-bot
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.32.1: Grok session ingest — sessions land as graph nodes"
 town: core
 ---

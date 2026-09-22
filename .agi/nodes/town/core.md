@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-daily-town-pass-2026-09-22
+thought_session: belam-status-hygiene-sot-2026-09-22
 town: core
 visions:
   - vision:alive
@@ -75,8 +75,9 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
                     ▼
  town:core bundle status (stand-in trajectory — TEMP)
  ┌─────────────────────────────────────────────────────────┐
- │ ACTIVE   g7.31 → .1 → .1.2; .3 → .3.1 + .3.2 (hot)    │
- │ HORIZON  g7.25; g7.26–.30; other g7.31 leaves; g7.32* │
+ │ ACTIVE   g7.31 → .1→.1.1+.1.2; .3→.3.1+.3.2 (belam)   │
+ │ ACTIVE   g7.28; g7.31.2/.4/.5; g7.32* (helper)         │
+ │ HORIZON  g7.25; g7.26–.27; g7.29–.30                   │
  │ HORIZON  g7.33; g7.34*                                 │
  │ COMPLETE g7.25.1–.3 (unchanged)                        │
  └─────────────────────────────────────────────────────────┘
@@ -92,24 +93,24 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 | goal:g7.25.3 | complete | mirror adapter interface tests |
 | goal:g7.26 | horizon | Post briefs self-sufficient |
 | goal:g7.27 | horizon | Templates sole harness arg builders |
-| goal:g7.28 | horizon | Dispatch persistent mode |
+| goal:g7.28 | active | Dispatch persistent mode |
 | goal:g7.29 | horizon | Shrink rotate.py orchestration |
 | goal:g7.30 | horizon | Land grok-bot adapter + post template |
 | goal:g7.31 | active | Pane = post spine (umbrella) |
 | goal:g7.31.1 | active | Measured CLI + durable pane hold |
-| goal:g7.31.1.1 | horizon | Measured CLI argv |
+| goal:g7.31.1.1 | active | Measured CLI argv |
 | goal:g7.31.1.2 | active | Durable named tmux pane |
-| goal:g7.31.2 | horizon | Pane anchor ↔ post/pin/formation |
+| goal:g7.31.2 | active | Pane anchor ↔ post/pin/formation |
 | goal:g7.31.3 | active | Five unified engine routes |
 | goal:g7.31.3.1 | active | Cold post brief five routes |
 | goal:g7.31.3.2 | active | Sample write+send+dispatch |
-| goal:g7.31.4 | horizon | Native handbacks SSH-or-not |
-| goal:g7.31.5 | horizon | Graph↔harness-doc sync |
-| goal:g7.32 | horizon | Session ingest + messaging + pane methods + send router |
-| goal:g7.32.1 | horizon | Grok session ingest |
-| goal:g7.32.2 | horizon | Magic-pane messaging |
-| goal:g7.32.3 | horizon | Optional pane methods on one adapter |
-| goal:g7.32.4 | horizon | send.py thin router |
+| goal:g7.31.4 | active | Native handbacks SSH-or-not |
+| goal:g7.31.5 | active | Graph↔harness-doc sync |
+| goal:g7.32 | active | Session ingest + messaging + pane methods + send router |
+| goal:g7.32.1 | active | Grok session ingest |
+| goal:g7.32.2 | active | Magic-pane messaging |
+| goal:g7.32.3 | active | Optional pane methods on one adapter |
+| goal:g7.32.4 | active | send.py thin router |
 
 ### Split decision (owner tie-break 2026-09-21)
 
@@ -162,7 +163,7 @@ goal:g7
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-22T09:50ET: no board-complete tips; suite red on host git-identity in TestMergeUp + empty OPENROUTER_API_KEY; lenses clear — no reopen/mint while directors burn residues mid-batch.
+belam-status-hygiene-sot-2026-09-22: sync status rows to goal reality — helper lanes + g7.32* active; belam .1/.3 chain
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
