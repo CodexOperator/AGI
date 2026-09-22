@@ -8,6 +8,8 @@ being swallowed by `importorskip`.
 """
 from __future__ import annotations
 
+import builtins
+import io
 import os
 import sys
 from pathlib import Path
@@ -155,20 +157,67 @@ def test_adapter_implements_the_whole_interface():
         grok.restart()  # keyword-only contract, but no longer NotImplementedError
 
 
-def test_is_alive_tracks_a_live_pid_and_not_a_reaped_one():
+def test_is_alive_tracks_a_live_pid_and_not_a_never_issued_pid():
     """Hermetic (DT.79 residue 1): no forked child, no reaped child.
 
     The live case is this interpreter's own pid. The dead case is a number
-    above the kernel's `pid_max`, which the kernel can never hand out, so
-    `/proc/<pid>/stat` is deterministically absent and `os.kill` raises -- a
-    nonexistent pid covers both the never-existed and the reaped cases
-    without forking a child to race against.
+    above the kernel's `pid_max`, which the kernel can never hand out -- a
+    NEVER-ISSUED pid, not a reaped one, so `/proc/<pid>/stat` is
+    deterministically absent and `os.kill` raises. (DT.81 residue 2: renamed
+    from `..._not_a_reaped_one` and docstring corrected -- this body never
+    exercised a reaped/zombie pid; the zombie branch is covered by
+    `test_is_alive_reads_a_zombie_stat_state_as_dead` below.)
     """
     assert grok.is_alive(os.getpid()) is True
     pid_max = int(Path("/proc/sys/kernel/pid_max").read_text(encoding="utf-8"))
     never_a_pid = pid_max + 1
     assert not Path(f"/proc/{never_a_pid}/stat").exists()
     assert grok.is_alive(never_a_pid) is False
+
+
+def _stat_reader(pid: int, state: str):
+    """A `builtins.open` replacement serving a synthetic `/proc/<pid>/stat`.
+
+    For exactly `f"/proc/{pid}/stat"` it returns a StringIO whose process
+    state is `state`; every other path delegates to the real `open`. The pid
+    this reports on stays LIVE, so `os.kill(pid, 0)` would answer true -- the
+    only way `is_alive` can return False is the `state == "Z"` line itself.
+    """
+    real_open = builtins.open
+    target = f"/proc/{pid}/stat"
+
+    def fake_open(file, *args, **kwargs):
+        if str(file) == target:
+            return io.StringIO(f"{pid} (probe) {state} 1 1 0 0")
+        return real_open(file, *args, **kwargs)
+
+    return fake_open
+
+
+def test_is_alive_reads_a_zombie_stat_state_as_dead(monkeypatch):
+    """DT.81 residue 2: the `== "Z"` zombie branch is reached, hermetically.
+
+    A NONEXISTENT pid never reaches the `== "Z"` line -- the `open` raises
+    `OSError` and the code falls through to `os.kill` -- so that branch was
+    untested. Here the pid stays THIS interpreter's live pid and only the
+    `/proc/<pid>/stat` read is monkeypatched: state `Z` makes `is_alive`
+    return False (proving the Z line was reached), and the same live pid with
+    state `S` makes it return True (the negative control -- the False above
+    is the Z branch, not `os.kill` answering dead).
+    """
+    live_pid = os.getpid()
+    # Control: the real stat for this live pid is not Z and reads alive.
+    assert grok.is_alive(live_pid) is True
+
+    monkeypatch.setattr(builtins, "open", _stat_reader(live_pid, "Z"))
+    assert grok.is_alive(live_pid) is False, (
+        "a live pid whose stat state is Z must read DEAD; if this is True "
+        "the == 'Z' branch was removed or inverted")
+
+    monkeypatch.setattr(builtins, "open", _stat_reader(live_pid, "S"))
+    assert grok.is_alive(live_pid) is True, (
+        "the same live pid with state S must read alive -- shows the False "
+        "above came from the state check, not os.kill")
 
 
 def test_needs_no_openrouter_credential():
