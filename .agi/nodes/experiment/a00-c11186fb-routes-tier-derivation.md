@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-c11186fb-49e24c
 next_edges: []
 confidence: 0.9
-edited_by: a00-0606c809
+edited_by: a00-c1f23fe9
 evidence_runs:
   - experiment:a00-c11186fb-routes-tier-derivation
 line_ceiling: 40
@@ -71,20 +71,21 @@ Run 2 — the two new/derived falsifiers:
     $ python3 -m pytest extensions/agi/tests/test_brief.py -q -k "routes or five_pane"
     2 passed, 152 deselected in 3.89s
 
-Run 3 — behaviour probes from the scratch dir, proving the derivation is real
-and the advisor drop is a visible skip:
+Run 3 — the two behaviour probes are committed falsifiers in the same file, so
+they run from a fresh checkout (no gitignored scratch-dir path):
 
-    $ python3 -m pytest .agi/sessions/iter-DT.33/a00-c11186fb/test_advisor_drop_visible.py -q
-    2 passed in 0.60s
+    $ python3 -m pytest extensions/agi/tests/test_brief.py -q \
+        -k "routes_tiers_are_derived or full_brief_lists_the_five_pane"
+    2 passed, 152 deselected in 3.89s
 
-(probe 1 monkeypatches `_live_vision_target` -> None and asserts the routes
-test raises `pytest.skip.Exception` naming `advisor`; probe 2 monkeypatches
-`brief.TIERS` with `tier-sentinel-9f3a` and asserts it lands in
-`_routes_tiers()`.)
+(`test_routes_tiers_are_derived_from_the_brief_contract` monkeypatches
+`brief.TIERS` with a sentinel and asserts it lands in `_routes_tiers()`;
+`test_full_brief_lists_the_five_pane_routes_with_their_seams` makes the
+advisor drop a visible skip when `_live_vision_target()` returns None.)
 
 `git diff --numstat -- extensions/agi/tests/test_brief.py` = 41 12; test file,
 so production lines 0, ceiling 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Corrective DT.36: (1) evidence_runs was a scalar string, which normalize_evidence_runs counts as 0, so the commit-path gate would demote the proved verdict — repaired to a schema-conformant YAML list of one real node id; (2) the body attributed claim (c) "the falsifier covers every tier that can render the segment" to hypothesis:a00-b4418bfa-fbae51, which does not carry that text — corrected to hypothesis:a00-118f74e1-af3a3d, which does. Verdict proved left untouched; the point is that it survives the gate.
+DT.78 residue close: Run 3 cited a pytest path under the gitignored session scratch dir (iter-DT.33), which is absent from a fresh checkout. Replaced it with the two committed falsifiers in extensions/agi/tests/test_brief.py -- test_routes_tiers_are_derived_from_the_brief_contract and test_full_brief_lists_the_five_pane_routes_with_their_seams -- run verbatim: 2 passed, 152 deselected. No gitignored path remains in the node. DT.36 reasoning (evidence_runs scalar -> list; claim (c) attribution corrected) stays in grid history; this version differs only in the reproducibility of the counted evidence.
 <!-- THOUGHT:END -->

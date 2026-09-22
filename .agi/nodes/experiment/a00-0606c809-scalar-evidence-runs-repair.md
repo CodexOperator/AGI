@@ -4,9 +4,10 @@ mint_id: 4e9116188be34fcfbbaaddc4e8e4f1f1
 type: experiment
 parents:
   - hypothesis:a00-0606c809-d45967
+  - hypothesis:a00-df9b89ae-53427c
 next_edges: []
 confidence: 0.95
-edited_by: a00-df9b89ae
+edited_by: a00-c1f23fe9
 evidence_runs:
   - experiment:a00-0606c809-scalar-evidence-runs-repair
 line_ceiling: 40
@@ -100,5 +101,5 @@ red — it fails at tip and base, fixture lineage `goal:g15`):
 ceiling 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DT.68 corrective: the parent edge on this experiment was hypothesis:a00-c11186fb-49e24c — the tier-derivation hypothesis this experiment is NOT the evidence for. That earlier round repaired 49e24c itself, so the writer attached this node under the hypothesis it had just touched instead of the one that cites it. hypothesis:a00-0606c809-d45967 is the node whose evidence_runs names this experiment (the scalar-evidence_runs silently demotes a proved verdict claim), so the parent edge now agrees with the citation. The obsolete CAVEAT in the previous THOUGHT is now closed: the edge resolves to the citing hypothesis, and links.py reports 0 broken links.
+DT.78: TWO hypotheses cite this experiment in evidence_runs -- hypothesis:a00-0606c809-d45967 (the DT.36 scalar-evidence_runs repair) and hypothesis:a00-df9b89ae-53427c (the edge-vs-citation provenance claim). DT.68 parented it only to d45967, leaving the edge one citing hypothesis short; parents now parses as the two-element list [hypothesis:a00-0606c809-d45967, hypothesis:a00-df9b89ae-53427c], so the edge agrees with both citations. links 3857 resolved 0 broken; evidence_gate dry-run 0 demote/0 refused. The previous DT.68 single-citation reasoning is preserved in grid history.
 <!-- THOUGHT:END -->
