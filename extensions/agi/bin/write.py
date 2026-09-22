@@ -2015,6 +2015,28 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 / experiment:a00-1b9a8e7e-profile-sync — a `profile_ref`
+    # that would be refused must refuse HERE, before `update_node`, or the
+    # body lands and only then does the projection refuse: a partial write.
+    # The EFFECTIVE ref: this edit's `set profile_ref` if it carries one, else
+    # the one already on the node file. An edit that unsets the ref validates
+    # nothing (the dead value is never resolved).
+    if "profile_ref" not in edit.unset_fm:
+        _pref = set_fm.get("profile_ref")
+        if _pref is None and (_pnf := node_writer.find_node_file(
+                root, edit.node_id)):
+            from graph_core.persistence import frontmatter as _pfmr
+            try:
+                _pref = _pfmr.load_node_file(
+                    _pnf, body=False).frontmatter.get("profile_ref")
+            except Exception:
+                _pref = None
+        if _pref:
+            try:
+                profile_sync.validate_ref(root, str(_pref))
+            except profile_sync.Refused as exc:
+                raise EditError(f"profile projection refused: {exc}") from exc
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
