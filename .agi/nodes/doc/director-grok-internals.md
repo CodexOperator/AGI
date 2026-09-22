@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: concurrency-standing-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -114,6 +114,12 @@ lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only af
 loop independently until residues=0 · report to GRAPH not Belam
 watch: §3c FORMAT verbatim · pins only TREE/SCOPE/HOST/BRANCH
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
+CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
+  spawn.parallel=1 per goal (config + orders)
+  concurrency = spawn multiple parents for multiple goals
+              = one parent per goal via separate dispatches
+  ≤4 live parents / director · ~7 box-wide when scopes disjoint
+  never raise spawn.parallel for cross-goal (same-goal fan-out only)
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY. Pointer: doc:standing-llm-ops.
