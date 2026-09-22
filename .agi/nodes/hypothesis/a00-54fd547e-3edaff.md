@@ -10,7 +10,7 @@ demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
 edited_by: a00-54fd547e
 evidence_runs:
-  - hypothesis:a00-54fd547e-3edaff
+  - experiment:a00-54fd547e-dt77-hold-proof
 line_ceiling: 40
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -22,7 +22,7 @@ season: 2
 testable_claim: "A durable named tmux pane hold can be proven WITHOUT a real tmux server, and a held seat whose pane process has died is a death rather than a clean startup. Concretely, at `goal:g7.31.1.2`:"
 title: "Held tmux seat: dead pane is a death, first-spawn seam proven by fake"
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # hypothesis:a00-54fd547e-3edaff
 
