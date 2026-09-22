@@ -6,7 +6,7 @@ node id (`write_node(..., on_exists=SKIP)`) with no new mint. A malformed,
 empty or non-session input exits 2 with a NAMED reason on stderr -- never a
 silent drop."""
 from __future__ import annotations
-import argparse, hashlib, json, re, sys
+import argparse, json, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
@@ -45,6 +45,17 @@ def read_session(path):
 #: upper-cased UUID is the SAME session, and must stay idempotent, not fork.
 _UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
+#: Longest slug we will hand to `write_node`. A filesystem caps a filename
+#: component at 255 bytes; refusing at 200 leaves room for the `.md` suffix and
+#: any type-directory separator. A refusal is a NAMED reason, not a silent
+#: truncation -- and a truncation would reintroduce exactly the collision this
+#: encoding removes, so there is deliberately no fallback below the limit.
+_MAX_SLUG = 200
+
+
+class SlugTooLong(ValueError):
+    """The reversible suffix pushed the slug past `_MAX_SLUG`; refuse by name."""
+
 
 def slug_for(sid):
     """Injective over the accepted domain (goal:g7.32.1, no-silent-drop).
@@ -54,14 +65,26 @@ def slug_for(sid):
     and was skipped with exit 0 -- a silent drop. Two disjoint cases close it:
     a canonical UUID keeps its BARE slug (the whole real corpus, so the node
     already minted at `grok-session-<uuid>` stays idempotent and is never
-    duplicated); EVERY other id gets a short `sha256(raw_id)` suffix, so two
-    raw ids that sanitize alike address different files.
+    duplicated); EVERY other id gets a REVERSIBLE suffix, the raw id's UTF-8
+    bytes in hex. `hex` is a bijection on bytes, so `raw_a != raw_b` implies
+    `hex_a != hex_b` by construction -- injectivity is a property of the
+    encoding, not of a hash's collision probability (a `sha256(raw)[:8]`
+    birthday bound was the falsifier the parent measured).
+
+    The canon prefix is cosmetic and lossy; the hex suffix alone is what makes
+    the map injective, since a fixed-length hex tail can only be equal when
+    both tails are equal, and the tail determines the raw id uniquely.
     """
-    canon = re.sub(r"[^a-z0-9]+", "-", sid.lower()).strip("-")
     if _UUID.match(sid.lower()):
-        return "grok-session-" + canon
-    digest = hashlib.sha256(sid.encode("utf-8")).hexdigest()[:8]
-    return f"grok-session-{canon}-{digest}"
+        return "grok-session-" + sid.lower()
+    canon = re.sub(r"[^a-z0-9]+", "-", sid.lower()).strip("-")
+    suffix = sid.encode("utf-8").hex()
+    slug = f"grok-session-{canon}-{suffix}" if canon else f"grok-session-{suffix}"
+    if len(slug) > _MAX_SLUG:
+        raise SlugTooLong(
+            f"slug-too-long: slug is {len(slug)} chars (limit {_MAX_SLUG}) "
+            f"for a {len(sid)}-char session id; refusing rather than truncating")
+    return slug
 
 
 def main(argv=None):
@@ -84,8 +107,13 @@ def main(argv=None):
     if root is None:
         print("INGEST refuse no-project-root: pass --out-root", file=sys.stderr)
         return 2
+    try:
+        slug = slug_for(sid)
+    except SlugTooLong as exc:
+        print(f"INGEST refuse {exc}", file=sys.stderr)
+        return 2
     res = node_writer.write_node(
-        root, "doc", slug_for(sid), parents=[args.parent], announce=False,
+        root, "doc", slug, parents=[args.parent], announce=False,
         extra_fm={"title": f"Grok session {sid}", "source_session": sid,
                   "edited_by": "ingest_session.py", "thought_session": src,
                   "tags": ["grok-session", "ingest"]}, body=body)
