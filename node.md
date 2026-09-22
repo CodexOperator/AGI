@@ -18,7 +18,7 @@ seeds:
   - goal:g7.32.2
   - goal:g7.32.3
   - goal:g7.32.4
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
