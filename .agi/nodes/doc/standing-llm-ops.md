@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: concurrency-standing-2026-09-22
+thought_session: concurrency-ceilings-lower-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -407,18 +407,18 @@ concurrency    = spawn multiple parents for multiple goals
                = one parent per goal via separate dispatches
 
 targets
-  ≤4 live parents per director
-  ~7 box-wide when scopes disjoint
+  ≤3 live parents per director
+  ≤5 box-wide total if needed
 
 spawn.parallel = same-goal fan-out dispatch feature
                — NOT for cross-goal concurrency
 
 never     raise spawn.parallel above 1 to get cross-goal concurrency
 never     use spawn.parallel for cross-goal fan-out
-only-if   scopes disjoint → may approach ~7 box-wide
+only-if   scopes disjoint → may approach ≤5 box-wide
 ```
 
-Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ~7; per-director target ≤4.
+Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ≤5; per-director target ≤3.
 
 residue→goal **only** when format-worthy (full Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes).
 
