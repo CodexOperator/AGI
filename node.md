@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-grok-harness-2026-09-21
+thought_session: belam-horizon-4b-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -417,26 +417,18 @@ still: graph routes only (dispatch/workflow) · no route bypass
 ## 4b. Director nested goal authority (owner 2026-09-21 — HARD)
 
 ```
-Directors continuously break goals → nested sub/sub-sub as long as residues are format-worthy.
+Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
+  (not one fat same-level sibling).
 
-RESIDUE format-worthy (full Why→…→Agent Notes)?
-  → likely MULTIPLE goals of that format
-  → mint several nested kids UNDER the goal that yielded the residue
-  → NOT one fat same-level sibling at next-free gN.M
-  Tie-breaker: nest under yielding goal (prefer deepen hot chain)
+CLAIM: REOPENED > smallest unclaimed leaf under hot top
+  idle: prefer deepen hot top; open second top only when hot has no free leaf
 
-CLAIM (geometry board + goal status):
-  REOPENED (Prime) > smallest unclaimed leaf under live/hot top
-  idle director: prefer deepen hot top; only open second top when hot top has no free leaf
-  maintain up-to-date status on ALL goals in town:core bundle
+STATUS: claimed/worked=active · rest of town:core bundle=horizon
+  maintain status on ALL goals in town:core bundle
 
-STATUS:
-  claimed / being worked → active
-  rest of town:core bundle (incl. parked spines not touched) → horizon
-
-NO new g7.N umbrella (Belam only)
-Self-coord via graph board only
+NO new g7.N (Belam only) · self-coord via geometry board
 ```
+
 
 
 ## 4c. ALL posts — harness mirrors ← graph SoT only (owner 2026-09-21 — HARD)
@@ -598,5 +590,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-§4c single-file recipe: harness=ROUTINE_SYNC SoT; per-post=PROFILE+optional WATCH
+owner-hot-top-4b HARD nest-multiple-kids claim-order status-horizon
 <!-- THOUGHT:END -->
