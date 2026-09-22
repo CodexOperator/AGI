@@ -75,5 +75,5 @@ HOLD = credits empty / mesh down (owner ONLY)
 - Unified director role → `doc:unified-director-brief`
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-board rows: g7.31 hot in-progress; rest horizon
+horizon vocab aligns goal status
 <!-- THOUGHT:END -->
