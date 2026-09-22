@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 3571375dfdc6e142
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
