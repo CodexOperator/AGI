@@ -610,7 +610,7 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
     never fails the mint: a refused commit or push prints one note line to
     stderr and the key stays minted."""
     try:
-        import rotate  # local: same dir (send.py pattern, no import cycle)
+        import send_seat_seam as _seam  # local: owns the rotate calls
     except Exception as exc:  # noqa: BLE001
         print(f"note: {origin} row commit/push skipped ({exc})",
               file=sys.stderr)
@@ -621,7 +621,7 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
         except (TypeError, ValueError):
             return 0
     try:
-        out = rotate._commit_spawn_row(
+        out = _seam.commit_spawn_row(
             root, seat=seat, generation=_int(row.get("generation")),
             session_id=str(row.get("session_id") or ""),
             window=str(row.get("window") or ""),
@@ -724,10 +724,10 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
     listed = ", ".join(keyed_names)
     note = f"keygen --all-live: keyed {listed}"
     try:
-        import rotate  # local: same dir (send.py pattern, no import cycle)
+        import send_seat_seam as _seam  # local: owns the rotate calls
         import tempfile
         main_root = _shared_graph_root(root)
-        top = rotate._git_toplevel(main_root)
+        top = _seam.git_toplevel(main_root)
         if top is None:
             _l = f"note: {note} — no git repo; rows stay uncommitted"
             print(_l, file=sys.stderr)
@@ -789,7 +789,7 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         subprocess.run(["git", "-C", str(top), "update-index", "--add",
                         "--cacheinfo", f"100644,{blob_sha},{rel}"],
                        capture_output=True, text=True, timeout=10)
-        push = rotate._push_season_branch(root)
+        push = _seam.push_season_branch(root)
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
         # g15.26 claim (b): a successful all-live push means origin now
@@ -822,11 +822,11 @@ def _run_pending_swap_completion(root: Path, push: str) -> None:
     byte-identical. Best-effort; never raises."""
     if not str(push or "").startswith("push: OK"):
         return
-    import rotate  # local (send.py pattern)
+    import send_seat_seam as _seam  # local: owns the rotate calls
     for _row in _seats_rows(_graph_root(root)):
         _live_name = str(_row.get("name") or "")
         if _live_name and _live_row(_row):
-            rotate._finish_pending_swap_on_push(root, _live_name, push)
+            _seam.finish_pending_swap_on_push(root, _live_name, push)
 
 
 def _all_live_origin_sync_line(root: Path) -> str:
@@ -840,9 +840,9 @@ def _all_live_origin_sync_line(root: Path) -> str:
     Any other outcome yields a non-``push: OK`` line so the walk stays a
     strict NO-OP (a deferred swap stays deferred until origin truly holds the
     committed successor row). Never raises."""
-    import rotate  # local (send.py pattern)
+    import send_seat_seam as _seam  # local: owns the rotate calls
     main_root = _shared_graph_root(root)
-    top = rotate._git_toplevel(main_root)
+    top = _seam.git_toplevel(main_root)
     if top is None:
         return ("push: SKIPPED -- no git repo (gitless fixture/root); "
                 "nothing to complete")
@@ -1577,9 +1577,9 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
 def _row_is_quiet(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet` token (a list or
     JSON object). A quiet row still WRITES the dm but types no nudge."""
-    import rotate  # noqa: PLC0415  (same bin dir, already imported many paths)
+    import send_seat_seam as _seam  # noqa: PLC0415  (same bin dir)
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = rotate._normalize_settings((row or {}).get("settings"))
+    s = _seam.normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet"))
 
 
@@ -1605,9 +1605,9 @@ def _row_is_quiet_system(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet-system` token: the
     row keeps direct post dm nudges but receives NONE from a service-class
     sender. `quiet` is still full silence; no token is today's behaviour."""
-    import rotate  # noqa: PLC0415
+    import send_seat_seam as _seam  # noqa: PLC0415
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = rotate._normalize_settings((row or {}).get("settings"))
+    s = _seam.normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet_system"))
 
 
@@ -2185,8 +2185,8 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
-        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
-        tmux_session = rotate.DEFAULT_TMUX_SESSION
+        import send_seat_seam as _seam  # lazy: DEFAULT_TMUX_SESSION lives there
+        tmux_session = _seam.DEFAULT_TMUX_SESSION
     stale_ref: str | None = None
     if window_ref and str(window_ref).startswith("@"):
         # CLAUSE (3): an @id is only a live target while it is a CURRENT
