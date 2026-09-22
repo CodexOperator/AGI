@@ -912,6 +912,13 @@ def extract_thought(body: str) -> str | None:
 #: duplicate-heading defect this constant exists to prevent.
 NOTES_HEADING = "## Agent Notes"
 
+#: The heading as a HEADING -- a whole line. A plain `NOTES_HEADING in body`
+#: also matches a backticked mention in prose ("duplicate `## Agent Notes`"),
+#: and `rpartition` then appends the note bare at that mention instead of
+#: adding a heading. Found live on `hypothesis:a00-c435219d-d7d4a3`, whose
+#: own claim prose mentions the heading three times.
+_NOTES_HEADING_RE = re.compile(r"^## Agent Notes[ \t]*$", re.MULTILINE)
+
 
 def append_agent_note(body: str, note: str) -> str:
     """Append `note` under the ONE `## Agent Notes` heading. Idempotent.
@@ -927,9 +934,10 @@ def append_agent_note(body: str, note: str) -> str:
     note = (note or "").strip()
     if not note or note in (body or ""):
         return body
-    if NOTES_HEADING in body:
-        head, sep, tail = body.rpartition(NOTES_HEADING)
-        return head + sep + tail.rstrip() + "\n\n" + note + "\n"
+    hits = list(_NOTES_HEADING_RE.finditer(body))
+    if hits:
+        at = hits[-1].end()
+        return body[:at] + body[at:].rstrip() + "\n\n" + note + "\n"
     return body.rstrip() + "\n\n" + NOTES_HEADING + "\n" + note + "\n"
 
 
