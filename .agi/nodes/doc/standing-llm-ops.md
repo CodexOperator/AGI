@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: mur-same-pool-2026-09-22
+thought_session: mur-watch-fill-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -220,6 +220,9 @@ golden · diagram-max · batch-max
 land   format ✓ AND residues=0
 board  write.py claim/complete on town+geometry — NEVER message Belam for batches
 routes write·read·send·dispatch/workflow·rotate/spawn
+CONCURRENCY (HARD): parents+MURs SAME pool · ≤18/dir · ≤30 box
+  fill owed MUR slots under cap · never invent slot-blocked / one-at-a-time when slots free
+  spawn.parallel=1 · DURABLE still
 ```
 
 ZERO-RESIDUE (HARD)
@@ -243,11 +246,13 @@ claimable  = horizon OR any leaf in town:core bundle
 activate   = director sets status→active THEMSELF
              up to concurrent sense
 caps       ≤18 live (parents+MURs) / director · ≤30 box-wide
+MUR fill   = watch MUST fill owed MUR slots under that cap (HARD)
+never      invent slot-blocked / one-at-a-time when slots free
 parallel   = if sense says so → spawn parents across many goals at once
 distribute across subgoals / sub-subgoals / deeper leaves
              any depth mix that makes sense
 spawn.parallel = 1 per goal          (HARD)
-concurrency    = multi-parent × multi-goal
+concurrency    = multi-parent × multi-goal · parents+MURs SAME pool
 DURABLE SPAWN  = systemd --user via dispatch durable (HARD)
 ```
 
@@ -263,10 +268,11 @@ director ──▶ write.py status=active on claim
 1) Sense
    parents you spawned: alive?
    workflows you spawned: running?
-   status=done + no MUR yet → owed (list it)
+   status=done + no MUR yet → owed MUR (list it) · FILL under cap
    MUR accept_with_residue still open → residual loop owed (list it)
    free slots under ≤18/dir · ≤30 box?
-   claimable horizon|leaf free on board? → activate + durable spawn
+     → FILL owed MUR slots first (HARD — never invent slot-blocked / one-at-a-time)
+     → then claimable horizon|leaf → activate + durable spawn
 2) Emit ONLY on delta
    | id | kind | state | note |
    |----|------|-------|------|
@@ -276,6 +282,8 @@ director ──▶ write.py status=active on claim
    owner  ← blockers ONLY (red/stuck/decision) · credits empty / mesh down → HOLD
    residues>0 → spawn/continue pi parents (NOT board complete)
    residues=0 + format ✓ + suite → write.py board complete (outside this watch)
+   owed MURs + free slots → spawn MUR(s) under ≤18/dir · ≤30 box
+     (HARD — never invent slot-blocked / one-at-a-time when slots free)
    free capacity → claim/activate horizon|leaf · distribute durable across depth
 4) No delta → silence (no "no change")
 5) Never invent. Never new remote head. Never push core/main.
@@ -674,5 +682,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22 ET: MUR / merge-up-review workflows count toward the SAME live concurrency caps as pi parents — ≤18/director · ≤30 box-wide (parents+MURs combined). spawn.parallel stays 1/goal; do not serialize MURs when slots free under cap. DURABLE SPAWN still applies where MUR is dispatched via systemd --user.
+Owner GO 2026-09-22 ET: §3c watch FORMAT HARD — MUR/merge-up-review counts in SAME pool as parents (≤18/dir · ≤30 box); watch MUST fill owed MUR slots under that cap (never invent slot-blocked / one-at-a-time when slots free); spawn.parallel=1 still; DURABLE still. STANDING embed + Sense/Route carry the fill-under-cap rule so next watch run cannot miss it.
 <!-- THOUGHT:END -->
