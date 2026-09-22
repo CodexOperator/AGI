@@ -6,7 +6,7 @@ node id (`write_node(..., on_exists=SKIP)`) with no new mint. A malformed,
 empty or non-session input exits 2 with a NAMED reason on stderr -- never a
 silent drop."""
 from __future__ import annotations
-import argparse, json, re, sys
+import argparse, hashlib, json, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
@@ -40,8 +40,28 @@ def read_session(path):
                  "first": " ".join(" ".join(texts).split())[:280]}
 
 
+#: A canonical UUID, the shape every id in the repo-root `sessions/` corpus has.
+#: Case is NOT significant for a UUID, so `sid.lower()` is applied first: an
+#: upper-cased UUID is the SAME session, and must stay idempotent, not fork.
+_UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+
 def slug_for(sid):
-    return "grok-session-" + re.sub(r"[^a-z0-9]+", "-", sid.lower()).strip("-")
+    """Injective over the accepted domain (goal:g7.32.1, no-silent-drop).
+
+    Sanitizing alone is lossy: `Probe-aaaa-1111` and `probe_aaaa_1111` both
+    collapse to `probe-aaaa-1111`, so the second session hit an existing path
+    and was skipped with exit 0 -- a silent drop. Two disjoint cases close it:
+    a canonical UUID keeps its BARE slug (the whole real corpus, so the node
+    already minted at `grok-session-<uuid>` stays idempotent and is never
+    duplicated); EVERY other id gets a short `sha256(raw_id)` suffix, so two
+    raw ids that sanitize alike address different files.
+    """
+    canon = re.sub(r"[^a-z0-9]+", "-", sid.lower()).strip("-")
+    if _UUID.match(sid.lower()):
+        return "grok-session-" + canon
+    digest = hashlib.sha256(sid.encode("utf-8")).hexdigest()[:8]
+    return f"grok-session-{canon}-{digest}"
 
 
 def main(argv=None):
