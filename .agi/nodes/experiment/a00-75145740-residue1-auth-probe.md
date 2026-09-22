@@ -3,9 +3,9 @@ id: experiment:a00-75145740-residue1-auth-probe
 mint_id: 5ff32eeb648f48498f27194cc0f26fc6
 type: experiment
 parents:
-  - hypothesis:a00-37392a90-0d3366
+  - hypothesis:a00-75145740-c77fbe
 next_edges: []
-edited_by: a00-75145740
+edited_by: a00-856dc44a
 line_ceiling: 40
 loop: goal:g7.31.3.2@s2
 model: deepseek/deepseek-v4.1-flash
