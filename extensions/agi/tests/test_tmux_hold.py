@@ -163,6 +163,32 @@ def test_reattach_of_held_pane_records_not_created(fake):
     assert created == {"created": False, "pane_id": s["windows"][0]["pane"]}
 
 
+def test_restart_hold_branch_passes_child_env(fake, monkeypatch, tmp_path):
+    """Supporting (fixtures) guard: `restart`'s hold branch hands `reattach`
+    the SAME child env the non-hold `Popen` branch passes.
+
+    `respawn-pane` inherits the tmux SERVER's environment, not the dispatch
+    child's, so an `env`-less reattach strips the seat (`goal:g7.31.1.2`).
+    The real-tmux test below is the proof; this names the seam.
+    """
+    _session_with_seat_and_foreign_current(fake)
+    monkeypatch.setenv("DT67_BASE_PROBE", "base-hello")
+    harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": "S"})
+    harness = {**harness, "env": {"DT67_PROBE": "hello"}}
+    seen: dict = {}
+    real = tmux_hold.reattach
+    monkeypatch.setattr(
+        tmux_hold, "reattach",
+        lambda *a, **k: (seen.update(k), real(*a, **k))[1])
+    seat_dir = tmp_path / "sess"
+    seat_dir.mkdir()
+    grok.restart(harness=harness, tier="kid", context_file="c.md",
+                 agent_id=AGENT, iter_n=1, sess_dir=seat_dir,
+                 agent_record={})
+    assert seen.get("env", {}).get("DT67_PROBE") == "hello"
+    assert seen["env"].get("DT67_BASE_PROBE") == "base-hello"
+
+
 # --------------------------------------------------- adapter-declared hold
 
 
@@ -249,6 +275,75 @@ def test_real_tmux_restart_reenters_the_same_pane(tmp_path, real_tmux):
         rows = tmux_hold.panes(harness)
         assert [(w, i) for w, i, _ in rows if w == SEAT] == [(SEAT, held_pane)]
         assert json.loads((seat_dir / "agent.json").read_text())["tmux"] == rec["tmux"]
+    finally:
+        subprocess.run(["tmux", "kill-session", "-t", sess],
+                       capture_output=True)
+
+
+def _wait_for(path: Path, want: str, timeout: float = 8.0) -> str:
+    """Poll until `path` reads exactly `want` (redirection creates then fills)."""
+    deadline = time.time() + timeout
+    got = ""
+    while time.time() < deadline:
+        if path.exists():
+            got = path.read_text()
+            if got == want:
+                return got
+        time.sleep(0.05)
+    pytest.fail(f"{path} never reached {want!r}; last read {got!r}")
+
+
+@needs_tmux
+def test_real_tmux_restart_carries_the_child_env(tmp_path, monkeypatch, real_tmux):
+    """The restart seam carries the SAME child env as first spawn.
+
+    Both a `harness["env"]` cell and the base environ are asserted, because
+    `child_env` merges both. This is the exact case the previous kid failed:
+    a seat spawned with `env={DT67_PROBE: hello}` wrote `DT67=hello`, then
+    after kill + an `env`-less reattach wrote `DT67=` (empty) -- the tmux
+    server env, not the dispatch child env (`goal:g7.31.1.2`).
+    """
+    sess = _probe_session()
+    monkeypatch.setenv("DT67_BASE_PROBE", "base-hello")
+    seat_dir = tmp_path / "sess"
+    seat_dir.mkdir()
+    marker = tmp_path / "marker.txt"
+    # `restart` rebuilds argv through `build_command`, so the marker command
+    # must BE the harness bin -- then both births run the same argv.
+    bin_path = tmp_path / "seat-bin"
+    bin_path.write_text(
+        '#!/bin/sh\nprintf "%s|%s" "$DT67_PROBE" "$DT67_BASE_PROBE" '
+        f'> {marker}\nsleep 60\n')
+    bin_path.chmod(0o755)
+    harness = grok.hold_harness(
+        {"adapter": "grok_bot", "tmux_session": sess, "bin": str(bin_path),
+         "env": {"DT67_PROBE": "hello"}})
+    argv = grok.build_command(harness=harness, tier="kid",
+                              context_file=str(tmp_path / "context.md"))
+    try:
+        # FIRST spawn carries the child env exactly as dispatch does
+        # (`_open_round` -> `tmux_hold.spawn(..., env=spawn_env)`).
+        spawn_env = grok.child_env(harness=harness, base=dict(os.environ),
+                                   tier="kid")
+        held = tmux_hold.spawn(harness, AGENT, argv, cwd=str(tmp_path),
+                               log_file=seat_dir / "output.log", env=spawn_env)
+        assert held is not None
+        _wait_for(marker, "hello|base-hello")  # first spawn
+
+        # Kill the PROCESS, not the window: restart must REATTACH, not recreate.
+        os.kill(held.pid, signal.SIGKILL)
+        for _ in range(50):
+            if not tmux_hold._alive(held.pid):
+                break
+            time.sleep(0.05)
+        marker.unlink()
+
+        rec = {"worktree": str(tmp_path)}
+        pid = grok.restart(
+            harness=harness, tier="kid", context_file=str(tmp_path / "context.md"),
+            agent_id=AGENT, iter_n=1, sess_dir=seat_dir, agent_record=rec)
+        assert pid is not None and rec["tmux"]["created"] is False
+        _wait_for(marker, "hello|base-hello")  # env SURVIVED restart
     finally:
         subprocess.run(["tmux", "kill-session", "-t", sess],
                        capture_output=True)
