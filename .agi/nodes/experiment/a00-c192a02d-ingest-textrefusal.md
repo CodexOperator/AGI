@@ -14,7 +14,7 @@ profile: balanced
 role: kid
 season: 2
 testable_claim: A content block whose type is text and whose text key is present but not a string exits 2 with INGEST refuse malformed-content, no traceback, zero nodes, while the happy path and the five container-shape refusals are unchanged
-title: DT.73 ingest text-block refusal: non-string text is named, not a TypeError
+title: "DT.73 ingest text-block refusal: non-string text is named, not a TypeError"
 town: core
 ---
 <!-- BODY:BEGIN -->
