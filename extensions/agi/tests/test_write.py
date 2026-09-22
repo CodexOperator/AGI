@@ -405,6 +405,20 @@ def test_a_note_appends_under_an_existing_heading_rather_than_adding_a_second(pr
     assert "an earlier note" in text and "a later note" in text
 
 
+def test_the_shared_note_helper_is_heading_aware_for_a_different_note():
+    """The one helper all three writers call: A then a DIFFERENT B, one heading.
+
+    The old per-writer dedupe was on the note TEXT, so B added a second
+    heading. This is the unit half of the live `a00-75145740-c77fbe` defect.
+    """
+    body = "the body\n\n## Agent Notes\nfirst note\n"
+    out = node_writer.append_agent_note(body, "second note")
+    assert out.count("## Agent Notes") == 1, out
+    assert "first note" in out and "second note" in out
+    # Idempotent on the same text, and still one heading.
+    assert node_writer.append_agent_note(out, "second note") == out
+
+
 # --------------------------------------------------------------------------
 # L1.07 — `create`: the half that was missing when `edit` became `write`
 # --------------------------------------------------------------------------

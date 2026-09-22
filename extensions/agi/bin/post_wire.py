@@ -470,11 +470,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             evidence_gate.stamp(fm, gate)
             fm["wired_at"] = int(time.time())
             fm["wired_from"] = agent["id"]
-            # Idempotent: `cli.py done` may already have written this exact
-            # section. Appending unconditionally is what put the notes in
-            # twice on every kid for as long as both writers have existed.
-            if notes and notes.strip() not in body:
-                body = body.rstrip() + f"\n\n## Agent Notes\n{notes}\n"
+            # Idempotent and heading-aware: `cli.py done` may already have
+            # written this exact section. The one shared helper is what keeps
+            # a DIFFERENT note from adding a second `## Agent Notes` heading.
+            body = node_writer.append_agent_note(body, notes)
             _update_via_writer(root, node_id, node_path,
                                original_fm, fm, original_body, body)
             updated_nodes.append(node_id)

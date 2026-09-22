@@ -79,7 +79,7 @@ PROTECTED = frozenset({"id", "mint_id", "type", "scaffold_hash"})
 #: The one heading body notes live under. Shared with `post_wire` and
 #: `cli.py done`, which both already write it -- a second spelling here would
 #: be the duplicate-heading defect this constant exists to prevent.
-NOTES_HEADING = "## Agent Notes"
+NOTES_HEADING = node_writer.NOTES_HEADING
 
 
 class EditError(RuntimeError):
@@ -2307,18 +2307,10 @@ def _compose_body(root, edit: Edit) -> str:
         raise EditError(f"no node file for {edit.node_id}")
     body = fm_reader.load_node_file(path).body
 
-    if edit.body_append and edit.body_append.strip() not in body:
-        # Append UNDER an existing heading rather than adding a second one.
-        # The first version checked only whether the text was already present,
-        # so a node that `post_wire` had already given a `## Agent Notes`
-        # section got a second heading -- found on the first real use, against
-        # a live node that had one.
-        note = edit.body_append.rstrip()
-        if NOTES_HEADING in body:
-            head, sep, tail = body.rpartition(NOTES_HEADING)
-            body = head + sep + tail.rstrip() + f"\n\n{note}\n"
-        else:
-            body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
+    if edit.body_append:
+        # Shared with `cli.py done` and `post_wire` so the three writers
+        # cannot diverge: append UNDER an existing heading, never a second.
+        body = node_writer.append_agent_note(body, edit.body_append)
 
     if edit.thought:
         block = (node_writer._THOUGHT_RE.pattern and
