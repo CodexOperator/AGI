@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-watch-claim-parallel-2026-09-22
+thought_session: mur-same-pool-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -120,8 +120,9 @@ CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
-  ≤18 live parents / director · ≤30 box-wide total if needed
+  ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
+  never serialize MURs one-at-a-time when slots free under cap
 DURABLE SPAWN (HARD — SoT doc:standing-llm-ops §4 DURABLE SPAWN):
   parents MUST land under systemd --user scope/service (dispatch durable path)
   never leave parents as children of interactive SSH/bash (disconnect kills them)
