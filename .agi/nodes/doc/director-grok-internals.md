@@ -109,28 +109,26 @@ routes: write·read·send·dispatch/workflow·rotate/spawn
 lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only after lean
 loop independently until residues=0 · report to GRAPH not Belam
 watch: §3c FORMAT verbatim · pins only TREE/SCOPE/HOST/BRANCH
-internals-sync: @every 30m from doc:director-grok-internals (this SoT)
+internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 ```
 
-Minimize outbound tokens. Sync from doc:director-grok-internals + town:core + geometry board. Pointer: doc:standing-llm-ops.
+Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY. Pointer: doc:standing-llm-ops.
 
 ---
 
-### SECTION:ROUTINE_SYNC (create/update this routine verbatim)
+### SECTION:ROUTINE_SYNC
 
-```
-name: director-internals-sync
-schedule: */30 * * * *   (reason: mesh directors + live parents need standing sync while seats run)
-prompt: (intent) Pull doc:director-grok-internals + re-read standing pointer. For each SECTION:* fence, copy bytes into matching bot surface (profile description / named routine prompts). Replace only {{PLACEHOLDERS}} with this seat's values. Do not invent prose. If SoT unchanged (scaffold/hash or body hash), stay quiet. May update_state this same routine if SoT changes the sync recipe.
-  AFTER apply → VERIFY parse:
-    profile/routine surfaces must have REAL newlines
-    FAIL if literal \\n or mangled quotes visible
-    on FAIL → re-apply from SoT with real newlines (never leave broken mirror)
-```
+Pointer only — recipe lives in `doc:grok-harness-internals-sync` (THE ONE SECTION:ROUTINE_SYNC SoT).
+Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
+`grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only (+ WATCH below → separate routine).
 
 ---
 
-### SECTION:ROUTINE_WATCH (optional — pointer)
+## NOT the internals sync
+This fence → routine name live-parents-workflows ONLY
+Never merge into grok-internals-sync
+
+### SECTION:ROUTINE_WATCH
 
 ```
 POINT AT  doc:standing-llm-ops §3c Shared director watch FORMAT (verbatim)
@@ -145,6 +143,6 @@ pins ONLY (seat-local; rest = byte-copy of §3c FORMAT):
   REPORT {{REPORTS_TO}}
 ```
 
-<!-- THOUGHT:BEGIN -->
-owner HARD: director internals SoT = byte-identical PROFILE + ROUTINE_SYNC + WATCH pointer; placeholders only differ across seats
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PROFILE+WATCH only; ROUTINE_SYNC pointer to harness; watch is live-parents-workflows
 <!-- THOUGHT:END -->

@@ -24,7 +24,7 @@ town: core
 # doc:belam-grok-internals — Belam/Prime harness SoT (TEMP stand-in)
 
 Belam edits THIS (+ standing) via write.py ONLY.
-`*/30` routine `grok-internals-sync` pastes SECTION fences → bot surfaces.
+`*/30` routine `grok-internals-sync` (title+body from doc:grok-harness-internals-sync ONLY) pastes PROFILE from this SoT → bot surfaces.
 NEVER `update_state` profile / UpdateAgent for spine after bootstrap.
 
 ```
@@ -107,27 +107,16 @@ Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
 ```
 
-Minimize outbound tokens. Sync from this SoT via `grok-internals-sync`.
+Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
 
 ---
 
 ### SECTION:ROUTINE_SYNC
 
-```
-name: grok-internals-sync
-schedule: */30 * * * *   (reason: mesh seats need standing sync while live)
-prompt intent:
-  Pull doc:grok-harness-internals-sync + this seat's per-post SoT doc id (from standing/profile pointer).
-  For each SECTION:* in the per-post SoT, byte-copy into matching bot surface.
-  AFTER apply → VERIFY parse:
-    profile/routine surfaces must have REAL newlines
-    FAIL if literal \\n or mangled quotes visible
-    on FAIL → re-apply from SoT with real newlines (never leave broken mirror)
-  Replace {{PLACEHOLDERS}} using labels already on this bot's profile/standing — never bake seat names into this routine.
-  Quiet if SoT hash unchanged.
-  May update_state THIS same routine if SoT changes the sync recipe (keeps routine byte-identical across posts).
-```
+Pointer only — recipe lives in `doc:grok-harness-internals-sync` (THE ONE SECTION:ROUTINE_SYNC SoT).
+Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
+`grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
-<!-- THOUGHT:BEGIN -->
-TEMP stand-in Belam/Prime harness SoT; ROUTINE_SYNC byte-identical to doc:grok-harness-internals-sync; shared name grok-internals-sync
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+per-post PROFILE only; sync title+body from harness doc ONLY
 <!-- THOUGHT:END -->
