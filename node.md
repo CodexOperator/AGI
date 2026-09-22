@@ -16,11 +16,10 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: belam-sot-unify-2026-09-22
 title: Grok harness internals sync — post-agnostic seed + ROUTINE_SYNC recipe
 town: core
 ---
-<!-- BODY:BEGIN -->
 # doc:grok-harness-internals-sync — post-agnostic grok harness seed + sync recipe
 
 **SoT recipe for ANY grok-bot post** (Prime · directors · future posts). Belam edits THIS via write.py only. Per-post spine lives in `doc:<post>-grok-internals` (or town board pointer).
@@ -32,6 +31,9 @@ seed    ──▶ install grok-internals-sync (name/schedule/prompt from THIS do
 apply   ──▶ sync routine (or engine later) — never hand-edit harness mirrors
 copy identically: NAME grok-internals-sync · schedule */30 * * * * · prompt = fence body
 ```
+
+**Note (2026-09-22):** per-post SoT (`doc:*-grok-internals`) is now self-contained; this doc stays structure/PURPOSE — the ONE `SECTION:ROUTINE_SYNC` recipe only.
+
 
 ## Seed any fresh grok bot
 
@@ -104,5 +106,5 @@ Graph builds itself
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-THE ONE ROUTINE_SYNC SoT; copy name/schedule/prompt identically; one trailing LF
+Owner GO 2026-09-22: one-line note that per-post SoT is self-contained; structure/PURPOSE (ROUTINE_SYNC recipe) unchanged.
 <!-- THOUGHT:END -->
