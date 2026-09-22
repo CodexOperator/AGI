@@ -2160,7 +2160,15 @@ def _nudge_transport(root: Path, to: str) -> tuple[str, list[str]]:
         import towns
         want = towns.row_town(root, row)
         for t in towns.load_towns(root):
-            if t.slug == want and t.location:
+            # Defect 2: `location` becomes an ssh ARGUMENT, so it is validated
+            # as a bare host name BEFORE it reaches ssh argv -- a leading
+            # dash would be read as an ssh OPTION (argv injection), and
+            # whitespace/metacharacters are refused for the same reason. An
+            # unsafe location is no transport at all, never a passed-through
+            # prefix.
+            if (t.slug == want and t.location
+                    and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*",
+                                     t.location)):
                 return ("mesh", ["ssh", t.location])
     except Exception:  # noqa: BLE001 -- undeclared/broken town set: no mesh
         pass
@@ -2258,10 +2266,28 @@ def _nudge_mesh(root: Path, to: str, tmux_session: str | None,
     if tmux_session is None:
         import rotate
         tmux_session = rotate.DEFAULT_TMUX_SESSION
-    ref = str(row.get("window") or "").strip() or to
+    # Defect 1: the remote pane cannot be listed from here, so ONLY a row
+    # carrying a live-looking @id is addressable -- a NAME (or absent) window
+    # cell is refused exactly as `_nudge_target` refuses it locally (a
+    # predecessor/namesake could occupy a name), never typed into by name.
+    ref = str(row.get("window") or "").strip()
+    if not ref.startswith("@"):
+        print(f"nudge: row for {to} carries window {row.get('window')!r} -- "
+              f"not an @id; refusing it as a mesh target", file=sys.stderr)
+        return False
     target = f"{tmux_session}:{ref}"
-    text = (_nudge_line(to, sender or "unknown", body, _pending_more(root, to))
-            if body is not None else _build_nudge_token(to, path))
+    # Defect 4: a stored deferred dm is delivered INLINE exactly as the local
+    # `_nudge_window` path does (same `_nudge_line` shape + inbox tail), never
+    # the fixed wake token, and cleared only once the line reached the pane.
+    deferred = _read_deferred(root, to) if body is None else None
+    if body is not None:
+        text = _nudge_line(to, sender or "unknown", body, _pending_more(root, to))
+    elif deferred is not None:
+        text = _nudge_line(to, deferred.get("sender") or "unknown",
+                           deferred.get("body") or "", _pending_more(root, to),
+                           trailing=_NUDGE_INBOX_TAIL.format(seat=to))
+    else:
+        text = _build_nudge_token(to, path)
     if text is None or not _send_keys(target, text, literal=True,
                                       prefix=prefix):
         return False
@@ -2269,6 +2295,8 @@ def _nudge_mesh(root: Path, to: str, tmux_session: str | None,
     if not _send_keys(target, "Enter", prefix=prefix):
         return False
     _record_nudge(root, to)
+    if deferred is not None:
+        _clear_deferred(root, to)
     return True
 
 
@@ -2702,6 +2730,7 @@ def _wake_outcome(outcome: str, delivered: bool, seat: str,
         "busy-deferred": "deferred",
         "typed-token": "delivered",
         "delivered-deferred": "delivered",
+        "no-transport": "nothing-pending",
     }.get(outcome, "deferred")
     path = "strand" if outcome == "resubmitted-strand" else "idle"
     wid = f" {window_id}" if window_id else ""
@@ -2748,8 +2777,13 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
     if _nudge_transport(root, to)[0] != "local":
         # goal:g7.31.4: a foreign seat wakes through the SAME `_nudge_window`
         # seam; the local pane probes below cannot read another box.
-        return _wake_outcome("typed-token", seat=to, delivered=_nudge_window(
-            root, to, tmux_session=tmux_session, path="idle"))
+        delivered = _nudge_window(root, to, tmux_session=tmux_session,
+                                  path="idle")
+        # Defect 3: report the TRUTH the nudge returned -- a foreign seat with
+        # no transport typed nothing, so it must not be labelled `typed-token`
+        # (which `_wake_outcome` maps to `delivered`) nor return True.
+        return _wake_outcome("typed-token" if delivered else "no-transport",
+                             seat=to, delivered=delivered)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
