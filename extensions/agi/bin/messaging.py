@@ -14,11 +14,17 @@ class CrossHarnessOnNative(RuntimeError):
 class SameHarnessOnCross(RuntimeError):
     """Same-harness offered to the nudge->send path."""
 
+def _identity(harness):
+    """Whitespace-only strings are unknown; non-strings pass through."""
+    return harness.strip() if isinstance(harness, str) else harness
+
 def route(sender_harness, recipient_harness):
-    if not sender_harness or not recipient_harness:
+    s = _identity(sender_harness)
+    r = _identity(recipient_harness)
+    if not s or not r:
         raise UnknownHarness(
             f"unknown harness: sender={sender_harness!r} recipient={recipient_harness!r}")
-    return "native" if sender_harness == recipient_harness else "nudge_send"
+    return "native" if s == r else "nudge_send"
 
 def native_send(pane, *, sender_harness, recipient_harness, to, text):
     if route(sender_harness, recipient_harness) != "native":
