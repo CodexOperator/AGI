@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1
 next_edges: []
 confidence: 0.9
-edited_by: director-belam
+edited_by: owner-go
 goal_id: G7.31.1.2
 goal_kind: subgoal
 heading_level: 5
