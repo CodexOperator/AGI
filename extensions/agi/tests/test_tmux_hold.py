@@ -1,24 +1,20 @@
 """Regression + integration guard for `adapters/tmux_hold.py` (`goal:g7.31.1.2`).
 
-Two tiers, deliberately:
-
-* `FakeTmux` unit tests model tmux's current-window semantics (a `list-panes`
-  without `-s` returns ONLY the current window) so a regression that drops `-s`
-  reproduces the duplicate window, not a green lie.
-* The real-tmux test is the PROOF: it founds a pane on first spawn, captures
-  the immutable `#{pane_id}`, kills the process, restarts through the adapter,
-  and asserts the SAME pane id comes back with `created is False`. It skips BY
-  NAME when `tmux` is absent so the suite is honest about what ran.
+Everything here runs against `FakeTmux`, a fake of tmux's real semantics. No
+committed test starts or kills a real tmux session and none signals a real
+pane process: the conftest `_no_real_tmux` autouse guard is never defeated.
+The claims a real server used to prove (first-spawn founds the pane;
+`remain-on-exit` is set before the process could exit; restart re-enters the
+SAME `#{pane_id}` with `created: False`; a killed window recreates once with
+`created: True`; the child env survives restart) are re-expressed here as
+fake-driven tests, because a faithful fake is the proof and shelling out is
+the defect.
 """
 from __future__ import annotations
 
-import json
 import os
-import shutil
-import signal
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 import pytest
@@ -39,7 +35,12 @@ SEAT = tmux_hold.pane_name(AGENT)
 
 
 class FakeTmux:
-    """Minimal tmux: sessions hold windows; one window is current per session."""
+    """Minimal tmux: sessions hold windows; one window is current per session.
+
+    `-s` on `list-panes` is what makes a non-current window visible. A
+    `respawn-pane` advances the pane's pid, so a caller can tell a re-entered
+    pane from a fabricated one by its immutable `#{pane_id}`.
+    """
 
     def __init__(self):
         self.sessions: dict[str, dict] = {}
@@ -146,6 +147,25 @@ def test_start_reuses_non_current_named_pane(fake):
     assert pid == s["windows"][0]["pid"]
 
 
+def test_first_spawn_founds_the_named_pane(fake):
+    """The FIRST spawn (`spawn`, what dispatch's `_open_round` calls) creates
+    the seat's pane before any restart could attach to it."""
+    held = tmux_hold.spawn(HARNESS, AGENT, ARGV, cwd="/tmp")
+    assert "S" in fake.sessions
+    assert len(fake.seat_windows()) == 1
+    assert held is not None and held.pid == fake.seat_windows()[0]["pid"]
+
+
+def test_pane_founded_with_remain_on_exit_before_the_process_runs(fake):
+    """`remain-on-exit` is set on the pane BEFORE `respawn-pane`, so a
+    fast-failing process cannot close the window and take the hold with it."""
+    tmux_hold.spawn(HARNESS, AGENT, ARGV, cwd="/tmp")
+    verbs = [c[1] for c in fake.calls]
+    setopt = [c for c in fake.calls if c[1] == "set-option"]
+    assert setopt and "remain-on-exit" in setopt[0] and "on" in setopt[0]
+    assert verbs.index("set-option") < verbs.index("respawn-pane")
+
+
 def test_reattach_of_genuinely_gone_pane_creates_once_and_says_so(fake):
     """Window killed (not just the process): recreate ONCE, record `created`."""
     fake.run(["tmux", "new-session", "-d", "-s", "S", "-n", "other"])
@@ -163,14 +183,28 @@ def test_reattach_of_held_pane_records_not_created(fake):
     assert created == {"created": False, "pane_id": s["windows"][0]["pane"]}
 
 
+def test_restart_carries_the_child_env_into_the_respawn_command(fake):
+    """`respawn-pane` inherits the tmux SERVER's environment, so the child env
+    must ride the command itself; an `env`-less reattach strips the seat.
+    Both a `harness["env"]` cell and the base environ are asserted, because
+    `child_env` merges both (`goal:g7.31.1.2`)."""
+    _session_with_seat_and_foreign_current(fake)
+    harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": "S",
+                                 "env": {"DT67_PROBE": "hello"}})
+    env = grok.child_env(harness=harness,
+                         base={**os.environ, "DT67_BASE_PROBE": "base-hello"},
+                         tier="kid")
+    before = len(fake.calls)
+    tmux_hold.reattach(HARNESS, AGENT, ARGV, cwd="/tmp", env=env)
+    respawn = [c for c in fake.calls[before:] if c[1] == "respawn-pane"]
+    assert respawn, "reattach issued no respawn-pane"
+    assert "DT67_PROBE=hello" in respawn[0]
+    assert "DT67_BASE_PROBE=base-hello" in respawn[0]
+
+
 def test_restart_hold_branch_passes_child_env(fake, monkeypatch, tmp_path):
     """Supporting (fixtures) guard: `restart`'s hold branch hands `reattach`
-    the SAME child env the non-hold `Popen` branch passes.
-
-    `respawn-pane` inherits the tmux SERVER's environment, not the dispatch
-    child's, so an `env`-less reattach strips the seat (`goal:g7.31.1.2`).
-    The real-tmux test below is the proof; this names the seam.
-    """
+    the SAME child env the non-hold `Popen` branch passes."""
     _session_with_seat_and_foreign_current(fake)
     monkeypatch.setenv("DT67_BASE_PROBE", "base-hello")
     harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": "S"})
@@ -189,6 +223,27 @@ def test_restart_hold_branch_passes_child_env(fake, monkeypatch, tmp_path):
     assert seen["env"].get("DT67_BASE_PROBE") == "base-hello"
 
 
+# ------------------------------------------------------- held death semantics
+
+
+def test_heldproc_reports_a_dead_pane_as_a_nonzero_death(monkeypatch):
+    """A dead pane process is a DEATH, not a clean rc 0. dispatch reads rc 0
+    as a clean startup (`_await_startup(proc) or proc.returncode == 0`) and
+    would register a dead held seat `status: running` (`goal:g7.31.1.2`)."""
+    monkeypatch.setattr(tmux_hold, "_alive", lambda pid: False)
+    assert tmux_hold.HeldProc(4242).poll() == 1
+    monkeypatch.setattr(tmux_hold, "_alive", lambda pid: True)
+    assert tmux_hold.HeldProc(4243).poll() is None
+
+
+def test_heldproc_keeps_its_first_death_rc(monkeypatch):
+    monkeypatch.setattr(tmux_hold, "_alive", lambda pid: False)
+    p = tmux_hold.HeldProc(4244)
+    assert p.poll() == 1 and p.returncode == 1
+    monkeypatch.setattr(tmux_hold, "_alive", lambda pid: True)
+    assert p.poll() == 1  # once dead, never resurrected by a later poll
+
+
 # --------------------------------------------------- adapter-declared hold
 
 
@@ -199,180 +254,3 @@ def test_grok_adapter_declares_the_hold_without_a_config_cell():
     assert grok.hold_harness({"adapter": "grok_bot"}).get("tmux") is True
     # an explicit opt-out wins outright
     assert grok.hold_harness({"adapter": "grok_bot", "tmux": False})["tmux"] is False
-
-
-# --------------------------------------------------------- REAL tmux proof
-
-needs_tmux = pytest.mark.skipif(
-    shutil.which("tmux") is None,
-    reason="real-tmux integration test: `tmux` absent on this box")
-
-#: The real stdlib runner, captured at import -- BEFORE the suite's autouse
-#: `_no_real_tmux` guard rebinds it. The guard exists to keep ordinary tests
-#: away from the LIVE `agi-rc` session; the proof below is the deliberate
-#: exception, on a scratch session it creates and kills itself.
-_REAL_RUN = subprocess.run
-
-
-@pytest.fixture
-def real_tmux(monkeypatch):
-    monkeypatch.setattr(subprocess, "run", _REAL_RUN)
-
-
-def _probe_session() -> str:
-    """A scratch session name -- never the live `agi-rc` box session."""
-    return f"agi-dt67-probe-{os.getpid()}"
-
-
-@needs_tmux
-def test_real_tmux_first_spawn_founds_the_named_pane(tmp_path, real_tmux):
-    """Acceptance 5: after the FIRST spawn (before any restart) the seat's
-    window exists in the session, list-panes says so."""
-    sess = _probe_session()
-    harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": sess})
-    try:
-        held = tmux_hold.spawn(harness, AGENT, ["sh", "-c", "sleep 60"],
-                               cwd=str(tmp_path), log_file=tmp_path / "out.log")
-        assert held is not None and held.pid
-        rows = tmux_hold.panes(harness)
-        assert [r[0] for r in rows] == [SEAT]
-        out = subprocess.run(
-            ["tmux", "list-panes", "-s", "-t", sess, "-F", "#{window_name}"],
-            capture_output=True, text=True).stdout
-        assert SEAT in out
-    finally:
-        subprocess.run(["tmux", "kill-session", "-t", sess],
-                       capture_output=True)
-
-
-@needs_tmux
-def test_real_tmux_restart_reenters_the_same_pane(tmp_path, real_tmux):
-    """Acceptance 1/4: kill the process; restart re-enters the SAME immutable
-    pane id and the record says `created: False`."""
-    sess = _probe_session()
-    harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": sess})
-    seat_dir = tmp_path / "sess"
-    seat_dir.mkdir()
-    try:
-        held = tmux_hold.spawn(harness, AGENT, ["sh", "-c", "sleep 60"],
-                               cwd=str(tmp_path), log_file=seat_dir / "output.log")
-        assert held is not None
-        held_pane = next(i for w, i, _ in tmux_hold.panes(harness) if w == SEAT)
-
-        os.kill(held.pid, signal.SIGKILL)
-        for _ in range(50):
-            if not tmux_hold._alive(held.pid):
-                break
-            time.sleep(0.05)
-        assert not tmux_hold._alive(held.pid)
-
-        rec = {"worktree": str(tmp_path)}
-        pid = grok.restart(
-            harness=harness, tier="kid", context_file=str(tmp_path / "context.md"),
-            agent_id=AGENT, iter_n=1, sess_dir=seat_dir, agent_record=rec)
-        assert pid is not None and pid != held.pid
-        assert rec["tmux"] == {"created": False, "pane_id": held_pane}
-        rows = tmux_hold.panes(harness)
-        assert [(w, i) for w, i, _ in rows if w == SEAT] == [(SEAT, held_pane)]
-        assert json.loads((seat_dir / "agent.json").read_text())["tmux"] == rec["tmux"]
-    finally:
-        subprocess.run(["tmux", "kill-session", "-t", sess],
-                       capture_output=True)
-
-
-def _wait_for(path: Path, want: str, timeout: float = 8.0) -> str:
-    """Poll until `path` reads exactly `want` (redirection creates then fills)."""
-    deadline = time.time() + timeout
-    got = ""
-    while time.time() < deadline:
-        if path.exists():
-            got = path.read_text()
-            if got == want:
-                return got
-        time.sleep(0.05)
-    pytest.fail(f"{path} never reached {want!r}; last read {got!r}")
-
-
-@needs_tmux
-def test_real_tmux_restart_carries_the_child_env(tmp_path, monkeypatch, real_tmux):
-    """The restart seam carries the SAME child env as first spawn.
-
-    Both a `harness["env"]` cell and the base environ are asserted, because
-    `child_env` merges both. This is the exact case the previous kid failed:
-    a seat spawned with `env={DT67_PROBE: hello}` wrote `DT67=hello`, then
-    after kill + an `env`-less reattach wrote `DT67=` (empty) -- the tmux
-    server env, not the dispatch child env (`goal:g7.31.1.2`).
-    """
-    sess = _probe_session()
-    monkeypatch.setenv("DT67_BASE_PROBE", "base-hello")
-    seat_dir = tmp_path / "sess"
-    seat_dir.mkdir()
-    marker = tmp_path / "marker.txt"
-    # `restart` rebuilds argv through `build_command`, so the marker command
-    # must BE the harness bin -- then both births run the same argv.
-    bin_path = tmp_path / "seat-bin"
-    bin_path.write_text(
-        '#!/bin/sh\nprintf "%s|%s" "$DT67_PROBE" "$DT67_BASE_PROBE" '
-        f'> {marker}\nsleep 60\n')
-    bin_path.chmod(0o755)
-    harness = grok.hold_harness(
-        {"adapter": "grok_bot", "tmux_session": sess, "bin": str(bin_path),
-         "env": {"DT67_PROBE": "hello"}})
-    argv = grok.build_command(harness=harness, tier="kid",
-                              context_file=str(tmp_path / "context.md"))
-    try:
-        # FIRST spawn carries the child env exactly as dispatch does
-        # (`_open_round` -> `tmux_hold.spawn(..., env=spawn_env)`).
-        spawn_env = grok.child_env(harness=harness, base=dict(os.environ),
-                                   tier="kid")
-        held = tmux_hold.spawn(harness, AGENT, argv, cwd=str(tmp_path),
-                               log_file=seat_dir / "output.log", env=spawn_env)
-        assert held is not None
-        _wait_for(marker, "hello|base-hello")  # first spawn
-
-        # Kill the PROCESS, not the window: restart must REATTACH, not recreate.
-        os.kill(held.pid, signal.SIGKILL)
-        for _ in range(50):
-            if not tmux_hold._alive(held.pid):
-                break
-            time.sleep(0.05)
-        marker.unlink()
-
-        rec = {"worktree": str(tmp_path)}
-        pid = grok.restart(
-            harness=harness, tier="kid", context_file=str(tmp_path / "context.md"),
-            agent_id=AGENT, iter_n=1, sess_dir=seat_dir, agent_record=rec)
-        assert pid is not None and rec["tmux"]["created"] is False
-        _wait_for(marker, "hello|base-hello")  # env SURVIVED restart
-    finally:
-        subprocess.run(["tmux", "kill-session", "-t", sess],
-                       capture_output=True)
-
-
-@needs_tmux
-def test_real_tmux_restart_of_gone_pane_recreates_once(tmp_path, real_tmux):
-    """Acceptance 4: a genuinely lost pane reports `created: True` and is
-    recreated exactly once."""
-    sess = _probe_session()
-    harness = grok.hold_harness({"adapter": "grok_bot", "tmux_session": sess})
-    seat_dir = tmp_path / "sess"
-    seat_dir.mkdir()
-    try:
-        held = tmux_hold.spawn(harness, AGENT, ["sh", "-c", "sleep 60"],
-                               cwd=str(tmp_path), log_file=seat_dir / "output.log")
-        assert held is not None
-        # Kill the WINDOW, not merely the process: the pane is genuinely gone.
-        subprocess.run(["tmux", "kill-window", "-t", SEAT], capture_output=True)
-        assert tmux_hold.panes(harness) == []
-
-        rec = {"worktree": str(tmp_path)}
-        pid = grok.restart(
-            harness=harness, tier="kid", context_file=str(tmp_path / "context.md"),
-            agent_id=AGENT, iter_n=1, sess_dir=seat_dir, agent_record=rec)
-        assert pid is not None
-        assert rec["tmux"]["created"] is True
-        seat_windows = [w for w, _, _ in tmux_hold.panes(harness) if w == SEAT]
-        assert seat_windows == [SEAT]  # exactly one, not two
-    finally:
-        subprocess.run(["tmux", "kill-session", "-t", sess],
-                       capture_output=True)
