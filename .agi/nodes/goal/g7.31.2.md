@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: ae72206c9d0fb32b
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -24,7 +24,7 @@ tags:
   - pin
   - formation
   - rotate
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.31.2: Pane anchor registers seat occupation across post/pin/formation/auto-rotation"
 town: core
 ---
