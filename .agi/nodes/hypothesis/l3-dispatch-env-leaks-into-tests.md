@@ -3,12 +3,13 @@ id: hypothesis:l3-dispatch-env-leaks-into-tests
 mint_id: 493b9647049f4ec7bfacdbf7a93fdf3b
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 4b11c345902a1248
 season: 1
 testable_claim: A kid or parent running the engine suite from inside a dispatched environment sees the same green suite as a clean shell, because the test runner strips the AGI_* spawn variables (AGI_LOOP, AGI_MODEL, AGI_ROLE, AGI_TIER and siblings) that dispatch exports
+thought_session: dissolve-legacy-2026-09-19
 title: L3 dispatch env leaks into tests
 ---
 # hypothesis:l3-dispatch-env-leaks-into-tests

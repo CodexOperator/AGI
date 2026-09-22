@@ -4,10 +4,10 @@ mint_id: 8bbbb70cbedb4ee78ac77afaa295ee63
 type: hypothesis
 parents:
   - idea:lm-why-jev-echoes-leaked-verdicts
-  - goal:g14
+  - goal:g5.24
 next_edges: []
 ceiling: <= 1 USD OpenRouter (parent+kid); 0 API calls; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
-edited_by: refuter
+edited_by: thought-master
 falsifier: Held-out TF-IDF mean accuracy is at or below jev scrubbed q1 agreement (0.60) -- then the residual is not surface-lexical and jev reads something a bag of words cannot; OR the TF-IDF advantage vanishes when node kind is removed from the text (the gain is only the kind prior, which H3 already covers).
 scaffold_hash: d9880a60c947b53f
 season: 2

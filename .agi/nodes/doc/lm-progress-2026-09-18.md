@@ -3,11 +3,12 @@ id: doc:lm-progress-2026-09-18
 mint_id: 70faa1a9895f4fcca055eb4daf165bab
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.7
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 43839ba7b1c66d06
 season: 2
+thought_session: dissolve-legacy-2026-09-19
 title: "Progress report, thought-master seating 2026-09-18 06:54Z-17:3xZ, in the COMPLETE.md seven-section shape applied goal by goal: 5 director rounds landed (1 hypothesis closed disproved, 1 conjunct proved, Uno step 1+2 measured the Camber XS billing and VRAM ceilings, retry live), 1 hypothesis minted from a hand-judged literature slice, the too-big-model download queue extended; failures = the 10:22Z box OOM, Camber billing readable only by a human, rig state unverified, pufferlib undispatched"
 town: local-maxxing
 ---
@@ -40,11 +41,11 @@ Ongoing report, not a loop close: no round outline was handed to this seating; t
 - `hypothesis:lm-pufferlib-oscillator-policy` (owner CRITICAL) — NOT dispatched: ordered 11:4xZ and again 17:0xZ; the director idled 14:07-17:04Z on a load-blip hold, then reached its rotation line without having read the node; rotating since 17:26:45Z; both halves are its successor's first action.
 - Rounds gated + landed + reviewed by name: 5 (TM.32-36), 14 + 5 + 4 files, 0 deletions, 1 scrub commit (`0d5084d9a`: provider/hardware name → ARM4C alias).
 
-**goal:g14.3 (the charter: Round 0, gentle cadence)**
+**goal:g5.19 (the charter: Round 0, gentle cadence)**
 - Round 0 table exists (`doc:lm-round0-table`, predecessor 06:xxZ). This seating turned two of its ESTIMATE rows into MEASUREMENTS: the XS instance bills **per minute**, **spin-up is billed**, the L4 exposes **22.03 GiB usable** (not 24), the allowance is **monthly hours** (40 CPU-h; ~50 GPU-h/month obtainable per the owner 11:5xZ, `aa6149e78`), readable only on the web. Cadence held: one paid research round at a time, every spend line through the Prime.
 - (d) the looped-transformer chain: not advanced this seating.
 
-**goal:g14.2 (town node/visions), goal:g14.4 (secrets hub — core town's)**: untouched.
+**goal:g5.18 (town node/visions), goal:g5.20 (secrets hub — core town's)**: untouched.
 
 ## 4. Goals closed
 0 goals closed. 1 hypothesis closed (bend2, disproved on evidence: 2 experiments, both with parent re-runs). No `complete` marks written; none found unsubstantiated in the touched nodes.

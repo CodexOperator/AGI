@@ -26,7 +26,7 @@ verdict: inconclusive_lean_proved:85
 ## Experiment
 
 Converted the post-`|` stdio-filter judge in `extensions/agi/bin/rotate.py`
-from a DENYLIST to an ALLOWLIST PARSER, per the goal:g17.1 ruling (merge-up
+from a DENYLIST to an ALLOWLIST PARSER, per the goal:g7.16 ruling (merge-up
 33: "a denylist of known-bad options is the WRONG mechanism for a security
 judge").
 
@@ -81,7 +81,7 @@ test_rotate_tail.py, test_rotate_templates.py, test_rotate_next.py =
 test_rotation_alert.py = 52 passed).
 
 ## Agent Notes
-Converted the post-| filter judge from denylist to ALLOWLIST PARSER (goal:g17.1 merge-up 33): short clusters expand char-by-char, value options consume exactly their value, every option must be in _FILTER_ALLOW[exe], positionals by count/shape; unified 'filter <exe> <tok> not on the allowlist'; pipe-fed non-filter refused as 'filter <exe>'. All 20 escapes refused, all 24 positive controls pass; startup + rotate suites green.
+Converted the post-| filter judge from denylist to ALLOWLIST PARSER (goal:g7.16 merge-up 33): short clusters expand char-by-char, value options consume exactly their value, every option must be in _FILTER_ALLOW[exe], positionals by count/shape; unified 'filter <exe> <tok> not on the allowlist'; pipe-fed non-filter refused as 'filter <exe>'. All 20 escapes refused, all 24 positive controls pass; startup + rotate suites green.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW a00-b8c00aed, L4.183, 2026-09-11 ~12:1xZ. KEPT the kid's proved (confidence 0.9). Reviewed the ARTIFACT, not the report.

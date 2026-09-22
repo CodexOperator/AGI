@@ -3,7 +3,7 @@ id: cron:crons
 mint_id: dc4da698f3f94dbc83a0c2233b2a8b94
 type: cron
 parents:
-  - goal:g10.2
+  - goal:g2.25
 cadences:
   grid_sync:
     every_mins: 5
@@ -26,8 +26,14 @@ cadences:
   nudge_sweep:
     every_mins: 2
     enabled: true
+  prime_merge:
+    schedule: 13 */6 * * *
+    enabled: true
+    box: local-town
+    why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g14); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
+    cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
 crons_live: true
-edited_by: a00-e2ea2536
+edited_by: belam
 season: 1
 services:
   agi-alarms-sanctuary-master:
@@ -102,13 +108,13 @@ authored reasoning regions (marked with the paired HTML comment this schema
 uses for exactly one such region per node) — the previous version's, about
 retiring the `publish_engine`/`engine_push` cadences after `goal:g11`, left
 at the top; and an older one below it, about correcting this node's own mint
-from parentless to `parents: [goal:g10.2]`, from the version before that.
+from parentless to `parents: [goal:g2.25]`, from the version before that.
 Past edits added a new region at the top without removing the one
 underneath, which the schema does not allow — exactly one such region per
 node, rewritten from scratch per version. Both are merged into this single
 one. The
 parentage fix from the older block is still true and is why `parents:
-[goal:g10.2]` is set above; that fact now lives in the frontmatter itself; it
+[goal:g2.25]` is set above; that fact now lives in the frontmatter itself; it
 does not need to be restated at length here. The cadence-retirement reasoning
 from the newer block is still current and now lives in the body below,
 unchanged in substance.

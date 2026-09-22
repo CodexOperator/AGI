@@ -3,7 +3,7 @@ id: doc:baseten-eagle3-heads
 mint_id: fcc49524105645b3902029628ed924f4
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/baseten-eagle3-heads.md

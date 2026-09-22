@@ -3,7 +3,7 @@ id: idea:lm-tiktok-captions-free-label-ruler
 mint_id: b3f7e020069d4346a8a68d8e57400dd8
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.26
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 50faf4d5e89d8ba2

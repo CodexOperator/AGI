@@ -79,7 +79,7 @@ PASS — one stream, two formatters, same nodes in the same order
 `_verify` gained a briefing check: the node count, the primary metric name and
 the coverage figure must appear in **both** renderings, and the llm view must
 carry the chain rules. Two readers being told different numbers about one
-graph is what `goal:g9.7` forbids one layer up.
+graph is what `goal:g2.19` forbids one layer up.
 
 ### 4. A regression this nearly shipped with
 

@@ -3,13 +3,13 @@ id: hypothesis:l3-remote-control-desktop-disconnect
 mint_id: f3a48211a4cb4edd970bef45a774896e
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: belam-S1-L3-V
+edited_by: belam
 scaffold_hash: f469c5853ca9acfa
 season: 2
 testable_claim: A remote-control prime session whose desktop GUI client disconnects keeps running (tmux window alive, background monitors and dispatched rounds unaffected, the transcript still meterable), the owner can reconnect from claude.ai or the terminal without a new session, and any state the disconnect does break is named, tested and repaired.
-thought_session: L3.27
+thought_session: dissolve-legacy-2026-09-19
 title: The prime survives a remote-control GUI disconnect, and the owner can tell what state it left
 ---
 <!-- BODY:BEGIN -->

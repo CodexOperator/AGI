@@ -37,7 +37,7 @@ Tested confidence-weighted goal fulfillment scoring vs binary outcome_coverage a
 | Goal | Status | Hyps | Mvps | Binary | ConfWt | Gap |
 |---|---|---|---|---|---|---|
 | goal:g1.10 | active | 1 | 1 | 1.0000 | 0.8500 | 0.1500 |
-| goal:g13.1 | active | 1 | 1 | 1.0000 | 0.8500 | 0.1500 |
+| goal:g4.18 | active | 1 | 1 | 1.0000 | 0.8500 | 0.1500 |
 | goal:s31 | active | 2 | 1 | 0.5000 | 0.4250 | 0.0750 |
 | goal:g13 | active | 6 | 2 | 0.3333 | 0.2667 | 0.0667 |
 | goal:g1.11 | active | 4 | 1 | 0.2500 | 0.2125 | 0.0375 |
@@ -61,7 +61,7 @@ Goal                 Status       Hyps   Mvps   Binary   ConfWt   Gap      Gap% 
 goal:g4.6           complete          1      1   1.0000   0.0000   1.0000  100.0%       0
 goal:s17             complete          1      1   1.0000   0.8000   0.2000   20.0%       1
 goal:g1.10           active            1      1   1.0000   0.8500   0.1500   15.0%       1
-goal:g13.1           active            1      1   1.0000   0.8500   0.1500   15.0%       1
+goal:g4.18           active            1      1   1.0000   0.8500   0.1500   15.0%       1
 goal:s31             active            2      1   0.5000   0.4250   0.0750   15.0%       1
 goal:g13             active            6      2   0.3333   0.2667   0.0667   20.0%       2
 goal:g1.11           active            4      1   0.2500   0.2125   0.0375   15.0%       1

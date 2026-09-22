@@ -3,7 +3,7 @@ id: hypothesis:lm-round0-box-calibration-and-two-kill-tests
 mint_id: 20c1fb4067714310b8b68ecb8a33304e
 type: hypothesis
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 82aa2880b41931c5

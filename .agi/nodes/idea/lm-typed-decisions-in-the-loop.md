@@ -3,7 +3,7 @@ id: idea:lm-typed-decisions-in-the-loop
 mint_id: 3dcd4befc3014ccd953308af868342d0
 type: idea
 parents:
-  - goal:g14
+  - goal:g5.24
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 0d3c7fefe4b8aa5d

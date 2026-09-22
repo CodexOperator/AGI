@@ -4,7 +4,7 @@ mint_id: 9b0245ac9def43459720ff0f9b127878
 type: hypothesis
 parents:
   - idea:lm-jev-mcp-sandwich
-  - goal:g14
+  - goal:g5.24
 next_edges: []
 ceiling: $1 OpenRouter + $0.30 TypeSafe; $0 compute; no engine file, no hook, no MCP server; file scope = .agi/context/local-maxxing/typesafe/{next_call.py, next_call.jsonl, next_call.md, json_cache/} + the kid experiment node + this node.
 edited_by: thought-master

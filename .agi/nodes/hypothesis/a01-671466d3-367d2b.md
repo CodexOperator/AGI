@@ -3,13 +3,13 @@ id: hypothesis:a01-671466d3-367d2b
 mint_id: 6d98b7d59aad4f9d97ef3a611b46dd89
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 73f1110d55629f32
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A01 671466d3 367d2b
 verdict: pending
 ---

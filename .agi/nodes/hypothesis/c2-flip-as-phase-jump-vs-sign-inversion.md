@@ -4,7 +4,7 @@ mint_id: 24e03f77dabd4129921a76e9365cc71f
 type: hypothesis
 parents:
   - hypothesis:c2-kuramoto-metronome-rhythm-bank
-  - goal:g14
+  - goal:g5.28
 next_edges: []
 ceiling: $0.50 OpenRouter; $0 compute; <= 10 min CPU per grid on 4 threads; file scope = .agi/context/local-maxxing/c2/{metronome.py, metronome_results_c203.json} + experiment:a00-762dba58-d6d914 (probe text only) + the kid experiment node + this node.
 edited_by: thought-master

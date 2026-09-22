@@ -3,7 +3,7 @@ id: hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool
 mint_id: 4b79efc073d741dba589701afd3ff3bc
 type: hypothesis
 parents:
-  - goal:g15.13
+  - goal:g6.35
   - hypothesis:l4-rotate-out-audit-mirrors-wake-audit-over-the-predecessor-window
 next_edges: []
 edited_by: sensei-director

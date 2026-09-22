@@ -3,14 +3,15 @@ id: hypothesis:l3-reaper-restarts-through-stop
 mint_id: feac00e527454989bf2bb713a9b7b441
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 0ba23401b81e37df
 season: 2
 status: deprecated
 testable_claim: "dispatch.py's inline reaper (_reap_one_impl) restarts an agent whenever its pid disappears and the reaper cannot see the node already complete, with no way to distinguish a deliberate kill from a crash -- so an agent killed as part of a declared owner stop is respawned and resumes spending. Reproduced live at least six times today: L3.42, L3.44 (main-tree kid a00-67a5c714, restarted as a00-67a5c714-r1 with iter=0 about sixty seconds after being killed), SD.01's first attempt (kid a00-762fcc70 restarted the same way), and others named in HANDOFF.md's stop-order sections, including one restart that surfaced hours after its agent's first death. Proved by adding a spawn_budget-level pause flag that both acquire() and the reaper's restart branch consult: with the flag set, killing an agent's pid must not produce a replacement pid within the reaper's poll window, and spawn_budget.acquire() must refuse admission outright for any new spawn. Disproved if a paused reaper still restarts a killed agent, or if setting the pause flag blocks a legitimate crash-driven restart from resuming once the flag is cleared."
+thought_session: goal-glom-2026-09-19
 title: L3 reaper restarts a killed agent through an active stop order
 ---
 <!-- BODY:BEGIN -->

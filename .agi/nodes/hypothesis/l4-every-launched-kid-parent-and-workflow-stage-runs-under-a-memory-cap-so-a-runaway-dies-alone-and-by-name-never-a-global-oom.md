@@ -3,13 +3,14 @@ id: hypothesis:l4-every-launched-kid-parent-and-workflow-stage-runs-under-a-memo
 mint_id: dbadeb32a78e4aa3a1f86e3302c3c586
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: a00-d8b19342
+edited_by: belam
 line_ceiling: 15
 scaffold_hash: 27d0dfc5239fd17e
 season: 2
 testable_claim: "Both launch paths -- dispatch.py spawns (kid/parent) and workflow.py stage subprocesses (pi/bun stages, which carry no spawn record today) -- start the child under a memory cap from ONE config knob (spawn.memory_max, default 4G): systemd-run --scope -p MemoryMax=<cap> when systemd-run is usable, else prlimit --as=<cap>; a child that exceeds the cap dies alone, its record or stage status names memory-cap, siblings and the box are untouched; the knob absent = 4G, memory_max: none disables. Measured: 2026-09-18 06:22:01Z the kernel OOM-killed pid 3887501 (bun, 16.2 GB anon-rss, login scope, no spawn record) = the pi critic of the trove-p2609 workflow run (critique:paper-2609-04010 exited rc=1 with a bun stack in the log at ~8 min, after the read stage returned unstructured 6712 chars); the box swapped 3.7 of 4 GB. Falsifier: a capped child still grows past the cap; a dispatch spawn is capped but a workflow stage is not (or vice versa); the death is recorded as a generic failure without the memory-cap name; a sibling dies with it."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.112 (Prime [red] 10:24Z 09-18, queued right after SM.110): every launched kid, parent AND workflow stage process runs under a memory cap so a runaway dies alone and by name, never a global OOM"
 town: core
 ---

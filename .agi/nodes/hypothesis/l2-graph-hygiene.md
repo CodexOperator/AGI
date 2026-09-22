@@ -3,13 +3,13 @@ id: hypothesis:l2-graph-hygiene
 mint_id: c493e46e654e431094f1f02e00b0825d
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: director
+edited_by: belam
 scaffold_hash: ef4e34832fdab6f8
 season: 1
 testable_claim: The stray .agi/bin directory is gone with its script re-homed under extensions/agi/bin and the experiment that cites it retargeted, and the L2.09 sweep's redundant nodes are deprecated and moved under .agi/nodes/deprecated, with links.py links still at 0 broken and the active plus deprecated count unchanged
-thought_session: agi-master-2026-09-06
+thought_session: dissolve-legacy-2026-09-19
 title: "L2 g15: l2-graph-hygiene"
 ---
 # hypothesis:l2-graph-hygiene

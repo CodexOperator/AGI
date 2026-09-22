@@ -36,7 +36,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/viewport.py
       - "--verify"
-    about: goal:g9.7 — one render, two readers
+    about: goal:g2.19 — one render, two readers
     workflow: verify
   grid-commit:
     argv:
@@ -93,7 +93,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/write_guard.py
       - check
-    about: goal:g13.1 — unsanctioned node writes; silent is healthy
+    about: goal:g4.18 — unsanctioned node writes; silent is healthy
     workflow: verify
   dispatch-help:
     argv:
@@ -128,7 +128,7 @@ commands:
       - <engine>/extensions/agi/bin/viewport.py
       - "--emit"
       - llm
-    about: goal:g9.7 — exactly what a kid is handed, from the same frame stream
+    about: goal:g2.19 — exactly what a kid is handed, from the same frame stream
     workflow: see
   view-both:
     argv:
@@ -142,7 +142,7 @@ commands:
     argv:
       - python3
       - <engine>/extensions/agi/bin/write.py
-    about: goal:g13.1 — named node operations; a hand edit becomes an engine action
+    about: goal:g4.18 — named node operations; a hand edit becomes an engine action
     workflow: see
   session-complete:
     argv:
@@ -263,7 +263,7 @@ agent is handed — the same class of mistake as the contradictory kid contract
 `render-context.py` writes the set into `context/INJECTION.md` so **every
 agent is handed the commands rather than expected to remember them**.
 
-That second reader is why this node is allowed to exist. `goal:g10.2`'s rule
+That second reader is why this node is allowed to exist. `goal:g2.25`'s rule
 is that a `.geometry` node must be the input a code path resolves against,
 never documentation about one — and a command table nothing reads is a fifth
 copy of the prose rather than the deletion of the other four.
@@ -271,10 +271,10 @@ copy of the prose rather than the deletion of the other four.
 ## `argv`, never a shell string
 
 A shell string invites `&&`, pipes and quoting, and then this node stops being
-data and becomes a program the resolver interprets. `goal:g9.7`'s argument one
+data and becomes a program the resolver interprets. `goal:g2.19`'s argument one
 layer down: the form a human reads and the form the engine runs must be the
 same object. `<root>` and `<engine>` are substituted at resolve time, so no
-absolute path — machine state `goal:g8.2` keeps out of the graph — appears
+absolute path — machine state `goal:g1.24` keeps out of the graph — appears
 here.
 
 ## Mesh — the farm, reached through `<home>/work/.sanctuary`
@@ -290,7 +290,7 @@ graph carries only what is below: the alias, the label, and the one command.
 
 | ssh alias (as in `ssh/config`) | graph label | what it is | reach |
 |---|---|---|---|
-| `local-town` | **GPU2070S** — the rig | 8 GB GPU, 16 threads, `/data` model store, llama-server `127.0.0.1:18080` | `ssh -F ~/work/.sanctuary/ssh/config local-town` |
+| `local-town` | **GPU2070S** — the rig | 8 GB GPU, 16 threads, `/data` model store, llama-server `127.0.0.1:8080` on the box (`:18080` = the core-town tunnel view) | `ssh -F ~/work/.sanctuary/ssh/config local-town` |
 | `core-town` (= `stream-town`) | **ARM4C** — this box | 4-core arm cloud, 23 GB, no GPU; the Prime and the masters live here | `ssh -F ~/work/.sanctuary/ssh/config core-town` |
 | `encryption-town` | **CPU8G** — the secrets hub | 2c/4t, 8 GB, encrypted disk; the only box with Doppler; CPU-only rounds first | `ssh -F ~/work/.sanctuary/ssh/config encryption-town` |
 | `silicon-town` | **EDGE** — the human gate | ephemeral arm64 VM on the owner laptop; the only writer of box truth | `ssh -F ~/work/.sanctuary/ssh/config silicon-town` (only while up) |

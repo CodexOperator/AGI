@@ -55,6 +55,7 @@ from pathlib import Path
 
 import adapters
 import brief
+import harness_template
 
 NAME = "copilot-cli"
 
@@ -271,17 +272,14 @@ def build_command(
         closing=brief.closing_line(_btier, agent_id, iter_n, cli_py=cli_py),
     )
 
-    args = [resolve_bin(harness)]
-    args += model_args(harness, tier)
-    # Required for non-interactive mode (measured, `copilot --help`): without
-    # it a `-p` run off a TTY waits on the first tool confirmation forever.
-    args += ["--allow-all"]
-    # Let the owner steer every Copilot session from GitHub web/mobile.
-    args += ["--remote"]
-    args += [str(a) for a in (harness.get("extra_args") or [])]
-    # The one turn. `-p <text>` is the whole contract Copilot offers a script.
-    args += ["-p", prompt]
-    return args
+    # hypothesis:harness-arg-builders-are-templates-only: argv is DATA
+    # (copilot-cli.toml `[shapes.dispatch]`); this fills the slots.
+    return harness_template.render(
+        NAME, shape="dispatch", bin_path=resolve_bin(harness),
+        model_args=model_args(harness, tier),
+        extra_args=harness.get("extra_args") or [],
+        prompt=prompt,
+    )
 
 
 def is_alive(pid: int) -> bool:

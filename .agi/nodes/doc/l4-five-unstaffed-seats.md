@@ -3,7 +3,7 @@ id: doc:l4-five-unstaffed-seats
 mint_id: 44f265ffc66f41bf8a6a0c7cc16a854b
 type: doc
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 confidence: 0.5
 edited_by: sanctuary-director

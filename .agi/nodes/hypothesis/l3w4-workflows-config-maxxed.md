@@ -3,13 +3,13 @@ id: hypothesis:l3w4-workflows-config-maxxed
 mint_id: fc8d4e4151da4891bfd05fdff1005de4
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.14
 next_edges: []
-edited_by: belam-S1-L3-VII
+edited_by: belam
 scaffold_hash: 459d689411983b9f
 season: 2
 testable_claim: Both workflow scripts are build nodes under extensions/agi/workflows/ symlinked from .claude/workflows/, read model/effort/provider from .agi/config.json workflows.<name> with args overriding, and workflow.py run <name> --harness pi executes the same stages through dispatch.py kids; proved by a dry run on both harnesses and red-first tests.
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: Workflows live in the graph, config-maxxed, on any harness
 ---
 <!-- BODY:BEGIN -->

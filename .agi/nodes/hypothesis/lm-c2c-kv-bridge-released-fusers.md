@@ -4,7 +4,7 @@ mint_id: 3de0b04dd6a047d2a35b0e4a0ec5d79b
 type: hypothesis
 parents:
   - idea:lm-nodes-as-kv-caches
-  - goal:g14
+  - goal:g5.28
 next_edges: []
 ceiling: $1 OpenRouter; $0 compute; downloads <= 3 GB on local-town; GPU time <= 2 h; file scope = .agi/context/local-maxxing/c2c/{cmds.md, questions.jsonl, acts.jsonl, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

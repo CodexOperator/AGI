@@ -3,7 +3,7 @@ id: hypothesis:a00-39a02539-a46255
 mint_id: 397b46fb92874f419467cc92f45c8f09
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** The three candidate distribution shapes in `goal:g8.1` (drop-in clone, skill package, real install) and the `bin/` directory retirement in `goal:s1` are **causally linked in both directions** — each shape enforces a different obligation on the entry-point layout, and conversely the entry-point layout (whether bin/ stays or is renamed) constrains which shapes are even viable. They cannot be decided independently, and `g8.1`'s "related and load-bearing: S1" is not a loose coupling but a hard dependency: picking a shape *is* the bin/ rename decision.
+**Claim:** The three candidate distribution shapes in `goal:g1.23` (drop-in clone, skill package, real install) and the `bin/` directory retirement in `goal:s1` are **causally linked in both directions** — each shape enforces a different obligation on the entry-point layout, and conversely the entry-point layout (whether bin/ stays or is renamed) constrains which shapes are even viable. They cannot be decided independently, and `g8.1`'s "related and load-bearing: S1" is not a loose coupling but a hard dependency: picking a shape *is* the bin/ rename decision.
 
 **The linkage:**
 
@@ -39,7 +39,7 @@ verdict: pending
 
 **What would disprove it:** Finding that a skill package (shape 2) or pip install (shape 3) can absorb the engine's current `bin/` layout without structural changes — e.g. a skill package imports `bin/*.py` files by relative path from its own `SKILL.md` entry point (possible because a skill is a directory tree, not a flat namespace), or a pip install uses `[tool.uv.scripts]` to point to `extensions/agi/bin/` as a script source dir without each file needing an entry-point declaration. If either shape absorbs the layout as-is, then the bin/ rename is a separate concern and g8.1's "related and load-bearing" note is simply a reminder rather than a dependency.
 
-**Why this is distinct from all 10 sibling hypotheses under goal:g8.1:**
+**Why this is distinct from all 10 sibling hypotheses under goal:g1.23:**
 
 | Sibling | Focus | How this hypothesis differs |
 |---|---|---|

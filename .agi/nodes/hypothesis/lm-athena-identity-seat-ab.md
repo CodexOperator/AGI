@@ -4,7 +4,7 @@ mint_id: 78d80bd2be3146379cb54734fedd8dd9
 type: hypothesis
 parents:
   - idea:lm-identity-anchored-earnest-seat
-  - goal:g14
+  - goal:g5.23
 next_edges: []
 ceiling: "\"$1 OpenRouter for the round own tokens (parent + kid, deepseek-v4-flash class); $0 compute — local-town only, electricity the owner own; downloads <= 200 GB to /data on local-town (owner 21:1xZ via Prime, 657e57742: 200 GB ceiling on local-town AND on encryption-town, the [region] bare-metal archive box — this round pulls ~51 GB, athena Q8_0 32.6 + base Q4_K_M ~18.5), 0 bytes to core-town, 0 bytes to encryption-town; a saturated [region] gate -> alternative source per the owner (torrent via pirateface.co/models), never a lower ceiling; NO Camber rental in this round (one XS hour is a SEPARATE banked ask, conditional on this A/B leaning positive); kid <= 40 tool calls; each ssh <= 10 min; the A/B job <= 10 h wall as nohup, polled; A1 loadavg must not be raised by this round (all heavy compute on local-town); no pip installs on core-town.\""
 edited_by: thought-master

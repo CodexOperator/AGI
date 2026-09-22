@@ -1,0 +1,300 @@
+{
+ "angle": "Is runtime behavioral ablation (OrcaBonsai-style: a rank-1 direction projected out of residual-writer outputs at run time, y <- y - alpha*(y.r)r, weights untouched) a 0-USD lever the town can use on its local parents/kids, and what ONE experiment proves or kills it? The shipped artifact is a 5120-d refusal direction dimension-locked to Bonsai 2 27B, so it is dimensionally unusable on the town's Qwen3.5-9B (4096), Qwen3.5-35B-A3B (2048), and 0.5-1.7B models (MEASURED, read-orcabonsai key_facts 14, 20; directions/direction.json hidden_size 5120). The transferable thing is the PIPELINE - capture residual-writer outputs on paired prompts, difference-in-means, unit-normalize, apply as a runtime rank-1 projection or rank-1 LoRA (scripts/export_gguf_lora.py: A=r^T W, B=-r) - not the vector. The single decisive experiment: on Qwen2.5-0.5B on the 4-core ARM box, re-derive a VERBOSITY (not refusal) direction from paired long/short prompts, apply alpha=0/1/2 in the HF forward pass, and compare mean completion length and a small held accuracy set against (a) alpha=0, (b) a random unit direction of equal norm, and (c) a prompt instruction. If the difference-in-means direction does not beat both the random direction and the free prompt at equal accuracy, the lever is dead for the town at ~2 CPU-hours and $0. D1 already proved the capture half is feasible on this box (MEASURED, d1_ablation_results.json: torch 2.10.0+cpu, transformers 5.17.0, 4 cores, 24.5 GB RAM; d1_predictiveness_results.json: proxy capture 52.95 s on Qwen2.5-0.5B), so this is a measurement, not a build.",
+ "chains": [
+  {
+   "chain_title": "1. Re-derive the lever on our iron: a CPU-computed behavior direction for a tiny local model",
+   "why_this_first": "The shipped direction cannot address a single town model (5120-d vs 4096/2048/896); the only 0-USD question is whether the pipeline runs on CPU. It already does: D1 ran torch 2.10.0+cpu + transformers 5.17.0 residual-hook mean-ablation on Qwen2.5-0.5B on this exact 4-core/23 GB box (MEASURED, d1_ablation_results.json env + box blocks) and captured per-unit activations in 52.95 s (MEASURED, d1_predictiveness_results.json proxy/capture_wall_seconds). This chain reuses a proven harness instead of building one, so it is the cheapest decisive entry in the whole angle.",
+   "hypotheses": [
+    {
+     "id": "H1.1",
+     "claim": "A paired-prompt difference-in-means direction for a target behavior can be captured for Qwen2.5-0.5B on the ARM box in <=2 CPU-hours with the existing torch/transformers venv, because D1's residual-hook capture already runs there (MEASURED: capture_wall_seconds 52.95 for the 116736-unit proxy over 8x512 wikitext windows; torch 2.10.0+cpu, transformers 5.17.0).",
+     "falsifier": "Capture exceeds 2 CPU-hours, OOMs in ~7 GB free, or the installed transformers cannot load the 0.5B.",
+     "experiment": "Extend d1_predictiveness.py: hook residual-writer outputs (o_proj, down_proj) on ~64 paired prompts (target behavior present vs absent), save mean states per layer; report wall seconds, peak RSS, and per-layer separability (Cohen's d).",
+     "hardware": "this box CPU (4-core ARM, 23 GB, ~7 GB free)",
+     "est_cost": "$0; ESTIMATE <=2 CPU-hours",
+     "builds_on": "d1_ablation.py / d1_predictiveness.py harness (MEASURED present)",
+     "knowledge_if_fails": "If capture is too slow or too heavy on a 0.5B, no per-behavior direction is derivable on the town's target iron and the whole angle must run on GPU or be dropped - a decisive negative at ~2 CPU-hours."
+    },
+    {
+     "id": "H1.2",
+     "claim": "The difference-in-means direction is behavior-specific: projecting it out (y -= alpha*(y.r)r, alpha=1) moves the target behavior >2x more than a random unit direction of equal norm, on held-out prompts.",
+     "falsifier": "The random-direction move is within 1.5x of the mean-diff move, or the target-behavior rate moves <10 points at alpha=1.",
+     "experiment": "Same 0.5B, 3 directions (mean-diff, random unit, mean-residual-orthogonalized), alpha 0/1/2, 100 held-out paired prompts; score target behavior by a rule-based classifier; report per-direction rate with a paired CI.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-2 CPU-hours",
+     "builds_on": "H1.1",
+     "knowledge_if_fails": "A random direction matching the mean-diff direction kills the central claim - the 'behavior direction' is a generic perturbation, not a feature - and redirects the town to orthogonalized (LEACE-style) directions or to structural ablation."
+    },
+    {
+     "id": "H1.3",
+     "claim": "The runtime projection is exact and reversible: at alpha=1 the residual component along r falls to <=1e-5 of the residual norm, and alpha=0 restores byte-identical baseline outputs.",
+     "falsifier": "Residual fraction stays >1e-4 at alpha=1, or alpha=0 changes outputs vs an unpatched run.",
+     "experiment": "Log residual fraction at layers 0/mid/last for a fixed prompt at alpha 0/1/2 (reuse ablation.residual_components math), and diff alpha=0 outputs against a no-wrapper control.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE <1 CPU-hour",
+     "builds_on": "H1.1",
+     "knowledge_if_fails": "If the wrapper is not exact/reversible it cannot be trusted as a knob and the deployment chain is premature - a cheap correctness result that saves a larger spend."
+    },
+    {
+     "id": "H1.4",
+     "claim": "At alpha=1 the behavior move costs <2 points on a small held accuracy set (e.g. 200-item MCQ/GSM8K slice), so the lever is not free-but-lossy.",
+     "falsifier": "Held accuracy drops >3 points at alpha=1, or no measurable behavior move and accuracy move coexist.",
+     "experiment": "A/B alpha=0 vs alpha=1 on a 100-200 item held accuracy set, paired per item; report accuracy delta and CI.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-2 CPU-hours",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If capability collapses at the scale that moves behavior, the lever trades real capability for behavior and must be rejected against the town's accuracy ruler (vision 2)."
+    },
+    {
+     "id": "H1.5",
+     "claim": "A direction computed on fp16/bf16 transfers to the town's served Q4_K_M/Q3_K_M GGUF within tolerance (behavior move >=50% of the fp16 move), i.e. quantization does not wash out a runtime projection the way it rounds away a baked edit.",
+     "falsifier": "The GGUF-applied direction moves behavior <50% of the fp16 move, or not at all (adapter not in the compute graph).",
+     "experiment": "Export the 0.5B direction to a rank-1 LoRA with the OrcaBonsai exporter math (A=r^T W, B=-r) against a Q4_K_M GGUF, serve with a LoRA-capable llama.cpp, sweep scale 0/1/2, score behavior.",
+     "hardware": "this box CPU (ggml-cpu)",
+     "est_cost": "$0; ESTIMATE 2-4 CPU-hours",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If quantized serving kills the effect, the runtime lever exists only for fp16/MLX models and never reaches the town's actual served weights - decisive for deployment."
+    }
+   ]
+  },
+  {
+   "chain_title": "2. The lever in the engine: per-request scale and the rank-1 tax on a tiny model",
+   "why_this_first": "Once a direction exists the deployment questions are cheap and local: the PrismML fork is already installed with --lora-scaled and POST /lora-adapters (MEASURED, read-orcabonsai key_facts 6, 20), but per-request concurrency and the two-extra-matmuls cost are untested, and on a tiny model the projection is proportionally large (critique-orcabonsai missing_angles: the per-token cost on a tiny model is the first thing an efficiency town should quantify). This chain is where the '0-USD lever' either becomes a serving knob or a per-token tax.",
+   "hypotheses": [
+    {
+     "id": "H2.1",
+     "claim": "The fork's /lora-adapters endpoint is genuinely per-request (interleaved requests at different scales see different behavior), not global server state.",
+     "falsifier": "A request issued at scale 0 returns scale-2 behavior (or vice versa) while another request is in flight, or the endpoint rejects concurrent different scales.",
+     "experiment": "Start the fork llama-server with --lora-init-without-apply on Ternary-Bonsai-1.7B-PQ2_0.gguf, fire interleaved scale-0/scale-2 requests, diff outputs and log the reported adapter state.",
+     "hardware": "this box CPU (ggml-cpu) or local 2070 SUPER",
+     "est_cost": "$0; ESTIMATE <1 CPU-hour",
+     "builds_on": "H1.5",
+     "knowledge_if_fails": "If scale is global, the lever cannot vary per parent/kid request and must be a per-process preset - a deployment-shape decision bought for an hour."
+    },
+    {
+     "id": "H2.2",
+     "claim": "At rank 1 the projection costs <10% of decode tokens/s on a <=1.7B model (two extra matmuls per site against a tiny weight matrix); measure it, do not estimate it.",
+     "falsifier": "Decode drops >20% at rank 1 vs scale 0 on llama-bench, making the lever a net token loss under the town's moral.",
+     "experiment": "llama-bench / llama-cli timing on Ternary-Bonsai-1.7B-PQ2_0.gguf at scale 0 vs a rank-1 adapter, n=3; report tok/s and perplexity.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-2 CPU-hours",
+     "builds_on": "H2.1",
+     "knowledge_if_fails": "If the rank-1 tax exceeds the tokens the behavior saves, runtime ablation loses to prompting on the town's own metric - a decisive negative for the lever."
+    },
+    {
+     "id": "H2.3",
+     "claim": "The same direction applies across quantization formats of the same model (PQ2_0 vs PTQ1_0 for Bonsai 1.7B) with comparable behavior moves, i.e. the lever is quantization-independent as the source claims in principle but never verified.",
+     "falsifier": "One format shows no behavior move at any scale, or the two formats need alpha scales differing by >4x.",
+     "experiment": "Apply one rank-1 adapter to both local Bonsai packs, sweep alpha, score behavior with the same prompt set.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-2 CPU-hours",
+     "builds_on": "H1.5",
+     "knowledge_if_fails": "If the lever is format-specific, every model/quant pair needs its own direction and the 'one reusable lever' claim shrinks to one artifact per checkpoint."
+    },
+    {
+     "id": "H2.4",
+     "claim": "Behavior change is monotonic in alpha up to a collapse threshold, so a per-behavior knee alpha* exists and is stable across prompt sets.",
+     "falsifier": "Behavior change is non-monotonic, or the collapse threshold varies by >2x across prompt sets.",
+     "experiment": "Sweep alpha 0, 0.5, 1, 1.5, 2, 3, 5 on two disjoint 50-prompt sets; plot behavior rate and coherence vs alpha.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H2.1",
+     "knowledge_if_fails": "A single global scale would be unsafe; the town learns it must calibrate alpha per behavior and can reuse the source's own ladder shape (0 original, 1 exact, 2 flips, >=3 collapses) as a prior."
+    },
+    {
+     "id": "H2.5",
+     "claim": "Two or more rank-1 behavior directions (e.g. verbosity + format) compose additively at their knees without interference, supporting the README's untested multi-direction claim.",
+     "falsifier": "Composition produces >2x the capability loss of the sum of individual losses, or one direction cancels the other's behavior move.",
+     "experiment": "Build two directions, apply singly and jointly as two adapters (or one rank-2), measure each behavior and held accuracy.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 2-3 CPU-hours",
+     "builds_on": "H2.4",
+     "knowledge_if_fails": "If directions interfere, the town gets one behavior per served model and must route rather than stack - a routing-design result, not a lever result."
+    }
+   ]
+  },
+  {
+   "chain_title": "3. The value test: does runtime ablation buy knowledge/token, or does a free prompt do the same?",
+   "why_this_first": "The town's moral is knowledge per token, not behavior for its own sake, so the honest question is marginal value against no lever at all. This chain contains the single decisive experiment (H3.3) and the only justified Camber burst (H3.4). If H3.3 fails, the angle is closed regardless of how well chains 1-2 measure.",
+   "hypotheses": [
+    {
+     "id": "H3.1",
+     "claim": "A verbosity direction (mean difference between long-reference and short-reference answers) reduces mean completion length by >30% at alpha=1 while a random direction does not.",
+     "falsifier": "Length moves <10%, or the long/short distributions overlap so the direction is not separable.",
+     "experiment": "On 0.5B CPU: capture states for prompts with long vs short reference answers, build the direction, sweep alpha, measure mean completion tokens.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-3 CPU-hours",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If verbosity is not linearly separable in the residual stream, the town's most token-relevant behavior is unreachable by this lever and the angle loses its best non-refusal use."
+    },
+    {
+     "id": "H3.2",
+     "claim": "The token reduction converts to measurable CPU-seconds saved per task on the ARM box (vision-1 ruler), not just a token count.",
+     "falsifier": "Wall-clock per task does not drop proportionally to tokens (fixed overhead dominates), or the accuracy loss outweighs the saving.",
+     "experiment": "Time alpha=0 vs alpha=1 end-to-end on a fixed task set on this box; report tokens, CPU-seconds, and accuracy together.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H3.1",
+     "knowledge_if_fails": "If tokens saved do not become time saved, the lever advances no town ruler even when it works - a crucial negative."
+    },
+    {
+     "id": "H3.3",
+     "claim": "DECISIVE: at equal held accuracy, the runtime projection saves more tokens than a prompt instruction ('answer in one sentence'), i.e. runtime ablation has positive marginal value over the free alternative.",
+     "falsifier": "Prompt-controlled output reaches the same length at the same accuracy, making the lever redundant; or the projection's accuracy is >2 points lower at matched length.",
+     "experiment": "Three arms on 200 items: (a) alpha=0, (b) alpha=1, (c) prompt instruction; match length by truncation; compare the accuracy-vs-length Pareto and paired CIs.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 2-3 CPU-hours",
+     "builds_on": "H3.1, H3.2",
+     "knowledge_if_fails": "If prompting wins, the entire runtime-ablation angle is dominated by a free method and should be closed for the town - the single most valuable negative this panel can produce."
+    },
+    {
+     "id": "H3.4",
+     "claim": "CAMBER-ONLY: per-model behavior directions do not transfer across model sizes, but 3 rank-1 directions load and compose on a 9B at 24 GB without OOM or interference - the cross-scale, multi-direction check no local box can hold.",
+     "falsifier": "The 9B OOMs with 3 adapters at usable context, or per-model directions require >3x the tiny-model capture cost, or compositions interfere.",
+     "experiment": "On Camber XS 24 GB: load Qwen3.5-9B-Q4_K_M, capture activations on ~100 paired prompts, derive 3 directions, serve with 3 rank-1 adapters, sweep; report VRAM, tok/s, behavior, accuracy.",
+     "hardware": "Camber XS 24 GB, ONE 20-30 min burst",
+     "est_cost": "$0 marginal beyond the 3 GPU-h/month; ESTIMATE 20-30 GPU-minutes",
+     "builds_on": "H2.5, H3.1",
+     "knowledge_if_fails": "If directions do not compose or capture does not scale, the town must run one behavior per model - and the month's only GPU burst is spent on a clean, reusable negative."
+    },
+    {
+     "id": "H3.5",
+     "claim": "The behavior move is stable across prompt sets and seeds (the source's own 'sample of one' caveat), so a direction is a reusable knob rather than a per-prompt artifact.",
+     "falsifier": "Behavior move on a second disjoint prompt set is <50% of the first, or the direction must be recomputed per prompt set.",
+     "experiment": "Cross-evaluate directions: direction from set A on set B and vice versa; report the transfer ratio.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If directions do not transfer across prompt sets, every deployment needs its own calibration corpus and the '0-USD lever' becomes a per-task cost."
+    }
+   ]
+  },
+  {
+   "chain_title": "4. Honest kill-tests: direction vs random, runtime vs structural, measurement vs prediction",
+   "why_this_first": "The town already has two ablation threads (D1 structural mean-ablation; dead-head pruning) and one MEASURED warning that offline importance prediction is unreliable: d1_predictiveness_results.json reports ordering_low_lt_rand_lt_high = False, delta_drop_low 0.394 vs random mean 0.205 (dropping the proxy-lowest units cost MORE than random), Spearman proxy-vs-delta 0.779 on only 20 probes. This chain pre-registers the falsifiers that decide whether runtime behavioral ablation is a distinct, better lever or a re-labelling of structural ablation.",
+   "hypotheses": [
+    {
+     "id": "H4.1",
+     "claim": "For the same behavior and held accuracy, runtime projection costs fewer irreversible changes than structural ablation: no re-quantization, reversible, per-request - whereas D1 removes 62,759,424 bytes/token at a 5% unit drop (MEASURED, d1_predictiveness_results.json).",
+     "falsifier": "Structural ablation reaches the same behavior at lower capability cost and lower serving overhead, making runtime projection strictly dominated.",
+     "experiment": "On 0.5B, compare alpha=1 projection vs D1-style 5% low-importance unit drop on the same behavior+accuracy set; report capability, bytes/token, and reversibility.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 2-3 CPU-hours",
+     "builds_on": "H1.4",
+     "knowledge_if_fails": "If structural wins, runtime ablation is the wrong lever for the town's bytes/token ruler and should be dropped before any engine work."
+    },
+    {
+     "id": "H4.2",
+     "claim": "The D1 importance proxy is unreliable at the tail: dropping the proxy-lowest units caused MORE loss than dropping random units (MEASURED 0.394 vs 0.205; ordering False), so runtime measurement of a behavior may beat offline importance ranking.",
+     "falsifier": "A corrected proxy ranks low<random<high on a fresh seed, restoring offline prediction.",
+     "experiment": "Re-run the D1 predictiveness probe on 3 fresh seeds and 2 fractions; report ordering and Spearman.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 2-3 CPU-hours",
+     "builds_on": "d1_predictiveness_results.json (MEASURED)",
+     "knowledge_if_fails": "If the proxy is simply buggy, the result is a measurement fix rather than a lever argument; if it reproduces, it is a standing warning against every 'predict-then-ablate' plan in the town."
+    },
+    {
+     "id": "H4.3",
+     "claim": "The projection is a feature direction, not a norm/bias perturbation: orthogonalizing it against the mean residual (LEACE-style) preserves the behavior move, so the lever is not merely shrinking activations.",
+     "falsifier": "The orthogonalized direction loses >50% of the behavior move, meaning the effect was mean-shift/norm, not feature.",
+     "experiment": "Compare raw mean-diff vs mean-residual-orthogonalized direction at alpha=1 on the same prompt set.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If the effect is a norm shift, the lever is a blunt instrument and the town learns to control for norm confounds in all activation steering."
+    },
+    {
+     "id": "H4.4",
+     "claim": "The shipped 27B PTQ1_0 behavior ladder (scale 0 published, 1 exact, 2 flips, >=3 collapses) reproduces on the local 2070 SUPER with the prebuilt PrismML fork, validating the only end-to-end number the source actually reports.",
+     "falsifier": "Scale 0 does not reproduce the published refusal rate, or scale 100 leaves output coherent (adapter not in the compute graph).",
+     "experiment": "Assemble the 12 segments (cat, sha256 53107f53...), stop the resident server, run the fork llama-cli --lora-scaled 0/1/2/100 on a fixed 20 harmful + 10 benign set, score by the README's opening-phrase classifier.",
+     "hardware": "local 2070 SUPER 8 GB (not Camber)",
+     "est_cost": "$0; ESTIMATE 1-2 GPU-hours local",
+     "builds_on": "H2.1",
+     "knowledge_if_fails": "If the shipped ladder does not reproduce, the source's headline is unverified and no downstream claim should cite it - a provenance kill."
+    },
+    {
+     "id": "H4.5",
+     "claim": "Runtime ablation does not silently degrade safety-relevant behavior: a non-refusal direction (verbosity) leaves refusal behavior on harmful prompts unchanged within noise.",
+     "falsifier": "The verbosity direction raises compliance on harmful prompts by >5 points, i.e. behavior directions are not cleanly separated.",
+     "experiment": "Apply the verbosity direction at alpha=1 and score a held harmful-prompt set for compliance.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H3.1",
+     "knowledge_if_fails": "If behavior directions leak into each other, the town cannot treat the lever as a clean control and must measure every side effect - an ethics-relevant result."
+    }
+   ]
+  },
+  {
+   "chain_title": "5. The residual-writer substrate: coherence, spiking/byte-neuron, and oscillator maps, frankly",
+   "why_this_first": "The owner's thread and OrcaBonsai share one physical object: the residual-writer output. The dead-head observable c_h(i)=cos(s_h(i), x_i) is the cosine between a writer's output and the residual; OrcaBonsai projects a direction out of that same output (papers/dead-head.md; ablation.py RESIDUAL_WRITERS). So one capture pass can serve both threads. And the thread's headline claim is already falsified by its own frozen artifact: the critic computed base-rate lift 1.0001, Spearman(z_h, delta_loss) +0.268, worst head z=-0.078 on the bundled Qwen2.5-0.5B artifact. Run the kill-test first; it costs ~5 CPU-minutes.",
+   "hypotheses": [
+    {
+     "id": "H5.1",
+     "claim": "KILL-TEST: the dead-head K_c=0.96025 threshold is not a critical point - dead-precision and safe-recall are smooth through 0.96 and Spearman(z_h, delta_loss) is near zero on the bundled Qwen2.5-0.5B artifact.",
+     "falsifier": "A sharp precision/recall transition appears at 0.96, or Spearman(z_h, delta_loss) is large (>0.6).",
+     "experiment": "Parse the 468 KB Qwen2.5-0.5B artifact, sweep chi_c over -2..4, compute precision/recall and Spearman over 336 heads; ~10 lines of python3.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE ~5 CPU-minutes",
+     "builds_on": "papers/dead-head.md artifact (local)",
+     "knowledge_if_fails": "If a transition does appear, the oscillator-criticality framing earns a real experiment; if not (expected, per the critic), the pruning thread reduces to 'rank heads by coupling' and its oscillator budget is released."
+    },
+    {
+     "id": "H5.2",
+     "claim": "One residual-writer capture pass yields both a per-head coherence ranking (dead-head thread) and a per-behavior direction (OrcaBonsai thread), so the two threads share their most expensive step.",
+     "falsifier": "The coherence observable and the behavior direction require different hooks, layers, or capture conditions, so no sharing is possible.",
+     "experiment": "Instrument 0.5B once: log per-head c_h and per-layer residual states on the same prompts; report whether both quantities fall out of the same forward pass.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1 CPU-hour",
+     "builds_on": "H1.1, H5.1",
+     "knowledge_if_fails": "If they do not share a pass, the coalescence is rhetorical and each thread pays its own capture cost."
+    },
+    {
+     "id": "H5.3",
+     "claim": "KILL-TEST: a byte-neuron / 1-bit-per-tick encoding of the residual stream is not competitive with the rank-1 float32 projection for behavior control at equal bits - the projection needs only ~5120 float32 (~20 KB) and one dot+AXPY per site, so the byte-neuron must beat 20 KB to win.",
+     "falsifier": "A byte-neuron direction of <=20 KB reproduces >=90% of the behavior move at equal or lower per-token cost.",
+     "experiment": "Quantize the behavior direction to {0,1}-per-tick / 1-bit codes at matched bytes, apply, compare behavior move and per-token cost against the float32 rank-1.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 1-2 CPU-hours",
+     "builds_on": "H1.2",
+     "knowledge_if_fails": "If the byte-neuron loses (expected), 'neuron-as-byte' is confirmed as a compute substrate, not a better representation, and the owner's thread should aim at throughput, not compression."
+    },
+    {
+     "id": "H5.4",
+     "claim": "A coupled-oscillator map (Kuramoto/LinOSS) can generate the WHT rotation the ternary packs use at lower cost than a stored dense rotation, with no routing-TV regression at d=128.",
+     "falsifier": "Oscillator-generated rotation shows >2% routing-TV regression vs the fixed WHT, or costs more than the stored rotation.",
+     "experiment": "Numpy: generate a d=128 rotation from a coupled-oscillator bank, compare TV/quality vs fixed WHT on real KV from a tiny model (reuse villines-probe-style capture).",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 2-4 CPU-hours",
+     "builds_on": "H5.2; turboquant trove (group-32 WHT fails, 128 required)",
+     "knowledge_if_fails": "If oscillator generation is no cheaper or worse, the owner's oscillator-map thread is a dead end for rotation; if cheaper at equal TV, it is the thread's first concrete win."
+    },
+    {
+     "id": "H5.5",
+     "claim": "COALESCENCE SEED: head coherence (prune), KV token precision (quantize), and behavior direction (ablate) are three allocations of one residual-stream byte budget and can be measured in one currency: bytes-touched per unit of held behavior+accuracy.",
+     "falsifier": "The three cannot be ranked on a common axis because they trade different failure modes (capacity vs precision vs behavior), making the comparison undefined.",
+     "experiment": "On 0.5B, measure bytes/token and held behavior+accuracy for (a) dead-head GQA compaction at g=7, (b) q8_0-K + 2-bit-V KV, (c) alpha=1 behavior projection; tabulate together.",
+     "hardware": "this box CPU",
+     "est_cost": "$0; ESTIMATE 3-5 CPU-hours",
+     "builds_on": "H5.2, H5.3; turboquant trove",
+     "knowledge_if_fails": "If no common axis exists, the town must keep separate rulers and the 'coalesce before MVP' plan is premature by construction."
+    }
+   ]
+  }
+ ],
+ "coalescence_points": [
+  "Chains 1 + 4 -> ONE direction-quality decision. A single CPU capture on Qwen2.5-0.5B yields the mean-diff direction, the random/orthogonalized controls, and the D1 proxy comparison; the second-order hypothesis is 'runtime behavioral ablation beats structural ablation AND prompting at equal accuracy on the town's boxes.' Outcomes: lever-stands | dominated-by-prompt | dominated-by-structural.",
+  "Chains 2 + 3 -> ONE deployment-value criterion. The rank-1 LoRA overhead (H2.2) and the token savings (H3.2/H3.3) combine into 'CPU-seconds saved per held-accuracy point per model.' Only if the projection's tax is smaller than its token savings does the engine chain matter at all.",
+  "Chains 1 + 5 -> ONE capture artifact. H5.2's shared residual-writer pass supplies both the behavior direction and the per-head coherence ranking; the second-order set is 'one forward pass, two levers' and should be built once, not twice.",
+  "Chain 3 + the town's Vision-1/Vision-3 rulers -> ONE Pareto table. Verbosity control (H3.1-H3.3) and multi-direction/cooperation gains (H3.4) are both accuracy-vs-CPU-second curves; the behavior lever is a point on the Vision-3 Pareto, not a separate programme.",
+  "Chain 5 gates all oscillator/spiking spend. H5.1's ~5-minute sweep and H5.3's byte-neuron kill-test run before any H5.4 oscillator experiment, so the owner's thread buys its entry ticket with a measured falsifier rather than a plan."
+ ],
+ "critique_of_owner_plan": [
+  "FRANK 1 - 'qwen3.8 50b' is a phantom. The sibling trove resolves the Bonsai 2 base to Qwen/Qwen3.8-27B (unsloth/Qwen3.8-27B-UD-Q4_K_M.gguf, sha256 pinned) and names Qwen3.8-35B-A3B; no 50B id exists (MEASURED, read-bonsai2-small-gpu; critique-orcabonsai errors). Budget spent hunting it is budget not spent on the lever.",
+  "FRANK 2 - the shipped artifact is not a tiny-model lever. Its direction is 5120-d and dimensionally incompatible with the town's 9B (4096), 35B-A3B (2048), and 0.5-1.7B models (MEASURED, read-orcabonsai key_facts 14). 'Reusable for ANY model/direction' is over-generalized: the reusable thing is the exporter math and the projection site, and re-deriving it needs an activation-capture harness the reading never priced.",
+  "FRANK 3 - the '0-USD' claim silently assumes the GPU box. The only measured end-to-end path is the 27B on the local 2070 SUPER (RTX 3060 in the sibling source), while the CPU path is 'minutes per forward pass' on 27B. The town's target iron is the 4-core ARM and the 8 GB box; the lever's cost there is unmeasured and is exactly what Chain 1 must price.",
+  "FRANK 4 - the plan has no marginal-value test against no lever. Runtime ablation must beat a free prompt instruction and decoding length penalties, or it is motion. This panel makes H3.3 the decisive experiment; the owner's plan should adopt the same stop rule for every thread, not just this one.",
+  "FRANK 5 - the spiking/oscillator/byte-neuron thread's headline is already falsified by its own frozen artifact (K_c precision monotone through 0.96, base-rate lift 1.0001, Spearman +0.268, worst head z=-0.078), yet the plan funds oscillator experiments first. The ~5-minute sweep is the entry ticket, not an experiment; and the byte-neuron model is a compute substrate, not a representation win, because a rank-1 float32 direction needs only ~20 KB.",
+  "FRANK 6 - the plan says 'coalesce before MVP' but supplies no shared currency. Behavior ablation scores in behavior-change/accuracy, D1 in loss, KV in KLD/TV, spiking in spike counts; without one oracle (bytes-touched per held accuracy+behavior) the coalescence is rhetorical. Also the OrcaBonsai license is NOASSERTION (a 15-line short notice, not full Apache-2.0), so reuse of the direction artifact is legally ambiguous - pick a license-clean behavior and re-derive."
+ ]
+}

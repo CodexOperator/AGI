@@ -3,7 +3,7 @@ id: hypothesis:l4-card-grammar-and-the-written-by-join
 mint_id: 5b3eb008f4c54e96aad110a080eea777
 type: hypothesis
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: e12e826d3bfa956c

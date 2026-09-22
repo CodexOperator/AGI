@@ -3,7 +3,7 @@ id: doc:deepseek-v4-1-flash
 mint_id: 5d778b6aeaed46e3b15c02136b208626
 type: doc
 parents:
-  - goal:g14
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/deepseek-v4-1-flash.md

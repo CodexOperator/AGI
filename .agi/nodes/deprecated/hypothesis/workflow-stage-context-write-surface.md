@@ -3,15 +3,15 @@ id: hypothesis:workflow-stage-context-write-surface
 mint_id: b79c4a308dbf482a982e72c2a56e7c1a
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: c848f4e7b0186d41
 season: 2
 status: deprecated
 testable_claim: Every workflow stage on either pi or copilot-cli receives its assembled context through viewport --emit llm or brief.py, persists node or report changes only through write.py, and workflow.py list exposes the resolved harness for every registered row; focused tests and dry-run/list output prove the route without stage-specific hand edits.
-thought_session: sensei-director
+thought_session: goal-glom-2026-09-19
 title: Workflow stages use unified view and write surfaces
 town: core
 ---

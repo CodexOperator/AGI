@@ -3,7 +3,7 @@ id: hypothesis:d1-random-set-mean-ablation
 mint_id: 008d442f140f41f688e40bc49ad094cc
 type: hypothesis
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 edited_by: thought-master
 falsifier: No reproducible loss delta above the predefined noise threshold, or the ablation result does not predict the benchmark ranking.

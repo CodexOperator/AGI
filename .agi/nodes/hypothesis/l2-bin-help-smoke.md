@@ -3,13 +3,13 @@ id: hypothesis:l2-bin-help-smoke
 mint_id: 3ba5792c06324e0f8f43c677dcb16420
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.14
 next_edges: []
-edited_by: director
+edited_by: belam
 scaffold_hash: 1faba3d318b21cd7
 season: 1
 testable_claim: A single test runs every script under extensions/agi/bin with --help in a subprocess and fails on any non-zero exit, so an unimported name in a main() path is caught by the suite instead of by the next dispatch
-thought_session: agi-master-2026-09-06
+thought_session: dissolve-legacy-2026-09-19
 title: "L2 g15: l2-bin-help-smoke"
 ---
 # hypothesis:l2-bin-help-smoke

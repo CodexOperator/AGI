@@ -3,13 +3,13 @@ id: hypothesis:l3w4-rotation-announces-itself
 mint_id: 7179faf5b5a54c58b9279909180a46c1
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 2521f82c31196649
 season: 2
 testable_claim: "Every rotation that SUCCEEDS emits exactly one announcement to every live seat over the shared mail-alert channel of hypothesis:l3w4-shared-mail-alert (never a second channel, never tmux send-keys): rotate.py's spawn, loop and rotate-self paths each call ONE announce helper at the same moment the rotation record under .agi/sessions/rotations/ is written, the announcement names outgoing seat, successor name, generation before/after, trigger (meter fraction, --force, or fable-limit) and the handoff path, recipients are DERIVED from config:seats rows intersected with live tmux windows rather than hand-typed, room quorum is never posted into by the prime (the audience door is used instead), and a REFUSED or inconclusive rotation emits no announcement but does record why; proven by tests asserting each of the three paths emits one announcement carrying all five fields to every derived recipient, that a refused rotation emits none, and that recipient derivation drops a seat whose window is gone; then live, this prime's own next rotation announces itself with zero hand-typed send.py calls."
-thought_session: rc-XIII
+thought_session: dissolve-legacy-2026-09-19
 title: "Rotation announces itself: every seat learns of a rotation programmatically, on the shared alert channel"
 ---
 <!-- BODY:BEGIN -->
