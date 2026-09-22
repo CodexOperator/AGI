@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-graph-sot-seat-sync-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -150,8 +150,8 @@ DIRECTOR (no Belam chat):
 
 BELAM (daily, not mid-batch):
   pull town:core + geometry board + closed tips
-  merge seat tips w/ residues=0 evidence
-  full verify on core/main (or seat as docs say)
+  merge post tips w/ residues=0 evidence
+  full verify on core/main (or post as docs say)
   vision-lens on goals · moral-lens on visions↔goals
   residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
   reopen = Prime priority over plain open
@@ -177,7 +177,7 @@ directors ──▶ loop independently (pi parents) until residues=0; do not wai
 Belam (Prime)     ──▶ core/main              (town/main)
                       daily: merge board-complete tips → core/main (+ verify)
 director-belam    ──▶ core/season2/main      (town/season2/main)
-                      push seat/season2 tip; board complete row (Belam merges daily)
+                      push post/season2 tip; board complete row (Belam merges daily)
 director-helper   ──▶ local worktree ONLY
                       never push a new remote head
                       completed batches → board complete (helper still local-only)
@@ -185,7 +185,7 @@ loops             ──▶ merge into core/season2/main then delete loop heads
 no season2/loops/* left live as standing remotes
 ```
 
-Prefer: **directors complete on board + push seat branch; Belam daily merges.**
+Prefer: **directors complete on board + push post branch; Belam daily merges.**
 Keep working batches as-is otherwise. Diagram-max all alignment (on the board).
 
 ---
@@ -193,7 +193,7 @@ Keep working batches as-is otherwise. Diagram-max all alignment (on the board).
 ## 3c. Watches / routines — diagram-max with love (owner 2026-09-20/21)
 
 For every LLM that wakes on a timer: **be kind**. One flow. No essays. Silence when nothing changed.
-Install this FORMAT **verbatim** into the live routine prompt (seat pins only differ).
+Install this FORMAT **verbatim** into the live routine prompt (post pins only differ).
 
 ### Shared director watch (ONE only — delete per-wave customs)
 
@@ -201,16 +201,16 @@ Install this FORMAT **verbatim** into the live routine prompt (seat pins only di
 schedule ──▶ @every 50m   (pi parents run around the clock — stated reason)
 name     ──▶ live-parents-workflows
 FORMAT   ──▶ shared (below) — MUST mirror §3 zero-residue + §4 routes
-pins     ──▶ seat-local TREE / SCOPE / HOST / BRANCH only
+pins     ──▶ post-local TREE / SCOPE / HOST / BRANCH only
 ```
 
-**Prompt FORMAT (install exactly; substitute seat pins only):**
+**Prompt FORMAT (install exactly; substitute post pins only):**
 
 ```
 Quiet night watch — love the next LLM ingest. Diagram-max. Batch-max.
 
-SCOPE: this seat only (<ITER>.* parents / this-director MURs / suite).
-TREE:  <absolute seat worktree>
+SCOPE: this post only (<ITER>.* parents / this-director MURs / suite).
+TREE:  <absolute post worktree>
 BRANCH:<this director's branch role>
 HOST:  SSH encryption-town → /data/work/agi  (never /workspace/agi)
 
@@ -255,7 +255,7 @@ DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
 7) Watch still wakes for **local parent loops** — write the board, do not message Belam.
 ```
 
-**Seat pins (examples — not a second FORMAT):**
+**Post pins (examples — not a second FORMAT):**
 
 ```
 director-belam
@@ -304,13 +304,13 @@ RIGHT  MUR accept_with_residue ──▶ write.py goal:gN… (residue table + ne
 
 ## 3e. Full verify suite after every completed batch (owner 2026-09-21 — HARD)
 
-**Why own branches exist:** each director burns the **full verify suite on THEIR branch tip** after a completed batch (residues=0 + format ✓), before **board complete**. That is the point of seat/worktree isolation — not to skip the suite.
+**Why own branches exist:** each director burns the **full verify suite on THEIR branch tip** after a completed batch (residues=0 + format ✓), before **board complete**. That is the point of post/worktree isolation — not to skip the suite.
 
 ```
 batch done (residues=0 · format ✓)
-  ├─ on THIS seat branch / worktree only
+  ├─ on THIS post branch / worktree only
   ├─ FULL verify suite  (engine suite · F7 lock rules still apply)
-  ├─ green ──▶ write.py board: complete(goal, tip, suite, mur) + push seat tip
+  ├─ green ──▶ write.py board: complete(goal, tip, suite, mur) + push post tip
   └─ red   ──▶ fix in-loop · re-suite · never board-complete red
 ```
 
@@ -325,7 +325,7 @@ Touched-family pytest at harvest remains for **rounds**. The **batch** gate is t
 
 ```
 round harvest ──▶ touched-family tests
-batch close   ──▶ full verify suite on seat branch ──▶ then board complete
+batch close   ──▶ full verify suite on post branch ──▶ then board complete
 ```
 
 ## 4. Prefer graph engine over raw tools
@@ -333,7 +333,7 @@ batch close   ──▶ full verify suite on seat branch ──▶ then board co
 Every graph touch goes through the **five pane-facing routes** (see also `goal:g7.31.3`). Raw shell/git under `.agi/nodes` is last resort.
 
 ```
-                    ┌──────────── pane / seat ────────────┐
+                    ┌──────────── pane / post ────────────┐
                     │                                     │
    discover  ──▶  commands.py list                        │
    inspect   ──▶  commands.py show <name>                 │
@@ -357,7 +357,7 @@ Every graph touch goes through the **five pane-facing routes** (see also `goal:g
 | read | `commands.py run links\|schema\|smoke\|goals-check` | verify / viewport |
 | send | `send.py` (Grok: `SendToAgent` until seam) | dm-by-node-id |
 | dispatch\|workflow | `dispatch.py` + `workflow.py` | pi parents · MUR · review |
-| rotate\|spawn | `rotate.py` | seat lifecycle · pane hold |
+| rotate\|spawn | `rotate.py` | post lifecycle · pane hold |
 
 ### write
 
@@ -392,7 +392,7 @@ assigned goal
        ▼                                                                              │
   whole-batch MUR accept                                                              │
        ▼                                                                              │
-  write.py board complete + push seat tip                                             │
+  write.py board complete + push post tip                                             │
        ▼                                                                              │
   Belam daily: merge → verify → lenses                                                │
        ▲                                                                              │
@@ -467,10 +467,10 @@ Belam / Prime modify ANY post spine ONLY by editing graph SoT
   (per-post *-grok-internals + this standing + harness recipe)
 NEVER hand-edit Grok Bot profile / routines / standing mirrors
 */30 sync applies SoT → bots
-Harness offload: grok-bot tools temporary bridge until graph engine drives seats
+Harness offload: grok-bot tools temporary bridge until graph engine drives posts
   (same path as Claude/pi — each harness widens graph compat; graph builds itself)
 
-After ANY graph SoT land → push tips + sync LOCAL
+After ANY graph SoT land → push tips + sync LOCAL post trees
   seat-director-belam · seat-director-helper to tip
   (ff-only / merge keep WIP; local HEAD must show SoT; no ping)
   Detail: doc:belam-grok-internals PROFILE §GRAPH SoT LAND
@@ -581,8 +581,8 @@ mint/edit
   → links/schema as needed
   → whole-batch MUR
   → residues=0 AND format ✓
-  → FULL verify suite on THIS seat branch  (§3e)
-  → suite green ──▶ write.py board complete(goal, tip, suite, mur) + push seat tip
+  → FULL verify suite on THIS post branch  (§3e)
+  → suite green ──▶ write.py board complete(goal, tip, suite, mur) + push post tip
   → Belam daily ──▶ merge board-complete tips · verify · lenses · reopen/mint
   → residues>0 OR format ✗ OR suite red ──▶ parents/fix loop (NO board complete)
 ```
@@ -590,10 +590,10 @@ mint/edit
 **Land gates (all required):**
 1. Goal body passes §6 format (else format residue → re-MUR).
 2. **Residues = 0** (else keep looping — never board complete).
-3. **Full verify suite green on the seat branch** (§3e).
+3. **Full verify suite green on the post branch** (§3e).
 
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-§4c pointer: after graph SoT land → push tips + sync LOCAL seat-director-belam/helper; detail in doc:belam-grok-internals PROFILE §GRAPH SoT LAND
+§4c pointer: after graph SoT land → push tips + sync LOCAL post trees seat-director-belam/helper; detail in doc:belam-grok-internals PROFILE §GRAPH SoT LAND
 <!-- THOUGHT:END -->
