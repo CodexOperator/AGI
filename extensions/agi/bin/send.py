@@ -47,6 +47,7 @@ import contextlib
 import fcntl
 import hashlib
 import re
+import shlex
 import json
 import os
 import subprocess
@@ -2258,10 +2259,16 @@ def _nudge_mesh(root: Path, to: str, tmux_session: str | None,
                 prefix: list[str], body: str | None = None,
                 sender: str | None = None, path: str | None = None) -> bool:
     """Type a wake on a FOREIGN box through the resolver's ssh prefix. The
-    remote pane cannot be read from here, so the local coalesce/copy-mode
-    checks are skipped rather than faked; the token shape (fixed token for an
-    inbox send, inline line for a dm, Enter as a separate call) is the local
-    one (goal:g7.31.4)."""
+    token shape (fixed token for an inbox send, inline line for a dm, Enter as
+    a separate call) is the local one (goal:g7.31.4).
+
+    verify-missed (goal:g7.31.4): the LOCAL pane-read guards are IMPOSSIBLE
+    from here and are skipped BY NAME, never faked — `_leave_copy_mode`
+    (needs the remote `pane_in_mode`), `_capture_pane` + `_nudge_coalesce_
+    reason` (remote copy-mode content, busy footer, `token already
+    unsubmitted`), `_registry_status(pid)` (remote pid), and `_window_id_
+    listed` (local window listing). The MARKER coalesce window is transport-
+    independent and IS applied below."""
     row = _seat_row_by_name(_locally_loaded_rows(root), to) or {}
     if tmux_session is None:
         import rotate
@@ -2276,6 +2283,17 @@ def _nudge_mesh(root: Path, to: str, tmux_session: str | None,
               f"not an @id; refusing it as a mesh target", file=sys.stderr)
         return False
     target = f"{tmux_session}:{ref}"
+    # verify-missed (goal:g7.31.4): the marker coalesce window is transport-
+    # independent -- a double send inside `_NUDGE_COALESCE_WINDOW_S` types
+    # once, exactly as the local `_nudge_window` path does.
+    last_age = _last_nudge_age(root, to)
+    if (last_age is not None and last_age < _NUDGE_COALESCE_WINDOW_S
+            and not _nudge_marker_stale(root, to)):
+        if body is not None:
+            _bump_pending(root, to)
+        print(f"nudge: coalesced [mesh] (already nudged within "
+              f"{int(_NUDGE_COALESCE_WINDOW_S)}s)", file=sys.stderr)
+        return False
     # Defect 4: a stored deferred dm is delivered INLINE exactly as the local
     # `_nudge_window` path does (same `_nudge_line` shape + inbox tail), never
     # the fixed wake token, and cleared only once the line reached the pane.
@@ -2774,16 +2792,29 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
-    if _nudge_transport(root, to)[0] != "local":
-        # goal:g7.31.4: a foreign seat wakes through the SAME `_nudge_window`
-        # seam; the local pane probes below cannot read another box.
+    kind = _nudge_transport(root, to)[0]
+    if kind != "local":
+        # goal:g7.31.4 DEMOTE 2: a foreign seat passes the SAME pending and
+        # announced-digest gates as the local path below -- heal.py calls
+        # wake() for every non-quiet row every poll, so a foreign mesh seat
+        # must not be typed into on every poll.
+        if not _seat_has_pending(root, to):
+            return _wake_outcome("nothing-pending", delivered=False, seat=to)
+        digest = _unread_digest(root, to)
+        if (_announced_digest(root, to) == digest
+                and not _nudge_marker_stale(root, to)):
+            return _wake_outcome("nothing-pending", delivered=False, seat=to)
+        delivering_deferred = _read_deferred(root, to) is not None
         delivered = _nudge_window(root, to, tmux_session=tmux_session,
                                   path="idle")
-        # Defect 3: report the TRUTH the nudge returned -- a foreign seat with
-        # no transport typed nothing, so it must not be labelled `typed-token`
-        # (which `_wake_outcome` maps to `delivered`) nor return True.
-        return _wake_outcome("typed-token" if delivered else "no-transport",
-                             seat=to, delivered=delivered)
+        if delivered:
+            _record_announced(root, to, digest)
+            return _wake_outcome("delivered-deferred" if delivering_deferred
+                                 else "typed-token", delivered=True, seat=to)
+        # Defect 3: report the TRUTH -- a foreign seat with no transport
+        # typed nothing, so it must not be labelled `typed-token`.
+        return _wake_outcome("no-transport" if kind == "none"
+                             else "nothing-pending", delivered=False, seat=to)
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -2948,11 +2979,19 @@ def _send_keys(target: str, *keys: str, literal: bool = False,
     """One `tmux send-keys` call; False on any failure. `literal=True` types
     the keys as text (`-l`) — no key-name parsing, no Enter. `prefix` is the
     transport argv (`['ssh', alias]`) the resolver chose; every tmux call has
-    ONE shape."""
-    argv = [*(prefix or []), "tmux", "send-keys"]
+    ONE shape.
+
+    DEMOTE 1 (goal:g7.31.4): ssh joins its trailing argv with single spaces
+    and the REMOTE shell re-parses that string, so a wake token (spaces,
+    `[`, `(`) and a dm/deferred body word-split and metachar-mangle unless
+    every remote-side argument is quoted. Local calls (`prefix` empty) are
+    byte-identical — argv goes straight to tmux, no shell."""
+    argv = ["tmux", "send-keys"]
     if literal:
         argv.append("-l")
     argv += ["-t", target, *keys]
+    if prefix:
+        argv = [*prefix, " ".join(shlex.quote(a) for a in argv)]
     try:
         cp = subprocess.run(argv, capture_output=True, text=True, timeout=5)
     except (FileNotFoundError, subprocess.TimeoutExpired):
