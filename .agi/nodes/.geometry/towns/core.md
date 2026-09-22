@@ -117,4 +117,3 @@ talk    Belam? NEVER mid-batch (exposed keys / cred leak ONLY)
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Owner GO 2026-09-22: clean-pass reformat living DT/MUR board into TOTAL GOAL BUNDLE ASSIGNMENT TRACKER (tops/major splits only; live activity on goal nodes).
 <!-- THOUGHT:END -->
-<!-- THOUGHT:END -->
