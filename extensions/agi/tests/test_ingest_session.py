@@ -188,6 +188,26 @@ def test_non_dict_shape_is_refused_by_name_not_traceback(graph, tmp_path, body, 
     assert list((graph / "nodes").rglob("*.md")) == []
 
 
+@pytest.mark.parametrize("value", [123, ["a"], {"a": 1}])
+def test_non_string_text_is_refused_by_name_not_traceback(graph, tmp_path, value):
+    """goal:g7.32.1 residue 1, one level deeper: a well-formed text block
+    whose PRESENT `text` value is not a string used to reach `" ".join` and
+    die with a TypeError / exit 1. It must instead be a NAMED refusal (exit 2,
+    `INGEST refuse malformed-content: ... text is not a string`), no
+    traceback, no node -- never a silent drop."""
+    body = (SESSION_LINE + '\n{"type":"message","id":"m","message":'
+            '{"content":[{"type":"text","text":' + json.dumps(value)
+            + '}]}}\n')
+    bad = tmp_path / "bad.jsonl"
+    bad.write_text(body, encoding="utf-8")
+    p = run(bad, graph)
+    assert p.returncode == 2, (p.returncode, p.stdout, p.stderr)
+    assert "INGEST refuse" in p.stderr
+    assert "malformed-content: line 2: text is not a string" in p.stderr
+    assert "Traceback" not in p.stderr
+    assert list((graph / "nodes").rglob("*.md")) == []
+
+
 def test_valid_session_with_no_message_records_still_ingests(graph, tmp_path):
     """The happy path is not weakened by the shape guards: a session with no
     `message` records, an empty content list, and a text block with no `text`
