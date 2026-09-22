@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-watch-claim-parallel-2026-09-22
+thought_session: mur-same-pool-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -242,7 +242,7 @@ claimable  = horizon OR any leaf in town:core bundle
              (NOT only already-active leaves)
 activate   = director sets status→active THEMSELF
              up to concurrent sense
-caps       ≤18 live parents / director · ≤30 box-wide
+caps       ≤18 live (parents+MURs) / director · ≤30 box-wide
 parallel   = if sense says so → spawn parents across many goals at once
 distribute across subgoals / sub-subgoals / deeper leaves
              any depth mix that makes sense
@@ -435,19 +435,21 @@ spawn.parallel = 1 per goal (config + orders)
 concurrency    = spawn multiple parents for multiple goals
                = one parent per goal via separate dispatches
 
-targets
-  ≤18 live parents per director
-  ≤30 box-wide total if needed
+targets  (parents + MURs SAME pool — HARD)
+  ≤18 live per director  = pi parents + MUR/merge-up-review
+  ≤30 box-wide total     = parents + MURs combined
 
 spawn.parallel = same-goal fan-out dispatch feature
                — NOT for cross-goal concurrency
 
 never     raise spawn.parallel above 1 to get cross-goal concurrency
 never     use spawn.parallel for cross-goal fan-out
+never     serialize MURs one-at-a-time when slots free under cap
 only-if   scopes disjoint → may approach ≤30 box-wide
 ```
 
 Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ≤30; per-director target ≤18.
+MUR / merge-up-review workflows count toward the **same** live caps as pi parents (parents+MURs combined).
 
 ### DURABLE SPAWN (owner 2026-09-22 — HARD)
 
@@ -672,5 +674,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
--
+Owner GO 2026-09-22 ET: MUR / merge-up-review workflows count toward the SAME live concurrency caps as pi parents — ≤18/director · ≤30 box-wide (parents+MURs combined). spawn.parallel stays 1/goal; do not serialize MURs when slots free under cap. DURABLE SPAWN still applies where MUR is dispatched via systemd --user.
 <!-- THOUGHT:END -->
