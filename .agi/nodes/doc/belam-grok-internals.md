@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: concurrency-standing-belam-profile-2026-09-22
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -118,6 +118,8 @@ golden · diagram-max · batch-max
 ALL posts: harness mirrors ← graph SoT only
 Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
+CONCURRENCY (HARD — SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
+  concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
@@ -131,5 +133,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Graph SoT LAND HARD: after any standing/internals/town land → push tips + sync local post trees seat-director-belam/helper (ff-only or merge keep WIP); local HEAD must show SoT; no ping
+CONCURRENCY PROFILE pin for Belam/Prime parity with director STANDING strip (SoT doc:standing-llm-ops §4)
 <!-- THOUGHT:END -->
