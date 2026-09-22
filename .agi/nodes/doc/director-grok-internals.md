@@ -15,14 +15,14 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-watch-cadence-30-2026-09-22
+thought_session: belam-cadence-spaced-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
 <!-- BODY:BEGIN -->
 # doc:director-grok-internals
 
-**SoT for director profile · routines · standing mirrors** (owner 2026-09-21 — HARD). Belam edits THIS only. Directors `@every 30m` sync: pull → paste `SECTION:*` regions → replace `{{PLACEHOLDERS}}` only.
+**SoT for director profile · routines · standing mirrors** (owner 2026-09-21 — HARD). Belam edits THIS only. Directors sync every 30m (seat offset in OWNER CADENCE): pull → paste `SECTION:*` regions → replace `{{PLACEHOLDERS}}` only.
 **ALL posts update internals via graph SoT only; grok seed = `grok-internals-sync` (`doc:grok-harness-internals-sync` + per-post `*-grok-internals`).**
 **HARD Belam rule · diagram-max:** Belam / Prime edit graph SoT only (`doc:director-grok-internals` + `doc:standing-llm-ops` + harness recipe); NEVER hand-edit director Grok Bot profile / routines / standing mirrors.
 
@@ -69,6 +69,10 @@ policy  ──▶ {{REMOTE_POLICY}}
          NEVER new remote branch · NEVER origin/seat/* head
 helper  ──▶ local-only (never new remote head)
 Belam   ──▶ core/main  (merges season2→main on daily pass)
+cadence ──▶ sync every 30m · parents hourly
+         helper: sync 0,30 · parents :07
+         director-belam: sync 15,45 · parents :22
+         15m between bot syncs · parents offset :07 vs :22
 reports ──▶ {{REPORTS_TO}}
 ```
 
@@ -138,7 +142,7 @@ watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status activ
   · never spawn while goal still horizon · quoted 'active' = BUG
   · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
-grok-internals-sync may sit on alternate phase so it does not collide with live-parents-workflows on the same post
+OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
 GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
 CONCURRENCY (HARD — DIAGRAM B · SoT doc:standing-llm-ops §4 + §3c watch):
   spawn.parallel=1 per goal (config + orders)
@@ -178,9 +182,13 @@ Never merge into grok-internals-sync
 ```
 POINT AT  doc:standing-llm-ops §3c Shared director watch FORMAT (verbatim)
 name      live-parents-workflows
-schedule  */30 * * * *   (per-post phase pins)
-  helper         → keep current (phase A)
-  director-belam → phase A+15m
+schedule  owner cadence (seat-pinned; sync every 30m; parents hourly)
+helper:
+  grok-internals-sync      0,30 * * * *     (every 30m)
+  live-parents-workflows   7 * * * *        (hourly :07)
+director-belam:
+  grok-internals-sync      15,45 * * * *    (every 30m)
+  live-parents-workflows   22 * * * *       (hourly :22)
 pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
   SCOPE  {{POST}} parents / this-director MURs / suite
   TREE   post worktree for {{POST}}
@@ -204,5 +212,5 @@ COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-complete-cross-sync-2026-09-22b: COMPLETE bare status+sync · CROSS-DIR local seat sync ALLOWED · push season2=core/season2/main ONLY (never seat remote head)
+belam-cadence-spaced-2026-09-22: owner cadence HARD · sync every 30m · parents hourly · 15m bot-sync spacing · :07/:22 parent offsets
 <!-- THOUGHT:END -->
