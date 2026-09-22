@@ -14,12 +14,12 @@ origin: goals-doc
 scaffold_hash: 3571375dfdc6e142
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
   - send-router
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.32.4: send.py thin router — transport choose, never policy"
 town: core
 ---

@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: a8d684b726c362da
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -23,7 +23,7 @@ tags:
   - send
   - handback
   - mesh
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.31.4: Native handbacks SSH-or-not — same function surface; engine fills mesh gaps"
 town: core
 ---
