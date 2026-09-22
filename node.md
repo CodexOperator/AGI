@@ -26,10 +26,11 @@ town: core
 **SoT recipe for ANY grok-bot post** (Prime · directors · future seats). Belam edits THIS via write.py only. Per-post spine lives in `doc:<post>-grok-internals` (or town board pointer).
 
 ```
-recipe ──▶ this doc          (byte-identical ROUTINE_SYNC fence)
-per-post ──▶ doc:belam-grok-internals | doc:director-grok-internals | …
-seed    ──▶ install grok-internals-sync + mint/link per-post SoT
+recipe ──▶ this doc          (THE ONE SECTION:ROUTINE_SYNC SoT)
+per-post ──▶ PROFILE only (+ optional ROUTINE_WATCH) — no sync recipe body
+seed    ──▶ install grok-internals-sync (name/schedule/prompt from THIS doc) + mint/link per-post SoT
 apply   ──▶ sync routine (or engine later) — never hand-edit harness mirrors
+copy identically: NAME grok-internals-sync · schedule */30 * * * * · prompt = fence body
 ```
 
 ## Seed any fresh grok bot
@@ -102,6 +103,6 @@ Claude/pi
 Graph builds itself
 ```
 
-<!-- THOUGHT:BEGIN -->
-post-agnostic seed; ROUTINE_SYNC fence is the byte-identical shared recipe across every grok post
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+THE ONE ROUTINE_SYNC SoT; copy name/schedule/prompt identically; one trailing LF
 <!-- THOUGHT:END -->
