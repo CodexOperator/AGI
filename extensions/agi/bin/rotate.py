@@ -1968,6 +1968,12 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
         if guard:
             print(guard, file=sys.stderr)
             return 1
+        # goal:g7.31.5.3 (DH.55 R5): a spawned seat reads the graph at once,
+        # so `spawn` applies the same pre-spawn drift refusal as rotation.
+        pguard = _check_profile_drift(root)
+        if pguard:
+            print(pguard, file=sys.stderr)
+            return 1
 
     # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
     # name-for-every-non-prime-post): a NON-prime --seat names the window.
@@ -3028,6 +3034,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
             print("BELOW director_rotate_at: no rotation, loop holds.",
                   file=sys.stderr)
             return 0
+
+    # goal:g7.31.5.3 (DH.55 R1): a loop that will spawn must not spawn on
+    # drift. After the meter hold (a held loop pays nothing), before the window.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
+        return 1
 
     role = args.role
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION

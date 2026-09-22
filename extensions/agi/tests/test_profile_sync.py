@@ -11,6 +11,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -230,10 +231,48 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+def test_cmd_loop_refuses_to_spawn_on_profile_drift(monkeypatch, tmp_path,
+                                                   capsys):
+    """DH.55 R1/R2 — behavioural, not a source-string grep: a loop that WOULD
+    spawn must not reach spawn_window when a linked artifact has drifted.
+    Fails on the pre-fix tip (spawn seen, no drift named)."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")
+    spawned = []
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)  # due
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: spawned.append(kw) or (0, "claude"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1,
+    ), repo / ".agi")
+    err = capsys.readouterr().err
+    assert code == 1, (code, err)
+    assert "profile drift" in err and "hypothesis:h1" in err
+    assert spawned == [], "cmd_loop spawned a successor on a drifted graph"
+
+
+def test_cmd_loop_still_spawns_when_the_graph_is_in_sync(monkeypatch, tmp_path):
+    """The guard must not over-block: an in-sync graph still reaches spawn."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    spawned = []
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, root: 1)
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: spawned.append(kw) or (1, "claude"))
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=False, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1,
+    ), repo / ".agi")
+    assert len(spawned) == 1, "in-sync graph was blocked from spawning"
+    assert code == 1  # spawn_window's own non-zero rc propagates unchanged
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
@@ -257,6 +296,43 @@ def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     assert "1 linked, 0 not ok" in r.stdout
     assert "broken" not in r.stdout
     assert rotate._check_profile_drift(repo / ".agi") is None
+
+
+def test_a_body_prose_profile_ref_mention_is_not_a_link(tmp_path):
+    """DH.55 R3(a): malformed frontmatter with no `profile_ref:` in it, but
+    the words in the BODY prose, is not a profile-linked node -> skipped."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    (repo / ".agi" / "nodes" / "hypothesis" / "doc.md").write_text(
+        '---\n: : : not valid yaml [[[\n---\n\n'
+        'This doc explains profile_ref: "profile/x.md" linking.\n')
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "doc.md" not in r.stdout
+    assert rotate._check_profile_drift(repo / ".agi") is None
+
+
+def test_unreadable_raw_bytes_are_surfaced_not_raised(monkeypatch, tmp_path):
+    """DH.55 R4: an OSError reading the raw bytes inside the except branch
+    becomes a surfaced row, never escapes check_all or the guard."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+
+    def boom(_f):
+        raise ValueError("malformed")
+
+    def nope(self, *a, **k):
+        raise PermissionError("denied")
+
+    monkeypatch.setattr(profile_sync.fmr, "load_node_file", boom)
+    monkeypatch.setattr(Path, "read_text", nope)
+    rows = profile_sync.check_all(repo / ".agi")
+    assert len(rows) == 1
+    assert rows[0]["status"] == "unreadable"
+    assert "PermissionError" in rows[0]["detail"]
+    assert "profile drift" in rotate._check_profile_drift(repo / ".agi")
 
 
 def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):

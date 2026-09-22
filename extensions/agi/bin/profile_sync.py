@@ -52,9 +52,18 @@ def project(root, node_id):
     return artifact_path(root, str(ref)), _projected_bytes(nf)
 
 
+_FM_RE = re.compile(r"\A---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\Z)", re.S)
+
+
+def _frontmatter_region(text):
+    """The `---`...`---` block of `text`, or "" when it has none."""
+    m = _FM_RE.search(text)
+    return m.group(1) if m else ""
+
+
 def _raw_profile_ref(text):
-    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+    """`profile_ref` from the FRONTMATTER region only; prose is not a link."""
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", _frontmatter_region(text), re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
@@ -62,9 +71,10 @@ def check_all(root):
     """Sweep every node with `profile_ref` under `nodes/**` (the retired
     sibling included, goal:g2.10). Returns a dict per linked node with
     status ok|drift|missing|refused|unreadable; an unlinked node is not
-    swept. An unparseable file never raises: if its raw bytes carry no
-    `profile_ref:` hint it is not a profile-linked node and is skipped;
-    if they do, it cannot be proven in sync and is named `unreadable`.
+    swept. An unparseable file never raises: if its raw frontmatter region
+    carries no `profile_ref:` hint it is not a profile-linked node and is
+    skipped; if it does, it cannot be proven in sync and is named
+    `unreadable`.
     """
     if root is None:
         raise Refused("no project root — no enclosing .agi/config.json")
@@ -73,10 +83,14 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
-                continue  # unparseable but not profile-linked: not ours
-            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except OSError as io:
+                raw, e = "", io  # DH.55 R4: unreadable != uncaught
+            raw_ref = _raw_profile_ref(raw)
+            if not raw_ref and not isinstance(e, OSError):
+                continue  # unparseable and not profile-linked: not ours
+            out.append({"node_id": f.stem, "artifact": raw_ref,
                         "actual": None, "expected": None, "path": str(f),
                         "status": "unreadable",
                         "detail": f"{type(e).__name__}: {e}"})
