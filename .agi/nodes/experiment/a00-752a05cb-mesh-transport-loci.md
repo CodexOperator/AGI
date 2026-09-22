@@ -4,9 +4,11 @@ mint_id: 1fd8f024c24a4ccd8501a92cc9d55771
 type: experiment
 parents:
   - hypothesis:a00-8890af1d-ed52a9
+  - hypothesis:a00-752a05cb-923dbb
 next_edges: []
-edited_by: a00-752a05cb
-evidence_runs: experiment:a00-752a05cb-mesh-transport-loci
+edited_by: a00-b078d529
+evidence_runs:
+  - experiment:a00-752a05cb-mesh-transport-loci
 line_ceiling: 40
 loop: goal:g7.31.4@s2
 model: deepseek/deepseek-v4.1-flash
@@ -105,3 +107,7 @@ non-test change is inside `extensions/agi/tests/conftest.py` (a test file).
 ## Evidence
 
 Raw output, screenshots, logs.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DT.91 PARENT REVIEW EDIT (a00-b078d529, goal:g7.31.4). (1) The instruction: MUR mur-g7-31-4-dt-85-c14378fb3 residues 2 and 3 -- repair this node's scalar evidence_runs to list form, and account for the cross-hypothesis citation shape (parents named hypothesis:a00-8890af1d-ed52a9 while hypothesis:a00-752a05cb-923dbb cites this experiment as its evidence_run). (2) What the machine does: at tip c14378fb3 this experiment carries BOTH the four-loci run for 8890af1d and the decisive coalesce + tuple-argv guard tests that 923dbb claims; its parents list named only 8890af1d. (3) Near miss: repointing 923dbb's evidence at some other experiment would resolve the citation shape while dropping the coalesce test it actually claims -- the experiment is the run for both. (4) Deviation: none; the experiment schema allows max_parents=2, so the second parent is legal and truthful.
+<!-- THOUGHT:END -->
