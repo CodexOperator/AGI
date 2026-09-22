@@ -323,6 +323,35 @@ def test_notes_land_once_even_when_both_writers_run(project, monkeypatch):
     assert text.count(notes) == 1, text
 
 
+def test_a_DIFFERENT_second_note_lands_under_the_same_heading(project, monkeypatch):
+    """The case the old text-dedupe failed, which the test above does not hit.
+
+    The test above re-appends the SAME text, so it passes under the buggy
+    `notes.strip() not in body` check. A second, DIFFERENT note is what put
+    two `## Agent Notes` headings on `hypothesis:a00-75145740-c77fbe`.
+    """
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n")
+    monkeypatch.chdir(project)
+    import argparse
+
+    for notes in ("first note", "second note"):
+        iter_dir = project / "sessions" / "iter-001"
+        (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+        (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "notes": notes, "verdict": "pending"}))
+        (iter_dir / "manifest.json").write_text(json.dumps(
+            {"timeout_seconds": 600, "agents": [
+                {"id": "a1", "status": "done", "node_id": res.node_id,
+                 "parent": "hypothesis:h1", "notes": notes}]}))
+        pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    assert text.count("## Agent Notes") == 1, text
+    assert "first note" in text and "second note" in text, text
+
+
 # --------------------------------------------------------------------------
 # `_gate` precedence — the two ways frontmatter-primary went wrong
 # --------------------------------------------------------------------------

@@ -2051,11 +2051,8 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
         try:
             from graph_core.persistence import frontmatter as _fmr2
             nf2 = _fmr2.load_node_file(node_file)
-            if notes.strip() not in nf2.body:
-                new_body = nf2.body
-                if not new_body.endswith("\n"):
-                    new_body += "\n"
-                new_body += f"\n## Agent Notes\n{notes}\n"
+            new_body = node_writer.append_agent_note(nf2.body, notes)
+            if new_body != nf2.body:
                 res2 = node_writer.update_node(
                     root, node_id, body=new_body)
                 if res2.status == node_writer.REJECTED:

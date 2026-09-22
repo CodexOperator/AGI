@@ -907,6 +907,32 @@ def extract_thought(body: str) -> str | None:
     return match.group(0) if match else None
 
 
+#: The one heading agent notes live under. `write.py`, `post_wire.py` and
+#: `cli.py done` all append notes; a second spelling would be the very
+#: duplicate-heading defect this constant exists to prevent.
+NOTES_HEADING = "## Agent Notes"
+
+
+def append_agent_note(body: str, note: str) -> str:
+    """Append `note` under the ONE `## Agent Notes` heading. Idempotent.
+
+    Heading-aware, not text-aware. Each of the three writers used to carry a
+    private copy of this append and each deduped on the note TEXT, so a node
+    that already had a `## Agent Notes` section got a SECOND heading whenever
+    the new note differed -- the live duplicate on
+    `hypothesis:a00-75145740-c77fbe`. One helper means they cannot diverge.
+
+    Returns `body` unchanged when `note` is empty or already present.
+    """
+    note = (note or "").strip()
+    if not note or note in (body or ""):
+        return body
+    if NOTES_HEADING in body:
+        head, sep, tail = body.rpartition(NOTES_HEADING)
+        return head + sep + tail.rstrip() + "\n\n" + note + "\n"
+    return body.rstrip() + "\n\n" + NOTES_HEADING + "\n" + note + "\n"
+
+
 def _carry_thought(old_body: str, new_body: str) -> str:
     """Put the old body's authored region into a new body that lacks one.
 
