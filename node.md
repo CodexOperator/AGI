@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.34.3
 next_edges: []
-edited_by: owner-go
+edited_by: belam
 scaffold_hash: temp-coord-board-2026-09-21
 season: 2
 status: temp
@@ -15,7 +15,7 @@ tags:
   - geometry
   - town
   - board
-thought_session: belam-seat-to-post-prose-2026-09-21
+thought_session: belam-daily-town-pass-2026-09-22
 title: TEMP coordination board — .geometry/towns/core (stand-in until g7.34.3 Pass-1)
 town: core
 ---
@@ -75,5 +75,5 @@ HOLD = credits empty / mesh down (owner ONLY)
 - Unified director role → `doc:unified-director-brief`
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22T07:24Z ET: zombies DT.51/55+DH.55 failed+leases cleared; lean MUR DT.52 launched; respawned DT.56@1.2 + DT.57@3.1 durable 8G; helper DH.54+DH.56 live; board tips/MUR cells refreshed; goals status=active.
+Belam daily town:core pass 2026-09-22T09:50ET · merges:none (no board-complete; claimed rows residues>0/MUR-owed) · verify:FAIL tests=15f/5889p TestMergeUp Committer-identity-unknown in pytest temps (host global git user unset) · secrets PROBLEM OPENROUTER_API_KEY empty · goals-check red-at-run then smoke rewrote GOALS.md · bin-suite-fresh no-stamp · vision/moral: no reopen/mint (directors mid-batch DT.72/73/74 burning residues; Agent Notes no format-worthy orphans)
 <!-- THOUGHT:END -->
