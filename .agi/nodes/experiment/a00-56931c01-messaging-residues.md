@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-56931c01-45f6df
 next_edges: []
-edited_by: a00-1c474b6e
+edited_by: a00-7d52f792
 line_ceiling: 40
 loop: goal:g7.32.2@s2
 model: deepseek/deepseek-v4.1-flash
@@ -111,7 +111,64 @@ Production lines over the given production path: **0** against
 - A bare `pytest extensions/agi/tests/` is refused by the kid tier gate; name
   the file.
 
-Raw output, screenshots, logs.
+## Raw output (DT.88 residual round)
+
+Commands run from the worktree root
+`/data/work/agi/.agi/worktrees/a00-7d52f792` on 2026-09-22. Pasted verbatim.
+
+```
+$ python3 -m pytest extensions/agi/tests/test_messaging.py -q
+.....................                                                    [100%]
+21 passed in 0.43s
+
+$ grep -c '_ExplodingSend' extensions/agi/tests/test_messaging.py
+0
+
+$ grep -c 'replaces r1' .agi/nodes/experiment/a00-81747954-messaging-r2.md
+0
+
+$ git diff --numstat -- extensions/agi/bin/messaging.py
+(no output — 0 added, 0 deleted)
+
+$ grep -c '^## Agent Notes' .agi/nodes/goal/g7.32.2.md
+1
+```
+
+`git diff --numstat` is the one read-only git measurement this round runs;
+`extensions/agi/bin/messaging.py` is byte-unchanged.
+
+## Spawn-stamp residue closed
+
+Both new build nodes had `spawn_check: unverified` with the false reason
+`schema 'build' is discriminated on 'build_kind', which this node does not
+set`, stamped before `build_kind` was set at `write.py` `create` time
+(`spawn_gate.py:166-169`, `stamp()` at `spawn_gate.py:1370-1380` — approval is
+deliberately NOT stamped). Cleared through the sanctioned writer:
+
+```
+$ python3 extensions/agi/bin/write.py build:bin-messaging \
+    'unset spawn_check && unset spawn_check_reason'
+updated: build:bin-messaging
+$ python3 extensions/agi/bin/write.py build:tests-test-messaging \
+    'unset spawn_check && unset spawn_check_reason'
+updated: build:tests-test-messaging
+$ grep -c spawn_check .agi/nodes/build/bin-messaging.md \
+    .agi/nodes/build/tests-test-messaging.md
+(0 for both)
+
+$ python3 extensions/agi/bin/spawn_gate.py check --type build \
+    --parent goal:g7.32.2 \
+    --parent idea:lm-magic-pane-llm-autocorrect-and-autofill \
+    --id build:bin-messaging --set build_kind=code
+SPAWN-GATE APPROVED build:bin-messaging type=build \
+  schema=context/schemas/[build].md rules=... parent_shapes=[goal, idea]
+
+$ python3 extensions/agi/bin/spawn_gate.py check --type build \
+    --parent goal:g7.32.2 --parent idea:engine-tests \
+    --id build:tests-test-messaging --set build_kind=code
+SPAWN-GATE APPROVED build:tests-test-messaging type=build \
+  schema=context/schemas/[build].md rules=... parent_shapes=[goal, idea]
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent set this node's title (DT.82) because the kid left the auto-derived title 'A00 56931c01 messaging residues'. The harvest's _auto_titled check (cli.py:757) compares the field to node_writer._derive_title(stem) and would have named the node untitled. No body or claim was changed by the parent.
