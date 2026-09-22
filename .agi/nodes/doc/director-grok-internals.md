@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-complete-cross-sync-2026-09-22b
+thought_session: belam-watch-cadence-30-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -138,6 +138,7 @@ watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status activ
   · never spawn while goal still horizon · quoted 'active' = BUG
   · activate self ≤18/≤30 · distribute durable across depth
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
+grok-internals-sync may sit on alternate phase so it does not collide with live-parents-workflows on the same post
 GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
 CONCURRENCY (HARD — DIAGRAM B · SoT doc:standing-llm-ops §4 + §3c watch):
   spawn.parallel=1 per goal (config + orders)
@@ -177,7 +178,9 @@ Never merge into grok-internals-sync
 ```
 POINT AT  doc:standing-llm-ops §3c Shared director watch FORMAT (verbatim)
 name      live-parents-workflows
-schedule  @every 50m   (pi parents run around the clock — stated reason)
+schedule  */30 * * * *   (per-post phase pins)
+  helper         → keep current (phase A)
+  director-belam → phase A+15m
 pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
   SCOPE  {{POST}} parents / this-director MURs / suite
   TREE   post worktree for {{POST}}
