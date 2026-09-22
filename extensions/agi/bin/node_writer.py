@@ -907,6 +907,25 @@ def extract_thought(body: str) -> str | None:
     return match.group(0) if match else None
 
 
+#: The one heading every note writer shares; cli.py/post_wire.py/write.py
+#: alias it so the spelling cannot drift.
+NOTES_HEADING = "## Agent Notes"
+
+
+def merge_agent_notes(body: str, note: str) -> str:
+    """Put `note` UNDER a line-anchored `NOTES_HEADING`, creating it if absent.
+
+    Line-anchored: an inline mention inside THOUGHT prose is not a section.
+    Inserted after the heading LINE, never at end of body -- appending puts
+    the note after a trailing THOUGHT block, outside its own section.
+    """
+    lines = (body or "").rstrip().splitlines()
+    for i, ln in enumerate(lines):
+        if ln.strip() == NOTES_HEADING:
+            return "\n".join(lines[:i + 1] + ["", note] + lines[i + 1:]) + "\n"
+    return (body or "").rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
+
+
 def _carry_thought(old_body: str, new_body: str) -> str:
     """Put the old body's authored region into a new body that lacks one.
 

@@ -392,6 +392,42 @@ def test_notes_heading_inline_in_thought_still_gets_a_real_heading(
     assert notes in text, text
 
 
+def test_the_note_lands_under_the_heading_not_after_a_trailing_thought(
+        project, monkeypatch):
+    """`## Agent Notes` MID-body with a THOUGHT block after it -- the
+    `goal:g7.31.3.1` shape. A writer that appends at end of body puts the new
+    note after `<!-- THOUGHT:END -->`, outside the section that names it. The
+    note must sit between the heading and the THOUGHT block."""
+    res = _scaffold(project)
+    _fill(res.path, "\n# experiment:exp1\n\nReal content.\n\n"
+                    "## Agent Notes\nan earlier note\n\n"
+                    "<!-- THOUGHT:BEGIN — authored, not derived; carried "
+                    "across regenerating scans. The reasoning behind THIS "
+                    "version. -->\n"
+                    "prose mentioning `## Agent Notes` inline\n"
+                    "<!-- THOUGHT:END -->\n")
+    monkeypatch.chdir(project)
+    notes = "a later note"
+    iter_dir = project / "sessions" / "iter-001"
+    (iter_dir / "a1").mkdir(parents=True, exist_ok=True)
+    (iter_dir / "a1" / "agent.json").write_text(json.dumps(
+        {"id": "a1", "status": "done", "node_id": res.node_id,
+         "notes": notes, "verdict": "pending"}))
+    (iter_dir / "manifest.json").write_text(json.dumps(
+        {"timeout_seconds": 600, "agents": [
+            {"id": "a1", "status": "done", "node_id": res.node_id,
+             "parent": "hypothesis:h1", "notes": notes}]}))
+    import argparse
+    pw.cmd_wire(argparse.Namespace(iter_n=1, project_root=None))
+
+    text = res.path.read_text()
+    headings = [ln for ln in text.splitlines()
+                if ln.strip() == "## Agent Notes"]
+    assert len(headings) == 1, text
+    assert text.count(notes) == 1, text
+    assert text.index(notes) < text.index("<!-- THOUGHT:BEGIN"), text
+
+
 # --------------------------------------------------------------------------
 # `_gate` precedence — the two ways frontmatter-primary went wrong
 # --------------------------------------------------------------------------

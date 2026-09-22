@@ -76,10 +76,9 @@ PROVENANCE_SESSION = "thought_session"
 #: brief forbids touching, and edit mode is not a loophole in that rule.
 PROTECTED = frozenset({"id", "mint_id", "type", "scaffold_hash"})
 
-#: The one heading body notes live under. Shared with `post_wire` and
-#: `cli.py done`, which both already write it -- a second spelling here would
-#: be the duplicate-heading defect this constant exists to prevent.
-NOTES_HEADING = "## Agent Notes"
+#: Shared with `post_wire` and `cli.py done`; declared once in `node_writer`
+#: and aliased here, since a second spelling is the defect it prevents.
+NOTES_HEADING = node_writer.NOTES_HEADING
 
 
 class EditError(RuntimeError):
@@ -2313,12 +2312,10 @@ def _compose_body(root, edit: Edit) -> str:
         # so a node that `post_wire` had already given a `## Agent Notes`
         # section got a second heading -- found on the first real use, against
         # a live node that had one.
-        note = edit.body_append.rstrip()
-        if NOTES_HEADING in body:
-            head, sep, tail = body.rpartition(NOTES_HEADING)
-            body = head + sep + tail.rstrip() + f"\n\n{note}\n"
-        else:
-            body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
+        # UNDER a line-anchored heading, not appended at end of body -- a
+        # trailing THOUGHT block would take the note with it.
+        body = node_writer.merge_agent_notes(
+            body, edit.body_append.rstrip())
 
     if edit.thought:
         block = (node_writer._THOUGHT_RE.pattern and

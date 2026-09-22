@@ -192,6 +192,31 @@ def test_done_merges_notes_under_an_existing_agent_notes_heading(
     assert "a different later note" in out, out
 
 
+def test_done_places_the_note_before_a_trailing_thought_block(
+        tmp_path, monkeypatch):
+    """The `goal:g7.31.3.1` shape: `## Agent Notes` mid-body with a THOUGHT
+    block after it. Appending at end of body puts the note after
+    `<!-- THOUGHT:END -->`; it must land between the heading and the block."""
+    cli = _load_cli()
+    graph, args = _cmd_done_project(tmp_path)
+    node = graph / "nodes" / "experiment" / "e1.md"
+    node.write_text(node.read_text() + "\n## Agent Notes\nan earlier note\n\n"
+                    "<!-- THOUGHT:BEGIN — authored, not derived -->\n"
+                    "prose mentioning `## Agent Notes` inline\n"
+                    "<!-- THOUGHT:END -->\n")
+    args.notes = "a different later note"
+    monkeypatch.setattr(cli, "_find_root", lambda: graph)
+
+    assert cli.cmd_done(args) == 0
+
+    out = node.read_text()
+    headings = [ln for ln in out.splitlines()
+                if ln.strip() == "## Agent Notes"]
+    assert len(headings) == 1, out
+    assert out.index("a different later note") < out.index(
+        "<!-- THOUGHT:BEGIN"), out
+
+
 def test_done_adopts_a_node_written_outside_node_writer(tmp_path, monkeypatch):
     """hypothesis:l3-node-without-mint-id — `cli.py done` mints a first
     `mint_id` on a node a kid wrote with its own file tool (valid frontmatter,
