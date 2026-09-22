@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: belam-concurrency-18-30-2026-09-22
+thought_session: belam-watch-claim-parallel-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -235,11 +235,38 @@ WRITE write.py | READ commands.py | SEND send.py
 DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
 ```
 
+CLAIM / ACTIVATE / PARALLEL (HARD — owner 2026-09-22)
+```
+status     = coord surface (claimed vs free between directors)
+claimable  = horizon OR any leaf in town:core bundle
+             (NOT only already-active leaves)
+activate   = director sets status→active THEMSELF
+             up to concurrent sense
+caps       ≤18 live parents / director · ≤30 box-wide
+parallel   = if sense says so → spawn parents across many goals at once
+distribute across subgoals / sub-subgoals / deeper leaves
+             any depth mix that makes sense
+spawn.parallel = 1 per goal          (HARD)
+concurrency    = multi-parent × multi-goal
+DURABLE SPAWN  = systemd --user via dispatch durable (HARD)
+```
+
+```
+board status
+  active   ──▶ claimed / worked
+  horizon  ──▶ free / claimable
+director ──▶ write.py status=active on claim
+         ──▶ durable spawn parent(s) on that goal
+         ──▶ up to ≤18/dir · ≤30 box
+```
+
 1) Sense
    parents you spawned: alive?
    workflows you spawned: running?
    status=done + no MUR yet → owed (list it)
    MUR accept_with_residue still open → residual loop owed (list it)
+   free slots under ≤18/dir · ≤30 box?
+   claimable horizon|leaf free on board? → activate + durable spawn
 2) Emit ONLY on delta
    | id | kind | state | note |
    |----|------|-------|------|
@@ -249,10 +276,12 @@ DISPATCH dispatch.py+workflow.py | ROTATE rotate.py
    owner  ← blockers ONLY (red/stuck/decision) · credits empty / mesh down → HOLD
    residues>0 → spawn/continue pi parents (NOT board complete)
    residues=0 + format ✓ + suite → write.py board complete (outside this watch)
+   free capacity → claim/activate horizon|leaf · distribute durable across depth
 4) No delta → silence (no "no change")
 5) Never invent. Never new remote head. Never push core/main.
 6) Prefer graph routes (§4) over raw tools.
 7) Watch still wakes for **local parent loops** — write the board, do not message Belam.
+8) DURABLE SPAWN HARD — never bare SSH/bash children.
 ```
 
 **Post pins (examples — not a second FORMAT):**
@@ -453,19 +482,28 @@ permission: directors MAY thin anytime without re-asking owner
 still: graph routes only (dispatch/workflow) · no route bypass
 ```
 
-## 4b. Director nested goal authority (owner 2026-09-21 — HARD)
+## 4b. Director nested goal authority (owner 2026-09-21/22 — HARD)
 
 ```
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
   (not one fat same-level sibling).
 
-CLAIM: REOPENED > smallest unclaimed leaf under hot top
-  idle: prefer deepen hot top; open second top only when hot has no free leaf
+CLAIM (HARD)
+  REOPENED > any claimable in town:core
+  claimable = horizon OR any leaf (sub / sub-sub / deeper)
+  NOT only already-active leaves
+  director activates status→active THEMSELF up to concurrent sense
+  distribute durable parents across depth of leaves
+  spawn.parallel=1/goal · concurrency=multi-parent×multi-goal
+  caps ≤18/dir · ≤30 box
 
-STATUS: claimed/worked=active · rest of town:core bundle=horizon
+STATUS (HARD) = how directors inform claimed vs free
+  active   = claimed / worked
+  horizon  = free / claimable in town:core bundle
   maintain status on ALL goals in town:core bundle
 
 NO new g7.N (Belam only) · self-coord via geometry board
+DURABLE SPAWN systemd --user HARD (§4)
 ```
 
 
@@ -634,5 +672,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner GO 2026-09-22 ET: raise CONCURRENCY ceilings ≤18/director · ≤30 box-wide (was ≤3/≤5). spawn.parallel stays 1/goal; multi-parent×multi-goal unchanged; DURABLE SPAWN unchanged.
+-
 <!-- THOUGHT:END -->
