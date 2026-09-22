@@ -124,3 +124,17 @@ def test_conftest_tmux_guard_is_in_force():
     )
     assert real_ok.returncode == 0
     assert real_ok.stdout == "1\n"
+
+
+def test_conftest_guard_intercepts_ssh_prefixed_tmux():
+    """goal:g7.31.4: the guard must also answer an ssh-first argv. A mesh
+    wake is `["ssh", alias, "tmux", "send-keys", ...]`; a guard matching
+    only `cmd[:1] == ["tmux"]` would pass it through to a REAL ssh and host."""
+    ssh_ok = subprocess.run(
+        ["ssh", "some-alias", "tmux", "send-keys", "-l", "-t",
+         "agi-rc:@246", "[agi-nudge] unread for director"],
+        capture_output=True,
+        text=True,
+    )
+    assert ssh_ok.returncode == 1
+    assert ssh_ok.stdout is None
