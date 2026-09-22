@@ -160,6 +160,49 @@ def test_slug_length_boundary_is_accept_at_limit_refuse_above(graph, tmp_path):
     assert len(list((graph / "nodes").rglob("*.md"))) == 1
 
 
+SESSION_LINE = '{"type":"session","id":"X"}'
+
+
+@pytest.mark.parametrize("body,reason", [
+    ("[1,2,3]\n", "malformed-record"),
+    ("42\n", "malformed-record"),
+    (SESSION_LINE + '\n{"type":"message","id":"m","message":"oops"}\n',
+     "malformed-message"),
+    (SESSION_LINE + '\n{"type":"message","id":"m","message":{"content":["oops"]}}\n',
+     "malformed-content"),
+    (SESSION_LINE + '\n{"type":"message","id":"m","message":{"content":{"a":1}}}\n',
+     "malformed-content"),
+])
+def test_non_dict_shape_is_refused_by_name_not_traceback(graph, tmp_path, body, reason):
+    """goal:g7.32.1 residue 1: a JSONL line that is not an object, or a
+    `message`/`content`/content-block of the wrong shape, must be a NAMED
+    refusal (exit 2, `INGEST refuse <reason>` on stderr) -- never an
+    AttributeError traceback with exit 1, and never a silent node."""
+    bad = tmp_path / "bad.jsonl"
+    bad.write_text(body, encoding="utf-8")
+    p = run(bad, graph)
+    assert p.returncode == 2, (p.returncode, p.stdout, p.stderr)
+    assert "INGEST refuse" in p.stderr
+    assert reason in p.stderr
+    assert "Traceback" not in p.stderr
+    assert list((graph / "nodes").rglob("*.md")) == []
+
+
+def test_valid_session_with_no_message_records_still_ingests(graph, tmp_path):
+    """The happy path is not weakened by the shape guards: a session with no
+    `message` records, an empty content list, and a text block with no `text`
+    key all still ingest."""
+    rows = [{"type": "session", "id": "S-nomsg"},
+            {"type": "message", "id": "m1", "message": {"content": []}},
+            {"type": "message", "id": "m2", "message": {"content": [{"type": "text"}]}}]
+    good = tmp_path / "good.jsonl"
+    good.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+    p = run(good, graph)
+    assert p.returncode == 0, p.stderr
+    assert p.stdout.strip().startswith("INGEST ok")
+    assert len(list((graph / "nodes").rglob("*.md"))) == 1
+
+
 def test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent(graph, tmp_path):
     """Continuity: a real-corpus UUID keeps `grok-session-<uuid>` (the node
     already in the graph for SESSION), and its upper-cased spelling is the SAME
