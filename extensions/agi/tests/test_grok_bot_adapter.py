@@ -23,6 +23,13 @@ import adapters  # noqa: E402
 
 grok = adapters.load("grok_bot")
 
+#: Captured ONCE at import, before any test installs its own `builtins.open`
+#: fake. `_stat_reader` must delegate non-target paths to the REAL `open` even
+#: when installed twice: reading `builtins.open` inside the factory at call
+#: time captures the previously-installed fake (the Z reader) rather than the
+#: real thing (DT.81 MUR R2 note).
+_REAL_OPEN = builtins.open
+
 #: Verbatim `grok-bot --help` from the published package, recorded by the
 #: child experiment of `goal:g7.31.1.1`:
 #:   mkdir measure && cd measure && npm init -y
@@ -182,8 +189,15 @@ def _stat_reader(pid: int, state: str):
     state is `state`; every other path delegates to the real `open`. The pid
     this reports on stays LIVE, so `os.kill(pid, 0)` would answer true -- the
     only way `is_alive` can return False is the `state == "Z"` line itself.
+
+    The `os.kill(live_pid, 0)` self-query this reaches is INTENTIONAL and
+    BENIGN (DT.81 MUR R2): signal 0 performs no state change, it targets THIS
+    interpreter's own live pid so it cannot fail from a race, and because the
+    pid is live the only path to a False answer is the `state == "Z"` line
+    above it. Delegation uses `_REAL_OPEN`, captured at import, so a reader
+    built while another fake is installed does not chain into that fake.
     """
-    real_open = builtins.open
+    real_open = _REAL_OPEN
     target = f"/proc/{pid}/stat"
 
     def fake_open(file, *args, **kwargs):
