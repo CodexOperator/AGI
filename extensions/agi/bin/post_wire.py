@@ -478,16 +478,16 @@ def cmd_wire(args: argparse.Namespace) -> int:
             # Idempotent: `cli.py done` may already have written this exact
             # section. Appending unconditionally is what put the notes in
             # twice on every kid for as long as both writers have existed.
-            # And append UNDER an existing heading, never a second one -- a
-            # node that arrived with a DIFFERENT note already under
-            # `## Agent Notes` used to get a second heading here.
+            # And append UNDER an existing heading, never a second one --
+            # LINE-anchored: a `## Agent Notes` mentioned inline inside THOUGHT
+            # prose is not a section, and matching it appended the note bare.
             if notes and notes.strip() not in body:
                 note = notes.rstrip()
-                if NOTES_HEADING in body:
-                    head, sep, tail = body.rpartition(NOTES_HEADING)
-                    body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+                if any(ln.strip() == NOTES_HEADING
+                       for ln in body.splitlines()):
+                    body += f"\n\n{note}\n"
                 else:
-                    body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
+                    body += f"\n\n{NOTES_HEADING}\n{note}\n"
             _update_via_writer(root, node_id, node_path,
                                original_fm, fm, original_body, body)
             updated_nodes.append(node_id)

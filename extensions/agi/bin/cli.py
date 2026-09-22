@@ -2059,12 +2059,15 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
             nf2 = _fmr2.load_node_file(node_file)
             if notes.strip() not in nf2.body:
                 # Append UNDER an existing heading, never a second one -- the
-                # same rpartition merge write.py:2317 does for `note`.
+                # same merge write.py:2317 does for `note`, but LINE-anchored:
+                # a `## Agent Notes` mentioned inline inside THOUGHT prose is
+                # not a section, and matching it appended the note bare with
+                # no heading at all (measured on this round's authored node).
                 new_body = nf2.body.rstrip()
                 note = notes.rstrip()
-                if NOTES_HEADING in new_body:
-                    head, sep, tail = new_body.rpartition(NOTES_HEADING)
-                    new_body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+                if any(ln.strip() == NOTES_HEADING
+                       for ln in new_body.splitlines()):
+                    new_body += f"\n\n{note}\n"
                 else:
                     new_body += f"\n\n{NOTES_HEADING}\n{note}\n"
                 res2 = node_writer.update_node(

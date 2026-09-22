@@ -75,6 +75,18 @@ After the fix (the same tests, the fixed bytes restored):
     $ python3 -m pytest extensions/agi/tests/test_cli.py -q -k notes_under_an_existing
     1 passed, 55 deselected
 
+The first predicate was still substring-based and this round caught it on its
+own authored node: the THOUGHT prose named `## Agent Notes` inline, so the
+note landed bare with no heading after `<!-- THOUGHT:END -->`. Reverted to the
+substring predicate, the line-anchored test fails:
+
+    $ python3 -m pytest extensions/agi/tests/test_completion.py -q -k heading_inline_in_thought
+    FAILED ...::test_notes_heading_inline_in_thought_still_gets_a_real_heading
+    1 failed, 19 deselected
+
+Both writers now require a line-anchored heading; the node was repaired with
+a `body_patch` that inserted the missing `## Agent Notes` line.
+
 Five-route claim untouched:
 
     $ python3 -m pytest extensions/agi/tests/test_brief.py -q -k 'routes or five_pane or five_route'
