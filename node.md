@@ -439,26 +439,32 @@ parents: on child = nesting SoT
 
 ```
 ALL posts (Prime · directors · future): harness mirrors ← graph SoT only
-Grok: doc:grok-harness-internals-sync (recipe) + per-post *-grok-internals
-Seed fresh grok = install grok-internals-sync + mint per-post SoT
+Grok seed = install grok-internals-sync + mint/link per-post *-grok-internals
 Claude/pi path same principle; grok leans on bot tools until engine owns it
 Graph builds itself
 
+SINGLE-FILE RECIPE (owner 2026-09-21):
+  doc:grok-harness-internals-sync  = THE ONE SECTION:ROUTINE_SYNC SoT
+  per-post *-grok-internals        = PROFILE (differs) + optional ROUTINE_WATCH (separate)
+  grok-internals-sync routine      = pulls recipe ONLY from harness doc
+  live-parents-workflows           = DIFFERENT routine (watch) — NEVER paste into sync
+
+per-post SoT     PROFILE (differs) + optional ROUTINE_WATCH (separate) — NO ROUTINE_SYNC body
+shared recipe    doc:grok-harness-internals-sync = ROUTINE_SYNC SoT (only place)
+grok-internals-sync routine bytes = IDENTICAL all grok posts (from harness)
+  NAME / title  grok-internals-sync   (exact — copy identically)
+  schedule      */30 * * * *          (copy identically)
+  prompt        harness fence body    (copy identically)
+live-parents-workflows = DIFFERENT routine (watch)
+
 Pointers:
-  Belam/Prime ──▶ doc:belam-grok-internals
-  directors   ──▶ doc:director-grok-internals
-  recipe      ──▶ doc:grok-harness-internals-sync  (BYTE-IDENTICAL ROUTINE_SYNC)
-
-profile · routines · standing mirrors
-  = byte-copy of per-post SoT SECTION:* fences
-  + replace {{PLACEHOLDERS}} only (labels from live profile/standing)
-
-IDENTICAL routine name across grok posts:
-  grok-internals-sync   (0 seat bytes in the routine text)
+  Belam/Prime ──▶ doc:belam-grok-internals   (PROFILE + pointer)
+  directors   ──▶ doc:director-grok-internals (PROFILE + WATCH + pointer)
+  recipe      ──▶ doc:grok-harness-internals-sync  (THE ONE ROUTINE_SYNC file)
 
 Belam/Prime ──▶ write.py graph SoT only (never hand-edit harness mirrors)
-Directors   ──▶ */30 sync: pull SoT → paste sections → replace placeholders
-Routine MAY update_state the same routine that fired (self-rewrite OK).
+Directors   ──▶ */30 sync: pull harness ROUTINE_SYNC + per-post PROFILE → replace placeholders
+Routine MAY update_state the same routine that fired (self-rewrite OK from harness doc).
 
 HARD Belam rule diagram-max:
 Belam / Prime modify ANY post spine ONLY by editing graph SoT
