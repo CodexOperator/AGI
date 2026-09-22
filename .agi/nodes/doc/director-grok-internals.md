@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: concurrency-ceilings-lower-2026-09-22
+thought_session: owner-go-durable-spawn-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -120,6 +120,10 @@ CONCURRENCY (HARD — SoT doc:standing-llm-ops §4 CONCURRENCY):
               = one parent per goal via separate dispatches
   ≤3 live parents / director · ≤5 box-wide total if needed
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
+DURABLE SPAWN (HARD — SoT doc:standing-llm-ops §4 DURABLE SPAWN):
+  parents MUST land under systemd --user scope/service (dispatch durable path)
+  never leave parents as children of interactive SSH/bash (disconnect kills them)
+  each parent own worktree a00-… · memory_max via magic-pane · spawn.parallel=1
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY. Pointer: doc:standing-llm-ops.
@@ -154,5 +158,5 @@ pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-pointer standing-llm-ops §4b HARD nest/claim/status
+Owner GO 2026-09-22 ET: PROFILE STANDING pin DURABLE SPAWN (parity with doc:standing-llm-ops §4).
 <!-- THOUGHT:END -->
