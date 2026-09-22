@@ -233,3 +233,23 @@ def test_canonical_uuid_keeps_bare_slug_and_case_is_idempotent(graph, tmp_path):
     assert pl.stdout.strip() == f"INGEST ok doc:grok-session-{SESSION}"
     assert pu.stdout.strip() == f"INGEST skip doc:grok-session-{SESSION}"
     assert len(list((graph / "nodes").rglob("*.md"))) == 1
+
+
+RESIDUE_DOC = ".agi/nodes/doc/grok-session-019ddd0f-6751-75bc-a374-6c0fe036e262.md"
+SCOPE_AGENT = "a00-a960d972"
+
+
+def _scope_check(*own):
+    argv = [sys.executable, str(REPO / "extensions" / "agi" / "bin" / "cli.py"),
+            "scope-check", "--agent-id", SCOPE_AGENT]
+    for o in own:
+        argv += ["--own", o]
+    return subprocess.run(argv, input=RESIDUE_DOC + "\0", capture_output=True,
+                          text=True, cwd=REPO)
+
+
+def test_residue_node_is_committable_exactly_when_owned():
+    """goal:g7.32.1 conjunct 2: the real-corpus ingest residue is unowned to a
+    round that does not name it and owned to one that does."""
+    assert _scope_check().returncode == 1
+    assert _scope_check(RESIDUE_DOC).returncode == 0
