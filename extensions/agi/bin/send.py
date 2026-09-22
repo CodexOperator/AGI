@@ -2944,8 +2944,7 @@ def send(root: Path, to: str, text: str, sender: str | None,
         head += "env: v1\n" + sig_line + "\n"
     block = head + f"\n{text}\n"
 
-    with open(inbox, "a") as f:
-        f.write(block)
+    _deliver(root, "file", inbox, block)
 
     # Best-effort wake-token nudge into a perpetual seat's window; a no-op
     # for windowless (ephemeral) recipients. One fixed token only — never the
@@ -3892,9 +3891,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    ok = _nudge_window(locations.find_project_root(croot) or croot, other,
-                       sender=_detect_sender(sender), body=text)
-    _announce_nudge(croot, other, ok)
+    _deliver(locations.find_project_root(croot) or croot, "nudge", other, text,
+             sender=_detect_sender(sender), croot=croot)
     return path
 
 
@@ -5147,6 +5145,46 @@ def _route_send(root: Path, croot: Path, args, sender) -> int:
         if matches(args):
             return handler(root, croot, args, sender)
     return 1
+
+
+# delivery transport table (goal:g7.32.4 falsifier 2, delivery leg). `send`
+# and `send_dm` walk THIS table for the bytes' final hop -- the built-in
+# inbox/dm append and the pane nudge. A new transport is a row, not an `if`.
+DELIVERY_TRANSPORTS: list = []
+
+
+def register_delivery(name: str, handler, *, priority: int = 0):
+    """Register one delivery transport (priority=1 = ahead of the default)."""
+    row = (name, handler)
+    if priority:
+        DELIVERY_TRANSPORTS.insert(0, row)
+    else:
+        DELIVERY_TRANSPORTS.append(row)
+    return row
+
+
+def _deliver_default(root: Path, kind: str, path, payload, **kw) -> bool:
+    """Built-in transport: append to the file, or nudge the pane."""
+    if kind == "file":
+        with open(path, "a") as f:
+            f.write(payload)
+        return True
+    if kind == "nudge":
+        ok = _nudge_window(root, path, sender=kw.get("sender"), body=payload)
+        _announce_nudge(kw.get("croot", root), path, ok)
+        return True
+    return False
+
+
+register_delivery("default", _deliver_default)
+
+
+def _deliver(root: Path, kind: str, path, payload, **kw) -> bool:
+    """First row to claim the delivery handles it; see DELIVERY_TRANSPORTS."""
+    for _name, handler in DELIVERY_TRANSPORTS:
+        if handler(root, kind, path, payload, **kw):
+            return True
+    return False
 
 
 def main(argv: list[str] | None = None) -> int:
