@@ -15,7 +15,7 @@ tags:
   - llm
   - goals
   - owner-2026-09-20
-thought_session: concurrency-ceilings-lower-2026-09-22
+thought_session: owner-go-durable-spawn-2026-09-22
 title: Standing LLM ops — golden rule, diagram-max, goal template, graph-engine preference
 town: core
 ---
@@ -420,6 +420,25 @@ only-if   scopes disjoint → may approach ≤5 box-wide
 
 Keep `spawn.parallel=1` in config + orders. Soft box-wide ceiling ≤5; per-director target ≤3.
 
+### DURABLE SPAWN (owner 2026-09-22 — HARD)
+
+```
+DURABLE SPAWN (dispatch.py durable path ONLY)
+  parents MUST land under systemd --user scope/service
+    = start_new_session + mem_cap wrap (systemd-run --user --scope MemoryMax)
+    = PPID=1 · survives SSH disconnect
+  never leave parents as children of interactive SSH/bash
+    (disconnect kills them)
+  each parent owns its own worktree a00-…
+  memory_max via magic-pane config (8G) · spawn.parallel=1
+```
+
+```
+WRONG  bare nohup/& under SSH session ──▶ dies on disconnect
+WRONG  parent as child of interactive bash/tmux without systemd scope
+RIGHT  dispatch.py durable ──▶ systemd --user transient scope ──▶ PPID=1 · own WT a00-…
+```
+
 residue→goal **only** when format-worthy (full Why→Target→Invariants→Falsifier→Out of Scope→Agent Notes).
 
 ### Lean MUR / review file lists (owner 2026-09-21 — HARD)
@@ -615,5 +634,5 @@ mint/edit
 `accept_with_residue` is a **continue signal**, not a land signal.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-§4c pointer: after graph SoT land → push tips + sync LOCAL post trees seat-director-belam/helper; detail in doc:belam-grok-internals PROFILE §GRAPH SoT LAND
+Owner GO 2026-09-22 ET: HARD DURABLE SPAWN rule added under §4 — parents MUST land under systemd --user scope via dispatch durable path (start_new_session + mem_cap); never SSH/bash children; each parent own WT a00-…. Keep CONCURRENCY ≤3/dir · ≤5 box-wide · spawn.parallel=1.
 <!-- THOUGHT:END -->
