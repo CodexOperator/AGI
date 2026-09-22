@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-0166642c-546ee6
 next_edges: []
-edited_by: a00-0166642c
+edited_by: a00-15a555b7
 evidence_runs:
   - experiment:a00-36a00a4c-code-residues
 line_ceiling: 40
@@ -15,7 +15,7 @@ probes:
   - {"conjunct": 1, "class": "wire", "cmd": "grep -n '73' .agi/nodes/experiment/a00-36a00a4c-code-residues.md", "expected": "no suite-count 73 survives", "observed": "no match, exit 1", "result": "held"}
   - {"conjunct": 1, "class": "wire", "cmd": "grep -n '61 passed' and 'test_real_adapter_restart.py' .agi/nodes/experiment/a00-36a00a4c-code-residues.md", "expected": "every cited count is fixtures-only 61 with the excluded real-process file named", "observed": "61 passed cited three-file; test_real_adapter_restart.py named twice as excluded real-process (74 only paired with it)", "result": "held"}
   - {"conjunct": 2, "class": "auth", "cmd": "grep -n 'edited_by' .agi/nodes/experiment/a00-36a00a4c-code-residues.md", "expected": "the node actual last writer, not the DT.37-forced a00-bae1a692", "observed": "8:edited_by: a00-0166642c, written through write.py with no --actor; it is not a00-bae1a692", "result": "held"}
-  - {"conjunct": 3, "class": "wire", "cmd": "grep -n '439cc9a0a' .agi/nodes/hypothesis/a00-46a1a38f-a7dc2a.md", "expected": "deliverable tip 439cc9a0a named in testable_claim and body", "observed": "35 testable_claim names 439cc9a0a; 46 body names it; 124af18f6 only as base tip", "result": "held"}
+  - {"conjunct": 3, "class": "wire", "cmd": "grep -n '439cc9a0a' .agi/nodes/hypothesis/a00-46a1a38f-a7dc2a.md", "expected": "f3eef11ca named as the deliverable tip in testable_claim and body; 439cc9a0a only as the DT.37 tip", "observed": "26 testable_claim names f3eef11ca; the DT.43 body named 439cc9a0a, re-pointed by DT.47; 439cc9a0a only the DT.37 tip", "result": "held"}
   - {"conjunct": 4, "class": "wire", "cmd": "grep -c 'same parent a00-82c24fba' .agi/nodes/hypothesis/a00-46a1a38f-a7dc2a.md", "expected": "same-parent closure plus verdict documented", "observed": "1, in the THOUGHT block", "result": "held"}
   - {"conjunct": 5, "class": "gate", "cmd": "python3 -m pytest extensions/agi/tests/test_tmux_hold.py extensions/agi/tests/test_grok_bot_adapter.py extensions/agi/tests/test_adapters.py -q", "expected": "61 passed", "observed": "61 passed in 1.75s", "result": "held"}
 production_lines: 0
@@ -23,7 +23,7 @@ profile: balanced
 role: kid
 scaffold_hash: e617382069eddc11
 season: 2
-testable_claim: "The two DT.37 residues are closed on the bytes: experiment:a00-36a00a4c-code-residues cites only the fixtures-only 61 (three files) with test_real_adapter_restart.py named excluded real-process, and its edited_by is its actual last writer (a00-0166642c, written with no --actor), not the DT.37-forced a00-bae1a692; hypothesis:a00-46a1a38f-a7dc2a names the deliverable tip 439cc9a0a and no longer asserts the forced stamp, and documents the same-parent (a00-82c24fba) closure-plus-verdict."
+testable_claim: "The two DT.37 residues are closed on the bytes: experiment:a00-36a00a4c-code-residues cites only the fixtures-only 61 (three files) with test_real_adapter_restart.py named excluded real-process, and its edited_by is its actual last writer (a00-0166642c, written with no --actor), not the DT.37-forced a00-bae1a692; hypothesis:a00-46a1a38f-a7dc2a names the deliverable tip f3eef11ca (with 439cc9a0a only as the DT.37 tip) and no longer asserts the forced stamp, and documents the same-parent (a00-82c24fba) closure-plus-verdict."
 title: "DT.43 corrective round: the false forced stamp and the mixed suite count closed on the bytes"
 town: core
 ---
@@ -63,8 +63,8 @@ editor. The THOUGHT now says this.
 ### N3 -- base tip named instead of the deliverable tip
 
 `hypothesis:a00-46a1a38f-a7dc2a` `testable_claim` and body Hypothesis now name
-the deliverable tip `439cc9a0a` (with `124af18f6` retained only as the base tip
-the DT.37 commands ran against), as does the
+the deliverable tip `f3eef11ca` (DT.43 named `439cc9a0a`; DT.47 re-pointed it;
+`124af18f6` is retained only as the base tip the DT.37 commands ran against), as does the
 `experiment:a00-46a1a38f-dt37-residues` `testable_claim` and its "Commands run"
 line.
 
@@ -103,7 +103,7 @@ grep -n '73' .agi/nodes/experiment/a00-36a00a4c-code-residues.md
 grep -n 'edited_by' .agi/nodes/experiment/a00-36a00a4c-code-residues.md
   -> 8:edited_by: a00-0166642c   (not a00-bae1a692; written with no --actor)
 grep -n '439cc9a0a' .agi/nodes/hypothesis/a00-46a1a38f-a7dc2a.md
-  -> 35 testable_claim names the deliverable tip 439cc9a0a; 46 body names it
+  -> 35 and 46 name f3eef11ca; 439cc9a0a only as the DT.37 tip
 grep -n 'same parent a00-82c24fba' .agi/nodes/hypothesis/a00-46a1a38f-a7dc2a.md
   -> 1 (N4 documented in the THOUGHT)
 python3 -m pytest extensions/agi/tests/test_tmux_hold.py \
@@ -114,8 +114,8 @@ grep -c 'test_real_adapter_restart.py' .agi/nodes/experiment/a00-36a00a4c-code-r
   -> 2 (named excluded real-process)
 ```
 
-Raw capture: `.agi/sessions/iter-DT.43/a00-0166642c/probes_out.txt`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DT.43 corrective round under goal:g7.31.1.2, parent a00-266de45a. Corrective, not exploratory: the two MUR residues on the DT.34/DT.37 chain were false bytes in the graph, and this round rewrote them through write.py with no --actor so provenance is honest. No production code changed, so production_lines is 0 against the 40 ceiling.
+DT.47 run 2 (a00-15a555b7): run 1 (a00-c744b4af) re-pointed hypothesis:a00-46a1a38f-a7dc2a's deliverable tip to f3eef11ca; the probe, testable_claim, N3 and fenced evidence were rewritten to name f3eef11ca, with 439cc9a0a labelled as the DT.43-time old fact / DT.37 tip. No production code changed; production_lines 0.
 <!-- THOUGHT:END -->
