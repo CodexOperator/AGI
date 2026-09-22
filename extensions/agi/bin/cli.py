@@ -53,6 +53,12 @@ CANONICAL_NODE_TYPES = node_writer.CANONICAL_NODE_TYPES
 TYPE_ALIASES = node_writer.TYPE_ALIASES
 NODE_TYPES = node_writer.NODE_TYPES
 
+#: The one heading every note writer shares. `write.py`'s `note` verb already
+#: merges under it; `done` and `post_wire` used to test only whether the note
+#: TEXT was present, so a node arriving with a DIFFERENT note under this
+#: heading got a second heading -- measured on hypothesis:a00-c1f23fe9-865e62.
+NOTES_HEADING = "## Agent Notes"
+
 
 def _find_root() -> Path:
     """The graph root for cwd, via the one shared resolver (goal:g11.1).
@@ -2052,10 +2058,15 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
             from graph_core.persistence import frontmatter as _fmr2
             nf2 = _fmr2.load_node_file(node_file)
             if notes.strip() not in nf2.body:
-                new_body = nf2.body
-                if not new_body.endswith("\n"):
-                    new_body += "\n"
-                new_body += f"\n## Agent Notes\n{notes}\n"
+                # Append UNDER an existing heading, never a second one -- the
+                # same rpartition merge write.py:2317 does for `note`.
+                new_body = nf2.body.rstrip()
+                note = notes.rstrip()
+                if NOTES_HEADING in new_body:
+                    head, sep, tail = new_body.rpartition(NOTES_HEADING)
+                    new_body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+                else:
+                    new_body += f"\n\n{NOTES_HEADING}\n{note}\n"
                 res2 = node_writer.update_node(
                     root, node_id, body=new_body)
                 if res2.status == node_writer.REJECTED:

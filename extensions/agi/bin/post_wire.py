@@ -33,6 +33,11 @@ import node_writer  # noqa: E402
 import spawn_gate  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
 
+#: The one heading every note writer shares (see cli.py and write.py's `note`
+#: verb). Testing only whether the note TEXT is already present is what let a
+#: node carrying a DIFFERENT note get a second heading appended.
+NOTES_HEADING = "## Agent Notes"
+
 # --- reuse snapshot-goals.py's write_frontmatter --------------------------
 # Loaded by file path (not `import`) because the filename has a hyphen and is
 # not a valid module name. Same pattern as decompose-engine.py and
@@ -473,8 +478,16 @@ def cmd_wire(args: argparse.Namespace) -> int:
             # Idempotent: `cli.py done` may already have written this exact
             # section. Appending unconditionally is what put the notes in
             # twice on every kid for as long as both writers have existed.
+            # And append UNDER an existing heading, never a second one -- a
+            # node that arrived with a DIFFERENT note already under
+            # `## Agent Notes` used to get a second heading here.
             if notes and notes.strip() not in body:
-                body = body.rstrip() + f"\n\n## Agent Notes\n{notes}\n"
+                note = notes.rstrip()
+                if NOTES_HEADING in body:
+                    head, sep, tail = body.rpartition(NOTES_HEADING)
+                    body = head + sep + tail.rstrip() + f"\n\n{note}\n"
+                else:
+                    body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
             _update_via_writer(root, node_id, node_path,
                                original_fm, fm, original_body, body)
             updated_nodes.append(node_id)
