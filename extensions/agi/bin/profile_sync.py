@@ -42,6 +42,27 @@ def validate_ref(root, ref):
     return artifact_path(root, ref)
 
 
+def refuse_effective_ref(root, node_id, set_fm=None, unset_fm=None):
+    """ONE effective-ref judgement, two callers: `write.py`'s `submit`
+    before `update_node`, and its `--dry-run` preview. Resolves the
+    `profile_ref` this write would LEAVE on the node -- this edit's `set
+    profile_ref` if it carries one, else the value already on disk (an
+    `unset profile_ref` leaves none) -- and refuses it BY NAME, writing
+    nothing. Returns the resolved artifact path, or None when unlinked."""
+    if "profile_ref" in (unset_fm or ()):
+        return None
+    ref = (set_fm or {}).get("profile_ref")
+    if ref is None and (f := node_writer.find_node_file(root, node_id)):
+        try:
+            nf = fmr.load_node_file(f, body=False)
+            ref = nf.frontmatter.get("profile_ref")
+        except Exception:
+            ref = None
+    if ref:
+        return validate_ref(root, str(ref))
+    return None
+
+
 def _projected_bytes(nf):
     """A node-file's projection payload: body with THOUGHT stripped."""
     t = node_writer.extract_thought(nf.body)
@@ -146,6 +167,9 @@ def main(argv=None):
         print(f"{e}: no profile_ref"); return 0
     except Refused as e:
         print(f"REFUSED: {e}", file=sys.stderr); return 2
+    except FileNotFoundError as e:
+        print(f"REFUSED: no node file for {e.args[0]!r}", file=sys.stderr)
+        return 2
     sha = hashlib.sha256(payload).hexdigest()
     if a.check:
         have = dest.read_bytes() if dest.exists() else b""
