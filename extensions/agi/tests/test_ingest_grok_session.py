@@ -16,6 +16,8 @@ from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "grok-session-sample.jsonl"
+# Provenance is required; flagless tests must supply it like any other caller.
+PROV = ["--actor", "tester", "--thought-session", "test-session"]
 
 SHAPE = """\
 ---
@@ -70,7 +72,7 @@ def _node_files(root):
 def test_ingest_mints_node_with_provenance(tmp_path, capsys):
     root = _project(tmp_path)
     before = len(_node_files(root))
-    rc = ingest.main([str(FIXTURE), "--root", str(tmp_path)])
+    rc = ingest.main([str(FIXTURE), "--root", str(tmp_path), *PROV])
     out = capsys.readouterr().out.strip()
     assert rc == 0, out
     assert out.startswith("hypothesis:grok-")
@@ -86,12 +88,12 @@ def test_ingest_mints_node_with_provenance(tmp_path, capsys):
 
 def test_reingest_returns_same_id_no_second_mint(tmp_path, capsys):
     root = _project(tmp_path)
-    first = ingest.main([str(FIXTURE), "--root", str(tmp_path)])
+    first = ingest.main([str(FIXTURE), "--root", str(tmp_path), *PROV])
     id1 = capsys.readouterr().out.strip()
     assert first == 0
     mint = fm_reader.load_node_file(ingest.node_writer.find_node_file(root, id1), body=False).frontmatter["mint_id"]
     after_first = len(_node_files(root))
-    second = ingest.main([str(FIXTURE), "--root", str(tmp_path)])
+    second = ingest.main([str(FIXTURE), "--root", str(tmp_path), *PROV])
     id2 = capsys.readouterr().out.strip()
     assert second == 0 and id2 == id1
     assert len(_node_files(root)) == after_first
@@ -103,7 +105,7 @@ def test_malformed_refused_writes_nothing(tmp_path, capsys):
     bad = tmp_path / "bad.jsonl"
     bad.write_text("{not json\n")
     before = _node_files(root)
-    rc = ingest.main([str(bad), "--root", str(tmp_path)])
+    rc = ingest.main([str(bad), "--root", str(tmp_path), *PROV])
     out = capsys.readouterr().out.strip()
     assert rc == 2
     assert out.startswith("refused:")
@@ -115,7 +117,36 @@ def test_empty_refused_writes_nothing(tmp_path, capsys):
     empty = tmp_path / "empty.jsonl"
     empty.write_text("\n\n")
     before = _node_files(root)
-    rc = ingest.main([str(empty), "--root", str(tmp_path)])
+    rc = ingest.main([str(empty), "--root", str(tmp_path), *PROV])
+    out = capsys.readouterr().out.strip()
+    assert rc == 2 and out.startswith("refused:")
+    assert _node_files(root) == before
+
+
+def test_default_env_supplies_provenance(tmp_path, capsys, monkeypatch):
+    """No --actor/--thought-session flags: AGI_ACTOR + AGI_THOUGHT_SESSION
+    are used, and the minted node carries BOTH, non-empty."""
+    root = _project(tmp_path)
+    monkeypatch.setenv("AGI_ACTOR", "env-actor")
+    monkeypatch.setenv("AGI_THOUGHT_SESSION", "env-session")
+    monkeypatch.delenv("AGI_AGENT_ID", raising=False)
+    rc = ingest.main([str(FIXTURE), "--root", str(tmp_path)])
+    out = capsys.readouterr().out.strip()
+    assert rc == 0, out
+    node = ingest.node_writer.find_node_file(root, out)
+    fm = fm_reader.load_node_file(node, body=False).frontmatter
+    assert fm["edited_by"] == "env-actor"
+    assert fm["thought_session"] == "env-session"
+
+
+def test_missing_provenance_refused_writes_nothing(tmp_path, capsys, monkeypatch):
+    """No flags AND no env: refuse BY NAME, write no node. Never a silent
+    anonymous write -- the exact defect this round fixes."""
+    root = _project(tmp_path)
+    for key in ("AGI_ACTOR", "AGI_AGENT_ID", "AGI_THOUGHT_SESSION"):
+        monkeypatch.delenv(key, raising=False)
+    before = _node_files(root)
+    rc = ingest.main([str(FIXTURE), "--root", str(tmp_path)])
     out = capsys.readouterr().out.strip()
     assert rc == 2 and out.startswith("refused:")
     assert _node_files(root) == before
