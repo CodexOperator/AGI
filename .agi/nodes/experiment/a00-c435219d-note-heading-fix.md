@@ -9,7 +9,7 @@ edited_by: a00-c435219d
 line_ceiling: 40
 loop: goal:g7.31.3.2@s2
 model: deepseek/deepseek-v4.1-flash
-production_lines: 37
+production_lines: 45
 profile: balanced
 role: kid
 scaffold_hash: aea04aacf0eaa3a6
@@ -164,20 +164,42 @@ $ python3 extensions/agi/bin/links.py links | grep resolved
 links: 3856 resolved, 0 broken (18 retired payload(s), not damage)
 ```
 
+### Step 7 — the SECOND defect, found by running `done` on this very node
+
+`append_agent_note`'s first version tested `NOTES_HEADING in body` — a
+SUBSTRING test — so a body that merely mentions the heading in prose matched,
+and `rpartition` appended the note BARE at that mention with no heading at all.
+This node's own claim prose names the heading three times, so `cli.py done`
+reproduced it immediately: the note landed as a loose paragraph. Fixed to a
+line-anchored match (`^## Agent Notes[ \t]*$`, MULTILINE); a regression test
+appends a note to a body carrying an inline backticked mention and asserts one
+real heading, the mention untouched, and the note last. The same text-dedupe
+shape was latent in `write.py::_compose_body`'s original code, now one helper.
+
+### Step 8 — repair this node's own bare note
+
+The bare note at body line 37 was replaced with a real heading + the note:
+
+```
+$ cat my_note_fixed.txt | python3 extensions/agi/bin/write.py hypothesis:a00-c435219d-d7d4a3 'replace body 37:37 -'
+updated: hypothesis:a00-c435219d-d7d4a3
+$ grep -c '^## Agent Notes' .agi/nodes/hypothesis:a00-c435219d-d7d4a3.md
+1
+```
+
 ## Surfaces run
 
 ```
-$ python3 -m pytest extensions/agi/tests/test_completion.py extensions/agi/tests/test_write.py -q
-137 passed, 92 warnings in 1.54s
-$ python3 -m pytest extensions/agi/tests/test_kid_reports_to_parent.py -q
-21 passed
+$ python3 -m pytest extensions/agi/tests/test_completion.py extensions/agi/tests/test_write.py extensions/agi/tests/test_kid_reports_to_parent.py -q
+159 passed, 92 warnings in 3.82s
 ```
 
 ## production_lines
 
-`git diff --numstat` over the production paths (source, not tests):
-see the `production_lines:` frontmatter field on this node — under the
-40-line ceiling.
+`git diff --numstat fdb1449a8` over the production paths (source, not tests):
+45 added / 23 removed. This is ABOVE the 40 `line_ceiling` but WELL under the
+2x (80) re-brief threshold, so the round continues and the overage is recorded
+honestly in `production_lines:`. The helper's documentation is most of it.
 
 ## Out of scope
 

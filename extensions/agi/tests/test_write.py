@@ -419,6 +419,21 @@ def test_the_shared_note_helper_is_heading_aware_for_a_different_note():
     assert node_writer.append_agent_note(out, "second note") == out
 
 
+def test_an_inline_heading_mention_is_not_mistaken_for_the_heading():
+    """A body that TALKS about the heading must still get a real one.
+
+    `NOTES_HEADING in body` is true for a backticked prose mention ("duplicate
+    `## Agent Notes`"), and `rpartition` then appended the note BARE at that
+    mention -- no heading at all. Found when `cli.py done` appended a note to
+    a node whose own claim prose named the heading three times.
+    """
+    body = "a claim about `## Agent Notes` headings, and another mention\n"
+    out = node_writer.append_agent_note(body, "the note")
+    assert out.count("\n## Agent Notes\n") == 1, out
+    assert out.count("`## Agent Notes`") == 1, out
+    assert out.rstrip().endswith("the note"), out
+
+
 # --------------------------------------------------------------------------
 # L1.07 — `create`: the half that was missing when `edit` became `write`
 # --------------------------------------------------------------------------
