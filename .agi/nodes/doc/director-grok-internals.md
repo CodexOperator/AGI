@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -40,11 +40,11 @@ IDENTICAL across directors except the five tags below
 | `{{BRANCH}}` | core/season2/main \| local-only |
 | `{{REMOTE_POLICY}}` | push season2 \| never new remote head |
 | `{{REPORTS_TO}}` | Belam daily-pass / graph board \| director-belam point |
-| `{{SEAT_LABEL}}` | short seat name |
+| `{{SEAT_LABEL}}` | short post name |
 
-Seat fill examples (not a second SoT):
+Post fill examples (not a second SoT):
 
-| seat | POST | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
+| post | POST | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
 |---|---|---|---|---|---|
 | point | director-belam | core/season2/main | push season2 | Belam daily-pass / graph board | director CORE TOWN |
 | helper | director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
@@ -61,7 +61,7 @@ you ──▶ town:core
 location ──▶ encryption-town  (town.location — pull town:core)
 ```
 
-## BRANCH (seat-local ONLY)
+## BRANCH (post-local ONLY)
 ```
 you     ──▶ {{BRANCH}}
 policy  ──▶ {{REMOTE_POLICY}}
@@ -107,7 +107,7 @@ DIAGRAM-MAX (HARD — every token):
         ──▶ prose ONLY where diagram drops meaning
         ──▶ keep never/only-if/unless · conditions · who/when · supersessions
         ──▶ owner verbatim stays verbatim
-land gate: format ✓ · residues=0 · FULL suite green on seat (§3e)
+land gate: format ✓ · residues=0 · FULL suite green on post (§3e)
 routes: write·read·send·dispatch/workflow·rotate/spawn
 §3d residue → write.py goal version (whole-replace thought/feeling)
 lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only after lean
@@ -138,9 +138,9 @@ Never merge into grok-internals-sync
 POINT AT  doc:standing-llm-ops §3c Shared director watch FORMAT (verbatim)
 name      live-parents-workflows
 schedule  @every 50m   (pi parents run around the clock — stated reason)
-pins ONLY (seat-local; rest = byte-copy of §3c FORMAT):
+pins ONLY (post-local; rest = byte-copy of §3c FORMAT):
   SCOPE  {{POST}} parents / this-director MURs / suite
-  TREE   seat worktree for {{POST}}
+  TREE   post worktree for {{POST}}
   BRANCH {{BRANCH}}
   HOST   SSH encryption-town → /data/work/agi  (never /workspace/agi)
   POLICY {{REMOTE_POLICY}}

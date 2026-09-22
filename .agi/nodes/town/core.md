@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-seat-to-post-prose-2026-09-21
 town: core
 visions:
   - vision:alive
@@ -56,8 +56,8 @@ DIRECTOR (no Belam chat):
 
 BELAM (daily, not mid-batch):
   pull town:core + geometry board + closed tips
-  merge seat tips w/ residues=0 evidence
-  full verify on core/main (or seat as docs say)
+  merge post tips w/ residues=0 evidence
+  full verify on core/main (or post as docs say)
   vision-lens on goals · moral-lens on visions↔goals
   residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
   reopen = Prime priority over plain open
@@ -95,13 +95,13 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 | goal:g7.28 | horizon | Dispatch persistent mode |
 | goal:g7.29 | horizon | Shrink rotate.py orchestration |
 | goal:g7.30 | horizon | Land grok-bot adapter + post template |
-| goal:g7.31 | active | Pane = seat spine (umbrella) |
+| goal:g7.31 | active | Pane = post spine (umbrella) |
 | goal:g7.31.1 | active | Measured CLI + durable pane hold |
 | goal:g7.31.1.1 | horizon | Measured CLI argv |
 | goal:g7.31.1.2 | active | Durable named tmux pane |
 | goal:g7.31.2 | horizon | Pane anchor ↔ post/pin/formation |
 | goal:g7.31.3 | active | Five unified engine routes |
-| goal:g7.31.3.1 | active | Cold seat brief five routes |
+| goal:g7.31.3.1 | active | Cold post brief five routes |
 | goal:g7.31.3.2 | active | Sample write+send+dispatch |
 | goal:g7.31.4 | horizon | Native handbacks SSH-or-not |
 | goal:g7.31.5 | horizon | Graph↔harness-doc sync |
