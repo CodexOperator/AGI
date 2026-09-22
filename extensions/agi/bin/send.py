@@ -2148,6 +2148,25 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
         return False
 
 
+def _nudge_transport(root: Path, to: str) -> tuple[str, list[str]]:
+    """THE one transport resolver (goal:g7.31.4): `('local', [])`, `('mesh',
+    ['ssh', alias])` from the recipient town's `location` cell, or `('none',
+    [])` for a foreign row with no alias. Host names are READ from the graph,
+    never a literal in code (test_no_literal_town.py)."""
+    row = _seat_row_by_name(_locally_loaded_rows(root), to)
+    if row is None or boxes.row_is_local(root, row):
+        return ("local", [])
+    try:
+        import towns
+        want = towns.row_town(root, row)
+        for t in towns.load_towns(root):
+            if t.slug == want and t.location:
+                return ("mesh", ["ssh", t.location])
+    except Exception:  # noqa: BLE001 -- undeclared/broken town set: no mesh
+        pass
+    return ("none", [])
+
+
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
                   repair_stale_id: bool = True,
                   ) -> tuple[str, object, str] | None:
@@ -2227,6 +2246,32 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     return (target, pid, tmux_session)
 
 
+def _nudge_mesh(root: Path, to: str, tmux_session: str | None,
+                prefix: list[str], body: str | None = None,
+                sender: str | None = None, path: str | None = None) -> bool:
+    """Type a wake on a FOREIGN box through the resolver's ssh prefix. The
+    remote pane cannot be read from here, so the local coalesce/copy-mode
+    checks are skipped rather than faked; the token shape (fixed token for an
+    inbox send, inline line for a dm, Enter as a separate call) is the local
+    one (goal:g7.31.4)."""
+    row = _seat_row_by_name(_locally_loaded_rows(root), to) or {}
+    if tmux_session is None:
+        import rotate
+        tmux_session = rotate.DEFAULT_TMUX_SESSION
+    ref = str(row.get("window") or "").strip() or to
+    target = f"{tmux_session}:{ref}"
+    text = (_nudge_line(to, sender or "unknown", body, _pending_more(root, to))
+            if body is not None else _build_nudge_token(to, path))
+    if text is None or not _send_keys(target, text, literal=True,
+                                      prefix=prefix):
+        return False
+    time.sleep(_NUDGE_ENTER_DELAY_S)
+    if not _send_keys(target, "Enter", prefix=prefix):
+        return False
+    _record_nudge(root, to)
+    return True
+
+
 def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
                  sender: str | None = None,
                  body: str | None = None,
@@ -2260,6 +2305,16 @@ def _nudge_window(root: Path, to: str, tmux_session: str | None = None,
         # a service sender that NAMES ITSELF never types; `wake` passes no
         # sender because it DELIVERS a post's pending state.
         return True
+    # goal:g7.31.4 -- the ONE transport branch; the send/wake surface does not
+    # test `is_ssh`/`foreign` itself.
+    kind, prefix = _nudge_transport(root, to)
+    if kind == "none":
+        print(f"nudge: {to} is on a foreign box with no mesh transport -- "
+              f"no wake typed; mail_poll delivers the inbox", file=sys.stderr)
+        return False
+    if kind == "mesh":
+        return _nudge_mesh(root, to, tmux_session, prefix, body=body,
+                           sender=sender, path=path)
     if resolved is not None:
         target, pid, tmux_session = resolved
     else:
@@ -2690,6 +2745,11 @@ def wake(root: Path, to: str, tmux_session: str | None = None) -> bool:
         # quiet: never re-fire a stale marker, never type (skip by name).
         print(f"wake {to}: quiet-skip")
         return False
+    if _nudge_transport(root, to)[0] != "local":
+        # goal:g7.31.4: a foreign seat wakes through the SAME `_nudge_window`
+        # seam; the local pane probes below cannot read another box.
+        return _wake_outcome("typed-token", seat=to, delivered=_nudge_window(
+            root, to, tmux_session=tmux_session, path="idle"))
     resolved = _nudge_target(root, to, tmux_session, repair_stale_id=True)
     if resolved is None:
         return _wake_outcome("no-target", delivered=False, seat=to)
@@ -2849,10 +2909,13 @@ def status(root: Path, to: str, tmux_session: str | None = None) -> str:
             f"lastread={_age(_lastread_age(root, to))}")
 
 
-def _send_keys(target: str, *keys: str, literal: bool = False) -> bool:
+def _send_keys(target: str, *keys: str, literal: bool = False,
+               prefix: list[str] | None = None) -> bool:
     """One `tmux send-keys` call; False on any failure. `literal=True` types
-    the keys as text (`-l`) — no key-name parsing, no Enter."""
-    argv = ["tmux", "send-keys"]
+    the keys as text (`-l`) — no key-name parsing, no Enter. `prefix` is the
+    transport argv (`['ssh', alias]`) the resolver chose; every tmux call has
+    ONE shape."""
+    argv = [*(prefix or []), "tmux", "send-keys"]
     if literal:
         argv.append("-l")
     argv += ["-t", target, *keys]
