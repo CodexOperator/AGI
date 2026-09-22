@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-3dd9eb76-eb2e65
 next_edges: []
-edited_by: a00-3dd9eb76
+edited_by: a00-1b6e88a9
 evidence_runs:
   - experiment:profile-ref-prevalidation
 line_ceiling: 40
@@ -19,7 +19,7 @@ probes:
   - {"conjunct": 4, "class": "gate", "cmd": "python3 -m pytest extensions/agi/tests/test_profile_sync.py extensions/agi/tests/test_write.py -q", "expected": "green, ast no-file-write guard green", "observed": "135 passed, 74 warnings in 12.74s", "result": "pass"}
 production_lines: 34
 profile: balanced
-push_further: (a) bind profile_ref to the real Grok Bot profile/settings artefact once goal:g7.30 lands the adapter surfaces; (b) turn a DIRECTORY-target profile_ref and a missing node id into named refusals instead of uncaught IsADirectoryError/FileNotFoundError (residues from experiment:a00-1b9a8e7e-profile-sync); (c) make sync_node itself transactional with the node write (a crash between update_node and sync_node still leaves the artifact stale even though neither refuses)
+push_further: "(b) the missing-node-id half only: project() raised a bare FileNotFoundError uncaught by main() -> now a named refusal; the directory-target half is already refused by artifact_path() (test green). (a) bind profile_ref to the real Grok Bot profile surface once goal:g7.30 lands; (c) make sync_node transactional with the node write."
 role: kid
 scaffold_hash: acebacfa97b5b43f
 season: 2
