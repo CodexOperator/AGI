@@ -18,6 +18,7 @@ Falsifiers, each named below:
 from __future__ import annotations
 
 import json
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -122,8 +123,11 @@ def test_foreign_seat_with_mesh_alias_types_on_the_remote_box(tmp_path,
     assert "the body must never reach the remote transport" in inbox.read_text()
     ssh = [c for c in calls if c[:2] == ["ssh", "local-town"]]
     assert ssh, "a foreign mesh seat must be typed through the ssh alias"
-    assert ssh[0][2:5] == ["tmux", "send-keys", "-l"]
-    assert "director" in ssh[0][-1], "the token names the remote seat"
+    # DEMOTE 1: the remote side travels as ONE quoted command string; the
+    # remote shell reconstructs the argv, so assert on the reconstruction.
+    remote = shlex.split(" ".join(ssh[0][2:]))
+    assert remote[:3] == ["tmux", "send-keys", "-l"]
+    assert "director" in remote[-1], "the token names the remote seat"
     assert body not in " ".join(ssh[0]), "the body never reaches the transport"
 
 
@@ -219,6 +223,9 @@ def test_wake_foreign_no_mesh_is_not_reported_delivered(tmp_path, monkeypatch,
                                                         capsys):
     root = _graph(tmp_path, [FOREIGN], town_location=None)
     _fake_run(monkeypatch)
+    # a pending unread state, so the DEMOTE 2 gate lets the wake reach the
+    # transport branch (an idle foreign seat returns nothing-pending first).
+    _write_unread_inbox(root, "director")
     assert send_mod.wake(root, "director") is False, \
         "nothing reached a pane, so the exit is 1"
     cap = capsys.readouterr()
@@ -244,3 +251,74 @@ def test_mesh_delivers_stored_deferred_dm_inline(tmp_path, monkeypatch):
     assert "agi-nudge" not in typed and "unread for" not in typed, \
         "the fixed wake token must not be typed in place of the deferred dm"
     assert not dpath.exists(), "a delivered deferred body is cleared"
+
+
+# ── (10) DEMOTE 1 (goal:g7.31.4): the ssh transport QUOTES every remote-side
+#        argument. An argv-record-only fake cannot see the defect: ssh joins
+#        argv[2:] with spaces and the REMOTE shell re-parses. This fake does
+#        exactly that and checks the reconstructed remote argv. ─────────────
+
+def test_mesh_ssh_argv_survives_the_remote_shell_reparse(tmp_path,
+                                                         monkeypatch):
+    root = _graph(tmp_path, [FOREIGN])
+    seen = []
+
+    def fake_run(cmd, capture_output=True, text=True, timeout=5):
+        if cmd[:2] == ["tmux", "list-windows"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout="@246",
+                                               stderr="")
+        if cmd[:1] == ["ssh"]:
+            # what ssh does: join the trailing argv with single spaces, then
+            # the remote shell parses the string (shlex.split here).
+            seen.append(shlex.split(" ".join(cmd[2:])))
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(send_mod.subprocess, "run", fake_run)
+    monkeypatch.setattr(send_mod.time, "sleep", lambda s: None)
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: None)
+    body = "body with (parens) and [brackets]"
+    dpath = send_mod._nudge_deferred_path(root, "director")
+    dpath.parent.mkdir(parents=True, exist_ok=True)
+    dpath.write_text(json.dumps({"sender": "a00-xxxx", "body": body}))
+    send_mod.send(root, "director", "inbox text", "a00-xxxx")
+    assert seen, "the mesh transport must reach ssh"
+    expected = send_mod._nudge_line(
+        "director", "a00-xxxx", body, send_mod._pending_more(root, "director"),
+        trailing=send_mod._NUDGE_INBOX_TAIL.format(seat="director"))
+    assert " " in expected and "(" in expected and "[" in expected
+    assert seen[0] == ["tmux", "send-keys", "-l", "-t", "agi-rc:@246",
+                       expected], \
+        "the remote shell must reconstruct the EXACT intended argv"
+    assert seen[1] == ["tmux", "send-keys", "-t", "agi-rc:@246", "Enter"]
+
+
+# ── (11) DEMOTE 2 (goal:g7.31.4): a foreign wake passes the SAME pending and
+#        announced-digest gates as a local one -- heal polls every seat every
+#        pass, so an unchanged state must never retype. ─────────────────────
+
+def _write_unread_inbox(root: Path, seat: str,
+                        text: str = "hello unread") -> None:
+    p = send_mod._inbox_path(root, seat)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(f"---\nts: 2026-09-22T00:00:00Z\nfrom: a00-xxxx\n"
+                 f"to: {seat}\n\n{text}\n")
+
+
+def test_foreign_wake_is_gated_by_pending_and_digest(tmp_path, monkeypatch,
+                                                     capsys):
+    root = _graph(tmp_path, [FOREIGN])
+    calls = _fake_run(monkeypatch)
+    # (a) nothing pending: no ssh typed at all
+    assert send_mod.wake(root, "director") is False
+    assert not [c for c in calls if c[:1] == ["ssh"]]
+    # (b) one unread state: the first wake types through ssh
+    _write_unread_inbox(root, "director")
+    assert send_mod.wake(root, "director") is True
+    n1 = len([c for c in calls if c[:1] == ["ssh"]])
+    assert n1 > 0
+    # (c) UNCHANGED pending state: the second wake types nothing
+    capsys.readouterr()
+    assert send_mod.wake(root, "director") is False
+    assert len([c for c in calls if c[:1] == ["ssh"]]) == n1, \
+        "an unchanged foreign unread state must not be retyped"
+    assert "nothing-pending" in capsys.readouterr().out
