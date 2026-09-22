@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 986ff4e54a717896
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
   - adapter
   - pane-methods
-thought_session: belam-horizon-4b-2026-09-21
+thought_session: belam-status-hygiene-sot-2026-09-22
 title: "G7.32.3: One adapter/harness with optional pane methods"
 town: core
 ---
