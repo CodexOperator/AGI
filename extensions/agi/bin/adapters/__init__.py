@@ -46,8 +46,10 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
     """The ONE harness bin resolver (`goal:g15` config-max).
 
     `$env_var` override, then the config `bin` cell, then the built-in
-    default. `~`/`{home}` expand against the CURRENT HOME at resolve time and
-    are used only if that path exists; a bare name is looked up on PATH. An
+    default. `~/x`, bare `~` and `{home}` expand against the CURRENT HOME at
+    resolve time; `~user/x` expands against THAT user's home
+    (`os.path.expanduser` semantics, `goal:g15.29.2`); a token-expanded path
+    is used only if it exists; a bare name is looked up on PATH. An
     explicit override naming anything but the default that resolves nowhere
     refuses BY NAME -- never a bare `Popen` FileNotFoundError.
 
@@ -64,7 +66,12 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
     raw = explicit or default
     override = bool(explicit) and raw != default
     home = os.path.expanduser("~")
-    path = (home + raw[1:]) if raw.startswith("~") else raw.replace("{home}", home)
+    if raw.startswith("~"):
+        # `~/x`/`~` -> CURRENT HOME; `~user/x` -> THAT user's home. Splicing
+        # `home + raw[1:]` made `~bob/x` resolve to `/home/<me>bob/x`.
+        path = os.path.expanduser(raw)
+    else:
+        path = raw.replace("{home}", home)
     if os.sep in path or (os.altsep and os.altsep in path):
         if os.path.exists(path):
             return path
