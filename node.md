@@ -3,13 +3,13 @@ id: hypothesis:l3w4-seat-registry
 mint_id: b0465f909cfa486da1626cf343aea725
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam
 scaffold_hash: 4c4597b0c2997a8b
 season: 2
 testable_claim: A new config:seats node (.agi/nodes/.geometry/seats.md, parent goal:g17) declares one row per seat -- name, role, tier, harness, model, effort, settings, session_kind, personality_ref, handoff_file, pin_ref, rotated_by, owning_goal -- such that `dispatch.py --seat <name>` dry-prints that row's harness/model/effort/settings overriding the ladder's (tier,role) class table, and `rotate.py meter --seat <name>` reads a seat-stable `.agi/sessions/<name>.meter` pin instead of the newest-mtime one; proved by rows for belam (fable-5.1/max/ultracode), the three advisors (opus-5/max, no ultracode), liaison owning goal:g17 (sonnet-5/high), and one director per other goal_kind:perpetual goal (opus-5/high).
-thought_session: L3.22
+thought_session: dissolve-legacy-2026-09-19
 title: Register perpetual seats
 ---
 <!-- BODY:BEGIN -->
