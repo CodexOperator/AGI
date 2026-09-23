@@ -56,7 +56,7 @@ current node — the rendered `| Command | Does |` table lists commands not decl
 incorrect argv, or misses commands that are declared.
 - `--check` exits 0 when the tables are stale or wrong (false negative).
 - The table contains absolute paths (`/home/...`) that will break on another machine,
-defeating `<engine>` substitution (`goal:g8.2`).
+defeating `<engine>` substitution (`goal:g1.24`).
 - Patching one file corrupts its existing structure (removes content before the
 marker, duplicates sections, mangled markdown).
 
@@ -92,7 +92,7 @@ a risk the experiment "should detect." It is already present in the one file the
 tool patches: the SKILL.md table renders `/home/ubuntu/work/agi/...` literal
 paths, not the `<engine>` placeholder the node stores. `_render_table` resolves
 the placeholder at render time, so a fresh clone would be handed paths that do not
-exist there — a `goal:g8.2` violation. The hypothesis now records it as confirmed
+exist there — a `goal:g1.24` violation. The hypothesis now records it as confirmed
 so the follow-on experiment does not mistake a correct-but-wrong-machine table
 for a pass.
 
