@@ -157,6 +157,20 @@ def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
     assert projected != BODY.encode()
     assert dest.read_bytes() != projected
 
+
+@pytest.mark.parametrize("ref", ["../escape.md", ".agi/nodes/evil.md"])
+def test_refused_ref_leaves_the_node_untouched(tmp_path, ref):
+    """Residue (b): the refusal must land BEFORE the node write. On the old
+    order the body was written first and only then rc=2, so a caller saw a
+    failure while the node had changed on disk."""
+    repo = _repo(tmp_path, ref=ref)
+    node = repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_bytes()
+    r = _cli(["hypothesis:h1", "note x"], repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert node.read_bytes() == before, "a refused ref must not write the node"
+
 # ---- goal:g7.31.5.3 — whole-graph sweep + pre-rotation guard ---------------
 
 def _cli_all(cwd):
