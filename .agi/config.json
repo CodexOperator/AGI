@@ -212,7 +212,9 @@
       "dead_head_artifact": "datasets/dead-head/2026-09-23/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json",
       "kv_groups_dir": "datasets/dead-head/2026-09-23-kv-groups",
       "osc_dir": ".agi/context/local-maxxing/osc",
-      "osc_band_dir": "datasets/osc-band/2026-09-23"
+      "osc_band_dir": "datasets/osc-band/2026-09-23",
+      "osc_band_hop2_dir": "datasets/osc-band/2026-09-23-hop2",
+      "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz"
     }
   }
 }
