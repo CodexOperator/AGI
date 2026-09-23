@@ -3,9 +3,9 @@ id: goal:g7.3
 mint_id: aa7f005bc80244729b3cdc87218dd8d1
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.3
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.3: `evidence_runs` as a bare integer is still unverifiable"
 ---
+# goal:g7.3
 Residual left open by G3.1 and named here so it is not forgotten. After the
 H4c fix a list entry must resolve to a real node, but an integer
 (`evidence_runs: 3`) is still accepted as direct attestation and counts 3.
