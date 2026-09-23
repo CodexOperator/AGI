@@ -392,30 +392,64 @@ def _sha256_file(path: Path) -> str:
 
 # --- safety: never the real repos -------------------------------------------
 
+def _git_common_root() -> Path | None:
+    """The working-tree root of the repo this checkout's git dir belongs to —
+    a worktree names its MAIN repo through the common dir. None if git cannot."""
+    repo = Path(__file__).resolve().parent
+    out = _git(repo, "rev-parse", "--git-common-dir", check=False).strip()
+    if not out:
+        return None
+    common = Path(out) if out.startswith("/") else (repo / out)
+    common = common.resolve()
+    return common.parent if common.name == ".git" else common
+
+
 def _real_repos() -> tuple[Path, ...]:
-    """The two real checkouts THIS box must never write into, named from the
-    `box.root` cell (config-max: the absolute root lives in a cell, never as a
-    literal) plus its `-tree` sibling. Deliberately a path comparison, not a
-    remote-URL check -- a throwaway clone's own `origin` can legitimately
-    point at the same GitHub repos. Empty when no box declares a root (a
-    guard with no named repos, never a stray home literal)."""
+    """The real checkouts THIS box must never write into, each with its
+    `-tree` sibling: the `box.root` cell when it has one (config-max), and
+    git's own answer for the running checkout whether or not it does — so an
+    absent or foreign cell still fails closed, by name (R-EF58 S1)."""
     root = locations.find_project_root(Path(__file__).resolve().parent)
     cell = (boxes.box_cells(root).get("root") if root else "") or ""
-    if not cell:
-        return ()
-    engine = Path(cell)
-    return (engine, engine.parent / (engine.name + "-tree"))
+    named: list[Path] = [Path(cell)] if cell else []
+    here = _git_common_root() or (Path(root).resolve().parent if root else None)
+    if here is not None and here not in named:
+        named.append(here)
+    return tuple(p for engine in named
+                 for p in (engine, engine.parent / (engine.name + "-tree")))
 
 
 #: Defense in depth beyond operator discipline (see module docstring): these
-#: two paths are never a legitimate `--engine`/`--tree`, regardless of
-#: `--force`.
+#: paths are never a legitimate `--engine`/`--tree`, regardless of `--force`.
 _FORBIDDEN_REAL_PATHS = _real_repos()
 
 
-def _touches_a_real_repo(path: Path) -> bool:
+def _touches_a_real_repo(path: Path) -> Path | None:
+    """The forbidden real repo `path` resolves to, or None — returning the
+    match, not a bare bool, lets the refusal name what it refused."""
     resolved = Path(path).resolve()
-    return any(resolved == forbidden.resolve() for forbidden in _FORBIDDEN_REAL_PATHS)
+    for forbidden in _FORBIDDEN_REAL_PATHS:
+        if resolved == forbidden.resolve():
+            return forbidden
+    return None
+
+
+def _unresolved_real_repo_guard(engine: Path, tree: Path) -> dict | None:
+    """A refusal when the guard resolved no real repo at all, or None.
+
+    An empty forbidden set makes `_touches_a_real_repo` return None for every
+    path — the old empty-list default, which fails OPEN. If nothing named a
+    real repo (no `box.root` cell, no git common root, no project root), the
+    guard cannot tell a throwaway clone from production and must refuse."""
+    if _FORBIDDEN_REAL_PATHS:
+        return None
+    return _refuse(
+        "real_repo_guard_unresolved",
+        f"the real-repo guard resolved no repo to forbid (engine {engine}, "
+        f"tree {tree}) — no box.root cell, no git common root, no project "
+        f"root; refusing rather than allowing a write blind. If this IS the "
+        f"one-time real migration, pass {REAL_MIGRATION_FLAG}",
+    )
 
 
 #: The one flag that lets this script touch the real repos, spelled so it
@@ -459,12 +493,17 @@ def preflight(engine: Path, tree: Path, *, force: bool = False,
     engine = Path(engine).resolve()
     tree = Path(tree).resolve()
 
-    if (_touches_a_real_repo(engine) or _touches_a_real_repo(tree)) and not allow_real:
+    unresolved = _unresolved_real_repo_guard(engine, tree)
+    if unresolved and not allow_real:
+        return unresolved
+
+    real = _touches_a_real_repo(engine) or _touches_a_real_repo(tree)
+    if real and not allow_real:
         return _refuse(
             "refuses_real_repo",
-            f"{engine} or {tree} resolves to one of the real repos this "
-            f"script must never write into — clone to /tmp and point there. "
-            f"If this IS the one-time real migration, pass "
+            f"{real} is one of the real repos this script must never write "
+            f"into (asked for engine {engine}, tree {tree}) — clone to /tmp "
+            f"and point there. If this IS the one-time real migration, pass "
             f"{REAL_MIGRATION_FLAG} (not --force; they are different "
             f"permissions and neither implies the other)",
         )
@@ -1025,12 +1064,17 @@ def preflight_rollback(engine: Path, *, force: bool = False,
     """
     engine = Path(engine).resolve()
 
-    if _touches_a_real_repo(engine) and not allow_real:
+    unresolved = _unresolved_real_repo_guard(engine, engine)
+    if unresolved and not allow_real:
+        return unresolved
+
+    real = _touches_a_real_repo(engine)
+    if real and not allow_real:
         return _refuse(
             "refuses_real_repo",
-            f"{engine} resolves to one of the real repos this script must "
-            f"never mutate. Rolling back the real migration is a legitimate "
-            f"recovery — pass {REAL_MIGRATION_FLAG} to do it",
+            f"{real} is one of the real repos this script must never mutate "
+            f"(asked for {engine}). Rolling back the real migration is a "
+            f"legitimate recovery — pass {REAL_MIGRATION_FLAG} to do it",
         )
 
     if not (engine / ".git").exists():
