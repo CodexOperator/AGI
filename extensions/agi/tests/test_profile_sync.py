@@ -259,6 +259,46 @@ def test_p7_malformed_unlinked_sibling_is_a_clean_noop(tmp_path):
     assert rotate._check_profile_drift(repo / ".agi") is None
 
 
+# ---- goal:g7.31.5.2 — the one-way bridge: an artifact edit never reaches
+# the linked node. A reverse bridge landing FLIPS this canary. ---------------
+
+def test_an_artifact_edit_never_reaches_the_linked_node(tmp_path):
+    """The bridge is ONE-WAY: no surface writes the node from the artifact.
+
+    The prior `--check` test only proves the ARTIFACT is not rewritten; it
+    never proves the NODE cannot be reached from a harness-side artifact
+    edit. This canary hashes the NODE FILE across every surface. When a
+    reverse bridge lands it WILL change the node body and this test fails —
+    which is the point: goal:g7.31.5.2's falsifier becomes executable here.
+    """
+    import hashlib
+    repo = _repo(tmp_path)
+    node_file = repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    node_before = hashlib.sha256(node_file.read_bytes()).hexdigest()
+
+    # Divergent artifact bytes, as a harness-side edit would leave them.
+    dest.write_bytes(b"# edited by the harness\n\nnot the node\n")
+
+    # Surface 1 (gate): --check refuses, and refuses to touch the node.
+    drift = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                            "hypothesis:h1", "--check"], cwd=repo,
+                           capture_output=True, text=True)
+    assert drift.returncode == 1, (drift.returncode, drift.stdout, drift.stderr)
+    assert "DRIFT" in drift.stdout
+    assert hashlib.sha256(node_file.read_bytes()).hexdigest() == node_before
+
+    # Surface 2 (wire): forward sync resets the ARTIFACT toward the node...
+    fwd = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                          "hypothesis:h1"], cwd=repo,
+                         capture_output=True, text=True)
+    assert fwd.returncode == 0, (fwd.returncode, fwd.stdout, fwd.stderr)
+    _p, expected = profile_sync.project(repo / ".agi", "hypothesis:h1")
+    assert dest.read_bytes() == expected, "forward sync must win the direction"
+    # ...and still never the node.
+    assert hashlib.sha256(node_file.read_bytes()).hexdigest() == node_before
+
+
 def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     """`profile_ref:` in the raw bytes means it cannot be proven in sync:
     surface it by path, never silently drop it."""
