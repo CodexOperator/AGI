@@ -178,10 +178,10 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert "restart_count" not in agents[0], agents
 
 
-def test_record_carries_persistent_live_pid_and_restart_count(
+def test_record_releases_occupation_on_terminal_exit(
         project, monkeypatch, capsys):
-    """Conjunct (c): the seat's own record shows the occupation -- persistent
-    true, the CURRENT (restarted) pid, and the restart count."""
+    """Conjunct 2: after the hold ends (clean stop here) the record must NOT
+    keep claiming `persistent: true` over the last (dead) pid."""
     spawned = _fake_spawn(monkeypatch, [
         {"left": 14, "rc": 1},
         {"left": 999, "rc": None},
@@ -192,8 +192,33 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     agents = _manifest(project)
     assert len(agents) == 1, agents
     rec = agents[0]
-    assert rec["persistent"] is True, rec
+    assert rec["persistent"] is False, rec
+    assert rec["occupation"] == "released", rec
     assert rec["restart_count"] == 1, rec
     assert rec["pid"] == spawned[1][1].pid, (
-        f"record pid {rec['pid']} is not the live child "
+        f"record pid {rec['pid']} is not the last held child "
         f"{spawned[1][1].pid}")
+
+
+def test_seat_row_tracks_live_pid_and_clears_on_release(
+        project, monkeypatch, capsys):
+    """Conjunct 2: the seat's config:posts row is written through rotate's ONE
+    identity-cell writer -- the LIVE child pid on start and each restart, and
+    the no-pid sentinel (0) once the hold ends."""
+    import rotate as _rotate
+    calls: list = []
+    monkeypatch.setattr(
+        _rotate, "_write_identity_cells",
+        lambda root, **kw: calls.append(kw) or "ok")
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 14, "rc": 1},
+        {"left": 999, "rc": None},
+    ], stop_after=2)
+    monkeypatch.setattr(sys, "argv",
+                        _argv(project, "--persistent", "--seat", "s-test"))
+
+    assert dispatch.main() == 0
+    pids = [c["cells"]["pid"] for c in calls]
+    assert pids == [spawned[0][1].pid, spawned[1][1].pid, 0], (
+        f"seat-row pid sequence wrong: {pids} vs live children")
+    assert all(c.get("seat") == "s-test" for c in calls), calls
