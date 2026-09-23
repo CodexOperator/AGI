@@ -6,7 +6,7 @@ parents:
   - verdict:grok-bot-mirror-proved-loud
 next_edges: []
 edited_by: a00-8ee9bdff
-loop: goal:g17.14.3@s2
+loop: goal:g7.25.3@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid
