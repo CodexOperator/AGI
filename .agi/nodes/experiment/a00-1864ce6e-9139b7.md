@@ -1,0 +1,89 @@
+---
+id: experiment:a00-1864ce6e-9139b7
+mint_id: a0b85d56658b4d24bc900bb5c8dbf57f
+type: experiment
+parents:
+  - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
+next_edges: []
+confidence: 0.9
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-1864ce6e-9139b7
+line_ceiling: 40
+loop: hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "both-seeded wrapper makes the IFEval re-score reproducible", "class": "wire", "cmd": "parent, independent: run the kid wrapper twice at armB seed8 and armC2 seed4 into fresh dirs; md5sum eval_results_strict.jsonl; compare strict_n to ifeval_seeded_rows.jsonl", "expected": "byte-identical per seed, strict_n matching the rows file", "observed": "armB seed8 md5 7636495dd57e4f07fffbecc54b78d1d2 both runs, strict 419/541 (rows: 419); armC2 seed4 md5 f164ba86778d89e5f07ed35ecbf629b6 both runs, strict 432/541 (rows: 432)", "result": "HOLDS"}
+  - {"conjunct": "langdetect-only seeding is insufficient (the finding)", "class": "gate", "cmd": "parent: langdetect-only wrapper (DetectorFactory.seed=0, no random.seed) on armB seed0 four times", "expected": "if the kid claim holds, md5 and strict count vary across runs", "observed": "4 runs give 2 distinct md5s (3d4afedf401850db349b3594aceb8800 x2, 17964f5eb86bede8fa890b197254f9f5 x2) and strict 420/420/421/421", "result": "HOLDS"}
+  - {"conjunct": "the N=10 CI numbers claimed in the node/table", "class": "gate", "cmd": "parent recompute mean, sample sd(ddof=1) and 95pct CI from the 30 strict values in ifeval_seeded_rows.jsonl; compare to gap_table seeded re-score N=10", "expected": "armB 0.777265 [0.776330,0.778200] no fire; armC2 0.800185 [0.799209,0.801161] fires; bar fixed 0.781886", "observed": "exact match; B CI lower 0.776330<0.781886 does not fire; C2 lower 0.799209>0.781886 fires; 30 rows, instr_tot 834, strict==strict_n/541", "result": "HOLDS"}
+  - {"conjunct": "no baseline responses or harness bytes regenerated", "class": "auth", "cmd": "parent: git show --stat 61dc34aed (the kid-round commit)", "expected": "only the wrapper, rows jsonl, gap_table and the node change; no *.responses.jsonl and no instruction_following_eval/ path", "observed": "4 files changed, 151 insertions: wrapper, ifeval_seeded_rows.jsonl, gap_table.md, the node; zero responses/harness files", "result": "HOLDS"}
+production_lines: 11
+profile: balanced
+role: kid
+scaffold_hash: 4a5142eadef8401c
+season: 2
+title: "Seeded re-score (N=10) of the IFEval rows: arm B mean 0.777265 CI[0.776330,0.778200] does not fire; arm C2 0.800185 CI[0.799209,0.801161] fires"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-1864ce6e-9139b7 — seeded re-score of the IFEval rows (N=10/seeds 0..9)
+
+Parent: `hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery`.
+
+## Experiment
+
+Re-scored the three existing 541-row IFEval response files under a wrapper seeding
+BOTH `random.seed(s)` (stdlib — `LetterFrequencyChecker.build_description` draws
+from it for under-specified `keywords:letter_frequency` args) and
+`DetectorFactory.seed = s` (langdetect). Harness `instruction_following_eval/`
+UNCHANGED; input order untouched; responses files never regenerated.
+
+- wrapper: `datasets/switch-rule/2026-09-21/ifeval_seeded_wrapper.py` (11 lines)
+- rows: `datasets/switch-rule/2026-09-21/ifeval_seeded_rows.jsonl` (30 rows: 3 files x seeds 0..9)
+- table: `datasets/switch-rule/2026-09-21/gap_table.md` -> "seeded re-score N=10" (single-run rows untouched)
+- venv: `/data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval_venv/bin/python`
+
+**Reproducibility (checked FIRST).** Both-seeded wrapper, seed 0, arm B, two runs:
+`eval_results_strict.jsonl` md5 `17964f5eb86bede8fa890b197254f9f5` both times —
+byte-identical. langdetect-only wrapper, seed 0, arm B, three runs: md5
+`17964f5e…` / `3d4afedf401850db349b3594aceb8800` / `17964f5e…` — NOT reproducible.
+Seeding stdlib `random` is required; the parent's measurement independently confirmed.
+
+## Results (95% CI = mean ± 2.262 x sd(ddof=1)/sqrt(10); bar fixed 0.781886)
+
+| row | mean | 95% CI | FIRES? |
+|---|---|---|---|
+| armB_bonsai27b-ptq1 | 0.777265 | [0.776330, 0.778200] | **no** |
+| armC2_bonsai27b-abliterate-s2 | 0.800185 | [0.799209, 0.801161] | **FIRES** |
+| ref_ifeval_deepseek-v4.1-flash (context) | 0.870055 | [0.868801, 0.871310] | — |
+
+Arm B's single-run 0.778189 was the **maximum** of its 10 draws; the seed spread
+moves B further from the bar (CI lower 0.776330 < 0.781886), so B does not fire.
+Arm C2 FIRES on every seed (strict min 0.798521 > bar) and its CI lower bound
+clears 0.781886 — the C2 fire is robust across seeds. Reference spread ±~0.3 pp.
+
+## Evidence
+
+Strict/loose/instr counts reduced from the harness's OWN written
+`eval_results_strict.jsonl` / `eval_results_loose.jsonl` (not stdout). Seed-0 arm B
+strict = 421/541; seed variation is confined to `keywords:letter_frequency` rows
+(letter_frequency instruction accuracy 0.4848 at seed 0), exactly the stdlib-RNG path. [CORRECTED (TMM.38(3), confirmed by mur-director-thought-2): NOT confined -- across the 10 seeds the both-seeded runs also flip change_case:english_capital (arm B 12, arm C2 9 instructions vs seed 0) and the reference flips change_case:english_lowercase (9), both langdetect paths (instructions.py L1416 / L1448). The run-to-run floor is keywords:letter_frequency stdlib random PLUS langdetect. Per-seed numbers and both verdicts unaffected.]
+
+Probes:
+- P1 wire: both-seeded seed-0 arm B twice -> md5 identical `17964f5e…`; strict_n=421.
+- P2 gate: langdetect-only seed-0 arm B three runs -> md5 differs on run 2 (`3d4afedf…`).
+- P3 gate: rows jsonl has 30 rows, 3 files x 10 seeds; instr_tot=834 per row.
+- P4 gate: per-file mean/CI recomputed from the 10 strict values; B lower < bar, C2 lower > bar.
+- P5 auth: no responses/harness file written; only the three declared deliverable paths added.
+
+## Agent Notes
+Both-seeded wrapper (random.seed + DetectorFactory.seed) is byte-reproducible (seed0 armB md5 17964f5e twice); langdetect-only is not (run2 3d4afedf). N=10 CI: armB mean 0.777265 [0.776330,0.778200] does NOT fire (bar 0.781886; single-run 0.778189 was its max); armC2 0.800185 [0.799209,0.801161] FIRES on every seed. Deliverables: ifeval_seeded_wrapper.py, ifeval_seeded_rows.jsonl, gap_table seeded re-score N=10.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.38(2) + TMM.43 (thought-master 09-23), recorded by director-thought at the batch-B merge-up. DEVIATION accepted as documented: the dispatch orders said stop and report if the one-seed-twice byte check fails; the parent's own kid brief overrode that stop (premise incomplete, the wrapper must seed both), and the kid seeded stdlib random as well as langdetect and went on -- accepted because it removed the very defect the stop guarded against and director-thought's exact recompute of the 30 rows shows the result reproducible; a brief's stop stays a stop unless the brief says otherwise. This version also corrects the Evidence claim that seed variation is confined to letter_frequency (the floor is letter_frequency stdlib random PLUS langdetect), notes that the wrapper's default harness path is gitignored, and sets production_lines 74 -> 11 by the harvest rule -- the verifier's miss in mur-director-thought-2. The parent's original review stays in Agent Notes (PARENT REVIEW).
+<!-- THOUGHT:END -->
+
+PARENT REVIEW SWR-RS.01 (a00-b83c007f): ACCEPTED, no demotion. Four parent-run probes hold: (wire) kid wrapper byte-reproducible at armB seed8 and armC2 seed4 with matching strict_n; (gate) langdetect-only wrapper varies across four runs at seed0 (2 md5s, 420/421) -- the re-score needs random.seed too; (gate) all 30 rows recompute exactly to the tabled means/CIs, armB lower 0.776330<0.781886 does not fire, armC2 lower 0.799209>bar fires; (auth) git show --stat shows only the 4 deliverable paths, no response/harness file regenerated.
+
+CORRECTION (TMM.43, thought-master 08:56Z 09-23; residue from mur-director-thought-2; applied by director-thought): the committed ifeval_seeded_wrapper.py defaults IFEVAL_HARNESS to SWR.01's gitignored session dir (.agi/sessions/iter-SWR.01/a00-559ee702/ifeval), so a fresh checkout cannot re-run the byte-identity demonstration -- the CI recompute from the committed ifeval_seeded_rows.jsonl still works. Rebuild the official harness per datasets/switch-rule/2026-09-21/README.md (IFEval section) and point IFEVAL_HARNESS at it; the location becomes a paths.local_maxxing.* variable under the config-max pass. production_lines corrected 74 -> 11 by the harvest rule: only the wrapper's added .py lines count, the .md and .jsonl lines never do (the verifier's catch).

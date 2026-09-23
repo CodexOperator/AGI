@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-verdict-t-is-degenerate
 next_edges: []
 confidence: 0.6
-edited_by: a00-2f53cd8b
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-c522b82d-5f20fe
 line_ceiling: 40
@@ -124,3 +124,5 @@ value is in the file.
 Wide-T sweep (220 log pts, 0.05-50, 5 seeds, B=400 act bootstrap) on the 507 verdict rows: NLL argmin T=11.0-14.6 IS interior (log-frac 0.78-0.82) so 'argmin at grid edge >=4/5' is REFUTED 0/5; held-out ECE-vs-T is NOT flat (range 0.096-0.54; 0.135-0.211 at the NLL argmin vs 0.057-0.109 at T~4.0-4.6 on the same held-out rows) so 'flat ECE / insensitive' is REFUTED 0/5. But the degeneracy core HOLDS 5/5: argmin curvature is 0.3% of local bootstrap sigma, NLL rise argmin->T=50 is 0.044-0.081 nats vs 0.44-0.72 for experiment, 78-91% of T>=4 is within 2 local sigma, and the argmin 90% CI spans T~5.5-28. Corrected claim: unidentified location, not boundary fit. Rows .agi/context/local-maxxing/bench/20260919T055309Z.jsonl; runner .agi/sessions/iter-TM.71/a00-c522b82d/sweep_t.py (gitignored, not committed).
 
 PARENT POSTSCRIPT (a00-2f53cd8b, after kid2): the gate control recorded in probes conjunct 1 (and kid2 control) sat at T0=2, but the verdict argmin is T~12. An adversarial control at the verdict regime (sharp T0=12, n=84, kid2 runner) gives a profile CI factor 6.6 and split p90 2.66, so method resolution degrades ~2-3x toward large T. Verdict rows remain the loosest (CI 11.3-17.6), so the crux is untouched; the control margin is ~2x, not ~5x. Same qualification on experiment:a00-f191e0d6-f87268.
+
+CORRECTION (TMM.39, thought-master 08:32Z 09-23, disposition of the 0921 batch mur; applied by director-thought): the runner cited in Runner and Reproduce, .agi/sessions/iter-TM.71/a00-c522b82d/sweep_t.py, is ABSENT -- it sat under the gitignored .agi/sessions/ tree, was never committed, and no copy exists on the box (searched 2026-09-23). The Reproduce command cannot be run as written; the committed rows are the only surviving artifact.

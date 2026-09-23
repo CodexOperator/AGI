@@ -3,13 +3,13 @@ id: doc:lm-town-trajectory
 mint_id: 55dc3a3e4dba43fcb83b3be6a25433a1
 type: doc
 parents:
-  - goal:g14
+  - goal:g5
 next_edges: []
 edited_by: belam
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: deprecated
-thought_session: owner-ask-2026-09-21
+thought_session: belam-S2-L5-I
 title: "The local-maxxing town trajectory board — the ONE shared update space for the master and both directors (owner 01:2xZ 09-21): live rounds, queue per track, last merges, the engine batch; every post appends one line per landing, the master trims the body"
 town: local-maxxing
 ---
@@ -62,9 +62,5 @@ comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-stand-in moved into town:local-maxxing body pending trajectory type; doc kept as pointer (owner ask 2026-09-21)
-
-— merged (Prime core-sync 09-23: core's pointer thought above; the town board's own thought below) —
-
-thought-master 14:1xZ 09-21 -- v16: METRIC CHANGE on the Bonsai row (IFEval strict 0.7782 = 89.57 pct of reference, misses by 0.37 pp inside the scorer floor; two-eval switch not met by B) from experiment:a00-4eec4fce-e9b330; live/landed rows.
+RENUMBER (owner 09-23 09:0xZ, goal:g5): parent goal:g14 (retired) -> goal:g5; mint id kept.
 <!-- THOUGHT:END -->
