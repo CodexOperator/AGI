@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.8
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.8: A secret is a shape in the graph and a value on the box"
 ---
 **A credential is the one kind of file the graph must describe and must never
@@ -51,7 +51,7 @@ between them is a `.gitignore` line rather than a mechanism.
 - **`nodes/.geometry/secrets.md`** — the declaration. Where both files live,
   which keys are required, optional, and forbidden. **The first `config` node
   in the corpus**, which is the code path `[config]`'s schema had been waiting
-  on since it was written (**goal:g10.2**).
+  on since it was written (**goal:g2.25**).
 - `extensions/agi/bin/envfile.py` — the one reader. Resolves the node, expands
   `<source_root>` against `locations.py`, and checks the file. Named `envfile`
   and not `secrets` because `bin/` goes on `sys.path` in a dozen entry points
@@ -67,7 +67,7 @@ between them is a `.gitignore` line rather than a mechanism.
 One value, one file, one declaration, two readers, and no path by which a key
 reaches git. **Per project, not per box** — both paths resolve against
 `source_root`, so `fantasia/.env` and `fantasia/agi/.env` are different files
-found by the same nearest-enclosing rule, with no flag (**goal:g8.2**). The cost
+found by the same nearest-enclosing rule, with no flag (**goal:g1.24**). The cost
 is that a key needed by two projects is typed twice; the alternative is a
 machine-global store no project's graph describes.
 
