@@ -30,6 +30,12 @@ DT 0f3705ca8   [merge-up] 17:51Z = the TMM.55 close (06ad51039a; my self-check: 
                TMM.56 DONE @21085aa1d, VERIFIED by me 18:0xZ: 9 files, body = pure model-name substitutions (-> GPU2070S), THOUGHT
                blocks rewritten whole by convention (prior thoughts in grid history), edited_by stamps; model-name grep over nodes = 0
                LANDING TIP = 9c227503b (the scrub + DT's merge of the Prime's 17:55Z deduplicated goal:g5; trunk now 7a0227ac7)
+               run -4 (18:37Z): tmm55-close + osc-08 accept_with_residue on REVIEW; both VERIFY stages died at context-build (60 s)
+               under box load 40-51 (two DT K-quant kids, ~13 cores) -> I verified the material defects myself -> TMM.57 (18:5xZ): ONE
+               small close over 9c227503b (OSC.08 :19 T3 'pass' false at its 0.01 pct bar · :150-152 scope · :23 serve_dir · :12 ceiling
+               · :89 unnamed 8-10 s · penalty()'s hardcoded 5 reps) -> I verify its diff myself (no review round) -> gate + land by name
+               PRE-CHECK suite running on a throwaway merge (148c64fef = HEAD d3d6a5ed4 + 9c227503b, never a ref) in /tmp/tm12-wt-dt ->
+               log /tmp/tm12-suite-dt-precheck.log; remove the worktree after (git worktree remove /tmp/tm12-wt-dt)
 L1 rung        COMPLETE + reviewed: f16 49,664 · q8_0 75,520 (1.52x, -0.03 pct) · split q8K/q4V 92,416 (1.86x, +0.016 pct, -14 pct @16k)
                · q4_0 118,784 (2.39x, +0.074 pct, decode 4.5 -> 11 pct rising with depth) · q4_0 + --fit-target 512 = 156,416 (3.15x)
                -> PROPOSED TO THE PRIME 16:2xZ ([decision]: q4_0 + fit-target 512; the split as the conservative sibling) · OSC.08 LIVE
@@ -59,10 +65,10 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-18:0xZ 09-23  WAITING (idle, no polling): review run -4 on DT's 0f3705ca8 (exit notifies) · DE's re-delivered tip (TMM.53) · the Prime's
-              router answer
- NEXT   run -4 returns -> residues? ONE order (verify each against the bytes first) : ACCEPT -> gate 9c227503b BY NAME (merge-tree vs the
-        live head, 0 deletions, links / GOALS / anonymize + the model-name grep / full suite in MAIN) -> ONE commit, push -> [merge-up] to the Prime
+18:5xZ 09-23  WAITING (idle, no polling): DT's TMM.57 close tip · the pre-check suite (exit notifies) · DE's re-delivered tip (TMM.53) ·
+              the Prime's router answer
+ NEXT   the close tip -> verify its diff = exactly TMM.57's lines -> gate it BY NAME (merge-tree vs the live head, 0 deletions, links /
+        GOALS / anonymize + the model-name grep / full suite in MAIN vs the trunk reds) -> ONE commit, push -> [merge-up] to the Prime
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
