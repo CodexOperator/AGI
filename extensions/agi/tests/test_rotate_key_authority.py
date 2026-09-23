@@ -364,3 +364,21 @@ def test_c4_first_seating_appends_its_new_row(tmp_path):
                 if f'"name": "{name}"' in ln] == \
                [ln for ln in new_bytes.splitlines()
                 if f'"name": "{name}"' in ln]
+    # C4 parse-back: the engine's OWN reader must see the seated row. A raw
+    # `"name": "aa"` in the file is not enough -- the parent probe showed an
+    # append after the closing `---` satisfies that and is still unreadable.
+    rows_back, sha_back, ref_back = send._pushed_seats(
+        g, "origin/season2/main", True)
+    seated = next((r for r in rows_back if r.get("name") == "aa"), None)
+    assert seated is not None and seated["pubkey"] == _NEW, rows_back
+    assert sha_back and ref_back == "origin/season2/main"
+    # C4 refusal: new content with NO `aa` row must refuse BY NAME -- never
+    # SKIPPED -- and leave the authority ref exactly where it was.
+    repo2, g2, _posts2, _bare2 = _fixture_no_seat(tmp_path / "refuse")
+    pre2 = _git(repo2, "rev-parse", "origin/season2/main").stdout.strip()
+    out2 = rotate._publish_row_to_authority(g2, "aa", _posts_text(
+        [{"name": "bb", "role": "kid", "pubkey": "c" * 64}]))
+    assert out2.startswith("authority: REFUSED"), out2
+    assert "'aa'" in out2 and "SKIPPED" not in out2, out2
+    assert _git(repo2, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre2

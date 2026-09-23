@@ -10374,6 +10374,27 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
 
 
+def _insert_row_into_frontmatter(base: str, row: str) -> str:
+    """`base` with `row` inserted as the LAST entry of the frontmatter before
+    the closing ``---`` -- inside the `posts:` list the loader reads.
+
+    An append AFTER the closing delimiter writes a row to the file no reader
+    ever sees: `load_node_file` stops at the closing `---` (EF.51 C4 parent
+    probe -- the commit moved but `send._pushed_seats` returned no row).
+    A base with no frontmatter delimiter falls back to a plain append, which
+    is the only shape left that can carry the row at all."""
+    lines = base.splitlines(keepends=True)
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                if not row.endswith("\n"):
+                    row += "\n"
+                return "".join(lines[:i]) + row + "".join(lines[i:])
+    if base and not base.endswith("\n"):
+        base += "\n"
+    return base + row
+
+
 def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     """Route B: the re-minted `seat` row as ONE commit on the FETCHED key
     authority branch + a fast-forward push. One-line outcome; never raises.
@@ -10422,9 +10443,7 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             if row is None:
                 return (f"authority: REFUSED -- the new content carries no "
                         f"{seat!r} row to seat on {branch}")
-            if base and not base.endswith("\n"):
-                base += "\n"
-            content = base + row
+            content = _insert_row_into_frontmatter(base, row)
         if content == base:
             return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
         fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
