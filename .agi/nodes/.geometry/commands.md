@@ -51,7 +51,7 @@ commands:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - links
-    about: goal:g13 — every node's link resolves; broken_links must be 0
+    about: every node's link resolves; broken_links must be 0
     workflow: read
   schema:
     argv:
