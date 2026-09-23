@@ -268,6 +268,18 @@ _LISTED_CLIS += [
     "ws_raw.py", "pi_edit_forgiveness.py", "pi_trajectory.py",
 ]
 
+# EF.54 CLI GROUP D. Appended, like GROUP C, so sibling edits cannot collide.
+# The 12 remaining engine CLIs whose parser is a plain module-level `main`:
+# every one is captured by the harness already, so this round is DATA -- each
+# verb declared or excluded by name in `command:commands`, read off its own
+# argparse.
+_LISTED_CLIS += [
+    "backfill-mint-ids.py", "briefing.py", "dashboard.py",
+    "decompose-engine.py", "derive-commands.py", "drift_check.py",
+    "failures.py", "frontier.py", "glitch_master.py", "graphweb.py",
+    "grid_coverage_check.py", "inject.py",
+]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
 #: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`

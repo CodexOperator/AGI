@@ -242,6 +242,18 @@ placement:
   "spawn_gate.py:check.node_id": {kind: option, flag: '--id'}
   "spawn_gate.py:check.sets": {kind: option, flag: '--set'}
   "spawn_gate.py:check.season_parents": {kind: option, flag: '--season-parent'}
+  # CLI GROUP D (EF.54, kid 2 of 3) placement deviations: the positional args
+  # and the `--in` / `--iter` flags whose spelling differs from the default.
+  "briefing.py:.root": {kind: positional}
+  "frontier.py:list.cmd": {kind: positional}
+  "failures.py:ledger.root": {kind: positional}
+  "failures.py:rates.root": {kind: positional}
+  "failures.py:sensei.root": {kind: positional}
+  "failures.py:ledger.in_path": {kind: option, flag: '--in'}
+  "failures.py:rates.in_path": {kind: option, flag: '--in'}
+  "failures.py:sensei.in_path": {kind: option, flag: '--in'}
+  "glitch_master.py:format-record.iter_data": {kind: option, flag: '--iter'}
+  "inject.py:.nodes_dir": {kind: positional}
 manifest:
   write.py:create:
     cli: write.py
@@ -510,6 +522,16 @@ manifest:
   mesh-encryption-town: {side_effects: network}
   mesh-silicon-town: {side_effects: network}
   mesh-gw: {side_effects: network, proposable: false, reason: 'owner-ops overlay hub; agents have no business here'}
+  # CLI GROUP D (EF.54, kid 2 of 3): the 12 remaining engine CLIs whose parser
+  # is a plain module-level `main`. Their verbs and typed args were read off
+  # each CLI's own argparse. The read-only verbs are proposable; every
+  # graph-write / generator / long-running verb is in `excluded:` by name.
+  briefing.py:: {cli: briefing.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/briefing.py'], args: [{name: 'root', type: str, required: false, choices: []}, {name: 'compact', type: bool, required: false, choices: []}], purpose: 'the nine sections of briefing every agent is handed', side_effects: read, proposable: true}
+  dashboard.py:: {cli: dashboard.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/dashboard.py'], args: [{name: 'project', type: str, required: false, choices: []}, {name: 'watch', type: str, required: false, choices: []}, {name: 'no_color', type: bool, required: false, choices: []}, {name: 'section', type: str, required: false, choices: ['goals', 'metrics', 'health', 'activity']}], purpose: 'read-only terminal view of the graph, built for a human', side_effects: read, proposable: true}
+  drift_check.py:: {cli: drift_check.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/drift_check.py'], args: [{name: 'start', type: str, required: false, choices: []}, {name: 'engine_dir', type: str, required: false, choices: []}, {name: 'strict', type: bool, required: false, choices: []}], purpose: 'compare the pinned engine_commit to the engine HEAD; warn, never block', side_effects: read, proposable: true}
+  frontier.py:list: {cli: frontier.py, verb: list, argv: ['python3', '<engine>/extensions/agi/bin/frontier.py', '<cmd>'], args: [{name: 'cmd', type: str, required: true, choices: ['list']}, {name: 'nodes', type: str, required: false, choices: []}, {name: 'count', type: bool, required: false, choices: []}, {name: 'schemas', type: str, required: false, choices: []}, {name: 'no_anchor', type: bool, required: false, choices: []}], purpose: 'print every active chain tip and the successor types its schema allows', side_effects: read, proposable: true}
+  grid_coverage_check.py:: {cli: grid_coverage_check.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/grid_coverage_check.py'], args: [{name: 'engine', type: str, required: false, choices: []}, {name: 'exclusions', type: str, required: false, choices: []}, {name: 'verbose', type: bool, required: false, choices: []}], purpose: 'every tracked engine file is inside the grid; exit nonzero on a remainder', side_effects: read, proposable: true}
+  failures.py:rates: {cli: failures.py, verb: rates, argv: ['python3', '<engine>/extensions/agi/bin/failures.py', 'rates', '<root>'], args: [{name: 'root', type: str, required: true, choices: []}, {name: 'by', type: str, required: true, choices: ['model', 'role', 'harness']}, {name: 'in_path', type: str, required: false, choices: []}], purpose: 'per-axis failure counts from the ledger; exit 2 if they do not sum', side_effects: read, proposable: true}
 # Excluded verbs are declared BY NAME with a reason and proposable false, so a
 # drift test can tell "we chose not to expose this" from "we forgot it".
 excluded:
@@ -561,6 +583,16 @@ excluded:
   rotate.py:seats-launch: {cli: rotate.py, verb: seats-launch, argv: ['python3', '<engine>/extensions/agi/bin/rotate.py', 'seats-launch'], reason: 'launches seats in tmux; never-run', side_effects: spawn, proposable: false}
   rotate.py:spawn: {cli: rotate.py, verb: spawn, argv: ['python3', '<engine>/extensions/agi/bin/rotate.py', 'spawn'], reason: 'spawns a successor process; never-run by a proposer', side_effects: spawn, proposable: false}
   rotate.py:tile: {cli: rotate.py, verb: tile, argv: ['python3', '<engine>/extensions/agi/bin/rotate.py', 'tile'], reason: 'lays out tmux tiles; never-run', side_effects: spawn, proposable: false}
+  # CLI GROUP D (EF.54, kid 2 of 3): the graph-write / generator / server verbs
+  # of the 12 plain-module-`main` CLIs, declared BY NAME with a reason.
+  backfill-mint-ids.py:: {cli: backfill-mint-ids.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/backfill-mint-ids.py'], args: [{name: 'project', type: str, required: false, choices: []}, {name: 'write', type: bool, required: false, choices: []}], reason: 'one-time additive backfill; --write mints node frontmatter, operator-only', side_effects: graph-write, proposable: false}
+  decompose-engine.py:: {cli: decompose-engine.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/decompose-engine.py'], args: [{name: 'project', type: str, required: false, choices: []}, {name: 'engine_root', type: str, required: false, choices: []}, {name: 'goal_map', type: str, required: false, choices: []}, {name: 'dry_run', type: bool, required: false, choices: []}], reason: 'generates idea nodes from the engine tree and prunes stale ones; operator-only', side_effects: graph-write, proposable: false}
+  derive-commands.py:: {cli: derive-commands.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/derive-commands.py'], args: [{name: 'files', type: list, required: false, choices: []}, {name: 'all', type: bool, required: false, choices: []}, {name: 'check', type: bool, required: false, choices: []}], reason: 'rewrites marker-guarded prose files in the repo; operator-only', side_effects: graph-write, proposable: false}
+  failures.py:ledger: {cli: failures.py, verb: ledger, argv: ['python3', '<engine>/extensions/agi/bin/failures.py', 'ledger', '<root>'], args: [{name: 'root', type: str, required: true, choices: []}, {name: 'since', type: str, required: false, choices: []}, {name: 'out', type: str, required: false, choices: []}, {name: 'write_node', type: str, required: false, choices: []}], reason: 'appends ledger rows on disk and can land a payload via --write-node; operator-only', side_effects: graph-write, proposable: false}
+  failures.py:sensei: {cli: failures.py, verb: sensei, argv: ['python3', '<engine>/extensions/agi/bin/failures.py', 'sensei', '<root>'], args: [{name: 'root', type: str, required: true, choices: []}, {name: 'by', type: str, required: false, choices: ['role', 'model', 'harness', 'agent_id']}, {name: 'in_path', type: str, required: false, choices: []}, {name: 'out', type: str, required: false, choices: []}], reason: 'writes the derived rate table to disk; operator-only', side_effects: graph-write, proposable: false}
+  glitch_master.py:format-record: {cli: glitch_master.py, verb: format-record, argv: ['python3', '<engine>/extensions/agi/bin/glitch_master.py', 'format-record', '--iter', '<iter_data>'], args: [{name: 'iter_data', type: str, required: true, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'out', type: str, required: false, choices: []}], reason: 'reads workflow JSON on stdin and writes review/results.json; seat machinery, operator-only', side_effects: graph-write, proposable: false}
+  graphweb.py:serve: {cli: graphweb.py, verb: serve, argv: ['python3', '<engine>/extensions/agi/bin/graphweb.py', 'serve'], args: [{name: 'host', type: str, required: false, choices: []}, {name: 'port', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}], reason: 'binds a port and serves the dashboard until killed; long-running server, never proposed', side_effects: spawn, proposable: false}
+  inject.py:: {cli: inject.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/inject.py'], args: [{name: 'nodes_dir', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'frames', type: str, required: false, choices: []}, {name: 'stdout', type: bool, required: false, choices: []}], reason: 'writes context/INJECTION.md; the writer half of the viewport seam, operator-only', side_effects: graph-write, proposable: false}
 season: 1
 status: active
 tags:
