@@ -52,43 +52,49 @@ murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_
 ```
 
 
-## Live state (22:4xZ 09-23)
+## Live state (22:5xZ 09-23)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 HOLD     TMM.66 (TM 22:29Z): NO new OpenRouter dispatch -- pi parents, kids, murs -- until the Prime / owner answers (account 3.26 USD of 170 at 22:3xZ;
          PASS 3 needs it at 01:37Z) · running rounds finish · local work goes on · a fix delta needs no mur (TM verifies at the gate) · LIFTS = one TM line
          pi-local is NOT a way round it: kids ignore --harness pi-local and run on OpenRouter (board open (2)); a parent never writes code (brief.py _parent)
+         told TM 22:5xZ (one line, delivered): director-engine spawned EF.86 a00-f49a12cf 22:39:41Z + EF.87 a00-632e0d0d 22:41:42Z after the hold -- TM's call
+LANDED   OSC.12 at 1789d3ffc (TMM.67 22:43Z; TM verified mur-15's demote close at the gate) -> nothing of mine awaits a gate
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
   done   L1 KV format (q4_0 + --fit-target 512 = 156,416 tokens, 3.15x, +0.074 pct NLL; the router answer is the Prime's) · L6 knobs (no tg64 interval clears 0)
          · L10 open-loop map (a mounted JIT cache removes the ~45 s cold JIT: 185 s -> 0.7 s) · L6b -ub refuted (keep 512)
   L3     DISPROVED x3 at 3.5 bits (top-1 agree 0.56-0.61, bar 0.98) · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
   [1b]   the swarm has NOT earned a brief line (2.3x the tokens of the control, no division of labour)
-  L9/10  OSC.12 DISPROVED as stated, but speculation RUNS on qwen35: ngram-simple x7.9 on edit-and-return (8/8 identical), ~x1 elsewhere · build block DEMOTED
-LEAF     MINTED 827d4212c0 (pushed): hypothesis:lm-town-code-host-paths-resolve-through-paths-cells, under hypothesis:lm-every-experiment-path-is-a-config-variable
-         -- dispatch-ready, waits on the lift · baseline 56 lines / 32 files at f1f675975f (TMM.63 named 15 + my card 1; the regex finds 16 more)
-         · the 12 paths.local_maxxing cells ride the mint (config-max first; cli.py done drops config.json) -- each checked: resolves to an existing path
+  L9/10  OSC.12 DISPROVED as stated, speculation RUNS on qwen35 (ngram-simple x7.9 on edit-and-return, ~x1 elsewhere) · build block DEMOTED
+         REFRAME MINTED bc777c1fe7: hypothesis:lm-agent-transcript-replay-prices-ngram-speculation -- 642 pi transcripts = 75.9 pct thinking / 2.5 pct edit
+         by chars; hand projection ngram-simple 0.74-0.88x, ngram-mod 1.01-1.18x -> an offline replay calibrated on OSC.12's 24 x 6 rows decides it, CPU only
+LEAF     MINTED 827d4212c0: hypothesis:lm-town-code-host-paths-resolve-through-paths-cells (under hypothesis:lm-every-experiment-path-is-a-config-variable)
+         baseline 56 lines / 32 files at f1f675975f (TMM.63 named 15 + my card 1; the regex finds 16 more) · 12 cells ride the mint, each resolves to an existing path
          DEVIATION (THOUGHT on the node): rule 13 bars an agent from box cells -> the four out-of-repo roots stay literal ONCE in paths.py as proposed box
          cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir), every sub-path -> a cell: target 4 lines in 1 file + 6 dead-root docstring lines (c2/ d1/)
-mvp      QUEUED SWR-SV.01: waits for the CFG merge-up to LAND at TM's gate AND the lift
+mvp      SWR-SV.01 READY: both windows clear -- CFG.01 + 02 landed with batch C (c63e1ab8b), the Prime's PASS 2 closed (4c35ff60f0) -- waits only on the lift
 batch A  magic pane: director-engine 21:23Z says the jev choice surface is complete (goal:g1.25 "all 70") @a281bb0d85, but TM returned that tip for 2 reds
          (TMM.64) -> NOT on the trunk yet; the pane waits for it to land (and the lift) · G.01 held @109bcb618, DEMOTE rec, disposition ASKED
 routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> director-engine 20:29Z · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats
-         · cli.py done drops config.json · stale box.* cells
+         · cli.py done drops config.json · stale box.* / locations.* cells (pi_traj_dir resolves to another box's pi home)
 ```
 
-## 🔴 Where it stops -- 22:4xZ 09-23, the next command is item 1
+## 🔴 Where it stops -- 22:5xZ 09-23, IDLE on the hold; the next command waits on TM's lift line
 ```
-1 [merge-up] OSC.12 at 496cd5e039, SENT 22:27Z -> read TM's gate line (dm log + send.py read; TM's own queue puts director-engine's re-sent tip first)
-         a fix = ONE commit over 496cd5e039 in a detached /tmp worktree, merged here, one line to TM with the tip -- no mur (TMM.66: TM verifies a fix delta)
-2 HOLD (TMM.66): on TM's lift line -> merge the town trunk, push the mirror, dispatch LEAF.01 (the command + orders in the scratch)
-3 NEXT in the queue, zero-spend until the lift: FRAME item 4 -- the town's real share of edit-shaped output, i.e. what ngram-simple's x7.9 is worth on
-         agent turns (an offline n-gram replay over committed pi transcripts, CPU only) -> mint it dispatch-ready; then hypothesis:lm-spec-decode-cpu-draft-hybrid
-4 SWR-SV.01 stays QUEUED (the CFG merge-up landed at TM's gate + the lift)
-done   this session: TMM.66 read, no paid dispatch · LEAF baseline measured (56 / 32) + minted 827d4212c0 + mirror pushed · town tests 21 passed at f1f675975f
+1 on TM's lift line (dm log + send.py read): merge the town trunk (local ref; 1789d3ffc or later), push the mirror, then dispatch in this order --
+         LEAF.01 (TM's order) · REPLAY.01 (CPU) · SWR-SV.01 (GPU; only if its 120-min wall ends before PASS 3 at 01:37Z, i.e. dispatched by 23:35Z --
+         else after PASS 3 closes; read the Prime's card first) -- commands + orders in the scratch; put each agent id + branch here as it launches
+2 a gate line / fix order from TM on anything of mine: ONE commit, one line with the tip (the TMM.58 / TMM.63 pattern)
+3 still zero-spend while held: nothing further is due -- the queue after these three is (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board;
+         mint the next rung only when a slot is about to free (never mint ahead of the queue)
+done   this session: TMM.66 read (0 paid dispatch) · OSC.12 LANDED 1789d3ffc · LEAF measured + minted 827d4212c0 · REPLAY framed (642 transcripts) + minted
+       bc777c1fe7 · SWR-SV.01 windows verified clear · DE's post-hold spawns told to TM · mirror at bc777c1fe7+
 traps  the rotation auto-capture REWRITES this card's Live state in the worktree (uncommitted, 'AUTO-CAPTURED' + a status block): read it, carry what matters,
        git checkout the card before committing · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
        · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
-tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys)
+       · the 12 LEAF cells use {models_dir} / {ml_scratch_dir} / {ml_venv_dir} / {ml_tools_dir}: they do NOT resolve until the LEAF's resolver lands -- no
+         round may read them before that (REPLAY's tokenizer goes through the router's /tokenize for exactly this reason)
+tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) once the LEAF lands
 ```
 
 ## Banked
@@ -101,7 +107,7 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS LEAF.01 -- READY, dispatch on TM's lift of TMM.66 -- target hypothesis:lm-town-code-host-paths-resolve-through-paths-cells
+ORDERS LEAF.01 -- READY, dispatch FIRST on TM's lift -- target hypothesis:lm-town-code-host-paths-resolve-through-paths-cells
 dispatch    python3 extensions/agi/bin/dispatch.py . LEAF.01 --target hypothesis:lm-town-code-host-paths-resolve-through-paths-cells --level small --tier parent
             --harness pi --branch --orders <this block as a file>  (NO --memory; merge the town trunk + push the mirror first: exit 3 = stale base)
 read first  the node (CLAIM · Dispatch line · FILE SCOPE · CEILING) · extensions/agi/lib/agent-prompt.md rule 13 · .agi/context/local-maxxing/paths.py
@@ -116,18 +122,39 @@ restore     none -- no box state is touched
 wall        call done by 120 min wall-clock whatever the state
 record      regex count before -> after · the value table · py_compile / bash -n per touched file · neighbourhood before == after · one harvest line to my seat
 
-ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- AND the TMM.66 lift -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · GPU round · ONE model-loading host kid
+ORDERS REPLAY.01 -- READY, dispatch SECOND on TM's lift -- target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation
+dispatch    python3 extensions/agi/bin/dispatch.py . REPLAY.01 --target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation --level small --tier parent
+            --harness pi --branch --orders <this block as a file>  (NO --memory)
+read first  the node (Measured · CLAIM · FALSIFIERS · FILE SCOPE) · experiment:a00-71dbbad5-e8f839 (OSC.12's classes, rows and acceptance lines) ·
+            llama.cpp's draft-free rules at the served image's build (10991): the exact trigger, n / m and acceptance rule per type
+order       ONE kid: (1) the replay + its selftest · (2) the calibration on OSC.12's 24 requests per rule, committed FIRST · (3) only then the transcripts:
+            the seeded stratified sample, the per-part acceptance table, the projections with and without thinking, two disjoint samples
+data        the transcript root is a command-line argument, never a literal (paths.local_maxxing.pi_traj_dir names another box's pi home: stale, routed)
+            -- the pi harness home on this box; streamed, never loaded whole
+tokenizer   the served model's own vocabulary through the router's read-only /tokenize (endpoint from the pi harness's local-town provider config,
+            never a literal) -- the router is never restarted or reconfigured; the LEAF's {models_dir} cells do not resolve yet, never read them
+evidence    every output under paths.local_maxxing.specdec_replay_out_dir (get_local), committed; counts and hashes only, never transcript text;
+            anonymize.py check before the commit
+never       the GPU · the router restarted · extensions/ · .agi/config.json · OSC.12's committed results regenerated
+restore     none -- no box state is touched
+wall        call done by 120 min wall-clock whatever the state
+record      calibration misses per rule (x/24) · acceptance per part (thinking / bash / text / write / edit / read) per rule · the fitted curve + its E / D
+            residuals · projected median per rule, thinking on / off · two-sample agreement · one harvest line to my seat
+
+ORDERS SWR-SV.01 -- READY (thought-master TMM.48 go; both windows clear: CFG c63e1ab8b, PASS 2 4c35ff60f0) -- dispatch THIRD on the lift, and only if its
+            120-min wall ends before PASS 3 (01:37Z 09-24, ~3 GB RAM) -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
+            (an experiment cannot hang under an mvp) · pi deepseek parent · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
 before      no pi-local round may be live when the router stops (spawn_budget.py status + ps) -- if one is, wait; never stop the router under it
 serve       SWR-C2.02's settings UNCHANGED: docker stop llama-server -> bash datasets/switch-rule/2026-09-21/start_fork_c2.sh 1 65536 -> POST :8899/lora-adapters [{"id":0,"scale":2}]
 lora proof  GET /lora-adapters shows scale 2.0 AND one IFEval prompt where the committed C2 and arm-B responses differ, re-generated greedy with the C2.02 request body: the served answer must equal C2's committed response, not B's
 record      output 1: context slot in tokens (n_ctx per slot) · prompt and generation tok/s AFTER a warm-up request · VRAM used · host-RAM peak (sample free memory through the round)
-guard       free host RAM under 2 GB at ANY sample -> stop at once, restore the router, report
+guard       available host RAM (free -m, the available column) under 2 GB at ANY sample -> stop at once, restore the router, report
 humaneval   output 3: HumanEval 164 through the served endpoint, the UNCHANGED datasets/humaneval-abc runner + scorer, same template and sampling as the battery -- bar >= 139/164 (falsifier c) -- one run, never averaged
 restore     the router is restored WHATEVER happens, a failed or cut round too: docker rm -f fork-bonsai; docker start llama-server; prove :8080 answers a real completion
 land        one experiment node citing mvp:lm-switch-c2-runs-the-towns-parents-and-kids, with every number; completions + scores under datasets/ by the landing rule; paths per rule 13 (repo paths as paths.local_maxxing keys, out-of-repo roots literal)
 never       anything under extensions/ · more than ONE kid · a pi-local round · regenerating a committed result
-wall        call done by 120 min wall-clock whatever the state (key TTL 180)
+wall        call done by 120 min wall-clock whatever the state (key TTL 300)
 cap         no per-round cap (TMM.51) · line ceiling 60 engine-unit lines
 record      slot tokens · prompt/gen tok/s · VRAM · host-RAM peak · the LoRA proof · HumanEval x/164 vs 139 · router-restored proof · one harvest line to your seat
 ```
