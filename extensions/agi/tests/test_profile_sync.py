@@ -230,10 +230,85 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+# ---- goal:g7.31.5.3 residue B: the wire probe is BEHAVIOURAL, not a grep ----
+
+
+def _linked_loop_root(tmp_path: Path):
+    """A minimal `.agi`-shaped root with ONE linked hypothesis node, in sync.
+
+    Shaped like the rotate harness (`_proj` in test_rotate.py): the passed
+    root IS the graph dir, so `profile_ref` resolves against its parent.
+    """
+    root = tmp_path / "proj"
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(
+        "---\nclosed: false\n---\n")
+    (root / "config.json").write_text("{}")
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    fm = ('---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+          'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+          'status: pending\nprofile_ref: "profile/h1.md"\n---\n\n')
+    (root / "nodes" / "hypothesis" / "h1.md").write_text(
+        fm + BODY + "\n" + THOUGHT)
+    dest, _n, _sha = profile_sync.sync_node(root, "hypothesis:h1")
+    return root, dest
+
+
+def _loop_args():
+    from types import SimpleNamespace  # noqa: E402
+    return SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=None,
+        debug_file=None, dry_run=True, timeout=1)
+
+
+def test_loop_refuses_drift_before_any_spawn(monkeypatch, tmp_path, capsys):
+    """Residue-B wire probe: a DELIBERATE desync makes cmd_loop refuse
+    non-zero and NEVER reach spawn_window. This fails if the `cmd_loop` call
+    site is removed -- a byte-grep of the file would not (it only saw
+    cmd_rotate_self)."""
+    import rotate  # noqa: E402
+    root, dest = _linked_loop_root(tmp_path)
+    dest.write_text("mutated\n")
+    called = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: called.append(kw) or (0, ""))
+    code = rotate.cmd_loop(_loop_args(), root)
+    err = capsys.readouterr().err
+    assert code == 1, (code, err)
+    assert "profile drift" in err and "hypothesis:h1" in err
+    assert called == [], "spawn_window must not be reached on drift"
+
+
+def test_loop_passes_clean_graph_through_to_spawn(monkeypatch, tmp_path):
+    """Symmetric clean case: an in-sync graph lets the loop proceed past the
+    guard to spawn_window (the guard is a refusal, not a blanket stop)."""
+    import rotate  # noqa: E402
+    root, _dest = _linked_loop_root(tmp_path)
+    called = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: called.append(kw) or (0, ""))
+    code = rotate.cmd_loop(_loop_args(), root)
+    assert code == 0
+    assert len(called) == 1
+
+
+def test_loop_reaches_the_live_guard_call_site(monkeypatch, tmp_path):
+    """The wire is LIVE, not a string in the file: replacing the guard
+    function itself changes what cmd_loop does, and it receives `root`."""
+    import rotate  # noqa: E402
+    root, _dest = _linked_loop_root(tmp_path)
+    seen = []
+    monkeypatch.setattr(rotate, "_check_profile_drift",
+                        lambda r: seen.append(r) or None)
+    called = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: called.append(kw) or (0, ""))
+    code = rotate.cmd_loop(_loop_args(), root)
+    assert code == 0
+    assert seen == [root], "cmd_loop must call _check_profile_drift(root)"
+    assert len(called) == 1
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----

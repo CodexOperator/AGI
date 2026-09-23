@@ -1969,6 +1969,11 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             print(guard, file=sys.stderr)
             return 1
 
+    # goal:g7.31.5.3 residue A: cmd_spawn is a PLAIN spawn -- it launches a
+    # window from a template and transfers no predecessor post, so no rotation
+    # authority moves; the rotation paths (cmd_rotate_self, cmd_loop) carry
+    # the profile-drift guard. Deliberately exempt, not overlooked.
+
     # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
     # name-for-every-non-prime-post): a NON-prime --seat names the window.
     name = args.name
@@ -3019,6 +3024,15 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+
+    # goal:g7.31.5.3 residue A: cmd_loop rotates too, so it carries the SAME
+    # profile-drift guard as cmd_rotate_self, in the same place and shape --
+    # after the branch guard and BEFORE the meter / name / spawn_window, so a
+    # desync is refused by name before any side effect.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:
