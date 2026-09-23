@@ -58,7 +58,8 @@ TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code 
 HOLD     TMM.66 (TM 22:29Z): NO new OpenRouter dispatch -- pi parents, kids, murs -- until the Prime / owner answers (account 3.26 USD of 170 at 22:3xZ;
          PASS 3 needs it at 01:37Z) · running rounds finish · local work goes on · a fix delta needs no mur (TM verifies at the gate) · LIFTS = one TM line
          pi-local is NOT a way round it: kids ignore --harness pi-local and run on OpenRouter (board open (2)); a parent never writes code (brief.py _parent)
-         told TM 22:5xZ (one line, delivered): director-engine spawned EF.86 a00-f49a12cf 22:39:41Z + EF.87 a00-632e0d0d 22:41:42Z after the hold -- TM's call
+         TMM.69 (TM 22:49Z): the HOLD stands (1.34 USD left at 22:49Z) · DE's EF.86/87 predated the hold reaching it (TMM.68 repeats it) · my ready order
+         LEAF.01 -> REPLAY.01 -> SWR-SV.01 ACCEPTED as listed · the LEAF's 4 out-of-repo roots stay PROPOSED box cells (the Prime writes box.*) -- deviation accepted
 LANDED   OSC.12 at 1789d3ffc (TMM.67 22:43Z; TM verified mur-15's demote close at the gate) -> nothing of mine awaits a gate
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
   done   L1 KV format (q4_0 + --fit-target 512 = 156,416 tokens, 3.15x, +0.074 pct NLL; the router answer is the Prime's) · L6 knobs (no tg64 interval clears 0)
