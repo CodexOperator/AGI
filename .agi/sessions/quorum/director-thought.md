@@ -78,16 +78,16 @@ routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seat
          swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
     residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
          generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
-2 OSC.11 parent a00-67c8a71a DONE 20:08:41Z (harvest accepted=1) BUT its tip is UNCHANGED 7158dbb4fb: kid a00-3caaf6eb's outputs are UNTRACKED in the parent worktree (ub_prefill_round.py,
+2 OSC.11 parent a00-67c8a71a DONE 20:10:10Z: tip c3b893d95b COMMITS kid a00-3caaf6eb's outputs (worktree clean, pid gone), verdict inconclusive_lean_disproved:90 (ub_prefill_round.py,
          experiment a00-3caaf6eb-9065ef, datasets/serving-sweep/2026-09-23-ub/) · router RESTORED 19:49:55Z, PROVEN 19:55:38Z (a real 9B completion; the
          router refuses a request with no "model" field -- name Qwen3.5-9B-Q4_K_M)
-    the kid's result: inconclusive_lean_proved:70 -- a bigger -ub speeds a ~30k prefill ONLY for q8_0 KV (ub1024 +27.2 pct [15.6, 38.8], ub2048 +27.3
+    the KID's lean, which the PARENT REVERSED (read why on the node before the mur): inconclusive_lean_proved:70 -- a bigger -ub speeds a ~30k prefill ONLY for q8_0 KV (ub1024 +27.2 pct [15.6, 38.8], ub2048 +27.3
          [17.5, 37.2], n_ctx 68,608 / 56,320); f16 +6.0 [-89.9, +102.0] and q4_0 +2.8 [-0.7, +6.2] do not clear zero; the q8_0 ub512 baseline (960 tok/s)
          sits BELOW f16 (1,071) and q4_0 (1,167) -> part of the gain may be an artifact; box contention: MemAvailable 0.8-11.5 GB, load 10-52
     harvest: merge season2/loops/hypothesis-lm-served-9b-long-pro-a00-67c8a71a, check its worktree for uncommitted config, anonymize its range (both gates)
          -> ONE mur (merge_up director-thought-14) -> close in place -> a QUIET-WINDOW re-run of f16 and q8_0 at ub 512 / 1024 (no CPU torch rounds, no suite)
          before any step is proposed; f16's interval cannot resolve 10 pct
-    so: once pid 619394 exits, harvest the kid's outputs by a director commit (the OSC.09 pattern, 5208ac454) -- there is no loop-branch commit to merge
+    the harvest is a plain merge of tip c3b893d95b -- no director commit (its 20:08:41Z line named the pre-commit tip 7158dbb4fb)
 3 TMM.58 RECEIVED by TM (TMM.59: if TM rotates first, landing e0689f715 is TM's successor's first step) -- nothing to do unless TM's gate asks
     told TM: the COMMITTED anonymize.py refuses trunk..tip on the LOOPBACK address only; MAIN carries an UNCOMMITTED patch that drops loopback and
          link-local, so it must land at or before my range · the orphaned probe pid 3056036 (not mine) reported
