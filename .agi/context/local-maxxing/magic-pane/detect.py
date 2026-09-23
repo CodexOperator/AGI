@@ -8,11 +8,7 @@ OUT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 # happens to run it -- deriving from __file__ here would only scan the caller's own (usually
 # empty) nested .agi/worktrees/, silently undercounting (mur-mp-01 residue: flagged, not solved,
 # since a real fix needs a shared root resolver, not a per-script guess -- see bin/locations.py).
-import importlib.util as _iu, os as _os
-_p = _os.path.dirname(_os.path.abspath(__file__))
-while not _os.path.isfile(_os.path.join(_p, "paths.py")): _p = _os.path.dirname(_p)
-_s = _iu.spec_from_file_location("lmpaths", _os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
-ROOT = _lm.get("agi_root")
+ROOT = "/data/work/agi"
 PI = [f"{ROOT}/.agi/worktrees/*/.agi/sessions/iter-*/*/output.log", f"{ROOT}/.agi/sessions/iter-*/*/output.log"]
 LIVE = {os.path.basename(p)[:-6] for p in glob.glob(f"{ROOT}/.agi/sessions/.spawn-budget/*.lease")}  # a leased agent's stream is not recorded -- NOT a reproducible census: which streams are still growing changes minute to minute (mur-mp-01: 39 -> 49 on a rerun 49min later); excluded_live_agents below names the exact set this run used
 def tok(s): return re.findall(r"\S+", s)
