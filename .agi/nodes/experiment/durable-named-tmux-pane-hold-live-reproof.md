@@ -5,22 +5,23 @@ type: experiment
 parents:
   - hypothesis:a00-814bac02-32024a
 next_edges: []
-confidence: 0.6
-edited_by: a00-814bac02
+confidence: 0.75
+edited_by: a00-59a0ef02
 evidence_runs:
   - experiment:durable-named-tmux-pane-hold-live-reproof
-line_ceiling: 40
+line_ceiling: 160
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 141
 profile: balanced
+rebrief_answer: proceed-with-160
 rebrief_request: "Port of the prior-art seam landed and PROVED live (real tmux, same pane_id across pid churn) at 141 production lines -- the prior-art tmux_hold.py is ~113 lines by itself. Default ceiling 40 is 3.5x too small for the ordered port. Ask: raise ceiling to ~160 and merge the branch; otherwise direct a split (e.g. seam-only over two rounds)."
 role: kid
 scaffold_hash: fd09609a871f3bf4
 season: 2
 title: Durable named tmux pane hold, ported and reproved live on the DT.102 tip
 town: core
-verdict: pending
+verdict: inconclusive_lean_proved:75
 ---
 <!-- BODY:BEGIN -->
 # experiment:durable-named-tmux-pane-hold-live-reproof
@@ -152,3 +153,5 @@ as banked, not as done.
 
 ## Agent Notes
 Ported prior-art tmux_hold seam onto tip f655a6714 and PROVED live: real tmux same pane_id %0 across kill -9 and restart (created=false), pane-gone re-creates once with created=true, other seat cannot enter it; wire probe shows dispatch._reap_one restart threads harness_spec into tmux_hold.reattach while a Popen stub never sees it. 52 tests pass. STOPPED at ceiling checkpoint: 141 production lines vs ceiling 40 (2x=80); rebrief_request set on the experiment node asking for ~160.
+
+Parent accepted with probes: same pane_id %0 across kill -9 (created=false); created=true when pane gone; seat isolation held; probe C names the banked first-spawn gap. verdict lean_proved:75, rebrief_answer proceed-with-160.
