@@ -2,9 +2,8 @@
 
 The claim: `brief.py render` returns the WHOLE first user turn for any role
 (Prime, master, director, parent, kid) assembled from ONE config cell — the
-head (byte-identical across roles), the post's card with its
-`{{template:<node id>}}` lines expanded one level, the harness block and the
-town trajectory — and writes NO injection file.
+head (byte-identical across roles), the post's card (data, never expanded),
+the harness block and the town trajectory — and writes NO injection file.
 
 Each test is a falsifier from the hypothesis node, pinned red-first.
 """
@@ -73,6 +72,20 @@ def _files(root: Path):
     return sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
 
 
+def test_config_schema_declares_the_template_post_row_cell():
+    """Conjunct: the `template` post-row cell is declared in
+    `.agi/context/schemas/[config].md` under `fields.seats`, as the role
+    template node ref that beats `brief.templates[<role>]`."""
+    repo = BIN.parents[2]
+    schema = (repo / ".agi" / "context" / "schemas" / "[config].md").read_text(
+        encoding="utf-8")
+    row = schema[schema.index("seats: {type: list}"):]
+    row = row[:row.index("posts: {type: list}")]
+    assert "template" in row, "the post row's `template` cell is declared"
+    assert "brief.templates" in row, \
+        "the clause names what `template` beats (brief.templates[<role>])"
+
+
 def test_head_bytes_are_identical_across_all_five_roles(tmp_path):
     """Falsifier 1: the head bytes differ between any two roles. The head is
     one doc region and takes no role, so all five renders agree byte for byte."""
@@ -92,14 +105,20 @@ def test_one_config_line_adds_or_removes_a_part(tmp_path):
     assert "CARD-SENTINEL" in brief.render(post="some-post", project_root=root)
 
 
-def test_card_is_data_and_is_never_expanded(tmp_path):
-    """The amendment (owner 08:5xZ): a card is DATA. A `{{template:}}`
-    line in a card is NOT an expansion directive -- the ROLE template comes
-    from the config cell/row, never from a line in the card."""
-    root = _root(tmp_path, parts={"director": ["card"]})
+def test_the_template_macro_is_gone_and_renders_literal(tmp_path):
+    """The `{{template:}}` mechanism is REMOVED (hypothesis:brief-render-
+    hygiene-after-the-batch-mur): a macro line in an `extras` node or a card
+    is DATA, never an expansion directive. Pre-fix the `extras` ref expanded
+    the referenced node's body one level."""
+    root = _root(tmp_path, parts={"director": ["extras", "card"]},
+                 extras={"director": ["doc:wrapper"]})
+    _write(root, "nodes/doc/wrapper.md",
+           "WRAPPER-SENTINEL\n\n{{template:doc:deeper}}\n")
     out = brief.render(post="some-post", project_root=root)
-    assert "{{template:doc:inner}}" in out, "the card's template line stays literal"
-    assert "INNER-BODY-SENTINEL" not in out
+    assert "WRAPPER-SENTINEL" in out, "the extras node itself still renders"
+    assert "{{template:doc:deeper}}" in out, "an extras macro stays literal"
+    assert "DEEPER-SENTINEL" not in out, "the macro never expands"
+    assert "{{template:doc:inner}}" in out, "a card macro stays literal"
 
 
 def test_missing_template_node_is_refused_by_name(tmp_path):
@@ -390,3 +409,73 @@ def test_config_rotations_first_turn_no_longer_reads_the_card():
     assert "build:HANDOFF.md" not in rot
     assert '"label": "rotation-record"' in rot
     assert '"label": "verify"' in rot
+
+
+# ---- render hygiene (hypothesis:brief-render-hygiene-after-the-batch-mur) --
+
+THOUGHT_BLOCK = (
+    "<!-- THOUGHT:BEGIN — authored, not derived. -->\n"
+    "THIS-VERSION-REASONING-SENTINEL\n"
+    "<!-- THOUGHT:END -->\n")
+
+
+def test_node_sourced_parts_strip_the_thought_block(tmp_path):
+    """Falsifier: a render hands a successor a node's THOUGHT changelog.
+    The template, the card node and the trajectory carry only current words."""
+    root = _root(tmp_path, parts={"director": ["template", "card", "trajectory"]},
+                 templates={"director": "doc:director-brief"})
+    _write(root, "nodes/doc/director-brief.md",
+           "DIRECTOR-BRIEF-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(root, "nodes/doc/card-some-post.md", "CARD-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(root, "nodes/town/t.md", "TOWN-TRAJECTORY-SENTINEL\n\n" + THOUGHT_BLOCK)
+    out = brief.render(post="some-post", project_root=root)
+    assert "DIRECTOR-BRIEF-SENTINEL" in out
+    assert "CARD-SENTINEL" in out
+    assert "TOWN-TRAJECTORY-SENTINEL" in out
+    assert "THIS-VERSION-REASONING-SENTINEL" not in out
+    assert "<!-- THOUGHT:BEGIN" not in out
+
+
+def test_template_payload_strips_the_thought_block(tmp_path):
+    """A build node's template is its PAYLOAD file; the strip follows it."""
+    payload = _write(tmp_path, "payload-brief.md",
+                     "PAYLOAD-BRIEF-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(tmp_path, "nodes/build/the-prime-brief.md",
+           "---\nid: build:the-prime-brief\npayload_ref: " + str(payload)
+           + "\n---\n<!-- BODY:BEGIN -->\n# build:the-prime-brief\n")
+    root = _root(tmp_path, parts={"prime_director": ["template"]},
+                 templates={"prime_director": "build:the-prime-brief"})
+    out = brief.render(role="prime_director", project_root=root)
+    assert "PAYLOAD-BRIEF-SENTINEL" in out
+    assert "THIS-VERSION-REASONING-SENTINEL" not in out
+
+
+def test_a_thought_mention_in_prose_is_not_stripped(tmp_path):
+    """The strip is the authored REGION, not the bare word: a node line that
+    merely names THOUGHT:BEGIN survives (measured live: the director template's
+    harvest diagram carries `THOUGHT:BEGIN <= 1 per new node`)."""
+    root = _root(tmp_path, parts={"director": ["trajectory"]})
+    _write(root, "nodes/town/t.md",
+           "TOWN-TRAJECTORY-SENTINEL\n\nTHOUGHT:BEGIN <= 1 per new node\n")
+    out = brief.render(post="some-post", project_root=root)
+    assert "THOUGHT:BEGIN <= 1 per new node" in out
+
+
+def test_operating_mode_is_a_config_part_and_off_by_default(tmp_path):
+    """Falsifier: render drops the declared operating mode with no way to ask
+    for it. It is a `operating_mode` part now; the default lists are unchanged,
+    so nothing renders until the config cell names it."""
+    root = _root(tmp_path, parts={"director": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["operating_modes"] = {"enhanced_survival": {
+        "name": "enhanced survival", "seats": "three seats",
+        "models": "opus", "source": "goal:g17.1"}}
+    cfg["active_operating_mode"] = "enhanced_survival"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    assert "OPERATING MODE" not in brief.render(post="some-post", project_root=root)
+    cfg["brief"]["parts"] = {"director": ["head", "operating_mode"]}
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    out = brief.render(post="some-post", project_root=root)
+    assert "─── OPERATING MODE (declared in .agi/config.json) ───" in out
+    assert "ACTIVE: enhanced survival" in out
+    assert "SOURCE: goal:g17.1" in out
