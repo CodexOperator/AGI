@@ -3,9 +3,9 @@ id: goal:g4.5
 mint_id: 3caaf35b1cb24fc8811eaf51364e1df2
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.5
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.5: `depends_on` as a first-class scheduling edge"
 ---
 The edge already exists, under another name and confined to one type.
