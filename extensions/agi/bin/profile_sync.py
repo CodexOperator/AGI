@@ -28,6 +28,18 @@ def artifact_path(root, ref):
     if p.is_dir():
         raise Refused(
             f"profile_ref {ref!r} resolves to a directory, not a file")
+    # A ref whose parent chain is not all directories cannot be written:
+    # `sync_node`'s `mkdir(parents=True)` would raise NotADirectoryError
+    # AFTER the body has already landed. Walk up while an ancestor does not
+    # exist; the first that exists decides (repo root is a directory by
+    # construction, so this terminates). Read-only — nothing is created.
+    for anc in p.parents:
+        if anc.is_dir():
+            break
+        if anc.exists():
+            raise Refused(
+                f"profile_ref {ref!r} has a non-directory parent "
+                f"{str(anc)!r}")
     return p
 
 def _projected_bytes(nf):
