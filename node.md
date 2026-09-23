@@ -8,6 +8,7 @@ next_edges: []
 edited_by: belam
 scaffold_hash: b52d70d45e8166bc
 season: 2
+status: deprecated
 tags:
   - rnd
   - framing
@@ -58,3 +59,7 @@ no signal, round after round on one line ─▶ stop the line, say so on the boa
 
 ## Nesting is not the R&D shape
 An R&D chain grows idea → hypothesis → experiment → why → next hypothesis, not a sub-goal tree. Nest only when a goal genuinely splits into independent questions; never to fill slots.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+RETIRED unused (owner 09-23 08:2xZ, verbatim on goal:g14): no flavor docs; each post's own card carries its loop (director-thought research, director-engine build). Minted 08:1xZ by the Prime during the doc unification pass, never committed to a branch, but the grid cron versioned it, so retired and moved, never deleted. The framing text stays here for the director-thought card.
+<!-- THOUGHT:END -->
