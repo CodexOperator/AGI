@@ -178,11 +178,12 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert "restart_count" not in agents[0], agents
 
 
-def test_record_carries_persistent_state_and_no_dead_pid_at_end(
+def test_record_carries_persistent_state_and_live_pid_at_end(
         project, monkeypatch, capsys):
     """Conjunct (c) + occupation honesty: while the hold runs the record
-    names the CURRENT (restarted) pid; when the hold ends the record names
-    the END (`persistent_state`, no pid) rather than a dead occupant."""
+    names the CURRENT (restarted) pid; when the hold ends with the child
+    still ALIVE the record keeps that live pid (state `released`) rather
+    than erasing a running occupant."""
     spawned = _fake_spawn(monkeypatch, [
         {"left": 14, "rc": 1},
         {"left": 999, "rc": None},
@@ -195,13 +196,14 @@ def test_record_carries_persistent_state_and_no_dead_pid_at_end(
     rec = agents[0]
     assert rec["persistent"] is True, rec
     assert rec["restart_count"] == 1, rec
-    assert rec["persistent_state"] == "stopped", rec
-    assert rec["pid"] is None, rec
-    # the manifest and the session agent.json are the same bytes: no surface
-    # still asserts the dead child's pid as the live occupant.
+    assert rec["persistent_state"] == "released", rec
+    assert rec["pid"] == spawned[1][1].pid, rec
+    # the manifest and the session agent.json are the same bytes: both name
+    # the live occupant, neither erases it.
     sess = json.loads(sorted((project / ".agi" / "sessions").glob(
         f"**/{rec['id']}/agent.json"))[0].read_text())
-    assert sess["persistent_state"] == "stopped" and sess["pid"] is None, sess
+    assert sess["persistent_state"] == "released", sess
+    assert sess["pid"] == spawned[1][1].pid, sess
 
 
 def _record():
@@ -232,9 +234,37 @@ def test_zero_restarts_dead_child_marks_ended(tmp_path, monkeypatch):
     assert on_disk["pid"] is None, on_disk
 
 
-def test_stop_env_marks_ended_without_restart(tmp_path, monkeypatch):
-    """Gate: AGI_PERSISTENT_STOP=1 -> supervisor returns without restart and
-    the record is marked ended."""
+def test_stop_env_keeps_a_live_occupant_released(tmp_path, monkeypatch):
+    """Wire (the case the parent's probe D FAILED): AGI_PERSISTENT_STOP=1
+    while the child's `poll()` is None (ALIVE) -> the persisted record's
+    `pid` IS that live child's pid, and the state is not `running`. The
+    hold ending must never be reported as the occupant being gone."""
+    session = tmp_path / "sess"
+    session.mkdir()
+    rec = _record()
+    reopens: list = []
+    monkeypatch.setenv(dispatch._PERSIST_STOP_ENV, "1")
+
+    def reopen(mode):
+        reopens.append(mode)
+        return _StubProc(222, None, 999)
+
+    live = _StubProc(111, None, 999)
+    dispatch._supervise_persistent(
+        live, reopen, iter_dir=tmp_path, agent_id="a",
+        record=rec, session=session, max_restarts=2)
+    assert reopens == [], "a stopped hold must not re-open"
+    assert rec["persistent_state"] != "running", rec
+    assert rec["persistent_state"] == "released", rec
+    assert rec["pid"] == live.pid, rec
+    on_disk = json.loads((session / "agent.json").read_text())
+    assert on_disk["persistent_state"] == "released", on_disk
+    assert on_disk["pid"] == live.pid, on_disk
+
+
+def test_stop_env_marks_stopped_when_child_is_dead(tmp_path, monkeypatch):
+    """Gate: AGI_PERSISTENT_STOP=1 with a DEAD child -> no restart, state
+    `stopped`, pid None (the original honesty case must still hold)."""
     session = tmp_path / "sess"
     session.mkdir()
     rec = _record()
@@ -246,7 +276,7 @@ def test_stop_env_marks_ended_without_restart(tmp_path, monkeypatch):
         return _StubProc(222, None, 999)
 
     dispatch._supervise_persistent(
-        _StubProc(111, None, 999), reopen, iter_dir=tmp_path, agent_id="a",
+        _StubProc(111, 1, 0), reopen, iter_dir=tmp_path, agent_id="a",
         record=rec, session=session, max_restarts=2)
     assert reopens == [], "a stopped hold must not re-open"
     assert rec["persistent_state"] == "stopped", rec
