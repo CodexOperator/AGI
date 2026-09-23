@@ -6,9 +6,7 @@ parents:
   - goal:g7.32.2
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
-demoted_from: proved
-edited_by: a00-ab3bb108
+edited_by: a00-96adeacf
 evidence_runs:
   - experiment:magic-pane-native-route-a00-96adeacf
 line_ceiling: 40

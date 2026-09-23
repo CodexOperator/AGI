@@ -36,5 +36,38 @@ def native_send(root: Path, to_seat: str, text: str, *,
     return {"path": "native", "target": target, "typed": len(text) if typed else 0}
 
 
-def cross_send(root: Path, to_seat: str, text: str, *, sender: str | None = None) -> dict:
-    raise NotImplementedError("g7.32.2 cross-harness nudge->send: kid 2 fills this")
+def _pane_intent(root: Path, to_seat: str, *,
+                 tmux_session: str | None = None) -> dict:
+    """Pane-intent artifact for the cross-harness path: WHERE send.py's own
+    wake nudge will land. Read-only — it resolves the recipient's @id window
+    and records the intent; it types nothing, so the message body is never
+    duplicated natively and no keystroke races send.py's nudge. A seat with
+    no addressable @id window is still deliverable through the dm file, so
+    the intent records pane=None instead of refusing.
+    """
+    try:
+        target = _native_target(root, to_seat, tmux_session)
+    except NoAddressableWindow:
+        target = None
+    return {"event": "nudge", "to": to_seat, "pane": target,
+            "via": "send.py _nudge_window"}
+
+
+def cross_send(root: Path, to_seat: str, text: str, *, sender: str | None = None,
+               tmux_session: str | None = None) -> dict:
+    """Cross-harness delivery (goal:g7.32.2): pane-intent nudge -> send.py.
+
+    A different harness is never claimed native. The pane-intent artifact is
+    emitted FIRST (recorded, not typed), then the body is handed to the
+    send.py transport, which writes the dm record and fires its own wake
+    nudge at that pane. The body is never typed natively; the returned
+    `events` list is the ordered trace of the one path.
+    """
+    import send  # the transport; never route.native_send here
+    nudge = _pane_intent(root, to_seat, tmux_session=tmux_session)
+    events = [nudge["event"]]
+    dm_path = send.send_dm(root, sender or "unknown", to_seat, text, sender)
+    events.append("send_dm")
+    return {"path": "nudge-send", "nudge": nudge,
+            "transport": {"event": "send_dm", "dm": str(dm_path)},
+            "events": events}
