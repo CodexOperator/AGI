@@ -52,9 +52,19 @@ def project(root, node_id):
     return artifact_path(root, str(ref)), _projected_bytes(nf)
 
 
-def _raw_profile_ref(text):
-    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+def _raw_frontmatter(text):
+    """Raw text between the first two `---` delimiter lines, else "".
+
+    A `profile_ref:` after the frontmatter closes is body prose (a doc line,
+    a code block) and is NOT a link; only the frontmatter region can link.
+    """
+    m = re.match(r"^---[ \t]*\n(.*?)\n---[ \t]*(?:\n|$)", text, re.S)
+    return m.group(1) if m else ""
+
+
+def _raw_profile_ref(frontmatter_text):
+    """Best-effort `profile_ref` from a raw frontmatter region."""
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", frontmatter_text, re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
@@ -62,9 +72,10 @@ def check_all(root):
     """Sweep every node with `profile_ref` under `nodes/**` (the retired
     sibling included, goal:g2.10). Returns a dict per linked node with
     status ok|drift|missing|refused|unreadable; an unlinked node is not
-    swept. An unparseable file never raises: if its raw bytes carry no
-    `profile_ref:` hint it is not a profile-linked node and is skipped;
-    if they do, it cannot be proven in sync and is named `unreadable`.
+    swept. An unparseable file never raises: if its raw FRONTMATTER
+    carries no `profile_ref:` hint it is not a profile-linked node and is
+    skipped; if it does, it cannot be proven in sync and is named
+    `unreadable`. A read failure is likewise named `unreadable`, not raised.
     """
     if root is None:
         raise Refused("no project root — no enclosing .agi/config.json")
@@ -73,10 +84,20 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except Exception as e2:
+                # A file that cannot be read cannot be proven in sync: name
+                # it rather than let the read error escape as a crash.
+                out.append({"node_id": f.stem, "artifact": "", "actual": None,
+                            "expected": None, "path": str(f),
+                            "status": "unreadable",
+                            "detail": f"{type(e2).__name__}: {e2}"})
+                continue
+            fm_text = _raw_frontmatter(raw)
+            if "profile_ref:" not in fm_text:
                 continue  # unparseable but not profile-linked: not ours
-            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
+            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(fm_text),
                         "actual": None, "expected": None, "path": str(f),
                         "status": "unreadable",
                         "detail": f"{type(e).__name__}: {e}"})
