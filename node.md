@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.9
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.9: One brief, assembled by the engine, never typed per spawn"
 ---
 **A parent should name the target and the tier, and nothing else.** Today
@@ -81,7 +81,7 @@ graph content, versioned like everything else.
 - **`goal:g1.4`** decides what a briefed kid is *allowed* to do. A brief that
   is assembled and a permission set that is enforced are the same statement
   made twice, and stage 2 there should read from here.
-- **`goal:g9.3`** — ride along as a kid — is how a human checks the output of
+- **`goal:g2.16`** — ride along as a kid — is how a human checks the output of
   this without spending an agent. It is the natural falsifier's front-end.
 - **`goal:g4.3`** is the first consumer: its CC dispatcher needs parent briefs
   and kid briefs from one place, or it grows its own copy and breaks the
