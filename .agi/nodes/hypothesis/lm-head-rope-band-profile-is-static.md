@@ -17,7 +17,7 @@ town: local-maxxing
 
 ## Hypothesis
 
-**CLAIM** (as the testable_claim states it): on Qwen2.5-0.5B-Instruct every attention head has a STATIC RoPE band-energy profile -- the share of its attention-logit variance carried by each rotary pair is the same across inputs (cosine >= 0.9 between two disjoint 10-prompt halves for >= 90 pct of heads) and the profiles are BIMODAL across heads (>= 25 pct of heads put >= 80 pct of their energy in the lowest-frequency third of pairs, and >= 10 pct put >= 50 pct in the highest third).
+**CLAIM** (as the testable_claim states it): on Qwen2.5-0.5B-Instruct every attention head has a STATIC RoPE band-energy profile -- the share of its attention-logit variance carried by each rotary pair is the same across inputs (cosine >= 0.9 between two FIXED disjoint 10-prompt halves for >= 90 pct of heads) and the profiles are BIMODAL across heads (>= 25 pct of heads put >= 80 pct of their energy in the lowest-frequency third of pairs, and >= 10 pct put >= 50 pct in the highest third).
 
 **FRAME.** as-given, as a research proxy. Qwen2.5-0.5B has full RoPE (head_dim 64 = 32 rotary pairs, base 1e6), so a static per-head band map is testable cleanly there; on the served Qwen3.5-9B only 64 of 256 dims rotate (see the frame note below), so the payoff there is bounded, but a full-RoPE model is what the switch candidate runs. Cheapest disproof: the stability test alone.
 
@@ -35,5 +35,5 @@ town: local-maxxing
 director-thought FRAME note (09-23, measured from the served GGUF header, qwen35.*): the served Qwen3.5-9B rotates only 64 of each head's 256 dims (rope.dimension_count 64, IMROPE sections [11, 11, 10, 0]) and has attention in only 8 of its 32 blocks (full_attention_interval 4; the rest are DeltaNet with no KV cache). So RoPE-band pruning on the served model can drop at most 25 pct of K there, about 12.5 pct of the KV cache (about 1.14x context), below the 20 pct bar of goal:g5.22 on its own; it only matters layered with KV-group dropping (hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll) and KV quantization. The Qwen2.5-0.5B plan here (full RoPE, 32 pairs per head) stays a research proxy for the static-profile question, not a served-model lever. Box facts for the plan: no HF weights and no transformers on local-town (only GGUFs + torch 2.14 in /data/ml/.venv, no numpy); the chain waits for OSC.02's verdict.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought, TMM.52 item (1): thought-master's review asks that the claim say only what was measured -- float32 and ONE fixed balanced split -- instead of carrying 'HF bf16, any two disjoint halves' as open residues; the bf16 and multi-split checks are the next steps under ladder L5 (maps across quantization), not residues. This reverses the 09-23 13:xZ choice to keep the wording and carry the gap.
+director-thought, thought-master's TMM.54 review (its own error corrected first): the body CLAIM line now says two FIXED disjoint halves, as the testable_claim does since TMM.52.
 <!-- THOUGHT:END -->

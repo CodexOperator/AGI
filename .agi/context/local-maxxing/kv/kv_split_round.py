@@ -73,7 +73,7 @@ def main():
            "model_sha256": subprocess.run(["sha256sum", GGUF], capture_output=True, text=True).stdout.split()[0],
            "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     print("T1 placement + T3a split fit", flush=True)
-    res["fit_split"] = fit("q8_0", "q4_0", "fit_split", 18081)   # its load log IS the T1 evidence
+    res["fit_split"] = fit("q8_0", "q4_0", "fit_split", 18081)   # its load log records n_ctx_slot at default verbosity; the T1 placement log came from a separate -lv 5 run (osc07/place_probe.sh)
     print("T2 quality", flush=True)
     res["f16"] = ppl("f16", "f16", "ppl_f16"); res["split"] = ppl("q8_0", "q4_0", "ppl_split")
     print("T3b L1 stack at -fitt 512", flush=True)
