@@ -25,7 +25,7 @@ verdict: inconclusive_lean_proved:80
 ## Experiment
 
 SL1.08 residual fixes on the classifier/window derived from the target
-hypothesis (the build-order chain under goal:g15.13). The prior kid
+hypothesis (the build-order chain under goal:g6.35). The prior kid
 (experiment:a00-d30cf4b2) implemented the 8 items; this run closes four
 residuals the parent measured on the built bytes. Scope: `extensions/agi/bin/
 sensei.py` + the two classifier test files. 64 tests pass.
