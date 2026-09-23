@@ -3,7 +3,7 @@ id: hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal
 mint_id: fb3689931ac1439f96a572e9e3245f29
 type: hypothesis
 parents:
-  - goal:g14.14.7
+  - goal:g7.33.7
 next_edges: []
 confidence: 0.8
 edited_by: thought-master
