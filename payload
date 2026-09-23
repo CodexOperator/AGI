@@ -11886,6 +11886,8 @@ OWNER 09-23 15:0xZ (Prime pane, verbatim): "Go back to quiet mode now back to ju
 
 PASS 2 09-23 11:41Z-16:2xZ (the Prime): trunk @ebae4adde → season2/main @4c35ff60f (merge --no-ff; tree == TIP) · 21 rounds on pi, 6 run keys (chunk 4 hung 50 min on one stage → stopped, re-run LEAN per core d3cb7d45d as 4b/4c/4d) · 0 red · reviews 19 accept_with_residue / 1 demote / 1 accept · verifies 17 accept_with_residue / 1 demote / 1 empty / 2 pending at merge (engine-delta-3a/3b, reviews accept) · there: links 0 · goals byte-identical · active 3753 · deletions = the g14.14 + g14.11.1 renames + goal:g5's old file (renamed to g5.md, mint 71c02192 kept) · residues → hypothesis:pass2-0923-residue-batch + hypothesis:grid-old-namespace-refilled-and-forked + hypothesis:harness-template-emit-refuses-an-unknown-slot (director-engine) · the Prime's own: config:commands links row (retired g13) + write.py rows goal:g4.18.
 
+OWNER 09-23 16:3xZ (Prime pane, verbatim): "Okay that’s fine keys just move the hypothesis format out of role docs and into the hypothesis schema node." -- APPLIED: .agi/context/schemas/[hypothesis].md gains the body format (Measured · CLAIM · Dispatch line · FALSIFIERS · TESTS · FILE SCOPE · CEILING; the kid answers the dispatch line first), moved verbatim from the director template NODE step and the master template PLAN step, which now point at the schema; the HEAD schemas line names [hypothesis]; the pinned test (test_config_max_template_max_required) follows the dispatch line into the schema (one line, test-only). Keys: the by-hand republish stands until the key round lands.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
