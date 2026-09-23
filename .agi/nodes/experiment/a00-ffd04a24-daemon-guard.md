@@ -5,10 +5,11 @@ type: experiment
 parents:
   - hypothesis:a00-ffd04a24-02b8b5
 next_edges: []
-edited_by: a00-ffd04a24
+edited_by: a00-aefc93ba
 line_ceiling: 40
 loop: goal:g7.31.4.3@s2
 model: deepseek/deepseek-v4.1-flash
+probes: "parent-run: auth=n/a (no caller/role surface); gate=planted agi-message-router, inbox-broker, dispatchd(message_router.py exec), and nudge-router(benign exec) into temp COPIES -> regex fires on 3/4 and the services-set-equality test fails on the 4th, so the SUITE refuses every planted daemon; wire=_graph_root() resolves the real worktree .agi and message_daemons(live)==[] while live services==[agi-reaper, agi-alarms-sanctuary-master]"
 production_lines: 0
 profile: balanced
 role: kid
