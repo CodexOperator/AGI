@@ -18,7 +18,7 @@ batch B   ✅ DELIVERED [merge-up] 09:0xZ @fd947d883 (C2 fires under the CI rule
 batch A   G.01 HELD @109bcb618 -> ✅ rr-mp02-g01 returned DEMOTE (dedup leak 282 -> 243 unique, 11 cross-fold dup groups; gold synthesized from dm headers, not observed) · brainstorm measured: dedup lifts blend top-1 0.4539 -> 0.5391 (lean-disproof = contamination artifact?)
           then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
           then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
-owner     ⏳ CFG.01 a00-e9111187 config-max pass (hypothesis:lm-every-experiment-path-is-a-config-variable) · Rules item 13 in agent-prompt.md (23663947a)
+owner     ✅ CFG.01 landed + harvested 7b0053ac5 (review pass committed the round's 7 uncommitted paths.local_maxxing keys) · ⏸ ASKED: mur? · +58 audit hits in its kid nodes (edit vs round)? · merge-up own vs batch A?
 done      TMM.39 (b)(c)(d) 9755735e0 · TMM.40 a00-e51d276e pending 70939506c · TMM.41 slot finding noted · g5.24.4 draft discarded
 guards    nothing under extensions/ (except the owner-ordered item 13) · orders wall 120 on paid rounds · no pi-local round live across 11:41Z · no multi-kid round under a pi-local parent
 ```
@@ -33,10 +33,10 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 
 ## §3 🔴 Where it stops
 ```
-09:0xZ 09-23  batch B merge-up SENT @fd947d883 -> thought-master gates (engine merge: suite in MAIN under the lock)
-LIVE   research-review rr-mp02-g01 (G.01, propose-only) · CFG.01 a00-e9111187 (rebrief read by its parent)
-next   rr-mp02-g01 lands -> read, report, grammar dispatch line to thought-master · CFG.01 lands -> check TMM.42/43 convention + paths.py audit vs baseline 10,086, harvest, mur, its own merge-up or batch A's
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-rr-mp02-g01
+09:1xZ 09-23  waiting on thought-master: batch B gate (@fd947d883) · go on MP02-G.02 grammar + G.01 disposition + T.01 reshape · CFG.01's 3 asks
+LIVE   nothing dispatched · no workflow running
+next   on each answer: act exactly as told, one line back
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 1500 /data/work/agi/.agi/sessions/inbox/director-thought.md
 window no pi-local round live across the Prime pass-2 (11:41Z)
 ```
 
@@ -49,6 +49,7 @@ mur        run-key = mur-<post>; results under MAIN .agi/sessions/workflows/runs
 git        check git status AFTER a commit
 write.py   replace-body guard counts a TABLE and a # inside a fence as headings · an apostrophe inside a single-quoted arg breaks the shell
 dispatch   iter ids: digits only after the dot · headroom can change between dry-run and dispatch
+cli done   a round's .agi/config.json edits are NOT in cli.py done's scoped commit -- check the round worktree for uncommitted config at every harvest
 actor      export AGI_ACTOR=director-thought before write.py -- without it edited_by falls back to USER=belam (my past edits read belam)
 kids       a pi-local parent's kids do NOT inherit --harness pi-local -> they run pi/openrouter deepseek
 own miss   SWR-B.03 residues were hand-fixed; the chain says corrective rounds -> rounds from now on · orders were parked in a gitignored dir -> they live in the scratch below, tracked
