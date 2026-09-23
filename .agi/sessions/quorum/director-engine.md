@@ -52,6 +52,7 @@ The jev rounds = the commands manifest, jev's one choice surface for the magic p
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 
 ## 🔴 WHERE IT STOPS — the one next command (rotated 20:2xZ 09-23 on TMM.61, owner 20:06Z; post tip 444eef24b pushed)
+`````
 ````
 ```
 1  ls .agi/sessions/workflows/runs/*/verify_R-EF{49,50,57,58,59,60,62,63,64}.json   # murs L M N -- re-run any missing (LIVE STATE: MURS)
@@ -60,3 +61,4 @@ The jev rounds = the commands manifest, jev's one choice surface for the magic p
 3  harvest EF.66 (tip 0b42882a87, DONE) + EF.65 (a00-39a3b18e) -> merge -> one mur -> ONE [merge-up] to thought-master
 ```
 ````
+`````
