@@ -6,12 +6,13 @@ parents:
   - hypothesis:path-and-cron-audits-cover-what-they-declare
 next_edges: []
 confidence: 0.95
-edited_by: a00-48dae039
+edited_by: a00-d79d90c4
 evidence_runs:
   - experiment:a00-48dae039-aed4ae
 line_ceiling: 40
 loop: hypothesis:path-and-cron-audits-cover-what-they-declare@s2
 model: deepseek/deepseek-v4.1-flash
+probes: "PROBE-D (gate, conjunct 4): a GENERIC cadence entry (town_probe, name outside KNOWN_JOBS, carrying cmd + box, no why_box) is NAMED by cmd_audit -- \"node: cadences.town_probe gates on box 'local-town' with no `why_box` ...\". Holds. PROBE-D controls: same generic job WITH why_box -> silent; generic ungated (no box) -> silent; KNOWN job nudge_sweep gated without why_box -> still flagged. No over-report, no regression."
 production_lines: 1
 profile: balanced
 role: kid
@@ -90,15 +91,10 @@ The 3 are the new generic-job test plus the two existing built-in tests
 One line changed (the guard drop); test file excluded.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The guard was not a deliberate exemption for generic jobs — it was a
-convenience check that happened to be written when only built-ins could be
-box-gated. Generic entries later gained the same gate (`_resolve_cadence`
-:287), and the audit never followed, leaving the one class of job most likely
-to carry an unexplained box gate (an operator's ad-hoc entry) unjudged. Dropping
-the guard makes the audit match the declaration the node already makes:
-[.geometry/crons.md] already required `why_box` on every gated job, generic
-included. Audit only — nothing about what runs on the box changed.
+PARENT REVIEW (a00-d79d90c4, tier parent) on the bytes at HEAD bf6812e63. (1) THE INSTRUCTION SAID: "crons.py audit names every box-gated job without why_box, not only KNOWN_JOBS (crons.py:1081)". (2) WHAT THE MACHINE DOES: I read the diff -- cmd_audit's loop guard changed from `if name in KNOWN_JOBS and job.get("box") and not job.get("why_box")` to `if job.get("box") and not job.get("why_box")`, one production line, with the message text unchanged. I BUILT AND RAN the probes: PROBE-D handed cmd_audit a generic entry (`town_probe`, a name outside KNOWN_JOBS carrying `cmd` and `box` but no `why_box`) and it was named by name -- the exact under-report the conjunct fixes. Controls hold: the same generic job WITH `why_box` is silent, an ungated generic job is silent, and a KNOWN job (`nudge_sweep`) is still flagged -- no over-report and no regression. The generic branch goes through the same box gate in _resolve_cadence, so the old KNOWN_JOBS guard was the whole defect. (3) THE NEAR MISS: adding a second loop or a parallel `if name not in KNOWN_JOBS` branch would satisfy the words while duplicating the box/why_box logic and could drift from the built-in path; dropping the guard in ONE loop is the conjunct. (4) DEVIATION: none. VERDICT: the conjunct holds; the fix is the minimal changed byte and the new test is RED on the pre-fix guard.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 crons.py cmd_audit now names every box-gated job lacking why_box, generic entries included (drop the name-in-KNOWN_JOBS guard, 1 prod line); new test RED on pre-fix bytes (assert []), test_crons.py 92 passed green
+
+kid 2 (a00-48dae039): crons.py audit's why_box guard dropped so EVERY box-gated job is named, generic entries included. Parent PROBE-D (gate) holds and three controls (why_box present, ungated, KNOWN job) hold; 1 production line, test RED on the pre-fix guard.
