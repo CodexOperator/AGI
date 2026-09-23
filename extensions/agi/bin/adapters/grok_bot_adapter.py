@@ -160,3 +160,56 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+# OPTIONAL pane methods (goal:g7.32.3). They WRAP a caller-supplied pane
+# target and never own the hold (goal:g7.31.1). Every path fails CLOSED with
+# the named `adapters.PaneNotHeld`: no held target, a dead target
+# (returncode != 0), an OSError, or a timeout all refuse by name -- never
+# return None or {"live": False}. `runner` is the ONE tmux seam, so the suite
+# needs no tmux server.
+def _require_pane(pane: str | None) -> str:
+    if not (isinstance(pane, str) and pane.strip()):
+        raise adapters.PaneNotHeld(
+            "grok-bot pane method called with no held pane target; the caller "
+            "must supply one (goal:g7.31.1) -- refusing rather than hanging")
+    return pane.strip()
+
+
+def _tmux(args: list[str]):
+    return subprocess.run(["tmux", *args], capture_output=True, text=True,
+                          timeout=5)
+
+
+def _run_pane(args: list[str], pane: str | None, runner) -> object:
+    """Run one tmux subcommand against `pane`; refuse by name on any failure."""
+    target = _require_pane(pane)
+    try:
+        out = (runner or _tmux)([args[0], "-t", target, *args[1:]])
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise adapters.PaneNotHeld(
+            f"grok-bot pane target {target!r} did not resolve: {exc}") from exc
+    rc = getattr(out, "returncode", 0)
+    if rc != 0:
+        raise adapters.PaneNotHeld(
+            f"grok-bot pane target {target!r} did not resolve "
+            f"(tmux {args[0]} rc={rc})")
+    return out
+
+
+def pane_attach(*, pane: str | None = None, runner=None, **kwargs) -> dict:
+    """Verify a caller-supplied pane target exists. Takes no hold."""
+    _run_pane(["display-message", "-p", "#{pane_id}"], pane, runner)
+    return {"pane": _require_pane(pane), "live": True}
+
+
+def pane_send(*, pane: str | None = None, text: str = "",
+              runner=None, **kwargs) -> None:
+    """Send `text` + Enter to a held pane, or refuse by name."""
+    _run_pane(["send-keys", str(text), "Enter"], pane, runner)
+
+
+def pane_read(*, pane: str | None = None, runner=None, **kwargs) -> str:
+    """Capture a held pane's visible text, or refuse by name."""
+    out = _run_pane(["capture-pane", "-p"], pane, runner)
+    return getattr(out, "stdout", "")
