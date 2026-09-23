@@ -1,4 +1,8 @@
 import numpy as np, torch, snntorch as snn, json
+import importlib.util as _iu, os as _os
+_p = _os.path.dirname(_os.path.abspath(__file__))
+while not _os.path.isfile(_os.path.join(_p, "paths.py")): _p = _os.path.dirname(_p)
+_s = _iu.spec_from_file_location("lmpaths", _os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
 np.set_printoptions(linewidth=250)
 LEV = {}
 def lev(a, b):
@@ -76,7 +80,7 @@ num_steps=200; thr=1.0; w_syn=0.8
 dc = torch.ones(num_steps)*0.3
 torch.manual_seed(42)
 spk_in = (torch.rand(num_steps) < 0.3).float()
-np.save('/tmp/kidB/spk_in.npy', spk_in.numpy())
+np.save(_os.path.join(_lm.get("tmp_kidB"), 'spk_in.npy'), spk_in.numpy())
 
 out = {'commit': 'd87863c52bfa9fd3e417449aba66adeca90654a6',
        'num_steps': num_steps, 'thr': thr, 'w_syn': w_syn,
@@ -113,4 +117,4 @@ out['beta8']={str(b):b**8 for b in [0.5,0.8,0.95]}
 print(json.dumps(out['beta8']))
 for row in table:
     print(row)
-json.dump(out, open('/tmp/kidB/e3_results.json','w'))
+json.dump(out, open(_os.path.join(_lm.get("tmp_kidB"), 'e3_results.json'),'w'))
