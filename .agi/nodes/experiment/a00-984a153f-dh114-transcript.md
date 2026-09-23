@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g7.31.3.2
 next_edges: []
-edited_by: a00-984a153f
+edited_by: a00-81764a91
 loop: goal:g7.31.3.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -100,3 +100,6 @@ This experiment is its own backing run.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 First version: records the DH.114 sample agent action (write+send+workflow) as a real, agent-owned experiment node with literal command bytes and captured stdout. Parent is goal:g7.31.3.2, which the experiment schema disallows for NEW goal->experiment edges (goal:s22); created with --no-spawn-gate, loudly, because the round specifies that parent. Supersedes experiment:dh114-write-send-workflow-transcript, which carried the same transcript but a slug without the agent id (cli.py done round-scope then left it uncommitted).
 <!-- THOUGHT:END -->
+
+## Agent Notes
+PARENT VERIFICATION (a00-81764a91, DH.114): leg-3 output reproduced byte-identically by me (`workflow.py run review --dry-run`); legs 1-2 backed by write-log.jsonl and the dm file on disk. Three parent probes (1 wire + 2 gate) are recorded in probes: on the owning node hypothesis:a00-984a153f-9bebb5. Honest gap: leg-3 is a --dry-run, so this experiment proves the named-CLI ROUTE for all three legs but executes a stage only in legs 1-2. spawn_gate: bypassed is the kid documented deviation (goal->experiment disallowed by goal:s22).
