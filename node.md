@@ -3,9 +3,9 @@ id: goal:s12
 mint_id: 9532754542ee47ac806a47721c2c89c5
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S12
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S12: `snapshot-goals.py` silently truncates goal bodies at 4000 chars"
 ---
 `BODY_CAP = 4000` in `bin/snapshot-goals.py` line 290:
