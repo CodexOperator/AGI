@@ -1526,19 +1526,27 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
     there is no second argv path (falsifiers 1 and 3, structural). Bounded by
     `max_restarts`; `_persistent_stop` ends the hold. Each hand-off rewrites
     the record's CURRENT pid / `restart_count` and persists `agent.json`.
+
+    Occupation honesty: `persistent_state` is written `running` at spawn and
+    again on EVERY exit path (`stopped`, `exhausted`, `failed`), and `pid` is
+    cleared there, so a reader can tell a held seat from an ended hold without
+    guessing liveness -- the residue the prior round's probe C falsified.
     """
     restarts = 0
+    state = "running"
     while not _persistent_stop(iter_dir, agent_id):
         if proc.poll() is None:
             _PERSIST_SLEEP(poll_s)
             continue
         if restarts >= max_restarts:
+            state = "exhausted"
             break
         try:
             proc = reopen("ab")
         except BaseException as exc:  # noqa: BLE001
             print(f"persistent: {agent_id} restart failed: {exc}",
                   file=sys.stderr)
+            state = "failed"
             break
         restarts += 1
         record["pid"] = proc.pid
@@ -1546,6 +1554,13 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         (session / "agent.json").write_text(json.dumps(record, indent=2))
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    else:
+        state = "stopped"  # clean stop: the loop's own condition went false
+    record["persistent_state"] = state
+    record["pid"] = None  # the hold has ended; name no live occupant
+    (session / "agent.json").write_text(json.dumps(record, indent=2))
+    print(f"persistent: {agent_id} hold ended state={state} "
+          f"restarts={restarts}")
     return restarts
 
 
@@ -2845,6 +2860,9 @@ def main() -> int:
             # Conjunct (c): the record itself names the occupation.
             agent_record["persistent"] = True
             agent_record["restart_count"] = 0
+            # The state cell is what makes the record honest at the END too:
+            # `running` here, `stopped`/`exhausted`/`failed` on exit (above).
+            agent_record["persistent_state"] = "running"
         # goal:g15.25 SM.26 -- the parent record NAMES what the parent was
         # told: the sender, the sha256/byte count of the exact orders bytes,
         # and the source path. A harvest review can then read (and verify) the
