@@ -319,3 +319,43 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.3 corrective round 3: frontmatter-only heuristic + reads ----
+
+def test_body_only_profile_ref_mention_is_not_linked(tmp_path):
+    """note 1: a malformed file whose BODY merely mentions `profile_ref:`
+    (prose / code block) is not profile-linked and must be skipped."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    p = _broken(repo / ".agi", "broken.md")
+    p.write_text(p.read_text()
+                 + "\nprose mentioning profile_ref: in a code block\n")
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "broken" not in r.stdout
+    assert rotate._check_profile_drift(repo / ".agi") is None
+
+
+def test_unreadable_file_is_named_not_raised(tmp_path, monkeypatch):
+    """note 2: a read failure inside check_all is a named `unreadable` row,
+    never a bare traceback out of `--all`."""
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    broken = _broken(repo / ".agi", "broken.md",
+                     extra='profile_ref: "profile/b.md"\n')
+    orig = Path.read_text
+
+    def boom(self, *a, **k):
+        if self == broken:
+            raise PermissionError("denied")
+        return orig(self, *a, **k)
+
+    monkeypatch.setattr(Path, "read_text", boom)
+    rows = profile_sync.check_all(repo / ".agi")   # must not raise
+    bad = [r for r in rows if r["status"] != "ok"]
+    assert len(bad) == 1 and bad[0]["status"] == "unreadable"
+    assert "broken.md" in bad[0]["path"]
+    assert "PermissionError" in bad[0]["detail"]
