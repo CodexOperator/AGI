@@ -76,3 +76,37 @@ def ensure_pane(*, tmux_session: str, name: str, argv, cwd=None, env=None,
         _tmux(tmux_bin, "set-option", "-w", "-t", target,
               "remain-on-exit", "on")
     return pane_pid(tmux_session=tmux_session, name=name, tmux_bin=tmux_bin)
+
+
+class PaneProc(int):
+    """Popen-compatible handle for a seat held in a named pane.
+
+    `int` is the pid, so a pid-shaped caller (`os.kill`, `record["pid"]`,
+    `== pane_pid(...)`) keeps working; `poll()` reports the pane's process
+    death, which `remain-on-exit` leaves observable after the pid is gone --
+    that IS the hold. `proc` (a real Popen) backs the no-pane case."""
+
+    def __new__(cls, pid, *, proc=None, tmux_session=None, name=None,
+                tmux_bin: str = "tmux"):
+        self = super().__new__(cls, pid)
+        self.pid = int(pid)
+        self.returncode = None
+        self._proc = proc
+        self._session = tmux_session
+        self._name = name
+        self._tmux_bin = tmux_bin
+        return self
+
+    def poll(self):
+        if self.returncode is not None:
+            return self.returncode
+        if self._proc is not None:
+            self.returncode = self._proc.poll()
+        elif (self._session and self._name and pane_field(
+                tmux_session=self._session, name=self._name, field="pane_dead",
+                tmux_bin=self._tmux_bin) == "1"):
+            self.returncode = 0
+        return self.returncode
+
+    def wait(self, timeout=None):
+        return self.poll()

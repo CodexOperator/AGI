@@ -101,7 +101,9 @@ def pane_name(*, harness: dict, agent_id: str,
 
 def spawn(*, harness: dict, tier: str, context_file: str, agent_id: str,
           iter_n: int, sess_dir: Path, agent_record: dict | None = None,
-          **kwargs) -> int | None:
+          argv: list[str] | None = None, env: dict | None = None,
+          cwd: str | None = None, log_file: Path | None = None,
+          log_mode: str = "ab", **kwargs) -> "pane_hold.PaneProc":
     """First-spawn lifecycle entry (`goal:g7.31.1.2`) -- the twin of
     `restart`: the SAME `build_command` argv builder and the SAME
     `ensure_pane` seam.
@@ -109,23 +111,28 @@ def spawn(*, harness: dict, tier: str, context_file: str, agent_id: str,
     When the harness opts into a pane, the seat is BORN inside the named pane
     and the record is stamped `pane`/`pane_session`/`pane_id`, so a later
     `restart` reattaches to a REAL pane -- no hand-injected record field.
-    Without the opt-in the ordinary detached Popen path is used."""
-    args = build_command(harness=harness, tier=tier,
-                         context_file=context_file, agent_id=agent_id,
-                         iter_n=iter_n, sess_dir=sess_dir, **kwargs)
+    Without the opt-in the ordinary detached Popen path is used.
+
+    `argv`/`env`/`cwd`/`log_file` let a caller (`dispatch._open_round`) hand
+    in the ONE already-rendered round it owns -- no second argv path. The
+    return is a Popen-compatible `PaneProc` either way."""
+    from adapters import pane_hold
+    args = argv if argv is not None else build_command(
+        harness=harness, tier=tier, context_file=context_file,
+        agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir, **kwargs)
     name = pane_name(harness=harness, agent_id=agent_id,
                      agent_record=agent_record)
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
-    cwd = str(_restart_cwd(sess_dir, agent_record))
-    log_file = sess_dir / "output.log"
+    env = env if env is not None else child_env(
+        harness=harness, base=dict(os.environ), tier=tier)
+    cwd = cwd if cwd is not None else str(_restart_cwd(sess_dir, agent_record))
+    log_file = log_file or (sess_dir / "output.log")
     if not name:
-        with open(log_file, "ab") as logf:
+        with open(log_file, log_mode) as logf:
             proc = subprocess.Popen(args, stdout=logf,
                                     stderr=subprocess.STDOUT,
                                     stdin=subprocess.DEVNULL,
                                     start_new_session=True, cwd=cwd, env=env)
-        return proc.pid
-    from adapters import pane_hold
+        return pane_hold.PaneProc(proc.pid, proc=proc)
     session = ((agent_record or {}).get("pane_session")
                or harness.get("pane_session")
                or pane_hold.DEFAULT_TMUX_SESSION)
@@ -137,7 +144,7 @@ def spawn(*, harness: dict, tier: str, context_file: str, agent_id: str,
     if agent_record is not None:
         agent_record["pane_id"] = pane_hold.pane_id(tmux_session=session,
                                                     name=name)
-    return pid
+    return pane_hold.PaneProc(pid or 0, tmux_session=session, name=name)
 
 
 def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
