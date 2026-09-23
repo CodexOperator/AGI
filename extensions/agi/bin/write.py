@@ -2015,6 +2015,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 residue R2 — validate the effective `profile_ref` BEFORE
+    # the body write lands. A refused ref must not be a partial write: the
+    # graph advancing while the projection cannot is the one state this goal
+    # forbids on exit. Pre-flight is preferred over repair; it is a read.
+    try:
+        profile_sync.preflight(root, edit.node_id, set_fm, edit.unset_fm)
+    except profile_sync.Refused as exc:
+        raise EditError(f"profile projection refused: {exc}") from exc
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))

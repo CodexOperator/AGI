@@ -273,3 +273,55 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.1 residues R1 + R2 (DH.115) ------------------------------
+
+def _node_bytes(repo: Path) -> bytes:
+    return (repo / ".agi" / "nodes" / "hypothesis" / "h1.md").read_bytes()
+
+
+def test_r1_missing_node_is_a_named_refusal_not_a_traceback(tmp_path):
+    """R1: `profile_sync.py <missing-node>` refuses by name, exits 2, and
+    creates nothing — never an uncaught FileNotFoundError traceback."""
+    repo = _repo(tmp_path)
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "doesnot:exist"], cwd=repo, capture_output=True,
+                       text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr and "doesnot:exist" in r.stderr
+    assert "Traceback" not in r.stderr and "FileNotFoundError" not in r.stderr
+    assert not (repo / "profile").exists()
+
+
+@pytest.mark.parametrize("ref", ["../escape.md", ".agi/nodes/evil.md"])
+def test_r2_refused_ref_leaves_the_graph_bytes_unchanged(tmp_path, ref):
+    """R2: a bad ref is refused BEFORE the body write, so rc=2 means the
+    node bytes on disk are UNCHANGED — no partial write, no artifact."""
+    repo = _repo(tmp_path, ref=ref)
+    before = _node_bytes(repo)
+    r = _cli(["hypothesis:h1", "note smuggled"], repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert _node_bytes(repo) == before, "graph body advanced before refusal"
+    assert not (tmp_path.parent / "escape.md").exists()
+    assert not (repo / ".agi" / "nodes" / "evil.md").exists()
+
+
+def test_r2_directory_target_is_refused_before_the_write(tmp_path):
+    repo = _repo(tmp_path, ref="profile_dir")
+    (repo / "profile_dir").mkdir()
+    before = _node_bytes(repo)
+    r = _cli(["hypothesis:h1", "note smuggled"], repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "directory" in r.stderr
+    assert _node_bytes(repo) == before
+
+
+def test_r2_guard_regression_good_path_still_projects(tmp_path):
+    """The pre-flight must not refuse a ref that is fine: the same-action
+    projection still moves, and an unset ref remains a rc=0 no-op."""
+    repo = _repo(tmp_path)
+    r = _cli(["hypothesis:h1", "note ok"], repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert (repo / "profile" / "h1.md").exists()

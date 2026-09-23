@@ -45,7 +45,9 @@ def project(root, node_id):
         raise Refused("no project root — no enclosing .agi/config.json")
     f = node_writer.find_node_file(root, node_id)
     if f is None:
-        raise FileNotFoundError(node_id)
+        # R1: a missing node is a NAMED refusal, not a traceback. The id is
+        # in the message; the CLI prints REFUSED and exits 2.
+        raise Refused(f"no node {node_id!r} — nothing to project")
     nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
     if not ref:
         raise NoRef(node_id)
@@ -56,6 +58,26 @@ def _raw_profile_ref(text):
     """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
     m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
     return m.group(1).strip().strip("\"'") if m else ""
+
+
+def preflight(root, node_id, set_fm=None, unset_fm=()):
+    """Refuse a bad `profile_ref` BEFORE the node's body write lands (R2).
+
+    The effective ref is this edit's `set` value, else the one on disk; an
+    `unset` or absent ref projects nothing. Raises `Refused` by name so the
+    caller can refuse before `update_node` and leave the node bytes unchanged.
+    """
+    if "profile_ref" in set(unset_fm or ()):
+        return
+    ref = (set_fm or {}).get("profile_ref")
+    if ref is None:
+        try:
+            f = node_writer.find_node_file(root, node_id)
+            ref = fmr.load_node_file(f).frontmatter.get("profile_ref") if f else None
+        except Exception:
+            return  # malformed/unfindable: update_node owns that refusal
+    if ref:
+        artifact_path(root, str(ref))
 
 
 def check_all(root):
