@@ -12,6 +12,8 @@ placeholders:
   logs: logs_dir            # {logs} renders the `logs_dir` cell
   tmux: tmux_session        # {tmux} renders the `tmux_session` cell
   user: user                # {user} renders the `user` cell
+  repo_root: repo_root      # {repo_root} renders the `repo_root` cell (crons)
+  box: box                  # {box} renders the `box` cell (crons' own box)
 validation:
   required: [root, logs_dir, tmux_session, user]
   types:

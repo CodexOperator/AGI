@@ -121,6 +121,7 @@ def restart(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    rendered_brief: str | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -135,6 +136,7 @@ def restart(
         dispatch_py=dispatch_py, target=target, parallel=parallel,
         max_live=max_live, brief_tier=brief_tier, role=role,
         ladder_tier=ladder_tier,
+        rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
