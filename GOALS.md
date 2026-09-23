@@ -12353,6 +12353,21 @@ done when the manifest lands with its coverage test (every listed CLI verb decla
           director-thought told "[jev] choice surface ready" with the SHA (the director-engine card's standing rule)
 ```
 
+##### G1.25.1 — PROPOSE COMPLETES OR REFUSES -- no silently dropped arg, no unmapped placeholder, spend/spawn/destructive verbs not proposable, the [command] schema declares manifest/excluded (the jev mur's demote; assigned director-engine) — status: active
+
+# goal:g1.25.1
+
+# goal:g1.25.1 — PROPOSE COMPLETES OR REFUSES; SPEND / SPAWN VERBS NOT PROPOSABLE (the jev mur's demote)
+
+```
+leaf      jev's choice surface never hands back an argv it cannot complete, and never offers a verb that spends or spawns
+source    the g1.25 mur 09-23 (review accept_with_residue · verify DEMOTE): propose validates then silently drops a required arg for
+          19 of 110 proposable entries (e.g. workflow.py:note drops harness_id, workflow.py:register drops script); workflow.py:run
+          (side_effects spawn) is proposable while dispatch.py is excluded; extras substitute any <x>; [command].md lacks manifest/excluded
+rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
+round     hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable
+```
+
 #### G5.21 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
 
 <!-- BODY:BEGIN -->
