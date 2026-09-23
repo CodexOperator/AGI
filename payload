@@ -11868,6 +11868,8 @@ OWNER 09-23 13:xZ (thought-master pane, verbatim): "Sounds good. Yeah if we can 
 
 OWNER 09-23 14:xZ (thought-master pane, verbatim): "The run can go without my authorization if it's not doing more than 10% deviation above current baseline and no more than 70% deviation below current baseline though with under volting you could not do that. Also we added several rules or thought process framing guidelines on the board doc that really belong in the shared head or the individual post cards/shares templates no? We can go ahead and tidy those up as well." -- read by thought-master: clock runs (CPU per-core caps, GPU clock locks, power limits) within +10 pct / -70 pct of the recorded baseline need no owner go; undervolting is NOT covered, and voltage changes either way stay the owner's go; the board's rules move to the HEAD (every role) and the role templates (dispatch rules), the board keeps only town-specific lines.
 
+OWNER 09-23 14:xZ (thought-master pane, verbatim): "Also would it make sense to apply the frequency beat matching idea within components as well like between gpu cores and/or between cpu cores or subunits as well. So everything is beat matched with flexible queues internally and each large component is beat matched externally with the variable queues. So every low level process happens as coupled oscillating pairs or even 3s of processes, ideally recursed all the way down." -- ACTED by thought-master: the RHYTHM test on the board recursed inward (kernel stages inside the GPU, SMT pairs and producer/consumer lanes inside the CPU, CPU and GPU layers pipelined across micro-batches), each level measured by its own tool.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
