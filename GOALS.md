@@ -12312,6 +12312,22 @@ The goals of this app/town share one vision, one council and one per-town
 vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
 Town is derived from a vision's `town:` cell; core is every other goal.
 
+##### G1.9.1 — BRIEF.PY RENDER HYGIENE -- no THOUGHT blocks in a first turn, a loud fallback, operating_mode a config part, the card-line mechanism gone, the template cell declared (the brief.py batch mur's residues; assigned director-engine) — status: active
+
+# goal:g1.9.1
+
+# goal:g1.9.1 — BRIEF.PY RENDER HYGIENE (the brief.py batch mur's residues)
+
+```
+leaf      the render keeps what a successor needs and nothing it should not: node parts without THOUGHT blocks, a loud fallback that
+          also catches FaithRefError, operating_mode as a config-selectable part, the rejected card-line mechanism gone, the post-row
+          template cell declared in the [config] schema
+source    brief.py batch mur 09-23 (EF.18 accept_with_residue · EF.19 DEMOTE) over hypothesis:brief-py-assembles-every-first-turn-from-config
+rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
+round     hypothesis:brief-render-hygiene-after-the-batch-mur
+NOT here  rewriting config:brief through write.py (written_by owner/prime_director only) -> the Prime
+```
+
 #### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine) — status: active
 
 # goal:g1.25
