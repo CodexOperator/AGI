@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 import yaml
 
 BIN = Path(__file__).resolve().parents[1] / "bin" / "ingest_session.py"
@@ -37,7 +38,7 @@ def fm_of(path):
 
 
 def fixture(tmp_path, name="a.json", **overrides):
-    root = tmp_path / "root"
+    root = tmp_path / ".agi"
     (root / "nodes").mkdir(parents=True, exist_ok=True)
     p = tmp_path / name
     p.write_text(json.dumps({**ARTIFACT, **overrides}))
@@ -95,6 +96,45 @@ def test_malformed_is_refused_by_name(tmp_path):
     assert "REFUSED" in res.stderr and "session_id" in res.stderr
     assert "Traceback" not in res.stderr
     assert node_files(root) == []
+
+
+@pytest.mark.parametrize("value,typename", [
+    ([ARTIFACT], "list"),
+    (None, "NoneType"),
+    (42, "int"),
+    ("x", "str"),
+])
+def test_non_object_json_is_refused(tmp_path, value, typename):
+    root, _ = fixture(tmp_path)
+    p = tmp_path / "nonobject.json"
+    p.write_text(json.dumps(value))
+    res = run(root, p)
+    assert res.returncode != 0
+    assert "REFUSED" in res.stderr
+    assert "nonobject.json" in res.stderr and typename in res.stderr
+    assert "Traceback" not in res.stderr
+    assert node_files(root) == []
+
+
+def test_empty_agi_named_dir_without_nodes_is_refused(tmp_path):
+    root = tmp_path / ".agi"
+    root.mkdir()
+    p = tmp_path / "a.json"
+    p.write_text(json.dumps(ARTIFACT))
+    res = run(root, p)
+    assert res.returncode != 0
+    assert "REFUSED" in res.stderr and "--root" in res.stderr
+    assert not (root / "nodes").exists()
+
+
+def test_non_graph_root_is_refused(tmp_path):
+    root, art = fixture(tmp_path)
+    bogus = tmp_path / "plain"
+    bogus.mkdir()
+    res = run(bogus, art)
+    assert res.returncode != 0
+    assert "REFUSED" in res.stderr
+    assert not (bogus / "nodes").exists()
 
 
 def test_two_sessions_do_not_collide(tmp_path):

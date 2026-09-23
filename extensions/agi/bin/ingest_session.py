@@ -46,12 +46,20 @@ def main(argv=None):
     ap.add_argument("--thought-session", default="")
     a = ap.parse_args(argv)
     root = Path(a.root).resolve() if a.root else locations.find_project_root()
+    if root is None or not ((root / "nodes").is_dir()
+                            or locations.config_path(root)):
+        print(f"REFUSED --root {root}: not a graph root "
+              f"(no nodes/ dir and no config.json)", file=sys.stderr)
+        return 2
     rc = 0
     for path in a.artifacts:
         try:
             art = json.loads(Path(path).read_text(encoding="utf-8"))
         except Exception as exc:
             print(f"REFUSED {path}: unreadable JSON: {type(exc).__name__}: {exc}", file=sys.stderr)
+            rc = 2; continue
+        if not isinstance(art, dict):
+            print(f"REFUSED {path}: expected a JSON object, got {type(art).__name__}", file=sys.stderr)
             rc = 2; continue
         miss = [f for f in REQUIRED if not art.get(f)]
         if miss:
