@@ -144,6 +144,11 @@ def restart(
         ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
+    # The child environment is built on EVERY restart path, hold included:
+    # `respawn-pane` otherwise runs the seat under the tmux SERVER's frozen
+    # environment, silently dropping `harness["env"]`, `forward_env` and the
+    # credential-none drop (`goal:g7.31.1.2.1`).
+    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     hold = hold_harness(harness)
     if tmux_hold.enabled(hold):
         # Same pane identity across pid churn; `created` distinguishes a
@@ -152,7 +157,7 @@ def restart(
         new_pid = tmux_hold.reattach(
             hold, agent_id, args,
             cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
-            created=created)
+            env=env, created=created)
         if new_pid is not None and agent_record is not None:
             agent_record["pid"] = new_pid
             agent_record["status"] = "restarted"
@@ -161,7 +166,6 @@ def restart(
                 agent_record["tmux"] = created
             (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
         return new_pid
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

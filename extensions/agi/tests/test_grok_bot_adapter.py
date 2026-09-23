@@ -170,9 +170,9 @@ def test_restart_re_enters_the_named_pane_when_held(monkeypatch, tmp_path):
     seen = {}
 
     def fake_reattach(harness, agent_id, argv, *, cwd, log_file=None,
-                      created=None):
+                      created=None, env=None):
         seen.update(harness=harness, agent_id=agent_id, argv=argv, cwd=cwd,
-                    log_file=log_file)
+                    log_file=log_file, env=env)
         if created is not None:
             created.update(created=False, pane_id="%9")
         return 7777
@@ -191,8 +191,55 @@ def test_restart_re_enters_the_named_pane_when_held(monkeypatch, tmp_path):
     assert seen["argv"] == grok.build_command(
         harness=HOLD_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
+    # `goal:g7.31.1.2.1` -- the child env built by `child_env` reaches the
+    # hold seam; the hold branch is not a separate, env-less spawn path.
+    assert seen["env"] and "PATH" in seen["env"]
     assert rec["pid"] == 7777 and rec["status"] == "restarted"
     assert rec["tmux"] == {"created": False, "pane_id": "%9"}
+
+
+def test_hold_restart_preserves_child_env_not_the_server_env(monkeypatch, tmp_path):
+    """`goal:g7.31.1.2.1`: the env handed to the hold seam is exactly what
+    `child_env` builds -- a `harness["env"]` literal is present and the
+    credential-none key `child_env` DROPS is absent.
+
+    The base deliberately carries OPENROUTER_API_KEY: grok-bot needs no
+    credential, so `drop_unneeded_credential` must remove it. A hold branch
+    that never called `child_env` (the pre-fix bytes) would carry the key and
+    would carry none of the harness literals.
+    """
+    seen = {}
+
+    def fake_reattach(harness, agent_id, argv, *, cwd, log_file=None,
+                      created=None, env=None):
+        seen["env"] = env
+        if created is not None:
+            created.update(created=False, pane_id="%0")
+        return 42
+
+    monkeypatch.setattr(grok.tmux_hold, "reattach", fake_reattach)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-inherited")
+    harness = {**HOLD_HARNESS, "env": {"AGI_HOLD_SENTINEL": "from-child-env"}}
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    grok.restart(harness=harness, tier="kid",
+                 context_file=str(tmp_path / "context.md"),
+                 agent_id="a00-held", iter_n=1, sess_dir=sess,
+                 agent_record={"worktree": str(tmp_path)})
+    env = seen["env"]
+    assert env["AGI_HOLD_SENTINEL"] == "from-child-env"
+    assert "OPENROUTER_API_KEY" not in env
+    assert env.get("AGI_HOLD_SENTINEL") == grok.child_env(
+        harness=harness, base=dict(os.environ), tier="kid")["AGI_HOLD_SENTINEL"]
+
+
+def test_cmd_replaces_the_pane_environment_with_env_i():
+    """`env -i` is load-bearing: tmux's `-e` only ADDS to the inherited server
+    env, so a key `child_env` drops would survive. `_cmd` must clear first."""
+    cmd = grok.tmux_hold._cmd(["echo", "hi"], None,
+                              {"AGI_HOLD_SENTINEL": "x"})
+    assert cmd[:3] == ["env", "-i", "AGI_HOLD_SENTINEL=x"]
+    assert cmd[3:] == ["echo", "hi"]
 
 
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
