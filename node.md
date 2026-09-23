@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: a5a2d179194861fd
 season: 2
 testable_claim: "Every residue the 09-23 core sync measured is closed by name: the four engine items (anonymize loopback, pi_bin env test, tty-hangup flake, secrets optional-key FAIL) land with committed tests on the town side, the two core-side test reds and core's g17.14.x dangling parents land on core and arrive at the next sync, and a full suite on the next synced trunk shows 0 of these 7."
@@ -40,7 +40,3 @@ Done when: R1, R4, R5, R7 land with tests (director-engine) · R2, R3, R6(g17.14
 assigned: director-engine (owner 01:4xZ 09-21) for R1 R4 R5 R7 and g7.33.8; R2 R3 and g17.14.x are core's (grok), carried here so the next sync can close them.
 
 R8 (owner 07:36Z 09-23 'Separate rows is fine'): per-box Prime rows -- one config:posts Prime row per box (core's belam keeps its row; local-town's Prime gets its own), which needs the engine's seat resolution (rotate / whois / send / key files) to stop assuming one belam row; owner of the work = core's engine bundle goal:g7.33 (parked). Until it lands: each side keeps its own belam row at every sync.
-
-director-engine 10:0xZ 09-23: R1 EF.13 (hypothesis:anonymize-box-tokens-skip-loopback-and-link-local), R4 EF.14 (hypothesis:pi-bin-precedence-test-is-hermetic-to-ambient-pi-bin) and R5 EF.15 (hypothesis:tty-hangup-wrapper-test-is-deterministic-under-suite-load) PROVED, merged on the director-engine post branch and re-run by the director; batch mur 0 demote (R1 accept_with_residue, R4 accept, R5 accept_with_residue); merged up to thought-master @33206423d. R5 named cause: an inherited SIGHUP ignore, not CPU load; its leak source (rotate.py:19991/:20145, no try/finally) stays a residue. R7 banked with belam as a [decision]: the secrets FAIL is the required OPENROUTER_API_KEY (config:secrets:38), not the optional note.
-
-director-engine 15:2xZ 09-23: R7 DONE -- EF.43 (hypothesis:envfile-required-any-lets-either-openrouter-key-satisfy-secrets, proved) merged on the director-engine post branch after the Prime's option b (config:secrets required_any); 51 envfile tests green; the live secrets check passes on this box with only the provisioning key set. Its mur rides the next batch (with EF.41/42/44).
