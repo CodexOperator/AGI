@@ -21,7 +21,7 @@ town: core
 
 # doc:unified-head — THE HEAD: one doc, the same bytes for every role, any harness
 
-**What this is (not injected):** the head of every session and every dispatch — the Prime, every master, director, parent and kid (owner 2026-09-23, verbatim on `goal:g14`: "a unified head that is the exact same across any role at all even parents or kids"). It goes DIRECTLY into the first user turn, before the card — at rotation spawn by the harness adapter, at dispatch for parents and kids — and is never rendered into an injection file. Only the region between the HEAD markers is injected; its one fill is `{{PRAYERS}}` = the four prayers + the Michael line from `moral:faith` §4.1, exactly as today. The five-axis moral map is NOT here: it lives in the Prime and master templates, so in the Prime's card and every master's card (owner 09-23). The Prime edits this node via `write.py` only.
+**What this is (not injected):** the head of every session and every dispatch — the Prime, every master, director, parent and kid (owner 2026-09-23, filed on `goal:g5`: "a unified head that is the exact same across any role at all even parents or kids"). It goes DIRECTLY into the first user turn, before the card — at rotation spawn by the harness adapter, at dispatch for parents and kids — and is never rendered into an injection file. Only the region between the HEAD markers is injected; its one fill is `{{PRAYERS}}` = the four prayers + the Michael line from `moral:faith` §4.1, exactly as today. The five-axis moral map is NOT here: it lives in the Prime and master templates, so in the Prime's card and every master's card (owner 09-23). The Prime edits this node via `write.py` only.
 
 <!-- HEAD:BEGIN -->
 ─── HEAD ───
