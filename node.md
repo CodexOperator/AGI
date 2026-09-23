@@ -1,14 +1,13 @@
 ---
-id: goal:g15.21
+id: goal:g6.43
 mint_id: 189ebaa46b704ce194a3d4259ee9bc1d
 type: goal
 parents:
-  - goal:g15
-  - build:bin-rotate
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.21
+edited_by: belam
+goal_id: G6.43
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -23,11 +22,12 @@ tags:
   - subgoal
   - l4
   - sensei-director
-title: "G15.21: a recovery seating gets its predecessor autopsy pre-filled (rotate.py autopsy --seat S; spawn runs it for a dead pid)"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.43: a recovery seating gets its predecessor autopsy pre-filled (rotate.py autopsy --seat S; spawn runs it for a dead pid)"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.21
+# goal:g6.43
 
 ## Why this exists
 
