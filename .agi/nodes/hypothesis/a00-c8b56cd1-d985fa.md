@@ -3,14 +3,14 @@ id: hypothesis:a00-c8b56cd1-d985fa
 mint_id: 4b1fc820f9c74475a81b19d6cc10e08f
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.4
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: a5b29514730b65f3
 season: 1
 testable_claim: Fraction of scoring mvps whose nearest hypothesis ancestor has verdict "disproved" is >= 0.1 on the real corpus, confirming that binary outcome_coverage credits disproven claims as goal-fulfilment.
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Verdict polarity asymmetry: disproved mvp counts as goal-fulfilment"
 verdict: pending
 ---

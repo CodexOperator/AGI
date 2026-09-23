@@ -3,15 +3,15 @@ id: hypothesis:a00-5b27ca07-438c0a
 mint_id: a933e2a3a566496c96f32ec23e8396df
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges:
   - experiment:a00-a10998e3-ca0b99
 confidence: 0.75
-edited_by: season.py
+edited_by: belam
 evidence_runs: 0
 scaffold_hash: ca624ab2fddfb999
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 5b27ca07 438c0a
 verdict: pending
 wired_at: 1788272917

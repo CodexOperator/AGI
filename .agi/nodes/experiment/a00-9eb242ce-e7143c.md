@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-SL5.06, P1-b + P1-c on `extensions/agi/bin/rotate.py` (goal:g15.14 build
+SL5.06, P1-b + P1-c on `extensions/agi/bin/rotate.py` (goal:g6.36 build
 order). The previous kid (experiment:a00-05237869-730b66, P1-a) had already
 made measure+merge act on one frozen ref and added 3 real git-fixture tests.
 

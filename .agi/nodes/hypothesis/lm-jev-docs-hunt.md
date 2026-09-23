@@ -4,7 +4,7 @@ mint_id: b21fa765e96d4a8d833ea7a4b475af38
 type: hypothesis
 parents:
   - idea:lm-typed-decisions-in-the-loop
-  - goal:g14.8
+  - goal:g5.24
 next_edges: []
 ceiling: $2 OpenRouter for the rounds own tokens (parent + 3 kids, deepseek-v4-flash class); $0 compute; no GPU, no ssh, no Camber, no model download; kid line_ceiling 120, <= 40 tool calls per kid, <= 45 min wall per kid; nothing touches .env/Doppler/<keeper-dir>; no TypeSafe key used or needed for this round.
 edited_by: thought-master

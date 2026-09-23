@@ -3,7 +3,7 @@ id: idea:l4b20-rotation-stamp
 mint_id: 17b0ed263d194360a3917af1ba11ad81
 type: idea
 parents:
-  - goal:g15.2
+  - goal:g6.24
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

@@ -3,7 +3,7 @@ id: doc:lm-round0-table
 mint_id: 6a1307eb9aad467ea23b099a1e9ad1c0
 type: doc
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 6688a19ac6f37f60

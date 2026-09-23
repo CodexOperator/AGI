@@ -3,7 +3,7 @@ id: hypothesis:a01-e3478ffd-d38b0b
 mint_id: bd842e6ec2e946afaa5af31ed46eb7f0
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 edited_by: season.py
 scaffold_hash: de20db4b0bbc6f42

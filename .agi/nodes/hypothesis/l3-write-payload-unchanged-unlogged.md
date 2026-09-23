@@ -3,7 +3,7 @@ id: hypothesis:l3-write-payload-unchanged-unlogged
 mint_id: 369d6efa71a2461d9462dbbddfec8674
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: belam-S1-L3-V
 scaffold_hash: 4a675d9b1a62f618

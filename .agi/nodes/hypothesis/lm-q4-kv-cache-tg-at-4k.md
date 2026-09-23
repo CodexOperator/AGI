@@ -4,7 +4,7 @@ mint_id: f64b10a5b9374e2d8780737006441b45
 type: hypothesis
 parents:
   - idea:lm-kv-bytes-ledger-q4-cache
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 ceiling: $1 OpenRouter for the round's own tokens (parent + 2 kids, deepseek-v4-flash class); $0 compute; CPU only on this box (4-core arm-cloud, shared) — NOT concurrent with another bench or a numpy sweep (C2/WS laps must have landed; check loadavg < 2 before each row); each script <= 20 min wall; each kid <= 40 tool calls; no pip installs, no downloads (GGUFs already under ~/.cache/lm-models); nothing touches .env/Doppler/<keeper-dir>.
 confidence: 0.5

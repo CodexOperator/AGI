@@ -3,13 +3,13 @@ id: hypothesis:l3w4-seat-rotation-loops
 mint_id: 75eb63960ff947eabc3594bb117c4365
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: a60602af9b37d566
 season: 2
 testable_claim: rotate.py alarms --holder S sends exactly one dm to a seat only when that seat's pin crosses director_rotate_at (0.35), and rotate.py rotate-self --name S then writes the seat's handoff with an incremented generation, renames its own tmux window, spawns its successor under the identical plain seat name (never a Roman numeral), reads back the successor's single-word continue, and kills its own renamed window before returning.
-thought_session: belam-S1-L3-IX
+thought_session: dissolve-legacy-2026-09-19
 title: L3w4 seat rotation loops
 ---
 <!-- BODY:BEGIN -->

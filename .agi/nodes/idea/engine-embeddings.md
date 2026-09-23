@@ -3,9 +3,9 @@ id: idea:engine-embeddings
 mint_id: 7be5301066614d86a49a5469f4bb7293
 type: idea
 parents:
-  - goal:g2
+  - goal:g2.4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: big
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/src/embeddings"
 unit_kind: src_package
 unit_path: extensions/agi/src/embeddings

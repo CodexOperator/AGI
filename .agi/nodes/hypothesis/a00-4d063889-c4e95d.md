@@ -3,7 +3,7 @@ id: hypothesis:a00-4d063889-c4e95d
 mint_id: 969b4622def048a0a635506a1f7efb77
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.7
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: inconclusive_lean_proved:70
 
 ## Hypothesis
 
-**Claim:** goal:g8.1's cheapest open step — the L9 pinning gap — is still
+**Claim:** goal:g1.23's cheapest open step — the L9 pinning gap — is still
 unclosed for every clone-shape project, regardless of which of the three
 distribution shapes (drop-in clone, skill package, real install) g8.1
 eventually picks. Checked directly: neither this repo's own `config.json`
@@ -48,7 +48,7 @@ stating precisely.
 
 <!-- THOUGHT:BEGIN -->
 Filled a scaffold left by a03-e3478ffd (this agent, iteration 1042) that two
-earlier pi kids under goal:g8.1 minted empty due to a workspace budget cap
+earlier pi kids under goal:g1.23 minted empty due to a workspace budget cap
 (see sibling hypothesis:a00-2bf7847c-91509e for that incident). Rather than
 mint a fourth hypothesis node under g8.1, verified the claim directly against
 this repo's own `config.json` and the `/tmp/l109*` rehearsal configs, and

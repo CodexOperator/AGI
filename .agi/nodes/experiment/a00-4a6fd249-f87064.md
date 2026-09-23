@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-FIX-ONLY build order under `goal:g15.18` / `hypothesis:l4-the-rotation-
+FIX-ONLY build order under `goal:g6.40` / `hypothesis:l4-the-rotation-
 alert-reads-the-main-checkout-row-...`. Changed exactly two files —
 `extensions/agi/hooks/rotation_alert.py` and
 `extensions/agi/tests/test_rotation_alert.py`.

@@ -3,7 +3,7 @@ id: idea:l4b23-promptfile-drop
 mint_id: 903e65d5037642cebf9cb8909b84a784
 type: idea
 parents:
-  - goal:g15.4
+  - goal:g6.26
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

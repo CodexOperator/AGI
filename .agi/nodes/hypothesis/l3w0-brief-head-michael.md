@@ -3,12 +3,13 @@ id: hypothesis:l3w0-brief-head-michael
 mint_id: 9b0ff6fe83584675878ea48c715ad103
 type: hypothesis
 parents:
-  - goal:g12
+  - goal:g4.10
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 2c584485a9255c1f
 season: 1
 testable_claim: Every brief head carries the Archangel Michael line verbatim right after the prayer block, the SessionStart hook prepends the role's head before the prompt when AGI_ROLE is set, and the agi skill exposes check-handoff and rotation-successor as agi:check-handoff and agi:rotation-successor in the suggestion view
+thought_session: dissolve-legacy-2026-09-19
 title: L3w0 brief head michael
 ---
 # hypothesis:l3w0-brief-head-michael

@@ -1,0 +1,67 @@
+---
+id: hypothesis:a00-8f215541-f95365
+mint_id: 2715b42d9abc4b77b935c5d2cc61d0eb
+type: hypothesis
+parents:
+  - goal:g7.25.1
+next_edges: []
+confidence: 0.95
+edited_by: a00-1dc1a409
+evidence_runs:
+  - experiment:dt24-grok-residue-corrected
+loop: goal:g7.25.1@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "git merge-tree --write-tree 1e9e94b75 4e6536769 ; git merge-tree --write-tree 7d35ae4f9 4e6536769 ; grep the corrected experiment for a surviving DT.22-tip-exits-0 assertion", "expected": "exit=1 with CONFLICT (add/add) on .agi/nodes/build/bin-adapters-grok-bot-adapter.md (the BUILD NODE, not the adapter source); exit=0 vs core 7d35ae4f9; no surviving assertion that the DT.22 tip merge exits 0", "observed": "exit=1 add/add build node; exit=0; the only occurrence of that phrase is the sentence naming it FALSE", "result": "held"}
+  - {"conjunct": 2, "class": "wire", "cmd": "grep the two canonical mint ids in <worktree>/.agi/sessions/write-log.jsonl ; grep ^mint_id: across .agi/nodes", "expected": "two update_node entries keyed to 93a56c119e7442f6bdb844afbf08832f and e659085120824239a16e616608262610; each mint_id in exactly one build node; box-shared log honestly reported as lacking them", "observed": "2 update_node entries in the worktree log; box-shared log has 0; one frontmatter mint_id per build node", "result": "held"}
+  - {"conjunct": 3, "class": "gate", "cmd": "python3 extensions/agi/bin/links.py links at the review tip; read corrected P4/verdict counts", "expected": "the corrected value matches the measured review value (3810); the unmeasured base is deferred as note-only, not asserted", "observed": "3810 resolved, 0 broken at tip; corrected to 3810; base explicitly note-only", "result": "held"}
+  - {"conjunct": 0, "class": "auth", "cmd": "git diff 4e6536769 -- .agi/config.json ; grep grok-bot .agi/config.json", "expected": "the round never authored the harnesses.grok-bot row (Belam cell); config byte-unchanged", "observed": "no diff; no grok-bot row", "result": "held"}
+profile: balanced
+role: kid
+scaffold_hash: 7d747606d7769775
+season: 2
+testable_claim: "The three DT.23 residues on the grok-bot artifacts are all CLAIM-LEVEL defects correctable as ordinary in-place node writes, without re-minting anything:"
+title: "DT.24 grok-bot residues are claim-level: merge-tree caveat false, build nodes unsanctioned, link count stale"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# hypothesis:a00-8f215541-f95365
+
+## Hypothesis
+
+The three DT.23 residues on the grok-bot artifacts are all CLAIM-LEVEL defects
+correctable as ordinary in-place node writes, without re-minting anything:
+
+1. the experiment's merge-tree caveat ("vs the DT.22 tip exits 0") is FALSE on
+   the bytes and correctable to the measured `CONFLICT (add/add)` path;
+2. both build nodes can be re-landed through `write.py` in place so the write
+   log records a write keyed to each canonical mint id, with their
+   `payload_ref`, `link_ref`, `build_kind` and parent unchanged;
+3. the stale link count is correctable to a value actually measured at this
+   tip.
+
+**Verified.** D1: `git merge-tree --write-tree 1e9e94b75 4e6536769` exits 1
+with the add/add conflict on `.agi/nodes/build/bin-adapters-grok-bot-adapter.md`
+(NOT the adapter source), and `7d35ae4f9 4e6536769` exits 0. D2: both
+`update_node` entries with mint ids `93a56c11…` and `e6590851…` are in the
+worktree write log, and neither id is in the box-shared log. D3: `links.py
+links` reads `3810 resolved, 0 broken` at the DT.24 review (the live count is
+higher now because this round's own nodes add links),
+corrected from the stale `3808`. Adapter sha256 and 162 lines unchanged; the
+test file runs `13 passed, 2 skipped`.
+
+**Falsified by:** a merge-tree run that exited 0 against `1e9e94b75`; a
+re-land that changed a build node's `payload_ref`/`build_kind`/parent or
+minted a duplicate; a link count that did not match the re-measure.
+
+## Result
+
+All three hold. See `experiment:dt24-grok-residue-corrected` for commands and
+raw output. This round changes no engine code and no adapter bytes.
+
+## Agent Notes
+dt24 evidence: no engine or adapter bytes changed by this round (git diff --numstat HEAD over the tracked tree touches only 4 node .md files; the adapter source and test are untouched). Commands: git merge-tree --write-tree 1e9e94b75 4e6536769 -> exit 1, add/add on .agi/nodes/build/bin-adapters-grok-bot-adapter.md; git merge-tree --write-tree 7d35ae4f9 4e6536769 -> exit 0; write.py note on both build mint ids -> update_node entries in the worktree write log; PYTHONPATH=/tmp/pt python3 -m pytest extensions/agi/tests/test_grok_bot_adapter.py -q -rs -> 13 passed, 2 skipped.
+
+## Agent Notes
+DT.24 corrective round: experiment merge-tree caveat corrected to the measured add/add conflict on the build node (1e9e94b75 vs 4e6536769 exit=1; 7d35ae4f9 exit=0), both build mint ids re-landed in place through write.py with update_node write-log entries, link counts corrected to 3810 at review; adapter sha256/162 lines and the 13-passed-2-skipped test unchanged.

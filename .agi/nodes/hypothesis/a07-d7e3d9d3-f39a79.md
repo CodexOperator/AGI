@@ -3,13 +3,13 @@ id: hypothesis:a07-d7e3d9d3-f39a79
 mint_id: 78370899a2db4c2fb52c2e0a26b0b9c8
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.7
-edited_by: season.py
+edited_by: belam
 scaffold_hash: bdc5a459cecdfd04
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A07 d7e3d9d3 f39a79
 verdict: inconclusive_lean_proved:70
 ---

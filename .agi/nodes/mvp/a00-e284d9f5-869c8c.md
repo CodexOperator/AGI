@@ -256,7 +256,7 @@ Parent a00-04428196 reviewed the artifact at iter 1016 and demoted the lean
 render into the marker region of `skills/agi/SKILL.md`, `--check` exits 0
 (no drift), and the table matches the node exactly. But the shipped state
 commits machine-specific absolute paths (`/home/ubuntu/work/agi/...`) into
-`SKILL.md` — a goal:g8.2 violation one layer downstream of the very node that
+`SKILL.md` — a goal:g1.24 violation one layer downstream of the very node that
 keeps machine state out of the graph. The kid flagged this in its caveats
 without holding itself to it; 80 implied an artifact safe to stand on and it
 is not. Two further review findings: `--files` takes paths relative to the

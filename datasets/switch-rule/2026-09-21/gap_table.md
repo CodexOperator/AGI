@@ -1,6 +1,6 @@
 # SWR.01 gap table — deepseek-v4.1-flash (reference) vs the five local HumanEval arms
 
-**Date:** 2026-09-21  **Round:** SWR.01  **Node:** experiment:a00-559ee702-d3c7dd
+**Date:** 2026-09-21  **Round:** SWR.01 (HumanEval table) + SWR-B.02/SWR-B.03 (arm B IFEval row)  **Node:** experiment:a00-559ee702-d3c7dd (HumanEval); experiment:a00-4eec4fce-e9b330 (IFEval)
 **Parent hypothesis:** hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 
 ## What is measured
@@ -47,22 +47,27 @@ the three Bonsai-based arms still clear the 0.9× relative bar.
 **Best local candidate:** C2 (87.2 %, 92.9 % of reference) — FIRES. Among the
 three the hypothesis names {B, C1, A}, the best is B (86.6 %, 92.2 %) — FIRES.
 
-## IFEval — reference only
+## IFEval — reference and arm B, all 541 prompts, one unchanged official harness
 
-Reference `deepseek/deepseek-v4.1-flash`, official harness:
+Official `instruction_following_eval/evaluation_main.py` run **UNCHANGED** with the
+same `ifeval_input_data.jsonl`; **strict prompt-level** is the metric in the
+`field` table above. Scored ONCE per row, never averaged.
 
 | row | strict prompt-level accuracy | loose prompt-level accuracy | instruction-level (strict) |
 |---|---|---|---|
 | ref_ifeval_deepseek-v4.1-flash | **0.868762 (470/541)** | 0.894640 | 0.908873 |
+| armB_bonsai27b-ptq1 | **0.778189 (421/541)** = 89.57 % of ref | 0.815157 (441/541) | 0.851319 (710/834) |
 
-**The arm B local IFEval row is IN PROGRESS, not yet landed.** SWR.02
-(2026-09-21) launched arm B (Bonsai 2 27B PTQ1_0, no LoRA) on the fork's 64K
-line and generated 110 of the 541 responses in official order into
-`armB_bonsai27b-ptq1.ifeval.responses.jsonl` (resumable). **No numeric row is
-written here until all 541 exist** — a partial numerator over the full-set
-reference would overstate the metric. Measured effective rate is ~20.8 tokens/s
-(~19 s/prompt), so the full run is ~2.9 h; the continuation resumes the same
-command (see the SWR-B.02 experiment node).
+Arm B threshold on IFEval: 0.9 × 0.868762 = **0.781886**. 421 < 423 prompts, so
+arm B **does not fire on IFEval** — short of the bar by 0.37 pp. That margin is
+*inside* the ±0.4 pp langdetect floor (see below), so the honest reading is
+"no fire, but within scorer noise of the bar" rather than a clean miss.
+
+Generation completed cleanly (541/541, exact official order, unique, nonempty);
+exact commands in `experiment:a00-4eec4fce-e9b330`.
+
+Arm B fires on HumanEval (92.2 % rel.) and misses on IFEval (89.57 % rel.), so
+arm B alone does **not** satisfy the two-eval hypothesis. No mvp minted here.
 
 *Measurement floor.* The official harness re-scores the **reference** at
 469–472/541 across runs of the same file: `instruction_following_eval/
@@ -77,10 +82,11 @@ measured the reference on both and the locals on one:
 
 - **HumanEval: LEANS PROVED.** Three of five local arms (B, C1, C2) are within
   10 pct relative of the reference, the best at 92.9 %. The two 9B arms miss.
-- **IFEval: UNDECIDED (arm B row pending).** The reference is 86.88 % strict;
-  arm B generation is in progress at 110/541, no scored row yet.
-- Net: the two-eval promise cannot be decided this round. Recorded as
-  `inconclusive_lean_proved:60` on `experiment:a00-559ee702-d3c7dd`.
+- **IFEval: arm B row landed.** 0.778189 strict = 89.57 % of reference, 0.37 pp
+  under the 0.9 bar and inside the ±0.4 pp floor. **Does not fire.**
+- Net: arm B clears one eval and misses the other by less than the noise floor;
+  no local arm has yet been scored on IFEval at all beyond B. Recorded as
+  `inconclusive_lean_proved:55` on `experiment:a00-4eec4fce-e9b330`.
 
 **Do not read this as a switch.** Per the owner's rule it is a trigger for an
 mvp that ties the contributing chains together — the master mints that, never

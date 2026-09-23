@@ -3,7 +3,7 @@ id: doc:dead-head
 mint_id: 2f86798d9bfb427dbf5c0a9b051bf0ec
 type: doc
 parents:
-  - goal:g14.13
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/dead-head.md

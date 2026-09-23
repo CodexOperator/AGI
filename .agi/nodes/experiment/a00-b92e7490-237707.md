@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:60
 
 ## Experiment
 
-FIX-ONLY on goal:g15.25 (hypothesis:l4-every-after-join-performer-derives-
+FIX-ONLY on goal:g6.47 (hypothesis:l4-every-after-join-performer-derives-
 pred-pids-routes-the-own-tail-through-the-liveness-gate-and-reads-the-rows-
 window-cell). The hypothesis is a BUILD ORDER, so this run measures the
 pre-fix state, implements the claim in `rotate.py`, and proves it on the

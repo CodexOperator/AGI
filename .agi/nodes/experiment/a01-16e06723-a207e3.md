@@ -23,7 +23,7 @@ verdict: disproved
 
 1. **(a)** A session ref exists for runs that minted no node version — the orphan partition is non-empty.
 2. **(b)** Each orphan session is retrievable by session id alone, with no node id in hand.
-3. **(c)** The six kid slots under goal:g10.1 that died on provider 403 across iters 1040-1041 are recoverable from the session namespace if the mechanism holds.
+3. **(c)** The six kid slots under goal:g2.24 that died on provider 403 across iters 1040-1041 are recoverable from the session namespace if the mechanism holds.
 
 ## Method
 

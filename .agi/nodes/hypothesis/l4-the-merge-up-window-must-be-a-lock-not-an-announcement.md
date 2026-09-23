@@ -3,7 +3,7 @@ id: hypothesis:l4-the-merge-up-window-must-be-a-lock-not-an-announcement
 mint_id: a722fc2cca104e6da88a6b8608b25632
 type: hypothesis
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 confidence: 0.55
 edited_by: belam-S1-L4-IV

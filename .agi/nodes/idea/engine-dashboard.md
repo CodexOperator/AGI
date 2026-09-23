@@ -3,7 +3,7 @@ id: idea:engine-dashboard
 mint_id: 0e7b83e64b004d5d8af6201982cbd0a3
 type: idea
 parents:
-  - goal:g9.1
+  - goal:g2.14
 confidence: 1.0
 edited_by: season.py
 origin: engine-decomp

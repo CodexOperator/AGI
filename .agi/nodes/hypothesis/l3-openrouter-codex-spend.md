@@ -3,12 +3,13 @@ id: hypothesis:l3-openrouter-codex-spend
 mint_id: 12c4e179ea65453a87c9216056044165
 type: hypothesis
 parents:
-  - goal:g16
+  - goal:g6.12
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 3d6f1e426b8e7af0
 season: 1
 testable_claim: An identifiable caller on this box sends gpt-5.1-codex requests through the owner's OpenRouter key every day; naming it with matched timestamps and either removing the call or replacing it through the command structure drops the daily codex share of OpenRouter spend to zero
+thought_session: dissolve-legacy-2026-09-19
 title: L3 openrouter codex spend
 ---
 # hypothesis:l3-openrouter-codex-spend

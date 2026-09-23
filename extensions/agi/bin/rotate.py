@@ -71,6 +71,7 @@ import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
+import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -895,21 +896,15 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 
 def _build_claude_command(name: str, prompt_text: str, debug_file: str,
                           model=None, effort=None, settings=None) -> list[str]:
-    """The remote-control argv: `claude --remote-control NAME ... <prompt>`."""
-    cmd = [
-        "claude",
-        "--remote-control", name,
-        "--permission-mode", "bypassPermissions",
-        "--debug-file", debug_file,
-    ]
-    if model:
-        cmd += ["--model", str(model)]
-    if effort:
-        cmd += ["--effort", str(effort)]
-    if settings:
-        cmd += ["--settings", json.dumps(settings)]
-    cmd.append(prompt_text)
-    return cmd
+    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
+
+    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
+    so no claude flag literal lives in this file (hypothesis:harness-arg-
+    builders-are-templates-only).
+    """
+    return harness_template.render(
+        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
+        model=model, effort=effort, settings=settings)
 
 
 def _harness_row(root: Path | None, harness: str | None) -> dict:
@@ -924,12 +919,60 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
 
 
-# The harness ids rotate.py can actually BUILD an argv for. Anything else is
-# refused by name rather than silently fallen back to claude (goal:g15,
-# hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-
-# claude-code-and-pi). "claude-code" is the built-in default and is always
-# accepted (its argv is today's `claude --remote-control`).
-_KNOWN_HARNESSES = ("claude-code", "copilot-cli")
+def _resolve_seat_role(root: Path, harness: str | None, tier: str,
+                       model, effort, settings):
+    """Resolve `(model, effort, settings)` from the harness template's SOURCE.
+
+    `ladder` and `row` are the two closed sources `harness_template.role_source`
+    admits; the choice is DATA in the template, so a fourth harness declares it
+    and this file is not edited (hypothesis:harness-arg-builders-are-templates-
+    only). A `row` harness's settings are a Claude Code concept its argv
+    ignores, so the caller's value is left untouched.
+    """
+    hid = harness or "claude-code"
+    if harness_template.role_source(hid) == "ladder":
+        if not model:
+            model = load_role(root, tier, "model")
+        if not effort:
+            effort = load_role(root, tier, "effort")
+        if settings is None:
+            settings = load_role(root, tier, "settings")
+    else:  # "row": THIS harness's own config row
+        hrow = _harness_row(root, hid)
+        if not model:
+            models = hrow.get("models") or {}
+            model = models.get(tier) or models.get("director") or None
+        if not effort:
+            e = hrow.get("effort")
+            effort = (e.get(tier) if isinstance(e, dict) else e) or None
+    return model, effort, settings
+
+
+# The harness ids rotate.py can BUILD an argv for, DERIVED from the
+# templates on disk: a harness with a template is buildable, so a fourth
+# harness adds a `.toml` and edits nothing here (hypothesis:harness-arg-
+# builders-are-templates-only). Anything else is refused by name rather than
+# silently fallen back to claude (goal:g15). "claude-code" is the built-in
+# default (its argv is today's `claude --remote-control`). `rotate = false`
+# opts a template out of the seat set (pi is headless, not a rotate seat).
+#
+# PER-TEMPLATE FAILURE ISOLATION: one malformed `.toml` excludes ONLY itself
+# and is NAMED on stderr; the other templates stay buildable. The
+# `("claude-code",)` fallback is reserved for the case where the enumeration
+# ITSELF cannot run (`available()` raises) -- a bad file no longer hides
+# every sibling, the same silent-claude class one file over.
+def _known_harnesses() -> tuple[str, ...]:
+    try:
+        loaded, broken = harness_template.load_all()
+    except Exception as exc:
+        print(f"ERR: cannot enumerate harness templates ({exc}); "
+              f"falling back to 'claude-code'", file=sys.stderr)
+        return ("claude-code",)
+    for hid in sorted(broken):
+        print(f"ERR: harness template {hid!r} is malformed, excluded from "
+              f"the seat set: {broken[hid]}", file=sys.stderr)
+    return tuple(sorted(h for h, data in loaded.items()
+                        if data.get("rotate", True)))
 
 
 def _validate_harness(root: Path | None,
@@ -950,20 +993,20 @@ def _validate_harness(root: Path | None,
     if not harness or harness == "claude-code":
         return 0, ""
     if root is None:
-        declared = list(_KNOWN_HARNESSES)
+        declared = list(_known_harnesses())
     else:
         declared = sorted((_config_json(root).get("harnesses") or {}).keys())
     if harness not in declared:
         print(f"ERR: no harness {harness!r} in config; declared: {declared}",
               file=sys.stderr)
         return 1, ""
-    if harness not in _KNOWN_HARNESSES:
+    if harness not in _known_harnesses():
         # Declared but not buildable here: `pi` is a dispatch.py harness with
         # no rotate argv builder, so letting it through would fall to the
         # claude branch -- the exact silent-claude fallback this validator
         # exists to stop, one name further out.
         print(f"ERR: harness {harness!r} is declared but rotate.py cannot "
-              f"build it; buildable: {list(_KNOWN_HARNESSES)}",
+              f"build it; buildable: {list(_known_harnesses())}",
               file=sys.stderr)
         return 1, ""
     return 0, ""
@@ -974,49 +1017,36 @@ def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
                            extra_args=None) -> list[str]:
     """The interactive GitHub Copilot CLI argv for a seat.
 
-    Shape (measured from `copilot --help`, v1.0.83, 2026-09-14):
-
-        copilot [--model M] [--effort E] --allow-all --remote -i <card>
-
+    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
+    construction lives here; this is the thin hook that names the template.
     `-i, --interactive <prompt>` starts interactive mode (the post stays up
-    in the tmux window and `send.py` can type into its input box) and executes
-    the card as the first prompt. `--remote` enables remote control from GitHub
-    web and mobile while the interactive seat remains attached to its tmux
-    pane.
-
-    `--allow-all-tools` is required for a non-interactive `-p` run and is kept
-    here so the first tool call does not block on a confirmation; `-i` keeps
-    the session alive, which is what a SEAT (not a fire-and-forget kid) needs.
+    in the tmux window and `send.py` can type into its input box); `--remote`
+    enables remote control from GitHub web and mobile; `--allow-all` keeps the
+    first tool call from blocking on a confirmation, which is what a SEAT (not
+    a fire-and-forget kid) needs.
     """
-    args = [bin_path or "copilot"]
-    if model:
-        args += ["--model", str(model)]
-    if effort:
-        args += ["--effort", str(effort)]
-    args += ["--allow-all"]
-    args += ["--remote"]
-    args += [str(a) for a in (extra_args or [])]
-    args += ["-i", prompt_text]
-    return args
+    return harness_template.render(
+        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
+        bin_path=bin_path, extra_args=extra_args)
 
 
 def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
                            bin_path: str | None = None) -> list[str]:
-    """The argv for the resolved harness, claude by default.
+    """The argv for the resolved harness, DISPATCHED ON ITS TEMPLATE.
 
-    The ONE seam a third harness enters `spawn_window` through. `harness`
-    absent/`claude-code` returns `_build_claude_command` byte-identically, so
-    every existing spawn line is unchanged; `copilot-cli` returns the
-    interactive copilot argv instead.
+    The ONE seam a harness enters `spawn_window` through. `harness` absent or
+    `claude-code` renders `claude-code.toml` byte-identically to the old
+    hand-built claude argv; any other harness renders ITS OWN template. There
+    is no `if harness == "..."` branch here: a harness with a template on disk
+    is built, and one without raises `UnknownHarnessError` by name rather than
+    silently falling back to claude (goal:g15).
     """
-    if harness == "copilot-cli":
-        return _build_copilot_command(
-            prompt_text=prompt_text, model=model, effort=effort,
-            bin_path=bin_path)
-    return _build_claude_command(name, prompt_text, debug_file, model=model,
-                                 effort=effort, settings=settings)
+    return harness_template.render(
+        harness or "claude-code", prompt=prompt_text, model=model,
+        effort=effort, settings=settings, name=name, debug_file=debug_file,
+        bin_path=bin_path)
 
 
 def _successor_command(*, name: str, tier: str, prompt_file: str, model,
@@ -1767,28 +1797,16 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     if hr_rc:
         return hr_rc, ""
 
-    # Resolve model / effort / settings (caller flags override role defaults)
+    # Resolve model / effort / settings for the harness's DECLARED SOURCE
+    # (hypothesis:harness-arg-builders-are-templates-only): `ladder` or `row`
+    # is template data, so a harness's name never branches the resolution.
     if root is not None:
-        if harness == "copilot-cli":
-            # A third harness's cells live in ITS OWN row. The ladder/claude-
-            # code fallback load_role() resolves would hand a copilot seat a
-            # claude model name, so the whole resolution is owned here.
-            hrow = _harness_row(root, harness)
-            if not model:
-                models = hrow.get("models") or {}
-                model = models.get(tier) or models.get("director") or None
-            if not effort:
-                e = hrow.get("effort")
-                effort = (e.get(tier) if isinstance(e, dict) else e) or None
-            # settings are a Claude Code concept (ultracode); the copilot
-            # argv ignores them. Leave whatever the caller passed untouched.
-        else:
-            if not model:
-                model = load_role(root, tier, "model")
-            if not effort:
-                effort = load_role(root, tier, "effort")
-            if settings is None:
-                settings = load_role(root, tier, "settings")
+        try:
+            model, effort, settings = _resolve_seat_role(
+                root, harness, tier, model, effort, settings)
+        except harness_template.HarnessTemplateError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 1, ""
 
     if root is not None and not debug_file:
         # (w2) route the DEFAULT debug log through `_sessions_dir` (the ONE
@@ -1809,9 +1827,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical.
-        _bin = None
-        if harness == "copilot-cli":
-            _bin = _harness_row(root, harness).get("bin") or None
+        _bin = _harness_row(root, harness).get("bin") or None
         # A non-prime seat spawned with no explicit --prompt-file gets its body
         # from the assembled brief. assemble() already inserts the constitution
         # head, so we skip successor_prompt() — calling both would double-insert it

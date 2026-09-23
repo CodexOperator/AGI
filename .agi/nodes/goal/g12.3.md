@@ -3,10 +3,10 @@ id: goal:g12.3
 mint_id: f28a9f5dbb944cb8b5fc5009a3ab8ccd
 type: goal
 parents:
-  - goal:g12
+  - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G12.3
 goal_kind: long-term
 heading_level: 3
@@ -17,7 +17,7 @@ seeds: []
 status: active
 tags:
   - goal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G12.3: The tier ladder, seasons, and season.py"
 ---
 # goal:g12.3
