@@ -3,9 +3,9 @@ id: goal:s17
 mint_id: 46b7d8f76a8742bf9aafa5a82ad8cca3
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S17
 goal_kind: short-term
 heading_level: 2
@@ -18,7 +18,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S17: Node types have no declared schema, so a spawn is never checked"
 ---
 **Seven node types are in daily use and `context/schemas/` declares six of
