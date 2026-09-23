@@ -3,13 +3,13 @@ id: hypothesis:l3-workflow-model-crosses-harness-namespace
 mint_id: a88bd3f815724d87b8f7f5aeefff320c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: e7ad6b68845087ed
 season: 2
 testable_claim: "After the change, no workflow stage can spawn a pi child whose --model is outside the provider's namespace: the pi harness resolves its model from harnesses.pi.models (or an explicit per-harness key) rather than from the harness-agnostic workflows.<name>.model, and a model the provider cannot own is a loud refusal before any network call, proven red-first."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: workflow.py hands a Claude Code model alias to --provider openrouter, so every pi-harness workflow stage silently bills Anthropic Sonnet at 33x the loop's declared model
 ---
 <!-- BODY:BEGIN -->

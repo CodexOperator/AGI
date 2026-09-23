@@ -31,7 +31,7 @@ verdict: proved
 
 ## Experiment
 
-REPRODUCED and the fix landed for the ONE failing falsifier in goal:g15.25
+REPRODUCED and the fix landed for the ONE failing falsifier in goal:g6.47
 (hypothesis:l4-the-dirty-tree-gate-on-a-shared-main-checkout-blocks-only-on-
 dirt-the-merge-would-touch-foreign-dirt-is-named-never-a-block): a dirty path
 git must QUOTE (`core.quotePath` — non-ASCII bytes, backslash, quote, tab)

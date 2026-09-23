@@ -112,4 +112,4 @@ preset text     -> NOT clobbered               (so stdin is never read twice)
 
 **The second half matters as much as the first.** An empty source now refuses with a message that says what it would have done. Before, an empty replacement was indistinguishable from a deliberate deletion and the engine settled that ambiguity by destroying data -- in a repo whose house rule is fail-closed everywhere else.
 
-**Both kids returned `proved` (0.95 and 0.9) and the ceiling of 2 was used exactly.** The wrapper commit line reads `verdict=pending`, which is the wrapper's field and not the nodes' -- the same discrepancy already recorded in `goal:g17.1`. The nodes are authoritative.
+**Both kids returned `proved` (0.95 and 0.9) and the ceiling of 2 was used exactly.** The wrapper commit line reads `verdict=pending`, which is the wrapper's field and not the nodes' -- the same discrepancy already recorded in `goal:g7.16`. The nodes are authoritative.

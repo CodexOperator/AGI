@@ -30,7 +30,7 @@ Independent replication and extension of experiment:a00-6e3b85a0-6c5a16's findin
 - Depth 4–5: resolves to MVPs and deeper children
 - All depths render correctly with appropriate truncation; the zoom axis is functional
 
-### Unified stream invariant (goal:g9.7)
+### Unified stream invariant (goal:g2.19)
 `python3 extensions/agi/bin/viewport.py --emit both --depth 3 --height 20 --width 90 --verify`
 - PASS: one stream, two formatters, same frames in same order
 - Briefing (metrics, coverage, rules) present in both views

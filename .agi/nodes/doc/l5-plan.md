@@ -3,7 +3,7 @@ id: doc:l5-plan
 mint_id: 91459ad346de4a27852b37dcf4f20f50
 type: doc
 parents:
-  - goal:g19
+  - goal:g1.20
 next_edges: []
 edited_by: belam
 scaffold_hash: da94842de9d92f69
@@ -12,6 +12,7 @@ tags:
   - doc
   - l5
   - plan
+thought_session: dissolve-legacy-2026-09-19
 title: "L5 plan — the tidy pass: branch deletes, post session-name updates, stragglers; Prime + one director"
 town: core
 ---

@@ -3,7 +3,7 @@ id: idea:lm-hunch-cluster-parallel-speculation
 mint_id: 2fa890fea8d04bb79224bf8349bc5413
 type: idea
 parents:
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: c53d593f4ca9729c

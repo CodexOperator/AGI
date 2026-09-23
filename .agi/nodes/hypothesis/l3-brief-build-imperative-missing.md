@@ -3,12 +3,13 @@ id: hypothesis:l3-brief-build-imperative-missing
 mint_id: fa68db7bb1934d98981f324f1271f983
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-VIII
+edited_by: belam
 scaffold_hash: 93fc02e5026b6eab
 season: 2
 testable_claim: After the change, brief.assemble renders a kid brief for a target whose body carries a BUILD marker with a literal imperative segment naming the artefact as a diff, and a red-first test asserts that segment is present for a BUILD target and absent for a probe target; measured behaviourally, the next BUILD round dispatched under the new template ends with a non-empty git diff --stat in the parent's worktree.
+thought_session: dissolve-legacy-2026-09-19
 title: A BUILD brief reads as a question to a kid, so the kid measures instead of building
 ---
 <!-- BODY:BEGIN -->

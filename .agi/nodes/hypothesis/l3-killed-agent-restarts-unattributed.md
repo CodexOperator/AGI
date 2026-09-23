@@ -3,13 +3,13 @@ id: hypothesis:l3-killed-agent-restarts-unattributed
 mint_id: e33ef149400043cfb4e9cacfc8628b65
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: f10044573ad2c66f
 season: 2
 testable_claim: "After the change, terminating a round's agents actually terminates them: a killed agent is not silently restarted, or if a restart is intentional it inherits the iteration id of the agent it replaces so spawn_budget.py status attributes it to its round rather than to iter=None, proven red-first by killing a dispatched agent and asserting no unattributed survivor."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Killing a dispatched agent's tmux window does not stop the agent, and the survivor is auto-restarted with iter=None so it is invisible to the round it belongs to
 ---
 <!-- BODY:BEGIN -->

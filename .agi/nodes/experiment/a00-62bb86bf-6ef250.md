@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-FIX-ONLY build round on `goal:g15.25` (hypothesis: SL7.100 bootstrap writer).
+FIX-ONLY build round on `goal:g6.47` (hypothesis: SL7.100 bootstrap writer).
 Landed the four changes in `extensions/agi/bin/rotate.py` and appended five
 tests to `extensions/agi/tests/test_rotate_startup.py`.
 
@@ -95,7 +95,7 @@ built SL7.100: join_pending derivation-first, named post-join unresolved, _read_
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-46b474a2, SL7.100) — accepted, verdict kept proved.
 
-(1) INSTRUCTION: the target node testable_claim is a goal:g15.25 FIX-ONLY build order — "for a join_pending key the writer FIRST calls the derivation"; "the post-join rewrite re-derives each still-pending key and writes unresolved: <named reason> only when the derivation itself names why"; "ONE pin-reading helper _read_seat_pin(root, seat, cur_gen) -> (pin_record | None, reason) carries the cross-generation refusal ... both bootstrap readers call it; cmd_meter is NOT edited"; "the four writers call sites and every non-meter fact line are byte-identical before/after".
+(1) INSTRUCTION: the target node testable_claim is a goal:g6.47 FIX-ONLY build order — "for a join_pending key the writer FIRST calls the derivation"; "the post-join rewrite re-derives each still-pending key and writes unresolved: <named reason> only when the derivation itself names why"; "ONE pin-reading helper _read_seat_pin(root, seat, cur_gen) -> (pin_record | None, reason) carries the cross-generation refusal ... both bootstrap readers call it; cmd_meter is NOT edited"; "the four writers call sites and every non-meter fact line are byte-identical before/after".
 
 (2) MACHINE: I ran the code, not the report. rotate.py has exactly 4 diff hunks (git diff HEAD, hunk headers at 1161/8488/8637/10890) — the 1161 hunk is the new _read_seat_pin inserted AFTER cmd_meter return 0, so no line inside cmd_meter changed. _write_bootstrap join_pending branch (diff @8637) now calls _derive_bootstrap_fact before the pending fallback and appends " (resolved after join)" to a derived value. _derive_bootstrap_fact meter branch (diff @8488) and _fill_bootstrap_join_facts (diff @10934) both read the pin through _read_seat_pin. Tests: 569 passed, 3 skipped across test_rotate_startup/autopsy/after_join_service/session_start_*/bin_help_smoke/test_rotate/closeout/handover — run by me, not quoted from the kid.
 

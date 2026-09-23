@@ -3,7 +3,7 @@ id: hypothesis:a00-0fe88a0b-dbdfda
 mint_id: fce944a171b045ce8512f97f8db1b7ad
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -84,7 +84,7 @@ If forks do NOT work:
 ### Relationship to siblings
 
 This hypothesis is complementary and orthogonal to the three existing
-hypotheses under goal:g10.1:
+hypotheses under goal:g2.24:
 
 | Sibling | Asks | Relationship here |
 |---|---|---|
@@ -138,7 +138,7 @@ hypotheses under goal:g10.1:
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-9afb0e7e, iter 1024). Kid's version passed
-substantively: parents resolves to goal:g10.1, verdict `pending` is the
+substantively: parents resolves to goal:g2.24, verdict `pending` is the
 honest state (untested), `testable_claim` present, and the claim is the
 fourth distinct facet of g10.1 the three iter-1010 siblings left open —
 the "forkable" property. Its three-way arm design (fork / fresh-start /
@@ -160,4 +160,4 @@ supersedes the kid's original one (preserved only in the session log).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Fourth hypothesis under goal:g10.1 — tests chat-fork semantics. Fork at decision point reduces re-derivation overhead vs starting fresh. Three arms: fork, fresh-start, summary control. Orthogonal to three sibling hypotheses.
+Fourth hypothesis under goal:g2.24 — tests chat-fork semantics. Fork at decision point reduces re-derivation overhead vs starting fresh. Three arms: fork, fresh-start, summary control. Orthogonal to three sibling hypotheses.

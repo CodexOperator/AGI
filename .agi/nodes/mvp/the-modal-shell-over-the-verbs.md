@@ -19,19 +19,19 @@ title: The modal shell binds keys to verbs that already exist
 
 `verdict:the-verb-layer-holds` proved the build order was right and states its
 own gap plainly: **there is no modal shell.** No cursor, no keys, no live
-re-render, no submit-on-keystroke. `goal:g13.1` is a modal editor and what
+re-render, no submit-on-keystroke. `goal:g4.18` is a modal editor and what
 exists is its verb layer.
 
 ### The interfaces
 
 - A **keymap as data** — key to verb name — so the binding is inspectable and
   a test can assert every key resolves to a verb that exists. A keystroke
-  bound to nothing is the split `goal:g13.1` forbids, arriving from the other
+  bound to nothing is the split `goal:g4.18` forbids, arriving from the other
   direction.
 - A **headless driver**: `drive(keys, node_id)` returning the accumulated
   `Edit`. That is what makes the shell testable without a TTY, and it is the
   same accumulate-then-submit path the `&&` form already uses.
-- The **renderer is `viewport.py`'s**, called, never copied. `goal:g13.1`:
+- The **renderer is `viewport.py`'s**, called, never copied. `goal:g4.18`:
   *"relies on the renderer and the writer to do everything in the background"*.
 
 ### The invariants
@@ -43,7 +43,7 @@ exists is its verb layer.
    Both directions, or the two callers have diverged.
 3. **One submit per session.** The shell accumulates exactly as the serial
    form does; nothing writes until submit.
-4. **No new parser.** `goal:g13.1`'s own scope test — if edit mode needs its
+4. **No new parser.** `goal:g4.18`'s own scope test — if edit mode needs its
    own parser or its own file-writing code, the seam is wrong.
 
 ### The falsifier
@@ -58,7 +58,7 @@ submits one change with provenance recorded.
 
 **`thought_session` is written but not linked.** It stores whatever string a
 caller passes; nothing connects it to a session transcript, which is
-`goal:g2.7`/`goal:g10.1`'s actual ask and the finest grain of the LOD axis.
+`goal:g2.7`/`goal:g2.24`'s actual ask and the finest grain of the LOD axis.
 The shell will make it easy to pass a real session id and will not, by itself,
 make one exist.
 

@@ -32,7 +32,7 @@ prose by whatever prompt assembled it.
    them, and a source citation) plus `active_operating_mode`. The live
    declaration marks `enhanced_survival` IN FORCE (it is the unnamed third
    arrangement that is actually running — Prime + point director + helper,
-   per `goal:g17.1`, owner verbatim at :26/:28).
+   per `goal:g7.16`, owner verbatim at :26/:28).
 2. **Rendering in `brief.py`** — added `_operating_mode_block(project_root)`
    which reads the declaration and renders an `OPERATING MODE` block (marker,
    ACTIVE, SEATS, MODELS, SOURCE). Absent / unreadable / undeclared-active
@@ -84,14 +84,14 @@ SEATS: Prime + point director (sanctuary-director) + helper director
        (sanctuary-helper) — the Texas two-step formation, three seats…
 MODELS: Prime claude-opus-5; point director claude-opus-5 max; helper
         director claude-sonnet-5 max (owner verbatim…)
-SOURCE: goal:g17.1:26 (…) and :28 (…)
+SOURCE: goal:g7.16:26 (…) and :28 (…)
 ```
 
 Sources used, verbatim from the owner: `doc:l4-owner-decisions:265`
 ("only two persistent seats active each helping the other to conserve the
 resource that matters most"; "They can drop down to ultimate survival where
 Prime is powered by opus and single remaining director runs off sonnet or
-even openrouter") and `:311`; `goal:g17.1:26` ("spawn a second director kid…
+even openrouter") and `:311`; `goal:g7.16:26` ("spawn a second director kid…
 Let the current director take point though and the other one is like a
 helper… Helper director kid runs sonnet btw.") and `:28`.
 

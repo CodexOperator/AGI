@@ -3,13 +3,13 @@ id: hypothesis:l3-cc-adapter-zombie-lease
 mint_id: 2b0e0abdda2e4bcf8e1be2f83fa0e620
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam
 scaffold_hash: ea7a554c943428c6
 season: 2
 testable_claim: the claude-code adapter wrapper reaps its claude -p child and releases the spawn-budget lease as soon as the child exits, even when a detached grandchild keeps the stdout pipe open, and spawn_budget.py sweep treats a zombie (state Z) pid as dead
-thought_session: L3.26
+thought_session: dissolve-legacy-2026-09-19
 title: L3 cc adapter zombie lease
 ---
 # hypothesis:l3-cc-adapter-zombie-lease

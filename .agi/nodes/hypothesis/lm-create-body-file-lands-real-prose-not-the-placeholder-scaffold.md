@@ -3,7 +3,7 @@ id: hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold
 mint_id: 6abe539956e449368a654c6badd51f5b
 type: hypothesis
 parents:
-  - goal:g14.14.1
+  - goal:g7.33.1
 next_edges: []
 confidence: 0.75
 edited_by: thought-master

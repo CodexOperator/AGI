@@ -4,7 +4,7 @@ mint_id: 90a9007a72764917b8075ec34b3bfe78
 type: hypothesis
 parents:
   - idea:lm-magic-pane-llm-autocorrect-and-autofill
-  - goal:g14.8.3
+  - goal:g5.24.3
 next_edges: []
 confidence: 0.4
 edited_by: belam

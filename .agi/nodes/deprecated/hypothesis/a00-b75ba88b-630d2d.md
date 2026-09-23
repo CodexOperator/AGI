@@ -3,9 +3,9 @@ id: hypothesis:a00-b75ba88b-630d2d
 mint_id: de2105c2708f482ead7ea3ed91717d70
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 loop: goal:g15@s2
 model: claude-fable-5-1
 profile: balanced
@@ -13,7 +13,7 @@ role: director
 scaffold_hash: 143571b0e8c55435
 season: 2
 status: deprecated
-thought_session: L3.17
+thought_session: goal-glom-2026-09-19
 title: "Wave 3 gate, round 2: the commit guard fires under g11, cli.py done lifts testable_claim, and goal:s31 closes on a judged outcome"
 ---
 <!-- BODY:BEGIN -->

@@ -23,11 +23,11 @@ What is the testable claim? What would prove it? What would disprove it?
 ## L4.5x brief -- widen the L4.10 tmux guard from one file to the whole suite
 
 Assigned by sanctuary-director gen III (seat-sanctuary-director-4e), approved
-by the Prime. Widens `goal:g15.3` / `hypothesis:l4b23-fixture-leak` (CLOSED
+by the Prime. Widens `goal:g6.25` / `hypothesis:l4b23-fixture-leak` (CLOSED
 proved, but scoped to test_send.py only: `experiment:a00-7251f7a9-424a5f`) --
 that round fixed the file the owner actually reported; it never claimed to
 cover the rest of the suite, and it doesn't: `conftest.py` today carries only
-the AGI_TIER collection gate (goal:g15.6) and no tmux guard at all.
+the AGI_TIER collection gate (goal:g6.28) and no tmux guard at all.
 
 WHY IT MATTERS: nothing is typed into a live pane today only because these
 fixtures' recipient/window names ("seat-a", "tier2-directors", "sender", ...)
@@ -45,7 +45,7 @@ CURRENT STATE, read from the code (not guessed):
   -- swapping test_send.py's OWN `send_mod` module-alias's subprocess
   reference. This protects ONLY tests in test_send.py that go through THAT
   specific `send_mod` object.
-- `extensions/agi/tests/conftest.py` (goal:g15.6) has zero fixtures today --
+- `extensions/agi/tests/conftest.py` (goal:g6.28) has zero fixtures today --
   only a `pytest_cmdline_main` collection hook. No tmux guard exists there.
 
 🔴 WHY A LITERAL "MOVE" WOULD BREAK OTHER TESTS -- READ BEFORE YOU START:
@@ -116,7 +116,7 @@ passes at (at least) its current count.
 The full-suite run above is PRE-APPROVED for this round specifically -- it
 is the falsifier the Prime and director named, not a bare directory run you
 are asking permission for. Run it. The `AGI_TIER=kid` collection gate
-(goal:g15.6) does not block a bare directory run for you as a PARENT-tier
+(goal:g6.28) does not block a bare directory run for you as a PARENT-tier
 process (AGI_TIER is unset outside a kid) -- if you dispatch a sub-kid,
 remember it WILL be gated and must run scoped or with `AGI_TIER` unset.
 

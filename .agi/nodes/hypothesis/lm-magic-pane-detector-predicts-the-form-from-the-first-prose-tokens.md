@@ -4,7 +4,7 @@ mint_id: 8e4ddb1eef5d4d9abf1147c5f9e27839
 type: hypothesis
 parents:
   - idea:lm-magic-pane-llm-autocorrect-and-autofill
-  - goal:g14.8.3
+  - goal:g5.24.3
 next_edges: []
 edited_by: thought-master
 scaffold_hash: e532316ac910a619

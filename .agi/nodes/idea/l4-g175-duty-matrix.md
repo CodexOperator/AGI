@@ -3,7 +3,7 @@ id: idea:l4-g175-duty-matrix
 mint_id: cbd17eee51a544c4b9cd6c9322d42297
 type: idea
 parents:
-  - goal:g17.5
+  - goal:g7.19
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

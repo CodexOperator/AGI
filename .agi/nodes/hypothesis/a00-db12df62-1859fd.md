@@ -3,7 +3,7 @@ id: hypothesis:a00-db12df62-1859fd
 mint_id: 05dada24dc6049a9a5ed0c86d1c69b60
 type: hypothesis
 parents:
-  - goal:g9.7
+  - goal:g2.19
 confidence: 0.75
 edited_by: season.py
 scaffold_hash: 6f73e1deaf8d0657
@@ -73,8 +73,8 @@ eventual implementation must reify.
 
 ## Notes
 
-- Parent: goal:g9.7
-- Blocked on: g13's read-half existing (per goal:g9.7 dependencies)
+- Parent: goal:g2.19
+- Blocked on: g13's read-half existing (per goal:g2.19 dependencies)
 - This hypothesis is falsifiable via a prototype before g13 is complete — the
 frame stream abstraction can be built and tested independently of the g13
 storage layer.
@@ -86,7 +86,7 @@ Hypothesis: NodeFrameStream as shared traversal for viewport + context, proven/d
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent a00-f3acb772 review of kid a00-db12df62's v1. The kid's claim is accepted as-is: a
-falsifiable hypothesis that operationalizes goal:g9.7's own falsifier (one render, two
+falsifiable hypothesis that operationalizes goal:g2.19's own falsifier (one render, two
 readers) and correctly names g13 as the dependency it is blocked on. Not demoted — it makes
 no proved/disproved claim, so the evidence gate has nothing to police; it is the first
 hypothesis on this goal's chain.

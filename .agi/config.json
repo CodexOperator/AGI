@@ -109,12 +109,24 @@
       "allowed_extra": [
         "auto"
       ]
+    },
+    "grok-bot": {
+      "adapter": "grok_bot",
+      "allowed_extra": [
+        "grok-4",
+        "grok-4-fast"
+      ],
+      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "models": {
+        "kid": "grok-4-fast",
+        "parent": "grok-4"
+      }
     }
   },
   "spawn": {
     "harness": "pi",
     "parallel": 1,
-    "max_live": 25,
+    "max_live": 30,
     "credential": {
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.5,

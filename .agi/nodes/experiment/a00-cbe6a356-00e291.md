@@ -23,7 +23,7 @@ verdict: inconclusive_lean_proved:90
 # experiment:a00-cbe6a356-00e291
 
 Parent: hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps (the parent's
-scope, step 4 of goal:g15.14: `first-decision --seat S` must pre-fill one harvest-or-cut row per
+scope, step 4 of goal:g6.36: `first-decision --seat S` must pre-fill one harvest-or-cut row per
 OPEN round of the seat's OWN worktree, never mis-credit another district's round).
 
 ## What I built — discriminator (b), the manifest join, in `_fd_rounds`

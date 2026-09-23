@@ -3,7 +3,7 @@ id: idea:l4b19-build-reattribution
 mint_id: 5a8f7e1b3ff7462ea93bd1c88ca330d7
 type: idea
 parents:
-  - goal:g15.1
+  - goal:g6.23
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

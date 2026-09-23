@@ -3,10 +3,10 @@ id: goal:g4.9
 mint_id: 1a1b4c80eb2742bfba091b4966178236
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.9
 goal_kind: subgoal
 heading_level: 3
@@ -18,7 +18,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.9: A parent that outlives its timeout is a bug, not a lease"
 ---
 # goal:g4.9

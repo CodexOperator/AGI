@@ -85,6 +85,7 @@ from pathlib import Path
 
 import adapters
 import brief
+import harness_template
 import locations
 import provisioning
 import spawn_budget
@@ -487,6 +488,15 @@ def _resolved_tools(harness: dict, *, role: str | None,
     return tools, allowed, disallowed
 
 
+def _mcp_values(harness: dict) -> list[str]:
+    """Named thin hook: `mcp_config` (one path or a list) -> the variadic
+    `--mcp-config` values, flattened. The flag stays in the template."""
+    mcp = harness.get("mcp_config")
+    if not mcp:
+        return []
+    return [mcp] if isinstance(mcp, str) else [str(m) for m in mcp]
+
+
 def write_system_prompt(
     *,
     sess_dir: Path,
@@ -596,31 +606,10 @@ def build_command(
         skill_prompt=skill_prompt,
     )
 
-    args = [resolve_bin(harness), "-p"]
-    args += model_args(harness, tier)
-
     fmt = str(harness.get("output_format") or DEFAULT_OUTPUT_FORMAT)
     if fmt not in OUTPUT_FORMATS:
         raise ValueError(
             f"harness {NAME!r}: output_format {fmt!r} is not one of {OUTPUT_FORMATS}")
-    args += ["--output-format", fmt]
-    if fmt == "stream-json":
-        # Print mode refuses stream-json without it.
-        args += ["--verbose"]
-    args += ["--strict-mcp-config"]
-
-    budget = harness.get("max_budget_usd")
-    if budget is not None and str(budget).strip():
-        args += ["--max-budget-usd", str(budget)]
-
-    args += ["--append-system-prompt-file", str(prompt_file)]
-    args += [str(a) for a in (harness.get("extra_args") or [])]
-
-    # --- variadic flags: everything from here to `--` may swallow a positional.
-    args += ["--add-dir", str(locations.repo_root(root))]
-    mcp = harness.get("mcp_config")
-    if mcp:
-        args += ["--mcp-config", *([mcp] if isinstance(mcp, str) else [str(m) for m in mcp])]
     tools, allowed, disallowed = _resolved_tools(
         harness, role=role, ladder_tier=ladder_tier)
     if os.environ.get("AGI_DEBUG"):
@@ -628,17 +617,26 @@ def build_command(
         print(f"  --tools {tools}")
         print(f"  --allowedTools {allowed}")
         print(f"  --disallowedTools {disallowed}")
-    if tools:
-        args += ["--tools", *tools]
-    if allowed:
-        args += ["--allowedTools", *allowed]
-    if disallowed:
-        args += ["--disallowedTools", *disallowed]
 
-    args += ["--", _closing_turn(harness=harness, tier=tier,
-                                  agent_id=agent_id, iter_n=iter_n,
-                                  brief_tier=_btier)]
-    return args
+    # hypothesis:harness-arg-builders-are-templates-only: argv is DATA
+    # (claude-code.toml `[shapes.dispatch]`); the adapter only fills slots.
+    budget = harness.get("max_budget_usd")
+    return harness_template.render(
+        NAME, shape="dispatch", bin_path=resolve_bin(harness),
+        model_args=model_args(harness, tier),
+        output_format=fmt,
+        verbose=fmt == "stream-json",
+        budget=None if budget is None else str(budget).strip(),
+        prompt_file=str(prompt_file),
+        extra_args=harness.get("extra_args") or [],
+        repo_root=str(locations.repo_root(root)),
+        mcp=_mcp_values(harness),
+        tools=list(tools), allowed=list(allowed),
+        disallowed=list(disallowed),
+        closing=_closing_turn(harness=harness, tier=tier,
+                              agent_id=agent_id, iter_n=iter_n,
+                              brief_tier=_btier),
+    )
 
 
 def _closing_turn(*, harness: dict, tier: str, agent_id: str, iter_n: int,

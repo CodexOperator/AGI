@@ -3,9 +3,9 @@ id: hypothesis:l4-complete-and-fallback-invariants
 mint_id: 972f4fcfcb0240c1804c4d496a87f7d1
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.14
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 5286199f164c4503
 season: 2
 status: pending
@@ -16,7 +16,7 @@ tags:
   - data-loss
   - defect
 testable_claim: "Two invariants that must hold BEFORE `rotate.py complete` is ever run live, because both current behaviours lose data silently and neither has a test. Read at the line, not inferred. (1) `cli._legacy_fallback` (`extensions/agi/bin/cli.py:83-100`) FALLS BACK TO THE MAIN CHECKOUT ONLY WHEN THE SHARED PATH ACTUALLY EXISTS. Today, when the local path does not exist it computes `shared / path.relative_to(local_root)` and RETURNS IT UNCONDITIONALLY -- without checking that anything is there. So a record that exists in NEITHER place -- a brand-new record being CREATED from a worktree -- resolves to main, and `done` / `pending` / `scaffold` write it into main. That is the exact routing L4.37 half a reverses, reinstated by the fallback meant to protect old records. REQUIRED: fall back to shared only when `shared / rel` EXISTS; otherwise return the LOCAL path. TEST all three: neither present -> local; only main present -> main; local present -> local. (2) `rotate.cmd_complete` VERIFIES EVERY SKIPPED DIR, NOT ONLY THE COPIED ONES (`extensions/agi/bin/rotate.py:1571-1590`). An `iter-*` dir that already exists in main is appended to `skipped`, printed as \"left byte-for-byte intact\", and `continue`d. The completeness gate that follows iterates `for name in copied:` ONLY. So a skipped dir is never compared, and the worktree's copy of it is then DELETED by `git worktree remove` -- silently, even when it differs from main's. The printed phrase asserts an equality nobody checked. REQUIRED: run `_verify_tree_copy(src, dst)` over the SKIPPED dirs as well; on any inequality REFUSE the teardown, name the dir, remove NOTHING, and leave main's copy untouched. TEST: a same-name dir whose bytes DIFFER -> refuse, and BOTH copies still present and unchanged afterwards. 🔴 FIXTURE TREES ONLY. Build throwaway git repos and worktrees under `tmp_path`, exactly as `test_rotate_complete.py` already does. Do NOT run `complete` against any real worktree, do NOT touch `.agi/worktrees/*`, and do NOT `git worktree remove` anything outside `tmp_path`. A reproduction is READING the offending line and exercising a FIXTURE -- never executing a destructive command against live state. 🔴 DO NOT REINTRODUCE THE MODULE-LEVEL REBIND. `test_rotate_complete.py` now patches `rotate.main` through an AUTOUSE FIXTURE (`monkeypatch.setattr`). It previously did `rotate.main = _capture` at module scope, which pytest never restores, and that turned 22 tests in `test_rotate.py` red in a full-suite run while `test_rotate.py` passed 81/81 alone. Keep the fixture. PROVED BY: (a) the three `_legacy_fallback` cases above, each asserted; (b) the differing skipped-dir case refusing with both copies intact; (c) `pytest extensions/agi/tests/test_rotate_complete.py extensions/agi/tests/test_rotate.py extensions/agi/tests/test_shared_state_worktree.py -q` GREEN -- run test_rotate.py TOO, because it tests the module you are editing and skipping it is exactly how the last defect reached a merge; (d) NO assertion in any existing test weakened, removed or retargeted. DISPROVED IF: a not-found-anywhere path still resolves to main, a differing skipped dir is still torn down, any real worktree is touched, or the module-level rebind returns. HARD CEILING: 2 kids. Run those THREE test files and nothing else -- do NOT run the full suite, and say so in the node. Do NOT touch `.agi/nodes/.geometry/*`."
-thought_session: sanctuary-director-genIII-L4
+thought_session: dissolve-legacy-2026-09-19
 title: The fallback meant to protect old records reinstates the routing L4.37 reverses, and complete deletes a worktree copy it never compared
 ---
 <!-- BODY:BEGIN -->

@@ -3,12 +3,13 @@ id: hypothesis:l4-the-cron-node-is-the-whole-schedule-any-job-is-one-entry-one-v
 mint_id: 763f52bae90f432a83f8c10b3edcbbce
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: director-sanctuary
+edited_by: belam
 scaffold_hash: 5429cfd5f4c68c66
 season: 2
 testable_claim: "(1) `cadences` in the cron node accepts ANY job name: an entry with `schedule` (or every_mins) + `cmd` [+ enabled, box, log] renders as `<schedule> cd {root} && <cmd> >> <log> 2>&1` through the same renderer the four built-ins use (KNOWN_JOBS keep their special rendering; an unknown name WITHOUT cmd still refuses by name as today); the [cron].md schema declares the entry shape. (2) ONE variable: `crons_live: false` removes every managed crontab line (as today) AND stops + disables every `services:` entry the node declares (agi-reaper today), so one write silences the box; `crons_live: true` + `crons.py apply` restores both. (3) `crons.py audit` prints every live crontab line and every running agi-* / declared-name unit on this box that the node does NOT declare (measured today: 2 fantasia lines belong to that project's own node; earlyoom.service and claude-remote-control.service run outside any node) -- the \"slipped through the cracks\" detector, read-only, exit 1 when anything is undeclared. (4) placeholders `{root}`, `{repo_root}`, `{logs}`, `{box}` resolve at apply time from the resolver (locations / boxes.py), so a fresh box runs `crons.py apply` and gets working lines with no absolute path from another box; existing absolute paths in the node keep rendering byte-identical on this box (measured: `crons.py show` output unchanged), and the node's own four entries + the agi-reaper service are rewritten to placeholders in the same commit with the byte-identical proof. (5) the SM.117 box filter is honoured by every job kind (a generic job with box: local-town is not installed on core-town). CEILING ~60 production lines + the schema entry + the node rewrite; tests in test_crons.py."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.124 (owner in the sanctuary-master pane 22:0xZ: \"crons can be added to the crons .geometry node ... all crons should be easy to disable via one variable ... setup easy on a new box ... the graph is the ini\"): the cron node is the WHOLE schedule -- any job is one entry with a schedule and a cmd, crons_live: false silences every managed line AND every declared service, `crons.py audit` names what runs outside the node, and `crons.py apply` on a fresh box installs the node's lines from placeholders, never a box path"
 town: core
 ---

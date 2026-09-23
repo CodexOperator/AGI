@@ -25,7 +25,7 @@ verdict: proved
 
 ## Experiment
 
-This is a g15 BUILD claim (goal:g15.19 -> hypothesis:l4-the-cross-second-boundary-). It asks for a COMMITTED test — no real sleep, no uncommitted 1.1 s probe — that forces the crash-recovery record writer to emit two distinct second-stamps, so the race-2 shape (pass-1 `detected` + pass-2 `respawned` as TWO files) is owned by the suite, plus a frozen-clock sibling asserting the single-file outcome is still `respawned`-newest.
+This is a g15 BUILD claim (goal:g6.41 -> hypothesis:l4-the-cross-second-boundary-). It asks for a COMMITTED test — no real sleep, no uncommitted 1.1 s probe — that forces the crash-recovery record writer to emit two distinct second-stamps, so the race-2 shape (pass-1 `detected` + pass-2 `respawned` as TWO files) is owned by the suite, plus a frozen-clock sibling asserting the single-file outcome is still `respawned`-newest.
 
 Narrowest seam found: `rotate._write_rotation_record` (rotate.py:3301) names a fresh file from `datetime.utcnow().strftime('%Y%m%dT%H%M%SZ')` where `datetime` is rotate's own `from datetime import datetime`. heal.py keeps its own `import datetime` for `recorded_at` (`datetime.datetime.utcnow()`), so replacing `rotate.datetime` with a fake whose `utcnow` is driven by the test touches ONLY the filename stamp — the detection timestamp and heal's dedupe window (`now=time.time()`) are untouched. (Dead end found first: patching `rotate.datetime.utcnow` refs deprecated wiring — CPython's `datetime.datetime` is an immutable C type, `TypeError: cannot set 'utcnow' attribute of immutable type` — so the whole `rotate.datetime` module attribute is replaced instead.)
 
