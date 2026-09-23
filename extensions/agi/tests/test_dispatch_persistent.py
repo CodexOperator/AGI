@@ -197,3 +197,90 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+
+
+# --- goal:g7.28.1 (DH.168) -- the two holes the parent review named ---------
+# (a) exhaustion must never leave `persistent:true` over a corpse;
+# (b) a named `--seat` must show its occupation in its OWN posts row and
+#     clear it when no live child remains. The row write reuses rotate's ONE
+#     identity writer -- never a second writer.
+
+LIVE_SCHEMA = (Path(__file__).resolve().parents[3] / ".agi" /
+               "context" / "schemas" / "[config].md")
+
+
+@pytest.fixture()
+def project_with_seat(project: Path) -> Path:
+    """The dispatch project plus a `posts.md` row for seat-a (stale pid)."""
+    import shutil
+    sd = project / ".agi" / "context" / "schemas"
+    sd.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(LIVE_SCHEMA, sd / "[config].md")
+    geo = project / ".agi" / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    rows = [
+        {"name": "seat-a", "role": "director", "harness": "pi",
+         "model": "deepseek-v4", "pid": 999999},
+        {"name": "other", "role": "kid", "pid": 123},
+    ]
+    body = "\n".join("  - " + json.dumps(r) for r in rows)
+    (geo / "posts.md").write_text(
+        "---\nid: config:posts\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+        "type: config\nparents:\n  - goal:g17\nposts:\n" + body +
+        "\n---\n\n# config:posts\n\nfixture\n", encoding="utf-8")
+    return project
+
+
+def _row(project: Path, name: str) -> dict:
+    import geometry_config
+    rows = geometry_config.load_rows(project / ".agi")
+    return next(r for r in rows if r.get("name") == name)
+
+
+def test_exhaustion_never_leaves_persistent_over_a_corpse(
+        project, monkeypatch, capsys):
+    """Hole (a): reopen always yields an instantly-dead child; the FINAL
+    record must not assert `persistent` over a pid that names nothing live."""
+    spawned = _fake_spawn(monkeypatch, [{"left": 0, "rc": 1}])
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+
+    assert dispatch.main() == 0
+    # initial spawn + one restart per max_restarts, then the bound breaks.
+    assert len(spawned) == dispatch._PERSIST_MAX_RESTARTS + 1, len(spawned)
+    assert spawned[-1][1].poll() is not None, "last child must be a corpse"
+    agents = _manifest(project)
+    rec = agents[0]
+    assert "persistent" not in rec, f"corpse still asserted: {rec}"
+    assert rec["pid"] == 0, rec
+    assert rec["restart_count"] == dispatch._PERSIST_MAX_RESTARTS, rec
+    # the session record the supervisor kept current says the same.
+    sess = sorted(project.glob(".agi/sessions/**/agent.json"))[0]
+    on_disk = json.loads(sess.read_text())
+    assert "persistent" not in on_disk and on_disk["pid"] == 0, on_disk
+
+
+def test_named_seat_row_shows_occupation_then_clears(
+        project_with_seat, monkeypatch, capsys):
+    """Hole (b): with `--seat`, the seat's OWN posts row carries the child
+    pid at start/each restart and is cleared (pid 0) when the last child is
+    dead. A foreign row is never touched (write.py self_row)."""
+    spawned = _fake_spawn(monkeypatch, [{"left": 0, "rc": 1}])
+    written: list[int] = []
+    real = dispatch._persistent_row
+
+    def _rec(root, seat, *, pid, session_id=None):
+        written.append(pid)
+        return real(root, seat, pid=pid, session_id=session_id)
+
+    monkeypatch.setattr(dispatch, "_persistent_row", _rec)
+    monkeypatch.setattr(sys, "argv",
+                        _argv(project_with_seat, "--persistent",
+                              "--seat", "seat-a"))
+
+    assert dispatch.main() == 0
+    # the live child pids were written, then the clear sentinel.
+    assert 1000 in written, written
+    assert written[-1] == 0, written
+    assert _row(project_with_seat, "seat-a")["pid"] == 0, _row(
+        project_with_seat, "seat-a")
+    assert _row(project_with_seat, "other")["pid"] == 123
