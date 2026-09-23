@@ -790,12 +790,23 @@ def validate_registry(root: Path, wf: Path | None = None,
 
 def _load_manifest(root: Path, name: str) -> dict:
     """The single stage manifest both harnesses read: <name>.json."""
-    p = root.joinpath(*WORKFLOWS_DIR_REL, f"{name}.json")
+    wf_dir = root.joinpath(*WORKFLOWS_DIR_REL)
+    p = wf_dir / f"{name}.json"
     if not p.is_file():
         # fall back to the .js script's sibling (rare; name may carry it)
-        p = root.joinpath(*WORKFLOWS_DIR_REL, f"agi-{name}.js")
+        p = wf_dir / f"agi-{name}.js"
         if not p.is_file():
-            raise FileNotFoundError(f"no stage manifest {name}.json under {WORKFLOWS_DIR_REL}")
+            # An unknown workflow is a RESOLVE failure, not an I/O error:
+            # main() catches ValueError -> exit 2 (the documented "unknown
+            # workflow" code). FileNotFoundError escaped that tuple and
+            # tracebacked at exit 1 (hypothesis:a00-66151f1a-c8cc6d).
+            try:
+                known = sorted(q.stem for q in wf_dir.glob("*.json"))
+            except OSError:
+                known = []
+            raise ValueError(
+                f"no workflow named '{name}' "
+                f"(known: {', '.join(known) or 'none'})")
     return json.loads(p.read_text(encoding="utf-8"))
 
 
