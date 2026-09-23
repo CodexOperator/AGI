@@ -85,3 +85,50 @@ def test_import_audit_no_orchestration_and_no_grok_literal():
                       "from rotate", "from dispatch"):
         assert forbidden not in src, forbidden
     assert '"grok"' not in src and "'grok'" not in src
+
+
+def test_deliver_same_harness_is_native_never_send_py(monkeypatch):
+    fake = FakeRun()
+    monkeypatch.setattr(magic_pane.subprocess, "run", fake)
+    out = magic_pane.deliver("grok-bot", "grok-bot", "peer body",
+                             pane_target="agi:0.1")
+    assert out["path"] == "native"
+    assert out["route"] == "native"
+    # exactly the tmux send-keys + Enter argv, send.py invoked zero times
+    assert fake.calls == [["tmux", "send-keys", "-t", "agi:0.1",
+                           "peer body", "Enter"]]
+    assert not any("send.py" in " ".join(map(str, c)) for c in fake.calls)
+
+
+def test_deliver_cross_harness_nudge_then_send_py_never_tmux(tmp_path, monkeypatch):
+    fake = FakeRun(nudge_dir=tmp_path)
+    monkeypatch.setattr(magic_pane.subprocess, "run", fake)
+    out = magic_pane.deliver("grok-bot", "pi", "cross body", nudge_dir=tmp_path)
+    assert out["path"] == "nudge_send"
+    assert out["route"] == "nudge_send"
+    # nudge artifact existed on disk BEFORE send.py ran; send.py exactly once
+    assert fake.artifact_present_at_call == [[Path(out["nudge"]).name]]
+    assert fake.calls == [[str(magic_pane.SEND_PY), "send", "pi", "cross body"]]
+    assert not any(c[0] == "tmux" for c in fake.calls)
+
+
+def test_deliver_refuses_contradicting_transport_by_name(tmp_path, monkeypatch):
+    fake = FakeRun(nudge_dir=tmp_path)
+    monkeypatch.setattr(magic_pane.subprocess, "run", fake)
+    # same-harness can never be delivered to send.py
+    try:
+        magic_pane.deliver("grok-bot", "grok-bot", "x",
+                           pane_target="agi:0.1", nudge_dir=tmp_path,
+                           requested_path="nudge_send")
+        raise AssertionError("contradiction was not refused")
+    except ValueError as e:
+        assert "nudge_send" in str(e) and "native" in str(e)
+    # cross-harness can never be delivered to native tmux
+    try:
+        magic_pane.deliver("grok-bot", "pi", "x", pane_target="agi:0.1",
+                           nudge_dir=tmp_path, requested_path="native")
+        raise AssertionError("contradiction was not refused")
+    except ValueError as e:
+        assert "native" in str(e) and "nudge_send" in str(e)
+    # refusal is by name and happens BEFORE any transport call
+    assert fake.calls == []
