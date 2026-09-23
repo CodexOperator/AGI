@@ -4,7 +4,7 @@ mint_id: 5fb040638ce5429e9240a07b47fb5195
 type: goal
 parents: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G11
 goal_kind: long-term
 heading_level: 2
@@ -12,21 +12,15 @@ origin: goals-doc
 season: 1
 seeds:
   - goal:g11.1
-status: complete
+status: retired
 tags:
   - goal
   - root
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: "G11: One repo: the graph lives inside what it builds"
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Marked complete in the 2026-09-01 sweep. The repo IS one repo: source,
-`.agi/` graph and `refs/grid/*` in a single tree, `payloads/` gone,
-`grid.py checkout` retired, `agi-tree` archived and read-only. The goal has
-been done since 2026-08-29 and stayed `active` only because nothing swept.
-
-Kept as evidence rather than restated: the migration was rehearsed four times
-at 807 nodes in / 807 out, zero bytes changed, before the real cut ran.
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
 <!-- THOUGHT:END -->
 
 **The two-repo split is the tax every other goal pays.** `agi-tree` holds the
