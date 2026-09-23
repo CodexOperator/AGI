@@ -157,6 +157,83 @@ def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
     assert projected != BODY.encode()
     assert dest.read_bytes() != projected
 
+# ---- goal:g7.31.5.2 — the reverse bridge's absence, made executable --------
+
+HARNESS_EDIT = "HARNESS EDITED LINE\n"
+
+
+def _node_path(repo: Path) -> Path:
+    return repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+
+
+def _body_bytes(repo: Path) -> bytes:
+    """A linked node's normalized body bytes — the projection payload.
+
+    The raw region after the closing `---` moves by a leading blank line when
+    `write.py` re-renders a node, which is formatting, not a bridge. The
+    projection (`_projected_bytes`: THOUGHT stripped, edges trimmed) is the
+    body content a reverse bridge would actually overwrite, so that is what
+    this detector compares.
+    """
+    f = profile_sync.node_writer.find_node_file(repo / ".agi", "hypothesis:h1")
+    nf = profile_sync.fmr.load_node_file(f)
+    return profile_sync._projected_bytes(nf)
+
+
+def test_artifact_edit_never_rewrites_the_linked_node(tmp_path):
+    """goal:g7.31.5.2, the prose falsifier as a committed detector.
+
+    A reverse bridge (artifact -> node) is ABSENT on this tip. Edit the
+    artifact named by a node's `profile_ref`, then run every production
+    surface that reads that ref. While the bridge is absent the node's BODY
+    bytes are invariant — no surface reconverges the artifact into the node.
+    The day a reverse bridge lands, at least one of these assertions goes
+    red, which is exactly the condition the goal node's falsifier names.
+
+    Positive control: `write.py ... 'set title ...'` DOES move the node's
+    whole-file bytes (frontmatter), so the probe demonstrably observes a
+    node-file change and the invariance above is not vacuous.
+    """
+    repo = _repo(tmp_path)
+    dest = repo / "profile" / "h1.md"
+    node = _node_path(repo)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    before_body = _body_bytes(repo)
+    before_file = node.read_bytes()
+
+    # (b) edit the harness-side artifact to different bytes
+    dest.write_text(HARNESS_EDIT)
+    assert dest.read_bytes() == HARNESS_EDIT.encode()
+
+    # (c)+(d) every production surface that reads profile_ref leaves the
+    # node body untouched — no reverse bridge reconverged the artifact.
+    surfaces = [
+        [sys.executable, str(BIN / "profile_sync.py"),
+         "hypothesis:h1", "--check"],
+        [sys.executable, str(BIN / "profile_sync.py"), "hypothesis:h1"],
+        [sys.executable, str(BIN / "profile_sync.py"), "--all"],
+    ]
+    for argv in surfaces:
+        subprocess.run(argv, cwd=repo, capture_output=True, text=True)
+        assert _body_bytes(repo) == before_body, (
+            f"reverse bridge detected: {argv[2:]} reconverged the artifact "
+            "into the node body")
+        assert node.read_bytes() == before_file, (
+            f"reverse bridge detected: {argv[2:]} rewrote the node file")
+
+    # (e) positive control — write.py reads profile_ref, re-projects the
+    # GRAPH onto the artifact, and changes the node's own bytes.
+    r = _cli(["hypothesis:h1", "set title control-title"], repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert node.read_bytes() != before_file, (
+        "positive control: write.py did not change the node bytes, so this "
+        "probe cannot see a node change at all")
+    assert _body_bytes(repo) == before_body, (
+        "a frontmatter-only write must not touch the body")
+    assert "HARNESS" not in dest.read_text(), (
+        "forward sync (graph -> artifact) must still overwrite the edit")
+
+
 # ---- goal:g7.31.5.3 — whole-graph sweep + pre-rotation guard ---------------
 
 def _cli_all(cwd):
