@@ -10,7 +10,7 @@ edited_by: belam
 evidence_runs:
   - experiment:a00-8e139c40-e048c6
 line_ceiling: 40
-loop: goal:g17.14.2@s2
+loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 12
 profile: balanced

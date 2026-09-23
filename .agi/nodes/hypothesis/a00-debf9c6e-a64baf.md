@@ -10,7 +10,7 @@ edited_by: belam
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
 line_ceiling: 40
-loop: goal:g17.14.3@s2
+loop: goal:g7.25.3@s2
 model: deepseek/deepseek-v4.1-flash
 probes: "P-green wire: helper-branch adapter+config bytes in scratch, pytest test_grok_bot_adapter.py -q -> 8 passed in 0.03s. P-A gate: adapter file removed -> adapters.AdapterError at collection (no adapter for harness grok_bot), NOT skipped. P-B gate: adapter module replaced by `raise ImportError` -> ImportError at collection, NOT skipped. P-C gate: NAME mutated to grok -> test_name_is_the_harness_literal FAILS (assert grok == grok-bot). P-D gate: restart replaced by `return 0` -> test_adapter_implements_the_whole_interface FAILS (DID NOT RAISE NotImplementedError). P-config wire: real .agi/config.json row grok-bot -> adapters.resolve -> adapter=grok_bot, models kid grok-4-fast / parent grok-4, adapters.load is the module, needs_credential False."
 production_lines: 0
@@ -18,7 +18,7 @@ profile: balanced
 role: kid
 scaffold_hash: 6c703b2fe83de13c
 season: 2
-testable_claim: "A test-only mirror of the adapter interface suite for the `grok-bot` harness guards the `goal:g4.6` seam by HARD-loading `adapters.load(\"grok_bot\")` with no importorskip: against the real `goal:g17.14.1` adapter and the real `goal:g17.14.2` config row it is green (8 passed); a missing OR present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip; `NAME` is pinned to the harness literal `grok-bot`; and `restart` is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags."
+testable_claim: "A test-only mirror of the adapter interface suite for the `grok-bot` harness guards the `goal:g4.6` seam by HARD-loading `adapters.load(\"grok_bot\")` with no importorskip: against the real `goal:g7.25.1` adapter and the real `goal:g7.25.2` config row it is green (8 passed); a missing OR present-but-import-broken adapter is a COLLECTION ERROR rather than a silent skip; `NAME` is pinned to the harness literal `grok-bot`; and `restart` is asserted to be the locked stub raising NotImplementedError naming the unmeasured flags."
 thought_session: parent-residue-g14-g17-remap
 title: Grok-bot mirror hard-loads the adapter (importorskip removed)
 town: core
