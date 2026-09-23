@@ -1,0 +1,110 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-23T20:24:24.738822Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "thought-master",
+        "belam-S2-L5-II",
+        "director-thought",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 1,
+      "after": 2
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2215879,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "belam-S2-L5-I",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "thought-master",
+        "belam-S2-L5-II",
+        "director-thought",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -45.792
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "belam-S2-L5-I",
+      "id": "@7"
+    },
+    "successor_window": {
+      "name": "belam-S2-L5-II",
+      "id": "@13"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@13",
+      "pid": 1589071,
+      "session_id": "90f00929-8e63-4881-b053-3f16a371dfa4",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi/90f00929-8e63-4881-b053-3f16a371dfa4.jsonl",
+      "name": "agi-72",
+      "path": "/home/belam/.claude/sessions/1589071.json",
+      "note": "joined by @13 in registry file 1589071.json"
+    },
+    "successor_row": "config:seats row 'belam': session_ref= session_name=agi-72 session_label= session_id=90f00929-8e63-4881-b053-3f16a371dfa4 pid=1589071 generation=2 window='@13' source=registry pubkey=cdad7f20fc46bc84... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha b1abf75fd8, retried 0) -- own-row only: belam spawn row: gen 2, session_id 90f00929-8e63-4881-b053-3f16a371dfa4, window @13, pid 1589071\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 24099d666 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/belam.ack.gen2.json",
+    "own_authority_released": "generation 1 of seat 'belam' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "belam_cap": {
+      "prefix": "belam",
+      "would_exceed_five": false,
+      "oldest_to_reap": null,
+      "live_belam": [
+        "belam-S2-L5-I",
+        "belam-S2-L5-II"
+      ]
+    },
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-belam",
+      "target": "@13",
+      "skipped": "view session view-belam absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "/data/work/agi/.agi/sessions/seats/belam.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "0f6abc40f7cf56562715e5f4eacc4da7cda2dcae3fb592a318850f04b6f192ba",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "gated": "own window + own chain kill GATED OFF on a numeral-chain seat (owner chain rule keeps the five newest predecessors idle in their windows)",
+    "own_window_id": "@7",
+    "own_chain_reap": "GATED OFF"
+  },
+  "committed_by": "rotate-self"
+}
