@@ -2460,7 +2460,10 @@ def test_parent_brief_wait_codes_are_cli_constants_not_literals(monkeypatch):
     constant changes the brief with no second edit, and every code's ACTION is
     asserted beside its cause. Red on the pre-fix bytes, where the brief
     retyped `2`, `3` and `4` as literals and never read `cli` at all."""
-    import cli
+    # brief's own binding, not `import cli`: test_node_writer re-execs cli
+    # into sys.modules, after which `import cli` returns a module object brief
+    # never renders from (an order-dependent red)
+    cli = brief.cli
     monkeypatch.setattr(cli, "_WAIT_TIMEOUT", 27)
     monkeypatch.setattr(cli, "_WAIT_NO_AGENT", 28)
     monkeypatch.setattr(cli, "_WAIT_NO_KID_ROWS", 29)

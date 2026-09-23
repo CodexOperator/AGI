@@ -1438,10 +1438,13 @@ def test_routed_resolver_is_byte_identical_to_the_pre_fix_list(tmp_path):
             text = text.replace(token, value)
         return text
 
-    after = crons.render_managed_lines(root, repo, repo, node)
-    assert after, "the live node must still render its managed lines"
-    with mock.patch.object(crons, "_substitute", pre_fix):
-        before = crons.render_managed_lines(root, repo, repo, node)
+    # the checkout's HEAD is not this test's subject: the branch is pinned so a
+    # detached checkout (a gate worktree) renders exactly what a branch does
+    with mock.patch.object(crons, "resolve_branch", lambda _git_dir: "main"):
+        after = crons.render_managed_lines(root, repo, repo, node)
+        assert after, "the live node must still render its managed lines"
+        with mock.patch.object(crons, "_substitute", pre_fix):
+            before = crons.render_managed_lines(root, repo, repo, node)
     assert after == before
 
 
