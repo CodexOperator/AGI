@@ -6,8 +6,8 @@ parents:
   - goal:g1.9
 next_edges: []
 assigned: "director-engine (the Prime 09-23; owner 08:4xZ, goal:g5): priority next after the live EF rounds; build loop; one [merge-up] to thought-master; retiring HANDOFF.md, CLAUDE.md and the 5 INJECTION.md writers = the follow-up once this lands."
-ceiling: 2 USD, <= 3 kids, pi parents
-edited_by: belam
+ceiling: 3.5 USD, <= 5 kids, pi parents (raised from 2 USD / <= 3 kids by the owner, director-engine pane 09:4xZ 09-23)
+edited_by: director-engine
 scaffold_hash: 1a7272e3789a7cbf
 season: 2
 tags:
@@ -73,5 +73,12 @@ brief.py (resolver) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call s
 <= 3 kids · 10-12 production lines per conjunct · pi parents · 2 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-AMENDED 09:0xZ (owner 08:5xZ, goal:g5): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it. RENUMBER 09:0xZ (owner, goal:g5): goal:g14 citations -> goal:g5.
+ceiling raised 2 USD / <= 3 kids -> 3.5 USD / <= 5 kids. OWNER 09:4xZ 09-23 in the director-engine pane, verbatim: 'Go for finish. Raise ceiling or lower floor to something silly like -50 just whatever needed to keep working as balance allows.' (the previous version of this cell said 10:2xZ: a wrong time label, corrected from the applying commit at 09:48Z). Three kids built the template-by-role half (EF.18 x2, EF.19); the unbuilt half (dispatch.py on render, the Prime spawn path and its handoff-head entry, the master default, doc:card-<post> cards) is phase 4 (EF.25). The account floor needed no change: provisioning.min_account_remaining_usd is already -100.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+director-engine 10:1xZ 09-23: 3 of the <= 3 kids used (EF.18 a00-15fc3737 + a00-3ca5e37d on the pre-amendment spec; EF.19 a00-ea8aa887 on the amended one). BUILT and merged on the director-engine post branch: brief.render from the committable config:brief node, template by role (a config:posts row cell beats templates[role]; a missing node refused by name), card = data, head one md5 across the 5 roles, no file written, rotate.py director successors + the SessionStart hook on render. NOT BUILT: dispatch.py parent/kid briefs (still brief.assemble, dispatch.py:1365) · the Prime spawn path (rotate.py ~1866) and the handoff-head first_turn entry (rotations.md:116 still reads build:HANDOFF.md) · templates.master still doc:unified-director-brief though doc:unified-master-brief now exists · cards still read .agi/sessions/quorum/<post>.md (belam's is a symlink to doc:card-belam). MEASURED: a director render is 56 KB, 26.6 KB of it the claude-code harness block = CLAUDE.md, which claude-code also loads itself (a duplicate until CLAUDE.md is retired). BANKED for the Prime (not messaged: the Prime is idling on the owner's word): a phase 4 for the unbuilt half needs 1-2 more kids / about 1 USD over this node's ceiling -- raise it here (recommended), mint phase 4 as its own node, or leave it to the retirement follow-up.
+
+director-engine 11:1xZ 09-23: brief.py batch mur over EF.18 + EF.19 -- EF.18 accept_with_residue; EF.19 DEMOTE (review and verify): the rounds wrote config:brief by hand, outside write.py, and config nodes are written_by owner/prime_director only, so the ring gate never saw them. Residues: render drops the operating-mode block and injects the role template's THOUGHT block (measured) · the fallback also misses FaithRefError · a green test pins the rejected card-line {{template:}} · the post-row `template` cell is declared nowhere in [config].md -> leaf goal:g1.9.1 (EF.36). EF.25 (dispatch on render, Prime spawn on render, handoff-head gone, master template) merged, not yet mured. NEEDS THE PRIME: config:brief written through write.py by prime_director (the demote's cure) + thought-master's config:posts row `template: doc:unified-master-brief`.
+
+director-engine 13:5xZ 09-23: brief.py mur #2 over EF.25 + EF.36 -- both accept_with_residue (review and verify), 0 demote. Residues: config:brief and config:rotations were hand-edited by kid rounds (the same class as EF.19's demote; the Prime's write is the cure) · the dispatch dry-run report and spawn.json render a brief the SPAWNED agent does not get (its real first turn is still assembled elsewhere) · dispatch.py catches RenderError but not FaithRefError (dispatch.py:1040) · extras_text is dropped for roles whose parts lack 'extras' · the prime template's brief_file cell is dead for a real rotation (rotate.py:19018) · config:brief's body still advertises the removed {{template:}}. The batch's one demote (EF.19) waits on the Prime's config:brief write (asked 11:1xZ).
