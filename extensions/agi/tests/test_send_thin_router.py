@@ -11,12 +11,13 @@ Measures, from the source BYTES via AST (never by grepping prose):
   (4) Falsifier 2's substrate: is transport choice a table, or inline
       harness branching? Reported statically.
 
-The assertions are CHARACTERIZATION assertions: they pin the measured truth
-so a later edit to send.py that adds orchestration coupling turns this file
-red on purpose. They are deliberately not `xfail(strict=True)`: the target
-assertion ("orchestration set is empty") is FALSE on the current bytes, so a
-strict xfail would XPASS and leave the suite red. See the node body for the
-choice and the measured result.
+The assertions now pin the TARGET INVARIANT: send.py references ZERO
+orchestration symbols (goal:g7.32.4 Falsifier 1). The three orchestration
+acts send.py still needs from rotate (spawn-row commit, season-branch push,
+deferred pending-swap completion) go through the ONE seam module
+`extensions/agi/bin/seat_registry_commit.py`, so the `rotate.X` attribute
+set is UTILITY-only. A later edit that reintroduces direct orchestration
+coupling turns this file red on purpose.
 """
 from __future__ import annotations
 
@@ -44,18 +45,21 @@ UTILITY_SYMBOLS = {
 }
 
 #: The exact import sites measured on the current bytes (line, statement).
+#: The three rotate imports that used to sit beside `rotate._commit_spawn_row`
+#: and `rotate._finish_pending_swap_on_push` are GONE -- those acts now go
+#: through the seat_registry_commit seam, which needs no `import rotate` here.
 EXPECTED_IMPORT_SITES = {
-    (613, "import rotate"),
     (727, "import rotate"),
-    (825, "import rotate"),
-    (843, "import rotate"),
-    (1580, "import rotate"),
-    (1608, "import rotate"),
-    (2188, "import rotate"),
+    (845, "import rotate"),
+    (1582, "import rotate"),
+    (1610, "import rotate"),
+    (2190, "import rotate"),
 }
 
-#: The exact referenced-symbol set measured on the current bytes.
-EXPECTED_REFERENCED = UTILITY_SYMBOLS | ORCHESTRATION_SYMBOLS
+#: The exact referenced-symbol set measured on the current bytes:
+#: UTILITY only -- the target invariant (Falsifier 1) is that no orchestration
+#: symbol is referenced.
+EXPECTED_REFERENCED = set(UTILITY_SYMBOLS)
 
 #: Caller-facing bodies Falsifier 2 asks about.
 CALLER_BODIES = {"send", "send_dm", "send_room", "_nudge_target", "_nudge_window"}
@@ -96,7 +100,7 @@ def _referenced_attrs(tree) -> dict[str, set[str]]:
     return out
 
 
-def test_import_sites_are_the_measured_seven_rotate_sites():
+def test_import_sites_are_the_measured_five_rotate_sites():
     tree = _module()
     sites = _import_sites(tree)
     print("send.py rotate/dispatch import sites:")
@@ -117,18 +121,18 @@ def test_referenced_symbols_are_characterized():
         "referenced rotate symbol set changed; re-classify each new symbol")
 
 
-def test_orchestration_symbols_present_is_the_pinned_defect():
-    """The target invariant is 'orchestration set empty'. It is NOT empty.
+def test_orchestration_symbol_set_is_empty():
+    """TARGET INVARIANT (goal:g7.32.4 Falsifier 1): no orchestration symbol.
 
-    This test pins the measured offenders rather than claiming they are gone.
+    send.py reaches rotate's spawn/push/pending-swap internals only through
+    the seat_registry_commit seam, never as `rotate.<orchestration>`.
     """
     refs = _referenced_attrs(_module())
     offenders = refs["rotate"] & ORCHESTRATION_SYMBOLS
     print("orchestration symbols referenced by send.py:", sorted(offenders))
-    assert offenders == {
-        "_commit_spawn_row", "_push_season_branch",
-        "_finish_pending_swap_on_push",
-    }, "orchestration offenders changed -- update the census and the node"
+    assert offenders == set(), (
+        "send.py reaches rotate orchestration directly again -- route it "
+        "through seat_registry_commit (goal:g7.32.4)")
     # every referenced symbol is classified, nothing falls through
     assert refs["rotate"] <= (ORCHESTRATION_SYMBOLS | UTILITY_SYMBOLS)
     assert not (ORCHESTRATION_SYMBOLS & UTILITY_SYMBOLS)

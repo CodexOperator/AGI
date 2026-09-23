@@ -610,7 +610,7 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
     never fails the mint: a refused commit or push prints one note line to
     stderr and the key stays minted."""
     try:
-        import rotate  # local: same dir (send.py pattern, no import cycle)
+        import seat_registry_commit  # local: the goal:g7.32.4 seam
     except Exception as exc:  # noqa: BLE001
         print(f"note: {origin} row commit/push skipped ({exc})",
               file=sys.stderr)
@@ -621,7 +621,7 @@ def _commit_push_seat_row(root: Path, row: dict, seat: str,
         except (TypeError, ValueError):
             return 0
     try:
-        out = rotate._commit_spawn_row(
+        out = seat_registry_commit.commit_spawn_row(
             root, seat=seat, generation=_int(row.get("generation")),
             session_id=str(row.get("session_id") or ""),
             window=str(row.get("window") or ""),
@@ -725,6 +725,7 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
     note = f"keygen --all-live: keyed {listed}"
     try:
         import rotate  # local: same dir (send.py pattern, no import cycle)
+        import seat_registry_commit  # local: the goal:g7.32.4 seam
         import tempfile
         main_root = _shared_graph_root(root)
         top = rotate._git_toplevel(main_root)
@@ -789,7 +790,7 @@ def _commit_push_all_live(root: Path, keyed_names: list[str]) -> str:
         subprocess.run(["git", "-C", str(top), "update-index", "--add",
                         "--cacheinfo", f"100644,{blob_sha},{rel}"],
                        capture_output=True, text=True, timeout=10)
-        push = rotate._push_season_branch(root)
+        push = seat_registry_commit.push_season_branch(root)
         _l = f"note: {note}; {push}"
         print(_l, file=sys.stderr)
         # g15.26 claim (b): a successful all-live push means origin now
@@ -822,11 +823,12 @@ def _run_pending_swap_completion(root: Path, push: str) -> None:
     byte-identical. Best-effort; never raises."""
     if not str(push or "").startswith("push: OK"):
         return
-    import rotate  # local (send.py pattern)
+    import seat_registry_commit  # local: the goal:g7.32.4 seam
     for _row in _seats_rows(_graph_root(root)):
         _live_name = str(_row.get("name") or "")
         if _live_name and _live_row(_row):
-            rotate._finish_pending_swap_on_push(root, _live_name, push)
+            seat_registry_commit.finish_pending_swap_on_push(
+                root, _live_name, push)
 
 
 def _all_live_origin_sync_line(root: Path) -> str:
