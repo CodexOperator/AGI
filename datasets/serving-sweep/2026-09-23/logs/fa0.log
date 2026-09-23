@@ -1,0 +1,16 @@
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   1 |           pp512 |      1534.03 ± 62.87 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   1 |            tg64 |         63.45 ± 0.52 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   1 |   pp512 @ d4096 |      1386.10 ± 12.77 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   1 |    tg64 @ d4096 |         61.21 ± 0.42 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   0 |           pp512 |      1437.95 ± 18.88 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   0 |            tg64 |         62.32 ± 0.29 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   0 |   pp512 @ d4096 |      1247.31 ± 30.26 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   0 |    tg64 @ d4096 |        53.17 ± 13.69 |
+
+build: f072b1037 (11058)
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 7786 MiB):
+  Device 0: NVIDIA GeForce RTX 2070 SUPER, compute capability 7.5, VMM: yes, VRAM: 7786 MiB
+load_backend: loaded CUDA backend from /app/libggml-cuda.so
+load_backend: loaded CPU backend from /app/libggml-cpu-haswell.so
