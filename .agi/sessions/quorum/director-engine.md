@@ -10,16 +10,18 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (10:0xZ 09-23) -- 8 rounds live, spawn 13/30, mem 6 GB free
+## LIVE STATE + STOPS (10:3xZ 09-23)
 ````
 ```
-FIRST     EF.21 a00-979adf9d  goal:g1.25 CLI GRAMMAR = the jev rounds (G1 config-maxxing; owner 09:5xZ) cap 3, <= 4 kids
-RUNNING   EF.20 a00-5c71e3a9 seat-key authority · EF.24 a00-a08ab14d write.py sub · EF.25 a00-794e39d1 brief.py finish (3.5 USD / <= 5 kids)
-          EF.22 a00-b25d8fe8 FR-A alarms · EF.23 a00-95359f56 0921 corrections · EF.26 a00-98bd9b71 links.py retired refs
-          EF.27 a00-d79d90c4 FR-D2 path/cron audits · mur bvth0d9uc brief.py EF.18+19 (slow: still on review 1)
-HELD      FR-B rotate verbs (collides with EF.20's seating path) · FR-C brief/dispatch (EF.25) · FR-D1 write.py (EF.24) -> mint + dispatch
-          each as its blocker lands · the town GOAL BUNDLE row for g1.25: body edits are owner/prime_director only (ring gate) ->
-          prepared .agi/sessions/de-0923/town-table.md for the owner's `!` command; commit it when it lands
+MERGED    EF.20 seat-key authority (350 + 26 tests) · EF.22 FR-A alarms flat (136) · EF.24 write.py sub (probed) ·
+          EF.23 0921 corrections: committed part + 21 node edits STRANDED uncommitted in the parent worktree (done-commit scope
+          rule refuses other nodes) -> landed by me from its diff after review (1247eaa48; 0 verdict/lean deltas)
+RUNNING   EF.21 cli grammar = the jev rounds (FIRST) · EF.25 brief.py finish · EF.26 links.py · EF.27 FR-D2 audits ·
+          mur bvth0d9uc brief.py EF.18+19 (slow)
+BLOCKED   headroom -6.14 USD: the Prime set the floor back to 1.6 at 10:1xZ (owner told me 09:4xZ -50 is fine) -> asked the owner.
+          Queue when it clears: EF.28 FR-D1 write.py gate (minted, orders ready) · harness-bin-paths-resolve-per-box (after the key
+          round: now due) · FR-B rotate verbs (EF.20 landed) · FR-C brief/dispatch (after EF.25)
+TRAP      a round whose deliverable is edits to OTHER nodes loses them at `done` unless dispatched with --owns naming them
 MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote)
 ```
 ````
