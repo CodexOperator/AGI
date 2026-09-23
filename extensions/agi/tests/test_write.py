@@ -1849,3 +1849,43 @@ def test_the_round_two_and_round_one_prose_rules_did_not_regress():
         ("note", ["probes && open the box"])]
     assert write.parse_script("note a && setter x") == [
         ("note", ["a && setter x"])]
+
+
+# --------------------------------------------------------------------------
+# goal:g7.31.5.1 residue A — a refused projection cannot half-apply
+# --------------------------------------------------------------------------
+
+def test_a_refused_profile_ref_leaves_the_node_bytes_unchanged(project):
+    """Validate-before-write: a refused `profile_ref` must leave the node
+    body byte-identical. Before the fix the graph advanced first and only the
+    projection refused, so the caller saw an error for a half-applied edit."""
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    text = node.read_text().replace(
+        "status: pending\n---",
+        'status: pending\nprofile_ref: "../escape.md"\n---')
+    node.write_text(text)
+    before = node.read_bytes()
+    out, err, rc = _run(["hypothesis:h1", "note smuggled",
+                         "--root", str(project)])
+    assert rc != 0, (out, err)
+    assert "profile projection refused" in err, err
+    assert node.read_bytes() == before, (
+        "a refused projection half-applied the graph edit")
+    assert not (project.parent / "escape.md").exists()
+
+
+def test_a_same_edit_that_sets_a_ref_is_validated_on_the_new_value(project):
+    """The ref validated is the POST-EDIT one: an edit that both clears the
+    old (valid) ref and sets an escaping one must still refuse, untouched."""
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    text = node.read_text().replace(
+        "status: pending\n---",
+        'status: pending\nprofile_ref: "profile/ok.md"\n---')
+    node.write_text(text)
+    before = node.read_bytes()
+    out, err, rc = _run([
+        "hypothesis:h1",
+        'set profile_ref ../escape.md && note smuggled', "--root", str(project)])
+    assert rc != 0, (out, err)
+    assert "profile projection refused" in err, err
+    assert node.read_bytes() == before

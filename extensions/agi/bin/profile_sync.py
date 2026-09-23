@@ -36,8 +36,10 @@ def _projected_bytes(nf):
     body = nf.body.replace(t, "") if t else nf.body
     return (body.strip("\n") + "\n").encode()
 
-def project(root, node_id):
-    """(artifact path, normalized body bytes) for a linked node."""
+def _node_file(root, node_id):
+    """The node file for `node_id`, or a NAMED refusal. Residue B
+    (hypothesis:a00-00c1e876-eff35f): a missing node used to raise a bare
+    `FileNotFoundError`, the one uncaught failure on this path."""
     if root is None:
         # locations.find_project_root() returns None outside any project.
         # Refuse BY NAME here rather than letting Path(None) raise a bare
@@ -45,7 +47,26 @@ def project(root, node_id):
         raise Refused("no project root — no enclosing .agi/config.json")
     f = node_writer.find_node_file(root, node_id)
     if f is None:
-        raise FileNotFoundError(node_id)
+        raise Refused(f"no node file for {node_id!r}")
+    return f
+
+
+def validate_target(root, node_id, ref=None):
+    """Read-only pre-flight: resolve the node's `profile_ref` (the POST-EDIT
+    value when given, else on-disk) and its artifact path, refusing by name
+    before any graph write. Raises `NoRef` when there is nothing to project;
+    writes nothing."""
+    f = _node_file(root, node_id)
+    if ref is None:
+        ref = fmr.load_node_file(f).frontmatter.get("profile_ref")
+    if not ref:
+        raise NoRef(node_id)
+    return artifact_path(root, str(ref))
+
+
+def project(root, node_id):
+    """(artifact path, normalized body bytes) for a linked node."""
+    f = _node_file(root, node_id)
     nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
     if not ref:
         raise NoRef(node_id)

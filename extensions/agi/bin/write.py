@@ -2015,6 +2015,21 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 residue A — validate the projection target BEFORE the
+    # graph write, so a refused `profile_ref` cannot leave the body advanced
+    # and the projection not. The ref checked is the POST-EDIT one: this
+    # edit's `set_fm` if it carries one, else the on-disk value; `unset_fm`
+    # means nothing to project. Read-only: `validate_target` writes nothing.
+    if "profile_ref" not in set(edit.unset_fm) and \
+            node_writer.find_node_file(root, edit.node_id) is not None:
+        try:
+            profile_sync.validate_target(
+                root, edit.node_id, set_fm.get("profile_ref"))
+        except profile_sync.NoRef:
+            pass
+        except profile_sync.Refused as exc:
+            raise EditError(f"profile projection refused: {exc}") from exc
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
