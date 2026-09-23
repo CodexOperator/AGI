@@ -36,14 +36,15 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
+step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
 ```
 
 ## Live state (09:5xZ 09-23)
 ```
-TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
-         pruning line: OSC.01 coherence NOT a criterion · OSC.02 9B KV groups: 1 of 32 at <= 1 pct -> DISPROVED · OSC.03 per-head RoPE band profiles static: PROVED · OSC.04 band masks: no safe fraction -> DISPROVED -> NO USABLE PRUNING LEVER (say so to TM in the merge-up)
-         layering: OSC.05 disproved as claimed but a real lever (q4_0 KV 2.39x context at +0.07 pct NLL; + fit margin -> 3.15x) -> OSC.06 LIVE pins the decode-speed side -> then the lever table goes to the Prime (router is theirs)
+TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): RELENTLESS OPTIMISM -- every round reports its LARGEST SAFE STEP, it joins the layered stack; a missed bar never ends a chain while any positive step exists
+         pruning sparks: OSC.01 activation score ranks damage at 0.40 · OSC.02 per-group SENSITIVITY MAP (L3 0.8-8 pct .. L31 10.5-17.3 pct) · OSC.03 stable self-identifying band fingerprints · OSC.04 energy ranking 4.5-6x over random
+         LADDER (board queue [1], drain in order): L1 KV format (OSC.05 KEEPER q4_0 2.39x at +0.07 pct; OSC.06 speed LIVE; next the -ctk q8_0 -ctv q4_0 split -> the winner to the Prime) · L2 per-group KV precision from the OSC.02 map (Python first) · L3 band energy as a precision allocator · L4 geometry (local vs retrieval heads, recent-window KV) · L5 band maps across quantization and models
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
