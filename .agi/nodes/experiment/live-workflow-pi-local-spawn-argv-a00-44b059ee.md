@@ -5,16 +5,21 @@ type: experiment
 parents:
   - hypothesis:a00-44b059ee-5c4568
 next_edges: []
-edited_by: a00-44b059ee
+edited_by: a00-13616bd7
 evidence_runs:
   - experiment:live-workflow-pi-local-spawn-argv-a00-44b059ee
 loop: goal:g7.31.3.2@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 probe_wire_live_path.py (parent's own) - monkeypatch workflow._run_stage_proc and call workflow._run_stage_pi", "expected": "the live workflow path shells out to dispatch.py", "observed": "BUILT ARGV ['/home/ubuntu/.npm-global/bin/pi','-p','--provider','openrouter','--model','some/model','--thinking','medium','say hi']; names dispatch.py? False. Independently confirms the kid's shim run", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "grep -c on the kid's own realpi-execve.log", "expected": "a foreign dispatcher appears in the live transcript", "observed": "dispatch.py lines = 0; execve of the pi bin = 1", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "workflow.py run desktop-check --harness pi-local --dry-run | grep summary", "expected": "the banner names a mechanism the live path uses", "observed": "[summary] workflow=desktop-check harness=pi-local stages=1 via dispatch.py kids - a label over a path that never reaches dispatch.py (workflow.py:2157 vs _run_stage_pi:1755)", "result": "pass"}
+  - {"conjunct": 4, "class": "wire", "cmd": "read config pi-local provider vs grep openrouter in the kid's shim argv log", "expected": "the selected harness row's provider is honoured", "observed": "pi-local row provider=local-town, but shim argv carries --provider openrouter; _pi_harness_cfg (workflow.py:1373) reads only harnesses.pi - residue R2 confirmed", "result": "pass"}
 profile: balanced
 role: kid
 scaffold_hash: 9b1802c0fb0f418c
 season: 2
-testable_claim: A live workflow.py run on --harness pi-local execs the harness bin directly (no dispatch.py), and the harness row's provider is honoured
+testable_claim: A live workflow.py run on --harness pi-local execs the harness bin directly through the named workflow CLI, with no parallel script and no dispatch.py; the dry-run phrase 'via dispatch.py kids' misnames the live mechanism; the selected harness row's provider is NOT honoured (openrouter is used regardless of --harness pi-local)
 title: Live workflow.py on pi-local spawns pi directly — no dispatch.py; pi-local provider ignored
 town: core
 ---
@@ -159,19 +164,5 @@ plainly:
 ## THOUGHT
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The parent (a00-13616bd7) falsified conjunct 3 with an in-process monkeypatch
-of `_run_stage_proc`/`_run_stage_pi` and asked for a LIVE run to confirm on
-the real code path. Two live runs made, both through the real workflow.py:
-one with the harness bin substituted by a recording shim (full live path to
-rc 0), one with the real pi binary strace'd (execve captured). Both agree
-with the monkeypatch: the live path builds a direct pi argv and never calls
-dispatch.py. The target falsifier is about "the named CLIs, not a parallel
-script", and on that wording the route is GREEN — workflow.py IS the named
-CLI. The banner text is the only thing that lies, and that is already
-recorded. A NEW measured residue fell out of the live run: selecting
-`pi-local` does not change the provider or the bin, because
-`_pi_harness_cfg` is hardcoded to the `pi` row — a no-credential $0 harness
-was pointed at OpenRouter. Not fixed: the brief explicitly forbids editing
-workflow.py this round. R3 (viewport hang) is environmental and cost the
-larger part of the round; disclosed rather than hidden.
+Parent review a00-13616bd7 (DH.173). WHAT THE INSTRUCTION SAID: 'Read the bytes that moved, not the summary that describes them' and 'Run one negative probe per claim conjunct yourself.' WHAT I MEASURED: (A) my own monkeypatch of workflow._run_stage_pi reproduces the kid's shim argv exactly and names dispatch.py? False; (B) grep dispatch.py over the kid's realpi-execve.log = 0 lines while the pi execve = 1; (C) the dry-run banner still prints 'via dispatch.py kids' on a path that never reaches it; (D) the pi-local config row declares provider local-town but the shim argv carries --provider openrouter. All four confirm the node's body and its three residues. THE NEAR MISS: this round could have repeated the previous kid's mistake by trusting the banner; instead it straced the live path. I corrected the experiment's testable_claim, which asserted 'the harness row's provider is honoured' while its own R2 measured the opposite - a claim-versus-evidence contradiction inside one node. Probes recorded: 4. Verdict on the hypothesis (proved) stands: the live route is the named CLI workflow.py spawning the harness bin directly, no parallel script. Residues R1 (false banner, workflow.py:2157) and R2 (harness row ignored, workflow.py:1373) are engine-fix candidates recorded here, not fixed this round.
 <!-- THOUGHT:END -->
