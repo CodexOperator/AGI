@@ -31,7 +31,7 @@ verdict: inconclusive_lean_disproved:90
 
 ## Experiment
 
-**Question.** On the served `Qwen3.5-9B-Q4_K_M` (RTX 2070S 8 GB, sm_75) under llama-server with the
+**Question.** On the served `Qwen3.5-9B-Q4_K_M` (GPU2070S 8 GB, sm_75) under llama-server with the
 router's own model args, does raising the micro-batch from `-ub 512` to 1024 / 2048 (`-b` 2048,
 flash attention on) prefill a warm ~30k-token prompt >= 10 pct faster, for at least one KV type among
 f16 / q8_0 / q4_0, with the 95 pct paired interval clearing zero and a fitted context >= 32,768?
@@ -139,7 +139,7 @@ f16 at ~30k (T2), which stacks with L1's q4_0 proposal.
   stays literal (rule 13); a box cell is proposed for the Prime.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director close-in-place after mur-director-thought-14 (review + verify: accept_with_residue). The Evidence and Caveats sections are rewritten to the refuted verdict: the kid's LARGEST SAFE STEP (q8_0 -ub 1024, +27.2 pct) and its lean-not-proved reasoning contradicted the title and verdict the parent had already set; the step is now keep -ub 512. Evidence the parent and kid left in gitignored session dirs is committed under datasets/serving-sweep/2026-09-23-ub/ (parent-probe-a00-67c8a71a/ at 3f627c6cf5, kid-session-a00-3caaf6eb/ at 458484bb3b). Withdrawn: the MemAvailable 0.8-11.5 GB / load 10-52 line (no committed source). Corrected: the T3 factor range (85.6x-1,383x, was 1,370x-275x). Added: the driver's missing per-trial RAM/loadavg fields and the missing committed test. The parent's thought (its demotion to inconclusive_lean_disproved:90) stays in grid history.
+TMM.63: the Question line named the GPU model; it now reads GPU2070S (TMM.56's rule: no GPU model name in .agi/nodes).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
