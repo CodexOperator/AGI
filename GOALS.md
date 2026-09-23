@@ -9194,6 +9194,28 @@ OWNER 07:4xZ-08:0xZ 09-23 (Prime pane, local-town, verbatim): (1) 'Focus on thou
 
 OWNER 09-23 07:5xZ (thought-master pane, verbatim): "Good evening, it's been a while. Can we keep running the experiments, again focusing on the jev magic pane effort while prioritizing it alongside the other off the shelf combination experiment efforts." -- STATE at receipt (thought-master, measured 07:5xZ): core sync landed 8451055b5 (goals renumbered, mint ids kept: magic pane = goal:g5.24, FT = g5.23, abliteration g5.25, switch g5.27, telepathy g5.30); board = town:local-maxxing field trajectory_standin; director-engine OFF g7.33 by owner order (Prime-assigned g15 residues only); OpenRouter headroom -7.16 USD (balance 33.21 - floor 1.60 - live 38.77 held by 22 DH + 7 mur + 1 DT keys, local-maxxing 0/30) -> paid dispatch refuses. ACTED: TMM.33 = batch A now at 0 USD on pi-local (MP.02 suggester + cli-grammar + real dm/notes test set, as jev-lane tooling, not waiting on parked engine work), batch B on headroom (SWR-C2.02 + B re-score -> FT.00 -> MP.03).
 
+#### G15.27 — 09-21 PRIME RESIDUE BATCH, ENGINE SLICE -- chunk 1 R1 send.py undelivered notice + R2 write.py fence/EOF guard merged up 09-23; chunk 2 = the 15 engine rounds (130 residues: node corrections + fix rounds FR-A..FR-D) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g15.27 — 09-21 Prime residue batch, ENGINE SLICE (director-engine)
+
+```
+source    hypothesis:mur-0921-residue-batch-into-season2-main (belam 11:49Z 09-21 + TM TME.17; owner 01:4xZ: batch the residues, ONE batch mur)
+split     33 rounds by the batch node's own rule: 15 engine (incl. engine-delta) = THIS goal · 13 lm-* = thought-master · 6 under g7.33 = HELD
+chunk 1   R1 hypothesis:send-undelivered-notice-lands-in-the-comms-root   EF.12  PROVED
+          R2 hypothesis:write-body-range-guard-is-fence-aware-and-clamped EF.11  PROVED
+          batch mur R1 ACCEPT · R2 accept_with_residue · 0 demote -> [merge-up] to thought-master 08:3xZ 09-23 @4c5dee025   DONE
+chunk 2   table   hypothesis:mur-0921-engine-residues-dispositioned-and-corrected -- 130 items: F 34 · C 34 · K 58 · G 4; its round applies C
+          FR-A    hypothesis:alarms-loop-runs-flat-and-the-capture-grace-restarts-per-session -- LIVE: alarms recursion + capture stamp
+          queued  behind pool headroom (thought-master's paid experiments first):
+                  FR-B rotate verbs read MAIN rows + migrate resolves the grant before seating (rotate.py)
+                  FR-C kid wait + turn-end evidence (cli.py dispatch.py heal.py) · kid ceiling + liaison moral (brief.py)
+                  FR-D write.py outside-ref gate + escaped && · paths.py / boxes.py / crons.py audits
+          flagged research-review F items (thought-side node) -> thought-master · lm-replace-body-anchor demote (g7.33.1) -> HELD
+done when chunk 1 merged up (done) · the table's C items applied · every F item landed or carried by name ·
+          ONE batch mur over the corrected demote rounds + the landed FR rounds returns no demote · one [merge-up] names the batch node
+```
+
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
 
 <!-- BODY:BEGIN -->
@@ -12636,6 +12658,24 @@ Falsifiers. The round is falsified if a tree with no storage_trunk configured re
 Done when. The hypothesis lands a verdict against its own falsifiers: default tree byte-identical, a configured trunk isolates its versions, crons.py has one spelling, engine suite green. Migration for this box (storage_trunk=refs/grid/local-maxxing/ then grid.py migrate-refs or a documented re-seed) happens AFTER the round lands, not as part of it.
 
 First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, the whole round (a) through (d) as one testable claim, per the goal g14.14.7 body describing ONE round rather than independent lettered items.
+
+##### G7.33.8 — G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g14.14.8
+
+## Agent Notes
+Source. Owner 02:1xZ 09-21 via goal:g14.10, transcribed on goal g14.14: claude-code role sessions (masters, directors, Prime) land at session end or rotate under datasets/sessions/role/session/ through datasets/tools/scrub.py with the graph pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. Moved up in priority (owner 05:4xZ, TME.13/16): it is the magic pane corpus, ahead of 14.14.2/14.14.4/14.14.5.
+
+Commits to. Verified against source before writing this: no automated landing mechanism exists yet for EITHER harness (grep across extensions/agi/bin and extensions/agi/workflows for scrub_file or datasets trajectories finds nothing) -- the pi precedent at datasets/trajectories/ABC.01/a00-bb10233d/ (label.json, agent.json, trajectory.jsonl) is an established SHAPE, not existing code to extend. For claude-code sessions specifically, rotate.py already solves the hard part: find_newest_cc_transcript(slug) at rotate.py line 283 resolves the newest .jsonl under a role home slash .claude/projects/slug/, with the per-cwd slug derivation (_derive_cc_slug) that exists precisely because a hardcoded slug once read the wrong roles transcript (measured 2026-09-07). AGI_SESSION_LOG_VAR (rotate.py line 298) is the env var a spawner already uses to tell the meter which transcript a role owns. Build: at the point rotate.py finalizes a rotation (or an equivalent session-end hook -- the kid locates the exact call site, this director has not traced the whole file), copy the resolved transcript, scrub it through datasets/tools/scrub.py (scrub_file or redact_text, reused, never a second scrub implementation), and land it under datasets/sessions/role/session/ mirroring the trajectories shape: a transcript file (scrubbed), an agent.json-equivalent record, and a label.json carrying the pre-labels (model, harness, provider, role, post, town, box) read from this seats own config:posts row (the same row structure every seat already resolves -- confirmed present: town and box fields exist on real rows, e.g. belam town=all, stream-master town=streaming-suite).
+
+Invariants. Never a second scrub -- only datasets/tools/scrub.py's own functions perform redaction. The capture never blocks or fails a rotation (a capture error is reported, not a refusal that strands a director mid-rotate). pi parents/kids keep landing exactly as they do today under datasets/trajectories/ -- this goal is additive for claude-code sessions, not a rewrite of the existing path.
+
+Falsifiers. (a) a landed session file still contains an unredacted secret pattern scrub.py already knows how to catch (ip/key/email) -- scrub was skipped or bypassed; (b) the label pre-labels are absent, wrong, or fabricated rather than read from the real config:posts row; (c) a rotation fails or blocks because the capture step raised; (d) a second, parallel redaction implementation appears anywhere in the diff.
+
+Done when. A real claude-code role session (this seat is one) rotates and its scrubbed transcript lands under datasets/sessions/director-engine/session/ with a correct label.json, verified by hand against the same seats real config:posts row.
+
+First chunk, minted next: hypothesis for the capture mechanism itself (transcript resolution + scrub + land, mirroring the trajectories shape), scoped to rotate.py + a new small landing helper, reusing scrub.py unchanged.
 
 ## App: streaming-suite
 
