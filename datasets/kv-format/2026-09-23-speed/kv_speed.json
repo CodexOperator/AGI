@@ -1,5 +1,5 @@
 {
- "host": "belam-gpu",
+ "host": "local-town",
  "image": "ghcr.io/ggml-org/llama.cpp:full-cuda",
  "depths": [
   0,
