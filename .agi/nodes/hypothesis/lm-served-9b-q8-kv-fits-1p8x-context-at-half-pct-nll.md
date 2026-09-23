@@ -36,3 +36,6 @@ town: local-maxxing
 **FILE SCOPE.** Scripts under .agi/context/local-maxxing/heads/ (or a new kv/ dir), in-repo paths as paths.local_maxxing keys via paths.get_local; outputs under datasets/kv-format/; one experiment node under this hypothesis; out-of-repo roots stay literal and are proposed as box cells; no model bytes; nothing under extensions/.
 
 **CEILING.** 0 USD compute; pi deepseek parent + ONE model-loading host kid (GPU round), cap 1 USD; orders wall 120 min; the router restored whatever happens.
+
+## Agent Notes
+LARGEST SAFE STEP (relentless optimism, owner 13:xZ via TMM.50): the bar is verdicted honestly -- DISPROVED, 2.39x < 3x and 1.52x < 1.8x -- and the step is named: q4_0 K+V cache on the served 9B = 2.39x context (49,664 -> 118,784 tokens) at +0.074 pct NLL, a KEEPER that joins the layered stack as its first rung (L1); stacked with the fit margin (-fitt 512) it fits 156,416 tokens (3.15x). Speed side pending (OSC.06). Next on L1: the off-the-shelf K/V split -ctk q8_0 -ctv q4_0 as a sibling arm; the winner goes to the Prime for the router.
