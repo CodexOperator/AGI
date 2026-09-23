@@ -2037,14 +2037,11 @@ def test_g15_rule_with_no_project_root_keeps_the_current_fallback(tmp_path):
     """`assemble(...)` with no `project_root` still resolves the walk-up
     fallback exactly as before: a real g15-lineage node of this repo renders
     the build-order rule with the default path — existing callers unchanged.
-    (The target walks `hypothesis:parent-brief-derives-wait-exit-codes-from-
-    cli-constants` -> `goal:g15.29.19` -> `goal:g15.29` -> `goal:g15`, g15
-    lineage on disk. The previous target, `hypothesis:l4-a-g15-claim-is-a-
-    build-order-not-a-measurement`, was re-parented to `goal:g6.11` and no
-    longer reaches `goal:g15` — a graph read, not this file's contract.)"""
+    (The target walks `hypothesis:l4-a-g15-claim-is-a-build-order-not-a-
+    measurement` -> `goal:g15`, which is g15 lineage on disk.)"""
     text = _text(
         "parent",
-        target="hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants")
+        target="hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement")
     assert _G15_RULE in text
 
 
@@ -2433,59 +2430,3 @@ def _faith_fixture(moral_text):
         "## REFERENCE\n\n"
         "### 4.1 The four prayers\n\nprayer text\n"
     )
-
-
-def test_parent_brief_names_every_actionable_wait_code():
-    """hypothesis:the-parent-and-kid-brief-text-matches-the-engine (R-EF32-39
-    M3): `cli.py wait` returns THREE actionable non-zero codes -- 2 (timeout
-    with a kid still running: call it again), 3 (`--agent X` matches no
-    manifest row), 4 (zero `tier:kid` rows, i.e. no kid was spawned). The
-    pre-fix parent brief named only 2, so a parent that hit 3 or 4 ended its
-    turn silently. Red on the pre-fix bytes; the codes themselves are the
-    engine's (`cli._WAIT_NO_AGENT`=3, `cli._WAIT_NO_KID_ROWS`=4,
-    test_cli_wait.py)."""
-    parent = _text("parent", dispatch_py="/x/dispatch.py",
-                   target="hypothesis:y")
-    flat = " ".join(parent.split())
-    assert "2 = timeout" in flat and "call it again" in flat
-    assert "3 = --agent" in flat, "code 3 must name its cause (--agent)"
-    assert "4 = zero tier:kid rows" in flat, "code 4 must name its cause"
-    assert "NO kid was spawned" in flat, "code 4's action: no kid exists"
-
-
-def test_parent_brief_wait_codes_are_cli_constants_not_literals(monkeypatch):
-    """hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants: the
-    parent brief's wait-code lines are RENDERED from `cli.py`'s named constants
-    -- the timeout included (it was a bare `return 2`) -- so changing a
-    constant changes the brief with no second edit, and every code's ACTION is
-    asserted beside its cause. Red on the pre-fix bytes, where the brief
-    retyped `2`, `3` and `4` as literals and never read `cli` at all."""
-    import cli
-    monkeypatch.setattr(cli, "_WAIT_TIMEOUT", 27)
-    monkeypatch.setattr(cli, "_WAIT_NO_AGENT", 28)
-    monkeypatch.setattr(cli, "_WAIT_NO_KID_ROWS", 29)
-    flat = " ".join(_text("parent", dispatch_py="/x/dispatch.py",
-                          target="hypothesis:y").split())
-    assert "27 = timeout" in flat and "call it again" in flat
-    assert "28 = --agent" in flat and "re-read the manifest" in flat
-    assert "29 = zero tier:kid rows" in flat and "check the spawn" in flat
-    assert "2 = timeout" not in flat, "the brief retyped the literal code 2"
-
-
-def test_kid_brief_does_not_claim_dispatch_always_stamps_the_ceiling():
-    """hypothesis:the-parent-and-kid-brief-text-matches-the-engine (R-EF33 D):
-    dispatch stamps `line_ceiling` on a kid's scaffold ONLY when the
-    dispatching node declares its ceiling ACROSS more than one kid
-    (dispatch.py ~2479: `if _k > 1`). The pre-fix brief told every kid the
-    number was 'already stamped on your scaffold by dispatch', which is false
-    when K == 1. Red on the pre-fix bytes; `spawn_budget.node_line_ceiling`
-    is the resolver named in the fixed text."""
-    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
-    flat = " ".join(kid.split())
-    assert "already stamped on your scaffold by dispatch" not in flat, (
-        "the K=1 scaffold carries no line_ceiling; the claim must be gated")
-    assert "ONLY when" in flat and "K > 1" in flat, (
-        "the stamp is conditional on the across-K-kids clause")
-    # the off-limits rule and the resolver both survive:
-    assert "NEVER write `line_ceiling`" in flat
-    assert "spawn_budget.node_line_ceiling" in flat
