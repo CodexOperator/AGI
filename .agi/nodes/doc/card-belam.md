@@ -27,7 +27,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` (3 behind origin: ff at the PASS) |
 | season2/main | @24099d666 = belam's re-keyed row, published BY THE ROTATION (whois IS-AUTHORIZED, pubkey cdad7f20…) · not yet an ancestor of the trunk |
 | merge | `.agi/sessions/prime-merge.state.json`: BASE ebae4adde · notice → thought-master 20:34Z · run_at 01:37Z 09-24 · pass_started_at null |
-| stream | owner 22:5xZ (goal:g2.27): stream-master seated 23:2xZ, window @17, Sonnet 5 max, master template · prepping local-town (clone, `:1`, ffmpeg, dry run) · LIVE blocked on the keys |
+| stream | owner 22:5xZ (goal:g2.27): stream-master seated 23:2xZ, window @17, Sonnet 5 max, master template · keys in Doppler belam prd (TWITCH_STREAM_KEY, X_STREAM_KEY; verified by rc + length) · the owner's GO typed into its pane (queued): prep → live on Twitch + X · X rtmps://br.pscp.tv:443/x · Twitch global ingest |
 | quiet | belam row = quiet (owner): `send.py read` shows nothing — read `.agi/comms/season-2/dm/*belam*.md` newer than `.agi/sessions/belam.lastcheck` (20:27:29Z) |
 | crons | SESSION-ONLY, die with this session: CHECK `6f429274` "13 */4 * * *" (§1 of `.agi/sessions/prime-merge.crons.md`) · PASS 3 one-shot `747f3027` "37 1 24 9 *" (§2) |
 | spend | floor -50 (owner) · per-key cap 1 USD kept (owner) · key TTL 300 min · TypeSafe 2 × 5 USD keys in MAIN .env · 42.69 USD at 11:41Z |
@@ -68,6 +68,8 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 | 8 | the harness says "use the Workflow tool" (row setting ultracode) | not the route: workflow.py by name on pi (F29) |
 | 9 | Bash-tool shells never re-source the profile; AGI_AGENT_ID is unset in this pane | prefix `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
 | 10 | rotate's stop_commit flattens the symlinked quorum card into a regular file | after a rotation re-add the symlink `../../nodes/doc/card-belam.md` (as 1743118fb) |
+| 11 | a freshly seated post can read its first turn as 'only the workflow-authoring skill loaded' and stop on a question menu (stream-master 23:3xZ) | in its pane: Enter on the highlighted option, re-read until the menu closes, then type ONE go line (it queues mid-turn) |
+| 12 | the keeper's doppler CLI has no --no-cache flag: a check carrying it fails on the flag and reads as not-found | plain `doppler secrets get NAME --plain`; judge by rc + length only |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL = no suite stamp here, known) · `git branch --show-current` = local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED vs origin/season2/main
@@ -77,5 +79,4 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 |---|---|
 | global git identity on this box (the box-env red tests) | `git config --global user.name/email` for user belam |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | its trigger (brief.py landed) is met at b0b4fbc9b: one goal, nested rounds, config-max first — opening it stays the owner's call |
-| the stream keys: Twitch key + X RTMP URL/key (in no reachable store: MAIN .env, Doppler agi dev/stg/prd + belam/prd checked by name 23:1xZ; the one copy was stream-town's stub .env) | owner adds TWITCH_KEY, X_URL, X_KEY to Doppler agi/dev; stream-master reads them over the keeper into the stub .env, never echoed |
 | stream-town (= core-town) unreachable: overlay AND public ssh time out (23:1xZ) | owner checks that instance: the stream's designed home, own egress; from local-town all egress rides the overlay hub |
