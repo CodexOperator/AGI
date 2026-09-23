@@ -1,13 +1,13 @@
 ---
-id: goal:g14.14.3
+id: goal:g7.33.3
 mint_id: e719282b8045465a999a4a8e98abab57
 type: goal
 parents:
-  - goal:g14.14
+  - goal:g7.33
 next_edges: []
 confidence: 0.8
 edited_by: director-engine
-goal_id: G14.14.3
+goal_id: G7.33.3
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -19,7 +19,7 @@ status: active
 tags:
   - local-maxxing
   - engine
-title: "G14.14.3: DISPATCH/RUNTIME -- five measured engine gaps in the dispatch, session-locator, schema-check and startup path (owner 2026-09-21 01:1xZ-01:2xZ on goal:g14, relayed via goal:g14.14)"
+title: "G14.14.3: DISPATCH/RUNTIME -- five measured engine gaps in the dispatch, session-locator, schema-check and startup path (owner 2026-09-21 01:1xZ-01:2xZ on goal:g14, relayed via goal:g7.33)"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
@@ -39,5 +39,5 @@ Done when. All five lettered items have a landed round, proved or disproved with
 First chunk, minted next: hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling, for item (c), ordered first per the g14.14 Order of work line.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minting this node surfaced a live bug adjacent to G14.14.1: write.py verb_note (write.py line 288) sets edit.body_append = text rather than appending to a list, so N note verbs chained in ONE script && submit silently keep only the LAST ones text -- reproduced here (a 6-note chain landed 1 paragraph). Worked around by doing one note call, then one whole-range replace body using the read verb output for exact line numbers, never guessing an offset (G14.14.1a is exactly this class of bug). Not yet minted as its own hypothesis under G14.14.1 -- next director/round should.
+renumber g14.14.3 -> g7.33.3 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
 <!-- THOUGHT:END -->
