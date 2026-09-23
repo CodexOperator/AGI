@@ -131,3 +131,80 @@ def test_no_load_factor_never_reads_the_load_seam(
                           tmp_path_factory)
     assert seen == [5, 77, 77, 77], seen
     assert called == [], "absent load_factor must not touch the load seam"
+
+
+# ---------- (5) the context-build budget comes from the manifest -----------
+# The two `_stage_context` reads (viewport.py --emit llm, brief.py head) were
+# hard `timeout=60`; at box load 40-51 they took >60 s and every verify stage
+# of merge-up-review died `context-build-timeout after 60 s`. The budget is now
+# `context_timeout_s`, resolved stage > manifest > the 60 s pre-fix literal.
+
+def _context_manifest(context_timeout_s=None, stage_context_timeout=None):
+    st = _sl("only", "ONLY")
+    if stage_context_timeout is not None:
+        st["context_timeout_s"] = stage_context_timeout
+    m = {"name": "review", "type": "review", "script": "s.js",
+         "stages": [st]}
+    if context_timeout_s is not None:
+        m["context_timeout_s"] = context_timeout_s
+    return m
+
+
+def _seen_context_timeouts(monkeypatch, manifest, tmp_factory):
+    """Drive a live pi run with subprocess stubbed; return (rc, timeouts, out)
+    where `timeouts` are the `timeout=` kwarg of each CONTEXT call in order
+    (viewport, then brief). The stage dispatch is not recorded, and neither is
+    any OTHER non-`--provider` subprocess (`mem_cap.systemd_run_usable()`
+    probes with `systemd-run ... timeout=30` on its first call in a process)."""
+    seen = []
+
+    def _is_context(cmd):
+        return any("viewport.py" in str(a) or "brief.py" in str(a)
+                   for a in cmd)
+
+    def fake_run(cmd, **kw):
+        base = _ctx_or_stage(cmd, **kw)
+        if base is not None and _is_context(cmd):
+            seen.append(kw.get("timeout"))
+        if base is not None:
+            return base
+        return _sp.CompletedProcess(cmd, 0, stdout='{"ok": true}', stderr="")
+
+    rc, text, _ = _drive(monkeypatch, manifest, {}, fake_run, tmp_factory)
+    return rc, seen, text
+
+
+def test_manifest_context_timeout_s_reaches_the_context_build(
+        tmp_path_factory, monkeypatch):
+    """RED on the pre-fix bytes: both context subprocesses were hard 60, so a
+    manifest `context_timeout_s: 300` was silently ignored and the stage died
+    at 60 s under load."""
+    rc, seen, text = _seen_context_timeouts(
+        monkeypatch, _context_manifest(context_timeout_s=300),
+        tmp_path_factory)
+    assert rc == 0, text
+    assert seen == [300, 300], seen   # viewport --emit llm, then brief.py head
+
+
+def test_bad_context_timeout_s_refuses_by_name_before_any_stage(
+        tmp_path_factory, monkeypatch, capsys):
+    """0, negative and non-numeric are REFUSED BY NAME (rc 5) before any
+    stage is dispatched — the same definition of `0` the stage wall owns."""
+    for bad in (0, -1, "300"):
+        rc, seen, text = _seen_context_timeouts(
+            monkeypatch, _context_manifest(context_timeout_s=bad),
+            tmp_path_factory)
+        assert rc == 5, (bad, rc, text)
+        assert seen == [], (bad, seen)
+        err = capsys.readouterr().err
+        assert "context_timeout_s" in err and "only" in err, (bad, err)
+
+
+def test_no_context_timeout_keeps_the_60_default(tmp_path_factory,
+                                                 monkeypatch):
+    """A manifest declaring no `context_timeout_s` anywhere keeps the pre-fix
+    60 s — the default did NOT ride the stage wall's 3600."""
+    rc, seen, text = _seen_context_timeouts(
+        monkeypatch, _context_manifest(), tmp_path_factory)
+    assert rc == 0, text
+    assert seen == [60, 60], seen
