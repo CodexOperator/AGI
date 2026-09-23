@@ -25,5 +25,5 @@ title: Agi config.json
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-09-23: raise spawn.max_live 25→30 to match SoT box ≤30 (CAP-RULER). Prior: owner correction 2026-09-19 spawn.parallel is per-command slots not soft concurrency (restore 1); harnesses.grok-bot first-class row landed ca3b2da28.
+owner: lower key/per-spawn caps 1.5→1.0; raise pool headroom vs ~$35 rem (floor 1.6→1.1 = per_spawn+0.1). memory_max stays 6G (restore accidental 8G from prior replace).
 <!-- THOUGHT:END -->
