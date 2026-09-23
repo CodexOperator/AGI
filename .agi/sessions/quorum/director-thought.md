@@ -18,7 +18,7 @@ batch B   ✅ DELIVERED [merge-up] 09:0xZ @fd947d883 (C2 fires under the CI rule
 batch A   G.01 HELD @109bcb618 -> ✅ rr-mp02-g01 returned DEMOTE (dedup leak 282 -> 243 unique, 11 cross-fold dup groups; gold synthesized from dm headers, not observed) · brainstorm measured: dedup lifts blend top-1 0.4539 -> 0.5391 (lean-disproof = contamination artifact?)
           then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
           then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
-owner     ✅ CFG.01 landed + harvested 7b0053ac5 (review pass committed the round's 7 uncommitted paths.local_maxxing keys) · ⏸ ASKED: mur? · +58 audit hits in its kid nodes (edit vs round)? · merge-up own vs batch A?
+owner     ✅ CFG.01 landed + harvested 7b0053ac5 (7 uncommitted keys committed) · ✅ TMM.44 kid nodes quote {root}/{pi_home}: audit 10,086 -> 10,077, 0 new hits (b5399af78) · ⏳ mur mur-director-thought-3 · then CFG.01's OWN merge-up, after TM's batch-B merge lands
 done      TMM.39 (b)(c)(d) 9755735e0 · TMM.40 a00-e51d276e pending 70939506c · TMM.41 slot finding noted · g5.24.4 draft discarded
 guards    nothing under extensions/ (except the owner-ordered item 13) · orders wall 120 on paid rounds · no pi-local round live across 11:41Z · no multi-kid round under a pi-local parent
 ```
@@ -33,10 +33,9 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 
 ## §3 🔴 Where it stops
 ```
-09:1xZ 09-23  waiting on thought-master: batch B gate (@fd947d883) · go on MP02-G.02 grammar + G.01 disposition + T.01 reshape · CFG.01's 3 asks
-LIVE   nothing dispatched · no workflow running
-next   on each answer: act exactly as told, one line back
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 1500 /data/work/agi/.agi/sessions/inbox/director-thought.md
+09:1xZ 09-23  thought-master mid-merge of batch B (suite in MAIN) · CFG.01 mur running (agi-director-thought-cfg-01, run-key mur-director-thought-3)
+next   mur lands -> residues closed as thought-master says -> CFG.01's own merge-up line (after TM's batch-B done line) · still waiting: go on MP02-G.02 grammar, G.01 disposition, T.01 reshape
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-cfg-01
 window no pi-local round live across the Prime pass-2 (11:41Z)
 ```
 
