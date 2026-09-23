@@ -3,12 +3,13 @@ id: hypothesis:l4-a-wake-audit-window-cut-to-zero-by-a-real-input-is-the-floor-g
 mint_id: a5042fc157ac4290b0dbc8f7ee2d6849
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: a57579429fb53e2d
 season: 2
 testable_claim: "sensei.py wake-audit: when a real input (the first [agi-nudge] after STARTUP + AFTER_JOIN) exists and window_end == 0 because every tool_use came after it, the verb records GREEN with counts 0 (finish_audit runs, audit.wake written); it prints pending and writes nothing ONLY when the transcript holds neither a real input nor a tool_use. Falsifier: a transcript with a real input at index 1 and tool_uses only after it still prints pending / writes no audit.wake; or an EMPTY transcript (no input, no tool_use) is recorded green 0 (the 20260916T162402Z false positive comes back)."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.101: a wake audit whose window is cut to zero by a real input is the floor itself -- green with counts 0, recorded; pending only when the transcript has neither a real input nor a tool_use"
 town: core
 ---

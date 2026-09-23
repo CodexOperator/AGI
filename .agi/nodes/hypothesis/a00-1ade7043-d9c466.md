@@ -3,7 +3,7 @@ id: hypothesis:a00-1ade7043-d9c466
 mint_id: 7c7ed8ae28e64b658e26fa5d07bfc018
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -174,7 +174,7 @@ kid's in form only, not in claim: the scaffold heading was emitted twice and
 while agreeing in substance. Both duplicates removed, the later notes kept.
 
 The claim itself is accepted as written and stays at `pending`. It is the fifth
-distinct hypothesis under goal:g10.1 and it does cover the one property of the
+distinct hypothesis under goal:g2.24 and it does cover the one property of the
 goal no sibling tests -- "expandable to full LOD" as an operational protocol
 rather than a rendering flourish. Arm 3 is genuinely novel against
 a00-711c2d0f-15bc43, whose two arms this node reuses as baselines rather than

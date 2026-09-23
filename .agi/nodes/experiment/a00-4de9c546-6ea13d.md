@@ -53,7 +53,7 @@ test of nesting, not of words.
 now takes an optional `nodes_dir` and, per node, derives the town through the
 SAME shared helper (`spawn_gate.nearest_vision_town`) that node_writer, brief
 and zoom use — never a second copy of the deriving rule, never a branch on a
-town NAME (goal:g8.2). The `Frame` dataclass gains a `town` field and both
+town NAME (goal:g1.24). The `Frame` dataclass gains a `town` field and both
 formatters (human + llm) annotate it as `[town: X]` / `town=X` when non-core.
 Memoized per node_id (`_town_cache`) so a 2066-node graph only pays the BFS
 once per node actually in view. `main()` threads `nodes_dir=str(root/nodes)`.
@@ -72,7 +72,7 @@ It DERIVES the town list from the ladder node (`spawn_gate._read_frontmatter`
 of `.geometry/ladder.md`, `towns:` list, excluding the reserved `core`
 denominator), then AST-parses every `bin/*.py` engine script and fails on any
 non-core town appearing as a runnable string literal — the falsifier for
-goal:g8.2. It excludes the reserved `core` default on purpose: defaulting to
+goal:g1.24. It excludes the reserved `core` default on purpose: defaulting to
 core is designed behaviour, branching on an APP name is the defect (the
 docstring says so). Comments and docstrings are excluded by construction: the
 AST does not surface comments, and `Expr`/`Constant` docstring heads are

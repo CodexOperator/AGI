@@ -3,7 +3,7 @@ id: hypothesis:a00-f3481d08-c0a656
 mint_id: bb9a2f6becb540d1ad26697ca24b478a
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -20,7 +20,7 @@ verdict: pending
 
 ### Testable claim
 
-G10.1 (goal:g10.1) states:
+G10.1 (goal:g2.24) states:
 
 > "Whether that rendering is dynamic (a mechanical model compacting on demand
 > — the job G4.4 reserves for local inference) or pre-baked and auto-updated
@@ -189,7 +189,7 @@ written and is superseded by this paragraph.
 
 <!-- THOUGHT:BEGIN -->
 Parent review, iter-1066. The kid's frontmatter `testable_claim` was the
-scaffolder's first-line deduction ("G10.1 (goal:g10.1) states:") — a fragment
+scaffolder's first-line deduction ("G10.1 (goal:g2.24) states:") — a fragment
 that certifies nothing to a reader who only sees frontmatter; replaced with the
 actual operational claim from the body. The kid also asserted no sibling had
 claimed g10.1's "measure both" gap; that was true at write time and false by

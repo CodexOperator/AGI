@@ -3,7 +3,7 @@ id: hypothesis:l4-the-successor-key-swap-waits-for-the-push-and-a-recovery-recor
 mint_id: 07289b223e9045939e105784ae2c5021
 type: hypothesis
 parents:
-  - goal:g15.26
+  - goal:g6.47.1
   - hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-hands-the-successor-exactly-one-call
 next_edges: []
 edited_by: sensei-director

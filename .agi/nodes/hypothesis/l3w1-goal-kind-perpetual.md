@@ -3,12 +3,13 @@ id: hypothesis:l3w1-goal-kind-perpetual
 mint_id: 593c27ea384141d092075c6e42baee27
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.10
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: a7c73509c2933a42
 season: 1
 testable_claim: "goal_kind: perpetual is a legal goal kind (legacy long-term accepted forever, like phasing-out), G1, g15 and g16 carry it, GOALS.md renders a Perpetual section for such goals with no complete or retired column, and snapshot-goals.py --render --check still round-trips byte-identical"
+thought_session: dissolve-legacy-2026-09-19
 title: L3w1 goal kind perpetual
 ---
 # hypothesis:l3w1-goal-kind-perpetual

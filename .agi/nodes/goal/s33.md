@@ -3,10 +3,10 @@ id: goal:s33
 mint_id: 70fc9c0443ec43bc89f18b769187a114
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S33
 goal_kind: short-term
 heading_level: 2
@@ -19,7 +19,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S33: The docs say what the tree does now"
 ---
 # goal:s33

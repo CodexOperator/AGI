@@ -3,12 +3,13 @@ id: hypothesis:l3w4-branch-parent-commits
 mint_id: f1abeda9d181419a81b02e8baa542566
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.14
 next_edges: []
-edited_by: dir-g1
+edited_by: belam
 scaffold_hash: 2936d260caafe85b
 season: 2
 testable_claim: After the change, a parent that accepts its kid's node while resident in a worktree leaves its loop/<slug>@sN branch at one or more commits with a clean working tree, and season.py merge-up exits non-zero with a named message when handed a branch that is zero commits ahead of its recorded base_branch instead of reporting success. Both are proven by red-first tests that fail before the change and pass after.
+thought_session: dissolve-legacy-2026-09-19
 title: The parent owns the commit inside its worktree
 ---
 <!-- BODY:BEGIN -->

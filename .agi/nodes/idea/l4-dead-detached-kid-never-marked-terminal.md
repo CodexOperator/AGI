@@ -3,7 +3,7 @@ id: idea:l4-dead-detached-kid-never-marked-terminal
 mint_id: 797b4f3640cf4e688f24e453d1125ff7
 type: idea
 parents:
-  - goal:g15.12
+  - goal:g6.34
 next_edges: []
 edited_by: sanctuary-helper
 scaffold_hash: 7547b282aedf6715

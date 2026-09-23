@@ -3,13 +3,13 @@ id: hypothesis:l3-pi-edit-tool-edits-array
 mint_id: b1765470975d41d596c67abc3c592484
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam
 scaffold_hash: f3162d6e6ae50e09
 season: 2
 testable_claim: After the change, the edit-call shape a kid actually emits is either accepted by the tool or taught correctly by brief.py's kid template, proven by a red-first test pinning the accepted shapes and, where the template is implicated, a red-first test asserting the rendered template CONTENT carries the correct call shape rather than only that it renders.
-thought_session: belam-S1-L3-IX
+thought_session: dissolve-legacy-2026-09-19
 title: Two independent kids in one round lost a turn each to the edit tool rejecting a stringified or nested edits-array
 ---
 <!-- BODY:BEGIN -->

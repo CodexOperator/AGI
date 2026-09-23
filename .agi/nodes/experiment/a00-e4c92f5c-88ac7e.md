@@ -16,7 +16,7 @@ verdict: proved
 
 ## Experiment
 
-SL7.83 build order on `goal:g15.25` clause (b) — the `swept_latches` key must
+SL7.83 build order on `goal:g6.47` clause (b) — the `swept_latches` key must
 SURVIVE every subsequent rewrite of the rotate-self record so the record the
 successor's STARTUP reads carries the swept names, or `[]`, NEVER absent.
 

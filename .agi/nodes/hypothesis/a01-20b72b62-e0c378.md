@@ -3,12 +3,12 @@ id: hypothesis:a01-20b72b62-e0c378
 mint_id: 932c8a421ce54962874b11f3c3db2811
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 75a037edbc219ff0
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A01 20b72b62 e0c378
 ---
 # hypothesis:a01-20b72b62-e0c378

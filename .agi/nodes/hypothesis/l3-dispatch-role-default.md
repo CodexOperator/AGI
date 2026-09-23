@@ -3,12 +3,13 @@ id: hypothesis:l3-dispatch-role-default
 mint_id: a4331b8755d241d99bdc0330a269bad2
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 39e1c41a18aa4ba6
 season: 1
 testable_claim: dispatch.py resolves a spawn's ladder row from --tier when --role is not given (tier parent means role parent, tier kid means role kid), so a director's spawn primitive never loads the tier-0 kid model for a parent, and a red-first test pins each tier-to-row mapping
+thought_session: dissolve-legacy-2026-09-19
 title: L3 dispatch role default follows tier
 ---
 # hypothesis:l3-dispatch-role-default

@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-Two deliverables under goal:g15.21 / hypothesis:l4-a-spawn-writes-only-onto-a-
+Two deliverables under goal:g6.43 / hypothesis:l4-a-spawn-writes-only-onto-a-
 dead-seat-and-no-season-literal-remains: **P1** spawn writes gated on a DEAD
 seat, and **CHEAP** the `origin/season/s2` literal gone from rotate.py. P2
 (test_rotate_autopsy.py probable-cause/fixture work) left for the next kid.
@@ -86,7 +86,7 @@ P1 liveness gate in cmd_spawn (rotate.py:1521) refuses a live-pid/live-window sp
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW (a00-b4ac5831, SL5.07).
 
-(1) WHAT THE INSTRUCTION SAID: goal:g15.21 residue briefed as P1 (gate every spawn write on the seat being dead), CHEAP (no origin/season/s2 literal left in rotate.py), P2 (autopsy tests on fixtures + probable-cause assertions). My addendum scoped kid 1 to P1+CHEAP only.
+(1) WHAT THE INSTRUCTION SAID: goal:g6.43 residue briefed as P1 (gate every spawn write on the seat being dead), CHEAP (no origin/season/s2 literal left in rotate.py), P2 (autopsy tests on fixtures + probable-cause assertions). My addendum scoped kid 1 to P1+CHEAP only.
 
 (2) WHAT THE MACHINE ACTUALLY DOES (read, not reported): rotate.py:1521-1548 gates the spawn inside `if seat is not None:` before `_first_seating_run`/`_first_seating_announce`/`_first_seating_spawn_writes`; live pid via `_pid_gone` else live window via `_successor_window_id`, both exit 1. rotate.py:3844 `_seating_worktree_lines` and rotate.py:3897 `_run_autopsy` take season=None and resolve through `season_branch(root)` at call time. `grep -c origin/season/s2 rotate.py` = 0. Tests at test_rotate_autopsy.py:409/445/474/496 assert both sentinel pin+ack survive a live-seat refusal and both land on a dead seat; I re-ran the two named files: 159 passed.
 

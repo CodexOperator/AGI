@@ -34,9 +34,11 @@ Owner lines: in nodes (`goal:g14` for this box; `doc:l4-owner-decisions`, `doc:l
 ## §2 Landed (one line each)
 e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d diagram-max pass (brief, handoff) · posts diagram-maxed their own cards (TM a0976ae84 · DE e4cc6aca3 · DT 731ac745f) · b870ee0e9 routine + owner line · 072349c7f cadence + spec node · 440da437c/865991992/77d9696b4 owner lines (nested goals · comms route · diagram-max) · brief diagram-maxed · pushed after each.
 
+- 07:5xZ 09-23 owner rulings (verbatim goal:g14): per-box Prime rows → core's engine bundle (R8, residues node) · director-engine HELD on goal:g7.33 (core's bundle) · CLAUDE.md now permits goal renumbering.
+
 ## §3 🔴 Where it stops
 ```
-11:5xZ 09-21 LIVE (gen 1): FIRST PASS DONE (see §1). season2/main = 0f336c890 (trunk @8cf1eb4c9 merged, pushed). State .agi/sessions/prime-merge.state.json (last_merged_town_sha set; notice cleared). Runner fact: workflow.py runs pi stages SERIALLY (~15 min/stage) — run chunks as PARALLEL processes (7 × ~3 h wall = 3 h), memory ~300 MB per pi process. NEXT = daily activation 08:13Z (dm read · graph scan · delta since 8cf1eb4c9 → 5 h notice → one-shot run). A successor re-arms the daily cron FIRST. Owner mode: quiet push-only · batch-max · diagram-max · report to thought-master once per pass (sent 11:5xZ).
+07:4xZ 09-23 LIVE (gen 1 on Opus 5.5, resurrected from archive by the owner 06:5xZ). CORE SYNC DONE: trunk = 8451055b5 (core @f655a6714 merged; 82 core goal renumbers + 8 town goals renumbered to match; pushed); residues = hypothesis:core-sync-0923-residues (director-engine; core-side items flagged). PASS 2 one-shot 0e5063c3 at 11:41Z 09-23 (AMENDED: town rounds + core-sync round + engine-delta; core's own rounds stay core's). Daily cron c5f0b2f3. Before the next Prime rotation: nothing extra (agi-reaper was never active on this box). A successor re-arms the daily cron FIRST, then the pass-2 one-shot if it has not fired.
 ```
 
 ## §4 Traps (this session)
@@ -48,6 +50,7 @@ e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d dia
 | 4 | cron:crons optional `log:` cell is NOT placeholder-rendered (`{logs}` reached the crontab) | omit `log:`; use the default log (L2) |
 | 5 | `write.py replace body 1:N` on a fresh node eats the `<!-- BODY:BEGIN -->` marker | restore it as body line 1 |
 | 6 | `send.py send` to a busy pane → `[undelivered-yet]` | the dm IS written; the sweep re-nudges |
+| 7 | after a seat key is re-minted, `send.py read belam` re-delivers that sender's OLD dms marked `RETIRED:<key>` (09-23: two 09-20 thought-master messages) | read the timestamp, not the position; a RETIRED block is history, not news |
 
 ## §5 Verification
 ```bash

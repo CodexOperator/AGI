@@ -20,7 +20,7 @@ town: core
 verdict: proved
 ---
 <!-- BODY:BEGIN -->
-A FIX-ONLY build round for goal:g15.25 — `hypothesis:l4-the-after-join-record-rewrite-is-committed-by-pathspec-and-a-worktree-seats-record-names-its-committer`. I measured the pre-fix defect, implemented the claim, and proved it on the built bytes.
+A FIX-ONLY build round for goal:g6.47 — `hypothesis:l4-the-after-join-record-rewrite-is-committed-by-pathspec-and-a-worktree-seats-record-names-its-committer`. I measured the pre-fix defect, implemented the claim, and proved it on the built bytes.
 
 ## Design decision (option (a) — pathspec commit, NOT sidecar)
 Chosen because the sidecar would require all three record readers (`status --record latest`, `_latest_rotate_record`, `_after_join_already_performed`) to learn a merge step — a larger surface whose own falsifier ("the sidecar is not read by `status --record latest`") flags a miss a reader could make. The pathspec commit mirrors the existing `_commit_rotation_record` and makes the leaked-`M` state disappear entirely. Commit message: `after_join record: <seat> <stamp> (performed by <performer>)`.

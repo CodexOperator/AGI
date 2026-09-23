@@ -3,9 +3,9 @@ id: exp:g5-lifecycle-enforcement
 mint_id: 866e3a477f4840429fabb6ae38aed316
 type: experiment
 parents:
-  - goal:g5
+  - goal:g4.17
 confidence: 0.65
-edited_by: season.py
+edited_by: belam
 evidence_runs: []
 provenance: direct-engine-edit
 season: 1
@@ -14,7 +14,7 @@ tags:
   - g5
   - g6.1
   - metrics
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "G5 lifecycle enforcement: scoring exclusion, L5 rotation, L18 degrade — landed as a direct engine edit"
 ---
 **Provenance deviation, stated first:** this work was made as a direct,

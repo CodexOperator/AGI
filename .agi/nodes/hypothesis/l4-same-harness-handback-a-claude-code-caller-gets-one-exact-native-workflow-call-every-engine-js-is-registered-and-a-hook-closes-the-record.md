@@ -3,12 +3,13 @@ id: hypothesis:l4-same-harness-handback-a-claude-code-caller-gets-one-exact-nati
 mint_id: 2d6fa9eaea7f4c45bba0103ec898dcb6
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: ebe39c9c3220729e
 season: 2
 testable_claim: "(1) DETECTION: `workflow.py run <wf> --harness claude-code` invoked from inside a Claude Code session (measured seam: CLAUDECODE=1 and CLAUDE_CODE_SESSION_ID present in the Bash subprocess env; CLAUDE_CODE_MESSAGING_SOCKET beside them) prints ONE exact native call on stdout -- `Workflow({\"name\": \"agi-<wf>\", \"args\": <json>})` with the resolved args -- and exits 0 with the run tracked as today; outside a session (the seam absent) the SM.120 stderr line prints as it does now. (2) REGISTRATION: every engine .js under extensions/agi/workflows/ (12 today, 4 registered: brief-drafting, paper-digest, round-review, trove-survey) is a symlink in the project's .claude/workflows/ -- `workflow.py register` creates the missing links idempotently and prints the count; a test proves every manifest's script has a link. (3) RECORD: a PostToolUse hook line matching the Workflow tool runs `workflow.py note <run_key> --harness-id <runId>` from the tool result so the record closes itself; the hook line is DATA in settings (the ~/.claude/settings.json PostToolUse list, today one Bash matcher), the parser of the tool result is the tested part. (4) the pi path is byte-identical (never prints the call, never reads the seam). CEILING ~60 production lines + the hook line + the symlinks."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.121 (owner 15:2xZ ask via the Prime 20:11Z, priority before SM.119; extends SM.120): SAME-HARNESS HANDBACK for the unified workflow runner -- when the caller's harness is the target harness (claude-code), workflow.py run prints ONE exact native call for the caller to make, every engine .js is registered as a named workflow, and a PostToolUse(Workflow) hook closes the run record with the harness id; pi stays the headless path"
 town: core
 ---

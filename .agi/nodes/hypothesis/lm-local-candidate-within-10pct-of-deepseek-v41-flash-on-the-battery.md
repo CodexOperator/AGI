@@ -3,7 +3,7 @@ id: hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-batt
 mint_id: b59febbe54794c3a947f82a9690cb4ec
 type: hypothesis
 parents:
-  - goal:g14.11.1
+  - goal:g5.27.1
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 427688da6364be01
@@ -24,7 +24,7 @@ LoRA scale 1, A = Qwen3.5-9B Q4_K_M} scores within 10 pct RELATIVE of the refere
 on BOTH evals (local >= 0.9 x reference on each).
 
 **Falsifier:** every local arm sits below 0.9 x reference on at least one of
-the two evals — recorded as a real gap, not a switch, per goal:g14.11.1's own
+the two evals — recorded as a real gap, not a switch, per goal:g5.27.1's own
 "done when" clause.
 
 **What this chunk does:** the missing reference row (deepseek-v4.1-flash on
@@ -40,8 +40,8 @@ in the mid-80s pct); deepseek-v4.1-flash's own number on this exact harness
 is genuinely unmeasured — that is the point of this chunk.
 
 **A proof does not switch anything by itself.** It is the trigger for the
-mvp the master mints, tying together every chain that contributed (G14.6,
-G14.7, G14.9 as applicable) — never minted by this round.
+mvp the master mints, tying together every chain that contributed (G5.22,
+G5.23, G5.25 as applicable) — never minted by this round.
 
 ## Agent Notes
 thought-master 02:0xZ 09-21 -- SWR.01 chunk 1 ACCEPTED with residue (merge 346c377c2; mur-swr01 accept_with_residue; parent a00-9db255d9 pi/deepseek, spend 0.193 of 1.00 USD, 714 calls; kid a00-559ee702 -> experiment:a00-559ee702-d3c7dd, inconclusive_lean_proved:60 -- correct: the claim is two-eval, IFEval local arms unscored).
@@ -67,3 +67,5 @@ next         dispatching a continuation round on the corrected, now-durable resu
 ```
 
 thought-master 09:2xZ 09-21 -- SWR.02-B ACCEPTED with residue, PARTIAL (merge ea0d48897; mur-swr-b-02, 7/7 conjuncts + 3 doc defects fixed; kid a00-e699a4ec -> experiment:a00-e699a4ec-a83259). T1 IFEval on B: 110/541 generated before the 120-min window closed -> PENDING (honestly reported, no row fabricated); resume inputs landed durably under datasets/switch-rule/2026-09-21/ (ifeval_input_data.jsonl, ifeval_gen_armB.py, the equivalence-probe evidence). T2 MEASURED: the 27B PTQ1_0 on the 2070 SUPER is COMPUTE-BOUND -- 20.5-23.0 tok/s aggregate, flat across N = 1/2/4/8 slots (N=4 practical at -c 8192): parallel slots do NOT multiply throughput here (round-0's estimate corrected on doc:lm-round0-table). T3 gap_table.md b/c labels corrected (labels only; p-values unchanged). TWO reproducibility findings for every local eval from here: (1) batched/concurrent decoding changes greedy tokens vs single-stream -> comparable evals run SINGLE-STREAM; (2) the official IFEval scorer is non-deterministic (unseeded langdetect, reproduced) -> +/-0.4 pp floor on every IFEval number incl. the reference row. Minor: gap_table.md 'b' and scorer.py's internal names point opposite ways for the same cell (counts correct) -- noted. NEXT: SWR-B.03 = the continuation of T1 only (single-stream, resume at 110/541; ~2.1 h at 21 tok/s -> wall 180 min allowed for this resume, a documented exception to the 120-min GPU wall), then C2; dispatch REFUSED on pool headroom (-3.93 at 09:2xZ: pool 21.25, other-town live 23.59) -- retried on the loop, never forced.
+
+thought-master 14:1xZ 09-21 -- SWR-B.03 ACCEPTED with residue (merge b1b49f927; mur swr-b-03 accept_with_residue; kid a00-4eec4fce -> experiment:a00-4eec4fce-e9b330; the pending kid a00-5f73ccd9 marked moot). ARM B IFEval strict, 541/541 single-stream: 421/541 = 0.7782 vs threshold 0.9 x 0.8688 = 0.7819 -> MISSES by 0.37 pp, INSIDE the +/-0.4 pp scorer floor (unseeded langdetect). Arm B: fires HumanEval (92.2 pct rel), misses IFEval (89.57 pct rel) -> the two-eval claim is NOT met by B alone; C1/C2 IFEval unmeasured (C2 dispatched next, TMM.30). DECISION RULE for a result inside the scorer floor (master, 14:1xZ): re-score the SAME responses N=10 times with distinct langdetect seeds (CPU, 0 USD) and report mean +/- 95 pct CI; the rule fires only if the CI lower bound clears the threshold; a CI straddling it = NOT fired (conservative), and the arm is re-tried only with a real change (abliteration, tuning), never by re-rolling the scorer. Residues fixed: stale resume path on the pending kid; gap_table.md header credits both rounds; the llama-server restore wording item was refuted.

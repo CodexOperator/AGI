@@ -3,13 +3,13 @@ id: hypothesis:l3-rotate-self-successor-override
 mint_id: 959115dc057a45ccac15eb0502f6b1fc
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam
 scaffold_hash: 15062e785a9128eb
 season: 2
 testable_claim: After the change, rotate.py rotate-self accepts an explicit successor-command override and a throwaway-seat registration path that never writes seats.md, with the default path byte-identical to today's real claude spawn; proven by a red-first test for each half, and measured live by one rehearsed rotation in which a NEW tmux window exists under the reused plain name (checked with tmux list-windows, not the tool's return value), the seat handoff generation increments, the read-back reads the successor's log, a deliberately planted stale bare continue does NOT falsely confirm the new generation, and the predecessor's window is renamed and left alive.
-thought_session: belam-S1-L3-IX
+thought_session: dissolve-legacy-2026-09-19
 title: "The live rotation proof is blocked by rotate-self itself: the successor argv is hardwired to real claude, so no kid can ever exercise it"
 ---
 <!-- BODY:BEGIN -->

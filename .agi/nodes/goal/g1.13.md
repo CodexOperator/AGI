@@ -4,10 +4,9 @@ mint_id: 342e5f9d459f493da11c73fa2dcbab24
 type: goal
 parents:
   - goal:g1
-  - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.13
 goal_kind: subgoal
 heading_level: 3
@@ -23,7 +22,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.13: A loop ends with a completion report, and the report is generated, not remembered"
 ---
 # goal:g1.13

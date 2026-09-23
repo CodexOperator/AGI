@@ -4,7 +4,7 @@ mint_id: eb397e1a82394a4abf92b5a3d2488a1f
 type: hypothesis
 parents:
   - idea:l4-g178-messaging-restrictions
-  - goal:g17.8
+  - goal:g7.21
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

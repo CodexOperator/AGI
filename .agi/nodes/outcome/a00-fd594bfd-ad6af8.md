@@ -8,7 +8,7 @@ confidence: 0.7
 edited_by: season.py
 evidence_runs:
   - mvp:a00-8a013aaf-ca2434
-judged_against: goal:g13.1
+judged_against: goal:g4.18
 lens: goal:g13
 scaffold_hash: 811724cff7c00e30
 season: 1

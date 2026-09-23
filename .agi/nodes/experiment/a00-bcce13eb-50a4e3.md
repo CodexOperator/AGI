@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-FIX-ONLY round on `hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-...` (goal:g15.25 SL7.37 residue). Re-measured on this base: `_prime_row_authority` (rotate.py:8638) called `send._pushed_seats(root, send._PUSHED_SEATS, True)` directly — `do_fetch=True` runs a REAL `git fetch origin <name>` (send.py `_run_git`, up to 30 s each). `_first_turn_values` (:8671) reached it and was built at five sites (:8585 first seating, :9251, :9362, :11709 startup, :12447 after-join) — one rotation could fetch five times (up to 150 s worst case inside its own timeout). `test_rotate_startup.py:991` (its fixture carries a real origin) performed a real fetch inside the offline suite.
+FIX-ONLY round on `hypothesis:l4-rotate-self-fetches-the-pushed-season-ref-...` (goal:g6.47 SL7.37 residue). Re-measured on this base: `_prime_row_authority` (rotate.py:8638) called `send._pushed_seats(root, send._PUSHED_SEATS, True)` directly — `do_fetch=True` runs a REAL `git fetch origin <name>` (send.py `_run_git`, up to 30 s each). `_first_turn_values` (:8671) reached it and was built at five sites (:8585 first seating, :9251, :9362, :11709 startup, :12447 after-join) — one rotation could fetch five times (up to 150 s worst case inside its own timeout). `test_rotate_startup.py:991` (its fixture carries a real origin) performed a real fetch inside the offline suite.
 
 **Built (one seam + one memo, two tests, prime_from emitted):**
 

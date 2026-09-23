@@ -3,7 +3,7 @@ id: hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-d
 mint_id: 72822c04835a4c8f8ddb48b0c06053b3
 type: hypothesis
 parents:
-  - goal:g15.18
+  - goal:g6.40
   - hypothesis:l4-the-rotation-alert-hook-says-what-it-measures
 next_edges: []
 edited_by: sensei-director

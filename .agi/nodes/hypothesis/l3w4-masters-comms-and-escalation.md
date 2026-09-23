@@ -3,13 +3,13 @@ id: hypothesis:l3w4-masters-comms-and-escalation
 mint_id: 4b6a45d3d5ed434ba79d3344e1e14c06
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.13
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: 5807b3ecddccc756
 season: 2
 testable_claim: send.py's new `report --to ASKER --ref TS` verb, following a prior `send.py ask --to NAME` call that wrote a `[ask]`-tagged dm block from ASKER to a `config:seats` row NAME whose name ends `-master` at timestamp TS, appends a `[report ref=TS]`-tagged reply back to ASKER only when TS and ASKER exactly match that block's `ts` and `from` fields (raising SystemExit and writing nothing for any other ts/from pair, or when NAME is not a registered `-master` seat), and send.py's new `escalate --to owner` verb delivers a `[owner-decision]`-tagged dm to `liaison` only when the caller's environment sets `AGI_ROLE=parent` and `AGI_LADDER_TIER=3`, refusing otherwise, with none of `ask`, `report`, or `escalate` ever writing to the prime's inbox.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Reach the Masters, climb to the owner
 ---
 <!-- BODY:BEGIN -->

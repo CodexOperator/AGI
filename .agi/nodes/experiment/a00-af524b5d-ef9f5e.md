@@ -32,7 +32,7 @@ skipped`, refusal naming `registry file for @<id>`) returns before s12, so
 nothing later reaped the predecessor chain. No `success_late`, no
 `_late_reap_for_skipped` existed anywhere before this edit.
 
-Implemented in `extensions/agi/bin/heal.py` (goal:g15.25 SM.12):
+Implemented in `extensions/agi/bin/heal.py` (goal:g6.47 SM.12):
 - `_registry_now_has(rot, succ_id, registry_dir)` -- the successor registry
   file whose CONTENT matches the successor window @id (the same lookup the
   join used, `_registry_matches_window_id`, by @id never by name).

@@ -3,7 +3,7 @@ id: hypothesis:l4-the-spawn-gate-refuses-both-directions-and-a-hand-seating-comm
 mint_id: 07ef1cca8f94419684bb8c892b80579a
 type: hypothesis
 parents:
-  - goal:g15.21
+  - goal:g6.43
   - hypothesis:l4-after-join-keys-on-the-records-window-id-and-the-spawn-gate-and-autopsy-share-one-pid
 next_edges: []
 edited_by: sensei-director

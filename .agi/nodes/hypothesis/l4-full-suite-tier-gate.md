@@ -23,7 +23,7 @@ title: pytest refuses a bare full-suite run under AGI_TIER=kid
 What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
-## L4-tier-gate brief -- the full-suite tier gate (goal:g15.6)
+## L4-tier-gate brief -- the full-suite tier gate (goal:g6.28)
 
 WHY THIS EXISTS: two of my six L4.20-follow-on rounds ran the full
 extensions/agi/tests/ suite despite the brief explicitly saying not to.

@@ -22,7 +22,7 @@ verdict: proved
 <!-- BODY:BEGIN -->
 ## Experiment
 
-BUILD ORDER (goal:g15.23) — implemented clauses 1–4 of
+BUILD ORDER (goal:g6.45) — implemented clauses 1–4 of
 hypothesis:l4-a-strand-is-only-a-line-inside-a-rendered-input-box-and-wake-names-its-path
 on `extensions/agi/bin/send.py` + `extensions/agi/tests/test_send.py`, lifting
 heal.py's `_watch_log` resolver to a shared `reaper_log.py` (a move, not a

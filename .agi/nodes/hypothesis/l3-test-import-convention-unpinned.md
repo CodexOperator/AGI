@@ -3,12 +3,13 @@ id: hypothesis:l3-test-import-convention-unpinned
 mint_id: 12535a293869470987faedaa0791387e
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.14
 next_edges: []
 edited_by: belam
 scaffold_hash: d412ebe3d893982a
 season: 2
 testable_claim: "After the change, a red-first test that fails today passes: commands.py run tests and python3 -m pytest extensions/agi/tests/ collect an identical set of test modules with zero collection errors, so a test module that imports an engine module as 'from extensions.agi.bin import X' either resolves under BOTH invocations or is refused by a named check that says which convention to use — it can no longer pass one and break the other silently."
+thought_session: dissolve-legacy-2026-09-19
 title: The two ways of running the suite do not collect the same modules
 ---
 <!-- BODY:BEGIN -->

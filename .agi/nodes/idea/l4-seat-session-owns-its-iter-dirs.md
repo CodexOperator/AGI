@@ -3,7 +3,7 @@ id: idea:l4-seat-session-owns-its-iter-dirs
 mint_id: f809e42b50124166b60bffa486f2c2f0
 type: idea
 parents:
-  - goal:g17.13
+  - goal:g7.24
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 227d0293899442e5

@@ -4,7 +4,7 @@ mint_id: aa5eb3e53566407eb094fb383929d422
 type: hypothesis
 parents:
   - hypothesis:l4-the-gate-is-on-a-credential-the-spawn-will-not-use
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: ad3910c27eb8afae

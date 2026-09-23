@@ -3,12 +3,13 @@ id: hypothesis:l3-write-set-nested-json
 mint_id: fbee8aac27be42b0afc1961fd4a7bb68
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 1deeeb131febb259
 season: 1
 testable_claim: write.py set accepts a JSON list or object value for a frontmatter key (coerced through the schema, round-tripped byte-stable), so a nested table such as the ladder roles rows can be written through write.py and the write guard stays silent
+thought_session: dissolve-legacy-2026-09-19
 title: L3 write.py set nested json
 ---
 # hypothesis:l3-write-set-nested-json
