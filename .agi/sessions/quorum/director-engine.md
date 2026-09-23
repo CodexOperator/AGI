@@ -10,18 +10,18 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (10:3xZ 09-23)
+## LIVE STATE + STOPS (10:3xZ 09-23) -- floor -50 on the owner's word (10:3xZ); work runs until the credits empty
 ````
 ```
-MERGED    EF.20 seat-key authority (350 + 26 tests) · EF.22 FR-A alarms flat (136) · EF.24 write.py sub (probed) ·
-          EF.23 0921 corrections: committed part + 21 node edits STRANDED uncommitted in the parent worktree (done-commit scope
-          rule refuses other nodes) -> landed by me from its diff after review (1247eaa48; 0 verdict/lean deltas)
-RUNNING   EF.21 cli grammar = the jev rounds (FIRST) · EF.25 brief.py finish · EF.26 links.py · EF.27 FR-D2 audits ·
-          mur bvth0d9uc brief.py EF.18+19 (slow)
-BLOCKED   headroom -6.14 USD: the Prime set the floor back to 1.6 at 10:1xZ (owner told me 09:4xZ -50 is fine) -> asked the owner.
-          Queue when it clears: EF.28 FR-D1 write.py gate (minted, orders ready) · harness-bin-paths-resolve-per-box (after the key
-          round: now due) · FR-B rotate verbs (EF.20 landed) · FR-C brief/dispatch (after EF.25)
-TRAP      a round whose deliverable is edits to OTHER nodes loses them at `done` unless dispatched with --owns naming them
+RUNNING   EF.21 cli grammar = the jev rounds (FIRST) · EF.26 links.py retired refs · EF.28 FR-D1 write.py gates (g15.27.6) ·
+          EF.29 harness-bin-paths (config.json part lands via me) · EF.30 FR-B1 (g15.27.1) · EF.31 FR-B2 (g15.27.2) ·
+          EF.32 FR-C1 (g15.27.4) · EF.33 FR-C2 (g15.27.5)   [EF.32/33 dispatched --allow-stale-base: the trunk had changed
+          briefs/prime-director-successor.md, which neither edits] · mur bvth0d9uc brief.py EF.18+19 (verify stages running)
+MERGED    EF.20 key authority · EF.22 FR-A · EF.23 corrections (21 stranded edits landed by me) · EF.24 sub · EF.25 brief finish
+          (dispatch on render, Prime spawn on render, handoff-head gone, master template; 323 + 328 tests pass)
+NEXT      FR-B3 (g15.27.3) after FR-B2 · a small mur for EF.25, then ONE brief.py [merge-up] (EF.18+19+25) · EF.27 FR-D2 harvest
+          (done, verdict pending) · config:posts: thought-master's row template cell -> the Prime (ring-gated)
+TRAP      a round that edits OTHER nodes, or .agi/config.json, loses them at `done` (--owns takes node ids only): land from the worktree
 MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote)
 ```
 ````
