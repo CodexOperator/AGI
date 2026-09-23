@@ -1,4 +1,5 @@
 AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -91,9 +92,8 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
          -> close in place -> the next [merge-up]
     orphans to leave: the failed first spawn's worktree .agi/worktrees/a00-8f615a6a + branch ...-ngram-sp-a00-8f615a6a (empty; my --memory 6), and the
          empty iter-OSC.12/a00-b0263b6d dir of the 20:26Z stale-base refusal
-2 [merge-up] 45aaa02779: TM's gate CLEAN (TMM.63; combined with director-engine's @a281bb0d85, the suite running on the combined tree) with ONE fix
-         -> DONE @ae6150cd2e (one commit over 45aaa02779: the OSC.11 Question line names GPU2070S; merged 24bb4fa4ab; told TM 21:3xZ) -> TM lands it
-         after director-engine; await its landing line
+2 [merge-up] LANDED at 5085dd5ef (TMM.65 21:4xZ, via the TMM.63 fix ae6150cd2e): OSC.09 + OSC.10 + OSC.11 + the OSC.12 mint; none of the suite's
+         reds is mine -- closed. TM's order: OSC.12's harvest next, THEN the LEAF sweep
 2b LEAF (TMM.63, after OSC.12): ONE sweep round -- every host-path literal in town code -> a paths.local_maxxing cell (paths.get / get_local; shell:
          V="$(python3 .agi/context/local-maxxing/paths.py <key>)"); new in my range: osc_band_kquant_a00-ddd4762f.py:20 HF (obp.HF owns it),
          serve/cold_first_round.py SC, serve/ub_prefill_round.py SC + CACHE, serve/osc09/router_mode_probe.sh the wikitext path; on the trunk:
