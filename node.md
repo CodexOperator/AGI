@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -47,7 +47,7 @@ TRAJECTORY  your town's todo — you write it, whole, one version per write
 ## §1 The master loop
 ```
 intake   one inbox read per nudge (never peek) · owner lines banked verbatim FIRST · an owner LINK: bank it, then run the ingestion workflow by name, detached -- never a director graph round (owner 09-18)
-PLAN     one goal or hypothesis per round under your town's goal: measured lines · CLAIM · FALSIFIERS · TESTS · FILE SCOPE · CEILING — via write.py
+PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — via write.py
 ORDER    your director, one tagged dm naming the node (queue words, §2) — the director dispatches, never you
 REVIEW   its [merge-up] BY NAME: workflow.py run agi-merge-up-review on pi (never the Claude Workflow tool) — read the bytes, not the report
 ACCEPT   a note naming config-max and template-max answered  ·  or DEMOTE: the verdict + the measured reason
