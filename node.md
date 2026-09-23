@@ -34,7 +34,7 @@ Raw output, screenshots, logs.
 Built the one-stream-two-renderers workflow surface in `workflow.py` (additive; touched no dispatch/brief/rotate/cli/zoom) and proved it with ONE real run of `review` on each harness.
 
 ## Build
-`RunView` — ONE run-event stream (`run_started`, `stage_resolved`, `stage_started`, `stage_finished`, `stage_failed`, `summary`), following goal:g9.7's one-render-two-readers pattern. After every event the full stage tree redraws live. `summary()` renders from stage order and statuses only — no harness token — so the same outcomes end byte-identically from either side. Both harness paths in `run_workflow` feed this object and nothing else. The pi path no longer prints flat log lines (`# dispatch`, `[ok]`); the claude-code describe path now feeds the same stream instead of printing `[claude-code]` lines. 4 new tests; suite 2109 passed, 1 skipped.
+`RunView` — ONE run-event stream (`run_started`, `stage_resolved`, `stage_started`, `stage_finished`, `stage_failed`, `summary`), following goal:g2.19's one-render-two-readers pattern. After every event the full stage tree redraws live. `summary()` renders from stage order and statuses only — no harness token — so the same outcomes end byte-identically from either side. Both harness paths in `run_workflow` feed this object and nothing else. The pi path no longer prints flat log lines (`# dispatch`, `[ok]`); the claude-code describe path now feeds the same stream instead of printing `[claude-code]` lines. 4 new tests; suite 2109 passed, 1 skipped.
 
 ## Proof — one workflow, both harnesses, same manifest
 claude-code (`run review --harness claude-code`):
