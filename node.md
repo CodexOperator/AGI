@@ -1,14 +1,13 @@
 ---
-id: goal:g15.13
+id: goal:g6.35
 mint_id: ee292e2e1a4144a5a1073484c2b95217
 type: goal
 parents:
-  - goal:g15
-  - build:bin-sensei
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.13
+edited_by: belam
+goal_id: G6.35
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -23,8 +22,8 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-thought_session: sensei-director-genI-L1
-title: "G15.13: sensei.py rotate-out-audit — the outgoing predecessor's rotate-out calls are classified by the tool that classifies the successor's wake"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.35: sensei.py rotate-out-audit — the outgoing predecessor's rotate-out calls are classified by the tool that classifies the successor's wake"
 town: core
 ---
 <!-- BODY:BEGIN -->
