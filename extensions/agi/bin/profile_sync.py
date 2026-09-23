@@ -69,7 +69,7 @@ def _frontmatter_text(text):
 
 def _raw_profile_ref(text):
     """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+    m = re.search(r"^\s*profile_ref\s*:\s*(.+?)\s*$", text, re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
@@ -99,7 +99,7 @@ def check_all(root):
                             "detail": f"{type(re_).__name__}: {re_}"})
                 continue
             fm = _frontmatter_text(raw)
-            if "profile_ref:" not in fm:
+            if not re.search(r"^\s*profile_ref\s*:", fm, re.M):
                 continue  # unparseable but not profile-linked: not ours
             out.append({"node_id": f.stem, "artifact": _raw_profile_ref(fm),
                         "actual": None, "expected": None, "path": str(f),
