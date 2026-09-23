@@ -1,0 +1,3 @@
+{"session_id": "grok-2026-09-22-abc123", "harness": "grok-bot", "started": "2026-09-22T10:00:00Z"}
+{"role": "user", "content": "Panes should reconnect after a restart.", "ts": "2026-09-22T10:00:01Z"}
+{"role": "assistant", "content": "I will check the pane spine and the hold route.", "ts": "2026-09-22T10:00:05Z"}
