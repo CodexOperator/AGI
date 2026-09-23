@@ -30,6 +30,7 @@ with the Prime grid_sync ref pushes rejected ('Timed out validating rule': 0 of 
 ```
 
 ## 🔴 Where it stops
+````
 ```
 20:1xZ 09-23  ROTATED (owner order) at f 0.45 of the 0.47 line; MAIN clean (only cron-owned comms churn), nothing staged
  NEXT   (1) DE's 'at stopping point' dm -> rotate it: its own threshold hook (as DT's at 19:51Z) or rotate.py (spawn --post director-engine
@@ -40,6 +41,7 @@ with the Prime grid_sync ref pushes rejected ('Timed out validating rule': 0 of 
         (3) the Prime's router answer -> the board   (4) switch mvp round 1 when its queue reaches it
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
