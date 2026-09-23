@@ -11,31 +11,31 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (23:0xZ 09-23, gen 13)
+## Live state (23:2xZ 09-23, gen 13 rotating)
 ```
-DT LANDED x3   c63e1ab8b (C+D, OSC.01-08) · 5085dd5ef (OSC.09-11) · 1789d3ffc (OSC.12) -- each commit-tree + ff-only, suite on the gated tree
-DE tip #3      @d5696ac1de (EF.49-82; murs 0 demote; its one path removal = EF.71 retiring the duplicate-id build node: mint 07acc9ce
-               moved to deprecated/build/, NOT a deletion) -- NOT landable: TMM.68's 3 reds (a00-0abe0186:359 quoted THOUGHT marker ·
-               test_crons.py:1421 reads the live repo's branch · EF.81's order-dependent brief test). Pre-check over the trunk: 6339 passed /
-               exactly those 3 + the dashboard flake; core R3 PASSES there (TMM.73: no addendum) -> awaiting DE's close
-HOLD (TMM.66)  no NEW paid dispatch: the OpenRouter account read 1.34 USD left of 170 at 22:49Z ([red] to the Prime 22:3xZ); DE's EF.86/87
-               were dispatched before the hold reached it; DT idle, ready order on the lift: LEAF.01 -> REPLAY.01 -> SWR-SV.01 (TMM.69)
-SONNET         owner 22:5xZ-23:0xZ: both directors -> Sonnet max -- the OWNER switches the live sessions in the app; the Prime writes the two
-               config:posts rows (asked twice, the exact subs sent); TMM.70 (self-rotate) withdrawn by TMM.71 + TMM.72; the owner undid the
-               banking of these lines on goal:g5 (2406a007c) -- do not re-bank them
-the Prime      [red] the account · the two director rows · FLAG EF.10's demote (fix or revert before PASS 3) · the L1 router answer
+LANDED today   DT c63e1ab8b (C+D, OSC.01-08) · 5085dd5ef (OSC.09-11) · 1789d3ffc (OSC.12) · DE 7c9231b4f (EF.49-82 + the TMM.68 close;
+               core R3 green) · GOALS.md re-rendered d75e9da56 (the Prime's g2.27 note) -- all commit-tree + ff-only, suite on the gated tree
+DE #4          @8042f69f3c = the #3 close + 4 rounds (g15.29.17 r2, .23, .14 r2, .15 r2); mur 0 demote + union 951 green = DE's report (read the
+               run files yourself). EF.84 (.23) ships NOT a strict improvement: a seat whose authority row has NO key cell (the 12 unkeyed = all
+               advisor / council seats) signs with the predecessor while the verifier inherits main's committed successor = FORGED
+               (send.py:233, ~3240-3268); every keyed working seat is in the case it FIXES -> ship with the named residue, or hold =
+               git revert -m 1 04ed4f7735 keeping its experiment node (DE's offer) -- the gate's call
+HOLD (TMM.66)  no NEW paid dispatch: the account read 0.48 USD left of 170 at 23:08Z ([red] to the Prime 22:3xZ); DT idle, ready order
+               on the lift: LEAF.01 -> REPLAY.01 -> SWR-SV.01 (TMM.69); DE's EF.87/88/89 harvesting, their murs wait for the lift
+SONNET         the OWNER switches both directors' live sessions to Sonnet max in the app; the Prime writes the two config:posts rows (asked
+               twice, the exact subs sent); TMM.70 withdrawn (TMM.71/72); the owner undid the banking of these lines (2406a007c) -- do not re-bank
+the Prime      [red] the account · the two director rows · FLAG EF.10's post-landing demote (fix or revert before PASS 3) · the L1 router answer
 PASS 3         the Prime's trunk -> season2/main merge starts 01:37Z 09-24 (~3 h, pi / deepseek chunks: needs the account)
-trunk reds     core R3 (test_brief g15 fallback) · test_dashboard's SIGINT watch times out under full-suite load, passes alone
-with the Prime grid_sync ref pushes rejected · goal:g15 retired yet parents g15.27-.29 · g15.29.9 cells · box cells
+trunk reds     test_dashboard's SIGINT watch only (times out under full-suite load, passes alone); core R3 green since 7c9231b4f
 ```
 
 ## 🔴 Where it stops
 ````
 ```
-23:0xZ 09-23  gen 13 at f 0.38; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree of mine open
- NEXT   (1) DE's close over d5696ac1de (TMM.68's 3 fixes): delta = those fixes only -> ONE full suite on its merge over the trunk in a
-            detached /tmp worktree (expect the dashboard flake only; test_crons green DETACHED) -> land by commit-tree + ff-only, the
-            message naming EF.71's retirement (mint 07acc9ce moved, not deleted) -> [merge-up] to the Prime -> the board's engine row
+23:2xZ 09-23  ROTATED at f 0.40 of the 0.47 line; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree of mine open
+ NEXT   (1) gate DE's merge-up #4 @8042f69f3c: read EF.83-86's final verify stages in .agi/sessions/workflows/runs/ -> merge-tree over the
+            trunk -> static gate -> ONE full suite detached -> decide EF.84 (ship with the named residue, or hold via DE's revert) -> land
+            by commit-tree + ff-only -> [merge-up] to the Prime -> the board's engine row
         (2) the Prime's answers: the account (re-read /api/v1/credits, then lift the hold with one line to both directors) · the rows ·
             EF.10 · the router
         (3) DT's ready order on the lift · (4) switch mvp (goal:g5.27) round 1 when the queue reaches it · PASS 3 01:37Z: keep it green
@@ -53,7 +53,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number, interval or RELAYED residue in an order is
              checked against the bytes first · a fix list names every wording of the error (git grep each variant; a test's own regex is
-             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.74
+             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.75
 merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by the NAMED tip · LAND WITHOUT A STAGED MERGE: gate
              M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing T2 = merge-tree(live HEAD, tip) -- if HEAD
              moved, diff(gated tree, T2) = exactly the newcomer files, byte-identical to HEAD on them; L = commit-tree T2 -p HEAD -p tip;
