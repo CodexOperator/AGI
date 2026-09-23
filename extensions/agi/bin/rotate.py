@@ -20782,7 +20782,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
               "composes a broken `claude --resume  --fork-session` that "
               "silently loses context); nothing touched")
         return 1
-    branch = f"refs/agi/posts/{args.post}"
+    branch = _migrate_post_ref(root, args.post)
     print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
     for i, step in enumerate((
             "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
@@ -20834,6 +20834,19 @@ def _migrate_default_mode(root: Path, post: str) -> str:
     return "rotate"
 
 
+def _migrate_post_ref(root: Path, post: str) -> str:
+    """The post's ONE mirror-ref spelling (`branches.mirror_ref`), season
+    read from the ladder -- never a second hand-rolled post ref literal."""
+    season = 0
+    try:
+        import spawn_gate  # noqa: PLC0415 -- local: same dir, no cycle
+        season = int(spawn_gate.read_ladder_season(
+            _shared_graph_root(root) / "nodes") or 0)
+    except Exception:  # noqa: BLE001 -- no ladder -> season 0 (ref is flat)
+        season = 0
+    return branches.mirror_ref(season, "posts", post)
+
+
 def _migrate_row(root: Path, post: str) -> dict:
     """The post's committed identity row (MAIN's graph), {} when absent."""
     import write
@@ -20883,7 +20896,7 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
     successor on THIS box (mode rotate = the ordinary spawn from row+card;
     mode fork = the transcript copy + the exact resume command). Returns the
     identity cells the seating produced; tests monkeypatch THIS."""
-    ref = rec.get("branch") or f"refs/agi/posts/{post}"
+    ref = rec.get("branch") or _migrate_post_ref(root, post)
     # R1: the worktree path is the row's OWN configured cell when it carries
     # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
     # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
@@ -20955,6 +20968,7 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
     import send
+    import write
     try:
         me = boxes.this_box(root)
     except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
@@ -21012,6 +21026,14 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
             print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
                   f"ref {rec.get('branch')}); nothing touched")
             continue
+        # FR-B2 conjunct A: resolve the seating grant BEFORE any seating. No
+        # grant -> `_migrate_seat` is NEVER called (no worktree, no spawn, no
+        # row cell), the request is byte-identical and the record skips BY NAME.
+        master = _migrate_seating_actor(root)
+        if not master:
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(record {path.name} skipped, tick lives)")
+            continue
         try:
             cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
         except OSError as exc:
@@ -21028,21 +21050,22 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                          if cells.get(k) is not None}
         seat_cells = {k: cells[k] for k in ("box", "worktree")
                       if cells.get(k) is not None}
-        line = ""
-        if session_cells:
-            line = _write_identity_cells(
-                root, seat=post, actor=post,
-                role=str(row.get("role") or "director"), cells=session_cells)
-        master = _migrate_seating_actor(root) if seat_cells else ""
-        if seat_cells and master:
-            seated_line = _write_identity_cells(
-                root, seat=post, actor=master, role="", cells=seat_cells)
-            line = f"{line}; {seated_line}" if line else seated_line
-        elif seat_cells:
-            # SLICE 6: no seating grant -> no ack, request record left as it
-            # was (a receive that could not seat has not seated).
-            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
-                  f"(the seating cells were not written)")
+        # FR-B2 conjunct B: an inadmissible grant raises write.EditError from
+        # the ONE writer; catch it BY NAME so a later good record still seats.
+        try:
+            line = ""
+            if session_cells:
+                line = _write_identity_cells(
+                    root, seat=post, actor=post,
+                    role=str(row.get("role") or "director"),
+                    cells=session_cells)
+            if seat_cells:
+                seated_line = _write_identity_cells(
+                    root, seat=post, actor=master, role="", cells=seat_cells)
+                line = f"{line}; {seated_line}" if line else seated_line
+        except write.EditError as exc:
+            print(f"SKIP: migrate record {path.name} for {post} identity write "
+                  f"refused ({exc}); record skipped, tick lives")
             continue
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)
