@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g3
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G3.1
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G3.1: `evidence_runs` must resolve to a real node"
 ---
 🔴 **The evidence metric was itself gamed, and by the cheapest possible move.**
