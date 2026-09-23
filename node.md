@@ -1,13 +1,13 @@
 ---
-id: goal:g14.14.7
+id: goal:g7.33.7
 mint_id: 5e24ca245f234d0fafa63c26a640e1fc
 type: goal
 parents:
-  - goal:g14.14
+  - goal:g7.33
 next_edges: []
 confidence: 0.8
 edited_by: director-engine
-goal_id: G14.14.7
+goal_id: G7.33.7
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -40,3 +40,7 @@ Falsifiers. The round is falsified if a tree with no storage_trunk configured re
 Done when. The hypothesis lands a verdict against its own falsifiers: default tree byte-identical, a configured trunk isolates its versions, crons.py has one spelling, engine suite green. Migration for this box (storage_trunk=refs/grid/local-maxxing/ then grid.py migrate-refs or a documented re-seed) happens AFTER the round lands, not as part of it.
 
 First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, the whole round (a) through (d) as one testable claim, per the goal g14.14.7 body describing ONE round rather than independent lettered items.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.14.7 -> g7.33.7 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
