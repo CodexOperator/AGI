@@ -7,7 +7,7 @@ parents:
 next_edges:
   - hypothesis:per-spawn-keys-cost-under-a-second
 confidence: 0.9
-edited_by: season.py
+edited_by: belam
 goal_id: G1.11
 goal_kind: subgoal
 heading_level: 3
@@ -18,7 +18,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.11: A fresh, credit-capped provider key per spawn — not one key for the whole run"
 ---
 **Today every spawned agent inherits the same long-lived
