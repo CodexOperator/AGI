@@ -1,13 +1,13 @@
 ---
-id: goal:g17.8
+id: goal:g7.21
 mint_id: 197a2b907bda40cdb229cf1db2eb3f1c
 type: goal
 parents:
-  - goal:g17
+  - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G17.8
+edited_by: belam
+goal_id: G7.21
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,12 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G17.8: Messaging restrictions — each role reaches only a defined subset of seats"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7.21: Messaging restrictions — each role reaches only a defined subset of seats"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.21
+
 **Each role can reach only a defined subset of the other role seats.** Brief point **B8** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
