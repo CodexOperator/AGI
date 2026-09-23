@@ -193,6 +193,31 @@ def test_no_captive_cell_is_off_by_name(tmp_path, capsys, monkeypatch):
     assert _captures() == [], hook._CAPTURE_LOGGED
 
 
+def test_masters_only_without_ratio_is_off_by_name(tmp_path, capsys, monkeypatch):
+    """EF.22 conjunct 3: `captive_rotate_masters: true` with NO
+    `captive_rotate_ratio` is OFF BY NAME -- not the pre-fix silent 0.85
+    literal. f=0.42 >= 0.85*0.4 = 0.34, so the 0.85 fallback fired (RED-FIRST).
+    """
+    graph, cwd = _graph(tmp_path, extra="captive_rotate_masters: true\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
+    assert code == 0, cap.err
+    assert _captures() == [], hook._CAPTURE_LOGGED
+
+
+def test_unparseable_ratio_is_off_by_name(tmp_path, capsys, monkeypatch):
+    """EF.22 conjunct 3: an UNPARSEABLE `captive_rotate_ratio` is OFF BY NAME
+    -- not the pre-fix silent 0.85 literal (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path,
+                        extra="captive_rotate_ratio: not-a-number\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
+    assert code == 0, cap.err
+    assert _captures() == [], hook._CAPTURE_LOGGED
+
+
 def test_hook_subprocess_reads_seat_rows_on_its_own_path(tmp_path):
     """Production-dead regression: executed directly (as `~/.claude/settings
     .json` does), the hook must put its own `src/` on sys.path. Without it

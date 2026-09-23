@@ -786,15 +786,25 @@ def _stops_line(root: Path, seat: str) -> str:
 
 
 def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
-                         minutes: int, state_dir: Path | None) -> tuple[bool, str | None]:
+                         minutes: int, state_dir: Path | None,
+                         session_id: str = "") -> tuple[bool, str | None]:
     """The FORCE decision, shared by the over-line gate and the below-line
     `rotate now` path: card STILL stale `minutes` after the first fire ->
-    capture. `(handled, which)`; not handled = stamp absent/young (P7)."""
+    capture. `(handled, which)`; not handled = stamp absent/young (P7).
+
+    EF.22: a stamp NAMING another session reads as ABSENT (legacy/none stands)."""
     p = (state_dir or Path(f"/tmp/agi-rotation-{os.getuid()}")) / f"capture-{seat}.json"
+    first = 0
+    stamp_session = ""
     try:
-        first = int(json.loads(p.read_text()).get("first", 0))
+        blob = json.loads(p.read_text())
+        first = int(blob.get("first", 0))
+        stamp_session = str(blob.get("session") or "")
     except Exception:   # pylint: disable=broad-except
         first = 0
+        stamp_session = ""
+    if session_id and stamp_session and stamp_session != session_id:
+        return False, None
     if not (first and minutes and (time.time() - first) >= minutes * 60):
         return False, None
     try:
@@ -868,13 +878,14 @@ def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
     `captive_rotate_ratio` x the line a DIRECTOR is rotated by the engine
     ITSELF — the card as it stands, AUTO-CAPTURED, no consent asked and no
     `card_capture_minutes` waited on. OFF BY NAME until a captive cell exists."""
-    if not seat or not ("captive_rotate_ratio" in ladder
-                        or "captive_rotate_masters" in ladder):
+    if not seat or "captive_rotate_ratio" not in ladder:
         return False
     try:
-        ratio = float(ladder.get("captive_rotate_ratio", 0.85))
+        ratio = float(ladder["captive_rotate_ratio"])
     except (TypeError, ValueError):
-        ratio = 0.85
+        # EF.22 conjunct 3: absent/unparseable ratio is OFF BY NAME, never
+        # the pre-fix silent 0.85 literal.
+        return False
     masters = str(ladder.get("captive_rotate_masters", "false")).strip().lower() \
         in ("1", "true", "yes", "on")
     if fraction < ratio * threshold:
@@ -1048,7 +1059,7 @@ def _gated_rotate(root: Path, seat: str, session_id: str = "",
     if stale:
         print(f"  {clear_line}")
         handled, which = _maybe_force_capture(root, seat, card, fraction,
-                                              minutes, state_dir)
+                                              minutes, state_dir, session_id)
         if handled:
             return which
         print("[rotation] card-age captive: the seat card is older than the "
@@ -1412,9 +1423,18 @@ def main(argv: list[str] | None = None) -> int:
     rotate_now = _rotate_now_unread(root, seat)
     if over_line or rotate_now:
         fp = state_dir / f"capture-{seat or 'noseat'}.json"
-        if not fp.exists():
+        # EF.22: name the writing session; re-stamp on a DIFFERENT session.
+        cur = session_id or ""
+        old = ""
+        if fp.exists():
             try:
-                fp.write_text(json.dumps({"first": int(time.time())}))
+                old = str(json.loads(fp.read_text()).get("session") or "")
+            except Exception:   # pylint: disable=broad-except
+                old = ""
+        if not fp.exists() or (old and old != cur):
+            try:
+                fp.write_text(json.dumps({"first": int(time.time()),
+                                          "session": cur}))
             except OSError:
                 pass
     # Find the highest band the current fraction crosses (below the line).
@@ -1489,7 +1509,8 @@ def main(argv: list[str] | None = None) -> int:
         stale, _clear = _card_stale_measure(root, seat, card)
         if stale:
             _handled, which = _maybe_force_capture(root, seat, card, fraction,
-                                                   capture_minutes, state_dir)
+                                                   capture_minutes, state_dir,
+                                                   session_id or "")
             if which:
                 print(f"{DEFER_PREFIX} ({which}) — the hook could not capture "
                       "this seat's card; re-check on the next prompt.")
