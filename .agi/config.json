@@ -129,7 +129,7 @@
     "max_live": 30,
     "credential": {
       "provider": "openrouter",
-      "per_spawn_limit_usd": 1.5,
+      "per_spawn_limit_usd": 1.0,
       "ttl_minutes": 180,
       "workspace_id": "e31711fe-f121-4904-abe3-c54e7bcbe7e6"
     },
@@ -138,7 +138,7 @@
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
-    "min_account_remaining_usd": 1.6
+    "min_account_remaining_usd": -100.0
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,

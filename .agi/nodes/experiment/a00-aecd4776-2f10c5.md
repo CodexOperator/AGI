@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-magic-pane-detector-predicts-the-form-from-the-first-prose-tokens
 next_edges: []
 confidence: 0.85
-edited_by: belam
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-aecd4776-2f10c5
 line_ceiling: 200
@@ -87,7 +87,7 @@ label list in a fixed order the 9B answers the first-listed label for ~74% of
 segments (0.110 accuracy); shuffling the list spreads the predictions and lifts
 accuracy to 0.270/0.287, still below the majority baseline. (b) The thinking
 path does not rescue it: a 30-segment probe with `enable_thinking: true`
-scored 0/30 and a 12.3 s median latency, so it is worse on both axes.
+scored 0/30 and a 12.3 s median latency, so it is worse on both axes. [UNEVIDENCED (TMM.39): no committed artifact backs this 30-segment thinking probe -- the 0/30 and 12.3 s figures are unverified.]
 
 **Verdict, corrected post-review (was `disproved` at mint, demoted by the
 parent before landing):** this measurement is VOID, not a falsifier-hold --
