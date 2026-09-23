@@ -13,7 +13,7 @@ Owner lines: in nodes (`goal:g14` for this box; `doc:l4-owner-decisions`, `doc:l
 | tests | 5804 / 18 / 26 at 701ac93bc; the 18 = box-env (10 git identity, 4 node — node now present, re-measure; 2 ws_raw; 1 provisioning, now available). `bin-suite-fresh` FAIL = no suite timestamp ever on this box (L5). |
 | spend | provisioning available (Doppler agi/dev key in MAIN `.env`), **12.15 USD left at 01:25Z 09-21**, floor 1.6; `OPENROUTER_API_KEY` empty by design. |
 | harness | node 24.21.0 · pi 0.67.68 `/home/belam/.npm-global/bin/pi` · `PI_BIN`+`PATH` in profile + tmux -g (05:22Z 09-20; pre-05:22Z sessions prefix inline) · `workflow.py --harness pi` works here ONLY because the config's `/home/ubuntu/…/pi` path was made to exist (L1). |
-| meter | pin `.agi/sessions/belam.meter` → this transcript; rotate at f ≥ 0.47, plain `rotate` (F23), stops slot first. |
+| meter | pin `.agi/sessions/belam.meter` → this transcript; **0.468 at 08:2xZ 09-23 → rotated**; plain `rotate` (F23), stops slot first. |
 
 ## §1 Plan
 ```
@@ -38,7 +38,15 @@ e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d dia
 
 ## §3 🔴 Where it stops
 ```
-07:4xZ 09-23 LIVE (gen 1 on Opus 5.5, resurrected from archive by the owner 06:5xZ). CORE SYNC DONE: trunk = 8451055b5 (core @f655a6714 merged; 82 core goal renumbers + 8 town goals renumbered to match; pushed); residues = hypothesis:core-sync-0923-residues (director-engine; core-side items flagged). PASS 2 one-shot 0e5063c3 at 11:41Z 09-23 (AMENDED: town rounds + core-sync round + engine-delta; core's own rounds stay core's). Daily cron c5f0b2f3. Before the next Prime rotation: nothing extra (agi-reaper was never active on this box). A successor re-arms the daily cron FIRST, then the pass-2 one-shot if it has not fired.
+08:2xZ 09-23 ROTATING at the line (gen 1, meter 0.468, Opus 5.5). FIRST, in order:
+ 1. RE-ARM the two session crons from .agi/sessions/prime-merge.crons.md (daily "13 8 * * *" + PASS 2 one-shot "41 11 23 9 *"; if 11:41Z is past, run PASS 2 at once under case (d)). gen 1 deleted its own copies before rotating.
+ 2. DOC UNIFICATION PASS (owner 08:1xZ 09-23, verbatim on goal:g14): 'let's do a doc unification pass ... in the L6 doc ... most of it can be done very simply via graph writes. Don't touch the complicated parts of L6 just the doc simplification part. Just look at how the chain SoT doc for grokbot is structured.'
+    L6 doc = doc:s3-plan (title 'L6 plan'); the doc part = HEAD 1.5 'card, brief, role doc ... = views' — the RENDERER (brief.py render) is code: OUT of scope; do the graph-write half only.
+    MODEL (core's grok chain SoT): doc:standing-llm-ops (now a STUB, folded 09-22) -> doc:director-grok-internals [PLACEHOLDERS · SECTION:PROFILE (TOWN · BRANCH · GRAPH COORD · NESTED GOAL AUTHORITY (HARD) · STANDING byte-identical) · SECTION:ROUTINE_SYNC · SECTION:ROUTINE_WATCH] + doc:belam-grok-internals (Prime) + doc:grok-harness-internals-sync (post-agnostic seed + sync recipe).
+    CLAUDE SIDE TODAY (bytes): unified-director-brief 27070 (§0-§4 + per-master sections sanctuary/thought/prime) · lm-director-brief-customizations 9031 · cards TM 11584 / DT 6235 / DE 4096 · briefs/*-duties 5-12 KB · SKILL.md 58377 · l3-command-ladder-brief 76477 · prime brief 8.8 KB.
+    TARGET (owner: 1-2 role docs + 1-2 unified docs): e.g. doc:director-claude-internals in the grok shape (fold unified-director-brief + lm-director-brief-customizations) + the Prime brief in the same shape; cards thin (identity + stops + pointer). write.py create/replace body only; no engine code; owner verbatim stays in nodes.
+ 3. Town: thought-master @3 · director-thought @4 · director-engine @5 resumed on Opus 5.5 (rows df483f001, pins set, seat models match). TM runs experiments through DT (owner focus); DE HELD on g7.33 (core's). TM's board = town:local-maxxing trajectory_standin (schema grant).
+Then as before: daily activation + passes; quiet push-only · batch-max · diagram-max.
 ```
 
 ## §4 Traps (this session)
