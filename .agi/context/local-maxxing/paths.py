@@ -3,7 +3,7 @@
 
 Every filesystem path these scripts rely on is a named variable under
 `paths.local_maxxing` in the nearest enclosing `.agi/config.json`
-(goal:g14 / hypothesis:lm-every-experiment-path-is-a-config-variable).
+(goal:g5 / hypothesis:lm-every-experiment-path-is-a-config-variable).
 
 Values are REPO-RELATIVE (they resolve against `box.root`, the config's own
 box root -- never the nearest `.agi`, never cwd, never this file's location).
@@ -12,8 +12,14 @@ A value may carry the placeholders `{root}` (= `box.root`) and `{pi_home}` /
 cell is available under its own bare name too. After substitution an absolute
 value is returned unchanged; a relative one is joined onto `box.root`.
 
-    python3 .agi/context/local-maxxing/paths.py <key>   # -> resolved value
-    from the importable accessor: paths.get("<key>")    # when imported
+The one exception is get_local() (OSC.01): the same value, but a relative one
+is joined onto the CHECKOUT holding the `.agi/config.json` it read -- for the
+inputs and outputs a round keeps in its own worktree, and on a box whose
+`box.root` cell is stale.
+
+    python3 .agi/context/local-maxxing/paths.py <key>          # -> resolved value
+    python3 .agi/context/local-maxxing/paths.py --local <key>  # -> checkout-anchored
+    from the importable accessor: paths.get("<key>") / paths.get_local("<key>")
 
 Unknown key -> message on stderr, exit 1.
 
