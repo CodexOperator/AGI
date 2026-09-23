@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-class-conditional-t-recovers
 next_edges: []
 confidence: 0.9
-edited_by: a00-dd74a6eb
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-2bfe6e45-9d9f08
 line_ceiling: 120
@@ -35,7 +35,7 @@ verdict: disproved
 
 Probe `.agi/sessions/iter-TM.72/a00-2bfe6e45/probe_cls_t.py`, 0 API calls,
 CPU/NumPy only. 507 usable verdict rows (169 acts x 3 repeats) from
-`.agi/context/local-maxxing/typesafe/acts_replay_scrub.jsonl`; q2 class tag = `labels.q2` in {accept(303), demote(204)}; gold = `labels.q1`; ECE B = top-1
+`datasets/jev-typed-acts/acts_replay_scrub.jsonl`; q2 class tag = `labels.q2` in {accept(303), demote(204)}; gold = `labels.q1`; ECE B = top-1
 NLL-free binning on `max(probabilities)`, 10 equal-width bins (m=10 reproduces
 the TM.57 full-corpus `ece_A` = 0.3171794871794872 EXACTLY, so the metric
 matches the reference); ECE A = `answers.q1.confidence`. 50/50 split by verdict
