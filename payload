@@ -165,8 +165,6 @@ class Edit:
     sub_diff: str = ""
     sub_count: int = 0
     sub_resolved: bool = False
-    # conjunct 3: one `(target, old, new, all)` op per `sub`; applied in order.
-    sub_ops: list = field(default_factory=list)
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -458,16 +456,13 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
 def verb_sub(edit: Edit, spec: str) -> Edit:
     """`sub <old> => <new>` -- one literal occurrence."""
     text = spec.strip()
-    target = ""
     if text.startswith("payload "):
-        target, text = "payload", text[8:].strip()
+        edit.sub_target, text = "payload", text[8:].strip()
     if " => " not in text:
         raise EditError(f"sub needs `sub <old> => <new>`, got {spec!r}")
-    old, new = text.split(" => ", 1)
-    if not old:
+    edit.sub_old, edit.sub_new = text.split(" => ", 1)
+    if not edit.sub_old:
         raise EditError("sub `<old>` is empty -- nothing written")
-    edit.sub_ops.append((target, old, new, False))
-    edit.sub_target, edit.sub_old, edit.sub_new = target, old, new
     return edit
 
 
@@ -475,8 +470,6 @@ def verb_sub_bang(edit: Edit, spec: str) -> Edit:
     """`sub!` -- every occurrence, count printed."""
     verb_sub(edit, spec)
     edit.sub_all = True
-    _t, _o, _n, _a = edit.sub_ops[-1]
-    edit.sub_ops[-1] = (_t, _o, _n, True)
     return edit
 
 
@@ -1956,10 +1949,6 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
 
-    # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
-    # too; main already resolved it for its preview (idempotent).
-    _resolve_sub(root, edit)
-
     # A link_ref/payload_ref resolving outside the repo tree is refused before
     # any write; the SAME predicate links.py's schema report calls. It judges
     # the EFFECTIVE frontmatter: a value this edit SETS, else ABSENT when this
@@ -1994,6 +1983,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the range while reporting success. Idempotent: main has already resolved
     # it for its --dry-run preview, and this must not read stdin a second time.
     _resolve_replace_text(edit)
+    # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!` resolve into
+    # `set_fm` / `sub_body` / `payload_bytes` BEFORE the gate below, so the
+    # changed frontmatter fields are exactly what the ring/schema gates see.
+    _resolve_sub(root, edit)
 
     _ring_out: dict = {}
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
@@ -2210,65 +2203,47 @@ def _splice_range(text: str, rng: str, new: str) -> str:
 
 
 def _resolve_sub(root, edit: Edit) -> None:
-    """Resolve every `sub` op, composing in order (conjunct 3)."""
-    if edit.sub_resolved or not edit.sub_ops:
+    """Resolve `sub`/`sub!` into set_fm/body/payload_bytes; 0 or 2+ refuse."""
+    if not edit.sub_old or edit.sub_resolved:
         return
-    node_before = node_after = None
-    payload_before = payload_after = None
-    node_label = edit.node_id
-    payload_label = ""
-    total = 0
-    for target, old, new, all_ in edit.sub_ops:
-        if target == "payload":
-            if payload_before is None:
-                ref, loc = _payload_ref(root, edit)
-                payload_before = payload_after = _read_payload_bytes(
-                    root, ref, loc)
-                payload_label = ref
-            before, label = payload_after, payload_label
-        else:
-            if node_before is None:
-                path = node_writer.find_node_file(root, edit.node_id)
-                if path is None:
-                    raise EditError(f"no node file for {edit.node_id}")
-                node_before = node_after = path.read_text(encoding="utf-8")
-            before, label = node_after, node_label
-        n = before.count(old)
-        if n == 0:
-            raise EditError(f"sub: 0 occurrences of {old!r} in "
-                            f"{label} -- nothing written")
-        if not all_ and n != 1:
-            raise EditError(f"sub: {n} occurrences of {old!r} in "
-                            f"{label}; use sub! -- nothing written")
-        after = before.replace(old, new, -1 if all_ else 1)
-        total += n if all_ else 1
-        if target == "payload":
-            payload_after = after
-        else:
-            node_after = after
-    if payload_after is not None:
-        edit.payload_bytes = payload_after
-    if node_after is not None:
-        old_fm = frontmatter.read_frontmatter(node_before)
-        new_fm = frontmatter.read_frontmatter(node_after)
+    if edit.sub_target == "payload":
+        ref, loc = _payload_ref(root, edit)
+        before, label = _read_payload_bytes(root, ref, loc), ref
+    else:
+        path = node_writer.find_node_file(root, edit.node_id)
+        if path is None:
+            raise EditError(f"no node file for {edit.node_id}")
+        before, label = path.read_text(encoding="utf-8"), edit.node_id
+    n = before.count(edit.sub_old)
+    if n == 0:
+        raise EditError(f"sub: 0 occurrences of {edit.sub_old!r} in "
+                        f"{label} -- nothing written")
+    if not edit.sub_all and n != 1:
+        raise EditError(f"sub: {n} occurrences of {edit.sub_old!r} in "
+                        f"{label}; use sub! -- nothing written")
+    after = before.replace(edit.sub_old, edit.sub_new,
+                           -1 if edit.sub_all else 1)
+    if edit.sub_target == "payload":
+        edit.payload_bytes = after
+    else:
+        old_fm = frontmatter.read_frontmatter(before)
+        new_fm = frontmatter.read_frontmatter(after)
         if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
-            raise EditError(f"sub would break frontmatter in {node_label} -- "
+            raise EditError(f"sub would break frontmatter in {label} -- "
                             f"nothing written")
         if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
             raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
                             "-- nothing written")
-        changed = {k: v for k, v in new_fm.items()
-                   if k not in PROTECTED and old_fm.get(k) != v}
-        for k, v in changed.items():
-            refusal = _refuse_marker_value(k, v)
-            if refusal:
-                raise EditError(refusal)
-        edit.set_fm.update(changed)
-        ob = frontmatter.split_frontmatter(node_before)[1]
-        nb = frontmatter.split_frontmatter(node_after)[1]
+        edit.set_fm.update({k: v for k, v in new_fm.items()
+                            if k not in PROTECTED and old_fm.get(k) != v})
+        ob = frontmatter.split_frontmatter(before)[1]
+        nb = frontmatter.split_frontmatter(after)[1]
         if nb != ob:
             edit.sub_body = nb
-    edit.sub_count, edit.sub_resolved = total, True
+    edit.sub_count, edit.sub_resolved = n, True
+    edit.sub_diff = "".join(difflib.unified_diff(
+        before.splitlines(True), after.splitlines(True),
+        fromfile=f"a/{label}", tofile=f"b/{label}"))
 
 
 # --------------------------------------------------------------------------
@@ -2654,31 +2629,6 @@ def _compose_body(root, edit: Edit) -> str:
     return body
 
 
-def _landed_node_text(root, edit: Edit, actor: str = "",
-                      session: str = "") -> str:
-    """The bytes `update_node` would write; the conjunct-4 preview diff."""
-    from graph_core.persistence import frontmatter as fm_reader
-    path = node_writer.find_node_file(root, edit.node_id)
-    if path is None:
-        raise EditError(f"no node file for {edit.node_id}")
-    nf = fm_reader.load_node_file(path)
-    fm = dict(nf.frontmatter)
-    for key in edit.unset_fm:
-        fm.pop(key, None)
-    new_body = nf.body
-    if edit.body_append or edit.thought:
-        new_body = _compose_body(root, edit)
-    elif edit.sub_body:
-        new_body = edit.sub_body
-    fm.update(edit.set_fm or {})
-    fm[PROVENANCE_ACTOR] = actor or _default_actor()
-    if session:
-        fm[PROVENANCE_SESSION] = session
-    fm, new_body, _ = node_writer._absorb_leading_frontmatter(fm, new_body)
-    return node_writer._serialize_node(node_writer.render_frontmatter(fm),
-                                       new_body)
-
-
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            body: str | None = None,
@@ -2947,7 +2897,7 @@ def main(argv: list[str] | None = None) -> int:
     # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
     # refusal prints ERR and writes nothing. submit() re-resolves idempotently
     # for an API caller.
-    if edit.sub_ops:
+    if edit.sub_old:
         try:
             _resolve_sub(root, edit)
         except EditError as exc:
@@ -3102,17 +3052,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
         if edit.sub_resolved:
-            _base = Edit(node_id=edit.node_id)
-            _before = _landed_node_text(root, _base, actor=args.actor,
-                                        session=args.session)
-            _after = _landed_node_text(root, edit, actor=args.actor,
-                                       session=args.session)
-            _sdiff = "".join(difflib.unified_diff(
-                _before.splitlines(True), _after.splitlines(True),
-                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}"))
-            edit.sub_diff = _sdiff
-            sys.stdout.write(_sdiff)
-            if _sdiff and not _sdiff.endswith("\n"):
+            sys.stdout.write(edit.sub_diff)
+            if edit.sub_diff and not edit.sub_diff.endswith("\n"):
                 sys.stdout.write("\n")
             print(f"  sub     {edit.sub_count} match(es) of "
                   f"{edit.sub_old!r} -> {edit.sub_new!r}")
