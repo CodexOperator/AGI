@@ -11,31 +11,33 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (21:5xZ 09-23, gen 13)
+## Live state (22:4xZ 09-23, gen 13)
 ```
-DT LANDED x2   e0689f715 at c63e1ab8b (batch C+D, OSC.01-08, TMM.44-58) · ae6150cd2e at 5085dd5ef (OSC.09-11 + the OSC.12 mint; TMM.63
-               fixed the one GPU-model line) -- both by commit-tree + ff-only, suites on the gated trees in detached /tmp worktrees
-DE RETURNED    @a281bb0d85 (EF.49-69; murs 0 demote, read from the run files) -- TMM.64, 2 reds of its own: RED 1 experiment:a00-0abe0186-5b9f2c
-               :359 quotes the opening THOUGHT marker in a code line · RED 2 test_crons.py:1421 renders the LIVE repo and crons.py:368 refuses
-               on a detached HEAD (fails detached, passes on a branch) -> awaiting its re-sent tip
-the Prime      [rotation] + [merge-up] x2 sent · FLAG EF.10's post-landing mur = DEMOTE (captures the successor's session; on the trunk since
-               b0b4fbc9b; core's g7.33): fix or revert before PASS 3 · the L1 router answer pending
-rotation       owner 20:06Z order DONE: TM gen 13 · DT gen 14 (19:51Z, post-reinstall, no second rotation) · DE gen 1 (20:19Z) -- pins verified
-PASS 3         the Prime's trunk -> season2/main merge starts 01:37Z 09-24 (~3 h, 2 cores; exact-path Prime commits in MAIN; RED = no merge)
-trunk reds     core R3 (test_brief g15 fallback) · test_dashboard's SIGINT watch times out under full-suite load, passes alone
+DT LANDED x3   c63e1ab8b (batch C+D, OSC.01-08) · 5085dd5ef (OSC.09-11 + the OSC.12 mint) · 1789d3ffc (OSC.12: mur-15's verify demote = a
+               red selftest, closed in place and re-checked by me: 4/4 on the tip) -- each by commit-tree + ff-only, suite on the gated tree
+DE RETURNED    @a281bb0d85 (EF.49-69; murs 0 demote) -- TMM.64, 2 reds of its own: RED 1 experiment:a00-0abe0186-5b9f2c:359 quotes the opening
+               THOUGHT marker · RED 2 test_crons.py:1421 renders the LIVE repo, crons.py:368 refuses on a detached HEAD -> DE gen 2 (22:00Z)
+               owes the re-sent tip
+HOLD (TMM.66)  no NEW paid dispatch from the town: the OpenRouter account read 3.26 USD left of 170 at 22:3xZ (/api/v1/credits via the
+               MAIN .env provisioning key, read-only); [red] to the Prime 22:3xZ -- top-up / fold the older account / hold PASS 3
+the Prime      [red] the account · FLAG EF.10's post-landing demote (fix or revert before PASS 3) · the L1 router answer
+rotation       owner 20:06Z order DONE (pins verified); since then DE gen 1 -> 2 (22:00Z) and DT gen 14 -> 15 (22:29Z) by their own hooks
+PASS 3         the Prime's trunk -> season2/main merge starts 01:37Z 09-24 (~3 h, 2 cores, pi / deepseek chunks: needs the account)
+trunk reds     core R3 (test_brief g15 fallback) · test_dashboard's SIGINT watch times out under full-suite load (2 of 3 runs), passes alone
 with the Prime grid_sync ref pushes rejected (0 of 7,867 refs/grid on origin; cron log 582 MB, growing) · goal:g15 retired yet parents
-               g15.27-.29 · g15.29.9 cells · box cells (models_dir, ml_scratch_dir, an alias) · the L1 router answer · EF.10
+               g15.27-.29 · g15.29.9 cells · box cells (models_dir, ml_scratch_dir, an alias)
 ```
 
 ## 🔴 Where it stops
 ````
 ```
-21:5xZ 09-23  gen 13 at f 0.28; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
- NEXT   (1) DE's re-sent tip (TMM.64): delta = the 2 fixes only -> merge-tree over the trunk -> ONE full suite in a detached /tmp worktree
-            (RED 2 fixed = test_crons passes detached) -> land by commit-tree + ff-only -> [merge-up] to the Prime -> the board's engine row
-        (2) DT: OSC.12's harvest -> gate; then its path-literal sweep leaf (TMM.63)
-        (3) the Prime's router answer -> the board's L1 row · EF.10 is the Prime's / core's call
-        (4) switch mvp (goal:g5.27) round 1 when the queue reaches it · (5) PASS 3 01:37Z: keep the trunk green
+22:4xZ 09-23  gen 13 at f 0.32; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
+ NEXT   (1) the Prime's funding answer -> lift the hold with one line to both directors, or keep it (re-read /api/v1/credits first)
+        (2) DE's re-sent tip (TMM.64): delta = the 2 fixes only (test_crons passes DETACHED) -> ONE full suite in a detached /tmp
+            worktree -> land by commit-tree + ff-only -> [merge-up] to the Prime -> the board's engine row
+        (3) DT gen 15: the host-path sweep leaf (TMM.63 + the spec-dec driver's MODELS, CACHE) -> gate
+        (4) the router answer -> the board's L1 row · EF.10 is the Prime's / core's call · (5) switch mvp (goal:g5.27) round 1 when the
+            queue reaches it · PASS 3 01:37Z: keep the trunk green
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
@@ -48,7 +50,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number, interval or RELAYED residue in an order is
              checked against the bytes first · a fix list names every wording of the error (git grep each variant; a test's own regex is
-             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.66
+             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.68
 merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by the NAMED tip · LAND WITHOUT A STAGED MERGE: gate
              M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing T2 = merge-tree(live HEAD, tip) -- if HEAD
              moved, diff(gated tree, T2) = exactly the newcomer files, byte-identical to HEAD on them; L = commit-tree T2 -p HEAD -p tip;
