@@ -55,15 +55,26 @@ def project(root, node_id):
 def _raw_profile_ref(text):
     """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse.
 
-    Only the frontmatter block is searched (goal:g7.31.5.3 residue 5): a
+    Only the frontmatter is searched (goal:g7.31.5.3 residue 5): a
     `profile_ref:` mentioned in prose or a body is not a link and must not
-    make an unparseable file look linked. Absent frontmatter delimiters =>
-    no hint, so such a file is skipped rather than named unreadable.
+    make an unparseable file look linked. Three shapes, distinguished
+    (goal:g7.31.5.3 residue 7 corrective):
+
+      1. opens `---` and closes it: search the block only; body prose after
+         the close is NOT a link.
+      2. opens `---` but never closes it (malformed frontmatter): no body
+         boundary exists, so the whole raw text is the intended frontmatter
+         and a `profile_ref:` line there IS a hint -> must surface.
+      3. does not open with `---`: no frontmatter -> no hint, skip.
     """
-    m = re.search(r"\A---\s*\n(.*?)\n---", text, re.S)
-    if not m:
-        return ""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", m.group(1), re.M)
+    closed = re.search(r"\A---\s*\n(.*?)\n---\s*(?:\n|$)", text, re.S)
+    if closed:
+        region = closed.group(1)
+    elif re.match(r"\A---\s*\n", text):
+        region = text  # opened but never closed: malformed frontmatter
+    else:
+        region = ""    # no frontmatter -> not a link
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", region, re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
