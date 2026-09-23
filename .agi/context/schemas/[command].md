@@ -7,12 +7,16 @@ derived_from: authored-2026-09-02 for G1.10 -- no prior corpus to survey; this
   than a census of existing nodes
 fields:
   commands: {type: dict}   # name -> {argv: list, about: str, cwd: str, workflow: str}
+  manifest: {type: dict}   # <cli>:<verb> -> {argv, args, side_effects, proposable, purpose}
+  excluded: {type: dict}   # <cli>:<verb> -> same shape, proposable: false, with a reason
   workflows: {type: dict}  # workflow name -> list of command names
   ordered: {type: list}    # which workflows are a SEQUENCE, not a set
 validation:
   required: [commands]
   types:
     commands: dict
+    manifest: dict
+    excluded: dict
     workflows: dict
 spawn:
   allowed_parents: [goal]
