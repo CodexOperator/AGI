@@ -471,6 +471,45 @@ def test_create_never_overwrites_an_existing_payload(project, tmp_path):
     assert existing.read_text() == "# precious\n"
 
 
+def test_create_refuses_an_illegal_profile_ref_before_writing(project):
+    """goal:g7.31.5.1 (a00-0774d20d): the create path ran no effective-ref
+    check, so a node could be MINTED carrying a ref the edit path refuses at
+    rc=2. Refuse before `write_node`: named, nothing written."""
+    _schemas(project)
+    with pytest.raises(write.EditError, match="profile projection refused"):
+        write.create(project, "hypothesis", "linked-bad", ["goal:g1"],
+                     set_fm={"profile_ref": "../escape.md"})
+    assert not (project / "nodes" / "hypothesis" / "linked-bad.md").exists()
+    assert not (project.parent / "escape.md").exists()
+
+
+def test_create_projects_a_legal_profile_ref_in_the_same_action(project):
+    """A created node with a legal ref was written but not projected, so a
+    newly linked node was drifted by construction. Same `sync_node` as the
+    edit path."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "linked-ok", ["goal:g1"],
+                          set_fm={"profile_ref": "profile/linked.md"})
+    assert res.written
+    dest = project.parent / "profile" / "linked.md"
+    assert dest.is_file(), "the create path must project in the same action"
+    assert b"THOUGHT" not in dest.read_bytes()
+    assert b"linked-ok" in dest.read_bytes()
+
+
+def test_create_dry_run_refuses_an_illegal_ref(project):
+    """A dry run simulates the mint; it must refuse what the real mint
+    refuses, exactly as the edit dry run does."""
+    _schemas(project)
+    out, err, rc = _run(["create", "hypothesis", "dry-bad",
+                         "--parent", "goal:g1", "--set",
+                         "profile_ref=../escape.md", "--dry-run",
+                         "--root", str(project)])
+    assert rc == 2, (rc, out, err)
+    assert "profile projection refused" in err
+    assert not (project / "nodes" / "hypothesis" / "dry-bad.md").exists()
+
+
 def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
     """Otherwise a rejection leaves an empty source file with no node behind
     it — precisely the gitignored staging window `goal:g11` removed."""
