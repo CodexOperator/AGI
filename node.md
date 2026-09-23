@@ -3,9 +3,9 @@ id: goal:g12.2
 mint_id: fda3dccbd4d74ec28dfc99d544b9f69a
 type: goal
 parents:
-  - goal:g12
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G12.2
 goal_kind: long-term
 heading_level: 3
@@ -15,7 +15,7 @@ seeds: []
 status: horizon
 tags:
   - goal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G12.2: Idea nodes require a goal or vision parent, and what they may spawn depends on which"
 ---
 **G12 establishes the parentage spine — `moral → vision → goal`, `moral` the
