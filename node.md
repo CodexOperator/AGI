@@ -1,14 +1,13 @@
 ---
-id: goal:g15.22
+id: goal:g6.44
 mint_id: 6b483929c9a74dfb949ae4db3fd34d09
 type: goal
 parents:
-  - goal:g15
-  - build:bin-send
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.22
+edited_by: belam
+goal_id: G6.44
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -22,11 +21,12 @@ tags:
   - subgoal
   - l4
   - sensei-director
-title: "G15.22: send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices)"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.44: send.py read / peek wrap message bodies at 160 columns so one read is the whole inbox (Sensei 185013Z: 9 calls of cut -c slices)"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.22
+# goal:g6.44
 
 ## Why this exists
 
