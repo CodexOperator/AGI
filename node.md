@@ -1,12 +1,12 @@
 ---
-id: goal:g8.2
+id: goal:g1.24
 mint_id: 5df2daa9211c410b82909da5c031be6c
 type: goal
 parents:
-  - goal:g8
+  - goal:g1
 confidence: 1.0
-edited_by: season.py
-goal_id: G8.2
+edited_by: belam
+goal_id: G1.24
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -18,8 +18,8 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G8.2: One engine, any project, including itself"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G1.24: One engine, any project, including itself"
 ---
 **The engine must never need to know which project it is running.** It already
 mostly holds: `driver.sh` walks up for a config file, the goal and build-site
