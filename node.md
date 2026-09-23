@@ -3,9 +3,9 @@ id: goal:g5.1
 mint_id: 7cd59a29cd2442c7b28c38c9da0f95cd
 type: goal
 parents:
-  - goal:g5
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G5.1
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G5.1: A goal too saturated with intent gets broken up"
 ---
 **The failure this exists to catch is visible right now in this file.** Goals
