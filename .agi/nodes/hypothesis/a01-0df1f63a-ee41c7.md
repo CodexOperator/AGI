@@ -3,13 +3,13 @@ id: hypothesis:a01-0df1f63a-ee41c7
 mint_id: 282eea874c26416d974929ecc5b1547c
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.12
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 8bd74c9e38ed6299
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Generator preserve-keys are already provided by update_node's merge semantics
 verdict: pending
 ---

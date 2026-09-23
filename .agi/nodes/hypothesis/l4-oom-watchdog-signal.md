@@ -206,7 +206,7 @@ MemFree threshold) fits this instant measurement; FORM B (the ~25% ratio)
 does not. The ratio framing in the update above is WITHDRAWN -- it was a
 reasonable read of a reading taken moments after the trigger, not at it,
 exactly as that update's own caveat said. Recorded by the Prime in
-goal:g17.1.
+goal:g7.16.
 
 CLASS (b) IS NOW CONFIRMED, NOT HYPOTHESISED: a harness kill of a
 backgrounded task, signalled by MemFree dropping (absolute, not ratio)

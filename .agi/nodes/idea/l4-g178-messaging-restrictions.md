@@ -3,7 +3,7 @@ id: idea:l4-g178-messaging-restrictions
 mint_id: d04601c84de14dde92484c9e991fbed7
 type: idea
 parents:
-  - goal:g17.8
+  - goal:g7.21
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

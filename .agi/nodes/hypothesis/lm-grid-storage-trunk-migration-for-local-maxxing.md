@@ -3,7 +3,7 @@ id: hypothesis:lm-grid-storage-trunk-migration-for-local-maxxing
 mint_id: d404897842584660b92e140c51eb6f59
 type: hypothesis
 parents:
-  - goal:g14.14.7
+  - goal:g7.33.7
 next_edges: []
 confidence: 0.65
 edited_by: thought-master

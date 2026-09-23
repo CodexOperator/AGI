@@ -3,7 +3,7 @@ id: hypothesis:lm-grid-storage-trunk-code-fix-remaining-literal-sites
 mint_id: 35847a42efe2458d9bbea475d439da2f
 type: hypothesis
 parents:
-  - goal:g14.14.7
+  - goal:g7.33.7
 next_edges: []
 confidence: 0.7
 edited_by: thought-master

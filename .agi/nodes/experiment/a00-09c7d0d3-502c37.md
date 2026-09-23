@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD ORDER (goal:g15.25 SL7.15) on base 42ce34503. The parent addendum
+BUILD ORDER (goal:g6.47 SL7.15) on base 42ce34503. The parent addendum
 measured two live defects; I implemented the claim on built bytes and proved it
 with a new test file `extensions/agi/tests/test_heal_ack_rotation.py`.
 

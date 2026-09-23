@@ -3,7 +3,7 @@ id: idea:lm-identity-anchored-earnest-seat
 mint_id: d55c17d5c00d4298b507c759baa38e61
 type: idea
 parents:
-  - goal:g14.7
+  - goal:g5.23
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 9220647a20df446d

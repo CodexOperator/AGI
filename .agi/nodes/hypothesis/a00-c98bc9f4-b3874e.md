@@ -3,7 +3,7 @@ id: hypothesis:a00-c98bc9f4-b3874e
 mint_id: 67f511e4dbe9454e9cdbf62dfd0c0cf5
 type: hypothesis
 parents:
-  - goal:g9.4
+  - goal:g2.17
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-Converting the viewport from a linear tree dump to a layered 2D graph layout (Sugiyama-style layering by depth + median-edge crossing reduction) produces a genuinely more informative "rudimentary ASCII web" than the current linear tree, without breaking the unified stream invariant (goal:g9.7).
+Converting the viewport from a linear tree dump to a layered 2D graph layout (Sugiyama-style layering by depth + median-edge crossing reduction) produces a genuinely more informative "rudimentary ASCII web" than the current linear tree, without breaking the unified stream invariant (goal:g2.19).
 
 ### What would prove it
 1. Nodes arranged in horizontal layers by graph depth (active goals at top, leaves at bottom) with intra-layer ordering that visibly reduces edge crossings vs. the current depth-first linear tree

@@ -3,12 +3,13 @@ id: hypothesis:l4-the-prime-successor-name-derives-from-the-live-ladder-cells-in
 mint_id: 3de051fca33d4ee0bca19855e1aece9f
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: e1934c1b83acc25b
 season: 2
 testable_claim: (1) with ladder cells current_season=3, current_loop=1 in a fixture, rotate's prime window-name resolver yields belam-S3-L1-I (numeral restarts at I on a token change) and the SAME resolver feeds the successor's tmux window, remote-control name, row session_label and session_name -- one resolver, measured by a test that flips the cells (2,5)->(3,1) and sees every spelling follow. (2) the belam-S1 literal is gone from bin/*.py code paths and from every rotations.md template/brief text the Prime's rotation renders (docstrings and historical records excepted); a grep test over bin/ + the rendered Prime brief proves 0 hits. (3) the tests that pin belam-S1 shapes (test_prime_window_name, test_rotate_handover, test_heal_pin_reap, test_rotate_selfreap, test_rotate_recover) are parametrized on the cells, green at (2,5) AND (3,1). (4) the live mismatch the owner calls "the session naming issue" is MEASURED first on the Prime's row at HEAD (tmux window name vs registry name vs row session_name/session_label) and the corrective names which spelling was wrong and why; the fix is the resolver, not a hand edit of the row.
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.118 (owner 14:5xZ \"fix your session naming issue\", Prime 19:39Z/19:49Z, doc:s3-plan PRE-S3 \"SM.114\"): PRIME NAMING corrective on SM.107 -- the Prime's successor name derives from the live ladder cells everywhere it is spelled (window, registry session_name, row session_label, mantle/brief text, the chain grep, the S1 tests), so the first rotation after the season-3 rollover names belam-S3-L1-I with no literal season token left behind"
 town: core
 ---

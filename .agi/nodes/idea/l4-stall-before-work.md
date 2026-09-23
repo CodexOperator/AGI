@@ -3,7 +3,7 @@ id: idea:l4-stall-before-work
 mint_id: 73805ed137874257aa08d1f9e2af640a
 type: idea
 parents:
-  - goal:g15.11
+  - goal:g6.33
 next_edges: []
 edited_by: sanctuary-helper
 scaffold_hash: 949d7cceadb0e289

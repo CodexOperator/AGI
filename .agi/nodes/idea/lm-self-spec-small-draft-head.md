@@ -3,7 +3,7 @@ id: idea:lm-self-spec-small-draft-head
 mint_id: f49c4449e600445b9bc1f068176acdf2
 type: idea
 parents:
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 2f971700686e40ee

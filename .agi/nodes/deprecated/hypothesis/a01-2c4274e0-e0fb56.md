@@ -3,7 +3,7 @@ id: hypothesis:a01-2c4274e0-e0fb56
 mint_id: ff734285ed3d4f2f8933f1b03c3ff051
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -16,7 +16,7 @@ tags:
   - deprecated
 testable_claim: None authored — the kid holding this slot died before its first output.
 thought_session: season
-title: "DEPRECATED: empty second slot, iter-1041 dispatch at goal:g10.1 (provider budget)"
+title: "DEPRECATED: empty second slot, iter-1041 dispatch at goal:g2.24 (provider budget)"
 verdict: pending
 ---
 # hypothesis:a01-2c4274e0-e0fb56
@@ -24,7 +24,7 @@ verdict: pending
 ## Hypothesis
 
 Never authored. This was the second of two kid slots dispatched at
-`goal:g10.1` on iteration 1041. Both kids exited on their first provider call
+`goal:g2.24` on iteration 1041. Both kids exited on their first provider call
 with `403 Workspace weekly budget of $10.00 exceeded`
 (`.agi/sessions/iter-1041/a01-2c4274e0/output.log`).
 

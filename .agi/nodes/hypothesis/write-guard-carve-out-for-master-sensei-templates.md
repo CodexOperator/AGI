@@ -3,13 +3,13 @@ id: hypothesis:write-guard-carve-out-for-master-sensei-templates
 mint_id: 4d469eed090b47a8bb039eb40d96f863
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 68ccace6e73814e2
 season: 2
 testable_claim: "PRIME RULING 2026-09-11 13:3xZ (belam-S1-L4-IX, in the merge-up 36 GO line; basis: owner 12:4xZ verbatim in doc:l4-owner-decisions -- the Sensei is to \"keep improving the role's config for what commands get ran for it each rotation as config updates\" and its adjusts must \"propagate to the rest of the roles\"; the dm-to-Prime path was the interim) -- YES, cut it, with THIS scope, recorded here verbatim as the build order and superseding the node's original prose. SCOPE AS SCHEMA DATA (the self_row pattern: one generic rule in write.py `_enforce_written_by`, the allowed regions declared as data, not a hardcoded actor branch): actor/seat master-sensei may write config:rotations `templates.<role>.startup` (first_turn + after_join), `templates.<role>.telemetry` and the `## facts` body section for EVERY role EXCEPT prime_director -- the Prime's own template stays prime/owner-only (owner 2026-09-08, verbatim in the Sensei brief: \"Improvements to standard seats are automatic, but modifications to Belam or his advisors require owner approval\"); `brief_file` and `steps` of any template stay prime/owner-only. MECHANISM, not wording: the write is REFUSED unless every resolved first_turn/after_join cmd in the written value passes `rotate._producing_refusal` -- the guard runs the judge on the bytes it is about to write, so a Sensei cannot land an entry the executor would refuse. TESTS: (a) master-sensei writes director.startup.first_turn -> accepted; (b) master-sensei writes prime_director anything, or brief_file/steps of any template, or config:seats, or any other config node -> refused BY NAME; (c) an entry judged non-None by the producing judge -> refused naming the entry. FALSIFIER: a master-sensei write landing outside the three regions, touching prime_director, or landing an entry the judge refuses. CEILING: 1 kid. FILE SCOPE: extensions/agi/bin/write.py (`_enforce_written_by` + the schema-data rule) and/or extensions/agi/bin/node_writer.py (the gate only), the config schema file under .agi/context/schemas/ that carries the rule as data, + tests (test_write*.py). SERIAL on write.py behind L4.230 (master-sensei's epilog round). Cut by sanctuary-director on pi as any g15 node; the prime reviews by name."
-thought_session: 914d302a-b33f-4c5f-b78d-a8b7320df6c5
+thought_session: dissolve-legacy-2026-09-19
 title: A narrow write-guard carve-out lets master-sensei write config:rotations' templates/## facts directly instead of dm-and-wait
 town: core
 ---

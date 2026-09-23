@@ -15,7 +15,7 @@ model: ~deepseek/deepseek-v4-flash-latest
 probes: "real genless post record: generation-less row + the exact sanctuary-director.20260917T072853Z record shape (rotate-self success, seated_at+session_id, NO gen_after) + stale header 12 -> _generation_measured=(0,False,\"\") not (53,True); non-prime/seating records are genless by code (rotate.py:5362-5363,5984-5985 guards on _is_prime_role) so the gen_after fallback never fires for a real post"
 production_lines: 13
 profile: balanced
-rebrief_answer: "cut - record-derived branch is dead for posts: real non-prime records carry no gen_after (goal:g15.25 clause 2), so conjunct 1 is unbuilt; continuation kid will make the engine write a durable gen for posts"
+rebrief_answer: "cut - record-derived branch is dead for posts: real non-prime records carry no gen_after (goal:g6.47 clause 2), so conjunct 1 is unbuilt; continuation kid will make the engine write a durable gen for posts"
 rebrief_request: "work fully implemented and green (1456 rotation/heal/sensei/verification tests pass); nothing functional remains to land this fix. net production diff is 13 lines (52 added/39 removed, gross inflated by the cross-cutting generation-source migration + info-report helper). new ceiling needed to land the completed fix: 52 gross / 13 net"
 role: kid
 scaffold_hash: a2089e0c4eda4639

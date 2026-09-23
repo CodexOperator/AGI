@@ -3,15 +3,15 @@ id: hypothesis:one-gated-edit-in-place
 mint_id: 2bddd3c84b42476bb70c71a9b46ca5ee
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges:
   - experiment:link-scan-and-the-thought-guarantee
 confidence: 0.85
-edited_by: season.py
+edited_by: belam
 scaffold_hash: d905b9eb69426ca2
 season: 1
 testable_claim: A single gated `update_node` routine can carry every in-place node edit without destroying the authored THOUGHT region, and `link_ref` generalises `payload_ref` to every node type with zero broken links across the existing corpus.
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: The write half's floor is one gated in-place edit, and the link layer sits on it
 verdict: pending
 ---
@@ -24,7 +24,7 @@ create the file behind it, **edit it in place**, read it, read its history.
 Four had a routine. **Editing in place had none**, so every fix, retag and
 field addition in this project's history was a hand edit: no schema check, no
 guarantee about authored content, no record that a write happened.
-`goal:g13.1` names the consequence exactly — a hand edit is *"a completely
+`goal:g4.18` names the consequence exactly — a hand edit is *"a completely
 stray and untraceable commit"*.
 
 ### Testable claim, in two halves

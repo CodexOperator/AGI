@@ -23,10 +23,10 @@ verdict: inconclusive_lean_proved:85
 
 ## Experiment
 
-Ran the L4.27 assignment under `hypothesis:l4-five-unstaffed-seats-specified-none-created`: WROTE the spec doc `doc:l4-five-unstaffed-seats` (`parents: [goal:g17.1]`, the `[doc]` schema allows exactly one parent, a goal) carrying the five role cards — Goal Keeper (Sage), Draft Master, Glitch Master, Research Master, Shael — in the owner's own card grammar (`l4-owner-decisions.md:345-361`), and created NOT ONE seat, launched nothing, gave no row. Did not touch `config:seats` (`.agi/nodes/.geometry/seats.md`), minted no `config` node, touched no file under `extensions/`, `src/` or `skills/`.
+Ran the L4.27 assignment under `hypothesis:l4-five-unstaffed-seats-specified-none-created`: WROTE the spec doc `doc:l4-five-unstaffed-seats` (`parents: [goal:g7.16]`, the `[doc]` schema allows exactly one parent, a goal) carrying the five role cards — Goal Keeper (Sage), Draft Master, Glitch Master, Research Master, Shael — in the owner's own card grammar (`l4-owner-decisions.md:345-361`), and created NOT ONE seat, launched nothing, gave no row. Did not touch `config:seats` (`.agi/nodes/.geometry/seats.md`), minted no `config` node, touched no file under `extensions/`, `src/` or `skills/`.
 
 Commands run:
-- `write.py create doc l4-five-unstaffed-seats --parent goal:g17.1 --actor a00-852433f1 --session L4.57 --set "title=..." --set "tags=[l4, seats, spec, g17.1]"` -> SPAWN-GATE APPROVED (parents=['goal:g17.1'], schema [doc]); created the node with correct id/frontmatter.
+- `write.py create doc l4-five-unstaffed-seats --parent goal:g7.16 --actor a00-852433f1 --session L4.57 --set "title=..." --set "tags=[l4, seats, spec, g17.1]"` -> SPAWN-GATE APPROVED (parents=['goal:g7.16'], schema [doc]); created the node with correct id/frontmatter.
 - `write.py doc:l4-five-unstaffed-seats 'replace body 1:1 -'` (body content on stdin) -> `updated: doc:l4-five-unstaffed-seats`.
 - `python3 extensions/agi/bin/links.py links` -> `links: 1910 resolved, 0 broken`.
 - `bash extensions/agi/driver.sh --smoke --max-iters 1` (dry, no dispatch) -> rendered GOALS.md from 159 goals + preamble; `METRIC node_count=1930`, `active_node_count=1736`, `deprecated_node_count=194`; no deletion.
@@ -45,4 +45,4 @@ Verified in `.agi/nodes/doc/l4-five-unstaffed-seats.md`:
 `links.py links`: `1910 resolved, 0 broken`. Oath-baseline caveats: `proved` baselines (b) `git diff --stat` and (d) before-smoke active count are NOT confirmable in this worktree — I never ran git (forbidden; it is a shared tree), and I captured the after-smoke count (1736 active) but no pre-snapshot. The true cross-check is done by the point at merge on season/s2.
 
 ## Agent Notes
-Wrote doc:l4-five-unstaffed-seats (parents goal:g17.1): five role cards in the owner's grammar, all three holes intact, no seat/config created, seats.md untouched, links 0 broken, smoke active=1736. Baselines (b) git diff and (d) pre-count await point merge verification; hence lean not proved.
+Wrote doc:l4-five-unstaffed-seats (parents goal:g7.16): five role cards in the owner's grammar, all three holes intact, no seat/config created, seats.md untouched, links 0 broken, smoke active=1736. Baselines (b) git diff and (d) pre-count await point merge verification; hence lean not proved.

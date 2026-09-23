@@ -3,11 +3,11 @@ id: hypothesis:l4-ws-raw-answers-help
 mint_id: 860d84152c294314aaffa4024d7576f4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.14
   - hypothesis:ws-raw-zero-injection-adapter
 next_edges: []
 ceiling: $0.50 OpenRouter (account $11.89 at 09:10Z, floor $5.00); the two named test files only, never the suite; nothing else touched.
-edited_by: thought-master
+edited_by: belam
 evidence_runs:
   - experiment:a00-9452fd82-404b69
 falsifier: "`python3 extensions/agi/bin/ws_raw.py --help` exits non-zero, or the smoke test fails alone, or test_ws_raw.py regresses."
@@ -16,6 +16,7 @@ scaffold_hash: 5d9921145ea11aa5
 season: 2
 testable_claim: extensions/agi/bin/ws_raw.py answers `--help` (and `-h`) with a usage text on stdout and exit 0 while every other unknown flag still exits non-zero, so extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[ws_raw.py] passes when that file is run alone, and test_ws_raw.py still passes alone (8/8).
 tests: "ONE kid (RED fix, fastest path): in _parse_args (ws_raw.py L60-72) handle -h/--help before the unknown-flag SystemExit — print usage (--port, --host, --backend name=url, WS_RAW_KEY env) and exit 0; run ONLY `python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q -k ws_raw` and `python3 -m pytest extensions/agi/tests/test_ws_raw.py -q`; parent authors no experiment node, re-runs the --help itself. Report the sha to the thought-master; the Prime gets it in the [complete] line."
+thought_session: dissolve-legacy-2026-09-19
 title: ws_raw.py answers --help with exit 0 (house convention, suite help-smoke)
 town: local-maxxing
 verdict: proved

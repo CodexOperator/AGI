@@ -3,18 +3,18 @@ id: hypothesis:gate-must-sit-on-the-commit-path
 mint_id: 8708cfbb5c4846c69f11709ae331e7e8
 type: hypothesis
 parents:
-  - goal:g7
+  - goal:g4.13
 next_edges:
   - experiment:gate-on-the-commit-path-eleven-to-zero
 confidence: 0.88
-edited_by: season.py
+edited_by: belam
 evidence_runs:
   - experiment:gate-on-the-commit-path-eleven-to-zero
 scaffold_hash: c11dacc844a74168
 scale: engine
 season: 1
 testable_claim: Every decisive verdict that reaches a commit carries evidence_runs>=1 or is demoted, regardless of write path (cli.py done, post_wire, write.py, plain file write)
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Gate must sit on the commit path
 verdict: proved
 ---

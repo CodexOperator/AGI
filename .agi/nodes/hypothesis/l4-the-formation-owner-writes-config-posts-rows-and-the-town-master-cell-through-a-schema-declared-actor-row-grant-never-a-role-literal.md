@@ -3,12 +3,13 @@ id: hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-mast
 mint_id: ed0a902a5ca7496aa61b30a7f3f14705
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 807f0c4ab44b7810
 season: 2
 testable_claim: "write.py resolves EVERY actor-row grant declared on a schema (a list `actor_rows:` whose entries carry {actor, list_key|field, match_key, fields, ops, deny_roles}; master_sensei_row migrates in as the first entry unchanged in behaviour) keyed on the RESOLVED seat name, never a role literal or a caller string: with the [config] entry {actor: sanctuary-master, list_key: posts, match_key: name, fields: [town, quiet, status, role, tier, model, effort, rotated_by, harness, settings], ops: [create, set, retire]} the sanctuary-master seat creates, edits and retires posts rows and their town/quiet cells, and with the [town] entry {actor: sanctuary-master, field: master} it sets a town master cell; any other seat (a kid, a parent, the sensei-director) is refused BY NAME; the prime/owner written_by path is unchanged; the town branches cell stays refused by name at mint and read. Falsifier: a seat other than the declared actor lands a posts row or a master cell; or the declared actor lands a field outside the grant; or master-sensei template writes change behaviour (test_write_master_sensei.py reds)."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.102 (formation carve-out, owner 09-18 00:1xZ): the formation owner writes config:posts rows and the town master cell through a schema-declared actor-row grant, generalized from master_sensei_row so the NEXT grant is a schema line"
 town: core
 ---

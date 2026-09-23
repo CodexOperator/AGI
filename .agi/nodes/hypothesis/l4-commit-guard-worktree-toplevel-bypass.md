@@ -3,14 +3,14 @@ id: hypothesis:l4-commit-guard-worktree-toplevel-bypass
 mint_id: d69c93254d8c4f7cb77ba5d3e78ddd11
 type: hypothesis
 parents:
+  - goal:g6.11
   - hypothesis:l3-commit-guard-inert-under-g11
-  - goal:g15
 next_edges: []
-edited_by: sanctuary-helper
+edited_by: belam
 scaffold_hash: cf449ccc309dc784
 season: 2
 testable_claim: "Under --branch dispatch, AGI_PROJECT_ROOT is exported as the kid's own worktree, so pre-commit's PROJECT_TOPLEVEL (git -C \"$AGI_PROJECT_ROOT\" rev-parse --show-toplevel) resolves to that worktree, not the main checkout. A commit run with CWD in the MAIN checkout under that env gets REAL_TOPLEVEL != REAL_PROJECT and is incorrectly ALLOWED. Falsifiable: reproduce that exact env/CWD combination live and observe the hook's exit code (0 = confirmed) before a fix, and confirm it refuses (non-zero, named message) after. Disproved if the current hook already refuses in that combination."
-thought_session: sanctuary-helper-cd
+thought_session: dissolve-legacy-2026-09-19
 title: pre-commit's AGI_PROJECT_ROOT-derived toplevel check is bypassed when a --branch kid commits from the MAIN checkout instead of its worktree
 ---
 <!-- BODY:BEGIN -->

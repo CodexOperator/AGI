@@ -3,7 +3,7 @@ id: idea:lm-model-stockpile
 mint_id: 1fb89be0a71d4aa98db7166d6d9dfae2
 type: idea
 parents:
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: bcaab6d8c839c5b7

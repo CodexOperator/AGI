@@ -3,9 +3,9 @@ id: idea:engine-migrate-to-sqlite
 mint_id: 566acd35613b4c57a1d149249736b3f7
 type: idea
 parents:
-  - goal:g7
+  - goal:g4.11
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/scripts/migrate_to_sqlite.py"
 unit_kind: entry_point
 unit_path: extensions/agi/scripts/migrate_to_sqlite.py

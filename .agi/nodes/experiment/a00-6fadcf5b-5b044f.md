@@ -27,7 +27,7 @@ verdict: proved
 <!-- BODY:BEGIN -->
 # experiment:a00-6fadcf5b-5b044f
 
-This is a BUILD ORDER (goal:g15.25), not a measurement. The claim of the
+This is a BUILD ORDER (goal:g6.47), not a measurement. The claim of the
 hypothesis is the code change; this experiment implements it in
 `extensions/agi/bin/rotate.py` cmd_spawn's name block, tests it, and reports
 the built bytes.
@@ -38,7 +38,7 @@ the built bytes.
 block (net +13 lines, under the 15-line ceiling). New name block:
 
 ```python
-    # goal:g15.25 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
+    # goal:g6.47 (hypothesis:l4-spawn-without-name-defaults-to-the-seat-row-
     # name-for-every-non-prime-post): a NON-prime --seat names the window.
     name = args.name
     if not name:

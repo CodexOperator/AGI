@@ -3,12 +3,12 @@ id: hypothesis:a00-91622ac4-1998c8
 mint_id: dfc737ff8778435b8ef5439eff78f46b
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.11
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 180898d89f6b4c07
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: snapshot-goals.py --render does not filter retired goals from GOALS.md
 ---
 # hypothesis:a00-91622ac4-1998c8

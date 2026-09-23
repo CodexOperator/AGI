@@ -3,12 +3,13 @@ id: hypothesis:l4-season-rollover-scoped-to-named-towns-writes-current-loop-one-
 mint_id: 28f1fc8b2477491899cc0bf5df8696e8
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.13
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 0a431e3c89eb366c
 season: 2
 testable_claim: "(1) season.py rollover --global accepts --towns <slug,...>: the alignment check applies to the named towns only (a named misaligned town still refuses by name), the unnamed towns' trunks, cells and season_history are untouched byte-for-byte, and the global trunk + master fold happen exactly as the unscoped mode does. (2) the rollover writes current_loop: 1 in the same deferred cell pass that writes current_season: 3 (owner 15:0xZ: a fresh season restarts the loop count), so the first Prime rotation after it names belam-S3-L1-I (SM.118's resolver). (3) --dry-run prints every ref cut/fold/archive and every cell it WOULD write, and writes nothing: refs and nodes byte-identical before/after, measured. (4) the real run is ONE command the Prime names on his [decision] line; the kid never runs it with --apply against origin -- the apply proof runs in a throwaway clone (tmp) of the live repo, and the experiment records the exact command, the refs it created there, and the cells it wrote."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.119 (owner 14:5xZ + 15:0xZ, Prime 19:39Z/19:49Z, doc:s3-plan PRE-S3 \"SM.115\"): SEASON ROLLOVER 2 -> 3 scoped to the Prime's and the core-town branches -- season.py rollover --global --towns core,sanctuary cuts season3/main and the two town trunks, folds, archives, writes current_season 3 AND current_loop 1, and leaves local-maxxing / streaming-suite / web-app-suite trunks and cells byte-identical; PREPARED now (dry-run + tests), EXECUTED only on the Prime's [decision] line after SM.117 + SM.118 land"
 town: core
 ---

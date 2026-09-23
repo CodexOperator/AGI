@@ -3,7 +3,7 @@ id: hypothesis:the-briefing-is-the-missing-half
 mint_id: 77f7cb183055488ca9884b61a27e9a70
 type: hypothesis
 parents:
-  - goal:g9.7
+  - goal:g2.19
 next_edges:
   - experiment:the-viewport-reaches-parity
 confidence: 0.0
@@ -19,7 +19,7 @@ verdict: pending
 
 ## Hypothesis
 
-`goal:g9.7` holds **one render, two readers** and `viewport.py` delivers it —
+`goal:g2.19` holds **one render, two readers** and `viewport.py` delivers it —
 for *frames*. The banked question "should the viewport replace `INJECTION.md`'s
 renderer?" has sat open across two sessions on the assumption that answering it
 means reconciling two tree renderers.

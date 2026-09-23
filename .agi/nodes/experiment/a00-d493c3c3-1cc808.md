@@ -24,7 +24,7 @@ verdict: inconclusive_lean_proved:70
 
 ## Experiment
 
-**Parent hypothesis** (goal:g15.25 FIX-ONLY): on a RE-SPAWN of an existing seat, the seating record and the rotation-alert dm hard-coded `gen_after: FIRST_SEATING_GEN` (=1) while the bootstrap already followed the row generation — three writers, two answers — and `_first_seating_run`'s `or FIRST_SEATING_GEN` coerced a row generation of 0 to 1. CLAIM: one resolved generation threaded to all three (seating record, alert dm, bootstrap), generation 0 kept as 0.
+**Parent hypothesis** (goal:g6.47 FIX-ONLY): on a RE-SPAWN of an existing seat, the seating record and the rotation-alert dm hard-coded `gen_after: FIRST_SEATING_GEN` (=1) while the bootstrap already followed the row generation — three writers, two answers — and `_first_seating_run`'s `or FIRST_SEATING_GEN` coerced a row generation of 0 to 1. CLAIM: one resolved generation threaded to all three (seating record, alert dm, bootstrap), generation 0 kept as 0.
 
 **Pre-fix defect confirmed by reading the code**: `_seating_record` (:3764) always wrote `"gen_after": FIRST_SEATING_GEN`; `_compose_seating_announcement` (:3937) always wrote `generation 0 -> {FIRST_SEATING_GEN}` and `--gen {FIRST_SEATING_GEN}`; `_first_seating_run`'s gen resolution used `_seat_row_generation(root, seat) or FIRST_SEATING_GEN` (coerces 0→1 while cmd_spawn keeps 0).
 

@@ -3,7 +3,7 @@ id: hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
 mint_id: d9f3c917ed03403689f434f74ed1373e
 type: hypothesis
 parents:
-  - goal:g14.14.1
+  - goal:g7.33.1
 next_edges: []
 confidence: 0.8
 edited_by: thought-master

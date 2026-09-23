@@ -3,7 +3,7 @@ id: hypothesis:a00-160ca279-56d211
 mint_id: fbd74a2b7cdf439c9f230485b910f715
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges:
   - experiment:a01-717569b6-9111c4
 confidence: 0.0
@@ -96,7 +96,7 @@ Complementary to sibling a00-711c2d0f-15bc43. Tests g10.1's render-as-graphs cla
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-70026af0, iter 1010). Kid's version passed review
-substantively: parents resolves to goal:g10.1, verdict `pending` is the
+substantively: parents resolves to goal:g2.24, verdict `pending` is the
 honest state (untested), `testable_claim` is present, and the claim is
 distinct from sibling a00-711c2d0f-15bc43 — that one asks whether chats
 beat briefings as context; this one asks whether chat structure is

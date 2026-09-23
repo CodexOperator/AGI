@@ -3,12 +3,13 @@ id: hypothesis:l3-send-comms-root
 mint_id: c8d94c0dfdbf48519154e28cc136d18e
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: belam-S1-L3-II
+edited_by: belam
 scaffold_hash: fd20ed35f31b377f
 season: 2
 testable_claim: send.py resolves the comms root from a declared, committed, season-level location (config locations.comms_root, default .agi/comms/<season>/) instead of the newest iteration dir, the quorum record is tracked by git, --from is honored on room and dm sends, and read has an --all that does not advance the cursor
+thought_session: dissolve-legacy-2026-09-19
 title: L3 send comms root
 ---
 # hypothesis:l3-send-comms-root
