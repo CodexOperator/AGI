@@ -3,9 +3,9 @@ id: goal:g7.2
 mint_id: cd0a9c2ecab64141bdc4938c4d3892ae
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.2
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.2: Duplicate node ids silently hide files on disk"
 ---
+# goal:g7.2
 Found 2026-08-22 by the G9.1 dashboard on its first run, which is the argument
 for G9 in miniature: **17 node ids are declared by two files each.** The loader
 keeps one and drops the other, so 17 files sit on disk fully invisible to every
