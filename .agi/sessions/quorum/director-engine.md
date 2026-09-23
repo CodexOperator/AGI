@@ -10,7 +10,7 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (10:5xZ 09-23) -- 8 rounds live, spawn 13/30, mem 6 GB free
+## LIVE STATE + STOPS (10:0xZ 09-23) -- 8 rounds live, spawn 13/30, mem 6 GB free
 ````
 ```
 FIRST     EF.21 a00-979adf9d  goal:g1.25 CLI GRAMMAR = the jev rounds (G1 config-maxxing; owner 09:5xZ) cap 3, <= 4 kids
