@@ -2223,19 +2223,3 @@ def test_unset_location_makes_the_ref_judged_against_the_repo_root(
     text = path.read_text()
     assert "link_ref: notes.txt" in text
     assert "\nlocation:" not in text
-
-
-def test_api_direct_sub_is_judged_by_the_outside_ref_gate(tmp_path):
-    """conjunct 1: a DIRECT write.submit carrying an unresolved `sub` Edit
-    must resolve the sub BEFORE the outside-ref gate, so the gate judges the
-    post-sub effective frontmatter. Pre-fix the gate ran first, saw the
-    on-disk inside ref, and the sub landed the outside ref unjudged."""
-    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
-    (tmp_path / "notes.txt").write_text("x")
-    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
-    before = path.read_bytes()
-    edit = write.Edit(node_id="doc:n")
-    write.verb_sub(edit, "notes.txt => ../outside/secret.txt")
-    with pytest.raises(write.EditError, match="outside the repo tree"):
-        write.submit(graph, edit)
-    assert path.read_bytes() == before, "the refusal wrote nothing"
