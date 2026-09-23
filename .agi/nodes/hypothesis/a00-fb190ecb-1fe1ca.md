@@ -20,7 +20,7 @@ season: 2
 testable_claim: The four MUR residues the DH.45 round left on `goal:g7.31.2.2` — a false "inert" claim in `experiment:a00-33653715-dh45-verify`, two overclaimed closure summaries (`hypothesis:a00-33653715-0d018f`, `hypothesis:a00-3c0140ac-0fa4dd`), and a wrong `production_lines` metric — are closeable by edit/text correction alone, with no production code and no schema change.
 title: "DH.155 four-residue corrective: false inert claim corrected, overclaimed closure summaries narrowed, production_lines set to 0"
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-fb190ecb-1fe1ca
