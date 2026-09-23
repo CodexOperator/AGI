@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5.7
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
@@ -34,8 +34,9 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 - One pi parent per hypothesis node: `dispatch.py . <ITER> --target hypothesis:<id> --level small --tier parent --harness pi --branch`; the round cap is the node's `ceiling:` ($0.50-$2; TypeSafe ledger cap named separately, $0.10 for replay rounds).
 - Resource classes: OFF-BOX (local-town over the ssh alias `local-town` only), API-ONLY, A1-LIGHT (one thread, `nice -n 19`), A1-HEAVY (llama-bench, bitnet.cpp, multi-core numpy). Parallel across classes; at most ONE A1-heavy live; every A1-heavy row behind ambient loadavg-1m < 2.0 recorded BEFORE the row (+ after, nproc, -t, pgmajfault beside it) — a "during" gate is unmeetable on 4 cores (a 4-thread bench adds ~4 by itself).
 - Kid `line_ceiling`: 120 for reader / ssh-probe kids, 600 when the bulk is generated data — declared in the brief; every `rebrief_request` answered in-node BEFORE harvest (F31).
-- Measurement rules: a warm-up request before any tok/s number (TM.10); `--load-mode none` or warm-up noted per row; per-prompt rows beside every median; ETA and ratios re-derived by the parent from the bytes, not the kid's prose.
+- Measurement rules: a warm-up request before any tok/s number (TM.10); `--load-mode none` or warm-up noted per row; per-prompt rows beside every median; ETA and ratios re-derived by the parent from the bytes, not the kid's prose. A step smaller than about 1 pct counts only with fixed inputs, repeats and a CI (the HEAD's LOOP line, owner 09-23).
 - Boxes: downloads <= 200 GB on local-town (`/data`), <= 2 GB removable on the A1; the ONE permitted local-town change is logged with its rollback command verbatim BEFORE it is made; never an address in any encoding (alias only), never `.env` / Doppler / secrets; no Camber rental — every GPU-hour ask is banked with numbers (3 GPU-h/month on record, XS ~$1.50-3/h).
+- **Town resource rules (moved off the board 09-23; the board keeps only the trajectory):** cap 1 USD per round · GPU = one research round at a time · ONE model-loading host kid, memory_max 6G · no multi-kid round under a pi-local parent (the 9B's 49,664-token slot overflowed at 39 min, G.01) · paid rounds carry a 120-min ORDERS wall until dispatch grows a real wall knob (SM.23b) · IFEval rounds seed BOTH RNGs (keywords:letter_frequency's stdlib random + langdetect), N=10 CI rule (TMM.32) · abliterated-in-prod · pace slow, small chunks · batch-max (one merge-up per batch).
 
 ## Review (owner 01:5xZ 09-18, goal:g7.16)
 - The director runs the merge-up review ITSELF after each round lands: `workflow.py run merge-up-review --args "$(cat args.json)"` on pi, one slice per kid, `old_tip` = merge-base with `season2/main`; read `returns.<stage>.unstructured` in `.agi/sessions/workflows/merge-up-review.jsonl`; never the Claude Workflow tool.
@@ -44,12 +45,14 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 
 ## Comms
 - Every nudge: read the inbox AND the master dm thread (`send.py read director-thought --dm thought-master --from director-thought`); one dm line per lap: `dispatched (agent id, cap)` / `landed (tip)`; owner pane lines relayed verbatim to the master, never interpreted; `[red]` real engineering findings named to sanctuary-master by node id.
+- **Self-loop (owner 09-23 09:5xZ):** work the town trajectory (`town:local-maxxing` trajectory_standin) in its priority order on your own -- plan, mint, dispatch, review by name, close residues in-loop; message the master ONLY for a blocker or a fully completed merge-up.
 
 ## Rotation
 - Bare `rotate.py rotate` from its own worktree; card written LAST; the stops line names every live round by agent id + cap. `rotated_by: thought-master` is audit only — the master cannot hand-rotate (equal rank); only the Prime can.
 
 ## Typed decisions (TypeSafe)
 - `TYPESAFE_KEY` reaches kids only after SM.103 (`harnesses.<h>.forward_env`); until then typed-decision rounds stop honestly at the key gate. Metrics for every typed-decision round: top-1 agreement with the call actually made, USD per decision, latency; no UI before the replay clears its bar (idea:lm-jev-mcp-sandwich).
+- **Keys live (owner 09-23 10:2xZ):** `TYPESAFE_KEY` + `TYPESAFE_KEY2` are in the main .env (5 USD each, both answered HTTP 200) and pi / pi-local forward both to kids -- the key gate above is OPEN; key 2 is a second 5 USD lane.
 
 ## Live chains (2026-09-18 02:0xZ)
 athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 metronome rhythm-bank (A1-light, hypothesis:c2-kuramoto-metronome-rhythm-bank) · TypeSafe replay r2 (API, blocked on SM.103) · bitnet.cpp A1 tok/s (queued A1-heavy) · kid-persona SFT (banked Camber) · oscillator troves (CC ingestion stays with the master).
