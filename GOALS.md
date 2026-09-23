@@ -11967,6 +11967,8 @@ OWNER 09-23 10:4xZ-10:5xZ (Prime pane, verbatim, in order): "It’s on the core 
 
 OWNER 09-23 11:0xZ (Prime pane, verbatim): "Yes go for apply and sync to every post" -- APPLIED: .agi/context/schemas/[goal].md Conventions now carry the goal body format verbatim from doc:standing-llm-ops §5-§6 (77c997cad): the target framing table, the title form, the fixed body order and what each section carries; the stale never-renumbered line replaced by the owner 09-23 renumber rule (mint_id kept, refs re-pointed in the same commit, THOUGHT old to new, no retired id in a live node). Synced to every post: director worktrees merged with the trunk, one line each to thought-master, director-thought, director-engine.
 
+OWNER 09-23 10:3xZ (director-engine pane, verbatim): "Headroom should be updated and ceiling set to something silly so you can keep working until credits empty" / "Or floor" -- APPLIED by director-engine: provisioning.min_account_remaining_usd 1.6 -> -50.0 in .agi/config.json (the owner's own number from 09:4xZ), overriding the Prime's 10:1xZ restore to 1.6 on the owner's word; per-hypothesis ceilings raised as each round needs; work continues until the credits run out.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
