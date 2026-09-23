@@ -1,0 +1,159 @@
+---
+id: experiment:a00-3b543674-ac032a
+mint_id: 3a131b64a19c48b18631263e59d16d9e
+type: experiment
+parents:
+  - hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll
+next_edges: []
+confidence: 0.9
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-3b543674-ac032a
+line_ceiling: 350
+loop: hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "k(1pct)>=6 (the claim: >=6 of 32 KV groups jointly <=1 pct of baseline NLL)", "class": "wire", "cmd": "independent GGUF parser (probe_gguf.py) locates blk.L.attn_output.weight for L in {3,7,31} and sha256s the tensor slice on the restored scratch copy", "expected": "my own header offsets reproduce the kid saved orig_L*.q4k sha256", "observed": "match=True for L=3,7,31; scratch copy sha == served sha 03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8", "result": "pass: the surgery addresses the real tensor bytes and the copy is byte-identical to the served GGUF"}
+  - {"conjunct": "the ablation is cumulative across a joint step, not last-group-only", "class": "gate", "cmd": "call the kid patch(L3,[0,2]) then read raw bytes with the independent reader over sampled rows", "expected": "groups 0 and 2 all-zero in every sampled row, groups 1 and 3 untouched", "observed": "{0:True,1:False,2:True,3:False}; restore slice sha back to original", "result": "pass: joint runs ablate the cumulative set"}
+  - {"conjunct": "k(1pct) selection is falsifiable, not hard-coded", "class": "gate", "cmd": "apply the kid rule sum(k and frac<=0.01) to the recorded curve, to joint2 injected to 0.9 pct, and to 6 synthetic 0.5 pct groups", "expected": "1, 2, 6", "observed": "1, 2, 6", "result": "pass: k=1 is a property of the measured bytes"}
+  - {"conjunct": "rule 13 paths wired to this checkout", "class": "auth", "cmd": "paths.py --local kv_groups_dir ; paths.py --local no_such_key_xyz", "expected": "checkout-local path; undefined key refused by name with exit 1", "observed": "datasets/dead-head/2026-09-23-kv-groups ; paths.local_maxxing.no_such_key_xyz is not defined ...; exit 1", "result": "pass"}
+  - {"conjunct": "router restored (the round never-list)", "class": "guard", "cmd": "curl :8080/v1/chat/completions on the served 9B", "expected": "model Qwen3.5-9B-Q4_K_M and >0 completion tokens", "observed": "model=Qwen3.5-9B-Q4_K_M completion_tokens=97 finish=stop", "result": "pass"}
+production_lines: 325
+profile: balanced
+rebrief_answer: proceed with ceiling 350 (round complete and landed; the 324 script lines are the necessary surgery parser + 34-run driver, nothing left to cut)
+rebrief_request: "Complete: 32 singles + joint curve measured, copy sha-restored, router back up. 325 production lines (2 new scripts 324L + 1 config line) against the 40-line default and the 150-line order; nothing remains in this round scope to cut. Request line_ceiling 350 for this round (GGUF surgery + 34-run driver + results), or accept as landed."
+role: kid
+scaffold_hash: 5e91de58916429a3
+season: 2
+title: "Zero-ablating any single KV group of the served Qwen3.5-9B costs >= 0.82 pct of baseline NLL: only 1 of 32 groups clears the 1 pct bar, so k(1 pct)=1 < 6 and the 1.23x-context claim is disproved (32/31 = 1.032x)"
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-3b543674-ac032a
+
+## Experiment
+
+**Question (T2-T4 of the parent hypothesis).** On the served `Qwen3.5-9B-Q4_K_M`, how many of its 32 full-attention KV groups -- 8 full-attention layers (blk 3,7,11,15,19,23,27,31) x 4 KV groups of 4 query heads -- can be zero-ablated JOINTLY at a joint delta-NLL of at most 1 pct of the baseline NLL on wikitext-2 (the 32/26 = 1.23x context claim)?
+
+**T0 guard.** `spawn_budget.py status` showed no pi-local round; router `/slots?model=Qwen3.5-9B-Q4_K_M` `is_processing=[false]`; host `MemAvailable` 6789 MB >= 2 GB. Then `docker stop llama-server` (GPU freed to 1 MiB). RAM was sampled through the round: minimum 10674 MB, baseline 11367 / 11193 MB -- never near 2 GB.
+
+**T1 copy.** `sha256` of the READ-ONLY served file `/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf` =
+`03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8`; copied to scratch
+`/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf` (outside `/data/ml/models`); after the last run the
+copy's sha256 equals `03b74727...52b7e8` again, and each layer's tensor-slice sha256 equals the saved
+original (`tensor_restored: true`). The served file was never opened for writing.
+
+**Text.** wikitext-2-raw test, `https://huggingface.co/datasets/ggml-org/ci/resolve/main/wikitext-2-raw-v1.zip`,
+sha256 `ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11`, kept in scratch.
+
+**Surgery (byte-exact zero-ablation, no requantization).** `kv_group_surgery.py` parses the GGUF header
+itself (magic/version, n_tensors/n_kv, `general.alignment` = 32) and asserts every
+`blk.L.attn_output.weight` is Q4_K (type 12) with shape `(4096, 4096)`: row stride 16 super-blocks x
+144 B = 2304 B, 4096 rows = 9,437,184 B per layer. One super-block (256 elems) = one query head; head
+h uses KV group `h // 4`. Ablating group g of layer L writes 576 zero bytes (blocks 4g..4g+3) into
+every row; d = dmin = 0 dequantizes to exactly 0, so the group's write-back is removed. Per run the
+layer was restored from saved bytes and re-patched; tensor sha re-verified before/after.
+
+**Run (identical every time, fully on the GPU).** `docker run --rm --gpus all -v /data/ml/scratch/osc02:/work --entrypoint /app/llama-perplexity ghcr.io/ggml-org/llama.cpp:full-cuda -m /work/Qwen3.5-9B-Q4_K_M.gguf -f /work/wikitext-2-raw/wiki.test.raw -c 512 --chunks 40 -ngl 99 -fa off --seed 42 -t 8 --no-warmup`. `--no-warmup` measured (7.1783 either way) and cuts a run from 102 s to ~57 s.
+
+**T2 baseline, twice, identical:** PPL = **7.1783** both times (56.7 s / 65.2 s). Determinism holds,
+so each ablation was run once with a full restore in between.
+
+## Results -- T3, the 32 single-group ablations
+
+NLL_base = ln(7.1783) = 1.971063 (first written 1.970913; corrected at thought-master's batch C+D review -- no measured number moves). delta-NLL = ln(ppl_abl / ppl_base); the fraction is delta-NLL / NLL_base.
+
+| layer | group | ppl | delta-NLL | frac of NLL_base |
+|---|---|---|---|---|
+| 3 | 0 | 7.2951 | 0.01614 | 0.82% |
+| 3 | 2 | 7.3481 | 0.02338 | 1.19% |
+| 3 | 3 | 7.4612 | 0.03865 | 1.96% |
+| 7 | 0 | 7.4915 | 0.04271 | 2.17% |
+| 7 | 1 | 7.6792 | 0.06745 | 3.42% |
+| 7 | 3 | 7.7281 | 0.07380 | 3.74% |
+| 11 | 3 | 7.8200 | 0.08562 | 4.34% |
+| 7 | 2 | 7.8695 | 0.09193 | 4.66% |
+| 11 | 2 | 7.8946 | 0.09512 | 4.83% |
+| 15 | 1 | 7.9079 | 0.09680 | 4.91% |
+| 11 | 1 | 7.9213 | 0.09849 | 5.00% |
+| 15 | 2 | 7.9358 | 0.10032 | 5.09% |
+| 11 | 0 | 7.9444 | 0.10140 | 5.14% |
+| 15 | 3 | 7.9655 | 0.10406 | 5.28% |
+| 15 | 0 | 7.9922 | 0.10740 | 5.45% |
+| 19 | 3 | 8.0777 | 0.11804 | 5.99% |
+| 23 | 1 | 8.1037 | 0.12126 | 6.15% |
+| 23 | 3 | 8.1062 | 0.12157 | 6.17% |
+| 19 | 2 | 8.1078 | 0.12176 | 6.18% |
+| 27 | 2 | 8.1557 | 0.12765 | 6.48% |
+| 23 | 0 | 8.1614 | 0.12835 | 6.51% |
+| 27 | 1 | 8.1707 | 0.12949 | 6.57% |
+| 27 | 0 | 8.1780 | 0.13039 | 6.61% |
+| 23 | 2 | 8.2517 | 0.13936 | 7.07% |
+| 19 | 1 | 8.2526 | 0.13947 | 7.08% |
+| 3 | 1 | 8.4308 | 0.16083 | 8.16% |
+| 19 | 0 | 8.4940 | 0.16830 | 8.54% |
+| 27 | 3 | 8.6058 | 0.18137 | 9.20% |
+| 31 | 0 | 8.8332 | 0.20745 | 10.53% |
+| 31 | 3 | 8.9022 | 0.21524 | 10.92% |
+| 31 | 2 | 9.9348 | 0.32498 | 16.49% |
+| 31 | 1 | 10.1038 | 0.34185 | 17.34% |
+
+All 32 runs exited 0 with a parsed PPL. Range: 0.82% (L3g0) to 17.34% (L31g1).
+
+## Results -- T4, the joint curve (add in ascending single delta-NLL, re-measure jointly)
+
+| k | groups | ppl | delta-NLL | frac of NLL_base |
+|---|---|---|---|---|
+| 0 | -- | 7.1783 | 0.00000 | 0.00% |
+| 1 | L3g0 | 7.2951 | 0.01614 | 0.82% |
+| 2 | L3g0 L3g2 | 7.5394 | 0.04908 | 2.49% (past 2 pct, stop) |
+
+**k(1 pct) = 1** (only L3g0; L3g0+L3g2 already costs 2.49%). **k(2 pct) = 1.** (kv_group_round.py counts the curve points under each bar; that equals the largest such k only because the measured joint curve is monotonic -- 0 -> 0.82 -> 2.49 pct -- the monotonic assumption, stated at thought-master's batch C+D review.)
+
+- KV bytes/token, f16: 8 layers x 4 KV heads x 256 head_dim x 2 (K,V) x 2 B = **32,768 B/token**.
+- Context multiplier in the same KV bytes: 32/(32 - k(1 pct)) = 32/31 = **1.032x** (vs the claimed >= 1.23x).
+- Single groups are close to additive but mildly *super*-additive at k=2: 0.82% + 1.19% = 2.01% singles vs 2.49% joint.
+
+## Verdict
+
+**DISPROVED.** k(1 pct) = 1 < 6. The parent's own falsifier fires: zero-ablating a whole KV group of the
+served 9B costs, at the cheapest, 0.82% of the baseline NLL, and the second-cheapest group already pushes
+the joint cost past 2%. Head-group pruning by measured delta-loss cannot carry g5.22's context lever on
+this model: 32/31 = 1.032x context, not 1.23x. The measured 32-row table and the joint curve are the
+record; the chain moves to the band hops (`hypothesis:lm-head-rope-band-profile-is-static`) and the
+KV-quant layering (`hypothesis:lm-q4-kv-cache-tg-at-4k`), which is a 2-4x lever this would only have compounded with.
+
+## Evidence
+
+Outputs in `datasets/dead-head/2026-09-23-kv-groups/`: `singles.csv` (32 rows), `curve.csv` (3 rows),
+`kv_groups.json` (all numbers, command, per-run secs/RAM, tensor shas before/after), `logs/` (36 raw
+llama-perplexity logs: 2 baseline + 32 single + 2 joint; first stated as 34, corrected at the director's
+harvest, mur-director-thought-5). Scripts: `.agi/context/local-maxxing/heads/kv_group_surgery.py`,
+`.agi/context/local-maxxing/heads/kv_group_round.py`; new config key
+`paths.local_maxxing.kv_groups_dir = datasets/dead-head/2026-09-23-kv-groups`.
+
+**Router restored.** `docker start llama-server`; `:8080/v1/models` lists `Qwen3.5-9B-Q4_K_M` and reports
+`status.value = loaded` (6730 MiB used on the GPU); a real completion returned with model
+`Qwen3.5-9B-Q4_K_M`, 217 tokens, 765 chars of `reasoning_content` (the model is a reasoning model, so the
+content field is empty at 200 max_tokens -- the generation is real and the server is the served 9B).
+
+**Proposed box cells (not added by an agent).** `box.models_dir = /data/ml/models` (read-only served GGUFs),
+`box.ml_scratch_dir = /data/ml/scratch` (surgery copies, wikitext, run dirs) -- used as literals here.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, TMM.52 item (1): NLL_base is ln(7.1783) = 1.971063, not the 1.970913 first written (every fraction in the tables was computed from the logs and does not move); and the k selector's monotonic assumption is now stated beside k(1 pct) / k(2 pct).
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Zero-ablation of each of the 32 full-attention KV groups on a sha-identical copy of the served Qwen3.5-9B-Q4_K_M: baseline PPL 7.1783 twice (identical), all 32 singles measured (0.82 pct L3g0 .. 17.34 pct L31g1 of NLL_base), joint greedy curve stops at k=2 (2.49 pct). k(1pct)=1, k(2pct)=1, context multiplier 32/31=1.032x, KV 32768 B/token f16. The parent's falsifier fires: head-group pruning cannot carry g5.22's context lever. Copy sha restored to 03b74727...52b7e8, per-layer tensor shas verified, router restarted and probes a real 9B completion.
+
+PARENT REVIEW (a00-2e229bfb, OSC.02): ACCEPTED, verdict disproved stands. Read the changed bytes (2 scripts, 1 config key, 4 output files, 36 logs), not the summary. Five negative probes, one per conjunct, all pass: independent GGUF parse reproduces the kid slice shas; joint patch(L3,[0,2]) ablates the cumulative set and restores exactly; the k-selector rule is falsifiable (1/2/6); paths.get_local resolves kv_groups_dir and refuses unknown keys; router restored and answers a real 97-token 9B completion. Whole-copy sha == served 03b74727...52b7e8. k(1pct)=1, k(2pct)=1, 32/31=1.032x context. Demoted: none. Rebrief: approved ceiling 350. Open caveat: the joint curve was measured only to k=2 (the second addition is already 2.49 pct), decisive for k(1pct)=1, but not continued past the 2 pct crossing.
+
+director-thought harvest (OSC.02): the round's own done commit failed on a stale 0-byte index.lock in the round worktree's git dir (created 10:14:15Z, held by no process at 11:0xZ); the director committed the kid's and parent's bytes exactly as left (4116cf46c) with the round's one config key, and merged the loop branch (45f80be27). Checked: singles.csv matches the 32 raw llama-perplexity logs to the digit (0 mismatches), curve.csv holds k 0-2, paths.local_maxxing.kv_groups_dir resolves through get_local. Deviation recorded, not hidden: the director's orders set a 150-line ceiling; the parent granted 350 by rebrief and 325 landed -- above 2x the ordered ceiling (300); the work (GGUF header parse, byte surgery with per-run restore and sha checks, a 34-run driver) is what the ceiling was too small for. Director's recount from the raw logs agrees with every row here, and with the depth pattern: layer 3 groups cost 0.8-2 pct, layer 31 groups 10.5-17.3 pct.
+
+director-thought correction to the harvest note above: the parent's retried done commit (654b4af5f, 11:06:10Z) committed the round's bytes -- both scripts, this node, and every output file -- once the stale index.lock was gone; the director's commit 4116cf46c, 16 seconds later, carried ONLY the round's config key (paths.local_maxxing.kv_groups_dir), so its message overstates what it holds. The loop branch is 3275d800f -> 654b4af5f -> 4116cf46c, merged whole in 45f80be27; nothing is missing.
+
+director-thought, OSC.02 mur (mur-director-thought-5) closed: accept_with_residue. The two residue-class review defects were REFUTED by its verify stage (the T0 router guard was a manual pre-step by the orders, and the driver performs no never-list action; the 2x ceiling checkpoint is enforced at cli.py done). Corrected in place: the raw-log count (36). Carried to the Prime: kv_group_round.py and kv_group_surgery.py keep /data/ml/models and /data/ml/scratch literal until the proposed box cells (box.models_dir, box.ml_scratch_dir) exist. Notes recorded, not changed: the served-vs-copy sha equality is recorded in the gitignored session, not a committed script; the parent's probe scripts live under the gitignored session dir; k(1 pct) / k(2 pct) are counts of curve points under the bar, equal to the largest k only because the measured curve is monotonic; head_dim 256 per head is asserted, and the 4-blocks-per-group mapping holds regardless.
+
+LARGEST SAFE STEP (relentless optimism, owner 13:xZ via TMM.50): the bar stays DISPROVED (k(1 pct) = 1 < 6); the positive steps are (a) dropping KV group L3 g0 costs 0.82 pct of NLL -> 32/31 = 1.03x context, and (b) the 32-group per-depth SENSITIVITY MAP itself (layer 3 groups 0.8-8 pct, layer 31 groups 10.5-17.3 pct), which is the input to ladder rung L2 -- per-group KV precision, low precision where damage is small, high where it is large.

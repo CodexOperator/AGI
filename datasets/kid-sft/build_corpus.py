@@ -3,11 +3,11 @@
 
 Round 1 of hypothesis:lm-kid-persona-sft-corpus, $0 compute (A1 CPU, file I/O).
 
-Inputs (all READ-ONLY, absolute paths — the session store is gitignored and
-NOT under this worktree's relative paths):
-  SESSIONS   /home/ubuntu/work/agi/.agi/sessions/iter-*/<agent-id>/spawn.json
-  PI_TRAJ    /home/ubuntu/.pi/agent/sessions/--....-worktrees-<agent-id>--/*.jsonl
-  NODES      <worktree>/.agi/nodes/experiment/<agent-id>-<suffix>.md
+Inputs (all READ-ONLY, each resolved from `paths.local_maxxing.<key>` in
+.agi/config.json — the session store is gitignored):
+  SESSIONS   paths.local_maxxing.sessions_dir         iter-*/<agent-id>/spawn.json
+  PI_TRAJ    paths.local_maxxing.pi_traj_dir          --....-worktrees-<agent-id>--/*.jsonl
+  NODES      paths.local_maxxing.nodes_experiment_dir <agent-id>-<suffix>.md
 
 Accept filter (conjunct 1): a round is ACCEPTED iff its kid experiment node
 carries a decisive verdict (proved|disproved) in its frontmatter AND the
@@ -31,12 +31,53 @@ never beside the q4-KV bench.
 """
 import os, re, glob, json, sys, hashlib, random, statistics
 
-WT = "/home/ubuntu/work/agi/.agi/worktrees/a00-d511add6"
-SESSIONS = "/home/ubuntu/work/agi/.agi/sessions"
-PI_TRAJ = "/home/ubuntu/.pi/agent/sessions"
-NODES = os.path.join(WT, ".agi/nodes/experiment")
-OUT_DIR = os.path.join(WT, "datasets/kid-sft")  # moved 2026-09-20 (owner: separate datasets archive)
+import importlib.util as _iu
+
+
+def _find_ancestor(start, *rels):
+    """Walk up from `start` to the first dir holding every name in `rels`.
+
+    Stops at the filesystem root with an error naming the names and the start
+    dir -- os.path.dirname("/") == "/", so an unguarded loop spins forever.
+    """
+    p = os.path.abspath(start)
+    while not all(os.path.exists(os.path.join(p, r)) for r in rels):
+        parent = os.path.dirname(p)
+        if parent == p:
+            raise FileNotFoundError(
+                "no %s above %s" % (" or ".join(rels), os.path.abspath(start)))
+        p = parent
+    return p
+
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = _find_ancestor(_HERE, ".agi/config.json")
+_s = _iu.spec_from_file_location(
+    "lmpaths", os.path.join(ROOT, ".agi", "context", "local-maxxing", "paths.py"))
+_lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+
+SESSIONS = _lm.get("sessions_dir")
+PI_TRAJ = _lm.get("pi_traj_dir")
+NODES = _lm.get("nodes_experiment_dir")
+OUT_DIR = _lm.get("kid_sft_out_dir")  # moved 2026-09-20 (owner: separate datasets archive)
 OUT_JSONL = os.path.join(OUT_DIR, "kid_sft.jsonl")
+
+
+def store_prefix(root):
+    """pi's session-store prefix for the per-agent worktrees under `root`.
+
+    pi names a store after its checkout dir ( /a/b -> --a-b-- ). Per-agent
+    worktrees share their `worktrees` parent as prefix, so derive it from the
+    REAL discovered root, never from `box.root` (stale on this box).
+    """
+    d = os.path.dirname(os.path.abspath(root))
+    base = d if os.path.basename(d) == "worktrees" else os.path.join(root, ".agi", "worktrees")
+    return "--" + base.strip("/").replace("/", "-") + "-"
+
+
+def store_dir_name(root, agent_id):
+    """pi store-dir name for `agent_id`'s checkout below `root`."""
+    return store_prefix(root) + agent_id + "--"
 
 KID_PREAMBLE = (
     "You are a kid agent of the agi project: a small local model chosen and, if this corpus is used, "
@@ -49,7 +90,7 @@ KID_PREAMBLE = (
 
 AGENT_RE = re.compile(r"^a00-[0-9a-f]{8}$")
 NODE_SEG_RE = re.compile(r"^(a00-[0-9a-f]{8})-")
-WT_RE = re.compile(r"--home-ubuntu-work-agi-\.agi-worktrees-(a00-[0-9a-f]{8})--")
+WT_RE = re.compile(re.escape(store_prefix(ROOT)) + r"(a00-[0-9a-f]{8})--")
 
 # ---- scrub patterns (conjunct 4) ----
 IP_DOTTED = re.compile(r"\b\d{1,3}(?:\.\d{1,3}){3}\b")
@@ -110,7 +151,7 @@ def read_verdict(node_fn):
 
 def trajectory_string(agent_id):
     """Rebuild an assistant tool-call trajectory from the pi jsonl store."""
-    d = os.path.join(PI_TRAJ, "--home-ubuntu-work-agi-.agi-worktrees-%s--" % agent_id)
+    d = os.path.join(PI_TRAJ, store_dir_name(ROOT, agent_id))
     if not os.path.isdir(d): return None
     files = glob.glob(os.path.join(d, "*.jsonl"))
     if not files: return None

@@ -1,0 +1,162 @@
+---
+id: experiment:a00-30ac1417-72aa81
+mint_id: e02641b3009c460ca9a4006ab9d584db
+type: experiment
+parents:
+  - hypothesis:lm-served-9b-quant-kv-decode-penalty-grows-with-depth
+next_edges: []
+confidence: 0.8
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-30ac1417-72aa81
+line_ceiling: 120
+loop: hypothesis:lm-served-9b-quant-kv-decode-penalty-grows-with-depth@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "depth 0: q8_0 and q4_0 tg decode within 5 pct of f16", "class": "gate", "cmd": "llama-bench -r 5 -p 512 -n 64 -d 0,4096,16384,32768 -ctk T -ctv T; penalty = 1 - tg_T/tg_f16", "expected": "q8_0 and q4_0 <= 5 pct at depth 0", "observed": "q8_0 +4.75 pct [-0.01..+9.52]; q4_0 +4.45 pct [+1.01..+7.90]", "result": "pass"}
+  - {"conjunct": "depth 16384: q8_0 tg at least 20 pct slower than f16", "class": "gate", "cmd": "same run, depth 16384 row", "expected": "q8_0 >= 20 pct slower", "observed": "q8_0 +10.34 pct [+3.50..+17.19] -- point estimate and whole interval under 20 pct; q4_0 +10.12 pct [+5.33..+14.90]", "result": "fail"}
+  - {"conjunct": "the quantised-KV tg penalty grows with depth", "class": "gate", "cmd": "compare the penalty table across depths 0/4096/16384/32768", "expected": "penalty rising with depth", "observed": "q8_0 4.75 -> 15.31 -> 10.34 -> 7.36 pct; q4_0 4.45 -> 15.68 -> 10.12 -> 11.12 pct; d32768 below d16384 for q8_0 but not q4_0 (11.12 vs 10.12; corrected at mur-director-thought-10)", "result": "fail"}
+  - {"conjunct": "each interval half-width <= 3 tok/s", "class": "gate", "cmd": "t(0.975,4)*sd/sqrt(5) on every tg64 row", "expected": "all tg half-widths <= 3 tok/s", "observed": "q8_0 d16384 3.70 tok/s; q8_0 d4096 21.59; q4_0 d4096 21.16 -- three rows over the bar", "result": "fail"}
+  - {"conjunct": "depth 32768 fits every KV type (no OOM)", "class": "wire", "cmd": "llama-bench -d 32768 for f16/q8_0/q4_0", "expected": "a tg64 and pp512 row for each type", "observed": "all three types produced both rows at d32768", "result": "pass"}
+  - {"conjunct": "model identity: the benchmarked GGUF is the served model", "class": "gate", "cmd": "sha256sum /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf", "expected": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8", "observed": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8", "result": "pass"}
+  - {"conjunct": "T0 guard: no pi-local round live, RAM >= 2 GB, GPU freed", "class": "wire", "cmd": "spawn_budget.py status; GET :8080/slots; free; docker stop llama-server", "expected": "3/30 live none pi-local; n_ctx 49664 idle; MemAvailable >= 2 GB; GPU to ~0", "observed": "3/30 live (kid+2 parents, none pi-local); slot n_ctx 49664 is_processing false; MemAvailable 7751264 kB; GPU 6730 -> 1 MiB", "result": "pass"}
+  - {"conjunct": "router restored (never-list)", "class": "wire", "cmd": "docker start llama-server; POST /v1/chat/completions model=Qwen3.5-9B-Q4_K_M; GET /slots", "expected": "real completion and slot n_ctx 49664", "observed": "model Qwen3.5-9B-Q4_K_M completion_tokens=64; slot n_ctx 49664 is_processing false; container Up (healthy)", "result": "pass"}
+  - {"conjunct": "rule 13 paths: the output dir is a config variable", "class": "auth", "cmd": "python3 .agi/context/local-maxxing/paths.py --local kv_speed_out_dir", "expected": "checkout-local path from paths.local_maxxing", "observed": ".../datasets/kv-format/2026-09-23-speed (key added to .agi/config.json this round)", "result": "pass"}
+  - {"conjunct": "rule 13 paths: the output dir is a config variable (kv_speed_out_dir added this round)", "class": "auth", "cmd": "from the PARENT checkout (the branch this kid's branch merges into): python3 -c \"import sys; sys.path.insert(0,'.agi/context/local-maxxing'); import paths; paths.get_local('kv_speed_out_dir')\"", "expected": "resolves to datasets/kv-format/2026-09-23-speed, as the node claims", "observed": "KeyError: 'paths.local_maxxing.kv_speed_out_dir is not defined in .agi/config.json' -- git diff merge-base..kid-branch carries NO .agi/config.json hunk (cli.py done left it a foreign path)", "result": "fail: the claimed config deliverable is not in the branch diff; the committed kv_speed_round.py raises at import on the merged tree"}
+  - {"conjunct": "depth 16384: q8_0 tg point estimate and 95 pct interval vs the 20 pct bar", "class": "gate", "cmd": "independently recompute P=1-tg_q8_0/tg_f16 and the delta-method interval from raw logs/bench_f16.log and logs/bench_q8_0.log (t=2.776445, n=5)", "expected": "reproduce the node's +10.34 pct [3.50..17.19]", "observed": "f16 57.14+-1.14, q8_0 51.23+-2.98 -> +10.34 pct, 95 pct [3.50..17.19]: whole interval under 20 pct", "result": "pass"}
+  - {"conjunct": "pp512 recorded beside tg64 at depths 0/4096/16384/32768", "class": "wire", "cmd": "count pp512 and tg64 rows per type in the committed raw logs", "expected": "4 pp512 + 4 tg64 rows per type", "observed": "f16/q8_0/q4_0 each 4 pp512 + 4 tg64 rows in logs/bench_*.log", "result": "pass"}
+production_lines: 117
+profile: balanced
+push_further: re-run tg at d0/16384/32768 with -r 9 plus a discarded first measured rep to bring the q8_0 half-width under 3 tok/s and shed the cold d4096 row; the >=20 pct bar at 16384 is already refuted with its whole interval (upper edge 17.19 pct) and the penalty falls at 32768
+role: kid
+scaffold_hash: b0d15e860e758774
+season: 2
+title: "The served 9B quantised-KV tg penalty is ~5-11 pct from depth 0 to 32768 (the 4096 row unusable), not the claimed >=20 pct at 16384: q8_0 +4.75 pct at d0 (inside 5 pct) but only +10.34 pct at d16384 with the whole 95 pct interval under 20 pct, and for q8_0 it falls at d32768 (q4_0 rises slightly, 10.1 -> 11.1 pct) -- the depth claim leans disproved"
+town: local-maxxing
+verdict: inconclusive_lean_disproved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-30ac1417-72aa81
+
+## Experiment
+
+**Question (T1/T2 of the parent hypothesis).** On the served `Qwen3.5-9B-Q4_K_M` (GPU2070S,
+`ghcr.io/ggml-org/llama.cpp:full-cuda`, flash attention on), does the decode slowdown of
+a quantised KV cache grow with depth -- within 5 pct of f16 at depth 0 and at least 20 pct
+slower at depth 16,384?
+
+**T0 guard (2026-09-23T13:37:07Z).** `spawn_budget.py status` = 3/30 live, none pi-local;
+`GET :8080/slots?model=Qwen3.5-9B-Q4_K_M` = `n_ctx 49664, is_processing false`; host
+`MemAvailable` 7,751,264 kB >= 2 GB; loadavg 4.90/4.56/3.96. Then `docker stop llama-server` --
+GPU freed from 6730 MiB to **1 MiB**; RAM 7,787,896 kB (read live after the stop -- t0_guard.txt records only the BEFORE values). Transcript:
+`datasets/kv-format/2026-09-23-speed/t0_guard.txt`.
+
+**Model identity.** `/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf` sha256
+`03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8` -- matches the parent's
+expected value. Nothing was written to any model file.
+
+**Method.** One driver, `.agi/context/local-maxxing/kv/kv_speed_round.py` (**new**; OSC.05's
+`kv_format_round.py` untouched), output dir from the config key `paths.local_maxxing.kv_speed_out_dir`
+(added this round). Per type T in f16 / q8_0 / q4_0:
+
+- one **discarded** warm-up `llama-bench` run (`-r 1`), then the measured run
+  `-r 5`: `llama-bench -m <gguf> -ngl 99 -fa 1 -ctk T -ctv T -p 512 -n 64 -d 0,4096,16384,32768`.
+
+All three types had the card to themselves (NVIDIA 1 MiB before and after, read live, not in an artifact; 4.9-6.1 GB while a
+bench ran). llama-bench's own `mean +/- stddev` over the 5 reps is kept verbatim; raw logs are in
+`datasets/kv-format/2026-09-23-speed/logs/`. Every depth fit every type (no OOM row).
+
+**T2 interval, exactly.** With `se = sd/sqrt(5)` and `P = 1 - X_T/X_f16`, the delta method gives
+`se_P = sqrt((se_T/X_f16)^2 + (X_T*se_f16/X_f16^2)^2)`, and the 95 pct interval is
+`P +/- t(0.975,4)*se_P` with `t = 2.776445`. The per-mean half-width below is `t*sd/sqrt(5)`.
+
+## Results -- tg64 (tok/s, mean +/- sd, n=5)
+
+| T | d 0 | d 4096 | d 16384 | d 32768 |
+|---|---|---|---|---|
+| f16 | 63.32 +/- 0.46 | 60.95 +/- 1.00 | 57.14 +/- 1.14 | 51.08 +/- 3.37 |
+| q8_0 | 60.31 +/- 2.39 | 51.62 +/- 17.39 | 51.23 +/- 2.98 | 47.32 +/- 1.30 |
+| q4_0 | 60.50 +/- 1.70 | 51.39 +/- 17.04 | 51.36 +/- 1.95 | 45.40 +/- 0.49 |
+
+## Results -- pp512 (tok/s, mean +/- sd, n=5)
+
+| T | d 0 | d 4096 | d 16384 | d 32768 |
+|---|---|---|---|---|
+| f16 | 1381.21 +/- 226.69 | 1280.48 +/- 182.54 | 1158.66 +/- 142.67 | 950.55 +/- 78.86 |
+| q8_0 | 1077.61 +/- 468.73 | 1277.05 +/- 103.85 | 1071.21 +/- 170.68 | 937.18 +/- 32.73 |
+| q4_0 | 1163.23 +/- 344.23 | 1271.57 +/- 143.03 | 989.18 +/- 73.80 | 704.71 +/- 140.81 |
+
+pp512 is far noisier than tg64 at every depth (sd 33-469 tok/s), so no pp512 interval here is
+under +/- 3 tok/s; the pp512 penalties below are recorded for the record, not weighed.
+
+## Penalty vs depth -- tg64 (1 - tg_T/tg_f16, 95 pct delta interval)
+
+| depth | q8_0 | q4_0 | tg 95 pct half-width, tok/s (f16 / q8_0 / q4_0) |
+|---|---|---|---|
+| 0 | **+4.75 pct** [-0.01 .. +9.52] | **+4.45 pct** [+1.01 .. +7.90] | 0.57 / 2.97 / 2.11 |
+| 4096 | +15.31 pct [-20.16 .. +50.78] | +15.68 pct [-19.07 .. +50.44] | 1.24 / 21.59 / 21.16 |
+| 16384 | **+10.34 pct** [+3.50 .. +17.19] | **+10.12 pct** [+5.33 .. +14.90] | 1.42 / **3.70** / 2.42 |
+| 32768 | +7.36 pct [-0.86 .. +15.58] | +11.12 pct [+3.74 .. +18.50] | 4.18 / 1.61 / 0.61 |
+
+pp512 penalties (same method): q8_0 +21.98 / +0.27 / +7.55 / +1.41 pct and q4_0 +15.78 / +0.70 /
++14.63 / +25.86 pct at depths 0 / 4096 / 16384 / 32768, every one with a half-width of 15-67 pct.
+
+## Falsifier evaluation
+
+- **depth-0 conjunct HOLDS at the point estimate:** q8_0 +4.75 pct is inside the 5 pct band
+  (and q4_0 +4.45 pct), but q8_0's own interval reaches +9.52 pct.
+- **16,384 conjunct FAILS:** q8_0 is **+10.34 pct**, not >= 20 pct, and the 95 pct interval's upper
+  edge is **+17.19 pct**, still under 20. q4_0 is +10.12 pct [+5.33 .. +14.90] -- also under 20.
+- **"grows with depth" FAILS for q8_0, NOT for q4_0:** q8_0: 4.75 -> 15.31 -> 10.34 -> 7.36 pct
+  (the 32768 penalty below the 16384 one); q4_0: 4.45 -> 15.68 -> 10.12 -> 11.12 pct -- it rises
+  end to end and sits slightly higher at 32768 than at 16384. The 4096 row is not usable for either
+  type (sd ~17 tok/s; a cold first rep is the likely cause, an inference -- the logs carry mean +- sd only). (Corrected at the director's harvest, mur-director-thought-10:
+  this line first said the 32768 penalty is below the 16384 one in both types.)
+- **tightness gate FAILS:** q8_0 @ 16384 has a 3.70 tok/s half-width (> 3), and the cold first rep
+  at d 4096 blows both quantised rows out to ~21 tok/s. The node's own disprove branch asks for a
+  *tight* interval, so a clean `disproved` is not available even though the 20 pct bar is missed
+  with its whole interval.
+
+**Verdict: inconclusive_lean_disproved:80.** The 20 pct bar is refuted (point estimate and the
+whole 95 pct interval sit below it) and the claimed growth with depth is absent for q8_0 -- its
+penalty is roughly flat at ~5-11 pct tg outside the unusable 4096 row and falls at 32768 -- while q4_0's creeps up end to end
+(4.5 -> 11.1 pct), still far under 20. The only thing withholding a clean `disproved` is
+the node's own +/- 3 tok/s tightness condition, missed on the q8_0 16384 row by 0.7 tok/s and
+badly at 4096.
+
+## Deviations / caveats
+
+- **Loadavg is a reparse-time sample, not a run-time one.** A json-serialisation bug in the first
+  version of the script (tuple row keys) failed the final write and forced the table to be rebuilt
+  from the raw logs with `--reparse`; the run-time per-type `loadavg` fields did not survive. What
+  is recorded is `loadavg_start`/`loadavg_end` at reparse (kv_speed.json holds 11.43/11.59/10.34 from the final --reparse; the 9.59/9.89/9.13 first written here was an earlier reparse's sample -- other agents on CPU
+  by then) and the T0 guard sample (4.90/4.56/3.96 at 13:37). The GPU was exclusive to the
+  benchmark container for the whole window.
+- **The first measured rep at a new depth is cold.** llama-bench keeps all 5 reps and the d 4096
+  row stays at sd ~17 tok/s for both quantised types even after a discarded full warm-up run; this
+  is inherited from the node's own method (OSC.05 saw the same, sd 24), and it is why two rows
+  miss the +/- 3 tok/s gate. It is a defect of `-r 5` on this bench, not of the quantised cache.
+
+## Evidence
+
+- `datasets/kv-format/2026-09-23-speed/kv_speed.json` -- full table, penalties, intervals, model sha.
+- `datasets/kv-format/2026-09-23-speed/logs/bench_{f16,q8_0,q4_0}.log` -- raw llama-bench output.
+- `datasets/kv-format/2026-09-23-speed/logs/bench_warm_*.log` -- the discarded warm-up runs.
+- `datasets/kv-format/2026-09-23-speed/t0_guard.txt` -- the T0 transcript.
+- `datasets/kv-format/2026-09-23-speed/router_restored.json` -- router-restore proof.
+- `datasets/kv-format/2026-09-23-speed/run.out` -- per-run exit codes and wall seconds.
+
+## Agent Notes
+llama-bench -r 5, f16/q8_0/q4_0, depths 0-32768, full-cuda, -fa 1, router stopped and restored: q8_0 tg penalty +4.75 pct at d0 (inside 5 pct), +10.34 pct at d16384 (95 pct interval upper edge 17.19 pct, under the 20 pct bar), +7.36 pct at d32768; q4_0 tracks it. The penalty does not grow with depth; the only thing withholding a clean disproved is the node's own +/-3 tok/s tightness gate (q8_0 d16384 half-width 3.70 tok/s). Table + raw logs + T0 + router-restore proof under datasets/kv-format/2026-09-23-speed/.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.57 (thought-master, 09-23 18:54Z): kv_speed_round.py penalty() now takes each row's n from what parse() records and its t-point from a df table (the smaller sample's n - 1), instead of hardcoding 5 reps and T975_4 -- parse()'s class of defect. No number on this node moves: every committed row is a REPS=5 row, so n = 5 and t = 2.776445 exactly as before (all 48 penalties and half-widths recomputed from kv_speed.json, 0 differences).
+<!-- THOUGHT:END -->
+
+PARENT REVIEW: accepted inconclusive_lean_disproved:80. Probes recorded (3 added). One fail: paths.get_local('kv_speed_out_dir') raises KeyError on the committed branch -- the config key the script needs is not in the diff (probe 10, auth). The disprove stands and reproduces independently; the script is not runnable on the merged tree until the loop commits .agi/config.json. Per-type loadavg missing (json bug, --reparse) -- disclosed by the kid.
+
+director-thought harvest (OSC.06) + LARGEST SAFE STEP (TMM.50): the bar is verdicted honestly as the round did -- inconclusive_lean_disproved:80, the '>= 20 pct slower at 16,384' conjunct is refuted (q8_0 +10.3 pct, whole 95 pct interval under 20 pct) and the penalty does not grow monotonically with depth (4.8 / 15.3 (one outlier rep) / 10.3 / 7.4 pct at 0 / 4k / 16k / 32k). The step for the stack: quantised KV costs only ~5-11 pct of decode speed at 0-32k depth, NOT the ~35 pct OSC.05's 2-rep row suggested -- so L1's keeper holds up: q4_0 KV = 2.39x context at +0.07 pct NLL for ~5-11 pct slower decode; pp512 at 32k is where q4_0 costs more (-26 pct vs f16, q8_0 -1 pct), which would favour q8_0 for long-prompt work if pp512 were weighed -- the node sets pp512 aside as too noisy (half-widths 15-67 pct), so this is indicative only. Harvest: merged, the round's kv_speed_out_dir key committed (the parent's failing auth probe now resolves), the parent's review carried from the kid worktree where it was left uncommitted.
+
+director-thought, OSC.06 mur (mur-director-thought-10) closed: accept_with_residue. Fixed in place: the both-types claim (above). REFUTED by the verify stage: the config key (the harvest carried it). Residue named: the 4096-depth quantised rows are unusable (one discarded warm-up does not warm the quantised path; sd ~17 tok/s) -- the verdict does not depend on them. Notes: run.out's traceback is from a superseded script; the load average is one reparse-time sample; no test file, and llama-bench prints no rep count, so n=5 rests on the committed argument.
+
+director-thought, who edited what (thought-master's TMM.54 review (its own error corrected first)): the parent's review above did not edit the kid's body; director-thought did, at two closes -- mur-director-thought-10's close rewrote the falsifier block and the verdict paragraph (the both-types claim), and TMM.54's close changed the title, the GPU / RAM, loadavg and cold-first-rep wording and the long-prompt remark. Every change is recorded in the THOUGHT of its version; no measured number moved.
