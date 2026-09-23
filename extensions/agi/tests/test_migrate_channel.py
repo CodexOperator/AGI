@@ -832,3 +832,27 @@ def test_migrate_path_has_no_second_ref_literal():
     start = src.index("def cmd_migrate(")
     end = src.index("def cmd_rotate(")
     assert "refs/agi/posts/" not in src[start:end]
+
+
+def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
+        tmp_path, monkeypatch):
+    """FR-B3: `_migrate_copy_transcript` builds a literal argv -- no shell --
+    and scp's default since OpenSSH 9.0 is the SFTP protocol, which runs no
+    remote shell either. So `$HOME` arrives at sftp-server as four literal
+    characters, while a leading `~` is server-expanded via
+    expand-path@openssh.com. Measured on OpenSSH_9.6p1 with an sshd-free
+    `scp -D /usr/lib/openssh/sftp-server` fixture: `boxA:~/.claude/.../x.jsonl`
+    copies, `boxA:$HOME/.claude/.../x.jsonl` is ENOENT. This pins the argv."""
+    seen = []
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda argv, **kw: seen.append(argv))
+    dest = rotate._migrate_copy_transcript(
+        tmp_path, {"source_box": "boxA", "session_id": "sess-1"},
+        tmp_path / "fork-wt")
+    assert len(seen) == 1
+    argv = seen[0]
+    assert argv[0] == "scp" and argv[1] == "-q"
+    assert argv[2] == f"boxA:~/.claude/projects/{dest.parent.name}/{dest.name}"
+    assert argv[2].endswith("/sess-1.jsonl")
+    assert argv[3] == str(dest)
+    assert "$HOME" not in " ".join(argv)
