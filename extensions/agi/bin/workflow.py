@@ -2005,6 +2005,19 @@ def _current_load() -> float:
     return os.getloadavg()[0]
 
 
+def _whole_seconds(value: float) -> int:
+    """A resolved budget, floored to whole seconds and never to ZERO.
+
+    A 0<v<1 budget is a positive number, so it clears the refusal, but
+    `int(0.5)` truncates it to 0 and `subprocess.run(timeout=0)` raises
+    `TimeoutExpired` immediately — the same silent kill a declared 0 causes.
+    Every truncation site (with and without load scaling, stage wall and
+    context build) floors at ONE second instead
+    (goal:g15.29.20 FR-C1; hypothesis:context-budget-never-floors-to-zero-
+    and-is-pinned)."""
+    return max(1, int(value))
+
+
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     """The stage's wall-clock budget in seconds, DECLARED — never truthy.
 
@@ -2046,11 +2059,12 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     lf = (stage["load_factor"] if "load_factor" in stage
           else manifest.get("load_factor"))
     if lf is None:
-        return raw
+        return _whole_seconds(raw)
     if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
         raise ValueError(
             f"stage {label!r} load_factor={lf!r} is not a positive number")
-    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
 
 
 def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
@@ -2086,11 +2100,12 @@ def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
     lf = (stage["load_factor"] if "load_factor" in stage
           else manifest.get("load_factor"))
     if lf is None:
-        return int(raw)
+        return _whole_seconds(raw)
     if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
         raise ValueError(
             f"stage {label!r} load_factor={lf!r} is not a positive number")
-    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
 
 
 def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
