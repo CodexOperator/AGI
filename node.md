@@ -1,0 +1,130 @@
+---
+id: experiment:a00-71d5dbe1-a8a423
+mint_id: 9e5489bccf01471fb0bf68dcd5807394
+type: experiment
+parents:
+  - hypothesis:brief-render-hygiene-after-the-batch-mur
+next_edges: []
+confidence: 0.85
+edited_by: a00-32ff8393
+evidence_runs:
+  - experiment:a00-71d5dbe1-a8a423
+loop: hypothesis:brief-render-hygiene-after-the-batch-mur@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 4, "class": "wire", "cmd": "python3 probe_conj4_test.py -- load the NEW test against pre-fix brief.py (git show 2d18748de) and post-fix; grep _TEMPLATE_RE/_expand", "expected": "pre-fix extras macro expands to DEEPER-SENTINEL (test RED); post-fix literal and _expand/_TEMPLATE_RE absent", "observed": "PRE RED as required (assert an extras macro stays literal); POST PASS; attributes absent", "result": "held"}
+  - {"conjunct": 5, "class": "gate", "cmd": "slice fields.seats of .agi/context/schemas/[config].md between seats:{type:list} and posts:{type:list}; assert template token + brief.templates clause; compare pre-fix schema bytes", "expected": "post-fix declares the template cell in the seat-row fields with the brief.templates clause; pre-fix slice has no template", "observed": "post-fix present True + brief.templates True; pre-fix seats slice has no template token; schema test PASS", "result": "held"}
+production_lines: 7
+profile: balanced
+role: kid
+scaffold_hash: 7822751acd1d9437
+season: 2
+title: Template macro removed; config schema declares the post-row template cell
+town: local-maxxing
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-71d5dbe1-a8a423
+
+## Experiment
+
+Finishes conjuncts 4 and 5 of
+`hypothesis:brief-render-hygiene-after-the-batch-mur` (conjuncts 1-3 landed in
+`experiment:a00-6171cd2d-d1fa98`, commit 2d18748de; not redone here).
+
+**Conjunct 4 -- the `{{template:}}` mechanism is GONE.**
+
+- Removed `_TEMPLATE_RE` and `_expand()` from `extensions/agi/bin/brief.py`.
+  Grep confirmed exactly one live caller: the `extras` part (old line ~2422).
+- `_part("extras", ...)` now resolves every ref through plain
+  `_node_text(root, r)` -- a `{{template:<node>}}` line in an extras node
+  renders LITERAL. Templates come from config alone (`template` part).
+- Removed `test_card_is_data_and_is_never_expanded` and fixed the module
+  docstring that claimed the card's `{{template:}}` lines were "expanded one
+  level".
+- Added `test_the_template_macro_is_gone_and_renders_literal`, red-first on
+  the BYTES: an `extras` node carrying `{{template:doc:deeper}}` pre-fix
+  rendered `DEEPER-SENTINEL` in place of the macro; post-fix the macro is
+  literal and `DEEPER-SENTINEL` is absent. A card macro also stays literal.
+
+**Conjunct 5 -- the `template` post-row cell is declared.**
+
+- `.agi/context/schemas/[config].md`: added `template,` to the enumerated
+  seat-row field list under `fields.seats`, plus the clause "`template` is the
+  role template node ref that beats `brief.templates[<role>]` for this row's
+  role."
+- Added `test_config_schema_declares_the_template_post_row_cell`, red-first:
+  it reads the live schema at its graph path, slices the `fields.seats` block
+  out, and asserts both the `template` token and the `brief.templates` clause.
+
+Red-first evidence (recorded, then green after the fix):
+
+- pre-fix `test_the_template_macro_is_gone_and_renders_literal`:
+  `AssertionError: an extras macro stays literal` -- actual output was
+  `WRAPPER-SENTINEL\n\nDEEPER-SENTINEL\n\nCARD-SENTINEL...` (the macro was
+  consumed by `_expand`).
+- pre-fix `test_config_schema_declares_the_template_post_row_cell`:
+  `AssertionError: the post row's 'template' cell is declared`.
+
+Targeted suite after the fix (test files named, not the bare dir):
+
+```
+python3 -m pytest extensions/agi/tests/test_brief.py \
+  extensions/agi/tests/test_brief_render.py \
+  extensions/agi/tests/test_briefing.py extensions/agi/tests/test_rotate*.py -q
+-> 1 failed, 1131 passed, 1 xfailed in 174.98s
+```
+
+The one failure is the KNOWN pre-existing red, not mine:
+`test_brief.py::test_g15_rule_with_no_project_root_keeps_the_current_fallback`.
+
+Production lines (git diff --numstat over the two production paths, tests
+excluded): `4 7 extensions/agi/bin/brief.py`, `3 1 [config].md` -- 7 added,
+well under the 40-line ceiling.
+
+## Evidence
+
+Red-first (pre-fix) assertion failure, extras expansion:
+
+```
+>       assert "{{template:doc:deeper}}" in out, "an extras macro stays literal"
+E       AssertionError: an extras macro stays literal
+E       assert '{{template:doc:deeper}}' in
+  'WRAPPER-SENTINEL\n\nDEEPER-SENTINEL\n\nCARD-SENTINEL\n\n{{template:doc:inner}}\n\nHARNESS-BLOCK-SENTINEL'
+```
+
+Post-fix:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_brief_render.py -q \
+    -k "config_schema_declares or template_macro_is_gone"
+..                                                                       [100%]
+2 passed, 22 deselected in 0.07s
+```
+
+Grep proving the mechanism is gone (`extensions/agi/bin/brief.py`):
+
+```
+$ grep -n "_TEMPLATE_RE\|_expand" extensions/agi/bin/brief.py
+(no output)
+```
+
+## Report to owner/prime (nodes NOT edited here)
+
+- `.agi/nodes/.geometry/brief.md` line ~41 still says "`{{template:}}`
+  expansion is DATA-ONLY (`extras`)". That sentence is now FALSE and should
+  be dropped/rewritten: a `{{template:}}` line in an extras node is literal
+  data too, and templates come from config alone. Owner/prime via
+  write.py only.
+- `.agi/nodes/.geometry/posts.md`: no row currently carries a `template`
+  cell. To actually choose a role template per post, owner/prime should set
+  `template` on the relevant `config:posts` row (the schema now declares it);
+  nothing was written here.
+<!-- BODY:END -->
+
+## Agent Notes
+Conjuncts 4+5 done: removed {{template:}} mechanism (_TEMPLATE_RE/_expand) from brief.py so extras/card macros render literal; declared the post-row template cell in .agi/context/schemas/[config].md. Red-first tests pass; targeted suite 1131 passed, only the known pre-existing test_brief.py fallback red.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review EF.36 (a00-32ff8393): conjuncts 4-5 held under parent-run probes recorded as `probes:` above. WIRE4 loaded the pre-fix brief.py (git show 2d18748de) and ran the new test against those bytes -- RED on the extras macro, GREEN post-fix, and _expand/_TEMPLATE_RE absent. GATE5 sliced fields.seats pre/post and confirmed the `template` cell + `brief.templates` clause is declared only after. Targeted suite 232 passed with only the known pre-existing test_brief.py g15-lineage red. The two owner/prime-only nodes (config:brief body line 41, config:posts rows) were correctly REPORTED, not edited. Verdict `proved` accepted.
+<!-- THOUGHT:END -->
