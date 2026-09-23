@@ -230,10 +230,70 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+def _loop_args(window_path, **kw):
+    import argparse  # noqa: E402
+    base = dict(
+        force=True, dry_run=True, session_log=None, role="prime_director",
+        tmux_session="agi-test", window_path=str(window_path), name=None,
+        name_prefix="belam", prompt_file=None, model=None, effort=None,
+        settings=None, debug_file=None, successor_argv=None, seat=None,
+        harness=None, timeout=1)
+    base.update(kw)
+    return argparse.Namespace(**base)
+
+
+def test_rotate_guard_wire_reaches_the_sweep(tmp_path, monkeypatch):
+    """Behavioural wire probe (goal:g7.31.5.3 residue 2): the REAL cmd_loop
+    call site must reach the sweep live — a deliberately desynced graph makes
+    cmd_loop refuse non-zero and name the node, with the monkeypatched
+    successor spawn NEVER called (guard fires before any side effect)."""
+    import io, contextlib  # noqa: E402
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")
+    calls = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **k: (calls.append(k), (0, None))[1])
+    err = io.StringIO()
+    with contextlib.redirect_stderr(err):
+        rc = rotate.cmd_loop(_loop_args(tmp_path / "windows.txt"),
+                             repo / ".agi")
+    assert rc == 1, (rc, err.getvalue())
+    assert "profile drift" in err.getvalue()
+    assert "hypothesis:h1" in err.getvalue()
+    assert calls == [], "guard must fire before the successor spawn"
+
+
+def test_cmd_loop_reaches_the_spawn_when_the_graph_is_in_sync(tmp_path,
+                                                              monkeypatch):
+    """Control: a clean graph is a no-op for the guard, so cmd_loop's clean
+    path still reaches the (stubbed) successor spawn exactly as before."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    calls = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **k: (calls.append(k), (0, None))[1])
+    rc = rotate.cmd_loop(_loop_args(tmp_path / "windows.txt"), repo / ".agi")
+    assert rc == 0, rc
+    assert len(calls) == 1, "clean graph must still reach the spawn"
+
+
+def test_a_body_prose_profile_ref_does_not_make_a_broken_file_linked(tmp_path):
+    """Residue 5: `profile_ref:` in the BODY is not a link; only the
+    frontmatter key counts. An unparseable file whose only mention is prose is
+    skipped, not named unreadable."""
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    body_mention = ("---\nid: hypothesis:broken\n: : : not valid yaml [[[\n"
+                    "---\n\nprose mentioning profile_ref: \"profile/b.md\"\n")
+    (repo / ".agi" / "nodes" / "hypothesis" / "broken.md").write_text(
+        body_mention)
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "broken" not in r.stdout
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
