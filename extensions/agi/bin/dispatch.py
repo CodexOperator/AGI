@@ -1515,8 +1515,30 @@ def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
             or bool(os.environ.get(_PERSIST_STOP_ENV)))
 
 
+def _persistent_row(root: Path | None, seat: str | None, *, pid: int,
+                    session_id: str | None = None) -> str:
+    """Show the SEAT's occupation in its OWN posts row, through rotate's ONE
+    identity writer (reuse, never a second writer). `pid 0` is the registry's
+    established empty sentinel, so a stop/exhaustion CLEARS the occupation
+    instead of asserting a dead process. A gate refusal is printed BY NAME and
+    never bypassed. Returns the writer's line, or '' when no seat row."""
+    if not seat or root is None:
+        return ""
+    try:
+        import rotate  # local: same dir, reuse the ONE row writer, no cycle
+        return rotate._write_identity_cells(
+            root, seat=seat, actor=seat, role="",
+            cells={"pid": pid, "session_id": session_id})
+    except BaseException as exc:  # noqa: BLE001
+        print(f"persistent: row write for {seat!r} refused: {exc}",
+              file=sys.stderr)
+        return ""
+
+
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
                           record: dict, session: Path,
+                          root: Path | None = None, seat: str | None = None,
+                          session_id: str | None = None,
                           max_restarts: int = _PERSIST_MAX_RESTARTS,
                           poll_s: float = _PERSIST_POLL_S) -> int:
     """HOLD one seat and re-open the SAME round when it dies.
@@ -1525,9 +1547,11 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
     rendered `spawn_args`/`spawn_env`, and this function builds no argv -- so
     there is no second argv path (falsifiers 1 and 3, structural). Bounded by
     `max_restarts`; `_persistent_stop` ends the hold. Each hand-off rewrites
-    the record's CURRENT pid / `restart_count` and persists `agent.json`.
+    the record's CURRENT pid / `restart_count` and persists `agent.json`; the
+    seat's own posts row is kept in step when a `--seat` was named.
     """
     restarts = 0
+    _persistent_row(root, seat, pid=proc.pid, session_id=session_id)
     while not _persistent_stop(iter_dir, agent_id):
         if proc.poll() is None:
             _PERSIST_SLEEP(poll_s)
@@ -1544,8 +1568,19 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         record["pid"] = proc.pid
         record["restart_count"] = restarts
         (session / "agent.json").write_text(json.dumps(record, indent=2))
+        _persistent_row(root, seat, pid=proc.pid, session_id=session_id)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    if proc.poll() is not None:
+        # No live child remains (restarts exhausted, a failed reopen, or a
+        # death past the stop signal): NEVER leave `persistent:true` over a
+        # corpse -- drop the claim, zero the pid, and clear the row so the
+        # graph does not assert a dead process.
+        record.pop("persistent", None)
+        record["pid"] = 0
+        record["restart_count"] = restarts
+        (session / "agent.json").write_text(json.dumps(record, indent=2))
+        _persistent_row(root, seat, pid=0)
     return restarts
 
 
@@ -2953,7 +2988,8 @@ def main() -> int:
             # restart_count current.
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir)
+                record=agent_record, session=sess_dir, root=root,
+                seat=args.seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
