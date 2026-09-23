@@ -3064,39 +3064,59 @@ def _seat_row_in(rows: list, from_id: str) -> dict | None:
     return None
 
 
+def _alias_table(root: Path) -> dict:
+    """The ONE `aliases:` table (posts.md frontmatter `old -> new`), LOADED
+    ONCE per caller. Returns the raw dict (old -> new), or {} when the
+    geometry config is absent/unparseable/not a mapping. NEVER prints -- the
+    deprecation notice belongs to the caller that knows whether the token
+    actually matched its reader."""
+    try:
+        path, _key = geometry_config.resolve(root)
+    except Exception:  # noqa: BLE001
+        path = None
+    if path is None or not path.exists():
+        return {}
+    try:
+        nf = _fm.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return {}
+    al = nf.frontmatter.get("aliases") or {}
+    return al if isinstance(al, dict) else {}
+
+
 def _alias_canon(root: Path, name: str) -> str | None:
     """The ONE `aliases:` table (posts.md frontmatter `old -> new`), the same
     table rotate._find_seat reads, so an old director name resolves through
     it for one season in send.py too (send/read/peek/whois/wake). Returns the
     canonical name and prints `deprecated alias used: old -> new` on stderr
     when `name` is an alias; None when not."""
-    try:
-        path, _key = geometry_config.resolve(root)
-    except Exception:  # noqa: BLE001
-        path = None
-    if path is None or not path.exists():
-        return None
-    try:
-        nf = _fm.load_node_file(path)
-    except Exception:  # noqa: BLE001
-        return None
-    al = nf.frontmatter.get("aliases") or {}
-    if not isinstance(al, dict):
-        return None
-    canon = al.get(name)
+    canon = _alias_table(root).get(name)
     if canon and str(canon) != name:
         print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
         return str(canon)
     return None
 
 
-def _dm_names_reader(root: Path, stem: str, me: str) -> bool:
+def _dm_names_reader(stem: str, me: str, aliases: dict,
+                     noticed: set | None = None) -> bool:
     """Whether a dm/room conversation filename names `me`: one of its
     `--`-separated tokens IS `me`, or is a FORMER name of `me` in the ONE
-    `aliases:` table (old -> new). A non-aliased filename matches exactly the
-    way it always did -- `_alias_canon` returns None for every other token."""
-    return any(t == me or _alias_canon(root, t) == me
-               for t in stem.split("--"))
+    `aliases:` table (old -> new) -- resolved ONCE by the caller and passed
+    in, never re-loaded per token per file. The deprecation notice prints at
+    most once per alias per call (deduped through `noticed`), and ONLY for a
+    token that canonicalises to `me`: an alias of a DIFFERENT post is silent,
+    because it does not select this reader."""
+    for t in stem.split("--"):
+        if t == me:
+            return True
+        canon = aliases.get(t)
+        if canon and str(canon) == me:
+            if noticed is not None and t not in noticed:
+                noticed.add(t)
+                print(f"deprecated alias used: {t} -> {canon}",
+                      file=sys.stderr)
+            return True
+    return False
 
 
 def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
@@ -3867,8 +3887,10 @@ def read_dms(croot: Path, me: str, *, commit: bool = True,
     n = 0
     d = croot / "dm"
     root = locations.find_project_root(croot) or croot
+    aliases = _alias_table(root)
+    noticed: set = set()
     for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
-        if not _dm_names_reader(root, path.stem, me):
+        if not _dm_names_reader(path.stem, me, aliases, noticed):
             continue
         blocks = _conv_blocks(path)
         shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
@@ -4095,9 +4117,11 @@ def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
     dm_dir = croot / "dm"
     if dm_dir.is_dir():
         root = locations.find_project_root(croot) or croot
+        aliases = _alias_table(root)
+        noticed: set = set()
         for f in sorted(dm_dir.glob("*.md")):
             name = f.stem
-            if not _dm_names_reader(root, name, me):
+            if not _dm_names_reader(name, me, aliases, noticed):
                 continue
             blocks = _conv_blocks(f)
             count = int(_load_state(f).get(me, 0) or 0)
