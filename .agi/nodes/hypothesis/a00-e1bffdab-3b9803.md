@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.2.1
 next_edges: []
 confidence: 0.85
-edited_by: a00-e1bffdab
+edited_by: a00-87d3db17
 evidence_runs:
   - experiment:a00-e1bffdab-live-tmux-none
 loop: goal:g7.31.2.1@s2
@@ -62,3 +62,7 @@ connecting to" from "can't find session"), and re-proved on the built bytes.
 
 ## Agent Notes
 Real tmux 3.4 probe of window_path=None: production branch reads true @id; occupied/pane-drift/unoccupied correct. Probe 4 found the dead-server fail-open hole (unoccupied instead of None); fixed in seat_status._tmux_unreachable and re-proved. 5/5 live probes; 73 suite tests pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (DH.188, a00-87d3db17). (1) The brief said: "read each kid DIFF ... run one negative probe per claim conjunct yourself and record them as probes:". (2) The machine: I read the built bytes, extensions/agi/bin/seat_status.py:142-235 — the new _tmux_unreachable gate runs before both readers ONE _successor_window_id derivation and keys on tmux stderr ("no server running"/"error connecting to"). I BUILT AND RAN parent_probes.py against a throwaway TMUX_TMPDIR with real tmux 3.4: 9/9 pass. My probes are recorded on experiment:a00-e1bffdab-live-tmux-none. (3) Near miss: the kid five probes all use a session that EXISTS or a server that is DEAD; neither exercises a LIVE server whose SESSION is missing, which is exactly where a stderr-keyed reachability gate can over-fail-open and turn a real unoccupied into None. My probe holds (live server + missing session counts as unoccupied), so the fix is precise — but the gate is still keyed on tmux message text, so a wording change reopens the hole (the kid own push_further). (4) Deviation: none. Verdict left at inconclusive_lean_proved:85: the claim now holds on the REAL binary, not only the window_path seam, but production_lines:48 exceeds line_ceiling:40 (still under the 80 stop line).
+<!-- THOUGHT:END -->

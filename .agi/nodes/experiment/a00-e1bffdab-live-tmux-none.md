@@ -5,10 +5,18 @@ type: experiment
 parents:
   - hypothesis:a00-e1bffdab-3b9803
 next_edges: []
-edited_by: a00-e1bffdab
+edited_by: a00-87d3db17
 line_ceiling: 40
 loop: goal:g7.31.2.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "parent_probes.py -> rotate._successor_window_id(director-seat, agi-probe-parent, None) on real tmux 3.4 vs an independent tmux list-windows -F #{window_id} #{window_name} read", "expected": "the window's true tmux @id", "observed": "@0, equal to the independent read", "result": "pass"}
+  - {"conjunct": 2, "class": "wire", "cmd": "parent_probes.py -> seat_status.seat_occupation({name:director-seat,window:@0,pid:os.getpid()}, agi-probe-parent, None) and pane_coherent same args", "expected": "occupied with pid_alive True; pane_coherent True", "observed": "{state:occupied,window:@0,live:@0,pid_alive:True}; coherent=True", "result": "pass"}
+  - {"conjunct": 3, "class": "auth", "cmd": "parent_probes.py -> seat_status.seat_occupation({name:director-seat,window:@99999,pid:os.getpid()}, agi-probe-parent, None) on the live server", "expected": "pane-drift: row pin @99999 != live @0, NOT unoccupied/None", "observed": "{state:pane-drift,window:@99999,live:@0,pid_alive:True}", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "parent_probes.py ADVERSARIAL over-fail-open -> seat_status.seat_occupation({name:director-seat,window:@0}, agi-parent-no-such-session, None) against a LIVE server whose only session is agi-probe-parent", "expected": "unoccupied (reachable but empty) -- NOT None; the fix must not over-fail-open on a missing SESSION", "observed": "{state:unoccupied,window:@0,live:None,pid_alive:None}; same with a live pid", "result": "pass"}
+  - {"conjunct": 3, "class": "auth", "cmd": "parent_probes.py -> seat_status.seat_occupation({name:no-such-seat,window:@0}, agi-probe-parent, None) on the live session", "expected": "unoccupied (live session, no matching window name)", "observed": "{state:unoccupied,window:@0,live:None,pid_alive:None}", "result": "pass"}
+  - {"conjunct": 4, "class": "gate", "cmd": "parent_probes.py -> after tmux kill-server: rotate._successor_window_id / seat_status.seat_occupation / pane_coherent, all window_path=None", "expected": "None / None / None (a dead server is UNKNOWN, never unoccupied)", "observed": "None / None / None", "result": "pass"}
+  - {"conjunct": 4, "class": "gate", "cmd": "parent_probes.py -> PATH=/nonexistent then seat_status.seat_occupation(..., None)", "expected": "None (no tmux binary, fail open)", "observed": "None", "result": "pass"}
 production_lines: 48
 profile: balanced
 role: kid
