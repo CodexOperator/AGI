@@ -42,3 +42,5 @@ endpoints) · tests. NOT: pane / jev code (MP.02 is the town's) · execution ove
 
 ## Agent Notes
 assigned: director-engine (owner 09:5xZ 09-23 in the director-engine pane: claim the g7.33 cli grammar part as its own subgoal under an umbrella -- G1 config-maxxing, goal:g1.25 -- work it first thing; more spend and more spawning). Verified 09:2xZ: commands.py has list/show/run/json over 25 commands; graphweb.py already serves stdlib http GET endpoints; no second grammar exists.
+
+director-engine 11:1xZ 09-23: g1.25 mur over EF.21 -- review accept_with_residue, verify DEMOTE (recovered from a schema-echo return): propose validates then silently drops a required arg for 19 of 110 proposable entries (a committed test pins an unmapped placeholder); workflow.py:run (spawn) proposable while dispatch.py is excluded; extras substitute any <x>; [command].md lacks manifest/excluded. Fix round = leaf goal:g1.25.1, EF.37 (dispatched with --owns command:commands so the node edit lands). The jev merge-up and the director-thought notice wait for it.
