@@ -7,8 +7,9 @@ derived_from: authored-2026-09-02 for G1.10 -- no prior corpus to survey; this
   than a census of existing nodes
 fields:
   commands: {type: dict}   # name -> {argv: list, about: str, cwd: str, workflow: str}
-  manifest: {type: dict}   # <cli>:<verb> -> {argv, args, side_effects, proposable, purpose}
+  manifest: {type: dict}   # <cli>:<verb> -> {argv, args, side_effects, proposable, purpose, reason}
   excluded: {type: dict}   # <cli>:<verb> -> same shape, proposable: false, with a reason
+  placement: {type: dict}  # arg name or "<entry>.<arg>" -> {kind, flag, const, consts, arity}
   workflows: {type: dict}  # workflow name -> list of command names
   ordered: {type: list}    # which workflows are a SEQUENCE, not a set
 validation:
@@ -17,6 +18,7 @@ validation:
     commands: dict
     manifest: dict
     excluded: dict
+    placement: dict
     workflows: dict
 spawn:
   allowed_parents: [goal]
@@ -69,6 +71,18 @@ session has to be told does.
 - `workflows` — named lists of command names. A workflow is the thing a human
   means by "the known-good verification sequence": a grouping, not a new
   command.
+- `placement` — how a declared arg with no `<name>` in `argv` lands as the
+  CLI's OWN flag or positional: arg name (or `"<entry>.<arg>"`) -> `{kind,
+  flag, const, consts, arity}`. `kind` is `option` / `switch` / `const` /
+  `positional`; `arity` is `many` (one flag, every value), `append` /
+  `append:N` (the flag repeated, N values each) or `"<N>"` (one flag and N
+  values), and absent means a single value. `placement.defaults: true` opts a
+  graph into `--<name>` / bool-as-switch; a multi-value option whose placement
+  declares no arity REFUSES BY NAME rather than dropping the extra values. A
+  declared arity that disagrees with the CLI's own argparse fails a committed
+  drift test at test time — `propose` itself never imports or runs a CLI.
+- `reason` — on a `manifest`/`excluded` entry, why a verb is
+  `proposable: false`; `propose` refuses by returning it.
 - `ordered` — which of those groupings are a **sequence** rather than a set.
   Only a workflow named here is rendered as "in this order". The distinction
   exists because the rendered list goes into `INJECTION.md` and is read by
