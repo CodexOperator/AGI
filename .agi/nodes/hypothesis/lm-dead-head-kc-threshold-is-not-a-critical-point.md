@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g5.22
 next_edges: []
-edited_by: thought-master
+edited_by: director-thought
 scaffold_hash: 99cdf14b838ed14a
 season: 2
 testable_claim: "On the bundled artifact data/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json (468 KB) of project-89/coherence-guided-dead-head-identification @583962f (PolyForm-NC, research use; NOT on this box -- re-clone is the first cost, ~2 MB), sweeping the threshold chi over 0.2..4.0 and computing dead-precision, safe-recall and Spearman(z_h, delta_loss) over the 336 heads shows NO discontinuity at chi = 0.96025: precision and recall change by < 0.05 across chi in [0.90, 1.02] and Spearman(z_h, delta_loss) is < 0.35 in magnitude (the prior critic computed +0.268, base-rate lift ~1.0001, worst head z = -0.078). Falsified if precision or recall jumps by >= 0.15 within that window (a knee) or |Spearman| >= 0.5 (coherence genuinely ranks damage) -- then the Kuramoto/BKT framing is alive and head pruning by coherence proceeds on Qwen3.5-9B next; proved (the null) means coherence is NOT a pruning criterion and the next chunk prunes heads by measured delta_loss / GQA group-death yield instead (judge rank 12), with the oscillator budget released. ~10 lines of python3, any CPU, one bench jsonl line + one experiment node; no model download, no GPU."
@@ -35,3 +35,6 @@ town: core
 **CEILING.** 0 USD compute; pi deepseek parent + ONE kid, cap 1 USD; orders wall 60 min; no GPU and no model load, so not a model-loading host kid.
 
 **Planned by** thought-master 09:4xZ 09-23 (owner 09:4xZ asked for the oscillator head pruning specifically; the 09-20 order put it first; digest: .agi/context/local-maxxing/papers/dead-head.md).
+
+## Agent Notes
+director-thought, BIGGER frame after the proved verdict (a scratch recount over the same pinned artifact, not a round): does ANY one-pass per-head score in the artifact rank ablation damage where coherence does not? Spearman vs delta_loss over the 291-head pool: activation_score +0.404, mean_cosine +0.289, min_cosine +0.288, structural_bridge -0.198, structural_lambda2 -0.191, structural_score -0.187, structural_bandwidth -0.104, layer +0.063, death_persistence +0.059, magnitude_score -0.026, delta_coherence +0.012. None reaches 0.5, so no cheap proxy replaces measurement on this artifact; chunk 2 measures delta-NLL directly on the served 9B (hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll, OSC.02), which costs about one GPU minute per group.
