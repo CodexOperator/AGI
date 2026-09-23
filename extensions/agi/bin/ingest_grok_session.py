@@ -55,9 +55,36 @@ def ingest(root, fixture, parent=DEFAULT_PARENT):
         body=body)
     return {"status": res.status, "node_id": res.node_id, "reason": res.reason}
 
+def iter_sessions(sessions_dir, last=None):
+    """`*.jsonl` under `sessions_dir`, OLDEST-FIRST by (mtime, name); `--last N` keeps the N most recent by mtime, ties by name."""
+    paths = sorted(Path(sessions_dir).glob("*.jsonl"),
+                   key=lambda p: (p.stat().st_mtime, p.name))
+    return paths[-last:] if last is not None and last > 0 else (
+        [] if last is not None else paths)
+def ingest_dir(root, sessions_dir, parent=DEFAULT_PARENT, last=None):
+    """Ingest every member; return (node_ids, refusals). A refusal names its member and never aborts its siblings."""
+    sessions_dir = Path(sessions_dir)
+    if not sessions_dir.is_dir():
+        return [], [(str(sessions_dir), f"not-a-directory: {sessions_dir}")]
+    node_ids, refusals = [], []
+    for path in iter_sessions(sessions_dir, last):
+        try:
+            res = ingest(root, path, parent)
+        except Refusal as exc:
+            refusals.append((path.name, str(exc)))
+            continue
+        if res["status"] == node_writer.REJECTED:
+            refusals.append((path.name, f"gate-rejected: {res['reason']}"))
+            continue
+        node_ids.append(res["node_id"])
+    return node_ids, refusals
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--fixture", required=True)
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--fixture")
+    mode.add_argument("--sessions-dir")
+    ap.add_argument("--last", type=int, default=None,
+                    help="batch: keep the N most recent *.jsonl by mtime")
     ap.add_argument("--root", default=None)
     ap.add_argument("--parent", default=DEFAULT_PARENT)
     args = ap.parse_args(argv)
@@ -65,6 +92,15 @@ def main(argv=None):
     if root is None:
         print("refused: no-project-root: pass --root")
         return 2
+    if args.sessions_dir:
+        # Exit rule: 0 iff every member yielded a node id; 2 if any was
+        # refused. Ids go to stdout (one per line); refusals to stderr by name.
+        ids, refusals = ingest_dir(root, args.sessions_dir, args.parent, args.last)
+        for name, reason in refusals:
+            print(f"refused: {name}: {reason}", file=sys.stderr)
+        for node_id in ids:
+            print(node_id)
+        return 2 if refusals else 0
     try:
         result = ingest(root, Path(args.fixture), args.parent)
     except Refusal as exc:

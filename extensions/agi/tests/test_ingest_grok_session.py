@@ -120,3 +120,77 @@ def test_cli_prints_node_id_then_named_refusal_on_reuse(tmp_path):
         capture_output=True, text=True, env=env, cwd=str(REPO))
     assert second.returncode == 2
     assert second.stdout.strip().splitlines()[-1].startswith("refused: missing-session_id")
+
+
+def _write_session(path: Path, session_id: str, agent_id: str = "grok-bot") -> Path:
+    path.write_text(
+        '{"session_id": "%s", "agent_id": "%s", "started_at": "2026-09-22T18:00:00Z"}\n'
+        '{"role": "user", "content": "hi", "timestamp": "2026-09-22T18:00:01Z"}\n'
+        % (session_id, agent_id), encoding="utf-8")
+    return path
+
+
+def test_batch_dir_ingests_every_member(tmp_path):
+    root = _temp_graph(tmp_path)
+    sdir = tmp_path / "artifacts"
+    sdir.mkdir()
+    for i in range(3):
+        _write_session(sdir / f"s{i}.jsonl", f"grok-batch-{i}")
+    ids, refusals = ingest_grok_session.ingest_dir(root, sdir)
+    assert refusals == []
+    assert len(ids) == 3 and len(set(ids)) == 3
+    files = list((root / "nodes" / "agent_session").glob("*.md"))
+    assert len(files) == 3
+    assert {_fm(f)["id"] for f in files} == set(ids)
+
+
+def test_batch_rerun_reuses_ids_and_mint_ids(tmp_path):
+    root = _temp_graph(tmp_path)
+    sdir = tmp_path / "artifacts"
+    sdir.mkdir()
+    for i in range(3):
+        _write_session(sdir / f"s{i}.jsonl", f"grok-batch-{i}")
+    first_ids, _ = ingest_grok_session.ingest_dir(root, sdir)
+    dirfiles = root / "nodes" / "agent_session"
+    mints_before = {_fm(f)["id"]: _fm(f)["mint_id"] for f in dirfiles.glob("*.md")}
+    second_ids, refusals = ingest_grok_session.ingest_dir(root, sdir)
+    assert refusals == []
+    assert second_ids == first_ids
+    files = list(dirfiles.glob("*.md"))
+    assert len(files) == 3
+    mints_after = {_fm(f)["id"]: _fm(f)["mint_id"] for f in files}
+    assert mints_after == mints_before
+    assert len(set(mints_after.values())) == 3
+
+
+def test_batch_cli_refuses_member_by_name_without_aborting_siblings(tmp_path):
+    root = _temp_graph(tmp_path)
+    sdir = tmp_path / "artifacts"
+    sdir.mkdir()
+    _write_session(sdir / "a.jsonl", "grok-batch-a")
+    (sdir / "empty.jsonl").write_text("", encoding="utf-8")
+    _write_session(sdir / "z.jsonl", "grok-batch-z")
+    cmd = [sys.executable, str(BIN / "ingest_grok_session.py"),
+           "--sessions-dir", str(sdir), "--root", str(root)]
+    res = subprocess.run(cmd, capture_output=True, text=True,
+                         env={"PATH": "/usr/bin:/bin"}, cwd=str(REPO))
+    ids = [l for l in res.stdout.strip().splitlines() if l.startswith("agent_session:")]
+    assert len(ids) == 2 and len(set(ids)) == 2, res.stdout
+    assert "refused: empty.jsonl:" in res.stderr, res.stderr
+    assert res.returncode == 2
+    assert len(list((root / "nodes" / "agent_session").glob("*.md"))) == 2
+
+
+def test_batch_last_keeps_n_most_recent(tmp_path):
+    root = _temp_graph(tmp_path)
+    sdir = tmp_path / "artifacts"
+    sdir.mkdir()
+    paths = [_write_session(sdir / f"s{i}.jsonl", f"grok-batch-{i}") for i in range(3)]
+    import os, time
+    base = 1_000_000_000
+    for i, p in enumerate(paths):
+        os.utime(p, (base + i, base + i))
+    ids, refusals = ingest_grok_session.ingest_dir(root, sdir, last=2)
+    assert refusals == [] and len(ids) == 2
+    got = {_fm(f)["session_id"] for f in (root / "nodes" / "agent_session").glob("*.md")}
+    assert got == {"grok-batch-1", "grok-batch-2"}
