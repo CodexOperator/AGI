@@ -3,9 +3,9 @@ id: goal:s31
 mint_id: 8b21d5fc9e3a4c07af6d1e94b70c2f38
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: sanctuary-director
+edited_by: belam
 goal_id: S31
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: sanctuary-director-genVII-L4
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S31: A scaffolded node ships schema-invalid, and the brief forbids the kid from fixing it"
 ---
 **Found by a parent, in its `struggles:` line, on the 2026-09-02 iteration-103
@@ -62,7 +62,7 @@ because one parent was attentive enough to check the schema.
 `dashboard.py` and the injected map all key on it. A corpus where most
 hypotheses have no title is a corpus that renders as a wall of opaque ids —
 which is `goal:g9`'s complaint, arriving from a direction G9 never looked.
-`goal:g9.7` makes it sharper: the view a human tunes is the view an agent is
+`goal:g2.19` makes it sharper: the view a human tunes is the view an agent is
 handed, so a missing title degrades *both* readers at once.
 
 **And it is silent.** Nothing validates a node against its schema at write
