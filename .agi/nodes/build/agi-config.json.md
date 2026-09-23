@@ -25,7 +25,5 @@ title: Agi config.json
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner correction 2026-09-19: spawn.parallel is per-command slots not soft concurrency; restore 1. Up to 7 concurrent parents is prose/soft until a hard cap lands later.
-
-the payload .agi/config.json now carries harnesses."grok-bot" as a first-class row, read by adapters.resolve, landed by director-owned commit ca3b2da28 because cli.py round-scope excludes config (merged from loop goal-g17.14-helper-fold).
+owner 2026-09-23: raise spawn.max_live 25→30 to match SoT box ≤30 (CAP-RULER). Prior: owner correction 2026-09-19 spawn.parallel is per-command slots not soft concurrency (restore 1); harnesses.grok-bot first-class row landed ca3b2da28.
 <!-- THOUGHT:END -->
