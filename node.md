@@ -3,11 +3,11 @@ id: goal:s22
 mint_id: e95212d7f04241a7a3f5a90e6b4fff8a
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges:
   - hypothesis:a00-0d182e77-3f4501
 confidence: 0.9
-edited_by: season.py
+edited_by: belam
 goal_id: S22
 goal_kind: short-term
 heading_level: 2
@@ -18,7 +18,7 @@ status: complete
 tags:
   - goal
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: A long-term goal spawns only hypotheses — design is earned
 ---
 **A goal may not shortcut to a design brief.** The route from a goal to an
