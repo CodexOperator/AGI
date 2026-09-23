@@ -3,13 +3,13 @@ id: hypothesis:a00-500a23f5-f8c142
 mint_id: 60db7fe6b5904aff9ba5cd6f4094ff62
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 4df05b0bd2f1f954
 season: 1
 status: deprecated
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 500a23f5 f8c142
 ---
 # hypothesis:a00-500a23f5-f8c142
