@@ -2332,6 +2332,19 @@ def cmd_status(args: argparse.Namespace) -> int:
 _WAIT_POLL_SECONDS = 20.0
 _WAIT_MAX_SECONDS = 540.0
 
+#: `wait --agent X` where X matches NO manifest row -- returned at once, named.
+#: Never 1 (missing manifest) and never 2 (genuine still-running timeout).
+_WAIT_NO_AGENT = 3
+
+
+def _wait_elapsed(rec: dict, now: float) -> int:
+    """Whole seconds since `rec['started_at']`; 0 if absent/0/unparseable."""
+    try:
+        begun = int(rec.get("started_at", 0) or 0)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, int(now - begun)) if begun else 0
+
 
 def cmd_wait(args: argparse.Namespace) -> int:
     """Block IN-PROCESS until every kid of the round is terminal.
@@ -2350,15 +2363,23 @@ def cmd_wait(args: argparse.Namespace) -> int:
     deadline = time.monotonic() + args.max_seconds
     while True:
         m = json.loads(manifest.read_text())
-        states = [(a["id"], a.get("status", "running")) for a in m["agents"]
-                  if (a.get("id") in want if want
-                      else a.get("tier", "kid") == "kid")]
-        print(f"wait {args.iter_n}: " + ", ".join(f"{i}={s}" for i, s in states))
-        if states and all(s in TERMINAL_STATUSES for _, s in states):
+        rows = [a for a in m["agents"]
+                if (a.get("id") in want if want
+                    else a.get("tier", "kid") == "kid")]
+        if want and not rows:
+            print("no manifest agent matches --agent: "
+                  + " ".join(sorted(want)), file=sys.stderr)
+            return _WAIT_NO_AGENT
+        states = [(a["id"], a.get("status", "running"),
+                   _wait_elapsed(a, time.time())) for a in rows]
+        print(f"wait {args.iter_n}: " + ", ".join(
+            f"{i}={s} elapsed={e}s" for i, s, e in states))
+        if all(s in TERMINAL_STATUSES for _, s, _ in states):
             return 0
         if time.monotonic() >= deadline:
             print("still running: " + " ".join(
-                i for i, s in states if s not in TERMINAL_STATUSES), file=sys.stderr)
+                i for i, s, _ in states if s not in TERMINAL_STATUSES),
+                file=sys.stderr)
             return 2
         time.sleep(min(_WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
 
