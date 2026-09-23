@@ -3,9 +3,9 @@ id: goal:g7.8
 mint_id: 742ccf8373584908912f0350b6b8366a
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.8
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.8: A generator mints parent ids it never checks exist"
 ---
+# goal:g7.8
 Found 2026-08-25 while sweeping G7.1. **Corpus side resolved the same day; the
 missing validation is what keeps this `active`.**
 
