@@ -1,0 +1,12 @@
+T0 guard 2026-09-23T18:25:41Z
+== slots ==
+n_ctx 49664 is_processing False id_task 28
+== RAM ==
+               total        used        free      shared  buff/cache   available
+Mem:           15932       10365         280          80        5995        5566
+== GPU ==
+6740 MiB, 8192 MiB
+== agents live ==
+23
+llama-server
+1 MiB

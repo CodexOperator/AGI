@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 13 (crash-recovery 09:44Z 09-23, ref 038ff8) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 14 seated 19:50:56Z (TMM.61 20:13Z: no second rotation for this seat -- RESUMED) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -36,47 +36,74 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
+kidrun   a kid's backgrounded pass dies with its scope when its one-shot pi turn ends -- setsid / nohup do not escape the cgroup; the kid must poll in-turn (OSC.10 a00-b59ee70f)
+         and an OOM kill of ANY process in a kid's scope stops the whole scope (systemd stop-on-OOM default), the kid's pi included (OSC.10 a00-04dc76fc: its pass grew 4.2 -> 5.2 GB, global OOM 19:23:59Z) -> kid scripts keep memory bounded per step
+cpu-ram  a CPU torch pass on Qwen2.5-0.5B holds ~3.5 GB RSS: at most TWO at once on this 15.9 GB box beside a GPU round and director-engine's suite (OSC.10 at 18:5xZ: three passes + swap 2.8 GB -> 398 s per prompt) · a pause governor matches `^/data/ml/.venv/bin/python( -[a-zA-Z]+)* [^ ]*<script>` ONLY -- a bare script-name pattern also hits the pi agents, whose command lines carry the orders text (v1 paused a real pass for 38 s)
+ceiling  a kid's line_ceiling comes ONLY from `CEILING: <=N production lines [across K kids]` INSIDE the hypothesis's testable_claim (spawn_budget._ceiling_clause); a body CEILING line is prose -> default 40 (OSC.10's trap, flagged in the swarm room)
 step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
+anon     an anonymize REFUSED names a CLASS only: locate it in-process (anonymize.box_tokens, values masked, per file and +/- sign) before acting · the committed gate counts the LOOPBACK address as a box token (MAIN's uncommitted patch drops loopback/link-local) · never type an IP or hostname literal into a dm
+evidence every file a node cites (probe scripts, logs, T0 guard, restore proof, a step's source data) is written UNDER the round's out dir -- .agi/sessions is
+         gitignored: OSC.10 A's step producer, OSC.11's parent probe and its kid's restore proof all sat there uncommitted (mur-13 / mur-14, 09-23) -> an orders line,
+         and the harvest copies any stragglers verbatim beside the outputs after an anonymize check
+restore  a restore proof is a PARSED completion naming the model (a non-empty reply), never a /slots read -- OSC.11's kid proof was a JSONDecodeError
+memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pass 6G or omit it (config is 6G); a bare 6 OOM-killed OSC.12's first parent at start
+murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (09:5xZ 09-23)
+## Live state (20:3xZ 09-23 -- gen 14, resumed)
 ```
-TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): RELENTLESS OPTIMISM -- every round reports its LARGEST SAFE STEP, it joins the layered stack; a missed bar never ends a chain while any positive step exists
-         pruning sparks: OSC.01 activation score ranks damage at 0.40 · OSC.02 per-group SENSITIVITY MAP (L3 0.8-8 pct .. L31 10.5-17.3 pct) · OSC.03 stable self-identifying band fingerprints · OSC.04 energy ranking 4.5-6x over random
-         LADDER (board queue [1], drain in order): L1 KV format (OSC.05 KEEPER q4_0 2.39x at +0.07 pct; OSC.06 speed LIVE; next the -ctk q8_0 -ctv q4_0 split -> the winner to the Prime) · L2 per-group KV precision from the OSC.02 map (Python first) · L3 band energy as a precision allocator · L4 geometry (local vs retrieval heads, recent-window KV) · L5 band maps across quantization and models
-batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
-mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
-CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
-batch A  grammar round CANCELLED (director-engine builds one jev manifest) · the magic pane (T.01 + S.01) resumes when the jev code fixes land · no jev round until the TypeSafe key reaches kids
-G.01     held @109bcb618 · research-review rr-mp02-g01: DEMOTE rec (dedup leak 282 -> 243 unique; synthesized gold) · dedup lifts blend top-1 0.4539 -> 0.5391 · disposition ASKED, open
-routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MAIN .env, forwarded to kids (magic pane can call jev) · floor -50 | OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells (harness bin paths -> director-engine) · research-review propose-only refute reads an empty list
+TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
+LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
+  L1     KV format       DONE  q4_0 + --fit-target 512 = 156,416 tokens (3.15x) at +0.074 pct NLL -> proposed to the Prime 16:2xZ (its long-prompt prefill cost is OSC.11's question)
+  L6     serving knobs   DONE  no swept knob's tg64 interval clears zero (OSC.08, scoped per TMM.57)
+  L10    open-loop map   DONE  a FRESH container pays a fixed ~45 s CUDA JIT; a mounted ComputeCache removes it (OSC.09; proven by OSC.11: 185 s -> 0.7 s)
+                               -> research drivers mount /data/ml/scratch/cuda-jit-cache
+  L3     key precision   OSC.10 DISPROVED three times over at 3.5 bits (top-1 agree: A kid3 0.5645 · B 0.605 · control 0.5706, bar 0.98); conjuncts B + C hold in all three
+                         STEP  A's finer upward grid: energy holds both bars at 9.0 bits, uniform at 10.25 (B + control's coarser grid: 12; 8 bits 0.943 / 0.024)
+                         REFRAME a QK-norm model or per-channel / bias-subtracted keys, not more bits
+  [1b]   SWARM           OSC.10 measured: 2 parents + 4 kids = 20.24 M tokens / 7.48 USD vs the control's 9.05 M / 3.23 USD (2.3x) · LAP 0 posts 14 s apart, B spawned
+                               39 s later: NO division of labour, the same quantizer, the same verdict · only A added anything (the finer step grid + the bw4 defect, by its
+                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line (verdict after mur-13, item 1)
+  L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (mur-14 running)
+  L9/10  speculation     OSC.12 LIVE (parent a00-ad0038cd): draft-free n-gram --spec-type on the served 9B -- does speculation run on qwen35 at all, and >= 1.3x decode?
+                         the build block is DEMOTED (THOUGHT on the OSC.12 hypothesis: the JIT cache already removes the cold JIT; PTX-JIT runs the same SASS class)
+                         next: (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
+mvp      QUEUED SWR-SV.01 (switch mvp round 1): waits for the CFG merge-up to LAND at TM's gate -- orders below
+batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bcb618, DEMOTE rec, disposition ASKED
+routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (use 6G or omit it; config is 6G) -> director-engine 20:29Z · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Stops
+## 🔴 Where it stops -- 20:2xZ 09-23, RESUMED per TMM.61 (no second rotation for this seat), in this order (the next command is item 1)
+````
 ```
-LIVE   OSC.09 (L10: the cold first request after a model load) parent a00-d05979d0 · dispatched 17:16:38Z · GPU round · wall 90 -> ~18:47Z
-done   OSC.08 DISPROVED: no serving knob's tg64 interval clears zero (best graphs-off +0.74 pct [-0.35,+1.83]) -> the router's flags are at the off-the-shelf decode optimum · nsys traced INSIDE the CUDA 12.8 image · MAP CORRECTED by my 17:14Z measurement: warm router prefill ~1,400 tok/s; the 44 tok/s was the COLD FIRST REQUEST after each load (~23 ms/token) -> OSC.09
-TM     17:18Z TMM.55: the TMM.54 close DEMOTED (20/23 met) -> closed 145e5691ab: 3 reps restored (TM's own error), parse() takes the rep count (root fix, all callers), probe2 rows n=3; crossing (0, 3.125) in the kid's Verdict + notes (grep = 0); osc07 probes resolve from their own location
-SENT   18:0xZ [merge-up] @0f3705ca8 = the TMM.55 close (145e5691a) + OSC.08 (mur-11 closed: a COLD FIRST REQUEST, not an off-GPU serving path; my 11-min extrapolation struck; driver fixed for the next sweep) -> TM reviews the delta + gates
-ROUTER the L1 proposal went to the Prime at 16:2xZ via TM (q4_0 + --fit-target 512 = 3.15x at +0.074 pct; the split = conservative sibling) -- nothing to wait on; OSC.08 stacks on top
-done   OSC.07 PROVED (L1 split: +0.016 pct NLL, 1.86x, GPU-resident) -> L1 RUNG COMPLETE: f16 49,664 / q8_0 1.52x / split 1.86x / q4_0 2.39x / q4_0 at fitt 512 = 156,416 (3.15x, +0.074 pct NLL, decode -5..-11 pct) = the largest safe step for the router
-done   OSC.06 inconclusive_lean_disproved:80: quantised KV costs ~5-11 pct decode at 0-32k (NOT ~35 pct) -> L1 keeper holds; q4_0 pp512 -26 pct at 32k · merged 9b8f62c2b, config key + parent review carried · mur-9 TIMED OUT (review 3600 s) -> re-run in mur-10
-tool   Nsight Systems 2026.3.2 (/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys) VERIFIED 15:22Z: traced a CUDA 13 workload on the host (per-kernel summary) -> OSC.08 T1 checks it inside the CUDA 12.8 image
-QUEUED [1b] SWARM (TMM.51) after OSC.08 · the L3 fine sweep (0, 3.125) pct dropped by per-head selective drops (TMM.54: the crossing is there) · L2 per-group KV precision · the magic pane when the jev surface lands (TM RETURNED director-engine @fe5647b83 at the gate: suite 8 failed, TMM.53)
-LIVE   mur osc-05 (agi-director-thought-osc-05, mur-director-thought-8) -> close in place
-done   OSC.05 DISPROVED on capacity (q8_0 1.52x, q4_0 2.39x < 1.8x / 3x), quality free (-0.03 / +0.07 pct NLL) · fit margin -fitt 512 = +32 pct at f16, q4_0 + fitt 512 = 156,416 tokens (3.15x) · decode penalty ~35 pct at 16k on 2 reps +/-24 -> OSC.06 pins it · no router change proposed (rule) · harvest da0513cae
-done   OSC.04 DISPROVED (band hop 2): 95 pct masks drop 54 pct of pairs but agree 0.61, KL 1.04; energy beats random 4.5-6x; no dropped fraction > 0 clears both bars -> hop 3 NOT dispatched · HumanEval committed (MIT) behind paths.local_maxxing.humaneval_file for both band scripts 985587c1d
-done   OSC.03 PROVED (band hop 1): 336/336 heads stable, self-identifying (331/336; cross-head cos 0.34) · low band 171/336 robust · high band 37/336 at 11-pair thirds, 29 at 10 (definition-sensitive) · 2 kids (kid 1 pairing bug -> corrective re-run) · merged + config keys 0369c20fc · mur-6 accept_with_residue closed 985587c1d; OPEN: bf16 + any-split (measured float32, one split)
-TM     11:39Z batch C REVIEWED by name (mur-refs-agi-posts-director-thought): cfg-01-02 + osc-01 accept_with_residue, NOT landed -> 3 items closed in-loop ac673dacf ((1) CFG.02 notes state the 200/40 breach, token struck (2) chunk-1 testable_claim gate < 0.3 (3) dead_head_artifact = path key, rerun byte-identical) · config-max e3_lut /tmp/kidB -> box.tmp_scratch is the Prime's · TM lands AFTER pass 2
-done   mur cfg-02 accept_with_residue, both defects confirmed -> closed in place b1b464771 (200/40 above the 2x stop; audit scope; pi home restored); box.root + pi_home CARRIED to the Prime
-done   OSC.02 DISPROVED: k(1 pct) = 1 of 32 KV groups, x1.03 context; done commit hit a stale index.lock -> committed at harvest 4116cf46c, merged 45f80be27, CSVs = raw logs; 325 lines vs ordered 150 (parent granted 350) recorded; WHY: hybrid 9B, 8 attention layers, every group load-bearing
-done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
-next   mur-5 lands -> close OSC.02 residues -> launch mur osc-03 · OSC.04 lands -> harvest -> review -> verdict: hop 3 or the largest safe fraction · TM's merge-up answer for batch C when it comes (OSC.02 joins the next batch)
-open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan · SWR-SV.01 queued behind OSC.02 (loads a model) + pass 2
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-OSC.02/manifest.json'))['agents'][0]['status'])" && ls /data/work/agi/.agi/sessions/workflows/runs/mur-director-thought-4/
-window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi-local round across it
+1 mur-director-thought-13 RUNNING (relaunched 20:14Z, bg; stages run one at a time) -- OSC.10's review, args .agi/sessions/iter-OSC.10/mur13.args.json
+         (3 rounds osc-10-a / -b / -ctl, review -> verify, deepseek-v4.1-flash; merge-base 5f04722e3c, tips A 60d07740e6 · B 86f4f9bb14 · ctl e27e5995d6)
+         results MAIN .agi/sessions/workflows/runs/mur-director-thought-13/ · if my session died: relaunch with the same args (run key = mur-<merge_up>)
+    then close in place: CONFIRMED residues fixed in the kid nodes (write.py, AGI_ACTOR=director-thought) -> the hypothesis node gains a harvest section
+         AFTER CEILING (the brief order stays): verdict disproved x3, the step (energy 9.0 bits, uniform 10.25), the [1b] SWARM numbers (LADDER above) and the
+         swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
+    residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
+         generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
+2 OSC.11 CLOSED f2003718f0 -- mur-director-thought-14: review demote -> verify accept_with_residue (all 5 defects real, text-only); harvest merged
+         67837d6c23 + evidence 3f627c6cf5 / 458484bb3b; the node now says REFUTED throughout: step = keep -ub 512; T3 range 85.6x-1,383x; the kid's
+         restore proof was a JSONDecodeError -> the director's parsed completions (19:55:38Z, 20:32:49Z) are the proof
+3 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666) dispatched 20:29Z, wall ~22:29Z, GPU round: the router goes DOWN under its T0 guard and must be
+         restored + proven (a real 9B completion naming the model); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
+    the first spawn a00-8f615a6a FAILED at start (my --memory 6 -> MemoryMax=6 bytes, oom-kill 20:27:06Z): its worktree .agi/worktrees/a00-8f615a6a and
+         branch ...-ngram-sp-a00-8f615a6a are orphaned (empty), and iter-OSC.12/a00-b0263b6d is the empty dir of the 20:26Z stale-base refusal
+    harvest: merge its loop branch, check its worktree for uncommitted config AND gitignored evidence (OSC.11's lesson), anonymize, ONE mur, close
+4 TMM.58 LANDED at c63e1ab8b (TMM.62 20:36Z: gate clean, suite 6182 passed / 1 failed = core R3 only) -- closed. TM's merge-up scope:
+         OSC.09 (Dispatch line + harvest) + OSC.10 after mur-13 + OSC.11 (mur-14) -- the range starts at 96207abf1
+5 anonymize over the whole range RE-RUN at 3f627c6cf5: MAIN's gate ok (two-dot and three-dot); the committed gate: loopback only (82 lines) -- the TRUNK's
+         anonymize.py now drops loopback, so merging the trunk clears it
+6 trunk merged 20:28Z (b1abf75fd8; the committed gate now passes the whole range) -> ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + Dispatch line a9aed8731)
+         + OSC.10 (+ mur-13 close) + OSC.11 (+ mur-14 close)
+done   TMM.56 (@21085aa1d) · TMM.57 (@60eac6b52) · TMM.58 (@e0689f715) · mur-12 (OSC.09) closed · OSC.10 all three parents merged (A 37b51df94, B 39f0834f1,
+       control aed061142) · spawn.parallel back to 1 · OSC.11 merged 67837d6c23 + evidence 3f627c6cf5
+tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
+````
 
 ## Banked
 ```
@@ -86,23 +113,28 @@ window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.09 -- LIVE a00-d05979d0 17:16Z (director-thought -> parent · goal:g5.22 LADDER L10: the cold first request after a model load · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · ONE model-loading host kid · GPU round)
+ORDERS OSC.12 -- (director-thought -> parent · goal:g5.22 LADDER L9/L10 first rung: draft-free n-gram speculation on the served 9B · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · ONE model-loading host kid · GPU round)
 
-read first  hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly (CLAIM, TESTS T0-T5, FALSIFIER are the contract) · experiment:a00-f256db1a-73ee5b (OSC.08: t1 / t1v server logs, the router args in datasets/kv-format/2026-09-23/router_args.json, the director's correction note with the warm measurement)
-model       OSC.02's sha-identical copy /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf (sha256 it first) -- nothing is ever written to a model file
-T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M.
-servers     ghcr.io/ggml-org/llama.cpp:full-cuda, --entrypoint /app/llama-server, the router's recorded args verbatim + a spare port; a FRESH container per trial (docker rm -f it after); free the port before reuse (OSC.08 hit 'port is already allocated').
-prompts     fixed wikitext-2 slices from /data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw (record offsets), wrapped in one chat message; max_tokens 8, temperature 0, thinking off (chat_template_kwargs enable_thinking false); every request carries different text, so no prefix is reused; read prompt_n / prompt_ms / prompt_per_second / cache_n from the response timings.
-T1          3 trials: fresh server -> A (~2k tokens) -> B (~2k, different) -> timings of both.
-T2          3 trials: fresh server -> W (<= 16 tokens) -> A (~2k) -> timings of both.
-T3          cold first request at ~256 / ~2k / ~8k tokens, a fresh server each -> ms per token for each size.
-T4          one fresh server at -lv 5: the log lines of the first vs the second request (ubatch sizes, graph builds, context checkpoints, any CPU fallback) -- quote them.
-T5          READ ONLY: docker logs llama-server (the router) -- every model load / unload of the 9B today and its cause; how often a cold first request reaches pi-local rounds.
-verdict     per the node FALSIFIER, bar by bar; THEN the LARGEST SAFE STEP: the cold cost per token and what removes it (a warm-up request on load, or keeping the 9B resident) -- PROPOSED to the Prime / thought-master; the router and every config cell are NOT this round's to edit.
-land        script under .agi/context/local-maxxing/serve/ (paths via paths.get_local; any new in-repo dir gets a paths.local_maxxing key) · outputs (timings json, server logs, the router-log extract) under datasets/serving-sweep/2026-09-23-cold/ · ONE experiment node under the hypothesis
-never       write any GGUF · leave the router down · touch the router or a config cell outside paths.local_maxxing · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs · a pi-local round
-wall        call done by 90 min wall-clock whatever the state; the router is up before you stop
-record      model sha · per trial: A/B or W/A prompt_n, prompt_ms, tok/s · size vs ms/token · the -lv 5 lines · the router's load/unload events · verdict · the largest safe step · router-restored proof · one harvest line to your seat
+read first  hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode (Measured, CLAIM, Dispatch line, FALSIFIERS, TESTS, FILE SCOPE, CEILING are the contract -- answer its Dispatch line FIRST) · experiment:a00-3caaf6eb-9065ef (OSC.11: the server protocol that worked, its contention lesson, its parent's quiet re-measure) · datasets/kv-format/2026-09-23/router_args.json (the router's model_args_9b) · .agi/context/local-maxxing/serve/ub_prefill_round.py (OSC.11's helpers, import-only)
+model       the router's own file, mounted READ-ONLY (docker inspect llama-server shows where the router mounts /models; mount the same host dir :ro); sha256 the 9B first (03b74727...52b7e8) -- nothing is ever written to a model file
+image       ghcr.io/ggml-org/llama.cpp:server-cuda (the router's own build 10991, commit 930e2fa59) -- the served build
+T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` (free -m) >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M (name the model in the request: the router refuses one without it).
+jit cache   mount /data/ml/scratch/cuda-jit-cache at /root/.nv/ComputeCache in EVERY container, with -e CUDA_CACHE_MAXSIZE=4294967296; record each container's first request
+servers     per arm a FRESH container (docker rm -f it after; free the port before reuse): the router's model_args_9b verbatim minus --port / --host, plus the arm's --spec-type at its DEFAULT parameters (no tuning this round), a spare port bound to the loopback address
+arms        none (FIRST) · ngram-simple · ngram-map-k · ngram-map-k4v · ngram-mod · ngram-cache · none (LAST, the drift bracket). CHEAPEST TEST FIRST: ngram-simple on 3 edit prompts before anything else -- if the server refuses the flag, errors, or drafts 0 tokens, THAT is the round's answer: record the exact log lines, restore the router, write the node, done.
+prompts     >= 24 requests in three classes of 8, built DETERMINISTICALLY from COMMITTED repo files and committed as prompts.jsonl: (E) edit-and-return -- a committed script or node section (<= 120 lines) + a one-line change, return the whole revised text, max_tokens 2048 · (C) code -- a test or small function from a committed docstring or spec, max_tokens 512 · (D) digest -- a committed experiment node in <= 8 lines, max_tokens 384 · each <= 8k prompt tokens, one chat message, temperature 0, thinking off, the model named, the SAME set and order for every arm; a warm-up request first in every container
+kid runs    the driver in the FOREGROUND of the kid's turn, ONE arm per invocation, results saved per arm -- a backgrounded pass dies with the kid's scope when its turn ends (OSC.10 a00-b59ee70f) · keep each step's memory bounded (an OOM anywhere in the scope stops the whole scope, OSC.10 a00-04dc76fc)
+quiet       before each arm record loadavg and `available` RAM; if the 1-min load exceeds 12 or available is under 3 GB, wait 60 s and re-check, up to 10 min, then run and record it -- OSC.11's +27 pct was a contended baseline
+measure     per request: prompt_n, prompt tok/s, predicted_n, decode tok/s (timings.predicted_per_second), drafted and accepted token counts (the response timings, else the server log's acceptance line), the output text, loadavg + `available` RAM · per arm: load result, n_ctx_slot, the first-request line
+T1          feasibility: ngram-simple loads and drafts > 0 tokens on qwen35
+T2          per type the paired per-request decode speedup vs none-FIRST (median + 95 pct t interval on log ratios), per class and overall
+T3          output identity vs none per request; for EACH divergence the top-2 margin at the divergence point from a SEPARATE none pass with n_probs 2 (never a timed pass)
+T4          prompt tok/s per type vs none (the 5 pct bar) · T5 drift: none-FIRST vs none-LAST medians within 5 pct, else the verdict is inconclusive for noise and a quiet-window re-run is named
+verdict     per the node FALSIFIERS; THEN the LARGEST SAFE STEP: the fastest type passing T3 and T4, with its flags and per-class speedups -- PROPOSED to the Prime / thought-master; the router and every config cell are NOT this round's to edit
+land        one script + its committed test under .agi/context/local-maxxing/specdec/, named with the kid's agent id (paths via paths.get_local; the out key specdec_out_dir is committed -- add no other key) · prompts.jsonl, per-arm rows, server logs, the restore proof under paths.get_local("specdec_out_dir") · run extensions/agi/bin/anonymize.py check over that text before done · ONE experiment node under the hypothesis
+never       write any GGUF · leave the router down · touch the router or a config cell · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs, image pulls or model downloads · a pi-local round · parameter tuning of a spec type (the next round's)
+wall        call done by 120 min wall-clock whatever the state; the router is up before you stop
+record      model sha · per arm load result + n_ctx_slot · per request timings, draft counts, loadavg/RAM · T1-T5 with intervals · the identity table + margins · the verdict · the largest safe step · router-restored proof · one harvest line to your seat
 
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)

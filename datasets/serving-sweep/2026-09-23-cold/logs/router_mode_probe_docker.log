@@ -1,0 +1,5 @@
+[43475] 1.41.237.984 I slot print_timing: id  0 | task 10 | prompt eval time =    1853.21 ms /  2061 tokens (    0.90 ms per token,  1112.13 tokens per second)
+[43475] 1.41.237.988 I slot print_timing: id  0 | task 10 |        eval time =     117.06 ms /     8 tokens (   16.72 ms per token,    59.80 tokens per second)
+[43475] 1.41.237.988 I slot print_timing: id  0 | task 10 |       total time =    1970.27 ms /  2069 tokens
+[43475] 1.41.237.989 I slot print_timing: id  0 | task 10 |    graphs reused =         13
+[43475] 1.41.238.192 I slot      release: id  0 | task 10 | stop processing: n_tokens = 2068, truncated = 0
