@@ -434,6 +434,24 @@ def _touches_a_real_repo(path: Path) -> Path | None:
     return None
 
 
+def _unresolved_real_repo_guard(engine: Path, tree: Path) -> dict | None:
+    """A refusal when the guard resolved no real repo at all, or None.
+
+    An empty forbidden set makes `_touches_a_real_repo` return None for every
+    path — the old empty-list default, which fails OPEN. If nothing named a
+    real repo (no `box.root` cell, no git common root, no project root), the
+    guard cannot tell a throwaway clone from production and must refuse."""
+    if _FORBIDDEN_REAL_PATHS:
+        return None
+    return _refuse(
+        "real_repo_guard_unresolved",
+        f"the real-repo guard resolved no repo to forbid (engine {engine}, "
+        f"tree {tree}) — no box.root cell, no git common root, no project "
+        f"root; refusing rather than allowing a write blind. If this IS the "
+        f"one-time real migration, pass {REAL_MIGRATION_FLAG}",
+    )
+
+
 #: The one flag that lets this script touch the real repos, spelled so it
 #: cannot be typed by accident or reached by a stray `--force`.
 #:
@@ -474,6 +492,10 @@ def preflight(engine: Path, tree: Path, *, force: bool = False,
     """
     engine = Path(engine).resolve()
     tree = Path(tree).resolve()
+
+    unresolved = _unresolved_real_repo_guard(engine, tree)
+    if unresolved and not allow_real:
+        return unresolved
 
     real = _touches_a_real_repo(engine) or _touches_a_real_repo(tree)
     if real and not allow_real:
@@ -1041,6 +1063,10 @@ def preflight_rollback(engine: Path, *, force: bool = False,
     second means this is not the repo unify.py touched.
     """
     engine = Path(engine).resolve()
+
+    unresolved = _unresolved_real_repo_guard(engine, engine)
+    if unresolved and not allow_real:
+        return unresolved
 
     real = _touches_a_real_repo(engine)
     if real and not allow_real:

@@ -565,6 +565,26 @@ def test_real_repo_guard_names_this_checkout_without_a_box_cell(tmp_path, monkey
     assert str(here) in res["detail"]
 
 
+def test_real_repo_guard_fails_closed_when_nothing_resolves(tmp_path, monkeypatch):
+    """An empty forbidden set is a refusal, not an allow.
+
+    If neither the box cell nor git nor a project root names a real repo,
+    `_touches_a_real_repo` returns None for every path — the pre-fix
+    empty-list default, which fails OPEN. The guard cannot tell a throwaway
+    clone from production, so it must refuse by name.
+    """
+    monkeypatch.setattr(unify.boxes, "box_cells", lambda root: {})
+    monkeypatch.setattr(unify, "_git_common_root", lambda: None)
+    monkeypatch.setattr(unify.locations, "find_project_root", lambda *a, **k: None)
+    assert unify._real_repos() == ()
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", ())
+
+    result = unify.preflight(tmp_path / "engine", tmp_path / "tree")
+    assert result["ok"] is False
+    assert result["reason"] == "real_repo_guard_unresolved"
+    assert str(tmp_path / "engine") in result["detail"]
+
+
 # --- idempotency: a clean refusal on a second run -------------------------------
 
 
