@@ -76,6 +76,22 @@ def test_no_models_block_passes_no_model_flags():
     assert "--model" not in grok.model_args({"adapter": "grok_bot"}, "kid")
 
 
+def test_build_command_is_the_bare_measured_bin():
+    """MEASURED argv (`grok-bot --help`, goal:g7.31.1.1): the bare resolved bin
+    and nothing else. No brief flag, no context path, no model flag."""
+    assert grok.build_command(
+        harness={"adapter": "grok_bot", "bin": "/SENTINEL/grok-bot"},
+        tier="kid", context_file="/tmp/x") == ["/SENTINEL/grok-bot"]
+
+
+def test_source_carries_no_guessed_flag_literals():
+    """The stub-only guessed flags must be gone from the landed adapter path:
+    neither the quoted flag literal survives in the source."""
+    src = (BIN / "adapters" / "grok_bot_adapter.py").read_text(encoding="utf-8")
+    assert '"-p"' not in src
+    assert '"--model"' not in src
+
+
 # ------------------------------------------------------------ config resolve
 
 
@@ -132,7 +148,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly what build_command produces (the MEASURED argv today)
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
