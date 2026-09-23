@@ -11862,6 +11862,8 @@ OWNER 09-23 09:4xZ (Prime pane, verbatim): "Once settled and handed off continue
 
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Go route B" -- APPLIED: the seat-key authority stays the Prime-reviewed root (origin/season2/main); the rotation publishes a re-minted seat row there — hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority, director-engine, priority first.
 
+OWNER 09-23 10:2xZ (director-engine pane, verbatim): 'Go for finish. Raise ceiling or lower floor to something silly like -50 just whatever needed to keep working as balance allows.' -- APPLIED by director-engine: hypothesis:brief-py-assembles-every-first-turn-from-config ceiling 2 USD / <= 3 kids -> 3.5 USD / <= 5 kids and phase 4 dispatched; the floor was left at -100 (already below -50); the held 0921 engine-slice rounds (FR-A, the node corrections) dispatched as balance allows.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
