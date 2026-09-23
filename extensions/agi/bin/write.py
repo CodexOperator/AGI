@@ -2015,6 +2015,11 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 residue — pre-flight the post-edit `profile_ref`, so a
+    # refused ref aborts with zero bytes changed (measured before the fix:
+    # rc=2 with the node body already advanced — a silent graph write).
+    _preflight_profile_ref(root, edit)
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -2048,6 +2053,32 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         except profile_sync.Refused as exc:
             raise EditError(f"profile projection refused: {exc}") from exc
     return res
+
+
+def _preflight_profile_ref(root, edit: Edit) -> None:
+    """Refuse an illegal POST-EDIT `profile_ref` before anything is written.
+
+    goal:g7.31.5.1 residue: the ref that matters is the one the node WILL
+    have — `set_fm` wins, `unset_fm` removes it, absent means the disk value.
+    """
+    if "profile_ref" in edit.unset_fm:
+        return
+    ref = edit.set_fm.get("profile_ref")
+    if ref is None:
+        path = node_writer.find_node_file(root, edit.node_id)
+        if path is None:
+            return
+        from graph_core.persistence import frontmatter as fm_reader
+        try:
+            ref = fm_reader.load_node_file(
+                path, body=False).frontmatter.get("profile_ref")
+        except Exception:
+            return
+    if ref:
+        try:
+            profile_sync.validate_ref(root, ref)
+        except profile_sync.Refused as exc:
+            raise EditError(f"profile projection refused: {exc}") from exc
 
 
 def _node_mint_id(root, node_id: str) -> str:
