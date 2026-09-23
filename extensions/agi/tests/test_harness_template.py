@@ -579,3 +579,53 @@ def test_every_adapter_exports_the_env_var_it_resolves():
                                    ("grok_bot", "GROK_BOT_BIN")):
         mod = importlib.import_module(f"agi.bin.adapters.{adapter_name}_adapter")
         assert mod.ENV_VAR == expected
+
+
+# --- hypothesis:harness-argv-refuses-an-unknown-encoding ----------------
+# `_check_parts` validated `slot`/`when`/`spread` but not `encoding`; `_emit`
+# turned ANY non-json encoding into plain `str()`. A typo'd
+# `encoding = "json5"` therefore emitted the wrong bytes silently. The
+# encoding vocabulary is now closed and checked by name, and the unknown
+# `spread` refusal gets its own pin (R-EF50 M4).
+
+def test_unknown_encoding_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nflag = "--settings"\n'
+        'slot = "settings"\nencoding = "json5"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown encoding 'json5'" in str(exc.value)
+
+
+def test_unknown_encoding_inside_a_shape_is_refused(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[shapes.d]\nargv = ['
+        '{flag = "--settings", slot = "settings", encoding = "yaml"}]\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown encoding 'yaml'" in str(exc.value)
+    assert "shapes.d" in str(exc.value)
+
+
+def test_known_json_encoding_still_renders(tmp_path, monkeypatch):
+    """Regression guard: the closed vocabulary keeps the one live encoding."""
+    (tmp_path / "ok.toml").write_text(
+        'id = "ok"\nbin = "b"\n[[argv]]\nflag = "--settings"\n'
+        'slot = "settings"\nencoding = "json"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    assert harness_template.render(
+        "ok", bin_path="b", prompt="P", settings={"a": 1}) == [
+            "b", "--settings", '{"a": 1}']
+
+
+def test_unknown_spread_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    """The pin R-EF50 M4 asked for: an unknown `spread` is refused, and the
+    message names the bad token."""
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nspread = "extra"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown spread 'extra'" in str(exc.value)

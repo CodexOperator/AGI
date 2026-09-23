@@ -57,6 +57,12 @@ RENDER_VOCABULARY = (
 #: template that omits `[roles] source` is `ladder` (claude-code's behaviour).
 ROLE_SOURCES = ("ladder", "row")
 
+#: The encodings `_emit` knows: `json` json-dumps the slot value, `str` (the
+#: default) is plain `str()`. Closed vocabulary -- before this a typo'd
+#: `encoding = "json5"` fell through to `str()` and emitted the WRONG bytes
+#: silently, because `_check_parts` validated `slot`/`when`/`spread` only.
+ENCODINGS = ("json", "str")
+
 
 class HarnessTemplateError(Exception):
     """A template is malformed, or a render slot is not expressible."""
@@ -163,6 +169,11 @@ def _check_parts(path: Path, parts: list, label: str = "argv") -> None:
                     raise HarnessTemplateError(
                         f"{path}: {label}[{i}] unknown {field} {name!r}; "
                         f"known: {list(RENDER_VOCABULARY)}")
+            enc = part.get("encoding")
+            if enc is not None and enc not in ENCODINGS:
+                raise HarnessTemplateError(
+                    f"{path}: {label}[{i}] unknown encoding {enc!r}; "
+                    f"known: {list(ENCODINGS)}")
 
 
 def role_source(harness_id: str) -> str:
