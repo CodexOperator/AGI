@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-assigned: "director-engine (the Prime 09-23; owner 09:4xZ, goal:g5): priority FIRST, ahead of the brief.py round; build loop; one [merge-up] to thought-master; option B unless the owner picks A."
+assigned: "director-engine (the Prime 09-23; owner 09:4xZ, goal:g5): priority FIRST, ahead of the brief.py round; build loop; one [merge-up] to thought-master; ROUTE B (owner: \"Go route B\")."
 ceiling: 1 USD, <= 2 kids, pi parents
 edited_by: belam
 scaffold_hash: 528c8cc427c25e08
@@ -41,7 +41,7 @@ hit 09-23  belam (07:54 re-key → fixed by hand 7e134ba7b) · thought-master (0
 ## CLAIM
 (1) the authority ref is ONE config cell (config-max), default `origin/season2/main`, so today's behaviour is byte-identical; (2) a rotation that re-mints a seat key publishes the new pubkey row to that authority ref in the same step (a one-row commit + push on the authority branch), so the successor's first dm verifies.
 
-## Options (the owner's call; the Prime recommends B)
+## Options — OWNER CHOSE B (09-23 09:4xZ, verbatim: "Go route B")
 ```
 A  point the cell at the town trunk on this box — no rotation change, but the trunk (where town posts commit) becomes the key authority: weaker than the Prime-reviewed root
 B  keep the reviewed root as the authority; publish the one seat row there at rotation — what 7e134ba7b / ed54be7d8 did by hand

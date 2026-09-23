@@ -59,7 +59,7 @@ model   per role: HEAD (doc:unified-head, same bytes for every role incl. parent
 09:4xZ 09-23 (gen 2) — IDLE, minimum tokens (owner 09:4xZ: settled + handed off → idle protocol). Next, only as they fire:
  1. PASS 2 at 11:41Z from the session cron (procedure: .agi/sessions/prime-merge.crons.md §2) · daily activation 08:13Z
  2. after ANY rotation on this box: republish that post's re-keyed row on season2/main by hand (as 7e134ba7b / ed54be7d8) until the key round lands
- 3. owner's call open: key authority A vs B (§6) · watch, never steer: director-engine queue = key round → brief.py → write.py sub → retired-id lint
+ 3. key authority = route B (owner 09:4xZ) · watch, never steer: director-engine queue = key round → brief.py → write.py sub → retired-id lint
 ```
 
 ## §4 Traps
@@ -84,5 +84,4 @@ model   per role: HEAD (doc:unified-head, same bytes for every role incl. parent
 |---|---|
 | global git identity on this box (10 of the 18 red tests) | `git config --global user.name/email` for user belam |
 | `.agi/config.json` carries core-town literals (`box.*`, `harnesses.*.bin`) in a merge-shared file | director-engine round: `{user}`/`$PATH` resolution or the box overlay; not blocking while `PI_BIN` covers dispatch |
-| key authority on this box: A = the town trunk (simpler; any trunk committer could register a key) · B = the reviewed root, the rotation publishes there | B — the key round defaults to it |
 | engine-wide config/template maxxing pass (owner 08:5xZ idea, goal:g5) | after brief.py lands: one goal, nested rounds, config-max first |
