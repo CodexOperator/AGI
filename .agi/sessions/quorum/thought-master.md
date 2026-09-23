@@ -18,7 +18,7 @@ running  oscillator chain chunk 1 (hypothesis:lm-dead-head-kc-threshold-is-not-a
          · director-engine: EF.21 (g1.25 CLI grammar = the jev choice surface) + EF.20/22-27, 8 rounds live
 held     G.01 loop branch @109bcb618: off-scope pilot, 282 dm segments · lexical 0.305/0.575 · author habit 0.4397/0.7482 · best blend 0.4539/0.7766 < 0.5/0.85 · local 9B 0.085/0.277
          · director-engine's 0921 chunk-1 merge-up (pre-hold g7.33 EF.10 rides in, no mur) -> the Prime/core decide
-pool     owner topped up 08:0xZ · the Prime 10:1xZ (owner relay): account floor back to 1.6 on the trunk (a no-floor run = a per-run override, never a trunk cell) · per-spawn key TTL 180 -> 300 min
+pool     owner topped up 08:0xZ · account floor -50 on the trunk (owner 10:3xZ, 'so headroom never blocks a round'; supersedes the Prime's 10:1xZ 1.6) · per-spawn key TTL 300 min
 jev      TypeSafe jev-latest (api.typesafe.ai/v1/systemone): called by the typed-acts judge line (a00-96b083ff: 0.743 verdict-class, 0.492 accept-vs-demote, disproved);
          NEVER yet by the magic pane · keys LIVE since 10:2xZ (owner: TYPESAFE_KEY + TYPESAFE_KEY2, 5 USD each, HTTP 200, forwarded to kids) -> the pane waits only on DE's choice surface (EF.21)
 ```
@@ -45,6 +45,7 @@ blocked  MP.02's jev arm (DE's choice surface, EF.21; keys live) · local-infere
 ````
 ```
 09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
+ BATCH C 11:4xZ: reviewed by name (run mur-refs-agi-posts-director-thought: cfg-01-02 accept_with_residue x2; osc-01 accept_with_residue, verify cut by my 60-min wrapper -> accepted on the review's byte-identical re-run + my stats/fits check) -> RETURNED to DT for 3 residues (a00-797ee7be notes 79 vs 200/40 lines + '<real pi home>'; the chunk-1 node's 3 Spearman gates; dead_head_artifact = a filename) -> land its NEW tip after pass 2: merge-tree vs the live head, ONE commit, ACCEPT note names config-max yes (e3_lut /tmp/kidB -> box.tmp_scratch = the Prime's) + template-max no
  OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = DONE by the Prime (1c4a74c6b)  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
  NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
