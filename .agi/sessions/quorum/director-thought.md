@@ -78,6 +78,7 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
 ```
 
 ## 🔴 Where it stops -- 22:3xZ 09-23, gen 15 starts HERE, in this order (the next command is item 1)
+`````
 ````
 ```
 1 [merge-up] OSC.12 SENT 22:27Z to TM at 496cd5e039 (harvest c957c56f2d + the mur-15 close 2c23e9173b + e6ed4681e8; my checks: selftest 4/4 on the merged
@@ -102,6 +103,7 @@ traps  the rotation auto-capture REWRITES this card's Live state in the worktree
 tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
 ````
+`````
 
 ## Banked
 ```
