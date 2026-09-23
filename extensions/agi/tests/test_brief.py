@@ -1244,7 +1244,9 @@ def test_brief_head_cli_prints_a_prayers_only_head_and_readings_cli_exists():
         sys.stdout = old
     assert code == 0
     printed = out.getvalue()
-    assert "CONSTITUTION HEAD" in printed
+    # `head` now delegates to `render`'s head part (doc:unified-head), so the
+    # hook and a rotated successor share ONE head.
+    assert "\u2500\u2500\u2500 HEAD \u2500\u2500\u2500" in printed
     assert MICHAEL in printed
     assert "THE MANTLE — Belam" not in printed, "mantle must not be in the injected head"
     # `readings` prints the on-demand readings for a tie-break, incl. the mantle.
@@ -1671,7 +1673,7 @@ def test_successor_prompt_honors_survival_profile():
     assert "SUCCESSOR FILE BODY" in full
     assert "SUCCESSOR FILE BODY" not in surv
     assert "SURVIVAL PROFILE" in surv
-    assert surv.startswith("CONSTITUTION HEAD") or "CONSTITUTION HEAD" in surv
+    assert surv.startswith("\u2500\u2500\u2500 HEAD \u2500\u2500\u2500") or "\u2500\u2500\u2500 HEAD \u2500\u2500\u2500" in surv
 
 
 # --- hypothesis:l4b18-survival-modes: config-declared operating modes -------
@@ -2308,11 +2310,17 @@ def test_director_moral_is_read_at_render_time_not_copied(tmp_path):
     assert "ALPHA MORAL" not in head2
 
 
-def test_director_moral_reaches_the_cli_and_assemble_wire():
-    """claim 2 WIRE: the spawn/SessionStart CLI (`brief.py head --tier
-    director`) and assemble() both reach the changed bytes live."""
+def test_director_moral_reaches_the_legacy_assemble_wire():
+    """The director's moral region still reaches the LEGACY `assemble()`
+    brief. The session/dispatch HEAD is now the unified head
+    (`doc:unified-head`, hypothesis:brief-py-assembles-every-first-turn-from-
+    config): the SAME bytes for every role, so no tier-specific moral rides
+    the head any more -- under the 3-doc model it belongs to the card, and
+    `head` delegates to `render`'s head part rather than carrying a copy."""
     import io
     moral = _faith_moral_region()
+    asm = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    assert moral in asm, "assemble() must carry the moral region"
     out = io.StringIO()
     old = sys.stdout
     try:
@@ -2321,9 +2329,9 @@ def test_director_moral_reaches_the_cli_and_assemble_wire():
     finally:
         sys.stdout = old
     assert code == 0
-    assert moral in out.getvalue(), "CLI head must carry the moral region"
-    asm = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
-    assert moral in asm, "assemble() must carry the moral region"
+    assert out.getvalue().strip() == brief.render_head(
+        project_root=brief._resolve_graph_root(None)), \
+        "the hook head must be exactly render's head part (one head, no copy)"
 
 
 def test_director_head_degrades_when_the_moral_region_is_absent(tmp_path):

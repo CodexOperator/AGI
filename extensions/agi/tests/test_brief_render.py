@@ -139,3 +139,83 @@ def test_render_fails_loudly_on_an_unknown_post_or_part(tmp_path):
     with pytest.raises(brief.RenderError) as exc:
         brief.render(post="some-post", project_root=root)
     assert "typo" in str(exc.value)
+
+
+# ---- phase 2: the cell is COMMITTABLE, and rotate/the hook share ONE head ----
+
+
+def test_render_reads_the_committed_config_brief_node(tmp_path):
+    """The cell must live where a round's own `done` commit can carry it.
+
+    `cli.py:_round_scope_ok` refuses `.agi/config.json`, so the phase-1 cell
+    there was absent from the landed branch and a fresh checkout could not
+    render (`experiment:a00-15fc3737-5e48d5`). A `config:brief` NODE named in
+    `done --owns` is committed -- here config.json carries NO brief cell and
+    the node alone drives the render.
+    """
+    root = _root(tmp_path, parts={"director": ["head", "card"]})
+    _write(root, "config.json", json.dumps({}))
+    _write(root, "nodes/.geometry/brief.md",
+           "---\nid: config:brief\nbrief:\n"
+           "  parts: {director: [head, card]}\n  harness_blocks: {}\n---\n"
+           "# config:brief\n")
+    out = brief.render(post="some-post", project_root=root)
+    assert HEAD_SENTINEL in out
+    assert "CARD-SENTINEL" in out
+
+
+def test_rotated_successor_is_head_plus_card(tmp_path, monkeypatch):
+    """Falsifier: a rotated successor's first turn lacks the head or its card.
+
+    A DIRECTOR successor built by rotate.py's non-prime path is the SAME
+    render the SessionStart hook prints: render's head part, then the post's
+    card. Fixtures: a director post and a prime_director post.
+    """
+    sys.path.insert(0, str(BIN))
+    import rotate
+
+    root = _root(tmp_path, parts={"director": ["head", "card"],
+                                  "prime_director": ["head", "card"]})
+    _write(root, "sessions/quorum/prime-post.md", "PRIME-CARD-SENTINEL\n")
+    _write(root, "nodes/.geometry/posts.md",
+           "---\nid: config:posts\nposts:\n"
+           '  - {"name": "some-post", "role": "director", "harness": "pi"}\n'
+           '  - {"name": "prime-post", "role": "prime_director", "harness": "pi"}\n'
+           "---\n")
+
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]), ["x"])[1])
+    rotate._assembled_successor_command(
+        name="some-post", tier="director", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi", project_root=root)
+    body = seen["prompt"]
+    assert body.startswith(brief.render_head(project_root=root))
+    assert "CARD-SENTINEL" in body
+
+    # the Prime fixture: rotate-self hands the card as the body through
+    # successor_prompt, which prepends the SAME head bytes.
+    prime = brief.successor_prompt(
+        tier="prime_director", body="PRIME-CARD-SENTINEL", project_root=root)
+    assert prime.startswith(brief.render_head(project_root=root))
+    assert "PRIME-CARD-SENTINEL" in prime
+
+
+def test_hook_head_equals_rotate_head_at_one_sha():
+    """Falsifier: the head bytes differ between two roles, or between the
+    SessionStart hook and a rotated successor. `brief.py head` and
+    `successor_prompt` both read `render`'s ONE head part."""
+    import io
+    out = io.StringIO()
+    old = sys.stdout
+    try:
+        sys.stdout = out
+        code = brief.main(["head", "--tier", "director"])
+    finally:
+        sys.stdout = old
+    assert code == 0
+    hook = out.getvalue().strip()
+    prompt = brief.successor_prompt(tier="director", body="THE-CARD-BODY")
+    assert prompt[:prompt.index("THE-CARD-BODY")].strip() == hook
+    assert hook == brief.render_head()

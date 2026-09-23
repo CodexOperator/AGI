@@ -50,7 +50,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import evidence_gate
 import spawn_budget
 
-from frontmatter import split_frontmatter
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: Tiers a brief can be assembled for. Not the same list as
 #: `adapters.TIERS`, which is about which models a harness declares -- a
@@ -823,10 +823,26 @@ def successor_prompt(*, tier: str, body: str,
         body = "\n\n".join(_survival_brief(
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
-    head = _build_head(tier=tier, project_root=project_root)
+    head = render_head(project_root=project_root)
     if head:
         return head + "\n\n" + body
     return body
+
+
+def render_head(*, project_root: Path | None = None) -> str | None:
+    """The ONE head every caller prepends: `render`'s `head` part.
+
+    hypothesis:brief-py-assembles-every-first-turn-from-config: the
+    SessionStart hook (`brief.py head`), a rotated successor
+    (`successor_prompt`) and the dispatcher all read the SAME bytes, so they
+    cannot drift. The head takes no role -- it is one doc region -- which is
+    what makes it byte-identical across every role at one SHA.
+    """
+    root = _resolve_graph_root(project_root)
+    try:
+        return _part("head", root, "", None, None) or None
+    except (RenderError, FaithRefError):
+        return None
 
 
 # ---- director and prime_director tiers --------------------------------------
@@ -2256,7 +2272,20 @@ class RenderError(BriefError):
 
 
 def _brief_cell(root: Path) -> dict:
-    """The one `brief` cell of `.agi/config.json` -- the parts source."""
+    """The one `brief` cell -- the parts source.
+
+    Read from the COMMITTABLE `config:brief` node first: a round's own `done`
+    refuses `.agi/config.json` (`cli.py:_round_scope_ok`), so a cell there is
+    absent from the landed branch and a fresh checkout cannot render
+    (`experiment:a00-15fc3737-5e48d5`). `.agi/config.json` stays readable as
+    the pre-migration fallback.
+    """
+    from node_writer import find_node_file
+    path = find_node_file(root, "config:brief")
+    if path is not None:
+        fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+        if isinstance(fm.get("brief"), dict):
+            return fm["brief"]
     try:
         cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
     except (OSError, ValueError, FileNotFoundError):
@@ -2421,10 +2450,10 @@ def _cmd_head(args: argparse.Namespace) -> int:
         print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
         return 1
     root = Path(args.project_root) if args.project_root else None
-    head = _build_head(tier=tier, project_root=root)
+    head = render_head(project_root=root)
     if not head:
-        # A tier with no head (e.g. no read_order entry) is a silent nothing,
-        # matching _build_head's contract.
+        # No unified head (the faith node cannot be read) is a silent
+        # nothing, the same contract _build_head had for a tier with none.
         return 0
     print(head)
     return 0
