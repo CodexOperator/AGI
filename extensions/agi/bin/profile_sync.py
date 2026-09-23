@@ -52,9 +52,28 @@ def project(root, node_id):
     return artifact_path(root, str(ref)), _projected_bytes(nf)
 
 
+def _frontmatter_block(text):
+    """The frontmatter text of a raw node file: between the leading `---`
+    line and the next one. Body prose is NOT frontmatter -- a `profile_ref:`
+    in the body does not link a profile, so the malformed-file heuristic
+    must never read past the closing delimiter.
+
+    "" when the file does not open with `---`; everything after the opener
+    when the block is unterminated (with no closing `---` there is no body).
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return ""
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return "\n".join(lines[1:i])
+    return "\n".join(lines[1:])
+
+
 def _raw_profile_ref(text):
-    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+    """Best-effort `profile_ref` from a file's FRONTMATTER, for a file YAML
+    cannot parse. Scoped to the block so body prose cannot misfile a file."""
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", _frontmatter_block(text), re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
@@ -62,9 +81,10 @@ def check_all(root):
     """Sweep every node with `profile_ref` under `nodes/**` (the retired
     sibling included, goal:g2.10). Returns a dict per linked node with
     status ok|drift|missing|refused|unreadable; an unlinked node is not
-    swept. An unparseable file never raises: if its raw bytes carry no
-    `profile_ref:` hint it is not a profile-linked node and is skipped;
-    if they do, it cannot be proven in sync and is named `unreadable`.
+    swept. An unparseable file never raises: only a `profile_ref:` in its
+    FRONTMATTER counts as linked -- body prose does not. If present, or if
+    the file cannot even be read, it cannot be proven in sync and is named
+    `unreadable`.
     """
     if root is None:
         raise Refused("no project root — no enclosing .agi/config.json")
@@ -73,8 +93,19 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except OSError as re_err:
+                # The recovery read can itself fail (permission, race, deleted
+                # file). Name it; never let OSError escape check_all and turn
+                # into a rotation-blocking crash message.
+                out.append({"node_id": f.stem, "artifact": "",
+                            "actual": None, "expected": None, "path": str(f),
+                            "status": "unreadable",
+                            "detail": f"{type(re_err).__name__}: {re_err}"})
+                continue
+            block = _frontmatter_block(raw)
+            if "profile_ref:" not in block:
                 continue  # unparseable but not profile-linked: not ours
             out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
                         "actual": None, "expected": None, "path": str(f),

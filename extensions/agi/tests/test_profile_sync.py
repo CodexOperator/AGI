@@ -348,3 +348,73 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+def _broken_prose(graph: Path, name: str, *, in_frontmatter: bool) -> Path:
+    """A malformed node whose ONLY `profile_ref:` mention is in the body
+    prose (in_frontmatter=False) or inside the unterminated-ish frontmatter
+    block (True). No valid YAML, so it can only be judged by the heuristic."""
+    prose = 'body prose mentions profile_ref: "profile/prose.md" here\n'
+    extra = 'profile_ref: "profile/b.md"\n' if in_frontmatter else ""
+    p = graph / "nodes" / "hypothesis" / name
+    p.write_text("---\nid: hypothesis:broken\n: : : not valid yaml [[[\n"
+                 + extra + "---\n\n" + prose)
+    return p
+
+
+def test_p7_prose_profile_ref_in_a_malformed_unlinked_node_is_a_noop(tmp_path):
+    """Residue D: the heuristic must read FRONTMATTER only. Eight live nodes
+    mention `profile_ref:` in prose; a malformed one is not a linked node and
+    must not make --all (or the rotate guard) refuse a clean rotation."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _broken_prose(repo / ".agi", "prose.md", in_frontmatter=False)
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "prose" not in r.stdout
+    assert rotate._check_profile_drift(repo / ".agi") is None
+
+
+def test_frontmatter_profile_ref_still_flags_unreadable(tmp_path):
+    """The symmetric half of Residue D: the SAME prose, plus a frontmatter
+    `profile_ref:`, is a linked node that cannot be proven in sync -- named
+    `unreadable` by path, refusal by the rotate guard."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _broken_prose(repo / ".agi", "broken.md", in_frontmatter=True)
+    r = _cli_all(repo)
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "UNREADABLE" in r.stdout and "broken.md" in r.stdout
+    msg = rotate._check_profile_drift(repo / ".agi")
+    assert msg and "profile drift" in msg and "broken.md" in msg
+
+
+def test_check_all_survives_a_read_error_in_the_except_branch(
+        tmp_path, monkeypatch):
+    """Residue E: the recovery read_text can itself raise OSError. That must
+    become a named `unreadable` row, never escape check_all (which the rotate
+    guard would surface as a crash message, blocking a clean rotation)."""
+    from pathlib import Path as _P
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    bad = _broken(repo / ".agi", "broken.md")
+    real = _P.read_text
+    calls = {"n": 0}
+
+    def fake(self, *a, **k):
+        if self == bad:
+            calls["n"] += 1
+            if calls["n"] >= 2:      # first read parses-and-fails, second dies
+                raise OSError(13, "Permission denied")
+        return real(self, *a, **k)
+
+    monkeypatch.setattr(_P, "read_text", fake)
+    rows = profile_sync.check_all(repo / ".agi")   # must not raise
+    row = [x for x in rows if x.get("path") == str(bad)]
+    assert len(row) == 1 and row[0]["status"] == "unreadable"
+    assert "PermissionError" in row[0]["detail"] and "Permission denied" in row[0]["detail"]
+    msg = rotate._check_profile_drift(repo / ".agi")
+    assert msg and "broken.md" in msg and "unreadable" in msg
