@@ -189,6 +189,39 @@ def test_boxinfo_prints_only_sanctioned_facts(tmp_path):
     assert "box: core-town" in out
 
 
+# (1c) a key named ONLY under required_any is collected into the physical-token
+# denylist; a key the node does not name is not. Fixture values only.
+def test_secret_tokens_reads_required_any_groups(tmp_path, fake_box):
+    root = _graph(tmp_path)
+    (root / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\n"
+        'id: "config:secrets"\n'
+        "type: config\n"
+        "status: active\n"
+        "mint_id: 0123456789abcdef0123456789abcdef\n"
+        'title: "fixture secrets node"\n'
+        "locations:\n"
+        "  env_file:\n"
+        '    path: "<source_root>/.env"\n'
+        "  env_template:\n"
+        '    path: "<source_root>/.env.example"\n'
+        "required_keys: []\n"
+        "required_any:\n"
+        '  - ["FIXTURE_ONLY_KEY"]\n'
+        "---\n\n"
+        "body\n"
+    )
+    env = tmp_path / ".env"
+    env.write_text(
+        "FIXTURE_ONLY_KEY=sk-fake-required-any-only\n"
+        "UNLISTED_KEY=sk-fake-not-declared\n"
+    )
+    env.chmod(0o600)
+    toks = anonymize._secret_tokens(root)
+    assert ("secret", "sk-fake-required-any-only") in toks
+    assert ("secret", "sk-fake-not-declared") not in toks
+
+
 # (7) install-hook writes a box-local pre-commit, and refuses a foreign one.
 def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
     root = _graph(tmp_path)
