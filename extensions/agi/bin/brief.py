@@ -43,10 +43,14 @@ import re
 import sys
 from pathlib import Path
 
+#: graph_core (and geometry_config's node loader) lives under `src/`; every
+#: bin script that reads the graph puts it on the path (rotate.py:66).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 import evidence_gate
 import spawn_budget
 
-from frontmatter import split_frontmatter
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: Tiers a brief can be assembled for. Not the same list as
 #: `adapters.TIERS`, which is about which models a harness declares -- a
@@ -819,10 +823,26 @@ def successor_prompt(*, tier: str, body: str,
         body = "\n\n".join(_survival_brief(
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
-    head = _build_head(tier=tier, project_root=project_root)
+    head = render_head(project_root=project_root)
     if head:
         return head + "\n\n" + body
     return body
+
+
+def render_head(*, project_root: Path | None = None) -> str | None:
+    """The ONE head every caller prepends: `render`'s `head` part.
+
+    hypothesis:brief-py-assembles-every-first-turn-from-config: the
+    SessionStart hook (`brief.py head`), a rotated successor
+    (`successor_prompt`) and the dispatcher all read the SAME bytes, so they
+    cannot drift. The head takes no role -- it is one doc region -- which is
+    what makes it byte-identical across every role at one SHA.
+    """
+    root = _resolve_graph_root(project_root)
+    try:
+        return _part("head", root, "", None, None) or None
+    except (RenderError, FaithRefError):
+        return None
 
 
 # ---- director and prime_director tiers --------------------------------------
@@ -2241,6 +2261,123 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
             f"Read your zoom context, do the work, signal done.")
 
 
+# ---- `render`: the WHOLE first turn for a seat, from ONE config cell -------
+# hypothesis:brief-py-assembles-every-first-turn-from-config. The parts list
+# per role (plus what the harness adds) is the SINGLE source: adding or
+# removing a part is one config line, never a code change. Writes NO file.
+BRIEF_PARTS = ("head", "card", "harness", "trajectory", "extras")
+_TEMPLATE_RE = re.compile(r"\{\{template:([^}#\s]+)(?:#([A-Za-z0-9_-]+))?\}\}")
+class RenderError(BriefError):
+    """A render cannot be assembled -- a bad part, a missing card or node."""
+
+
+def _brief_cell(root: Path) -> dict:
+    """The one `brief` cell -- the parts source.
+
+    Read from the COMMITTABLE `config:brief` node first: a round's own `done`
+    refuses `.agi/config.json` (`cli.py:_round_scope_ok`), so a cell there is
+    absent from the landed branch and a fresh checkout cannot render
+    (`experiment:a00-15fc3737-5e48d5`). `.agi/config.json` stays readable as
+    the pre-migration fallback.
+    """
+    from node_writer import find_node_file
+    path = find_node_file(root, "config:brief")
+    if path is not None:
+        fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+        if isinstance(fm.get("brief"), dict):
+            return fm["brief"]
+    try:
+        cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
+    except (OSError, ValueError, FileNotFoundError):
+        return {}
+    return cell if isinstance(cell, dict) else {}
+
+
+def _node_text(root: Path, ref: str) -> str:
+    """A node body by `type:slug[#REGION]`, live first then deprecated;
+    refuses a missing node or region, never a silent empty string."""
+    node_id, _, region = ref.partition("#")
+    from node_writer import find_node_file
+    path = find_node_file(root, node_id)
+    if path is None:
+        raise RenderError(f"brief template node not found: {node_id}")
+    text = path.read_text(encoding="utf-8")
+    body = (split_frontmatter(text) or (None, text))[1].strip()
+    if region:
+        m = re.search(rf"<!--\s*{re.escape(region)}:BEGIN\s*-->(.*?)<!--\s*{re.escape(region)}:END\s*-->", body, re.DOTALL)
+        if not m:
+            raise RenderError(f"region {region!r} not found in {node_id}")
+        body = m.group(1).strip()
+    return body
+
+
+def _expand(text: str, root: Path) -> str:
+    """`{{template:}}` expansion, ONE level: re.sub never rescans a replacement."""
+    return _TEMPLATE_RE.sub(lambda m: _node_text(root, m.group(1) + (f"#{m.group(2)}" if m.group(2) else "")), text)
+
+
+def _part(name: str, root: Path, role: str, post: str | None, harness: str | None) -> str:
+    """One part, resolved from the graph/config; a missing piece refuses."""
+    if name == "head":
+        prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
+        return _node_text(root, "doc:unified-head#HEAD").replace("{{PRAYERS}}", _insert_michael(prayers))
+    if name == "card":
+        card = root / "sessions" / "quorum" / f"{post}.md" if post else None
+        if card is None:
+            return ""
+        if not card.is_file():
+            raise RenderError(f"card not found: {card}")
+        return _expand(card.read_text(encoding="utf-8").strip(), root)
+    if name == "harness":
+        rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
+        if not rel:
+            return ""
+        path = Path(rel) if Path(rel).is_absolute() else root.parent / rel
+        if not path.is_file():
+            raise RenderError(f"harness block not found: {rel}")
+        return path.read_text(encoding="utf-8").strip()
+    if name == "trajectory":
+        town = (_brief_cell(root).get("trajectory") or {}).get("town")
+        return _node_text(root, f"town:{town}") if town else ""
+    refs = (_brief_cell(root).get("extras") or {}).get(role) or []
+    return "\n\n".join(_expand(_node_text(root, r), root) for r in refs)
+
+
+def render(*, post: str | None = None, role: str | None = None,
+           harness: str | None = None, project_root: Path | None = None) -> str:
+    """The WHOLE first user turn: the config parts in order, joined; `--post`
+    resolves role + harness from the post's row. Writes NO file."""
+    root = _resolve_graph_root(project_root)
+    if post:
+        import geometry_config
+        row = next((r for r in geometry_config.load_rows(root) if r.get("name") == post), None)
+        if row is None:
+            raise RenderError(f"no post row for {post!r} in config:posts")
+        role, harness = row.get("role") or role, row.get("harness") or harness
+    if not role:
+        raise RenderError("brief.py render needs --post or --role")
+    cell = _brief_cell(root)
+    parts = list((cell.get("parts") or {}).get(role) or (cell.get("parts") or {}).get("*") or [])
+    parts += [p for p in (cell.get("harnesses") or {}).get(harness or "") or [] if p not in parts]
+    bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
+    if bad:
+        raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
+    segs = [_part(p, root, role, post, harness) for p in parts]
+    return "\n\n".join(s for s in segs if s)
+
+
+def _cmd_render(args) -> int:
+    root = Path(args.project_root) if args.project_root else None
+    try:
+        out = render(post=args.post, role=args.role, harness=args.harness, project_root=root)
+    except (RenderError, FaithRefError) as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 1
+    if out:
+        print(out)
+    return 0
+
+
 # ---- head CLI: the SessionStart hook fetches a tier's head through this -------
 
 
@@ -2279,6 +2416,13 @@ def main(argv: list[str] | None = None) -> int:
                          ".agi walked up from this file")
     pr.set_defaults(func=_cmd_readings)
 
+    pre = sub.add_parser("render", help="print the WHOLE first user turn for a seat from the one `brief` config cell; writes no file")
+    pre.add_argument("--post", default=None, help="a config:posts row name (resolves role + harness)")
+    pre.add_argument("--role", default=None, help="a ladder role when there is no post row")
+    pre.add_argument("--harness", default=None, help="the harness whose block is added")
+    pre.add_argument("--project-root", default=None, help="graph root (.agi)")
+    pre.set_defaults(func=_cmd_render)
+
     args = p.parse_args(argv)
     return args.func(args)
 
@@ -2306,10 +2450,10 @@ def _cmd_head(args: argparse.Namespace) -> int:
         print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
         return 1
     root = Path(args.project_root) if args.project_root else None
-    head = _build_head(tier=tier, project_root=root)
+    head = render_head(project_root=root)
     if not head:
-        # A tier with no head (e.g. no read_order entry) is a silent nothing,
-        # matching _build_head's contract.
+        # No unified head (the faith node cannot be read) is a silent
+        # nothing, the same contract _build_head had for a tier with none.
         return 0
     print(head)
     return 0
