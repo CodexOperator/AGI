@@ -1,13 +1,13 @@
 ---
-id: goal:g17.6
+id: goal:g7.19.1
 mint_id: ca70f6eb5c404706908308f4cd85b2b8
 type: goal
 parents:
-  - goal:g17.5
+  - goal:g7.19
 next_edges: []
 confidence: 0.9
 edited_by: sanctuary-director
-goal_id: G17.6
+goal_id: G7.19.1
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -20,9 +20,11 @@ tags:
   - subgoal
   - l4
 thought_session: sanctuary-director-genVI-L4
-title: "G17.6: Each role carries exactly ONE question"
+title: "G7.19.1: Each role carries exactly ONE question"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.19.1
+
 **Each role has exactly one question it is responsible for asking.** Brief point **B6** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:236-242, A:257, A:372 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
