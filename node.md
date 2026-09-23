@@ -1,15 +1,13 @@
 ---
-id: goal:g15.15
+id: goal:g6.37
 mint_id: 5c46f02b89ac423c96b0a7591745f3f2
 type: goal
 parents:
-  - goal:g15
-  - build:bin-rotate
-  - build:hooks-cc-session-start.sh
+  - goal:g6
 next_edges: []
 confidence: 0.7
-edited_by: sensei-director
-goal_id: G15.15
+edited_by: belam
+goal_id: G6.37
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -23,8 +21,8 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-thought_session: sensei-director-genI-L1
-title: "G15.15: 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.37: 0b-b — every spawn path exports AGI_SEAT and writes the bootstrap record before the spawn, so the SessionStart hook fires at turn one"
 town: core
 ---
 <!-- BODY:BEGIN -->
