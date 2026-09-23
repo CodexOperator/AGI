@@ -1,0 +1,438 @@
+{
+ "ngram-simple": {
+  "overall": {
+   "n": 24,
+   "median_speedup": 1.0244,
+   "speedup": 1.6216,
+   "speedup_lo": 1.0219,
+   "speedup_hi": 2.5728,
+   "clears_one": true,
+   "reaches_1p3": false
+  },
+  "per_class": {
+   "E": {
+    "n": 8,
+    "median_speedup": 7.9411,
+    "speedup": 6.7288,
+    "speedup_lo": 5.0683,
+    "speedup_hi": 8.9325,
+    "clears_one": true,
+    "reaches_1p3": true,
+    "median_base_tps": 57.568,
+    "median_spec_tps": 455.64
+   },
+   "C": {
+    "n": 8,
+    "median_speedup": 1.0244,
+    "speedup": 0.9822,
+    "speedup_lo": 0.9128,
+    "speedup_hi": 1.0568,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 59.878,
+    "median_spec_tps": 61.317
+   },
+   "D": {
+    "n": 8,
+    "median_speedup": 0.7099,
+    "speedup": 0.6452,
+    "speedup_lo": 0.4821,
+    "speedup_hi": 0.8634,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 58.631,
+    "median_spec_tps": 41.486
+   }
+  },
+  "n_divergent": 6,
+  "divergences": [
+   {
+    "id": "C2",
+    "at": 1143,
+    "none": "          stdout='{\"error\": \"invalid jso",
+    "spec": "          stdout='{\"invalid json',\n     "
+   },
+   {
+    "id": "C4",
+    "at": 1575,
+    "none": "]\n\n        # Verify result structure\n   ",
+    "spec": "]\n\n        # Verify up and post calls\n  "
+   },
+   {
+    "id": "C6",
+    "at": 1012,
+    "none": "        with patch('time.time') as mock_",
+    "spec": "        with patch('builtins.print'):\n  "
+   },
+   {
+    "id": "C7",
+    "at": 562,
+    "none": "command, name):\n    return MagicMock()\n\n",
+    "spec": "command, name):\n    mock_result = MagicM"
+   },
+   {
+    "id": "D1",
+    "at": 360,
+    "none": "iling the 0.15 step-falsifier threshold.",
+    "spec": "iling the 0.15 step-size falsifier.\nRank"
+   },
+   {
+    "id": "D4",
+    "at": 397,
+    "none": "s (3.15x), matching prior OSC.05 results",
+    "spec": "s (3.15x), matching OSC.05.\nA transient "
+   }
+  ],
+  "drafted": 15264,
+  "accepted": 13538,
+  "prompt_tps_ratio": 0.9807,
+  "n_ctx": 49664
+ },
+ "ngram-map-k": {
+  "overall": {
+   "n": 24,
+   "median_speedup": 0.9909,
+   "speedup": 1.0279,
+   "speedup_lo": 0.9557,
+   "speedup_hi": 1.1055,
+   "clears_one": false,
+   "reaches_1p3": false
+  },
+  "per_class": {
+   "E": {
+    "n": 8,
+    "median_speedup": 1.0515,
+    "speedup": 1.1303,
+    "speedup_lo": 0.9944,
+    "speedup_hi": 1.2848,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 57.568,
+    "median_spec_tps": 60.281
+   },
+   "C": {
+    "n": 8,
+    "median_speedup": 1.0379,
+    "speedup": 1.0455,
+    "speedup_lo": 1.0039,
+    "speedup_hi": 1.0888,
+    "clears_one": true,
+    "reaches_1p3": false,
+    "median_base_tps": 59.878,
+    "median_spec_tps": 62.133
+   },
+   "D": {
+    "n": 8,
+    "median_speedup": 0.9817,
+    "speedup": 0.919,
+    "speedup_lo": 0.8072,
+    "speedup_hi": 1.0463,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 58.631,
+    "median_spec_tps": 57.62
+   }
+  },
+  "n_divergent": 4,
+  "divergences": [
+   {
+    "id": "C2",
+    "at": 1143,
+    "none": "          stdout='{\"error\": \"invalid jso",
+    "spec": "          stdout='{\"invalid json',\n     "
+   },
+   {
+    "id": "C4",
+    "at": 1575,
+    "none": "]\n\n        # Verify result structure\n   ",
+    "spec": "]\n\n        # Verify up and post calls\n  "
+   },
+   {
+    "id": "C7",
+    "at": 753,
+    "none": "gpus\", \"all\", \"-v\", \"/source/code:/work\"",
+    "spec": "gpus\", \"all\", \"-v\", SC + \":/work\", \"-v\","
+   },
+   {
+    "id": "D1",
+    "at": 360,
+    "none": "iling the 0.15 step-falsifier threshold.",
+    "spec": "iling the 0.15 step-size falsifier.\nRank"
+   }
+  ],
+  "drafted": 5474,
+  "accepted": 2350,
+  "prompt_tps_ratio": 1.0159,
+  "n_ctx": 49664
+ },
+ "ngram-map-k4v": {
+  "overall": {
+   "n": 24,
+   "median_speedup": 0.9951,
+   "speedup": 0.957,
+   "speedup_lo": 0.8345,
+   "speedup_hi": 1.0974,
+   "clears_one": false,
+   "reaches_1p3": false
+  },
+  "per_class": {
+   "E": {
+    "n": 8,
+    "median_speedup": 1.0364,
+    "speedup": 1.1223,
+    "speedup_lo": 0.9976,
+    "speedup_hi": 1.2626,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 57.568,
+    "median_spec_tps": 59.737
+   },
+   "C": {
+    "n": 8,
+    "median_speedup": 1.005,
+    "speedup": 0.7903,
+    "speedup_lo": 0.5611,
+    "speedup_hi": 1.113,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 59.878,
+    "median_spec_tps": 59.833
+   },
+   "D": {
+    "n": 8,
+    "median_speedup": 0.9889,
+    "speedup": 0.988,
+    "speedup_lo": 0.9816,
+    "speedup_hi": 0.9945,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 58.631,
+    "median_spec_tps": 58.112
+   }
+  },
+  "n_divergent": 4,
+  "divergences": [
+   {
+    "id": "C2",
+    "at": 1143,
+    "none": "          stdout='{\"error\": \"invalid jso",
+    "spec": "          stdout='{\"invalid json',\n     "
+   },
+   {
+    "id": "C4",
+    "at": 1575,
+    "none": "]\n\n        # Verify result structure\n   ",
+    "spec": "]\n\n        # Verify up and post calls\n  "
+   },
+   {
+    "id": "C7",
+    "at": 753,
+    "none": "gpus\", \"all\", \"-v\", \"/source/code:/work\"",
+    "spec": "gpus\", \"all\", \"-v\", SC + \":/work\", \"-v\","
+   },
+   {
+    "id": "D1",
+    "at": 360,
+    "none": "iling the 0.15 step-falsifier threshold.",
+    "spec": "iling the 0.15 step-size falsifier.\nRank"
+   }
+  ],
+  "drafted": 4677,
+  "accepted": 2220,
+  "prompt_tps_ratio": 1.0234,
+  "n_ctx": 49664
+ },
+ "ngram-mod": {
+  "overall": {
+   "n": 24,
+   "median_speedup": 0.9774,
+   "speedup": 1.8449,
+   "speedup_lo": 1.2225,
+   "speedup_hi": 2.784,
+   "clears_one": true,
+   "reaches_1p3": false
+  },
+  "per_class": {
+   "E": {
+    "n": 8,
+    "median_speedup": 7.3039,
+    "speedup": 6.8826,
+    "speedup_lo": 5.3704,
+    "speedup_hi": 8.8198,
+    "clears_one": true,
+    "reaches_1p3": true,
+    "median_base_tps": 57.568,
+    "median_spec_tps": 418.433
+   },
+   "C": {
+    "n": 8,
+    "median_speedup": 0.9704,
+    "speedup": 0.9688,
+    "speedup_lo": 0.8932,
+    "speedup_hi": 1.0506,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 59.878,
+    "median_spec_tps": 57.987
+   },
+   "D": {
+    "n": 8,
+    "median_speedup": 0.9679,
+    "speedup": 0.9417,
+    "speedup_lo": 0.8884,
+    "speedup_hi": 0.9982,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 58.631,
+    "median_spec_tps": 56.838
+   }
+  },
+  "n_divergent": 3,
+  "divergences": [
+   {
+    "id": "C2",
+    "at": 1359,
+    "none": "sult[\"_parse_error\"]\n\ndef test_post_call",
+    "spec": "sult[\"_parse_error\"]"
+   },
+   {
+    "id": "C6",
+    "at": 2150,
+    "none": "rt mock_print.called",
+    "spec": "rt mock_print.called\n                   "
+   },
+   {
+    "id": "C7",
+    "at": 569,
+    "none": ", name):\n    return MagicMock()\n\nclass T",
+    "spec": ", name):\n    return f\"docker run ... {na"
+   }
+  ],
+  "drafted": 14379,
+  "accepted": 13184,
+  "prompt_tps_ratio": 1.0067,
+  "n_ctx": 49664
+ },
+ "ngram-cache": {
+  "overall": {
+   "n": 24,
+   "median_speedup": 0.8414,
+   "speedup": 0.8817,
+   "speedup_lo": 0.8379,
+   "speedup_hi": 0.9277,
+   "clears_one": false,
+   "reaches_1p3": false
+  },
+  "per_class": {
+   "E": {
+    "n": 8,
+    "median_speedup": 0.8165,
+    "speedup": 0.8617,
+    "speedup_lo": 0.7759,
+    "speedup_hi": 0.957,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 57.568,
+    "median_spec_tps": 47.397
+   },
+   "C": {
+    "n": 8,
+    "median_speedup": 0.9814,
+    "speedup": 0.9811,
+    "speedup_lo": 0.9733,
+    "speedup_hi": 0.9889,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 59.878,
+    "median_spec_tps": 58.608
+   },
+   "D": {
+    "n": 8,
+    "median_speedup": 0.7975,
+    "speedup": 0.8107,
+    "speedup_lo": 0.7803,
+    "speedup_hi": 0.8424,
+    "clears_one": false,
+    "reaches_1p3": false,
+    "median_base_tps": 58.631,
+    "median_spec_tps": 46.592
+   }
+  },
+  "n_divergent": 10,
+  "divergences": [
+   {
+    "id": "C6",
+    "at": 849,
+    "none": "k_run:\n        mock_run.return_value = M",
+    "spec": "k_run:\n        mock_process = MagicMock("
+   },
+   {
+    "id": "C7",
+    "at": 886,
+    "none": "   def test_with_env_vars(self):\n       ",
+    "spec": "   def test_with_env(self):\n        env "
+   },
+   {
+    "id": "D1",
+    "at": 200,
+    "none": "mum near 0.96, with BIC favoring smooth ",
+    "spec": "mum near 0.96, with precision and recall"
+   },
+   {
+    "id": "D2",
+    "at": 146,
+    "none": "3, Group 0) met the threshold at 0.82%, ",
+    "spec": "3, Group 0) met the 0.82% threshold, whi"
+   },
+   {
+    "id": "D3",
+    "at": 467,
+    "none": "nt non-KV parameter cap rather than KV c",
+    "spec": "nt non-KV parameter overhead that caps t"
+   },
+   {
+    "id": "D4",
+    "at": 930,
+    "none": "experiment is sound in its measurements ",
+    "spec": "experiment is sound but requires the con"
+   },
+   {
+    "id": "D5",
+    "at": 92,
+    "none": "ved 9B performance; no single knob's tg6",
+    "spec": "ved 9B performance; a 15-arm sweep at de"
+   },
+   {
+    "id": "D6",
+    "at": 536,
+    "none": "start artifact) and q8_0 at depth 16384,",
+    "spec": "start artifact) and depth 16384 for q8_0"
+   },
+   {
+    "id": "D7",
+    "at": 906,
+    "none": " a 80-line ceiling, documenting the five",
+    "spec": " a 80-line ceiling, accepting the five-s"
+   },
+   {
+    "id": "D8",
+    "at": 78,
+    "none": "ro-batch size (-ub) provides a >=10% pre",
+    "spec": "ro-batch size (-ub) is a general prefill"
+   }
+  ],
+  "drafted": 12203,
+  "accepted": 1568,
+  "prompt_tps_ratio": 1.0293,
+  "n_ctx": 49664
+ },
+ "drift_none_last": {
+  "n": 24,
+  "median_speedup": 0.9746,
+  "speedup": 0.9765,
+  "speedup_lo": 0.9715,
+  "speedup_hi": 0.9814,
+  "clears_one": false,
+  "reaches_1p3": false
+ }
+}
