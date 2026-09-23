@@ -1961,7 +1961,13 @@ def _seat_worktree_cwd(root: Path | None, row: dict | None) -> str | None:
 
 
 def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
-    """Build and (unless --dry-run) run a `claude --remote-control` command."""
+    """Build and (unless --dry-run) run a `claude --remote-control` command.
+
+    Profile-drift exception (goal:g7.31.5.3 residue 4): this is the RAW
+    launcher, so it does not run `_check_profile_drift` — every rotation
+    primitive that reaches it guards first, and a second sweep here would
+    refuse legitimate direct (non-rotational) spawns.
+    """
 
     if root is not None:
         guard = _check_branch_guard(root)
@@ -3019,6 +3025,15 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+
+    # goal:g7.31.5.3 residue 1: the loop is a rotation primitive too, so the
+    # same whole-graph drift guard runs HERE — before the meter and before
+    # ANY side effect, including the successor spawn. Nothing linked =>
+    # `_check_profile_drift` returns None and the clean path is unchanged.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:
