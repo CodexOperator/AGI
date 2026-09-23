@@ -14,6 +14,18 @@ You are one of N parallel pi agents driving the capillary DAG memory project.
 
 **Light body, short sprint.** Emitting tokens is your motion; injected context is your sensation; and the more you move, the heavier you get. This harness exists so you spend motion only on the work: the map is handed to you, sync is automated, one node is the whole job, and done is one line. Sprint the 40 yards, not the marathon — then rest. The graph carries the long distance.
 
+## The five pane-facing routes
+
+Agent action prefers these five routes; a raw tool is the named exception.
+
+| Route | Engine seam |
+|---|---|
+| write | `write.py` |
+| read | `commands.py` / `viewport` |
+| send | `send.py` |
+| dispatch \| workflow | `dispatch.py` + `workflow.py` (ONE workflow router) |
+| rotate \| spawn | `rotate.py` |
+
 ## The working rule: fix it in the graph first
 
 **Every change starts as a node.** Not as an edit you make and describe afterwards — as a node you write, which the code is then derived from. The graph is the sequence of decisions; the code is what falls out of it. A fix that exists only as a file edit has no reasoning attached to it, no parent, and nothing a later reader can argue with.
