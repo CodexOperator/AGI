@@ -1,0 +1,168 @@
+{
+ "n_heads": 336,
+ "n_stable": 336,
+ "share_stable_0.9": 1.0,
+ "cos": {
+  "mean": 0.998801,
+  "min": 0.984192,
+  "median": 0.999305,
+  "q25": 0.998593,
+  "q75": 0.99963,
+  "q10": 0.997417,
+  "q90": 0.999787
+ },
+ "band": {
+  "n_low_ge_0.80": 171,
+  "share_low_ge_0.80": 0.508929,
+  "n_high_ge_0.50": 37,
+  "share_high_ge_0.50": 0.110119,
+  "mean_low": 0.722442,
+  "mean_high": 0.170918
+ },
+ "per_layer": [
+  {
+   "layer": 0,
+   "mean_cos": 0.997758,
+   "mean_low": 0.873116,
+   "mean_high": 0.112095
+  },
+  {
+   "layer": 1,
+   "mean_cos": 0.998451,
+   "mean_low": 0.787739,
+   "mean_high": 0.152097
+  },
+  {
+   "layer": 2,
+   "mean_cos": 0.995933,
+   "mean_low": 0.761247,
+   "mean_high": 0.198631
+  },
+  {
+   "layer": 3,
+   "mean_cos": 0.999108,
+   "mean_low": 0.596699,
+   "mean_high": 0.26827
+  },
+  {
+   "layer": 4,
+   "mean_cos": 0.999133,
+   "mean_low": 0.587606,
+   "mean_high": 0.318708
+  },
+  {
+   "layer": 5,
+   "mean_cos": 0.999116,
+   "mean_low": 0.741565,
+   "mean_high": 0.141843
+  },
+  {
+   "layer": 6,
+   "mean_cos": 0.998655,
+   "mean_low": 0.576871,
+   "mean_high": 0.296702
+  },
+  {
+   "layer": 7,
+   "mean_cos": 0.999021,
+   "mean_low": 0.453932,
+   "mean_high": 0.3923
+  },
+  {
+   "layer": 8,
+   "mean_cos": 0.999562,
+   "mean_low": 0.563711,
+   "mean_high": 0.369496
+  },
+  {
+   "layer": 9,
+   "mean_cos": 0.998477,
+   "mean_low": 0.748706,
+   "mean_high": 0.14112
+  },
+  {
+   "layer": 10,
+   "mean_cos": 0.999411,
+   "mean_low": 0.656756,
+   "mean_high": 0.204204
+  },
+  {
+   "layer": 11,
+   "mean_cos": 0.999358,
+   "mean_low": 0.832321,
+   "mean_high": 0.05435
+  },
+  {
+   "layer": 12,
+   "mean_cos": 0.99935,
+   "mean_low": 0.618245,
+   "mean_high": 0.24006
+  },
+  {
+   "layer": 13,
+   "mean_cos": 0.999229,
+   "mean_low": 0.764554,
+   "mean_high": 0.099393
+  },
+  {
+   "layer": 14,
+   "mean_cos": 0.99889,
+   "mean_low": 0.670409,
+   "mean_high": 0.168222
+  },
+  {
+   "layer": 15,
+   "mean_cos": 0.999415,
+   "mean_low": 0.686306,
+   "mean_high": 0.175537
+  },
+  {
+   "layer": 16,
+   "mean_cos": 0.999606,
+   "mean_low": 0.846504,
+   "mean_high": 0.030189
+  },
+  {
+   "layer": 17,
+   "mean_cos": 0.99883,
+   "mean_low": 0.786338,
+   "mean_high": 0.094721
+  },
+  {
+   "layer": 18,
+   "mean_cos": 0.999103,
+   "mean_low": 0.690113,
+   "mean_high": 0.162951
+  },
+  {
+   "layer": 19,
+   "mean_cos": 0.999262,
+   "mean_low": 0.561828,
+   "mean_high": 0.30053
+  },
+  {
+   "layer": 20,
+   "mean_cos": 0.999176,
+   "mean_low": 0.856092,
+   "mean_high": 0.041406
+  },
+  {
+   "layer": 21,
+   "mean_cos": 0.999487,
+   "mean_low": 0.884285,
+   "mean_high": 0.04999
+  },
+  {
+   "layer": 22,
+   "mean_cos": 0.997916,
+   "mean_low": 0.928689,
+   "mean_high": 0.017054
+  },
+  {
+   "layer": 23,
+   "mean_cos": 0.996979,
+   "mean_low": 0.864968,
+   "mean_high": 0.072165
+  }
+ ]
+}
