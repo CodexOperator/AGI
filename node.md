@@ -3,9 +3,9 @@ id: goal:g6.3
 mint_id: 6634587e21fc4173911d4024abb7d858
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.3
 goal_kind: subgoal
 heading_level: 3
@@ -18,7 +18,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.3: A fix lands as a new version of a build node"
 ---
 **The mechanism to test, and the reason to test it on real work.** Today an
