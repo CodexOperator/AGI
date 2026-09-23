@@ -13,6 +13,7 @@ class Choice(NamedTuple):
     """One matched row: the transport a (verb, args) pair selects."""
     name: str
     transport: object
+    dispatch: object = None
 
 
 class NoTransport(LookupError):
@@ -35,29 +36,42 @@ def _inbox(a):
     return getattr(a, "room", None) is None and getattr(a, "dm_to", None) is None
 
 
-#: Ordered rows, first match wins: {name: (verb, transport-descriptor, matcher)}.
-#: The descriptor names the transport; send.py owns the callable behind it.
+#: Ordered rows, FIRST MATCH WINS: {name: (verb, transport-descriptor, matcher)}.
+#: The descriptor names the transport; send.py registers the callable behind it.
+#: Row order IS the priority: an appended row lands after the inbox catch-all
+#: and is shadowed, so register(..., first=True) inserts ahead of every row.
 TRANSPORTS: dict[str, tuple] = {
     "room": ("send", "room", _room),
     "dm": ("send", "dm", _dm),
     "inbox": ("send", "inbox", _inbox),
 }
 
+#: Dispatch callables by row name, filled by register(dispatch=...) -- the row
+#: carries both the choice and the code that runs it.
+_RUN: dict[str, object] = {}
 
-def register(name, transport, match, *, verb="send", replace=False):
-    """A new transport is a row here, not a branch in send.py."""
+
+def register(name, transport, match, *, verb="send", replace=False,
+             dispatch=None, first=False):
+    """A new transport is a row here, not a branch in send.py.
+
+    `first=True` inserts ahead of every existing row, so a new transport can
+    win over the inbox catch-all instead of being silently shadowed.
+    """
+    global TRANSPORTS
     if name in TRANSPORTS and not replace:
         raise ValueError(f"transport {name!r} already registered")
-    TRANSPORTS[name] = (verb, transport, match)
-    return Choice(name, transport)
+    TRANSPORTS.pop(name, None)
+    row = (verb, transport, match)
+    TRANSPORTS = {name: row, **TRANSPORTS} if first else {**TRANSPORTS, name: row}
+    if dispatch is not None:
+        _RUN[name] = dispatch
+    return Choice(name, transport, _RUN.get(name))
 
 
 def choose(verb, args):
-    """Pick a transport by pure table lookup — no policy, no fallback."""
-    hits = [Choice(n, t) for n, (v, t, m) in TRANSPORTS.items()
-            if v == verb and m(args)]
-    if not hits:
-        raise NoTransport(f"no transport for verb {verb!r}")
-    if len(hits) > 1:
-        raise AmbiguousTransport(f"verb {verb!r} matches {[h.name for h in hits]}")
-    return hits[0]
+    """Pick the FIRST matching row in table order — no policy, no fallback."""
+    for n, (v, t, m) in TRANSPORTS.items():
+        if v == verb and m(args):
+            return Choice(n, t, _RUN.get(n))
+    raise NoTransport(f"no transport for verb {verb!r}")
