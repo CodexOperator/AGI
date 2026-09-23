@@ -6,7 +6,7 @@ parents:
   - goal:g5.30
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.30.1
 goal_kind: subgoal
 heading_level: 4
@@ -36,7 +36,7 @@ town: local-maxxing
 
 **Done when.** (1)-(3) have verdicts and either a working in-session KV RAG on the served model, or the measured reason it cannot work.
 
-**First chunk (minted):** TEL.01 = chunk (1) SPAN FIDELITY only -- a hypothesis under this node, resident 9B, cap $1, queued after MP.01 clears (one GPU research round at a time). Chunks (2)-(3) wait on (1)'s verdict. `goal:g14.15.2` (swarm telepathy) is the sibling multi-instance half and waits on this node's own chunks, not the other way round.
+**First chunk (minted):** TEL.01 = chunk (1) SPAN FIDELITY only -- a hypothesis under this node, resident 9B, queued after MP.01 clears. Chunks (2)-(3) wait on (1)'s verdict. `goal:g14.15.2` (swarm telepathy) is the sibling multi-instance half and waits on this node's own chunks, not the other way round.
 
 director-thought 04:2xZ 09-21 -- TEL.01 landed, mur accept_with_residue (mur-tel-01, both stages ok, 13/13 conjuncts checked):
 ```
