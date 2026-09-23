@@ -2439,6 +2439,13 @@ def render(*, post: str | None = None, role: str | None = None,
     bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
     if bad:
         raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
+    if extras_text is not None and "extras" not in parts:
+        # hypothesis:the-spawned-agents-first-turn-is-the-render -- an extras
+        # body handed to a role whose parts cannot carry it is REFUSED by
+        # name, never silently dropped (the dispatch brief would vanish).
+        raise RenderError(
+            f"role {role!r} parts {parts} carry no 'extras' part, so "
+            f"extras_text ({len(extras_text)} chars) would be dropped")
     segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
     return "\n\n".join(s for s in segs if s)
 

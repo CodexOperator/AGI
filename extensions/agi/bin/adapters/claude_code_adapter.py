@@ -569,6 +569,7 @@ def build_command(
     # project graph root the dispatcher resolved, threaded into the brief so
     # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
     project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -598,7 +599,7 @@ def build_command(
     # This adapter decides only how to SPELL it, and for Claude Code the only
     # spelling that keeps every segment is one file.
     _btier = brief_tier or tier
-    segments = brief.assemble(
+    segments = [rendered_brief] if rendered_brief is not None else brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, source_root=source_root,
