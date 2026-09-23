@@ -1,13 +1,13 @@
 ---
-id: goal:g17.2
+id: goal:g7.17
 mint_id: bcbada6d66e542b59b9fd0f78087fa42
 type: goal
 parents:
-  - goal:g17
+  - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G17.2
+edited_by: belam
+goal_id: G7.17
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,12 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G17.2: Every perpetual goal has a director, and the seats stay unbuilt until the cap allows"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7.17: Every perpetual goal has a director, and the seats stay unbuilt until the cap allows"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.17
+
 **Every perpetual goal has a director.** Brief point **B2** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:128 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
