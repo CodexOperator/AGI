@@ -9336,6 +9336,201 @@ round     hypothesis:a-workflow-stage-context-build-takes-its-budget-from-the-ma
 writer    director-engine
 ```
 
+##### G15.29.11 — GRID COMMIT GUARD AND REF WRITER READ ONE NAMESPACE (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.11
+
+# goal:g15.29.11 — GRID COMMIT GUARD AND REF WRITER READ ONE NAMESPACE
+
+```
+leaf      one small round: hypothesis:grid-commit-guard-and-writer-read-one-namespace
+source    R-EF49 S1 (guard and writer resolve the namespace from two sources) · R-EF49 M1 (a nested trunk holding only session refs escapes the guard)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:grid-commit-guard-and-writer-read-one-namespace
+writer    director-engine
+```
+
+##### G15.29.12 — HARNESS ARGV REFUSES AN UNKNOWN ENCODING AND AN UNRESOLVED ~USER BIN (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.12
+
+# goal:g15.29.12 — HARNESS ARGV REFUSES AN UNKNOWN ENCODING AND AN UNRESOLVED ~USER BIN
+
+```
+leaf      one small round: hypothesis:harness-argv-refuses-unknown-encoding-and-unresolved-user-bin
+source    R-EF50 M2 (encoding never validated) · R-EF50 M4 (no test pins the unknown-spread refusal) · R-EF58 S2 (a ~unknownuser bin returned raw)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:harness-argv-refuses-unknown-encoding-and-unresolved-user-bin
+writer    director-engine
+```
+
+##### G15.29.13 — UNIFY REAL-REPO GUARD FAILS CLOSED AND NAMES THIS CHECKOUT (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.13
+
+# goal:g15.29.13 — UNIFY REAL-REPO GUARD FAILS CLOSED AND NAMES THIS CHECKOUT
+
+```
+leaf      one small round: hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
+source    R-EF58 S1 (the guard is open with no box.root cell) · R-EF58 M1 (its test depends on this box's config)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
+writer    director-engine
+```
+
+##### G15.29.14 — AN UNREACHABLE KEY AUTHORITY GATES THE SWAP; ONLY A MISSING REF SKIPS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.14
+
+# goal:g15.29.14 — AN UNREACHABLE KEY AUTHORITY GATES THE SWAP; ONLY A MISSING REF SKIPS
+
+```
+leaf      one small round: hypothesis:unreachable-key-authority-gates-the-swap-missing-ref-skips
+source    R-EF56 S1 (any failed fetch reads as 'no authority branch') · R-EF56 M2 (a test pins that conflation)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:unreachable-key-authority-gates-the-swap-missing-ref-skips
+writer    director-engine
+```
+
+##### G15.29.15 — THE SUB DRY-RUN PREVIEW IS THE BYTES UPDATE_NODE LANDS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.15
+
+# goal:g15.29.15 — THE SUB DRY-RUN PREVIEW IS THE BYTES UPDATE_NODE LANDS
+
+```
+leaf      one small round: hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands
+source    R-EF57 S1 (preview can drift from the landed bytes) · S2 (no preview == landed test) · M1 (the '-' side is synthetic) · M2 (assembly order written twice)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands
+writer    director-engine
+```
+
+##### G15.29.16 — SECRETSERROR IS ITS OWN TYPE AND THE HOOK READS THE GRAPH'S SECRETS NODE (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.16
+
+# goal:g15.29.16 — SECRETSERROR IS ITS OWN TYPE AND THE HOOK READS THE GRAPH'S SECRETS NODE
+
+```
+leaf      one small round: hypothesis:secrets-error-own-type-and-hook-reads-graph-secrets-node
+source    R-EF59 S1 (SecretsError widened to ValueError) · M1 (the test asserts ValueError) · M2 (the hook path reads no secrets node)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:secrets-error-own-type-and-hook-reads-graph-secrets-node
+writer    director-engine
+```
+
+##### G15.29.17 — CRONS RENDER FAILS CLOSED BY NAME ON A PARTIAL BOX SCHEMA (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.17
+
+# goal:g15.29.17 — CRONS RENDER FAILS CLOSED BY NAME ON A PARTIAL BOX SCHEMA
+
+```
+leaf      one small round: hypothesis:crons-render-fails-closed-by-name-on-partial-box-schema
+source    R-EF60 S1 (incomplete placeholder map fails open) · S2 (a missing [box].md is a crons outage) · M1 (repo_root/box mapped but undeclared) · M2 (untested) · M3 (a traceback, not an ERR) · M4 (a test reads the live node)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:crons-render-fails-closed-by-name-on-partial-box-schema
+writer    director-engine
+```
+
+##### G15.29.18 — A RESTART CARRIES THE FIRST SPAWN'S FULL TURN AND IDENTITY (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.18
+
+# goal:g15.29.18 — A RESTART CARRIES THE FIRST SPAWN'S FULL TURN AND IDENTITY
+
+```
+leaf      one small round: hypothesis:restart-carries-the-first-spawns-full-turn-and-identity
+source    R-EF61-65 S1 (restart drops skill_prompt / cli_py) · M1 (and role / ladder_tier / brief_tier / addendum / project_root) · M2 (a non-dict spawn.json kills the restart)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:restart-carries-the-first-spawns-full-turn-and-identity
+writer    director-engine
+```
+
+##### G15.29.19 — THE PARENT BRIEF DERIVES THE WAIT EXIT CODES FROM CLI CONSTANTS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.19
+
+# goal:g15.29.19 — THE PARENT BRIEF DERIVES THE WAIT EXIT CODES FROM CLI CONSTANTS
+
+```
+leaf      one small round: hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants
+source    R-EF62 S1 (the codes are retyped literals) · M1 (each code's action is untested)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants
+writer    director-engine
+```
+
+##### G15.29.20 — THE CONTEXT BUDGET NEVER FLOORS TO ZERO; STAGE, BOOL AND DRY-RUN PINNED (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.20
+
+# goal:g15.29.20 — THE CONTEXT BUDGET NEVER FLOORS TO ZERO; STAGE, BOOL AND DRY-RUN PINNED
+
+```
+leaf      one small round: hypothesis:context-budget-never-floors-to-zero-and-is-pinned
+source    R-EF66 S1 (a fractional budget truncates to 0) · S2 (the stage override untested) · M1 (dry-run parity) · M2 (bool refusal) · M3 (zero stage dispatch unproved)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:context-budget-never-floors-to-zero-and-is-pinned
+writer    director-engine
+```
+
+##### G15.29.21 — THE MIGRATE TRANSCRIPT DEST TEST ASSERTS AN INDEPENDENT ROOT (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.21
+
+# goal:g15.29.21 — THE MIGRATE TRANSCRIPT DEST TEST ASSERTS AN INDEPENDENT ROOT
+
+```
+leaf      one small round: hypothesis:migrate-transcript-dest-test-asserts-an-independent-root
+source    R-EF63 S1 (the assertion became tautological)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:migrate-transcript-dest-test-asserts-an-independent-root
+writer    director-engine
+```
+
+##### G15.29.22 — WORKFLOW, BRIEF AND HOOK FILES NAME THE REPO BY TOKEN, NOT A /HOME LITERAL (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.22
+
+# goal:g15.29.22 — WORKFLOW, BRIEF AND HOOK FILES NAME THE REPO BY TOKEN, NOT A /HOME LITERAL
+
+```
+leaf      one small round: hypothesis:workflow-prompts-name-the-repo-by-token-not-home-ubuntu
+source    R-EF58 M2 (live /home/<user> literals outside the round's scan scope)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:workflow-prompts-name-the-repo-by-token-not-home-ubuntu
+writer    director-engine
+```
+
+##### G15.29.23 — AN AUTHORITY-DEFERRED KEY SWAP COMPLETES AT THE NEXT SUCCESSFUL PUBLISH (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.23
+
+# goal:g15.29.23 — AN AUTHORITY-DEFERRED KEY SWAP COMPLETES AT THE NEXT SUCCESSFUL PUBLISH
+
+```
+leaf      one small round: hypothesis:authority-deferred-key-swap-completes-at-the-next-publish
+source    R-EF67 S1 (an authority-deferred pending has no production completion site) · M1 (send._signing_key_obj prefers the pending key) · M2 (the next rotation mints from the predecessor key)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:authority-deferred-key-swap-completes-at-the-next-publish
+writer    director-engine
+```
+
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
 
 <!-- BODY:BEGIN -->
