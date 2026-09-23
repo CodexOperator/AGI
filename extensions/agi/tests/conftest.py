@@ -287,6 +287,19 @@ def _is_bare_directory_run(config) -> bool:
     return all(p.endswith(os.sep) or os.path.isdir(p) or not p.endswith(".py") for p in paths)
 
 
+def pytest_configure(config):
+    # hypothesis:a00-046bc37a-4d3d2a — the ONLY opt-out from the project-wide
+    # `_no_real_tmux` autouse guard. A test module carrying
+    # `pytestmark = pytest.mark.real_tmux` asks for the REAL tmux server on an
+    # ISOLATED TMUX_TMPDIR + session name; the fixture skips its subprocess
+    # patch for those tests, and the test itself owns starting/killing the
+    # server. Registered here so pytest does not warn on the marker.
+    config.addinivalue_line(
+        "markers",
+        "real_tmux: test drives a real tmux server on an isolated "
+        "TMUX_TMPDIR and session name (skips the _no_real_tmux guard)")
+
+
 def pytest_cmdline_main(config):
     # No test-only seam remains: no option to read, no global to feed, no
     # PYTEST_CURRENT_TEST to be spoofed (hypothesis:l4-the-record-root-has-
@@ -324,7 +337,7 @@ def pytest_cmdline_main(config):
 
 
 @pytest.fixture(autouse=True)
-def _no_real_tmux(monkeypatch):
+def _no_real_tmux(request, monkeypatch):
     """hypothesis:l4-conftest-tmux-guard — project-wide tmux guard, widened
     from test_send.py's old file-local `_SafeSubprocess`/`_no_real_tmux`
     (hypothesis:l4b23-fixture-leak, CLOSED proved but scoped to send.py only).
@@ -356,6 +369,10 @@ def _no_real_tmux(monkeypatch):
     function-scoped, so the fixture's and the test's instances are the same;
     both revert at teardown.)
     """
+    if request.node.get_closest_marker("real_tmux"):
+        # Explicit opt-out (hypothesis:a00-046bc37a-4d3d2a): the test owns an
+        # isolated TMUX_TMPDIR + session and must reach the real tmux binary.
+        return
     real_run = subprocess.run
 
     def _guarded_run(cmd, *a, **k):
