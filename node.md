@@ -28,7 +28,7 @@ RENDERING half. Kid-1 (a00-fb5b19a9) landed the shared counting helpers and the
 season/rollover town-cap code; this node lands the derived-town SURFACE:
 GOALS.md grouping, the hierarchy council chain, the brief/zoom town line, and
 town-at-mint. Town is DERIVED everywhere (a vision's `town:` cell, default
-`core`, goal:g8.2) and is read through the SHARED helpers, never a second
+`core`, goal:g1.24) and is read through the SHARED helpers, never a second
 copy and never a branch on a town NAME.
 
 **TOWN-AT-MINT — node_writer.py:650-660.** `write_node` (the single mint path
