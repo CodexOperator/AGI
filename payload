@@ -27,6 +27,16 @@ sys.path.insert(0, str(BIN))
 import workflow  # noqa: E402
 from workflow import _resolve_knobs, validate_return  # noqa: E402
 
+
+@pytest.fixture(autouse=True)
+def _no_ambient_pi_bin(monkeypatch):
+    """`_pi_harness_cfg` now resolves through the ONE shared resolver, where
+    `$PI_BIN` wins over the config cell. A suite run from a pi seat exports
+    PI_BIN, so without this the fake-bin tests would spawn the REAL pi. A test
+    that exercises the override sets PI_BIN itself, after this fixture.
+    (hypothesis:harness-bin-paths-resolve-per-box round 3)"""
+    monkeypatch.delenv("PI_BIN", raising=False)
+
 WF_DIR = REPO / "extensions" / "agi" / "workflows"
 CLAUDE_WF = REPO / ".claude" / "workflows"
 
@@ -3194,3 +3204,40 @@ def test_pi_prompt_without_schema_is_byte_identical():
     args = {"scratch": "/tmp/S"}
     prompt = _capture_pi_prompt(stage, args)
     assert prompt == render_stage_prompt(stage, args), repr(prompt)
+
+
+# ---------- round 3: _pi_harness_cfg reads the ONE shared resolver ----------
+# hypothesis:harness-bin-paths-resolve-per-box. The reader used to be
+# config-BEFORE-env and fell back to a /home/ubuntu literal, so a per-box
+# `~/.npm-global/bin/pi` cell never expanded and every merge-up-review stage
+# died at once with `pi exited rc=1`.
+
+def test_pi_harness_cfg_env_override_wins_over_the_config_cell(monkeypatch):
+    """The claim's precedence: $PI_BIN FIRST, config cell second."""
+    monkeypatch.setenv("PI_BIN", "/from/PI_BIN")
+    cfg = {"harnesses": {"pi": {"bin": "/from/config",
+                                "provider": "openrouter"}}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == "/from/PI_BIN"
+
+
+def test_pi_harness_cfg_expands_a_home_token_against_the_box_home(
+        tmp_path, monkeypatch):
+    """No /home/<user> literal and no hand-made symlink: a `~/...` cell is the
+    EXPANDED path under the CURRENT HOME when the file exists."""
+    monkeypatch.delenv("PI_BIN", raising=False)
+    bindir = tmp_path / ".npm-global" / "bin"
+    bindir.mkdir(parents=True)
+    fake = bindir / "pi"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    cfg = {"harnesses": {"pi": {"bin": "~/.npm-global/bin/pi",
+                                "provider": "openrouter"}}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == str(fake)
+
+
+def test_pi_harness_cfg_default_is_a_bare_path_name_not_a_home_literal():
+    """A project with no `harnesses.pi` row gets `pi`, not a /home/<user>
+    literal that only exists on core-town's box."""
+    cfg = {"harnesses": {}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == "pi"
