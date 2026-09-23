@@ -147,6 +147,70 @@ def test_module_imports_neither_rotate_nor_dispatch():
     assert "dispatch" not in mods
 
 
-def test_cross_harness_seam_is_named_not_implemented(project: Path):
-    with pytest.raises(NotImplementedError):
-        messaging.cross_send(project, "claude-a", "hi")
+def test_cross_send_emits_ordered_nudge_then_send_dm_trace(
+        project: Path, monkeypatch):
+    """Conjunct 2, gate/wire: the cross-harness path is ONE ordered trace,
+    pane-intent nudge FIRST, send.py transport SECOND, carrying the body."""
+    _write_posts(project, [{"name": "claude-a", "harness": "claude-code",
+                            "window": "@77", "pid": 77}])
+    tmux = _fake_tmux(monkeypatch)
+    trace: list[str] = []
+
+    real_intent = messaging._pane_intent
+
+    def traced_intent(*a, **k):
+        trace.append("nudge")
+        return real_intent(*a, **k)
+
+    def fake_send_dm(croot, me, other, text, sender, quote_harness=False):
+        trace.append("send_dm")
+        trace.append(text)
+        return croot / f"{me}--{other}.md"
+
+    monkeypatch.setattr(messaging, "_pane_intent", traced_intent)
+    monkeypatch.setattr(send, "send_dm", fake_send_dm)
+
+    result = messaging.cross_send(project, "claude-a", "hello-pi",
+                                  sender="grok-a")
+
+    assert result["path"] == "nudge-send"
+    assert trace[:2] == ["nudge", "send_dm"]        # measured order
+    assert trace[2] == "hello-pi"                    # body to the transport
+    assert result["events"] == ["nudge", "send_dm"]  # returned trace agrees
+    assert result["nudge"]["pane"] == "agi-rc:@77"
+    assert tmux == []            # intent is RECORDED, never typed: no body, no keys
+
+
+def test_cross_send_never_claims_native_and_types_no_body(
+        project: Path, monkeypatch):
+    """Conjunct 2, auth: cross-harness records ZERO native_send calls and
+    never types the body with `tmux send-keys -l`."""
+    _write_posts(project, [{"name": "claude-a", "harness": "claude-code",
+                            "window": "@77", "pid": 77}])
+    calls = _fake_tmux(monkeypatch)
+    native: list[str] = []
+    monkeypatch.setattr(messaging, "native_send",
+                        lambda *a, **k: native.append("native_send"))
+    monkeypatch.setattr(send, "send_dm",
+                        lambda *a, **k: project / "x.md")
+
+    messaging.cross_send(project, "claude-a", "secret-body", sender="grok-a")
+
+    assert native == []
+    assert _typed(calls) == []                   # no `send-keys -l` at all
+    assert all("secret-body" not in c for c in calls)
+
+
+def test_cross_send_records_intent_when_seat_has_no_window(
+        project: Path, monkeypatch):
+    """A windowless recipient is still deliverable via the dm file; the pane
+    intent records pane=None rather than refusing (best-effort nudge)."""
+    _write_posts(project, [{"name": "claude-a", "harness": "claude-code"}])
+    _fake_tmux(monkeypatch)
+    monkeypatch.setattr(send, "send_dm", lambda *a, **k: project / "x.md")
+
+    result = messaging.cross_send(project, "claude-a", "hi", sender="grok-a")
+
+    assert result["nudge"]["pane"] is None
+    assert result["nudge"]["event"] == "nudge"
+    assert result["events"] == ["nudge", "send_dm"]
