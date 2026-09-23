@@ -15,6 +15,8 @@ What these guard, in the order the MVP's falsifiers name them:
 from __future__ import annotations
 
 import importlib.util
+import os
+import re
 import sys
 from pathlib import Path
 
@@ -359,3 +361,85 @@ def test_needs_credential_defaults_true_for_unmarked_and_unknown_rows():
         {"adapter": "pi", "credential": "openrouter"},  # any other value
     ):
         assert pi.needs_credential(row) is True, row
+
+
+# ------------------------------------- ONE bin resolver (goal:g15 config-max)
+# hypothesis:harness-bin-paths-resolve-per-box. Env override, then the config
+# `bin` cell, then PATH -- with `~`/`{home}` expanded against the CURRENT
+# process HOME at resolve time and a named refusal when an override resolves
+# nowhere. The four adapters must DELEGATE, not keep four copies.
+
+def test_all_four_adapters_delegate_to_the_one_shared_resolver(monkeypatch):
+    seen = []
+
+    def fake(harness, env_var, default):
+        seen.append((env_var, default))
+        return "/resolved"
+
+    monkeypatch.setattr(adapters, "resolve_bin", fake)
+    for name in ("pi", "copilot_cli", "claude_code", "grok_bot"):
+        assert adapters.load(name).resolve_bin({"bin": "/x"}) == "/resolved"
+    assert [env for env, _ in seen] == [
+        "PI_BIN", "COPILOT_BIN", "CLAUDE_BIN", "GROK_BOT_BIN"]
+
+
+def test_tilde_expands_against_the_current_process_home(tmp_path, monkeypatch):
+    """A config cell of `~/.npm-global/bin/pi` resolves to the binary under
+    THIS box's HOME -- never a stored `/home/<user>` literal."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    fake = tmp_path / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.delenv("PI_BIN", raising=False)
+    got = adapters.resolve_bin(
+        {"adapter": "pi", "bin": "~/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+
+
+def test_home_token_expands_the_same_way(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    fake = tmp_path / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.delenv("PI_BIN", raising=False)
+    got = adapters.resolve_bin(
+        {"bin": "{home}/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+
+
+def test_env_override_wins_over_the_config_cell(monkeypatch):
+    monkeypatch.setenv("PI_BIN", "/from/env")
+    assert adapters.resolve_bin(
+        {"bin": "/from/config"}, "PI_BIN", "pi") == "/from/env"
+
+
+def test_path_fallback_resolves_a_bare_name(tmp_path, monkeypatch):
+    fake = tmp_path / "pi"
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+    monkeypatch.delenv("PI_BIN", raising=False)
+    assert adapters.resolve_bin({"adapter": "pi"}, "PI_BIN", "pi") == "pi"
+
+
+def test_a_missing_override_refuses_by_name(monkeypatch):
+    """Never a bare `Popen` FileNotFoundError: the refusal says which harness
+    and which name could not be resolved."""
+    monkeypatch.delenv("PI_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "pi", "bin": "pi-not-installed-xyz"}, "PI_BIN", "pi")
+    assert "pi-not-installed-xyz" in str(exc.value)
+
+
+def test_no_home_user_literal_survives_in_any_adapter():
+    """The falsifier as a test: no quoted `/home/<user>` path literal in the
+    four adapter files (their defaults are bare PATH names now)."""
+    offenders = []
+    for path in sorted((BIN / "adapters").glob("*_adapter.py")):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if re.search(r'["\']/home/', line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert offenders == []

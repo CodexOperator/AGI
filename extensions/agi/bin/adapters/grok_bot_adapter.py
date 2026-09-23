@@ -31,8 +31,9 @@ DEFAULT_BIN = "grok-bot"
 
 
 def resolve_bin(harness: dict) -> str:
-    """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
-    return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
+    """$GROK_BOT_BIN > harness bin > default, via the ONE shared resolver
+    in `adapters.resolve_bin` (env, `~`/`{home}`, PATH, named refusal)."""
+    return adapters.resolve_bin(harness, "GROK_BOT_BIN", DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:

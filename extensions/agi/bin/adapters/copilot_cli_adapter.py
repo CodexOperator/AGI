@@ -59,8 +59,9 @@ import harness_template
 
 NAME = "copilot-cli"
 
-#: Fallback only. `$COPILOT_BIN`, then `harness["bin"]`, then this.
-DEFAULT_BIN = "/home/ubuntu/.npm-global/bin/copilot"
+#: Fallback only. `$COPILOT_BIN`, then `harness["bin"]`, then this (a bare
+#: PATH name; `adapters.resolve_bin` consults PATH at resolve time).
+DEFAULT_BIN = "copilot"
 
 #: The one prompt artefact per agent, beside `context.md` and `agent.json`.
 #: Copilot Code has no system-prompt flag, so what the agent was told is
@@ -78,9 +79,10 @@ def resolve_bin(harness: dict) -> str:
 
     Same precedence as `pi_adapter.resolve_bin` and for the same reason: an
     env var is how a machine with the binary somewhere else runs the loop
-    without editing a tracked config file.
+    without editing a tracked config file. Delegates to the one shared
+    resolver in `adapters.resolve_bin`.
     """
-    return os.environ.get("COPILOT_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, "COPILOT_BIN", DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
