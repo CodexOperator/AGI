@@ -36,7 +36,7 @@ e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d dia
 
 ## §3 🔴 Where it stops
 ```
-11:5xZ 09-21 LIVE (gen 1): FIRST PASS DONE (see §1). season2/main = 0f336c890 (trunk @8cf1eb4c9 merged, pushed). State .agi/sessions/prime-merge.state.json (last_merged_town_sha set; notice cleared). Runner fact: workflow.py runs pi stages SERIALLY (~15 min/stage) — run chunks as PARALLEL processes (7 × ~3 h wall = 3 h), memory ~300 MB per pi process. NEXT = daily activation 08:13Z (dm read · graph scan · delta since 8cf1eb4c9 → 5 h notice → one-shot run). A successor re-arms the daily cron FIRST. Owner mode: quiet push-only · batch-max · diagram-max · report to thought-master once per pass (sent 11:5xZ).
+06:4xZ 09-23 LIVE (gen 1, session resumed; the daily cron c5f0b2f3 survived, the 09-21/22 ticks did not fire while the process was down). season2/main = 0f336c890 (trunk @8cf1eb4c9). PASS 2 ARMED: delta 0f336c890..6d97bd855 = 62 commits · +7 exp · +7 hyp · 4 engine · 0 deletions; 5 h notice sent 06:41Z; one-shot at 11:41Z 09-23 (procedure in the cron prompt: chunks of <=5 launched as PARALLEL processes, verdicts read from .agi/sessions/workflows/runs/<run-key>/*.json, merge --no-ff in .agi/worktrees/prime-root, verify, push, residues -> g15 assigned director-engine, ONE report to thought-master). A successor re-arms the daily cron FIRST, then this one-shot if it has not fired.
 ```
 
 ## §4 Traps (this session)
@@ -48,6 +48,7 @@ e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d dia
 | 4 | cron:crons optional `log:` cell is NOT placeholder-rendered (`{logs}` reached the crontab) | omit `log:`; use the default log (L2) |
 | 5 | `write.py replace body 1:N` on a fresh node eats the `<!-- BODY:BEGIN -->` marker | restore it as body line 1 |
 | 6 | `send.py send` to a busy pane → `[undelivered-yet]` | the dm IS written; the sweep re-nudges |
+| 7 | after a seat key is re-minted, `send.py read belam` re-delivers that sender's OLD dms marked `RETIRED:<key>` (09-23: two 09-20 thought-master messages) | read the timestamp, not the position; a RETIRED block is history, not news |
 
 ## §5 Verification
 ```bash
