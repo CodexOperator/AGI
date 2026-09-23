@@ -131,3 +131,66 @@ def test_strict_exits_one_and_the_template_is_data_not_code(tmp_path, capsys):
     assert ".agi/nodes/hypothesis/h1.md#4 goal:g-retired=>goal:g20" in out
 
     assert links.main(["links", "--strict", "--root", str(graph)]) == 1
+
+
+def test_a_mere_mention_in_the_thought_is_not_a_successor(tmp_path):
+    """Live case goal:g6.5: its THOUGHT names goal:g11 as the CAUSE of its
+    retirement ('deleted the boundary that job existed to cross'), not as a
+    successor -- so it records none."""
+    graph = _graph(tmp_path)
+    _node(graph, "goal:g-retired", status="retired",
+          body=THOUGHT.format("Marked phasing-out; goal:g-cause deleted the "
+                              "boundary that job existed to cross."))
+    _node(graph, "hypothesis:h1", parents="[goal:g-retired]")
+
+    (hit,) = links.scan_retired_refs(graph)
+    assert hit[3] == "none", "a bare mention was read as a successor"
+
+
+def test_the_successor_is_the_goal_id_in_the_superseded_clause(tmp_path):
+    """Live case goal:g26 -> goal:g7: the successor is in the marked clause
+    but NOT the token right after 'by'."""
+    graph = _graph(tmp_path)
+    _node(graph, "goal:g-retired", status="retired",
+          body=THOUGHT.format("Superseded by g1-g7 rewrite 2026-09-19; "
+                              "umbrella identity folded onto goal:g7 family."))
+    _node(graph, "hypothesis:h1", parents="[goal:g-retired]")
+
+    (hit,) = links.scan_retired_refs(graph)
+    assert hit[3] == "goal:g7"
+
+
+def test_a_sentence_period_is_not_part_of_the_id(tmp_path):
+    """Live case goal:g15. at ten sites: the trailing period is punctuation,
+    so the id resolves to the real retired goal and its successor is kept."""
+    graph = _graph(tmp_path)
+    _retired(graph, successor="goal:g20")
+    _node(graph, "hypothesis:h1", cites="... under goal:g-retired. WORDING ROUND, ...")
+
+    (hit,) = links.scan_retired_refs(graph)
+    assert hit[2] == "goal:g-retired" and hit[3] == "goal:g20"
+
+
+def test_an_interior_dot_is_kept(tmp_path):
+    """Live case goal:g7.25.*: `g7.25` is a real id -- only the TRAILING dot
+    is punctuation, so a real goal is not mistaken for an absent one."""
+    graph = _graph(tmp_path)
+    _node(graph, "goal:g7.25")
+    _node(graph, "hypothesis:h1", cites="the goal:g7.25.* lineage")
+
+    assert links.scan_retired_refs(graph) == []
+
+
+def test_live_corpus_successors_match_the_recorded_thoughts():
+    """The real nodes, not a copied list: g6.5 records no successor; g15 and
+    g26 record one, g26's late in its clause."""
+    live = Path(__file__).resolve().parents[3] / ".agi" / "nodes" / "goal"
+    import re as _re
+    def thought(slug: str) -> str:
+        body = (live / f"{slug}.md").read_text(encoding="utf-8")
+        return _re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, _re.S).group(1)
+    if not (live / "g6.5.md").is_file():
+        return
+    assert links._successor(thought("g6.5")) == "none"
+    assert links._successor(thought("g15")) == "goal:g20"
+    assert links._successor(thought("g26")) == "goal:g7"
