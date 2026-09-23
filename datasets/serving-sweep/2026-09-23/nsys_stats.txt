@@ -1,0 +1,11 @@
+Generating SQLite file /out/nsys_prof.sqlite from /out/nsys_prof.nsys-rep
+Processing [/out/nsys_prof.sqlite] with [/nsys/target-linux-x64/reports/cuda_gpu_kern_sum.py] to [/out/nsys_cuda_gpu_kern_sum.csv]... PROCESSED
+
+Processing [/out/nsys_prof.sqlite] with [/nsys/target-linux-x64/reports/cuda_gpu_mem_size_sum.py] to [/out/nsys_cuda_gpu_mem_size_sum.csv]... PROCESSED
+
+Processing [/out/nsys_prof.sqlite] with [/nsys/target-linux-x64/reports/cuda_gpu_mem_time_sum.py] to [/out/nsys_cuda_gpu_mem_time_sum.csv]... PROCESSED
+
+Processing [/out/nsys_prof.sqlite] with [/nsys/target-linux-x64/reports/osrt_sum.py] to [/out/nsys_osrt_sum.csv]... PROCESSED
+
+Exportation error: File already exists: '/out/nsys_prof.sqlite'.
+Use `--force-overwrite true` to overwrite existing files.

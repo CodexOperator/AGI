@@ -1,0 +1,108 @@
+{
+ "host": "local-town",
+ "image": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+ "router_args": [
+  "--cache-reuse",
+  "8",
+  "--host",
+  "127.0.0.1",
+  "--jinja",
+  "--alias",
+  "Qwen3.5-9B-Q4_K_M",
+  "--fit",
+  "on",
+  "--model",
+  "/work/Qwen3.5-9B-Q4_K_M.gguf",
+  "--parallel",
+  "1"
+ ],
+ "ram_mb_start": 5671,
+ "model_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+ "started_at": "2026-09-23T14:34:32Z",
+ "fit_split": {
+  "n_ctx": 86528,
+  "ram_mb": 6167,
+  "fa_lines": [
+   "3.38.761.706 W srv    load_model: cache_reuse is not supported by this context, it will be disabled",
+   "3.38.787.092 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 86528, kv_unified = 'false'"
+  ]
+ },
+ "f16": {
+  "ppl": 7.1798,
+  "ram_mb": 12011
+ },
+ "split": {
+  "ppl": 7.1821,
+  "ram_mb": 11536
+ },
+ "fit_l1_q4_f512": {
+  "n_ctx": 156416,
+  "ram_mb": 11794,
+  "fa_lines": [
+   "0.43.166.425 W srv    load_model: cache_reuse is not supported by this context, it will be disabled",
+   "0.43.223.860 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 156416, kv_unified = 'false'"
+  ]
+ },
+ "bench_split": {
+  "rows": {
+   "pp512@0": [
+    1504.01,
+    84.55,
+    5
+   ],
+   "tg64@0": [
+    62.15,
+    0.57,
+    5
+   ],
+   "pp512@16384": [
+    1129.11,
+    72.81,
+    5
+   ],
+   "tg64@16384": [
+    49.0,
+    0.31,
+    5
+   ]
+  },
+  "ram_mb": 12053,
+  "loadavg": [
+   8.0791015625,
+   11.07373046875,
+   12.71044921875
+  ]
+ },
+ "bench_q4": {
+  "rows": {
+   "pp512@0": [
+    1528.7,
+    55.51,
+    5
+   ],
+   "tg64@0": [
+    62.05,
+    0.52,
+    5
+   ],
+   "pp512@16384": [
+    1153.8,
+    27.88,
+    5
+   ],
+   "tg64@16384": [
+    46.71,
+    14.72,
+    5
+   ]
+  },
+  "ram_mb": 11878,
+  "loadavg": [
+   8.5859375,
+   9.99072265625,
+   11.931640625
+  ]
+ },
+ "ram_mb_end": 11878,
+ "finished_at": "2026-09-23T14:54:15Z"
+}

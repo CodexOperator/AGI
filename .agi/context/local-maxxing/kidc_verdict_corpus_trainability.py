@@ -16,7 +16,22 @@ from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-ROOT = "/home/ubuntu/work/agi/.agi/worktrees/a00-48ed5e56/.agi/nodes"
+import importlib.util as _iu
+def _find_ancestor(start, *rels):
+    """Walk up for `rels`; stop at the filesystem root instead of spinning."""
+    p = os.path.abspath(start)
+    while not all(os.path.exists(os.path.join(p, r)) for r in rels):
+        parent = os.path.dirname(p)
+        if parent == p:
+            raise FileNotFoundError(
+                "no %s above %s" % (" or ".join(rels), os.path.abspath(start)))
+        p = parent
+    return p
+
+
+_p = _find_ancestor(os.path.dirname(os.path.abspath(__file__)), "paths.py")
+_s = _iu.spec_from_file_location("lmpaths", os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+ROOT = _lm.get("worktree_a00_48ed5e56_nodes")
 
 def parse_frontmatter(path):
     """Minimal YAML-ish frontmatter parser: scalars, inline lists, block lists."""
