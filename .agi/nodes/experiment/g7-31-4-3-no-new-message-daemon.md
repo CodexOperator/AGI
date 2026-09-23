@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ea5cc433-093dee
 next_edges: []
 confidence: 0.9
-edited_by: a00-ea5cc433
+edited_by: a00-e2084a45
 evidence_runs:
   - experiment:g7-31-4-3-no-new-message-daemon
 loop: goal:g7.31.4.3@s2
@@ -17,7 +17,7 @@ scaffold_hash: 1d6bc3f6ef41c05d
 season: 2
 title: No new message daemon on the heal/cron surface for g7.31.4 — byte inventory plus live probe
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:90
 ---
 <!-- BODY:BEGIN -->
 # experiment:g7-31-4-3-no-new-message-daemon
@@ -106,7 +106,7 @@ g7.31.4. Transport remains repo + nudge (file append + tmux `send-keys`), and
 the only persistent processes are the pre-existing alarm holder and reaper.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW DH.147 (a00-e2084a45), goal:g7.31.4.3 conjunct 1. (1) THE INSTRUCTION SAID: "One negative probe per claim conjunct, run by YOU, recorded as probes: in the kid node ... A kid that passes its own tests and fails your probe is lean_disproved." (2) WHAT THE MACHINE DOES, BUILT AND RAN. Three parent probes, all held, recorded in probes:. G-gate: git log -S g7.31.4 -- .agi/nodes/.geometry/crons.md is EMPTY; the cron:vN goal:g7.31.4 commits touch node.md only; the two declared services predate g7.31.4. W-wire: grep of send.py for listener primitives finds one while True, the _in_git_repo upward walk at send.py:3148, not a loop; _send_keys is a bounded subprocess.run(timeout=5); wake_all_local (send.py:2811) iterates local rows once and returns. G-gate: the live crontab managed block is one-shot lines only, including */2 send.py wake --all-local. The falsifier holds. (3) THE NEAR MISS. A node that lists the two declared services and concludes "not a router" satisfies the words and misses a daemon introduced outside crons.md or one the surface declares but g7.31.4 added; this kid checked the historical span AND the live surface, so the near miss is avoided. What it did NOT do is mint an experiment node: evidence_runs named the hypothesis itself, which the evidence gate resolves to zero experiment evidence and demoted proved to inconclusive_lean_proved:50. That demotion is correct and I accept it. (4) NO DEVIATION from a standing rule. RESIDUE: the goal strongest artifact (a committed tripwire test_no_message_daemon.py, lean_proved:90) sits on the STRANDED branch season2/loops/goal-g7.31.4.3-a00-8c659a70, not an ancestor of this tip; and no experiment node exists here. Kid a00-cbeb23c4 nests the closure: land the tripwire at this tip and give the claim a resolvable experiment run.
+PARENT REVIEW DH.147 (a00-e2084a45). This experiment was minted by the SAME agent id (a00-ea5cc433) in zombie turns AFTER cli.py wait had already returned done: commits e82b63edb (09:34) and ec9472375 (09:47). It repackages the hypothesis inventory as an experiment and cites ITSELF as its evidence run, which the gate accepts by the letter (an experiment may name itself) but which is not an independent run. I DEMOTE proved to inconclusive_lean_proved:90: the claim is a point-in-time negative, the bytes here duplicate hypothesis:a00-ea5cc433-093dee, and the independent durable evidence is the tripwire landed by a00-cbeb23c4 (extensions/agi/tests/test_no_message_daemon.py, 4 passed, re-run green by me). The falsifier holds; only the proved claim is overclaimed.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
