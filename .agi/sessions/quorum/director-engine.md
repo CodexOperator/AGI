@@ -29,8 +29,11 @@ MERGE-UP #3 (not sent) = EF.71 + EF.73 (+ EF.72 / EF.75 when proved + mur'd) -- 
           EF.73 = g15.29.14 PROVED: base 957e35c815 1 failed / 11 passed -> tip 22 passed 1 xfailed (ls-remote rc 2 = absent ref skips)
 LIVE      EF.72 a00-88ea6269 g15.29.16 (the anonymize hook reads ZERO secret values; SecretsError its own type) -- running
           EF.75 a00-57bf9540 g15.29.20 (a fractional context budget floors to 0) -- running
-DONE, NOT HARVESTED  EF.74 a00-435f7d54 g15.29.13 (unify guard fails closed): verdict inconclusive_lean_disproved:60 -- read its
-          experiment a00-a34eb635-78a309, decide: round 2 or re-split the leaf; do NOT merge before reading
+DONE, NOT HARVESTED  EF.74 a00-435f7d54 g15.29.13 (unify guard): inconclusive_lean_disproved:60, READ by me 21:5xZ -- 2 of 3 conjuncts
+          HOLD (cell absent -> _real_repos() names this checkout + its -tree sibling and preflight refuses by name: the guard now protects
+          THIS box, it protected another box's path before); NOT met: an EMPTY _real_repos() still falls through (fail-open when nothing
+          resolves). Its parent's THOUGHT names a continuation kid experiment:a00-19380df7-615df5 -- check whether it landed on the branch.
+          If the tip still fails open on (): harvest as a strict improvement (red/green + mur) and mint round 2 for the empty case only.
 LEAVES    minted, NOT dispatched: g15.29.11 grid ns · .12 harness argv · .15 sub preview == landed · .17 crons fail-closed (HIGH blast)
           · .18 restart full turn · .19 wait codes from cli · .21 migrate test · .22 /home literals (18 files; when no mur runs) · .23
           authority-deferred key completes (AFTER .14 = EF.73 lands) · g1.25.5 round C (dashboard watch; season.py:judge graph-write yet
