@@ -55,8 +55,11 @@ def test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff(project):
     before = path.read_text()
     proc = _run(project, "sub world => WORLD", "--dry-run")
     assert proc.returncode == 0, proc.stdout + proc.stderr
-    assert '-title: "hello world"' in proc.stdout
-    assert '+title: "hello WORLD"' in proc.stdout
+    # conjunct 4: the preview is a diff of the SERIALIZED node the write would
+    # land (frontmatter rendered + body), not the raw splice -- unquoted title
+    # lines, plus the provenance stamp submit adds.
+    assert "-title: hello world" in proc.stdout
+    assert "+title: hello WORLD" in proc.stdout
     assert path.read_text() == before, "a dry run writes nothing"
     proc = _run(project, "sub world => WORLD")
     assert proc.returncode == 0, proc.stdout + proc.stderr
@@ -153,3 +156,26 @@ def test_sub_ampersand_not_led_by_a_verb_stays_in_argument():
     assert write.parse_script("sub a && b => c") == [("sub", ["a && b => c"])]
     assert write.parse_script("sub x => y && note why") == [
         ("sub", ["x => y"]), ("note", ["why"])]
+
+
+def test_sub_value_with_open_thought_marker_is_refused_like_set(project):
+    """conjunct 2: a `sub` that would land an open THOUGHT marker into a
+    frontmatter value is refused by the SAME `_refuse_marker_value` that
+    refuses `set` (verb_set)."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    before = path.read_text()
+    edit = _sub_edit("world => WORLD <!-- THOUGHT:BEGIN")
+    with pytest.raises(write.EditError, match="THOUGHT marker"):
+        write.submit(project, edit, actor="kid", session="s1")
+    assert path.read_text() == before
+
+
+def test_second_sub_composes_with_the_first(project):
+    """conjunct 3: `sub a => b && sub c => d` applies the second sub to the
+    bytes the first produced -- here the second old string only exists after
+    the first replacement, so a discarded first sub refuses (0 matches)."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    proc = _run(project, "sub hello => goodbye && sub goodbye => farewell")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "sub: replaced 2 occurrence(s)" in proc.stdout
+    assert "farewell world" in path.read_text()
