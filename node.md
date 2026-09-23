@@ -18,7 +18,7 @@ town: local-maxxing
 # mvp:lm-switch-c2-runs-the-towns-parents-and-kids
 
 ## MVP
-The smallest build that lets the town run its own parents and kids on C2 = Bonsai 2 27B (PTQ1_0) + the abliterate-s2 LoRA (armC2_bonsai27b-abliterate-s2), served on this box's 8 GB GPU (the GPU2070S class), instead of deepseek-v4.1-flash via OpenRouter. Triggered by goal:g5.27's rule: C2 is within 10 pct of the reference on every battery row that exists (IFEval strict seeded N=10 mean 0.8002, CI [0.7992, 0.8012] > 0.7819; HumanEval 143/164 = 92.9 pct of the reference's 154, single run). A proof never switches anything by itself: this node states what the build owes before the switch is called complete.
+The smallest build that lets the town run its own parents and kids on C2 = Bonsai 2 27B (PTQ1_0) + the abliterate-s2 LoRA (armC2_bonsai27b-abliterate-s2), served on this box's RTX 2070 SUPER 8 GB, instead of deepseek-v4.1-flash via OpenRouter. Triggered by goal:g5.27's rule: C2 is within 10 pct of the reference on every battery row that exists (IFEval strict seeded N=10 mean 0.8002, CI [0.7992, 0.8012] > 0.7819; HumanEval 143/164 = 92.9 pct of the reference's 154, single run). A proof never switches anything by itself: this node states what the build owes before the switch is called complete.
 
 ## Inputs
 - C2's serving recipe (datasets/switch-rule/2026-09-21/start_fork_c2.sh + the LoRA), config-maxed: every path a paths.local_maxxing.* key, every tunable a config cell.
