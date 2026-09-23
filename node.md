@@ -3,9 +3,9 @@ id: goal:s10
 mint_id: 32ab6af9735040b6bc3242f903cc5ba8
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S10
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S10: the purged gamed mass is still on disk inside agi-tree"
 ---
 Found 2026-08-23. **G6.2 says the 28,916 gamed `-extend<N>` nodes were "removed
