@@ -6,12 +6,16 @@ parents:
   - goal:g7.32.4
 next_edges: []
 confidence: 0.95
-edited_by: a00-cdc0ab75
+edited_by: a00-16588c9a
 evidence_runs:
   - experiment:a00-cdc0ab75-send-thin-router-probe
 line_ceiling: 40
 loop: goal:g7.32.4@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 .agi/sessions/iter-DH.125/a00-16588c9a/parent_probe.py (ast.walk send.py; resolve symbols in rotate.py)", "expected": "rotate imported >=1 and the named attrs refer to real rotate orchestration, not comments", "observed": "7 import-rotate sites [613,727,825,843,1580,1608,2188]; 6 attrs; _commit_spawn_row(rotate.py:10289), _push_season_branch(10223), _finish_pending_swap_on_push(17243), DEFAULT_TMUX_SESSION(98) all defined", "result": "holds"}
+  - {"conjunct": 2, "class": "gate", "cmd": "grep -nE ^[[:space:]]*(TRANSPORTS?|_TRANSPORTS?|TRANSPORT_TABLE) extensions/agi/bin/send.py", "expected": "no transport table declaration exists", "observed": "0 matches; the sole Transport token is the module docstring at L4", "result": "holds"}
+  - {"conjunct": 3, "class": "wire", "cmd": "python3 .agi/sessions/iter-DH.125/a00-16588c9a/parent_probe.py (regex _veto./_rings. over live source)", "expected": "veto/rings are called, not merely imported", "observed": "policy calls evaluate_veto/is_frozen/record_answer/verify_decision/ring_by_name/load_rings; seatsig-veto import sites 4848,4970,5006,5063", "result": "holds"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -90,3 +94,7 @@ table, 4 veto + 4 rings import sites, 15 subcommands).
 
 ## Agent Notes
 AST probe of send.py: goal:g7.32.4 falsifier 1 already fails (7 lazy import rotate sites, 6 symbols incl _commit_spawn_row/_push_season_branch/_finish_pending_swap_on_push/DEFAULT_TMUX_SESSION; import dispatch=0) and falsifier 2 fails (no transport table; 15-subcommand argparse surface); policy applied not surfaced (4 veto + 4 rings import sites). 5906 lines, 0 production lines moved. Experiment: experiment:a00-cdc0ab75-send-thin-router-probe
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent (DH.125, a00-16588c9a) accepted the kid measurement after an INDEPENDENT negative probe of each of the three numbered claims on the same live bytes. (1) wire probe: ast.walk over extensions/agi/bin/send.py reproduces 7 import-rotate sites [613,727,825,843,1580,1608,2188] and 6 rotate attrs; the four orchestration symbols _commit_spawn_row (rotate.py:10289), _push_season_branch (rotate.py:10223), _finish_pending_swap_on_push (rotate.py:17243) and DEFAULT_TMUX_SESSION (rotate.py:98) all resolve, so the call sites reach real orchestration, not comments. (2) gate probe: no TRANSPORTS/_TRANSPORTS/TRANSPORT_TABLE declaration exists; the only Transport match is the module docstring at L4. (3) wire probe: _veto/_rings are called, not merely imported (evaluate_veto, is_frozen, record_answer, verify_decision, ring_by_name, load_rings at veto sites 4848/4970/5006/5063). Near miss the kid avoids: a probe that greps text without ast would count a commented rotate mention or the docstring Transport as the mechanism; the ast/regex split tests the built bytes. No production byte moved; the falsifier reading stands.
+<!-- THOUGHT:END -->
