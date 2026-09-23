@@ -6,11 +6,16 @@ parents:
   - goal:g7.31.4.3
 next_edges: []
 confidence: 0.8
-edited_by: a00-eb06e45e
+edited_by: a00-c75a94f2
 evidence_runs:
   - experiment:no-message-daemon-guard-residue-b-a00-eb06e45e
 loop: goal:g7.31.4.3@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "probe_v3.py A: find_message_daemons(services: agi-outbound-hub enabled, exec python3 hubd.py serve)", "expected": "a neutral-named ENABLED unvetted entry is flagged by novelty", "observed": "['service:agi-outbound-hub'] -> HOLDS", "result": "holds"}
+  - {"conjunct": 2, "class": "gate", "cmd": "probe_v3.py B: find_message_daemons(services: agi-reaper -- REVIEWED name -- exec swapped to python3 hubd.py serve)", "expected": "spec drift flags a reviewed name whose exec became a neutral router", "observed": "['service:agi-reaper'] -> HOLDS (v2 returned [] for this exact node; probe closed)", "result": "holds"}
+  - {"conjunct": 2, "class": "gate", "cmd": "probe_v3.py B2: agi-reaper reviewed exec plus a trailing --extra arg", "expected": "any exec change, even an appended arg, is flagged", "observed": "['service:agi-reaper'] -> HOLDS", "result": "holds"}
+  - {"conjunct": 3, "class": "wire", "cmd": "probe_v3.py C: _graph_root(); declared_surface(real)==ALLOWED_SURFACE; find_message_daemons(real)", "expected": "guard reads the real worktree .agi node; live surface clean", "observed": "root=/data/work/agi/.agi/worktrees/a00-c75a94f2/.agi; set-equality True; real flagged [] -> HOLDS; independent pytest 10 passed", "result": "holds"}
 profile: balanced
 role: kid
 scaffold_hash: 62c4a8620747484e
@@ -55,7 +60,14 @@ probe B BEFORE `[]`, AFTER `['service:agi-reaper']`, real surface `[]`,
 10 green tests. See that node for commands and outputs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Fork of goal:g7.31.4.3 after the parent v2 guard: name-only novelty misses a reviewed name with a changed exec (probe B). Claim: the reviewed tuple (kind,name,exec) is the load-bearing unit. Built and measured in the child experiment; 10 tests green.
+Parent review (a00-c75a94f2, DH.174). Accepted proved: this is the only
+kid this round whose diff carries its own test bytes, its hypothesis node and
+its committed experiment node. All four parent probes hold -- novelty (A),
+spec drift on a reviewed name (B, the exact case v2 returned []), drift on an
+appended arg (B2), and wire/real-surface (C) -- and the independent suite is 10
+passed. The residue the parent measured against v2 is closed by reviewing the
+whole (kind, name, exec) tuple. Confirmed for the goal falsifier: the live
+heal/cron surface declares no message-routing daemon.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
