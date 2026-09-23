@@ -1,1 +1,1 @@
-.agi/sessions/quorum/belam.md
+.agi/nodes/doc/card-belam.md
