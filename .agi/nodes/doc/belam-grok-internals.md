@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-complete-cross-sync-2026-09-22b
+thought_session: belam-watch-cap-fix-2026-09-22
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -90,8 +90,12 @@ DONE     residues=0 · format✓ · §3e suite green on tip (leaf/trunk)
          → write.py set status complete (BARE YAML · never quoted)
          → sync ALL post WTs · NEVER leave closed work as active/horizon
          → board complete
+         → directors: FULL verify suite on THEIR WT after each 0-residue leaf-chain merge-up
+         → Belam daily: full verify on merge pass (forward metric · fleet)
 BELAM    ~once/day: merge · full verify · vision→goals + moral→visions lens
+         · morals = up-down axis · verify-suite progress = forward-backward metric
          · reopen/mint residues · NO mid-batch director chatter
+         · fleet awareness: directors treat ≤18 as cap-ruler · soft floor ≥10 · residual after MUR
 RECON-MIN (daily DIAGRAM B · HARD):
          recon checks = minimal tokens · minimal/no comms · NO action
          report exactly what was asked · diagram-max · stop · no bonus narrative
@@ -139,10 +143,14 @@ Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
 CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
   concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
   ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
-  soft floor ≥5 combined / director when claimable work remains (directors enforce; Belam awareness)
+  CAP-RULER awareness: directors fill toward ≤18 when claimable remains (soft floor ≥10 = minimum only)
+  soft floor ≥10 combined / director when claimable work remains (directors enforce; Belam awareness)
+  residual-after-MUR + horizon-under-active + ACTIVE⇒spawn same turn = director WATCH HARD (see director SoT)
 DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
 ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never spawn while goal still horizon · quoted 'active' = BUG
+  · ACTIVE⇒SPAWN SAME TURN (directors): bare active ⇒ durable pi parent same wake
 COMPLETE (leaf/trunk · residues=0 · format✓ · suite✓): write.py status complete (BARE) · sync post WTs · not leave active/horizon
+AXES (everyone): morals = up-down · verify-suite progress after each batch = forward-backward
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
@@ -156,5 +164,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-complete-cross-sync-2026-09-22b: COMPLETE bare+sync · CROSS-DIR local seat sync ALLOWED · season2 push = core/season2/main only (never seat head) · Belam merges→main
+owner-fix: Belam PROFILE awareness only — soft floor ≥10 + CAP-RULER + residual-after-MUR + ACTIVE⇒same-turn + morals/verify axes (fleet); directors own cap-fill via doc:director-grok-internals; RECON-MIN stays Belam-daily; no mid-batch FILL
 <!-- THOUGHT:END -->
