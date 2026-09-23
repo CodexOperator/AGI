@@ -50,6 +50,15 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
     are used only if that path exists; a bare name is looked up on PATH. An
     explicit override naming anything but the default that resolves nowhere
     refuses BY NAME -- never a bare `Popen` FileNotFoundError.
+
+    A path-shaped cell that needed a home token and whose expanded file does
+    not exist refuses BY NAME too, naming the harness, the EXPANDED path that
+    was tried and the `$env_var` that would override it. Returning the raw
+    `~/...` cell instead is what made `Popen` die on a bare
+    `FileNotFoundError('~/...')` that names nothing (round 2 of this
+    hypothesis). A concrete absolute path with no token is still carried
+    unchanged, because `$env_var`/config precedence must not start refusing
+    values the caller spelled out in full -- several live tests pin that.
     """
     explicit = os.environ.get(env_var) or harness.get("bin")
     raw = explicit or default
@@ -57,7 +66,14 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
     home = os.path.expanduser("~")
     path = (home + raw[1:]) if raw.startswith("~") else raw.replace("{home}", home)
     if os.sep in path or (os.altsep and os.altsep in path):
-        return path if os.path.exists(path) else raw
+        if os.path.exists(path):
+            return path
+        if path != raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: expanded to {path!r}, which does not exist; "
+                f"set ${env_var} to override")
+        return raw
     if shutil.which(path):
         return path
     if override:
