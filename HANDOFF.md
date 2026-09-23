@@ -34,6 +34,8 @@ Owner lines: in nodes (`goal:g14` for this box; `doc:l4-owner-decisions`, `doc:l
 ## §2 Landed (one line each)
 e3549ff29 g14 note · 351c63074/495f0d6b8 handoff + corrections · f1991892d diagram-max pass (brief, handoff) · posts diagram-maxed their own cards (TM a0976ae84 · DE e4cc6aca3 · DT 731ac745f) · b870ee0e9 routine + owner line · 072349c7f cadence + spec node · 440da437c/865991992/77d9696b4 owner lines (nested goals · comms route · diagram-max) · brief diagram-maxed · pushed after each.
 
+- 07:5xZ 09-23 owner rulings (verbatim goal:g14): per-box Prime rows → core's engine bundle (R8, residues node) · director-engine HELD on goal:g7.33 (core's bundle) · CLAUDE.md now permits goal renumbering.
+
 ## §3 🔴 Where it stops
 ```
 07:4xZ 09-23 LIVE (gen 1 on Opus 5.5, resurrected from archive by the owner 06:5xZ). CORE SYNC DONE: trunk = 8451055b5 (core @f655a6714 merged; 82 core goal renumbers + 8 town goals renumbered to match; pushed); residues = hypothesis:core-sync-0923-residues (director-engine; core-side items flagged). PASS 2 one-shot 0e5063c3 at 11:41Z 09-23 (AMENDED: town rounds + core-sync round + engine-delta; core's own rounds stay core's). Daily cron c5f0b2f3. Before the next Prime rotation: nothing extra (agi-reaper was never active on this box). A successor re-arms the daily cron FIRST, then the pass-2 one-shot if it has not fired.
@@ -63,9 +65,6 @@ PI_BIN=$HOME/.npm-global/bin/pi python3 extensions/agi/bin/dispatch.py . 999 --d
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| ONE `belam` row, TWO Primes (core: gen 2 · @454 agi-e8 · key f818…; local-town: gen 1 · key 3ed8…) — conflicts at every sync; the 09-23 sync kept local-town's | per-box Prime rows (`belam` + `belam@<box>`) or box-keyed identity cells |
-| `goal:g7.33` (was g14.14, engine): core moved it to town:core "parked unassigned"; director-engine works it live (g7.33.1/3/7) | owner names its owner — director-engine (local-town) or core's grok; until then director-engine continues |
-| CLAUDE.md still says "Goal ids are never renumbered" — core renumbered 82 on an owner GO | fix in the doc pass (owner 09-23: not yet) |
 | global git identity on this box (10 of the 18 red tests) | `git config --global user.name/email` for user belam |
 | `.agi/config.json` carries core-town literals (`box.*`, `harnesses.*.bin` = /home/ubuntu…) in a merge-shared file (L3) | director-engine round: `{user}`/`$PATH` resolution or the box overlay; not owner-blocking while `PI_BIN` covers dispatch |
 | integration-branch list omits the town trunk (L4): node-count never stamps on local-maxxing/season2/main | one config cell adding `local-maxxing/season2/main`, on the owner's word that the trunk is canonical here |
