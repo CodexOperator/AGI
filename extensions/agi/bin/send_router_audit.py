@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 """send_router_audit.py -- frozen instrument for goal:g7.32.4 clause (1).
 
-Pure-stdlib AST walk: EVERY import of module root `rotate` or `dispatch` in a
-Python target, top-level AND nested (an `import rotate` inside a function body
-counts). This is the measuring instrument the thin-router refactor is judged
-against, and it carries no policy of its own.
+Pure-stdlib AST walk over a Python target: every ABSOLUTE import of module
+root `rotate` or `dispatch` (top-level AND nested -- an `import rotate` inside
+a function body counts) AND every RELATIVE sibling import that names one of
+those roots (`from . import rotate`, `from . import dispatch`). This is the
+measuring instrument the thin-router refactor is judged against, and it
+carries no policy of its own.
+
+NAMED BLIND SPOT: DYNAMIC imports are NOT seen -- `importlib.import_module`,`__import__` and `exec` can reach `rotate`/`dispatch` at runtime with no
+import node in the AST. The audit's zero is a claim about static imports
+only, never about runtime reachability.
 """
 from __future__ import annotations
 
@@ -41,6 +47,17 @@ def audit(path):
                     found.append({"line": child.lineno, "function": func,
                                   "module": mod,
                                   "names": [a.name for a in child.names]})
+                elif child.level or not child.module:
+                    # A relative import with no module part (`from . import
+                    # rotate`) has `module is None`; the root lives in the
+                    # ALIAS name instead. Report each matching alias as its
+                    # own finding, with `module` set to the alias root.
+                    for a in child.names:
+                        root = a.name.split(".")[0]
+                        if root in ROOTS:
+                            found.append({"line": child.lineno,
+                                          "function": func, "module": root,
+                                          "names": [a.name]})
             walk(child, inner)
 
     walk(tree)

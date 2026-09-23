@@ -27,6 +27,8 @@ NO_HELP = {
     "reaper_log.py": "library module (the shared per-event log resolver);"
                      " no --help",
     "last_act.py": "library module (the seat's own last-act clock); no --help",
+    "send_rows.py": "pure library (the seat-row commit/push layer moved out"
+                    " of send.py, goal:g7.32.4 clause (1)); no --help",
 }
 
 
