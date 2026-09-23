@@ -121,45 +121,13 @@ def ref_ns_for(root: Path) -> str:
     must name the same namespace, or the caller's own concatenation would mint
     `refs/grid/t1//node/...` with a doubled separator and two spellings of one
     trunk, which is the exact defect this round removes.
-
-    The config is read from the project's ONE shared checkout
-    (`locations.shared_project_root`), not from the worktree handed in
-    (hypothesis:grid-old-namespace-refilled-and-forked). A linked git worktree
-    carries its OWN `.agi/config.json`, which can predate the storage-trunk
-    migration; reading it would resolve `DEFAULT_REF_NS` and re-mint the
-    migrated-from namespace while the main checkout's config names the trunk.
-    A tree that is not a linked worktree, or that has no `storage_trunk`,
-    resolves `DEFAULT_REF_NS` byte-for-byte as before.
     """
-    shared = locations.shared_project_root(Path(root))
-    cfg = locations.load_config(shared or Path(root))
+    cfg = locations.load_config(Path(root))
     section = cfg.get("grid")
     trunk = section.get("storage_trunk") if isinstance(section, dict) else None
     if not isinstance(trunk, str) or not trunk.strip():
         return DEFAULT_REF_NS
     return trunk.strip().rstrip("/")
-
-
-def migrated_trunk_namespaces(root: Path) -> list[str]:
-    """Namespaces nested under `DEFAULT_REF_NS` that already hold node refs.
-
-    The post-migration / stale-config state the falsifier names: history lives
-    at `refs/grid/<trunk>/node/<mint-id>` while the resolved namespace is the
-    bare `DEFAULT_REF_NS` (the shared config lost its `storage_trunk`, or a
-    linked worktree still reads its own pre-migration config). Writing there
-    would re-mint the migrated-from namespace and fork a second v1 root, so
-    `cmd_commit` refuses by name rather than silently forking.
-    """
-    prefix = f"{DEFAULT_REF_NS}/"
-    ns: set[str] = set()
-    for line in git(root, "for-each-ref", DEFAULT_REF_NS,
-                    "--format=%(refname)").splitlines():
-        if not line.startswith(prefix) or "/node/" not in line:
-            continue
-        found = line.split("/node/", 1)[0]
-        if found != DEFAULT_REF_NS:
-            ns.add(found)
-    return sorted(ns)
 
 
 def push_spec_for(root: Path) -> str:
@@ -946,27 +914,6 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     reintroduce it under a different cause.
     """
     ensure_repo(root)
-
-    # hypothesis:grid-old-namespace-refilled-and-forked conjunct 2 -- refuse by
-    # name after a storage-trunk migration. `ref_ns_for` now reads the shared
-    # checkout's config, so a stale linked worktree is redirected to the trunk;
-    # but a config that genuinely lost `storage_trunk` while nested trunk refs
-    # remain is the post-migration state, and committing there would re-mint
-    # the migrated-from namespace and fork a second v1 root. Name BOTH the old
-    # namespace and the trunk, exit non-zero, write no ref. Session (D3) drafts
-    # are exempt: a draft is not an accepted version and takes no namespace.
-    if not session and ref_ns_for(root) == DEFAULT_REF_NS:
-        migrated = migrated_trunk_namespaces(root)
-        if migrated:
-            sys.exit(
-                f"grid: refusing commit: resolved namespace {DEFAULT_REF_NS!r} "
-                f"but this repo already holds refs under {', '.join(migrated)}. "
-                f"The shared config does not declare grid.storage_trunk (stale "
-                f"linked worktree, or the key was blanked after migration); "
-                f"writing to {DEFAULT_REF_NS!r} would re-mint the migrated-from "
-                f"namespace and fork history. Set grid.storage_trunk to "
-                f"{migrated[0]!r} in the shared checkout."
-            )
 
     # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
     # branch unless --allow-branch is passed. Session commits (D3 drafts)
