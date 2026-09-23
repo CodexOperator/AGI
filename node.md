@@ -3,7 +3,7 @@ id: hypothesis:a00-98dac77b-70b866
 mint_id: 5dd3f90bc63442f09587d8588e6aa0c7
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.5
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** The three-shape framing in `goal:g8.1` (drop-in clone vs. skill
+**Claim:** The three-shape framing in `goal:g1.23` (drop-in clone vs. skill
 package vs. real install) is moot — the engine already made the shape
 decision by construction. It is a **hybrid** (shape 1 + partial shape 2):
 the engine code IS a clone (shape 1), the pi integration layer IS a skill
