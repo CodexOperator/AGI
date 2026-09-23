@@ -2986,7 +2986,7 @@ def main() -> int:
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
                 record=agent_record, session=sess_dir,
-                root=root, seat=args.seat, role=role)
+                root=root, seat=_resolved_seat(args.seat), role=role)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The

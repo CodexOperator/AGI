@@ -222,3 +222,45 @@ def test_seat_row_tracks_live_pid_and_clears_on_release(
     assert pids == [spawned[0][1].pid, spawned[1][1].pid, 0], (
         f"seat-row pid sequence wrong: {pids} vs live children")
     assert all(c.get("seat") == "s-test" for c in calls), calls
+
+
+def _posts_row_pid(posts: Path, name: str):
+    from graph_core.persistence import frontmatter
+    nf = frontmatter.load_node_file(posts)
+    for r in nf.frontmatter.get("posts") or []:
+        if r.get("name") == name:
+            return r.get("pid")
+    return None
+
+
+def test_inherited_seat_writes_the_real_posts_row(
+        project, monkeypatch, capsys):
+    """Conjunct 2, end-to-end against a REAL config:posts row, on the path
+    the parent probe C2b falsified: the seat comes from the inherited
+    AGI_SEAT (no `--seat`), and the row must still name the LIVE held pid and
+    clear to the sentinel 0 on release. A monkeypatched writer proves the
+    call; this reads the row back from disk while the child is held."""
+    posts = project / ".agi" / "nodes" / ".geometry" / "posts.md"
+    posts.write_text(
+        "---\nid: config:posts\ntype: config\nposts:\n"
+        "  - {\"name\": \"s-env\", \"role\": \"kid\", \"tier\": 0}\n"
+        "---\nbody\n")
+    monkeypatch.setenv("AGI_SEAT", "s-env")
+    spawned = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    seen: list = []
+
+    def _sleeper(_s):
+        # The row is written before the supervisor polls alive and sleeps;
+        # read the REAL row here while the child is still held, then release.
+        seen.append((_posts_row_pid(posts, "s-env"), spawned[-1][1].pid))
+        os.environ[dispatch._PERSIST_STOP_ENV] = "1"
+
+    monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", _sleeper)
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+
+    assert dispatch.main() == 0
+    assert seen, "supervisor never held the child -- no live row to observe"
+    assert seen[0][0] == seen[0][1], (
+        f"live row pid {seen[0][0]} != held child {seen[0][1]}")
+    assert _posts_row_pid(posts, "s-env") == 0, (
+        f"row not cleared on release: {_posts_row_pid(posts, 's-env')}")
