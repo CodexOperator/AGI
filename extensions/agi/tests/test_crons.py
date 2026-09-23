@@ -1385,14 +1385,72 @@ def test_resolve_placeholders_refuses_schema_without_a_map(tmp_path):
     assert "placeholders" in str(err.value)
 
 
-def test_resolve_placeholders_refuses_an_absent_schema(tmp_path):
-    """Conjunct 2 (gate): with no [box].md the map cannot be declared, so the
-    resolver refuses rather than render an unresolved token into a unit."""
+def test_resolve_placeholders_falls_back_to_the_engine_schema(tmp_path):
+    """Conjunct 2 (gate, availability): a graph with NO [box].md of its own
+    renders through the ENGINE's own [box].md -- the same declaration, never a
+    second copied token list. Refusing an ABSENT schema is a regression."""
     graph = tmp_path / "graph"
     graph.mkdir()
+    assert boxes.resolve_placeholders("{root}", {"root": "R"}, graph) == "R"
+
+
+def test_resolve_placeholders_refuses_a_missing_mapped_cell(tmp_path):
+    """Conjunct 1 (gate): a token the map declares but the caller supplied no
+    cell for refuses by name -- never renders empty."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n"
+        "placeholders:\n  tmux: tmux_session\n---\n")
     with pytest.raises(boxes.BoxSchemaError) as err:
-        boxes.resolve_placeholders("{root}", {"root": "R"}, graph)
-    assert "[box].md" in str(err.value)
+        boxes.resolve_placeholders("{tmux}", {"root": "R"}, graph)
+    assert "tmux_session" in str(err.value)
+
+
+def test_resolve_placeholders_refuses_a_supplied_but_empty_cell(tmp_path):
+    """P5 (gate): a mapped token whose cell is PRESENT but EMPTY refuses by
+    name -- presence alone is not enough, because an empty render is exactly
+    the bug this leaf exists to kill."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n"
+        "placeholders:\n  tmux: tmux_session\n---\n")
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        boxes.resolve_placeholders("{tmux}", {"tmux_session": ""}, graph)
+    assert "tmux_session" in str(err.value)
+
+
+def test_crons_renders_a_shell_reference_without_refusing(tmp_path):
+    """P6 (wire): a legal shell `${VAR}` is not a stray graph token. Round 1's
+    stray check convicted the `{PATH}` inside `${PATH}`; the declared `{box}`
+    still resolves and the shell reference passes byte-identical."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": False},
+        "path_probe": {"schedule": "0 5 * * *",
+                       "cmd": "run --who {box} ${PATH}"},
+    })
+    node = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, root, root, node,
+                                       box_name="local-town")
+    assert lines == [
+        f"0 5 * * * cd {root} && run --who local-town ${{PATH}} "
+        f">> {crons._log_path(root)} 2>&1"
+    ]
+
+
+def test_crons_refuses_an_undeclared_token_as_a_crons_error(tmp_path):
+    """Conjunct 1 (wire): a bare `{token}` absent from the map refuses as a
+    `CronsError` (which main prints as `ERR: crons.py:` rc 1), never rendered
+    literally and never a traceback."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root)
+    with pytest.raises(crons.CronsError) as err:
+        crons._substitute("run --at {projroot}", root, root, "core-town")
+    assert "projroot" in str(err.value)
 
 
 def test_crons_renders_through_the_one_schema_declared_map(tmp_path):

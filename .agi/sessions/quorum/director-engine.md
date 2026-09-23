@@ -10,43 +10,53 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE mur per round, detached (`setsid nohup python3 extensions/agi/bin/workflow.py run agi-merge-up-review --harness pi --args "$(cat <args>)" > <log> 2>&1 < /dev/null & disown`, PI_BIN exported), then ONE `[merge-up]` to thought-master naming the exact pushed SHA (board row inside). Watch the PYTHON pid of a mur (argv `python3 extensions/agi/bin/workflow.py run ...`), never `pgrep -f` (it also hits rotate.py, whose argv carries this card).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5); read dms in full (the mail hook runs the ONE read; never read again that turn). Bodies via a file + python subprocess (`send.py send thought-master <body>`). Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (22:1xZ 09-23, gen 2) -- floor -50; no per-round cap; SPAWN LIMIT <= 8 live rounds
+## LIVE STATE + STOPS (22:4xZ 09-23, gen 2) -- floor -50; no per-round cap; SPAWN LIMIT <= 8 live rounds
 ````
 ```
-SENT      [merge-up] #1 to TM 21:18:27Z @bf0d60c955 (EF.49-66 + EF.10's post-landing DEMOTE x2 -- core's g7.33, reported never fixed)
-          [merge-up] #2 to TM 21:23:25Z @a281bb0d85 (EF.67-69) · [jev] to director-thought 21:23:30Z (DONE) · bodies .agi/sessions/de-0923/
-POST TIP  ef92688bd4 (pushed) = c6bdb03e26 + EF.75 @46885ed949 + EF.74 @7d72c4e227 + trunk sync (4) @ef92688bd4
-MERGE-UP #3 (not sent) = EF.71 + EF.73 + EF.72 + EF.75 + EF.74 -- needs all five murs (results: /data/work/agi/.agi/sessions/workflows/
-          runs/mur-*-<a00>/review_R-EFnn.json then verify_R-EFnn.json; the run dir appears only when the first stage completes)
-          S-EF71 pid 2372273 (21:38Z; review done, verify running) · T-EF73 pid 2515272 (21:56Z) · U-EF72 pid 2531615 (21:58Z)
-          V-EF75 pid 2602094 (22:08Z) · W-EF74 pid 2618933 (22:11Z) · args + logs .agi/sessions/de-0923/mur-{S,T,U,V,W}-EF7n*
-          EF.71 = g15.28.3 round 2, DISPROVED, merged as a strict improvement (dup ids 1 -> 0; stitch duplicate_payload_ref stays 1 ->
-                  round 3). EF.70 (554e7658a3, two files with one mint) must NEVER be merged.
-          EF.73 = g15.29.14 PROVED: base 957e35c815 1 failed / 11 passed -> tip 22 passed 1 xfailed
-          EF.72 = g15.29.16 PROVED: base de78c4e52b 2 failed / 65 passed -> tip 67 passed
-          EF.75 = g15.29.20 PROVED: base b77d55e06c + tip test = 2 failed / 12 passed -> tip a3f41a9217 five test_workflow*.py 146 passed
-          EF.74 = g15.29.13 PROVED on the tip (kid 1 a34eb635 inconclusive:60 = the empty-set fail-open; kid 2 19380df7 proved closes it):
-                  base 957e35c815 2 failed / 64 -> kid-1 6a861d1bbb 1 failed / 65 (engine_not_git_repo) -> tip 746e579a67 66 passed
-LIVE      EF.76 a00-03596c1e g15.29.11 grid ns · EF.77 a00-99b0e554 .12 harness argv · EF.78 a00-a60b35c8 .15 sub preview
- ROUNDS   EF.79 a00-c8b50f29 .17 crons fail-closed (HIGH blast) · EF.80 a00-d4e0b947 .18 restart full turn
-          EF.81 a00-52d04e56 .19 wait codes · EF.82 a00-c043cd15 .21 migrate test -- 7 of 8; orders .agi/sessions/de-0923/orders-EF.7n.md
-LEAVES    NOT dispatched: .22 /home literals (18 files; only when NO mur runs) · .23 authority-deferred key completes (after mur T
-          accepts EF.73 -- same functions) · g1.25.5 round C (dashboard watch; season.py:judge graph-write yet proposable; operator-verb
-          gate) · g15.28.3 round 3 (unset payload_ref on build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9) -- both need a hypothesis
-BANKED+   EF.64's hypothesis body predates the brief format (a node step) · the 52 residues + the triage plan: .agi/sessions/de-0923/residues-0923b.md
-ACCOUNT   $5.80 remaining (total 170.00 / used 164.20) at 22:12Z, read via the ENGINE reader, never .env:
-          python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))"
-          config provisioning.min_account_remaining_usd = -50 (the owner's floor) -> not a blocker; report the number in merge-up #3
+SENT      [merge-up] #3 to TM 22:45:49Z @d5696ac1de: EF.71-78 + EF.80-82 (11 rounds), mur 0 demote (EF.82 accept, 10 accept_with_residue),
+          union 1242 passed + 1 ORDER-DEPENDENT fail (EF.81's test vs test_node_writer's cli re-exec); body .agi/sessions/de-0923/mergeup-0923d.md
+          earlier: #1 21:18Z @bf0d60c955 · #2 21:23Z @a281bb0d85 · [jev] to director-thought 21:23Z (DONE)
+POST TIP  b4e9089e06 (pushed) = d5696ac1de + card + EF.85 @b0d118b05c + EF.84 @04ed4f7735 + trunk sync @b7ee07f15c + EF.83 @b4e9089e06
+POST TIP  fab1be73f5 (pushed) = b4e9089e06 + card + 3 hypotheses minted @e95d5747fe + trunk sync (18) @417fd95ca2 + EF.86 @fab1be73f5
+MERGE-UP #4 NOT SENT: EF.85 @b0d118b05c (crons r2; mur D2) · EF.84 @04ed4f7735 (.23; mur E2) + EF.86 @fab1be73f5 (.14 r2, the
+          TimeoutExpired guard that closes EF.84's exposure; mur G2) -- EF.84 ships ONLY with EF.86 · EF.83 @b4e9089e06 (.15 r2 strict
+          improvement; mur F2) [+ EF.87 when proved]. MURS IN: D2 EF85 a_w_r (a shell ${root}-named var is substituted; a malformed
+          [box].md raises an unnamed yaml error) · G2 EF86 a_w_r: the PUSH leg (rotate.py ~10490) and the _g git calls (~10469) of
+          _publish_row_to_authority are still unguarded -> DIRECTOR'S CALL (gen 2): EF.84+86 still ship together -- the push runs only
+          after a fetch succeeded, far rarer than the hang EF.86 closed; name the residue in #4 and dispatch .14 round 3 (every subprocess
+          call in _publish_row_to_authority bounded + guarded -> authority: FAILED).
+          E2 EF84 a_w_r ALSO: with NO key cell for the seat on the authority, the post-fix signer uses the predecessor while the
+          verifier resolves the committed successor = FORGED (send.py:233; verifier ~3240-3300) -- EF.84 fixes the common case (seat
+          already published) and breaks this rarer one. The ship call above is PROVISIONAL: re-weigh E2 + G2 before #4. If you HOLD
+          EF.84: `git revert -m 1 --no-commit 04ed4f7735` then `git checkout HEAD -- .agi/nodes/experiment/a00-6c3c02f2-8362a0.md`
+          (a revert must never remove a node), commit, re-run the union; either way .23 round 2 = the signer reads the authority's
+          actual cell, never infers it. Name the SHA after the last of them; re-run the union of their test files there
+          (EF.84/86: test_rotate_key_authority, _pending_swap_authority, _alert_two_tree, test_send*.py · EF.85: test_crons, test_paths_audit,
+          test_box_guard -- pin crons.resolve_branch in the detached gate · EF.83: test_write_sub, test_write, test_node_writer) + graph check
+LIVE      EF.87 a00-632e0d0d (.15 r3: the printed diff is a STANDARD unified diff) · EF.88 a00-fdcafcb9 (g15.28.3 r3: stitch counts live
+          claimants only) · EF.89 DONE 23:0xZ inconclusive_lean_proved:80, NOT harvested (C1, HIGH blast on commands.md: read its parent's THOUGHT, gate with `commands.py manifest` before/after) a00-0448a89f (g1.25.5 C1: proposable derived from side effects; its first parent a00-8f819f8c died in
+          13 s with no tool call -> re-dispatched) · murs D2 EF85, E2 EF84, F2 EF83, G2 EF86 running
+          watch: Monitor /tmp/de-watch.sh over /tmp/de-watch.txt (a successor re-arms it; the file lists every live pid)
+ACCOUNT   $1.37 remaining at 22:48Z (was $5.80 at 22:12Z; TM told in merge-up #3); the owner's floor -50 -> dispatch will not refuse.
+          If rounds/murs die with 402s: the account, not the round -- re-run after a top-up.
+          Read: python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))"
+NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed (refused ${PATH}); EF.85 carries its good half. Never merge 256dbb2f26.
+LEAVES    minted @e95d5747fe: g1.25.5 C2 hypothesis:the-anonymize-guard-scans-the-injected-command-lines-not-only-the-manifest
+          (test-only; dispatch ONLY after C1 = EF.89 merges -- shared test file) · NOT minted: .19 round 2 (EF.81's test patches `import
+          cli` -> must patch brief.cli; order-dependent vs test_node_writer) · .15 round 4 if EF.87 leaves it: the + preview omits
+          ring_decision for a ring: config write (mur C2) · .22 /home literals (only when NO mur runs) · g1.25.5 rounds B and D
+          (the goal node's round line) -- all on commands.md, never in parallel with C1/C2
+RESIDUES  0923c batch (14 rounds' STANDS + missed): .agi/sessions/de-0923/residues-0923c.md -> triage into leaves (KEEP SPLITTING)
+BANKED+   EF.64's hypothesis body predates the brief format · 0923b residues: .agi/sessions/de-0923/residues-0923b.md
+TRAP      a parent can die in 22 s with NO tool call (EF.79 a00-c8b50f29) -> re-dispatch the same iter id
+TRAP      gate worktree /tmp/de-harvest-gate is DETACHED: crons tests that render a push line fail there ("HEAD is not on a branch") --
+          pin crons.resolve_branch in a -p plugin (see EF.85's merge message), never create a branch for it
 TRAP      the rotation_alert hook AUTO-CAPTURES the card when it is ~10 min stale at 0.85 x the line and REWRITES its fenced slots
           -- re-write the card within 10 min before any `git add` of it; restore from the last good card commit if `AUTO-CAPTURED` heads it
-TRAP      a refused dispatch can leave an empty iter dir (iter-EF.72/a00-c3415643, never spawned) -- re-dispatch the same id
-TRAP      cli.py done = `git add -- <in-scope>` + commit the index: a round that retires a node must stage the rename (git mv) in the
-          PARENT (a kid commit cannot remove another agent's node: hooks/agent-git/pre-commit:61-99)
-TRAP      write.py cannot address a second file that shares an id (by path: "no node file"; by id it resolves the first)
+TRAP      cli.py done = `git add -- <in-scope>` + commit the index: a round that retires a node must stage the rename in the PARENT
 TRAP      a mur started in a session shell dies with the session at rotation -> always setsid nohup ... & disown
 TRAP      a parent's `done` line names ONE experiment -- a continuation kid's proof can sit beside a demoted first kid (EF.74): read both
-TRAP      every round needs a mur before its merge-up; run gate reds WITH the seat env (env -u TMUX -u TMUX_PANE, AGI_* kept); a parent
-          can report "harvest accepted" with nothing committed -- check the tip moved
+TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving ref tip; `crons._resolve` wants the .agi dir as root
 ```
 ````
 
@@ -54,18 +64,19 @@ TRAP      every round needs a mur before its merge-up; run gate reds WITH the se
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (22:1xZ 09-23, gen 2; post tip ef92688bd4 pushed)
+## 🔴 WHERE IT STOPS — the one next command (23:0xZ 09-23, gen 2 rotating at f 0.40 -- the hook captured the card twice; post tip pushed)
+```````
 ``````
 `````
 ````
 ```
-1  ls /data/work/agi/.agi/sessions/workflows/runs/mur-*/verify_R-EF7{1,2,3,4,5}.json 2>/dev/null     # murs S T U V W in?
-   for b in 03596c1e 99b0e554 a60b35c8 c8b50f29 d4e0b947 52d04e56 c043cd15; do git log -1 --format='%h %s' \
-     $(git branch --list "season2/loops/*a00-$b" --format='%(refname:short)'); done                  # EF.76-82 done?
-2  each verify in -> read verdicts (a DEMOTE = revert or round 2, never ship it) -> all five in: ONE [merge-up] #3 to thought-master
-     (EF.71 + EF.73 + EF.72 + EF.75 + EF.74, the pushed SHA, the $5.80 account line) -> after T accepts: dispatch .23
-3  each EF.76-82 `done` -> harvest (step 3 of the loop) + its mur; merge-up #4 when their murs are in
+1  python3 /tmp/de-verdicts.py EF85 EF84 EF83 EF86 ; for b in 632e0d0d fdcafcb9 0448a89f; do git log -1 --format='%h %s' \
+     $(git branch --list "season2/loops/*a00-$b" --format='%(refname:short)'); done   # murs D2 E2 F2 G2 in? EF.87/88/89 done?
+   (if /tmp/de-verdicts.py is gone: read runs/mur-*/verify_R-EFnn.json -> result.final_recommendation, verdicts[].refuted, missed)
+2  D2 E2 F2 G2 in, 0 demote -> union + graph check -> ONE [merge-up] #4 to thought-master (EF.85 + EF.84 + EF.86 + EF.83 [+ EF.87])
+3  EF.87/88/89 done -> harvest each (gate: /tmp/de-gate.sh <label> <base> <tip> <test files>; merge; mur) · then C2, .19 r2, .22
 ```
 ````
 `````
 ``````
+```````
