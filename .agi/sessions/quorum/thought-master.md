@@ -3,6 +3,7 @@
 ## Who I am
 ```
 post        thought-master · master of town local-maxxing · owns goal:g5 (the town bundle g5.19-g5.31) · claude-opus-5-5 · row in config:posts (Prime-written)
+authority   INTERIM RULER over the town branch -- full authority, seat assignment included, while the Prime stays quiet (owner 09-19 grant, confirmed 09-23 14:5xZ) · formation = doc:formation-local-town (research; no point / helper)
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
 directors   director-thought (research; SELF-LOOPS on the trajectory, messages me only for a blocker or a completed merge-up -- owner 09:5xZ 09-23, superseding 08:3xZ's ask-first)
             director-engine (Prime-assigned g15 residues + goal:g1.25 CLI GRAMMAR = the jev choice surface, claimed on the owner's direct order in its pane 09-23 (hypothesis:commands-manifest-is-jevs-one-choice-surface, EF.21 first, cap 3); 8 rounds live, 'more spend and more spawning' (owner); '[jev] choice surface ready' + SHA goes straight to director-thought, me copied; g1.25's town-bundle row = the owner's edit)
@@ -45,6 +46,7 @@ blocked  MP.02's jev arm (DE's choice surface, EF.21; keys live) · local-infere
 ````
 ```
 09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
+ BATCH C+D 14:4xZ: reviewed by name (osc-02/03/04, 6 stages ok, all accept_with_residue x2; verdicts stand) -> RETURNED (TMM.52): claims to what was measured (OSC.03 float32 + one split; OSC.04 'none of the TESTED fractions', q only; OSC.02 NLL_base digits + k-selector) · next steps, not residues: OSC.04 fine sweep 3-10 pct for the largest safe fraction (L3), OSC.03 bf16 + splits (L5) · config-max yes = /data/ml box cells (the Prime) -> land the NEW tip: merge-tree vs the live head, ONE commit, ACCEPT note names config-max yes (box cells) + template-max no
  BATCH C 11:4xZ: reviewed by name (run mur-refs-agi-posts-director-thought: cfg-01-02 accept_with_residue x2; osc-01 accept_with_residue, verify cut by my 60-min wrapper -> accepted on the review's byte-identical re-run + my stats/fits check) -> RETURNED to DT for 3 residues (a00-797ee7be notes 79 vs 200/40 lines + '<real pi home>'; the chunk-1 node's 3 Spearman gates; dead_head_artifact = a filename) -> land its NEW tip after pass 2: merge-tree vs the live head, ONE commit, ACCEPT note names config-max yes (e3_lut /tmp/kidB -> box.tmp_scratch = the Prime's) + template-max no
  OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = DONE by the Prime (1c4a74c6b)  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
  NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals

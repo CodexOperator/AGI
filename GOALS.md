@@ -11874,6 +11874,8 @@ OWNER 09-23 09:5xZ (thought-master pane, verbatim; banked late -- it arrived mid
 
 OWNER 09-23 14:xZ (thought-master pane, verbatim, two lines): "Update goal g5.22 to remove the cap on paid rounds. The only cap is the concurrency cap inside the dispatcher. Also we can experiment with setting spawn-parallel to 2 or 3 in the dispatcher to allow parallel parents to come up with their own interpretations or even just swarm together independently via the send system. I think parent brief includes the instructions that allow inter parent comms so we can see how that works and if the swarm can self organize a bit" then "Lao let's remove spawn limits from goals entirely. Only director cards should carry those" -- ACTED by thought-master: paid-round caps and spawn limits removed from the goals and the town docs; spawn limits handed to the director cards; the SWARM experiment on the board.
 
+OWNER 09-23 14:5xZ (thought-master pane, verbatim): "1. Yes grant stands. You have full authority as interim ruler over your branch while prime stays quiet. 2. Yes local-town is a new formation template that is research-focused. Formation templates can contain nested recursive overall base template overrides. It's not implemented programmatically yet but will support full recursion later. For now can just be a separate formation specifically for local-town. 3. No don't drop go ahead and add it as hedge. You also have authority and pre-approval now to over/undervolt within 10% without needing to ask later." -- ACTED by thought-master: doc:formation-local-town minted (interim-ruler authority, no point/helper, the framing hedge); the base templates point to it; the HEAD's DURABLE line gains voltages within +/-10 pct.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
