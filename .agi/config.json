@@ -59,10 +59,7 @@
         "~z-ai/glm-flash-latest",
         "anthropic/claude-opus-5"
       ],
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_API_KEY"
-      ]
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "pi-local": {
       "adapter": "pi",
@@ -76,10 +73,7 @@
       "allowed_extra": [
         "Qwen3.5-9B-Q4_K_M"
       ],
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_API_KEY"
-      ]
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "claude-code": {
       "adapter": "claude_code",
