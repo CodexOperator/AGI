@@ -3,9 +3,9 @@ id: goal:s5
 mint_id: 9cfe86f4759648ed914615ddc2e4b019
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S5
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S5: The engine repo has no sync at all"
 ---
 `agi-tree` got both grid cadences on 2026-08-22 (**S2**). **`agi` got nothing** —
