@@ -3,20 +3,20 @@ id: goal:g8
 mint_id: d9b0550f6c91463d92a36990c4ebdbd0
 type: goal
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G8
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds:
-  - goal:g8.1
-  - goal:g8.2
-status: horizon
+  - goal:g1.23
+  - goal:g1.24
+status: retired
 tags:
   - goal
   - root
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: "G8: Forkability: anyone grows their own tree"
 ---
 A project repo holds data and configuration; the engine arrives as a clone.
@@ -30,3 +30,7 @@ exposed to a workflow.
 
 Owns: **L9** (scaffolding a project without copying by hand — shares its writer
 with G1/L17). L10 moved to **G9**, which is where legibility now lives.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
+<!-- THOUGHT:END -->
