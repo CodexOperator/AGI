@@ -1,7 +1,7 @@
 # POST HANDOFF — thought-master (THE THOUGHT MASTER) — diagram-maxed 02:2xZ 09-21 (goal:g14.16); §0-§3 compress the master-sensei/SM charter of 09-13 (facts kept; owner quotes verbatim in `doc:l4-owner-decisions` / goal:g14); §4+ is mine, replaced wholesale as I work
 ## §0-§1 WHO · WHERE · LOOP
 ```
-post        thought-master · role director · tier 1 · claude-opus-5 max · town local-maxxing · owns goal:g14 (+ research treasury) · rotated_by quorum · row in config:posts (Prime-written, NEVER by me)
+post        thought-master · role director · tier 1 · claude-opus-5-5 max · town local-maxxing · owns goal:g14 (+ research treasury) · rotated_by quorum · row in config:posts (Prime-written, NEVER by me)
 answers to  sanctuary-master (INACTIVE since 09-20) -> in practice the owner, who speaks in my pane or through the Prime (orders verified on goal:g14, never on a pane voice)
 where       MAIN /data/work/agi = trunk local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master · address = session_name (no generation tracked, owner 16:4xZ 09-14)
 owner 09-13 "spin up another master seat on Opus … the thought master … responsible for inference related research and development tasks" · "the local Maxxing town master receives their own director that they can use to pursue goals as they see fit" · "this is how we will organize breaking out long term g goals into their own towns"
@@ -45,12 +45,10 @@ Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama
 `````
 ````
 ```
-07:5xZ 09-23  ROTATING at f≈0.46 (early on purpose: the owner's CC budget -- a fresh seat runs the merge-ups on a small context)
- gap        2 days idle (09-21 14:1xZ -> 09-23); core sync landed 8451055b5: renumber · board = town:local-maxxing field · director-engine OFF engine work (owner)
- owner      09-23 07:5xZ: keep running experiments; jev MAGIC PANE focus alongside the off-the-shelf combination experiments (banked verbatim, goal:g14)
- ordered    TMM.33 to director-thought: batch A NOW 0 USD pi-local = MP.02 suggester (+ cli-grammar.json + dm/notes test set as jev-lane tooling) · batch B on headroom = SWR-C2.02 + B re-score -> FT.00 -> MP.03
- board      folded into town:local-maxxing trajectory_standin (first write); directors told to repoint
- NEXT       (1) on TMM.33 merge-up(s): my loop (above) -> next order  (2) 11:41Z the Prime's pass-2 mur (3 GB + 2 cores) -> no host model-loading kid in that window  (3) pool still negative after pass 2 -> ONE line to the owner with the number (they top up)  (4) director-thought's branch carries the Prime's 09-23 reference fix (c6a096286) -> lands with its next merge-up
+08:0xZ 09-23  gen 11 seated 07:52Z (Opus 5.5) · IDLE between merge-ups
+ DT 07:58   state correction: B's N=10 re-score was NEVER dispatched (TMM.32 crossed the C2 dispatch 09-21) · C2 (arm B + LoRA, SWR-C2.02) done-unreported, on DT ref 37a4cf1e7: IFEval strict 0.8022 (434/541) + HE 92.9 pct rel = first arm over BOTH bars on SINGLE runs; no parent review, not merged, NOT established (CI rule) · TMM.33 never reached DT's inbox (read from goal:g14 + card) · batch A running: MP02-G.01 -> MP02-T.01 -> MP02-S.01, pi-local 0 USD
+ done 08:0xZ board rewritten (C2 row · corrected queue · open: key TTL) · TMM.34 to DT (batch B = N=10 for B AND C2 + C2's missing review; paid wall under the TTL; no pi-local round live across 11:41Z) · [decision] to belam: key TTL 180 (spawn.credential.ttl_minutes) == 180-min wall -> full-allowance round loses its parent review (a00-5265b6a1 died 401 79 s after its kid committed; the same 401 text also = a hit dollar cap) + the pi-local 'model=deepseek' log line
+ NEXT       (1) batch A merge-up (one per batch) -> my loop (above) -> next order  (2) the Prime's answer on key TTL -> relay to DT before batch B dispatches  (3) 11:41Z pass 2 -> no pi-local round live across it  (4) pool still negative after pass 2 -> ONE line to the owner with the number (they top up)  (5) DT's branch carries the Prime's reference fix (c6a096286) -> lands with its next merge-up
  never      reap --yes · spawn a parent · engine code by hand · vision/moral nodes · config rows except as the owner's hand on a pane order · order director-engine on town work (owner 09-23)
  out        python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
