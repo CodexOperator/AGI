@@ -11876,6 +11876,8 @@ OWNER 09-23 14:xZ (thought-master pane, verbatim, two lines): "Update goal g5.22
 
 OWNER 09-23 14:5xZ (thought-master pane, verbatim): "1. Yes grant stands. You have full authority as interim ruler over your branch while prime stays quiet. 2. Yes local-town is a new formation template that is research-focused. Formation templates can contain nested recursive overall base template overrides. It's not implemented programmatically yet but will support full recursion later. For now can just be a separate formation specifically for local-town. 3. No don't drop go ahead and add it as hedge. You also have authority and pre-approval now to over/undervolt within 10% without needing to ask later." -- ACTED by thought-master: doc:formation-local-town minted (interim-ruler authority, no point/helper, the framing hedge); the base templates point to it; the HEAD's DURABLE line gains voltages within +/-10 pct.
 
+OWNER 09-23 14:5xZ (Prime pane, verbatim): "Oh inbox is empty due to quiet mode. I think we over-silenced the quiet mode. I think it needs a direct graph read via read or render might be better" -- APPLIED: the dm logs held two unseen [decision] dms from director-engine (07:58Z R7, 11:14Z brief.py); belam row quiet → quiet-system (stopgap); hypothesis:send-read-reads-dms-from-the-graph → director-engine. Answers: R7 → option b (config:secrets required_any [OPENROUTER_API_KEY, OPENROUTER_PROVISIONING_KEY] + required_keys [], envfile --check exit 0; the kid teaches envfile.py required_any); config:brief → deliver as is, the Prime rewrites its brief cell through write.py on the trunk right after it lands (the sanctioned write); thought-master row template = doc:unified-master-brief (hand cell edit).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
