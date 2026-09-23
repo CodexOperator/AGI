@@ -10427,10 +10427,21 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         return "authority: SKIPPED -- no git repo (gitless fixture/root)"
     rel = os.path.relpath(_ack_seats_path(main_root), top)
     attempted = False  # EF.56: a real fetch of the authority branch happened
+    unreadable = False  # EF.86: a fetch exception -> never SKIPPED
     for _att in range(2):  # non-ff race -> fetch again and recompose
-        fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
-                                branch], capture_output=True, text=True,
-                               timeout=60)
+        try:
+            fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
+                                    branch], capture_output=True, text=True,
+                                   timeout=60)
+        except subprocess.TimeoutExpired as exc:
+            unreadable = True
+            last = (f"fetch of authority branch {branch} timed out after "
+                    f"{exc.timeout}s")
+            break  # a hanging fetch does not un-hang on a second try
+        except OSError as exc:
+            unreadable = True
+            last = f"could not launch git fetch for {branch}: {exc}"
+            break
         base = (_blob_text(top, f"FETCH_HEAD:{rel}")
                 if fetch.returncode == 0 else None)
         if fetch.returncode == 0:
@@ -10495,10 +10506,17 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     # ref may exist there and disagree with the on-disk key, so it must FAIL.
     # `ls-remote --exit-code` discriminates: rc 2 = the ref is truly absent.
     if not attempted:
-        _probe = subprocess.run(
-            ["git", "-C", str(top), "ls-remote", "--exit-code", "origin",
-             branch], capture_output=True, text=True, timeout=60)
-        if _probe.returncode == 2:
+        try:
+            _probe = subprocess.run(
+                ["git", "-C", str(top), "ls-remote", "--exit-code", "origin",
+                 branch], capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired as exc:
+            return (f"authority: FAILED -- ls-remote of {branch} timed out "
+                    f"after {exc.timeout}s")
+        except OSError as exc:
+            return (f"authority: FAILED -- could not launch git ls-remote "
+                    f"for {branch}: {exc}")
+        if _probe.returncode == 2 and not unreadable:
             return (f"authority: SKIPPED -- no authority branch {branch} "
                     f"(never fetched; {last})")
     return f"authority: FAILED -- {last}"
