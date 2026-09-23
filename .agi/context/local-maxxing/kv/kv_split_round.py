@@ -64,8 +64,8 @@ def bench(ctk, ctv, name):
     a = ["-m", M, "-ngl", "99", "-fa", "1", "-ctk", ctk, "-ctv", ctv, "-p", "512", "-n", "64",
          "-d", "0,16384"]
     run("llama-bench", a + ["-r", "1"], name + "_warm")
-    out = run("llama-bench", a + ["-r", "5"], name)
-    return {"rows": S.parse(out), "ram_mb": S.ram(), "loadavg": list(os.getloadavg())}
+    out = run("llama-bench", a + ["-r", str(S.REPS)], name)
+    return {"rows": S.parse(out, S.REPS), "ram_mb": S.ram(), "loadavg": list(os.getloadavg())}
 
 
 def main():

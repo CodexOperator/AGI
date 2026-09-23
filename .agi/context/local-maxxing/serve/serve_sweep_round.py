@@ -30,13 +30,13 @@ def dk(entry, args, name, env=None, mounts=None):
     return sh(["docker", "run", "--rm", "--gpus", "all", "-v", SC + ":/work", "-v", OUT + ":/out"] + (["-v", NS + ":/nsys:ro"]) * (mounts == "nsys") + e + ["--entrypoint", entry if entry.startswith("/") else "/app/" + entry, IMG] + args, name)
 
 
-def bench(n, fl, ev): return {"rows": S.parse(dk("llama-bench", BASE + fl, n, ev)[1]), "flags": fl, "env": ev}
+def bench(n, fl, ev): return {"rows": S.parse(dk("llama-bench", BASE + ["-r", str(S.REPS)] + fl, n, ev)[1], S.REPS), "flags": fl, "env": ev}  # -r made explicit: llama-bench's default, 5
 
 
 def ppl(n, fl, ev): m = re.findall(r"PPL\s*=\s*([0-9.]+)", dk("llama-perplexity", ["-m", M, "-f", "/work/wikitext-2-raw/wiki.test.raw", "-c", "512", "--chunks", "40", "-ngl", "99", "--seed", "42", "-t", "8", "--no-warmup"] + fl, n, ev)[1]); return {"ppl": float(m[-1]) if m else None, "flags": fl}
 
 
-def gain(x, b): return (x[0] - b[0]) / b[0], T975 * ((x[1] / 5 ** .5 / b[0]) ** 2 + (x[0] * b[1] / 5 ** .5 / b[0] ** 2) ** 2) ** .5
+def gain(x, b): return (x[0] - b[0]) / b[0], T975 * ((x[1] / S.REPS ** .5 / b[0]) ** 2 + (x[0] * b[1] / S.REPS ** .5 / b[0] ** 2) ** 2) ** .5
 
 
 def load(): return json.load(open(OUT + "/sweep.json")) if os.path.exists(OUT + "/sweep.json") else {}

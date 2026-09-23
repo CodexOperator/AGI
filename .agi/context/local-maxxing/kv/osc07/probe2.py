@@ -2,8 +2,8 @@
 """OSC.07 probe 2: (a) clean re-measure of the --fit capacity reps (the first run's 86,528
 looks contaminated by a concurrent manual llama-server); (b) FA on/off A/B on the split.
 Session scratch only -- not production. Reuses kv_split_round.__main__-guarded helpers."""
-import json, sys
-sys.path.insert(0, "/data/work/agi/.agi/worktrees/a00-27ee7e7b/.agi/context/local-maxxing/kv")
+import json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # kv/, resolved from this file
 import kv_split_round as K
 
 res = {"fits": [], "fa_ab": {}}
@@ -16,10 +16,11 @@ for i, (ctk, ctv) in enumerate([("q8_0", "q4_0"), ("f16", "f16"), ("q8_0", "q4_0
 
 for tag, (ctk, ctv), fa in [("split_fa1", ("q8_0", "q4_0"), 1), ("split_fa0", ("q8_0", "q4_0"), 0),
                             ("f16_fa0", ("f16", "f16"), 0)]:
+    REPS = 3  # this probe runs -r 3; parse() records it
     a = ["-m", K.M, "-ngl", "99", "-fa", str(fa), "-ctk", ctk, "-ctv", ctv, "-p", "0", "-n", "64",
          "-d", "16384"]
     K.run("llama-bench", a + ["-r", "1"], tag + "_warm")
-    res["fa_ab"][tag] = K.S.parse(K.run("llama-bench", a + ["-r", "3"], tag))
+    res["fa_ab"][tag] = K.S.parse(K.run("llama-bench", a + ["-r", str(REPS)], tag), REPS)
     print("BENCH " + tag + " " + json.dumps(res["fa_ab"][tag]), flush=True)
 
 json.dump(res, open(K.OUT + "/probe2.json", "w"), indent=1)

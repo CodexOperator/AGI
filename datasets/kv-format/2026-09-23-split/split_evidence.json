@@ -105,18 +105,19 @@
    "tg64@16384": [
     48.76,
     0.79,
-    5
+    3
    ]
   },
   "f16_fa0_probe2_3reps": {
    "tg64@16384": [
     34.01,
     21.94,
-    5
+    3
    ]
   },
   "f16_fa1_osc06_5reps": 57.14,
   "q4_fa1_osc06_5reps": 51.36
  },
- "notes": "fit_split first measured 86528 (1.742x) while a concurrent manual llama-server attempt (OOM-failed) held ~78 MiB of stale CUDA context; 3 clean reps at 92416 (1.8608x), f16 control reproduced the router's 49664 slot exactly, so the clean figure stands."
+ "notes": "fit_split first measured 86528 (1.742x) while a concurrent manual llama-server attempt (OOM-failed) held ~78 MiB of stale CUDA context; 3 clean reps at 92416 (1.8608x), f16 control reproduced the router's 49664 slot exactly, so the clean figure stands.",
+ "_note_reps": "rows produced by probe2.py ran llama-bench -r 3; their third element was first written as 5 by a hardcoded parse() -- corrected to 3 at thought-master's TMM.55 (a half-width built on n=5 would be too narrow)"
 }

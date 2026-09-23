@@ -41,7 +41,7 @@
    "tg64@16384": [
     48.76,
     0.79,
-    5
+    3
    ]
   },
   "split_fa0": {},
@@ -49,8 +49,9 @@
    "tg64@16384": [
     34.01,
     21.94,
-    5
+    3
    ]
   }
- }
+ },
+ "_note_reps": "rows produced by probe2.py ran llama-bench -r 3; their third element was first written as 5 by a hardcoded parse() -- corrected to 3 at thought-master's TMM.55 (a half-width built on n=5 would be too narrow)"
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # T1 placement probe (OSC.07): with -lv 5, does the split's flash attention run on CUDA or fall back to CPU?
 set -u
-S=/data/work/agi/.agi/worktrees/a00-27ee7e7b
-D=$S/datasets/kv-format/2026-09-23-split/logs
+S="$(cd "$(dirname "$0")/../../../../.." && pwd)"   # the checkout, resolved from this script (kv/osc07 -> repo root)
+D="$(python3 "$S/.agi/context/local-maxxing/paths.py" --local kv_split_out_dir)/logs"
 IMG=ghcr.io/ggml-org/llama.cpp:full-cuda
 run() {  # $1=tag $2=ctk $3=ctv $4=port
   local name=place_$1
