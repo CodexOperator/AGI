@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-watch-cap-fix-2026-09-22
+thought_session: belam-parent-90m-health-2026-09-23
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -259,6 +259,9 @@ ZERO-RESIDUE
 
 1) Sense
    parents alive? workflows running? slots free under ≤18/≤30?
+   LIVE parent age >90m → health check (progress/traj/log idle · stuck cmd · lease holder alive)
+     · unhealthy >90m → treat as hung for watch decision (emit · eligible remur/reclaim ONLY-IF already in SoT · NEVER invent kill)
+     · healthy >90m → leave alone
    status=done + no MUR yet → owed MUR · FILL toward CAP
    residual parents owed:
      · done kids with residues (need nest+parent or re-parent)
@@ -277,5 +280,5 @@ ZERO-RESIDUE
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: soft floor ≥5→≥10; CAP-RULER > soft floor (≤18 real target); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged
+owner-fix: soft floor ≥5→≥10; CAP-RULER > soft floor (≤18 real target); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged; LIVE parent >90m health check (unhealthy→hung watch decision · healthy→leave · never invent kill)
 <!-- THOUGHT:END -->
