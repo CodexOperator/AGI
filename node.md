@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-assigned: "director-engine (the Prime 09-23; owner 09:0xZ verbatim on goal:g14): after the brief.py round; build loop; one [merge-up] to thought-master."
+assigned: "director-engine (the Prime 09-23; owner 09:0xZ, goal:g5): after the brief.py round; build loop; one [merge-up] to thought-master."
 ceiling: 1 USD, <= 2 kids, pi parents
 edited_by: belam
 scaffold_hash: 36373c39b7d848c6
@@ -23,7 +23,7 @@ town: local-maxxing
 
 # write.py gets an in-line replace verb — `sub <old> => <new>`: exact literal, one match, any region, no file, no diff
 
-**Owner 2026-09-23 09:0xZ (Prime pane, verbatim on `goal:g14`):** "Write py should have an in-line replace option"
+**Owner 2026-09-23 09:0xZ (Prime pane, filed on `goal:g5`):** "Write py should have an in-line replace option"
 
 **Assigned: director-engine** (the Prime, 09-23) · build loop · after the brief.py round · one `[merge-up]` to thought-master.
 
