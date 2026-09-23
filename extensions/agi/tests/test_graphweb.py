@@ -734,6 +734,15 @@ manifest:
     purpose: set a key
     side_effects: graph-write
     proposable: true
+  write.py:read:
+    cli: write.py
+    verb: read
+    argv: [python3, <engine>/write.py, <node-id>, "read body 1:2"]
+    args:
+      - {name: range, type: str, required: true, choices: []}
+    purpose: read a slice
+    side_effects: read
+    proposable: true
 excluded:
   write.py:patch:
     cli: write.py
@@ -819,6 +828,24 @@ def test_post_propose_returns_the_argv_and_runs_nothing(graph, monkeypatch) -> N
                   {"name": "write.py:patch", "args": {}})
         assert 400 <= exc.value.code < 500
         assert b"not proposable" in exc.value.read()
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        t.join(timeout=5)
+
+
+def test_post_propose_refuses_an_unplaceable_required_arg(graph) -> None:
+    """The new refusal rides the SAME POST path: a required arg with no
+    placeholder in the template is a 400, never an argv with the value
+    silently dropped."""
+    _write_commands_node(graph)
+    httpd, t, port = _serve_commands(graph)
+    try:
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            _post(f"http://127.0.0.1:{port}/propose",
+                  {"name": "write.py:read", "args": {"range": "1:2"}})
+        assert exc.value.code == 400
+        assert b"cannot place arg" in exc.value.read()
     finally:
         httpd.shutdown()
         httpd.server_close()
