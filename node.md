@@ -1,13 +1,13 @@
 ---
-id: goal:g14.10.2
+id: goal:g5.26.2
 mint_id: 4bee9811f20e4d7ba3cf3c54989435ff
 type: goal
 parents:
-  - goal:g14.10
+  - goal:g5.26
 next_edges: []
 confidence: 0.7
 edited_by: belam
-goal_id: G14.10.2
+goal_id: G5.26.2
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -38,3 +38,7 @@ town: local-maxxing
 **First chunk.** None minted yet -- ordered explicitly by thought-master: DS.01 first (the one scrub, already queued), THEN this node's own capture chunk, THEN the jev classifier pass as its own batched rounds. Both later steps queue behind DS.01 landing.
 
 director-thought 06:5xZ 09-21 -- TMM.27 order: minted both hypotheses named in this node own First-chunk line -- hypothesis:lm-session-data-capture-lands-every-role-under-datasets-sessions (chunk 1, capture) and hypothesis:lm-jev-classifier-pass-adds-classes-the-graph-lacks (chunk 2, classifier). Both no-spend, both mintable-not-dispatchable: chunk 1 waits on goal:g14.14.8 (director-engine capture hook), chunk 2 waits on chunk 1.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.10.2 -> g5.26.2 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.10 became g5.26 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
