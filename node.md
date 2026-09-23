@@ -3,12 +3,13 @@ id: hypothesis:l5-rename-post-staged-from-main-root-derives-main-comms-paths-for
 mint_id: e7aca463bd734df38e40693137726938
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: director-belam
+edited_by: belam
 scaffold_hash: 8a062336551adb20
 season: 2
 testable_claim: "rotate.py rename-post, when staged from the MAIN repo root for a post that actually lives in a worktree, derives MAIN-rooted comms paths for that post dm logs; the boundary then refuses the resulting stage as drift because the worktree post real comms paths differ from the MAIN-rooted ones the stage assumed. Workaround used live: stage rename-post from the post own worktree root instead of MAIN root. Fix: rename-post should either refuse a MAIN-root stage for a worktree post outright with a clear message, or re-root the derived comms paths to that post own worktree, instead of producing a stage that only fails later at the boundary as drift (belam [rule] dm 22:43Z)."
+thought_session: dissolve-legacy-2026-09-19
 title: L5 rename post staged from main root derives main comms paths for a worktree post
 town: core
 ---
