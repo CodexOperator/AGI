@@ -195,19 +195,31 @@ def _first_arg(harness_id: str, tmpl: dict) -> str:
     """The template's `bin` cell (or its id) through the ONE shared resolver.
 
     `render()` has no graph root, so this is the resolver's own behaviour and
-    nothing more: `$<ID>_BIN` (e.g. `PI_BIN`) wins, then `~`/`{home}` expansion
-    against the CURRENT HOME, then PATH; a home-token cell whose expanded file
-    is absent refuses by name (`hypothesis:harness-bin-paths-resolve-per-box`
-    round 3). A bare name that is not on PATH is handed back unchanged, so a
-    synthetic fourth template still renders `["fakebin", ...]`.
+    nothing more: the ADAPTER's one env var (e.g. `CLAUDE_BIN`, not a second
+    derived `CLAUDE_CODE_BIN` convention), then `~`/`{home}` expansion against
+    the CURRENT HOME, then PATH; a home-token cell whose expanded file is
+    absent refuses by name (`hypothesis:harness-bin-paths-resolve-per-box`
+    round 3b). The adapter module named by the template's id owns the override
+    name, so render and dispatch cannot disagree; a synthetic template with no
+    adapter module falls back to the derived `<ID>_BIN`. A bare name that is
+    not on PATH is handed back unchanged, so a synthetic fourth template still
+    renders `["fakebin", ...]`.
     """
+    hid = tmpl.get("id") or harness_id
     cell = tmpl.get("bin") or harness_id
-    env_var = (tmpl.get("id") or harness_id).upper().replace("-", "_") + "_BIN"
     try:
         import adapters
     except ImportError:  # imported as `agi.bin.harness_template`
         from agi.bin import adapters
-    return adapters.resolve_bin({"adapter": tmpl.get("id")}, env_var, cell)
+    env_var = None
+    try:
+        env_var = getattr(adapters.load(hid.replace("-", "_")), "ENV_VAR", None)
+    except (adapters.AdapterError, ImportError):
+        # No adapter module for a synthetic template: derive the name.
+        env_var = None
+    if not env_var:
+        env_var = hid.upper().replace("-", "_") + "_BIN"
+    return adapters.resolve_bin({"adapter": hid}, env_var, cell)
 
 
 def render(harness_id: str, *, prompt=None, model=None, effort=None,

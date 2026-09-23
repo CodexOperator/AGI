@@ -29,11 +29,14 @@ NAME = "grok-bot"
 #: a literal here.
 DEFAULT_BIN = "grok-bot"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "GROK_BOT_BIN"
+
 
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default, via the ONE shared resolver
     in `adapters.resolve_bin` (env, `~`/`{home}`, PATH, named refusal)."""
-    return adapters.resolve_bin(harness, "GROK_BOT_BIN", DEFAULT_BIN)
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:

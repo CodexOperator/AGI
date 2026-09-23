@@ -454,3 +454,67 @@ def test_render_expands_a_home_token_bin_through_the_one_resolver(
 
     got = harness_template.render("home-harness", prompt="CARD")
     assert got == [str(fake), "CARD"]
+
+
+#: (harness id, the ONE env var its adapter owns) -- round 3b of
+#: hypothesis:harness-bin-paths-resolve-per-box. The hyphenated ids must map
+#: to the CONVENTIONAL name (`CLAUDE_BIN`/`COPILOT_BIN`), never a second
+#: derived `<ID>_BIN` convention that only render() honours.
+ADAPTER_OVERRIDES = [
+    ("claude-code", "CLAUDE_BIN"),
+    ("copilot-cli", "COPILOT_BIN"),
+    ("pi", "PI_BIN"),
+]
+
+_REFUSED_DERIVED = ("CLAUDE_CODE_BIN", "COPILOT_CLI_BIN")
+
+
+@pytest.mark.parametrize("harness,env_var", ADAPTER_OVERRIDES)
+def test_render_honours_the_adapters_one_env_override(
+        harness, env_var, tmp_path, monkeypatch):
+    """`render()` must consult the SAME override the adapter's `resolve_bin`
+    does, so a box that exports the documented var gets it in argv[0]. Pre-fix
+    the hyphenated ids derived `$CLAUDE_CODE_BIN`/`$COPILOT_CLI_BIN` and
+    silently ignored the conventional name on the live seat path."""
+    fake = tmp_path / "the-binary"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    for name in ("CLAUDE_BIN", "COPILOT_BIN", "PI_BIN", *_REFUSED_DERIVED):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(env_var, str(fake))
+
+    assert harness_template.render(harness, prompt="CARD")[0] == str(fake)
+
+
+@pytest.mark.parametrize("harness,env_var", ADAPTER_OVERRIDES)
+def test_render_ignores_a_second_derived_override_name(
+        harness, env_var, tmp_path, monkeypatch):
+    """The derived `<ID>_BIN` is not a name any adapter uses; honouring it
+    instead of the adapter's var is the round-3b defect. With ONLY the derived
+    name set the bare template cell (not on PATH) must come through unchanged."""
+    fake = tmp_path / "the-binary"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    derived = harness.upper().replace("-", "_") + "_BIN"
+    if derived == env_var:
+        pytest.skip("single-word harness has no second convention")
+    for name in ("CLAUDE_BIN", "COPILOT_BIN", "PI_BIN", *_REFUSED_DERIVED):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(derived, str(fake))
+
+    got = harness_template.render(harness, prompt="CARD")[0]
+    assert got != str(fake)
+    assert got == harness_template.load(harness)["bin"]  # the bare cell
+
+
+def test_every_adapter_exports_the_env_var_it_resolves():
+    """ONE name per harness: the module constant `harness_template._first_arg`
+    reads is the same string the adapter's own `resolve_bin` passes."""
+    import importlib
+
+    for adapter_name, expected in (("pi", "PI_BIN"),
+                                   ("claude_code", "CLAUDE_BIN"),
+                                   ("copilot_cli", "COPILOT_BIN"),
+                                   ("grok_bot", "GROK_BOT_BIN")):
+        mod = importlib.import_module(f"agi.bin.adapters.{adapter_name}_adapter")
+        assert mod.ENV_VAR == expected
