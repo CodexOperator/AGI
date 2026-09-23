@@ -3,11 +3,11 @@ id: goal:g4.3
 mint_id: 486acf4bc70c403aa16c9d1efdcb8107
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 next_edges:
   - hypothesis:a00-652a7e70-1adcde
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.3
 goal_kind: subgoal
 heading_level: 3
@@ -18,10 +18,9 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.3: Finish the runtime split: pi and Claude Code as one path"
 ---
-
 > **⚠ SUPERSEDED IN INTENT by `goal:g4.6` (2026-09-01), and still open as
 > stated.** Read that goal before doing work here. This one is framed as *two
 > named runtimes reaching parity* — the frame the Claude Code adaptation had
