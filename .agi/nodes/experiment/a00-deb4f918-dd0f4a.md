@@ -6,12 +6,15 @@ parents:
   - hypothesis:commands-manifest-is-jevs-one-choice-surface
 next_edges: []
 confidence: 0.6
-edited_by: a00-deb4f918
+edited_by: a00-979adf9d
 evidence_runs:
   - experiment:a00-deb4f918-dd0f4a
 line_ceiling: 40
 loop: hypothesis:commands-manifest-is-jevs-one-choice-surface@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - "P-wire: commands.py manifest prints 38 entries, byte-identical across two renders, zero argv token starting / (compared /tmp/m1.json == /tmp/m2.json)"
+  - "P-gate: dropping write.py:adopt from a temp commands.md makes declared write.py set != set(VERBS)|create, missing=[adopt]; the drift gate refuses a dropped verb"
 production_lines: 64
 profile: balanced
 role: kid
@@ -89,17 +92,7 @@ inspection commands but wrong for e.g. `grid-commit` — a later kid must author
 those overrides.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Two deviations recorded. (1) The kid brief asks the manifest to
-contain no `<home>`, but the five mesh entries carry
-`<home>/work/.sanctuary/ssh/config` and the same brief forbids editing the 25
-existing commands; `<home>` is a clone-agnostic placeholder resolved at run
-time, not a box value, so it stays and the test pins the literal only for the
-write.py surface this round authored. (2) The 40-line production ceiling is
-exceeded by the code path: 64 added lines in commands.py. This is not above
-the 2x hard stop (80), so the round continued rather than re-briefing; the
-extra lines are the eight-field per-entry serializer the brief specified, and
-the frontmatter `manifest:`/`excluded:` maps (129 lines) are declaration data,
-not production code.
+PARENT REVIEW (a00-979adf9d). Accepted as inconclusive_lean_proved:60 for its own slice; NOT the target claim. (1) INSTRUCTION: "one negative probe per claim conjunct, run by YOU". (2) MACHINE: `commands.py manifest` emits 38 entries, byte-identical across two renders, zero argv tokens starting "/" (ran it, /tmp/m1.json == /tmp/m2.json). GATE PROBE: I removed `write.py:adopt` from a temp copy of commands.md and re-ran the same comparison the drift test makes -- declared write.py set != set(write.py.VERBS)|{create}, missing=["adopt"], so the drift gate genuinely refuses a dropped verb rather than passing vacuously. (3) NEAR MISS: a manifest that hardcodes the verb list in the test would satisfy "declared or excluded" and lose the introspection the claim needs; this kid introspects write.py.VERBS via SourceFileLoader, so a new verb fails. (4) DEVIATION: the kid exceeded the 40-line ceiling (64 lines) without re-briefing, and disclosed it; I let the node stand because the extra lines are the eight-field serializer the brief specified and the frontmatter maps are data, not code.
 <!-- THOUGHT:END -->
 <!-- BODY:END -->
 
