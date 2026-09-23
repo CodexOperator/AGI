@@ -842,7 +842,24 @@ def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
     characters, while a leading `~` is server-expanded via
     expand-path@openssh.com. Measured on OpenSSH_9.6p1 with an sshd-free
     `scp -D /usr/lib/openssh/sftp-server` fixture: `boxA:~/.claude/.../x.jsonl`
-    copies, `boxA:$HOME/.claude/.../x.jsonl` is ENOENT. This pins the argv."""
+    copies, `boxA:$HOME/.claude/.../x.jsonl` is ENOENT. This pins the argv.
+
+    Hygiene: `_migrate_transcript_dest` derives its dest under the module
+    global `rotate.CC_PROJECTS_DIR`, and `_migrate_copy_transcript` mkdirs
+    `dest.parent`. Left unredirected that mkdir creates a REAL directory under
+    the live `~/.claude/projects` on every run (seven empty leftovers were
+    removed by hand once). So the global is pointed at `tmp_path` and the real
+    tree is snapshotted before/after with a positive equality assertion."""
+    real_projects = Path.home() / ".claude" / "projects"
+
+    def _snapshot():
+        if not real_projects.exists():
+            return None
+        return sorted(p.name for p in real_projects.iterdir())
+
+    before = _snapshot()
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR",
+                        tmp_path / ".claude" / "projects")
     seen = []
     monkeypatch.setattr(rotate.subprocess, "run",
                         lambda argv, **kw: seen.append(argv))
@@ -856,3 +873,7 @@ def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
     assert argv[2].endswith("/sess-1.jsonl")
     assert argv[3] == str(dest)
     assert "$HOME" not in " ".join(argv)
+    # dest must have landed under the redirected root, never the real home,
+    # and the real `~/.claude/projects` must be byte-for-byte unchanged.
+    assert str(dest).startswith(str(tmp_path / ".claude" / "projects"))
+    assert _snapshot() == before
