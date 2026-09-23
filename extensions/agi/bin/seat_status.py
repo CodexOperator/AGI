@@ -168,6 +168,40 @@ def pane_coherent(row: dict, tmux_session: str,
     return True
 
 
+def _live_registry_session(registry_dir: str | None,
+                           window_id: str | None) -> str | None:
+    """The session_id the seat registry records for the live window @id.
+
+    ONE non-blocking scan of `<registry_dir>/*.json`, matching the PARSED JSON
+    through rotate's ONE matcher `_registry_matches_window_id` (never a
+    substring join). Returns the record's `session_id`, or `None` when no dir
+    was given, the dir is absent/unreadable, or no record answers the window.
+    The read side never polls -- a seating's bounded join already owns waiting.
+    """
+    if not registry_dir or not window_id:
+        return None
+    import json
+    try:
+        import rotate as _rotate
+        reg = Path(registry_dir).expanduser()
+        if not reg.is_dir():
+            return None
+        for fp in sorted(reg.glob("*.json")):
+            try:
+                data = json.loads(fp.read_text(encoding="utf-8",
+                                               errors="replace"))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(data, dict):
+                continue
+            if _rotate._registry_matches_window_id(data, window_id):
+                sid = data.get("session_id") or data.get("sessionId") or ""
+                return str(sid) or None
+    except Exception:                                                # noqa: BLE001
+        return None
+    return None
+
+
 def seat_occupation(row: dict, tmux_session: str,
                     window_path: str | None = None,
                     registry_dir: str | None = None) -> dict | None:
@@ -178,8 +212,14 @@ def seat_occupation(row: dict, tmux_session: str,
     alive; "pane-drift" when the window does not match (or matches with a dead
     pid); "unoccupied" when no live window answers the seat name; `None`
     (fail-open) when tmux is unreadable. Returns {state, window, live,
-    pid_alive} from rotate's `_successor_window_id`/`_pid_alive`; the accepted
-    `registry_dir` is not consulted.
+    pid_alive} from rotate's `_successor_window_id`/`_pid_alive`.
+
+    `registry_dir`, when given, also answers the SESSION half of the falsifier:
+    `session_ok` is True when the row's `session_id` equals the session the
+    registry records for the LIVE window @id, False when the live session is
+    known but the row's is empty or foreign, and None (unknown, fail-open)
+    when no record answers or no dir was given. `live_session` carries the
+    registry's value for the render.
     """
     if window_path is None and shutil.which("tmux") is None:
         return None
@@ -210,22 +250,35 @@ def seat_occupation(row: dict, tmux_session: str,
         state = "unoccupied"
     elif pin != live or pid_alive is False:
         state = "pane-drift"
+    row_sid = str(row.get("session_id") or "")
+    live_sid = _live_registry_session(registry_dir, live)
+    session_ok = None
+    if live_sid is not None:
+        session_ok = bool(row_sid) and row_sid == live_sid
     return {"state": state, "window": pin, "live": live,
-            "pid_alive": pid_alive}
+            "pid_alive": pid_alive, "session_id": row_sid,
+            "live_session": live_sid or "", "session_ok": session_ok}
 
 
 def _occ_cell(occ: dict | None) -> str:
     """The one rendered occupation fact, or `""` when none was computed
-    (no seam was supplied), keeping every existing render byte-identical."""
+    (no seam was supplied), keeping every existing render byte-identical. A
+    KNOWN session mismatch is named on top of the pane state; an unknown
+    session (`None`) adds no cell byte."""
     if not occ:
         return ""
     st = str(occ.get("state") or "")
     if st == "occupied":
-        return f" pane=occupied({occ.get('window') or '-'})"
-    if st == "pane-drift":
-        return (f" pane=pane-drift(row {occ.get('window') or '-'}"
+        cell = f" pane=occupied({occ.get('window') or '-'})"
+    elif st == "pane-drift":
+        cell = (f" pane=pane-drift(row {occ.get('window') or '-'}"
                 f" live {occ.get('live') or '-'})")
-    return " pane=unoccupied"
+    else:
+        cell = " pane=unoccupied"
+    if occ.get("session_ok") is False:
+        cell += (f" session-drift(row {occ.get('session_id') or '-'}"
+                 f" live {occ.get('live_session') or '-'})")
+    return cell
 
 
 def _ephemeral(root: Path):
@@ -295,7 +348,8 @@ def load_ladder_field(root: Path, field: str, default):
 
 def collect(root: Path, fm_by_id: dict,
             tmux_session: str | None = None,
-            window_path: str | None = None) -> SeatsView:
+            window_path: str | None = None,
+            registry_dir: str | None = None) -> SeatsView:
     """Compute the one `SeatsView` both renderers state.
 
     `root` is the project/graph root as `viewport` resolves it. `fm_by_id` is
@@ -322,7 +376,8 @@ def collect(root: Path, fm_by_id: dict,
         fraction, fsrc = _seat_fraction(root, name)
         occ = None
         if tmux_session is not None or window_path is not None:
-            occ = seat_occupation(r, tmux_session or "", window_path)
+            occ = seat_occupation(r, tmux_session or "", window_path,
+                                  registry_dir)
         seats.append({
             "name": name,
             "role": str(r.get("role") or ""),
@@ -405,12 +460,15 @@ def main(argv: list[str] | None = None) -> int:
                     help="tmux session to check pane coherence against")
     ap.add_argument("--window-path", default=None,
                     help="window-list seam (a file of `@id name` lines)")
+    ap.add_argument("--registry-dir", default=None,
+                    help="per-session registry dir (the session pin join)")
     args = ap.parse_args(argv)
     import locations
     root = Path(args.root)
     root = locations.find_project_root(root) or root
     view = collect(root, {}, tmux_session=args.tmux_session,
-                   window_path=args.window_path)
+                   window_path=args.window_path,
+                   registry_dir=args.registry_dir)
     lines = to_markdown(view) if not args.list else None
     if args.list:
         if not view.registry_present:

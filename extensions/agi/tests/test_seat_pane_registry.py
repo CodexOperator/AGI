@@ -276,3 +276,83 @@ def test_collect_with_the_seam_renders_drift(tmp_path):
     v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins))
     assert v.seats[0]["occupation"]["state"] == "pane-drift", v.seats
     assert "pane=pane-drift(row @9 live @7)" in "\n".join(SS.to_compact(v))
+
+
+# ---- READ side: seat_status.seat_occupation (the SESSION pin) ------------ #
+
+def _reg(tmp_path, window="view:@7.%0", session_id="sid-live"):
+    """A per-session registry dir with ONE joined record for the window @id."""
+    reg = tmp_path / "registry"
+    reg.mkdir()
+    (reg / "12345.json").write_text(
+        json.dumps({"session_id": session_id, "view": window}),
+        encoding="utf-8")
+    return str(reg)
+
+
+def test_seat_occupation_session_ok_when_row_session_matches_registry(
+        tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7", "pid": _LIVE_PID,
+         "session_id": "sid-live"},
+        "agi-rc", str(wins), _reg(tmp_path))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_ok"] is True, occ
+    assert occ["live_session"] == "sid-live", occ
+
+
+def test_seat_occupation_session_drift_when_row_session_is_foreign(tmp_path):
+    """The falsifier: an occupied pane whose row session is NOT the live one."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7", "pid": _LIVE_PID,
+         "session_id": "sid-foreign"},
+        "agi-rc", str(wins), _reg(tmp_path))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_ok"] is False, occ
+
+
+def test_seat_occupation_session_drift_when_row_session_is_empty(tmp_path):
+    """A JOIN-miss seating (empty session_id) must NOT read session-ok."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(
+        {"name": "director-seat", "window": "@7", "pid": 0},
+        "agi-rc", str(wins), _reg(tmp_path))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_ok"] is False, occ
+
+
+def test_seat_occupation_session_unknown_without_a_registry(tmp_path):
+    """No registry dir / no record -> None (fail-open), never a false match."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    row = {"name": "director-seat", "window": "@7", "session_id": "sid-live"}
+    assert SS.seat_occupation(row, "agi-rc", str(wins))["session_ok"] is None
+    assert SS.seat_occupation(
+        row, "agi-rc", str(wins),
+        str(tmp_path / "missing"))["session_ok"] is None
+
+
+def test_collect_registry_seam_renders_only_a_known_session_drift(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = _reg(tmp_path)
+    match = SS.collect(
+        _graph(tmp_path, [{"name": "director-seat", "role": "director",
+                           "window": "@7", "pid": _LIVE_PID,
+                           "session_id": "sid-live"}]),
+        {}, tmux_session="agi-rc", window_path=str(wins), registry_dir=reg)
+    assert "pane=occupied(@7)" in "\n".join(SS.to_compact(match))
+    assert "session-drift" not in "\n".join(SS.to_compact(match))
+    drift = SS.collect(
+        _graph(tmp_path / "d", [{"name": "director-seat", "role": "director",
+                                 "window": "@7", "pid": _LIVE_PID,
+                                 "session_id": "sid-foreign"}]),
+        {}, tmux_session="agi-rc", window_path=str(wins), registry_dir=reg)
+    text = "\n".join(SS.to_compact(drift)) + "\n".join(
+        SS.to_markdown(drift))
+    assert "session-drift(row sid-foreign live sid-live)" in text, text
