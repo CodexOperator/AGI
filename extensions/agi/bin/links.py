@@ -46,6 +46,7 @@ distinguishable.
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -264,6 +265,74 @@ def _iter_corpus(root):
         yield node_id, nf.frontmatter, nf.body
 
 
+#: The ONE `links` config cell, on a `config` NODE -- `.agi/config.json` is refused by `done`.
+LINKS_CONFIG_ID = "config:links"
+_LINKS_DEFAULTS = {
+    "scanned": [".agi/nodes/**/*.md", "extensions/agi/briefs/**/*", ".agi/sessions/quorum/*.md", "CLAUDE.md", "QUICKSTART.md", "skills/agi/SKILL.md"],
+    "exempt": [".agi/nodes/deprecated/", "THOUGHT", "lens", "judged_against"],
+    "line_template": "{file}:{line} {old} \u2192 {succ}",
+}
+_GOAL_RE = re.compile(r"goal:[\w.-]+")
+
+
+def _links_config(root) -> dict:
+    for nid, fm, _body in _iter_corpus(root):
+        if nid == LINKS_CONFIG_ID:
+            return {**_LINKS_DEFAULTS, **(fm.get("links") or {})}
+    return dict(_LINKS_DEFAULTS)
+
+
+def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
+    """`[(rel, line, old_id, successor)]`: every LIVE ref to a retired or absent
+    goal id. Report only; never edits. A retired node's own refs are not live."""
+    from graph_core.persistence import frontmatter as fm_reader
+
+    cfg = cfg or _links_config(root)
+    known, retired = set(), {}
+    for nid, fm, body in _iter_corpus(root):   # deprecated tree is status: deprecated
+        known.add(nid)
+        if str(fm.get("status") or "").lower() == "retired":
+            b = re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, re.S)
+            g = _GOAL_RE.search(b.group(1)) if b else None
+            retired[nid] = g.group(0) if g else "none"
+    src, nodes = locations.source_root(Path(root)), Path(root) / "nodes"
+    no_path = [str(e) for e in cfg["exempt"] if str(e).endswith("/")]
+    no_field = {str(e) for e in cfg["exempt"] if not str(e).endswith("/") and e != "THOUGHT"}
+    hits = []
+    for pattern in cfg["scanned"]:
+        for path in sorted(src.glob(pattern)):
+            rel = str(path.relative_to(src))
+            if not path.is_file() or any(rel.startswith(e) for e in no_path):
+                continue
+            lines = path.read_text("utf-8", "replace").splitlines()
+            if path.is_relative_to(nodes):         # node -> frontmatter only
+                try:
+                    fm = fm_reader.load_node_file(path).frontmatter
+                except Exception:
+                    continue
+                if str(fm.get("status") or "").lower() == "retired":
+                    continue
+                end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), 0)
+                skip = {i for i, l in enumerate(lines[:end], 1)
+                        if (m := re.match(r'\s*-?\s*"?([A-Za-z_]\w*)"?\s*:', l))
+                        and m.group(1) in no_field}
+            else:                                  # surface -> whole file, no THOUGHT
+                end, skip, inside = len(lines), set(), False
+                for i, l in enumerate(lines, 1):
+                    inside = inside or "THOUGHT:BEGIN" in l
+                    if inside:
+                        skip.add(i)
+                    if "THOUGHT:END" in l:
+                        inside = False
+            for i, line in enumerate(lines[:end], 1):
+                if i in skip:
+                    continue
+                for old in _GOAL_RE.findall(line):
+                    if old in retired or old not in known:
+                        hits.append((rel, i, old, retired.get(old, "none")))
+    return hits
+
+
 def set_link(root, node_id: str, ref: str) -> Path:
     """Declare a node's link, through the one gated write routine.
 
@@ -294,6 +363,9 @@ def main(argv: list[str] | None = None) -> int:
                     choices=["links", "schema", "roles"])
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--broken", action="store_true", help="list broken links only")
+    ap.add_argument("--strict", action="store_true",
+                    help="exit 1 when a live reference to a retired or absent "
+                         "goal id remains")
     ap.add_argument("--fix", action="store_true",
                     help="schema: actually backfill derivable fields "
                          "(default is a dry run)")
@@ -319,6 +391,8 @@ def main(argv: list[str] | None = None) -> int:
     # than quietly excluding it — an exclusion nobody can see is how an
     # invariant rots into a number that is always green.
     live_broken, retired_broken = broken_by_status(root)
+    cfg = _links_config(root)
+    retired_refs = scan_retired_refs(root, cfg)
 
     if not args.broken:
         print(f"links: {len(resolved)} resolved, {len(live_broken)} broken"
@@ -326,11 +400,17 @@ def main(argv: list[str] | None = None) -> int:
                  if retired_broken else ""))
         for source in (FROM_NODE, FROM_LEGACY, FROM_DEFAULT):
             print(f"  {source:12} {by_source.get(source, 0)}")
+        print(f"retired: {len(retired_refs)} live reference(s) to a retired or absent goal id")
+        for rel, lineno, old, succ in retired_refs:
+            print("  " + cfg["line_template"].format(
+                file=rel, line=lineno, old=old, succ=succ))
     for sentinel in live_broken:
         print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
     for sentinel in retired_broken:
         print(f"  retired {sentinel.node_id} -> {sentinel.ref} "
               f"(deprecated; bytes in the grid ref)")
+    if args.strict and retired_refs:
+        return 1
     return 1 if live_broken and args.broken else 0
 
 
