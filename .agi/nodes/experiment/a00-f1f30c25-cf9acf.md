@@ -6,11 +6,12 @@ parents:
   - hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable
 next_edges: []
 confidence: 0.9
-edited_by: a00-f1f30c25
+edited_by: a00-1730cceb
 evidence_runs:
   - experiment:a00-f1f30c25-cf9acf
 loop: hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable@s2
 model: deepseek/deepseek-v4.1-flash
+probes: "\"PARENT PROBES (EF.37, round 2): gate: propose(write.py:set, value=<foo>) and value=<div>x</div> now LAND verbatim -- the exact inputs REFUSED on af5f45f06. gate: legacy session-complete {} still refuses unmapped placeholder <iter>; cli.py:session-complete {iter_n} returns a complete argv. wire: suite 103 passed / 7 skipped. DEFECT (named): the added test_propose_refuses_an_unmapped_placeholder at commands_manifest.py:464 is a DUPLICATE NAME of the one at :494; Python keeps the LAST, so the synthetic x.py:slice <N:M> assertion NEVER RUNS -- and :464 omits the tmp_path fixture param, so it would NameError if it did. pytest --collect-only shows exactly one unmapped test. Core edge fix is still covered by the running one-pass test using <foo>/<div>.\""
 production_lines: 12
 profile: balanced
 role: kid
@@ -18,7 +19,7 @@ scaffold_hash: 937d058a114fb8fb
 season: 2
 title: Propose reads leftovers from the template, not the substituted output
 town: local-maxxing
-verdict: proved
+verdict: inconclusive_lean_proved:85
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-f1f30c25-cf9acf
@@ -106,3 +107,5 @@ only. The node entries, the schema, and everything kid 1 fixed are untouched.
 
 ## Agent Notes
 Leftover set now read off the TEMPLATE before substitution in commands.propose; a caller value like '<foo> and <div>x</div>' lands verbatim. Output scan removed. One-pass test strengthened to non-kept metavars (RED on af5f45f06, GREEN after); 103 passed across the three briefed files; 12 production lines added, ceiling 40.
+
+PARENT REVIEW: accepted -- the template-side leftover set is the correct fix and my probe confirms <foo>/<div> values land while a genuine template placeholder still refuses. CDemoted proved->inconclusive_lean_proved:85: the node claims it added a synthetic <N:M> assertion, but that test is a shadowed duplicate (line 464 shadows/ is shadowed by line 494) and lacks the tmp_path fixture arg, so it never executes; only the strengthened one-pass test actually pins the edge. Next round must delete the dead duplicate and give the synthetic case a real fixture name.
