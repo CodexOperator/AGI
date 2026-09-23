@@ -36,6 +36,7 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
+cpu-ram  a CPU torch pass on Qwen2.5-0.5B holds ~3.5 GB RSS: at most TWO at once on this 15.9 GB box beside a GPU round and director-engine's suite (OSC.10 at 18:5xZ: three passes + swap 2.8 GB -> one stalled, its kid died-no-work) · a pause governor matches `^/data/ml/.venv/bin/python( -[a-zA-Z]+)* [^ ]*<script>` ONLY -- a bare script-name pattern also hits the pi agents, whose command lines carry the orders text (v1 paused a real pass for 38 s)
 ceiling  a kid's line_ceiling comes ONLY from `CEILING: <=N production lines [across K kids]` INSIDE the hypothesis's testable_claim (spawn_budget._ceiling_clause); a body CEILING line is prose -> default 40 (OSC.10's trap, flagged in the swarm room)
 step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
@@ -61,6 +62,7 @@ routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seat
 
 ## 🔴 Stops
 ```
+OSC.10 18:56Z: a01's kid a00-ddd4762f + the control's kid a00-527993c5 FINISHED (results in their parents' trees); a00-30502399's kid a00-b59ee70f DIED (memory contention, stalled after prompt 1/8) -> re-run AUTHORIZED by room + dm (method-bug clause waived, recorded)
 LIVE   OSC.10 SWARM (L3) a00-30502399 + a01-f543f6a5 · dispatched 18:1xZ (spawn.parallel 2 for that dispatch only, restored to 1 at once) · wall 120 -> ~20:1xZ
 LIVE   OSC-CTL.10 single-parent control a00-c9a05d99 · 18:2xZ · wall 120 -> ~20:2xZ · (iteration ids must be <label>.<n>: OSC.10C was refused)
 LIVE   OSC.11 (L6 long-prompt prefill: -ub 512/1024/2048 x KV f16/q8_0/q4_0 on the router's own image, ~30k prompts, JIT cache mounted) a00-67c8a71a · 18:24Z · GPU · wall 120 -> ~20:24Z
