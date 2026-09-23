@@ -85,7 +85,7 @@ town:local-maxxing
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 
-### Trajectory stand-in (folded from `doc:lm-town-trajectory`) — TEMP
+### Trajectory stand-in — LIVE rows = the `trajectory_standin` field (owner 2026-09-23: written whole by thought-master, the town master, one version per write; `write.py town:local-maxxing 'set trajectory_standin [...]'`). The rows below are the 09-21 fold of `doc:lm-town-trajectory`, frozen; both migrate into `trajectory:local-maxxing` at G7.34.2.
 
 **What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** a super node to the side that links into all relevant nodes — bigger than a single subgoal, sometimes bigger than a perpetual, smaller than a vision. Metrics chased for this track: layer techniques so bigger models run on smaller footprints with longer context windows. **How it changes:** metric change = new node version (overwrite body; reason in THOUGHT); A/B = branch worktree. Proper `trajectory` type queued (`goal:g7.34.1` schema + `goal:g7.34.2` mint; previously noted as G7.33.5); until it lands **this town section IS the stand-in**. `doc:lm-town-trajectory` remains as pointer — do not delete yet.
 
