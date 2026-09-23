@@ -8,7 +8,7 @@ next_edges: []
 edited_by: director-thought
 scaffold_hash: a3c032315d23907c
 season: 2
-testable_claim: "With the hop-1 profiles on Qwen2.5-0.5B-Instruct (HF bf16, rig), per head keep the smallest set of RoPE pairs carrying 95 pct of its logit energy and zero the remaining pairs in q and k (a per-head mask, no retraining); over a held-out 4096-token eval (prompts disjoint from hop 1): top-1 next-token agreement with the unmasked model >= 98 pct and mean per-token KL <= 0.02, at a mean dropped-pair fraction >= 40 pct; report the agreement-vs-dropped-fraction curve at 90/95/99 pct energy; falsifier: at >= 40 pct dropped, agreement < 98 pct or KL > 0.02 -- then report the largest fraction at which both hold (a smaller distillation, not a disproof of hop 1); 0 USD compute, cap 1 USD pi"
+testable_claim: "With the hop-1 profiles on Qwen2.5-0.5B-Instruct (HF bf16, rig), per head keep the smallest set of RoPE pairs carrying 95 pct of its logit energy and zero the remaining pairs (a per-head mask on q, no retraining -- a pair zeroed on the q side contributes nothing to that head's logits whatever k holds, and under GQA the K cache keeps the union of its query heads' kept pairs, so masking k removes no further logit term); over a held-out 4096-token eval (prompts disjoint from hop 1): top-1 next-token agreement with the unmasked model >= 98 pct and mean per-token KL <= 0.02, at a mean dropped-pair fraction >= 40 pct; report the agreement-vs-dropped-fraction curve at 90/95/99 pct energy; falsifier: at >= 40 pct dropped, agreement < 98 pct or KL > 0.02 -- then report the largest fraction at which both hold (a smaller distillation, not a disproof of hop 1); 0 USD compute, cap 1 USD pi"
 title: "oscillator chain A hop 2: keeping only the RoPE pairs that carry 95 pct of each head logit energy (zeroing the rest in q and k) drops >= 40 pct of pairs on average while next-token top-1 agreement stays >= 98 pct and mean KL <= 0.02 against the full model"
 town: local-maxxing
 ---
@@ -32,7 +32,7 @@ town: local-maxxing
 **CEILING.** 0 USD compute; pi deepseek parent + ONE model-loading host kid (CPU), cap 1 USD; orders wall 120 min; 6G memory; no GPU, no :8080.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought planned this scaffold 09-23 after hop 1 proved (experiment:a00-abdae729-7f4024): the claim is kept as minted; the body adds the method (a per-query-head q mask from hop 1's pooled profiles, the K-side union per KV head for hop 3), the tests, a random-mask control at the same dropped fraction as the baseline, the falsifier, the file scope and the ceiling. The dropped-fraction precondition was checked from hop 1's committed profiles before planning: 54.1 pct mean dropped at 95 pct energy.
+director-thought, OSC.04 mur (mur-director-thought-7): the testable_claim said zero the remaining pairs in q AND k while the round (and the planned METHOD) masked q only; the two are equivalent for the attention logits -- c_p = q_p . k_p is zero once q_p is, and the per-KV-head K union drops only pairs every query head of the group already zeroed -- so the clause now says so instead of implying an untested k effect. The dtype clause (HF bf16; the round measured float32) stays an OPEN residue, as on hop 1.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
