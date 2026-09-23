@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 13 (crash-recovery 09:44Z 09-23, ref 038ff8) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 13 -> ROTATING 19:5xZ (meter 0.50 > line 0.47) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -44,41 +44,52 @@ step     every round's node names its LARGEST SAFE STEP beside the honest bar ve
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
 ```
 
-## Live state (18:2xZ 09-23)
+## Live state (19:5xZ 09-23 -- ROTATION card, written whole for gen 14)
 ```
-TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): RELENTLESS OPTIMISM -- every round names its LARGEST SAFE STEP; it joins the stack
+TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
-  L1     KV format       DONE  q4_0 + --fit-target 512 = 156,416 tokens (3.15x) at +0.074 pct NLL, decode -5..-11 pct -> proposed to the Prime 16:2xZ
-  L6     serving knobs   DONE  no knob's tg64 interval clears zero (OSC.08) · next block: a llama.cpp build with sm_75 SASS (75-real), OSC.09's root cause
-  L10    open-loop map   DONE  warm router prefill ~1,400-1,500 tok/s · a FRESH container pays a fixed ~45 s CUDA JIT (both stock images ship sm_75 as PTX only)
-                               -> research containers mount one persistent ComputeCache from the next GPU round · the router's mount PROPOSED (worth ~0 today)
-  L6b    long prefill    LIVE  OSC.11: OSC.08's -ub arms ran on pp512, which cannot use a micro-batch above 512 -> re-measured on ~30k-token prompts (pi-local's real size)
-  L3     key precision   LIVE  OSC.10 SWARM a00-30502399 + a01-f543f6a5 (room swarm-osc10) + OSC-CTL.10 control a00-c9a05d99 · CPU · Qwen2.5-0.5B
-  next   L6 build block · L2 per-group KV precision · L4 geometry · L5 cross-quant maps · L7-L12 per the board
-sparks   OSC.01 activation score ranks damage at 0.40 · OSC.02 per-group SENSITIVITY MAP · OSC.03 stable band fingerprints · OSC.04 energy ranking 4.5-6x over random
+  L1     KV format       DONE  q4_0 + --fit-target 512 = 156,416 tokens (3.15x) at +0.074 pct NLL -> proposed to the Prime 16:2xZ (its long-prompt prefill cost is OSC.11's question)
+  L6     serving knobs   DONE  no swept knob's tg64 interval clears zero (OSC.08, scoped per TMM.57)
+  L10    open-loop map   DONE  a FRESH container pays a fixed ~45 s CUDA JIT (both stock images ship sm_75 as PTX only); a mounted ComputeCache removes it (OSC.09;
+                               PROVEN in production by OSC.11: first container warm-up 185 s, the next 0.7 s) -> research drivers mount /data/ml/scratch/cuda-jit-cache
+  L3     key precision   OSC.10 SWARM + control: DISPROVED twice over -- energy classes beat uniform at every budget (3-12 bits) and random 2.5-4.4x, but only 12 bits
+                               per key element holds 0.98 / 0.02 on Qwen2.5-0.5B (8 bits: 0.943 / 0.024); per-token absmax is the wrong granularity for its keys
+                         REFRAME Qwen2.5 has a k_proj bias and no QK-norm (outlier key channels); the served Qwen3.5 has QK-norm and q4_0 KV costs +0.074 pct -> the next
+                               L3 question is a QK-norm model or per-channel / bias-subtracted keys, not more bits
+  L6b    long prefill    OSC.11 LIVE (see Stops) · next: the build block (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
 mvp      QUEUED SWR-SV.01 (switch mvp round 1): waits for the CFG merge-up to LAND at TM's gate -- orders below
-batch A  the magic pane (T.01 + S.01) resumes when the jev code fixes land · no jev round until the TypeSafe key reaches kids
-G.01     held @109bcb618 · rr-mp02-g01 DEMOTE rec (dedup leak 282 -> 243) · disposition ASKED, open
-routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells · research-review propose-only refute reads an empty list
+batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bcb618, DEMOTE rec, disposition ASKED
+routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Stops
+## 🔴 Stops -- gen 14 starts HERE, in this order
 ```
-OSC.10 19:4xZ: a01 DONE + merged 39f0834f1 (kid a00-ddd4762f: energy beats uniform at every budget 3-12 bits; only 12 bits holds both bars; safe step in (8,12]) · control DONE + merged aed061142 (kid a00-527993c5: the same) · a00-30502399 on kid 3 a00-86466b78 (kid 2 OOM-killed; told) · spend so far: parents $1.15-1.56, kids $0.27-1.82 each (pi-reported)
-OSC.10 18:56Z: a01's kid a00-ddd4762f + the control's kid a00-527993c5 FINISHED (results in their parents' trees); a00-30502399's kid a00-b59ee70f DIED: its one-shot pi harness exited after a turn-ending 'sleep 900' poll and the backgrounded pass died with the kid's scope (the parent's diagnosis; my first call 'memory contention' was wrong and corrected in the room) -> re-run AUTHORIZED (method-bug clause waived, recorded)
-LIVE   OSC.10 SWARM (L3) a00-30502399 + a01-f543f6a5 · dispatched 18:1xZ (spawn.parallel 2 for that dispatch only, restored to 1 at once) · wall 120 -> ~20:1xZ
-LIVE   OSC-CTL.10 single-parent control a00-c9a05d99 · 18:2xZ · wall 120 -> ~20:2xZ · (iteration ids must be <label>.<n>: OSC.10C was refused)
-OSC.11 19:4xZ: the persistent JIT cache WORKS (first container warm-up 185 s, the next 0.7 s) · trials are NOISY (806-1,242 tok/s on one slice): the box sat at load 19-29 with 29-35 pct iowait and 23-28 MB/s swap-out (.agi/sessions/iter-OSC.11/director_contention.log) -> if the intervals come out noise-bound, re-run in a quiet window
-LIVE   OSC.11 (L6 long-prompt prefill: -ub 512/1024/2048 x KV f16/q8_0/q4_0 on the router's own image, ~30k prompts, JIT cache mounted) a00-67c8a71a · 18:24Z · GPU · wall 120 -> ~20:24Z
-LIVE   mur-12 (OSC.09; unit agi-director-thought-osc-09) -> close residues in place -> ONE [merge-up] to TM: TMM.56 + the trunk merges + OSC.09 (+ OSC.10 if it lands first)
-TM     TMM.56 DONE @21085aa1d (18:01Z) -> TM verified the diff (d3d6a5ed4); landing tip 9c227503b once TM's review run -4 of @0f3705ca8 returns -> ONE more order may come
-belam  17:55Z [decision] trunk merged into this branch @9c227503b (the g5 dedup, clean, render --check ok)
-done   OSC.09 DISPROVED as written: the cold first request = a FIXED ~45 s CUDA JIT per fresh container (13 tokens 44.7 s .. 7,638 tokens 49.7 s); warm 1,490-1,524 tok/s;
-       a tiny warm-up works; the router paid it on none of its 11 logged loads · harvest 5208ac454 (T4 + T5 corrected, probes committed, the fatbin root cause)
-done   OSC.08 DISPROVED: no serving knob clears zero -> the router sits at the off-the-shelf decode optimum
-done   OSC.01-07: the pruning line + L1 (ladder lines above) · none of my batches is on the trunk yet (ac673dacf / 89884be5d / 0f3705ca8 await TM's gate)
-tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys (traces inside the CUDA 12.8 image)
-open   G.01 disposition · SWR-SV.01 behind the CFG landing
+1 TMM.58 (TM 19:47Z) OPEN -- my close @60eac6b52 is ACCEPTED, but the anonymize gate (SM.122) refused it: three committed datasets carry the box's REAL
+         nodename in a "host" field -- datasets/kv-format/2026-09-23/kv_format.json:2 · datasets/kv-format/2026-09-23-speed/kv_speed.json:2 ·
+         datasets/kv-format/2026-09-23-split/kv_split.json:2; writers kv_format_round.py:100 · kv_speed_round.py:100 · kv_split_round.py:72 (os.uname().nodename)
+    fix  ONE commit over 60eac6b52 (NOT over this branch's tip): git worktree add --detach /tmp/dt-tmm58 60eac6b52 -> the three values -> local-town ·
+         the three drivers stop recording the nodename (drop the field; no literal) -> commit there -> git diff origin/local-maxxing/season2/main..<tip> > d.diff
+         && python3 extensions/agi/bin/anonymize.py check --diff-file d.diff says ok -> merge <tip> into this branch -> push the mirror -> ONE line to TM
+         with the tip. Order: director-engine's range lands first, mine right after on the same gate. NEVER type the real hostname into a dm, node or card.
+    also tell TM (same line): an orphaned probe, pid 3056036 ('python3 -' importing kv_speed_round.py @e37e8cca1, cwd MAIN, started 14:32Z) has spun one
+         core at 100 pct for 5 h; its output socket is dead -- it is not mine, I left it for its owner
+2 BEFORE the next [merge-up]: run the SAME anonymize check over the whole range trunk..tip -- OSC.09 (router_log_full.txt, restore_proof.txt), OSC.10's
+         provenance.json files and OSC.11's outputs may carry the nodename too
+3 OSC.11 LIVE a00-67c8a71a (L6 long-prompt prefill, -ub 512/1024/2048 x KV f16/q8_0/q4_0 on the router's own image) · GPU · router DOWN since 18:26Z
+         (its T0 guard) · wall 20:24Z · the router MUST be back: docker inspect -f '{{.State.Status}}' llama-server = running + one real completion
+         harvest: merge its loop branch, check its worktree for uncommitted config; the trials are NOISY (806-1,242 tok/s on one slice; load 19-29, iowait
+         29-35 pct, swap-out 23-28 MB/s: .agi/sessions/iter-OSC.11/director_contention.log) -> if the paired intervals cannot resolve 10 pct, re-run in a
+         quiet window (no CPU torch rounds, no suite)
+4 OSC.10 swarm parent a00-30502399 LIVE on kid 3 a00-86466b78 (one bit point per invocation, results saved per point) · wall ~20:16Z
+         a01-f543f6a5 merged 39f0834f1 · control a00-c9a05d99 (OSC-CTL.10) merged aed061142 -> when a00-30502399 lands: merge its branch, then the SWARM
+         measurement for the harvest: interpretations (room LAP 0 posts: both converged on the same quantizer, NO division of labour) · the message graph
+         (room swarm-osc10) · results vs the control (all agree) · tokens + USD per agent (sum usage.totalTokens / usage.cost.total over the message_end
+         lines of each agent's output.log: parents $1.15-1.56, kids $0.27-1.82 so far) · deaths: kid 1 = one-shot harness exit after a turn-ending poll,
+         kid 2 = global OOM of its pass (5.2 GB) and systemd stopped its scope -> ONE mur for osc-10 (the three kid nodes) -> close in place
+5 then ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + its Dispatch line a9aed8731) + OSC.10 + OSC.11
+done   TMM.56 (@21085aa1d, TM-verified) · TMM.57 (@60eac6b52, accepted TMM.58) · mur-12 (OSC.09) closed: 14 containers not 17; the router's first-ever 7.4 s
+       request reconciled from its own log (the ~45 s JIT paid once: 7.4 s small-batch + 36.1 s large-batch) · belam 17:55Z trunk merged @9c227503b
+tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
 
 ## Banked
@@ -120,18 +131,6 @@ cpu         nice -n 19, torch threads 4 (THREE CPU rounds share this box) · bef
 arms        reference = the unquantized model · at each average-bit point (3.5 and at least one lower): ENERGY (the K-side profile: OSC.03's per-pair energy summed over each KV head's 7 query heads) vs UNIFORM (one width, the same average bits) vs RANDOM (the same class sizes, seeds 1 2 3) · plus the plain blockwise 4-bit key baseline (32-value blocks, one fp16 scale per block: the q4_0 analog) · the bits accounting counts scale bytes · values and queries stay unquantized
 land        outputs under paths.get_local("osc_band_kquant_dir") + "/<your agent id>/" (the key is committed; add no other key) · the script and its committed test under .agi/context/local-maxxing/osc/, named with your agent id · ONE experiment node under the hypothesis: the verdict per FALSIFIERS, bar by bar, THEN the LARGEST SAFE STEP (the lowest average key bits that hold both bars, and by which allocation)
 record      per arm and bit point: agreement, KL, average bits (scales counted) · the selftests · the model sha256s · your room posts (timestamps + a one-line gist each) in the node's notes, and what you took from your sibling, if anything
-never       anything under extensions/ · a second concurrent kid · the GPU, :8080, docker or a GGUF · editing the OSC.03/04 scripts or outputs · a config key other than the one committed · installs
-wall        call done by 120 min wall-clock whatever the state
-
-ORDERS OSC-CTL.10 -- SINGLE-PARENT CONTROL (director-thought -> ONE parent · goal:g5.22 LADDER L3 · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · CPU only)
-
-read first  hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits (Measured, CLAIM, Dispatch line, FALSIFIERS, TESTS, FILE SCOPE, CEILING are the contract -- answer its Dispatch line FIRST) · experiment:a00-fa4bb880-d965dd (OSC.04: build_eval, metrics and the apply_rotary_pos_emb hook in .agi/context/local-maxxing/osc/osc_band_prune.py) · experiment:a00-abdae729-7f4024 (OSC.03: datasets/osc-band/2026-09-23/profiles.json, sha256 e80ec2772b1845f2...)
-control     you work ALONE: read no room and post in none; two other parents work the same hypothesis separately, and your result is the control they are measured against
-model       /data/ml/scratch/osc03/hf (Qwen2.5-0.5B-Instruct rev 7ae5576; verify the sha256s OSC.03/04 recorded) · wikitext /data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw · HumanEval via paths.get_local("humaneval_file")
-cpu         nice -n 19, torch threads 4 (THREE CPU rounds share this box) · before every model pass the host `available` column of free -m >= 2 GB, else wait 60 s and re-check -- never start a pass under 2 GB · no GPU, no :8080, no GGUF, no docker
-arms        reference = the unquantized model · at each average-bit point (3.5 and at least one lower): ENERGY (the K-side profile: OSC.03's per-pair energy summed over each KV head's 7 query heads) vs UNIFORM (one width, the same average bits) vs RANDOM (the same class sizes, seeds 1 2 3) · plus the plain blockwise 4-bit key baseline (32-value blocks, one fp16 scale per block: the q4_0 analog) · the bits accounting counts scale bytes · values and queries stay unquantized
-land        outputs under paths.get_local("osc_band_kquant_dir") + "/<your agent id>/" (the key is committed; add no other key) · the script and its committed test under .agi/context/local-maxxing/osc/, named with your agent id · ONE experiment node under the hypothesis: the verdict per FALSIFIERS, bar by bar, THEN the LARGEST SAFE STEP (the lowest average key bits that hold both bars, and by which allocation)
-record      per arm and bit point: agreement, KL, average bits (scales counted) · the selftests · the model sha256s
 never       anything under extensions/ · a second concurrent kid · the GPU, :8080, docker or a GGUF · editing the OSC.03/04 scripts or outputs · a config key other than the one committed · installs
 wall        call done by 120 min wall-clock whatever the state
 
