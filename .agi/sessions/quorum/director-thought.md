@@ -85,16 +85,9 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
          swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
     residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
          generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
-2 mur-director-thought-14 RUNNING (launched 20:2xZ, bg, BESIDE mur-13 -- a deviation from 'one mur at a time': the run keys differ by merge_up, shown by
-         both dry-runs, so the key collision that rule guards cannot happen) -- OSC.11's review, args .agi/sessions/iter-OSC.11/mur14.args.json (one round osc-11,
-         7158dbb4fb..3f627c6cf5 scoped to OSC.11's paths)
-    OSC.11 HARVESTED: parent a00-67c8a71a done 20:10Z (c3b893d95b), merged 67837d6c23 · its REFUTATION evidence lived only in its gitignored probe dir ->
-         committed verbatim at datasets/serving-sweep/2026-09-23-ub/parent-probe-a00-67c8a71a/ (3f627c6cf5) · worktree clean, no config edit
-    the result: REFUTED (inconclusive_lean_disproved:90) -- the kid's q8_0 ub1024 +27.2 pct was a contended baseline; the parent's quiet re-run is +1.29 pct
-         (q8_0 ub512 1181.9/1186.0/1189.1 vs ub1024 1197.6/1202.4/1203.0 tok/s); -ub is NOT a long-prompt lever here; every arm fits >= 32,768
-    then close in place: the node body still carries the KID's LARGEST SAFE STEP paragraph (:112, q8_0 -ub 1024 +27.2 pct) and 'why a lean, not proved' (:128)
-         against its refuted title -> rewrite them to the evidence; the step the data supports: keep -ub 512; L1's q4_0 KV shows no prefill cost at ~30k at
-         ub512 (f16 1228/1143, q4_0 1173/1147, q8_0 1186 -- mur-14 item 3 checks this) -> PROPOSE to the Prime with L1, never edit the router or a cell
+2 OSC.11 CLOSED f2003718f0 -- mur-director-thought-14: review demote -> verify accept_with_residue (all 5 defects real, text-only); harvest merged
+         67837d6c23 + evidence 3f627c6cf5 / 458484bb3b; the node now says REFUTED throughout: step = keep -ub 512; T3 range 85.6x-1,383x; the kid's
+         restore proof was a JSONDecodeError -> the director's parsed completions (19:55:38Z, 20:32:49Z) are the proof
 3 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666) dispatched 20:29Z, wall ~22:29Z, GPU round: the router goes DOWN under its T0 guard and must be
          restored + proven (a real 9B completion naming the model); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
     the first spawn a00-8f615a6a FAILED at start (my --memory 6 -> MemoryMax=6 bytes, oom-kill 20:27:06Z): its worktree .agi/worktrees/a00-8f615a6a and
