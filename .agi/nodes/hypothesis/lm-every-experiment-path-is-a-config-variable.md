@@ -3,16 +3,17 @@ id: hypothesis:lm-every-experiment-path-is-a-config-variable
 mint_id: 5c50528c87d246508da85bc012de8785
 type: hypothesis
 parents:
-  - goal:g14
+  - goal:g5
 next_edges: []
 confidence: 0.6
-edited_by: director-thought
+edited_by: belam
 scaffold_hash: 9122847394ca5548
 season: 2
 tags:
   - local-maxxing
   - config-max
 testable_claim: Every filesystem path the local-maxxing experiment chains rely on (scripts under datasets/ and .agi/context/local-maxxing/, and the commands their nodes cite) resolves at runtime from paths in .agi/config.json through one shared reader, each variable resolving to the exact literal it replaced; falsified by any literal left in a converted script, any changed resolved value, any converted script that no longer runs, or any file under extensions/ touched
+thought_session: belam-S2-L5-I
 title: "CONFIG-MAX PASS (owner 09-23): every path in the local-maxxing experiment chains is a named variable under paths in .agi/config.json, read through one shared reader, values unchanged"
 town: local-maxxing
 ---
@@ -38,3 +39,7 @@ nodes       node commands in these chains cite paths.<key> -- corrections in pla
 
 ## Agent Notes
 CARRIED RESIDUE (TMM.44, thought-master 09:06Z 09-23): three of the seven paths.local_maxxing keys point into OTHER rounds' worktrees (worktree_a00_2f819956, worktree_a00_48ed5e56_nodes, worktree_a00_d511add6 and the two keys under it) -- ephemeral dirs a reaper can remove; kept byte-identical to the literals they replaced, by the pass's own rule. Routed to the Prime, not this pass: box.root and the other box.* / locations.* cells are stale on this box (they name /home/ubuntu/work/agi; the repo lives elsewhere), and cli.py done's scoped commit drops .agi/config.json edits (the round's 7 keys were committed by director-thought's review pass, 7b0053ac5). Audit: repo-wide 10,086 -> 10,077, no new hit.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+RENUMBER (owner 09-23 09:0xZ, goal:g5): parent goal:g14 (retired) -> goal:g5 by the Prime after this node's merge landed (4e63658d0); mint id kept.
+<!-- THOUGHT:END -->
