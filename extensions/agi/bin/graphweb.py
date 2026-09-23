@@ -65,6 +65,8 @@ import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import commands  # noqa: E402  (same bin dir; the one choice surface)
+
 try:
     import yaml  # type: ignore  # present in-repo; fallback below if not
 except Exception:                                              # noqa: BLE001
@@ -1287,9 +1289,10 @@ def _incremental_layout(surviving: dict, ids: set, edges: list,
 # --------------------------------------------------------------------------- #
 # HTTP server                                                                  #
 # --------------------------------------------------------------------------- #
-def _json(handler: BaseHTTPRequestHandler, payload: dict | list) -> None:
+def _json(handler: BaseHTTPRequestHandler, payload: dict | list,
+          status: int = 200) -> None:
     body = json.dumps(payload).encode("utf-8")
-    handler.send_response(200)
+    handler.send_response(status)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
     handler.send_header("Content-Length", str(len(body)))
     handler.send_header("Cache-Control", "no-store")
@@ -1303,12 +1306,33 @@ class GraphHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):                                 # noqa: A003
         sys.stderr.write("[graphweb] %s\n" % (fmt % args))
 
+    def do_POST(self):                                                  # noqa: N802
+        """`POST /propose` — validate a command and return its argv; it runs
+        NOTHING. A refusal is a 400 with the reason as JSON."""
+        path = self.path.split("?")[0]
+        if path not in ("/propose", "/propose/"):
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+            body = json.loads(self.rfile.read(n) or b"{}")
+            argv = commands.propose(self.graph_root, body["name"],
+                                    body.get("args") or {})
+        except Exception as exc:                                        # noqa: BLE001
+            _json(self, {"error": str(exc)}, 400)
+            return
+        _json(self, {"argv": argv})
+
     def do_GET(self):                                                   # noqa: N802
         path = self.path.split("?")[0]
         if path in ("/graph.json", "/graph.json/"):
             _json(self, cached_build_graph(self.graph_root))
         elif path in ("/live.json", "/live.json/"):
             _json(self, live_view(self.graph_root))
+        elif path in ("/commands.json", "/commands.json/"):
+            _json(self, commands.manifest(self.graph_root))
         elif path in ("/", "/index.html"):
             page = _page_path(self.graph_root)
             body = page.read_bytes() if page.is_file() else PLACEHOLDER_PAGE.encode("utf-8")

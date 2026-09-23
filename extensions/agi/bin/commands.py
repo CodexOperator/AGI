@@ -195,6 +195,99 @@ def ordered_workflows(root) -> set[str]:
     return {str(v) for v in value} if isinstance(value, list) else set()
 
 
+#: The closed set a manifest entry's `side_effects` may name (a typo here is a
+#: choice a proposer would act on, so the set is data a test can see).
+SIDE_EFFECTS = ("read", "graph-write", "comms", "spawn", "spend",
+                "network", "destructive")
+
+
+def _derived_cli_verb(raw: list[str]) -> tuple[str, str]:
+    """`cli`/`verb` read off an entry's own argv when it declares neither."""
+    for i, arg in enumerate(raw):
+        base = str(arg).rsplit("/", 1)[-1]
+        if base.endswith((".py", ".sh")):
+            rest = [str(a) for a in raw[i + 1:]]
+            return base, (rest[0] if rest else "")
+    return (str(raw[0]) if raw else "", str(raw[1]) if len(raw) > 1 else "")
+
+
+def _entry(name, argv, m, cli, verb, side, prop, purpose=""):
+    """One choice-set entry; `m` (the node's metadata) overrides every default."""
+    e = {"name": name, "cli": str(m.get("cli") or cli),
+         "verb": str(m.get("verb") or verb), "argv": list(argv),
+         "args": list(m.get("args") or []),
+         "purpose": str(m.get("purpose") or m.get("reason") or purpose),
+         "side_effects": str(m.get("side_effects") or side),
+         "proposable": bool(m.get("proposable", prop))}
+    if m.get("reason"):
+        e["reason"] = str(m["reason"])
+    return e
+
+
+def manifest(root) -> dict[str, dict]:
+    """The ONE machine-readable choice set, from `command:commands` alone.
+
+    Declared commands join their `manifest:` metadata (or derive `cli`/`verb`
+    from their own argv); every `excluded:` verb is included with
+    `proposable: false` and its reason. Read-only: it resolves the node and
+    returns data, never running or writing anything.
+    """
+    fm = _load_node(Path(root))
+    dec, exc = fm.get("manifest") or {}, fm.get("excluded") or {}
+    out: dict[str, dict] = {}
+    for name, c in load(root).items():
+        m = dec.get(name) if isinstance(dec.get(name), dict) else {}
+        out[name] = _entry(name, c.raw_argv, m, *_derived_cli_verb(c.raw_argv),
+                           "read", True, c.about)
+    for name, m in {**dec, **exc}.items():
+        if name in out or not isinstance(m, dict):
+            continue
+        cli, verb = name.split(":", 1)[0], name.split(":", 1)[-1]
+        out[name] = _entry(name, [str(a) for a in (m.get("argv") or [])], m,
+                           cli, verb, "graph-write", name not in exc)
+    return out
+
+
+def render_manifest(root) -> str:
+    """`manifest()` as deterministic JSON: two calls agree byte for byte."""
+    return json.dumps(manifest(root), indent=2, sort_keys=True)
+
+
+def _coerce(value, arg):
+    """The declared `type` applied to one propose value."""
+    if str(arg.get("type") or "str") == "bool":
+        return str(value).lower() in ("true", "1", "yes")
+    return str(value)
+
+
+def propose(root, name: str, args: dict | None = None) -> list[str]:
+    """Validate `args` against the entry and RETURN its argv — NEVER run it."""
+    entry = manifest(root).get(name)
+    if entry is None:
+        raise CommandError(f"no command {name!r} in the choice set")
+    if not entry.get("proposable"):
+        raise CommandError(
+            f"{name!r} is not proposable: {entry.get('reason') or 'declared'}")
+    given, values = dict(args or {}), {}
+    for arg in entry.get("args") or []:
+        n = str(arg.get("name") or "")
+        if n not in given:
+            if arg.get("required"):
+                raise CommandError(f"{name!r}: missing required arg {n!r}")
+            continue
+        v = _coerce(given[n], arg)
+        if (arg.get("choices") or []) and v not in arg["choices"]:
+            raise CommandError(
+                f"{name!r}: arg {n!r}={v!r} not in {arg['choices']}")
+        values[n] = str(v)
+    for n, v in given.items():                # extras fill non-schema holders
+        values.setdefault(str(n), str(v))
+    argv = [str(t) for t in entry["argv"]]
+    for n, v in values.items():
+        argv = [t.replace(f"<{n}>", v) for t in argv]
+    return argv
+
+
 def get(root, name: str) -> Command:
     """One command by name. Raises `CommandError` naming what is available."""
     table = load(root)
@@ -330,10 +423,14 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", choices=["list", "show", "run", "json"],
+    ap.add_argument("action",
+                    choices=["list", "show", "run", "json", "manifest",
+                             "propose"],
                     nargs="?", default="list")
     ap.add_argument("name", nargs="?", help="command name, for show/run")
     ap.add_argument("extra", nargs="*", help="extra args appended to run")
+    ap.add_argument("--args", dest="args_json", default=None,
+                    help="JSON object of propose args")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--workflow", "-w", default=None,
                     help="run a declared workflow instead of a single command")
@@ -377,6 +474,22 @@ def main(argv: list[str] | None = None) -> int:
                               "workflow": c.workflow}
                           for n, c in sorted(load(root).items())}, indent=2))
         return 0
+
+    if args.action == "manifest":
+        print(render_manifest(root))
+        return 0
+
+    if args.action == "propose":
+        if not args.name:
+            print("ERR: propose needs a command name", file=sys.stderr)
+            return 2
+        try:
+            payload = json.loads(args.args_json) if args.args_json else {}
+            print(json.dumps(propose(root, args.name, payload)))
+            return 0
+        except (CommandError, json.JSONDecodeError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2 if isinstance(exc, json.JSONDecodeError) else 1
 
     if args.action == "list":
         table = load(root)
