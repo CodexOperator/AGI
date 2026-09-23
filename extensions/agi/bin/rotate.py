@@ -45,6 +45,7 @@ to merges only.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -11260,6 +11261,31 @@ def _restore_shield_signals(old: list) -> None:
             pass
 
 
+def _restore_signals_on_exit(fn):
+    """Restore the pre-call SIGHUP/SIGTERM/SIGPIPE dispositions in a
+    `finally`, whatever exit path `fn` takes.
+
+    A shield installed inside `fn` (`_shield_final_signals` sets the three
+    to SIG_IGN for the self-reap tail) must NEVER leak: the pre-fix restore
+    sat on the success return alone, so any raise or early return between
+    the shield and that line left SIG_IGN in the caller -- and the pytest
+    runtime is shared, so a later reap test inherited it (core-sync-0923
+    R5). Snapshot BEFORE the call and put them back on every way out."""
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        old: list = []
+        for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE):
+            try:
+                old.append((sig, signal.getsignal(sig)))
+            except (ValueError, OSError, AttributeError):
+                pass
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            _restore_shield_signals(old)
+    return wrapper
+
+
 def _button_down_legal_hint(root: Path) -> str:
     """Read-only one-liner for the dry-run: which branch a grid commit would
     run on. NEVER commits/pushes (dry-run touches nothing); only reads the
@@ -18554,6 +18580,7 @@ def _capture_session_safe(root: Path, *, seat: str, row: dict | None,
         return None
 
 
+@_restore_signals_on_exit
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -18655,7 +18682,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # before — an unregistered name errors `no seat`.
     row = None
     if not getattr(args, "throwaway", False):
-        row = _find_seat(cfg_root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             print(f"ERR: no seat {seat!r} in the seats registry "
                   f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
