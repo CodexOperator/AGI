@@ -255,3 +255,62 @@ def test_hook_head_equals_rotate_head_at_one_sha():
     prompt = brief.successor_prompt(tier="director", body="THE-CARD-BODY")
     assert prompt[:prompt.index("THE-CARD-BODY")].strip() == hook
     assert hook == brief.render_head()
+
+
+# ---- phase 4: the extras override + the doc-card node wins ----------------
+
+
+def test_extras_text_override_lands_last_and_order_is_the_config_cell(tmp_path):
+    """dispatch.py hands `render` the dynamic dispatch brief; the PARTS and
+    their ORDER still come from the config cell, never from the caller."""
+    root = _root(tmp_path, parts={"kid": ["head", "card", "extras"]})
+    out = brief.render(role="kid", extras_text="EXTRAS-SENTINEL",
+                       project_root=root)
+    assert out.endswith("EXTRAS-SENTINEL")
+    assert HEAD_SENTINEL in out
+    assert out.index(HEAD_SENTINEL) < out.index("EXTRAS-SENTINEL")
+
+
+def test_a_doc_card_node_wins_over_the_quorum_file(tmp_path):
+    """`doc:card-<post>`'s file must win; the quorum file is the fallback."""
+    root = _root(tmp_path, parts={"director": ["head", "card"]},
+                 card="QUORUM-CARD-SENTINEL\n")
+    _write(root, "nodes/doc/card-some-post.md",
+           "---\nid: doc:card-some-post\n---\n"
+           "# doc:card-some-post\n\nDOC-CARD-SENTINEL\n")
+    out = brief.render(post="some-post", project_root=root)
+    assert "DOC-CARD-SENTINEL" in out
+    assert "QUORUM-CARD-SENTINEL" not in out
+
+
+def test_assemble_without_head_returns_the_body_only(tmp_path):
+    """The `include_head=False` seam dispatch.py uses: the body carries no
+    head, so a caller can render head + card itself and pass this as extras."""
+    root = _root(tmp_path, parts={})
+    segs = brief.assemble(tier="kid", agent_id="a", iter_n=1,
+                          include_head=False, project_root=root)
+    text = "\n\n".join(segs)
+    assert HEAD_SENTINEL not in text
+    assert "DO NOT run git" in text
+
+
+def test_rotate_fallback_reason_reaches_stderr(tmp_path, monkeypatch, capsys):
+    """The fallback from `brief.render` to `brief.assemble` is never silent."""
+    sys.path.insert(0, str(BIN))
+    import rotate
+
+    root = _root(tmp_path, parts={"director": ["head", "card"]})
+    _write(root, "nodes/doc/director-brief.md", "D\n")
+    # remove the head source so the render refuses by name
+    (root / "nodes" / "doc" / "unified-head.md").unlink()
+    monkeypatch.setattr(rotate, "_build_harness_command",
+                        lambda harness, **kw: ["x"])
+    # the fallback body is stubbed: this test is about the STDOUT/STDERR
+    # contract, not about assembling against a minimal tmp graph.
+    monkeypatch.setattr(brief, "assemble", lambda **kw: ["BODY"])
+    rotate._assembled_successor_command(
+        name="some-post", tier="director", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi",
+        project_root=root)
+    err = capsys.readouterr().err
+    assert "brief.render" in err and "falling back to brief.assemble" in err

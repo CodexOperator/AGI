@@ -1021,6 +1021,29 @@ def _brief_tier_for(tier: str, ladder_tier: int, target: str | None) -> str:
     return tier
 
 
+def _render_dispatch_brief(*, root: Path | None, tier: str, role: str | None,
+                           harness: str | None, **assemble_kwargs) -> str:
+    """The dispatch brief as ONE `brief.render` for the dry report and the
+    spawn.json artifact (hypothesis:brief-py-assembles-every-first-turn-from-
+    config). The head (and card, when the post has one) come from the render;
+    the dispatch body rides as its `extras` part, from the config cell's order.
+    A render that refuses (e.g. an advisor brief with no configured parts)
+    falls back to legacy `brief.assemble` -- LOUDLY, never silently."""
+    import brief as _brief
+    if root is not None:
+        assemble_kwargs.setdefault("project_root", root)
+    body = "\n\n".join(s.rstrip("\n") for s in
+                       _brief.assemble(tier=tier, include_head=False, **assemble_kwargs))
+    try:
+        return _brief.render(role=role, harness=harness, extras_text=body,
+                             project_root=root)
+    except _brief.RenderError as exc:
+        print(f"dispatch: brief.render refused for tier {tier!r} ({exc}); "
+              f"falling back to brief.assemble", file=sys.stderr)
+        return "\n\n".join(s.rstrip("\n") for s in
+                           _brief.assemble(tier=tier, **assemble_kwargs))
+
+
 def _assert_allowed_model(harness_name: str, harness: dict,
                         model: str | None) -> None:
     """FAIL CLOSED on `allowed_models` (hypothesis:l4-dispatch-model-allowlist).
@@ -1359,20 +1382,18 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
 
-            # The brief, assembled directly so the report can show ITS line
-            # count and first 20 lines without depending on how a harness
-            # spells the prompt to disk.
-            segments = _brief.assemble(
-                tier=brief_tier, agent_id=agent_id, iter_n=args.iter_n,
+            # The brief, rendered so the report shows the SAME first turn a
+            # harness would spell to disk (head + card + the dispatch extras).
+            brief_text = _render_dispatch_brief(
+                root=root, tier=brief_tier, role=args.role,
+                harness=harness_name, agent_id=agent_id, iter_n=args.iter_n,
                 cli_py=engine_paths["cli_py"],
                 dispatch_py=engine_paths["dispatch_py"], scaffold=None,
                 source_root=engine_paths["source_root"],
                 target=target, parallel=parallel, max_live=cap,
                 kid_ceiling=kid_ceiling,
                 addendum=_read_prompt_file(_effective_carry_forward(args)),
-                session_dir=sess_dir,
-                project_root=root)
-        brief_text = "\n\n".join(s.rstrip("\n") for s in segments)
+                session_dir=sess_dir)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
 
         # goal:g15.25 SM.26 -- a dry run SHOWS the orders section (heading +
@@ -2844,9 +2865,9 @@ def main() -> int:
         # child's real env is untouched. A failure here must never take the
         # spawn down -- the spawn is the contract, this is a debugger's nicety.
         try:
-            import brief as _brief_dbg
-            _segs = _brief_dbg.assemble(
-                tier=_brief_tier_for(args.tier, tier_eff, target),
+            _brief_text = _render_dispatch_brief(
+                root=root, tier=_brief_tier_for(args.tier, tier_eff, target),
+                role=args.role, harness=harness_name,
                 agent_id=agent_id, iter_n=args.iter_n,
                 cli_py=engine_paths["cli_py"],
                 dispatch_py=engine_paths["dispatch_py"],
@@ -2858,9 +2879,8 @@ def main() -> int:
                 kid_ceiling=spawn_budget.parent_max_kids(cfg),
                 addendum=_read_prompt_file(_effective_carry_forward(args)),
                 session_dir=sess_dir)
-            _brief_text = "\n\n".join(s.rstrip("\n") for s in _segs)
         except BaseException as exc:  # never let the debug artifact break spawn
-            _brief_text = f"<spawn.json brief assemble failed: {exc}>"
+            _brief_text = f"<spawn.json brief render failed: {exc}>"
         (sess_dir / "spawn.json").write_text(json.dumps({
             "agent_id": agent_id,
             "argv": spawn_args,

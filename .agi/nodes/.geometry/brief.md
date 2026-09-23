@@ -12,7 +12,7 @@ title: "config:brief — the ONE brief cell: parts per role + harness, the harne
 town: local-maxxing
 brief:
   parts: {"kid": ["head", "card", "extras"], "parent": ["head", "card", "extras"], "director": ["head", "template", "card"], "prime_director": ["head", "template", "card", "trajectory"], "master": ["head", "template", "card", "trajectory"]}
-  templates: {"director": "doc:unified-director-brief", "master": "doc:unified-director-brief", "prime_director": "build:briefs-prime-director-successor"}
+  templates: {"director": "doc:unified-director-brief", "master": "doc:unified-master-brief", "prime_director": "build:briefs-prime-director-successor"}
   harnesses: {"claude-code": ["harness"]}
   harness_blocks: {"claude-code": "CLAUDE.md"}
   trajectory: {"town": "local-maxxing"}

@@ -1105,7 +1105,11 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = brief.render(post=name, role=tier,
                             harness=harness or "claude-code",
                             project_root=project_root)
-    except brief.RenderError:
+    except brief.RenderError as exc:
+        # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
+        # config): a rotation that fell back to the legacy brief must say so.
+        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
+              f"falling back to brief.assemble", file=sys.stderr)
         body = None
     if not body:
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
