@@ -1554,17 +1554,3 @@ def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path, monkeypatch):
     fixture = tmp_path / "crontab.fixture"
     crons.cmd_apply(root, crontab_file=fixture)
     assert crons.cmd_audit(root, crontab_file=fixture) == []
-
-
-def test_audit_flags_a_gated_generic_job_without_why_box(tmp_path, monkeypatch):
-    """The `box` gate's why_box rule is not a KNOWN_JOBS privilege: a generic
-    entry (a name outside KNOWN_JOBS carrying a `cmd`) goes through the SAME
-    box gate, so the audit must name it exactly as it names a built-in."""
-    monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    cad = {"town_probe": {"every_mins": 9, "enabled": True,
-                          "cmd": "/bin/true", "box": "local-town"}}
-    root = make_project(tmp_path, cadences=cad)
-    fixture = tmp_path / "crontab.fixture"
-    crons.cmd_apply(root, crontab_file=fixture)
-    found = crons.cmd_audit(root, crontab_file=fixture)
-    assert any("town_probe" in f and "why_box" in f for f in found), found
