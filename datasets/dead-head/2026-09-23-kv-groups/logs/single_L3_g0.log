@@ -1,0 +1,10 @@
+0.02.786.084 I cmn          init: llama threadpool init, n_threads = 8
+0.02.786.771 I 
+0.02.786.858 I system_info: n_threads = 8 (n_threads_batch = 8) / 16 | CUDA : ARCHS = 500,610,700,750,800,860,890,900,1200 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | CPU : SSE3 = 1 | SSSE3 = 1 | AVX = 1 | AVX2 = 1 | F16C = 1 | FMA = 1 | BMI2 = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.02.786.873 I perplexity: tokenizing the input ..
+0.03.385.195 I perplexity: tokenization took 598.31 ms
+0.03.385.392 I perplexity: calculating perplexity over 40 chunks, n_ctx=512, batch_size=2048, n_seq=4
+0.39.978.943 I perplexity: 36.59 seconds per pass - ETA 6.08 minutes
+[1]5.4750,[2]7.6732,[3]7.6458,[4]7.3992,[5]7.3255,[6]7.6448,[7]7.9733,[8]8.5212,[9]8.8907,[10]9.2340,[11]9.0608,[12]9.0950,[13]9.5461,[14]9.0806,[15]8.9820,[16]9.0392,[17]8.4789,[18]8.4900,[19]8.4400,[20]8.3941,[21]8.1058,[22]8.0156,[23]7.7407,[24]7.4047,[25]7.2906,[26]7.1122,[27]7.0019,[28]6.9192,[29]6.9179,[30]6.8971,[31]6.8599,[32]6.8721,[33]6.8417,[34]6.9198,[35]7.0086,[36]7.1666,[37]7.2491,[38]7.2394,[39]7.2486,[40]7.2951,
+0.55.918.016 I Final estimate: PPL = 7.2951 +/- 0.18114
+
