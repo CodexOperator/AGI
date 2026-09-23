@@ -3,9 +3,9 @@ id: goal:s30
 mint_id: 50c014bec839497aaae0423b3698a709
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S30
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S30: `HANDOFF.md` is replaced each session, so standing content cannot live in it"
 ---
 **Two rules, and the second follows from the first by necessity.**
