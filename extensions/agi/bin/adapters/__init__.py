@@ -35,6 +35,17 @@ from types import ModuleType
 #: when it is selected rather than when it is first spawned through.
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
+#: OPTIONAL pane surface (`goal:g7.32.3`): callers feature-detect with
+#: `has_pane_methods`; a harness without panes omits them. One generic
+#: interface -- no harness name appears here.
+PANE_METHODS = ("pane_attach", "pane_send", "pane_read")
+
+
+def has_pane_methods(module) -> bool:
+    """True iff `module` exposes the WHOLE optional pane surface (all-or-
+    nothing: a partial pane surface is not one, so callers never call half)."""
+    return all(callable(getattr(module, fn, None)) for fn in PANE_METHODS)
+
 
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""

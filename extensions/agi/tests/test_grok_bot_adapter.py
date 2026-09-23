@@ -276,3 +276,56 @@ def test_dispatch_still_has_zero_grok_hits():
     dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
     assert "grok" not in dispatch.read_text(encoding="utf-8").lower()
 
+
+
+# --------------------------------------------------- optional pane surface
+# goal:g7.32.3 falsifier: one adapter, OPTIONAL pane methods behind a single
+# generic interface; absence is the feature-detection answer; no pane held =>
+# named error, never a hang.
+
+PANE_HARNESS = {**HARNESS, "pane": "seat-director"}
+
+
+def test_pane_surface_is_optional_and_feature_detected():
+    """grok exposes the whole pane surface; a pane-less harness omits it."""
+    assert adapters.PANE_METHODS == ("pane_attach", "pane_send", "pane_read")
+    assert adapters.has_pane_methods(grok) is True
+    pi = adapters.load("pi")
+    assert adapters.has_pane_methods(pi) is False
+    for fn in adapters.PANE_METHODS:
+        assert not hasattr(pi, fn), fn
+
+
+def test_pane_methods_fail_closed_without_a_held_pane():
+    """No `pane` cell => PaneNotHeld, named and prompt -- never a hang."""
+    assert issubclass(grok.PaneNotHeld, RuntimeError)
+    for fn in adapters.PANE_METHODS:
+        with pytest.raises(grok.PaneNotHeld):
+            getattr(grok, fn)(harness=HARNESS, text="hi")
+
+
+def test_pane_methods_route_through_one_injectable_seam(monkeypatch):
+    """The tmux call is one seam: assert the argv, with no live tmux."""
+    calls = []
+
+    def fake(args):
+        calls.append(args)
+        return "@3\n"
+
+    monkeypatch.setattr(grok, "_tmux", fake)
+    assert grok.pane_attach(harness=PANE_HARNESS) == "@3"
+    assert grok.pane_send(harness=PANE_HARNESS, text="hello") is None
+    assert grok.pane_read(harness=PANE_HARNESS) == "@3\n"
+    assert calls == [
+        ["display-message", "-p", "-t", "seat-director", "#{pane_id}"],
+        ["send-keys", "-t", "seat-director", "hello", "Enter"],
+        ["capture-pane", "-p", "-t", "seat-director"],
+    ]
+
+
+def test_exactly_one_grok_bot_adapter_module():
+    """`ls`/import graph: still ONE adapter module for grok-bot."""
+    mods = sorted(p.name for p in (BIN / "adapters").glob("grok*_adapter.py"))
+    assert mods == ["grok_bot_adapter.py"]
+    loaded = [m for m in sys.modules if m.startswith("adapters.grok")]
+    assert loaded == ["adapters.grok_bot_adapter"]

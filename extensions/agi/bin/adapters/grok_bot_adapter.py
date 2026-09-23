@@ -160,3 +160,42 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+# --- OPTIONAL pane surface (goal:g7.32.3) ---------------------------------
+# These WRAP a pane the seat already holds; goal:g7.31.1.2 owns creating,
+# owning and reaping one, so these never do. The held NAME is the harness
+# row's `pane` cell; `_tmux` is the ONE injectable seam so tests need no tmux.
+class PaneNotHeld(RuntimeError):
+    """A pane method was called while the harness row held no pane name."""
+
+
+def _held_pane(harness: dict) -> str:
+    name = str((harness or {}).get("pane") or "").strip()
+    if not name:
+        raise PaneNotHeld(
+            "no pane held: set harness['pane'] to the seat's named tmux pane; "
+            "the adapter wraps a held pane (goal:g7.31.1.2), never creates one")
+    return name
+
+
+def _tmux(args: list[str]) -> str:
+    """The ONE tmux seam; tests replace this module attribute."""
+    return subprocess.run(["tmux", *args], capture_output=True, text=True,
+                          check=False).stdout
+
+
+def pane_attach(*, harness: dict, **kwargs) -> str:
+    """The held pane's live tmux id, or raise PaneNotHeld."""
+    return _tmux(["display-message", "-p", "-t", _held_pane(harness),
+                  "#{pane_id}"]).strip()
+
+
+def pane_send(*, harness: dict, text: str, **kwargs) -> None:
+    """Type `text` + Enter into the held pane, or raise PaneNotHeld."""
+    _tmux(["send-keys", "-t", _held_pane(harness), text, "Enter"])
+
+
+def pane_read(*, harness: dict, **kwargs) -> str:
+    """Capture the held pane, or raise PaneNotHeld."""
+    return _tmux(["capture-pane", "-p", "-t", _held_pane(harness)])
