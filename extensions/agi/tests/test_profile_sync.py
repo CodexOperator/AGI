@@ -273,3 +273,60 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.1 residues 1+2: refuse BEFORE the graph advances ---------
+
+def _node_path(repo: Path) -> Path:
+    return repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+
+
+def test_bad_ref_refuses_before_the_node_body_changes(tmp_path):
+    """Residue 1: rc!=0, body byte-identical, named refusal, no traceback."""
+    repo = _repo(tmp_path, ref="../escape.md")
+    before = _node_path(repo).read_bytes()
+    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="clobber\n")
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "profile_ref" in r.stderr and "refused" in r.stderr
+    assert "Traceback" not in r.stderr
+    assert _node_path(repo).read_bytes() == before, "graph advanced anyway"
+    assert not (tmp_path.parent / "escape.md").exists()
+
+
+def test_unsetting_a_bad_ref_lands_no_deadlock(tmp_path):
+    """Residue 1 (no deadlock): the post-edit ref is what counts."""
+    repo = _repo(tmp_path, ref="../escape.md")
+    before = _node_path(repo).read_bytes()
+    r = _cli(["hypothesis:h1", "unset profile_ref && replace body 1:1 -"],
+             repo, stdin="freed\n")
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    after = _node_path(repo).read_bytes()
+    assert after != before and b"freed" in after
+    assert b"profile_ref" not in after.split(b"---", 2)[1]
+
+
+def test_replacing_a_bad_ref_with_a_valid_one_lands(tmp_path):
+    repo = _repo(tmp_path, ref="../escape.md")
+    r = _cli(["hypothesis:h1", "set profile_ref profile/ok.md"], repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert (repo / "profile" / "ok.md").read_bytes() == BODY.encode()
+
+
+def test_missing_node_is_a_named_refusal_exit_2(tmp_path):
+    """Residue 2: no uncaught FileNotFoundError traceback, no artifact."""
+    repo = _repo(tmp_path)
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "hypothesis:does-not-exist"], cwd=repo,
+                       capture_output=True, text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr and "not found" in r.stderr
+    assert "FileNotFoundError" not in r.stderr and "Traceback" not in r.stderr
+    assert not (repo / "profile").exists()
+
+
+def test_no_tmp_is_left_behind_on_any_refusal_path(tmp_path):
+    repo = _repo(tmp_path, ref="../escape.md")
+    _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="clobber\n")
+    subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                    "hypothesis:nope"], cwd=repo, capture_output=True, text=True)
+    assert list(repo.rglob("*.tmp")) == []

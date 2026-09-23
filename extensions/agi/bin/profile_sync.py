@@ -45,11 +45,33 @@ def project(root, node_id):
         raise Refused("no project root — no enclosing .agi/config.json")
     f = node_writer.find_node_file(root, node_id)
     if f is None:
-        raise FileNotFoundError(node_id)
+        # Named refusal, not a bare FileNotFoundError traceback (residue 2).
+        raise Refused(f"node {node_id!r} not found")
     nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
     if not ref:
         raise NoRef(node_id)
     return artifact_path(root, str(ref)), _projected_bytes(nf)
+
+
+def validate_effective(root, node_id, set_fm=None, unset_fm=None):
+    """Refuse BY NAME now if the POST-EDIT `profile_ref` is unusable.
+
+    Residue 1 (partial write): the effective ref is the one the edit LEAVES
+    behind, so an edit that unsets a bad ref or replaces it with a valid one
+    still lands (no deadlock) while one that leaves a bad ref untouched
+    refuses. Read-only: a refusal happens BEFORE `node_writer.update_node`,
+    so the node body never changes on a refused write.
+    """
+    f = node_writer.find_node_file(root, node_id)
+    if f is None:
+        return  # not an existing node; update_node owns that refusal
+    ref = fmr.load_node_file(f, body=False).frontmatter.get("profile_ref")
+    if "profile_ref" in (set_fm or {}):
+        ref = set_fm["profile_ref"]
+    elif "profile_ref" in (unset_fm or []):
+        ref = None
+    if ref:
+        artifact_path(root, str(ref))
 
 
 def _raw_profile_ref(text):
