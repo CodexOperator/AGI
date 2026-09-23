@@ -15,8 +15,10 @@ into this file.
 from __future__ import annotations
 import json
 import os
+import shlex
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -106,8 +108,32 @@ def _tmux(argv: list[str]) -> subprocess.CompletedProcess | None:
         return None
     except subprocess.TimeoutExpired as exc:
         raise PaneHoldError(f"tmux {' '.join(argv[1:2])} timed out: {exc}") from exc
-    except OSError:
-        return None
+    except OSError as exc:
+        # A PermissionError (or any OSError that is NOT FileNotFoundError) is
+        # tmux PRESENT but broken -- an anonymous fallback here would mint the
+        # very fire-and-forget seat the hold forbids. Only genuine absence
+        # (FileNotFoundError) may return None.
+        raise PaneHoldError(
+            f"tmux {' '.join(argv[1:2])} failed: {exc}") from exc
+
+
+def _pane_launcher(name: str, args: list[str], env: dict[str, str]) -> str:
+    """Write a mode-0600 script that execs `args` under EXACTLY `env`.
+
+    `tmux -e K=V` only ADDS to the server's environment; it can never REMOVE
+    a variable the server already carries (measured on real tmux 3.4), so the
+    runtime OpenRouter key still reached a `needs_credential=False` seat.
+    `env -i` makes the passed `env` the child's WHOLE environment. The script
+    is deliberately left on disk, as `rotate._launch_window` does: bash reads
+    it incrementally and deleting it early can truncate a running child.
+    """
+    assigns = " ".join(shlex.quote(f"{k}={v}") for k, v in env.items())
+    cmd = " ".join(shlex.quote(a) for a in args)
+    fd, path = tempfile.mkstemp(prefix=f"agi-pane-{name}-", suffix=".sh")
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(f"#!/bin/bash\nexec env -i {assigns} {cmd}\n")
+    os.chmod(path, 0o600)
+    return path
 
 
 def pane_listing(name: str) -> list[str]:
@@ -125,9 +151,11 @@ def hold_in_pane(*, name: str, args: list[str], cwd: Path,
 
     False only when tmux is ABSENT (caller falls back to the direct Popen).
     tmux present but failing raises PaneHoldError -- a named refusal, never
-    a silent anonymous process. `env` threads as `-e NAME=VALUE` (before
-    `-c`, so the command argv stays last), giving the pane the SAME scrubbed
-    child env the direct Popen uses. `remain-on-exit` holds the NAME.
+    a silent anonymous process. `env` is applied by a mode-0600 launcher
+    running the argv under `env -i`, so the pane child's environment EQUALS
+    the scrubbed `child_env` and nothing the tmux server carries can leak in
+    (`-e` alone cannot remove; it is kept only for observable shims).
+    `remain-on-exit` holds the NAME.
     """
     probe = _tmux(["tmux", "has-session", "-t", name])
     if probe is None:
@@ -137,13 +165,18 @@ def hold_in_pane(*, name: str, args: list[str], cwd: Path,
             f"tmux has-session rc={probe.returncode} for {name}")
     env_flags = [f for k, v in (env or {}).items()
                  for f in ("-e", f"{k}={v}")]
+    # `-e` only ADDS to the tmux server env; removal is done by the launcher's
+    # `env -i`, never by `-e`. The flags are kept so a recording shim still
+    # sees the env a caller threaded.
+    run = (["bash", _pane_launcher(name, args, env)]
+           if env is not None else args)
     if probe.returncode == 0:
         cmd = ["tmux", "respawn-pane", "-k", "-t", name,
                *env_flags, "-c", str(cwd)]
     else:
         cmd = ["tmux", "new-session", "-d", "-s", name,
                *env_flags, "-c", str(cwd)]
-    started = _tmux([*cmd, *args])
+    started = _tmux([*cmd, *run])
     if started is None:
         return False
     if started.returncode != 0:
