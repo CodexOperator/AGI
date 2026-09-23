@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-sot-land-reconmin-drop-2026-09-22
+thought_session: belam-watch-cap-fix-2026-09-22
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -83,15 +83,24 @@ SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    REOPENED > horizon OR any leaf in town:core (claimable)
          NOT only already-active · director activates THEMSELF
          distribute durable across depth · ≤18/dir · ≤30 box
-         NEST+FILL (HARD · multi-leaf): nest format-worthy residues as MULTIPLE kids · FILL MUR/parent slots under cap across leaves
+         CAP-RULER: fill toward ≤18 when box can take it + claimable/residual exist
+           soft floor ≥10 combined = minimum only · NOT a stop after MUR-only fill
+         NEST+FILL (HARD · multi-leaf): nest format-worthy residues as MULTIPLE kids · FILL MUR/parent slots toward CAP across leaves
+         HORIZON-UNDER-ACTIVE: active parent → scan sub / sub-sub leaves still horizon · those are claimable/spawn targets
 ACTIVE-BEFORE-SPAWN (HARD · DIAGRAM C + WATCH CLAIM):
          before ANY dispatch/spawn → write.py route: set status active (BARE YAML)
          on the chosen subgoal / nested leaf · NEVER spawn while still horizon
          quoted 'active' = BUG · always bare active
+ACTIVE⇒SPAWN SAME TURN (HARD · pairs with active write):
+         write.py status:active on a leaf ⇒ MUST durable-spawn pi parent for it in THIS SAME wake
+         no claim/intent without follow-up spawn same turn · active-without-spawn = BUG
 STATUS   = coord · active=claimed/worked · horizon=free/claimable
          maintain status on ALL goals in the bundle · parents w/ open kids = active
+AXES     morals = up-down (vertical · faith ladder · moral:*)
+         verify-suite progress after each batch = forward-backward metric
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip (leaf/trunk)
          → write.py set status complete (BARE YAML · never quoted)
+         → AFTER each 0-residue leaf-chain merge-up: run FULL verify suite on YOUR director worktree
          → sync ALL post WTs · NEVER leave closed work as active/horizon
          → board Agent Notes (NOT Belam chat)
 GRAPH SoT (all 3 roles: Belam · director-belam · director-helper):
@@ -111,12 +120,16 @@ EXCEPT   exposed keys/leak → Belam NOW
 ## NESTED GOAL AUTHORITY (HARD) — shared  (`doc:standing-llm-ops` §4b)  [DIAGRAM E]
 ```
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
-  (multi-leaf nest · not one fat same-level sibling) · FILL under cap across those leaves.
+  (multi-leaf nest · not one fat same-level sibling) · FILL toward CAP across those leaves.
 CLAIM: REOPENED > horizon OR any leaf · activate self to concurrent sense
   distribute durable across depth · spawn.parallel=1/goal · ≤18/dir · ≤30 box
+  soft floor ≥10 = minimum · cap-ruler ≤18 when claimable remains
+  HORIZON-UNDER-ACTIVE: under every active goal, scan sub/sub-sub still-horizon leaves → claimable
 ACTIVE-BEFORE-SPAWN: write.py status active (bare) on leaf BEFORE dispatch · never spawn on horizon
+ACTIVE⇒SPAWN SAME TURN: bare active write ⇒ durable pi parent spawn in same wake (HARD)
 STATUS: active=claimed · horizon=free/claimable · parent w/ open kids MUST be active (bare)
 NO new g7.N (Belam only) · self-coord via geometry board
+AXES: morals up-down · verify-suite after 0-residue merge-up = forward metric on YOUR WT
 ```
 
 
@@ -134,6 +147,8 @@ DIAGRAM-MAX (HARD — every token):
         ──▶ owner verbatim stays verbatim
 land gate: format ✓ · residues=0 · FULL suite green on post (§3e)
   → write.py status complete (BARE) on done leaf/trunk · sync post WTs · not leave active/horizon
+  → after each 0-residue leaf-chain merge-up: FULL verify suite on YOUR director worktree (forward metric)
+  morals axis = up-down · verify-suite progress = forward-backward
 routes: write.py · read · send · dispatch/workflow · rotate/spawn
   (engine routes wording — prefer named CLIs / write.py route over raw tools)
 §3d residue → write.py goal version (whole-replace thought/feeling)
@@ -142,7 +157,9 @@ loop independently until residues=0 · report to GRAPH not Belam
 watch: SECTION:ROUTINE_WATCH ACTION FORMAT (self-contained HARD fill · NO standing §3c stub)
 watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status active (BARE) BEFORE spawn
   · never spawn while goal still horizon · quoted 'active' = BUG
-  · activate self ≤18/≤30 · distribute durable across depth
+  · ACTIVE⇒SPAWN SAME TURN: bare active ⇒ durable pi parent in same wake (HARD)
+  · activate self toward ≤18/≤30 · soft floor ≥10 minimum · distribute durable across depth
+  · horizon-under-active kids are claimable
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
 GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
@@ -151,8 +168,14 @@ CONCURRENCY (HARD — DIAGRAM B · ROUTINE_WATCH ACTION FORMAT):
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
   ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
-  soft floor ≥5 combined (parents+MURs) after each watch/check when town bundle still has claimable work
-    · distribute across sub/sub-subgoals as needed · ONLY exception = end of goal bundle (no claimable left)
+  CAP-RULER (HARD): ≤18 is the real fill target when box can handle it + claimable/residual/horizon-under-active exist
+  soft floor ≥10 combined (parents+MURs) after each watch/check when town bundle still has claimable work
+    · raised from ≥5 · MINIMUM only · NOT a stop
+    · distribute across sub/sub-subgoals as needed
+    · ONLY exception = end of goal bundle (no claimable / residual / horizon-under-active left)
+  AFTER MUR fill: still scan residual parents owed (done+residues / active-without-live-parent / horizon kids under active)
+    · fill those under remaining cap · NEVER exit early just because soft floor met via MURs alone
+  FILL ORDER (outside ACTIVE⇒same-turn): owed MURs (if toward cap) → residual parents → fresh horizon claims
   watch MUST fill owed MUR slots under that cap (HARD)
   never invent slot-blocked / one-at-a-time when slots free
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
@@ -200,37 +223,59 @@ pins (post-local DH/DT — fill placeholders):
   REPORT {{REPORTS_TO}}
 
 ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / stub):
-  Sense → multi-leaf nest owed work → FILL owed MURs under cap (floor≥5 when claimable work) → residual/claim parents → emit
-  FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · active-before-spawn bare
+  Sense → multi-leaf nest owed work → FILL owed MURs toward CAP → residual parents / horizon-under-active → emit
+  CAP-RULER (HARD): ≤18 live/dir · ≤30 box is the REAL fill target when box can take it + claimable work exists
+    · soft floor ≥10 combined (parents+MURs) — raised from ≥5 — ONLY a minimum, NOT a stop
+    · NEVER stop just because soft floor is met after MUR-only fill
+    · ONLY exception to filling toward cap = end of goal bundle (no claimable / residual / horizon-under-active left)
+  FILL ORDER (outside ACTIVE⇒same-turn):
+    1) owed MURs (if they can fill toward cap)
+    2) residual parents owed (see Sense)
+    3) fresh claim / horizon leaves (incl. horizon kids under active parents)
+  FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · ACTIVE⇒spawn SAME TURN
   parents+MURs SAME pool ≤18/dir · ≤30 box
   never tip-only table with backlog and zero action when slots free
   never invent slot-blocked / one-at-a-time
 
-WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C):
+WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C) + ACTIVE⇒SPAWN SAME TURN (HARD):
   before any new dispatch/spawn → write.py status active (bare) on chosen leaf
-  never spawn while goal still horizon · quoted 'active' = BUG
+  NEVER spawn while goal still horizon · quoted 'active' = BUG
+  if you write.py status:active on a leaf → MUST durable-spawn a pi parent for it in THIS SAME wake/turn
+    · no claim/intent to grow chain without follow-up spawn same turn
+    · active-without-spawn = BUG
+
+HORIZON-UNDER-ACTIVE (HARD scan):
+  when sensing active goals → ALSO scan subgoal / sub-subgoal leaves still horizon under them
+  those horizon kids are claimable / spawn targets (activate bare → spawn same turn)
 
 COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
   write.py status complete (BARE) · sync post WTs · NEVER leave as active/horizon
+  after each 0-residue leaf-chain merge-up → run FULL verify suite on YOUR director worktree (forward metric)
 
 ZERO-RESIDUE
-  MUR accept              ──▶ residues=0 ──▶ board complete OK (outside watch)
-  MUR accept_with_residue ──▶ residues>0 ──▶ NO board complete · KEEP parent loops
+  MUR accept              ──▶ residues=0 ──▶ board complete OK (outside watch) · verify suite on YOUR WT
+  MUR accept_with_residue ──▶ residues>0 ──▶ NO board complete · KEEP parent loops · nest kids
   MUR reject/format-fail  ──▶ fix → re-MUR
 
 1) Sense
-   parents alive? workflows running?
-   status=done + no MUR yet → owed MUR · FILL under cap
-   free slots? → FILL owed MUR first · then residual/claim parents
+   parents alive? workflows running? slots free under ≤18/≤30?
+   status=done + no MUR yet → owed MUR · FILL toward CAP
+   residual parents owed:
+     · done kids with residues (need nest+parent or re-parent)
+     · active leaves without a live parent
+     · horizon kids under active parents (horizon-under-active)
+   free slots? → do NOT stop at soft floor ≥10 after MUR-only fill
 2) Act (HARD on live-parents-workflows wakes)
-   FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · active-before-spawn bare
+   FILL toward CAP · multi-leaf nest+FILL · spawn MUR(s) first (if toward-cap)
+     then residual parents · then fresh horizon claims
+   durable systemd · ACTIVE⇒spawn SAME TURN (bare active + spawn paired)
 3) Emit ONLY on delta — short table OK
 4) No delta → silence
 5) Never invent. Never new remote head. Never push core/main.
 6) Prefer graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
-
+7) Morals axis (up-down) + verify-suite progress (forward-backward) — see PROFILE DIAGRAM A/B/E
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: drop RECON-MIN from parent-check ROUTINE_WATCH (live wakes always FILL/spawn); reinforce multi-leaf nest+FILL inside existing DIAGRAM A / DIAGRAM E / WATCH ACTION FORMAT fences (no new micro-fence); cadence + {{SCOPE}}/{{TREE}} pins kept
+owner-fix: soft floor ≥5→≥10; CAP-RULER > soft floor (≤18 real target); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged
 <!-- THOUGHT:END -->
