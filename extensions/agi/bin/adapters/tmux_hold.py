@@ -54,7 +54,22 @@ def _pane(harness: dict, name: str) -> tuple[str, int] | None:
     return next(((i, int(p)) for w, i, p in panes(harness) if w == name), None)
 
 
-def _cmd(argv, log_file):
+def _env_prefix(env):
+    """`env -i K=V ...` -- REPLACE the pane environment, never merge into it.
+
+    A `respawn-pane` injects the tmux SERVER's frozen environment, so a
+    variable `child_env` adds is missing and one it DROPS (the credential-none
+    key `adapters.drop_unneeded_credential` removes) comes back. tmux's own
+    `-e` can only add, so a drop would survive it; `env -i` is the shape that
+    makes the pane's env exactly `child_env()` (`goal:g7.31.1.2.1`).
+    """
+    if env is None:
+        return []
+    return ["env", "-i", *(f"{k}={v}" for k, v in env.items())]
+
+
+def _cmd(argv, log_file, env=None):
+    argv = [*_env_prefix(env), *argv]
     if not log_file:
         return list(argv)
     return ["sh", "-c", "exec >>" + shlex.quote(str(log_file))
@@ -65,7 +80,8 @@ def _run(args):
     return subprocess.run(args, capture_output=True, text=True)
 
 
-def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None):
+def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None,
+          env: dict | None = None):
     """Create the named pane only if the session has none, then run argv in it.
 
     The pane is founded with a throwaway shell, `remain-on-exit` set on THAT
@@ -74,7 +90,8 @@ def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None):
     """
     name, sess, have = pane_name(agent_id), _session(harness), panes(harness)
     if any(w == name for w, _, _ in have):
-        return reattach(harness, agent_id, argv, cwd=cwd, log_file=log_file)
+        return reattach(harness, agent_id, argv, cwd=cwd, log_file=log_file,
+                        env=env)
     args = (["tmux", "new-session", "-d", "-s", sess, "-n", name] if not have
             else ["tmux", "new-window", "-t", sess, "-n", name])
     if _run([*args, "-c", str(cwd)]).returncode != 0:
@@ -84,13 +101,13 @@ def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None):
         return None
     _run(["tmux", "set-option", "-w", "-t", hit[0], "remain-on-exit", "on"])
     cp = _run(["tmux", "respawn-pane", "-k", "-t", hit[0], "-c", str(cwd),
-               "--", *_cmd(argv, log_file)])
+               "--", *_cmd(argv, log_file, env)])
     hit = _pane(harness, name)
     return hit[1] if cp.returncode == 0 and hit else None
 
 
 def reattach(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None,
-             created: dict | None = None):
+             created: dict | None = None, env: dict | None = None):
     """Re-enter the SAME pane after death: `respawn-pane -k` on its `pane_id`.
 
     A genuinely GONE pane (its window killed, not just its process) is
@@ -99,14 +116,14 @@ def reattach(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=Non
     """
     name, hit = pane_name(agent_id), _pane(harness, pane_name(agent_id))
     if hit is None:
-        pid = start(harness, agent_id, argv, cwd=cwd, log_file=log_file)
+        pid = start(harness, agent_id, argv, cwd=cwd, log_file=log_file, env=env)
         if created is not None:
             again = _pane(harness, name)
             created.update(created=pid is not None,
                            pane_id=again[0] if again else None)
         return pid
     cp = _run(["tmux", "respawn-pane", "-k", "-t", hit[0], "-c", str(cwd),
-               "--", *_cmd(argv, log_file)])
+               "--", *_cmd(argv, log_file, env)])
     if created is not None:
         created.update(created=False, pane_id=hit[0])
     hit = _pane(harness, name)
