@@ -5,16 +5,37 @@ type: doc
 parents:
   - goal:g14
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 7c61cb59727a97bd
 season: 2
-status: active
+status: deprecated
+thought_session: owner-ask-2026-09-21
 title: "The local-maxxing town trajectory board — the ONE shared update space for the master and both directors (owner 01:2xZ 09-21): live rounds, queue per track, last merges, the engine batch; every post appends one line per landing, the master trims the body"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
-# doc:lm-town-trajectory — the local-maxxing TRAJECTORY (super node, to the side of the goal tree)
-**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** "a super node that exists to the side and links into all relevant nodes that relate to it. It's bigger than a single sub goal and maybe sometimes bigger than a perpetual goal but smaller than a vision. An individual set of metrics we are trying to chase for this track. In our case we are hoping that layering all these techniques lets us run bigger and bigger existing models on smaller and smaller footprints with longer and longer [context] windows." **How it changes (owner 01:4xZ-01:5xZ):** metrics may be adjusted mid-research to test things or when adjustments are needed; each change is NOT a note — it is a new node version: overwrite this body in place (the grid records the version; the reason goes in the THOUGHT block); an A/B of a metric change = a branch worktree, overwrite vs control, both measured. The board below is updated the same way (replace the section, never append). A proper `trajectory` node type is queued (G14.14.5); until it lands this doc IS the node.
+# doc:lm-town-trajectory — STAND-IN MOVED
+
+> **2026-09-21 (owner ask / Belam):** Trajectory stand-in content **folded into `town:local-maxxing` body** (section GOAL BUNDLE + TRAJECTORY STAND-IN). This doc is **not deleted** — it remains as a pointer until a proper `trajectory` node type ships (G7.33.5).
+>
+> **Status:** deprecated pointer — "stand-in moved into town body pending trajectory type".
+>
+> **Canonical read path now:** `town:local-maxxing` → GOAL BUNDLE + TRAJECTORY STAND-IN.
+>
+> Metrics / board / links: edit the **town body** (replace in place, thought whole-replace). Do not grow this doc further.
+
+## Pointer
+
+| was | now |
+|---|---|
+| this doc body (metrics + board + links) | `town:local-maxxing` body |
+| future `trajectory` type | goal lineage G7.33.5 / engine track |
+
+## Legacy one-liner
+
+The local-maxxing town trajectory board — ONE shared update space for the master and both directors: live rounds, queue per track, last merges, the engine batch. Every post used to append here; that practice moves to the town body.
+
+## Town board carried by the Prime's core sync (09-23): the town kept writing this doc after the fold above; fold these rows into `town:local-maxxing` at the next board write, then write the pointer only
 
 ## The metrics chased (one row per measured point; newest first; every number on its node)
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
@@ -41,5 +62,9 @@ comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+stand-in moved into town:local-maxxing body pending trajectory type; doc kept as pointer (owner ask 2026-09-21)
+
+— merged (Prime core-sync 09-23: core's pointer thought above; the town board's own thought below) —
+
 thought-master 14:1xZ 09-21 -- v16: METRIC CHANGE on the Bonsai row (IFEval strict 0.7782 = 89.57 pct of reference, misses by 0.37 pp inside the scorer floor; two-eval switch not met by B) from experiment:a00-4eec4fce-e9b330; live/landed rows.
 <!-- THOUGHT:END -->
