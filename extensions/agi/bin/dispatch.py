@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+from adapters import tmux_hold  # noqa: E402 -- named pane hold (goal:g7.31.1.2)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
@@ -2648,7 +2649,25 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        # Durable named pane hold (`goal:g7.31.1.2` / `goal:g7.31.1.2.2`):
+        # when the adapter declares its seats keep one, the pane is founded on
+        # the FIRST spawn -- before any restart -- and the seat process runs
+        # inside it, so a later restart re-enters the same `#{pane_id}`. The
+        # seam asks the adapter that was resolved for this seat; no harness
+        # name is ever special-cased here.
+        _holder = getattr(adapter, "hold_harness", None)
+        hold = _holder(dispatch_harness) if _holder else dispatch_harness
+
         def _open_round(mode: str):
+            if tmux_hold.enabled(hold):
+                held = tmux_hold.spawn(
+                    hold, agent_id, mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    cwd=branch_root, log_file=log_file, env=spawn_env)
+                if held is None:
+                    raise OSError(
+                        f"tmux pane hold: could not seat {agent_id} in a "
+                        f"named pane")
+                return held
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),
@@ -2729,6 +2748,22 @@ def main() -> int:
                     _orders_file.unlink(missing_ok=True)
                 _report_unregistered_scaffold(root, scaffold_info, agent_id)
                 return 4
+        # A held seat whose pane PROCESS died inside the grace is not a
+        # running seat: `HeldProc.poll` reads `#{pane_dead}` from tmux, so a
+        # surviving `remain-on-exit` pane with a dead process is refused by
+        # name -- never registered `status: running` (`goal:g7.31.1.2.2`).
+        if tmux_hold.enabled(hold) and proc.returncode is not None:
+            print(f"ERR: dispatch {agent_id} held pane process died "
+                  f"(rc {proc.returncode}); refusing", file=sys.stderr)
+            if branch_ref:
+                drop_branch_worktree(root, branch_ref["worktree"])
+            spawn_budget.release(lease)
+            if _orders_file is not None:
+                _orders_file.unlink(missing_ok=True)
+            _report_unregistered_scaffold(
+                root, scaffold_info, agent_id,
+                detail=f"held pane process died (rc {proc.returncode})")
+            return 6
         # goal:g4.8 item 3 — the lease changes hands the instant a pid exists.
         # Until this line the reservation is held by THIS process; after it,
         # by the agent. That is what makes the bound survive a dispatcher
