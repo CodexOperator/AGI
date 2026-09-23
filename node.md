@@ -1,13 +1,13 @@
 ---
-id: goal:g14.7.3
+id: goal:g5.23.3
 mint_id: 1b169527986a41f8abe2455f5e908f04
 type: goal
 parents:
-  - goal:g14.7
+  - goal:g5.23
 next_edges: []
 confidence: 0.5
 edited_by: belam
-goal_id: G14.7.3
+goal_id: G5.23.3
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -19,7 +19,7 @@ tags:
   - track-ii
   - fine-tuning
   - diagram-max
-title: "G14.7.3: DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA -- does the same training method and base, trained on diagram-maxed traces (goal:g14.16 shape) vs prose traces, change battery performance and tokens-per-solution? (owner 02:1xZ 09-21)"
+title: "G14.7.3: DIAGRAM-MAXED THOUGHT TRACES AS TRAINING DATA -- does the same training method and base, trained on diagram-maxed traces (goal:g5.31 shape) vs prose traces, change battery performance and tokens-per-solution? (owner 02:1xZ 09-21)"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
@@ -36,3 +36,7 @@ town: local-maxxing
 **Done when.** One measured pair (prose-trained vs diagram-maxed-trained, same base, same method) exists with a verdict.
 
 **First chunk.** None minted yet -- blocked on two things landing first: `goal:g14.7.2` needs a verdict (which base/method to hold fixed) and `goal:g14.10.2` needs its classifier pass done (the "reasoning shape prose/diagram-maxed" label is exactly what that pass adds -- without it there is no diagram-maxed corpus to train on). Layers with `goal:g14.15` (KV telepathy) the same way G14.7.2 does, after both have verdicts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.7.3 -> g5.23.3 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.7 became g5.23 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
