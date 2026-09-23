@@ -157,6 +157,51 @@ def restart(
     return new_pid
 
 
+# ------------------------------------------------- optional pane surface
+# Optional pane surface (goal:g7.32.3): ONE adapter carries these names;
+# pane-less harnesses omit them. Durable hold is goal:g7.31.1, not here.
+PANE_METHODS = ("pane_attach", "pane_send", "pane_read", "pane_present")
+
+class PaneNotHeld(RuntimeError):
+    """No held pane -- fail closed by name, before any tmux call."""
+
+def _require_pane(pane) -> str:
+    if not isinstance(pane, str) or not pane:
+        raise PaneNotHeld(f"{NAME}: no held pane (target={pane!r})")
+    return pane
+
+def _tmux(args: list[str]):
+    try:
+        cp = subprocess.run(["tmux", *args], capture_output=True, text=True,
+                            timeout=5)
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    return cp if cp.returncode == 0 else None
+
+def pane_present(pane) -> bool:
+    return _tmux(["display-message", "-p", "-t", _require_pane(pane),
+                  "#{pane_id}"]) is not None
+
+def pane_attach(pane) -> str:
+    target = _require_pane(pane)
+    if not pane_present(target):
+        raise PaneNotHeld(f"{NAME}: pane {target!r} does not resolve")
+    return target
+
+def pane_read(pane) -> str:
+    cp = _tmux(["capture-pane", "-p", "-J", "-t", _require_pane(pane)])
+    return cp.stdout if cp is not None else ""
+
+def pane_send(pane, text) -> bool:
+    target = _require_pane(pane)
+    cp = _tmux(["display-message", "-p", "-t", target, "#{pane_in_mode}"])
+    if cp is not None and cp.stdout.strip() == "1":
+        _tmux(["send-keys", "-t", target, "-X", "cancel"])
+    if _tmux(["send-keys", "-t", target, "-l", str(text)]) is None:
+        return False
+    return _tmux(["send-keys", "-t", target, "Enter"]) is not None
+
+
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
