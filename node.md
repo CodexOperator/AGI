@@ -1,13 +1,13 @@
 ---
-id: goal:g15.5
+id: goal:g6.27
 mint_id: 1cb2cca575ae4fa698681078ce0ff23d
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.5
+edited_by: belam
+goal_id: G6.27
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
-title: "G15.5: `grid.py` is location-blind for a payload under a non-default `location:`"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.27: `grid.py` is location-blind for a payload under a non-default `location:`"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.5
+# goal:g6.27
