@@ -6,12 +6,14 @@ import argparse, re, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import boxes  # noqa: E402
+import locations  # noqa: E402
 HOME_RE = re.compile(r"/home/[A-Za-z0-9._-]+|~/|\$HOME|\bexpanduser\b")
 def files(root, target):
     if target:
         return [str(p) for p in sorted(Path(target).rglob("*")) if p.is_file()]
-    out = subprocess.run(["git", "ls-files"], cwd=str(root), capture_output=True, text=True).stdout
-    return [str(root / r) for r in out.splitlines()]
+    top = locations.repo_root(root)
+    out = subprocess.run(["git", "ls-files"], cwd=str(top), capture_output=True, text=True).stdout
+    return [str(top / r) for r in out.splitlines()]
 def classify(line, cells, classes):
     hits = ["home"] if HOME_RE.search(line) else []
     for cls, key in classes:
@@ -22,6 +24,9 @@ def classify(line, cells, classes):
     return hits + (["box"] if v and v in line else [])
 def findings(root, target=None):
     cells, allow = boxes.box_cells(root), boxes.allow_paths(root)
+    missing = sorted(k for k, v in cells.items() if not v)
+    if missing:
+        raise ValueError("missing box cells: %s" % ", ".join(missing))
     classes = [(k.split("_")[0], k) for k in boxes.box_cell_names(root) if k != "root"]
     out = []
     for name in files(root, target):

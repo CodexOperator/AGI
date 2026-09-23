@@ -65,6 +65,40 @@ def test_denylist_built_from_fake_box_and_names_classes_only(tmp_path, fake_box)
     assert all(h in anonymize.CLASSES for h in hits)
 
 
+# (1b) loopback and link-local addresses are skipped; every other address and
+# the MAC still come through. The synthetic `ip -o addr` output is the only
+# input; the live box is never consulted (the fixture path returns early).
+IP_ADDR_OUT = """\
+1: lo    inet 127.0.0.1/8 scope host lo
+1: lo    inet6 ::1/128 scope host
+2: eth0    inet 192.0.2.10/24 brd 192.0.2.255 scope global eth0
+2: eth0    inet6 2001:db8::1/64 scope global
+2: eth0    inet6 fe80::1/64 scope link
+2: eth0    link/ether aa:bb:cc:dd:ee:ff brd ff:ff:ff:ff:ff:ff
+3: eth1    inet 169.254.1.1/16 scope link
+"""
+
+
+def test_loopback_and_link_local_skipped_others_kept(tmp_path, monkeypatch):
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setattr(anonymize, "_run",
+                        lambda argv: IP_ADDR_OUT if argv[:3] == ["ip", "-o", "addr"] else "")
+    monkeypatch.setattr(anonymize, "_secret_tokens", lambda root: [])
+    toks = anonymize.box_tokens(tmp_path)
+    ip_values = {v for c, v in toks if c == "ip"}
+    for gone in ("127.0.0.1", "::1", "169.254.1.1", "fe80::1"):
+        assert gone not in ip_values, gone
+    for kept in ("192.0.2.10", "2001:db8::1"):
+        assert kept in ip_values, kept
+    assert ("mac", "aa:bb:cc:dd:ee:ff") in toks
+    # a note naming a local server is no longer refused by the ip class
+    assert anonymize.scan("llama-server on 127.0.0.1:8080",
+                          [t for t in toks if t[0] == "ip"]) == []
+    # a real routable address is still refused
+    assert anonymize.scan("peer 192.0.2.10",
+                          [t for t in toks if t[0] == "ip"]) == ["ip"]
+
+
 # (2) a diff carrying a fixture hostname/IP/MAC/board token is REFUSED BY
 # CLASS, and the refused value never reaches the output.
 def test_check_refuses_by_class_and_never_prints_value(tmp_path, fake_box, capsys):

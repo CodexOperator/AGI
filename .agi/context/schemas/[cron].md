@@ -72,7 +72,7 @@ by "some slipped through the cracks".
   retired by status change rather than removal.
 - `cmd` — **what makes an entry generic.** A job name that is not one of the
   applier's built-ins (`grid_sync`, `branch_push`, `publish_engine`,
-  `engine_push`, `mail_poll`) is accepted only when it carries a non-empty
+  `engine_push`, `mail_poll`, `nudge_sweep`) is accepted only when it carries a non-empty
   `cmd`: an arbitrary shell command, rendered as
   `<schedule> cd {root} && <cmd> >> <log> 2>&1` through the same
   `cd`/log/`box`/`enabled` rules a built-in obeys, and in a deterministic

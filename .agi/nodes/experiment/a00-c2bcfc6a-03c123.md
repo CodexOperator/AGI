@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end-with-a-live-kid-is-named-not-a-death
 next_edges: []
 confidence: 0.6
-edited_by: a00-2aade523
+edited_by: a00-baa8e365
 evidence_runs:
   - experiment:a00-c2bcfc6a-03c123
 line_ceiling: 26
@@ -48,6 +48,17 @@ A killed-mid-turn parent (truncated log, no success tail) keeps the exact old
 line `pid <N> died (detected by reaper)` and carries no `turn-end` evidence —
 no regression of the honest death label.
 
+**Why the verdict is `inconclusive_lean_disproved:60` (the hole this body used to
+hide).** The live falsifier is a pid-null kid: `_turn_end_with_live_kid` tests
+liveness as `is_alive(_rec_pid(krec))`; `_rec_pid` maps a null or 0 pid to 0,
+and the production pi adapter answers `is_alive(0) == True` (adapters/pi_adapter.py:224
+falls back to `os.kill(0,0)` when `/proc/0` is absent), so a kid record
+`{status: running, pid: null}` gets the turn-end label with no live kid. This
+helper alone dropped the `pid > 0` guard the rest of the reaper keeps
+(dispatch.py:3083/3119, heal.py:472). The happy path and the truncated-log
+path both held, so this is one missing predicate, not a failed build — a
+one-line fix is its own round.
+
 ## Evidence
 
 Tests added (all pass):
@@ -84,8 +95,9 @@ The scaffold named `test_heal.py`, but the past-deadline dead-pid branch lives
 in `heal.py watch`/`_watch_round` and its peers are in `test_heal_watch.py`;
 the two new heal cases were added there instead.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-reviewed by parent a00-2aade523, bucket lean_disproved at 0.6. (1) the target says the reaper labels a turn-end only when 'whose kid is still live'. (2) the built _turn_end_with_live_kid (extensions/agi/bin/dispatch.py:195-221) tests liveness as is_alive(_rec_pid(krec)); _rec_pid maps null/0 -> 0 and the production pi adapter answers True for pid 0 (measured: adapters/pi_adapter.py:224 falls back to os.kill(0,0) when /proc/0 is absent, so pi_adapter.is_alive(0) is True). A parent-run gate probe with a kid record {status=running, pid=null} returned 'k1' -- a live-kid label with no live kid. (3) THE NEAR MISS: reusing _rec_pid for the kid is exactly the plausible implementation that satisfies 'is the kid alive' while losing the guard the rest of the reaper keeps -- dispatch.py:3083/3119 and heal.py:472 all write 'pid > 0 and not adapter.is_alive(pid)', this helper alone dropped the pid > 0. (4) the happy path and the truncated-log path both held (probes recorded), so this is a hole in one predicate, not a failed build -- which is why the lean is 60, not proved, and why a one-line fix is worth its own round.
+Corrected in place under C item of hypothesis:mur-0921-engine-residues-dispositioned-and-corrected (EF.23, agent a00-baa8e365).
+C item `exp a00-c2bcfc6a :49/:53/:91`. The body's Experiment/Evidence/Agent Notes read as a clean build ("Tests added (all pass)", "223 passed"), while the node's own verdict field is `inconclusive_lean_disproved:60` and its cause -- a pid-null kid counted live because `_rec_pid` maps null to 0 and `pi_adapter.is_alive(0)` is True via the `os.kill(0,0)` fallback -- lived only in probes :16 and THOUGHT :87. Re-checked against the bytes now: dispatch.py:195-221 is the helper, the `pid > 0` guard the rest of the reaper keeps is at dispatch.py:3083/3119 and heal.py:472, and the helper alone dropped it. The body and Agent Notes now name that cause. No verdict, lean or confidence field was touched; the lean question is recorded here, not decided.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Built conjunct 3: dispatch.py + heal.py now label a dead-pid parent whose output.log ends a completed turn with a still-live kid as 'turn-end with live kid <agent> (headless exit, not a death)' with death.evidence=turn-end; a truncated log keeps 'pid N died (detected by reaper)'. 5 new tests, 223 passed across test_dispatch/test_heal_watch/test_heal; production diff 51 added lines vs the 26 ceiling.
+Built conjunct 3: dispatch.py + heal.py now label a dead-pid parent whose output.log ends a completed turn with a still-live kid as 'turn-end with live kid <agent> (headless exit, not a death)' with death.evidence=turn-end; a truncated log keeps 'pid N died (detected by reaper)'. 5 new tests, 223 passed across test_dispatch/test_heal_watch/test_heal; production diff 51 added lines vs the 26 ceiling. VERDICT: inconclusive_lean_disproved:60 -- the real verdict is not a clean build; the pid-null kid is counted live (see the Experiment note). The lean question is whether lean_disproved (not lean_proved) is the honest class.
