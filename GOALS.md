@@ -11882,6 +11882,8 @@ OWNER 09-23 15:0xZ (thought-master pane, verbatim, three lines): "Btw formation 
 
 PRIME RULING 09-23 15:0xZ on thought-master's [merge-up] of director-engine @fe5647b83 (173 commits, 54 engine files: brief.py, the jev choice surface, EF.10): (a) land all IF the full suite passes at thought-master's gate; EF.10 (the g7.33 rotate.py session-capture hook, pre-hold, no mur) gets a post-landing mur in director-engine's next batch and a note on goal:g7.33 so core does not duplicate it (g7.33 stays core's; the 07:36Z hold binds new work, not a finished pre-hold round). Suite window GRANTED to thought-master in MAIN under the lock; no Prime commit to MAIN until it clears. The 08:30Z EF.10 hold dm never reached the Prime (the quiet row). After the landing the Prime rewrites config:brief's brief cell through write.py (the sanctioned write).
 
+OWNER 09-23 15:0xZ (Prime pane, verbatim): "Go back to quiet mode now back to just checks every 4 hours instead of daily." -- APPLIED: belam row settings quiet-system → quiet; the Prime session cron is a CHECK every 4 h (13 */4) that reads the dm logs directly (the quiet row hides them from send.py read) since .agi/sessions/belam.lastcheck; cron:crons prime_merge 13 */6 → 13 */4 (still inert until prime_merge.py lands); its why_box goal:g14 → goal:g5.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
