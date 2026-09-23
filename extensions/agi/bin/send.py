@@ -196,7 +196,8 @@ def _seat_key_path(root: Path, seat: str) -> Path:
     return _seats_dir(root) / f"{seat}.key"
 
 
-def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
+def _signing_key_obj(root: Path, seat: str, key_file: Path,
+                     prefer_authority_deferred: bool = False) -> dict | None:
     """g15.26 (c) -- the signing key dict, with the PENDING-SUCCESSOR
     preference. A `<seat>.key.pending` (persisted by
     rotate._persist_pending_key when a push FAILED after the committed row
@@ -210,7 +211,16 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
     be read, the signer falls back to the live `<seat>.key` and signs EXACTLY
     as before -- a seat with no deferred swap never changes a byte. Returns
     the JSON dict, or None when neither key yields a usable object (the
-    caller then emits an unsigned line, as today)."""
+    caller then emits an unsigned line, as today).
+
+    EF.84 conjunct B: an AUTHORITY-deferred pending (`deferred_for ==
+    "authority"`) is NOT preferred on this match -- the authority never
+    received the successor, so its row still names the predecessor (the live
+    `<seat>.key`), and signing with the pending successor would read
+    FORGED/RETIRED against the authority. The caller that compares the held
+    key to the COMMITTED row (`rotate._caller_hold_key`) passes
+    ``prefer_authority_deferred=True`` to keep that comparison coherent; a
+    push-deferred pending is preferred in BOTH modes, unchanged."""
     import json as _json
     from pathlib import Path as _Path
     _pend = _Path(key_file).parent / f"{_Path(key_file).name}.pending"
@@ -219,12 +229,15 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
             _pobj = _json.loads(_pend.read_text())
         except (ValueError, OSError):
             _pobj = None
+        _authority_deferred = bool(
+            _pobj and _pobj.get("deferred_for") == "authority")
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
-            _committed = _seats_committed_rows(root)
-            _row = _seat_row_for(root, _committed, seat)
-            _row_pub = str((_row or {}).get("pubkey") or "")
-            if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
-                return _pobj
+            if not (_authority_deferred and not prefer_authority_deferred):
+                _committed = _seats_committed_rows(root)
+                _row = _seat_row_for(root, _committed, seat)
+                _row_pub = str((_row or {}).get("pubkey") or "")
+                if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
+                    return _pobj
     try:
         return _json.loads(_Path(key_file).read_text())
     except (ValueError, OSError):
