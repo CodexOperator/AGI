@@ -56,6 +56,7 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 ## 🔴 Stops
 ```
 LIVE   OSC.06 (layering 1b: quantised-KV decode speed vs depth, 5 reps) parent a00-48468b87 · dispatched 13:24:36Z · GPU round, router stop/restore · wall 90 -> done by ~14:55Z
+QUEUED OSC.07 (L1 sibling arm: -ctk q8_0 -ctv q4_0 + the L1 stack at fitt 512) hypothesis minted 45c5a433b, orders in .agi/sessions/iter-OSC.07/orders.md -> dispatch the moment OSC.06 lands (GPU one round)
 LIVE   mur osc-05 (agi-director-thought-osc-05, mur-director-thought-8) -> close in place
 done   OSC.05 DISPROVED on capacity (q8_0 1.52x, q4_0 2.39x < 1.8x / 3x), quality free (-0.03 / +0.07 pct NLL) · fit margin -fitt 512 = +32 pct at f16, q4_0 + fitt 512 = 156,416 tokens (3.15x) · decode penalty ~35 pct at 16k on 2 reps +/-24 -> OSC.06 pins it · no router change proposed (rule) · harvest da0513cae
 SENT   13:1xZ [merge-up] batch C (re-delivered) + D @e499f9ea0: C fixes ac673dacf + OSC.02 (mur-5) + OSC.03 (mur-6) + OSC.04 (mur-7), all accept_with_residue, closed in place -> TM gates + lands after pass 2
