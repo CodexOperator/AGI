@@ -3,24 +3,45 @@ id: doc:lm-town-trajectory
 mint_id: 55dc3a3e4dba43fcb83b3be6a25433a1
 type: doc
 parents:
-  - goal:g14
+  - goal:g5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 7c61cb59727a97bd
 season: 2
-status: active
+status: deprecated
+thought_session: belam-S2-L5-I
 title: "The local-maxxing town trajectory board — the ONE shared update space for the master and both directors (owner 01:2xZ 09-21): live rounds, queue per track, last merges, the engine batch; every post appends one line per landing, the master trims the body"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
-# doc:lm-town-trajectory — the local-maxxing TRAJECTORY (super node, to the side of the goal tree)
-**What it is (owner 01:3xZ 09-21, verbatim on goal:g14):** "a super node that exists to the side and links into all relevant nodes that relate to it. It's bigger than a single sub goal and maybe sometimes bigger than a perpetual goal but smaller than a vision. An individual set of metrics we are trying to chase for this track. In our case we are hoping that layering all these techniques lets us run bigger and bigger existing models on smaller and smaller footprints with longer and longer [context] windows." **How it changes (owner 01:4xZ-01:5xZ):** metrics may be adjusted mid-research to test things or when adjustments are needed; each change is NOT a note — it is a new node version: overwrite this body in place (the grid records the version; the reason goes in the THOUGHT block); an A/B of a metric change = a branch worktree, overwrite vs control, both measured. The board below is updated the same way (replace the section, never append). A proper `trajectory` node type is queued (G14.14.5); until it lands this doc IS the node.
+# doc:lm-town-trajectory — STAND-IN MOVED
+
+> **2026-09-21 (owner ask / Belam):** Trajectory stand-in content **folded into `town:local-maxxing` body** (section GOAL BUNDLE + TRAJECTORY STAND-IN). This doc is **not deleted** — it remains as a pointer until a proper `trajectory` node type ships (G7.33.5).
+>
+> **Status:** deprecated pointer — "stand-in moved into town body pending trajectory type".
+>
+> **Canonical read path now:** `town:local-maxxing` → GOAL BUNDLE + TRAJECTORY STAND-IN.
+>
+> Metrics / board / links: edit the **town body** (replace in place, thought whole-replace). Do not grow this doc further.
+
+## Pointer
+
+| was | now |
+|---|---|
+| this doc body (metrics + board + links) | `town:local-maxxing` body |
+| future `trajectory` type | goal lineage G7.33.5 / engine track |
+
+## Legacy one-liner
+
+The local-maxxing town trajectory board — ONE shared update space for the master and both directors: live rounds, queue per track, last merges, the engine batch. Every post used to append here; that practice moves to the town body.
+
+## Town board carried by the Prime's core sync (09-23): the town kept writing this doc after the fold above; fold these rows into `town:local-maxxing` at the next board write, then write the pointer only
 
 ## The metrics chased (one row per measured point; newest first; every number on its node)
 | date | model (params) | footprint | ctx line | tok/s | quality (battery) | how | node |
 |---|---|---|---|---|---|---|---|
 | target | bigger | smaller | longer | usable | within 10 pct of deepseek-v4.1-flash on HumanEval + IFEval — reference MEASURED 09-21: 93.9 pct HumanEval (154/164) · 0.869 IFEval strict (470/541) | layered: dead-head prune → context/throughput → fine-tune → QAT → telepathy | goal:g14.11 (the switch); experiment:a00-559ee702-d3c7dd |
-| 09-20/21 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K, 1 stream | 23.0 empty / 18.9 at 16.8K | HumanEval 86.6 pct = 92.2 pct of reference (FIRES 0.9x; C2 +LoRA 92.9); IFEval — (SWR.02) | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f · a00-559ee702-d3c7dd |
+| 09-20/21 | Bonsai 2 27B PTQ1_0 (27.36B, 1.75 bpw) | 7,268 MiB VRAM (8 GB rig) | 64K single; 8K at N=4 | 20.5-23.0 tok/s aggregate, COMPUTE-BOUND: flat across 1/2/4/8 slots (SWR.02-B) | HumanEval 86.6 pct = 92.2 pct of reference (FIRES 0.9x); IFEval strict 0.7782 = 89.57 pct of reference (MISSES by 0.37 pp, inside the +/-0.4 scorer floor) -> two-eval switch NOT met by B; C2 next | ternary PTQ (shipped) | experiment:a00-bb10233d-5a7f1f · a00-559ee702-d3c7dd · a00-e699a4ec-a83259 · a00-4eec4fce-e9b330 |
 | 09-20 | Qwen3.5-9B Q4_K_M (9B) | 6,010 MiB | 64K | 62.68 (2.87 J/tok) | HumanEval 78.0 / 79.3 pct (A / A2) | Q4 (shipped) | experiment:a00-c4441397-c8a8c6 |
 
 ## Links (every node that moves these numbers; the future `links:` field)
@@ -31,15 +52,15 @@ goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 
 formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
 rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
-grid       seeded 01:5xZ by hand ONCE (3,773 v) · storage_trunk honoured everywhere (EF.02 + EF.07) · box migration = EF.08 (GO 06:1xZ, conditions on g14.14) -> cron records here after it
-live       research: SWR.02-B/C2 + TEL.03 census ordered (TMM.27) · engine: EF.08 migration (GO)
-landed     TEL.02 ad0face7f (KV shift architecturally unavailable on Qwen3.5/IMROPE; same-prefix reuse 24/24 at 0.093x) · EF.07 17c0932c2 · MP.01 + TEL.01 d461f6e5f · G14.14.1 COMPLETE · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
+grid       LIVE: cron records every 5 min into refs/grid/local-maxxing/ (first tick 71 versions; refs 3812) -- this node's overwrites are versions now
+live       research: SWR-C2.02 (IFEval on C2, GPU, single-stream) · engine: 14.14.8 capture hook
+landed     SWR-B.03 b1b49f927 (B misses IFEval by 0.37 pp inside noise; verdict node for lm-pi-local-9b-kid restored) · SWR.02-B partial · TEL.03 · EF.08 + EF.09 (grid LIVE) · TEL.02 · EF.07 · MP.01 + TEL.01 · G14.14.1 · EF.01/02 · SWR.01 chunk 1 · ABL.01 · ABC.02
 banked     TEL.01 forward path -- owner ANSWERED (TMM.23, 05:0xZ): (a) AUTHORIZED, conditional (between rounds only, by a TEL parent, router mode kept, exact server line recorded, restore+verify before done) -- dispatching TEL.02 this pass
-research   SWR.02-B -> SWR.02-C2 (IFEval; one merge-up) · TEL.03 shift census (0 USD) -> G14.10.2 capture (engine hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy chunks 2-3 on the text + tail-KV path
-engine     EF.08 box migration (GO) -> 14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
+research   SWR.02-B -> SWR.02-C2 (one merge-up) -> G14.10.2 capture (hook first) -> MP.02 suggester -> MP.03 formatter -> FT.00 -> DS.01 -> G14.7.2 ladder -> G14.7.3 -> H1' -> telepathy: text+tail-KV for big models; k=2 shift swarm on Bonsai-1.7B; fork can_shift probe
+engine     14.14.8 capture hook (the pane's corpus) -> 14.14.6 maxxing pass + cli-grammar (jev's target) -> 14.14.1(d) -> 14.14.2 -> 14.14.4 agi-round/agi-batch (+ whole-batch MUR) -> 14.14.5 trajectory type -> 14.14.9 red suite -> 14.14.10 comms -> 14.14.11 ingest file stage -> G14.16.1-2
 comms      Prime dms = REFUSED FORGED here (its local key a8e869… unregistered; fix = its keygen) -> its orders read from goal:g14 (L220 window · L236 diagram-max · L240 context docs); magic pane (G14.8) = the future unified messaging layer
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-thought-master 06:4xZ 09-21 -- v12: live/landed/research rows after TEL.02 (shift closed on Qwen3.5) and the SWR.02 + TEL.03 batch order; metric rows unchanged.
+RENUMBER (owner 09-23 09:0xZ, goal:g5): parent goal:g14 (retired) -> goal:g5; mint id kept.
 <!-- THOUGHT:END -->

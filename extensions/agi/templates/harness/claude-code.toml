@@ -1,0 +1,58 @@
+# claude-code spawn argv. Top-level = the rotate SEAT shape; the headless
+# DISPATCH shape is [shapes.dispatch] below.
+id = "claude-code"
+bin = "claude"
+
+# Seat role cells come from the shared ladder: `nodes/.geometry/ladder.md`
+# roles table, then `harnesses.claude-code`, then `DEFAULT_CC_ROLES`.
+[roles]
+source = "ladder"
+
+[[argv]]
+flag = "--remote-control"
+slot = "name"
+
+[[argv]]
+flag = "--permission-mode"
+const = "bypassPermissions"
+
+[[argv]]
+flag = "--debug-file"
+slot = "debug_file"
+
+[[argv]]
+flag = "--model"
+slot = "model"
+
+[[argv]]
+flag = "--effort"
+slot = "effort"
+
+[[argv]]
+flag = "--settings"
+slot = "settings"
+encoding = "json"
+
+[[argv]]
+slot = "prompt"
+
+# Headless dispatch (claude_code_adapter.build_command). Order is
+# load-bearing: every variadic flag stays BEFORE `--`, or it swallows the turn.
+[shapes.dispatch]
+argv = [
+  "-p",
+  {spread = "model_args"},
+  {flag = "--output-format", slot = "output_format"},
+  {const = "--verbose", when = "verbose"},
+  "--strict-mcp-config",
+  {flag = "--max-budget-usd", slot = "budget"},
+  {flag = "--append-system-prompt-file", slot = "prompt_file"},
+  {spread = "extra_args"},
+  {flag = "--add-dir", slot = "repo_root"},
+  {flag = "--mcp-config", spread = "mcp"},
+  {flag = "--tools", spread = "tools"},
+  {flag = "--allowedTools", spread = "allowed"},
+  {flag = "--disallowedTools", spread = "disallowed"},
+  "--",
+  {slot = "closing"},
+]

@@ -9,7 +9,7 @@ next_edges: []
 core: false
 edited_by: belam
 proposes_goals:
-  - goal:g14.3
+  - goal:g5.19
 scaffold_hash: 5bee68f895f490f7
 season: 2
 status: open

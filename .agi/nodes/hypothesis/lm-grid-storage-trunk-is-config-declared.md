@@ -3,7 +3,7 @@ id: hypothesis:lm-grid-storage-trunk-is-config-declared
 mint_id: 4e8a29c4cd1940649319ad57fe869928
 type: hypothesis
 parents:
-  - goal:g14.14.7
+  - goal:g7.33.7
 next_edges: []
 confidence: 0.75
 edited_by: thought-master

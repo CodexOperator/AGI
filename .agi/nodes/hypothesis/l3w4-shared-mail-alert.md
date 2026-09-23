@@ -3,13 +3,13 @@ id: hypothesis:l3w4-shared-mail-alert
 mint_id: d64a91ee84914843905eb02bca7882a4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: belam-S1-L3-XIII
+edited_by: belam
 scaffold_hash: 1e210e8787c0ec87
 season: 2
 testable_claim: "A hook fired at a natural per-turn seam (UserPromptSubmit, not SessionStart -- quorum seats run long) shells out to send.py's existing rooms(croot, me) unread-count call plus a plain-inbox unread check for the current seat (AGI_SEAT/AGI_AGENT_ID), and when anything is unread injects one system-reminder-tagged block distinguishable from user text, stamping a per-seat per-thread alerted_at record; proven by a test asserting a seat with unread mail gets the injection and a clean seat gets none, then live: rotate.py alarms' rotation-due DM to a seat actually surfaces via this channel instead of sitting unread the way master-sensei's and the owner's own audience-quorum request both did this session."
-thought_session: rc-XIII
+thought_session: dissolve-legacy-2026-09-19
 title: "Shared mail-alert side channel: one hook, dm+room+audience unified, no agent-side polling"
 ---
 <!-- BODY:BEGIN -->

@@ -3,7 +3,7 @@ id: idea:l4-bin-suite-freshness-check
 mint_id: 637e50674bd941f3b8f799f2a8e38f3d
 type: idea
 parents:
-  - goal:g15.10
+  - goal:g6.32
 next_edges: []
 edited_by: sanctuary-helper
 scaffold_hash: d8c40dc53351f3a5

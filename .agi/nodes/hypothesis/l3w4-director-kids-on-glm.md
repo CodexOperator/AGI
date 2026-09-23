@@ -3,13 +3,13 @@ id: hypothesis:l3w4-director-kids-on-glm
 mint_id: a453f79a838d4b3cbfd461a7a004b072
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-VII
+edited_by: belam
 scaffold_hash: 20cd81ef606c500a
 season: 2
 testable_claim: dispatch.py --seat dir-g1 --tier director --role director --ladder-tier 1 --dry-run resolves harness pi, model ~z-ai/glm-flash-latest and --thinking high (from config:seats and ladder:ladder's tier-1 director row, both changed), and brief.assemble(tier="director") contains a REASONING segment whose text includes the literal strings "write.py create goal", "--ladder-tier 0" and "season.py judge".
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: Seat director-kids on GLM flash
 ---
 <!-- BODY:BEGIN -->

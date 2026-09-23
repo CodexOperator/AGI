@@ -174,7 +174,7 @@ def test_a_keymap_with_a_bogus_verb_is_rejected():
 ## The falsifier
 
 
-A new verb added to `write.py` without an `ARITY` entry or without the registry reflecting it fails the contract tests, and the shell silently binds a dead key. The falsifier is a verb that is callable but not discoverable through the registry — the exact split `goal:g9.7` forbids. The contract tests catch it before the shell ever loads.
+A new verb added to `write.py` without an `ARITY` entry or without the registry reflecting it fails the contract tests, and the shell silently binds a dead key. The falsifier is a verb that is callable but not discoverable through the registry — the exact split `goal:g2.19` forbids. The contract tests catch it before the shell ever loads.
 
 
 ## Agent Notes

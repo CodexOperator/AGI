@@ -3,11 +3,12 @@ id: doc:s3-plan
 mint_id: f901c99259e6409584af4adfed0b07f5
 type: doc
 parents:
-  - goal:g19
+  - goal:g1.21
 next_edges: []
 edited_by: belam
 scaffold_hash: 62a287c4a4a66029
 season: 2
+thought_session: belam-S2-L5-I
 title: L6 plan
 town: core
 ---
@@ -52,3 +53,5 @@ merge-base · merge-tree clean vs live HEAD · no node deletions · read the byt
 
 ## Agent Notes
 seed source = .agi/context/l6-redesign-seed.md (the council plan copied verbatim, overlay addresses scrubbed to aliases per the anonymization rule); the live file ~/agi-side/redesign-plan.md stays the council side seat only writable file
+
+2026-09-23 08:2xZ Prime (belam-S2-L5-I): the DOC HALF of HEAD 1.5 = the OWNER MODEL (goal:g5, 07:5xZ-08:2xZ): per role 3 docs — HEAD (one, identical for every role incl. parents and kids) · CARD (one per post, derived from a class template; the post's scratch space) · TOWN TRAJECTORY (the town todo, mostly the master's) — injected DIRECTLY into the first user turn by the harness adapter at rotation spawn, minimal modification. SUPERSEDES in HEAD 1.5: card / brief / role doc as RENDERED views and INJECTION.md as that render → the docs themselves, injected as they are · HANDOFF.md → the card · CLAUDE.md → the claude-code harness template/config. Unchanged: the GOALS / COMPLETE / viewport renders, config:box, agi init/doctor/up, and every other HEAD.

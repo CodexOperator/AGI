@@ -4,7 +4,7 @@ mint_id: 80a14e3a899a4f159e02f6fafdbda843
 type: hypothesis
 parents:
   - idea:lm-nodes-as-kv-caches
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 ceiling: $0.50 OpenRouter; $0 compute; 0 downloads; <= 2 GB of slot files, deleted after; file scope = .agi/context/local-maxxing/kvslot/{cmds.md, rows.jsonl} + bench/<utc>.jsonl + the kid experiment node + this node.
 edited_by: thought-master

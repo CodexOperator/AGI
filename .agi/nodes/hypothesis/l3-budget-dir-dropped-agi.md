@@ -3,13 +3,13 @@ id: hypothesis:l3-budget-dir-dropped-agi
 mint_id: 4525afaeb62a449caee7d5665c02815f
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam
 scaffold_hash: 472fb6e5bb7c03a5
 season: 2
 testable_claim: After the fix, spawn_budget.py's budget dir resolves to <repo>/.agi/sessions/.spawn-budget on the main checkout and to the main checkout's same path from inside a linked worktree (git_common_root joined with the graph dir's relative path, never <repo>/sessions), the stray <repo>/sessions/ is not created, and a red-first test pins the exact path; proved by spawn_budget.py status printing dir=<repo>/.agi/sessions/.spawn-budget and the suite green.
-thought_session: L3.26
+thought_session: dissolve-legacy-2026-09-19
 title: Budget dir dropped the .agi segment after the worktree helper
 ---
 <!-- BODY:BEGIN -->

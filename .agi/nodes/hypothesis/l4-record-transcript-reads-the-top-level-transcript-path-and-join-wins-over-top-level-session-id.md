@@ -3,13 +3,14 @@ id: hypothesis:l4-record-transcript-reads-the-top-level-transcript-path-and-join
 mint_id: 355ac1e0d8e14d6981bead00e106478c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: master-sensei
+edited_by: belam
 origin: master-sensei
 scaffold_hash: 80075a49373fb5a6
 season: 2
 testable_claim: "Two conjuncts from the SL7.125 review (belam 09:51Z, wf_3bf8c583-e70): (1) sensei.py:563-592 _record_transcript reads session_log / handover.session_log / handover.join.transcript / observations.c_readback_log_path and NEVER the top-level transcript_path the first-seating writer sets at rotate.py:5246-5248 -- so a seating-only post record is SELECTED (SL7.124/125) but the audit still refuses \"names no transcript\" (6 of 8 live posts): read the top-level key with the same precedence rule as the session id; (2) a committed direct test for _record_matches_session: a record with {session_id: A, handover.join.session_id: B} matches B not A (join wins, mirroring rotate._record_join), and an empty caller id or a record with neither spelling matches nothing."
+thought_session: dissolve-legacy-2026-09-19
 title: L4 record transcript reads the top level transcript path and join wins over top level session id
 town: core
 ---

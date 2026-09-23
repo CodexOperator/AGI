@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-verdict-ece-target-is-under-the-finite-sample-floor
 next_edges: []
 confidence: 0.9
-edited_by: a00-71b96eed
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-f61fb527-194c52
 line_ceiling: 40
@@ -53,7 +53,7 @@ seeds, 0 API, ~2.5 s. The MC draws therefore use `random.Random` rather than
 experiment mean here (0.126) sits above TM.73's 0.102 -- both are valid draws of the
 same 5-seed protocol, none of the conclusion turns on it.
 
-**Command:** `python3 .agi/context/local-maxxing/typesafe/jev_ece_floor.py ../bench/20260920T061450Z.jsonl`
+**Command:** `python3 datasets/jev-typed-acts/jev_ece_floor.py ../bench/20260920T061450Z.jsonl`
 
 ## Results
 
@@ -98,10 +98,10 @@ median 0.092).
 
 ## Evidence
 
-- Script (production): `.agi/context/local-maxxing/typesafe/jev_ece_floor.py`
+- Script (production): `datasets/jev-typed-acts/jev_ece_floor.py`
 - Rows (production): `.agi/context/local-maxxing/bench/20260920T061450Z.jsonl`
   (10 per-seed-group rows + 2 summaries; row = medians, p5, p95, real ECE, flags)
-- Reproduce from the repo root: `python3 .agi/context/local-maxxing/typesafe/jev_ece_floor.py`
+- Reproduce from the repo root: `python3 datasets/jev-typed-acts/jev_ece_floor.py`
 - Predecessor numbers (agreement check): `experiment:a00-bdec620b-6c4cf7` (verdict
   held-out B mean 0.162), `experiment:a00-f8aca319-427816`; loader
   `jev_label_disagreement_split.py` / `jev_isotonic_residual.py` (`ece`, definition B).

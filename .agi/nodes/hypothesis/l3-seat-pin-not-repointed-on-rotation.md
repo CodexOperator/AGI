@@ -3,13 +3,13 @@ id: hypothesis:l3-seat-pin-not-repointed-on-rotation
 mint_id: 47195e6025e84c42af06bc5a1a437904
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: belam-S1-L3-XIV
+edited_by: belam
 scaffold_hash: e66434019d26b0cb
 season: 2
 testable_claim: "After the change, the meter read through a seat can never be another generation's: the successor's own transcript is pinned as part of rotation (or the pin carries the generation that wrote it and a mismatch is a loud refusal, never a silent stale read), proven red-first against a pin left pointing at a predecessor."
-thought_session: rc-XIV
+thought_session: dissolve-legacy-2026-09-19
 title: A seat pin is written by the generation that claims it and never re-pointed on rotation, so rotate.py meter --seat reads the PREDECESSOR's context usage
 ---
 <!-- BODY:BEGIN -->

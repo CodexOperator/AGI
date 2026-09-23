@@ -1,0 +1,64 @@
+---
+id: goal:g5.29
+mint_id: 9d7fd57351ce4e89ad00a1df16c86fda
+type: goal
+parents:
+  - goal:g5
+next_edges: []
+confidence: 0.9
+edited_by: belam
+goal_id: G5.29
+goal_kind: subgoal
+heading_level: 3
+origin: goals-doc
+scaffold_hash: ba1ab6c021159cbe
+season: 2
+seeds:
+  - doc:arxiv-2510-05421
+  - doc:arxiv-2603-12201
+  - doc:arxiv-2607-24653
+  - doc:baseten-eagle3-heads
+  - doc:baseten-live-draft
+  - doc:dead-head
+  - doc:deepseek-v4-1-flash
+  - doc:glm-5-3-flash
+  - doc:lm-trove-2026-09-18-owner-links
+  - doc:osd-2310-07177
+  - doc:recurrent-looped-transformer
+  - doc:tiktok-videos-4b
+status: active
+tags:
+  - local-maxxing
+  - treasury
+  - digests
+title: "G5.29: THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20)"
+town: local-maxxing
+---
+<!-- BODY:BEGIN -->
+# goal:g5.29
+
+## Agent Notes
+**Owner source (2026-09-13 23:32Z, verbatim in doc:l4-owner-decisions; goal:g14 charter):** the thought-master owns "goal:g14 … and its research treasury"; "a very slow, gentle research loop". Owner links arrive as lines in the pane (09-18: turboquant_plus / OrcaBonsai / bonsai2-small-gpu; 09-14: dead-head, tiktok-videos-4b, the looped transformer) and are ingested by the trove-survey and paper-digest workflows.
+
+**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G5.22–G5.28) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
+
+**Invariants.** One survey per owner link set, never re-run blind (the run dir is the record); every digest quotes file paths and dates and marks MEASURED vs ESTIMATE; a critique stage that times out is recorded as missing on the goal (the 09-20 bonsai2-small-gpu critique); cost per survey stated (≤ 1 USD unless the owner names more).
+
+**Falsifiers.** A treasury row that is minted as a hypothesis without a falsifier, or under g14 directly instead of its track, is a rule violation counted here; the workflow is re-authored if two surveys in a row produce judge rows that cannot be minted as written.
+
+**Done when.** Never — perpetual; reviewed when a track closes (every digest it cites resolves).
+
+**Seeds:** the paper/repo digests re-homed here on 2026-09-20 (cleanliness pass), plus the 09-20 trove-survey run (`datasets/workflow-runs/trove-survey-2026-09-20/`).
+
+thought-master 04:3xZ 09-21 TREASURY ROW (owner link, read directly): https://github.com/yifanzhang-pro/KLPO -- KL-Regularized Policy Optimization, critic-free single-rollout OFF-policy agentic RL (no response group, no value model; per-token R - beta*log(p/q) + score correction; replay across sampler versions); Apache-2.0; tech report 2026-09-18/20, NO validated GPU results ('paper-scale reproduction not validated'); deps torch 2.2+, labs-molt, FlashREINFORCE. Falsifiable row minted under its track: G14.7.2 RL arm (goal:g14.7 note). Status: unvalidated method -> our small-model ladder is exactly the validation it lacks; risk = the labs-molt backend dependency on a CPU/8 GB box.
+
+thought-master 04:4xZ 09-21 STANDING RULE (owner 04:3xZ-04:4xZ: 'Update rules to always do ingestion workflow into trove properly' / 'You have a workflow for ingestion available' / 'Look at trove survey or link ingestion'): EVERY owner link -> `python3 extensions/agi/bin/workflow.py run paper-digest --harness pi --args '{"papers":[{"key":…,"url":…,"hint":…}]}'` (read -> critique on the pi route; digest to .agi/context/local-maxxing/papers/<key>.md; a repo/hardware sweep uses trove-survey the same way) -> THEN the file stage: treasury row here (URL · date · licence · deps · results-or-not · MEASURED/ESTIMATE), a Links VERSION on doc:lm-town-trajectory, a proposed falsifiable row under the matching track goal. A hand read alone (as KLPO was filed 04:3xZ) is NOT ingestion -- it is the interim until the run lands; pd-klpo dispatched 04:4xZ (deepseek-v4.1-flash, read + critique). G14.14.11 shrinks to automating the file stage after the digest.
+
+thought-master 04:5xZ 09-21 INGESTED BY WORKFLOW (rule applied): pd-klpo = paper-digest on the pi route (deepseek-v4.1-flash read + critique, 2/2 ok) -> digest .agi/context/local-maxxing/papers/klpo.md (49.6 KB) + critique .agi/sessions/workflows/runs/pd-klpo/critique_klpo.json (confidence 0.85).
+  read     KLPO = "theory-and-implementation report, not an empirical paper": NO benchmark, NO training curve, NO measured throughput/memory/cost (MEASURED: README; docs/training.md L118-119, L250-251; docs/website.md L45) · default loss = token regression + MC-KL: loss = -mean_responses sum_tokens stopgrad(R - beta*ell_u) * (log p(action) - mean_j log p(v_j)), no length normalization · 2 routes x 4 KL estimators = 8 combos (docs/algorithms.md) · drops the critic (PPO) and the same-prompt group (GRPO) · off-policy via recorded sampler probabilities · the loss is pure PyTorch, CPU-testable by design (klpo/molt.py docstring: imports no Molt/Ray/transformers/CUDA) · Apache-2.0 · PDF 56 pages
+  critique unsupported: the 'closest relative = FlashREINFORCE' line is the reader's framing; every 'validated on CPU' tag traces to the repo's OWN tests, not an independent run (no torch on this box); the '~1/3 of a three-pass step' constant is loose (ref forward ~1/4); the PMD derivation / Bellman-telescoping sequence route / 'parameter-independent constant' were not assessed · errors: the digest's grep claim 'PPO appears zero times' is wrong (docs/training.md L100); the bridge falsifier's atol=1e-12 is a float64 test tolerance, not a claim · otherwise factually accurate vs source
+  box      NO torch installed on this box (the reader measured it) -> every G14.7 training round starts with a venv + torch install as a declared step
+  standing the 04:3xZ hand-filed row is SUPERSEDED by this one; the treasury row is now workflow-derived, as the rule requires
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+owner ask 2026-09-21: renumber local-maxxing research g5.29 → g5.29 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+<!-- THOUGHT:END -->

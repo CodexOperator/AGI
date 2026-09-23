@@ -3,7 +3,7 @@ id: hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling
 mint_id: 6e96de1084504abbac34e13c0dd8175a
 type: hypothesis
 parents:
-  - goal:g14.14.3
+  - goal:g7.33.3
 next_edges: []
 confidence: 0.75
 edited_by: thought-master

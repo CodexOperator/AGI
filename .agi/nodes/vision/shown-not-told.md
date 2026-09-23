@@ -48,7 +48,7 @@ what to think — because the fun is real only if the work is.
 Judged against the morals: **love** first — the viewer is a neighbour whose
 attention and money keep the house alive, and is treated as such; **beauty** —
 *ye shall know them by their fruits* (Matthew 7:16), the fruits on screen are
-the show; **empathy** — one frame stream, two readers (`goal:g9.7`), the viewer
+the show; **empathy** — one frame stream, two readers (`goal:g2.19`), the viewer
 handed what a kid is handed; **antifragility** — every door from the chat into
 the graph is the Stream Master's (`vision:unbroken-signal`,
 `hypothesis:l4-the-stream-master-is-the-only-door`).

@@ -3,9 +3,9 @@ id: hypothesis:l4-mur-review-stages-drop-required-structured-return-fields-acros
 mint_id: 3f5c9eea58fa4ae49df348bdf677f1c5
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.20
 next_edges: []
-edited_by: a00-442e7e9b
+edited_by: belam
 loop: hypothesis:l4-a-review-stage-survives-load-its-wall-scales-or-its-rounds-shrink-and-a-context-build-timeout-fails-the-stage-by-name-never-the-runner@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -13,6 +13,7 @@ role: kid
 scaffold_hash: 37c4c111079034de
 season: 2
 testable_claim: "\"The merge-up-review stages of three consecutive anchored mur runs (run key mur-core-season2-posts-sensei-director-main) each returned a structured result MISSING a different schema-required field, one per run and stage, with the wall/timeout NOT the cause: review:SM.107 returned no valid JSON at all, review:SM.108 was valid JSON missing `round`, review:SM.109 was valid JSON missing `verdict_recommendation`; verify:SM.107 and verify:SM.108 were valid JSON missing `verdicts`, and verify:SM.109 returned a fenced ```yaml block instead of JSON. Falsifier: any of those six stage results, re-read from the recorded run artifacts, is schema-valid or is explained by a wall/timeout rather than by model output drift.\""
+thought_session: dissolve-legacy-2026-09-19
 title: "Three anchored mur runs each dropped a different schema-required structured-return field: a model-output-reliability pattern, not a wall"
 town: core
 ---

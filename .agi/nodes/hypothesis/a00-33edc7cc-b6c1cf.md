@@ -3,13 +3,13 @@ id: hypothesis:a00-33edc7cc-b6c1cf
 mint_id: 411fd7d3884644c3bb00ef88ab64fa85
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.4
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: aee6667a33947786
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Unattributed hypotheses inflate the outcome_coverage denominator
 verdict: pending
 ---

@@ -142,8 +142,8 @@ rotation unless `--morals`).
 ## 4. Glossary (only terms not defined in SKILL.md)
 
 - **PLUGIN_ROOT** — the engine directory, `extensions/agi/`. Resolved from `$BASH_SOURCE`.
-- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config (`goal:g11`, `goal:g8.2`) — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-`goal:g11` project with a bare `agi-tree.config.json` at its repo root still resolves.
-  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which `goal:g11` removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
+- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-one-repo project with a bare `agi-tree.config.json` at its repo root still resolves.
+  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which the one-repo move removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
 - **Capillary DAG** — the chain shape above: many thin chains, not one thick trunk.
 
 ---
@@ -158,21 +158,21 @@ rotation unless `--morals`).
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
 | `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g9.7 — one render, two readers |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
-| `python3 '<engine>/extensions/agi/bin/links.py' links` | goal:g13 — every node's link resolves; broken_links must be 0 |
+| `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
 | `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |
 | `python3 '<engine>/extensions/agi/bin/crons.py' show` | the crontab the graph declares |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g9.7 — exactly what a kid is handed, from the same frame stream |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g13.1 — named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
 
-## Write guard hook (goal:g13.1, L2 wave 1.5)
+## Write guard hook (goal:g4.19, L2 wave 1.5)
 
 Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write_guard.py check` warns about any node changed outside `write.py` (the smoke path runs it, warn-only). To refuse such commits locally, install the hook once per clone:
 

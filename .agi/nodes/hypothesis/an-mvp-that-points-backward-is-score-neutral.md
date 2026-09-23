@@ -3,17 +3,17 @@ id: hypothesis:an-mvp-that-points-backward-is-score-neutral
 mint_id: 26e6de7bb1db44de80b24526bde4e796
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.85
-edited_by: season.py
+edited_by: belam
 evidence_runs:
   - experiment:mvp-forward-backward-audit
 scaffold_hash: efafa44d05812d01
 scale: engine
 season: 1
 testable_claim: An mvp minted for work already done (no forward-pointing source_files/build; body describes a finished change) does not raise outcome_coverage; the 9 mvps minted 2026-09-03 in iters 1012-1019 are audited against [mvp].md and any backward-pointing one is deprecated or excluded from scoring_mvp_count
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: An mvp that points backward is score neutral
 verdict: proved
 ---

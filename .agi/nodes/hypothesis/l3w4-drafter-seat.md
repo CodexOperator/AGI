@@ -3,13 +3,13 @@ id: hypothesis:l3w4-drafter-seat
 mint_id: 51ab4f2df2e44649b1c223d2b2b81f1a
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: b3e620cb1818abce
 season: 2
 testable_claim: A `drafter` row on the ladder's `roles:` table (claude-code, claude-sonnet-5, effort max, settings ultracode) is resolved by `dispatch.py --role drafter --ladder-tier 1` and a new `brief.py assemble(tier="drafter")`, whose DUTIES turn a `send.py send --to drafter` request into a scratch draft that a mechanical lint must clear before `write.py create hypothesis` mints it under the requester's own named parents and only the requester's own reply closes the acceptance gate, while the drafting workflow itself, `extensions/agi/workflows/draft-briefs.js`, exists as a `build` node under `goal:g17` (parents `[mvp:l3w4-draft-workflow, goal:g17]`) so any harness — claude-code Sonnet or a pi GLM drafter — can summon the same workflow by editing only that row's harness and model.
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: Stand up the drafter seat
 ---
 <!-- BODY:BEGIN -->

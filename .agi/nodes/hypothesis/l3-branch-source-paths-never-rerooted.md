@@ -3,13 +3,13 @@ id: hypothesis:l3-branch-source-paths-never-rerooted
 mint_id: 973d6413c509429d9ef91360a2fdf09f
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam
 scaffold_hash: 0ce72d64c3732ee4
 season: 2
 testable_claim=dispatch.py: re-roots the child GRAPH via child_working_graph but derives PLUGIN_ROOT, CLI_PY, skill_prompt and dispatch_py from Path(__file__) of the running dispatch.py, module constants no --branch code touches, so a --branch kid receives one argv containing a worktree-absolute scaffolded node path beside main-absolute cli.py and agent-prompt.md and edits main. After the change a child_engine_paths helper re-roots those four through locations.source_root — which already exists at locations.py:313 and is called by nothing in dispatch, brief or zoom — branch_root becomes the checkout root rather than the .agi graph dir, and the brief states the agent's own checkout out loud; proven by a red-first test asserting every absolute repo path in a --branch kid's argv shares the worktree prefix, red before and green after
-thought_session: belam-S1-L3-X
+thought_session: dissolve-legacy-2026-09-19
 title: dispatch.py re-roots a child graph and never its engine paths, so one argv carries a worktree node path beside main-absolute source paths and the kid follows the only source anchor it was given
 ---
 <!-- BODY:BEGIN -->

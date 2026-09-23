@@ -3,7 +3,7 @@ id: doc:baseten-live-draft
 mint_id: 084c8cdf3cc947b8bc332166be4aab1e
 type: doc
 parents:
-  - goal:g14.13
+  - goal:g5.29
 next_edges: []
 edited_by: thought-master
 link_ref: .agi/context/local-maxxing/papers/baseten-live-draft.md

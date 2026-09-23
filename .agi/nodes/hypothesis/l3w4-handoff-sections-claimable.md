@@ -3,13 +3,13 @@ id: hypothesis:l3w4-handoff-sections-claimable
 mint_id: 578ffecc5f7e4e55b8e7208a98ed8e9b
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: f47591ce2a15fd53
 season: 2
 testable_claim: "After the change, a seat reads only the handoff sections it claims and writes only the sections it holds: a claimed section is served alone at a fraction of the whole-file token cost, two seats holding different sections can write concurrently without clobbering each other, and the prime still reads and renders the whole file unchanged - proven by measured token counts for a sectioned read against the whole file and by two concurrent section writes both surviving."
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: "HANDOFF.md is read whole by every reader and written only by the prime, so a seat cannot be cheap and cannot help write it: sections must be separately claimable to read and to write"
 ---
 <!-- BODY:BEGIN -->

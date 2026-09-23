@@ -3,7 +3,7 @@ id: hypothesis:l3-alive-proprioception
 mint_id: eebb91f8f41546c7af7b96b46a6a751c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
 confidence: 0.75
 edited_by: belam
@@ -14,7 +14,7 @@ role: parent
 scaffold_hash: fef92eaa0035ae11
 season: 2
 testable_claim: Every engine tool that reports an agent its own state resolves that state from an identity the agent owns (explicit flag, then env, then a pin recorded at spawn) and never from an ambient newest-file scan, and any surviving heuristic names the artifact it read; rotate.py meter breaks this twice — CC_PROJECT_SLUG is a hardcoded module constant and the meter line never names the file — and read 0.2244 (the prime Belam II transcript) where the calling advisor own transcript read 0.0640
-thought_session: L3.14
+thought_session: dissolve-legacy-2026-09-19
 title: "L3 alive proprioception: self-state must be identity-owned"
 verdict: inconclusive_lean_proved:75
 ---
