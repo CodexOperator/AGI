@@ -3,9 +3,9 @@ id: goal:s27
 mint_id: 9689d2979de44066aa583ed9bbfac080
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 0.9
-edited_by: season.py
+edited_by: belam
 goal_id: S27
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S27: Dispatch scaffolds an authored node for every tier, including the one that must not author"
 ---
 **Found by the parent itself, in its `struggles:` line, on the first
@@ -117,8 +117,8 @@ verbatim in intent:
 > Least adaptation.
 
 So the destination is **`goal:g2.7`** (the finest zoom is the chat that
-produced the version) and **`goal:g10.1`** (chats are thoughts, so chats are
-nodes), surfaced through **`goal:g10.2`**'s LOD axis. `thought_session:` is
+produced the version) and **`goal:g2.24`** (chats are thoughts, so chats are
+nodes), surfaced through **`goal:g2.25`**'s LOD axis. `thought_session:` is
 already reserved in frontmatter for exactly this and nothing writes it yet.
 
 **Two sub-thought fields — one kid, one parent — were considered and
