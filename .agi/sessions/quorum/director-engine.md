@@ -10,18 +10,19 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (10:3xZ 09-23) -- floor -50 on the owner's word (10:3xZ); work runs until the credits empty
+## LIVE STATE + STOPS (11:0xZ 09-23) -- floor -50 (the owner, also set by the Prime 783b77c13); work runs until the credits empty
 ````
 ```
-RUNNING   EF.21 cli grammar = the jev rounds (FIRST) · EF.26 links.py retired refs · EF.28 FR-D1 write.py gates (g15.27.6) ·
-          EF.29 harness-bin-paths (config.json part lands via me) · EF.30 FR-B1 (g15.27.1) · EF.31 FR-B2 (g15.27.2) ·
-          EF.32 FR-C1 (g15.27.4) · EF.33 FR-C2 (g15.27.5)   [EF.32/33 dispatched --allow-stale-base: the trunk had changed
-          briefs/prime-director-successor.md, which neither edits] · mur bvth0d9uc brief.py EF.18+19 (verify stages running)
-MERGED    EF.20 key authority · EF.22 FR-A · EF.23 corrections (21 stranded edits landed by me) · EF.24 sub · EF.25 brief finish
-          (dispatch on render, Prime spawn on render, handoff-head gone, master template; 323 + 328 tests pass)
-NEXT      FR-B3 (g15.27.3) after FR-B2 · a small mur for EF.25, then ONE brief.py [merge-up] (EF.18+19+25) · EF.27 FR-D2 harvest
-          (done, verdict pending) · config:posts: thought-master's row template cell -> the Prime (ring-gated)
-TRAP      a round that edits OTHER nodes, or .agi/config.json, loses them at `done` (--owns takes node ids only): land from the worktree
+JEV       EF.21 cli grammar MERGED (its 237-line command:commands landed from the parent worktree + sub/sub! declared; 135 entries,
+          0 abs paths, deterministic, 96 tests) -> mur bwg0hu04z RUNNING -> merge-up -> tell director-thought (the owner's rule)
+RUNNING   EF.30 FR-B1 · EF.32 FR-C1 · EF.33 FR-C2 · EF.34 bin refusal (harness-bin-paths round 2) · EF.35 FR-B3 scp (measure first) ·
+          mur bvth0d9uc brief.py EF.18+19 (verify stages)
+MERGED    EF.20 · EF.22 · EF.23 · EF.24 · EF.25 · EF.26 links.py (--strict exits 1: 242 live refs to retired goals) · EF.27 · EF.28 ·
+          EF.29 bins (config landed from the worktree; lean_disproved:60 on the missing-bin refusal -> EF.34) · EF.31 FR-B2
+FLAG      goal:g15 is status RETIRED (superseded 09-19) yet parents every g15 residue node (g15.27 + leaves included) -> the Prime, in
+          the next merge-up · thought-master's posts row template cell -> the Prime (ring-gated)
+NEXT      brief.py: a small mur for EF.25, then ONE brief.py merge-up · the 0921 chunk-2 batch mur once its leaves land
+TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` (--owns takes node ids only): land from the worktree
 MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote)
 ```
 ````
