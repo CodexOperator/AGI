@@ -281,9 +281,26 @@ def _coerce(value, arg):
 _PLACEMENT_KINDS = ("option", "switch", "const", "positional")
 
 
+def _split_arity(spec):
+    """`(mode, size)` from a placement's `arity`, or `(None, 0)` when it
+    declares none (a single value). `many` -> one flag, every value;
+    `append`/`append:N` -> the flag repeated, N values each; `"<N>"` -> one
+    flag and N values; anything else -> a single value."""
+    s = str(spec or "").strip()
+    if s in ("many", "+", "*"):
+        return "many", 0
+    if s.startswith("append"):
+        _, _, tail = s.partition(":")
+        return "append", int(tail) if tail.isdigit() else 1
+    if s.isdigit() and int(s) > 1:
+        return "nargs", int(s)
+    return None, 1 if s else 0
+
+
 def _resolve_placement(name, arg, entry, rules):
-    """`(kind, flag, const, consts)` for a declared arg, or None when the node
-    declares no placement for it and has not opted into the defaults."""
+    """`(kind, flag, const, consts, arity)` for a declared arg, or None when
+    the node declares no placement for it and has not opted into the defaults.
+    `arity` is the declared multi-value spelling, or None when undeclared."""
     spec = rules.get(f"{entry}.{name}") or rules.get(name)
     if not isinstance(spec, dict):
         if not rules.get("defaults"):
@@ -294,7 +311,7 @@ def _resolve_placement(name, arg, entry, rules):
     if kind not in _PLACEMENT_KINDS:
         return None
     return (kind, str(spec.get("flag") or ""), spec.get("const"),
-            dict(spec.get("consts") or {}))
+            dict(spec.get("consts") or {}), spec.get("arity"))
 
 
 def propose(root, name: str, args: dict | None = None) -> list[str]:
@@ -332,7 +349,8 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
     rules = _load_node(Path(root)).get("placement") or {}
     extra: list[str] = []
     positional: list[str] = []
-    for n, value in values.items():
+    for n in values:
+        value = values[n]
         if f"<{n}>" in template:
             continue
         placed = _resolve_placement(n, declared[n], name, rules)
@@ -340,7 +358,7 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
             raise CommandError(
                 f"{name!r}: cannot place arg {n!r}; argv has no <{n}> and the "
                 f"node declares no placement for it")
-        kind, flag, const, consts = placed
+        kind, flag, const, consts, arity = placed
         if kind == "positional":
             positional.append(value)
         elif kind == "switch":
@@ -356,9 +374,27 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
                     f"selects it")
             if token not in entry["argv"]:
                 extra.append(token)
-        elif flag:                       # option: flag + value
-            if flag not in entry["argv"]:
-                extra += [flag, value]
+        elif flag:                       # option: flag + value(s)
+            mode, size = _split_arity(arity)
+            vals = ([_coerce(v, declared[n]) for v in given[n]]
+                    if isinstance(given[n], (list, tuple)) else [value])
+            if mode is None and len(vals) > 1:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} got {len(vals)} values but its "
+                    f"placement declares one -- declare an arity to place "
+                    f"them all")
+            if mode == "nargs" and len(vals) != size:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} needs {size} values, got {len(vals)}")
+            if mode == "append" and size and len(vals) % size:
+                raise CommandError(
+                    f"{name!r}: arg {n!r} needs multiples of {size} values, "
+                    f"got {len(vals)}")
+            groups = ([vals[i:i + size] for i in range(0, len(vals), size)]
+                      if mode == "append" else [vals])
+            for group in groups:
+                if flag not in entry["argv"]:
+                    extra += [flag] + group
         else:
             raise CommandError(
                 f"{name!r}: cannot place arg {n!r}; node declares no flag for it")
