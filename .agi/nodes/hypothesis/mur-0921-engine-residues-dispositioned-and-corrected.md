@@ -6,7 +6,7 @@ parents:
   - goal:g15.27
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: a00-95359f56
 scaffold_hash: 354bbe1df9b83c43
 season: 2
 testable_claim: Every residue the 09-21 merge-up-review recorded on the 15 engine rounds of hypothesis:mur-0921-residue-batch-into-season2-main is dispositioned by name in this node's table (F fix -> a named fix round, C correction, K carry, G gone), and every C item outside the excluded thought-side nodes is applied in place -- a grid version of the target node or file whose THOUGHT names this node, never a second node -- after re-checking it against the bytes, with no verdict or lean field changed, so the two engine demotes (l4-config-max-and-template-max, l5-a-message-that-did-not-land) no longer overclaim their bytes.
@@ -405,3 +405,7 @@ C LIST (node -> correction; one write.py pass per node, grid commit after)
 
 ## Agent Notes
 assigned: director-engine (0921 residue batch, engine slice, goal:g15.27); table sorted by a read-only helper for director-engine and spot-checked against the bytes before minting.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EF.23 (parent a00-95359f56) executed this node's C list. Twenty non-excluded C items applied IN PLACE across 20 nodes: seven hypothesis nodes plus two files (.agi/context/schemas/[cron].md and QUICKSTART.md) by kid a00-11797ce4, whose process died on a provider error before it could call done (its node experiment:a00-11797ce4-ddb8cb carries no verdict; the parent read its edits as bytes); and eleven experiment nodes by kid a00-baa8e365 (experiment:a00-baa8e365-a4a8cb, inconclusive_lean_proved:75). Two thought-side C items skipped by the dispatch order (hypothesis:lm-research-review-why-brainstorm-mint-by-default, experiment:a00-2ec3b4a6-b531ae) and named as skipped. No verdict, lean or confidence field was changed anywhere: a parent probe compared the verdict/confidence/lean/demoted_from/evidence_gate lines of all 20 corrected nodes against their pre-round values and found zero deltas. Every corrected node's THOUGHT names hypothesis:mur-0921-engine-residues-dispositioned-and-corrected. Probe-shape corrections landed as real YAML lists (a00-794503d4 2 entries with the truncated refusal-atomic probe restored, a00-09d5b982 4, a00-f0f7f404 4, a00-3a04e059 1, a00-931b52d8 1, a00-dab18263 3). Two verdict questions were surfaced and left for their authors, not resolved: experiment:a00-794503d4 should read inconclusive_lean_disproved (its own THOUGHT says the every-reachable-state claim is FALSE), and experiment:a00-dd617306's tree-wide count reconciles to 16 of 18 with 17 the committed-probe figure. The two engine demotes this table targeted now agree with their bytes: extensions/agi/workflows/merge-up-review.json carries zero path_max, and send.py:2491 still prints the coalesce line the l5-a-message claim now says is KEPT. Parent-run negative probes are recorded on the parent round a00-95359f56 (inconclusive_lean_proved:80). One defect seen and NOT fixed by the parent: the round-done commit's scope rule left all 20 corrected node files uncommitted in this worktree (foreign paths by basename), so the loop must carry them.
+<!-- THOUGHT:END -->
