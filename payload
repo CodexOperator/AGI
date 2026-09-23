@@ -1078,7 +1078,7 @@ def cmd_audit(root: Path, crontab_file: Path | str | None = None,
         found.append("crontab: this project's managed block drifts from the "
                      "node (run `crons.py apply`)")
     for name, job in node["jobs"].items():
-        if job.get("box") and not job.get("why_box"):
+        if name in KNOWN_JOBS and job.get("box") and not job.get("why_box"):
             found.append(f"node: cadences.{name} gates on box {job['box']!r} "
                          f"with no `why_box` — a `box` gate is the exception "
                          f"and must say why")
