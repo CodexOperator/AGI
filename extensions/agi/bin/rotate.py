@@ -3021,6 +3021,15 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         print(guard, file=sys.stderr)
         return 1
 
+    # goal:g7.31.5.3 — the SAME pre-rotation profile-drift gate cmd_rotate_self
+    # applies, in the SAME order (branch guard, then drift), BEFORE the meter
+    # and BEFORE any spawn. A loop that rotated on a drifted graph would project
+    # the drift into the successor exactly as a seat rotation would.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
+        return 1
+
     if not args.force:
         meter_args = SimpleNamespace(session_log=args.session_log, check=True)
         meter_code = cmd_meter(meter_args, root)

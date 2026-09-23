@@ -230,10 +230,63 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+def test_rotate_guard_wire_reaches_the_sweep(tmp_path, monkeypatch, capsys):
+    """BEHAVIOURAL wire probe: cmd_loop must refuse a drifted graph with rc=1,
+    naming the node, BEFORE it calls spawn_window. A build that omits the
+    `pguard = _check_profile_drift(root)` line from cmd_loop falls through to
+    the spawn stub below and fails this test, where a source-string match
+    could not see the difference."""
+    import rotate  # noqa: E402
+    from types import SimpleNamespace  # noqa: E402
+
+    repo = _repo(tmp_path / "drifted")
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")
+
+    def fail_spawn(**kw):
+        raise AssertionError("cmd_loop spawned on a drifted graph")
+
+    monkeypatch.setattr(rotate, "_check_branch_guard", lambda root: None)
+    monkeypatch.setattr(rotate, "spawn_window", fail_spawn)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(tmp_path / "succ.log"), dry_run=True, timeout=1,
+    ), repo / ".agi")
+    err = capsys.readouterr().err
+    assert code == 1, (code, err)
+    assert "profile drift" in err and "hypothesis:h1" in err
+
+
+def test_loop_rotates_when_the_graph_is_in_sync(tmp_path, monkeypatch, capsys):
+    """The clean half of the same gate: an in-sync linked node lets cmd_loop
+    reach spawn_window, which the stub records."""
+    import rotate  # noqa: E402
+    from types import SimpleNamespace  # noqa: E402
+
+    repo = _repo(tmp_path / "clean")
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    called = {}
+
+    def fake_spawn(**kw):
+        called.update(kw)
+        return 0, "claude --remote-control belam-II"
+
+    monkeypatch.setattr(rotate, "_check_branch_guard", lambda root: None)
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    wins = tmp_path / "windows.txt"
+    wins.write_text("")
+    code = rotate.cmd_loop(SimpleNamespace(
+        session_log=None, force=True, role="prime_director", name="belam-II",
+        name_prefix="belam", model=None, effort=None, settings=None,
+        prompt_file=None, tmux_session="agi-rc", window_path=str(wins),
+        debug_file=str(tmp_path / "succ.log"), dry_run=True, timeout=1,
+    ), repo / ".agi")
+    assert code == 0, capsys.readouterr().err
+    assert called.get("name") == "belam-II"
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
