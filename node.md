@@ -8,13 +8,22 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: belam
+edited_by: thought-master
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
 thought_session: belam-graph-only-coord-2026-09-21
 town: core
+trajectory_standin:
+  - "formation: thought-master (MAIN = trunk local-maxxing/season2/main) -> director-thought (Sonnet; research rounds; the ONLY active director on town work) · director-engine OFF g7.33 by owner order 09-23 (Prime-assigned g15 residues only) -> pi parents/kids (OpenRouter) + pi-local (the resident 9B, 0 USD)"
+  - "priority (owner 09-21 05:4xZ, reaffirmed 09-23 07:5xZ): the jev MAGIC PANE (goal:g5.24) alongside the off-the-shelf combination experiments (g5.23 fine-tuning ladder · g5.25 abliteration · g5.27 switch · g5.30 telepathy) and local-inference parents/kids"
+  - "metrics: reference deepseek-v4.1-flash 93.9 pct HumanEval / 0.869 IFEval strict · Bonsai 2 27B PTQ1_0 (7.27 GB, 20.5-23 tok/s compute-bound): HumanEval 92.2 pct of ref FIRES 0.9x, IFEval 0.7782 = 89.57 pct of ref MISSES by 0.37 pp inside the +/-0.4 scorer floor · Qwen3.5-9B Q4 (6.0 GB, 62.7 tok/s): HumanEval 78.0/79.3 pct (A/A2) -> two-eval switch NOT met"
+  - "landed since 09-20: ABC.01/02 · ABL.01 (cvector dead on Qwen3.5) · SWR.01 (reference bar) · MP.01 (corpus 63/200 real forms) · TEL.01-03 (KV shift unavailable on IMROPE; only Bonsai-1.7B can shift) · SWR.02-B + B.03 · engine EF.01-09 (grid cron LIVE into refs/grid/local-maxxing/)"
+  - "live 07:5xZ 09-23: none -- pool headroom -7.16 USD (33.21 - 1.60 - 38.77 held by 22 DH + 7 mur + 1 DT keys, not ours) -> paid rounds refuse; batch A runs on pi-local meanwhile"
+  - "queue (TMM.33): MAGIC PANE batch A (0 USD, pi-local): MP.02 suggester (prose -> up to 5 graph calls, mid-stream) + cli-grammar.json + dm/notes test set -> MP.03 formatter · COMBINATION batch B (paid, on headroom): SWR-C2.02 IFEval + B re-score N=10 -> FT.00 morals+sanctuary SFT A/B -> G5.23.2 ladder (KLPO in the RL arm) -> H1' own abliteration lever -> layering"
+  - "windows: the Prime's pass-2 mur 11:41Z 09-23 claims ~3 GB + 2 cores (5 h notice) · GPU = one research round at a time · memory_max 6G, ONE model-loading host kid"
+  - "rules: diagram-max (g5.31) · batch-max (one merge-up per batch; board rows travel in it) · this field = the live board, written whole by the town master, one version per write (grid cron records it)"
 visions:
   - vision:local-maxxing
   - vision:local-maxxing-smarter
