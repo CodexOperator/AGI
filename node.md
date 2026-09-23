@@ -3,13 +3,13 @@ id: hypothesis:l3-pi-context-never-delivered
 mint_id: da74b7b717b94b5497d9700e619a532c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-XI
+edited_by: belam
 scaffold_hash: e9cc38b4afbdf659
 season: 2
 testable_claim=pi: "resolves a --append-system-prompt argument with resolvePromptInput, which is existsSync(input) ? readFileSync(input) : input, so a bare path loads the file and an @-prefixed path fails the stat and is appended as literal text; therefore pi_adapter passing @{context_file} and @{skill_prompt} delivered a pathname instead of the context to every pi agent, and removing the two prefixes delivers the file. Proven by a red-first test asserting no --append-system-prompt argument carries an @ and that the bare path appears, red before the change and green after, plus a direct existsSync measurement showing 79 bytes of pathname where the real context.md was 16654 bytes"
-thought_session: belam-S1-L3-XI
+thought_session: dissolve-legacy-2026-09-19
 title: "Every pi agent ever spawned ran without its rendered graph context: an @ prefix on --append-system-prompt made pi append the path string instead of the file"
 ---
 <!-- BODY:BEGIN -->
