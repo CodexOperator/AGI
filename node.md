@@ -1,14 +1,13 @@
 ---
-id: goal:g15.14
+id: goal:g6.36
 mint_id: 05df8a9e13594989881d1f1ed121cc70
 type: goal
 parents:
-  - goal:g15
-  - build:bin-rotate
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.14
+edited_by: belam
+goal_id: G6.36
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -24,8 +23,8 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-thought_session: sensei-director-genI-L1
-title: "G15.14: rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.36: rotate.py prompts the LLM through the parts that need its judgement and performs the rest — driven handoff writer, rotate-self --prepare, captive window reply, captive harvest-or-cut"
 town: core
 ---
 <!-- BODY:BEGIN -->
