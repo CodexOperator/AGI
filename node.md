@@ -47,20 +47,19 @@ model   per role: HEAD (doc:unified-head, same bytes for every role incl. parent
 ✅ HANDOFF.md + the quorum card = symlinks to doc:card-belam · card orders sent: thought-master · director-thought · director-engine
 ✅ retired ids out of use (owner 09:0xZ-09:1xZ): g14→g5 · g14.3→g5.19 · g14.14→g7.33 · g9.7→g2.19 · g13/g13.1→none · g14's 70 owner lines MOVED to goal:g5 (no pointer) · owning_goal cells hand-edited · commands tables fixed · lint round → director-engine
 ✅ templates (owner 09:1xZ go): director doc:unified-director-brief (role only, 20.5 KB) · master doc:unified-master-brief (new, five axes) · Prime = the brief + five axes · this card = doc:card-belam (owner 09:2xZ)
-⏳ old ids in the PROSE of CLAUDE.md · QUICKSTART.md · skills/agi/SKILL.md (owner 09:2xZ)
+✅ old ids out of the prose of CLAUDE.md · QUICKSTART.md · SKILL.md (998aa21d7) · seat keys republished on season2/main: belam 7e134ba7b, thought-master ed54be7d8 · key round → director-engine FIRST (c445296c0)
 ⏳ after brief.py lands: retire CLAUDE.md (→ the claude-code harness block) · the 5 INJECTION.md writers · the prime [handoff-head] entry
 ```
 
 ## §2 Landed (09-23)
-969c7390b owner lines + L6 note + flavor doc retired · 1e6ca0056 doc:unified-head · 4c08f0c3a brief.py hypothesis · c80b7d4fb HANDOFF symlink + card + Prime template + brief.py amendment + write.py round + g14→g5 re-cites · 07adbae3a commands tables + g14 owner lines → g5 + owning_goal cells + lint round · 7e134ba7b (season2/main) the belam key row · (next) the three templates + this card as doc:card-belam
+969c7390b owner lines + L6 note + flavor doc retired · 1e6ca0056 doc:unified-head · 4c08f0c3a brief.py hypothesis · c80b7d4fb HANDOFF symlink + card + Prime template + brief.py amendment + write.py round + g14→g5 re-cites · 07adbae3a commands tables + g14 owner lines → g5 + owning_goal cells + lint round · 7e134ba7b (season2/main) the belam key row · 52d046afd templates + doc:card-belam · 998aa21d7 prose ids · ed54be7d8 (season2/main) thought-master key row · c445296c0 key round
 
 ## 🔴 Where it stops
 ```
-09:3xZ 09-23 (gen 2). Next, in order:
- 1. old ids in the PROSE of CLAUDE.md · QUICKSTART.md · skills/agi/SKILL.md (owner 09:2xZ): map to successors, drop the id where none
- 2. PASS 2 fires 11:41Z from the session cron (procedure: .agi/sessions/prime-merge.crons.md §2)
- 3. watch, never steer: director-engine (brief.py · write.py sub · retired-id lint in its inbox) · thought-master + director-thought (card orders)
-Then as before: daily activation + passes; quiet push-only · batch-max · diagram-max.
+09:4xZ 09-23 (gen 2) — IDLE, minimum tokens (owner 09:4xZ: settled + handed off → idle protocol). Next, only as they fire:
+ 1. PASS 2 at 11:41Z from the session cron (procedure: .agi/sessions/prime-merge.crons.md §2) · daily activation 08:13Z
+ 2. after ANY rotation on this box: republish that post's re-keyed row on season2/main by hand (as 7e134ba7b / ed54be7d8) until the key round lands
+ 3. key authority = route B (owner 09:4xZ) · watch, never steer: director-engine queue = key round → brief.py → write.py sub → retired-id lint
 ```
 
 ## §4 Traps
@@ -85,5 +84,4 @@ Then as before: daily activation + passes; quiet push-only · batch-max · diagr
 |---|---|
 | global git identity on this box (10 of the 18 red tests) | `git config --global user.name/email` for user belam |
 | `.agi/config.json` carries core-town literals (`box.*`, `harnesses.*.bin`) in a merge-shared file | director-engine round: `{user}`/`$PATH` resolution or the box overlay; not blocking while `PI_BIN` covers dispatch |
-| the integration-branch list omits the town trunk: node-count never stamps on `local-maxxing/season2/main` | one config cell, on the owner's word that the trunk is canonical here |
 | engine-wide config/template maxxing pass (owner 08:5xZ idea, goal:g5) | after brief.py lands: one goal, nested rounds, config-max first |
