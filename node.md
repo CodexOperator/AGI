@@ -3,9 +3,9 @@ id: goal:g7.4
 mint_id: 4ff23be4b8354c6ca25479ccdeccc730
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.4
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.4: Two loaders, two opposite duplicate-id policies"
 ---
+# goal:g7.4
 `graph_core/loader.py::load_directory` keeps the **first**-sorted file on an id
 collision and, as of 2026-08-22, reports every collision via
 `graph.duplicate_ids`, a `WARN:` line, and `DuplicateIdError` under `strict`.
