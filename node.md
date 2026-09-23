@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.4
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.4: Kids get the graph and nothing else"
 ---
 **A kid should not be able to spend motion on anything but the graph.** Weight
