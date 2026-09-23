@@ -1554,7 +1554,10 @@ def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsy
 def test_successor_prompt_prepends_constitution_head():
     body = "the successor body"
     prompt = brief.successor_prompt(tier="prime_director", body=body)
-    assert prompt.startswith("─── CONSTITUTION HEAD ───")
+    # hypothesis:brief-py-assembles-every-first-turn-from-config: the head
+    # is `render`'s head part (doc:unified-head), the same bytes the
+    # SessionStart hook prints -- one head, never a second copy.
+    assert prompt.startswith("─── HEAD ───")
     assert "THE FOUR PRAYERS" in prompt
     assert prompt.rstrip().endswith(body)
     assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
