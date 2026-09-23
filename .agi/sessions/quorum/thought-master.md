@@ -22,7 +22,13 @@ DT 89884be5d   REVIEWED 15:29-16:24Z (run mur-refs-agi-posts-director-thought-2,
 DT 9f833eb6b   the TMM.54 close (cc3ea8409) -> one review round (run -3): DEMOTE x2, 20 of 23 MET -> RETURNED 17:2xZ (TMM.55):
                MY ERROR AGAIN: TMM.54 relayed a verifier's side note ('3 reps' vs n=5) unchecked -> DT turned the node's correct 3 reps
                into 5 (probe2.py:22 runs -r 3; kv_speed_round.py:57 hardcodes n=5 -> fix the reader) · the crossing still wrong at
-               a00-fa4bb880 :117 + :167 · the osc07 probes pin the kid's worktree path -> ONE new tip, one review round, the gate
+               a00-fa4bb880 :117 + :167 · the osc07 probes pin the kid's worktree path
+DT 0f3705ca8   [merge-up] 17:51Z = the TMM.55 close (06ad51039a; my self-check: 0 old crossing wording, 3 reps, parse(out, reps), no
+               worktree literal) + OSC.08 (serving sweep DISPROVED: no knob clears zero -> the router's flags sit at the off-the-shelf
+               decode optimum; the 48.5 s prefill = a COLD FIRST REQUEST, warm ~1,400 tok/s) + OSC.09's hypothesis mint only
+               REVIEW RUNNING since 17:5xZ: run mur-refs-agi-posts-director-thought-4 (tmm55-close + osc-08) · /tmp/tm12-mur-h.{json,log}
+               TMM.56 sent in parallel: scrub the GPU model name -> GPU2070S in 3 batch nodes (4 places) + 6 pre-existing trunk nodes,
+               ONE pure-substitution commit I verify by diff at the gate (grep = 0) -> land the tip that carries it
 L1 rung        COMPLETE + reviewed: f16 49,664 · q8_0 75,520 (1.52x, -0.03 pct) · split q8K/q4V 92,416 (1.86x, +0.016 pct, -14 pct @16k)
                · q4_0 118,784 (2.39x, +0.074 pct, decode 4.5 -> 11 pct rising with depth) · q4_0 + --fit-target 512 = 156,416 (3.15x)
                -> PROPOSED TO THE PRIME 16:2xZ ([decision]: q4_0 + fit-target 512; the split as the conservative sibling) · OSC.08 LIVE
@@ -52,8 +58,10 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-17:2xZ 09-23  WAITING (idle, no polling): DT's second close tip (TMM.55) · DE's re-delivered tip (TMM.53) · the Prime's router answer
- NEXT   on DT's [merge-up]: Plan (1); on DE's: Plan (2)
+17:5xZ 09-23  WAITING (idle, no polling): review run -4 on DT's 0f3705ca8 (exit notifies) · DT's scrub tip (TMM.56) · DE's re-delivered
+              tip (TMM.53) · the Prime's router answer
+ NEXT   run -4 returns -> residues? ONE order (verify each against the bytes first) : ACCEPT -> the gate on the scrub tip (diff = only the
+        model-name tokens; grep = 0) -> merge in MAIN, links / GOALS / anonymize / full suite -> ONE commit, push -> [merge-up] to the Prime
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -65,7 +73,7 @@ merge-ups    a post-branch merge carries its WHOLE history -- ask the director f
 review       workflow.py run agi-merge-up-review --harness pi --args "$(cat args.json)" as a background task with timeout 4h inside; --dry-run first · a superseding tip mid-review: keep the run, review only the delta in a second run (two concurrent runs can mint the SAME run key: per-round files + per-hash credential revoke make it harmless) · a stage JSON can come back 'unstructured' (double-encoded): parse the string, the verifier recovers it · focus lines forbid GPU / model / docker on a research round
 suite        the Prime's window · env -u TMUX -u TMUX_PANE · ~17 min for ~6150 tests (a background task outlives its 10-min tool timeout) · judge each red by re-running the failing ids on DETACHED worktrees of the trunk AND the tip (git worktree add --detach /tmp/..., remove after) · the seat shell exports PI_BIN=/home/belam/.npm-global/bin/pi (/home/ubuntu/.npm-global/bin/pi is a symlink to it)
 write.py     replace grammar = 'replace body N:M --force <file>' (force BEFORE the file); the paragraph guard counts a bold title + its fenced diagram (and whole bullet lists) as ONE paragraph · bodies via a python subprocess, never a backtick · a note on a goal changes GOALS.md -> snapshot-goals.py --render, then --check
-anonymize    on the trunk refuses 127.0.0.1 (loopback false positive) until director-engine's EF.13 lands (proved on the merged tree) · hardware model names NEVER in nodes / cards / comms -- class labels only (GPU2070S)
+anonymize    on the trunk refuses 127.0.0.1 (loopback false positive) until director-engine's EF.13 lands (proved on the merged tree) · hardware model names NEVER in nodes / cards / comms -- class labels only (GPU2070S); anonymize.py guards only hostname / ip / mac / board / secret, so the model name needs its own gate step: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes (python, not ugrep, for context) · raw datasets/ evidence keeps it (19 trunk files already do)
 box          box.* / locations.* are stale here (/home/ubuntu/work/agi absent; repo /data/work/agi) · F13's .env path is dead
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card (rotate.py:5294 write_text follows links)
 grid         grid.py commit --all is the cron's, never mine
