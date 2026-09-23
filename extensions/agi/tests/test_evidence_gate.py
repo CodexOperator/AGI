@@ -172,9 +172,12 @@ def test_normalize_evidence_runs_mixed_list_counts_only_resolvable():
     "value,violations",
     [
         (None, []),
-        (0, [0]),
-        ("3", ["3"]),
+        (0, []),        # a scalar count is the softer goal:g7.3 case, not a violation
+        (3, []),
+        (True, []),
+        ("3", []),
         ("exp:real", ["exp:real"]),   # scalar id-shaped string: a list/type violation
+        ("many", ["many"]),
         (["exp:real"], []),
         (["synthetic"], ["synthetic"]),
         (["exp:real", "synthetic"], ["synthetic"]),
@@ -184,6 +187,26 @@ def test_normalize_evidence_runs_mixed_list_counts_only_resolvable():
 )
 def test_evidence_runs_violations(value, violations):
     assert eg.evidence_runs_violations(value) == violations
+
+
+@pytest.mark.parametrize(
+    "value",
+    [None, 0, 3, True, False, "3", "many", "exp:real",
+     [0], ["3"], ["exp:real"], ["exp:ghost"], ["synthetic"],
+     [{"run": 1}]],
+)
+def test_apply_gate_rejection_aligns_with_evidence_runs_violations(value):
+    """The invariant MUR mur-g7-31-4-dt-91 asks for: one `GateResult` may not
+    carry `taxonomy_violations` while `rejected is False` (or vice versa).
+    For a decisive verdict with `bypass=False`, `rejected` is true iff
+    `evidence_runs_violations(value)` is non-empty.
+
+    Fails on the base tip for `0` / `"3"` / `3` / `True`, where
+    `evidence_runs_violations` named a scalar count but `apply_gate` exempted
+    it and demoted instead."""
+    res = eg.apply_gate("proved", value, corpus={"exp:real"},
+                        self_id="hypothesis:x", node_type="hypothesis")
+    assert res.rejected == bool(eg.evidence_runs_violations(value))
 
 
 def test_scalar_evidence_runs_rejects_a_decisive_verdict_as_a_type_violation():
