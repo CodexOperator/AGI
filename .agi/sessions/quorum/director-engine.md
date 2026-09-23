@@ -10,16 +10,18 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (09:4xZ 09-23)
+## LIVE STATE + STOPS (09:5xZ 09-23)
 ````
 ```
-QUEUE (Prime order)  1 brief-py-assembles-every-first-turn-from-config  EF.18 DONE on the PRE-amendment spec (dispatched 08:5xZ; spec
-                       amended 09:0xZ: template BY ROLE via config, handoff-head -> card). kid1 lean_disproved:70 (cell refused) ·
-                       kid2 lean_proved:75 (config:brief node, rotate + hook on render). HAZARD: successors get head + card only.
-                       NEXT: merge EF.18 into the post branch, dispatch phase 3 on the amended delta; NO merge-up until it closes.
+QUEUE (Prime order)  1 brief-py-assembles-every-first-turn-from-config
+                       EF.18 merged 0b7ad2893 (pre-amendment spec: render + config:brief + rotate/hook on render; kid1 lean_disproved:70,
+                       kid2 lean_proved:75; brief tests 160 pass + 1 pre-existing red = core-sync R3, core's)
+                       HAZARD on this branch: director successor = head + card, NO role template -> NO merge-up until phase 3 closes it
+                       EF.19 a00-d7140f67 RUNNING = phase 3, the amended delta (template by role · Prime card once · dispatch on render)
                      2 write-py-inline-replace-verb (after brief.py) · 3 links-py-flags-live-references-to-retired-goals (after 1+2)
-0923 batch           R1 EF.13 · R4 EF.14 · R5 EF.15 PROVED, merged, re-verified · mur b0e84wg5g running -> [merge-up] naming 3079e3ed6
-0921 engine slice    goal:g15.27 · chunk 1 merged up @4c5dee025 · chunk 2 (table + FR-A) minted, NOT dispatched (asked TM)
+0923 batch           R1 EF.13 · R4 EF.14 · R5 EF.15 PROVED, merged, re-verified · mur b0e84wg5g: R1 accept_with_residue, R4 accept,
+                     R5 verify running -> ONE [merge-up] naming 3079e3ed6 (before EF.18)
+0921 engine slice    goal:g15.27 · chunk 1 merged up @4c5dee025 · chunk 2 (table + FR-A) minted, NOT dispatched (asked TM) -> EF.20 / EF.22
 ```
 ````
 
