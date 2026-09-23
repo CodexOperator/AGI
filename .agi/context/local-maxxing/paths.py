@@ -76,16 +76,44 @@ def get(key):
     return val if os.path.isabs(val) else os.path.normpath(os.path.join(root, val))
 
 
+def checkout_root(start=None):
+    """Dir holding the .agi/ that config_path() resolved -- not box.root."""
+    return os.path.dirname(os.path.dirname(config_path(start)))
+
+
+def get_local(key):
+    """Like get(), but relative values anchor at the CHECKOUT THE CONFIG WAS READ FROM.
+
+    get() anchors at box.root, which is a per-box absolute path and can be stale or
+    point at the main checkout while this code runs in a worktree. get_local() keeps
+    get()'s placeholder substitution but resolves repo-relative values against the
+    checkout that owns the .agi/config.json it just read. Absolute values unchanged.
+    """
+    cfg, doc = _config()
+    table = ((doc.get("paths") or {}).get(NAMESPACE)) or {}
+    if key not in table:
+        raise KeyError("paths.%s.%s is not defined in %s" % (NAMESPACE, key, cfg))
+    val = table[key]
+    for name, repl in _placeholders(doc).items():
+        val = val.replace(name, repl)
+    return val if os.path.isabs(val) else os.path.normpath(os.path.join(checkout_root(), val))
+
+
 # alias: some callers read naturally as paths.resolve("k")
 resolve = get
 
 
 def main(argv):
-    if len(argv) != 2:
-        sys.stderr.write("usage: paths.py <key>\n")
+    args = list(argv[1:])
+    fn = get
+    if args and args[0] == "--local":
+        fn = get_local
+        args = args[1:]
+    if len(args) != 1:
+        sys.stderr.write("usage: paths.py [--local] <key>\n")
         return 2
     try:
-        print(get(argv[1]))
+        print(fn(args[0]))
     except KeyError as exc:
         sys.stderr.write("%s\n" % exc)
         return 1
