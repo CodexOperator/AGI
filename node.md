@@ -3,13 +3,13 @@ id: hypothesis:l3w4-liaison-seat
 mint_id: 5bec84402ac04d04aeb33a4d7cf3bc60
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-III
+edited_by: belam
 scaffold_hash: d788664b350959b3
 season: 2
 testable_claim: "brief.py gains a new tier, assemble(tier=\"liaison\"), that carries exactly one constitution head (reusing the director's read_order via _LIAISON_HEAD_TIER), and DUTIES naming the seat the owner's primary contact with a tier3-quorum room channel for relaying quorum questions and a write.py instruction for banking owner decisions, and states plainly that the quorum — not the seat itself — performs its rotation; the ladder's roles: table resolves a new {tier:1, role:liaison} row to model claude-sonnet-5 and effort high via load_role(); and rotate.py spawn --tier liaison --name liaison sources its successor body from that assembled brief (joined segments) rather than the static prime-director prompt file, without double-inserting the constitution head that both assemble() and the old successor_prompt() wrapper would otherwise each prepend."
-thought_session: L3.21
+thought_session: dissolve-legacy-2026-09-19
 title: Spawn the owner-liaison seat
 ---
 <!-- BODY:BEGIN -->
