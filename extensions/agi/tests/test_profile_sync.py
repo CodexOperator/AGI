@@ -137,6 +137,37 @@ def test_a_directory_target_is_refused_by_name(tmp_path):
     assert "IsADirectoryError" not in r.stderr
 
 
+def test_a_refused_profile_ref_writes_nothing_at_all(tmp_path):
+    """Residue A: a refused projection is NOT a partial write.
+
+    Measured pre-fix DH.88: the note landed in the node body while write.py
+    printed an error and exited 2, so a retry double-applied. The effective
+    ref is now validated before `update_node`, so rc=2 means nothing ran.
+    """
+    repo = _repo(tmp_path, ref="../escape.md")
+    node = repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_bytes()
+    r = _cli(["hypothesis:h1", "note a new note"], repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert "outside the repo root" in r.stderr
+    assert "Traceback" not in r.stderr
+    assert node.read_bytes() == before, "a refused ref must leave the node alone"
+    assert not (tmp_path.parent / "escape.md").exists()
+
+
+def test_a_missing_node_is_refused_by_name(tmp_path):
+    """Residue B: a nonexistent node is REFUSED rc=2, never a traceback rc=1."""
+    repo = _repo(tmp_path)
+    r = subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
+                        "hypothesis:nope"], cwd=repo, capture_output=True,
+                       text=True)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "REFUSED" in r.stderr and "hypothesis:nope" in r.stderr
+    assert "Traceback" not in r.stderr
+    assert "FileNotFoundError" not in r.stderr
+
+
 def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
     """Residue 4: the projection does not advance ahead of a failed payload."""
     repo = _repo(tmp_path, payload_ref="payloads/missing.txt")
