@@ -1528,9 +1528,12 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
     the record's CURRENT pid / `restart_count` and persists `agent.json`.
 
     Occupation honesty: `persistent_state` is written `running` at spawn and
-    again on EVERY exit path (`stopped`, `exhausted`, `failed`), and `pid` is
-    cleared there, so a reader can tell a held seat from an ended hold without
-    guessing liveness -- the residue the prior round's probe C falsified.
+    again on EVERY exit path (`stopped`/`released`, `exhausted`, `failed`).
+    The terminal write branches on the child's CURRENT liveness, not on which
+    path was taken: a dead child clears `pid` (the residue probe C falsified),
+    a LIVE child keeps its pid -- the hold may have ended, but the seat is
+    still occupied, so a reader must never be told it is empty. `released` is
+    the clean-stop-with-live-child spelling; `stopped` stays dead-child.
     """
     restarts = 0
     state = "running"
@@ -1557,10 +1560,20 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
     else:
         state = "stopped"  # clean stop: the loop's own condition went false
     record["persistent_state"] = state
-    record["pid"] = None  # the hold has ended; name no live occupant
+    # hypothesis:a00-b9926527-ca115d -- branch on liveness, not on the path
+    # just taken, so a future edit cannot regress this. The hold ending is NOT
+    # the occupant leaving: if the child is still alive it keeps the pid, and
+    # the clean-stop state is renamed `released` so a reader can tell
+    # "hold ended, child alive" from "hold ended, child gone".
+    if proc.poll() is None:
+        record["pid"] = proc.pid
+        if state == "stopped":
+            record["persistent_state"] = "released"
+    else:
+        record["pid"] = None  # dead child: name no occupant
     (session / "agent.json").write_text(json.dumps(record, indent=2))
-    print(f"persistent: {agent_id} hold ended state={state} "
-          f"restarts={restarts}")
+    print(f"persistent: {agent_id} hold ended "
+          f"state={record['persistent_state']} restarts={restarts}")
     return restarts
 
 
