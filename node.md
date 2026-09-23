@@ -7,7 +7,7 @@ parents:
 next_edges: []
 edited_by: a00-da782beb
 line_ceiling: 90
-loop: goal:g17.14.1@s2
+loop: goal:g7.25.1@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "wire", "cmd": "resolve_bin({}) / harness bin / GROK_BOT_BIN env", "expected": "grok-bot then /SENTINEL/grok then /ENV/grok", "observed": "all three held live", "result": "held"}
