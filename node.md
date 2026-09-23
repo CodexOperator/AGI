@@ -3,14 +3,14 @@ id: hypothesis:loop-scoped-iteration-ids-cannot-clobber
 mint_id: a513aaafd8dc4d0da1a3b3df57ce3ab4
 type: hypothesis
 parents:
-  - goal:g7
+  - goal:g4.10
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: c06190f4587c9db7
 scale: engine
 season: 1
 testable_claim: "A fresh driver.sh run cannot overwrite an existing .agi/sessions manifest: iteration ids are loop-scoped (L<loop>.<nn>) end to end -- sessions dir, commit subjects, cli.py/dispatch.py/zoom.py parsing -- the 116+ legacy iter-NNN dirs stay readable, and a test that points the driver at a populated sessions dir goes red when the guard is removed"
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Loop scoped iteration ids cannot clobber
 ---
 # hypothesis:loop-scoped-iteration-ids-cannot-clobber
