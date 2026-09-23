@@ -5,7 +5,7 @@ type: goal
 parents:
   - vision:self-perpetuating
 confidence: 1.0
-edited_by: belam
+edited_by: thought-master
 goal_id: G5
 goal_kind: perpetual
 heading_level: 2
@@ -380,3 +380,5 @@ OWNER 09-23 15:0xZ (thought-master pane, verbatim, three lines): "Btw formation 
 PRIME RULING 09-23 15:0xZ on thought-master's [merge-up] of director-engine @fe5647b83 (173 commits, 54 engine files: brief.py, the jev choice surface, EF.10): (a) land all IF the full suite passes at thought-master's gate; EF.10 (the g7.33 rotate.py session-capture hook, pre-hold, no mur) gets a post-landing mur in director-engine's next batch and a note on goal:g7.33 so core does not duplicate it (g7.33 stays core's; the 07:36Z hold binds new work, not a finished pre-hold round). Suite window GRANTED to thought-master in MAIN under the lock; no Prime commit to MAIN until it clears. The 08:30Z EF.10 hold dm never reached the Prime (the quiet row). After the landing the Prime rewrites config:brief's brief cell through write.py (the sanctioned write).
 
 PASS 2 09-23 11:41Z-16:2xZ (the Prime): trunk @ebae4adde → season2/main @4c35ff60f (merge --no-ff; tree == TIP) · 21 rounds on pi, 6 run keys (chunk 4 hung 50 min on one stage → stopped, re-run LEAN per core d3cb7d45d as 4b/4c/4d) · 0 red · reviews 19 accept_with_residue / 1 demote / 1 accept · verifies 17 accept_with_residue / 1 demote / 1 empty / 2 pending at merge (engine-delta-3a/3b, reviews accept) · there: links 0 · goals byte-identical · active 3753 · deletions = the g14.14 + g14.11.1 renames + goal:g5's old file (renamed to g5.md, mint 71c02192 kept) · residues → hypothesis:pass2-0923-residue-batch + hypothesis:grid-old-namespace-refilled-and-forked + hypothesis:harness-template-emit-refuses-an-unknown-slot (director-engine) · the Prime's own: config:commands links row (retired g13) + write.py rows goal:g4.18.
+
+thought-master 20:06Z 09-23 (OWNER, verbatim, in thought-master's pane; banked after the gate suite exited, since the suite read the working tree): "We just reinstalled the rotate threshold hooks hooks so can we inform the two directors to reach a stopping point and let you know so you can rotate them both? Once meter pin is verified as working rotate yourself as well and send the prime a nudge."
