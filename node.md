@@ -3,9 +3,9 @@ id: hypothesis:l4-chains-for-the-mapped-subgoals
 mint_id: 8f262215f12b438db9442478ba32483c
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.14
 next_edges: []
-edited_by: sanctuary-director
+edited_by: belam
 scaffold_hash: 5c2d6cdcf4beb5ab
 season: 2
 status: pending
@@ -14,7 +14,7 @@ tags:
   - chain
   - g5
 testable_claim: "Under each of the TEN sub-goals listed in this node's body, an `idea` and a `hypothesis` exist, minted with write.py. Each hypothesis's `testable_claim` states, in checkable form, WHAT CHANGES, in WHICH file or node, and HOW IT IS PROVED -- it is the assignment its named L4 round will be dispatched at, so it must read as an instruction a later agent can execute without opening the plan. Every `parents` edge resolves (`links.py links` reports broken_links: 0). NO build node is minted -- goal:s29's shapes belong to the rounds that build, not to this one. No node is deleted and no goal id is renumbered. HARD CEILING: 3 kids. A kid writes NODES ONLY; the point director reviews claim quality and demotes or rejects, never deletes."
-thought_session: sanctuary-director-genVI-L4
+thought_session: dissolve-legacy-2026-09-19
 title: Ten L4 sub-goals have no idea/hypothesis chain, so the rounds that will act on them have nothing to be dispatched at
 ---
 <!-- BODY:BEGIN -->
@@ -27,14 +27,14 @@ Round L4.20 put every owner brief point into the graph as a sub-goal. Ten of tho
 | sub-goal | brief point | the round that will act on it | what its hypothesis must make checkable |
 |---|---|---|---|
 | `goal:g5.3` | B1 every top-level `gN` is perpetual | **L4.07** | twelve `gN` flip to `goal_kind: perpetual`; `goal:g11` does NOT; node count unchanged; `snapshot-goals.py --render --check` round-trips. Note `perpetual` is carried STRUCTURALLY by GOALS.md's `## Perpetual` section, so the flip MOVES twelve goals in the rendered document |
-| `goal:g17.3` | B3 she owns seats, models, how many active | **L4.13** | who may write `config:seats` and the model/count fields, and what refuses when anyone else does |
-| `goal:g17.5` | B5 the duty matrix | **L4.03, L4.04, L4.08** | `brief.py` renders the card and it REPLACES the tier's prose job description, identical under `full` and `survival`, per-role tokens go DOWN; `hierarchy.py --check` refuses more than the matrix allows and WARNS (never refuses) on fewer |
-| `goal:g17.6` | B6 each role's ONE question | **L4.08** | all twelve existing seats carry a valid card whose question is present and singular; `hierarchy --check` clean; NO new seat added |
-| `goal:g17.7` | B7 the `seat` node type | **L4.13** | `[seat].md` declares the type; twelve EXISTING rows mint as `seat` nodes under `parents: [goal:g17]`, cells verbatim; `config:seats` still resolves and still serves `send.py`; `active_node_count` grows by exactly 12; `seat` added to `CANONICAL_NODE_TYPES` |
-| `goal:g17.8` | B8 messaging restrictions | **L4.14** | `send.py` resolves targets through the seat nodes and refuses one outside the sender's `tells`, while the inbox-only prime and the closed `quorum` room refuse exactly what they refuse today |
-| `goal:g17.9` | B9 channels A/B, no director->Prime edge | **L4.21** | `send.py` gains `audience keep` and `audience council`; any director->prime message is refused; existing refusals stand |
-| `goal:g17.10` | B10 one voice per chamber, the DM room | **L4.21** | an inter-chamber DM room accepts exactly ONE response per chamber act; Council->Keep propagation happens |
-| `goal:g17.12` | B12 the Masters own their workflows | **L4.22, L4.27** | each `* Master` dispatches its own workflows through the one router; and the five unstaffed seats get tracks/tells/question/writes as **SPEC ONLY** -- not one is created, launched or given a row |
+| `goal:g7.18` | B3 she owns seats, models, how many active | **L4.13** | who may write `config:seats` and the model/count fields, and what refuses when anyone else does |
+| `goal:g7.19` | B5 the duty matrix | **L4.03, L4.04, L4.08** | `brief.py` renders the card and it REPLACES the tier's prose job description, identical under `full` and `survival`, per-role tokens go DOWN; `hierarchy.py --check` refuses more than the matrix allows and WARNS (never refuses) on fewer |
+| `goal:g7.19.1` | B6 each role's ONE question | **L4.08** | all twelve existing seats carry a valid card whose question is present and singular; `hierarchy --check` clean; NO new seat added |
+| `goal:g7.20` | B7 the `seat` node type | **L4.13** | `[seat].md` declares the type; twelve EXISTING rows mint as `seat` nodes under `parents: [goal:g17]`, cells verbatim; `config:seats` still resolves and still serves `send.py`; `active_node_count` grows by exactly 12; `seat` added to `CANONICAL_NODE_TYPES` |
+| `goal:g7.21` | B8 messaging restrictions | **L4.14** | `send.py` resolves targets through the seat nodes and refuses one outside the sender's `tells`, while the inbox-only prime and the closed `quorum` room refuse exactly what they refuse today |
+| `goal:g7.21.1` | B9 channels A/B, no director->Prime edge | **L4.21** | `send.py` gains `audience keep` and `audience council`; any director->prime message is refused; existing refusals stand |
+| `goal:g7.21.1.1` | B10 one voice per chamber, the DM room | **L4.21** | an inter-chamber DM room accepts exactly ONE response per chamber act; Council->Keep propagation happens |
+| `goal:g7.23` | B12 the Masters own their workflows | **L4.22, L4.27** | each `* Master` dispatches its own workflows through the one router; and the five unstaffed seats get tracks/tells/question/writes as **SPEC ONLY** -- not one is created, launched or given a row |
 | `goal:g5.4` | B21 season review and rollover | **L4.18, L4.19** | one `bigger_outcome` per perpetual goal and one `overview` per lens vision; `rollover` keeps refusing while any season-current overview is unjudged; the verdict is recorded via `season.py judge` and `explain` stamps NOTHING |
 
 ## Rules — these are the graph's, not mine
