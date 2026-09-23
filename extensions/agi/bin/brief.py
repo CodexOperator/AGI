@@ -2265,7 +2265,7 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
 # hypothesis:brief-py-assembles-every-first-turn-from-config. The parts list
 # per role (plus what the harness adds) is the SINGLE source: adding or
 # removing a part is one config line, never a code change. Writes NO file.
-BRIEF_PARTS = ("head", "card", "harness", "trajectory", "extras")
+BRIEF_PARTS = ("head", "template", "card", "harness", "trajectory", "extras")
 _TEMPLATE_RE = re.compile(r"\{\{template:([^}#\s]+)(?:#([A-Za-z0-9_-]+))?\}\}")
 class RenderError(BriefError):
     """A render cannot be assembled -- a bad part, a missing card or node."""
@@ -2316,18 +2316,46 @@ def _expand(text: str, root: Path) -> str:
     return _TEMPLATE_RE.sub(lambda m: _node_text(root, m.group(1) + (f"#{m.group(2)}" if m.group(2) else "")), text)
 
 
+def _template_text(root: Path, ref: str) -> str:
+    """A ROLE template by node ref: a build node's PAYLOAD file, else its body.
+    A missing node still refuses BY NAME through `_node_text`."""
+    from node_writer import find_node_file
+    path = find_node_file(root, ref.partition("#")[0])
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) if path else None
+    if fm and fm.get("payload_ref"):
+        pay = Path(str(fm["payload_ref"]))
+        pay = pay if pay.is_absolute() else root.parent / pay
+        if not pay.is_file():
+            raise RenderError(f"brief template payload not found: {fm['payload_ref']}")
+        return pay.read_text(encoding="utf-8").strip()
+    return _node_text(root, ref)
+
+
 def _part(name: str, root: Path, role: str, post: str | None, harness: str | None) -> str:
     """One part, resolved from the graph/config; a missing piece refuses."""
     if name == "head":
         prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
         return _node_text(root, "doc:unified-head#HEAD").replace("{{PRAYERS}}", _insert_michael(prayers))
+    if name == "template":
+        # The ROLE template is CONFIG: the post row's `template` cell beats the
+        # formation default for its role (amendment, owner 08:5xZ). NEVER a
+        # `{{template:}}` line in the card -- the card is data only.
+        ref = None
+        if post:
+            import geometry_config
+            row = next((r for r in geometry_config.load_rows(root)
+                        if r.get("name") == post), None)
+            ref = (row or {}).get("template")
+        if not ref:
+            ref = (_brief_cell(root).get("templates") or {}).get(role)
+        return _template_text(root, str(ref)) if ref else ""
     if name == "card":
         card = root / "sessions" / "quorum" / f"{post}.md" if post else None
         if card is None:
             return ""
         if not card.is_file():
             raise RenderError(f"card not found: {card}")
-        return _expand(card.read_text(encoding="utf-8").strip(), root)
+        return card.read_text(encoding="utf-8").strip()
     if name == "harness":
         rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
         if not rel:

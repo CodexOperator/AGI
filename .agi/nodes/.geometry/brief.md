@@ -11,7 +11,8 @@ season: 2
 title: "config:brief — the ONE brief cell: parts per role + harness, the harness block per harness, the trajectory town"
 town: local-maxxing
 brief:
-  parts: {"kid": ["head", "card", "extras"], "parent": ["head", "card", "extras"], "director": ["head", "card"], "prime_director": ["head", "card", "trajectory"], "master": ["head", "card", "trajectory"]}
+  parts: {"kid": ["head", "card", "extras"], "parent": ["head", "card", "extras"], "director": ["head", "template", "card"], "prime_director": ["head", "template", "card", "trajectory"], "master": ["head", "template", "card", "trajectory"]}
+  templates: {"director": "doc:unified-director-brief", "master": "doc:unified-director-brief", "prime_director": "build:briefs-prime-director-successor"}
   harnesses: {"claude-code": ["harness"]}
   harness_blocks: {"claude-code": "CLAUDE.md"}
   trajectory: {"town": "local-maxxing"}
@@ -32,4 +33,10 @@ branch cannot render. A config node the round names in `--owns` is committed.
 `head` is the HEAD region of `doc:unified-head` (the same bytes for every role);
 `card` is `.agi/sessions/quorum/<post>.md`; `harness` is the block named in
 `harness_blocks`; `trajectory` is `town:<town>`; `extras` names further node
-refs. The sort order is the list order, joined with a blank line.
+refs. `template` is the ROLE brief, chosen by CONFIG: the `template` cell on a
+`config:posts` row beats the `templates` default for the role (a build node's
+`payload_ref` file, else the node body). The sort order is the list order,
+joined with a blank line.
+
+`{{template:}}` expansion is DATA-ONLY (`extras`); a card never carries one --
+the role template comes from the config cell/row, never from a line in the card.
