@@ -1,13 +1,13 @@
 ---
-id: goal:g9.11
+id: goal:g2.23
 mint_id: 2d79add06cab4a1a8f381d67755ca3b9
 type: goal
 parents:
-  - goal:g9
+  - goal:g2
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G9.11
+edited_by: belam
+goal_id: G2.23
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,8 +19,8 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G9.11: The role diagram, LLM-first"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.23: The role diagram, LLM-first"
 ---
 <!-- BODY:BEGIN -->
 **The role diagram, rendered LLM-first.** Brief point **B22** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
