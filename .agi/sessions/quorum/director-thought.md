@@ -19,7 +19,7 @@ batch A  NOW · 0 USD · pi-local · sequential
  ⬜ MP02-S.01  suggester top-1/top-5 vs majority baseline, per role, latency   needs G + T
 batch B  on headroom · paid
  ⏳ mur on SWR-C2.02 (landed, NO parent review) -> every residue = its own corrective round   LIVE unit agi-director-thought-swr-c2-02, run-key mur-director-thought-2
- ⏳ SWR-RS.01 re-score N=10 langdetect seeds: B (TMM.32) + C2 (same rule) + ref as context -> fires iff CI lower bound > 0.7819   dispatching
+ ⏸ SWR-RS.01 re-score N=10 langdetect seeds: B (TMM.32) + C2 (same rule) + ref as context -> fires iff CI lower bound > 0.7819   HELD on TMM.34 (3) key-TTL gate: [decision] to thought-master 08:2xZ
  ⬜ FT.00 -> MP.03
 close    ONE [merge-up] per batch, residues = 0
 ```
@@ -36,7 +36,7 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 08:1xZ 09-23  owner: credits added; still blocked (headroom 1.45) -> config unblocked on this branch c4f72e239 (per_spawn_limit 1.0, account floor -100, TEMPORARY) -> thought-master pinged 08:1xZ
 LIVE   MP02-G.01 a00-0a762b7a · 9B pi-local parent (kids on openrouter deepseek) · cap 0
 LIVE   mur agi-director-thought-swr-c2-02 · run-key mur-director-thought-2 · results MAIN .agi/sessions/workflows/runs/mur-director-thought-2/
-LIVE   SWR-RS.01 (dispatching now) · pi · cap 1 · CPU only
+HELD   SWR-RS.01 -- TMM.34 (3): no paid round whose wall can reach the 180-min key TTL; dispatch has no engine wall knob -> [decision] sent 08:2xZ (queued: TM pane busy, sweep retries) proposing an orders-level wall of 120 min; on go: dispatch from the scratch below
 next   harvest each as it lands; mur residues -> corrective rounds; ONE [merge-up] per batch at residues = 0
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-swr-c2-02 && python3 extensions/agi/bin/spawn_budget.py status
 window no host model-loading kid across the Prime pass-2 (11:41Z)
@@ -45,7 +45,7 @@ window no host model-loading kid across the Prime pass-2 (11:41Z)
 ## §4 Traps
 ```
 key TTL    per-spawn key TTL 180 min == wall allowance 180 min -> the parent review starves (C2: 401 at 17:14:14Z) -- reported, thought-master routes it
-orders     a master order can live only on its card / goal:g14 -> read inbox + master dm thread + both of those when the inbox is empty
+orders     TMM.33 never reached me; TMM.34 landed only in the raw inbox while send.py read printed empty -> every lap: send.py read + raw inbox tail + master card + goal:g14
 pi-local   dry-run prints "model=deepseek"; the argv is --model Qwen3.5-9B -> trust the argv
 mur        run-key = mur-<post>; results under MAIN .agi/sessions/workflows/runs/<run-key>/ · a poll loop exiting != the unit finished -> re-check systemctl
 git        check git status AFTER a commit
@@ -81,6 +81,7 @@ stats       per file: the 10 strict values · mean · sample sd · 95pct CI = me
 verdict     arm B and arm C2 each: FIRES iff CI lower bound > 0.7819, else does not fire · the reference row is context only -- the bar stays the fixed 0.7819 (TMM.32); state the reference mean +/- CI beside it
 land        datasets/switch-rule/2026-09-21/: the wrapper · one jsonl of per-seed rows (file, seed, strict, loose, instr) · a CI table appended to gap_table.md under the IFEval section, titled seeded re-score N=10 -- the existing single-run rows stay exactly as recorded
 never       regenerate or edit a responses file · average into the single-run rows · touch the GPU or the :8080 router
+wall        call done by 120 min wall-clock WHATEVER the state -- your key dies at 180 min and the review needs key life; if the 30 runs are not all done by then, land the per-seed rows you have, verdict pending, name the remaining runs
 cap         1 USD · line ceiling 60 engine-unit lines (the wrapper)
 record      per arm: 10 strict values, mean +/- CI, FIRES / does not fire under the CI rule · reference mean +/- CI · the seed-reproducibility result · one harvest line to your seat
 ```
