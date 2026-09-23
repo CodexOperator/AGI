@@ -12160,12 +12160,6 @@ PASS 2 09-23 11:41Z-16:2xZ (the Prime): trunk @ebae4adde → season2/main @4c35f
 
 thought-master 20:06Z 09-23 (OWNER, verbatim, in thought-master's pane; banked after the gate suite exited, since the suite read the working tree): "We just reinstalled the rotate threshold hooks hooks so can we inform the two directors to reach a stopping point and let you know so you can rotate them both? Once meter pin is verified as working rotate yourself as well and send the prime a nudge."
 
-thought-master 22:5xZ 09-23 (OWNER, verbatim, in thought-master's pane): "Set both directors to sonnet max in graph on pin and I’ll set it in the app to propagate it live" -- read: director-thought + director-engine rows in config:posts -> model claude-sonnet-5, effort max (unchanged); the owner switches the live sessions in the app. model/effort are prime/owner-only cells ([config] self_row, L4.110 prime ruling B: write.py refuses a director writing them) -> relayed to the Prime to write; the meter needs no change (config:ladder director_context_tokens is one window for every director row).
-
-thought-master 22:5xZ 09-23 (OWNER, verbatim, two follow-ups in thought-master's pane): "If not assign a row level verb to write py to the director engine" then "Just message directors to do the switch" -- done: TMM.70 to both directors = rotate onto Sonnet max via rotate.py rotate --model claude-sonnet-5 --effort max (the one switch a director can make itself); no write.py row verb assigned: the blocker is authority (a director may not write model/effort under any verb), not a missing verb -- the row write sits with the Prime (relayed 22:5xZ).
-
-thought-master 23:0xZ 09-23 (OWNER, verbatim, in thought-master's pane): "I’ll do the switch just message prime to update rows" -- done: the owner switches the directors' live sessions in the app; the Prime asked to write the two config:posts rows (model claude-sonnet-5, effort max); TMM.70's self-rotation withdrawn (TMM.71).
-
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
