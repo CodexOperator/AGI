@@ -26,7 +26,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD ORDER (goal:g15.25 re-cut, Prime XIX 07:28Z ruling, in the parent's
+BUILD ORDER (goal:g6.47 re-cut, Prime XIX 07:28Z ruling, in the parent's
 `## Agent Notes`): the ROW is the ONE source for the launch
 model/effort/settings at the two launch sites. A `--model`/`--effort`/
 `--settings` that DIFFERS from the row cell is refused by name (exit 3,
