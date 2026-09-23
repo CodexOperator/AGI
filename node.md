@@ -2,10 +2,12 @@
 id: goal:g7
 mint_id: d020b2d79cb545edb5c23fb2d63c7d54
 type: goal
+parents:
+  - vision:self-perpetuating
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7
-goal_kind: long-term
+goal_kind: perpetual
 heading_level: 2
 origin: goals-doc
 season: 1
@@ -27,8 +29,8 @@ status: active
 tags:
   - goal
   - root
-thought_session: season
-title: "G7: Nothing the loop produces is ever silently lost"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7: Sanctuary"
 ---
 The graph is what makes it safe to stop mid-sprint, which only holds if stopping
 cannot lose work and no artefact can quietly disappear or quietly lie.
@@ -52,3 +54,10 @@ Owns: **L9**'s unpinned-clone gap (record the expected engine commit in config;
 warn, never fail, on drift — it closes the whole staleness class), **H1**/**H2**
 (state into the DB), **L16** (close the config-name compatibility window only
 once pinning exists — it is load-bearing until then).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Folded umbrella from goal:g26 onto goal:g7 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Perpetual umbrella for Sanctuary. Absorbs prior art from old G17. Folded from goal:g26 onto goal:g7 in place 2026-09-19. Status active.
