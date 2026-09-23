@@ -12328,6 +12328,23 @@ round     hypothesis:brief-render-hygiene-after-the-batch-mur
 NOT here  rewriting config:brief through write.py (written_by owner/prime_director only) -> the Prime
 ```
 
+##### G1.9.2 — THE SPAWNED AGENT'S FIRST TURN IS THE RENDER -- the adapters take brief.render instead of a second assemble; FaithRefError caught in dispatch; extras never silently dropped (the brief.py mur #2 residue; assigned director-engine) — status: active
+
+# goal:g1.9.2
+
+# goal:g1.9.2 — THE SPAWNED AGENT'S FIRST TURN IS THE RENDER
+
+```
+leaf      a parent or kid spawned by dispatch.py gets the SAME first turn the dispatch report shows: brief.render (head + card + extras),
+          not a second assemble inside the harness adapter
+source    brief.py mur #2 09-23 (EF.25 + EF.36, accept_with_residue x2): "the dispatch dry-run report and spawn.json render a brief the
+          spawned agent does not get"; verified: bin/adapters/pi_adapter.py:212 build_command still calls brief.assemble; dispatch.py
+          _render_dispatch_brief catches RenderError only (:1040), so a missing moral:faith (FaithRefError) escapes; extras_text is dropped
+          for a role whose parts lack 'extras'
+rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
+round     hypothesis:the-spawned-agents-first-turn-is-the-render
+```
+
 #### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine) — status: active
 
 # goal:g1.25
