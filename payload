@@ -47,9 +47,8 @@ from pathlib import Path
 #: bin script that reads the graph puts it on the path (rotate.py:66).
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-import cli  # noqa: E402 -- wait exit codes are cli's to name (goal:g15.29.19)
-import evidence_gate  # noqa: E402
-import spawn_budget  # noqa: E402
+import evidence_gate
+import spawn_budget
 
 from frontmatter import read_frontmatter, split_frontmatter
 
@@ -1430,12 +1429,9 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         f"Record the measured count in your experiment node's frontmatter "
         f"before you continue: `write.py <node-id> 'set production_lines N'` "
         f"-- the whole verb line is ONE quoted argument. NEVER write "
-        f"`line_ceiling` on your own node: the number above is "
-        f"the dispatching node's, and dispatch stamps it on your scaffold "
-        f"ONLY when that node declares its ceiling ACROSS more than one kid "
-        f"(`spawn_budget.node_line_ceiling`, K > 1); when K is 1 the field is "
-        f"ABSENT and the number above is the resolved clause or the config "
-        f"default. Only your parent's answered re-brief may change it -- a kid "
+        f"`line_ceiling` on your own node: the number above is the "
+        f"dispatching node's, already stamped on your scaffold by dispatch, "
+        f"and only your parent's answered re-brief may change it -- a kid "
         f"that sets it overwrites the parent's hand-set ceiling with the "
         f"number it was briefed with (goal:g15.27.5 FR-C2). If you are above "
         f"2x, also write "
@@ -1933,13 +1929,7 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   FOREGROUND:\n"
         f"     python3 {cli_py} wait {iter_n}\n"
         f"   NEVER end your turn to wait for a background notification -- in\n"
-        f"   headless -p a turn-end IS process exit. wait's exit codes each\n"
-        f"   name a different fix: {cli._WAIT_TIMEOUT} = timeout with a kid\n"
-        f"   still running -- call it again; {cli._WAIT_NO_AGENT} = --agent\n"
-        f"   names no manifest row -- you named the wrong agent, so re-read the\n"
-        f"   manifest; {cli._WAIT_NO_KID_ROWS} = zero tier:kid rows -- NO kid\n"
-        f"   was spawned (most often the spawn was refused as `unadmitted`) --\n"
-        f"   check the spawn and re-dispatch, never end your turn.\n"
+        f"   headless -p a turn-end IS process exit; when wait returns 2, call it again.\n"
         f"   A kid that missed its manifest deadline while its pid is STILL\n"
         f"   alive is OVERDUE: its record keeps `status: running` and gains\n"
         f"   `overdue_since` + `overdue_reason` (heal.py), plus ONE dm whose\n"
