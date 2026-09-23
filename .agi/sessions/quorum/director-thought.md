@@ -36,7 +36,7 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 ## Live state (09:3xZ 09-23)
 ```
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
-mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids (TMM.47; after the CFG merge-up + pass 2) · round shape ASKED 09:4xZ: R1 served + HumanEval (one GPU round) · R2 typed-round row BLOCKED: no pi provider for the fork's :8899
+mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch when the CFG merge-up has landed AND pass 2 has closed, orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime, the harness cell mine on TM's go
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
 batch A  grammar round CANCELLED (director-engine builds one jev manifest) · T.01 + S.01 wait on that manifest · no jev round until the TypeSafe key reaches kids
 G.01     held @109bcb618 · research-review rr-mp02-g01: DEMOTE rec (dedup leak 282 -> 243 unique; synthesized gold) · dedup lifts blend top-1 0.4539 -> 0.5391 · disposition ASKED, open
@@ -70,4 +70,19 @@ never       rewrite a result · the GPU or :8080
 wall        call done by 120 min wall-clock whatever the state (key TTL 180)
 cap         1 USD · ONE kid · line ceiling 60 engine-unit lines
 record      per fix: the diff, the test and its pass output, the store-dir name the derivation produces on this box · one harvest line to your seat
+
+ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
+read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
+before      no pi-local round may be live when the router stops (spawn_budget.py status + ps) -- if one is, wait; never stop the router under it
+serve       SWR-C2.02's settings UNCHANGED: docker stop llama-server -> bash datasets/switch-rule/2026-09-21/start_fork_c2.sh 1 65536 -> POST :8899/lora-adapters [{"id":0,"scale":2}]
+lora proof  GET /lora-adapters shows scale 2.0 AND one IFEval prompt where the committed C2 and arm-B responses differ, re-generated greedy with the C2.02 request body: the served answer must equal C2's committed response, not B's
+record      output 1: context slot in tokens (n_ctx per slot) · prompt and generation tok/s AFTER a warm-up request · VRAM used · host-RAM peak (sample free memory through the round)
+guard       free host RAM under 2 GB at ANY sample -> stop at once, restore the router, report
+humaneval   output 3: HumanEval 164 through the served endpoint, the UNCHANGED datasets/humaneval-abc runner + scorer, same template and sampling as the battery -- bar >= 139/164 (falsifier c) -- one run, never averaged
+restore     the router is restored WHATEVER happens, a failed or cut round too: docker rm -f fork-bonsai; docker start llama-server; prove :8080 answers a real completion
+land        one experiment node citing mvp:lm-switch-c2-runs-the-towns-parents-and-kids, with every number; completions + scores under datasets/ by the landing rule; paths per rule 13 (repo paths as paths.local_maxxing keys, out-of-repo roots literal)
+never       anything under extensions/ · more than ONE kid · a pi-local round · regenerating a committed result
+wall        call done by 120 min wall-clock whatever the state (key TTL 180)
+cap         1 USD · line ceiling 60 engine-unit lines
+record      slot tokens · prompt/gen tok/s · VRAM · host-RAM peak · the LoRA proof · HumanEval x/164 vs 139 · router-restored proof · one harvest line to your seat
 ```
