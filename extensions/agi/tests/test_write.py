@@ -208,7 +208,10 @@ def test_every_verb_is_nameable_from_a_command_line():
     """A keystroke an agent cannot spell is a verb that exists only for
     humans."""
     for name in write.VERBS:
-        assert name.isidentifier() or "-" in name
+        # `sub!` is command-line-spellable: the bang is part of the verb name
+        # (hypothesis:write-py-inline-replace-verb), so strip it before the
+        # identifier check.
+        assert name.rstrip("!").isidentifier() or "-" in name
         assert name == name.lower()
 
 

@@ -51,6 +51,7 @@ delivered the convenience and none of the reason.
 """
 from __future__ import annotations
 
+import difflib
 import os
 import re
 import sys
@@ -151,6 +152,19 @@ class Edit:
     # the source argument (`replace body 4:9 --force -`), so the positional
     # range/source grammar is unchanged; an API caller sets the field.
     replace_force: bool = False
+    # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!`: the FIRST
+    # ` => ` splits `<old>` from `<new>`; plain `sub` demands exactly ONE
+    # literal match, `sub!` replaces every one. `sub_target` is `payload` or
+    # `""` (node frontmatter + body). `_resolve_sub` resolves it ONCE into the
+    # ordinary `set_fm` / body / `payload_bytes` paths, so no gate is skipped.
+    sub_old: str = ""
+    sub_new: str = ""
+    sub_all: bool = False
+    sub_target: str = ""
+    sub_body: str = ""
+    sub_diff: str = ""
+    sub_count: int = 0
+    sub_resolved: bool = False
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -173,7 +187,7 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target)
+                    or self.replace_target or self.sub_old)
 
 
 # --------------------------------------------------------------------------
@@ -439,6 +453,26 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     return edit
 
 
+def verb_sub(edit: Edit, spec: str) -> Edit:
+    """`sub <old> => <new>` -- one literal occurrence."""
+    text = spec.strip()
+    if text.startswith("payload "):
+        edit.sub_target, text = "payload", text[8:].strip()
+    if " => " not in text:
+        raise EditError(f"sub needs `sub <old> => <new>`, got {spec!r}")
+    edit.sub_old, edit.sub_new = text.split(" => ", 1)
+    if not edit.sub_old:
+        raise EditError("sub `<old>` is empty -- nothing written")
+    return edit
+
+
+def verb_sub_bang(edit: Edit, spec: str) -> Edit:
+    """`sub!` -- every occurrence, count printed."""
+    verb_sub(edit, spec)
+    edit.sub_all = True
+    return edit
+
+
 def _parse_range(rng: str) -> tuple[int | None, int | None]:
     """`10:20` -> (10, 20); `10:` -> (10, None); `:20` -> (None, 20).
 
@@ -489,6 +523,8 @@ def verb_payload(edit: Edit, source: str) -> Edit:
 
 VERBS = {
     "set": verb_set,
+    "sub": verb_sub,
+    "sub!": verb_sub_bang,
     "unset": verb_unset,
     "link": verb_link,
     "thought": verb_thought,
@@ -512,6 +548,7 @@ VERBS = {
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
+         "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "adopt": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
@@ -536,6 +573,8 @@ _VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
 #: teaches would be refused.
 VERB_EXAMPLES = {
     "set": "set key value",
+    "sub": "sub old => new",
+    "sub!": "sub! old => new",
     "unset": "unset frontmatter_key",
     "link": "link self",
     "thought": "thought why this version differs",
@@ -1413,6 +1452,7 @@ def _preview_dry_run_gate(root, edit, args):
             allow_self_row=True,
             has_body=bool(edit.body_append or edit.thought
                           or edit.body_patch_diff
+                          or edit.sub_body
                           or edit.replace_target == "body"),
             signatures=args.ring_sigs,
             out_decision=_prev,
@@ -1927,6 +1967,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the range while reporting success. Idempotent: main has already resolved
     # it for its --dry-run preview, and this must not read stdin a second time.
     _resolve_replace_text(edit)
+    # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!` resolve into
+    # `set_fm` / `sub_body` / `payload_bytes` BEFORE the gate below, so the
+    # changed frontmatter fields are exactly what the ring/schema gates see.
+    _resolve_sub(root, edit)
 
     _ring_out: dict = {}
     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
@@ -1935,6 +1979,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                         allow_self_row=True,
                         has_body=bool(edit.body_append or edit.thought
                                       or edit.body_patch_diff
+                                      or edit.sub_body
                                       or edit.replace_target == "body"),
                         signatures=getattr(edit, "signatures", []),
                         out_decision=_ring_out,
@@ -1954,6 +1999,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     body = None
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
+    elif edit.sub_body:
+        # sub touched the body with no note/thought riding along.
+        body = edit.sub_body
     # hypothesis:l3-partial-write-adoption — the PATH form must read its diff
     # BEFORE the apply-check below, or body_patch_diff is still empty at apply
     # time and the diff is silently discarded (measured 2026-09-09: `body_patch
@@ -1969,10 +2017,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # through `update_node` below, so the THOUGHT region is carried across
         # and write_guard sees a sanctioned write. Exclusive with note/thought:
         # one body writer per submit keeps a single writer author of the body.
-        if edit.body_append or edit.thought:
+        if edit.body_append or edit.thought or edit.sub_body:
             raise EditError(
-                "body_patch is standalone; it cannot share a line with note "
-                "or thought (one body writer per submit)")
+                "body_patch is standalone; it cannot share a line with note, "
+                "thought or sub (one body writer per submit)")
         body = apply_unified_diff(_read_body_text(root, edit.node_id),
                                   edit.body_patch_diff)
 
@@ -2007,7 +2055,8 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # is written, so a bad range leaves the node and the payload untouched.
     if edit.replace_target:
         if edit.replace_target == "body" and (edit.body_append or edit.thought
-                                              or edit.body_patch_diff):
+                                              or edit.body_patch_diff
+                                              or edit.sub_body):
             raise EditError(
                 "replace body is standalone; it cannot share a line with "
                 "note, thought or body_patch (one body writer per submit)")
@@ -2135,6 +2184,50 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     if new_lines and new_lines[-1] == "":
         new_lines.pop()
     return "\n".join(lines[:start] + new_lines + lines[end:])
+
+
+def _resolve_sub(root, edit: Edit) -> None:
+    """Resolve `sub`/`sub!` into set_fm/body/payload_bytes; 0 or 2+ refuse."""
+    if not edit.sub_old or edit.sub_resolved:
+        return
+    if edit.sub_target == "payload":
+        ref, loc = _payload_ref(root, edit)
+        before, label = _read_payload_bytes(root, ref, loc), ref
+    else:
+        path = node_writer.find_node_file(root, edit.node_id)
+        if path is None:
+            raise EditError(f"no node file for {edit.node_id}")
+        before, label = path.read_text(encoding="utf-8"), edit.node_id
+    n = before.count(edit.sub_old)
+    if n == 0:
+        raise EditError(f"sub: 0 occurrences of {edit.sub_old!r} in "
+                        f"{label} -- nothing written")
+    if not edit.sub_all and n != 1:
+        raise EditError(f"sub: {n} occurrences of {edit.sub_old!r} in "
+                        f"{label}; use sub! -- nothing written")
+    after = before.replace(edit.sub_old, edit.sub_new,
+                           -1 if edit.sub_all else 1)
+    if edit.sub_target == "payload":
+        edit.payload_bytes = after
+    else:
+        old_fm = frontmatter.read_frontmatter(before)
+        new_fm = frontmatter.read_frontmatter(after)
+        if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
+            raise EditError(f"sub would break frontmatter in {label} -- "
+                            f"nothing written")
+        if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
+            raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
+                            "-- nothing written")
+        edit.set_fm.update({k: v for k, v in new_fm.items()
+                            if k not in PROTECTED and old_fm.get(k) != v})
+        ob = frontmatter.split_frontmatter(before)[1]
+        nb = frontmatter.split_frontmatter(after)[1]
+        if nb != ob:
+            edit.sub_body = nb
+    edit.sub_count, edit.sub_resolved = n, True
+    edit.sub_diff = "".join(difflib.unified_diff(
+        before.splitlines(True), after.splitlines(True),
+        fromfile=f"a/{label}", tofile=f"b/{label}"))
 
 
 # --------------------------------------------------------------------------
@@ -2488,6 +2581,11 @@ def _compose_body(root, edit: Edit) -> str:
     if path is None:
         raise EditError(f"no node file for {edit.node_id}")
     body = fm_reader.load_node_file(path).body
+    if edit.sub_body:
+        # hypothesis:write-py-inline-replace-verb -- a `sub` that touched the
+        # body is the base note/thought compose onto, so `sub a => b && note
+        # why` is one body write, not two.
+        body = edit.sub_body
 
     if edit.body_append and edit.body_append.strip() not in body:
         # Append UNDER an existing heading rather than adding a second one.
@@ -2775,6 +2873,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
 
+    # hypothesis:write-py-inline-replace-verb -- resolve `sub`/`sub!` once,
+    # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
+    # refusal prints ERR and writes nothing. submit() re-resolves idempotently
+    # for an API caller.
+    if edit.sub_old:
+        try:
+            _resolve_sub(root, edit)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+
     # hypothesis:l4-...-the-write-itself, SIGNER'S VIEW (kid D): `--ring-fields`
     # prints the EXACT config-write decision bytes a `ring:`-declaring schema's
     # gate will verify for this edit (+ `--ring-fresh`), then exits 0 -- never
@@ -2922,6 +3031,12 @@ def main(argv: list[str] | None = None) -> int:
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
+        if edit.sub_resolved:
+            sys.stdout.write(edit.sub_diff)
+            if edit.sub_diff and not edit.sub_diff.endswith("\n"):
+                sys.stdout.write("\n")
+            print(f"  sub     {edit.sub_count} match(es) of "
+                  f"{edit.sub_old!r} -> {edit.sub_new!r}")
         return _preview_dry_run_gate(root, edit, args)
 
     if edit.payload_from == "-":
@@ -2953,6 +3068,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(f"{res.status}: {edit.node_id}"
           + (f" — {res.reason}" if res.reason else ""))
+    if res.status != node_writer.REJECTED and edit.sub_resolved:
+        print(f"sub: replaced {edit.sub_count} occurrence(s)")
     if res.status != node_writer.REJECTED:
         # The seat's OWN last act (conjunct 1): --actor first, then the env.
         last_act.touch_env(root, args.actor)
