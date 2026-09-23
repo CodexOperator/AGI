@@ -171,6 +171,21 @@ def is_node_id_shaped(value) -> bool:
     return isinstance(value, str) and bool(NODE_ID_RE.match(value.strip()))
 
 
+def is_scalar_count(value) -> bool:
+    """True for bool / int / numeric string — the goal:g7.3
+    unverifiable-attestation path, NOT a taxonomy violation.
+
+    A count is an honest (if uncheckable) self-attestation: it is visible to
+    `metrics.py` but never certifies a verdict, so `apply_gate` demotes on
+    it. It is *not* malformed text, so `evidence_runs_violations` must not
+    name it — one shared definition, so the two functions cannot disagree
+    (MUR mur-g7-31-4-dt-91).
+    """
+    return isinstance(value, (bool, int)) or (
+        isinstance(value, str) and value.strip().isdigit()
+    )
+
+
 def evidence_runs_violations(value) -> list:
     """Entries in an `evidence_runs` list that are not node-id-shaped.
 
@@ -180,14 +195,20 @@ def evidence_runs_violations(value) -> list:
     an id-*shaped* entry that simply doesn't exist in the corpus is not a
     violation, it just doesn't count (see `normalize_evidence_runs`).
 
-    A **present, non-list** value is itself the violation: the schema
-    declares `evidence_runs` a list, so `evidence_runs: experiment:x` (a
-    scalar string) is a type error, not an entry to check. It used to slip
-    through as `[]` and merely resolve to zero (MUR mur-g7-31-4-dt-85),
-    which named it "no evidence" instead of naming it malformed. `None` is
-    absent, not malformed, and stays `[]`.
+    A **present, non-list** value is itself the violation *unless it is a
+    count*: the schema declares `evidence_runs` a list, so
+    `evidence_runs: experiment:x` (a scalar string) is a type error, not an
+    entry to check. It used to slip through as `[]` and merely resolve to
+    zero (MUR mur-g7-31-4-dt-85), which named it "no evidence" instead of
+    naming it malformed. `None` is absent, not malformed, and stays `[]`.
+
+    A scalar **count** (bool / int / numeric string) is the softer goal:g7.3
+    case — an honest unverifiable attestation, not malformed text — so it is
+    `[]` here and `apply_gate` demotes on it instead, both via `is_scalar_count`.
     """
     if value is None:
+        return []
+    if is_scalar_count(value):
         return []
     if isinstance(value, (list, tuple, set)):
         return [v for v in value if not is_node_id_shaped(v)]
@@ -340,6 +361,13 @@ def is_unverifiable_attestation(value) -> bool:
     stays *visible*, which is what lets `metrics.py` report how much of the
     corpus still needs converting to real references instead of the number
     silently reading as zero evidence.
+
+    **Complementary to `evidence_runs_violations`, not contradictory.**
+    `is_unverifiable_attestation(3) is True` together with
+    `evidence_runs_violations(3) == []` are both correct: 3 is an honest
+    count and is not malformed text. `is_unverifiable_attestation(0) is
+    False` because 0 is absence, not attestation (residue 2, MUR
+    mur-g7-31-4-dt-91). Both share `is_scalar_count` for the shape test.
     """
     if isinstance(value, bool):
         return True
@@ -416,17 +444,11 @@ def apply_gate(
     if not requires_evidence(verdict):
         return res
 
-    # A present, non-list value is a schema type violation (see
-    # `evidence_runs_violations`). The one exception is a scalar count —
-    # int / bool / numeric string, including the literal `0` `cli.py` passes
-    # for `--evidence-runs 0`: that is the separate, softer goal:g7.3 case,
-    # an honest unverifiable attestation, which demotes rather than rejects.
-    scalar_count = (
-        isinstance(evidence_runs, (bool, int))
-        or (isinstance(evidence_runs, str)
-            and evidence_runs.strip().isdigit())
-    )
-    if violations and not bypass and not scalar_count:
+    # A non-count non-list value is a schema type violation; a scalar count
+    # is the softer goal:g7.3 case that demotes. The exemption lives in
+    # `is_scalar_count`, so `rejected` is true iff `evidence_runs_violations`
+    # is non-empty (MUR mur-g7-31-4-dt-91).
+    if violations and not bypass:
         res.rejected = True
         res.reason = (
             f"evidence_runs must be a list of node ids; {violations!r} is "
