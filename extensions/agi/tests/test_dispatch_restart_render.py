@@ -147,7 +147,7 @@ def test_adapter_restart_carries_the_render_into_its_argv(
     made to fail loudly, so only the threaded render can satisfy this.
     RED pre-fix: `restart()` had no `rendered_brief` parameter, TypeError."""
     mod = adapters.load(name)
-    mod.child_env = lambda **kw: {}
+    monkeypatch.setattr(mod, "child_env", lambda **kw: {})
     monkeypatch.setattr(mod.brief, "assemble", lambda **kw: (
         (_ for _ in ()).throw(AssertionError(f"{name} assembled a second brief"))))
     captured = _capture_popen(monkeypatch)
@@ -168,7 +168,7 @@ def test_grok_restart_accepts_the_render_without_dying(adapter_rig, monkeypatch)
     """grok's stub accepts-and-ignores; the signature must still carry it, and
     the accept-and-ignore must not TypeError (the pre-fix failure)."""
     mod = adapters.load("grok_bot")
-    mod.child_env = lambda **kw: {}
+    monkeypatch.setattr(mod, "child_env", lambda **kw: {})
     captured = _capture_popen(monkeypatch)
     pid = mod.restart(
         harness={"adapter": "grok_bot", "models": {"kid": "g"}}, tier="kid",
