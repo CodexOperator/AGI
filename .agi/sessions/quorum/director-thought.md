@@ -92,6 +92,15 @@ wall        call done by 60 min wall-clock whatever the state; land what is comp
 cap         1 USD · ONE kid · line ceiling 150 engine-unit lines (stdlib fits)
 record      T1 recount vs the artifact · T2 values at chi 0.90 / 0.96025 / 1.02 · delta-BIC + curvature point per curve · placebo rank · Spearman x2 · lift + damage lift · verdict + the next step it names · one harvest line to your seat
 
+DRAFT OSC.02 -- chunk 2, dispatch on OSC.01's verdict (not before) · facts measured 09:5xZ from the GGUF header + the box
+9B shape   Qwen3.5-9B-Q4_K_M: 32 blocks, full attention every 4th (blk 3,7,..,31) = 8 layers x 16 q heads, 4 kv (group 4), head_dim 256 · 24 DeltaNet layers (no KV cache)
+ceiling    all 128 full-attn heads' q+gate+o slices ~ 4 pct of weight bytes · KV 32 KB/token (8 layers) -> one dead GQA group = 1/32 of KV -> head pruning on the served 9B is a SMALL lever; say so on the node
+ablate     attn_output is Q4_K with ONE 256-wide super-block per head per row -> a head is zeroed EXACTLY by zeroing its blocks' d/dmin/scales (byte surgery on a GGUF copy, no requant)
+tools      fork b10685 /data/ml/llama-prism-fork/fork/llama-prism-b10685-7dffb15/: llama-perplexity, llama-eval-callback, llama-imatrix, llama-gguf · docker ghcr.io/ggml-org/llama.cpp:full-cuda · torch 2.14 in /data/ml/.venv (no numpy, no transformers)
+branch (b) coherence falsified -> measured delta-ppl per GQA group (32) + per head (128) on the 9B, GPU round (router stop/restore as SWR-SV.01), baseline ppl first, one text, fixed ctx
+branch (c) coherence stands -> z_h per full-attn head needs per-head outputs + the residual (eval-callback dump) -> z_h vs the (b) delta-ppl on the same heads = does coherence predict damage on OUR model
+order      chunk 2 loads a model -> SWR-SV.01 waits behind it (TMM.49) · no pi-local round live when the router stops
+
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
 before      no pi-local round may be live when the router stops (spawn_budget.py status + ps) -- if one is, wait; never stop the router under it
