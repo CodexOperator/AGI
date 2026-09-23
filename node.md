@@ -1,13 +1,13 @@
 ---
-id: goal:g14.14.1
+id: goal:g7.33.1
 mint_id: 9d3b96ad6c1c480da6594fa25a0b41a6
 type: goal
 parents:
-  - goal:g14.14
+  - goal:g7.33
 next_edges: []
 confidence: 0.8
 edited_by: director-engine
-goal_id: G14.14.1
+goal_id: G7.33.1
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -21,7 +21,7 @@ status: active
 tags:
   - local-maxxing
   - engine
-title: "G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g14.14)"
+title: "G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33)"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
@@ -39,3 +39,7 @@ Falsifiers. Each item is falsified independently: (a) if the anchor or guard fai
 Done when. All three lettered items have a landed round, proved or disproved with its WHY. (c) additionally checked against the chained-note bug found this session (goal:g14.14.3 THOUGHT) to see if one fix covers both.
 
 First chunk, minted next: hypothesis for item (a), the replace body anchor/guard -- this director has the most direct operational evidence for it. Items (b) and (c) queued after, same format.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.14.1 -> g7.33.1 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
