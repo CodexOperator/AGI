@@ -3873,7 +3873,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     (hypothesis:l3w4-quorum-reviews): the prime is inbox-only, reached only
     through the gated `audience` path.
     """
-    _lockdown_warn(locations.find_project_root(croot) or croot)
+    root = locations.find_project_root(croot) or croot
+    _lockdown_warn(root)
     text = _guard_harness(text, quote_harness)
     if other == PRIME or me == PRIME or other.startswith(PRIME + "-"):
         print(f"ERR: the prime is inbox-only; a dm may not address or "
@@ -3883,15 +3884,18 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     a, b, _ = _dm_pair(me, other)
     path = _dm_path(croot, me, other)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), other, text))
+    # The dm file append is the file leg of the SAME delivery table the
+    # inbox append uses (goal:g7.32.4 R1): a run-time `kind="file"`
+    # transport is handed the dm block too, not just the inbox block.
+    _deliver(root, "file", path,
+             _block(_now(), _detect_sender(sender), other, text))
     # Wake nudge of the other party when it exists (silent no-op otherwise),
     # carrying the DM body INLINE as `[nudge: <me>]: <text>` so the
     # recipient sees the message without a `send.py read` round-trip
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    _deliver(locations.find_project_root(croot) or croot, "nudge", other, text,
+    _deliver(root, "nudge", other, text,
              sender=_detect_sender(sender), croot=croot)
     return path
 
@@ -3899,7 +3903,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
 def send_room(croot: Path, room: str, text: str, sender: str | None,
               quote_harness: bool = False) -> Path:
     """Append a message to a room. A room may never address the prime."""
-    _lockdown_warn(locations.find_project_root(croot) or croot)
+    root = locations.find_project_root(croot) or croot
+    _lockdown_warn(root)
     text = _guard_harness(text, quote_harness)
     if room == PRIME or room.startswith(PRIME + "-"):
         print(f"ERR: {room!r} may not address the prime — the prime is "
@@ -3907,8 +3912,10 @@ def send_room(croot: Path, room: str, text: str, sender: str | None,
         raise SystemExit(1)
     path = _room_path(croot, room)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "a") as f:
-        f.write(_block(_now(), _detect_sender(sender), room, text))
+    # Same delivery table as send()'s inbox append and send_dm()'s dm
+    # append -- the room leg is not a bypass (goal:g7.32.4 R1).
+    _deliver(root, "file", path,
+             _block(_now(), _detect_sender(sender), room, text))
     return path
 
 

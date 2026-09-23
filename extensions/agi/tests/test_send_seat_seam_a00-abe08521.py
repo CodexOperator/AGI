@@ -7,6 +7,7 @@ on send.py's import graph through exactly one edge.
 """
 from __future__ import annotations
 
+import ast
 import importlib.util
 import sys
 from pathlib import Path
@@ -19,10 +20,24 @@ send_mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(send_mod)
 
 
-def test_send_py_bytes_carry_no_import_rotate_or_dispatch():
-    src = (BIN / "send.py").read_text()
-    assert "import rotate" not in src
-    assert "import dispatch" not in src
+def test_send_py_carries_no_import_rotate_or_dispatch():
+    """AST, not substring: a `from rotate import foo` slips past
+    `"import rotate" not in src` because that substring never appears
+    (goal:g7.32.4 R2). Parse the module and refuse the NAME in any
+    Import / ImportFrom node -- `from rotate import x`, `import rotate`,
+    and `import rotate.x` all fail alike.
+    """
+    tree = ast.parse((BIN / "send.py").read_text())
+    hit = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            hit += [a.name for a in node.names
+                    if a.name.split(".")[0] in ("rotate", "dispatch")]
+        elif isinstance(node, ast.ImportFrom):
+            if node.module and node.module.split(".")[0] in (
+                    "rotate", "dispatch"):
+                hit.append(node.module)
+    assert hit == [], f"send.py imports orchestration: {hit}"
 
 
 def test_seam_owns_the_orchestration_call_and_reaches_real_rotate(
