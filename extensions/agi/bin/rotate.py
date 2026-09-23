@@ -17544,6 +17544,39 @@ def _authority_publish_gates_swap(line: str | None) -> bool:
     return s.startswith(("HELD", "FAILED"))
 
 
+def _retry_authority_publish_for_pending_swap(root: Path, seat: str) -> str:
+    """EF.84 conjunct A -- an authority-deferred `<seat>.key.pending`
+    completes at the NEXT successful authority publish. ONLY when the pending
+    records `deferred_for == "authority"`: re-attempt
+    `_publish_row_to_authority` with the seat's COMMITTED row (HEAD, the row
+    the authority never received) and pass that line to
+    `_complete_pending_key_swap`, which flips the key and deletes the pending
+    on a non-gating line and refuses by name on FAILED/HELD. No pending, a
+    push-deferred or a legacy reason-less pending -> '' (no authority publish
+    is attempted, nothing changes). Never raises."""
+    import send  # local: same dir (send.py pattern)
+    _key = send._seat_key_path(root, seat)
+    _pend = _key.parent / f"{_key.name}.pending"
+    if not _pend.is_file():
+        return ""
+    try:
+        _obj = json.loads(_pend.read_text())
+    except (ValueError, OSError):
+        return ""
+    if _obj.get("deferred_for") != "authority":
+        return ""
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return ""
+    rel = os.path.relpath(_ack_seats_path(main_root), top)
+    new_content = _blob_text(top, f"HEAD:{rel}")
+    if not new_content:
+        return ""
+    _auth = _publish_row_to_authority(root, seat, new_content)
+    return _complete_pending_key_swap(root, seat, authority_line=_auth)
+
+
 def _finish_pending_swap_on_push(root: Path, seat: str,
                                  push_line: str | None,
                                  authority_line: str | None = None) -> str:
@@ -17570,6 +17603,16 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
     """
     if not str(push_line or "").startswith("push: OK"):
         return ""
+    # EF.84 conjunct A: a push-OK site with NO authority context is the
+    # "next publish" for an authority-deferred pending -- re-attempt the
+    # authority publish of the committed row and complete the swap on a
+    # non-gating line. No authority-deferred pending -> '' and the old
+    # push-only completion below runs unchanged.
+    if authority_line is None:
+        _retry = _retry_authority_publish_for_pending_swap(root, seat)
+        if _retry:
+            print(_retry, file=sys.stderr)
+            return _retry
     if authority_line is not None and _authority_publish_gates_swap(
             authority_line):
         _l = (f"key swap NOT completed -- authority publish did not succeed "
@@ -18114,7 +18157,8 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
         return None, None, (f"post {seat!r} is unkeyed: "
                             f"{KEYGEN_LINE.format(seat=seat)} first")
     key_path = send._seat_key_path(root, seat)
-    obj = send._signing_key_obj(root, seat, key_path)
+    obj = send._signing_key_obj(root, seat, key_path,
+                                prefer_authority_deferred=True)
     if obj is None:
         return None, None, (
             f"post {seat!r} carries a pubkey but holds no signing key at "
@@ -19133,7 +19177,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # below then reads a `.key` that already agrees with HEAD. Never on a
     # dry-run (the swap is a real write; dry-run touches nothing).
     if not getattr(args, "dry_run", False):
-        _done = _complete_pending_key_swap(root, seat)
+        _done = _retry_authority_publish_for_pending_swap(root, seat)
+        if not _done:
+            _done = _complete_pending_key_swap(root, seat)
         if _done:
             print(_done, file=sys.stderr)
     # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-

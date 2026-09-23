@@ -207,3 +207,176 @@ def test_authority_ok_completes_an_authority_deferred_pending(
     assert r.startswith("key swap completed"), r
     assert not pend.exists()
     assert json.loads(key.read_text())["priv_hex"] == succ_priv.hex()
+
+# ---------------------------------------------------------------------------
+# EF.84 (experiment:a00-6c3c02f2-8362a0) -- conjunct A: an authority-deferred
+# pending COMPLETES at the next successful authority publish; conjunct B: send
+# signs with the key the AUTHORITY row holds (the live predecessor), never the
+# pending successor.
+# ---------------------------------------------------------------------------
+import subprocess  # noqa: E402
+
+
+def _git(repo, *args, check=True):
+    return subprocess.run(["git", "-C", str(repo), *args],
+                          capture_output=True, text=True, check=check)
+
+
+def _posts_text(rows):
+    body = "---\nid: config:posts\ntype: config\nposts:\n"
+    for r in rows:
+        body += "  - " + json.dumps(r) + "\n"
+    body += "---\n"
+    return body
+
+
+def _authority_fixture(tmp_path, old_pub, new_pub):
+    """bare origin + repo: origin/season2/main holds `old_pub` for `aa`; the
+    local trunk HEAD holds `new_pub` (the committed re-key the authority never
+    received)."""
+    repo = tmp_path / "repo"
+    g = repo / ".agi"
+    (g / "nodes" / ".geometry").mkdir(parents=True)
+    (g / "config.json").write_text("{}", encoding="utf-8")
+    posts = g / "nodes" / ".geometry" / "posts.md"
+    rows = [{"name": "aa", "role": "parent", "pubkey": old_pub}]
+    posts.write_text(_posts_text(rows), encoding="utf-8")
+    bare = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(bare)], check=True)
+    subprocess.run(["git", "-C", str(repo), "init", "-q", "-b", "trunk"],
+                   check=True)
+    _git(repo, "config", "user.email", "t@t")
+    _git(repo, "config", "user.name", "t")
+    _git(repo, "remote", "add", "origin", str(bare))
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "authority seed")
+    _git(repo, "push", "-q", "origin", "HEAD:refs/heads/season2/main")
+    _git(repo, "push", "-q", "-u", "origin", "trunk")
+    rows[0] = dict(rows[0], pubkey=new_pub)
+    posts.write_text(_posts_text(rows), encoding="utf-8")
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-q", "-m", "re-key on trunk")
+    _git(repo, "push", "-q", "origin", "trunk")
+    return repo, g, posts, bare
+
+
+def _write_keys(g, seat, pred_priv, succ_priv, succ_pub, reason):
+    key = bin_send._seat_key_path(g, seat)
+    key.parent.mkdir(parents=True, exist_ok=True)
+    key.write_text(json.dumps({"scheme": "ed25519",
+                               "priv_hex": pred_priv.hex()}))
+    os.chmod(key, 0o600)
+    pend = Path(str(key) + ".pending")
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "deferred_for": reason,
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    return key, pend
+
+
+def test_authority_deferred_pending_completes_at_next_publish(tmp_path):
+    """EF.84 conjunct A: a later push-OK site RE-PUBLISHES the committed row
+    to the authority and completes the authority-deferred swap -- the
+    authority ref advances, `<seat>.key` flips to the successor, the pending
+    file is deleted. RED on the pre-fix bytes (the site refuses by name)."""
+    sch = bin_send.seatsig.get("ed25519")
+    succ_priv, succ_pub = sch.keygen()
+    pred_priv, pred_pub = sch.keygen()
+    repo, g, posts, _bare = _authority_fixture(
+        tmp_path, pred_pub.hex(), succ_pub.hex())
+    key, pend = _write_keys(g, "aa", pred_priv, succ_priv, succ_pub,
+                            "authority")
+    frozen = key.read_bytes()
+    r = rotate._finish_pending_swap_on_push(g, "aa", "push: OK")
+    assert r.startswith("key swap completed"), r
+    assert not pend.exists(), "the completed swap deletes the pending file"
+    assert json.loads(key.read_text())["priv_hex"] == succ_priv.hex(), \
+        "the live key must now be the successor"
+    assert key.read_bytes() != frozen
+    # the authority now holds the successor pubkey, predecessor gone.
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    show = _git(repo, "show",
+                "origin/season2/main:.agi/nodes/.geometry/posts.md").stdout
+    assert succ_pub.hex() in show and pred_pub.hex() not in show
+
+
+def test_authority_publish_failed_keeps_key_byte_identical(tmp_path):
+    """EF.84 conjunct A precision: an authority-deferred pending whose
+    re-publish FAILS stays deferred -- key byte-identical, pending survives,
+    a named refusal prints. Never raises."""
+    sch = bin_send.seatsig.get("ed25519")
+    succ_priv, succ_pub = sch.keygen()
+    pred_priv, pred_pub = sch.keygen()
+    repo, g, posts, bare = _authority_fixture(
+        tmp_path, pred_pub.hex(), succ_pub.hex())
+    key, pend = _write_keys(g, "aa", pred_priv, succ_priv, succ_pub,
+                            "authority")
+    frozen = key.read_bytes()
+    # a pre-receive hook refuses the authority push -> `authority: FAILED`.
+    hook = bare / "hooks" / "pre-receive"
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text("#!/bin/sh\n"
+                    "while read old new ref; do\n"
+                    "  case \"$ref\" in refs/heads/season2/main) "
+                    "echo 'refused by test' >&2; exit 1;; esac\n"
+                    "done\nexit 0\n")
+    os.chmod(hook, 0o755)
+    r = rotate._finish_pending_swap_on_push(g, "aa", "push: OK")
+    assert "NOT completed" in r and key.read_bytes() == frozen
+    assert pend.exists()
+
+
+def test_push_deferred_pending_never_touches_the_authority(tmp_path):
+    """EF.84 conjunct A precision: with NO authority-deferred pending (a
+    push-deferred one) the later push-OK completes the swap the OLD way and
+    attempts NO authority publish -- the authority ref does not move."""
+    sch = bin_send.seatsig.get("ed25519")
+    succ_priv, succ_pub = sch.keygen()
+    pred_priv, pred_pub = sch.keygen()
+    repo, g, posts, _bare = _authority_fixture(
+        tmp_path, pred_pub.hex(), succ_pub.hex())
+    key, pend = _write_keys(g, "aa", pred_priv, succ_priv, succ_pub, "push")
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+    r = rotate._finish_pending_swap_on_push(g, "aa", "push: OK")
+    assert r.startswith("key swap completed"), r
+    assert not pend.exists()
+    assert json.loads(key.read_text())["priv_hex"] == succ_priv.hex()
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre, \
+        "a push-deferred pending must attempt no authority publish"
+
+
+def test_send_signs_with_the_authority_key_when_deferred_on_authority(
+        tmp_path, monkeypatch):
+    """EF.84 conjunct B: an authority-deferred pending whose pub matches the
+    COMMITTED LOCAL row is NOT preferred by the signer -- the authority never
+    received the successor, so send signs with the live predecessor key. The
+    shared auth comparison (`_caller_hold_key`) stays coherent and still
+    accepts the holder."""
+    sch = bin_send.seatsig.get("ed25519")
+    succ_priv, succ_pub = sch.keygen()
+    pred_priv, pred_pub = sch.keygen()
+    key = bin_send._seat_key_path(tmp_path, "aa")
+    key.parent.mkdir(parents=True, exist_ok=True)
+    key.write_text(json.dumps({"scheme": "ed25519",
+                               "priv_hex": pred_priv.hex()}))
+    os.chmod(key, 0o600)
+    pend = Path(str(key) + ".pending")
+    pend.write_text(json.dumps({"scheme": "ed25519",
+                                "priv_hex": succ_priv.hex(),
+                                "pub_hex": succ_pub.hex(),
+                                "deferred_for": "authority",
+                                "gen_after": 2, "minted_at": ""}))
+    os.chmod(pend, 0o600)
+    row = {"name": "aa", "role": "parent", "pubkey": succ_pub.hex()}
+    _patch_committed(monkeypatch, [row])
+    obj = bin_send._signing_key_obj(tmp_path, "aa", key)
+    assert obj is not None
+    assert obj["priv_hex"] == pred_priv.hex(), \
+        "send must sign with the key the AUTHORITY row holds (the predecessor)"
+    # the shared auth path stays coherent: the holder is accepted.
+    who, _row, how = rotate._caller_hold_key(tmp_path, "aa", row, "env")
+    assert who == "aa", how
