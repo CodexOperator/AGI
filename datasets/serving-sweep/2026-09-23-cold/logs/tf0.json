@@ -1,0 +1,29 @@
+{
+ "name": "tf0",
+ "port": 18091,
+ "load_s": 40.5,
+ "lv": 1,
+ "img": "ghcr.io/ggml-org/llama.cpp:server-cuda",
+ "rows": [
+  {
+   "prompt_n": 13,
+   "prompt_ms": 45576.133,
+   "prompt_per_second": 0.28523701210017094,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": null,
+   "size_bytes": 2,
+   "ms_per_token": 3505.856
+  },
+  {
+   "prompt_n": 2061,
+   "prompt_ms": 1410.877,
+   "prompt_per_second": 1460.7935348014037,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 10000,
+   "size_bytes": 9000,
+   "ms_per_token": 0.685
+  }
+ ]
+}
