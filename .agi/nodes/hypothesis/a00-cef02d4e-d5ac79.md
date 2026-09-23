@@ -6,17 +6,21 @@ parents:
   - goal:g7.31.3.1
 next_edges: []
 confidence: 0.85
-edited_by: a00-cef02d4e
+edited_by: a00-48ff817a
 evidence_runs:
   - hypothesis:a00-cef02d4e-d5ac79
 line_ceiling: 40
 loop: goal:g7.31.3.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "grep -nF -e \"write | read | send | dispatch|workflow | rotate|spawn\" .agi/nodes/doc/director-grok-internals.md", "expected": "all five contract route names present on the cold-seat brief artifact", "observed": "L152 carries all five inside SECTION:PROFILE (boundary L55..L194, next SECTION header L195); rebuilt block L152-L154", "result": "pass"}
+  - {"conjunct": 1, "class": "gate", "cmd": "grep -Ein grok extensions/agi/bin/dispatch.py extensions/agi/bin/rotate.py", "expected": "zero hits attributable to a sixth special grok route", "observed": "exit 1, zero matches", "result": "pass"}
 production_lines: 4
 profile: balanced
 role: kid
 scaffold_hash: 52154dd66652753b
 season: 2
+testable_claim: The cold-seat custom-instruction surface doc:director-grok-internals SECTION:PROFILE lists all five pane routes under their contract names (write|read|send|dispatch|workflow|rotate|spawn) and records the seat-spelling rename old->new; falsified if any contract name is absent or an unrecorded seat spelling stands alone
 title: Cold-seat PROFILE brief lists the five routes by contract names with the seat rename recorded
 town: core
 verdict: inconclusive_lean_proved:85
@@ -69,3 +73,9 @@ L155   (engine routes wording — prefer named CLIs / write.py route over raw to
 
 ## Agent Notes
 PROFILE surface (director-grok-internals) now lists all five routes by contract names at L152 + records contract->seam->seat rename at L153-154; grep wired, no sixth grok route in dispatch.py/rotate.py
+
+PARENT ACCEPT (a00-48ff817a DH.86): kid a00-cef02d4e changed doc:director-grok-internals SECTION:PROFILE L152-L154 to the five contract route names plus engine seams and recorded the deliberate seat rename; two parent probes pass (wire grep inside PROFILE; zero grok route in dispatch.py/rotate.py). Verdict stays inconclusive_lean_proved:85, a doc/grep proof with no live sync exercised. Residue nested: doc:unified-director-brief L36.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-48ff817a, DH.86). (1) INSTRUCTION: run one negative probe per claim conjunct yourself and record them as probes; a kid that passes its own suite but fails your probe is lean_disproved. (2) MACHINE: git diff shows .agi/nodes/doc/director-grok-internals.md +4/-2. L152 now lists the five CONTRACT names (write | read | send | dispatch|workflow | rotate|spawn), L153 names the engine seams, L154 records the seat spelling old->new; the edit arrived through write.py replace body 131:132, the sanctioned writer, not a hand edit. My wire probe finds L152 inside SECTION:PROFILE (the block literally stamped copy into agent description, boundary L55..L194); my gate probe greps grok in dispatch.py and rotate.py and gets exit 1. I declined to trust the kid transcript and re-read the bytes. (3) NEAR MISS: accepting the kid grep transcript and its line numbers as evidence; re-running on the bytes is what confirms the block sits INSIDE the pasted PROFILE region and not in a sibling STANDING block a sync could skip. (4) DEVIATION: none. The kid named a real residue: doc:unified-director-brief L36 is a second cold-seat brief that still carries dispatch/workflow and rotate/spawn with no recorded rename. Nested as kid 2 under this same goal rather than left to ride.
+<!-- THOUGHT:END -->
