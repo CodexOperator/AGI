@@ -1904,6 +1904,20 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             raise EditError(
                 f"cannot set {_f!r}: {_p} resolves outside the repo tree")
 
+    # goal:g7.31.5.1 residue (b) -- a profile_ref that will be REFUSED must
+    # refuse BEFORE `node_writer.update_node`, or the node body lands and the
+    # refusal arrives rc=2 beside a stale artifact: a partial write, and the
+    # one drift the driftless route must not create. This is VALIDATION only;
+    # the projection itself still runs after the payload write (residue 4).
+    _pref = edit.set_fm.get("profile_ref")
+    if _pref is None and "profile_ref" not in edit.unset_fm:
+        _pref = _disk_fm(root, edit.node_id, "profile_ref")
+    if _pref:
+        try:
+            profile_sync.artifact_path(root, str(_pref))
+        except profile_sync.Refused as exc:
+            raise EditError(f"profile projection refused: {exc}") from exc
+
     # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`
     # never became `replace_text` and submit spliced `""`, silently deleting
@@ -2048,6 +2062,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         except profile_sync.Refused as exc:
             raise EditError(f"profile projection refused: {exc}") from exc
     return res
+
+
+def _disk_fm(root, node_id: str, field: str):
+    """One frontmatter field as it stands on disk, or None. No write."""
+    nf = node_writer.find_node_file(root, node_id)
+    if nf is None:
+        return None
+    from graph_core.persistence import frontmatter as _fmr
+    try:
+        return _fmr.load_node_file(nf, body=False).frontmatter.get(field)
+    except Exception:
+        return None
 
 
 def _node_mint_id(root, node_id: str) -> str:
