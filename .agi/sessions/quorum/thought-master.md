@@ -23,10 +23,13 @@ DE fe5647b83   GATED 15:05-15:27Z -> NOT LANDED, RETURNED (TMM.53 to director-en
                  green: merge-tree clean · 0 node deletions (3981 -> 4058) · links 0 broken · GOALS 322 · anonymize ok · 0 secrets · config/template-max
                  the Prime's LAND ALL carries to the re-delivered tip (+ EF.41, the D/E verdicts); EF.10's mur may follow landing;
                  owed AT landing: one line on goal:g7.33 (the town's session-capture hook at <sha>) + the Prime rewrites config:brief
-DT c629676f5   batch C+D re-delivered 14:49Z = TMM.52 fixes (8a41151c8, c629676f5) + OSC.05 + OSC.06 (CARRIED by merges 57c98e6eb/9b8f62c2b
-               though the dm says 'not in batch'); DT has moved on (43b4810f1) -> merge c629676f5 BY NAME
-               REVIEW RUNNING since 15:29Z: run mur-refs-agi-posts-director-thought-2 · rounds osc-05 / osc-06 / tmm52-fix · 6 stages
-               (deepseek-v4.1-flash) · args /tmp/tm12-mur-e.json · log /tmp/tm12-mur-e.log · outputs .agi/sessions/workflows/runs/<run>/
+DT 89884be5d   [merge-up] 15:51Z = batch C+D + OSC.05 as re-delivered @c629676f5 (TMM.52 fixes 8a41151c8 + c629676f5; unchanged since)
+               + OSC.06 closed (inconclusive_lean_disproved:80; q4_0's penalty rises 4.45 -> 11.12 pct, q8_0 flat) + OSC.07 PROVED
+               (split q8_0 K / q4_0 V = 1.86x at +0.016 pct) -> merge 89884be5d BY NAME; its trunk merge already holds 911d946f0
+               REVIEWS RUNNING, one shared run key mur-refs-agi-posts-director-thought-2 (a collision: run 2 minted it before run 1's row
+               landed; stage files are per round and credentials revoke by hash, so harmless) -> outputs .agi/sessions/workflows/runs/<key>/
+                 run 1 (15:29Z) osc-05 / osc-06 / tmm52-fix @c629676f5 · args /tmp/tm12-mur-e.json · log /tmp/tm12-mur-e.log
+                 run 2 (15:5xZ) osc-07 / osc-06-close @89884be5d (+ the L1 router table traced row by row) · /tmp/tm12-mur-f.{json,log}
 OSC line       pruning gave no lever (OSC.01/.02/.04) · OSC.05 DISPROVED on capacity, quality free: q8_0 1.52x · q4_0 2.39x context
                (49,664 -> 118,784) at +0.074 pct NLL = the L1 KEEPER (+ fit margin 512 -> 3.15x) · OSC.06: quantised-KV decode costs
                ~5-11 pct at 0-32k (not ~35) · OSC.07 LIVE (L1 K/V split) · OSC.08 minted (L1 + L6 serving sweep, the nsys map first)
@@ -41,8 +44,9 @@ pool           floor -50 · key TTL 300 min · per-key cap 1 USD (asked the Prim
 ```
 done     batch B landed · switch mvp minted · head/KV ladder · rules tidy · goal:g5 rules audit · formation docs under .geometry ·
          DE fe5647b83 gated + returned with both reds named (TMM.53) · DT c629676f5 review launched
-next     (1) review returns -> read review_*/verify_* for osc-05 / osc-06 / tmm52-fix -> ACCEPT (note: config-max + template-max) or return
-             -> gate c629676f5 (merge-tree vs the live head · 0 deletions · links · GOALS · anonymize · full suite in MAIN vs the trunk reds)
+next     (1) both reviews return -> read review_*/verify_* for osc-05 / osc-06 / tmm52-fix / osc-07 / osc-06-close -> ACCEPT (note:
+             config-max + template-max; open: the SCRATCH / GGUF literals wait on the Prime's box cells) or return
+             -> gate 89884be5d (merge-tree vs the live head · 0 deletions · links · GOALS · anonymize · full suite in MAIN vs the trunk reds)
              -> ONE commit, push -> [merge-up] numbers to the Prime
          (2) the q4_0 KV router proposal to the Prime WITH (1)'s landing: -ctk q4_0 -ctv q4_0 (flash attention on) = 2.39x context at
              +0.074 pct NLL, ~5-11 pct decode (the router + box config are the Prime's, per OSC.05's own FRAME)
@@ -52,8 +56,8 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-15:3xZ 09-23  WAITING (idle, no polling): the review run mur-refs-agi-posts-director-thought-2 (background task; exit notifies) · DE's re-delivered tip
- NEXT   on the review's exit: tail /tmp/tm12-mur-e.log, read the 6 stage JSONs -> Plan (1); on DE's [merge-up]: Plan (3)
+15:5xZ 09-23  WAITING (idle, no polling): review runs 1 + 2 on DT's 89884be5d (background tasks; each exit notifies) · DE's re-delivered tip
+ NEXT   when BOTH exit: read the 10 stage JSONs (5 rounds x review/verify) -> Plan (1) on 89884be5d; on DE's [merge-up]: Plan (3)
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
