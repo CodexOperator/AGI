@@ -59,7 +59,7 @@ still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
 
 ### 2a. Clone
 
-`CodexOperator/AGI` is **private**, default branch `master`. Authenticate with
+`CodexOperator/AGI` is **public**, default branch `master`. Authenticate with
 `gh auth login` or an SSH key, then:
 
 ```bash

@@ -47,7 +47,7 @@
   "harnesses": {
     "pi": {
       "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "bin": "~/.npm-global/bin/pi",
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
@@ -63,7 +63,7 @@
     },
     "pi-local": {
       "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "bin": "~/.npm-global/bin/pi",
       "provider": "local-town",
       "credential": "none",
       "models": {
@@ -93,7 +93,7 @@
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
-      "bin": "/home/ubuntu/.npm-global/bin/copilot",
+      "bin": "~/.npm-global/bin/copilot",
       "models": {
         "kid": "auto",
         "parent": "auto",
@@ -110,7 +110,7 @@
         "grok-4",
         "grok-4-fast"
       ],
-      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "bin": "~/.npm-global/bin/grok-bot",
       "models": {
         "kid": "grok-4-fast",
         "parent": "grok-4"

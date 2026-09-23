@@ -39,9 +39,27 @@ def project(tmp_path: Path) -> Path:
     return root
 
 
+@pytest.fixture
+def croot(project: Path) -> Path:
+    """The REAL comms root `send_dm` callers use -- never the project root.
+
+    The old fixture passed `project` where a COMMS root belongs and asserted
+    `project / "dm"`, which conflated the two and could never have caught the
+    `_notify_undelivered` defect (hypothesis:send-undelivered-notice-lands-
+    in-the-comms-root).
+    """
+    return send_mod.comms_root(project)
+
+
 def _write_seats(project: Path, rows):
-    (project / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
-    (project / "nodes" / ".geometry" / "seats.md").write_text(_seats_md(rows))
+    # The seats row lives under the GRAPH root (`project/.agi/`), which is
+    # where every reader resolves it -- not under the repo root. The old
+    # fixture wrote `project/nodes/.geometry/seats.md`, which only resolved
+    # because it passed the repo root where a graph root belongs.
+    (project / ".agi" / "nodes" / ".geometry").mkdir(
+        parents=True, exist_ok=True)
+    (project / ".agi" / "nodes" / ".geometry" / "seats.md").write_text(
+        _seats_md(rows))
 
 
 def _row(**extra):
@@ -52,19 +70,34 @@ def _row(**extra):
 
 
 def test_busy_send_dm_prints_undelivered_yet_and_records_ts(
-        project, monkeypatch, capsys):
+        project, croot, monkeypatch, capsys):
     """Conjunct (2)+(4): a dm whose nudge was not typed prints the plain
     `[undelivered-yet]` line and leaves a record carrying ts + sender."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
     _write_seats(project, [_row()])
     _fake_tmux(monkeypatch, ["@246", "director"])
-    send_mod.send_dm(project, "sender-a", "director", "the body", "sender-a")
+    send_mod.send_dm(croot, "sender-a", "director", "the body", "sender-a")
     err = capsys.readouterr().err
     assert "[undelivered-yet] director" in err, err
     rec = send_mod._read_deferred(project, "director")
     assert rec is not None
     assert rec.get("sender") == "sender-a"
     assert rec.get("ts")
+
+
+def test_busy_send_dm_keeps_its_coalesce_reason_diagnostic(
+        project, croot, monkeypatch, capsys):
+    """Conjunct (3), disposition (b): the busy path keeps BOTH lines -- the
+    plain `[undelivered-yet]` from `_announce_nudge` and the
+    `nudge: coalesced (<reason>)` diagnostic from `_nudge_window`. The plain
+    line announces the state; only the diagnostic carries WHY."""
+    monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
+    _write_seats(project, [_row()])
+    _fake_tmux(monkeypatch, ["@246", "director"])
+    send_mod.send_dm(croot, "sender-a", "director", "the body", "sender-a")
+    err = capsys.readouterr().err
+    assert "[undelivered-yet] director" in err, err
+    assert "nudge: coalesced (pane busy (registry))" in err, err
 
 
 def test_idle_inbox_send_prints_delivered(project, monkeypatch, capsys):
@@ -78,13 +111,13 @@ def test_idle_inbox_send_prints_delivered(project, monkeypatch, capsys):
 
 
 def test_wake_all_local_types_a_stored_record_and_says_delivered_late(
-        project, monkeypatch, capsys):
+        project, croot, monkeypatch, capsys):
     """Conjunct (3): the sweep delivers a deferred body once the pane is idle
     and prints ONE `[delivered-late] <to> <send ts>` line."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
     _write_seats(project, [_row()])
     _fake_tmux(monkeypatch, ["@246", "director"])
-    send_mod.send_dm(project, "sender-a", "director", "the body", "sender-a")
+    send_mod.send_dm(croot, "sender-a", "director", "the body", "sender-a")
     ts = send_mod._read_deferred(project, "director")["ts"]
     capsys.readouterr()
 
@@ -96,13 +129,14 @@ def test_wake_all_local_types_a_stored_record_and_says_delivered_late(
     assert send_mod._read_deferred(project, "director") is None
 
 
-def test_stale_record_dms_the_sender_exactly_once(project, monkeypatch, capsys):
+def test_stale_record_dms_the_sender_exactly_once(
+        project, croot, monkeypatch, capsys):
     """Conjunct (4): a record still untyped past T minutes dms the SENDER one
     `[undelivered]` line -- and never a second on the next sweep."""
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
     _write_seats(project, [_row()])
     _fake_tmux(monkeypatch, ["@246", "director"])
-    send_mod.send_dm(project, "sender-a", "director", "the body", "sender-a")
+    send_mod.send_dm(croot, "sender-a", "director", "the body", "sender-a")
     rec = send_mod._read_deferred(project, "director")
     rec["ts"] = "2020-01-01T00:00:00Z"
     send_mod._nudge_deferred_path(project, "director").write_text(
@@ -111,8 +145,8 @@ def test_stale_record_dms_the_sender_exactly_once(project, monkeypatch, capsys):
 
     _fake_tmux(monkeypatch, ["@246", "director"])
     send_mod.wake_all_local(project)
-    dm = project / "dm" / "sender-a--wake-repair.md"
-    assert dm.is_file(), "the sender must receive ONE dm"
+    dm = croot / "dm" / "sender-a--wake-repair.md"
+    assert dm.is_file(), "the sender must receive ONE dm in the comms root"
     first = dm.read_text()
     assert "[undelivered] director" in first
     assert "pane busy" in first
@@ -123,7 +157,7 @@ def test_stale_record_dms_the_sender_exactly_once(project, monkeypatch, capsys):
 
 
 def test_second_sender_to_a_busy_seat_is_notified_too(
-        project, monkeypatch, capsys):
+        project, croot, monkeypatch, capsys):
     """Conjunct (4), residue 2: the claim says ONCE PER MESSAGE, and the
     machine only recorded the FIRST dm to a busy seat. A second sender
     coalescing onto the same busy seat is recorded on the same sidecar and
@@ -133,9 +167,9 @@ def test_second_sender_to_a_busy_seat_is_notified_too(
     monkeypatch.setattr(send_mod, "_registry_status", lambda pid: "busy")
     _write_seats(project, [_row()])
     _fake_tmux(monkeypatch, ["@246", "director"])
-    send_mod.send_dm(project, "sender-a", "director", "first body",
+    send_mod.send_dm(croot, "sender-a", "director", "first body",
                      "sender-a")
-    send_mod.send_dm(project, "sender-b", "director", "second body",
+    send_mod.send_dm(croot, "sender-b", "director", "second body",
                      "sender-b")
     rec = send_mod._read_deferred(project, "director")
     assert rec.get("sender") == "sender-a"
@@ -149,8 +183,8 @@ def test_second_sender_to_a_busy_seat_is_notified_too(
 
     _fake_tmux(monkeypatch, ["@246", "director"])
     send_mod.wake_all_local(project)
-    a = project / "dm" / "sender-a--wake-repair.md"
-    b = project / "dm" / "sender-b--wake-repair.md"
+    a = croot / "dm" / "sender-a--wake-repair.md"
+    b = croot / "dm" / "sender-b--wake-repair.md"
     assert a.is_file(), "the first sender must be notified"
     assert b.is_file(), "the second sender must NOT be silently dropped"
     assert "[undelivered] director" in b.read_text()

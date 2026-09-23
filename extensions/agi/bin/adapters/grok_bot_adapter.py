@@ -29,10 +29,14 @@ NAME = "grok-bot"
 #: a literal here.
 DEFAULT_BIN = "grok-bot"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "GROK_BOT_BIN"
+
 
 def resolve_bin(harness: dict) -> str:
-    """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
-    return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
+    """$GROK_BOT_BIN > harness bin > default, via the ONE shared resolver
+    in `adapters.resolve_bin` (env, `~`/`{home}`, PATH, named refusal)."""
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
@@ -58,7 +62,7 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 
 def build_command(*, harness: dict, tier: str, context_file: str,
-                  **kwargs) -> list[str]:
+                  rendered_brief: str | None = None, **kwargs) -> list[str]:
     """STUB argv: `<bin> [--model M] -p <context_file>`. `**kwargs` swallows
     the channels dispatch.py passes every adapter, so a spawn cannot die on a
     TypeError before the flags land."""

@@ -2796,7 +2796,13 @@ def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
             continue
         excerpt = (r.get("body") or "").replace("\n", " ")[:80]
         try:
-            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+            # `root` here is the GRAPH root (`_nudge_deferred_path`/
+            # `_comms_config` need it); the dm itself must land in the same
+            # comms root every other send_dm caller uses, or no reader ever
+            # sees it (hypothesis:send-undelivered-notice-lands-in-the-
+            # comms-root).
+            send_dm(comms_root(root), "wake-repair",
+                    r.get("sender") or "unknown",
                     f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
                     f"{int(age)} min", sender="wake-repair")
         except SystemExit:
@@ -3084,6 +3090,15 @@ def _alias_canon(root: Path, name: str) -> str | None:
     return None
 
 
+def _dm_names_reader(root: Path, stem: str, me: str) -> bool:
+    """Whether a dm/room conversation filename names `me`: one of its
+    `--`-separated tokens IS `me`, or is a FORMER name of `me` in the ONE
+    `aliases:` table (old -> new). A non-aliased filename matches exactly the
+    way it always did -- `_alias_canon` returns None for every other token."""
+    return any(t == me or _alias_canon(root, t) == me
+               for t in stem.split("--"))
+
+
 def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
     """The identity row for ``seat``, resolving the ONE `aliases:` table
     (old -> new) in the REVERSE direction. At a rename boundary the seats ROW
@@ -3117,7 +3132,7 @@ def _load_rows(root: Path) -> list | None:
     freshly keyed/rotated post's signed dms verify instead of reading
     UNKEYED/FORGED until the hourly push. A pushed row that DOES name a key
     stays authoritative (a stale MAIN key never overrides origin)."""
-    seeded = _pushed_seats(root, _PUSHED_SEATS, True)
+    seeded = _pushed_seats(root, authority_ref(root), True)
     if seeded is not None:
         rows, _sha, _resolved_ref = seeded
         if rows:
@@ -3851,8 +3866,9 @@ def read_dms(croot: Path, me: str, *, commit: bool = True,
     to-a-post... clauses 1 and 3). Returns the block count shown."""
     n = 0
     d = croot / "dm"
+    root = locations.find_project_root(croot) or croot
     for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
-        if me not in path.stem.split("--"):
+        if not _dm_names_reader(root, path.stem, me):
             continue
         blocks = _conv_blocks(path)
         shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
@@ -3894,7 +3910,13 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # delivery, the file is the record.
     ok = _nudge_window(locations.find_project_root(croot) or croot, other,
                        sender=_detect_sender(sender), body=text)
-    _announce_nudge(croot, other, ok)
+    # `_announce_nudge` reads the SEATS row and the comms config, both of
+    # which live under the GRAPH root -- the same root `_nudge_window` is
+    # handed one line above. Handing it the raw `croot` (the comms root)
+    # silently dropped the plain `[undelivered-yet]` line whenever the graph
+    # root could not be reached by a rebase (a test fixture, or any layout
+    # without a git common root): the announcement vanished with no error.
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
     return path
 
 
@@ -4072,9 +4094,10 @@ def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
 
     dm_dir = croot / "dm"
     if dm_dir.is_dir():
+        root = locations.find_project_root(croot) or croot
         for f in sorted(dm_dir.glob("*.md")):
             name = f.stem
-            if me not in name.split("--"):
+            if not _dm_names_reader(root, name, me):
                 continue
             blocks = _conv_blocks(f)
             count = int(_load_state(f).get(me, 0) or 0)
@@ -4305,6 +4328,25 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #: HEAD is the authoritative answer after a fetch — never the local working
 #: tree.
 _PUSHED_SEATS = "origin/" + branches.season_main(2)
+
+
+def authority_ref(root: Path) -> str:
+    """The pushed ref seat keys are verified against -- ONE config cell
+    (config:key-authority, frontmatter `authority_ref`), defaulting to the
+    reviewed root when the node/field is absent. Never raises."""
+    try:
+        from node_writer import find_node_file
+        path = find_node_file(_main_graph_root(root), "config:key-authority")
+        if path is not None:
+            fm = _fm.load_node_file(path, body=False).frontmatter or {}
+            val = fm.get("authority_ref")
+            if isinstance(val, str) and val.strip():
+                return val
+    except Exception:
+        pass
+    return _PUSHED_SEATS
+
+
 #: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
 #: first that `git show` succeeds on wins.
 _SEATS_REPO_PATHS = (
@@ -4744,7 +4786,7 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
 
 
 def whois(root: Path, session_ref: str, claim: str | None,
-          source: str = _PUSHED_SEATS, do_fetch: bool = True,
+          source: str | None = None, do_fetch: bool = True,
           sig_line: str | None = None, msg_text: str | None = None,
           target: tuple | None = None):
     """Resolve session_ref against the PUSHED config:seats.
@@ -4770,6 +4812,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
     non-FORGED label returns today's bytes and exit unchanged: Prime ruling A
     keeps the sig label off the exit axis except at this one enforced seam.
     """
+    if source is None:
+        source = authority_ref(root)
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
         # Pushed authority unreachable. Do NOT silently answer from the working
@@ -5224,7 +5268,7 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--claim", default=None,
                          help="claimed seat name or role; answer whether this "
                               "ref IS that row (impersonation check)")
-    p_whois.add_argument("--source", default=_PUSHED_SEATS,
+    p_whois.add_argument("--source", default=None,
                          help=f"git ref to read seats from (default: pushed "
                               f"{_PUSHED_SEATS})")
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",

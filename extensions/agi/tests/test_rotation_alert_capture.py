@@ -186,6 +186,56 @@ def test_force_capture_after_n_minutes_records_argv(tmp_path, run_hook,
     assert "10 min without a self-rotate" in stops, stops
 
 
+def _session_stamp(state_dir, seat, minutes_ago, session):
+    """A capture stamp NAMING the session that wrote it. Pre-fix bytes wrote
+    only `first`, so a successor session inherited the predecessor's grace."""
+    (state_dir / f"capture-{seat}.json").write_text(json.dumps({
+        "first": int(__import__("time").time()) - int(minutes_ago * 60),
+        "session": session}) + "\n")
+
+
+def test_successor_session_waits_the_full_capture_grace(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """EF.22 conjunct 2: a stamp written by a PREDECESSOR session is NOT this
+    session's grace. Session s-A crossed over the line (stamp 10 min old);
+    session s-B's first crossing must WAIT -- the pre-fix reader ignored the
+    session and force-captured at once (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-sess"
+    _stale_state(tmp_path, graph, state_dir)
+    _session_stamp(state_dir, "probe-director", 10, "s-A")
+    tp = tmp_path / "sessb.jsonl"
+    _transcript(tp, 45_000)                     # over the line
+    code, out, err = run_hook(_payload(graph, tp, "s-B", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert hook._CAPTURE_LOGGED == [], hook._CAPTURE_LOGGED
+    blob = json.loads((state_dir / "capture-probe-director.json").read_text())
+    assert blob.get("session") == "s-B", blob
+
+
+def test_same_session_old_stamp_still_captures(tmp_path, run_hook,
+                                               monkeypatch, capsys):
+    """EF.22 conjunct 2 complement: the session scoping must not over-block --
+    a stamp NAMING the CURRENT session and 10 min old still captures."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-same"
+    _stale_state(tmp_path, graph, state_dir)
+    _session_stamp(state_dir, "probe-director", 10, "s-A")
+    tp = tmp_path / "samea.jsonl"
+    _transcript(tp, 45_000)
+    code, out, err = run_hook(_payload(graph, tp, "s-A", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert len(hook._CAPTURE_LOGGED) == 2, hook._CAPTURE_LOGGED
+
+
 def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
                                                     monkeypatch, capsys):
     """Conjunct 2 (4): the card the hook captures carries AUTO-CAPTURED and the
