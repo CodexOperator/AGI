@@ -21,7 +21,7 @@ verdict: proved
 ---
 # experiment:a00-f559a2f8-85dc82
 
-Built goal:g15.25 SL7.72: the captive after_join is now performed LIVE by a
+Built goal:g6.47 SL7.72: the captive after_join is now performed LIVE by a
 running heal watch, OR by rotate-self's own post-spawn tail when no watcher
 runs — a rotation never depends on a watcher that is not running, and the
 record's `after_join` key is never absent and never `{}`.
