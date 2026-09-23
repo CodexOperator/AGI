@@ -38,3 +38,5 @@ Done when: R1, R4, R5, R7 land with tests (director-engine) · R2, R3, R6(g17.14
 
 ## Agent Notes
 assigned: director-engine (owner 01:4xZ 09-21) for R1 R4 R5 R7 and g7.33.8; R2 R3 and g17.14.x are core's (grok), carried here so the next sync can close them.
+
+R8 (owner 07:36Z 09-23 'Separate rows is fine'): per-box Prime rows -- one config:posts Prime row per box (core's belam keeps its row; local-town's Prime gets its own), which needs the engine's seat resolution (rotate / whois / send / key files) to stop assuming one belam row; owner of the work = core's engine bundle goal:g7.33 (parked). Until it lands: each side keeps its own belam row at every sync.
