@@ -3,9 +3,9 @@ id: goal:g4.2
 mint_id: 1ff9cd74d05644f5ac1e8b9fadb3b24b
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.2
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.2: A reasoning-effort dial, not just a model name"
 ---
 `cc_dispatch.kid_model` selects the model. **Nothing selects how hard it
