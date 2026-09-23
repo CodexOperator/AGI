@@ -30,7 +30,7 @@ Corollary for anyone extending this system: **if a step is repeated and mechanic
 
 ## CLI
 
-Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point). Run from inside a project: `bin/locations.py` (bash half: `lib/find-root.sh`) walks up from cwd for a `.agi/` holding a config — **nearest enclosing wins**, so a command run from `fantasia/` resolves fantasia's own graph and the same command run from `fantasia/agi/` resolves the engine's, with no flag and nothing naming either project (`goal:g11`, `goal:g8.2`). A bare `agi-tree.config.json` at a project root, or a lone `<start>/*-tree/` below it, still resolves for a project that predates this layout (see Project layout). Scripts live in `<engine>/extensions/agi/`.
+Everything the loop does is a command. `<engine>` = the agi checkout, resolved as the real path of whatever `driver.sh` is invoked through (`readlink -f` on the entry point). Run from inside a project: `bin/locations.py` (bash half: `lib/find-root.sh`) walks up from cwd for a `.agi/` holding a config — **nearest enclosing wins**, so a command run from `fantasia/` resolves fantasia's own graph and the same command run from `fantasia/agi/` resolves the engine's, with no flag and nothing naming either project. A bare `agi-tree.config.json` at a project root, or a lone `<start>/*-tree/` below it, still resolves for a project that predates this layout (see Project layout). Scripts live in `<engine>/extensions/agi/`.
 
 | Command | Does |
 |---|---|
@@ -49,7 +49,7 @@ Everything the loop does is a command. `<engine>` = the agi checkout, resolved a
 | `bin/grid.py payload <id> [--version N] [--out PATH]` | Read one payload back out of its ref |
 | `bin/grid.py log <id>` / `diff <id> [--back N]` / `versions <id>` / `status` | Inspect |
 | `bin/crons.py apply` / `show` / `remove` | Reconcile, inspect, or drop the crontab derived from `.agi/nodes/.geometry/crons.md` |
-| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (`goal:g11`). Not a command a migrated project ever runs again. |
+| `bin/unify.py --engine E --tree T [--dry-run \| --yes]` | **One-time.** Merges a tree repo into an engine repo under `.agi/` (the one-repo move). Not a command a migrated project ever runs again. |
 | `bin/dispatch.py <project> <iter>` | Spawn pi kids (pi runtime) |
 | `bin/dispatch.py <project> <iter> --dry-run` | Resolve + print every slot's spawn (command, env, brief) with no spawn, no budget slot, no session dir — `hypothesis:l3-dispatch-dry-run` |
 | `bin/heal.py <project> <iter>` | Timeout/restart watchdog (pi runtime) |
@@ -269,7 +269,7 @@ with the target node's body as the brief — **mint a hypothesis node for the
 bug, commit it, and aim parents at it.** Sixteen hazards that were carried
 across a handoff instead of fixed in-loop became `goal:s34`.
 
-## Every node edit goes through `write.py` (`goal:g13.1`)
+## Every node edit goes through `write.py` (`goal:g4.19`)
 
 **One way in.** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
@@ -413,7 +413,7 @@ Metrics are computed by `bin/metrics.py` (called from `driver.sh`). It reads `me
 
 ## Project layout
 
-**As of `goal:g11`, the graph sits inside the project it describes**, in a
+**As of the one-repo move, the graph sits inside the project it describes**, in a
 `.agi/` directory beside the source rather than in a separate repo one level
 out. If the project needs an engine clone, that clone sits gitignored beside
 `.agi/`, and carries its *own* `.agi/` for its own graph. Worked example,
@@ -443,7 +443,7 @@ in `test_bash_and_python_agree`) resolves whichever is nearer to cwd — run
 from `fantasia/` and you get fantasia's graph, run from `fantasia/agi/` and
 you get the engine's own. That is what lets the engine improve itself from
 inside a project that is using it, and nothing branches on a project's name to
-make it true (**goal:g8.2**) — it falls out of the filesystem.
+make it true — it falls out of the filesystem.
 
 **Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
@@ -459,7 +459,7 @@ agi/
 ```
 
 **Resolution order**, phase 0 winning outright and phases 1–2 kept so a
-project from before `goal:g11` keeps resolving unchanged:
+project from before the one-repo move keeps resolving unchanged:
 
 0. `<d>/.agi/` holding a config — nearest enclosing directory wins.
 1. `<d>/agi-tree.config.json` — legacy: the graph root is the project root.
@@ -472,9 +472,9 @@ project from before `goal:g11` keeps resolving unchanged:
 (config, `nodes/`, a `GOALS.md` template) so this layout is reproducible
 without copying a project by hand. Today: clone the engine in, `git init` if
 needed, create `.agi/` yourself. Engine-commit pinning in the project config
-(G8.1's other ask) is also not implemented.
+(the retired forkability goal's other ask) is also not implemented.
 
-**`agi` is not a special case.** Before `goal:g11` the engine's own graph
+**`agi` is not a special case.** Before the one-repo move the engine's own graph
 needed its own symlink trick — `agi/agi-tree -> <graph repo>`,
 `agi-tree/agi -> <engine repo>` — because the graph lived in a separate repo
 that had to reach back into the checkout it built. That pair is retired
@@ -482,7 +482,7 @@ outright rather than replaced: `agi`'s own graph is just `.agi/` at the root
 of the engine repo, the same shape every other project gets, minus the clone
 step it doesn't need against itself. Running any command from inside `agi`
 resolves `.agi/` by the same phase-0 rule as `fantasia/.agi` — no branch, no
-flag. **`goal:g8.2`'s invariant — no `if project == "agi-tree"` branch
+flag. **The nearest-`.agi/` invariant — no `if project == "agi-tree"` branch
 anywhere — gets easier to hold, not harder**: there is exactly one code path
 for "where is the graph," and `agi` walks it like everyone else.
 
@@ -538,10 +538,10 @@ Three rules, each with a reason that was paid for:
   every run.
 
 The finer grain — the *chat* that produced the version, rather than a note
-about it — is **G2.7** and **G10.1**, and is still unbuilt. `thought_session:`
+about it — is **G2.7**, and is still unbuilt. `thought_session:`
 is reserved in frontmatter for it.
 
-**A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under `goal:g11` that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
+**A build node's ref holds its payload, not just its prose.** Since G6.3, `refs/grid/node/<mint-id>` is a two-entry tree — `node.md` plus `payload` — with the payload's **real** mode, read from `os.lstat()`: `100644`, `100755`, or `120000` with the link text as its content. `payload_ref` names a path; under the one-repo move that path is simply where the file already lives in this same repo, not a staged copy of it. A payload-only edit is still a real version, because the unchanged-check compares the whole tree.
 
 The workflow this makes possible, in full:
 
@@ -555,7 +555,7 @@ grid.py commit --all                    # the graph records your edit as vN+1
 **Retired, because each existed only to carry bytes across a boundary that no longer exists:**
 
 - `payloads/` — the staged checkout. Gone; the payload *is* the source file.
-- `grid.py checkout` — nothing to check out. **Never run it** — even before `goal:g11` it was a whole-tree command that silently reverted another agent's uncommitted work twice in one session (**goal:g4.1**); under one repo there is no second copy left for it to overwrite.
+- `grid.py checkout` — nothing to check out. **Never run it** — even before the one-repo move it was a whole-tree command that silently reverted another agent's uncommitted work twice in one session (**goal:g4.1**); under one repo there is no second copy left for it to overwrite.
 - `stitch.py --publish` — nothing to publish *into*; the engine tree and the source tree are the same tree.
 - `publish-engine.sh` — its four gates existed to make a cross-repo write recoverable. A commit in one repo is already recoverable with `git revert`.
 
@@ -612,7 +612,7 @@ Grid refs are **designed** to key on the mint id rather than the address, so ret
 
 ## Configuration
 
-`<project>/.agi/config.json` — bare `config.json` is canonical inside a `.agi/` directory; a project not yet on `goal:g11`'s layout still resolves its top-level `agi-tree.config.json` the same as always:
+`<project>/.agi/config.json` — bare `config.json` is canonical inside a `.agi/` directory; a project not yet on the one-repo move's layout still resolves its top-level `agi-tree.config.json` the same as always:
 
 ```jsonc
 {
@@ -640,7 +640,7 @@ One namespace per runtime — `agent_dispatch.*` for pi, `cc_dispatch.*` for Cla
 
 **The config file is the project's whole customization surface.** It is per-project, owned by the project repo, and meant to be edited programmatically — the engine reads it, never writes engine behavior back into it. A project changes metrics, dispatch, and schema here; it never forks engine code to change behavior.
 
-**Two more keys exist only to override `goal:g11`'s defaults, both usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`) and `goals_file` (where the rendered `GOALS.md` lands — defaults to that repo's root). A project that already ships its own `GOALS.md` sets `goals_file` and keeps both documents rather than colliding.
+**Two more keys exist only to override the one-repo move's defaults, both usually absent:** `locations.source_root` (where `payload_ref` resolves — defaults to the repo enclosing `.agi/`) and `goals_file` (where the rendered `GOALS.md` lands — defaults to that repo's root). A project that already ships its own `GOALS.md` sets `goals_file` and keeps both documents rather than colliding.
 
 **Legacy name.** Projects created before the rename carry `autoresearch-tree.config.json`. Every engine entry point still resolves it, canonical name first, so old projects keep running unchanged. Same for `$AGI_TREE_PROJECT_ROOT`, whose legacy spelling `$AUTORESEARCH_TREE_PROJECT_ROOT` is still read and still set.
 
