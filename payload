@@ -72,7 +72,6 @@ import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
-import adapters  # noqa: E402 -- the ONE harness bin resolver (goal:g15, round 3)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -920,31 +919,6 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
 
 
-def _resolved_harness_bin(root: Path | None, harness: str | None):
-    """The harness row's `bin` cell through the ONE shared resolver.
-
-    `None` when the row has no `bin` cell, so the claude path stays
-    byte-identical (it passes `bin_path=None`). Otherwise `$<HARNESS>_BIN`
-    wins over the `~`/{home}-expanded cell, which wins over PATH; a missing
-    binary refuses by name. The adapter's own env var
-    (`COPILOT_BIN`/`CLAUDE_BIN`/...) is consulted when the row's adapter
-    module is loadable, so rotate and dispatch agree on ONE precedence; a row
-    whose adapter has no module falls back to the derived name
-    (`hypothesis:harness-bin-paths-resolve-per-box` round 3).
-    """
-    row = _harness_row(root, harness)
-    if not row.get("bin"):
-        return None
-    adap = row.get("adapter")
-    if adap:
-        try:
-            return adapters.load(adap).resolve_bin(row)
-        except (adapters.AdapterError, AttributeError):
-            pass
-    env_var = (harness or "claude-code").upper().replace("-", "_") + "_BIN"
-    return adapters.resolve_bin(row, env_var, row["bin"])
-
-
 def _resolve_seat_role(root: Path, harness: str | None, tier: str,
                        model, effort, settings):
     """Resolve `(model, effort, settings)` from the harness template's SOURCE.
@@ -1111,39 +1085,23 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  rc_name: str | None = None,
                                  harness: str | None = None,
                                  bin_path: str | None = None,
-                                 project_root: Path | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
                                  "extensions/agi/bin/cli.py") -> list[str]:
     """Build the successor argv for a non-prime seat from its assembled brief.
 
-    The body is the SAME render the SessionStart hook and dispatch read
-    (`brief.render --post <name>`): head + card + the harness block, so a
-    rotated successor cannot drift from a fresh session. When the post has no
-    row or no card (an advisor with none yet), render refuses and the seat
-    falls back to the legacy `brief.assemble` body -- a missing card must not
-    make a rotation impossible.
+    The body is the joined segments of `brief.assemble(tier=..., agent_id=name,
+    iter_n=0)` — a perpetual seat has no iteration number. assemble() already
+    prepends the constitution head (for the liaison, the director's read_order
+    via `_LIAISON_HEAD_TIER`), so unlike the prime's static-file path we do NOT
+    call brief.successor_prompt() again: doing both would double-insert the
+    head (hypothesis:l3w4-liaison-seat).
     """
     import brief  # local: same dir, may be absent in a misleading env
-    body = None
-    try:
-        body = brief.render(post=name, role=tier,
-                            harness=harness or "claude-code",
-                            project_root=project_root)
-    except (brief.RenderError, brief.FaithRefError) as exc:
-        # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
-        # config): a rotation that fell back to the legacy brief must say so.
-        # FaithRefError is named too -- brief.render reads moral:faith, so a
-        # broken faith ref raised past the fallback and killed the rotation
-        # (hypothesis:brief-render-hygiene-after-the-batch-mur).
-        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
-              f"falling back to brief.assemble", file=sys.stderr)
-        body = None
-    if not body:
-        parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
-                               dispatch_py=dispatch_py, cli_py=cli_py)
-        body = "\n\n".join(parts)
+    parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
+                           dispatch_py=dispatch_py, cli_py=cli_py)
+    body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
         body = ULTRACODE_KEYWORD + "\n" + body
@@ -1581,29 +1539,6 @@ def _launch_wrapper_log(root, seat: str) -> str:
     return str(_seat_hands(r) / f"{seat}.wrapper.log")
 
 
-def _launch_child_preexec() -> None:
-    """Give the wrapped child DEFAULT signal semantics, then unblock the set.
-
-    `exec` PRESERVES an ignored disposition (`SIG_IGN`), and Popen's own
-    `restore_signals` resets only SIGPIPE/SIGXFZ/SIGXFSZ -- never SIGHUP.
-    So a launcher that ignores SIGHUP (a pytest process that leaked
-    `rotate._shield_final_signals` on an exception path, anything under
-    `nohup`) would hand the wrapper a child that IGNORES the forwarded
-    hangup. Measured 2026-09-23: with the launching process's SIGHUP=SIG_IGN
-    the wrapper still logs `FORWARDED to child <pid>`, but the child exits
-    status 0 when its own `sleep 30` ends and
-    `test_wrapper_tty_hangup_forwards_to_the_child` reds at 30.29 s -- the
-    09-23 suite record's slowest test, exactly. Reset the reserved set to
-    SIG_DFL here so forwarding is guaranteed by construction.
-    """
-    for sig in _LAUNCH_WAIT_SIGS:
-        try:
-            signal.signal(sig, signal.SIG_DFL)
-        except (ValueError, OSError):
-            pass
-    signal.pthread_sigmask(signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS)
-
-
 def cmd_launch_wrapper(args, root) -> int:
     """Signal-masking parent so a seat's lifecycle log distinguishes the
     three death classes (amendment e, hypothesis:l4-rotate-self-under-pytest-
@@ -1646,7 +1581,8 @@ def cmd_launch_wrapper(args, root) -> int:
         signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
         child = subprocess.Popen(
             child_cmd,
-            preexec_fn=_launch_child_preexec,
+            preexec_fn=lambda: signal.pthread_sigmask(
+                signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS),
         )
         received: list[int] = []
         while True:
@@ -1890,26 +1826,23 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         shell_cmd = successor_argv
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
-        # claude path passes None and stays byte-identical. The raw cell is
-        # resolved (env override, `~`/{home} expansion, PATH) here, before it
-        # reaches the argv (hypothesis:harness-bin-paths-resolve-per-box).
-        _bin = _resolved_harness_bin(root, harness)
-        # A seat spawned with no explicit --prompt-file gets its body from the
-        # assembled brief -- for EVERY tier, the prime included
-        # (hypothesis:brief-py-assembles-every-first-turn-from-config; the
-        # render resolves head + the role template + the post's card + the
-        # trajectory). assemble() already inserts the constitution head, so we
-        # skip successor_prompt() — calling both would double-insert it
-        # (hypothesis:l3w4-liaison-seat). An explicit --prompt-file still wins
-        # byte-for-byte.
-        if prompt_file is None:
+        # claude path passes None and stays byte-identical.
+        _bin = _harness_row(root, harness).get("bin") or None
+        # A non-prime seat spawned with no explicit --prompt-file gets its body
+        # from the assembled brief. assemble() already inserts the constitution
+        # head, so we skip successor_prompt() — calling both would double-insert it
+        # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
+        # explicit --prompt-file, are untouched.
+        if prompt_file is None and tier != "prime_director":
             claude_cmd = _assembled_successor_command(
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
-                harness=harness, bin_path=_bin, project_root=root,
+                harness=harness, bin_path=_bin,
             )
         else:
+            if prompt_file is None:
+                prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
                 print(f"ERR: prompt file not found: {prompt_file} "
@@ -4523,7 +4456,7 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
         print(f"merge-up refused: {how} (nothing merged)", file=sys.stderr)
         return 3
     if post != caller_post:
-        target_row = _find_seat(_seat_read_root(root, post), post)
+        target_row = _find_seat(root, post)
         if target_row is None:
             print(f"merge-up refused: no seat {post!r} in the seats registry "
                   f"(nothing merged)", file=sys.stderr)
@@ -7284,55 +7217,52 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     seat once and returns so the parent's regression test is deterministic;
     without it the loop meters every `--interval` seconds.
     """
-    # FLAT loop (EF.22 conjunct 1): the pre-fix tail recursed once per
-    # interval (`return cmd_alarms(args, root)` after `time.sleep`), one stack
-    # frame per poll and a RecursionError after ~1000 of them. The per-pass
-    # body is byte-for-byte the former body; only the tail changed.
+    root = Path(getattr(args, "root", None) or root)
+    holder = args.holder
+    threshold = load_ladder_field(root, "director_rotate_at",
+                                  DEFAULT_DIRECTOR_ROTATE_AT)
+    idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                               DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        idle_m = float(idle_m)
+    except (TypeError, ValueError):
+        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+    try:
+        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+    except (TypeError, ValueError):
+        ratio = None                       # absent/garbage = idle lane off
+    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                  ).strip().lower() in ("1", "true", "yes", "on")
+    due = 0
+    for row in _load_seats(root):
+        if row.get("rotated_by") != holder:
+            continue
+        seat = row.get("name")
+        frac = _seat_fraction(root, row)
+        if frac is None:
+            print(f"warn: no pin/usage for seat {seat!r} — skipping",
+                  file=sys.stderr)
+            continue
+        reason = None
+        if frac >= float(threshold):
+            reason = f"fraction {frac:.4f}"
+        else:
+            idle = _seat_idle_minutes(root, seat)
+            if (ratio is not None and frac >= ratio * float(threshold)
+                    and idle is not None and idle >= idle_m):
+                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+        if reason is None:
+            print(f"hold {seat} {frac:.4f}")
+            continue
+        if _master_rotate(root, holder, seat, row, masters):
+            continue
+        print(f"rotate -> {seat} ({reason})")
+        due += 1
+    if args.once:
+        return 0
     while True:
-        root = Path(getattr(args, "root", None) or root)
-        holder = args.holder
-        threshold = load_ladder_field(root, "director_rotate_at",
-                                      DEFAULT_DIRECTOR_ROTATE_AT)
-        idle_m = load_ladder_field(root, "alarms_idle_minutes",
-                                   DEFAULT_ALARMS_IDLE_MINUTES)
-        try:
-            idle_m = float(idle_m)
-        except (TypeError, ValueError):
-            idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
-        try:
-            ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
-        except (TypeError, ValueError):
-            ratio = None                   # absent/garbage = idle lane off
-        masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
-                      ).strip().lower() in ("1", "true", "yes", "on")
-        due = 0
-        for row in _load_seats(root):
-            if row.get("rotated_by") != holder:
-                continue
-            seat = row.get("name")
-            frac = _seat_fraction(root, row)
-            if frac is None:
-                print(f"warn: no pin/usage for seat {seat!r} — skipping",
-                      file=sys.stderr)
-                continue
-            reason = None
-            if frac >= float(threshold):
-                reason = f"fraction {frac:.4f}"
-            else:
-                idle = _seat_idle_minutes(root, seat)
-                if (ratio is not None and frac >= ratio * float(threshold)
-                        and idle is not None and idle >= idle_m):
-                    reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
-            if reason is None:
-                print(f"hold {seat} {frac:.4f}")
-                continue
-            if _master_rotate(root, holder, seat, row, masters):
-                continue
-            print(f"rotate -> {seat} ({reason})")
-            due += 1
-        if args.once:
-            return 0
         time.sleep(args.interval)
+        return cmd_alarms(args, root)
 
 
 def _master_rotate(root: Path, holder: str, seat: str, row: dict,
@@ -10364,81 +10294,6 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
-def _authority_row_content(base: str, new: str, seat: str) -> str:
-    """`base` with ONLY the row keyed to `seat` replaced by that line from
-    `new`; foreign rows byte-identical (a FIRST seating returns `base`)."""
-    b = base.splitlines(keepends=True)
-    row = next((ln for ln in new.splitlines(keepends=True) if _own_row_line(ln, seat)), None)
-    if row is None or not any(_own_row_line(ln, seat) for ln in b):
-        return base
-    return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
-
-
-def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
-    """Route B: the re-minted `seat` row as ONE commit on the FETCHED key
-    authority branch + a fast-forward push. One-line outcome; never raises."""
-    try:
-        import send as _send
-        ref = _send.authority_ref(root)
-    except Exception as exc:  # noqa: BLE001
-        return f"authority: SKIPPED -- no authority ref ({exc})"
-    if not ref.startswith("origin/") or len(ref) <= 7:
-        return f"authority: SKIPPED -- non-origin authority ref {ref!r}"
-    branch, main_root = ref[7:], _shared_graph_root(root)
-    top = _git_toplevel(main_root)
-    if top is None:
-        return "authority: SKIPPED -- no git repo (gitless fixture/root)"
-    rel = os.path.relpath(_ack_seats_path(main_root), top)
-    for _att in range(2):  # non-ff race -> fetch again and recompose
-        fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
-                                branch], capture_output=True, text=True,
-                               timeout=60)
-        base = (_blob_text(top, f"FETCH_HEAD:{rel}")
-                if fetch.returncode == 0 else None)
-        if base is None:
-            last = fetch.stderr.strip() or fetch.stdout.strip()
-            continue
-        content = _authority_row_content(base, new_content, seat)
-        if content == base:
-            return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
-        fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
-        os.close(fd)
-        env = dict(os.environ, GIT_INDEX_FILE=idx)
-
-        def _g(*a, **kw):  # noqa: ANN001, ANN002
-            return subprocess.run(["git", "-C", str(top), *a], env=env,
-                                  capture_output=True, text=True, **kw)
-
-        try:
-            # one commit on the FETCHED authority head, one row changed
-            head = _g("rev-parse", "FETCH_HEAD").stdout.strip()
-            blob = _g("hash-object", "-w", "--stdin",
-                      input=content).stdout.strip()
-            tree = ""
-            if (head and blob and _g("read-tree", head).returncode == 0
-                    and _g("update-index", "--add", "--cacheinfo",
-                           f"100644,{blob},{rel}").returncode == 0):
-                tree = _g("write-tree").stdout.strip()
-            if not tree:
-                last = "index/tree build failed"; continue
-            sha = _g("commit-tree", tree, "-p", head, "-m",
-                     f"{seat} key row: re-minted pubkey -> {branch}"
-                     ).stdout.strip()
-            if not sha:
-                last = "commit-tree failed"; continue
-            push = subprocess.run(
-                ["git", "-C", str(top), "push", "origin",
-                 f"{sha}:refs/heads/{branch}"],
-                capture_output=True, text=True, timeout=60)
-            if push.returncode != 0:
-                last = push.stderr.strip() or push.stdout.strip()
-                continue
-            return f"authority: OK -- {sha[:9]} -> {branch}"
-        finally:
-            os.unlink(idx)
-    return f"authority: FAILED -- {last}"
-
-
 # g15 retry budget: the spawn-row commit re-reads HEAD and re-stages the
 # own-row pathspec up to `_SPAWN_ROW_RETRIES` times before recording FAILED
 # (a peer commit may move HEAD mid-rotation: `cannot lock ref 'HEAD'`).
@@ -10600,8 +10455,6 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
-    # conjunct 2 (route B): publish the ONE seat row to the key authority.
-    _auth = _publish_row_to_authority(root, seat, new_content)
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
     # `.key.pending` written when an earlier push FAILED) COMPLETES now
@@ -10613,10 +10466,9 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     _done = _finish_pending_swap_on_push(root, seat, _push)
     if _done:
         return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
-                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}"
-                f"\n{_auth}")
+                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}")
     return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) -- "
-            f"own-row only: {msg}\npush: {_push}\n{_auth}")
+            f"own-row only: {msg}\npush: {_push}")
 
 
 def _commit_after_join_heal_spawn_row(root: Path, *, seat: str) -> str:
@@ -18299,118 +18151,6 @@ def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
         return f"rotation-failed dm to supervisor {sup!r} FAILED: {exc}"
 
 
-#: The session-capture landing dir under a repo (goal:g14.14.8). It MIRRORS
-#: -- never duplicates -- the established `datasets/trajectories/<id>/`
-#: shape (`transcript.jsonl` + `label.json`), so a reader of one can read
-#: the other.
-SESSION_DATASET_DIR = "sessions"
-
-#: Loaded-once cache of `datasets/tools/scrub.py`, keyed by resolved path.
-_SCRUB_MODULE_CACHE: dict = {}
-
-
-def _load_scrub_module(root: Path):
-    """The ONE redactor: `datasets/tools/scrub.py`, imported by path.
-
-    The redaction implementation is reused UNCHANGED -- a second, local
-    redactor is the exact falsifier this capture exists to avoid. Search
-    order is the caller's own repo first (where the landing goes), then this
-    script's repo (a worktree's rotate.py may run against a graph whose repo
-    has no `datasets/`). Raises on absence so `_capture_session_safe` can log
-    it and leave the rotation standing.
-    """
-    import importlib.util
-    cands = [locations.repo_root(root) / "datasets" / "tools" / "scrub.py",
-             ENGINE_ROOT / "datasets" / "tools" / "scrub.py"]
-    path = next((p for p in cands if p.is_file()), None)
-    if path is None:
-        raise FileNotFoundError(
-            "datasets/tools/scrub.py not found (tried: "
-            + ", ".join(str(p) for p in cands) + ")")
-    key = str(path)
-    mod = _SCRUB_MODULE_CACHE.get(key)
-    if mod is None:
-        spec = importlib.util.spec_from_file_location("agi_scrub", path)
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        _SCRUB_MODULE_CACHE[key] = mod
-    return mod
-
-
-def capture_session_transcript(root: Path, *, seat: str, row: dict | None,
-                               transcript_path: Path | str | None = None
-                               ) -> Path | None:
-    """Land one scrubbed rotation transcript + its pre-labels under
-    `datasets/sessions/<role>/<session-id>/` (goal:g14.14.8).
-
-    `transcript_path=None` resolves the seat's OWN transcript through the ONE
-    existing resolver `resolve_transcript` (--session-log / $AGI_SESSION_LOG
-    / seat pin / cwd slug), never a second discovery path. Scrubbing goes
-    through `datasets/tools/scrub.py` UNCHANGED and the landed bytes are
-    re-checked with the SAME module's `recheck` before the write completes.
-
-    Returns the landing dir, or None when no transcript resolved. Raises on a
-    real failure; the call site uses `_capture_session_safe`.
-    """
-    source_tag = "explicit"
-    if transcript_path is None:
-        tpath, source_tag = resolve_transcript(root=root, seat=seat)
-        if tpath is None:
-            print(f"WARN: session capture: no transcript for seat {seat!r} "
-                  f"(source={source_tag})", file=sys.stderr)
-            return None
-    else:
-        tpath = Path(transcript_path).expanduser()
-    session_id = tpath.stem
-    role = ((row or {}).get("role") or "unknown")
-    dest = (locations.repo_root(root) / "datasets" / SESSION_DATASET_DIR
-            / str(role) / session_id)
-    dest.mkdir(parents=True, exist_ok=True)
-    scrub = _load_scrub_module(root)
-    raw = tpath.read_text(encoding="utf-8", errors="replace")
-    scrubbed, counts = scrub.redact_text(raw)
-    remaining = scrub.recheck(scrubbed)
-    if remaining:
-        print(f"WARN: session capture: {len(remaining)} candidate span(s) "
-              f"remain after scrub for {session_id}", file=sys.stderr)
-    (dest / "transcript.jsonl").write_text(scrubbed, encoding="utf-8")
-    label = {
-        "role": (row or {}).get("role"),
-        "harness": (row or {}).get("harness"),
-        "model": (row or {}).get("model"),
-        "name": (row or {}).get("name"),
-        "town": (row or {}).get("town"),
-        "box": (row or {}).get("box"),
-        "session_id": session_id,
-        "transcript_source": source_tag,
-        "scrub_redactions": counts,
-    }
-    if row and "provider" in row:
-        label["provider"] = row.get("provider")
-    (dest / "label.json").write_text(
-        json.dumps(label, indent=2) + "\n", encoding="utf-8")
-    return dest
-
-
-def _capture_session_safe(root: Path, *, seat: str, row: dict | None,
-                          transcript_path=None) -> Path | None:
-    """Non-blocking capture: log on error, never raise past the caller.
-
-    A capture is ADDITIVE (goal:g14.14.8): a rotation that already succeeded
-    must COMPLETE even when its capture fails, with the error logged.
-    """
-    try:
-        dest = capture_session_transcript(root, seat=seat, row=row,
-                                          transcript_path=transcript_path)
-        if dest is not None:
-            print(f"session capture: {dest} (rotation continues)")
-        return dest
-    except Exception as e:  # noqa: BLE001 -- never fail a rotation here
-        print(f"WARN: session capture failed (rotation continues): "
-              f"{type(e).__name__}: {e}", file=sys.stderr)
-        return None
-
-
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -18454,7 +18194,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # config:seats unless --throwaway (a rehearsal-only registration that
         # never writes seats.md).
         if not getattr(args, "throwaway", False):
-            _prow = _find_seat(_seat_read_root(root, args.seat), args.seat)
+            _prow = _find_seat(root, args.seat)
             if _prow is None:
                 print(f"ERR: no seat {args.seat!r} in the seats registry "
                       f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
@@ -19127,14 +18867,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # The real spawn is where the file-existence gate in spawn_window lives.
     prompt_file = args.prompt_file
     if (not args.dry_run and prompt_file is None
-            and role != "prime_director"
             and tmpl is not None and tmpl.get("brief_file")):
-        # A prime seat is DELIBERATELY excluded: its body is the assembled
-        # render (head + the role template + doc:card-<post> + the town
-        # trajectory), selected by spawn_window's no-prompt-file branch, so
-        # resolving the template's static brief_file here would bypass the
-        # render AND lose the card once the [handoff-head] first_turn entry
-        # is gone (hypothesis:brief-py-assembles-every-first-turn-from-config).
         # L5.11: resolve the template brief through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
         # CWD coincidence. At a rename boundary the card was renamed under
@@ -19919,16 +19652,6 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if _lat is not None:
         _rec.setdefault("observations", {})["spawn_to_registry_s"] = _lat
     record_path = _write_rotation_record(root, _rec, path=rec_path)
-
-    # (6.1) SESSION CAPTURE (goal:g14.14.8): land the PREDECESSOR's own
-    #     transcript, scrubbed, beside its pre-labels under
-    #     `datasets/sessions/<role>/<session_id>/` (mirrors trajectories/).
-    #     ADDITIVE and NON-BLOCKING: the rotation already succeeded above; a
-    #     capture error is logged and the rotation completes regardless.
-    #     Resolved through the ONE existing `resolve_transcript` (env
-    #     $AGI_SESSION_LOG still names THIS seat's own session here).
-    if not args.dry_run:
-        _capture_session_safe(root, seat=seat, row=row)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack
@@ -20813,7 +20536,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
               "composes a broken `claude --resume  --fork-session` that "
               "silently loses context); nothing touched")
         return 1
-    branch = _migrate_post_ref(root, args.post)
+    branch = f"refs/agi/posts/{args.post}"
     print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
     for i, step in enumerate((
             "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
@@ -20865,19 +20588,6 @@ def _migrate_default_mode(root: Path, post: str) -> str:
     return "rotate"
 
 
-def _migrate_post_ref(root: Path, post: str) -> str:
-    """The post's ONE mirror-ref spelling (`branches.mirror_ref`), season
-    read from the ladder -- never a second hand-rolled post ref literal."""
-    season = 0
-    try:
-        import spawn_gate  # noqa: PLC0415 -- local: same dir, no cycle
-        season = int(spawn_gate.read_ladder_season(
-            _shared_graph_root(root) / "nodes") or 0)
-    except Exception:  # noqa: BLE001 -- no ladder -> season 0 (ref is flat)
-        season = 0
-    return branches.mirror_ref(season, "posts", post)
-
-
 def _migrate_row(root: Path, post: str) -> dict:
     """The post's committed identity row (MAIN's graph), {} when absent."""
     import write
@@ -20912,13 +20622,7 @@ def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
     over ssh (never an address); tests monkeypatch this."""
     dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
     dest.parent.mkdir(parents=True, exist_ok=True)
-    # `~`-relative, never `$HOME`: this argv is a literal list, so there is no
-    # shell to expand a variable, and scp's SFTP default (OpenSSH >= 9.0) runs
-    # no remote shell either -- the server expands a leading `~` via
-    # expand-path@openssh.com, but `$HOME` reaches it as four literal chars.
-    # Measured on OpenSSH_9.6p1: `scp -D /usr/lib/openssh/sftp-server
-    # boxA:~/.claude/.../x.jsonl` succeeds, the `$HOME` spelling is ENOENT.
-    remote = f"~/.claude/projects/{dest.parent.name}/{dest.name}"
+    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
     subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
                     str(dest)], check=False)
     try:
@@ -20933,7 +20637,7 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
     successor on THIS box (mode rotate = the ordinary spawn from row+card;
     mode fork = the transcript copy + the exact resume command). Returns the
     identity cells the seating produced; tests monkeypatch THIS."""
-    ref = rec.get("branch") or _migrate_post_ref(root, post)
+    ref = rec.get("branch") or f"refs/agi/posts/{post}"
     # R1: the worktree path is the row's OWN configured cell when it carries
     # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
     # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
@@ -21005,7 +20709,6 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
     import send
-    import write
     try:
         me = boxes.this_box(root)
     except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
@@ -21063,14 +20766,6 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
             print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
                   f"ref {rec.get('branch')}); nothing touched")
             continue
-        # FR-B2 conjunct A: resolve the seating grant BEFORE any seating. No
-        # grant -> `_migrate_seat` is NEVER called (no worktree, no spawn, no
-        # row cell), the request is byte-identical and the record skips BY NAME.
-        master = _migrate_seating_actor(root)
-        if not master:
-            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
-                  f"(record {path.name} skipped, tick lives)")
-            continue
         try:
             cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
         except OSError as exc:
@@ -21087,22 +20782,21 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                          if cells.get(k) is not None}
         seat_cells = {k: cells[k] for k in ("box", "worktree")
                       if cells.get(k) is not None}
-        # FR-B2 conjunct B: an inadmissible grant raises write.EditError from
-        # the ONE writer; catch it BY NAME so a later good record still seats.
-        try:
-            line = ""
-            if session_cells:
-                line = _write_identity_cells(
-                    root, seat=post, actor=post,
-                    role=str(row.get("role") or "director"),
-                    cells=session_cells)
-            if seat_cells:
-                seated_line = _write_identity_cells(
-                    root, seat=post, actor=master, role="", cells=seat_cells)
-                line = f"{line}; {seated_line}" if line else seated_line
-        except write.EditError as exc:
-            print(f"SKIP: migrate record {path.name} for {post} identity write "
-                  f"refused ({exc}); record skipped, tick lives")
+        line = ""
+        if session_cells:
+            line = _write_identity_cells(
+                root, seat=post, actor=post,
+                role=str(row.get("role") or "director"), cells=session_cells)
+        master = _migrate_seating_actor(root) if seat_cells else ""
+        if seat_cells and master:
+            seated_line = _write_identity_cells(
+                root, seat=post, actor=master, role="", cells=seat_cells)
+            line = f"{line}; {seated_line}" if line else seated_line
+        elif seat_cells:
+            # SLICE 6: no seating grant -> no ack, request record left as it
+            # was (a receive that could not seat has not seated).
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(the seating cells were not written)")
             continue
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)
