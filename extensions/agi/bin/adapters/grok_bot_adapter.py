@@ -134,6 +134,32 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    cwd = str(_restart_cwd(sess_dir, agent_record))
+    pane_name = (agent_record or {}).get("pane") or harness.get("pane")
+    if pane_name:
+        # Opt-in durable pane hold (`goal:g7.31.1.2`). The pane NAME comes
+        # from the record, so no harness is named here; when nothing opts in,
+        # the direct-Popen path below stays byte-identical.
+        from adapters import pane_hold
+        session = ((agent_record or {}).get("pane_session")
+                   or harness.get("pane_session")
+                   or pane_hold.DEFAULT_TMUX_SESSION)
+        try:
+            new_pid = pane_hold.ensure_pane(
+                tmux_session=session, name=pane_name, argv=args, cwd=cwd,
+                env=env, log_file=str(log_file))
+        except (OSError, subprocess.CalledProcessError) as exc:
+            print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
+            return None
+        if agent_record is not None:
+            agent_record["pid"] = new_pid or 0
+            agent_record["status"] = "restarted"
+            agent_record["restarted_at"] = int(time.time())
+            agent_record["pane_id"] = pane_hold.pane_id(
+                tmux_session=session, name=pane_name)
+            (sess_dir / "agent.json").write_text(
+                json.dumps(agent_record, indent=2))
+        return new_pid
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
@@ -142,7 +168,7 @@ def restart(
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
+                cwd=cwd,
                 env=env,
             )
     except OSError as exc:
