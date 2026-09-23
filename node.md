@@ -3,11 +3,11 @@ id: goal:g4.6
 mint_id: 3b187e5eec3246059655916829807d8f
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 next_edges:
   - hypothesis:a00-9bae6ee8-52d7f5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.6
 goal_kind: subgoal
 heading_level: 3
@@ -18,7 +18,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.6: One spawn path; a harness is an adapter named in config"
 ---
 **There is no single place where an agent is spawned, and that is the real
