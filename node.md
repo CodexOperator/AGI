@@ -3,9 +3,9 @@ id: goal:g4.1
 mint_id: 0ce6a836334e430a9f4a0f59c37ec82a
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.1
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.1: Parallel kids share one working tree and collide"
 ---
 Observed live 2026-08-22, by both kids of the same iteration independently.
