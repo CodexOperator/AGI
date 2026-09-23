@@ -1,12 +1,12 @@
 ---
-id: goal:g13.1
+id: goal:g4.18
 mint_id: 7a1f4d02c6b84e39ae5c30b7f2481d6e
 type: goal
 parents:
-  - goal:g13
+  - goal:g4
 confidence: 1.0
-edited_by: sensei-director
-goal_id: G13.1
+edited_by: belam
+goal_id: G4.18
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -21,11 +21,11 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G13.1: Edit mode: a modal shell over the read and write paths, so a human edit is an engine action"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G4.18: Edit mode: a modal shell over the read and write paths, so a human edit is an engine action"
 ---
 **The write-side counterpart of the viewport, and the reason it is a separate
-goal from it.** `goal:g9.4` gave the graph a *reader* a human can drive.
+goal from it.** `goal:g2.17` gave the graph a *reader* a human can drive.
 Everything a human does to *change* the graph is still a text editor and a
 commit — which is to say, outside the engine entirely.
 
@@ -56,7 +56,7 @@ and interactive shell for ease-of-use."* If edit mode needs its own parser or
 its own file-writing code, the seam is wrong and `goal:g13` has not actually
 unified anything.
 
-**Deliberately separate from the viewport.** `goal:g9.4` is the spiderweb view:
+**Deliberately separate from the viewport.** `goal:g2.17` is the spiderweb view:
 read-only, safe to run mid-iteration, `goal:g9`'s invariant. This is a
 *different instrument* that happens to share a renderer. Folding them would put
 a writer inside the one surface this project has promised is a reader — the
@@ -74,11 +74,11 @@ re-render after each change, and one submit.
 with the interaction removed, and it is the reason the verbs must be nameable
 rather than only keystrokes. **A keystroke an agent cannot spell is a verb that
 exists only for humans**, which would split the write path exactly as
-`goal:g9.7` forbids splitting the read path.
+`goal:g2.19` forbids splitting the read path.
 
 So: one set of named operations; a modal shell that binds keys to them; a
 serial form that runs the identical operations non-interactively. The
-`goal:g9.7` argument, applied to writing.
+`goal:g2.19` argument, applied to writing.
 
 ## What it must not become
 
@@ -92,7 +92,7 @@ replaced.
 
 **Provenance is the payoff, so it must actually be recorded.** A submitted
 edit should say who made it and why — `thought_session:` is reserved in
-frontmatter for exactly this (`goal:g2.7`, `goal:g10.1`) and nothing writes it
+frontmatter for exactly this (`goal:g2.7`, `goal:g2.24`) and nothing writes it
 yet. An edit mode that produces an untraceable change has delivered the
 convenience and none of the reason.
 
@@ -131,7 +131,7 @@ surfaces, and that test is what would have to be deleted to break it.
 
 The human/LLM symmetry section is the load-bearing design claim and it is
 deliberately stated as a constraint on the verbs rather than as a feature. It
-is `goal:g9.7` one surface over: there, one render for two readers; here, one
+is `goal:g2.19` one surface over: there, one render for two readers; here, one
 set of operations for two drivers. Stating it now is what stops edit mode
 shipping as keystroke handlers with no nameable operations behind them, which
 is the shape it would naturally take if built for the human case first.
