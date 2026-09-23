@@ -21,7 +21,9 @@ fields:
                                       #  session_kind, personality_ref, handoff_file, pin_ref,
                                       #  rotated_by, owning_goal, worktree, session_ref,
                                       #  pubkey, sig_scheme, enc_scheme, key_history,
-                                      #  town}. `town` is the row's REAL town; its
+                                      #  template, town}. `template` is the role template
+                                      #  node ref that beats `brief.templates[<role>]` for
+                                      #  this row's role. `town` is the row's REAL town; its
                                       #  accepted vocabulary and the transitional
                                       #  overrides are the `town_cell` declaration
                                       #  above (goal:g15.25).
