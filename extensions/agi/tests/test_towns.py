@@ -252,6 +252,23 @@ def test_deprecated_sibling_still_read(tmp_path):
     assert t.mint_id.startswith("oldmint")
     assert t.council == "council-core"
 
+def test_town_location_cell_carries_through(tmp_path):
+    """hypothesis:pass2-two-test-gaps-closed L2 — the `location:` cell (the
+    mesh host alias, schema [town].md) is CARRIED onto Town.location by the
+    loader; a town that omits it reads ''. Fails if towns.py's _load_one
+    drops the cell (towns.py ~:138/:157), which nothing pinned before."""
+    g = _graph(tmp_path)
+    _write(g, "nodes/town/core.md",
+           _town_node("core", ["vision:a"], "council-core", 2,
+                      extra="location: encryption-town\n"))
+    _write(g, "nodes/town/streaming-suite.md",
+           _town_node("streaming-suite", ["vision:b"],
+                      "council-streaming-suite", 1))
+    by = {t.slug: t for t in towns.load_towns(g)}
+    assert by["core"].location == "encryption-town"
+    assert by["streaming-suite"].location == ""
+
+
 def test_cli_imports_outside_pytest_and_accepts_either_root(tmp_path):
     """Director regression (L4.333 harvest): the merged towns.py imported
     graph_core without the bin modules' sys.path inserts, so
