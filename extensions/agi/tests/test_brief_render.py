@@ -314,3 +314,79 @@ def test_rotate_fallback_reason_reaches_stderr(tmp_path, monkeypatch, capsys):
         project_root=root)
     err = capsys.readouterr().err
     assert "brief.render" in err and "falling back to brief.assemble" in err
+
+
+# ---- phase 4, items 2+3: the Prime spawn path renders and the card lands once
+
+
+def _prime_root(tmp_path):
+    """A tmp graph root with a prime_director post, its template, its card and
+    the town trajectory, so the Prime spawn render can be exercised."""
+    root = _root(
+        tmp_path,
+        parts={"prime_director": ["head", "template", "card", "trajectory"]},
+        templates={"prime_director": "doc:director-brief"})
+    _write(root, "nodes/doc/director-brief.md", "PRIME-TEMPLATE-SENTINEL\n")
+    _write(root, "nodes/.geometry/posts.md",
+           "---\nid: config:posts\nposts:\n"
+           '  - {"name": "prime-post", "role": "prime_director", '
+           '"harness": "pi"}\n---\n')
+    _write(root, "sessions/quorum/prime-post.md", "PRIME-CARD-SENTINEL\n")
+    return root
+
+
+def _capture_prime_body(monkeypatch, root, prompt_file=None, **over):
+    sys.path.insert(0, str(BIN))
+    import rotate
+
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]),
+                               ["x"])[1])
+    rc, _ = rotate.spawn_window(
+        name="prime-post", tier="prime_director", prompt_file=prompt_file,
+        dry_run=True, root=root, **over)
+    assert rc == 0
+    return seen["prompt"]
+
+
+def test_prime_successor_with_no_prompt_file_renders_once(tmp_path,
+                                                         monkeypatch):
+    """A Prime successor with NO `--prompt-file` is the SAME assembled render
+    every other seat gets: head + the role template + the post's card + the
+    town trajectory -- and the card appears EXACTLY ONCE, never once from the
+    render and again from a `[handoff-head]` first_turn read."""
+    root = _prime_root(tmp_path)
+    body = _capture_prime_body(monkeypatch, root)
+    # `ultracode` is the keyword first line the prime's ladder row sets; the
+    # constitution head follows it and precedes the template, card, trajectory.
+    assert brief.render_head(project_root=root) in body
+    assert body.index("PRIME-TEMPLATE-SENTINEL") < body.index("PRIME-CARD-SENTINEL")
+    assert body.index("PRIME-CARD-SENTINEL") < body.index("TOWN-TRAJECTORY-SENTINEL")
+    assert body.count("PRIME-CARD-SENTINEL") == 1
+
+
+def test_prime_explicit_prompt_file_still_wins(tmp_path, monkeypatch):
+    """An EXPLICIT `--prompt-file` beats the render byte-for-byte: the card is
+    NOT smuggled in, and the file's body is the one shipped."""
+    root = _prime_root(tmp_path)
+    pf = _write(root, "explicit-prime.md",
+                "EXPLICIT-PRIME-BODY-SENTINEL {name}\n")
+    body = _capture_prime_body(monkeypatch, root, prompt_file=str(pf))
+    assert "EXPLICIT-PRIME-BODY-SENTINEL prime-post" in body
+    assert "PRIME-CARD-SENTINEL" not in body
+    assert "PRIME-TEMPLATE-SENTINEL" not in body
+
+
+def test_config_rotations_first_turn_no_longer_reads_the_card():
+    """The Prime's card reaches its first turn through the render alone; no
+    `config:rotations` first_turn entry may read `build:HANDOFF.md` (which is a
+    symlink to `doc:card-belam`) or the card would land twice. Other first_turn
+    entries stay."""
+    repo = BIN.parents[2]
+    rot = (repo / ".agi" / "nodes" / ".geometry" / "rotations.md").read_text(
+        encoding="utf-8")
+    assert "build:HANDOFF.md" not in rot
+    assert '"label": "rotation-record"' in rot
+    assert '"label": "verify"' in rot
