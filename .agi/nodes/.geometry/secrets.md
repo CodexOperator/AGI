@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g1.8
   - goal:g2.25
-edited_by: belam-S1-L3-III
+edited_by: belam
 forbidden_keys:
   - ANTHROPIC_API_KEY
   - ANTHROPIC_AUTH_TOKEN
@@ -34,8 +34,9 @@ optional_keys:
   - OPENAI_API_KEY
   - OPENROUTER_PROVISIONING_KEY
   - CAMBER_CLOUD_API_KEY
-required_keys:
-  - OPENROUTER_API_KEY
+required_any:
+  - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+required_keys: []
 season: 1
 status: active
 tags:
@@ -43,7 +44,7 @@ tags:
   - config
   - secrets
   - structural
-thought_session: L3.22
+thought_session: belam-S2-L5-I
 title: Where credentials live, and which keys this project requires
 ---
 **One file holds this project's secrets, and this node says which file it is.**
