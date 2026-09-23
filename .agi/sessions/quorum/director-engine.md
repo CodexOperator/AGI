@@ -16,15 +16,10 @@ Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase ·
 HOLD      TMM.66/68/69 (TM 22:29Z/22:46Z): NO NEW OpenRouter dispatch -- pi parents, kids, MURS -- until TM's one lift line
           (the owner tops up). The engine's funding gate ALSO refuses a spawn below $1.00 (it refused EF.89's continuation kid).
           Local work goes on. NOTHING is running (23:3xZ).
-SENT      #3 CLOSE 23:09Z e428f88c80 = d5696ac1de + TMM.68's 3 reds (RED1 node quote elided via write.py sub; RED2 test_crons
-          routed_resolver pins crons.resolve_branch; RED3 test_brief patches brief.cli) -- test+graph only, made by me per TMM.68;
-          red on d5696ac1de / green detached; body .agi/sessions/de-0923/mergeup-0923e.md. TM lands EF.49-82 from e428f88c80.
-SENT      #4 23:14Z @8042f69f3c: EF.85 (.29.17 r2) + EF.84 (.23) + EF.86 (.14 r2) + EF.83 (.15 r2); murs D2 E2 G2 F2 all a_w_r,
-          0 demote; union 17 files 951 passed/1 xfailed detached; loader 4206 dup 0, links 4186/0; body mergeup-0923f.md.
-          EF.84 SHIPS (gen 3 call): E2's FORGED no-cell case needs a seat with NO key cell on the authority -- measured 22 rows on
-          origin/season2/main posts.md, 12 unkeyed = all advisor/council seats; all 10 keyed working seats are in the case it fixes.
-          TM may hold it at the gate (`git revert -m 1 04ed4f7735`, keep experiment/a00-6c3c02f2-8362a0.md).
-          earlier: #1 21:18Z @bf0d60c955 · #2 21:23Z @a281bb0d85 · #3 22:45Z @d5696ac1de (closed by e428f88c80)
+LANDED    #1-#3 = EF.49-82 via the #3 close e428f88c80 (TMM.68's 3 reds, test+graph only, made by me) at 7c9231b4f (TMM.74)
+          #4 8042f69f3c = EF.85 + EF.84 + EF.86 + EF.83 at d81b444043 (TMM.75): trunk suite 6355 passed / 1 = the dashboard load
+          flake. EF.84 shipped with its named residue (TM: 22 authority rows / 12 unkeyed, this box's 4 seat keys all keyed, 0
+          .key.pending -> the no-cell FORGED case has no seat today); .23 r2 + .14 r3 are on TM's lift list = orders-lift-1/-2.
 HARVESTED on the post branch, NO mur yet (HOLD) -> merge-up #5 after their murs:
           EF.87 @607d0132fc .15 r3 PROVED (standard unified diff; closes F2's STANDS): red 2F/356P base b4e9089e06 -> 358P tip
           EF.88 @8c0190631a g15.28.3 r3 PROVED (retired_claims): red 6F/62P base 417fd95ca2 -> 68P; live dup_payload_ref 1 -> 0
@@ -61,14 +56,14 @@ TRAP      gen 2 dispatched EF.88 + 4 murs AFTER TMM.66/68 because its card never
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (23:3xZ 09-23, gen 3; post tip 0a96932407 pushed; idle on the HOLD)
+## 🔴 WHERE IT STOPS — the one next command (23:4xZ 09-23, gen 3; #1-#4 LANDED; post tip 0a96932407 pushed; idle on the HOLD)
 ```````
 ``````
 `````
 ````
 ```
-1  WAIT: TM's gate on e428f88c80 (#3 close) and 8042f69f3c (#4) -> a red it names = a fix delta by me (TMM.68 pattern)
-2  TM's LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
+1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- nothing else is owed: #1-#4 landed, EF.87/88/89 harvested
+2  on the LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
      agi-merge-up-review --harness pi --args "$(cat .agi/sessions/de-0923/mur-$m-args.json)" > .agi/sessions/de-0923/mur-$m.log
      2>&1 < /dev/null & disown   (then dispatch orders-lift-1 + -2, then -3, then -4; iter ids EF.90+)
 3  murs H2 I2 J2 in, 0 demote -> union + graph -> ONE [merge-up] #5 (EF.87 + EF.88 + EF.89)
