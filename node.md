@@ -3,7 +3,7 @@ id: hypothesis:l4-a-round-is-cut-from-the-branch-you-are-on
 mint_id: 79e752f6d9b94868b648e539a1d28ef4
 type: hypothesis
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 role: director
