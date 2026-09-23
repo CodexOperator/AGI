@@ -22,6 +22,32 @@ def route(from_harness: str, to_harness: str) -> str:
 def _sha256(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
+def deliver(from_harness: str, to_harness: str, text: str, *, pane_target=None,
+            nudge_dir=None, requested_path=None, send_py=None) -> dict:
+    """Sole entrypoint: pick the transport from route() and nothing else.
+
+    A caller-supplied `requested_path` that contradicts route() is refused by
+    name (both the request and the verdict are in the error text), so a
+    same-harness pair can never be pushed onto the send.py path and a
+    cross-harness pair can never claim native tmux.
+    """
+    verdict = route(from_harness, to_harness)
+    if requested_path is not None and requested_path != verdict:
+        raise ValueError(
+            f"transport {requested_path!r} contradicts route verdict "
+            f"{verdict!r} for {from_harness!r} -> {to_harness!r}")
+    if verdict == "native":
+        if pane_target is None:
+            raise ValueError("native route requires pane_target")
+        out = native_send(pane_target, text)
+    else:
+        if nudge_dir is None:
+            raise ValueError("nudge_send route requires nudge_dir")
+        out = cross_send(from_harness, to_harness, text, nudge_dir,
+                         send_py=send_py)
+    out["route"] = verdict
+    return out
+
 def native_send(pane_target: str, text: str) -> dict:
     """Deliver pane-to-pane (tmux send-keys + Enter); never send.py."""
     subprocess.run(["tmux", "send-keys", "-t", pane_target, text, "Enter"], check=True)
