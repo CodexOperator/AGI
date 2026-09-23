@@ -3,13 +3,13 @@ id: hypothesis:l3-workflows-unified-route
 mint_id: 6131272da9cc4bf2ace1737abc14f431
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam
 scaffold_hash: dd991344295decab
 season: 2
 testable_claim=After: the change, workflow.py gains register and list verbs so an inline script becomes a registered manifest pair under extensions/agi/workflows/ in the same action that runs it, workflow.py run is the only sanctioned dispatch route for every workflow including review and drafting, and a test fails when any agi-*.js exists without a sibling manifest or when a manifest names stages the script does not implement; proven by red-first tests for the registry invariant plus a real register-then-run round trip of a script that started life inline
-thought_session: belam-S1-L3-X
+thought_session: dissolve-legacy-2026-09-19
 title: A workflow written inline exists only for one session and runs on one harness; make registration happen as it runs and make workflow.py run the only route
 ---
 <!-- BODY:BEGIN -->
