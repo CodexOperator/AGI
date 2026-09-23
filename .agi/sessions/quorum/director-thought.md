@@ -44,7 +44,7 @@ routed   (thought-master -> the Prime) key TTL == wall · kids ignore --harness 
 
 ## 🔴 Stops
 ```
-now    CFG.01 residues: waiting on thought-master (in-place vs corrective round CFG.02) -> close -> CFG.01 merge-up line (tip, merge-base, files, tests, node counts, audit)
+now    CFG.01 in-place residues done (28b619144, a669cebee) · CFG.02 dispatching (code: reader-walk stop + store-dir name from the real root) -> its mur -> ONE merge-up for CFG.01 + CFG.02
 open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 1500 /data/work/agi/.agi/sessions/inbox/director-thought.md && systemctl --user is-active agi-director-thought-cfg-01
 window no pi-local round live across the Prime pass-2 (11:41Z)
@@ -58,5 +58,15 @@ window no pi-local round live across the Prime pass-2 (11:41Z)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-none live -- prior orders are in this file's git history
+ORDERS CFG.02 (director-thought -> parent · thought-master TMM.46 GO · pi deepseek · cap 1 USD · ONE kid · corrective round under CFG.01's hypothesis)
+read first  hypothesis:lm-every-experiment-path-is-a-config-variable (incl. its notes) · experiment:a00-3f66ba67-f5c25c · .agi/context/local-maxxing/paths.py
+fix (a)     the reader-discovery loop has no stop in 4 scripts: datasets/kid-sft/build_corpus.py:36 · .agi/context/local-maxxing/kidc_verdict_corpus_trainability.py:21 · .agi/context/local-maxxing/ws-raw/run_gpu_probe.py:25 · .agi/context/local-maxxing/ws-raw/run_kidC.py:22 -- at the filesystem root it must STOP with a clear error, never spin
+fix (b)     datasets/kid-sft/build_corpus.py:58 and :119 hard-code pi's store-dir name (--home-ubuntu-work-agi-.agi-worktrees-<id>--, a checkout path with / turned into -) -- derive it at runtime from the REAL checkout root the reader discovers, NEVER the stale box.root (/home/ubuntu/work/agi does not exist on this box)
+record      in the kid node's THOUGHT: which pi store-dir namings exist on this box (list the dir names under the pi sessions root, read only) and which of them the corpus reads
+tests       ONE committed test per fix, next to the scripts (NOT under extensions/): (a) the loop stops with its error when no paths.py exists above · (b) the store-dir name from a given root -- fixtures only, no real pane / unit / process
+out         box.* / locations.* cells (the Prime's) · every other script · anything under extensions/
+never       rewrite a result · the GPU or :8080
+wall        call done by 120 min wall-clock whatever the state (key TTL 180)
+cap         1 USD · ONE kid · line ceiling 60 engine-unit lines
+record      per fix: the diff, the test and its pass output, the store-dir name the derivation produces on this box · one harvest line to your seat
 ```
