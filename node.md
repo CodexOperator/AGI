@@ -1,13 +1,13 @@
 ---
-id: goal:g15.2
+id: goal:g6.24
 mint_id: 97ca61939b034ac3b2d63225ed1e064e
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.2
+edited_by: belam
+goal_id: G6.24
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
-title: "G15.2: Rotation record and generation stamp land in ONE write"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.24: Rotation record and generation stamp land in ONE write"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.2
+# goal:g6.24
