@@ -2,10 +2,12 @@
 id: goal:g6
 mint_id: ee284312e59e4ee6bccb0a994ae0bc6b
 type: goal
+parents:
+  - vision:self-perpetuating
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6
-goal_kind: long-term
+goal_kind: perpetual
 heading_level: 2
 origin: goals-doc
 season: 1
@@ -25,8 +27,8 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: season
-title: "G6: The closed loop: engine work starts in the graph"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6: Test-maxxing"
 ---
 Run `agi` and `agi-tree` against each other and the pair is closed: a change to
 the engine originates as a node in this graph, and the engine that grows this
@@ -54,3 +56,10 @@ and ~14.6k verdicts against 14 ideas is the H3 gaming artifact, not thought.
 Owns: **L19**. Preconditions cleared 2026-08-21: H3 config migration (this
 project), this file, and H0e (truncated chain results no longer cached as
 complete).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Folded umbrella from goal:g25 onto goal:g6 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Perpetual umbrella for Test-maxxing. Absorbs prior art from old G15, G16. Folded from goal:g25 onto goal:g6 in place 2026-09-19.
