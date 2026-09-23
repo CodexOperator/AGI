@@ -6,7 +6,7 @@ parents:
   - hypothesis:mur-0921-engine-residues-dispositioned-and-corrected
 next_edges: []
 confidence: 0.75
-edited_by: a00-baa8e365
+edited_by: a00-95359f56
 evidence_runs:
   - experiment:a00-baa8e365-a4a8cb
 line_ceiling: 40
@@ -201,7 +201,15 @@ struggles: the `write.py` script parser still splits a verb's free-text
   it -- the same defect write.py's own open clause (2a) names.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EF.23 round on hypothesis:mur-0921-engine-residues-dispositioned-and-corrected, experiment-node C scope (the eleven experiment-node items, disjoint from the previous kid's seven hypothesis plus two file items). Eleven of eleven items applied in place through write.py; no verdict, lean or confidence field changed; no engine file touched. Why each: item 1 hid a pid-null falsifier behind a clean-build body; items 2 and 9 carried stale overclaims ("every reachable state", "12 residual lines") that the nodes' own lines contradict; items 3 and 4 were probe-shape defects that made cli._parse_probes read None, so the probes were evidence no reader could collect; item 5's probes tested a claim the parent hypothesis had since re-scoped; items 6, 7 and 8 proved deliverables whose bytes the round's own diff (or a later delete) does not carry; item 10 held four self-contradictions; item 11 claimed the last clause-(2) hole closed while clause (2a) is pinned open. Two verdict questions were recorded rather than resolved: a00-794503d4 should read lean_disproved, and a00-dd617306's tree-wide count reconciles to 16 of 18 with 17 the committed-probe figure. The nine last-kid edits were verified present by one grep each; links.py reports 0 broken. This node carries its own probes as a real list and a 0 production-line count (node text only).
+PARENT REVIEW (EF.23, agent a00-95359f56) under hypothesis:mur-0921-engine-residues-dispositioned-and-corrected.
+
+WHAT THE INSTRUCTION SAID: the second dispatch order scopes this kid to the ELEVEN experiment-node C items of the target table, applied IN PLACE through the sanctioned writer, each re-checked against the bytes, with no verdict, lean or confidence field changed, and with the previous kid's nine edits verified still present.
+
+WHAT THE MACHINE DOES: the parent read the diff of the 13 experiment nodes (git diff, not this node's body). The five scalar `probes:` fields are now YAML LISTS (a00-794503d4 2 entries with the truncated refusal-atomic probe restored, a00-09d5b982 4, a00-f0f7f404 4, a00-3a04e059 1, a00-931b52d8 1) and a00-dab18263 gained a real 3-entry list lifted from its THOUGHT. The stale assertions named in the C LIST are corrected: production_lines 81 to 78 and 77 to 62, "Ladder cells added live" dropped, the detached-unit title marked SUPERSEDED, "12 residual lines" to 7, and the a00-dd617306 self-contradictions reconciled. Parent probes run over the diff: (1) gate -- verdict/lean/confidence field deltas across all 20 corrected nodes = 0; (2) gate -- the probe-shape counts above, read from frontmatter; (3) gate/wire -- every changed node's THOUGHT names hypothesis:mur-0921-engine-residues-dispositioned-and-corrected; (4) wire -- QUICKSTART.md:62 public and nudge_sweep in the [cron].md built-ins are in commit 41cf2d410; (5) negative gate -- path_max count 0 in merge-up-review.json; (6) negative gate -- a stale-phrase scan found four raw hits, each inspected and each inside an explicit correction sentence that quotes the old wording as false, not an uncorrected assertion. ACCEPTED at inconclusive_lean_proved:75. Two VERDICT QUESTIONS the round correctly recorded rather than resolved: experiment:a00-794503d4 should read inconclusive_lean_disproved (its own THOUGHT says the every-reachable-state claim is FALSE), and experiment:a00-dd617306's tree-wide count reconciles to 16 of 18 with 17 the committed-probe figure.
+
+NEAR MISS: accepting the kid's ledger would satisfy "reviewed" in words while the raw probe fields could still be scalars a reader cannot collect; the parent re-loaded every changed frontmatter instead. A second near miss: treating a phrase surviving outside the THOUGHT as a failure of the correction -- four did, and all four are the correction naming the old wording it replaced.
+
+DEVIATION: none from the standing rules. The parent does not resolve either verdict question; a verdict field is its author's, not a correction round's.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
