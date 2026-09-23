@@ -3,9 +3,9 @@ id: goal:s23
 mint_id: 8274f7365bf5494ebecab0336e63ba85
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 goal_id: S23
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S23: A deprecated node still reaches injected context"
 ---
 **Measured 2026-09-02, during the goal sweep.** `build:TODO.md` and
