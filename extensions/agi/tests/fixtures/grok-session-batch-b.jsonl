@@ -1,0 +1,3 @@
+{"session_id": "grok-2026-09-22-batch222", "harness": "grok-bot", "started": "2026-09-22T11:00:00Z"}
+{"role": "user", "content": "Batch ingest should discover every artifact in a directory.", "ts": "2026-09-22T11:00:01Z"}
+{"role": "assistant", "content": "Scan the directory, ingest in sorted order, keep going past refusals.", "ts": "2026-09-22T11:00:05Z"}
