@@ -30,6 +30,7 @@ trunk reds     test_dashboard's SIGINT watch only (times out under full-suite lo
 ```
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 23:2xZ 09-23  ROTATED at f 0.40 of the 0.47 line; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree of mine open
@@ -42,6 +43,7 @@ trunk reds     test_dashboard's SIGINT watch only (times out under full-suite lo
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
+`````
 
 ## Traps (post-specific, learned)
 ```
