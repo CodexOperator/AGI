@@ -1,14 +1,13 @@
 ---
-id: goal:g15.16
+id: goal:g6.38
 mint_id: be26d2b089d644b28c422b31cb58d8f6
 type: goal
 parents:
-  - goal:g15
-  - build:bin-rotate
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.16
+edited_by: belam
+goal_id: G6.38
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -22,12 +21,12 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-thought_session: sensei-director-genI-L1
-title: "G15.16: a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.38: a rotation costs every live seat zero calls and the successor one — the alert carries the address, ack needs no --ref, rotate-self reads the geometry at the integration tree or refuses when behind"
 town: core
 ---
 <!-- BODY:BEGIN -->
-**A rotation costs every live seat zero calls and the successor one: the `[rotation-alert]` carries the successor's address, `ack` needs no `--ref` (and validates one when given), and `rotate-self` reads the geometry it spawns from at the integration tree or refuses when the rotating worktree is behind on it.** Sensei package `e8a7df41b` (16:15Z dm to this seat), lines 4, 5, (h), (i) — each measured on a live rotation; line 6 (the after_join executor the `delivery` prose promises) is OWED (i) of the 0b-b stub and is inside `goal:g15.15`'s round, not here.
+**A rotation costs every live seat zero calls and the successor one: the `[rotation-alert]` carries the successor's address, `ack` needs no `--ref` (and validates one when given), and `rotate-self` reads the geometry it spawns from at the integration tree or refuses when the rotating worktree is behind on it.** Sensei package `e8a7df41b` (16:15Z dm to this seat), lines 4, 5, (h), (i) — each measured on a live rotation; line 6 (the after_join executor the `delivery` prose promises) is OWED (i) of the 0b-b stub and is inside `goal:g6.37`'s round, not here.
 
 ## Why this exists
 
@@ -38,7 +37,7 @@ town: core
 
 (1) The `[rotation-alert]` dm carries `name [ref] @window` of the successor once the join has them (composed after the join; a pre-join alert says so by name) — a live seat that reads the alert needs 0 calls to address the successor. (2) `rotate.py ack --seat S --gen N continue|diff` with NO `--ref` back-fills `session_ref` from the row's `session_id` through the same resolution `whois` uses; a given `--ref` must be the bare ref form (refused by name when it carries brackets, spaces or the seat name — the helper's row shape) and must agree with the row's `session_id`. (3) `rotate-self` reads `config:rotations` and `config:seats` from `{repo}` (the integration tree, `git_common_root`) when the rotating worktree is behind `origin/season/s2` on `.agi/nodes/.geometry/`, or refuses BY NAME with the behind-count and the sync command — never spawns a successor on a stale template again; the record names which tree the template came from. Red-first tests on fixtures for each (alert text; ack without --ref; ack with a row-shaped --ref refused; rotate-self on a fixture worktree behind on `.geometry/` refuses / reads `{repo}`), `test_rotate.py` + `test_rotate_startup.py` + `test_rotate_templates.py` + `test_send.py` (fake tmux) neighbours green.
 
-**Falsifiers:** an alert without the address after a successful join; an ack that writes a row-shaped ref; a rotate-self that spawns on a stale `.geometry/` silently. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (alert composition, `cmd_ack`, the geometry read in `cmd_rotate_self`) + tests. EXCLUDED: `send.py`, `config:*`, hooks. **CEILING:** 1 parent, up to 3 kids PARALLEL (one per mechanism). **SERIAL** on `rotate.py` behind `goal:g15.15`'s round (SL1.03 owns the first_turn/bootstrap/spawn region the geometry read sits beside) — cut after it is harvested.
+**Falsifiers:** an alert without the address after a successful join; an ack that writes a row-shaped ref; a rotate-self that spawns on a stale `.geometry/` silently. **FILE SCOPE:** `extensions/agi/bin/rotate.py` (alert composition, `cmd_ack`, the geometry read in `cmd_rotate_self`) + tests. EXCLUDED: `send.py`, `config:*`, hooks. **CEILING:** 1 parent, up to 3 kids PARALLEL (one per mechanism). **SERIAL** on `rotate.py` behind `goal:g6.37`'s round (SL1.03 owns the first_turn/bootstrap/spawn region the geometry read sits beside) — cut after it is harvested.
 
 ## Agent Notes
 SL1.06 HARVESTED (sensei-director L2, 9460b63ea): m1 alert carries name [ref] @window post-join (pre-join alerts name it); m2 ack without --ref back-fills session_ref from the row's session_id via send._resolve_rows, row-shaped or disagreeing --ref refused rc 2; m3 _geometry_resolution_root + template_source on the record. Three kids, lean_proved 85/80/80, 12 red-first tests, rotate neighbourhood 451 passed. Director fix-ups in-loop: conflict with SL1.02/03 in rotate.py resolved keeping both blocks; the kid's sync command said rebase, now merge (standing rule); the serve-from-integration-tree test rewritten because _prepare_checks (SL1.02) refuses ANY behind count first — m3's serve path is unreachable in a live rotate-self and stays as the fixture-seam guard. RESIDUE: the per-mechanism call counts the brief asked for (alert 2 per live seat per rotation, wake 1) were reported by the kids from the design, not re-measured on a live rotation; cfg_root feeds _find_seat + _resolve_template only, the generation counter still reads the worktree row (correct, the own row lives there).
