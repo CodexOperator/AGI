@@ -168,6 +168,45 @@ def pane_coherent(row: dict, tmux_session: str,
     return True
 
 
+def _session_pin_drift(row: dict, live: str | None,
+                       registry_dir: str | None) -> str | None:
+    """The SESSION half of a seat row's pin (goal:g7.31.2.1): a drift string
+    naming the seat when a PARSED registry record disagrees, else None.
+
+    Reads `<pid>.json` through rotate's ONE parser (`_registry_read`) and
+    window-matches with `_registry_matches_window_id`, never a second parser.
+    Fail-open (None, no invented drift, no crash): no `registry_dir`; the row
+    carries no `session_id` (the JOIN-miss sentinel) or no positive pid; or
+    the registry file is absent/unreadable while the pane matches.
+    """
+    if not registry_dir:
+        return None
+    name = str(row.get("name") or "")
+    row_sid = str(row.get("session_id") or "")
+    if not row_sid:
+        return None
+    try:
+        pid = int(row.get("pid"))
+    except (TypeError, ValueError):
+        return None
+    if pid <= 0:
+        return None
+    try:
+        import rotate as _rotate
+        data = _rotate._registry_read(registry_dir, pid)
+    except Exception:                                                # noqa: BLE001
+        return None
+    if not data:
+        return None               # absent/unreadable -> fail-open, no crash
+    rec_sid = str(data.get("session_id") or data.get("sessionId") or "")
+    if rec_sid != row_sid:
+        return (f"{name}: row session {row_sid[:8] or '-'} != "
+                f"registry {rec_sid[:8] or '-'}")
+    if live and not _rotate._registry_matches_window_id(data, live):
+        return f"{name}: pid {pid} registry names no live window {live}"
+    return None
+
+
 def seat_occupation(row: dict, tmux_session: str,
                     window_path: str | None = None,
                     registry_dir: str | None = None) -> dict | None:
@@ -178,8 +217,11 @@ def seat_occupation(row: dict, tmux_session: str,
     alive; "pane-drift" when the window does not match (or matches with a dead
     pid); "unoccupied" when no live window answers the seat name; `None`
     (fail-open) when tmux is unreadable. Returns {state, window, live,
-    pid_alive} from rotate's `_successor_window_id`/`_pid_alive`; the accepted
-    `registry_dir` is not consulted.
+    pid_alive, session_drift} from rotate's `_successor_window_id`/
+    `_pid_alive`, PLUS the session half when a `registry_dir` is supplied: an
+    otherwise-occupied row whose registry disagrees with its `session_id` (or
+    names no live window) reads `session-drift`, never `occupied`; no
+    `registry_dir` -> no registry read at all, byte-identical to before.
     """
     if window_path is None and shutil.which("tmux") is None:
         return None
@@ -210,8 +252,11 @@ def seat_occupation(row: dict, tmux_session: str,
         state = "unoccupied"
     elif pin != live or pid_alive is False:
         state = "pane-drift"
+    drift = _session_pin_drift(row, live, registry_dir)
+    if state == "occupied" and drift:
+        state = "session-drift"
     return {"state": state, "window": pin, "live": live,
-            "pid_alive": pid_alive}
+            "pid_alive": pid_alive, "session_drift": drift}
 
 
 def _occ_cell(occ: dict | None) -> str:
@@ -225,6 +270,8 @@ def _occ_cell(occ: dict | None) -> str:
     if st == "pane-drift":
         return (f" pane=pane-drift(row {occ.get('window') or '-'}"
                 f" live {occ.get('live') or '-'})")
+    if st == "session-drift":
+        return f" pane=session-drift({occ.get('session_drift') or '-'})"
     return " pane=unoccupied"
 
 
@@ -295,7 +342,8 @@ def load_ladder_field(root: Path, field: str, default):
 
 def collect(root: Path, fm_by_id: dict,
             tmux_session: str | None = None,
-            window_path: str | None = None) -> SeatsView:
+            window_path: str | None = None,
+            registry_dir: str | None = None) -> SeatsView:
     """Compute the one `SeatsView` both renderers state.
 
     `root` is the project/graph root as `viewport` resolves it. `fm_by_id` is
@@ -322,7 +370,8 @@ def collect(root: Path, fm_by_id: dict,
         fraction, fsrc = _seat_fraction(root, name)
         occ = None
         if tmux_session is not None or window_path is not None:
-            occ = seat_occupation(r, tmux_session or "", window_path)
+            occ = seat_occupation(r, tmux_session or "", window_path,
+                                  registry_dir)
         seats.append({
             "name": name,
             "role": str(r.get("role") or ""),
@@ -405,12 +454,16 @@ def main(argv: list[str] | None = None) -> int:
                     help="tmux session to check pane coherence against")
     ap.add_argument("--window-path", default=None,
                     help="window-list seam (a file of `@id name` lines)")
+    ap.add_argument("--registry-dir", default=None,
+                    help="per-session registry dir; when given, the session "
+                         "pin is cross-checked against `<pid>.json`")
     args = ap.parse_args(argv)
     import locations
     root = Path(args.root)
     root = locations.find_project_root(root) or root
     view = collect(root, {}, tmux_session=args.tmux_session,
-                   window_path=args.window_path)
+                   window_path=args.window_path,
+                   registry_dir=args.registry_dir)
     lines = to_markdown(view) if not args.list else None
     if args.list:
         if not view.registry_present:
@@ -429,9 +482,23 @@ def main(argv: list[str] | None = None) -> int:
                         if s['fraction'] is not None else "")
                 row = next((r for r in rows
                             if str(r.get("name")) == s['name']), {})
-                coh = pane_coherent(row, sess, args.window_path)
-                coh_cell = ("-" if coh is None else "ok" if coh is True
-                            else f"drift:{coh}")
+                if args.registry_dir:
+                    occ = seat_occupation(row, sess, args.window_path,
+                                          args.registry_dir)
+                    if occ is None:
+                        coh_cell = "-"
+                    elif occ["state"] == "occupied":
+                        coh_cell = "ok"
+                    else:
+                        coh_cell = "drift:" + (
+                            occ.get("session_drift") or
+                            f"{s['name']}: row pin "
+                            f"{occ.get('window') or '-'} != live "
+                            f"{occ.get('live') or '-'}")
+                else:
+                    coh = pane_coherent(row, sess, args.window_path)
+                    coh_cell = ("-" if coh is None else "ok" if coh is True
+                                else f"drift:{coh}")
                 print("\t".join([
                     s['name'], s['role'], s['session_kind'],
                     s.get('town') or 'core',

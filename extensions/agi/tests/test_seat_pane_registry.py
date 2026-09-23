@@ -276,3 +276,133 @@ def test_collect_with_the_seam_renders_drift(tmp_path):
     v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins))
     assert v.seats[0]["occupation"]["state"] == "pane-drift", v.seats
     assert "pane=pane-drift(row @9 live @7)" in "\n".join(SS.to_compact(v))
+
+
+# ---- READ side: the SESSION half of the pin (registry_dir) --------------- #
+
+def _write_registry(registry: Path, pid: int, sid: str, wid: str) -> None:
+    """A `<registry>/<pid>.json` carrying sessionId + a tmux @id cell."""
+    registry.mkdir(parents=True, exist_ok=True)
+    (registry / f"{pid}.json").write_text(
+        json.dumps({"sessionId": sid, "session_id": sid,
+                    "tmux": f"agi-rc:@{wid.lstrip('@')}.%{wid.lstrip('@')}"}),
+        encoding="utf-8")
+
+
+def _occ_row(sid="A"):
+    r = {"name": "director-seat", "window": "@7", "pid": _LIVE_PID}
+    if sid is not None:
+        r["session_id"] = sid
+    return r
+
+
+def test_seat_occupation_registry_match_stays_occupied(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "A", "@7")
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins), str(reg))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_drift"] is None, occ
+
+
+def test_seat_occupation_registry_session_mismatch_reads_drift(tmp_path):
+    """FALSIFIER: pane matches, pid live, row session A, registry session B
+    -> drift, never occupied."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "B", "@7")
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins), str(reg))
+    assert occ["state"] == "session-drift", occ
+    assert "director-seat" in occ["session_drift"], occ
+
+
+def test_seat_occupation_registry_window_mismatch_reads_drift(tmp_path):
+    """Session id agrees but the record names a DIFFERENT live window @id
+    -> drift."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "A", "@9")
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins), str(reg))
+    assert occ["state"] == "session-drift", occ
+    assert "@7" in occ["session_drift"], occ
+
+
+def test_seat_occupation_no_registry_dir_is_byte_identical(tmp_path):
+    """No registry_dir -> no registry read; today's occupied result."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "B", "@7")   # disagreeing, ignored
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_drift"] is None, occ
+
+
+def test_seat_occupation_no_row_session_id_fails_open(tmp_path):
+    """JOIN-miss sentinel: no row session_id -> no drift invented."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "B", "@7")
+    occ = SS.seat_occupation(_occ_row(None), "agi-rc", str(wins), str(reg))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_drift"] is None, occ
+
+
+def test_seat_occupation_absent_registry_file_fails_open(tmp_path):
+    """No `<pid>.json` while the pane matches -> fail-open, no crash."""
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins),
+                             str(tmp_path / "empty-reg"))
+    assert occ["state"] == "occupied", occ
+    assert occ["session_drift"] is None, occ
+
+
+def test_collect_with_registry_dir_renders_session_drift(tmp_path):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "B", "@7")
+    graph = _graph(tmp_path, [{"name": "director-seat", "role": "director",
+                               "window": "@7", "pid": _LIVE_PID,
+                               "session_id": "A"}])
+    v = SS.collect(graph, {}, tmux_session="agi-rc", window_path=str(wins),
+                   registry_dir=str(reg))
+    occ = v.seats[0]["occupation"]
+    assert occ["state"] == "session-drift", occ
+    rendered = "\n".join(SS.to_compact(v)) + "\n".join(SS.to_markdown(v))
+    assert "pane=session-drift(" in rendered, rendered
+
+
+def test_list_surface_names_the_session_drift(tmp_path, capsys):
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    reg = tmp_path / "reg"
+    _write_registry(reg, _LIVE_PID, "B", "@7")
+    graph = _graph(tmp_path, [{"name": "director-seat", "role": "director",
+                               "window": "@7", "pid": _LIVE_PID,
+                               "session_id": "A"}])
+    rc = SS.main([str(tmp_path / "proj"), "--list", "--tmux-session",
+                  "agi-rc", "--window-path", str(wins),
+                  "--registry-dir", str(reg)])
+    assert rc == 0
+    out = capsys.readouterr().out
+    assert "drift:" in out and "director-seat" in out, out
+
+
+def test_no_registry_read_when_registry_dir_absent(tmp_path, monkeypatch):
+    """The registry reader is never called without a registry_dir."""
+    import rotate as _rotate
+
+    def _boom(*_a, **_k):
+        raise AssertionError("registry read without registry_dir")
+
+    monkeypatch.setattr(_rotate, "_registry_read", _boom)
+    wins = tmp_path / "winlist"
+    wins.write_text("@7 director-seat\n", encoding="utf-8")
+    occ = SS.seat_occupation(_occ_row("A"), "agi-rc", str(wins))
+    assert occ["state"] == "occupied", occ
