@@ -330,8 +330,10 @@ at every `apply`, never caching it, for exactly this reason.
 
 ## Conventions
 
-- Goal ids are never renumbered. A gap beats a renumber; nodes reference goals
-  by id.
+- Goal ids MAY be renumbered (owner 2026-09-23, superseding "never renumbered"; core's 09-21 re-arrangement renumbered 82):
+  a renumber keeps every `mint_id`, re-points every frontmatter reference to the moved id in the SAME commit, and records
+  old → new in the moved node's `THOUGHT` block. Nodes reference goals by id, so a renumber that leaves a dangling
+  reference is not finished.
 - Retire a goal by marking it `retired` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
 - **Retire a node with `status: deprecated` and move it to
