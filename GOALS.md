@@ -11872,6 +11872,8 @@ OWNER 09-23 14:xZ (thought-master pane, verbatim): "The run can go without my au
 
 OWNER 09-23 14:xZ (thought-master pane, verbatim): "Also would it make sense to apply the frequency beat matching idea within components as well like between gpu cores and/or between cpu cores or subunits as well. So everything is beat matched with flexible queues internally and each large component is beat matched externally with the variable queues. So every low level process happens as coupled oscillating pairs or even 3s of processes, ideally recursed all the way down." -- ACTED by thought-master: the RHYTHM test on the board recursed inward (kernel stages inside the GPU, SMT pairs and producer/consumer lanes inside the CPU, CPU and GPU layers pipelined across micro-batches), each level measured by its own tool.
 
+OWNER 09-23 14:3xZ (director-thought pane, verbatim): "Can we make the nsys version be compatible instead? Either older nsys or older cuda" -- ACTED by director-thought: measured first -- both nsys binaries on the box are the Ubuntu-packaged Nsight Systems 2022.4.2 (CUDA 12.0 era) while the llama.cpp full-cuda image runs CUDA runtime 12.8.90 on driver 595.84, so an OLDER nsys would widen the gap and an older CUDA would mean rebuilding llama.cpp (its qwen35 support is recent) against CUDA <= 12.0; compatibility = a NEWER nsys: Nsight Systems 2026.3.2 unpacked (dpkg-deb -x, no root, reversible) from NVIDIA's public CUDA apt repo into /data/ml/tools/nsight-systems-2026.3.2 (.deb sha256 e9bf0ff9...), --version OK; the driver, the system CUDA and the router untouched. A trace check runs after OSC.07's GPU window; OSC.08 (the L1 + L6 serving sweep, L10 map first) uses it.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
