@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.6
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.6: Tags name the supernode; the renderer groups on them live"
 ---
 **Tags are the human-readable half of G2.5's addressing.** An id is short,
