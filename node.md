@@ -1,13 +1,13 @@
 ---
-id: goal:g15.9
+id: goal:g6.31
 mint_id: d3ae648570ad47a3ba9822926c9a767b
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.9
+edited_by: belam
+goal_id: G6.31
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-6b
-title: "G15.9: write.py's Python API can mint outside the graph with the spawn gate silently unverified"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.31: write.py's Python API can mint outside the graph with the spawn gate silently unverified"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.9
+# goal:g6.31
