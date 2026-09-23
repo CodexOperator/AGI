@@ -81,6 +81,56 @@ def is_alive(pid: int) -> bool:
     return True
 
 
+# --------------------------------------------------------- durable pane hold
+#: A held seat is named from its SEAT identity, NEVER a pid: a pid would mint
+#: a fresh pane on every restart and the hold would not hold (goal:g7.31.1.2).
+PANE_PREFIX = "agi-seat-"
+
+
+def pane_name(agent_id: str) -> str:
+    """The stable tmux pane name a seat's process is held in."""
+    return f"{PANE_PREFIX}{agent_id}"
+
+
+def _tmux(argv: list[str]) -> subprocess.CompletedProcess | None:
+    """Run tmux, or None when tmux is absent/unusable (caller falls back)."""
+    try:
+        return subprocess.run(argv, capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def pane_listing(name: str) -> list[str]:
+    """`tmux list-panes`-shaped view of the seat's durable hold."""
+    out = _tmux(["tmux", "list-panes", "-t", name,
+                 "-F", "#{session_name} #{pane_pid}"])
+    if out is None or out.returncode != 0:
+        return []
+    return [ln for ln in out.stdout.splitlines() if ln.strip()]
+
+
+def hold_in_pane(*, name: str, args: list[str], cwd: Path) -> bool:
+    """Run `args` in the ONE named pane: open it once, respawn it thereafter.
+
+    False (never an exception) when tmux is absent, so `restart` falls back
+    to the direct Popen path unchanged. `remain-on-exit` keeps the pane after
+    the process dies -- the hold is on the NAME, independent of pid churn.
+    """
+    probe = _tmux(["tmux", "has-session", "-t", name])
+    if probe is None:
+        return False
+    if probe.returncode == 0:
+        cmd = ["tmux", "respawn-pane", "-k", "-t", name, "-c", str(cwd)]
+    else:
+        cmd = ["tmux", "new-session", "-d", "-s", name, "-c", str(cwd)]
+    started = _tmux([*cmd, *args])
+    if started is None or started.returncode != 0:
+        return False
+    if probe.returncode != 0:
+        _tmux(["tmux", "set-option", "-t", name, "remain-on-exit", "on"])
+    return True
+
+
 def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
     """The working directory a restarted agent must be born into.
 
@@ -117,12 +167,17 @@ def restart(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    hold_pane: bool = False,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
     Same contract as `copilot_cli_adapter.restart` (`goal:g4.7`): rebuild the
     identical argv through `build_command`, spawn detached in the same session
     directory appending to the existing log, and stamp the record.
+
+    `hold_pane=True` runs that same argv inside ONE named tmux pane
+    (`pane_name(agent_id)`) instead -- the durable hold. Absent (the default),
+    this is byte-for-byte the direct Popen path (`goal:g7.31.1.2`).
     """
     args = build_command(
         harness=harness, tier=tier, context_file=context_file,
@@ -134,6 +189,24 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    cwd = _restart_cwd(sess_dir, agent_record)
+    if hold_pane and hold_in_pane(name=pane_name(agent_id), args=args,
+                                  cwd=cwd):
+        name = pane_name(agent_id)
+        pane_pid = None
+        for line in pane_listing(name):
+            try:
+                pane_pid = int(line.split()[1])
+            except (IndexError, ValueError):
+                pass
+        if agent_record is not None:
+            agent_record["pid"] = pane_pid
+            agent_record["tmux_pane"] = name
+            agent_record["status"] = "restarted"
+            agent_record["restarted_at"] = int(time.time())
+            (sess_dir / "agent.json").write_text(
+                json.dumps(agent_record, indent=2))
+        return pane_pid
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
@@ -142,7 +215,7 @@ def restart(
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
+                cwd=str(cwd),
                 env=env,
             )
     except OSError as exc:
