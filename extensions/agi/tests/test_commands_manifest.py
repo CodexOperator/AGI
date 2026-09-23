@@ -140,6 +140,34 @@ def _synthetic(tmp_path: Path, extra_marker: str) -> Path:
     return graph
 
 
+def _synthetic_multi(tmp_path: Path, rules_yaml: str = "") -> Path:
+    """A minimal graph whose `x.py:go` takes an optional `owns` with no
+    `<owns>` in the template, plus `rules_yaml` under `placement:`."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(
+        "---\n"
+        "manifest:\n"
+        "  x.py:go:\n"
+        "    cli: x.py\n"
+        "    verb: go\n"
+        "    argv: [python3, x.py, go]\n"
+        "    args:\n"
+        "      - {name: 'owns', type: str, required: false, choices: []}\n"
+        "    side_effects: read\n"
+        "    proposable: true\n"
+        "placement:\n"
+        "  defaults: true\n"
+        f"{rules_yaml}"
+        "id: 'command:commands'\n"
+        "mint_id: aaaabbbbccccdddd\n"
+        "type: command\n"
+        "title: probe\n"
+        "---\n")
+    return graph
+
+
 def test_every_write_verb_is_declared_or_excluded_by_name():
     """Falsifier: a write.py verb neither declared nor excluded."""
     _, man = _live_manifest()
@@ -592,20 +620,72 @@ def test_propose_places_a_declared_const_pair():
     assert "--record-ok" in ok, ok
 
 
+def test_propose_places_every_value_of_a_multi_value_option(tmp_path):
+    """Falsifier: a `nargs='+'` option supplied N values. Pre-fix `propose`
+    emitted ONE token (`str(['a','b','c'])`); every value must appear as its
+    own argv token after the flag."""
+    graph = _synthetic_multi(
+        tmp_path, "  owns: {kind: option, flag: \"--owns\", arity: many}\n")
+    argv = commands.propose(graph, "x.py:go", {"owns": ["a", "b", "c"]})
+    assert argv[-4:] == ["--owns", "a", "b", "c"], argv
+
+
+def test_propose_repeats_the_flag_for_an_append_option(tmp_path):
+    """`action='append'` needs the flag per value: `--owns a --owns b`."""
+    graph = _synthetic_multi(
+        tmp_path, "  owns: {kind: option, flag: \"--owns\", arity: append}\n")
+    argv = commands.propose(graph, "x.py:go", {"owns": ["a", "b"]})
+    assert argv[-4:] == ["--owns", "a", "--owns", "b"], argv
+
+
+def test_propose_places_exactly_n_values_or_refuses(tmp_path):
+    """A fixed `nargs=2` places two values and REFUSES a wrong count."""
+    graph = _synthetic_multi(
+        tmp_path, "  owns: {kind: option, flag: \"--owns\", arity: \"2\"}\n")
+    assert commands.propose(
+        graph, "x.py:go", {"owns": ["a", "b"]})[-3:] == ["--owns", "a", "b"]
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(graph, "x.py:go", {"owns": ["a", "b", "c"]})
+    assert "needs 2 values" in str(exc.value)
+
+
+def test_propose_refuses_multiple_values_with_no_declared_arity(tmp_path):
+    """The pre-fix silent drop: a list for an arg whose placement declares no
+    arity was stringified into ONE token. It must refuse by name instead."""
+    graph = _synthetic_multi(tmp_path)
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(graph, "x.py:go", {"owns": ["a", "b"]})
+    assert "owns" in str(exc.value) and "arity" in str(exc.value)
+
+
+def _full_supply(key, entry, rules):
+    """One value for every declared arg, EXACTLY as many as the node's own
+    placement arity demands (`nargs=2` needs two, `append:2` needs two) -- so
+    the full-supply falsifiers stay valid once arity data lands."""
+    args = {}
+    for arg in entry.get("args") or []:
+        choices = arg.get("choices") or []
+        base = (True if arg.get("type") == "bool"
+                else (choices[0] if choices
+                      else f"SYNTH{len(args)}x{arg['name']}"))
+        placed = commands._resolve_placement(arg["name"], arg, key, rules)
+        mode, size = commands._split_arity(placed[4] if placed else None)
+        args[arg["name"]] = ([f"{base}{i}" for i in range(size)]
+                              if mode == "nargs"
+                              or (mode == "append" and size > 1) else base)
+    return args
+
+
 def test_every_proposable_entry_accepts_a_full_supply_of_its_args():
     """Falsifier: a declared arg, required or optional, that `propose` cannot
     place. Supplies every declared arg of every proposable entry and asserts
     the result is a complete argv -- no refusal, no surviving placeholder."""
     root, man = _live_manifest()
+    rules = commands._load_node(root).get("placement") or {}
     for key, entry in man.items():
         if not entry.get("proposable"):
             continue
-        args = {}
-        for arg in entry.get("args") or []:
-            choices = arg.get("choices") or []
-            args[arg["name"]] = (True if arg.get("type") == "bool"
-                                  else (choices[0] if choices
-                                        else f"SYNTH{len(args)}x{arg['name']}"))
+        args = _full_supply(key, entry, rules)
         try:
             argv = commands.propose(root, key, args)
         except commands.CommandError as exc:
@@ -622,16 +702,12 @@ def test_every_proposable_entry_lands_every_supplied_value_or_refuses_by_name():
     each value either lands in the returned argv or the call refused by NAMING
     it."""
     root, man = _live_manifest()
+    rules = commands._load_node(root).get("placement") or {}
     drops = []
     for key, entry in man.items():
         if not entry.get("proposable"):
             continue
-        args = {}
-        for arg in entry.get("args") or []:
-            choices = arg.get("choices") or []
-            args[arg["name"]] = (True if arg.get("type") == "bool"
-                                  else (choices[0] if choices
-                                        else f"SYNTH{len(args)}x{arg['name']}"))
+        args = _full_supply(key, entry, rules)
         try:
             argv = commands.propose(root, key, args)
         except commands.CommandError as exc:
@@ -640,10 +716,11 @@ def test_every_proposable_entry_lands_every_supplied_value_or_refuses_by_name():
             continue
         joined = " ".join(argv)
         for name, value in args.items():
-            if isinstance(value, bool):
-                continue
-            if str(value) not in joined:
-                drops.append((key, name, value, argv))
+            for v in (value if isinstance(value, list) else [value]):
+                if isinstance(v, bool):
+                    continue
+                if str(v) not in joined:
+                    drops.append((key, name, v, argv))
     assert drops == [], drops
 
 
@@ -764,20 +841,43 @@ def _cli_arg_specs(entry: dict) -> dict:
     for act in getattr(top, "_actions", []):
         if act.dest == "help":
             continue
+        ar = _cli_arity(act)
         if act.option_strings:
             long = [o for o in act.option_strings if o.startswith("--")]
             token = (long or act.option_strings)[0]
             if type(act).__name__ == "_StoreConstAction":
-                item = ("const", token, act.const)
+                item = ("const", token, act.const, ar)
             elif act.nargs == 0:
-                item = ("switch", token, None)
+                item = ("switch", token, None, ar)
             else:
-                item = ("option", token, None)
+                item = ("option", token, None, ar)
         else:
-            item = ("positional", "", None)
+            item = ("positional", "", None, ar)
         out.setdefault(act.dest, []).append(item)
     _SPEC_CACHE[key] = out
     return out
+
+
+def _cli_arity(act) -> str | None:
+    """Canonical arity of one argparse action: `many` for `nargs='+'/'*'`,
+    `append:1`/`append:N` for `action='append'`, `"N"` for a fixed `nargs=N`,
+    None for a single value."""
+    import argparse
+    if isinstance(act, argparse._AppendAction):
+        return f"append:{act.nargs}" if isinstance(act.nargs, int) else "append:1"
+    if act.nargs in ("+", "*"):
+        return "many"
+    if isinstance(act.nargs, int) and act.nargs > 1:
+        return str(act.nargs)
+    return None
+
+
+def _arity_key(arity) -> str | None:
+    """The SAME canonical vocabulary as `_cli_arity`, from a placement's own
+    `arity` spelling -- `many`, `append`/`append:N`, `"N"`, or None."""
+    mode, size = commands._split_arity(arity)
+    return {"many": "many", "append": f"append:{size}",
+            "nargs": str(size)}.get(mode)
 
 
 def _norm_token(value) -> str:
@@ -793,19 +893,16 @@ def _match_spec(specs: dict, name: str):
     for dest, items in specs.items():
         if _norm_token(dest) == want:
             return items
-        for _kind, token, _const in items:
+        for _kind, token, _const, _ar in items:
             if token and _norm_token(token) == want:
                 return items
     return None
 
 
-def test_declared_placement_matches_each_cli_introspected_at_test_time():
-    """For every proposable entry and every declared arg that lacks a `<name>`,
-    introspect the CLI's argparse and assert the node's placement (default or
-    declared) matches it. A renamed or missing flag fails HERE, not silently at
-    propose time."""
-    root, man = _live_manifest()
-    rules = commands._load_node(root).get("placement") or {}
+def _drift_problems(man: dict, rules: dict) -> list:
+    """Every proposable entry whose declared placement disagrees with the
+    CLI's own argparse -- flag, kind, consts, and (only where the node
+    DECLARES one) arity. `propose` never runs this; the test does."""
     bad = []
     for key, entry in man.items():
         if not entry.get("proposable"):
@@ -823,17 +920,56 @@ def test_declared_placement_matches_each_cli_introspected_at_test_time():
                 bad.append((key, arg["name"], "no CLI spec" if items is None
                             else "no placement", items, placed))
                 continue
-            kind, flag, const, consts = placed
-            if kind == "positional":
-                if not any(k == "positional" for k, _t, _c in items):
-                    bad.append((key, arg["name"], "expected positional", items))
+            kind, flag, const, consts, arity = placed
+            live = ([ar for k, _t, _c, ar in items if k == kind]
+                    if kind in ("positional", "const")
+                    else [ar for k, t, _c, ar in items
+                          if k == kind and t == flag])
+            if not live:
+                bad.append((key, arg["name"], f"expected {kind} {flag}", items))
             elif kind == "const":
-                got = {str(c): t for k, t, c in items if k == "const"}
+                got = {str(c): t for k, t, c, _ar in items if k == "const"}
                 if got != {str(v): t for v, t in consts.items()}:
                     bad.append((key, arg["name"], "const mismatch", items,
                                 consts))
-            else:
-                if not any(k == kind and t == flag for k, t, _c in items):
-                    bad.append((key, arg["name"], f"expected {kind} {flag}",
-                                items))
+            elif arity is not None and live[0] != _arity_key(arity):
+                bad.append((key, arg["name"],
+                            f"arity {_arity_key(arity)} != {live[0]}", items))
+    return bad
+
+
+def test_declared_placement_matches_each_cli_introspected_at_test_time():
+    """For every proposable entry and every declared arg that lacks a `<name>`,
+    introspect the CLI's argparse and assert the node's placement (default or
+    declared) matches it. A renamed flag, or a declared arity the CLI does not
+    have, fails HERE, not silently at propose time. Arity is pinned only where
+    the node declares one -- an entry with no arity data is not yet migrated."""
+    root, man = _live_manifest()
+    rules = commands._load_node(root).get("placement") or {}
+    bad = _drift_problems(man, rules)
     assert bad == [], bad
+
+
+def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
+    """The arity pin is real, not decorative: introspect a CLI whose `--owns`
+    is `nargs='+'`, and report a node that declares `arity: \"2\"`. A declared
+    arity no CLI has is caught HERE, at test time."""
+    cli = tmp_path / "probe_cli.py"
+    cli.write_text(
+        "import argparse\n"
+        "def main():\n"
+        "    ap = argparse.ArgumentParser()\n"
+        "    ap.add_argument('--owns', nargs='+', default=None)\n"
+        "    ap.parse_args()\n")
+    entry = {"cli": "probe_cli.py", "verb": "go",
+             "argv": ["python3", str(cli), "go"],
+             "args": [{"name": "owns", "type": "str", "required": False,
+                       "choices": []}],
+             "proposable": True}
+    assert _match_spec(_cli_arg_specs(entry), "owns") == \
+        [("option", "--owns", None, "many")]
+    good = {"owns": {"kind": "option", "flag": "--owns", "arity": "many"}}
+    assert _drift_problems({"x.py:go": entry}, good) == []
+    wrong = {"owns": {"kind": "option", "flag": "--owns", "arity": "2"}}
+    got = _drift_problems({"x.py:go": entry}, wrong)
+    assert got and "arity" in got[0][2], got
