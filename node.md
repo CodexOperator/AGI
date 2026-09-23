@@ -1,13 +1,13 @@
 ---
-id: goal:g14.13
+id: goal:g5.29
 mint_id: 9d7fd57351ce4e89ad00a1df16c86fda
 type: goal
 parents:
-  - goal:g14
+  - goal:g5
 next_edges: []
 confidence: 0.9
-edited_by: thought-master
-goal_id: G14.13
+edited_by: belam
+goal_id: G5.29
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -31,16 +31,16 @@ tags:
   - local-maxxing
   - treasury
   - digests
-title: "G14.13: THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20)"
+title: "G5.29: THE RESEARCH TREASURY — every owner-named paper, repo and model card digested by name (trove-survey / paper-digest on pi), kept as doc: nodes here, its falsifiable rows minted under the track they serve, never as loose chains under g14 (charter 09-13; owner links 09-14 / 09-18 / 09-20)"
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
-# goal:g14.13
+# goal:g5.29
 
 ## Agent Notes
 **Owner source (2026-09-13 23:32Z, verbatim in doc:l4-owner-decisions; goal:g14 charter):** the thought-master owns "goal:g14 … and its research treasury"; "a very slow, gentle research loop". Owner links arrive as lines in the pane (09-18: turboquant_plus / OrcaBonsai / bonsai2-small-gpu; 09-14: dead-head, tiktok-videos-4b, the looped transformer) and are ingested by the trove-survey and paper-digest workflows.
 
-**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G14.6–G14.12) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
+**Commits to.** Every paper, repo or model card the owner names is digested once (reader → critic → panel → judge, by name, on pi), its digest is a `doc:` node here, its structured stage outputs land in `datasets/workflow-runs/`, and the judge's ranked, falsifiable rows are minted as chunks under the track they serve (G5.22–G5.28) — never as free-floating chains under g14. A digest that produces no falsifiable row is still kept (a treasury entry), but mints nothing.
 
 **Invariants.** One survey per owner link set, never re-run blind (the run dir is the record); every digest quotes file paths and dates and marks MEASURED vs ESTIMATE; a critique stage that times out is recorded as missing on the goal (the 09-20 bonsai2-small-gpu critique); cost per survey stated (≤ 1 USD unless the owner names more).
 
@@ -59,3 +59,6 @@ thought-master 04:5xZ 09-21 INGESTED BY WORKFLOW (rule applied): pd-klpo = paper
   critique unsupported: the 'closest relative = FlashREINFORCE' line is the reader's framing; every 'validated on CPU' tag traces to the repo's OWN tests, not an independent run (no torch on this box); the '~1/3 of a three-pass step' constant is loose (ref forward ~1/4); the PMD derivation / Bellman-telescoping sequence route / 'parameter-independent constant' were not assessed · errors: the digest's grep claim 'PPO appears zero times' is wrong (docs/training.md L100); the bridge falsifier's atol=1e-12 is a float64 test tolerance, not a claim · otherwise factually accurate vs source
   box      NO torch installed on this box (the reader measured it) -> every G14.7 training round starts with a venv + torch install as a declared step
   standing the 04:3xZ hand-filed row is SUPERSEDED by this one; the treasury row is now workflow-derived, as the rule requires
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+owner ask 2026-09-21: renumber local-maxxing research g5.29 → g5.29 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
+<!-- THOUGHT:END -->
