@@ -16,10 +16,10 @@ Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase ·
 HOLD ALL  merge-ups: this branch's config bins are ~/... (EF.29) but workflow.py:1381 / rotate.py:1868 / harness_template.py:223 exec the
           RAW cell -> every mur on this branch dies "pi exited rc=1" -> EF.38 a00-402306e7 RUNNING (harness-bin-paths round 3, ceiling
           raised) -> then re-run the murs. MAIN is unaffected until this branch merges.
-JEV       EF.21 merged; mur verify DEMOTE -> leaf g1.25.1 EF.37 RUNNING -> re-mur -> merge-up -> tell director-thought
+JEV       EF.21 + EF.37 (leaf g1.25.1: 0 silent drops, no spend/spawn proposable) merged -> re-mur -> merge-up -> tell director-thought
 BRIEF.PY  EF.18 accept_with_residue · EF.19 DEMOTE (config:brief hand-written) -> [decision] to belam 11:1xZ · EF.25 + EF.36 (leaf g1.9.1)
           merged, their mur died on the bin regression -> re-run after EF.38
-0921      leaves .1 .2 .3 .5 .6 + FR-A, FR-D2, corrections MERGED · .4 FR-C1 EF.32 RUNNING -> one batch mur -> merge-up
+0921      ALL LEAVES MERGED (.1-.6 incl. FR-C1 rounds EF.32 kid + EF.39) + FR-A, FR-D2, corrections -> one batch mur -> merge-up
 FLAG      goal:g15 is status RETIRED yet parents every g15 residue node -> the Prime, in the next merge-up
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them
 MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote)
