@@ -98,6 +98,45 @@ def test_sub_bang_replaces_every_match_and_prints_count(project):
     assert "hello WORLD" in text and "says WORLD again" in text
 
 
+def test_sub_dry_run_diff_applied_to_disk_is_the_landed_bytes(project):
+    """The printed `--dry-run` diff, applied to the on-disk node, is
+    byte-for-byte what the real `sub` then writes -- including a body that
+    opens with a duplicate frontmatter block the write absorbs and strips.
+
+    Red before the fix: the preview applied `set_fm` BEFORE the absorb, so
+    the body block's stale `title` clobbered the edit and the printed diff
+    was EMPTY while the real write changed the title
+    (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+    """
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text(
+        '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "hello world"\ntestable_claim: "c"\n'
+        'scaffold_hash: deadbeef\nstatus: pending\nedited_by: kid\n'
+        'thought_session: s1\n---\n\n'
+        '---\ntitle: "dupe"\n---\n\nthe body says nothing here\n')
+    # canonicalise: the writer's own serializer output is what is on disk, so
+    # the printed patch applies to these exact bytes.
+    path.write_text(write._baseline_node_text(project, "hypothesis:h1"))
+    before = path.read_text()
+    proc = _run(project, "sub world => WORLD", "--dry-run")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    lines = proc.stdout.splitlines(True)
+    start = next(i for i, l in enumerate(lines) if l.startswith("--- a/"))
+    end = next(i for i, l in enumerate(lines) if l.startswith("  sub "))
+    diff = "".join(lines[start:end])
+    assert diff, "the preview printed no diff for a real change"
+    previewed = write.apply_unified_diff(before, diff)
+    assert path.read_text() == before, "a dry run writes nothing"
+    res = _run(project, "sub world => WORLD")
+    assert res.returncode == 0, res.stdout + res.stderr
+    landed = path.read_text()
+    assert landed == previewed, (
+        "applying the printed diff to the on-disk node must yield the landed "
+        "bytes\n" + diff)
+    assert "hello WORLD" in landed and "dupe" not in landed
+
+
 def test_sub_body_lands_through_update_node(project):
     res = write.submit(project, _sub_edit("nothing => SOMETHING"),
                        actor="kid", session="s1")
