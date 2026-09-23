@@ -3,9 +3,9 @@ id: goal:g4.7
 mint_id: 800ebcbccc8a4c45b19f293a1df44085
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.7
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.7: Healing belongs to every harness, and to the dispatch loop"
 ---
 **`heal.py` is not redundant machinery; it is the shape of a missing
