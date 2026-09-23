@@ -55,9 +55,11 @@ routed   (thought-master -> the Prime) key TTL == wall · kids ignore --harness 
 ## 🔴 Stops
 ```
 LIVE   OSC.02 (chunk 2) parent a00-2e229bfb pid 1056628 · dispatched 10:10:41Z · GPU round, router stop/restore · wall 120 -> done by ~12:10Z · key TTL 180 · branch season2/loops/hypothesis-lm-served-9b-drops-6--a00-2e229bfb
-LIVE   murs (both run-key mur-director-thought-4, see traps): agi-director-thought-cfg-02 (review accept_with_residue, verify running) · agi-director-thought-osc-01 (review running)
+LIVE   mur osc-01 (agi-director-thought-osc-01, run-key mur-director-thought-4): review accept_with_residue (T2 subset sentence false: overlap 154, 3 + 8 outside; placebo medians are 61.49 / 41.48 not 71.77 / 42.36) -> verify running -> close in place
+done   mur cfg-02 accept_with_residue, both defects confirmed -> closed in place b1b464771 (200/40 above the 2x stop; audit scope; pi home restored); box.root + pi_home CARRIED to the Prime
+OSC.02 10:26Z: baseline PPL 7.1783 x2 identical (1 pct tol = PPL 7.321) · L3 singles: g0 0.82 pct, g1 8.2 pct, g2 1.19 pct, g3 1.96 pct of NLL · ~1 min/run -> singles ~10:55Z, joint ~11:05Z · router DOWN since 10:16Z
 done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
-next   cfg-02 verify lands -> close its residues in place (Lines 200/40 above the 2x stop; audit-scope sentence) · osc-01 mur lands -> close · then batch C (CFG.01 + CFG.02 + OSC.01) ready -> ONE [merge-up] dm to thought-master
+next   osc-01 verify lands -> close · then batch C (CFG.01 + CFG.02 + OSC.01) ready -> ONE [merge-up] dm to thought-master
 then   OSC.02 lands -> harvest (router UP proof first) -> verdict picks: pruned-GGUF + battery hop, or the band hops
 open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan · SWR-SV.01 queued behind OSC.02 (loads a model) + pass 2
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-OSC.02/manifest.json'))['agents'][0]['status'])" && ls /data/work/agi/.agi/sessions/workflows/runs/mur-director-thought-4/
