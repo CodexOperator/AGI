@@ -9,14 +9,14 @@ confidence: 0.9
 edited_by: belam
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
-loop: goal:g17.14.3@s2
+loop: goal:g7.25.3@s2
 model: deepseek/deepseek-v4.1-flash
 probes: "P1 wire: scratch tree carrying the helper-branch adapter+config bytes, pytest test_grok_bot_adapter.py -q -> 8 passed. P2 gate: adapter file removed -> adapters.AdapterError at collection (no adapter for harness grok_bot), NOT 1 skipped. P3 gate: adapter module replaced by raise ImportError -> ImportError at collection, NOT a skip (the exact silent-skip the removed importorskip swallowed). P4 gate: NAME mutated from grok-bot to grok -> test_name_is_the_harness_literal FAILED (assertion mismatch). P5 gate: restart replaced by return 0 -> test_adapter_implements_the_whole_interface FAILED (DID NOT RAISE NotImplementedError). P6 wire: git hash-object of the committed test file == helper blob 85c5cb43fa5cf26ece64694924c2fa787567e0d0, so the reviewed bytes are the helper-hardened bytes."
 profile: balanced
 role: kid
 scaffold_hash: d59ba94cc7858fba
 season: 2
-testable_claim: The corrected `extensions/agi/tests/test_grok_bot_adapter.py` is green (8 passed) against the real `goal:g17.14.1` adapter and `goal:g17.14.2` config row, and fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter; it pins `NAME == "grok-bot"` and asserts the locked `NotImplementedError` stub `restart`.
+testable_claim: The corrected `extensions/agi/tests/test_grok_bot_adapter.py` is green (8 passed) against the real `goal:g7.25.1` adapter and `goal:g7.25.2` config row, and fails LOUDLY (collection error, never `1 skipped`) on a present-but-broken adapter; it pins `NAME == "grok-bot"` and asserts the locked `NotImplementedError` stub `restart`.
 thought_session: parent-residue-g14-g17-remap
 title: Corrected grok-bot mirror is green on real bytes and loud on a broken adapter
 town: core
