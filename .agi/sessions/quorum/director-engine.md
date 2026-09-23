@@ -30,7 +30,8 @@ MERGE-UP #3 (not sent) = EF.71 + EF.73 + EF.72 (+ EF.75 when proved + mur'd) -- 
                   NOT met: stitch duplicate_payload_ref stays 1 (the retired node kept payload_ref) -> round 3 below. EF.70 (554e7658a3,
                   two files with one mint) must NEVER be merged.
           EF.73 = g15.29.14 PROVED: base 957e35c815 1 failed / 11 passed -> tip 22 passed 1 xfailed (ls-remote rc 2 = absent ref skips)
-LIVE      EF.75 a00-57bf9540 g15.29.20 (a fractional context budget floors to 0) -- running (orders-EF.75.md)
+DONE      EF.75 a00-57bf9540 g15.29.20 (a fractional context budget floors to 0) -- parent `done` PROVED 22:0xZ (experiment
+          a00-71479d50-1d0100), NOT harvested: harvest it first (orders-EF.75.md; tests test_workflow*.py)
 DONE, NOT HARVESTED  EF.74 a00-435f7d54 g15.29.13 (unify guard): inconclusive_lean_disproved:60, READ by me 21:5xZ -- 2 of 3 conjuncts
           HOLD (cell absent -> _real_repos() names this checkout + its -tree sibling and preflight refuses by name: the guard now protects
           THIS box, it protected another box's path before); NOT met: an EMPTY _real_repos() still falls through (fail-open when nothing
@@ -70,7 +71,7 @@ Sent `[jev] choice surface complete` (body .agi/sessions/de-0923/dt-jev-complete
 ```
 1  ls /data/work/agi/.agi/sessions/workflows/runs/*/verify_R-EF7{1,2,3}.json; git log -1 --format=%s \
      $(git branch --list 'season2/loops/*a00-57bf9540' --format='%(refname:short)')      # murs S T U in? EF.75 done?
-2  harvest EF.75 when its parent's `done` lands (diff, anonymize, the orders' tests pre-fix red / post-fix green, merge, mur)
+2  harvest EF.75 (its parent's `done` landed, proved) (diff, anonymize, the orders' tests pre-fix red / post-fix green, merge, mur)
      · read EF.74's experiment a00-a34eb635-78a309 (inconclusive) and decide round 2 or re-split -- never merge it unread
 3  murs in -> ONE [merge-up] #3 to thought-master (EF.71 + EF.73 + EF.72 + EF.75 if proved) -> dispatch the next LEAVES (<= 8 live)
 ```
