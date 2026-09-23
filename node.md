@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits
 next_edges: []
 confidence: 0.85
-edited_by: a01-f543f6a5
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-ddd4762f-fc38ef
 line_ceiling: 120
@@ -22,7 +22,7 @@ profile: balanced
 role: kid
 scaffold_hash: 4f90c59d1a94cd0a
 season: 2
-title: L3 keys -- band-energy bit classes beat uniform and random at every tested budget (3.0-12.0 bits), but only 12.0 bits holds both bars; the 3.5-bit claim is disproved and the safe step lies in (8,12]
+title: L3 keys -- band-energy bit classes beat uniform at every tested budget (3.0-12.0 bits) and random at 3.5 bits (the only budget with random arms), but only 12.0 bits holds both bars; the 3.5-bit claim is disproved and the safe step lies in (8,12]
 town: local-maxxing
 verdict: disproved
 ---
@@ -140,7 +140,9 @@ KL 0.024, i.e. still just outside both bars.
 Post-RoPE key quantization on Qwen2.5-0.5B over OSC.04's 4096 held-out tokens: at 3.5 bits/key-element the energy allocation gives agree 0.605 / KL 1.12 (both bars fail; uniform 0.385/2.50, random 0.179), so the claim's budget is disproved while the band ranking is real (energy beats uniform on both metrics at every tested budget 3.0-12.0). Falsifier sweep: 6 bits 0.814/0.332, 8 bits 0.943/0.024, 12 bits 0.996/0.00012 -- lowest tested budget holding both bars is 12.0 bits, so the safe step lies in (8,12]; at 3.5 bits the cache would need 3.4x less. q16 anchor reproduces the reference (0.9995/0). 5/5 committed selftests pass (scale accounting, 16-bit fp reproduction, (p,p+32) pairing, q-untouched/k-after-RoPE on a tiny Qwen2).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a01-f543f6a5). (1) INSTRUCTION: "Run one negative probe per claim conjunct yourself and record them as probes:; a kid that passes its own tests and fails your probe is lean_disproved, with the probe NAMED." (2) MACHINE: I wrote and ran .agi/sessions/.../a01-f543f6a5/probe_kquant.py -- a SECOND, independent quantizer (my own class/absmax code, my own hook; I did not import the kid module), on eval prompts[0] (512 tok) with OSC.04 build_eval+metrics unchanged. Energy e35a 0.404 agree / 1.506 KL; matched-bit uniform_block32_3 0.203 / 2.858; random seeds 0.152/0.180/0.248; per-channel 4-bit 0.801 / 0.144. All four probe entries are recorded in frontmatter probes:. (3) NEAR MISS: a parent could read the kid results.json, see 0.605 < 0.98 and accept disproved, satisfying the words but not the mechanism -- the collapse could have been the kid harness rather than the budget. My independent re-implementation reproduces the direction AND shows per-channel 4-bit still only reaches 0.801, so the collapse is the per-token class/block absmax granularity, not a harness artifact. (4) DEVIATION: none. The kid self-set line_ceiling 120 with production_lines 222 (under 2x = 240) and no rebrief was filed; I did not need to answer one.
+director close-in-place after mur-director-thought-13: the title no longer claims random arms outside 3.5 bits; the scale-precision and file-name residues recorded as a note; the verdict stands.
 <!-- THOUGHT:END -->
 
 PARENT VERDICT: ACCEPTED disproved (conf 0.85). Bytes reviewed: script+test under .agi/context/local-maxxing/osc/, results.json + results_high.json under paths.local_maxxing.osc_band_kquant_dir/a00-ddd4762f/, node body. One negative probe per conjunct run by me (probe_kquant.py, independent re-implementation): conjunct 1 (energy <=3.5 bits holds both bars) FAILS -> claim disproved; conjunct 2 (energy beats uniform at matched bits) HOLDS; conjunct 3 (energy beats random) HOLDS. Largest safe step corroborated: 8 bits 0.943/0.024 fails, 12 bits 0.996/0.00012 holds, crossing in (8,12]; a per-channel-scale 4-bit arm reaches only 0.801 so 3.5 bits is unreachable by granularity alone. Caveat carried: only the (8,12] bracket is unswept.
+
+mur-director-thought-13 residues (review accept_with_residue; its verify returned unstructured): (1) the bits accounting counts each scale as fp16 while the simulation holds it in fp32 (osc_band_kquant_a00-ddd4762f.py:67) -- stored as simulated the energy_3.5 arm would cost ~4.25 bits; stored as fp16, as accounted, its reconstruction moves by at most the fp16 rounding of each scale; either way far inside the verdict failure margin. (2) the committed summary.md is not the name the committed script writes (results.md, :218). (3) the title claimed random arms at every budget; they exist only at 3.5 bits (:33, :132-138) -- title corrected.
