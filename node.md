@@ -2,8 +2,10 @@
 id: goal:g1
 mint_id: 556869f3f6454ffe9118a793e062aa5f
 type: goal
+parents:
+  - vision:self-perpetuating
 confidence: 1.0
-edited_by: kid:a00-38101b34
+edited_by: belam
 goal_id: G1
 goal_kind: perpetual
 heading_level: 2
@@ -25,8 +27,8 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: L3.07
-title: "G1: Config-maxxing: every engine action is declared, never improvised"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G1: Config-maxxing"
 ---
 **Renamed 2026-09-02 by the owner, from "Zero-operations loop: every mundane
 step is a command".** The invariant did not change; the framing got one level
@@ -90,5 +92,8 @@ project), **H6** (`--iter-base N` for `dispatch.py`, so a run stops clobbering
 prior session manifests).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L3 wave 1 (hypothesis:l3w1-goal-kind-perpetual): this goal is perpetual — long-horizon, one director, no active-goal cap.
+Folded umbrella from goal:g20 onto goal:g1 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Perpetual umbrella for Config-maxxing. Absorbs prior art from old G1, G8, G19. Folded from goal:g20 onto goal:g1 in place 2026-09-19 (id/mint_id protected).
