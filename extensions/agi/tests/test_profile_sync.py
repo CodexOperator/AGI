@@ -361,6 +361,23 @@ def test_body_only_profile_ref_mention_is_not_unreadable(tmp_path):
     assert "body.md" not in r.stdout
 
 
+def test_spaced_profile_ref_key_in_malformed_frontmatter_is_unreadable(tmp_path):
+    """P6: YAML allows whitespace before the colon, so `profile_ref :` in a
+    malformed frontmatter IS a profile link — surface it, never skip it."""
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _broken(repo / ".agi", "spaced.md",
+            extra='profile_ref : "profile/s.md"\n')
+    r = _cli_all(repo)
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "UNREADABLE" in r.stdout and "spaced.md" in r.stdout
+    assert "2 linked, 1 not ok" in r.stdout
+    rows = profile_sync.check_all(repo / ".agi")
+    spaced = [x for x in rows if x.get("path", "").endswith("spaced.md")]
+    assert spaced and spaced[0]["status"] == "unreadable", rows
+    assert spaced[0]["artifact"] == "profile/s.md", rows
+
+
 def test_permission_denied_file_never_raises_out_of_check_all(
         tmp_path, monkeypatch):
     """Residue 4.3: an unreadable file is named `unreadable`, never a
