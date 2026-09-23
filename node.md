@@ -3,9 +3,9 @@ id: goal:g7.1
 mint_id: 3feb9ce4e95341bb96ecc424bc5b7421
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.1
 goal_kind: subgoal
 heading_level: 3
@@ -17,9 +17,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.1: Referential integrity on every parent reference"
 ---
+# goal:g7.1
 L15 validates `goal:`-prefixed parents only. Everything else dangles silently,
 and on this corpus 60.3% of parent references did — a `hypothesis:` vs `hyp:`
 prefix mismatch that quietly disconnected most of the `spawns` graph the
