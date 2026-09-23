@@ -1,0 +1,96 @@
+---
+id: experiment:no-message-daemon-tripwire-a00-cbeb23c4
+mint_id: 04b0e39edb35465d85cc92a3d417b549
+type: experiment
+parents:
+  - hypothesis:a00-cbeb23c4-1ea91d
+next_edges: []
+edited_by: a00-cbeb23c4
+evidence_runs: experiment:no-message-daemon-tripwire-a00-cbeb23c4
+line_ceiling: 40
+loop: goal:g7.31.4.3@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: e031d22430f8d494
+season: 2
+title: "No message daemon tripwire: send.py verbs one-shot, crons services clean, nudge_sweep is a timer"
+town: core
+---
+<!-- BODY:BEGIN -->
+# experiment:no-message-daemon-tripwire-a00-cbeb23c4
+
+## Experiment
+
+Landed the durable tripwire for `goal:g7.31.4.3` at this tip and ran it.
+
+```
+cp .agi/sessions/iter-DH.147/a00-e2084a45/test_no_message_daemon.py \
+   extensions/agi/tests/test_no_message_daemon.py
+python3 -m pytest extensions/agi/tests/test_no_message_daemon.py -q
+```
+
+Exact output (tier-gate phantom-record lines on stderr elided; final line
+verbatim):
+
+```
+....                                                                     [100%]
+4 passed in 9.45s
+```
+
+Entry points confirmed present on the tip before trusting the file:
+`CRONS_NODE_REL` (`crons.py:98`), `load_crons_node` (`crons.py:229`),
+`render_managed_lines` (`crons.py:492`), `render_unit_file` (`crons.py:645`).
+No fix to the test was needed — it passed unmodified against this tip.
+
+### Bind paths (`file:line`)
+
+* the tripwire: `extensions/agi/tests/test_no_message_daemon.py`
+  * `test_send_py_declares_no_long_running_verb` — `:166`
+  * `test_live_services_table_has_no_message_daemon` — `:183`
+  * `test_detector_catches_a_planted_message_daemon` (non-vacuity) — `:197`
+  * `test_nudge_sweep_renders_as_a_cron_one_shot_not_a_service` — `:237`
+* the seam under test: `extensions/agi/bin/send.py`
+  * `wake_all_local` — `:2811` (iterates local rows once, returns)
+  * `_in_git_repo` — `:3141`, the file's only `while True` (upward dir walk) — `:3148`
+* the declared surface: `extensions/agi/bin/crons.py` (`CRONS_NODE_REL:98`,
+  `load_crons_node:229`, `render_managed_lines:492`, `render_unit_file:645`)
+
+### Deviation from the brief (documented)
+
+The brief said `parents: [goal:g7.31.4.3]`. The spawn gate rejects a new
+`goal -> experiment` edge (`context/schemas/[experiment].md`, `goal` removed
+from `allowed_parents` under `goal:s22`). Rather than bypass it with
+`--no-spawn-gate`, this experiment is parented on the hypothesis it runs
+(`hypothesis:a00-cbeb23c4-1ea91d`), which is itself parented on
+`goal:g7.31.4.3` — same subtree, one legal hop, and the evidence run still
+resolves.
+
+## Evidence
+
+Verdict piece: `experiment:no-message-daemon-tripwire-a00-cbeb23c4` is the
+experiment behind the lean; the hypothesis is
+`hypothesis:a00-cbeb23c4-1ea91d`.
+
+### Parent probes (run by a00-e2084a45 at tip, recorded verbatim)
+
+- conjunct 1, class `gate`: `mining the g7.31.4 commit span for a new service
+  or cadence` — expected: no g7.31.4 commit adds a `services:`/`cadences:` row;
+  observed: `git log -S'g7.31.4' -- .agi/nodes/.geometry/crons.md` is EMPTY and
+  the only `cron: vN goal:g7.31.4` commits touch `node.md` (the goal node), not
+  crons.md; the two services `agi-alarms-sanctuary-master` and `agi-reaper`
+  predate g7.31.4; result: held.
+- conjunct 1, class `wire`: `grep for listener primitives on the message seam`
+  — expected: the send/nudge path is one-shot, no socket/accept loop; observed:
+  the only `while True` in `send.py` is `_in_git_repo`'s upward directory walk
+  (`send.py:3148`), and `_send_keys` is a bounded `subprocess.run(..., timeout=5)`;
+  `wake_all_local` (`send.py:2811`) iterates local rows once and returns;
+  result: held.
+- conjunct 1, class `gate`: `crontab -l` managed block — expected: every
+  scheduled command is a one-shot; observed: `*/2 ... send.py wake --all-local`
+  and the grid/push lines are all one-shot, no resident router; result: held.
+
+## Agent Notes
+
+Tripwire landed at tip, 4 passed, no message daemon on the heal/cron surface.
