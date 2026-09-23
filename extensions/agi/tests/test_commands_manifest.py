@@ -280,6 +280,16 @@ _LISTED_CLIS += [
     "grid_coverage_check.py", "inject.py",
 ]
 
+# EF.54 CLI GROUP E. Appended, like GROUP C/D, so sibling edits cannot collide.
+# The 12 last engine CLIs whose parser is a plain module-level `main`; every
+# verb is declared or excluded BY NAME in `command:commands`.
+_LISTED_CLIS += [
+    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
+    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
+    "success_metrics.py", "telemetry_rollup.py", "verify_unified.py",
+    "ws_raw_client.py",
+]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
 #: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`

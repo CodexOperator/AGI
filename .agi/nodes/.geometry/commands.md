@@ -254,6 +254,10 @@ placement:
   "failures.py:sensei.in_path": {kind: option, flag: '--in'}
   "glitch_master.py:format-record.iter_data": {kind: option, flag: '--iter'}
   "inject.py:.nodes_dir": {kind: positional}
+  # CLI GROUP E (EF.54, kid 3 of 3) placement deviations: the two positionals
+  # whose CLI argv template carries no `<name>`.
+  "payload_boundary.py:.repo": {kind: positional}
+  "seat_status.py:.root": {kind: positional}
 manifest:
   write.py:create:
     cli: write.py
@@ -532,6 +536,15 @@ manifest:
   frontier.py:list: {cli: frontier.py, verb: list, argv: ['python3', '<engine>/extensions/agi/bin/frontier.py', '<cmd>'], args: [{name: 'cmd', type: str, required: true, choices: ['list']}, {name: 'nodes', type: str, required: false, choices: []}, {name: 'count', type: bool, required: false, choices: []}, {name: 'schemas', type: str, required: false, choices: []}, {name: 'no_anchor', type: bool, required: false, choices: []}], purpose: 'print every active chain tip and the successor types its schema allows', side_effects: read, proposable: true}
   grid_coverage_check.py:: {cli: grid_coverage_check.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/grid_coverage_check.py'], args: [{name: 'engine', type: str, required: false, choices: []}, {name: 'exclusions', type: str, required: false, choices: []}, {name: 'verbose', type: bool, required: false, choices: []}], purpose: 'every tracked engine file is inside the grid; exit nonzero on a remainder', side_effects: read, proposable: true}
   failures.py:rates: {cli: failures.py, verb: rates, argv: ['python3', '<engine>/extensions/agi/bin/failures.py', 'rates', '<root>'], args: [{name: 'root', type: str, required: true, choices: []}, {name: 'by', type: str, required: true, choices: ['model', 'role', 'harness']}, {name: 'in_path', type: str, required: false, choices: []}], purpose: 'per-axis failure counts from the ledger; exit 2 if they do not sum', side_effects: read, proposable: true}
+  # CLI GROUP E (EF.54, kid 3 of 3): the last 12 engine CLIs with a plain
+  # module-level `main`. Read-only verbs are proposable; the rest are excluded
+  # by name below. Args and choices were read off each CLI's own argparse.
+  payload_boundary.py:: {cli: payload_boundary.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/payload_boundary.py'], args: [{name: 'repo', type: str, required: false, choices: []}], purpose: 'classify every tracked engine file as a payload candidate (in) or out', side_effects: read, proposable: true}
+  plan_master.py:trend: {cli: plan_master.py, verb: trend, argv: ['python3', '<engine>/extensions/agi/bin/plan_master.py', 'trend'], args: [{name: 'last', type: str, required: false, choices: []}, {name: 'tol', type: str, required: false, choices: []}, {name: 'log', type: str, required: false, choices: []}], purpose: 'classify fixes_per_draft over the last N seat runs', side_effects: read, proposable: true}
+  reconciler.py:: {cli: reconciler.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/reconciler.py', '<iter_dir>'], args: [{name: 'iter_dir', type: str, required: true, choices: []}, {name: 'style', type: str, required: false, choices: ['status', 'ids']}], purpose: 'derive an iteration agent records against the process table; repairs nothing', side_effects: read, proposable: true}
+  rolslice.py:: {cli: rolslice.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/rolslice.py'], args: [{name: 'role', type: str, required: false, choices: []}, {name: 'tier', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'skill', type: str, required: false, choices: []}, {name: 'measure', type: bool, required: false, choices: []}, {name: 'all', type: bool, required: false, choices: []}], purpose: 'slice SKILL.md for one role from the machine-readable hierarchy', side_effects: read, proposable: true}
+  seat_status.py:: {cli: seat_status.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/seat_status.py'], args: [{name: 'root', type: str, required: false, choices: []}, {name: 'list', type: bool, required: false, choices: []}], purpose: 'one live read of every seat, the spawn budget and the telemetry roll-up', side_effects: read, proposable: true}
+  verify_unified.py:: {cli: verify_unified.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/verify_unified.py', '--before', '<before>', '--after', '<after>'], args: [{name: 'before', type: str, required: true, choices: []}, {name: 'after', type: str, required: true, choices: []}, {name: 'json', type: bool, required: false, choices: []}], purpose: 'before vs after: did the goal:g11 migration lose anything? read-only', side_effects: read, proposable: true}
 # Excluded verbs are declared BY NAME with a reason and proposable false, so a
 # drift test can tell "we chose not to expose this" from "we forgot it".
 excluded:
@@ -593,6 +606,15 @@ excluded:
   glitch_master.py:format-record: {cli: glitch_master.py, verb: format-record, argv: ['python3', '<engine>/extensions/agi/bin/glitch_master.py', 'format-record', '--iter', '<iter_data>'], args: [{name: 'iter_data', type: str, required: true, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'out', type: str, required: false, choices: []}], reason: 'reads workflow JSON on stdin and writes review/results.json; seat machinery, operator-only', side_effects: graph-write, proposable: false}
   graphweb.py:serve: {cli: graphweb.py, verb: serve, argv: ['python3', '<engine>/extensions/agi/bin/graphweb.py', 'serve'], args: [{name: 'host', type: str, required: false, choices: []}, {name: 'port', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}], reason: 'binds a port and serves the dashboard until killed; long-running server, never proposed', side_effects: spawn, proposable: false}
   inject.py:: {cli: inject.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/inject.py'], args: [{name: 'nodes_dir', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'frames', type: str, required: false, choices: []}, {name: 'stdout', type: bool, required: false, choices: []}], reason: 'writes context/INJECTION.md; the writer half of the viewport seam, operator-only', side_effects: graph-write, proposable: false}
+  # CLI GROUP E (EF.54, kid 3 of 3): the spend / write / network verbs of the
+  # 12 plain-module-`main` CLIs, declared BY NAME with a reason.
+  lm_bench.py:: {cli: lm_bench.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/lm_bench.py', '--model', '<model>'], reason: 'runs llama-bench and spends local model compute; writes a benchmark JSONL row', side_effects: spend, proposable: false}
+  mail_alert.py:: {cli: mail_alert.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/mail_alert.py'], reason: 'stamps an alerted_at state record per seat+thread; hook-invoked side channel', side_effects: graph-write, proposable: false}
+  plan_master.py:record-run: {cli: plan_master.py, verb: record-run, argv: ['python3', '<engine>/extensions/agi/bin/plan_master.py', 'record-run'], reason: 'appends a run line to the seat-local log', side_effects: graph-write, proposable: false}
+  stall_detect.py:: {cli: stall_detect.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/stall_detect.py', '<iter_dir>'], reason: '--record notes the stalled state on the agent.json record; detection-only', side_effects: graph-write, proposable: false}
+  success_metrics.py:: {cli: success_metrics.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/success_metrics.py'], reason: 'writes the seven-metric recorded place by default; --json is the no-write path', side_effects: graph-write, proposable: false}
+  telemetry_rollup.py:: {cli: telemetry_rollup.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/telemetry_rollup.py', '<report_id>'], reason: 'attaches summed telemetry to a report node via write.py; --dry-run only previews', side_effects: graph-write, proposable: false}
+  ws_raw_client.py:: {cli: ws_raw_client.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/ws_raw_client.py'], reason: 'streams against a live model server and writes measurement rows', side_effects: network, proposable: false}
 season: 1
 status: active
 tags:
