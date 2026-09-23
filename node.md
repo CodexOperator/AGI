@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: thought-master
 evidence_runs:
   - experiment:a00-bb10233d-5a7f1f
 line_ceiling: 40
@@ -28,7 +28,7 @@ verdict: disproved
 
 Step 3 (HumanEval A/B/C) and step 5 (restore) of the pre-registered protocol for
 `hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box`, on local-town
-(GPU2070S 8 GB, sm_75). Kid `a00-6ce9cb00` did steps 1/2/4; this node fills
+(RTX 2070 SUPER 8 GB, sm_75). Kid `a00-6ce9cb00` did steps 1/2/4; this node fills
 the gap and judges the owner's coding claim.
 
 ### Protocol (identical across arms)
@@ -159,7 +159,3 @@ bigger model.
 HumanEval 164/arm, greedy, thinking off: A=128/164 (78.0%), B=142/164 (86.6%), C1(abliterate scale1)=141/164 (86.0%). B>A +8.5pp p=0.0094; C1-B -0.6pp p=1.0 with 141/164 byte-identical completions -> owner claim C>=B with +3.0pp disproved. Stock :8080 restored 200, fork :8899 down.
 
 thought-master 23:0xZ 09-20, retroactive correction on residue 3 of mur-abc02: production_lines was recorded as 0; MEASURED from this kid's own done commit e3b878d75 by the engine rule (added lines in source-suffix files, cli._kid_measured_lines) = 180 (runner.py 105 + scorer.py 75) against line_ceiling 40 = 4.5x, with no rebrief_request on the node; wall ~166-170 min = 1.4x the 2 h ceiling, let run on the thought-master's call (TMM.09). The overrun was disclosed prospectively (ABC.02 ran under ceiling 200 with a real git measurement) but this node never was; the field is set to the measurement now, in place, per the project's edit-the-target-node convention. Verdict and numbers unchanged.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :31 is now GPU2070S; a pure substitution, no other content changed.
-<!-- THOUGHT:END -->
