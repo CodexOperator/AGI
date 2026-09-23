@@ -512,3 +512,106 @@ def test_ef73_unreachable_origin_fails_and_defers_the_swap(tmp_path):
         g, "aa", "push: OK", authority_line=_auth_line)
     assert "authority publish did not succeed" in gate, gate
     assert (seat_key.parent / (seat_key.name + ".pending")).is_file()
+
+
+# ---------------------------------------------------------------------------
+# EF.86 (experiment:a00-06dae36a-cccc0d) -- `_publish_row_to_authority`'s own
+# "never raises" docstring contract: a HANGING (or unlaunchable) git fetch or
+# ls-remote probe must yield `authority: FAILED`, never a TimeoutExpired/OSError
+# escaping the function, and never SKIPPED. A FAILED gates the successor-key
+# swap exactly as before, so the pending stays deferred. No network: the whole
+# authority is a stubbed `subprocess.run`.
+# ---------------------------------------------------------------------------
+
+def _cp(args, rc):
+    return subprocess.CompletedProcess(args, rc, "", "")
+
+
+def _timeout(args):
+    raise subprocess.TimeoutExpired(args, 60)
+
+
+def _stub_git_run(monkeypatch, *, fetch=None, probe=None):
+    """Route `subprocess.run` inside rotate: a `fetch` / `ls-remote` call is
+    answered by the given callable (or raises through it); every other git
+    call falls through to the real binary, so the tmp fixture stays real."""
+    real = subprocess.run
+
+    def fake(args, *a, **kw):
+        if isinstance(args, (list, tuple)) and "git" in args:
+            if "fetch" in args and fetch is not None:
+                return fetch(args)
+            if "ls-remote" in args and probe is not None:
+                return probe(args)
+        return real(args, *a, **kw)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake)
+
+
+def _seed_authority_pending(g, seat="aa"):
+    import json as _json
+    from agi.bin import send as bin_send
+    seat_key = bin_send._seat_key_path(g, seat)
+    seat_key.parent.mkdir(parents=True, exist_ok=True)
+    seat_key.write_text(_json.dumps({"scheme": "ed25519",
+                                     "priv_hex": "11" * 32}))
+    succ_pub = send.seatsig.get("ed25519").public_from_secret(
+        bytes.fromhex("22" * 32)).hex()
+    _json.dump({"scheme": "ed25519", "priv_hex": "22" * 32,
+                "pub_hex": succ_pub, "deferred_for": "authority",
+                "gen_after": 5, "minted_at": ""},
+               open(str(seat_key) + ".pending", "w"))
+    return seat_key, seat_key.read_bytes()
+
+
+def _assert_retry_defers(g, seat_key, before):
+    """The EF.84 retry site (the one cmd_rotate_self calls BEFORE it mints)
+    must return its refusal LINE, never raise, and leave the swap deferred."""
+    r = rotate._retry_authority_publish_for_pending_swap(g, "aa")
+    assert "NOT completed" in r and "AUTHORITY" in r, r
+    assert seat_key.read_bytes() == before
+    pend = seat_key.parent / (seat_key.name + ".pending")
+    assert pend.is_file(), "a hanging authority must defer the swap"
+
+
+def test_ef86_fetch_timeout_fails_and_defers_the_swap(tmp_path, monkeypatch):
+    """A `subprocess.TimeoutExpired` on the FETCH must not escape
+    `_publish_row_to_authority`; it yields `authority: FAILED` (never
+    SKIPPED, even though the stubbed probe answers rc 2) and the EF.84 retry
+    returns the refusal line with the swap still deferred."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    _stub_git_run(monkeypatch, fetch=_timeout, probe=lambda a: _cp(a, 2))
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "authority: SKIPPED" not in out, out
+    assert "timed out" in out, out
+    seat_key, before = _seed_authority_pending(g)
+    _assert_retry_defers(g, seat_key, before)
+
+
+def test_ef86_probe_timeout_fails_and_defers_the_swap(tmp_path, monkeypatch):
+    """A `subprocess.TimeoutExpired` on the ls-remote PROBE (fetch answered
+    non-zero but did not raise) -> `authority: FAILED`, never SKIPPED, never
+    raised; the swap stays deferred."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    _stub_git_run(monkeypatch, fetch=lambda a: _cp(a, 1), probe=_timeout)
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "ls-remote" in out and "timed out" in out, out
+    seat_key, before = _seed_authority_pending(g)
+    _assert_retry_defers(g, seat_key, before)
+
+
+def test_ef86_fetch_oserror_fails_and_never_raises(tmp_path, monkeypatch):
+    """An `OSError` launching git (missing/unexecutable binary) does not
+    escape `_publish_row_to_authority`: it yields `authority: FAILED` naming
+    the launch failure -- never SKIPPED."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    _stub_git_run(monkeypatch,
+                  fetch=lambda a: (_ for _ in ()).throw(
+                      OSError("git not found")),
+                  probe=lambda a: _cp(a, 2))
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "authority: SKIPPED" not in out, out
+    assert "could not launch git fetch" in out, out
