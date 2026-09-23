@@ -7481,6 +7481,104 @@ def test_read_positional_unchanged_when_no_dm_has_unread(
     assert not (croot / "dm").is_dir() or not list((croot / "dm").glob("*.json"))
 
 
+# ── hypothesis:send-read-reads-dms-from-the-graph ────────────────────────────
+# A dm conversation filed under a FORMER name of the post (`old-name--sender.md`)
+# is still a dm addressed to the post. The ONE `aliases:` table (old -> new in
+# `nodes/.geometry/posts.md`) is the graph's rename record, so `read <post>`
+# and `rooms <post>` must match every name that canonicalises to the reader.
+
+def _write_geometry(root: Path, *, rows=None, aliases=None) -> Path:
+    """`<graph>/nodes/.geometry/posts.md` -- the ONE geometry config: the
+    `posts:` rows and/or the Prime-written `aliases:` table (old -> new)."""
+    geo = root / ".agi" / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    lines = ["---", "id: config:posts", "posts:"]
+    for r in rows or []:
+        lines.append("  - " + json.dumps(r, sort_keys=True))
+    if aliases:
+        lines.append("aliases:")
+        for k, v in aliases.items():
+            lines.append(f"  {k}: {v}")
+    lines += ["---", "# body"]
+    (geo / "posts.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return geo / "posts.md"
+
+
+def _mini_project(tmp_path: Path, name: str) -> Path:
+    root = tmp_path / name
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    return root
+
+
+def test_read_lists_a_dm_filed_under_a_former_name_of_the_post(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """FALSIFIER (alias): `read new-name` must list a dm conversation filed as
+    `old-name--sender.md` when old-name is a former name of new-name in the
+    ONE `aliases:` table, and the cursor must land on the canonical key."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    _write_geometry(project, aliases={"old-name": "new-name"})
+    send_mod.send_dm(croot, "old-name", "sender-a", "old-name dm body",
+                     "sender-a")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "new-name", "--comms-root", str(croot),
+                        "read", "new-name"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "old-name dm body" in out, out
+    assert "[dm old-name--sender-a]" in out, out
+    state = send_mod._load_state(croot / "dm" / "old-name--sender-a.md")
+    assert state.get("new-name") == 1, state
+
+    rc = send_mod.main(["--from", "new-name", "--comms-root", str(croot),
+                        "read", "new-name"])
+    again = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "old-name dm body" not in again, again
+
+
+def test_rooms_lists_a_dm_filed_under_a_former_name_of_the_post(
+        project: Path):
+    """The `rooms` listing applies the SAME alias rule as the read sweep."""
+    croot = project / ".agi" / "sessions"
+    _write_geometry(project, aliases={"old-name": "new-name"})
+    send_mod.send_dm(croot, "old-name", "sender-a", "old-name dm body",
+                     "sender-a")
+    rows = send_mod.rooms(croot, "new-name")
+    assert ("dm", "old-name--sender-a", 1) in rows, rows
+    assert ("dm", "old-name--sender-a", 1) not in send_mod.rooms(
+        croot, "someone-else"), rows
+
+
+def test_read_is_quiet_independent(
+        tmp_path: Path, capsys, clear_identity, monkeypatch):
+    """The hypothesis's SECOND conjunct: a `settings: quiet` row and a row
+    with no setting, over IDENTICAL dm bytes, produce identical `read` output
+    and an identical cursor. Quiet governs nudges only."""
+    outs, states = [], []
+    for name, row in (("quiet", {"name": "seat-a", "settings": "quiet"}),
+                      ("plain", {"name": "seat-a"})):
+        root = _mini_project(tmp_path, name)
+        _write_geometry(root, rows=[row])
+        croot = root / ".agi" / "sessions"
+        send_mod.send_dm(croot, "seat-a", "seat-b", "same dm body",
+                         "seat-b")
+        _in_project(monkeypatch, root)
+        rc = send_mod.main(["--from", "seat-a", "--comms-root", str(croot),
+                            "read", "seat-a"])
+        assert rc == 0, rc
+        outs.append(capsys.readouterr().out)
+        states.append(send_mod._load_state(
+            croot / "dm" / "seat-a--seat-b.md"))
+    assert outs[0] == outs[1], outs
+    assert states[0] == states[1], states
+    assert states[0].get("seat-a") == 1, states[0]
+
+
 def test_dm_sweep_cursor_is_shared_across_a_linked_worktree(
         tmp_path: Path, capsys, clear_identity, monkeypatch):
     """ITEM 1's required two-independent-directories falsifier: the dm-sweep
