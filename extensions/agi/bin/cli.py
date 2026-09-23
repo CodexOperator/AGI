@@ -2332,6 +2332,10 @@ def cmd_status(args: argparse.Namespace) -> int:
 _WAIT_POLL_SECONDS = 20.0
 _WAIT_MAX_SECONDS = 540.0
 
+#: `wait` timeout -- the deadline passed with a kid still running. Named (it
+#: was a bare `return 2`) so `brief.py` renders the code from here, not a copy.
+_WAIT_TIMEOUT = 2
+
 #: `wait --agent X` where X matches NO manifest row -- returned at once, named.
 #: Never 1 (missing manifest) and never 2 (genuine still-running timeout).
 _WAIT_NO_AGENT = 3
@@ -2393,7 +2397,7 @@ def cmd_wait(args: argparse.Namespace) -> int:
             print("still running: " + " ".join(
                 i for i, s, _ in states if s not in TERMINAL_STATUSES),
                 file=sys.stderr)
-            return 2
+            return _WAIT_TIMEOUT
         time.sleep(min(_WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
 
 
