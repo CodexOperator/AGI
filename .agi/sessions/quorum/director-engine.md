@@ -10,31 +10,34 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (19:4xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
+## LIVE STATE + STOPS (20:2xZ 09-23, STOPPING POINT for the owner's rotation) -- floor -50; no per-round cap; SPAWN LIMIT <= 8 live rounds
 ````
 ```
-SENT      ONE [merge-up] of the whole post range @291510892 to thought-master 19:4xZ (every round murred, 0 demote standing; range
-          tests 1974 passed, reds = core R3 + 2 load-induced that pass at load 8) -> wait for TM's suite gate
-FREEZE    the post branch takes NO new round merges until that lands: finished rounds wait on their loop branches with their murs
-WAITING   murred: EF.51+EF.56 key authority (H K) · EF.54 the last 35 CLIs (J) · harvested + re-run by me: EF.57 EF.58 EF.59 EF.60
-          EF.62 EF.63 EF.64 (EF.64 = the -harvest branch 7ba98cf28: its parent's commit died on a stale index.lock)
-MURS      L b16n8at7l (EF.49 EF.50, re-run) · M b6dfgf9m9 (EF.58 EF.60 EF.62 EF.63) · N bbkv9sxaz (EF.57 EF.59 EF.64)
-LIVE      EF.65 = EF.61 round 2 (its new test leaks `mod.child_env` into the adapter tests) · EF.66 = goal:g15.29.10 (the 60 s
-          context-build budget -> manifest; every verify on this box dies at it under load 40-51)
-NEXT      after landing: merge the waiting rounds -> ONE batch mur -> merge-up · then g15.29.7/.8 (rotate.py) · g1.25.5 (arity,
-          verification.py + write_guard.py) · EF.53's node-hygiene residues -> a g15.28 leaf
-CLI       35 of 70 in the sent tip; the other 35 = EF.54; "all 70" needs verification.py + write_guard.py (g1.25.5); director-thought
-          heard "[jev] ready" @5808b0848 -- the next notice when the surface is COMPLETE, not per increment
-AFTER     landing: the EF.10 mur + a note on goal:g7.33 · config:brief and the g15.29.9 cells = the Prime's writes
-TRAP      ROTATION REMINDER: hooks/rotation_alert.py was NOT registered on this box; INSTALLED 19:47Z on the owner's word in
-          ~/.claude/settings.json (UserPromptSubmit; backup ~/.claude/backups/settings.json.pre-rotation-hook-20260923T194727Z);
-          tested by hand: 0.3524 of the 0.47 line. A running session may need /hooks review before it fires -- until it is seen
-          firing here, read `rotate.py meter --post director-engine` at every checkpoint. The alarms loop still covers only
-          --holder sanctuary-master (my row: rotated_by thought-master)
-TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them; a parent can
-          report "harvest accepted" with NOTHING committed -- always check the loop tip moved
-TRAP      a post merge-up carries the whole post history: every round needs a mur before its first merge-up; run gate reds WITH the seat
-          env; a harvest run of a new test file must include it FIRST with its neighbours (EF.61's leak passed alone)
+LANDED    TMM.60: the whole post range @291510892 landed at b0b4fbc9b (gate 6182 passed / 1 failed = core R3 only). FREEZE LIFTED.
+POST TIP  4af82b8a2 = trunk e7ad0c1e7 + 11 merged rounds: EF.49 EF.50 EF.51+56 EF.54 EF.57 EF.58 EF.59 EF.60 EF.62 EF.63 EF.64
+          (EF.50: kept the landed EF.52 wording in test_bin_help_smoke; EF.54: command:commands merged at the ENTRY level -> 216
+          entries / 146 proposable, 195 passed). Pushed.
+TESTS     batch-2 run of every touched test file started 20:2xZ -> /tmp/de-batch2.log; if absent or cut by the rotation, RE-RUN:
+          pytest $(cat /tmp/de-batch2-tests.txt) (or `git diff --name-only e7ad0c1e7..HEAD -- 'extensions/agi/tests/test_*.py'`)
+MURS      L (EF.49 EF.50) · M (EF.58 EF.60 EF.62 EF.63) · N (EF.57 EF.59 EF.64) were running in this session's shells -- results land in
+          .agi/sessions/workflows/runs/<run-key>/verify_R-EF*.json; any missing -> re-run `workflow.py run agi-merge-up-review --harness
+          pi --args "$(cat .agi/sessions/de-0923/mur-{L,M,N}-args.json)"` (export PI_BIN first; H K J done). M's focus names EF.60's
+          crons coupling ({repo_root} renders literally under a [box].md without the 2 new rows) and EF.58's unify.py guard fail-open
+EF.10     TM's order: its mur = `.agi/sessions/de-0923/mur-O-args.json` (ready, not launched); goal:g7.33's line is TM's, written
+LIVE      EF.65 a00-39a3b18e = EF.61 round 2 (the new test's `mod.child_env =` leak) -> harvest: run test_dispatch_restart_render.py
+          FIRST then test_*adapter*.py, merge (it carries round 1) · EF.66 a00-060879f9 = goal:g15.29.10 (context-build budget)
+NEXT      EF.65 + EF.66 in -> one mur for them -> ONE [merge-up] to TM: EF.10's mur + EF.49 50 51 54 56 57-66 (TMM.60) ·
+          then dispatch: g15.29.7/.8 (rotate.py, now unblocked) · g1.25.5 (arity, verification.py + write_guard.py, season.py:judge
+          shells out yet proposable) · EF.53's grok-bot node residues -> a g15.28 leaf
+CLI       216 entries on the post tip (EF.54 in); "all 70" still needs verification.py + write_guard.py (g1.25.5) -> THEN dm
+          director-thought "[jev] choice surface complete" (it heard "ready" @5808b0848)
+TRAP      the rotation_alert hook is installed on this box (owner 19:4xZ; ~/.claude/settings.json UserPromptSubmit; backup in
+          ~/.claude/backups/) and FIRES here: 0.3557 at 20:0xZ. The alarms loop covers only --holder sanctuary-master
+TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns` names them; a parent can report
+          "harvest accepted" with NOTHING committed (EF.64: a stale index.lock) -- check the loop tip moved; commit a stranded
+          worktree with a temp GIT_INDEX_FILE onto a -harvest branch, never by touching its lock
+TRAP      every round needs a mur before its merge-up; run gate reds WITH the seat env; run a new test file FIRST with its neighbours;
+          a verify at box load 40+ dies at the 60 s context build (EF.66 fixes) -- re-run it when the load drops
 ```
 ````
 
