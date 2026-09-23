@@ -18,15 +18,18 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ## 🔴 Where it stops (diagram-maxed)
 ````
 ```
-OWNS (g15, Prime-assigned)                                    state 08:0xZ 09-23
-  0921 batch  goal:g15.27   R1/EF.12 + R2/EF.11 PROVED, merged here, NOT on trunk · batch mur RUNNING (bw7e98hxj: reviews done, verifies running)
-  0923 batch  hypothesis:core-sync-0923-residues (R1 R4 R5 minted db3151cf5, parent = it)
-    R1 EF.13 a00-e37dbeaa  hypothesis:anonymize-box-tokens-skip-loopback-and-link-local        dispatched
-    R4 EF.14 a00-04514f17  hypothesis:pi-bin-precedence-test-is-hermetic-to-ambient-pi-bin     dispatched
-    R5 EF.15 a00-a650341d  hypothesis:tty-hangup-wrapper-test-is-deterministic-under-suite-load dispatched (load: 2 cores, nice 19, none after 11:30Z)
-    R7 BANKED [decision] -> belam 08:0xZ: premise false (FAIL = required OPENROUTER_API_KEY, config:secrets:38); rec = required_any; parked
+OWNS (g15, Prime-assigned)                                    state 08:3xZ 09-23
+  0921 batch  hypothesis:mur-0921-residue-batch-into-season2-main  (engine slice = goal:g15.27)
+    chunk 1  R1 EF.12 + R2 EF.11 PROVED · mur R1 ACCEPT / R2 accept_with_residue, 0 demote · [merge-up] SENT to TM 08:3xZ, target @4c5dee025
+    chunk 2  14 engine rounds' residues (demote l4-config-max · l5-a-message claim · substitute verify l5-rotate-accepts · 11 more)
+             -> sort running (.agi/sessions/de-0923/chunk2-dispositions.md) -> fix rounds + claim corrections; 13 lm-* = TM's · 6 HELD (g7.33)
+  0923 batch  hypothesis:core-sync-0923-residues (R1 R4 R5 minted db3151cf5)
+    R1 EF.13  anonymize loopback/link-local   PROVED, merged d6888a04e, re-verified (12 passed; GOALS.md passes anonymize; new test red on pre-fix bytes)
+    R4 EF.14  PI_BIN test hermetic           PROVED, merged 62ff7cedc, re-verified (35 passed x3: PI_BIN=/x, unset, ambient; adapter untouched)
+    R5 EF.15  tty-hangup test under load     running (load: 2 cores, nice 19, none after 11:30Z)
+    R7        BANKED [decision] -> belam 08:0xZ (premise false; rec = required_any); parked
   NOT mine    R2 R3 R6(g17.14.x) core/grok · R6(g7.33.8) HELD · R8 g7.33
-FLAGS for the 0921 merge-up: EF.10 + goal:g7.33.8 (pre-hold) stranded on this branch · config:posts DE row owning_goal = goal:g14.14 (dangling)
-NEXT: mur result -> ONE 0921 [merge-up] to TM -> harvest EF.13/14/15 (diff, merge, re-run) -> 0923 batch mur -> ONE [merge-up]
+FLAGGED in the 0921 merge-up: EF.10 + goal:g7.33.8 stranded (pre-hold) · config:posts DE owning_goal = goal:g14.14 (dangling) · lm-replace-body-anchor demote HELD
+NEXT: EF.15 harvest -> 0923 batch mur (R1 R4 R5) -> ONE [merge-up] · g15.27 v2 + batch-node note once the chunk-2 sort lands -> chunk-2 rounds
 ```
 ````
