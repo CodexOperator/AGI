@@ -3,7 +3,7 @@ id: idea:l4b15-intercept-layer
 mint_id: 3ed495895af34982a76019660bebb92f
 type: idea
 parents:
-  - goal:g13.2
+  - goal:g4.19
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper
