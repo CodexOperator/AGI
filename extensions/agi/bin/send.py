@@ -81,6 +81,11 @@ from send_rows import (  # noqa: E402,F401 -- goal:g7.32.4 clause (1):
     _shared_graph_root,
     _shared_seats_path,
 )
+from row_settings import (  # noqa: E402 -- goal:g7.32.4 clause (1): the ONE
+    # seat-row settings parser + tmux default; send.py imports no rotate.
+    DEFAULT_TMUX_SESSION,
+    normalize_settings,
+)
 
 
 #: Subdirectory under sessions/ for per-recipient inbox files.
@@ -1292,9 +1297,8 @@ def _seat_row_by_name(rows: list, name: str) -> dict | None:
 def _row_is_quiet(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet` token (a list or
     JSON object). A quiet row still WRITES the dm but types no nudge."""
-    import rotate  # noqa: PLC0415  (same bin dir, already imported many paths)
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = rotate._normalize_settings((row or {}).get("settings"))
+    s = normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet"))
 
 
@@ -1320,9 +1324,8 @@ def _row_is_quiet_system(root: Path, to: str) -> bool:
     """True when the row's `settings` carries the `quiet-system` token: the
     row keeps direct post dm nudges but receives NONE from a service-class
     sender. `quiet` is still full silence; no token is today's behaviour."""
-    import rotate  # noqa: PLC0415
     row = _seat_row_by_name(_locally_loaded_rows(root), to)
-    s = rotate._normalize_settings((row or {}).get("settings"))
+    s = normalize_settings((row or {}).get("settings"))
     return bool(s and s.get("quiet_system"))
 
 
@@ -1900,8 +1903,7 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
-        import rotate  # lazy: same bin dir, DEFAULT_TMUX_SESSION lives there
-        tmux_session = rotate.DEFAULT_TMUX_SESSION
+        tmux_session = DEFAULT_TMUX_SESSION
     stale_ref: str | None = None
     if window_ref and str(window_ref).startswith("@"):
         # CLAUSE (3): an @id is only a live target while it is a CURRENT

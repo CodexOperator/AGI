@@ -72,6 +72,12 @@ import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 from graph_core.persistence import frontmatter  # noqa: E402
+from row_settings import (  # noqa: E402 -- goal:g7.32.4 clause (1): the ONE
+    # seat-row settings parser + tmux default, so send.py imports no rotate.
+    DEFAULT_TMUX_SESSION,
+    SETTINGS_ALIASES,
+    normalize_settings as _normalize_settings,
+)
 
 
 # --- config ----------------------------------------------------------------
@@ -93,9 +99,6 @@ CC_PROJECTS_DIR = Path.home() / ".claude" / "projects"
 
 #: Default project slug used by Claude Code for this repo.
 CC_PROJECT_SLUG = "-home-ubuntu-work-agi"
-
-#: Default tmux session for remote-control.
-DEFAULT_TMUX_SESSION = "agi-rc"
 
 #: Remote-control debug log path (legacy fallback), relative to the graph
 #: dir (which `find_project_root()` returns) -- so `<graph>/sessions/`.
@@ -133,17 +136,6 @@ DEFAULT_CC_ROLES = {
     },
 }
 
-#: The roles table spells a settings bundle by its NAME for the CC tiers
-#: (e.g. `settings: ultracode`). "Ultracode" is not an effort level -- it is a
-#: settings flag -- so a bare word is resolved here to the flag object the
-#: claude adapter passes as `--settings '{"ultracode":true}'`.
-SETTINGS_ALIASES = {
-    "ultracode": {"ultracode": True},
-    "quiet": {"quiet": True},
-    # a row that keeps post dm nudges but never a service-class one
-    "quiet-system": {"quiet_system": True},
-}
-
 #: The launch gate and the opt-in trigger for Claude Code's dynamic
 #: ("ultracode") workflows (hypothesis:l3-rotate-ultracode-env). The env var
 #: is what actually enables it on this box (measured live by the prime: a
@@ -160,33 +152,6 @@ ULTRACODE_ENV_EXPORT = "export CLAUDE_CODE_WORKFLOWS=1"
 # restart from gone (or a window created outside agi-rc), so the seat-launch
 # path prefixes it onto the launched shell line unconditionally.
 REAPER_ENV_EXPORT = "export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1"
-
-
-def _normalize_settings(val):
-    """A settings cell -> dict or None: dict as-is, or a space-separated
-    token list / JSON object string resolved via SETTINGS_ALIASES (words
-    MERGE, so `quiet` composes with `ultracode`)."""
-    if val is None or val == "":
-        return None
-    if isinstance(val, dict):
-        return val if val else None
-    if not isinstance(val, str):
-        return None
-    s = val.strip()
-    if not s:
-        return None
-    if s.startswith("{"):
-        try:
-            parsed = json.loads(s)
-        except Exception:                                     # noqa: BLE001
-            return None
-        return parsed if isinstance(parsed, dict) and parsed else None
-    out: dict = {}
-    for tok in s.lower().split():
-        alias = SETTINGS_ALIASES.get(tok)
-        if alias:
-            out.update(alias)
-    return out or None
 
 
 # --- helpers ---------------------------------------------------------------
