@@ -1085,23 +1085,32 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  rc_name: str | None = None,
                                  harness: str | None = None,
                                  bin_path: str | None = None,
+                                 project_root: Path | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
                                  "extensions/agi/bin/cli.py") -> list[str]:
     """Build the successor argv for a non-prime seat from its assembled brief.
 
-    The body is the joined segments of `brief.assemble(tier=..., agent_id=name,
-    iter_n=0)` — a perpetual seat has no iteration number. assemble() already
-    prepends the constitution head (for the liaison, the director's read_order
-    via `_LIAISON_HEAD_TIER`), so unlike the prime's static-file path we do NOT
-    call brief.successor_prompt() again: doing both would double-insert the
-    head (hypothesis:l3w4-liaison-seat).
+    The body is the SAME render the SessionStart hook and dispatch read
+    (`brief.render --post <name>`): head + card + the harness block, so a
+    rotated successor cannot drift from a fresh session. When the post has no
+    row or no card (an advisor with none yet), render refuses and the seat
+    falls back to the legacy `brief.assemble` body -- a missing card must not
+    make a rotation impossible.
     """
     import brief  # local: same dir, may be absent in a misleading env
-    parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
-                           dispatch_py=dispatch_py, cli_py=cli_py)
-    body = "\n\n".join(parts)
+    body = None
+    try:
+        body = brief.render(post=name, role=tier,
+                            harness=harness or "claude-code",
+                            project_root=project_root)
+    except brief.RenderError:
+        body = None
+    if not body:
+        parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
+                               dispatch_py=dispatch_py, cli_py=cli_py)
+        body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
         body = ULTRACODE_KEYWORD + "\n" + body
@@ -1838,7 +1847,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
-                harness=harness, bin_path=_bin,
+                harness=harness, bin_path=_bin, project_root=root,
             )
         else:
             if prompt_file is None:
