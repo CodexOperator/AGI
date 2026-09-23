@@ -3,9 +3,9 @@ id: goal:s29
 mint_id: 59a9f401fda54dcdac9368e2349c4801
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S29
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S29: A goal may spawn a new version of a build node, but never a new one"
 ---
 **The owner's rule, 2026-09-02.** A build node may be parented **only** by:
