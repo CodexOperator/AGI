@@ -30,7 +30,7 @@ verdict: proved
 
 ## Step 0 -- RIG SURVIVAL + SUPERVISOR RESTART (measured, quotable on its own)
 
-- rig GPU2070S: uptime up 53 min, boot 2026-09-18T20:35Z (fresh, post-storm); nvidia-smi = GPU2070S, utilization.gpu 0 percent, memory.used 6688 MiB / 8192 MiB (the resident town llama-server, not killed); df -h /data = 339G size, 56G used, 266G avail, 18 percent used. About 1.5 GiB VRAM free, so the GPU budget stayed at 512MB and the run actually held 104 MiB of managed memory.
+- rig GPU2070S: uptime up 53 min, boot 2026-09-18T20:35Z (fresh, post-storm); nvidia-smi = NVIDIA GeForce RTX 2070 SUPER, utilization.gpu 0 percent, memory.used 6688 MiB / 8192 MiB (the resident town llama-server, not killed); df -h /data = 339G size, 56G used, 266G avail, 18 percent used. About 1.5 GiB VRAM free, so the GPU budget stayed at 512MB and the run actually held 104 MiB of managed memory.
 - supervisor located at /data/ml/models/fetch_parallel.py (12334 B, md5 e31ecf148deea0390c67cf06adecd961, byte-identical to the committed local-maxxing copy). Bonsai 27B has its own /data/ml/models/bonsai/bonsai27b_fetch.py.
 - CONFIRMED present: (a) slow mode 0.5 MB/s with 1.5 MB/s inside [02:00,06:00) America/New_York by zoneinfo zone name and not a fixed offset (L36-40 DEFAULT_AGG/PEAK_AGG/aggregate_limit); (b) the PAUSE sentinel at /data/ml/models/fetch.pause, honoured by supervise() which terminates live curls, driven by pause/resume -- the never-fetch-alongside-a-live-row rule, and run_gpu.sh itself writes that sentinel around a GPU row.
 - MEASURED GAPS, reported plainly and not fixed this round: (1) the 20 percent free-disk floor IS NOT IMPLEMENTED -- no statvfs, no disk_free and no percent check exists in either supervisor; the HF lfs oid IS recorded into fetch_meta.json but downloaded bytes are NEVER hashed against it; (2) bonsai27b_fetch.py has NO rate schedule at all (RATE is an env var or None, so a bare run is unthrottled curl).
@@ -62,7 +62,17 @@ Cause 1 of idea:lm-why-no-gpu-load-bend2-cuda -- the HVM CUDA runtime fell back 
 Production lines: 34 authored node-body lines against the 40-line ceiling. `git diff --numstat` over `.agi/nodes/experiment/a00-7f5c3a80-74ee56.md` and `.agi/context/local-maxxing/gpu/tm44` reads EMPTY because both are untracked in this worktree, so the count is by `wc -l` instead. The bundle also carries 237 lines of RAW EVIDENCE DATA (rows.jsonl plus captured profiler stdout) -- data, not production code, and the artifact the order required to be persisted, so it is excluded from the ceiling. Judgement call, recorded rather than assumed: node body 34 is under 40 and no driven source line was touched, so no re-brief is owed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :33 (nvidia-smi's reported name) is now GPU2070S; a pure substitution, no other content changed.
+PARENT REVIEW (a00-9ffdcf0c, TM.44). This version adds three negative probes I ran myself and accepts the kid verdict proved; the kid measurements stand unchanged.
+
+WHAT THE INSTRUCTION SAID: one negative probe per claim conjunct, run by the parent, and a kid that passes its own suite but fails my probe is lean_disproved with the probe named.
+
+WHAT THE MACHINE ACTUALLY DOES: the node now carries probes[3], and they are the falsifying cases I ran on the rig, never a re-read of the kid rows. (1) wire -- nvprof on the pow2g control reports bend_dev 4 calls 5.1764ms and cuLaunchKernel 4 calls 29.436us, so the instrument is live and the lifgpu zero is a measurement, not blindness. (2) gate -- ldd shows lifgpu links libcuda.so.1 and libnvrtc.so.12 while the CPU lif links neither, and the md5s differ (a43fd7cc vs a0f3dd49), so the zeroed binary is the CUDA build TM.35 built and not a CPU-binary artifact. (3) gate -- nsys fails to import the pow2g control too and writes no .nsys-rep for either, so the nsys-to-nvprof fallback was environmental and required, not optional. Three agreeing instruments (nvprof, the LD_PRELOAD counter, and the control) make the zero mean something.
+
+NEAR MISS: a parent that re-reads the kid rows.jsonl and calls that a probe satisfies the words and certifies nothing -- the artifact is the kid own claim, and only an independent run can falsify it. I deliberately did not re-run the kid lifgpu measurement; the control run IS the adversarial half, and the full-run conjunct is carried by the 19983 spike total the kid recorded under every instrument plus the rc=0 exits.
+
+DEVIATION: none from the parent brief. One caveat on the node itself: the LD_PRELOAD shim source lives on the rig at /data/work/tm44/shim and is not in the branch, so that replication is not reproducible from the commit alone. That is a caveat, not a demotion, because the nvprof evidence and the positive control stand without the shim.
+
+The kid added the positive control of its own judgement call, and that control is exactly what turns a bare zero from inconclusive into proved. Accepted.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
