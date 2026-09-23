@@ -218,7 +218,6 @@
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
       "kv_speed_out_dir": "datasets/kv-format/2026-09-23-speed",
       "kv_split_out_dir": "datasets/kv-format/2026-09-23-split",
-      "serve_dir": ".agi/context/local-maxxing/serve",
       "serving_sweep_out_dir": "datasets/serving-sweep/2026-09-23"
     }
   }

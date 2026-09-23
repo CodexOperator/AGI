@@ -1,0 +1,30 @@
+{
+ "measured_by": "director-thought",
+ "when": "2026-09-23T17:14Z",
+ "endpoint": "the live router :8080, Qwen3.5-9B-Q4_K_M, warm (after its post-restore 17-token request)",
+ "request": "one chat message 'Summarise in one line:' + a wikitext-2 test slice (offset 20000), max_tokens 8, temperature 0, thinking off; each request different text, so no prefix reuse",
+ "requests": [
+  {
+   "prompt_n": 2047,
+   "prompt_ms": 1397.0,
+   "prompt_per_second": 1465.3,
+   "cache_n": 0,
+   "predicted_per_second": 55.0
+  },
+  {
+   "prompt_n": 3803,
+   "prompt_ms": 2690.0,
+   "prompt_per_second": 1413.8,
+   "cache_n": 0,
+   "predicted_per_second": 56.6
+  },
+  {
+   "prompt_n": 2932,
+   "prompt_ms": 2097.7,
+   "prompt_per_second": 1397.7,
+   "cache_n": 0,
+   "predicted_per_second": 57.8
+  }
+ ],
+ "note": "the warm served prefill path is batched on the GPU (~1,400 tok/s, matching llama-bench pp512); the 41-45 tok/s in t1 / t1v / router_completion were each a server's FIRST request after a model load"
+}

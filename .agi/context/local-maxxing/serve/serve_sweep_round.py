@@ -12,9 +12,9 @@ IMG = "ghcr.io/ggml-org/llama.cpp:full-cuda"; NS = "/data/ml/tools/nsight-system
 SC = "/data/ml/scratch/osc02"; M = "/work/Qwen3.5-9B-Q4_K_M.gguf"; OUT = paths.get_local("serving_sweep_out_dir"); LOG = OUT + "/logs"; T975 = S.T975_4
 os.makedirs(LOG, exist_ok=True)
 BASE = ["-m", M, "-ngl", "99", "-fa", "1", "-ctk", "f16", "-ctv", "f16", "-p", "512", "-n", "64", "-d", "0,4096"]
-ARMS = {"base": ([], {}), "fa0": (["-fa", "0"], {}), "kv_q8": (["-ctk", "q8_0", "-ctv", "q8_0"], {}), "kv_q4": (["-ctk", "q4_0", "-ctv", "q4_0"], {}), "kv_split": (["-ctk", "q8_0", "-ctv", "q4_0"], {}), "ub256": (["-ub", "256"], {}), "ub1024": (["-ub", "1024"], {}), "nograph": ([], {"GGML_CUDA_DISABLE_GRAPHS": "1"}), "mmq": ([], {"GGML_CUDA_FORCE_MMQ": "1"}), "cublas": ([], {"GGML_CUDA_FORCE_CUBLAS": "1"}), "t4": (["-t", "4"], {}), "t8": (["-t", "8"], {}), "t16": (["-t", "16"], {}), "mmp0": (["-mmp", "0"], {}), "mlock": (["--mlock"], {})}
+ARMS = {"base": ([], {}), "fa0": (["-fa", "0"], {}), "kv_q8": (["-ctk", "q8_0", "-ctv", "q8_0"], {}), "kv_q4": (["-ctk", "q4_0", "-ctv", "q4_0"], {}), "kv_split": (["-ctk", "q8_0", "-ctv", "q4_0"], {}), "ub256": (["-ub", "256"], {}), "ub1024": (["-ub", "1024"], {}), "nograph": ([], {"GGML_CUDA_DISABLE_GRAPHS": "1"}), "mmq": ([], {"GGML_CUDA_FORCE_MMQ": "1"}), "cublas": ([], {"GGML_CUDA_FORCE_CUBLAS": "1"}), "t4": (["-t", "4"], {}), "t8": (["-t", "8"], {}), "t16": (["-t", "16"], {}), "mmp0": (["-lm", "none"], {}), "mlock": (["-lm", "mlock"], {})}
 NLL = {"base": ["-fa", "on", "-ctk", "f16", "-ctv", "f16"], "fa0": ["-fa", "off", "-ctk", "f16", "-ctv", "f16"], "kv_q8": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q8_0"], "kv_q4": ["-fa", "on", "-ctk", "q4_0", "-ctv", "q4_0"], "kv_split": ["-fa", "on", "-ctk", "q8_0", "-ctv", "q4_0"], "mmq": ["-fa", "on", "-ctk", "f16", "-ctv", "f16"], "cublas": ["-fa", "on", "-ctk", "f16", "-ctv", "f16"]}
-GROUPS = {"ub": ["ub256", "ub1024"], "t": ["t4", "t8", "t16"], "mmq": ["mmq"], "cublas": ["cublas"], "nograph": ["nograph"], "mmp0": ["mmp0"], "mlock": ["mlock"]}
+GROUPS = {"fa": ["fa0"], "kv": ["kv_q8", "kv_q4", "kv_split"], "ub": ["ub256", "ub1024"], "t": ["t4", "t8", "t16"], "mmq": ["mmq"], "cublas": ["cublas"], "nograph": ["nograph"], "mmp0": ["mmp0"], "mlock": ["mlock"]}
 
 
 def sh(cmd, name=None, timeout=3600):
@@ -95,7 +95,7 @@ def t2():
     save({"t2": res})
 
 
-def t3(): save({"t3": {n: ppl("ppl_" + n, fl, {}) for n, fl in NLL.items()}})
+def t3(): save({"t3": {n: ppl("ppl_" + n, fl, ARMS.get(n, ([], {}))[1]) for n, fl in NLL.items()}})  # each arm's own env (MMQ / cuBLAS)
 
 
 def t4():
