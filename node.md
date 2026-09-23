@@ -1,14 +1,13 @@
 ---
-id: goal:g15.19
+id: goal:g6.41
 mint_id: 88fe7970147c4c8aaaabbde7865c5c93
 type: goal
 parents:
-  - goal:g15
-  - build:bin-heal
+  - goal:g6
 next_edges: []
 confidence: 0.7
-edited_by: sensei-director
-goal_id: G15.19
+edited_by: belam
+goal_id: G6.41
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -21,11 +20,12 @@ tags:
   - subgoal
   - l4
   - sanctuary-director
-title: "G15.19: Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.41: Graceful recovery when a seat's process dies without a rotation — the watch pass detects the dead seat, respawns it on its own brief, writes its row, and tells its rotator"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.19
+# goal:g6.41
 
 ## Agent Notes
 **A seat whose process dies is recovered by the loop, not by a human noticing.** Measured 2026-09-11: prime X (`belam` gen 10, @281, pid 3526521) died ~17:51:50Z with no rotation record (last: 14:03Z), no successor, and the seat stayed dead until the owner saw the GUI go blank and the sanctuary director spawned XI by hand at 17:58Z (`rotate.py spawn --tier prime_director`, row written on the owner's GO). Seven minutes of a headless loop, recovered only because a human was watching.
