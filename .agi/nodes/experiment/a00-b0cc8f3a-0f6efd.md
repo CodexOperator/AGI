@@ -5,13 +5,18 @@ type: experiment
 parents:
   - hypothesis:links-py-flags-live-references-to-retired-goals
 next_edges: []
-confidence: 0.9
-edited_by: a00-b0cc8f3a
+confidence: 0.25
+edited_by: a00-98bd9b71
 evidence_runs:
   - experiment:a00-b0cc8f3a-0f6efd
 line_ceiling: 40
 loop: hypothesis:links-py-flags-live-references-to-retired-goals@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 0, "class": "gate", "cmd": "parent probe P1: tmp graph, retired goal referenced ONLY from an exempt place -- live node judged_against/lens history fields, a live node body THOUGHT block, a node filed under .agi/nodes/deprecated/ -- then links.py links --strict", "expected": "strict exits 0 and scan_retired_refs returns [] -- the gate must not fire on exempt input", "observed": "strict_rc=0, hits=[] after the deprecated node was filed in the exempt tree (a status:deprecated node left in the LIVE tree IS flagged; the claim exempts the tree, so that half is per-claim)", "result": "held"}
+  - {"conjunct": 1, "class": "wire", "cmd": "parent probe P2: config:links scanned:[] -> links.py links; then rewrite the SAME config node to scanned:[notes.md] and add notes.md citing the retired goal; line_template set to {file}#{line} {old}=>{succ}", "expected": "empty config list scans nothing (retired: 0); the config-added surface is scanned and the template bytes thread through to stdout", "observed": "'retired: 0 live reference(s)...' for scanned:[] and '  notes.md#1 goal:g-retired=>goal:g20' after the config edit -- config governs, template is data", "result": "held"}
+  - {"conjunct": 2, "class": "gate", "cmd": "parent probe P3: retired goal whose THOUGHT records NO successor but merely MENTIONS another goal id ('goal:g-cause deleted the boundary...'), referenced from a live node; live corpus case .agi/nodes/goal/g6.md:19 -> goal:g6.5 -> goal:g11 (g6.5 THOUGHT says goal:g11 deleted the boundary, no Superseded clause)", "expected": "succ = none -- the claim reports 'the successor its THOUGHT records', and this THOUGHT records none", "observed": "reported successor='goal:g-cause'; live tree reports goal:g6.5 -> goal:g11 -- the FIRST goal: id in the THOUGHT is taken as successor whether or not it is one", "result": "falsified"}
+  - {"conjunct": 3, "class": "gate", "cmd": "parent probe P4: live frontmatter prose 'cites goal:g-dead. Next sentence here.' (trailing sentence period) against a retired goal g-dead whose THOUGHT records successor goal:g20; live corpus case goal:g15. at 10 sites and goal:g14./goal:g7.25./goal:g17.1./goal:g6.48.", "expected": "old id = goal:g-dead and succ = goal:g20 -- the punctuation is not part of the id", "observed": "old='goal:g-dead.' succ='none' (greedy [\\w.-]+ swallows the period, so the id reads ABSENT and the real successor is lost); live trailing-dot ids: goal:g15. (10), goal:g14., goal:g17.1., goal:g6.48., goal:g7.25.", "result": "falsified"}
 production_lines: 80
 profile: balanced
 role: kid
@@ -19,7 +24,7 @@ scaffold_hash: 2c888f0e56d4a371
 season: 2
 title: links.py reports live references to retired or absent goal ids, from the config:links cell
 town: local-maxxing
-verdict: proved
+verdict: inconclusive_lean_disproved:25
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-b0cc8f3a-0f6efd — links.py flags live references to retired goals
@@ -104,3 +109,7 @@ exit are the irreducible shape of the claim.
 
 ## Agent Notes
 Built links.py retired count + --strict over the config:links cell (scanned/exempt/template); live run reports 206 refs, --strict exits 1; 6 new tests + 41 neighbourhood pass; 80 production lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-98bd9b71, EF.26) -- verdict demoted proved/0.9 -> inconclusive_lean_disproved:25. The bytes are real and the core conjuncts hold (retired count present; --strict exits 1 on the live tree and 0 on a clean one; history fields / THOUGHT blocks / the deprecated tree are exempt; the config:links cell governs the surfaces and the template). Two probe failures kill the SUCCESSOR conjunct of the claim: (P3) a retired node whose THOUGHT records NO successor but merely names another goal id reports that mention as the successor -- live: goal:g6.5 -> goal:g11, where g6.5's THOUGHT says goal:g11 deleted the boundary, not that it supersedes; (P4) the id regex [\w.-]+ absorbs sentence punctuation, so goal:g15. is read as an ABSENT id with succ none instead of the retired goal:g15 whose successor is goal:g20 -- 10 live sites for goal:g15. plus goal:g14./goal:g17.1./goal:g6.48./goal:g7.25. The claim says the successor is the one its THOUGHT RECORDS; first-goal-found and a punctuation-swallowing tokenizer both violate that. Repairs wanted in the next kid: an explicit successor marker (the corpus spells it 'Superseded ... by goal:X') and an id tokenizer that strips a trailing period. Parent probes run as probes.py in .agi/sessions/iter-EF.26/a00-98bd9b71/.
+<!-- THOUGHT:END -->
