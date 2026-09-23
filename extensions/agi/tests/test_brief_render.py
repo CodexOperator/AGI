@@ -39,13 +39,15 @@ def _write(root: Path, rel: str, text: str) -> Path:
 
 
 def _root(tmp_path: Path, *, parts, harnesses=None, harness_blocks=None,
-          trajectory=None, extras=None, card=None, harness="claude-code") -> Path:
+          trajectory=None, extras=None, card=None, harness="claude-code",
+          templates=None) -> Path:
     """A minimal tmp graph root with the parts the claim needs."""
     block = _write(tmp_path, "harness-block.md", "HARNESS-BLOCK-SENTINEL\n")
     if harness_blocks is None:
         harness_blocks = {"claude-code": str(block)}
     _write(tmp_path, "config.json", json.dumps({"brief": {
         "parts": parts,
+        "templates": templates or {},
         "harnesses": harnesses if harnesses is not None else {"claude-code": ["harness"]},
         "harness_blocks": harness_blocks,
         "trajectory": trajectory if trajectory is not None else {"town": "t"},
@@ -90,24 +92,56 @@ def test_one_config_line_adds_or_removes_a_part(tmp_path):
     assert "CARD-SENTINEL" in brief.render(post="some-post", project_root=root)
 
 
-def test_template_expands_one_level_only(tmp_path):
-    """The card's `{{template:doc:inner}}` expands; the template line the
-    expansion itself carries is NOT re-expanded (one level)."""
+def test_card_is_data_and_is_never_expanded(tmp_path):
+    """The amendment (owner 08:5xZ): a card is DATA. A `{{template:}}`
+    line in a card is NOT an expansion directive -- the ROLE template comes
+    from the config cell/row, never from a line in the card."""
     root = _root(tmp_path, parts={"director": ["card"]})
     out = brief.render(post="some-post", project_root=root)
-    assert "INNER-BODY-SENTINEL" in out
-    assert "DEEPER-SENTINEL" not in out
-    assert "{{template:doc/deeper}}" in out, "one level means the inner line stays literal"
+    assert "{{template:doc:inner}}" in out, "the card's template line stays literal"
+    assert "INNER-BODY-SENTINEL" not in out
 
 
-def test_a_missing_template_node_refuses(tmp_path):
-    """Falsifier: a `{{template:}}` over a missing node renders an empty
-    string. It must refuse by name instead."""
-    root = _root(tmp_path, parts={"director": ["card"]},
-                 card="{{template:doc:nope}}\n")
+def test_missing_template_node_is_refused_by_name(tmp_path):
+    """A named ROLE template that does not resolve must refuse BY NAME, not
+    render an empty string."""
+    root = _root(tmp_path, parts={"director": ["head", "template", "card"]},
+                 templates={"director": "doc:nope"})
     with pytest.raises(brief.RenderError) as exc:
         brief.render(post="some-post", project_root=root)
     assert "doc:nope" in str(exc.value)
+
+
+def test_template_part_is_chosen_by_role_and_row_overrides(tmp_path):
+    """The template is CONFIG: the formation default for the role, beaten by
+    a `template` cell on the post's own `config:posts` row."""
+    _write(tmp_path, "nodes/doc/director-brief.md", "DIRECTOR-BRIEF-SENTINEL\n")
+    _write(tmp_path, "nodes/doc/row-brief.md", "ROW-BRIEF-SENTINEL\n")
+    root = _root(tmp_path, parts={"director": ["head", "template", "card"]},
+                 templates={"director": "doc:director-brief"})
+    out = brief.render(post="some-post", project_root=root)
+    assert "DIRECTOR-BRIEF-SENTINEL" in out
+    assert "ROW-BRIEF-SENTINEL" not in out
+    _write(root, "nodes/.geometry/posts.md",
+           "---\nid: config:posts\nposts:\n"
+           '  - {"name": "some-post", "role": "director", "template": "doc:row-brief"}\n'
+           "---\n")
+    over = brief.render(post="some-post", project_root=root)
+    assert "ROW-BRIEF-SENTINEL" in over
+    assert "DIRECTOR-BRIEF-SENTINEL" not in over
+
+
+def test_build_template_reads_its_payload(tmp_path):
+    """A build node's template is its PAYLOAD file, not the contract body."""
+    payload = _write(tmp_path, "payload-brief.md", "PAYLOAD-BRIEF-SENTINEL\n")
+    _write(tmp_path, "nodes/build/the-prime-brief.md",
+           "---\nid: build:the-prime-brief\npayload_ref: " + str(payload) + "\n---\n"
+           "<!-- BODY:BEGIN -->\n# build:the-prime-brief\n\nCONTRACT-WORDS\n")
+    root = _root(tmp_path, parts={"prime_director": ["template"]},
+                 templates={"prime_director": "build:the-prime-brief"})
+    out = brief.render(role="prime_director", project_root=root)
+    assert "PAYLOAD-BRIEF-SENTINEL" in out
+    assert "CONTRACT-WORDS" not in out
 
 
 def test_render_writes_no_file(tmp_path):
@@ -164,18 +198,20 @@ def test_render_reads_the_committed_config_brief_node(tmp_path):
     assert "CARD-SENTINEL" in out
 
 
-def test_rotated_successor_is_head_plus_card(tmp_path, monkeypatch):
-    """Falsifier: a rotated successor's first turn lacks the head or its card.
-
-    A DIRECTOR successor built by rotate.py's non-prime path is the SAME
-    render the SessionStart hook prints: render's head part, then the post's
-    card. Fixtures: a director post and a prime_director post.
-    """
+def test_rotated_successor_is_head_plus_template_plus_card(tmp_path, monkeypatch):
+    """Falsifier: a rotated successor's first turn lacks the head, its role
+    template, or its card. A DIRECTOR successor built by rotate.py's
+    non-prime path is the SAME render the SessionStart hook prints: head,
+    then the config-chosen role template, then the post's card. Fixtures: a
+    director post and a prime_director post."""
     sys.path.insert(0, str(BIN))
     import rotate
 
-    root = _root(tmp_path, parts={"director": ["head", "card"],
-                                  "prime_director": ["head", "card"]})
+    root = _root(tmp_path, parts={"director": ["head", "template", "card"],
+                                  "prime_director": ["head", "template", "card"]},
+                 templates={"director": "doc:director-brief",
+                            "prime_director": "doc:director-brief"})
+    _write(root, "nodes/doc/director-brief.md", "DIRECTOR-TEMPLATE-SENTINEL\n")
     _write(root, "sessions/quorum/prime-post.md", "PRIME-CARD-SENTINEL\n")
     _write(root, "nodes/.geometry/posts.md",
            "---\nid: config:posts\nposts:\n"
@@ -192,14 +228,14 @@ def test_rotated_successor_is_head_plus_card(tmp_path, monkeypatch):
         settings=None, debug_file="/dev/null", harness="pi", project_root=root)
     body = seen["prompt"]
     assert body.startswith(brief.render_head(project_root=root))
+    assert "DIRECTOR-TEMPLATE-SENTINEL" in body
     assert "CARD-SENTINEL" in body
+    assert body.index("DIRECTOR-TEMPLATE-SENTINEL") < body.index("CARD-SENTINEL")
 
-    # the Prime fixture: rotate-self hands the card as the body through
-    # successor_prompt, which prepends the SAME head bytes.
-    prime = brief.successor_prompt(
-        tier="prime_director", body="PRIME-CARD-SENTINEL", project_root=root)
-    assert prime.startswith(brief.render_head(project_root=root))
-    assert "PRIME-CARD-SENTINEL" in prime
+    # the Prime fixture: render's prime_director parts carry the card too.
+    prime = brief.render(post="prime-post", project_root=root)
+    assert prime.count("PRIME-CARD-SENTINEL") == 1
+    assert "DIRECTOR-TEMPLATE-SENTINEL" in prime
 
 
 def test_hook_head_equals_rotate_head_at_one_sha():
