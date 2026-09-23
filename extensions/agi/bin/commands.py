@@ -271,6 +271,32 @@ def _coerce(value, arg):
     return str(value)
 
 
+#: How a supplied arg with no `<name>` in `argv` lands, read from the node's
+#: `placement` map: `option` -> `[flag, value]`, `switch` -> flag when true,
+#: `const` -> the flag its value selects, `positional` -> the bare value.
+#: `placement: {defaults: true}` opts a graph into `--<name>` / bool-as-switch
+#: defaults; entries override per arg, or per `"<entry>.<arg>"`. A renamed
+#: flag fails a committed drift test that introspects each CLI's argparse at
+#: TEST time -- `propose` never imports, execs or patches one.
+_PLACEMENT_KINDS = ("option", "switch", "const", "positional")
+
+
+def _resolve_placement(name, arg, entry, rules):
+    """`(kind, flag, const, consts)` for a declared arg, or None when the node
+    declares no placement for it and has not opted into the defaults."""
+    spec = rules.get(f"{entry}.{name}") or rules.get(name)
+    if not isinstance(spec, dict):
+        if not rules.get("defaults"):
+            return None
+        spec = {"kind": "switch" if str(arg.get("type") or "str") == "bool"
+                else "option", "flag": "--" + str(name).replace("_", "-")}
+    kind = str(spec.get("kind") or "option")
+    if kind not in _PLACEMENT_KINDS:
+        return None
+    return (kind, str(spec.get("flag") or ""), spec.get("const"),
+            dict(spec.get("consts") or {}))
+
+
 def propose(root, name: str, args: dict | None = None) -> list[str]:
     """Validate `args` against the entry and RETURN its argv — NEVER run it.
 
@@ -300,10 +326,42 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
                 f"{name!r}: arg {n!r}={v!r} not in {arg['choices']}")
         values[n] = str(v)
     template = " ".join(str(t) for t in entry["argv"])
-    for n in values:                  # a value with nowhere to land is a drop
-        if f"<{n}>" not in template:
+    # A supplied arg with no `<name>` lands as the CLI's OWN flag or
+    # positional, read from the node's `placement` data -- a value with no
+    # declared placement REFUSES BY NAME, never a silent drop.
+    rules = _load_node(Path(root)).get("placement") or {}
+    extra: list[str] = []
+    positional: list[str] = []
+    for n, value in values.items():
+        if f"<{n}>" in template:
+            continue
+        placed = _resolve_placement(n, declared[n], name, rules)
+        if placed is None:
             raise CommandError(
-                f"{name!r}: cannot place arg {n!r}; argv has no <{n}>")
+                f"{name!r}: cannot place arg {n!r}; argv has no <{n}> and the "
+                f"node declares no placement for it")
+        kind, flag, const, consts = placed
+        if kind == "positional":
+            positional.append(value)
+        elif kind == "switch":
+            if value == "True" and flag and flag not in entry["argv"]:
+                extra.append(flag)
+        elif kind == "const":
+            token = consts.get(value)
+            if token is None and const is not None and str(const) == value:
+                token = flag
+            if token is None:
+                raise CommandError(
+                    f"{name!r}: cannot place arg {n!r}={value!r}; no const "
+                    f"selects it")
+            if token not in entry["argv"]:
+                extra.append(token)
+        elif flag:                       # option: flag + value
+            if flag not in entry["argv"]:
+                extra += [flag, value]
+        else:
+            raise CommandError(
+                f"{name!r}: cannot place arg {n!r}; node declares no flag for it")
     # The leftover set is read off the TEMPLATE, before any substitution --
     # never off the output. A caller value that merely LOOKS like a
     # placeholder (`<foo>`, `<div>x</div>`) is data and lands untouched; only
@@ -319,7 +377,8 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
         return values.get(match.group(1), match.group(0))
 
     # ONE pass: a substituted value is never rescanned.
-    return [_PLACEHOLDER_RE.sub(_fill, str(t)) for t in entry["argv"]]
+    return [_PLACEHOLDER_RE.sub(_fill, str(t))
+            for t in entry["argv"]] + extra + positional
 
 
 def get(root, name: str) -> Command:
