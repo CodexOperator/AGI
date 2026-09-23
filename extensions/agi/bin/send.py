@@ -67,6 +67,7 @@ import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
+import send_router  # noqa: E402 -- the send-verb transport table (goal:g7.32.4)
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -5342,9 +5343,16 @@ def main(argv: list[str] | None = None) -> int:
     sender = args.from_id
 
     if args.verb == "send":
+        # goal:g7.32.4 -- the transport is chosen by table lookup, never by
+        # policy in this verb. The branches below only dispatch the choice.
+        try:
+            transport = send_router.choose("send", args).name
+        except LookupError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 1
         # --room/--to: the whole positional bucket is text, nothing is a
         # target. Split by MODE, not by argparse nargs (see p_send comment).
-        if args.room is not None:
+        if transport == "room":
             text = " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --room",
@@ -5360,7 +5368,7 @@ def main(argv: list[str] | None = None) -> int:
                             quote_harness=args.quote_harness).resolve())
             last_act.touch_env(root, sender)
             return 0
-        if args.dm_to is not None:
+        if transport == "dm":
             text = " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --to",
