@@ -17,4 +17,21 @@ town: core
 
 ## Hypothesis
 
-What is the testable claim? What would prove it? What would disprove it?
+**CLAIM.** On the dead-head paper's own bundled Qwen2.5-0.5B artifact (336 heads, each with its mean write-back/residual cosine z_h and its single-head ablation delta-loss), the threshold chi_c = 0.96025 is a label on a smooth head ranking, not a critical point: swept over 0.2..4.0, dead-precision and safe-recall change smoothly through 0.96. What decides whether coherence is a usable pruning criterion is the ranking's lift over random selection, not the threshold.
+
+**TESTS** (CPU only, no model is loaded -- the bundled JSON is the whole input):
+- T1 reproduce: recompute the artifact's 157/336 dead and 95.5 pct precision exactly from the JSON (sanity; a mismatch stops the round).
+- T2 sweep: chi_c over 0.2..4.0 in 0.02 steps -> dead count, dead-precision, safe-recall (the artifact's own safe/unsafe labels); table + plot data.
+- T3 knee: a breakpoint fit at 0.96 against a smooth fit on both curves; KNEE iff the breakpoint model wins by delta-BIC >= 10 AND the max-curvature point lies within +/-0.1 of 0.96.
+- T4 ranking: Spearman(z_h, delta-loss) over the non-protected heads; lift over random = precision at the paper's dead count vs the mean of 10,000 random same-size draws from the non-protected pool.
+
+**FALSIFIERS.**
+- (a) the claim: a KNEE at 0.96 on either curve (T3) -> K_c is a critical point after all; the claim is disproved and the oscillator threshold gains standing.
+- (b) the pruning criterion (goal:g5.22 falsifier (a)): no knee AND lift <= 1.05 AND |Spearman| < 0.3 -> coherence is falsified as a pruning criterion; pruning proceeds by measured delta-loss per GQA group and the oscillator budget is released.
+- (c) otherwise (lift > 1.05 or |Spearman| >= 0.3, knee or not): coherence stands as a one-pass ranking -> chunk 2 = z_h in one CPU forward pass on the served 9B, and its GQA-group yield.
+
+**FILE SCOPE.** Scripts under .agi/context/local-maxxing/heads/ (paths as paths.local_maxxing.* keys, owner 08:4xZ); the fetched artifact (source URL + sha256 recorded) and the sweep outputs under datasets/dead-head/; one experiment node under this hypothesis; nothing under extensions/.
+
+**CEILING.** 0 USD compute; pi deepseek parent + ONE kid, cap 1 USD; orders wall 60 min; no GPU and no model load, so not a model-loading host kid.
+
+**Planned by** thought-master 09:4xZ 09-23 (owner 09:4xZ asked for the oscillator head pruning specifically; the 09-20 order put it first; digest: .agi/context/local-maxxing/papers/dead-head.md).
