@@ -173,13 +173,20 @@ class NoHeldPaneError(RuntimeError):
 
 
 def held_pane_id(handle) -> str:
-    """The pane token in a held handle: a pane-id string or {"pane": ...}."""
+    """The pane token in a held handle: a bare string or {"pane": <str>}.
+
+    ONLY a non-blank string names a held pane -- bare, or as the `"pane"`
+    value of a dict. Everything else (None, "", blanks, numbers, bools,
+    lists, nested dicts, a non-str `pane`) fails closed BY NAME before any
+    subprocess, so a malformed handle never reaches tmux as a garbage target.
+    """
     if isinstance(handle, str):
-        pane = handle.strip()
-    elif isinstance(handle, dict):
-        pane = str(handle.get("pane") or "").strip()
+        pane = handle
+    elif isinstance(handle, dict) and isinstance(handle.get("pane"), str):
+        pane = handle["pane"]
     else:
         pane = ""
+    pane = pane.strip()
     if not pane:
         raise NoHeldPaneError(
             "no held pane: pass the handle the seat holds, e.g. {'pane': '%3'}; "

@@ -35,6 +35,21 @@ from types import ModuleType
 #: when it is selected rather than when it is first spawned through.
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
+#: The OPTIONAL pane surface, declared once. It lives on whichever adapter
+#: grows it (today only `grok_bot_adapter`); a pane-free harness omits every
+#: name. Callers feature-detect with `optional(mod, name)` -- ONE spelling
+#: (goal:g7.32.3) -- and never add these to REQUIRED, which would make every
+#: pane-free adapter unloadable.
+OPTIONAL_PANE = ("pane_send", "pane_read", "has_pane", "held_pane_id")
+
+
+def optional(mod: ModuleType, name: str):
+    """Return the optional callable `mod.name`, or None if the harness omits
+    it. A pane-free harness resolves to None, never `AttributeError`, so a
+    caller checks `if optional(mod, "pane_send"):` (goal:g7.32.3)."""
+    fn = getattr(mod, name, None)
+    return fn if callable(fn) else None
+
 
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
