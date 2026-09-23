@@ -56,6 +56,14 @@ def project(tmp_path: Path) -> Path:
     (graph / "nodes" / "hypothesis" / "x.md").write_text(
         "---\nid: hypothesis:x\ntype: hypothesis\nparents:\n  - goal:g15\n"
         "---\nbody\n")
+    (graph / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nid: config:posts\nmint_id: 4b2f2a0b2d0b4b7e9d5e3f1a2b3c4d5e\n"
+        "type: config\nparents:\n  - goal:g17\nposts:\n"
+        '  - {"name": "persist-seat", "role": "kid", "tier": 0, '
+        '"harness": "pi", "model": "deepseek-v4", '
+        '"session_kind": "fire-and-forget", '
+        '"pin_ref": ".agi/sessions/persist-seat.meter", "pid": 0}\n'
+        "---\n\n# config:posts\n\nfixture body\n")
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
               "AGI_ACTOR", dispatch._PERSIST_STOP_ENV):
         os.environ.pop(k, None)
@@ -80,9 +88,11 @@ class _StubProc:
         return None
 
 
-def _fake_spawn(monkeypatch, plans, stop_after=None):
+def _fake_spawn(monkeypatch, plans, stop_after=None, hook=None):
     """Patch the spawn Popen; `stop_after=N` sets the clean-stop env once N
-    children have been opened, so a live persistent seat still ends."""
+    children have been opened, so a live persistent seat still ends. `hook(n,
+    proc)` runs just after the Nth child is created, before the supervisor
+    touches the row -- how a test reads the row MID-HOLD."""
     spawned = []
     real_popen = subprocess.Popen
 
@@ -99,6 +109,8 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
         spawned.append((argv, proc))
         if stop_after is not None and len(spawned) >= stop_after:
             os.environ[dispatch._PERSIST_STOP_ENV] = "1"
+        if hook is not None:
+            hook(len(spawned), proc)
         return proc
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
@@ -106,6 +118,14 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
     monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", lambda s: None)
     monkeypatch.delenv(dispatch._PERSIST_STOP_ENV, raising=False)
     return spawned
+
+
+def _posts_row(project: Path, name: str) -> dict:
+    import geometry_config as _gc
+    for r in _gc.load_rows(project / ".agi"):
+        if r.get("name") == name:
+            return r
+    return {}
 
 
 def _argv(tmp_path: Path, *extra):
@@ -180,8 +200,9 @@ def test_fire_and_forget_default_spawns_no_supervisor(
 
 def test_record_carries_persistent_live_pid_and_restart_count(
         project, monkeypatch, capsys):
-    """Conjunct (c): the seat's own record shows the occupation -- persistent
-    true, the CURRENT (restarted) pid, and the restart count."""
+    """Conjunct (c): the seat's own record shows the occupation -- the CURRENT
+    (restarted) pid and the restart count -- and, once the hold ends, an
+    explicit terminal state rather than a stale `persistent: true`."""
     spawned = _fake_spawn(monkeypatch, [
         {"left": 14, "rc": 1},
         {"left": 999, "rc": None},
@@ -192,8 +213,60 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     agents = _manifest(project)
     assert len(agents) == 1, agents
     rec = agents[0]
-    assert rec["persistent"] is True, rec
     assert rec["restart_count"] == 1, rec
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+    # goal:g7.28.1 conjunct 2: the hold is over when main() returns, so the
+    # record names that terminal state instead of claiming a live occupation.
+    assert rec["persistent"] is False, rec
+    assert rec["seat_state"] == "released", rec
+    assert rec["pid_alive"] is True, rec
+
+
+def test_exhausted_supervisor_never_holds_a_corpse(project, monkeypatch):
+    """goal:g7.28.1 conjunct 2, probe C: with the restart budget spent and the
+    last child DEAD, the record must not keep `persistent: true` over it -- it
+    names the terminal state, records the pid is dead, and releases."""
+    _fake_spawn(monkeypatch, [{"left": 0, "rc": 1}])
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+
+    assert dispatch.main() == 0
+    rec = _manifest(project)[0]
+    assert rec["persistent"] is False, rec
+    assert rec["seat_state"] == "released", rec
+    assert rec["pid_alive"] is False, rec
+    assert rec["restart_count"] == dispatch._PERSIST_MAX_RESTARTS, rec
+
+
+def test_persistent_named_seat_occupies_and_releases_the_posts_row(
+        project, monkeypatch):
+    """goal:g7.28.1 conjunct 2: a named `--persistent` seat's own row carries
+    the live pid while the supervisor holds it, and stops reporting occupation
+    once the hold ends; the occupation read is honest on both sides."""
+    seen: dict = {}
+
+    def _hook(n, proc):
+        if n == 2:  # restart just opened: the row still names child 1
+            seen["during"] = _posts_row(project, "persist-seat").get("pid")
+
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 14, "rc": 1},
+        {"left": 999, "rc": None},
+    ], stop_after=2, hook=_hook)
+    monkeypatch.setattr(sys, "argv", _argv(
+        project, "--persistent", "--seat", "persist-seat"))
+
+    assert dispatch.main() == 0
+    assert seen.get("during") == spawned[0][1].pid, (seen, spawned)
+
+    import seat_status as SS
+    wins = project / ".agi" / "winlist"
+    wins.write_text("@1 nobody-here\n", encoding="utf-8")
+    held = SS.seat_occupation(
+        {"name": "persist-seat", "window": "", "pid": os.getpid()},
+        "agi-rc", str(wins))
+    assert held["state"] == "occupied", held
+    released = SS.seat_occupation(_posts_row(project, "persist-seat"),
+                                  "agi-rc", str(wins))
+    assert released["state"] == "unoccupied", released
