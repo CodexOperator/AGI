@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.8
 contradicts: []
-edited_by: a00-aca0a3bf
+edited_by: a00-5c79cef4
 evidence_runs:
   - experiment:mesh-handback-transport-surface
 probes:
@@ -83,3 +83,5 @@ and so this verdict is not read as certifying the Prime gate.
 
 ## Agent Notes
 send.py transport surface re-measured and landed: (1) zero ssh/is_mesh tokens, only boxes.row_is_local at send.py:2178 gating the wake; (2) live send->read round trip carries the body while _build_nudge_token stays a fixed wake; (3) mail is cron-only (mail_poll/nudge_sweep). Lean :80 because no real second box or grok pane was run. CONTRADICTING: Prime gate bypassable via --to belam (send.py:5366/5400/3879) -- positional refuses, --to delivers.
+
+PARENT a00-5c79cef4 review (DT.106): accepted. Bytes reviewed f655a6714..f90adb3c1 -- hypothesis+experiment+verdict all landed, parents/evidence_runs resolve, titles are the kid's own. Parent probes (conjuncts 1-3) run live: send.py has zero ssh/is_mesh tokens, row_is_local:2178 is the only topology branch; send->read round trip carries the body while _build_nudge_token stays a fixed wake; mail is cron-only. All pass. The auth probe found the --to belam Prime-gate bypass (send.py:5366/5400/3879) -- recorded as a counterexample to the target invariant, orthogonal to conjuncts. Kid1 a00-57078dc9 demoted: its experiment:mesh-handback-transport-surface was left uncommitted (human slug not in --node-id/--owns) so its verdict was an orphan on its branch.
