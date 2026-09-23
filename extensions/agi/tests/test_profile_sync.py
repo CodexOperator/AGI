@@ -273,3 +273,54 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.1 residue B — a missing node is a NAMED refusal -----------
+
+def test_a_missing_node_is_a_named_refusal_not_a_traceback(tmp_path):
+    """Residue B: a missing node id on the single-node path is the SAME shape
+    as every other refusal here -- `REFUSED:` on stderr, exit 2 -- never a
+    bare `FileNotFoundError` traceback. Covers plain and `--check`."""
+    repo = _repo(tmp_path)
+    for extra in ([], ["--check"]):
+        r = subprocess.run(
+            [sys.executable, str(BIN / "profile_sync.py"),
+             "hypothesis:nope"] + extra, cwd=repo,
+            capture_output=True, text=True)
+        assert r.returncode == 2, (extra, r.returncode, r.stdout, r.stderr)
+        assert "REFUSED" in r.stderr, (extra, r.stderr)
+        assert "hypothesis:nope" in r.stderr, (extra, r.stderr)
+        assert "FileNotFoundError" not in r.stderr, (extra, r.stderr)
+        assert "Traceback" not in r.stderr, (extra, r.stderr)
+
+
+def test_sync_node_refuses_a_missing_node_by_name(tmp_path):
+    """The library entry point refuses too, not only the CLI."""
+    repo = _repo(tmp_path)
+    with pytest.raises(profile_sync.Refused):
+        profile_sync.sync_node(repo / ".agi", "hypothesis:nope")
+
+
+# ---- goal:g7.31.5.1 residue A — read-only pre-flight -----------------------
+
+def test_validate_target_accepts_a_post_edit_ref_without_writing(tmp_path):
+    """The pre-flight validates the ref an edit will HAVE, and writes nothing:
+    the artifact's directory is not even created."""
+    repo = _repo(tmp_path, ref=None)
+    dest = profile_sync.validate_target(repo / ".agi", "hypothesis:h1",
+                                        "profile/new.md")
+    assert dest == repo / "profile" / "new.md"
+    assert not (repo / "profile").exists(), "validate must not write"
+
+
+def test_validate_target_refuses_an_escaping_post_edit_ref(tmp_path):
+    repo = _repo(tmp_path, ref=None)
+    with pytest.raises(profile_sync.Refused):
+        profile_sync.validate_target(repo / ".agi", "hypothesis:h1",
+                                     "../escape.md")
+
+
+def test_validate_target_is_a_noop_for_an_unlinked_node(tmp_path):
+    repo = _repo(tmp_path, ref=None)
+    with pytest.raises(profile_sync.NoRef):
+        profile_sync.validate_target(repo / ".agi", "hypothesis:h1")
