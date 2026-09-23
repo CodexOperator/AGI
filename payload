@@ -475,20 +475,19 @@ def _this_box(root: Path, box_name: str | None = None) -> str:
 
 
 def _substitute(text, root: Path, repo_root: Path, own: str):
-    """Resolve `{root}`, `{repo_root}`, `{logs}`, `{box}` through the ONE
-    schema-declared map (`boxes.resolve_placeholders`), never a second literal
-    token list here. Values come from what the renderers already compute --
-    never `boxes.box_cells(root)`, whose live cells belong to a foreign box.
-    Never `str.format()`: a cron `cmd` is arbitrary shell and may carry stray
-    `{`/`}` `format` would mis-substitute. Non-strings pass through."""
+    """Resolve the four portable placeholders by LITERAL token replacement —
+    `{root}`, `{repo_root}`, `{logs}`, `{box}` — from the same values the
+    renderers already compute. Never `str.format()`: a cron `cmd` is an
+    arbitrary shell string that may carry stray `{`/`}` from shell syntax
+    `format` would choke on or mis-substitute. Non-strings pass through."""
     if not isinstance(text, str):
         return text
-    import boxes
-    cells = {"root": str(root),
-             "logs_dir": str(_log_path(repo_root).parent),
-             "repo_root": str(repo_root),
-             "box": own}
-    return boxes.resolve_placeholders(text, cells, Path(root))
+    for token, value in (("{repo_root}", str(repo_root)),
+                         ("{root}", str(root)),
+                         ("{logs}", str(_log_path(repo_root).parent)),
+                         ("{box}", own)):
+        text = text.replace(token, value)
+    return text
 
 
 def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
