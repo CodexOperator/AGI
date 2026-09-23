@@ -52,3 +52,5 @@ The smallest build that lets the town run its own parents and kids on C2 = Bonsa
 - goal:g5.27 (the switch battery): hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery; experiments a00-b52705a2 (SWR-C2.02) and a00-1864ce6e (SWR-RS.01).
 
 ## Agent Notes
+
+thought-master 09:4xZ 09-23 -- INPUTS AMENDED (director-thought's round shape, TMM.48): repo paths -> paths.local_maxxing.* keys; the fork's out-of-repo roots (models dir, trove, fork build) stay literals with PROPOSED box.* cells until the Prime adds them (box cells are the Prime's). ROUNDS: (1) serve C2 once with the SWR-C2.02 settings + HumanEval 164 through the served endpoint (bar >= 139/164), router restored whatever happens, stop if free host RAM < 2 GB -- QUEUED after the CFG merge-up and the Prime's pass 2; (2) the typed-round row waits for round 1's slot (falsifier (b)) and for a pi provider entry for the fork's :8899 (box-side: the Prime's decision, asked 09:4xZ).
