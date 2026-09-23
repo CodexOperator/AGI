@@ -234,6 +234,14 @@ placement:
   "sensei.py:propose.target": {kind: option, flag: '--target'}
   "sensei.py:calls.from_": {kind: option, flag: '--from'}
   "handoff.py:read.section": {kind: positional}
+  # CLI GROUP C (EF.54) placement deviations: the CLI's own flag differs from
+  # the `--<name>` default, or the arg is a positional. `parents` needs none
+  # -- the global entry above already names `--parent`, which spawn_gate uses.
+  "branches.py:.names": {kind: positional}
+  "towns.py:.root": {kind: positional}
+  "spawn_gate.py:check.node_id": {kind: option, flag: '--id'}
+  "spawn_gate.py:check.sets": {kind: option, flag: '--set'}
+  "spawn_gate.py:check.season_parents": {kind: option, flag: '--season-parent'}
 manifest:
   write.py:create:
     cli: write.py
@@ -480,6 +488,18 @@ manifest:
   anonymize.py:install-hook: {cli: anonymize.py, verb: install-hook, argv: ['python3', '<engine>/extensions/agi/bin/anonymize.py', 'install-hook'], args: [{name: 'root', type: str, required: false, choices: []}, {name: 'hooks_dir', type: str, required: false, choices: []}], purpose: 'install the anonymize git pre-commit hook', side_effects: graph-write, proposable: false, reason: 'writes a git pre-commit hook; operator-only'}  # Legacy `commands:` entries whose KID 1 default (read) is wrong. Kept
   # keyed by command NAME (not cli:verb) so manifest() applies them to the
   # command the operator actually types; argv stays untouched.
+  # CLI GROUP C (EF.54): the last 11 engine CLIs, whose parser lives outside a
+  # plain module-level `main`: under `if __name__ == "__main__"`, in `_cli`/
+  # `_main`, or not at all (manual argv -- those are `excluded:`). Read-only
+  # verbs are proposable; the bare-parser library modules, the manual-argv
+  # relay/spawn wrappers and the spawn-time install gate are declared by name
+  # with a reason.
+  branches.py:: {cli: branches.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/branches.py'], args: [{name: 'names', type: str, required: false, choices: []}], purpose: 'parse branch names into the season grammar', side_effects: read, proposable: true}
+  completion.py:: {cli: completion.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/completion.py', '<root>', '<node_id>'], args: [{name: 'root', type: str, required: true, choices: []}, {name: 'node_id', type: str, required: true, choices: []}], purpose: 'is the node finished? exit 0 complete, 1 not, 2 root unresolvable', side_effects: read, proposable: true}
+  geometry_config.py:: {cli: geometry_config.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/geometry_config.py'], args: [{name: 'root', type: str, required: false, choices: []}], purpose: 'resolve the posts geometry config and its rows', side_effects: read, proposable: true}
+  spawn_gate.py:check: {cli: spawn_gate.py, verb: check, argv: ['python3', '<engine>/extensions/agi/bin/spawn_gate.py', 'check', '--type', '<node_type>'], args: [{name: 'node_type', type: str, required: true, choices: []}, {name: 'parents', type: str, required: false, choices: []}, {name: 'node_id', type: str, required: false, choices: []}, {name: 'root', type: str, required: false, choices: []}, {name: 'sets', type: str, required: false, choices: []}, {name: 'no_spawn_gate', type: bool, required: false, choices: []}, {name: 'season_parents', type: str, required: false, choices: []}, {name: 'current_season', type: str, required: false, choices: []}], purpose: 'validate a spawn against the parent-shape gate; exit 2 on rejection', side_effects: read, proposable: true}
+  spawn_gate.py:rules: {cli: spawn_gate.py, verb: rules, argv: ['python3', '<engine>/extensions/agi/bin/spawn_gate.py', 'rules'], args: [{name: 'root', type: str, required: false, choices: []}], purpose: 'print the parent-shape rules and their schemas', side_effects: read, proposable: true}
+  towns.py:: {cli: towns.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/towns.py'], args: [{name: 'root', type: str, required: false, choices: []}, {name: 'tuples', type: bool, required: false, choices: []}], purpose: 'load town:* super nodes and their derived branch names', side_effects: read, proposable: true}
   smoke: {side_effects: graph-write}
   goals-check: {side_effects: graph-write}
   grid-commit: {side_effects: graph-write}
@@ -509,6 +529,15 @@ excluded:
     proposable: false
   node_writer.py:: {cli: node_writer.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/node_writer.py'], args: [], reason: 'library module with no main or argparse; imported by other CLIs, not a choice', side_effects: graph-write, proposable: false}
   metrics.py:: {cli: metrics.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/metrics.py'], args: [], reason: 'manual argv, no argparse parser; loop metrics renderer, not a choice', side_effects: read, proposable: false}
+  # CLI GROUP C (EF.54): no argparse parser at all, or a parser that only
+  # exists to answer --help. Declared BY NAME so the coverage test can tell
+  # "we chose not to expose this" from "we forgot it".
+  boxes.py:: {cli: boxes.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/boxes.py'], args: [], reason: 'library module: which box a checkout is; its __main__ builds a bare parser and does no work -- not a choice', side_effects: read, proposable: false}
+  mem_cap.py:: {cli: mem_cap.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/mem_cap.py'], args: [], reason: 'library module: the one memory cap for launched children; bare parser under __main__', side_effects: read, proposable: false}
+  migrate_channel.py:: {cli: migrate_channel.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/migrate_channel.py'], args: [], reason: 'library module: the cross-box migrate record kind; bare parser under __main__', side_effects: read, proposable: false}
+  ws_raw.py:: {cli: ws_raw.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/ws_raw.py'], args: [], reason: 'long-running websocket relay; manual argv, no argparse; never proposed', side_effects: spawn, proposable: false}
+  pi_edit_forgiveness.py:: {cli: pi_edit_forgiveness.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/pi_edit_forgiveness.py'], args: [], reason: 'manual argv, no argparse parser; spawn-time install gate', side_effects: graph-write, proposable: false}
+  pi_trajectory.py:: {cli: pi_trajectory.py, verb: '', argv: ['python3', '<engine>/extensions/agi/bin/pi_trajectory.py'], args: [], reason: 'manual argv, no argparse parser; spawns pi and tees its stream', side_effects: spawn, proposable: false}
   dispatch.py:: {cli: dispatch.py, verb: , argv: ['python3', '<engine>/extensions/agi/bin/dispatch.py', '<project_root>', '<iter_n>'], reason: 'spawns paid model agents; operator-only, never proposed', side_effects: spawn, proposable: false}
   grid.py:checkout: {cli: grid.py, verb: checkout, argv: ['python3', '<engine>/extensions/agi/bin/grid.py', 'checkout', '<node_ids...>'], reason: 'destructive: overwrites the working tree (retired, never run)', side_effects: destructive, proposable: false}
   grid.py:migrate-mint-refs: {cli: grid.py, verb: migrate-mint-refs, argv: ['python3', '<engine>/extensions/agi/bin/grid.py', 'migrate-mint-refs'], reason: 'destructive: rewrites grid refs (--write)', side_effects: destructive, proposable: false}
