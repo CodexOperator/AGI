@@ -22,6 +22,7 @@ from __future__ import annotations
 import importlib.machinery
 import importlib.util
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -461,44 +462,30 @@ def test_propose_substitutes_once_and_ignores_undeclared_keys():
     assert "<foo> and <div>x</div>" in joined, joined
 
 
-def test_propose_refuses_an_unmapped_placeholder():
+def test_propose_refuses_an_unmapped_placeholder(tmp_path: Path):
     """A template still holding a placeholder no declared arg maps must
     refuse by name rather than hand back an argv a proposer cannot run.
 
-    Red-on-prefix: the refusal is read off the TEMPLATE, so a template that
-    declares the arg (or drops the metavar) turns this green -- a caller
-    value shaped like `<N:M>` does not."""
-    root, _ = _live_manifest()
-    with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "session-complete", {})
-    assert "unmapped placeholder" in str(exc.value)
-    assert "<iter>" in str(exc.value)
-    # A placeholder the template never mapped, whatever its spelling.
+    Red-on-prefix: the refusal is read off the TEMPLATE, so a caller value
+    shaped like `<N:M>` does not."""
     graph = _synthetic(tmp_path, "<N:M>")
-    with pytest.raises(commands.CommandError) as exc2:
+    with pytest.raises(commands.CommandError) as exc:
         commands.propose(graph, "x.py:slice", {"target": "body"})
-    assert "unmapped placeholder" in str(exc2.value)
-    assert "<N:M>" in str(exc2.value)
+    assert "unmapped placeholder" in str(exc.value)
+    assert "<N:M>" in str(exc.value)
 
 
 def test_propose_refuses_a_required_arg_with_nowhere_to_land(tmp_path: Path):
-    """A supplied required arg whose name has no `<name>` in the template is a
-    drop -- it must refuse by name, not return the argv."""
+    """A declared arg with no `<name>` in the template and NO `placement`
+    declared is a drop -- it must refuse by name, not return the argv.
+
+    A graph that has not opted into `placement: {defaults: true}` gets no
+    guessed flag, so the refusal still fires."""
     graph = _synthetic(tmp_path, "")
     with pytest.raises(commands.CommandError) as exc:
         commands.propose(graph, "x.py:go", {"wanted": "v"})
     assert "cannot place arg" in str(exc.value)
     assert "wanted" in str(exc.value)
-
-
-def test_propose_refuses_an_unmapped_placeholder():
-    """A template still holding a placeholder no declared arg maps must
-    refuse by name rather than hand back an argv a proposer cannot run."""
-    root, _ = _live_manifest()
-    with pytest.raises(commands.CommandError) as exc:
-        commands.propose(root, "session-complete", {})
-    assert "unmapped placeholder" in str(exc.value)
-    assert "<iter>" in str(exc.value)
 
 
 def test_command_schema_declares_manifest_and_excluded():
@@ -535,3 +522,287 @@ def test_propose_action_refuses_non_zero_on_stderr(project, capsys):
                         "--root", str(project.parent)])
     assert rc != 0
     assert "not proposable" in capsys.readouterr().err
+
+# --------------------------------------------------------------------------
+# Optional args: `propose` places them from the node's `placement` data, and
+# a drift test introspects each CLI's OWN argparse at test time.
+# --------------------------------------------------------------------------
+
+def test_propose_places_an_optional_flag_from_the_node():
+    """`back` has no `<back>` in `grid.py:diff`'s argv; the node's `placement`
+    default places it as grid.py's own `--back <value>`."""
+    root, _ = _live_manifest()
+    argv = commands.propose(root, "grid.py:diff",
+                            {"node_id": "x", "back": "2"})
+    assert argv[-2:] == ["--back", "2"], argv
+
+
+def test_propose_places_an_optional_bool_switch_only_when_true():
+    """A bool becomes its CLI switch when true, and is omitted when false or
+    absent -- never `--box-local False`."""
+    root, _ = _live_manifest()
+    on = commands.propose(root, "send.py:read",
+                          {"target": "local-town", "box_local": True})
+    off = commands.propose(root, "send.py:read",
+                           {"target": "local-town", "box_local": False})
+    assert "--box-local" in on, on
+    assert "--box-local" not in off, off
+
+
+def test_propose_places_a_declared_const_pair():
+    """A `store_const` pair places the flag its value selects: `record: fail`
+    becomes `--record-fail`, never `--record-record fail`."""
+    root, _ = _live_manifest()
+    argv = commands.propose(root, "rotate.py:next",
+                            {"seat": "s", "record": "fail"})
+    assert "--record-fail" in argv, argv
+    ok = commands.propose(root, "rotate.py:next",
+                          {"seat": "s", "record": "ok"})
+    assert "--record-ok" in ok, ok
+
+
+def test_every_proposable_entry_accepts_a_full_supply_of_its_args():
+    """Falsifier: a declared arg, required or optional, that `propose` cannot
+    place. Supplies every declared arg of every proposable entry and asserts
+    the result is a complete argv -- no refusal, no surviving placeholder."""
+    root, man = _live_manifest()
+    for key, entry in man.items():
+        if not entry.get("proposable"):
+            continue
+        args = {}
+        for arg in entry.get("args") or []:
+            choices = arg.get("choices") or []
+            args[arg["name"]] = (True if arg.get("type") == "bool"
+                                  else (choices[0] if choices
+                                        else f"SYNTH{len(args)}x{arg['name']}"))
+        try:
+            argv = commands.propose(root, key, args)
+        except commands.CommandError as exc:
+            pytest.fail(f"{key}: refused a fully-supplied proposal: {exc}")
+        assert not [t for t in argv
+                    if any(p not in commands.KEPT_METAVARS
+                           for p in commands._PLACEHOLDER_RE.findall(t))], \
+            (key, argv)
+
+
+def test_every_proposable_entry_lands_every_supplied_value_or_refuses_by_name():
+    """Falsifier: a supplied declared arg that is SILENTLY DROPPED. Supplies a
+    distinct value for every declared arg of every proposable entry and asserts
+    each value either lands in the returned argv or the call refused by NAMING
+    it."""
+    root, man = _live_manifest()
+    drops = []
+    for key, entry in man.items():
+        if not entry.get("proposable"):
+            continue
+        args = {}
+        for arg in entry.get("args") or []:
+            choices = arg.get("choices") or []
+            args[arg["name"]] = (True if arg.get("type") == "bool"
+                                  else (choices[0] if choices
+                                        else f"SYNTH{len(args)}x{arg['name']}"))
+        try:
+            argv = commands.propose(root, key, args)
+        except commands.CommandError as exc:
+            if not any(n in str(exc) for n in args):
+                drops.append((key, "refusal names no arg", str(exc)))
+            continue
+        joined = " ".join(argv)
+        for name, value in args.items():
+            if isinstance(value, bool):
+                continue
+            if str(value) not in joined:
+                drops.append((key, name, value, argv))
+    assert drops == [], drops
+
+
+def test_operator_verbs_are_declared_not_proposable_with_a_reason():
+    """A proposer must never be handed the verbs that write the real crontab /
+    systemd units, nor owner-ops `mesh-gw`. Each is declared by name with a
+    non-empty reason, so the choice surface says WHY it is off the table."""
+    _, man = _live_manifest()
+    for key in ("crons.py:apply", "crons.py:remove", "mesh-gw"):
+        assert man[key]["proposable"] is False, key
+        assert man[key].get("reason"), key
+
+
+_BOX_LABELS = ("GPU2070S", "ARM4C", "CPU8G", "EDGE")
+
+
+def test_rendered_manifest_names_no_box_detail():
+    """The anonymize guard goes over the WHOLE rendered manifest, purposes
+    included: no box label, no dotted-quad address. The mesh purposes used to
+    name the physical rig they run on."""
+    root, _ = _live_manifest()
+    text = commands.render_manifest(root)
+    hits = [tok for tok in _BOX_LABELS if tok in text]
+    hits += ["ip:" + m
+             for m in re.findall(r"\b\d{1,3}(?:\.\d{1,3}){3}\b", text)]
+    assert hits == [], hits
+
+
+def test_propose_never_imports_a_cli_or_touches_argparse(monkeypatch):
+    """`propose` places from DATA: it must not import/exec a CLI or call
+    argparse. A parse_args monkeypatched to raise is never reached, and no CLI
+    script enters `sys.modules`."""
+    import argparse
+    root, _ = _live_manifest()
+
+    def boom(*a, **k):
+        raise AssertionError("propose must never parse args")
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", boom)
+    before = set(sys.modules)
+    argv = commands.propose(root, "grid.py:diff",
+                            {"node_id": "x", "back": "2"})
+    assert argv[-2:] == ["--back", "2"], argv
+    new = [m for m in set(sys.modules) - before
+           if m.rsplit(".", 1)[-1] in
+           ("grid", "send", "cli", "rotate", "crons", "workflow")]
+    assert new == [], new
+
+
+# --------------------------------------------------------------------------
+# Drift: introspect each CLI's own argparse AT TEST TIME, and fail when the
+# node's declared/default placement disagrees. Import/exec is fine HERE; it is
+# forbidden in `propose`.
+# --------------------------------------------------------------------------
+
+class _ArgsCaptured(BaseException):
+    pass
+
+
+_SPEC_CACHE: dict[str, dict] = {}
+
+
+def _cli_arg_specs(entry: dict) -> dict:
+    """`{dest: [(kind, token, const)]}` from the CLI's own argparse, cached by
+    script path. The parser is captured by replacing `parse_args` with a spy
+    that raises before any subcommand runs."""
+    import argparse
+    import contextlib
+    import importlib.util
+    import inspect
+    import io
+    argv = [str(a) for a in entry["argv"]]
+    script = next((a for a in argv if a.endswith((".py", ".sh"))), "")
+    if not script:
+        return {}
+    path = Path(script.replace("<engine>/", ""))
+    if not path.is_absolute():
+        path = BIN / path.name
+    key = str(path)
+    verb = next((a for a in argv[argv.index(script) + 1:]
+                 if not a.startswith("-")), "")
+    key = f"{path}|{verb}"
+    if key in _SPEC_CACHE:
+        return _SPEC_CACHE[key]
+    seen: dict = {}
+
+    def spy(self, *a, **k):
+        seen.setdefault("top", self)
+        raise _ArgsCaptured()
+
+    old = (argparse.ArgumentParser.parse_args,
+           argparse.ArgumentParser.parse_known_args)
+    argparse.ArgumentParser.parse_args = spy
+    argparse.ArgumentParser.parse_known_args = spy
+    try:
+        spec = importlib.util.spec_from_file_location("_drift_probe", str(path))
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["_drift_probe"] = mod
+        with contextlib.redirect_stdout(io.StringIO()), \
+                contextlib.redirect_stderr(io.StringIO()):
+            spec.loader.exec_module(mod)
+            try:
+                mod.main([]) if inspect.signature(mod.main).parameters \
+                    else mod.main()
+            except BaseException:
+                pass
+    finally:
+        argparse.ArgumentParser.parse_args, \
+            argparse.ArgumentParser.parse_known_args = old
+        sys.modules.pop("_drift_probe", None)
+    top = seen.get("top")
+    assert top is not None, f"{path.name}: main() never built a parser"
+    for act in getattr(top, "_actions", []):
+        if isinstance(act, argparse._SubParsersAction) and verb in act.choices:
+            top = act.choices[verb]
+            break
+    out: dict = {}
+    for act in getattr(top, "_actions", []):
+        if act.dest == "help":
+            continue
+        if act.option_strings:
+            long = [o for o in act.option_strings if o.startswith("--")]
+            token = (long or act.option_strings)[0]
+            if type(act).__name__ == "_StoreConstAction":
+                item = ("const", token, act.const)
+            elif act.nargs == 0:
+                item = ("switch", token, None)
+            else:
+                item = ("option", token, None)
+        else:
+            item = ("positional", "", None)
+        out.setdefault(act.dest, []).append(item)
+    _SPEC_CACHE[key] = out
+    return out
+
+
+def _norm_token(value) -> str:
+    return re.sub(r"[-_]", "", str(value).lstrip("-")).lower()
+
+
+def _match_spec(specs: dict, name: str):
+    """The CLI items for a declared arg, by dest or by any option spelling --
+    `parent` finds `--parent`, whose dest is `parents`."""
+    if name in specs:
+        return specs[name]
+    want = _norm_token(name)
+    for dest, items in specs.items():
+        if _norm_token(dest) == want:
+            return items
+        for _kind, token, _const in items:
+            if token and _norm_token(token) == want:
+                return items
+    return None
+
+
+def test_declared_placement_matches_each_cli_introspected_at_test_time():
+    """For every proposable entry and every declared arg that lacks a `<name>`,
+    introspect the CLI's argparse and assert the node's placement (default or
+    declared) matches it. A renamed or missing flag fails HERE, not silently at
+    propose time."""
+    root, man = _live_manifest()
+    rules = commands._load_node(root).get("placement") or {}
+    bad = []
+    for key, entry in man.items():
+        if not entry.get("proposable"):
+            continue
+        template = " ".join(str(t) for t in entry["argv"])
+        need = [a for a in entry.get("args") or []
+                if f"<{a['name']}>" not in template]
+        if not need:
+            continue
+        specs = _cli_arg_specs(entry)
+        for arg in need:
+            items = _match_spec(specs, arg["name"])
+            placed = commands._resolve_placement(arg["name"], arg, key, rules)
+            if items is None or placed is None:
+                bad.append((key, arg["name"], "no CLI spec" if items is None
+                            else "no placement", items, placed))
+                continue
+            kind, flag, const, consts = placed
+            if kind == "positional":
+                if not any(k == "positional" for k, _t, _c in items):
+                    bad.append((key, arg["name"], "expected positional", items))
+            elif kind == "const":
+                got = {str(c): t for k, t, c in items if k == "const"}
+                if got != {str(v): t for v, t in consts.items()}:
+                    bad.append((key, arg["name"], "const mismatch", items,
+                                consts))
+            else:
+                if not any(k == kind and t == flag for k, t, _c in items):
+                    bad.append((key, arg["name"], f"expected {kind} {flag}",
+                                items))
+    assert bad == [], bad
