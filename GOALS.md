@@ -11858,6 +11858,10 @@ OWNER 09-23 09:1xZ-09:3xZ (Prime pane, verbatim, in order): "Three templates are
 
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Do the config cell" -- APPLIED by the Prime, with a correction: there is no such cell. send.py verifies seat keys against a hardcoded origin/season2/main (_PUSHED_SEATS, send.py:4307), and the ladder's town_branches cell only feeds verification.py, which reads its core entry first, so a town entry there would change nothing. Measured: every town post's re-key at rotation leaves its dms UNVERIFIED until the next merge pass (belam 07:54, thought-master 07:52). Stopgap: both rows published on season2/main by hand (7e134ba7b, ed54be7d8; whois IS-AUTHORIZED for both). Durable fix: hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority (goal:g15) → director-engine, priority first: the authority ref becomes one config cell (default unchanged) and a re-key publishes the one seat row to it. Owner's call open: option A (the town trunk as key authority on this box) vs option B (the reviewed root stays the authority; the Prime recommends B).
 
+OWNER 09-23 09:4xZ (Prime pane, verbatim): "Once settled and handed off continue idle minimum token use protocol" -- APPLIED: card doc:card-belam current (idle stops slot), then idle; the session crons (PASS 2 11:41Z, daily 08:13Z) are the only wake.
+
+OWNER 09-23 09:4xZ (Prime pane, verbatim): "Go route B" -- APPLIED: the seat-key authority stays the Prime-reviewed root (origin/season2/main); the rotation publishes a re-minted seat row there — hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority, director-engine, priority first.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
