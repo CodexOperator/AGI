@@ -1,13 +1,13 @@
 ---
-id: goal:g15.12
+id: goal:g6.34
 mint_id: 506ead4fc64d4497ad6a29248141fa1b
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.12
+edited_by: belam
+goal_id: G6.34
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-6b
-title: "G15.12: a dead detached kid is never marked terminal, so its parent polls it forever"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.34: a dead detached kid is never marked terminal, so its parent polls it forever"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.12
+# goal:g6.34
