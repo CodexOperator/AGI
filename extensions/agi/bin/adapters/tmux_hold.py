@@ -80,6 +80,67 @@ def _run(args):
     return subprocess.run(args, capture_output=True, text=True)
 
 
+class HeldProc:
+    """A seat process running inside its named pane (`goal:g7.31.1.2.2`).
+
+    Duck-types the bit of `subprocess.Popen` dispatch reads (`pid`, `poll()`,
+    `returncode`) so the first-spawn call site does not need a second path.
+    Truth is read back from tmux on every call -- never cached -- so a pid
+    from a previous respawn is not mistaken for the live one.
+    """
+
+    def __init__(self, harness: dict, agent_id: str):
+        self._harness = dict(harness)
+        self._name = pane_name(agent_id)
+
+    def _row(self):
+        return _pane(self._harness, self._name)
+
+    @property
+    def pane_id(self):
+        row = self._row()
+        return row[0] if row else None
+
+    @property
+    def pid(self):
+        row = self._row()
+        return row[1] if row else None
+
+    def poll(self):
+        """None while the pane process lives, else its exit status."""
+        cp = _run(["tmux", "list-panes", "-s", "-t", _session(self._harness),
+                   "-F", "#{window_name}|#{pane_id}|#{pane_pid}|"
+                   "#{pane_dead}|#{pane_dead_status}"])
+        if cp.returncode:
+            return 1
+        for ln in cp.stdout.splitlines():
+            f = ln.split("|")
+            if len(f) >= 4 and f[0] == self._name:
+                if f[3] != "1":
+                    return None
+                return int(f[4]) if len(f) > 4 and f[4].strip() else 1
+        return 1
+
+    @property
+    def returncode(self):
+        return self.poll()
+
+
+def spawn(harness: dict, agent_id: str, argv: list[str], *, cwd,
+          log_file=None, env: dict | None = None) -> "HeldProc | None":
+    """Found (or re-enter) the named pane and run argv in it on FIRST spawn.
+
+    `start` when the seat has no pane yet, `reattach` when it has one -- so
+    the pane exists before any restart and the same `#{pane_id}` is used for
+    the whole seat life. Returns None when no pane could be founded, never a
+    fabricated handle.
+    """
+    have = _pane(harness, pane_name(agent_id))
+    pid = (reattach if have else start)(
+        harness, agent_id, argv, cwd=cwd, log_file=log_file, env=env)
+    return HeldProc(harness, agent_id) if pid is not None else None
+
+
 def start(harness: dict, agent_id: str, argv: list[str], *, cwd, log_file=None,
           env: dict | None = None):
     """Create the named pane only if the session has none, then run argv in it.
