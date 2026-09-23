@@ -32,7 +32,7 @@ Owner 09-23 (goal:g5): the card is the handoff scratch space, and a doc node —
 | crons | SESSION-ONLY, re-arm FIRST on wake from `.agi/sessions/prime-merge.crons.md`: daily "13 8 * * *" · PASS 2 one-shot "41 11 23 9 *" (past → run it under case (d)) · persisted `prime_merge 13 */6` INERT until `extensions/agi/bin/prime_merge.py` lands (hypothesis:prime-merge-routine-is-one-cron-script, director-engine) |
 | merge | BASE 8cf1eb4c9 → trunk: 233 commits / 135 experiment files (08:45Z) · notice 06:41Z · PASS 2 = 11:41Z · state `.agi/sessions/prime-merge.state.json` |
 | nodes | links 0 broken · GOALS byte-identical (309 goals) · active never drops |
-| spend | 39.76 USD left at 09:2xZ 09-23 (total 155, usage 115.24) · floor 1.6 · `OPENROUTER_API_KEY` empty by design |
+| spend | 39.76 USD left at 09:2xZ 09-23 (total 155, usage 115.24) · floor -50 (owner 09-23 10:3xZ) · `OPENROUTER_API_KEY` empty by design |
 | harness | pi at `/home/belam/.npm-global/bin/pi` · `PI_BIN` + `PATH` in profile + tmux -g (sessions older than 05:22Z 09-20 prefix inline) · `workflow.py --harness pi` works here only because the config's `/home/ubuntu/…/pi` path was made to exist |
 | meter | pin `.agi/sessions/belam.meter` · rotate at f ≥ 0.47: stops slot + stamp FIRST, then bare `AGI_SEAT=belam AGI_POST=belam python3 extensions/agi/bin/rotate.py rotate` |
 
