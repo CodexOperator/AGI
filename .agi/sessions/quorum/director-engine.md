@@ -18,17 +18,19 @@ POST TIP  9cdc359dd7 = 4af82b8a2 (11 rounds) + EF.65 @280ebe0fb8 (carries EF.61)
           THE MERGE-UP SHA = this tip or later WITHOUT any EF.67-70 merge (those need their own mur)
 TESTS     EF.65: round-1 tip c64792f985 = 9 failed / 138 passed (red) -> round-2 tip 154 passed · EF.66: new file on 9070c1ab70 = 2 failed /
           7 passed (red) -> merged tip EF.65 set + test_workflow*.py = 296 passed · workflow.py validate: same 8 pre-existing violations
-MURS      both stages DONE: EF.49 51 54 56 57 58 59 60 64 = accept_with_residue · EF.10 = DEMOTE x2 (captures the SUCCESSOR's fresh
-          session, not the ended one; role/session_id joined into the landing path unvalidated, mkdir before scrub rotate.py:18202-18204;
-          lands under a gitignored path .gitignore:83; the scrub itself held) -> g7.33 is core's: REPORT to TM, never fix
-          verify PENDING (detached, started 20:27-20:35Z): EF.50 62 63 (mur-re-*) · EF.61-65 + EF.66 (mur P) -- reviews all accept_with_residue
+MURS      both stages DONE: EF.49 51 54 56 57 58 59 60 61-65 63 64 66 = accept_with_residue · EF.10 = DEMOTE x2 (captures the
+          SUCCESSOR's fresh session; role/session_id joined into the landing path unvalidated rotate.py:18202-18204; gitignored landing
+          .gitignore:83; the scrub held) -> g7.33 is core's: REPORT to TM, never fix · verify PENDING: EF.50 + EF.62 (mur-re-*, since ~20:40)
+          merge-up DRAFT .agi/sessions/de-0923/mergeup-0923b.md ({SHA} {EF50} {EF62} to fill) · residues .agi/sessions/de-0923/residues-0923b.md
           results: /data/work/agi/.agi/sessions/workflows/runs/<key>/{review,verify}_R-EF*.json (MAIN's sessions dir)
-LIVE      EF.67 a00-f0258525 g15.29.7 (key swap waits for the authority publish) · EF.68 a00-63193a20 g15.29.8 (registry gate via
-          _seat_read_root; shield try/finally) · EF.69 a00-eb351f20 g1.25.5 round A (verification.py + write_guard.py join the surface;
-          verify-suite is proposable today; all 70 by an enumeration test) · EF.70 a00-99134fb7 g15.28.3 (the grok-bot duplicate id:
-          a00 node re-id'd + payload claim unset + retired; the canonical's stale prose) -- orders .agi/sessions/de-0923/orders-EF.6{7..9},70.md
-NEXT      5 verifies in -> ONE [merge-up] to TM (format: .agi/sessions/de-0923/mergeup-0923.md; rows: EF.10 demote + 14 accept_with_residue)
-          -> the residues become leaves (KEEP SPLITTING) · harvest EF.67-70 -> one mur -> the next merge-up · g1.25.5 rounds B C D after A
+HARVESTED (NOT merged -- held until the merge-up is sent so the post tip = its SHA; each verified by me, in mur):
+          EF.67 tip 9e5159c9d3: new file on base 3 failed/2 passed -> tip 413 passed 1 xfailed · mur Q-EF67 (21:00Z)
+          EF.68 tip 6efc053157: new file on base 2 failed/1 passed -> tip 510 passed · mur Q-EF68 (21:00Z)
+          EF.69 tip f1fb723b62: tip test file on base commands.md 4 failed/175 passed -> tip 232 passed 7 skipped; manifest 220 entries /
+          146 proposable, verify-suite false · mur R-EF69 (21:05Z) -- the enumeration test is a forward guard (green on the base too)
+LIVE      EF.70 a00-99134fb7 g15.28.3 (the grok-bot duplicate id) -- orders .agi/sessions/de-0923/orders-EF.70.md
+NEXT      EF.50 + EF.62 verifies -> fill the draft -> send the [merge-up] to TM -> merge EF.67 68 69 (+70) -> when R-EF69 is in: EF.69
+          rides the next merge-up, THEN dm director-thought "[jev] choice surface complete" · residues -> leaves (KEEP SPLITTING)
 CLI       216 entries on the post tip; "all 70" = EF.69 -> THEN dm director-thought "[jev] choice surface complete" (it heard "ready" @5808b0848)
 TRAP      a mur or long job started in a session shell dies with the session at rotation -> always `setsid nohup ... & disown`
 TRAP      write.py cannot address a second file that shares an id (by path: "no node file"; by id it resolves the first) -- EF.70's one hand edit
