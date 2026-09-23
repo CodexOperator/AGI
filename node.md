@@ -1,5 +1,5 @@
 ---
-id: goal:g17.18
+id: goal:g7.29
 mint_id: a2e875f4d95b4ff8b67fa89843d0d961
 type: goal
 parents:
@@ -7,24 +7,24 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: belam
-goal_id: G17.18
+goal_id: G7.29
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: 33a6961718b2c8b8
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - goal
   - subgoal
   - rotate
   - orchestration
-thought_session: texas-two-step-belam-voice-2026-09-19
-title: "G17.18: Shrink rotate.py to pure orchestration (no harness argv)"
+thought_session: belam-horizon-4b-2026-09-21
+title: "G7.29: Shrink rotate.py to pure orchestration (no harness argv)"
 town: core
 ---
-# goal:g17.18
+# goal:g7.29
 
 ## Why this exists
 
@@ -38,7 +38,7 @@ town: core
 
 ## Invariants
 
-- Depends on `goal:g17.16` (templates) and `goal:g17.17` (persistent dispatch) — do not strip builders until dispatch can hold seats.
+- Depends on `goal:g7.27` (templates) and `goal:g7.28` (persistent dispatch) — do not strip builders until dispatch can hold seats.
 - Existing claude-code and copilot-cli seats still spawn after the shrink (measured dry-run / one live seat probe).
 - Grep of `rotate.py` for harness flag construction (`--append-system-prompt`, `--allow-all`, `claude --remote-control`, etc.) is empty outside comments pointing at templates.
 
@@ -50,11 +50,15 @@ town: core
 
 ## Out of scope
 
-- Authoring the template format itself (`goal:g17.16`).
-- Implementing persistent watch (`goal:g17.17`).
-- Grok-specific land (`goal:g17.19`) — but this goal **unblocks** it.
+- Authoring the template format itself (`goal:g7.27`).
+- Implementing persistent watch (`goal:g7.28`).
+- Grok-specific land (`goal:g7.30`) — but this goal **unblocks** it.
 
 ## Agent Notes
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
-Consumes `goal:g17.16` + `goal:g17.17`.
+Consumes `goal:g7.27` + `goal:g7.28`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+horizon-pass not in-flight unclaimed on board
+<!-- THOUGHT:END -->
