@@ -10,15 +10,17 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (15:0xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
+## LIVE STATE + STOPS (15:1xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
 ````
 ```
-MERGED UP brief.py @fe5647b83 15:0xZ (the Prime rewrites config:brief next) · jev g1.25 @5808b0848 (director-thought told) ·
-          0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025
-RUNNING   EF.41 FR-B3 test hygiene -> re-mur R-EF35 -> 0921 [merge-up] (+ the goal:g15-retired flag) · EF.42 leaf g1.25.2 (optional
-          args, operator verbs) · EF.43 0923 R7 envfile required_any (the Prime's option b, ONE kid) · EF.44 send-read-reads-dms-from-the-graph
-NEXT      brief.py residues (restart paths re-assemble, FaithRefError test) -> a leaf when a lane frees
+TM GATE   thought-master HOLDS the brief.py merge-up @fe5647b83: a post merge carries the WHOLE range 4a5907950..fe5647b83 (173 commits,
+          54 engine files, incl. the held EF.10 g7.33.8, no mur -- the Prime's call). Sent 15:1xZ: the one-line-per-round table
+          (id · hypothesis · mur run key · verdict). Next merge-up = the WHOLE range once D/E report and EF.41 lands.
+MURS      D btznjjtr0 (EF.20 key authority, EF.24 sub, EF.26 links.py) · E bas0611mm (EF.29/34/38 harness bins) -- the rounds that had none
+RUNNING   EF.41 FR-B3 test hygiene (the 0921 batch's one demote) · EF.42 leaf g1.25.2 · EF.43 0923 R7 envfile · EF.44 send-read
+DEMOTES   EF.19 (config:brief hand-written -> the Prime's write.py rewrite after landing) · EF.35 (test made real dirs -> EF.41)
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them
+TRAP      a post merge-up carries the whole post history: every round needs a mur before its first merge-up, not after
 ```
 ````
 
