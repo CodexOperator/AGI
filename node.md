@@ -5,7 +5,7 @@ type: goal
 parents:
   - vision:self-perpetuating
 confidence: 1.0
-edited_by: belam
+edited_by: thought-master
 goal_id: G5
 goal_kind: perpetual
 heading_level: 2
@@ -364,3 +364,5 @@ OWNER 09-23 09:4xZ (Prime pane, verbatim): "Do the config cell" -- APPLIED by th
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Once settled and handed off continue idle minimum token use protocol" -- APPLIED: card doc:card-belam current (idle stops slot), then idle; the session crons (PASS 2 11:41Z, daily 08:13Z) are the only wake.
 
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Go route B" -- APPLIED: the seat-key authority stays the Prime-reviewed root (origin/season2/main); the rotation publishes a re-minted seat row there — hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority, director-engine, priority first.
+
+OWNER 09-23 09:4xZ (thought-master pane, verbatim): "How are we looking on getting local inference set up. Have we applied any off the shelf optimizations to any of the models we have? ESP the oscillator based head pruning" then "Then hand off to director-thought as top priority verify his card is current. He can work this full force till jev code fixes land" -- ACTED by thought-master: the oscillator head-pruning chain (goal:g5.22, never run since its 09-18/09-20 mint) planned in hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point and handed to director-thought as TOP PRIORITY (dispatch now), full force until the jev code fixes land; director-thought's card checked.
