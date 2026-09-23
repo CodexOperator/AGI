@@ -2369,6 +2369,19 @@ def _compose_body(root, edit: Edit) -> str:
     return body
 
 
+def _profile_ref_refusal(root, node_id: str, set_fm: dict | None):
+    """The create path's effective-ref judgement, named for the verb.
+
+    `profile_sync.refuse_effective_ref` is the ONE rule; this only turns its
+    refusal into the string `main` prints.
+    """
+    try:
+        profile_sync.refuse_effective_ref(root, node_id, set_fm or {})
+    except profile_sync.Refused as exc:
+        return f"profile projection refused: {exc}"
+    return None
+
+
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            actor: str = "", session: str = "", role: str = "",
@@ -2401,6 +2414,11 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
     _enforce_written_by(root, node_type, actor, f"{node_type}:{slug}", role)
 
     extra = dict(set_fm or {})
+    # goal:g7.31.5.1 (a00-0774d20d) — refuse the effective ref BEFORE
+    # `write_node`, or the mint carries a ref the edit route rejects.
+    refusal = _profile_ref_refusal(root, f"{node_type}:{slug}", extra)
+    if refusal:
+        raise EditError(refusal)
     created_file = None
     if payload:
         # Delegated, not done here: this module's guard is that it performs no
@@ -2434,6 +2452,11 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
             stamp.set_fm[PROVENANCE_SESSION] = session
         node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
                                 log_extra=_log_provenance(actor))
+    # Same-action projection at birth, by the SAME `sync_node` as `submit`.
+    try:
+        profile_sync.sync_node(root, res.node_id)
+    except profile_sync.NoRef:
+        pass
     return res, created_file
 
 
@@ -2552,6 +2575,13 @@ def main(argv: list[str] | None = None) -> int:
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
+        # The edit path's rule, before the dry-run short-circuit: a dry run
+        # refuses what the real mint refuses (a00-0774d20d).
+        refusal = _profile_ref_refusal(
+            root, f"{args.script}:{args.slug}", set_fm)
+        if refusal:
+            print(f"ERR: {refusal}", file=sys.stderr)
+            return 2
         if args.dry_run:
             print(f"create {args.script}:{args.slug}")
             print(f"  parents  {args.parents or '(none)'}")
@@ -2560,6 +2590,8 @@ def main(argv: list[str] | None = None) -> int:
             for k, v in set_fm.items():
                 print(f"  set      {k} = {v!r}")
             return 0
+        # `create` re-checks the same ref; `main` already refused it above,
+        # so the `EditError` that path raises is unreachable from the CLI.
         res, made = create(root, args.script, args.slug, args.parents,
                            set_fm=set_fm, payload=args.payload,
                            actor=args.actor, session=args.session, role=args.role,
