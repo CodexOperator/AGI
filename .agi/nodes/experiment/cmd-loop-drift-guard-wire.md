@@ -69,7 +69,7 @@ profile: balanced
 role: kid
 scaffold_hash: c987740d49c726ae
 season: 2
-title: "\"cmd_loop runs the whole-graph profile drift guard before any side effect\""
+title: cmd_loop drift guard fires before any side effect
 town: core
 ---
 <!-- BODY:BEGIN -->
