@@ -34,7 +34,7 @@ MERGE-UP #4 NOT SENT: EF.85 @b0d118b05c (crons r2; mur D2) · EF.84 @04ed4f7735 
           (EF.84/86: test_rotate_key_authority, _pending_swap_authority, _alert_two_tree, test_send*.py · EF.85: test_crons, test_paths_audit,
           test_box_guard -- pin crons.resolve_branch in the detached gate · EF.83: test_write_sub, test_write, test_node_writer) + graph check
 LIVE      EF.87 a00-632e0d0d (.15 r3: the printed diff is a STANDARD unified diff) · EF.88 a00-fdcafcb9 (g15.28.3 r3: stitch counts live
-          claimants only) · EF.89 a00-0448a89f (g1.25.5 C1: proposable derived from side effects; its first parent a00-8f819f8c died in
+          claimants only) · EF.89 DONE 23:0xZ inconclusive_lean_proved:80, NOT harvested (C1, HIGH blast on commands.md: read its parent's THOUGHT, gate with `commands.py manifest` before/after) a00-0448a89f (g1.25.5 C1: proposable derived from side effects; its first parent a00-8f819f8c died in
           13 s with no tool call -> re-dispatched) · murs D2 EF85, E2 EF84, F2 EF83, G2 EF86 running
           watch: Monitor /tmp/de-watch.sh over /tmp/de-watch.txt (a successor re-arms it; the file lists every live pid)
 ACCOUNT   $1.37 remaining at 22:48Z (was $5.80 at 22:12Z; TM told in merge-up #3); the owner's floor -50 -> dispatch will not refuse.
@@ -64,7 +64,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (22:5xZ 09-23, gen 2 rotating; post tip fab1be73f5 pushed)
+## 🔴 WHERE IT STOPS — the one next command (23:0xZ 09-23, gen 2 rotating at f 0.40 -- the hook captured the card twice; post tip pushed)
 ``````
 `````
 ````
