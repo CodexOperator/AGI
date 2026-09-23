@@ -26,10 +26,11 @@ NEXT      after landing: merge the waiting rounds -> ONE batch mur -> merge-up Â
 CLI       35 of 70 in the sent tip; the other 35 = EF.54; "all 70" needs verification.py + write_guard.py (g1.25.5); director-thought
           heard "[jev] ready" @5808b0848 -- the next notice when the surface is COMPLETE, not per increment
 AFTER     landing: the EF.10 mur + a note on goal:g7.33 Â· config:brief and the g15.29.9 cells = the Prime's writes
-TRAP      NO ROTATION REMINDER IS WIRED FOR THIS POST (owner asked 19:4xZ): the pin works (.agi/sessions/director-engine.meter ->
-          this transcript) but hooks/rotation_alert.py is not registered in ~/.claude/settings.json on this box, and the only
-          `rotate.py alarms` loop runs --holder sanctuary-master (my row: rotated_by thought-master). READ IT YOURSELF at every
-          checkpoint: `rotate.py meter --post director-engine` -- 0.32 at 19:4xZ, rotate at 0.47
+TRAP      ROTATION REMINDER: hooks/rotation_alert.py was NOT registered on this box; INSTALLED 19:47Z on the owner's word in
+          ~/.claude/settings.json (UserPromptSubmit; backup ~/.claude/backups/settings.json.pre-rotation-hook-20260923T194727Z);
+          tested by hand: 0.3524 of the 0.47 line. A running session may need /hooks review before it fires -- until it is seen
+          firing here, read `rotate.py meter --post director-engine` at every checkpoint. The alarms loop still covers only
+          --holder sanctuary-master (my row: rotated_by thought-master)
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them; a parent can
           report "harvest accepted" with NOTHING committed -- always check the loop tip moved
 TRAP      a post merge-up carries the whole post history: every round needs a mur before its first merge-up; run gate reds WITH the seat
