@@ -17,7 +17,11 @@ from pathlib import Path
 import httpx
 import websockets
 
-ROOT = Path("/home/ubuntu/work/agi/.agi/worktrees/a00-2f819956")
+import importlib.util as _iu
+_p = os.path.dirname(os.path.abspath(__file__))
+while not os.path.isfile(os.path.join(_p, "paths.py")): _p = os.path.dirname(_p)
+_s = _iu.spec_from_file_location("lmpaths", os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+ROOT = Path(_lm.get("worktree_a00_2f819956"))
 BIN = ROOT / "extensions/agi/bin"
 OUT = ROOT / ".agi/context/local-maxxing/ws-raw"
 MODEL = str(Path.home() / ".cache/lm-models/Qwen3-0.6B-Q8_0.gguf")

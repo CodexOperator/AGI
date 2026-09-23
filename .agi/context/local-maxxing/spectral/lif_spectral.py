@@ -19,6 +19,11 @@ snapshot boundary.  M low modes kept (symmetric).
 import importlib.util, json, os, subprocess, time
 import numpy as np
 
+import importlib.util as _iu
+_p = os.path.dirname(os.path.abspath(__file__))
+while not os.path.isfile(os.path.join(_p, "paths.py")): _p = os.path.dirname(_p)
+_s = _iu.spec_from_file_location("lmpaths", os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+
 N, SYN, T, DT = 10000, 100, 1000, 0.1
 A, B = 1.0 - DT, DT
 SEEDS = [7, 100010, 200013, 300016]
@@ -66,7 +71,7 @@ def ref_trains():
     base = _load_baseline().C
     src_c = base.replace("total++; }", 'total++; printf("S %d %d %d\\n",q,i,t); }')
     src_c = src_c.replace('printf("%llu\\n", total);', 'fprintf(stderr,"TOTAL %llu\\n", total);')
-    d = "/dev/shm/lifref"
+    d = _lm.get("tmp_lifref")
     os.makedirs(d, exist_ok=True)
     src, exe = os.path.join(d, "r.c"), os.path.join(d, "r")
     open(src, "w").write(src_c)
