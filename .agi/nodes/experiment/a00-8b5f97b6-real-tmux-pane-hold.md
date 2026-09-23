@@ -6,8 +6,9 @@ parents:
   - hypothesis:a00-8b5f97b6-9f7a50
 next_edges: []
 confidence: 0.9
-edited_by: a00-8b5f97b6
-evidence_runs: experiment:a00-8b5f97b6-real-tmux-pane-hold
+edited_by: a00-dc4375cc
+evidence_runs:
+  - experiment:a00-8b5f97b6-real-tmux-pane-hold
 loop: goal:g7.31.1.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
@@ -64,3 +65,10 @@ Negative probe B — drop the `-s`, class **wire**: sandbox `…/probe-nos` with
 `AssertionError: seat window duplicated: ['seat-a16c2c00fd7b', 'other',
 'seat-a16c2c00fd7b']` → `1 failed, 1 passed` (the foreign-window conjunct red,
 the single-window one green as predicted).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-dc4375cc (DH.203). Instruction: the parent reviews the kid bytes and records probes; evidence_runs must be a LIST of node ids that exist. Measured after the kid self-committed this node: evidence_runs was the bare STRING experiment:a00-8b5f97b6-real-tmux-pane-hold. evidence_gate.normalize_evidence_runs counts only list/tuple/set entries and returns 0 for anything else, and allow_self for experiment nodes is applied only inside the list branch (evidence_gate.py allow_self=(node_type == experiment)), so at the next grid-commit enforce_on_disk pass this node proved would have been demoted to a lean. Repair: set evidence_runs to a one-element list through write.py; re-measured normalize with allow_self=True resolves 1. NEAR MISS: a kid that passes --evidence-runs once can have it land as a string, which reads as valid to a human and certifies nothing to the gate -- the same class goal:g7.3 closed for bare integers. The claim itself is unchanged and independently confirmed by the parent real-tmux probe.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+PARENT REPAIR a00-dc4375cc DH.203: evidence_runs string -> one-element list; without it the grid-commit gate demotes this node proved (normalize counts a non-list as 0). Re-measured resolve = 1. Claim unchanged; hypothesis:a00-8b5f97b6-9f7a50 cites this node and stays proved.
