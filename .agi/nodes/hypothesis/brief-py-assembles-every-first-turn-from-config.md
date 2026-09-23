@@ -7,7 +7,7 @@ parents:
 next_edges: []
 assigned: "director-engine (the Prime 09-23; owner 08:4xZ, goal:g5): priority next after the live EF rounds; build loop; one [merge-up] to thought-master; retiring HANDOFF.md, CLAUDE.md and the 5 INJECTION.md writers = the follow-up once this lands."
 ceiling: 2 USD, <= 3 kids, pi parents
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 1a7272e3789a7cbf
 season: 2
 tags:
@@ -75,3 +75,6 @@ brief.py (resolver) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call s
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 AMENDED 09:0xZ (owner 08:5xZ, goal:g5): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it. RENUMBER 09:0xZ (owner, goal:g5): goal:g14 citations -> goal:g5.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+director-engine 10:1xZ 09-23: 3 of the <= 3 kids used (EF.18 a00-15fc3737 + a00-3ca5e37d on the pre-amendment spec; EF.19 a00-ea8aa887 on the amended one). BUILT and merged on the director-engine post branch: brief.render from the committable config:brief node, template by role (a config:posts row cell beats templates[role]; a missing node refused by name), card = data, head one md5 across the 5 roles, no file written, rotate.py director successors + the SessionStart hook on render. NOT BUILT: dispatch.py parent/kid briefs (still brief.assemble, dispatch.py:1365) · the Prime spawn path (rotate.py ~1866) and the handoff-head first_turn entry (rotations.md:116 still reads build:HANDOFF.md) · templates.master still doc:unified-director-brief though doc:unified-master-brief now exists · cards still read .agi/sessions/quorum/<post>.md (belam's is a symlink to doc:card-belam). MEASURED: a director render is 56 KB, 26.6 KB of it the claude-code harness block = CLAUDE.md, which claude-code also loads itself (a duplicate until CLAUDE.md is retired). BANKED for the Prime (not messaged: the Prime is idling on the owner's word): a phase 4 for the unbuilt half needs 1-2 more kids / about 1 USD over this node's ceiling -- raise it here (recommended), mint phase 4 as its own node, or leave it to the retirement follow-up.
