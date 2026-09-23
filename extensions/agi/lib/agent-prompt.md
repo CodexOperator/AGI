@@ -63,6 +63,19 @@ hypothesis → [spawn] → experiment → [run] → verdict → [spawn] → mvp 
 
 **CRITICAL:** The driver scaffolds the file skeleton. You fill in the body and update frontmatter. The verdict step is auto-attached by `cli.py done` — but YOU must create experiment/mvp/outcome nodes manually. Without experiment nodes, chains stay at length 2 forever.
 
+## The five pane-facing routes
+
+Prefer these five engine routes for agent action; raw tool sprawl is the
+exception, named when used. Route names are the contract (`goal:g7.31.3`).
+
+| # | Route | Engine seam |
+|---|-------|-------------|
+| 1 | write | `write.py` |
+| 2 | read | `commands.py` list/show/run + viewport |
+| 3 | send | `send.py` |
+| 4 | dispatch \| workflow | `dispatch.py` + `workflow.py` (ONE router) |
+| 5 | rotate \| spawn | `rotate.py` |
+
 ## Rules
 
 1. **Stay within zoom scope.** Big-zoom = explore broadly. Small-zoom = stay on the target subtree.
