@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: belam
+edited_by: director-thought
 link_ref: .agi/config.json
 location: source_root
 origin: mvp-minted
@@ -25,5 +25,5 @@ title: Agi config.json
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner 2026-09-23: raise spawn.max_live 25→30 to match SoT box ≤30 (CAP-RULER). Prior: owner correction 2026-09-19 spawn.parallel is per-command slots not soft concurrency (restore 1); harnesses.grok-bot first-class row landed ca3b2da28.
+owner 2026-09-23 ~08:1xZ (director-thought pane, verbatim on goal:g14): unblock paid rounds now -- spawn.credential.per_spawn_limit_usd 1.5 -> 1.0 and provisioning.min_account_remaining_usd 1.6 -> -100.0, TEMPORARY (owner: for now). Measured before: account remaining 46.65, floor 1.60, live un-expired key headroom 43.60 (23 of the keys another town), pool headroom 1.45 -> any parent-plus-kids round or mur refused. After: floor -100, caps 1 / 2 / 5 USD all fit, key-floor check passes (sub-floor keys skipped, never refused). min_key_remaining_usd left at 1.0 on purpose (brief: never lower it). Changed on the director-thought post branch only; trunk copy is the master call. Revert = restore 1.5 and 1.6.
 <!-- THOUGHT:END -->
