@@ -390,3 +390,73 @@ def test_config_rotations_first_turn_no_longer_reads_the_card():
     assert "build:HANDOFF.md" not in rot
     assert '"label": "rotation-record"' in rot
     assert '"label": "verify"' in rot
+
+
+# ---- render hygiene (hypothesis:brief-render-hygiene-after-the-batch-mur) --
+
+THOUGHT_BLOCK = (
+    "<!-- THOUGHT:BEGIN — authored, not derived. -->\n"
+    "THIS-VERSION-REASONING-SENTINEL\n"
+    "<!-- THOUGHT:END -->\n")
+
+
+def test_node_sourced_parts_strip_the_thought_block(tmp_path):
+    """Falsifier: a render hands a successor a node's THOUGHT changelog.
+    The template, the card node and the trajectory carry only current words."""
+    root = _root(tmp_path, parts={"director": ["template", "card", "trajectory"]},
+                 templates={"director": "doc:director-brief"})
+    _write(root, "nodes/doc/director-brief.md",
+           "DIRECTOR-BRIEF-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(root, "nodes/doc/card-some-post.md", "CARD-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(root, "nodes/town/t.md", "TOWN-TRAJECTORY-SENTINEL\n\n" + THOUGHT_BLOCK)
+    out = brief.render(post="some-post", project_root=root)
+    assert "DIRECTOR-BRIEF-SENTINEL" in out
+    assert "CARD-SENTINEL" in out
+    assert "TOWN-TRAJECTORY-SENTINEL" in out
+    assert "THIS-VERSION-REASONING-SENTINEL" not in out
+    assert "<!-- THOUGHT:BEGIN" not in out
+
+
+def test_template_payload_strips_the_thought_block(tmp_path):
+    """A build node's template is its PAYLOAD file; the strip follows it."""
+    payload = _write(tmp_path, "payload-brief.md",
+                     "PAYLOAD-BRIEF-SENTINEL\n\n" + THOUGHT_BLOCK)
+    _write(tmp_path, "nodes/build/the-prime-brief.md",
+           "---\nid: build:the-prime-brief\npayload_ref: " + str(payload)
+           + "\n---\n<!-- BODY:BEGIN -->\n# build:the-prime-brief\n")
+    root = _root(tmp_path, parts={"prime_director": ["template"]},
+                 templates={"prime_director": "build:the-prime-brief"})
+    out = brief.render(role="prime_director", project_root=root)
+    assert "PAYLOAD-BRIEF-SENTINEL" in out
+    assert "THIS-VERSION-REASONING-SENTINEL" not in out
+
+
+def test_a_thought_mention_in_prose_is_not_stripped(tmp_path):
+    """The strip is the authored REGION, not the bare word: a node line that
+    merely names THOUGHT:BEGIN survives (measured live: the director template's
+    harvest diagram carries `THOUGHT:BEGIN <= 1 per new node`)."""
+    root = _root(tmp_path, parts={"director": ["trajectory"]})
+    _write(root, "nodes/town/t.md",
+           "TOWN-TRAJECTORY-SENTINEL\n\nTHOUGHT:BEGIN <= 1 per new node\n")
+    out = brief.render(post="some-post", project_root=root)
+    assert "THOUGHT:BEGIN <= 1 per new node" in out
+
+
+def test_operating_mode_is_a_config_part_and_off_by_default(tmp_path):
+    """Falsifier: render drops the declared operating mode with no way to ask
+    for it. It is a `operating_mode` part now; the default lists are unchanged,
+    so nothing renders until the config cell names it."""
+    root = _root(tmp_path, parts={"director": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["operating_modes"] = {"enhanced_survival": {
+        "name": "enhanced survival", "seats": "three seats",
+        "models": "opus", "source": "goal:g17.1"}}
+    cfg["active_operating_mode"] = "enhanced_survival"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    assert "OPERATING MODE" not in brief.render(post="some-post", project_root=root)
+    cfg["brief"]["parts"] = {"director": ["head", "operating_mode"]}
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    out = brief.render(post="some-post", project_root=root)
+    assert "─── OPERATING MODE (declared in .agi/config.json) ───" in out
+    assert "ACTIVE: enhanced survival" in out
+    assert "SOURCE: goal:g17.1" in out

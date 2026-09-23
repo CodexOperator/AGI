@@ -2287,8 +2287,20 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
 # hypothesis:brief-py-assembles-every-first-turn-from-config. The parts list
 # per role (plus what the harness adds) is the SINGLE source: adding or
 # removing a part is one config line, never a code change. Writes NO file.
-BRIEF_PARTS = ("head", "template", "card", "harness", "trajectory", "extras")
+BRIEF_PARTS = ("head", "operating_mode", "template", "card", "harness",
+               "trajectory", "extras")
 _TEMPLATE_RE = re.compile(r"\{\{template:([^}#\s]+)(?:#([A-Za-z0-9_-]+))?\}\}")
+#: G2.11 -- the authored reasoning region. A render hands a successor the
+#: node's CURRENT words, never the changelog explaining how they got there.
+_THOUGHT_RE = re.compile(
+    r"<!--\s*THOUGHT:BEGIN\b.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+
+
+def _strip_thought(text: str) -> str:
+    """Drop an authored THOUGHT region from node-sourced text (G2.11)."""
+    return _THOUGHT_RE.sub("", text).strip()
+
+
 class RenderError(BriefError):
     """A render cannot be assembled -- a bad part, a missing card or node."""
 
@@ -2330,7 +2342,7 @@ def _node_text(root: Path, ref: str) -> str:
         if not m:
             raise RenderError(f"region {region!r} not found in {node_id}")
         body = m.group(1).strip()
-    return body
+    return _strip_thought(body)
 
 
 def _expand(text: str, root: Path) -> str:
@@ -2349,7 +2361,7 @@ def _template_text(root: Path, ref: str) -> str:
         pay = pay if pay.is_absolute() else root.parent / pay
         if not pay.is_file():
             raise RenderError(f"brief template payload not found: {fm['payload_ref']}")
-        return pay.read_text(encoding="utf-8").strip()
+        return _strip_thought(pay.read_text(encoding="utf-8"))
     return _node_text(root, ref)
 
 
@@ -2359,6 +2371,12 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
     if name == "head":
         prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
         return _node_text(root, "doc:unified-head#HEAD").replace("{{PRAYERS}}", _insert_michael(prayers))
+    if name == "operating_mode":
+        # The pre-render path `_prepend_head` prepended this to EVERY tier;
+        # render dropped it (hypothesis:brief-render-hygiene-after-the-batch-
+        # mur). A config part, so a project lists it per role and nothing
+        # changes until it does.
+        return _operating_mode_block(project_root=root)
     if name == "template":
         # The ROLE template is CONFIG: the post row's `template` cell beats the
         # formation default for its role (amendment, owner 08:5xZ). NEVER a
@@ -2383,7 +2401,7 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
         card = root / "sessions" / "quorum" / f"{post}.md"
         if not card.is_file():
             raise RenderError(f"card not found: {card}")
-        return card.read_text(encoding="utf-8").strip()
+        return _strip_thought(card.read_text(encoding="utf-8"))
     if name == "harness":
         rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
         if not rel:
