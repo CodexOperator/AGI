@@ -102,12 +102,10 @@ _ARGS_ANCHOR = "const args = input;"
 _ROUTING_LINE = "    const _agi_edit_norm = _normalizeEditsShapes(args);\n" \
                 "    if (_agi_edit_norm && _agi_edit_norm !== args) return _agi_edit_norm;"
 
-#: Installed-package fallback search root (same resolution the edit-forgiveness
-#: TEST uses). The pi binary on PATH wins; this HOME-derived `.npm-global`
-#: prefix is only the fallback -- computed at CALL time so it is never a
-#: stored `/home/<user>` literal outside this repo (goal:g15.29.2).
-def _default_bases() -> tuple[Path, ...]:
-    return (Path(os.path.expanduser("~")) / ".npm-global" / "lib" / "node_modules",)
+#: Installed-package search roots, in priority order (same resolution the edit-
+#: forgiveness TEST uses). The pi binary on PATH wins; the engine's declared
+#: default path is the fallback.
+_DEFAULT_BASES = (Path("/home/ubuntu/.npm-global/lib/node_modules"),)
 
 
 def resolve_edit_js():
@@ -120,7 +118,7 @@ def resolve_edit_js():
     pi_bin = shutil.which("pi")
     if pi_bin:
         candidates.append(Path(pi_bin).resolve().parent.parent / "lib" / "node_modules")
-    candidates.extend(_default_bases())
+    candidates.extend(_DEFAULT_BASES)
     for base in candidates:
         pkg = base / "@mariozechner" / "pi-coding-agent"
         edit_js = pkg / "dist" / "core" / "tools" / "edit.js"
