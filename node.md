@@ -1,13 +1,13 @@
 ---
-id: goal:g14.7.2
+id: goal:g5.23.2
 mint_id: 8aee8669ff74493987b44447de138b23
 type: goal
 parents:
-  - goal:g14.7
+  - goal:g5.23
 next_edges: []
 confidence: 0.6
 edited_by: belam
-goal_id: G14.7.2
+goal_id: G5.23.2
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -36,3 +36,7 @@ town: local-maxxing
 **Done when.** Each of the four arms has one measured chunk on the smallest base (0.6B), in one comparison table: recipe, USD, GPU-h, battery delta vs base and vs reference.
 
 **First chunk.** None minted yet -- queued behind FT.00 (morals + sanctuary SFT, the first Track II round, stays first and is not replaced by this ladder) and DS.01 + G14.10.2 (the labelled corpus this ladder reads). Layers with `goal:g14.15` (KV telepathy) only once G14.7.2 AND G14.15 each have their own verdict (owner: "Then layer that with the kv cache telepathy chain") -- that layered chunk is not this node's own first chunk, it comes after.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.7.2 -> g5.23.2 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.7 became g5.23 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
