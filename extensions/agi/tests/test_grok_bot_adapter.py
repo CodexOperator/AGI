@@ -213,7 +213,7 @@ def live_cfg(live_cfg_raw) -> dict:
     return live_cfg_raw
 
 
-def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
+def test_live_config_grok_row_resolves(live_cfg, monkeypatch, tmp_path):
     """The on-disk `grok-bot` row resolves to the adapter, and its live `bin`
     cell reaches the argv that actually spawns.
 
@@ -226,10 +226,19 @@ def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
     `DEFAULT_BIN` have precedence -- so a default silently taking over is
     visible.
 
-    The live binary need not exist on this box; the claim is that the config
-    cell is carried, not that the path is populated.
+    Round 2 of `hypothesis:harness-bin-paths-resolve-per-box` changed the
+    premise: a `~`-cell whose expanded file is absent now REFUSES by name
+    instead of carrying the raw `~/...` (which no `Popen` can exec). So this
+    test installs the row's binary under a tmp HOME and pins the EXPANDED
+    path -- the cell still reaches argv, but as a real path, never the
+    unexpanded token.
     """
     monkeypatch.delenv("GROK_BOT_BIN", raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    fake = tmp_path / ".npm-global" / "bin" / "grok-bot"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
     name, row = adapters.resolve(live_cfg, "grok-bot")
     live_bin = live_cfg["harnesses"]["grok-bot"]["bin"]
     assert name == "grok-bot"
@@ -237,9 +246,9 @@ def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
     # The non-vacuous anchor: a row that omitted `bin` or carried the bare
     # fallback would fail here, where the old same-object assert could not.
     assert live_bin != grok.DEFAULT_BIN
-    assert grok.resolve_bin(row) == live_bin
+    assert grok.resolve_bin(row) == str(fake)
     argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == live_bin
+    assert argv[0] == str(fake)
 
 
 def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):

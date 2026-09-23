@@ -6,8 +6,8 @@ parents:
   - goal:g15
 next_edges: []
 assigned: "director-engine (the Prime 09-23; owner 10:1xZ relay, goal:g5): after the key round; build loop; one [merge-up] to thought-master."
-ceiling: 1 USD, <= 2 kids, pi parents
-edited_by: belam
+ceiling: 3 USD, <= 5 kids, pi parents (raised from 1 USD / <= 2 kids under the owner 10:3xZ "ceiling set to something silly"; round 3 = the raw-cell readers outside the adapters)
+edited_by: director-engine
 scaffold_hash: 459950905e195a44
 season: 2
 tags:
@@ -52,3 +52,7 @@ the adapter's bin resolution · `.agi/config.json` bins · tests.
 
 ## CEILING
 <= 2 kids · 10-12 production lines per conjunct · pi parents · 1 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+ceiling raised 1 USD / <= 2 kids -> 3 USD / <= 5 kids for round 3. MEASURED 11:4xZ 09-23 on the director-engine post branch: after round 1 moved the config bins to ~/.npm-global/bin/<tool>, workflow.py _pi_harness (workflow.py:1381) still reads the RAW cell (config before PI_BIN, a /home/ubuntu literal fallback) and execs it at :1793 -- every mur died at once with pi exited rc=1; rotate.py:1868 and harness_template.py:223 read the raw cell too. The claim (every harnesses.<h>.bin resolves through ONE resolver) is not met until they do. Owner 10:3xZ (verbatim on goal:g5): ceilings may be set silly so work continues.
+<!-- THOUGHT:END -->

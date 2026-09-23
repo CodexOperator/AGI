@@ -151,6 +151,35 @@ def test_wrapper_tty_hangup_forwards_to_the_child(tmp_path):
             wrapper.wait()
 
 
+# The wrapped child must have DEFAULT signal semantics even when the LAUNCHER
+# had the signal ignored: `exec` preserves SIG_IGN and Popen's
+# `restore_signals` never resets SIGHUP, so a leaked ignore (the suite's
+# rotate._shield_final_signals restore skipped on an exception path, or
+# `nohup`) would let the wrapped child outlive the forwarded hangup.
+# Measured 2026-09-23: with the launching process's SIGHUP=SIG_IGN the tty
+# test above reds at 30.29 s with `child <pid> exited status 0`.
+def test_wrapper_child_ignores_no_forwarded_signal_under_inherited_sig_ign(
+        tmp_path):
+    log = tmp_path / "seat.log"
+    old = signal.getsignal(signal.SIGHUP)
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    child = None
+    try:
+        child = _run_wrapper(log, "sleep", "30")
+        sleeper = _poll_child(child.pid)
+        assert sleeper, "wrapper child (sleep) never appeared"
+        os.kill(child.pid, signal.SIGHUP)
+        rc = _wait_exit(child, timeout=12)
+        body = _wait_log(log, "wrapper received")
+        assert "exited signal 1" in body, body
+        assert rc == 128 + signal.SIGHUP
+    finally:
+        signal.signal(signal.SIGHUP, old)
+        if child is not None and child.poll() is None:
+            child.kill()
+            child.wait()
+
+
 # TERM the CHILD directly: the sender is unknown to the wrapper (signal went
 # straight to the child's own pid), so the log shows signal 15 with
 # `wrapper received none` and NO sender line.
