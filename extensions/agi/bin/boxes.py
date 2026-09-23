@@ -17,12 +17,35 @@ import json
 import os
 from pathlib import Path
 
+class BoxSchemaError(ValueError):
+    """A graph whose `[box].md` cannot declare what this reader needs."""
+
+
+def box_schema_path(root: Path) -> Path:
+    """The one declaration: context/schemas/[box].md under the graph root."""
+    return Path(root) / "context" / "schemas" / "[box].md"
+
+
 def _box_schema(root: Path) -> dict:
     """Parsed frontmatter of context/schemas/[box].md -- the one declaration."""
     import frontmatter, yaml
-    p = Path(root) / "context" / "schemas" / "[box].md"
+    p = box_schema_path(root)
     parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
     return (yaml.safe_load(parts[0]) or {}) if parts else {}
+
+
+def require_box_cells(root: Path) -> tuple[str, ...]:
+    """The declared cell names, or refuse naming `[box].md`.
+
+    An absent `[box].md` (or one declaring no `fields`) used to read as an
+    empty cell set, hiding the audit's silence. Fail closed instead.
+    """
+    names = box_cell_names(root)
+    if not names:
+        raise BoxSchemaError(
+            f"{box_schema_path(root)} declares no box cells "
+            f"(absent, or no `fields:` map)")
+    return names
 
 
 def _box(root: Path) -> dict:
@@ -50,8 +73,16 @@ def allow_paths(root: Path) -> list[str]:
 
 
 def resolve_placeholders(text: str, cells: dict, root: Path) -> str:
-    """Substitute `{token}` from `cells` using the mapping declared in [box].md."""
-    for name, key in (_box_schema(root).get("placeholders") or {}).items():
+    """Substitute `{token}` from `cells` using the mapping declared in [box].md.
+
+    A schema that declares no `placeholders:` map is refused by name -- the
+    old `or {}` silently substituted nothing into a cron line or unit file.
+    """
+    mapping = _box_schema(root).get("placeholders")
+    if not mapping:
+        raise BoxSchemaError(
+            f"{box_schema_path(root)} declares no `placeholders:` map")
+    for name, key in mapping.items():
         text = text.replace("{" + name + "}", (cells or {}).get(key, ""))
     return text
 
