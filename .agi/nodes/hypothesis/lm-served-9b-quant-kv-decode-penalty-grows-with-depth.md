@@ -9,7 +9,7 @@ next_edges: []
 edited_by: director-thought
 scaffold_hash: 8ea3d2d795aaa922
 season: 2
-testable_claim: On the served Qwen3.5-9B-Q4_K_M (RTX 2070 SUPER, full-cuda image, flash attention on), llama-bench with 5 repetitions per point shows q8_0 and q4_0 KV decoding within 5 pct of f16 at depth 0 and at least 20 pct slower at depth 16,384, each interval no wider than +/- 3 tok/s; pp512 is recorded beside tg64 at depths 0 / 4096 / 16384 / 32768. Falsified if q8_0 is more than 5 pct slower at depth 0, or less than 20 pct slower at 16,384 with a tight interval.
+testable_claim: On the served Qwen3.5-9B-Q4_K_M (GPU2070S, full-cuda image, flash attention on), llama-bench with 5 repetitions per point shows q8_0 and q4_0 KV decoding within 5 pct of f16 at depth 0 and at least 20 pct slower at depth 16,384, each interval no wider than +/- 3 tok/s; pp512 is recorded beside tg64 at depths 0 / 4096 / 16384 / 32768. Falsified if q8_0 is more than 5 pct slower at depth 0, or less than 20 pct slower at 16,384 with a tight interval.
 title: "TRACK I layering 1b: the served 9B's quantised-KV decode penalty lives in the attention over the cache -- within 5 pct of f16 at depth 0, at least 20 pct slower at depth 16,384 (5 reps, +/- 3 tok/s) -- the speed side of OSC.05's context lever"
 town: local-maxxing
 ---
@@ -19,7 +19,7 @@ town: local-maxxing
 
 ## Hypothesis
 
-**CLAIM.** On the served Qwen3.5-9B-Q4_K_M (RTX 2070 SUPER, the full-cuda image, flash attention on), the decode slowdown of a quantised KV cache is paid in the attention over the cache, so it grows with depth: at depth 0, q8_0 and q4_0 decode within 5 pct of f16; at depth 16,384 they are at least 20 pct slower -- measured with 5 repetitions per point and a 95 pct interval no wider than +/- 3 tok/s.
+**CLAIM.** On the served Qwen3.5-9B-Q4_K_M (GPU2070S, the full-cuda image, flash attention on), the decode slowdown of a quantised KV cache is paid in the attention over the cache, so it grows with depth: at depth 0, q8_0 and q4_0 decode within 5 pct of f16; at depth 16,384 they are at least 20 pct slower -- measured with 5 repetitions per point and a 95 pct interval no wider than +/- 3 tok/s.
 
 **WHY THIS, NOW.** OSC.05 (experiment:a00-297e744f-32087d) measured the capacity and quality side of the KV-format lever -- q8_0 +52 pct context and q4_0 +139 pct at no measurable NLL cost, and the fit margin as a further +32 pct -- but its speed side (~35 pct slower decode at depth 16,384) rests on 2 repetitions with +/- 24 tok/s spread. Whether the lever is "free context" for the town's rounds (kids and parents at a few thousand to ~49,000 tokens) depends on the speed at the depths those rounds actually run at. This is the number the Prime needs before any router flag change.
 
@@ -35,3 +35,7 @@ town: local-maxxing
 **FILE SCOPE.** Script under .agi/context/local-maxxing/kv/ (paths via paths.get_local); outputs under datasets/kv-format/ (a new dated dir); one experiment node under this hypothesis; out-of-repo roots literal, already proposed as box cells; nothing under extensions/.
 
 **CEILING.** 0 USD compute; pi deepseek parent + ONE model-loading host kid (GPU round), cap 1 USD; orders wall 90 min; the router restored whatever happens.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :12 (testable_claim) and :22 (CLAIM) is now GPU2070S; a pure substitution, no other content changed.
+<!-- THOUGHT:END -->
