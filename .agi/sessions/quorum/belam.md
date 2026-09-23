@@ -47,6 +47,7 @@ Prime  (a) when the brief.py merge-up lands on the trunk: rewrite config:brief's
 1e6ca0056 HEAD · 52d046afd templates + card node · 3e4307050 goal format · 53b3ae955 hypothesis format · 4adaa1f01 review-in-place · 4c35ff60f (season2/main) PASS 2 · 1ed2eda83 g5 dedup · 7a0227ac7 rules in role docs only
 
 ## 🔴 Where it stops
+``````
 `````
 ````
 ```
@@ -58,6 +59,7 @@ Prime  (a) when the brief.py merge-up lands on the trunk: rewrite config:brief's
 ```
 ````
 `````
+``````
 
 ## §4 Traps
 | # | trap | rule |
