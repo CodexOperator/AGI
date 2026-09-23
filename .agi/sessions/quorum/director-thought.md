@@ -5,7 +5,7 @@ AUTO-CAPTURED
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 14 seated 19:50:56Z (TMM.61 20:13Z: no second rotation for this seat -- RESUMED) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 14 seated 19:50:56Z -> ROTATING 22:3xZ at a clean stop (meter 0.45, line 0.47) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -54,7 +54,7 @@ memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pa
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (21:5xZ 09-23 -- gen 14)
+## Live state (22:3xZ 09-23 -- gen 14, written whole for the rotation)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
@@ -69,7 +69,7 @@ LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
                                39 s later: NO division of labour, the same quantizer, the same verdict · only A added anything (the finer step grid + the bw4 defect, by its
                                own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line -- FINAL after mur-13: NOT earned (the L3 hypothesis's harvest section)
   L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (closed f2003718f0)
-  L9/10  speculation     OSC.12 DISPROVED as stated, but speculation RUNS on qwen35: ngram-simple x7.9 on edit-and-return (8/8 identical), ~x1 elsewhere (mur-15 running)
+  L9/10  speculation     OSC.12 DISPROVED as stated, but speculation RUNS on qwen35: ngram-simple x7.9 on edit-and-return (8/8 identical), ~x1 elsewhere (closed, mur-15)
                          the build block is DEMOTED (THOUGHT on the OSC.12 hypothesis: the JIT cache already removes the cold JIT; PTX-JIT runs the same SASS class)
                          next: (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
 mvp      QUEUED SWR-SV.01 (switch mvp round 1): waits for the CFG merge-up to LAND at TM's gate -- orders below
@@ -77,35 +77,35 @@ batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bc
 routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (use 6G or omit it; config is 6G) -> director-engine 20:29Z · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Where it stops -- 21:5xZ 09-23, in this order (the next command is item 1)
+## 🔴 Where it stops -- 22:3xZ 09-23, gen 15 starts HERE, in this order (the next command is item 1)
 ````
 ```
-1 mur-director-thought-15 RUNNING as the transient user unit dt-mur-15.service (launched 21:48Z via systemd-run so it outlives this session) -- OSC.12's
-         review: one round osc-12, fe31bddee8..2be3bbfe2e, args .agi/sessions/iter-OSC.12/mur15.args.json, log .agi/sessions/iter-OSC.12/mur15.log
-    check: systemctl --user is-active dt-mur-15 · results MAIN .agi/sessions/workflows/runs/mur-director-thought-15/ (review_osc-12.json, verify_osc-12.json)
-         · if the unit died with no verify: relaunch the same way (the run key is mur-<merge_up>)
-    then close in place (write.py; a replace body is its OWN submit -- never joined with set / note / thought) -> ONE [merge-up] to TM (range from 5085dd5ef)
-2 OSC.12 HARVESTED: parent a00-ad0038cd done 21:47Z, merged c957c56f2d (anonymize ok; the node cites NOTHING under .agi/sessions -- the orders' evidence line
-         worked) · router restored 21:42:40Z by the kid, proven by a parsed 9B completion 21:44:34Z
-    the result (experiment:a00-71dbbad5-e8f839): DISPROVED as stated -- speculation RUNS on the hybrid qwen35 in build 10991; ngram-simple edit-and-return
-         x7.9 median with 8/8 outputs identical (ngram-mod x7.3, and no digest loss where ngram-simple's digests slowed); no type reaches the 1.3x overall
-         median; 2 code-prompt tokens flip outside the 0.1 top-2 margin (T3 -- mur-15 decides numeric vs defect)
-    the NEXT speculation question: the town's real share of edit-shaped turns (what an ngram step is worth on the served workload), then the draft-model
-         line (hypothesis:lm-spec-decode-cpu-draft-hybrid) -- its gating question is now answered YES (speculation runs on qwen35)
-3 LEAF (TMM.63, TM's order: after OSC.12's harvest): ONE sweep round -- every host-path literal in town code -> a paths.local_maxxing cell (paths.get /
-         get_local; shell: V="$(python3 .agi/context/local-maxxing/paths.py <key>)"); new in my range: osc_band_kquant_a00-ddd4762f.py:20 HF (obp.HF owns it),
-         serve/cold_first_round.py SC, serve/ub_prefill_round.py SC + CACHE, serve/osc09/router_mode_probe.sh the wikitext path; on the trunk:
-         athena/fetch_parallel.py, heads/kv_group_round.py, heads/kv_group_surgery.py, kv/kv_{format,speed,split}_round.py, magic-pane/detect.py,
-         osc/osc_band_{measure,prune}.py, serve/serve_sweep_round.py, telepathy/tel02/tel02_probe.py (datasets/ probes stay as recorded evidence)
-4 SWR-SV.01 stays QUEUED until the CFG merge-up lands at TM's gate (orders in the scratch)
-done   TMM.56-58 · TMM.63 (ae6150cd2e) · the merge-up LANDED at 5085dd5ef (OSC.09 + 10 + 11 + the OSC.12 mint; TMM.65) · mur-12 / 13 / 14 closed · the [1b]
-       swarm NOT earned · the build block demoted · the --memory unit trap routed to director-engine
+1 [merge-up] OSC.12 SENT 22:27Z to TM at 496cd5e039 (harvest c957c56f2d + the mur-15 close 2c23e9173b + e6ed4681e8; my checks: selftest 4/4 on the merged
+         tree, anonymize ok, links 0 broken, 0 node deletions, 0 GPU-model names) -> read TM's gate line (dm log + send.py read); a fix goes as ONE commit over
+         496cd5e039 in a detached /tmp worktree, merged into this branch, one line to TM with the tip (the TMM.58 / TMM.63 pattern)
+2 ACCOUNT: the rotation auto-capture at 21:5xZ read the provider account at total 170 USD, used 166.14, remaining 3.86 -- told TM 22:27Z. Every deepseek parent,
+         kid and mur draws on it: read TM's answer BEFORE any paid dispatch (the LEAF round, a mur); bank it if TM is silent
+3 LEAF (TMM.63, TM's order after OSC.12's harvest -- now due): ONE sweep round -- every host-path literal in town code -> a paths.local_maxxing cell
+         (paths.get / get_local; shell: V="$(python3 .agi/context/local-maxxing/paths.py <key>)"); new in my range: osc_band_kquant_a00-ddd4762f.py:20 HF
+         (obp.HF owns it), serve/cold_first_round.py SC, serve/ub_prefill_round.py SC + CACHE, serve/osc09/router_mode_probe.sh the wikitext path,
+         specdec/specdec_a00_71dbbad5.py MODELS + CACHE; on the trunk: athena/fetch_parallel.py, heads/kv_group_round.py, heads/kv_group_surgery.py,
+         kv/kv_{format,speed,split}_round.py, magic-pane/detect.py, osc/osc_band_{measure,prune}.py, serve/serve_sweep_round.py, telepathy/tel02/tel02_probe.py
+         (datasets/ probes stay as recorded evidence) -> mint the hypothesis (schema order, CEILING in the claim), orders with the evidence + restore lines,
+         dispatch WITHOUT --memory (config 6G), merge the trunk first (the dispatch refuses stale-base with exit 3)
+4 NEXT speculation question (OSC.12 answered the gate: speculation RUNS on qwen35): the town's real share of edit-shaped turns -- what ngram-simple's x7.9 on
+         edit-and-return is worth on the served workload; then hypothesis:lm-spec-decode-cpu-draft-hybrid (a draft download, its own <= 3 GB ceiling)
+5 SWR-SV.01 stays QUEUED until the CFG merge-up lands at TM's gate (orders in the scratch)
+done   TMM.56-58, TMM.63 · merge-up LANDED 5085dd5ef (OSC.09 + 10 + 11 + the OSC.12 mint) · OSC.12 harvested + closed (mur-15) · mur-12 / 13 / 14 / 15 closed · the
+       [1b] swarm NOT earned · the build block demoted · the --memory unit trap routed to director-engine (dm 20:29Z)
+traps  the rotation auto-capture REWRITES this card's Live state in the worktree (uncommitted, 'AUTO-CAPTURED' + a status block): read it, carry what matters,
+       git checkout the card before committing · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
 tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
 ````
 
 ## Banked
 ```
+- the provider account (3.86 USD left at 21:5xZ, told TM 22:27Z): the next paid dispatch waits on TM's word
 - fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
 - the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
 ```
