@@ -12,12 +12,15 @@ BASE = ["--cache-reuse", "8", "--host", "0.0.0.0", "--jinja", "--alias", MNAME, 
 T975 = 2.068658   # t_0.975, df=23 (24 paired requests)
 NODES = ("04dc76fc-10e9a3 527993c5-67867c 86466b78-c8d14f e03d8dd2-02d831 3b543674-ac032a 297e744f-32087d "
          "4698c6f8-56f4c9 f256db1a-73ee5b 30ac1417-72aa81 df53894e-fabe8f 3caaf6eb-9065ef").split()
-def _read(rel, a, b): return "\n".join(open(ROOT + "/" + rel, encoding="utf-8", errors="replace").read().splitlines()[a - 1:b])
+PIN = "fe31bddee875c5d9da0bb9f46840ab1b559ddacf"   # the round's base: prompts are built from the graph AS DISPATCHED, so later node / serve edits never move them (mur-15)
+def _git(rel): return subprocess.run(["git", "-C", ROOT, "show", PIN + ":" + rel], capture_output=True, check=True).stdout.decode("utf-8", "replace")
+def _read(rel, a, b): return "\n".join(_git(rel).splitlines()[a - 1:b])
 def _funcs():
  o = []
- for rel in sorted(glob.glob(ROOT + "/.agi/context/local-maxxing/serve/*.py")):
-  src = open(rel, encoding="utf-8", errors="replace").read(); ls = src.splitlines()
-  o += [(os.path.relpath(rel, ROOT), n.name, "\n".join(ls[n.lineno - 1:n.end_lineno])) for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)]
+ ls_tree = subprocess.run(["git", "-C", ROOT, "ls-tree", PIN, ".agi/context/local-maxxing/serve/"], capture_output=True, text=True, check=True).stdout
+ for rel in sorted(l.split("\t")[1] for l in ls_tree.splitlines() if " blob " in l and l.endswith(".py")):
+  src = _git(rel); ls = src.splitlines()
+  o += [(rel, n.name, "\n".join(ls[n.lineno - 1:n.end_lineno])) for n in ast.parse(src).body if isinstance(n, ast.FunctionDef)]
  return o
 def build_prompts():
  E = [("Below is a section of a committed experiment node. Apply this one-line change: append the line `<!-- reviewed -->` as the last line. Return the whole revised text, nothing else.\n\n" + _read(".agi/nodes/experiment/a00-%s.md" % n, 12, 70), 2048) for n in NODES[:8]]
