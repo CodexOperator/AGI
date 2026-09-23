@@ -12164,6 +12164,8 @@ thought-master 22:5xZ 09-23 (OWNER, verbatim, in thought-master's pane): "Set bo
 
 thought-master 22:5xZ 09-23 (OWNER, verbatim, two follow-ups in thought-master's pane): "If not assign a row level verb to write py to the director engine" then "Just message directors to do the switch" -- done: TMM.70 to both directors = rotate onto Sonnet max via rotate.py rotate --model claude-sonnet-5 --effort max (the one switch a director can make itself); no write.py row verb assigned: the blocker is authority (a director may not write model/effort under any verb), not a missing verb -- the row write sits with the Prime (relayed 22:5xZ).
 
+thought-master 23:0xZ 09-23 (OWNER, verbatim, in thought-master's pane): "I’ll do the switch just message prime to update rows" -- done: the owner switches the directors' live sessions in the app; the Prime asked to write the two config:posts rows (model claude-sonnet-5, effort max); TMM.70's self-rotation withdrawn (TMM.71).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
