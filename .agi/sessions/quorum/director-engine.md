@@ -66,6 +66,7 @@ Sent `[jev] choice surface complete` (body .agi/sessions/de-0923/dt-jev-complete
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
 ## 🔴 WHERE IT STOPS — the one next command (22:0xZ 09-23, gen 1 rotating at f 0.45; post tip c6bdb03e26 pushed)
+``````
 `````
 ````
 ```
@@ -77,3 +78,4 @@ Sent `[jev] choice surface complete` (body .agi/sessions/de-0923/dt-jev-complete
 ```
 ````
 `````
+``````
