@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ingest_grok_session.py — one grok session artifact -> one graph node
 (`goal:g7.32.1`). JSONL: first line `{"session_id": ...}`, then `{role, content,
-ts}` turns. Idempotent by `source_session` (mint_ids are random). Malformed or
-empty input, and MISSING PROVENANCE, are refused BY NAME with no node written:
+ts}` turns. Idempotent by `source_session` (mint_ids are random). Malformed,
+missing or empty input, and MISSING PROVENANCE, are refused BY NAME with no node written:
 every minted node carries non-empty `edited_by` and `thought_session` from the
 flags or `AGI_ACTOR`/`AGI_AGENT_ID` and `AGI_THOUGHT_SESSION`.
 """
@@ -21,14 +21,14 @@ def resolve_provenance(actor, thought_session):
     """Required, not best-effort: flag, then env, then refuse BY NAME."""
     actor = (actor or os.environ.get("AGI_ACTOR") or os.environ.get("AGI_AGENT_ID") or "").strip()
     session = (thought_session or os.environ.get("AGI_THOUGHT_SESSION") or "").strip()
-    if not actor or not session:
-        raise Refused("no actor" if not actor else "no thought_session")
+    if not actor or not session: raise Refused("no actor" if not actor else "no thought_session")
     return actor, session
 def parse_session(path):
     try:
         rows = [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
-    except json.JSONDecodeError as exc:
-        raise Refused(f"unparseable JSON: {exc}") from exc
+    except (OSError, json.JSONDecodeError) as exc:
+        raise Refused(f"no such artifact: {path}" if isinstance(exc, OSError) else f"unparseable JSON: {exc}") from exc
+    if any(not isinstance(r, dict) for r in rows): raise Refused("row is not a JSON object")
     head = next((r for r in rows if r.get("session_id")), None)
     sid = str((head or {}).get("session_id") or "").strip()
     turns = [r for r in rows if r is not head]
