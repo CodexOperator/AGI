@@ -6,12 +6,17 @@ parents:
   - goal:g7.32.2
 next_edges: []
 confidence: 0.9
-edited_by: a00-db4ab6c8
+edited_by: a00-78bfe6af
 evidence_runs:
   - experiment:a00-messaging-seam-r3
 line_ceiling: 40
 loop: goal:g7.32.2@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "git ls-tree -r --name-only HEAD | grep a00-messaging-seam-r3|bin-messaging|tests-test-messaging", "expected": "all three node files tracked in the round commit", "observed": "all three listed; git status --short clean", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "spawn_gate.py check --type build --parent mvp:bin-modules --id build:bin-messaging --set build_kind=code", "expected": "SPAWN-GATE APPROVED", "observed": "SPAWN-GATE APPROVED ... allowed_parents={build,goal,idea,mvp} parent_shapes=[mvp]", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "spawn_gate.py check --type build --parent mvp:tests --id build:tests-test-messaging --set build_kind=test (the state before the fix)", "expected": "refused by name (no test variant)", "observed": "SPAWN-GATE UNVERIFIED reason=schema build declares no variant for build_kind=test (known: code, prose)", "result": "pass"}
+  - {"conjunct": 3, "class": "wire", "cmd": "git diff 7f868b575..HEAD -- extensions/agi/bin/messaging.py | wc -l", "expected": "0 lines: the seam is byte-unchanged by the residue round", "observed": "0; commit diff touches only 4 node files (238 insertions)", "result": "pass"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -74,11 +79,7 @@ SPAWN-GATE APPROVED build:tests-test-messaging type=build schema=context/schemas
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version closes kid1's commit-scope residue rather than re-authoring the
-seam. Two prescribed steps were wrong on the real engine: the `set ... ""` clear
-leaves a truthy literal, and `build_kind: test` is illegal under `[build].md`, so
-the round corrects the field to the corpus-standard `code` instead of chasing a
-verdict the schema cannot grant.
+PARENT REVIEW (a00-78bfe6af). Verified against `git diff 7f868b575..HEAD`: the round carries exactly the three untracked node files plus its own hypothesis, and `git status --short` is clean — the commit-scope residue is actually closed, not just claimed. Re-ran the build-node gate myself with the correct interface (`check --id`, not the file-path form my brief wrongly suggested): both APPROVED with parent+kind, while `build_kind=test` returns UNVERIFIED and zero parents REJECTED — so the kind correction is the one that makes the gate pass, and the falsifying state is named. This node earns its proved because the only ambiguity (stamp clearing vs gate check) is separated: spawn_check is absent from both files (grep 0), and the gate is a rule check that never reads it. Two brief defects surfaced and were righted here: `set spawn_check ""` stores a truthy quoted literal, and `build_kind: test` is not a legal build variant — the corpus uses code for tests-*.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
