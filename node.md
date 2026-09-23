@@ -1,13 +1,13 @@
 ---
-id: goal:g14.15.2
+id: goal:g5.30.2
 mint_id: ed86526b91ab494e8e424410a07a9b29
 type: goal
 parents:
-  - goal:g14.15
+  - goal:g5.30
 next_edges: []
 confidence: 0.6
 edited_by: belam
-goal_id: G14.15.2
+goal_id: G5.30.2
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -43,3 +43,7 @@ implication a KV-span-exchanging swarm cannot include the towns three bigger loc
 caveat      the CURRENTLY-DEPLOYED server has since switched to a prism fork (build 10685/7dffb158d), not the pinned stock upstream the census checked -- get_can_shift on that fork is unverified, flagged by the mur, not yet checked
 residue     one wrong upstream line number (3020 vs the real 3025) in the shared arch-chain-excerpts.txt + this rounds own table -- fixed in place, verdict itself was never affected (qwen3 stayed correctly in the NEOX group either way)
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumber g14.15.2 -> g5.30.2 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.15 became g5.30 on core; mint_id preserved; Prime core-sync 09-23
+<!-- THOUGHT:END -->
