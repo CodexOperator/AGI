@@ -4,6 +4,7 @@ written_by: [prime_director, owner]   # list-shaped; links.parse_written_by read
 derived_from: owner ruling 2026-09-12 (doc:l4-owner-decisions body 697-717 @e6d090a77, Prime XVII 18:48Z)
 actor_rows:  # hypothesis:l4-the-formation-owner-writes-config-posts-rows-and-the-town-master-cell-through-a-schema-declared-actor-row-grant-never-a-role-literal: the town `master` cell (the config:posts row that owns this town's branch pair until council activation) is settable by the RESOLVED sanctuary-master seat through write.py's generic `actor_rows` grant. The DERIVED `branches:` cell stays refused BY NAME at mint (create field-level `refuse:`) and at read (towns.load_towns).
   - {actor: sanctuary-master, field: master}
+  - {actor: thought-master, field: trajectory_standin}   # owner 2026-09-23: the local-maxxing master writes its town's trajectory stand-in (TEMP until G7.34.2 mints trajectory:local-maxxing)
 structural: true
 fields:
   visions: {type: list}          # vision node ids this town owns. `core` may spell the list or the literal `auto`, meaning "every vision node no other town claims" — `auto` is RESOLVED BY THE LOADER, never hardcoded.
@@ -14,6 +15,7 @@ fields:
   written_by: {type: list}       # [prime_director, owner] — never a kid
   location: {type: str}          # mesh host alias (WireGuard/SSH name); e.g. encryption-town, local-town — SEPARATE from town id / branch derivation
   seeds: {type: list}             # PERSISTENT INFRA this town stands up (posts/crons/workflows/formation instances) — NOT a child-goal registry; parents on children remain nesting SoT for goals
+  trajectory_standin: {type: list}   # TEMP (owner 2026-09-23): the town's live trajectory rows, newest first, one string per row; written whole by the town master (each write = one version); migrates into trajectory:<town> at G7.34.2
   branches: {type: str, refuse: "DERIVED, never a cell — refused BY NAME at MINT (write.py create gate) and at READ (towns.py loader); see body"}  # branch names fall out of the cells, never a cell
 validation:
   required: [visions, council, season]  # location OPTIONAL until all live towns are backfilled; MUST for live mesh towns once backfilled (core→encryption-town, local-maxxing→local-town; sanctuary/streaming-suite/web-app-suite TBD empty)
