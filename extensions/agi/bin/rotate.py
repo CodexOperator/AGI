@@ -4492,7 +4492,7 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
         print(f"merge-up refused: {how} (nothing merged)", file=sys.stderr)
         return 3
     if post != caller_post:
-        target_row = _find_seat(root, post)
+        target_row = _find_seat(_seat_read_root(root, post), post)
         if target_row is None:
             print(f"merge-up refused: no seat {post!r} in the seats registry "
                   f"(nothing merged)", file=sys.stderr)
@@ -18423,7 +18423,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # config:seats unless --throwaway (a rehearsal-only registration that
         # never writes seats.md).
         if not getattr(args, "throwaway", False):
-            _prow = _find_seat(root, args.seat)
+            _prow = _find_seat(_seat_read_root(root, args.seat), args.seat)
             if _prow is None:
                 print(f"ERR: no seat {args.seat!r} in the seats registry "
                       f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
