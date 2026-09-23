@@ -16,7 +16,6 @@ M symmetric low modes kept; threshold+reset only at snapshot boundaries.
 import importlib.util, json, os, subprocess, time
 import numpy as np
 
-
 N, SYN, T, DT = 10000, 100, 1000, 0.1
 A, B = 1.0 - DT, DT
 SEEDS = [7, 100010, 200013, 300016]

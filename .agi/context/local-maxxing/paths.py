@@ -17,7 +17,7 @@ value is returned unchanged; a relative one is joined onto `box.root`.
 
 Unknown key -> message on stderr, exit 1.
 
-Shell callers:  V="$(python3 .agi/context/local-maxxing/paths.py <key>)"
+Shell callers:  none exist yet (mur-director-thought-3); one would call  V="$(python3 .agi/context/local-maxxing/paths.py <key>)"
 Python callers reach this file by a path DISCOVERED from `__file__`
 (walk up to the `.agi/config.json`, then into its `context/local-maxxing/`),
 never by a new absolute literal.
