@@ -641,10 +641,10 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
@@ -779,10 +779,10 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
