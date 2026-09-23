@@ -10,17 +10,16 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (16:2xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
+## LIVE STATE + STOPS (16:4xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
 ````
 ```
-MERGE-UP  the whole post range after TMM.53: all 3 gate reds FIXED (thought-hygiene node · EF.46 memory-cap test · EF.47 rolslice) ->
-          waiting on murs D btznjjtr0 (EF.20, EF.24, EF.26) · F1 beistwgf0 (EF.41, EF.43, EF.44) · F2 bue2jwcfs (EF.45, EF.46, EF.47);
-          E (EF.29/34/38) DONE 0 demote -> ONE [merge-up] -> TM's suite gate (the Prime: LAND ALL if green)
-CLI       g1.25: 16 of 70 engine CLIs, 135 entries (106 proposable, 25 excluded) · batch 2 = leaf g1.25.3 EF.48 a00-bb479eab (19 CLIs) ·
-          batch 3 = the remaining 35 -> next leaf
-PASS 2    the Prime 16:14Z (after the queue): pass2-0923-residue-batch (54 residue + 3 demote, 21 rounds; KEEP SPLITTING -- sort running)
-          · grid-old-namespace-refilled-and-forked EF.49 a00-f616eccd (refs/grid/node 3807 + refs/grid/local-maxxing 4057 here)
-          · harness-template-emit-refuses-an-unknown-slot EF.50 a00-5e25515d
+MERGE-UP  the whole post range: gate reds fixed · murs E + D DONE (0 demote) · F1 beistwgf0 + F2 bue2jwcfs running -> ONE [merge-up]
+          naming: EF.20's residue (the authority push skips the veto + fires on every spawn-row write -> EF.51 fixing) and the HELD
+          grid_sync push failure (0 of ~4060 trunk refs on origin, 526 MB cron log) for the Prime / core
+LIVE (6)  EF.48 CLI survey batch 2 (19 CLIs) · EF.49 grid namespace fork · EF.50 harness-template slots · EF.51 key-authority veto ·
+          EF.52 PASS 2 test gaps (g15.28.1) · EF.53 PASS 2 corrections (g15.28.2, --owns every node)
+PASS 2    goal:g15.28 = the engine slice: 47 mine rows -> leaves .1/.2 + EF.49/EF.50 · HELD 10 + thought-master's 55 routed in the merge-up
+CLI       g1.25: 16 of 70 CLIs · batch 2 EF.48 · batch 3 (35) next
 AFTER     landing: the EF.10 mur + a note on goal:g7.33 · config:brief = the Prime's write
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them; a parent can
           report "harvest accepted" with NOTHING committed -- always check the loop tip moved
