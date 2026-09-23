@@ -1,13 +1,13 @@
 ---
-id: goal:g17.9
+id: goal:g7.21.1
 mint_id: 428503642c7341f2bee0c723e171c777
 type: goal
 parents:
-  - goal:g17.8
+  - goal:g7.21
 next_edges: []
 confidence: 0.9
 edited_by: sanctuary-director
-goal_id: G17.9
+goal_id: G7.21.1
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
@@ -20,9 +20,11 @@ tags:
   - subgoal
   - l4
 thought_session: sanctuary-director-genVI-L4
-title: "G17.9: Channels A and B, and no director-to-Prime edge"
+title: "G7.21.1: Channels A and B, and no director-to-Prime edge"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.21.1
+
 **Two audience channels, and NO director→Prime edge.** Brief point **B9** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:246, A:259, A:326 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
