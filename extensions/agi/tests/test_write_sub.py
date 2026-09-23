@@ -1,0 +1,155 @@
+"""hypothesis:write-py-inline-replace-verb -- the `sub` / `sub!` verbs.
+
+`sub <old> => <new>` replaces the ONE literal occurrence of `<old>` anywhere
+in the node (frontmatter value or body); `sub payload <old> => <new>` does the
+same for the bytes the node points at. 0 or 2+ matches REFUSE and write
+nothing; `sub!` replaces every match and prints the count. The write lands
+through the ordinary `set_fm` / body / `payload_bytes` paths, so the
+schema / ring / written_by gates run exactly as they do for `set`.
+"""
+from __future__ import annotations
+
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parent.parent / "bin"
+SRC = Path(__file__).resolve().parent.parent / "src"
+sys.path.insert(0, str(BIN))
+sys.path.insert(0, str(SRC))
+
+import write  # noqa: E402
+import node_writer  # noqa: E402
+
+
+def _node(project: Path, rel: str, text: str) -> Path:
+    path = project / "nodes" / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+@pytest.fixture()
+def project(tmp_path: Path) -> Path:
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    _node(graph, "hypothesis/h1.md",
+          '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+          'title: "hello world"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+          'status: pending\n---\n\nthe body says nothing here\n')
+    return graph
+
+
+def _run(graph: Path, script: str, *extra: str):
+    return subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "hypothesis:h1", script,
+         "--root", str(graph), "--actor", "kid", "--session", "s1", *extra],
+        capture_output=True, text=True)
+
+
+def test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff(project):
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    before = path.read_text()
+    proc = _run(project, "sub world => WORLD", "--dry-run")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert '-title: "hello world"' in proc.stdout
+    assert '+title: "hello WORLD"' in proc.stdout
+    assert path.read_text() == before, "a dry run writes nothing"
+    proc = _run(project, "sub world => WORLD")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "sub: replaced 1 occurrence(s)" in proc.stdout
+    assert "hello WORLD" in path.read_text()
+
+
+def test_sub_refuses_zero_and_two_matches_and_writes_nothing(project):
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    before = path.read_text()
+    proc = _run(project, "sub absent => q")
+    assert proc.returncode == 2
+    assert "0 occurrences" in proc.stderr
+    assert path.read_text() == before
+    # `world` in the title AND the body -> two matches, plain sub refuses.
+    _node(project, "hypothesis/h1.md",
+          '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+          'title: "hello world"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+          'status: pending\n---\n\nthe body says world again\n')
+    before = path.read_text()
+    proc = _run(project, "sub world => WORLD")
+    assert proc.returncode == 2
+    assert "2 occurrences" in proc.stderr and "sub!" in proc.stderr
+    assert path.read_text() == before
+
+
+def test_sub_bang_replaces_every_match_and_prints_count(project):
+    _node(project, "hypothesis/h1.md",
+          '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+          'title: "hello world"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+          'status: pending\n---\n\nthe body says world again\n')
+    proc = _run(project, "sub! world => WORLD")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "sub: replaced 2 occurrence(s)" in proc.stdout
+    text = (project / "nodes" / "hypothesis" / "h1.md").read_text()
+    assert "hello WORLD" in text and "says WORLD again" in text
+
+
+def test_sub_body_lands_through_update_node(project):
+    res = write.submit(project, _sub_edit("nothing => SOMETHING"),
+                       actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert "says SOMETHING here" in write._read_body_text(project, "hypothesis:h1")
+
+
+def _sub_edit(spec: str) -> write.Edit:
+    e = write.Edit(node_id="hypothesis:h1")
+    write.verb_sub(e, spec)
+    return e
+
+
+def test_sub_config_node_goes_through_the_written_by_gate(project):
+    (project / "context" / "schemas").mkdir(parents=True)
+    (project / "context" / "schemas" / "[config].md").write_text(
+        "---\nname: config\nwritten_by: [owner]\n---\nconfig\n")
+    _node(project, "config/c1.md",
+          '---\nid: config:c1\ntype: config\nmint_id: ccc111\n'
+          'title: "unique-token here"\n---\n\nbody\n')
+    path = project / "nodes" / "config" / "c1.md"
+    before = path.read_text()
+    edit = write.Edit(node_id="config:c1")
+    write.verb_sub(edit, "unique-token => TOKEN")
+    with pytest.raises(write.EditError) as ei:
+        write.submit(project, edit, actor="kid", session="s1")
+    assert "admitted roles owner" in str(ei.value)
+    assert path.read_text() == before
+    # The admitted role lands the SAME sub.
+    res = write.submit(project, edit, actor="owner", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert "TOKEN here" in path.read_text()
+
+
+def test_sub_payload_mode(tmp_path):
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True)
+    payload.write_text("alpha BETA gamma\n")
+    _node(graph, "build/b1.md",
+          "---\nid: build:b1\ntype: build\nmint_id: bbb111\ntitle: \"t\"\n"
+          "scaffold_hash: deadbeef\npayload_ref: lib/mod.py\n---\n\nbody\n")
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "build:b1",
+         "sub payload BETA => DELTA", "--root", str(graph),
+         "--actor", "kid", "--session", "s1"],
+        capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert proc.stdout.count("sub: replaced 1 occurrence(s)") == 1
+    assert payload.read_text() == "alpha DELTA gamma\n"
+
+
+def test_sub_ampersand_not_led_by_a_verb_stays_in_argument():
+    assert write.parse_script("sub a && b => c") == [("sub", ["a && b => c"])]
+    assert write.parse_script("sub x => y && note why") == [
+        ("sub", ["x => y"]), ("note", ["why"])]
