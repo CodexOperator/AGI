@@ -21,8 +21,30 @@ import time
 from pathlib import Path
 
 import adapters
+from adapters import tmux_hold
 
 NAME = "grok-bot"
+
+#: Grok Bot seats hold a durable named tmux pane by default (`goal:g7.31.1.2`).
+#: Declared HERE, in the module that owns this seat's spawn shape, so the
+#: shipped `harnesses.grok-bot` row reaches the seam with NO config cell. An
+#: explicit `tmux: False` / `pane: False` on the harness is honoured and keeps
+#: the direct-`Popen` path.
+HOLD_PANE = True
+
+
+def hold_harness(harness: dict) -> dict:
+    """`harness` with this adapter's pane-hold default applied.
+
+    A stated `tmux`/`pane` cell -- True or False -- wins outright; only a row
+    that says nothing gets `HOLD_PANE`. Applied by the first-spawn seam and by
+    `restart`, so a harness replayed from an older record (no cell) still
+    re-enters its named pane (`goal:g7.31.1.2`).
+    """
+    if "tmux" in harness or "pane" in harness:
+        return harness
+    return {**harness, "tmux": HOLD_PANE}
+
 
 #: Fallback only. `$GROK_BOT_BIN`, then `harness["bin"]`, then this
 #: (PATH-resolved by Popen). The configured box path is a config cell, not
@@ -133,7 +155,31 @@ def restart(
         ladder_tier=ladder_tier,
     )
     log_file = sess_dir / "output.log"
+    # The SAME child env the first-spawn seam and the non-hold path pass.
+    # `respawn-pane` inherits the tmux SERVER's environment, not the dispatch
+    # child's, so a restart that omits `env=` comes back stripped of the
+    # seat's harness env cells and `AGI_*` identity (`goal:g7.31.1.2`).
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    hold = hold_harness(harness)
+    if tmux_hold.enabled(hold):
+        # Durable named pane hold (`goal:g7.31.1.2`): same pane identity across
+        # pid churn. Declared by `HOLD_PANE` on this adapter; an explicit
+        # `tmux: False` keeps the Popen path below.
+        created: dict = {}
+        new_pid = tmux_hold.reattach(
+            hold, agent_id, args,
+            cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
+            created=created, env=env)
+        if new_pid is not None and agent_record is not None:
+            agent_record["pid"] = new_pid
+            agent_record["status"] = "restarted"
+            agent_record["restarted_at"] = int(time.time())
+            if created:
+                # `created: true` means the seat's named pane was GONE and was
+                # re-created, not reattached (`goal:g7.31.1.2`).
+                agent_record["tmux"] = created
+            (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
+        return new_pid
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
