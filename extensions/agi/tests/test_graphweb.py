@@ -713,3 +713,127 @@ def test_dispatched_by_accepts_post_and_canonical_spellings():
     assert graphweb._dispatched_by({"base_branch": "season2/posts/sanctuary-director"}) \
         == "sanctuary-director"
     assert graphweb._dispatched_by({"base_branch": ""}) == ""
+
+
+# --------------------------------------------------------------------------- #
+# 9. The one choice surface over HTTP: GET /commands.json + POST /propose     #
+# --------------------------------------------------------------------------- #
+_COMMANDS_NODE = """---
+commands:
+  smoke:
+    argv: ["bash", "<engine>/driver.sh", "--smoke"]
+    about: "no dispatch"
+manifest:
+  write.py:set:
+    cli: write.py
+    verb: set
+    argv: [python3, <engine>/write.py, <node-id>, "set <key> <value>"]
+    args:
+      - {name: key, type: str, required: true, choices: []}
+      - {name: value, type: str, required: true, choices: []}
+    purpose: set a key
+    side_effects: graph-write
+    proposable: true
+excluded:
+  write.py:patch:
+    cli: write.py
+    verb: patch
+    argv: [python3, <engine>/write.py, <node-id>, "patch -"]
+    reason: reads a unified diff on stdin
+    side_effects: graph-write
+    proposable: false
+id: "command:commands"
+mint_id: aaaabbbbccccdddd
+type: command
+title: "Standard command declaration"
+---
+"""
+
+
+def _write_commands_node(graph_root: Path) -> None:
+    p = graph_root / "nodes" / ".geometry" / "commands.md"
+    p.write_text(_COMMANDS_NODE, encoding="utf-8")
+
+
+def _serve_commands(graph):
+    handler = type("BoundGraphHandler", (graphweb.GraphHandler,),
+                   {"graph_root": graph})
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    t = threading.Thread(target=httpd.serve_forever, daemon=True)
+    t.start()
+    return httpd, t, httpd.server_address[1]
+
+
+def _post(url: str, payload: dict):
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"}, method="POST")
+    return urllib.request.urlopen(req)
+
+
+def test_get_commands_json_serves_the_manifest(graph) -> None:
+    """GET /commands.json parses as the choice set: the proposable entry and
+    the excluded one, both present with their flags."""
+    _write_commands_node(graph)
+    httpd, t, port = _serve_commands(graph)
+    try:
+        with urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/commands.json") as r:
+            assert r.status == 200
+            assert r.headers["Content-Type"].startswith("application/json")
+            data = json.loads(r.read().decode("utf-8"))
+            assert data["write.py:set"]["proposable"] is True
+            assert data["write.py:set"]["argv"][1] == "<engine>/write.py"
+            assert data["write.py:patch"]["proposable"] is False
+            assert data["write.py:patch"]["reason"]
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        t.join(timeout=5)
+
+
+def test_post_propose_returns_the_argv_and_runs_nothing(graph, monkeypatch) -> None:
+    """POST /propose validates and returns `{"argv": [...]}`; a bad name is a
+    4xx; and the call neither spawns a process nor writes a file."""
+    _write_commands_node(graph)
+
+    def boom(*a, **k):
+        raise AssertionError("propose over HTTP must never spawn or write")
+
+    for name in ("call", "Popen", "run", "check_call", "check_output"):
+        monkeypatch.setattr(graphweb.subprocess, name, boom)
+    monkeypatch.setattr(Path, "write_text", boom)
+    monkeypatch.setattr(Path, "write_bytes", boom)
+
+    httpd, t, port = _serve_commands(graph)
+    try:
+        with _post(f"http://127.0.0.1:{port}/propose",
+                   {"name": "write.py:set",
+                    "args": {"key": "title", "value": "hi"}}) as r:
+            assert r.status == 200
+            assert json.loads(r.read().decode("utf-8"))["argv"] == [
+                "python3", "<engine>/write.py", "<node-id>", "set title hi"]
+
+        with pytest.raises(urllib.error.HTTPError) as exc:
+            _post(f"http://127.0.0.1:{port}/propose",
+                  {"name": "write.py:patch", "args": {}})
+        assert 400 <= exc.value.code < 500
+        assert b"not proposable" in exc.value.read()
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        t.join(timeout=5)
+
+
+def test_post_propose_is_localhost_bound(graph) -> None:
+    """The server binds 127.0.0.1 only — `serve`'s own default is untouched, so
+    a proposal can never be reached off-box."""
+    _write_commands_node(graph)
+    httpd, t, port = _serve_commands(graph)
+    try:
+        assert httpd.server_address[0] == "127.0.0.1"
+        assert graphweb.serve.__defaults__[0] == "127.0.0.1"
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
+        t.join(timeout=5)
