@@ -55,8 +55,11 @@ def test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff(project):
     before = path.read_text()
     proc = _run(project, "sub world => WORLD", "--dry-run")
     assert proc.returncode == 0, proc.stdout + proc.stderr
-    assert '-title: "hello world"' in proc.stdout
-    assert '+title: "hello WORLD"' in proc.stdout
+    # conjunct 4: the preview is a diff of the SERIALIZED node the write would
+    # land (frontmatter rendered + body), not the raw splice -- unquoted title
+    # lines, plus the provenance stamp submit adds.
+    assert "-title: hello world" in proc.stdout
+    assert "+title: hello WORLD" in proc.stdout
     assert path.read_text() == before, "a dry run writes nothing"
     proc = _run(project, "sub world => WORLD")
     assert proc.returncode == 0, proc.stdout + proc.stderr
@@ -93,6 +96,45 @@ def test_sub_bang_replaces_every_match_and_prints_count(project):
     assert "sub: replaced 2 occurrence(s)" in proc.stdout
     text = (project / "nodes" / "hypothesis" / "h1.md").read_text()
     assert "hello WORLD" in text and "says WORLD again" in text
+
+
+def test_sub_dry_run_diff_applied_to_disk_is_the_landed_bytes(project):
+    """The printed `--dry-run` diff, applied to the on-disk node, is
+    byte-for-byte what the real `sub` then writes -- including a body that
+    opens with a duplicate frontmatter block the write absorbs and strips.
+
+    Red before the fix: the preview applied `set_fm` BEFORE the absorb, so
+    the body block's stale `title` clobbered the edit and the printed diff
+    was EMPTY while the real write changed the title
+    (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+    """
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text(
+        '---\nid: "hypothesis:h1"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "hello world"\ntestable_claim: "c"\n'
+        'scaffold_hash: deadbeef\nstatus: pending\nedited_by: kid\n'
+        'thought_session: s1\n---\n\n'
+        '---\ntitle: "dupe"\n---\n\nthe body says nothing here\n')
+    # canonicalise: the writer's own serializer output is what is on disk, so
+    # the printed patch applies to these exact bytes.
+    path.write_text(write._baseline_node_text(project, "hypothesis:h1"))
+    before = path.read_text()
+    proc = _run(project, "sub world => WORLD", "--dry-run")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    lines = proc.stdout.splitlines(True)
+    start = next(i for i, l in enumerate(lines) if l.startswith("--- a/"))
+    end = next(i for i, l in enumerate(lines) if l.startswith("  sub "))
+    diff = "".join(lines[start:end])
+    assert diff, "the preview printed no diff for a real change"
+    previewed = write.apply_unified_diff(before, diff)
+    assert path.read_text() == before, "a dry run writes nothing"
+    res = _run(project, "sub world => WORLD")
+    assert res.returncode == 0, res.stdout + res.stderr
+    landed = path.read_text()
+    assert landed == previewed, (
+        "applying the printed diff to the on-disk node must yield the landed "
+        "bytes\n" + diff)
+    assert "hello WORLD" in landed and "dupe" not in landed
 
 
 def test_sub_body_lands_through_update_node(project):
@@ -153,3 +195,26 @@ def test_sub_ampersand_not_led_by_a_verb_stays_in_argument():
     assert write.parse_script("sub a && b => c") == [("sub", ["a && b => c"])]
     assert write.parse_script("sub x => y && note why") == [
         ("sub", ["x => y"]), ("note", ["why"])]
+
+
+def test_sub_value_with_open_thought_marker_is_refused_like_set(project):
+    """conjunct 2: a `sub` that would land an open THOUGHT marker into a
+    frontmatter value is refused by the SAME `_refuse_marker_value` that
+    refuses `set` (verb_set)."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    before = path.read_text()
+    edit = _sub_edit("world => WORLD <!-- THOUGHT:BEGIN")
+    with pytest.raises(write.EditError, match="THOUGHT marker"):
+        write.submit(project, edit, actor="kid", session="s1")
+    assert path.read_text() == before
+
+
+def test_second_sub_composes_with_the_first(project):
+    """conjunct 3: `sub a => b && sub c => d` applies the second sub to the
+    bytes the first produced -- here the second old string only exists after
+    the first replacement, so a discarded first sub refuses (0 matches)."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    proc = _run(project, "sub hello => goodbye && sub goodbye => farewell")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    assert "sub: replaced 2 occurrence(s)" in proc.stdout
+    assert "farewell world" in path.read_text()

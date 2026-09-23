@@ -22,12 +22,19 @@ BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
 import rolslice  # noqa: E402
+import locations  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[1] / "agi"  # graph root for this repo
-if not ROOT.joinpath("nodes", ".geometry", "seats.md").is_file():
+# config:posts (.agi/nodes/.geometry/posts.md) is the instance registry
+# hierarchy.py reads; resolve ROOT through the repo's own resolver so it is a
+# real directory carrying the geometry, never the absent `extensions/agi/agi`.
+ROOT = locations.find_project_root(Path(__file__).resolve())
+if ROOT is None or not ROOT.joinpath("nodes", ".geometry", "posts.md").is_file():
     cand = Path(__file__).resolve().parents[3] / ".agi"
-    if cand.joinpath("nodes", ".geometry", "seats.md").is_file():
+    if cand.joinpath("nodes", ".geometry", "posts.md").is_file():
         ROOT = cand
+assert ROOT is not None and ROOT.joinpath(
+    "nodes", ".geometry", "posts.md").is_file(), (
+    f"rolslice test: no graph root carrying config:posts found (got {ROOT})")
 
 _ID_RE = re.compile(r"\s*\(`?goal:[^)`]+`?\)\s*$")
 

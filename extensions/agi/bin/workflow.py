@@ -1521,15 +1521,34 @@ def _revoke_run_credential(key_hash: str | None, root) -> None:
               file=sys.stderr)
 
 
-def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
+# The pre-fix literal the context build ran under, kept as the undeclared
+# default so a manifest that declares no `context_timeout_s` is
+# byte-for-byte today (the claim's third conjunct) -- 60 s, NOT the stage
+# wall's 3600. `_resolve_context_timeout` is the ONE place this default
+# lives; `_stage_context` still guards `None` for legacy callers.
+_DEFAULT_CONTEXT_TIMEOUT_S = 60
+
+
+def _stage_context(repo: Path, graph_root: Path, stage: dict,
+                   context_timeout_s: int = _DEFAULT_CONTEXT_TIMEOUT_S) -> str:
     """Assemble the shared graph context for one live workflow stage.
 
     The stage prompt remains workflow-specific, but the graph state and role
     brief come from the same read surfaces used by ordinary dispatched kids.
     This keeps a workflow stage from inventing a second context assembly path.
+
+    `context_timeout_s` is the budget BOTH context reads run under, resolved by
+    the CALLER from the manifest (`stage["context_timeout_s"]` >
+    `manifest["context_timeout_s"]` > `_DEFAULT_CONTEXT_TIMEOUT_S`) -- this
+    function never re-reads a manifest and never owns a second copy of the
+    resolver. It used to be two hard `timeout=60` literals, which is exactly
+    how every verify stage died `context-build-timeout after 60 s` at box load
+    40-51 (merge-up-review, 09-23 mur).
     """
     import subprocess
 
+    budget = (_DEFAULT_CONTEXT_TIMEOUT_S if context_timeout_s is None
+              else context_timeout_s)
     role = str(stage.get("role") or "kid")
     tier = str(stage.get("tier") or role)
     if tier not in {"kid", "parent", "advisor", "director",
@@ -1538,7 +1557,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     viewport = subprocess.run(
         [sys.executable, str(_THIS / "viewport.py"), "--emit", "llm",
          "--depth", "3"],
-        cwd=str(repo), capture_output=True, text=True, timeout=60,
+        cwd=str(repo), capture_output=True, text=True, timeout=budget,
     )
     if viewport.returncode != 0:
         raise RuntimeError(
@@ -1547,7 +1566,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
          "--project-root", str(graph_root)],
-        cwd=str(repo), capture_output=True, text=True, timeout=60,
+        cwd=str(repo), capture_output=True, text=True, timeout=budget,
     )
     if brief.returncode != 0:
         raise RuntimeError(
@@ -1986,6 +2005,19 @@ def _current_load() -> float:
     return os.getloadavg()[0]
 
 
+def _whole_seconds(value: float) -> int:
+    """A resolved budget, floored to whole seconds and never to ZERO.
+
+    A 0<v<1 budget is a positive number, so it clears the refusal, but
+    `int(0.5)` truncates it to 0 and `subprocess.run(timeout=0)` raises
+    `TimeoutExpired` immediately — the same silent kill a declared 0 causes.
+    Every truncation site (with and without load scaling, stage wall and
+    context build) floors at ONE second instead
+    (goal:g15.29.20 FR-C1; hypothesis:context-budget-never-floors-to-zero-
+    and-is-pinned)."""
+    return max(1, int(value))
+
+
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     """The stage's wall-clock budget in seconds, DECLARED — never truthy.
 
@@ -2027,11 +2059,53 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     lf = (stage["load_factor"] if "load_factor" in stage
           else manifest.get("load_factor"))
     if lf is None:
-        return raw
+        return _whole_seconds(raw)
     if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
         raise ValueError(
             f"stage {label!r} load_factor={lf!r} is not a positive number")
-    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
+
+
+def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
+    """The stage's CONTEXT-BUILD budget in seconds, DECLARED — never truthy.
+
+    Same resolution shape as `_resolve_stage_timeout` (which owns the stage
+    WALL): stage `context_timeout_s` > manifest `context_timeout_s` >
+    `_DEFAULT_CONTEXT_TIMEOUT_S` (60, the literal this replaces). Presence,
+    not truthiness: a declared stage key wins even when 0, and a declared 0,
+    negative, bool or non-numeric value is REFUSED BY NAME before any stage
+    runs — `run_workflow` resolves both budgets in the same try/except, so the
+    refusal is one path with rc 5 and `--dry-run` agrees with the live run.
+
+    Load scaling is opt-in and reads the same `load_factor` cells as the wall
+    (a context build is itself slower under load, which is the incident this
+    closes) and is capped at `_LOAD_CAP_MULT` x the declared budget; absent
+    everywhere means the declared number, byte-for-byte.
+    """
+    label = stage.get("label")
+    if "context_timeout_s" in stage and stage["context_timeout_s"] is not None:
+        raw = stage["context_timeout_s"]
+        where = f"stage {label!r} context_timeout_s"
+    else:
+        raw = manifest.get("context_timeout_s")
+        where = f"stage {label!r} inherits workflow context_timeout_s"
+    if raw is None:
+        return _DEFAULT_CONTEXT_TIMEOUT_S
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or raw <= 0:
+        raise ValueError(
+            f"{where}={raw!r} is not a positive number of seconds; a budget "
+            f"of 0 (or less, or non-numeric) is not a request to wait "
+            f"forever — the run is refused before any stage is dispatched")
+    lf = (stage["load_factor"] if "load_factor" in stage
+          else manifest.get("load_factor"))
+    if lf is None:
+        return _whole_seconds(raw)
+    if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
+        raise ValueError(
+            f"stage {label!r} load_factor={lf!r} is not a positive number")
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
 
 
 def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
@@ -2140,9 +2214,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # manifest-level `timeout_s: 0` can no longer reach
     # `subprocess.run(timeout=0)` and silently kill every stage.
     stage_timeouts: dict[str, int] = {}
+    stage_context_timeouts: dict[str, int] = {}
     for st in stages:
         try:
             stage_timeouts[st["label"]] = _resolve_stage_timeout(st, manifest)
+            stage_context_timeouts[st["label"]] = \
+                _resolve_context_timeout(st, manifest)
         except ValueError as exc:
             print(f"workflow.py: workflow={key} refused: {exc}",
                   file=sys.stderr)
@@ -2240,7 +2317,8 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # validated return merged into this stage's prompt context.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
             try:
-                context_text = _stage_context(repo, root, st)
+                context_text = _stage_context(
+                    repo, root, st, stage_context_timeouts[st["label"]])
             except (subprocess.TimeoutExpired, RuntimeError) as exc:
                 # Fail THIS stage by name; siblings proceed under SM.105.
                 reason = (f"context-build-timeout after {exc.timeout:g} s"
