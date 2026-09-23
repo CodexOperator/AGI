@@ -236,6 +236,52 @@ def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
     assert "pguard = _check_profile_drift(root)" in src
 
 
+def test_cmd_loop_refuses_drift_before_spawn_window(tmp_path, monkeypatch,
+                                                    capsys):
+    """BEHAVIOURAL probe: the super-ralph `loop` rotation path must refuse a
+    deliberate desync BY NAME and must not reach `spawn_window`. This fails
+    when `cmd_loop` omits the guard even though the grep probe above passes.
+    """
+    import rotate  # noqa: E402
+    from types import SimpleNamespace
+    repo = _repo(tmp_path)
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    dest.write_text("mutated\n")            # deliberate desync
+    called = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (called.append(kw), (0, None))[1])
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    args = SimpleNamespace(
+        force=True, session_log=None, role="parent", tmux_session="t",
+        window_path=None, name=None, name_prefix=None, prompt_file=None,
+        model=None, effort=None, settings=None, dry_run=True,
+        debug_file=None, successor_argv=None, seat=None, harness=None)
+    rc = rotate.cmd_loop(args, repo / ".agi")
+    assert rc == 1, (rc, capsys.readouterr())
+    err = capsys.readouterr().err
+    assert "profile drift" in err and "hypothesis:h1" in err
+    assert called == [], "spawn_window must not be reached on drift"
+
+
+def test_cmd_loop_passes_clean_and_reaches_spawn(tmp_path, monkeypatch):
+    """Non-vacuity: with no drift the same call DOES reach spawn_window."""
+    import rotate  # noqa: E402
+    from types import SimpleNamespace
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    called = []
+    monkeypatch.setattr(rotate, "spawn_window",
+                        lambda **kw: (called.append(kw), (0, None))[1])
+    monkeypatch.setattr(rotate, "_existing_windows", lambda *a, **k: [])
+    args = SimpleNamespace(
+        force=True, session_log=None, role="parent", tmux_session="t",
+        window_path=None, name=None, name_prefix=None, prompt_file=None,
+        model=None, effort=None, settings=None, dry_run=True,
+        debug_file=None, successor_argv=None, seat=None, harness=None)
+    assert rotate.cmd_loop(args, repo / ".agi") == 0
+    assert len(called) == 1
+
+
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
 
 def _broken(graph: Path, name: str, extra: str = "") -> Path:
