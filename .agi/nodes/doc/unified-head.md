@@ -49,6 +49,7 @@ no human waits on you: decide, record why, never block on an answer
 one source per rule: change its node (write.py), never a copy · the graph is the memory
 one flow or table per idea · prose only where a diagram would drop meaning
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim
+schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal])
 ```
 **C · CLAIM** — *Let me play my part, and trust every other to play theirs.*
 ```
