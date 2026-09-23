@@ -919,6 +919,49 @@ def _carry_thought(old_body: str, new_body: str) -> str:
     return new_body.rstrip("\n") + "\n\n" + thought + "\n"
 
 
+#: The one heading both `cli.py done` and `post_wire.py` write notes under.
+AGENT_NOTES_HEADING = "## Agent Notes"
+
+
+def upsert_agent_notes(body: str, notes: str) -> str:
+    """Return `body` carrying EXACTLY ONE `## Agent Notes` section, text `notes`.
+
+    Replace the existing section if there is one; append one only when the
+    body has none. Two writers append notes to every kid (`cli.py` at the end
+    of `done`, `post_wire.py` at wire time), and both used to guard on the
+    whole note as a SUBSTRING -- `if notes.strip() not in body`. A re-run with
+    a note differing by one character passed that guard and appended a SECOND
+    heading, so any node could end up with `## Agent Notes` twice (measured on
+    `hypothesis:a00-810b8e08-548ae9`, two headings one comma apart).
+
+    The invariant this enforces is about the HEADING, not the note: a node
+    body has at most one, and re-running either writer replaces its text.
+    """
+    note = (notes or "").strip()
+    if not note:
+        return body
+    lines = (body or "").split("\n")
+    kept: list[str] = []
+    i = 0
+    removed = False
+    while i < len(lines):
+        if lines[i].strip() == AGENT_NOTES_HEADING:
+            removed = True
+            i += 1
+            # The section runs to the next level-2 heading (another
+            # `## Agent Notes` included -- it is caught on the next pass).
+            while i < len(lines) and not lines[i].startswith("## "):
+                i += 1
+            continue
+        kept.append(lines[i])
+        i += 1
+    core = "\n".join(kept).rstrip("\n")
+    section = f"{AGENT_NOTES_HEADING}\n{note}"
+    if not core:
+        return section + "\n"
+    return core + "\n\n" + section + "\n"
+
+
 def _absorb_leading_frontmatter(fm: dict, body: str) -> tuple[dict, str, list[str]]:
     """Merge a duplicate `---` frontmatter block that opens the body.
 
