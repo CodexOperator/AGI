@@ -1,3 +1,6 @@
+AUTO-CAPTURED
+AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -51,7 +54,7 @@ memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pa
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (20:3xZ 09-23 -- gen 14, resumed)
+## Live state (21:5xZ 09-23 -- gen 14)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
@@ -64,9 +67,9 @@ LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
                          REFRAME a QK-norm model or per-channel / bias-subtracted keys, not more bits
   [1b]   SWARM           OSC.10 measured: 2 parents + 4 kids = 20.24 M tokens / 7.48 USD vs the control's 9.05 M / 3.23 USD (2.3x) · LAP 0 posts 14 s apart, B spawned
                                39 s later: NO division of labour, the same quantizer, the same verdict · only A added anything (the finer step grid + the bw4 defect, by its
-                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line (verdict after mur-13, item 1)
-  L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (mur-14 running)
-  L9/10  speculation     OSC.12 LIVE (parent a00-ad0038cd): draft-free n-gram --spec-type on the served 9B -- does speculation run on qwen35 at all, and >= 1.3x decode?
+                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line -- FINAL after mur-13: NOT earned (the L3 hypothesis's harvest section)
+  L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (closed f2003718f0)
+  L9/10  speculation     OSC.12 DISPROVED as stated, but speculation RUNS on qwen35: ngram-simple x7.9 on edit-and-return (8/8 identical), ~x1 elsewhere (mur-15 running)
                          the build block is DEMOTED (THOUGHT on the OSC.12 hypothesis: the JIT cache already removes the cold JIT; PTX-JIT runs the same SASS class)
                          next: (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
 mvp      QUEUED SWR-SV.01 (switch mvp round 1): waits for the CFG merge-up to LAND at TM's gate -- orders below
@@ -74,33 +77,29 @@ batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bc
 routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (use 6G or omit it; config is 6G) -> director-engine 20:29Z · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Where it stops -- 20:2xZ 09-23, RESUMED per TMM.61 (no second rotation for this seat), in this order (the next command is item 1)
+## 🔴 Where it stops -- 21:5xZ 09-23, in this order (the next command is item 1)
 ````
 ```
-1 mur-director-thought-13 RUNNING (relaunched 20:14Z, bg; stages run one at a time) -- OSC.10's review, args .agi/sessions/iter-OSC.10/mur13.args.json
-         (3 rounds osc-10-a / -b / -ctl, review -> verify, deepseek-v4.1-flash; merge-base 5f04722e3c, tips A 60d07740e6 · B 86f4f9bb14 · ctl e27e5995d6)
-         results MAIN .agi/sessions/workflows/runs/mur-director-thought-13/ · if my session died: relaunch with the same args (run key = mur-<merge_up>)
-    then close in place: CONFIRMED residues fixed in the kid nodes (write.py, AGI_ACTOR=director-thought) -> the hypothesis node gains a harvest section
-         AFTER CEILING (the brief order stays): verdict disproved x3, the step (energy 9.0 bits, uniform 10.25), the [1b] SWARM numbers (LADDER above) and the
-         swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
-    residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
-         generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
-2 OSC.11 CLOSED f2003718f0 -- mur-director-thought-14: review demote -> verify accept_with_residue (all 5 defects real, text-only); harvest merged
-         67837d6c23 + evidence 3f627c6cf5 / 458484bb3b; the node now says REFUTED throughout: step = keep -ub 512; T3 range 85.6x-1,383x; the kid's
-         restore proof was a JSONDecodeError -> the director's parsed completions (19:55:38Z, 20:32:49Z) are the proof
-3 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666) dispatched 20:29Z, wall ~22:29Z, GPU round: the router goes DOWN under its T0 guard and must be
-         restored + proven (a real 9B completion naming the model); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
-    the first spawn a00-8f615a6a FAILED at start (my --memory 6 -> MemoryMax=6 bytes, oom-kill 20:27:06Z): its worktree .agi/worktrees/a00-8f615a6a and
-         branch ...-ngram-sp-a00-8f615a6a are orphaned (empty), and iter-OSC.12/a00-b0263b6d is the empty dir of the 20:26Z stale-base refusal
-    harvest: merge its loop branch, check its worktree for uncommitted config AND gitignored evidence (OSC.11's lesson), anonymize, ONE mur, close
-4 TMM.58 LANDED at c63e1ab8b (TMM.62 20:36Z: gate clean, suite 6182 passed / 1 failed = core R3 only) -- closed. TM's merge-up scope:
-         OSC.09 (Dispatch line + harvest) + OSC.10 after mur-13 + OSC.11 (mur-14) -- the range starts at 96207abf1
-5 anonymize over the whole range RE-RUN at 3f627c6cf5: MAIN's gate ok (two-dot and three-dot); the committed gate: loopback only (82 lines) -- the TRUNK's
-         anonymize.py now drops loopback, so merging the trunk clears it
-6 trunk merged 20:28Z (b1abf75fd8; the committed gate now passes the whole range) -> ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + Dispatch line a9aed8731)
-         + OSC.10 (+ mur-13 close) + OSC.11 (+ mur-14 close)
-done   TMM.56 (@21085aa1d) · TMM.57 (@60eac6b52) · TMM.58 (@e0689f715) · mur-12 (OSC.09) closed · OSC.10 all three parents merged (A 37b51df94, B 39f0834f1,
-       control aed061142) · spawn.parallel back to 1 · OSC.11 merged 67837d6c23 + evidence 3f627c6cf5
+1 mur-director-thought-15 RUNNING as the transient user unit dt-mur-15.service (launched 21:48Z via systemd-run so it outlives this session) -- OSC.12's
+         review: one round osc-12, fe31bddee8..2be3bbfe2e, args .agi/sessions/iter-OSC.12/mur15.args.json, log .agi/sessions/iter-OSC.12/mur15.log
+    check: systemctl --user is-active dt-mur-15 · results MAIN .agi/sessions/workflows/runs/mur-director-thought-15/ (review_osc-12.json, verify_osc-12.json)
+         · if the unit died with no verify: relaunch the same way (the run key is mur-<merge_up>)
+    then close in place (write.py; a replace body is its OWN submit -- never joined with set / note / thought) -> ONE [merge-up] to TM (range from 5085dd5ef)
+2 OSC.12 HARVESTED: parent a00-ad0038cd done 21:47Z, merged c957c56f2d (anonymize ok; the node cites NOTHING under .agi/sessions -- the orders' evidence line
+         worked) · router restored 21:42:40Z by the kid, proven by a parsed 9B completion 21:44:34Z
+    the result (experiment:a00-71dbbad5-e8f839): DISPROVED as stated -- speculation RUNS on the hybrid qwen35 in build 10991; ngram-simple edit-and-return
+         x7.9 median with 8/8 outputs identical (ngram-mod x7.3, and no digest loss where ngram-simple's digests slowed); no type reaches the 1.3x overall
+         median; 2 code-prompt tokens flip outside the 0.1 top-2 margin (T3 -- mur-15 decides numeric vs defect)
+    the NEXT speculation question: the town's real share of edit-shaped turns (what an ngram step is worth on the served workload), then the draft-model
+         line (hypothesis:lm-spec-decode-cpu-draft-hybrid) -- its gating question is now answered YES (speculation runs on qwen35)
+3 LEAF (TMM.63, TM's order: after OSC.12's harvest): ONE sweep round -- every host-path literal in town code -> a paths.local_maxxing cell (paths.get /
+         get_local; shell: V="$(python3 .agi/context/local-maxxing/paths.py <key>)"); new in my range: osc_band_kquant_a00-ddd4762f.py:20 HF (obp.HF owns it),
+         serve/cold_first_round.py SC, serve/ub_prefill_round.py SC + CACHE, serve/osc09/router_mode_probe.sh the wikitext path; on the trunk:
+         athena/fetch_parallel.py, heads/kv_group_round.py, heads/kv_group_surgery.py, kv/kv_{format,speed,split}_round.py, magic-pane/detect.py,
+         osc/osc_band_{measure,prune}.py, serve/serve_sweep_round.py, telepathy/tel02/tel02_probe.py (datasets/ probes stay as recorded evidence)
+4 SWR-SV.01 stays QUEUED until the CFG merge-up lands at TM's gate (orders in the scratch)
+done   TMM.56-58 · TMM.63 (ae6150cd2e) · the merge-up LANDED at 5085dd5ef (OSC.09 + 10 + 11 + the OSC.12 mint; TMM.65) · mur-12 / 13 / 14 closed · the [1b]
+       swarm NOT earned · the build block demoted · the --memory unit trap routed to director-engine
 tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
 ````
@@ -113,29 +112,6 @@ tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.12 -- (director-thought -> parent · goal:g5.22 LADDER L9/L10 first rung: draft-free n-gram speculation on the served 9B · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · ONE model-loading host kid · GPU round)
-
-read first  hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode (Measured, CLAIM, Dispatch line, FALSIFIERS, TESTS, FILE SCOPE, CEILING are the contract -- answer its Dispatch line FIRST) · experiment:a00-3caaf6eb-9065ef (OSC.11: the server protocol that worked, its contention lesson, its parent's quiet re-measure) · datasets/kv-format/2026-09-23/router_args.json (the router's model_args_9b) · .agi/context/local-maxxing/serve/ub_prefill_round.py (OSC.11's helpers, import-only)
-model       the router's own file, mounted READ-ONLY (docker inspect llama-server shows where the router mounts /models; mount the same host dir :ro); sha256 the 9B first (03b74727...52b7e8) -- nothing is ever written to a model file
-image       ghcr.io/ggml-org/llama.cpp:server-cuda (the router's own build 10991, commit 930e2fa59) -- the served build
-T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` (free -m) >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M (name the model in the request: the router refuses one without it).
-jit cache   mount /data/ml/scratch/cuda-jit-cache at /root/.nv/ComputeCache in EVERY container, with -e CUDA_CACHE_MAXSIZE=4294967296; record each container's first request
-servers     per arm a FRESH container (docker rm -f it after; free the port before reuse): the router's model_args_9b verbatim minus --port / --host, plus the arm's --spec-type at its DEFAULT parameters (no tuning this round), a spare port bound to the loopback address
-arms        none (FIRST) · ngram-simple · ngram-map-k · ngram-map-k4v · ngram-mod · ngram-cache · none (LAST, the drift bracket). CHEAPEST TEST FIRST: ngram-simple on 3 edit prompts before anything else -- if the server refuses the flag, errors, or drafts 0 tokens, THAT is the round's answer: record the exact log lines, restore the router, write the node, done.
-prompts     >= 24 requests in three classes of 8, built DETERMINISTICALLY from COMMITTED repo files and committed as prompts.jsonl: (E) edit-and-return -- a committed script or node section (<= 120 lines) + a one-line change, return the whole revised text, max_tokens 2048 · (C) code -- a test or small function from a committed docstring or spec, max_tokens 512 · (D) digest -- a committed experiment node in <= 8 lines, max_tokens 384 · each <= 8k prompt tokens, one chat message, temperature 0, thinking off, the model named, the SAME set and order for every arm; a warm-up request first in every container
-kid runs    the driver in the FOREGROUND of the kid's turn, ONE arm per invocation, results saved per arm -- a backgrounded pass dies with the kid's scope when its turn ends (OSC.10 a00-b59ee70f) · keep each step's memory bounded (an OOM anywhere in the scope stops the whole scope, OSC.10 a00-04dc76fc)
-quiet       before each arm record loadavg and `available` RAM; if the 1-min load exceeds 12 or available is under 3 GB, wait 60 s and re-check, up to 10 min, then run and record it -- OSC.11's +27 pct was a contended baseline
-measure     per request: prompt_n, prompt tok/s, predicted_n, decode tok/s (timings.predicted_per_second), drafted and accepted token counts (the response timings, else the server log's acceptance line), the output text, loadavg + `available` RAM · per arm: load result, n_ctx_slot, the first-request line
-T1          feasibility: ngram-simple loads and drafts > 0 tokens on qwen35
-T2          per type the paired per-request decode speedup vs none-FIRST (median + 95 pct t interval on log ratios), per class and overall
-T3          output identity vs none per request; for EACH divergence the top-2 margin at the divergence point from a SEPARATE none pass with n_probs 2 (never a timed pass)
-T4          prompt tok/s per type vs none (the 5 pct bar) · T5 drift: none-FIRST vs none-LAST medians within 5 pct, else the verdict is inconclusive for noise and a quiet-window re-run is named
-verdict     per the node FALSIFIERS; THEN the LARGEST SAFE STEP: the fastest type passing T3 and T4, with its flags and per-class speedups -- PROPOSED to the Prime / thought-master; the router and every config cell are NOT this round's to edit
-land        one script + its committed test under .agi/context/local-maxxing/specdec/, named with the kid's agent id (paths via paths.get_local; the out key specdec_out_dir is committed -- add no other key) · prompts.jsonl, per-arm rows, server logs, the restore proof under paths.get_local("specdec_out_dir") · run extensions/agi/bin/anonymize.py check over that text before done · ONE experiment node under the hypothesis
-never       write any GGUF · leave the router down · touch the router or a config cell · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs, image pulls or model downloads · a pi-local round · parameter tuning of a spec type (the next round's)
-wall        call done by 120 min wall-clock whatever the state; the router is up before you stop
-record      model sha · per arm load result + n_ctx_slot · per request timings, draft counts, loadavg/RAM · T1-T5 with intervals · the identity table + margins · the verdict · the largest safe step · router-restored proof · one harvest line to your seat
-
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
 before      no pi-local round may be live when the router stops (spawn_budget.py status + ps) -- if one is, wait; never stop the router under it
