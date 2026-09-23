@@ -30,6 +30,17 @@ def artifact_path(root, ref):
             f"profile_ref {ref!r} resolves to a directory, not a file")
     return p
 
+
+def validate_ref(root, ref):
+    """Resolve `ref` as an artifact destination; raise `Refused` if illegal.
+
+    Read-only pre-flight (goal:g7.31.5.1 residue): resolves, never writes.
+    """
+    if root is None:
+        raise Refused("no project root — no enclosing .agi/config.json")
+    return artifact_path(root, str(ref))
+
+
 def _projected_bytes(nf):
     """A node-file's projection payload: body with THOUGHT stripped."""
     t = node_writer.extract_thought(nf.body)

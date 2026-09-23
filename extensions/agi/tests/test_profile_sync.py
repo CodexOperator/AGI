@@ -157,6 +157,73 @@ def test_payload_failure_leaves_the_profile_artifact_unchanged(tmp_path):
     assert projected != BODY.encode()
     assert dest.read_bytes() != projected
 
+
+# ---- goal:g7.31.5.1 residue: a REFUSED profile_ref is non-partial ---------
+
+NODE = Path(".agi/nodes/hypothesis/h1.md")
+
+
+def _sha(repo: Path) -> str:
+    import hashlib
+    return hashlib.sha256((repo / NODE).read_bytes()).hexdigest()
+
+
+def _dir_ref_repo(tmp_path: Path) -> Path:
+    repo = _repo(tmp_path, ref="profile_dir")
+    (repo / "profile_dir").mkdir()
+    return repo
+
+
+@pytest.mark.parametrize("make,ref", [
+    (lambda t: _repo(t, ref="../escape.md"), "../escape.md"),
+    (lambda t: _repo(t, ref=".agi/nodes/evil.md"), ".agi/nodes/evil.md"),
+    (_dir_ref_repo, "profile_dir"),
+])
+def test_refused_existing_ref_leaves_the_node_byte_identical(tmp_path, make, ref):
+    """Conjunct 1: the node body must NOT advance on a refused ref.
+
+    Measured before the fix: rc=2 with sha256 CHANGED and the body landed.
+    """
+    repo = make(tmp_path)
+    before = _sha(repo)
+    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="replaced\n")
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr and ref in r.stderr
+    assert _sha(repo) == before, "a refused ref advanced the node body"
+    assert "replaced" not in (repo / NODE).read_text()
+
+
+def test_refused_ref_set_by_the_edit_itself_is_non_partial(tmp_path):
+    """Conjunct 2: the edit that SETS the bad ref also refuses first."""
+    repo = _repo(tmp_path, ref=None)
+    before = _sha(repo)
+    r = _cli(["hypothesis:h1", "set profile_ref ../escape.md"], repo)
+    assert r.returncode == 2, (r.returncode, r.stdout, r.stderr)
+    assert "profile projection refused" in r.stderr
+    assert _sha(repo) == before
+
+
+def test_a_valid_ref_still_lands_both_node_and_artifact(tmp_path):
+    """Conjunct 3 (guard): the pre-flight must not refuse the happy path."""
+    repo = _repo(tmp_path)
+    dest = repo / "profile" / "h1.md"
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="replaced\n")
+    assert r.returncode == 0, (r.returncode, r.stderr)
+    assert "replaced" in (repo / NODE).read_text()
+    _p, expected = profile_sync.project(repo / ".agi", "hypothesis:h1")
+    assert dest.read_bytes() == expected
+
+
+def test_validate_ref_is_read_only_and_names_the_destination(tmp_path):
+    repo = _repo(tmp_path)
+    dest = profile_sync.validate_ref(repo / ".agi", "profile/h1.md")
+    assert dest == repo / "profile" / "h1.md"
+    assert not dest.exists(), "validate_ref must not write"
+    with pytest.raises(profile_sync.Refused):
+        profile_sync.validate_ref(repo / ".agi", "../escape.md")
+
+
 # ---- goal:g7.31.5.3 — whole-graph sweep + pre-rotation guard ---------------
 
 def _cli_all(cwd):
