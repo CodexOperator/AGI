@@ -10425,14 +10425,18 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     if top is None:
         return "authority: SKIPPED -- no git repo (gitless fixture/root)"
     rel = os.path.relpath(_ack_seats_path(main_root), top)
+    attempted = False  # EF.56: a real fetch of the authority branch happened
     for _att in range(2):  # non-ff race -> fetch again and recompose
         fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
                                 branch], capture_output=True, text=True,
                                timeout=60)
         base = (_blob_text(top, f"FETCH_HEAD:{rel}")
                 if fetch.returncode == 0 else None)
+        if fetch.returncode == 0:
+            attempted = True
         if base is None:
-            last = fetch.stderr.strip() or fetch.stdout.strip()
+            last = fetch.stderr.strip() or fetch.stdout.strip() or (
+                f"authority branch {branch} has no {rel}")
             continue
         content = _authority_row_content(base, new_content, seat)
         if content == base and not any(
@@ -10481,6 +10485,13 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             return f"authority: OK -- {sha[:9]} -> {branch}"
         finally:
             os.unlink(idx)
+    # EF.56: distinguish "nothing to publish to" (the authority branch was
+    # never fetched -- no ref on origin) from "a real publish attempt that
+    # failed". Only the latter may gate the C3 successor-key swap; a repo
+    # with no authority branch keeps the pre-EF.51 push-only swap behaviour.
+    if not attempted:
+        return (f"authority: SKIPPED -- no authority branch {branch} "
+                f"(never fetched; {last})")
     return f"authority: FAILED -- {last}"
 
 
@@ -17459,6 +17470,20 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     return f"key swap completed (deferred from gen {_gen})"
 
 
+def _authority_publish_gates_swap(line: str | None) -> bool:
+    """EF.56 C3 discriminator: only an ATTEMPTED authority publish that did
+    not succeed may defer a successor-key swap. ``HELD`` (the veto gate) and
+    ``FAILED`` (a real fetch+push attempt that was refused) gate; every
+    ``SKIPPED``/``REFUSED`` line means nothing was published -- and therefore
+    no on-disk key can disagree with the authority -- so it must NOT gate.
+    Accepts the full ``authority: <line>`` form or its payload (``<line>``),
+    because the two gate sites parse it differently. Never raises."""
+    s = str(line or "")
+    if s.startswith("authority: "):
+        s = s[len("authority: "):]
+    return s.startswith(("HELD", "FAILED"))
+
+
 def _finish_pending_swap_on_push(root: Path, seat: str,
                                  push_line: str | None,
                                  authority_line: str | None = None) -> str:
@@ -17481,8 +17506,8 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
     """
     if not str(push_line or "").startswith("push: OK"):
         return ""
-    if authority_line is not None and not str(authority_line).startswith(
-            "authority: OK"):
+    if authority_line is not None and _authority_publish_gates_swap(
+            authority_line):
         _l = (f"key swap NOT completed -- authority publish did not succeed "
               f"({authority_line})")
         print(_l, file=sys.stderr)
@@ -17532,7 +17557,7 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     # ABSENT (a non-rekey commit / early-return path) is NOT a failure.
     _auth = _commit.rpartition("\nauthority: ")[2]
     _auth_present = "\nauthority: " in _commit
-    _auth_failed = _auth_present and not _auth.startswith("OK")
+    _auth_failed = _auth_present and _authority_publish_gates_swap(_auth)
     if _row_ok and not _commit_failed and not _push_failed and not _auth_failed:
         return _apply_successor_key_pending(key_rotation["pending_key"])
     if not _row_ok:

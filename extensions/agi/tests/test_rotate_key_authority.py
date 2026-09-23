@@ -382,3 +382,79 @@ def test_c4_first_seating_appends_its_new_row(tmp_path):
     assert "'aa'" in out2 and "SKIPPED" not in out2, out2
     assert _git(repo2, "rev-parse",
                 "origin/season2/main").stdout.strip() == pre2
+
+
+def test_ef56_no_authority_branch_skips_and_completes_the_swap(tmp_path):
+    """EF.56 discriminator (not-attempted half): a repo whose origin has NO
+    authority branch (`origin/season2/main` absent) publishes NOTHING --
+    `_publish_row_to_authority` returns `authority: SKIPPED -- no authority
+    branch`, never FAILED -- so the C3 gate must NOT defer and the deferred
+    `<seat>.key.pending` swap completes via the trunk push exactly as before
+    EF.51."""
+    import json as _json
+    from agi.bin import send as bin_send
+    repo, g, posts, bare = _fixture(tmp_path)
+    _git(bare, "update-ref", "-d", "refs/heads/season2/main")
+    seat_key = bin_send._seat_key_path(g, "aa")
+    seat_key.parent.mkdir(parents=True, exist_ok=True)
+    seat_key.write_text(_json.dumps({"scheme": "ed25519",
+                                     "priv_hex": "11" * 32}))
+    succ_pub = send.seatsig.get("ed25519").public_from_secret(
+        bytes.fromhex("22" * 32)).hex()
+    _json.dump({"scheme": "ed25519", "priv_hex": "22" * 32,
+                "pub_hex": succ_pub,
+                "gen_after": 5, "minted_at": ""},
+               open(str(seat_key) + ".pending", "w"))
+    text = posts.read_text()
+    posts.write_text(text.replace(f'"pubkey": "{_NEW}"',
+                                  f'"pubkey": "{succ_pub}", '
+                                  f'"generation": 5'))
+    out = rotate._commit_spawn_row(
+        g, seat="aa", generation=5, session_id="sid", window="w", pid=1,
+        rekey=True)
+    assert "authority: SKIPPED -- no authority branch" in out, out
+    assert "authority: FAILED" not in out, out
+    assert not (seat_key.parent / (seat_key.name + ".pending")).exists(), \
+        "no authority branch must NOT defer the swap"
+    assert _json.loads(seat_key.read_text())["priv_hex"] == "22" * 32
+
+
+def test_ef56_refused_authority_push_fails_and_defers_the_swap(tmp_path):
+    """EF.56 discriminator (attempted half): the authority branch EXISTS but
+    the push is refused -> a REAL, ATTEMPTED publish failure
+    (`authority: FAILED`), and the C3 gate DEFERS the successor-key swap by
+    name so the on-disk key never disagrees with the authority."""
+    import json as _json
+    from agi.bin import send as bin_send
+    repo, g, posts, bare = _fixture(tmp_path)
+    hook = bare / "hooks" / "pre-receive"
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    hook.write_text("#!/bin/sh\n"
+                    "while read old new ref; do\n"
+                    "  case \"$ref\" in refs/heads/season2/main) "
+                    "echo 'refused by test' >&2; exit 1;; esac\n"
+                    "done\n"
+                    "exit 0\n")
+    os.chmod(hook, 0o755)
+    seat_key = bin_send._seat_key_path(g, "aa")
+    seat_key.parent.mkdir(parents=True, exist_ok=True)
+    seat_key.write_text(_json.dumps({"scheme": "ed25519",
+                                     "priv_hex": "11" * 32}))
+    before = seat_key.read_bytes()
+    succ_pub = send.seatsig.get("ed25519").public_from_secret(
+        bytes.fromhex("22" * 32)).hex()
+    _json.dump({"scheme": "ed25519", "priv_hex": "22" * 32,
+                "pub_hex": succ_pub,
+                "gen_after": 5, "minted_at": ""},
+               open(str(seat_key) + ".pending", "w"))
+    text = posts.read_text()
+    posts.write_text(text.replace(f'"pubkey": "{_NEW}"',
+                                  f'"pubkey": "{succ_pub}", '
+                                  f'"generation": 5'))
+    out = rotate._commit_spawn_row(
+        g, seat="aa", generation=5, session_id="sid", window="w", pid=1,
+        rekey=True)
+    assert "authority: FAILED" in out, out
+    assert seat_key.read_bytes() == before, \
+        "a refused authority push must defer the swap"
+    assert (seat_key.parent / (seat_key.name + ".pending")).is_file()
