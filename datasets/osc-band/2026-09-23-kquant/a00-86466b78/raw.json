@@ -1,0 +1,88 @@
+{
+ "res": {
+  "bw4": {
+   "agree": 0.102783,
+   "kl": 5.749527,
+   "bits": 4.5
+  },
+  "energy_3p5": {
+   "agree": 0.564453,
+   "kl": 1.381633,
+   "bits": 3.5
+  },
+  "uniform_3p5": {
+   "agree": 0.376953,
+   "kl": 2.417574,
+   "bits": 3.5
+  },
+  "rand_3p5_s1": {
+   "agree": 0.145508,
+   "kl": 5.00187,
+   "bits": 3.5
+  },
+  "rand_3p5_s2": {
+   "agree": 0.149658,
+   "kl": 4.983416,
+   "bits": 3.5
+  },
+  "rand_3p5_s3": {
+   "agree": 0.159912,
+   "kl": 5.136082,
+   "bits": 3.5
+  }
+ },
+ "points": {
+  "3p5": {
+   "energy": {
+    "agree": 0.564453,
+    "kl": 1.381633,
+    "bits": 3.5
+   },
+   "uniform": {
+    "agree": 0.376953,
+    "kl": 2.417574,
+    "bits": 3.5
+   },
+   "dot_ok_A": false,
+   "delta_energy_minus_uniform_agree": 0.1875,
+   "delta_energy_minus_uniform_kl": -1.035941,
+   "delta_energy_minus_uniform_bits": 0.0,
+   "random": {
+    "s1": {
+     "agree": 0.145508,
+     "kl": 5.00187,
+     "bits": 3.5
+    },
+    "s2": {
+     "agree": 0.149658,
+     "kl": 4.983416,
+     "bits": 3.5
+    },
+    "s3": {
+     "agree": 0.159912,
+     "kl": 5.136082,
+     "bits": 3.5
+    }
+   },
+   "delta_energy_minus_rand_mean": {
+    "agree": 0.41276,
+    "kl": -3.658823
+   },
+   "hits": {
+    "energy_3p5": false,
+    "uniform_3p5": false,
+    "rand_3p5_s1": false,
+    "rand_3p5_s2": false,
+    "rand_3p5_s3": false
+   }
+  }
+ },
+ "bits": {
+  "energy_3p5": 3.5,
+  "uniform_3p5": 3.5,
+  "rand_3p5_s1": 3.5,
+  "rand_3p5_s2": 3.5,
+  "rand_3p5_s3": 3.5,
+  "bw4": 4.5
+ }
+}
