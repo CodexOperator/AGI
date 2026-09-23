@@ -6856,7 +6856,7 @@ Owner voice 2026-09-19: templates sole arg builders; thin hook only when format 
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
 
-### G7.28 — Dispatch persistent mode for occupied seats — status: horizon
+### G7.28 — Dispatch persistent mode for occupied seats — status: active
 
 # goal:g7.28
 
@@ -7089,7 +7089,7 @@ Assigned to **director-belam (point)** with umbrella + `.3`. May further split; 
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
 
-##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: horizon
+##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: active
 
 # goal:g7.31.1.1
 
@@ -7125,6 +7125,10 @@ Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.
 Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
+
+**DT.98 residual round (parent a00-e03c6242, base f655a6714).** Measured-CLI falsifiers are GREEN on this branch: `grok_bot.build_command(...)` emits the bare resolved bin (no `-p`, no `--model`) and the guessed stub flags are gone from the landed adapter path (landed grep for `"--model"`/`"-p"` exits 1; base f655a6714 lines 48/66 carried both). Two kids: `hypothesis:a00-0349f27c-4362d3` + `experiment:a00-0349f27c-grok-measured-argv` re-landed the MUR-reviewed measured bytes on this base and closed MUR residue D3 with an executed `_stat_reader` delegation test; `hypothesis:a00-d42c2ceb-cdd621` + `verdict:measured-argv-independent-verdict` re-ran the falsifier read-only and confirmed it. Residue table (MUR `mur-g7-31-1-1-dt-89-e2400ff59-lean2`): **D1** scalar `evidence_runs` — CLOSED (LIST form on every node authored this round); **D3** untested twice-installed `_REAL_OPEN` delegation — CLOSED (new test at test file line 771; fails under `_REAL_OPEN`->`builtins.open`); **D2** GOALS.md stale (`status: active` vs node `status: horizon`) — MOOT on this base (this node is `status: active` and GOALS.md agrees; the horizon divergence existed only on the unmerged branch `e2400ff59`). Topology surfaced by this round: the measured-CLI family on branch `season2/loops/goal-g7.31.1.1-a00-a3782a91` (tip `e2400ff59`) is NOT an ancestor of `core/season2/main` (`git merge-base --is-ancestor e2400ff59 f655a6714` exits 1); this round re-landed those bytes rather than citing a run no checkout of the base carries.
+
+Corrector a00-e112f856 (DT.118): the DT.98 Agent Notes claim that MUR D2 was "MOOT on this base" was FALSE and was itself an unevidenced claim about a derived file. Measured pre-fix on this checkout: GOALS.md:7092 rendered status: horizon while this node was status: active, and snapshot-goals.py --render --check exited 1 (63-line diff, 8 removed lines). Healed by snapshot-goals.py --render; --render --check now exits 0 (301 goals byte-identical). Evidence: experiment:a00-e112f856-goals-render-check and hypothesis:a00-e112f856-12efaa. Also: Agent Notes RENDER into GOALS.md, so any later note re-stales it until the next render -- correct order is notes first, render last.
 
 ##### G7.31.1.2 — Durable named tmux pane restart/reattach hold — status: active
 
@@ -7163,7 +7167,7 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g7.28`, `goal:g7.31.1.1`.
 
-#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: horizon
+#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
 # goal:g7.31.2
 
@@ -7340,7 +7344,7 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
-#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: horizon
+#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
 # goal:g7.31.4
 
@@ -7393,7 +7397,7 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
-#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: horizon
+#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
 
 # goal:g7.31.5
 
@@ -7442,7 +7446,7 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
 
-### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: horizon
+### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: active
 
 # goal:g7.32
 
@@ -7513,7 +7517,7 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
-#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: horizon
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
 
 # goal:g7.32.1
 
@@ -7557,7 +7561,7 @@ grok session artifact
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
-#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: horizon
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
 
 # goal:g7.32.2
 
@@ -7603,7 +7607,7 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.3 — One adapter/harness with optional pane methods — status: horizon
+#### G7.32.3 — One adapter/harness with optional pane methods — status: active
 
 # goal:g7.32.3
 
@@ -7646,7 +7650,7 @@ grok_bot_adapter
 
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.4 — send.py thin router — transport choose, never policy — status: horizon
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
 
 # goal:g7.32.4
 
