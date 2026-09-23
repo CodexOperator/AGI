@@ -47,8 +47,9 @@ from pathlib import Path
 #: bin script that reads the graph puts it on the path (rotate.py:66).
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-import evidence_gate
-import spawn_budget
+import cli  # noqa: E402 -- wait exit codes are cli's to name (goal:g15.29.19)
+import evidence_gate  # noqa: E402
+import spawn_budget  # noqa: E402
 
 from frontmatter import read_frontmatter, split_frontmatter
 
@@ -1933,9 +1934,10 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"     python3 {cli_py} wait {iter_n}\n"
         f"   NEVER end your turn to wait for a background notification -- in\n"
         f"   headless -p a turn-end IS process exit. wait's exit codes each\n"
-        f"   name a different fix: 2 = timeout with a kid still running -- call\n"
-        f"   it again; 3 = --agent names no manifest row -- you named the wrong\n"
-        f"   agent, so re-read the manifest; 4 = zero tier:kid rows -- NO kid\n"
+        f"   name a different fix: {cli._WAIT_TIMEOUT} = timeout with a kid\n"
+        f"   still running -- call it again; {cli._WAIT_NO_AGENT} = --agent\n"
+        f"   names no manifest row -- you named the wrong agent, so re-read the\n"
+        f"   manifest; {cli._WAIT_NO_KID_ROWS} = zero tier:kid rows -- NO kid\n"
         f"   was spawned (most often the spawn was refused as `unadmitted`) --\n"
         f"   check the spawn and re-dispatch, never end your turn.\n"
         f"   A kid that missed its manifest deadline while its pid is STILL\n"
