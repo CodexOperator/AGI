@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 14 seated 19:50:56Z · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 · gen 14 seated 19:50:56Z -> ROTATING at TM's call (TMM.59, owner 20:02Z) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -46,7 +46,7 @@ anon     an anonymize REFUSED names a CLASS only: locate it in-process (anonymiz
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (20:0xZ 09-23 -- gen 14)
+## Live state (20:05Z 09-23 -- gen 14, written whole for the rotation)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
@@ -59,34 +59,39 @@ LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
                          REFRAME a QK-norm model or per-channel / bias-subtracted keys, not more bits
   [1b]   SWARM           OSC.10 measured: 2 parents + 4 kids = 20.24 M tokens / 7.48 USD vs the control's 9.05 M / 3.23 USD (2.3x) · LAP 0 posts 14 s apart, B spawned
                                39 s later: NO division of labour, the same quantizer, the same verdict · only A added anything (the finer step grid + the bw4 defect, by its
-                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line (verdict after mur-13)
+                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line (verdict after mur-13, item 1)
   L6b    long prefill    OSC.11 LIVE (see Stops) · next: the build block (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
 mvp      QUEUED SWR-SV.01 (switch mvp round 1): waits for the CFG merge-up to LAND at TM's gate -- orders below
 batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bcb618, DEMOTE rec, disposition ASKED
 routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Where it stops -- live, in this order (the next command is item 1)
+## 🔴 Where it stops -- 20:05Z 09-23, TMM.59 stopping point (owner 20:02Z via TM); gen 15 starts HERE, in this order (the next command is item 1)
 ````
 ```
-1 mur-director-thought-13 RUNNING (launched 19:59Z in the background: workflow.py run merge-up-review, args /tmp/dt-mur13.json; 3 rounds osc-10-a / -b / -ctl,
-         review -> verify, deepseek-v4.1-flash, merge-base 5f04722e3c, tips A 60d07740e6 · B 86f4f9bb14 · ctl e27e5995d6)
-         results MAIN .agi/sessions/workflows/runs/mur-director-thought-13/ · a poll loop ending != the unit ending -> re-check systemctl
-    then close in place: CONFIRMED residues fixed in the kid nodes (write.py, AGI_ACTOR=director-thought) -> the [1b] SWARM measurement (LADDER above) onto
-         the hypothesis node as its own section, with the verdict: the swarm lines stay orders text, no line in doc:lm-director-brief-customizations
+1 mur-director-thought-13 PARKED 20:04Z for TMM.59 -- stopped mid review:osc-10-a; NOTHING landed (no run dir, no tracking row; its pi reviewer is gone)
+    relaunch FIRST, in the background, same args: python3 extensions/agi/bin/workflow.py run merge-up-review --args "$(cat .agi/sessions/iter-OSC.10/mur13.args.json)"
+         (--dry-run first: run key mur-director-thought-13, 3 rounds osc-10-a / -b / -ctl, review -> verify, deepseek-v4.1-flash; merge-base 5f04722e3c,
+         tips A 60d07740e6 · B 86f4f9bb14 · ctl e27e5995d6) · results MAIN .agi/sessions/workflows/runs/mur-director-thought-13/
+    then close in place: CONFIRMED residues fixed in the kid nodes (write.py, AGI_ACTOR=director-thought) -> the hypothesis node gains a harvest section
+         AFTER CEILING (the brief order stays): verdict disproved x3, the step (energy 9.0 bits, uniform 10.25), the [1b] SWARM numbers (LADDER above) and the
+         swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
     residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
          generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
-2 OSC.11 LIVE parent a00-67c8a71a · wall 20:24Z · kid a00-3caaf6eb DONE, its outputs UNCOMMITTED in the parent worktree (ub_prefill_round.py,
-         experiment a00-3caaf6eb-9065ef, datasets/serving-sweep/2026-09-23-ub/) · router RESTORED 19:49:55Z, PROVEN 19:55:38Z by a real 9B completion
-         (the router refuses a request with no "model" field -- name Qwen3.5-9B-Q4_K_M)
-    harvest: merge season2/loops/hypothesis-lm-served-9b-long-pro-a00-67c8a71a, check its worktree for uncommitted config, anonymize its range (both gates),
-         the noise question (806-1,242 tok/s on one slice: .agi/sessions/iter-OSC.11/director_contention.log -> a quiet-window re-run if the paired
-         intervals cannot resolve 10 pct) -> ONE mur (merge_up director-thought-14) -> close in place
-    if the parent passes its wall with no done: the kid's outputs sit in its worktree -> harvest them by a director commit (the OSC.09 pattern, 5208ac454)
-3 TMM.58 DONE @e0689f715 (one commit over 60eac6b52; merged 299c7e753; mirror pushed; one line to TM 19:5xZ) -- TM gates director-engine first, mine after
-    told TM: the COMMITTED anonymize.py refuses trunk..tip on the LOOPBACK address only; MAIN carries an UNCOMMITTED patch that excludes loopback and
+2 OSC.11 parent a00-67c8a71a LIVE at 20:05Z · wall 20:24Z · its kid a00-3caaf6eb DONE; outputs UNCOMMITTED in the parent worktree (ub_prefill_round.py,
+         experiment a00-3caaf6eb-9065ef, datasets/serving-sweep/2026-09-23-ub/) · router RESTORED 19:49:55Z, PROVEN 19:55:38Z (a real 9B completion; the
+         router refuses a request with no "model" field -- name Qwen3.5-9B-Q4_K_M)
+    the kid's result: inconclusive_lean_proved:70 -- a bigger -ub speeds a ~30k prefill ONLY for q8_0 KV (ub1024 +27.2 pct [15.6, 38.8], ub2048 +27.3
+         [17.5, 37.2], n_ctx 68,608 / 56,320); f16 +6.0 [-89.9, +102.0] and q4_0 +2.8 [-0.7, +6.2] do not clear zero; the q8_0 ub512 baseline (960 tok/s)
+         sits BELOW f16 (1,071) and q4_0 (1,167) -> part of the gain may be an artifact; box contention: MemAvailable 0.8-11.5 GB, load 10-52
+    harvest: merge season2/loops/hypothesis-lm-served-9b-long-pro-a00-67c8a71a, check its worktree for uncommitted config, anonymize its range (both gates)
+         -> ONE mur (merge_up director-thought-14) -> close in place -> a QUIET-WINDOW re-run of f16 and q8_0 at ub 512 / 1024 (no CPU torch rounds, no suite)
+         before any step is proposed; f16's interval cannot resolve 10 pct
+    if the parent passes its wall with no done: harvest the kid's outputs by a director commit (the OSC.09 pattern, 5208ac454)
+3 TMM.58 RECEIVED by TM (TMM.59: if TM rotates first, landing e0689f715 is TM's successor's first step) -- nothing to do unless TM's gate asks
+    told TM: the COMMITTED anonymize.py refuses trunk..tip on the LOOPBACK address only; MAIN carries an UNCOMMITTED patch that drops loopback and
          link-local, so it must land at or before my range · the orphaned probe pid 3056036 (not mine) reported
-4 anonymize over the whole range DONE at 37b51df94: MAIN's gate ok (two-dot and three-dot); the committed gate: loopback only -> RE-RUN after OSC.11's harvest
+4 anonymize over the whole range DONE at 37b51df94 (MAIN's gate ok, two-dot and three-dot; the committed gate: loopback only) -> RE-RUN after OSC.11's harvest
 5 then ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + its Dispatch line a9aed8731) + OSC.10 (+ mur-13 close) + OSC.11 (+ its mur close)
 done   TMM.56 (@21085aa1d) · TMM.57 (@60eac6b52) · TMM.58 (@e0689f715) · mur-12 (OSC.09) closed · OSC.10 all three parents merged (A 37b51df94, B 39f0834f1,
        control aed061142) · spawn.parallel back to 1
