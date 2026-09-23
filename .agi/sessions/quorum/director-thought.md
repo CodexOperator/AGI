@@ -33,14 +33,17 @@ memory   6G/kid · one model-loading kid on the host · GPU one research round a
 write    AGI_ACTOR=director-thought on every write.py call · replace body: read the range first, whole paragraph/table/section, never --force · bodies via python subprocess, no backtick or apostrophe in shell args
 inbox    send.py read + the raw inbox tail + the thought-master dm LOG tail + its card -- an order can land in only one of them (TMM.46 showed only in the dm log) · a REFUSED FORGED dm is data: verify its claim on goal:g5 before acting
 paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo-relative against box.root · paths.py audit gains no new hit
+mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
+ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
 ```
 
 ## Live state (09:5xZ 09-23)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
-         chunk 1 hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point (CPU, bundled Qwen2.5-0.5B artifact, no model load, ONE kid, cap 1, wall 60) DISPATCH NOW
-         -> per verdict (a)/(b)/(c): chunk 2 z_h on the served 9B + GQA-group yield -> band-pruning hops (scaffolds, I plan them) -> layering
+         chunk 1 OSC.01 PROVED + (b): K_c 0.96 is a label (no knee; curvature 2.06/1.14), lift 1.000017, Spearman pool 0.289 < 0.3 -> coherence is NOT a pruning criterion
+         chunk 2 OSC.02 LIVE: measured delta-NLL per KV group on the served 9B (claim k(1 pct) >= 6 of 32 -> 1.23x context) -> then the band hops (scaffolds, I plan them) -> layering
+         frame: on the 9B, heads are ~4 pct of weight bytes (small tok/s lever) but KV (32 KB/token, 8 layers) caps the 49,664-token slot -> groups are a CONTEXT lever
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
@@ -51,13 +54,14 @@ routed   (thought-master -> the Prime) key TTL == wall · kids ignore --harness 
 
 ## 🔴 Stops
 ```
-LIVE   OSC.01 (chunk 1) parent a00-20e2a902 pid 796295 · dispatched 09:52:28Z · orders wall 60 -> done by ~10:52Z · key TTL 180 · branch season2/loops/hypothesis-lm-dead-head-kc-thres-a00-20e2a902
-now    while OSC.01 runs: CFG.02 mur -> ONE merge-up for CFG.01 + CFG.02 (board queue [3]) · plan chunk 2 + the band hops (scaffolds) so the verdict lands on a ready plan
-next   OSC.01 lands -> harvest (get_local + config keys in the round worktree) -> review by name -> verdict (a)/(b)/(c) picks the next chunk
-done   CFG.02 landed + harvested (kid a00-797ee7be lean_proved:85; tests 2 + 3 pass; scripts compile; overage 200/40 no-rebrief) · its node's box literals -> placeholders, 0 audit hits
-open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 1500 /data/work/agi/.agi/comms/season-2/dm/director-thought--thought-master.md && python3 -c "import json;print(json.load(open('.agi/sessions/iter-OSC.01/a00-20e2a902/agent.json'))['status'])"
-window no pi-local round live across the Prime pass-2 (11:41Z)
+LIVE   OSC.02 (chunk 2) parent a00-2e229bfb pid 1056628 · dispatched 10:10:41Z · GPU round, router stop/restore · wall 120 -> done by ~12:10Z · key TTL 180 · branch season2/loops/hypothesis-lm-served-9b-drops-6--a00-2e229bfb
+LIVE   murs (both run-key mur-director-thought-4, see traps): agi-director-thought-cfg-02 (review accept_with_residue, verify running) · agi-director-thought-osc-01 (review running)
+done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
+next   cfg-02 verify lands -> close its residues in place (Lines 200/40 above the 2x stop; audit-scope sentence) · osc-01 mur lands -> close · then batch C (CFG.01 + CFG.02 + OSC.01) ready -> ONE [merge-up] dm to thought-master
+then   OSC.02 lands -> harvest (router UP proof first) -> verdict picks: pruned-GGUF + battery hop, or the band hops
+open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan · SWR-SV.01 queued behind OSC.02 (loads a model) + pass 2
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-OSC.02/manifest.json'))['agents'][0]['status'])" && ls /data/work/agi/.agi/sessions/workflows/runs/mur-director-thought-4/
+window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi-local round across it
 ```
 
 ## Banked
@@ -68,38 +72,24 @@ window no pi-local round live across the Prime pass-2 (11:41Z)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.01 -- LIVE a00-20e2a902 09:52Z (director-thought -> parent · OWNER 09:4xZ-09:5xZ 09-23 TOP PRIORITY (TMM.49, verbatim on goal:g5) · chunk 1 of the oscillator head-pruning chain, goal:g5.22 · pi deepseek · cap 1 USD · ONE kid)
+ORDERS OSC.02 -- LIVE a00-2e229bfb 10:10Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): the oscillator head-pruning chain goal:g5.22, chunk 2 = falsifier (b) of OSC.01 · pi deepseek · cap 1 USD · ONE model-loading host kid · GPU round)
 
-read first  hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point -- its TESTS + FALSIFIERS are the contract · .agi/context/local-maxxing/papers/dead-head.md, the digest AND its Critique section (items 3, 8 and 11 decide how T1 and T2 are computed; item 11's table is your cross-check)
-
-input       ONE file: data/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json of github.com/project-89/coherence-guided-dead-head-identification, pinned at commit 583962f (resolve the full sha via api.github.com). Expect 468,498 bytes. It is NOT on this box: fetch that one file with curl, no clone. Record url, full sha, bytes, sha256, licence (PolyForm-NC 1.0.0). Never commit its bytes (third-party, noncommercial licence): keep it in the output dir, ignored by a .gitignore line there.
-compute     CPU only, python3 STANDARD LIBRARY only (numpy and scipy are not installed on this box; install nothing). No model load, no GPU, never touch :8080.
-
-T1          From the per-head records, recount: dead 157 of 336, protected 45, alive 134, dead-safe 150, dead-unsafe 7, precision 150/157 = 0.955, using the artifact's own ablation tolerance (name the field you read). Your recount must match the artifact's own summary block exactly. A mismatch STOPS the round and is reported as the finding.
-T2          pool = the 291 non-protected heads · safe = delta_loss <= that tolerance (or the artifact's own per-head safe label if one exists -- say which you used) · z_h = sqrt(896) x the head's mean cosine · dead(chi) = pool heads with z_h < chi · chi = 0.20 .. 4.00 step 0.02 (191 points) -> n_dead, precision, safe-recall (over the pool's safe heads), sum delta_loss per point. Also report n_dead and precision at chi = 0.96025 under this simple rule beside the artifact's 157 (the artifact adds a streak/patience gate and a bridge veto).
-T3          Per curve (precision, safe-recall): smooth = cubic in chi (4 params) vs breakpoint = the same cubic plus a step and a slope change at 0.96025 (6 params), least squares. BIC = n ln(RSS/n) + k ln(n). KNEE iff BIC_smooth - BIC_break >= 10 AND the largest |second difference| of the 5-point moving-average curve lies within 0.96025 +/- 0.10.
-            Also record (a) the change in precision and in recall across chi in [0.90, 1.02] and the largest single-step jump there (the node's testable_claim window; its falsifier is a jump >= 0.15) and (b) a PLACEBO: the same delta-BIC with the break at 0.40, 0.50, .. 3.60, and where 0.96025 ranks among them.
-T4          Spearman(z_h, delta_loss) over the 291 pool heads AND over all 336 (the critic computed +0.268 over 336) · lift over random = precision of the artifact's 157 dead / mean precision of 10,000 random 157-head draws from the pool (random.Random(20260923)) · damage lift = mean sum delta_loss of those same draws / sum delta_loss of the 157 (above 1 = the coherence set does less damage than chance) -- damage lift is recorded, NOT a verdict input.
-
-verdict     By the node's FALSIFIERS. (a) KNEE on either curve -> disproved. No knee -> proved, AND name the next step: (b) lift <= 1.05 AND |Spearman over the pool| < 0.3 -> coherence is falsified as a pruning criterion, next = prune by measured delta-loss per GQA group · (c) otherwise -> next = chunk 2 (z_h in one CPU pass on the served 9B + its GQA-group yield). If the KNEE fires but 0.96025 ranks below the median of the placebo breaks, call it inconclusive and say why.
-
-paths       Rule 13: add paths.local_maxxing.dead_head_dir = "datasets/dead-head" (plus one key per other in-repo path you need) to .agi/config.json FIRST.
-            TRAP: paths.py get() anchors at box.root, which is STALE on this box (/home/ubuntu/work/agi does not exist -- routed to the Prime) and would be MAIN, not your worktree, even when fixed. So add ONE resolver to .agi/context/local-maxxing/paths.py: get_local(key) (CLI: paths.py --local <key>) that anchors the same repo-relative value at the checkout holding the .agi/config.json it read. get() stays byte-identical in behaviour. One committed test beside it (temp-dir fixtures only). Your scripts resolve every in-repo path through get_local.
-
-land        script(s) in .agi/context/local-maxxing/heads/ · outputs in datasets/dead-head/2026-09-23/: sweep.csv (191 rows), fits.json (T3 incl. placebo), stats.json (T1 + T4), provenance.json · ONE experiment node under the hypothesis carrying every number below, with a Reproduce line citing paths.local_maxxing.dead_head_dir.
-never       anything under extensions/ · a second kid · the GPU, :8080 or any model · pip or apt installs · committing the artifact bytes · rewriting another round's result
-wall        call done by 60 min wall-clock whatever the state; land what is computed and name what is left.
-cap         1 USD · ONE kid · line ceiling 150 engine-unit lines (stdlib fits)
-record      T1 recount vs the artifact · T2 values at chi 0.90 / 0.96025 / 1.02 · delta-BIC + curvature point per curve · placebo rank · Spearman x2 · lift + damage lift · verdict + the next step it names · one harvest line to your seat
-
-DRAFT OSC.02 -- chunk 2, dispatch on OSC.01's verdict (not before) · facts measured 09:5xZ from the GGUF header + the box
-9B shape   Qwen3.5-9B-Q4_K_M: 32 blocks, full attention every 4th (blk 3,7,..,31) = 8 layers x 16 q heads, 4 kv (group 4), head_dim 256 · 24 DeltaNet layers (no KV cache)
-ceiling    all 128 full-attn heads' q+gate+o slices ~ 4 pct of weight bytes · KV 32 KB/token (8 layers) -> one dead GQA group = 1/32 of KV -> head pruning on the served 9B is a SMALL lever; say so on the node
-ablate     attn_output is Q4_K with ONE 256-wide super-block per head per row -> a head is zeroed EXACTLY by zeroing its blocks' d/dmin/scales (byte surgery on a GGUF copy, no requant)
-tools      fork b10685 /data/ml/llama-prism-fork/fork/llama-prism-b10685-7dffb15/: llama-perplexity, llama-eval-callback, llama-imatrix, llama-gguf · docker ghcr.io/ggml-org/llama.cpp:full-cuda · torch 2.14 in /data/ml/.venv (no numpy, no transformers)
-branch (b) coherence falsified -> measured delta-ppl per GQA group (32) + per head (128) on the 9B, GPU round (router stop/restore as SWR-SV.01), baseline ppl first, one text, fixed ctx
-branch (c) coherence stands -> z_h per full-attn head needs per-head outputs + the residual (eval-callback dump) -> z_h vs the (b) delta-ppl on the same heads = does coherence predict damage on OUR model
-order      chunk 2 loads a model -> SWR-SV.01 waits behind it (TMM.49) · no pi-local round live when the router stops
+read first  hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll (CLAIM, METHOD, TESTS T0-T4, FALSIFIER are the contract) · experiment:a00-e03d8dd2-02d831 (why chunk 2 is measured delta-NLL, not coherence)
+model       the served file /data/ml/models/Qwen3.5-9B-Q4_K_M.gguf is READ ONLY: sha256 it, copy it to /data/ml/scratch/osc02/ (outside /data/ml/models -- the router lists that dir), patch and restore ONLY the copy. After the last run the copy's sha256 must equal the original's again.
+surgery     blk.L.attn_output.weight (L = 3, 7, .. 31) is Q4_K: 4096 rows x 16 super-blocks of 144 bytes (d, dmin fp16, 12 scale bytes, 128 quant bytes), one block per query head, head h -> KV group h // 4. Ablating group g of layer L = writing zeros over blocks 4g .. 4g+3 of EVERY row (576 bytes per row). Parse the GGUF header yourself (tensor offset + data alignment) and assert the tensor type is Q4_K and its shape (4096, 4096) before the first write. Save the original bytes, restore them after each run, check with a sha256 of the tensor slice.
+text        wikitext-2-raw test from https://huggingface.co/datasets/ggml-org/ci/resolve/main/wikitext-2-raw-v1.zip (llama.cpp's own get-wikitext-2 source); record url + sha256; keep it in the scratch dir, never commit it.
+run         llama-perplexity fully on the GPU, ctx 512, the first 40 chunks, identical flags every run: docker ghcr.io/ggml-org/llama.cpp:full-cuda ONLY (--gpus all, mount the scratch dir; its libllama carries the qwen35 arch; the fork build b10685 does NOT load qwen35; and a kid's host cgroup OOM-killed a 9B run before, doc:lm-local-town-box-facts). Record the exact command once.
+T0 guard    BEFORE the router stops: no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named) and host RAM available >= 2 GB (the `available` column of free -m, not `free`: page cache is reclaimable). docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M. Sample available host RAM through the round; under 2 GB at any sample -> stop, restore, report.
+T2          baseline twice -> identical ppl, or say so and replicate every ablation.
+T3          the 32 single-group ablations -> one row each: layer, group, ppl, delta-NLL = ln(ppl_abl / ppl_base), delta-NLL / NLL_base.
+T4          add groups in ascending single delta-NLL, re-measure JOINTLY after each addition, stop once past 2 pct of NLL_base -> k(1 pct), k(2 pct), the curve.
+verdict     k(1 pct) >= 6 -> proved (next hop: a converted pruned GGUF + the battery) · k(1 pct) < 6 -> disproved (the curve is the record; the chain moves to the band hops + KV-quant layering). Report KV bytes/token and the context multiplier 32/(32-k) at both tolerances.
+paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local (it exists since OSC.01); out-of-repo roots (/data/ml/models, /data/ml/scratch) stay literal and are PROPOSED as box cells in the node -- never added.
+land        script(s) in .agi/context/local-maxxing/heads/ · outputs (tables, curve, commands, hashes -- no model bytes, no wikitext bytes) in datasets/dead-head/2026-09-23-kv-groups/ · ONE experiment node under the hypothesis with every number and the router-restored proof
+never       write the served GGUF · leave the router down · anything under extensions/ · a second kid · pip or apt installs · a pi-local round
+wall        call done by 120 min wall-clock whatever the state; land what is measured, name what is left, and the router is up before you stop
+cap         1 USD · ONE kid · line ceiling 150 engine-unit lines
+record      served + copy sha256 (before/after) · baseline ppl x2 · the 32-row table · the joint curve · k(1 pct), k(2 pct) · KV bytes/token and context multiplier · RAM samples · router-restored proof · one harvest line to your seat
 
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
