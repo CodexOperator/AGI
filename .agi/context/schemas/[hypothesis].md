@@ -33,6 +33,25 @@ When `subgraph: true`, the body itself is parsed as a CoT graph
 
 ID prefix: `hyp:<short-slug>`.
 
+## The body — the round's brief (owner 2026-09-23 16:3xZ, goal:g5: "move the hypothesis format out of role docs and into the hypothesis schema node";
+moved verbatim from the director template's NODE step and the master template's PLAN step)
+
+The brief lives on the hypothesis node: the director mints it if the master did not and commits it by exact path before
+dispatch (grid history needs a real commit). Prose, so not in `validation:`; a merge-up reviewer checks it. Body order:
+
+```
+## Measured       the measured lines (file:line) and numbers that motivate the round
+## CLAIM          what is true when the round lands (the testable_claim, in full)
+## Dispatch line  config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>
+## FALSIFIERS     what would show the claim false
+## TESTS          the committed tests + their neighbourhood
+## FILE SCOPE     the files the round may touch, nothing else
+## CEILING        kids · 10-12 production lines per conjunct · pi parents · a USD cap
+```
+
+The kid answers the dispatch line FIRST, before any code (owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions`: the config max and
+template max checks at build and at review).
+
 ## Spawn rule
 
 `allowed_parents: [idea, goal, experiment, hypothesis]`, `max_parents: 2`.
