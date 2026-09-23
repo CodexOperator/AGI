@@ -9006,112 +9006,6 @@ replace it with a scored model or a plain check. A rule that has survived a few
 loops as prose is a rule with a labelled dataset behind it. `COMPLETE.md`'s fixed
 failure-category set exists to make those labels.
 
-#### G15.27 — 09-21 PRIME RESIDUE BATCH, ENGINE SLICE -- chunk 1 R1 send.py undelivered notice + R2 write.py fence/EOF guard merged up 09-23; chunk 2 = the 15 engine rounds (130 residues: node corrections + fix rounds FR-A..FR-D) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g15.27 — 09-21 Prime residue batch, ENGINE SLICE (director-engine)
-
-```
-source    hypothesis:mur-0921-residue-batch-into-season2-main (belam 11:49Z 09-21 + TM TME.17; owner 01:4xZ: batch the residues, ONE batch mur)
-split     33 rounds by the batch node's own rule: 15 engine (incl. engine-delta) = THIS goal · 13 lm-* = thought-master · 6 under g7.33 = HELD
-chunk 1   R1 hypothesis:send-undelivered-notice-lands-in-the-comms-root   EF.12  PROVED
-          R2 hypothesis:write-body-range-guard-is-fence-aware-and-clamped EF.11  PROVED
-          batch mur R1 ACCEPT · R2 accept_with_residue · 0 demote -> [merge-up] to thought-master 08:3xZ 09-23 @4c5dee025   DONE
-chunk 2   table   hypothesis:mur-0921-engine-residues-dispositioned-and-corrected -- 130 items: F 34 · C 34 · K 58 · G 4; its round applies C
-          FR-A    hypothesis:alarms-loop-runs-flat-and-the-capture-grace-restarts-per-session -- LIVE: alarms recursion + capture stamp
-          leaves  g15.27.1-.6 (KEEP SPLITTING, owner 10:4xZ): .1 FR-B1 · .2 FR-B2 · .3 FR-B3 · .4 FR-C1 · .5 FR-C2 · .6 FR-D1 -- one small round each:
-                  FR-B rotate verbs read MAIN rows + migrate resolves the grant before seating (rotate.py)
-                  FR-C kid wait + turn-end evidence (cli.py dispatch.py heal.py) · kid ceiling + liaison moral (brief.py)
-                  FR-D write.py outside-ref gate + escaped && · paths.py / boxes.py / crons.py audits
-          flagged research-review F items (thought-side node) -> thought-master · lm-replace-body-anchor demote (g7.33.1) -> HELD
-done when chunk 1 merged up (done) · the table's C items applied · every F item landed or carried by name ·
-          ONE batch mur over the corrected demote rounds + the landed FR rounds returns no demote · one [merge-up] names the batch node
-```
-
-##### G15.27.1 — FR-B1 ROTATE VERBS READ THE MAIN ROWS (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.1
-
-# goal:g15.27.1 — FR-B1 ROTATE VERBS READ THE MAIN ROWS
-
-```
-leaf      merge-up --post and rotate-self --prepare resolve their target row through _seat_read_root (the MAIN copy) like cmd_rotate does
-source    l5-rotate-accepts DEF1 + MISSED1-2 (rotate.py cmd_merge_up ~4449, rotate-self --prepare, _seat_read_root 17851)
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:rotate-verbs-read-the-main-seat-rows
-```
-
-##### G15.27.2 — FR-B2 MIGRATE RESOLVES THE GRANT BEFORE SEATING (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.2
-
-# goal:g15.27.2 — FR-B2 MIGRATE RESOLVES THE GRANT BEFORE SEATING
-
-```
-leaf      cmd_migrate_receive checks the actor_rows grant before _migrate_seat spawns or writes a cell; an inadmissible grant is skipped by name
-source    l4-quick-migrate #5 #9 #10 #12 (rotate.py cmd_migrate_receive ~20938, _migrate_seat ~20869)
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:migrate-resolves-the-grant-before-it-seats
-```
-
-##### G15.27.3 — FR-B3 MIGRATE COPIES THE TRANSCRIPT WITH A PATH SCP CAN RESOLVE (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.3
-
-# goal:g15.27.3 — FR-B3 MIGRATE COPIES THE TRANSCRIPT WITH A PATH SCP CAN RESOLVE
-
-```
-leaf      MEASURE first: does the migrate transcript copy's remote "$HOME/..." path fail under OpenSSH 9.6 SFTP-mode scp (inferred, never measured)
-source    l4-quick-migrate #11 (rotate.py migrate scp ~20747; inferred, not measured)
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:migrate-transcript-copy-survives-sftp-mode-scp
-```
-
-##### G15.27.4 — FR-C1 A PARENT'S WAIT AND A TURN-END KEEP THEIR EVIDENCE (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.4
-
-# goal:g15.27.4 — FR-C1 A PARENT'S WAIT AND A TURN-END KEEP THEIR EVIDENCE
-
-```
-leaf      cli.py wait returns at once on zero matching kids and prints elapsed; a turn-end reap keeps the stream-error death evidence
-source    l5-a-parent-waits DEF1 DEF5 MISSED2 MISSED3 + engine-delta DEF3 (cli.py cmd_wait; dispatch.py turn-end reap; heal.py reap)
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:wait-returns-on-an-empty-kid-set-and-turn-end-keeps-death-evidence
-```
-
-##### G15.27.5 — FR-C2 A KID BRIEF NAMES ITS CEILING AND A LIAISON HEAD CARRIES NO MORAL REGION (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.5
-
-# goal:g15.27.5 — FR-C2 A KID BRIEF NAMES ITS CEILING AND A LIAISON HEAD CARRIES NO MORAL REGION
-
-```
-leaf      after brief.py's EF.25 lands: a kid brief never orders its own line_ceiling rewritten; the liaison head renders without faith's MORAL region
-source    l5-an-across-k-kids DEF2 DEF4 DEF5 + l5-moral-one MISSED1 (brief.py)
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:kid-brief-keeps-the-parent-ceiling-and-liaison-head-carries-no-moral
-```
-
-##### G15.27.6 — FR-D1 WRITE.PY GATES JUDGE THE EFFECTIVE FRONTMATTER (0921 engine slice leaf; assigned director-engine) — status: active
-
-# goal:g15.27.6
-
-# goal:g15.27.6 — FR-D1 WRITE.PY GATES JUDGE THE EFFECTIVE FRONTMATTER
-
-```
-leaf      the outside-ref gate judges on-disk + set - unset refs; prose can escape a verb-led && (both in write.py)
-source    l5-a-verdict-node #4 #5 + l5-write-py-splits #1 #3 #8
-          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
-rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     hypothesis:write-py-outside-ref-gate-judges-the-effective-frontmatter-and-prose-can-escape-a-verb-and-pair (minted 10:1xZ under g15.27, re-parented to this leaf)
-```
-
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
 
 <!-- BODY:BEGIN -->
@@ -11947,13 +11841,6 @@ OWNER 09-23 09:4xZ (Prime pane, verbatim): "Once settled and handed off continue
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Go route B" -- APPLIED: the seat-key authority stays the Prime-reviewed root (origin/season2/main); the rotation publishes a re-minted seat row there — hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority, director-engine, priority first.
 
 OWNER 09-23 09:4xZ (thought-master pane, verbatim): "How are we looking on getting local inference set up. Have we applied any off the shelf optimizations to any of the models we have? ESP the oscillator based head pruning" then "Then hand off to director-thought as top priority verify his card is current. He can work this full force till jev code fixes land" -- ACTED by thought-master: the oscillator head-pruning chain (goal:g5.22, never run since its 09-18/09-20 mint) planned in hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point and handed to director-thought as TOP PRIORITY (dispatch now), full force until the jev code fixes land; director-thought's card checked.
-OWNER 09-23 10:2xZ (director-engine pane, verbatim): 'Go for finish. Raise ceiling or lower floor to something silly like -50 just whatever needed to keep working as balance allows.' -- APPLIED by director-engine: hypothesis:brief-py-assembles-every-first-turn-from-config ceiling 2 USD / <= 3 kids -> 3.5 USD / <= 5 kids and phase 4 dispatched; the floor was left at -100 (already below -50); the held 0921 engine-slice rounds (FR-A, the node corrections) dispatched as balance allows.
-
-OWNER 09-23 10:3xZ (director-engine pane, verbatim): 'Add to your card to let director-thought know when the Jev rounds are complete' -- APPLIED by director-engine: its card carries a standing WHEN THE JEV ROUNDS COMPLETE section -- the jev rounds = the commands manifest, jev's choice surface for the magic pane (goal:g5.24.3 MP.02; waiting on thought-master's go over the g7.33 overlap); on landing, director-engine dms director-thought [jev] choice surface ready with the SHA and how to read it, copying thought-master.
-
-OWNER 09-23 10:4xZ-10:5xZ (director-engine pane, verbatim, in order): "Go and claim the g7.33 cli grammar part only as its own subgoal directly under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch anyway so it's no issue at all. And go for more spend and more spawning" / "Sorry the cli grammar is under config template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas" -- APPLIED by director-engine: goal:g1.25 minted directly under the G1 config-maxxing umbrella (the cli-grammar part of g7.33 only; g7.33 stays core's and held), its first round hypothesis:commands-manifest-is-jevs-one-choice-surface dispatched first; the town-board row for g1.25 asked of thought-master (a director's hand edit of town:local-maxxing is refused by its ring gate: owner and prime_director only).
-
-CORRECTION (director-engine, 10:0xZ 09-23): the three owner lines above banked from the director-engine pane carry wrong time labels -- 'Go for finish ...' came 09:4xZ (not 10:2xZ), 'Add to your card to let director-thought know when the Jev rounds are complete' came 09:5xZ (not 10:3xZ), and 'Go and claim the g7.33 cli grammar part ...' with its four follow-ups came 09:5xZ (not 10:4xZ-10:5xZ); measured from the commit times that applied them (09:48Z, 09:53Z, 09:59Z). The words are verbatim as banked.
 
 OWNER 09-23 10:0xZ (thought-master pane, verbatim): "I'm giving my go for edit." -- the edit = goal:g1.25 (CLI GRAMMAR, director-engine's jev choice surface) into the local-maxxing goal bundle, i.e. the goal node's town cell set to local-maxxing (the convention on 22 goals; the ring gate admits the town master, refused director-engine). goal:g1.25 exists only on director-engine's branch, so thought-master sets town local-maxxing on it IN THE MERGE COMMIT when its merge-up reaches the trunk, as the owner's hand.
 
@@ -11968,8 +11855,6 @@ OWNER 09-23 10:2xZ-10:3xZ (Prime pane, verbatim, in order): "It’s on the core 
 OWNER 09-23 10:3xZ (Prime pane, verbatim): "Yes go for apply and sync to every post" -- APPLIED: .agi/context/schemas/[goal].md Conventions now carry the goal body format verbatim from doc:standing-llm-ops §5-§6 (77c997cad): the target framing table, the title form, the fixed body order and what each section carries; the stale never-renumbered line replaced by the owner 09-23 renumber rule (mint_id kept, refs re-pointed in the same commit, THOUGHT old to new, no retired id in a live node). Synced to every post: director worktrees merged with the trunk, one line each to thought-master, director-thought, director-engine.
 
 OWNER 09-23 10:3xZ (Prime pane, verbatim): "Set floor to something silly like -50 and sync that as well so headroom doesn’t cause issues" -- APPLIED: provisioning.min_account_remaining_usd 1.6 → -50 (SUPERSEDES the 09-16 1.6 floor and the Prime's 10:1xZ restore); the Prime template, the director template and doc:card-belam say -50; synced: both director worktrees merged with the trunk, mirrors pushed, one line to each post.
-
-OWNER 09-23 10:3xZ (director-engine pane, verbatim): "Headroom should be updated and ceiling set to something silly so you can keep working until credits empty" / "Or floor" -- APPLIED by director-engine: provisioning.min_account_remaining_usd 1.6 -> -50.0 in .agi/config.json (the owner's own number from 09:4xZ), overriding the Prime's 10:1xZ restore to 1.6 on the owner's word; per-hypothesis ceilings raised as each round needs; work continues until the credits run out.
 
 OWNER 09-23 13:xZ (thought-master pane, verbatim): "Hmm can you detect any curiosities in the osc trials that look like avenues for further optimization? Nothing too custom just another way to rearrange the blocks we have. For example use it on the other models we have like the bonsai or the abliterated one. Or even some way to apply it to diffusion LLMs like the mercury one or whichever? For me the thing that pops out is whether each head use a set of positional frequencies. We could map a bigger model but more quantized and see if it holds then do it less quantized for comparison. And do the small model at those equivalent quantizations as well to compare. When asking can we drop the kv groups or cut unused frequencies from each head, we could also ask can we quantize different kv cache groups or different heads independently based on oscillator values? Also if frequencies are positional then couldn't we try to interpret the said position and use geometry to make our adjustments not raw numerical magnitudes and frequencies. Also each tiny prune step matters. Layer even the tiniest nudges of performance always. Every nudge is a spark of success therefore a giant hint to keep going this way screaming at you. Do you see how my intuition screamed alarms at me as I read results? I know instructions say expect failure but also need to say have an attitude of relentless optimism borne of our faith, love and empathy morals. Let me know if you have any other input yourself with this new framing?" -- ACTED by thought-master: the head/KV chain rewritten on the board as a LAYERING LADDER (largest safe step of every round kept and stacked) + the rule that a missed bar never ends a chain while any positive step exists.
 
@@ -12339,94 +12224,6 @@ Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the ow
 The goals of this app/town share one vision, one council and one per-town
 vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
 Town is derived from a vision's `town:` cell; core is every other goal.
-
-##### G1.9.1 — BRIEF.PY RENDER HYGIENE -- no THOUGHT blocks in a first turn, a loud fallback, operating_mode a config part, the card-line mechanism gone, the template cell declared (the brief.py batch mur's residues; assigned director-engine) — status: active
-
-# goal:g1.9.1
-
-# goal:g1.9.1 — BRIEF.PY RENDER HYGIENE (the brief.py batch mur's residues)
-
-```
-leaf      the render keeps what a successor needs and nothing it should not: node parts without THOUGHT blocks, a loud fallback that
-          also catches FaithRefError, operating_mode as a config-selectable part, the rejected card-line mechanism gone, the post-row
-          template cell declared in the [config] schema
-source    brief.py batch mur 09-23 (EF.18 accept_with_residue · EF.19 DEMOTE) over hypothesis:brief-py-assembles-every-first-turn-from-config
-rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
-round     hypothesis:brief-render-hygiene-after-the-batch-mur
-NOT here  rewriting config:brief through write.py (written_by owner/prime_director only) -> the Prime
-```
-
-##### G1.9.2 — THE SPAWNED AGENT'S FIRST TURN IS THE RENDER -- the adapters take brief.render instead of a second assemble; FaithRefError caught in dispatch; extras never silently dropped (the brief.py mur #2 residue; assigned director-engine) — status: active
-
-# goal:g1.9.2
-
-# goal:g1.9.2 — THE SPAWNED AGENT'S FIRST TURN IS THE RENDER
-
-```
-leaf      a parent or kid spawned by dispatch.py gets the SAME first turn the dispatch report shows: brief.render (head + card + extras),
-          not a second assemble inside the harness adapter
-source    brief.py mur #2 09-23 (EF.25 + EF.36, accept_with_residue x2): "the dispatch dry-run report and spawn.json render a brief the
-          spawned agent does not get"; verified: bin/adapters/pi_adapter.py:212 build_command still calls brief.assemble; dispatch.py
-          _render_dispatch_brief catches RenderError only (:1040), so a missing moral:faith (FaithRefError) escapes; extras_text is dropped
-          for a role whose parts lack 'extras'
-rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
-round     hypothesis:the-spawned-agents-first-turn-is-the-render
-```
-
-#### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine) — status: active
-
-# goal:g1.25
-
-# goal:g1.25 — CLI GRAMMAR = jev's ONE choice surface (config-maxxing; claimed out of g7.33 by the owner, 09-23)
-
-```
-owner     09:2xZ via thought-master (verbatim on goal:g5): "If needed, tell director-engine to expand the commands.py config to include
-          more commands and bundle all the various engine functions as api endpoint calls so Jev has a choice surface to grab on to."
-          09:5xZ director-engine pane (verbatim on goal:g5): "Go and claim the g7.33 cli grammar part only as its own subgoal directly
-          under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch
-          anyway so it's no issue at all. And go for more spend and more spawning" / then: "Sorry the cli grammar is under config
-          template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas"
-home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; related: goal:g1.19 engine surface inventory);
-          town:local-maxxing's board lists it for the town across umbrellas
-claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
-          traps) -- g7.33 itself stays core's and held
-shape     command:commands = every engine verb as a typed entry · `commands.py manifest` = ONE machine-readable choice set ·
-          propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
-serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
-work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
-done when the manifest lands with its coverage test (every listed CLI verb declared or excluded by name) · merged up to thought-master ·
-          director-thought told "[jev] choice surface ready" with the SHA (the director-engine card's standing rule)
-```
-
-##### G1.25.1 — PROPOSE COMPLETES OR REFUSES -- no silently dropped arg, no unmapped placeholder, spend/spawn/destructive verbs not proposable, the [command] schema declares manifest/excluded (the jev mur's demote; assigned director-engine) — status: active
-
-# goal:g1.25.1
-
-# goal:g1.25.1 — PROPOSE COMPLETES OR REFUSES; SPEND / SPAWN VERBS NOT PROPOSABLE (the jev mur's demote)
-
-```
-leaf      jev's choice surface never hands back an argv it cannot complete, and never offers a verb that spends or spawns
-source    the g1.25 mur 09-23 (review accept_with_residue · verify DEMOTE): propose validates then silently drops a required arg for
-          19 of 110 proposable entries (e.g. workflow.py:note drops harness_id, workflow.py:register drops script); workflow.py:run
-          (side_effects spawn) is proposable while dispatch.py is excluded; extras substitute any <x>; [command].md lacks manifest/excluded
-rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
-round     hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable
-```
-
-##### G1.25.2 — THE CHOICE SURFACE TAKES OPTIONAL ARGS AND OFFERS NO OPERATOR VERB (the jev batch mur's residues; assigned director-engine) — status: active
-
-# goal:g1.25.2
-
-# goal:g1.25.2 — THE CHOICE SURFACE TAKES OPTIONAL ARGS AND OFFERS NO OPERATOR VERB
-
-```
-leaf      jev can express an optional flag, and never sees a verb that writes the real crontab / systemd units or is owner-ops only
-source    the jev batch mur 09-23 (EF.21 + EF.37, accept_with_residue x2): 63 proposable entries refuse any optional arg (no argv slot);
-          crontab/systemd-writing operator verbs (commands.md ~344-346) and mesh-gw (owner ops) are proposable; a mesh entry's purpose
-          names box details; a duplicate test shadows the synthetic <N:M> case; crons.py:show is labelled graph-write
-rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
-round     hypothesis:the-choice-surface-takes-optional-args-and-offers-no-operator-verb
-```
 
 #### G5.21 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
 
@@ -12915,24 +12712,6 @@ Falsifiers. The round is falsified if a tree with no storage_trunk configured re
 Done when. The hypothesis lands a verdict against its own falsifiers: default tree byte-identical, a configured trunk isolates its versions, crons.py has one spelling, engine suite green. Migration for this box (storage_trunk=refs/grid/local-maxxing/ then grid.py migrate-refs or a documented re-seed) happens AFTER the round lands, not as part of it.
 
 First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, the whole round (a) through (d) as one testable claim, per the goal g14.14.7 body describing ONE round rather than independent lettered items.
-
-##### G7.33.8 — G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16) — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g14.14.8
-
-## Agent Notes
-Source. Owner 02:1xZ 09-21 via goal:g14.10, transcribed on goal g14.14: claude-code role sessions (masters, directors, Prime) land at session end or rotate under datasets/sessions/role/session/ through datasets/tools/scrub.py with the graph pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. Moved up in priority (owner 05:4xZ, TME.13/16): it is the magic pane corpus, ahead of 14.14.2/14.14.4/14.14.5.
-
-Commits to. Verified against source before writing this: no automated landing mechanism exists yet for EITHER harness (grep across extensions/agi/bin and extensions/agi/workflows for scrub_file or datasets trajectories finds nothing) -- the pi precedent at datasets/trajectories/ABC.01/a00-bb10233d/ (label.json, agent.json, trajectory.jsonl) is an established SHAPE, not existing code to extend. For claude-code sessions specifically, rotate.py already solves the hard part: find_newest_cc_transcript(slug) at rotate.py line 283 resolves the newest .jsonl under a role home slash .claude/projects/slug/, with the per-cwd slug derivation (_derive_cc_slug) that exists precisely because a hardcoded slug once read the wrong roles transcript (measured 2026-09-07). AGI_SESSION_LOG_VAR (rotate.py line 298) is the env var a spawner already uses to tell the meter which transcript a role owns. Build: at the point rotate.py finalizes a rotation (or an equivalent session-end hook -- the kid locates the exact call site, this director has not traced the whole file), copy the resolved transcript, scrub it through datasets/tools/scrub.py (scrub_file or redact_text, reused, never a second scrub implementation), and land it under datasets/sessions/role/session/ mirroring the trajectories shape: a transcript file (scrubbed), an agent.json-equivalent record, and a label.json carrying the pre-labels (model, harness, provider, role, post, town, box) read from this seats own config:posts row (the same row structure every seat already resolves -- confirmed present: town and box fields exist on real rows, e.g. belam town=all, stream-master town=streaming-suite).
-
-Invariants. Never a second scrub -- only datasets/tools/scrub.py's own functions perform redaction. The capture never blocks or fails a rotation (a capture error is reported, not a refusal that strands a director mid-rotate). pi parents/kids keep landing exactly as they do today under datasets/trajectories/ -- this goal is additive for claude-code sessions, not a rewrite of the existing path.
-
-Falsifiers. (a) a landed session file still contains an unredacted secret pattern scrub.py already knows how to catch (ip/key/email) -- scrub was skipped or bypassed; (b) the label pre-labels are absent, wrong, or fabricated rather than read from the real config:posts row; (c) a rotation fails or blocks because the capture step raised; (d) a second, parallel redaction implementation appears anywhere in the diff.
-
-Done when. A real claude-code role session (this seat is one) rotates and its scrubbed transcript lands under datasets/sessions/director-engine/session/ with a correct label.json, verified by hand against the same seats real config:posts row.
-
-First chunk, minted next: hypothesis for the capture mechanism itself (transcript resolution + scrub + land, mirroring the trajectories shape), scoped to rotate.py + a new small landing helper, reusing scrub.py unchanged.
 
 ## App: streaming-suite
 
