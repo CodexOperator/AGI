@@ -24,7 +24,13 @@ MERGE-UP #4 NOT SENT: EF.85 @b0d118b05c (crons r2; mur D2) · EF.84 @04ed4f7735 
           [box].md raises an unnamed yaml error) · G2 EF86 a_w_r: the PUSH leg (rotate.py ~10490) and the _g git calls (~10469) of
           _publish_row_to_authority are still unguarded -> DIRECTOR'S CALL (gen 2): EF.84+86 still ship together -- the push runs only
           after a fetch succeeded, far rarer than the hang EF.86 closed; name the residue in #4 and dispatch .14 round 3 (every subprocess
-          call in _publish_row_to_authority bounded + guarded -> authority: FAILED). Name the SHA after the last of them; re-run the union of their test files there
+          call in _publish_row_to_authority bounded + guarded -> authority: FAILED).
+          E2 EF84 a_w_r ALSO: with NO key cell for the seat on the authority, the post-fix signer uses the predecessor while the
+          verifier resolves the committed successor = FORGED (send.py:233; verifier ~3240-3300) -- EF.84 fixes the common case (seat
+          already published) and breaks this rarer one. The ship call above is PROVISIONAL: re-weigh E2 + G2 before #4. If you HOLD
+          EF.84: `git revert -m 1 --no-commit 04ed4f7735` then `git checkout HEAD -- .agi/nodes/experiment/a00-6c3c02f2-8362a0.md`
+          (a revert must never remove a node), commit, re-run the union; either way .23 round 2 = the signer reads the authority's
+          actual cell, never infers it. Name the SHA after the last of them; re-run the union of their test files there
           (EF.84/86: test_rotate_key_authority, _pending_swap_authority, _alert_two_tree, test_send*.py · EF.85: test_crons, test_paths_audit,
           test_box_guard -- pin crons.resolve_branch in the detached gate · EF.83: test_write_sub, test_write, test_node_writer) + graph check
 LIVE      EF.87 a00-632e0d0d (.15 r3: the printed diff is a STANDARD unified diff) · EF.88 a00-fdcafcb9 (g15.28.3 r3: stitch counts live
