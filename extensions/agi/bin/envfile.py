@@ -118,7 +118,7 @@ def _line_is_forbidden_key(key: str, value: str) -> bool:
     return False
 
 
-class SecretsError(Exception):
+class SecretsError(ValueError):
     """A problem with the node or the paths it declares.
 
     Raised, printed by `main()`, exit 1. Never swallowed: `goal:g1.5`'s whole
@@ -192,12 +192,20 @@ class Resolution:
         self.required_keys = [str(k) for k in (fm.get("required_keys") or [])]
         # `required_any` is a list of GROUPS; each group is satisfied when ANY
         # one of its keys is present non-empty. An absent cell means no groups
-        # (yesterday's behaviour unchanged).
-        self.required_any = [
-            [str(k) for k in group]
-            for group in (fm.get("required_any") or [])
-            if isinstance(group, list)
-        ]
+        # (yesterday's behaviour unchanged). A malformed entry is refused BY
+        # NAME rather than silently dropped -- a mis-shaped cell must not fail
+        # open (hypothesis:every-secrets-reader-honours-required-any, D2).
+        groups: list[list[str]] = []
+        for group in (fm.get("required_any") or []):
+            if (not isinstance(group, list) or not group
+                    or not all(isinstance(k, str) and k.strip() for k in group)):
+                raise SecretsError(
+                    f"required_any entry {group!r} is malformed — every entry "
+                    f"must be a non-empty list of non-empty key names "
+                    f"(list-of-lists), refused rather than dropped silently"
+                )
+            groups.append([str(k) for k in group])
+        self.required_any = groups
         self.optional_keys = [str(k) for k in (fm.get("optional_keys") or [])]
         # The node may extend the floor; it can never lower it.
         declared_forbidden = [str(k) for k in (fm.get("forbidden_keys") or [])]

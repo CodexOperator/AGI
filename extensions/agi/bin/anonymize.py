@@ -27,6 +27,11 @@ def _secret_tokens(root):
         fm = (yaml.safe_load(parts[0]) if parts else None) or {}
         for f in ("required_keys", "optional_keys", "forbidden_keys"):
             keys.update(str(k) for k in (fm.get(f) or []))
+        # `required_any` is a list of GROUPS; a key named only inside one is
+        # still a key this node names, so its env value belongs in the denylist.
+        for group in (fm.get("required_any") or []):
+            if isinstance(group, list):
+                keys.update(str(k) for k in group)
     env = envfile.read_env(envfile.resolve(root).env_file)
     return [("secret", env[k]) for k in keys if env.get(k)]
 def box_tokens(root):
