@@ -9153,6 +9153,155 @@ leaf      one small round: hypothesis:pass2-engine-rows-corrected-in-place
 rule      KEEP SPLITTING (owner 09-23, goal:g5)
 ```
 
+#### G15.29 — THE 09-23 MUR RESIDUE BATCH, ENGINE SLICE -- the unrefuted defects and verify-missed items of director-engine's 29 reviewed rounds, re-read on the post tip and split into leaves (assigned director-engine) — status: active
+
+# goal:g15.29
+
+# goal:g15.29 — THE 09-23 MUR RESIDUE BATCH, ENGINE SLICE (director-engine)
+
+```
+source    the verify stage of every batch mur over director-engine's 09-23 rounds (R-EF18 .. R-EF55, 29 rounds):
+          unrefuted defects + verify-missed items, re-read on the post tip f36cc2420; the ones a later round
+          already closed are dropped (EF.18/19/25 -> EF.36/40 · EF.35 -> EF.41 · EF.45 -> EF.55 · EF.51 -> EF.56)
+leaves    .1 write.py sub takes every gate `set` takes          (R-EF24 D1-D3 + marker bypass · R-EF28 D)
+          .2 no /home/<user> literal in the engine              (R-EF29-34-38 D1 D2 + pi_edit_forgiveness)
+          .3 every secrets reader honours required_any          (R-EF43 D1-D3 + anonymize._secret_tokens)
+          .4 the paths audit fails closed; ONE placeholder map  (R-EF27 D1 D2 + M1 M3)
+          .5 engine tests read no live home resource            (R-EF41 D + M1 · R-EF47 M1 M2)
+          .6 the dm reader resolves aliases once per read       (R-EF44 D)
+          .7 HELD until EF.51+EF.56 land: the pending key swap completes only after the authority publish
+          .8 HELD until EF.51+EF.56 land: rotate-self's registry gate reads MAIN; the wrapper restores signals
+          .9 the config-cell residues -- the Prime's writes (config nodes are owner/prime_director only)
+also      goal:g1.9.3 + goal:g1.9.4 (brief residues) · goal:g1.25.5 (choice-surface residues, HELD until EF.54 lands)
+done when every leaf round is merged, one batch mur over them returns no demote, one [merge-up]
+```
+
+##### G15.29.1 — WRITE.PY SUB TAKES EVERY GATE SET TAKES (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.1
+
+# goal:g15.29.1 — WRITE.PY SUB TAKES EVERY GATE SET TAKES
+
+```
+source    R-EF24 D1 D2 D3 + M1 (sub skips _refuse_marker_value) · R-EF28 D (API-direct sub bypasses the outside-ref gate)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:write-sub-passes-every-gate-set-passes (EF.57)
+writer    director-engine
+```
+
+##### G15.29.2 — NO HOME-USER LITERAL IN THE ENGINE (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.2
+
+# goal:g15.29.2 — NO HOME-USER LITERAL IN THE ENGINE
+
+```
+source    R-EF29-34-38 D1 (heal.py:3113) D2 (~user mis-expansion) + M1 (pi_edit_forgiveness.py:108); the .agi/config.json locations literals (R-EF46 D) are the owner's write -> leaf .9
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:engine-code-carries-no-home-user-literal (EF.58)
+writer    director-engine
+```
+
+##### G15.29.3 — EVERY SECRETS READER HONOURS REQUIRED_ANY (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.3
+
+# goal:g15.29.3 — EVERY SECRETS READER HONOURS REQUIRED_ANY
+
+```
+source    R-EF43 D1 D2 D3 + M1 (anonymize._secret_tokens never reads required_any: the live OPENROUTER_API_KEY value is outside the SM.122 guard)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:every-secrets-reader-honours-required-any (EF.59)
+writer    director-engine
+```
+
+##### G15.29.4 — THE PATHS AUDIT FAILS CLOSED AND ONE PLACEHOLDER MAP RENDERS (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.4
+
+# goal:g15.29.4 — THE PATHS AUDIT FAILS CLOSED AND ONE PLACEHOLDER MAP RENDERS
+
+```
+source    R-EF27 D1 D2 + M1 (resolve_placeholders has no production caller) M3 (placeholders fail open)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:paths-audit-fails-closed-and-one-placeholder-map-renders (EF.60)
+writer    director-engine
+```
+
+##### G15.29.5 — ENGINE TESTS READ NO LIVE HOME RESOURCE (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.5
+
+# goal:g15.29.5 — ENGINE TESTS READ NO LIVE HOME RESOURCE
+
+```
+source    R-EF41 D + M1 (live ~/.claude/projects read) · R-EF47 M1 (complement test claimed, absent) M2 (dead ROOT)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:engine-tests-read-no-live-home-resource (EF.63)
+writer    director-engine
+```
+
+##### G15.29.6 — THE DM READER RESOLVES ALIASES ONCE PER READ (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.6
+
+# goal:g15.29.6 — THE DM READER RESOLVES ALIASES ONCE PER READ
+
+```
+source    R-EF44 D (per-token reload + stderr notice)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:dm-reader-resolves-aliases-once-per-read (EF.64)
+writer    director-engine
+```
+
+##### G15.29.7 — HELD: THE PENDING KEY SWAP COMPLETES ONLY AFTER THE AUTHORITY PUBLISH (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.7
+
+# goal:g15.29.7 — HELD: THE PENDING KEY SWAP COMPLETES ONLY AFTER THE AUTHORITY PUBLISH
+
+```
+source    R-EF51 M1 (C3 gate bypass via _complete_pending_key_swap) · R-EF20 M1 (push: HELD counted as not-failed) M2 (no frozen-path test)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:the-pending-key-swap-completes-only-after-the-authority-publish (dispatch after the named rounds land)
+writer    director-engine
+```
+
+##### G15.29.8 — HELD: ROTATE-SELF READS THE MAIN ROW AND THE WRAPPER RESTORES ITS SIGNALS (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.8
+
+# goal:g15.29.8 — HELD: ROTATE-SELF READS THE MAIN ROW AND THE WRAPPER RESTORES ITS SIGNALS
+
+```
+source    R-EF30 M1 (the next leaf of g15.27.1) · core-sync-0923 R5 residue (no try/finally)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:rotate-self-registry-gate-reads-main-and-the-wrapper-restores-signals (dispatch after the named rounds land)
+writer    director-engine
+```
+
+##### G15.29.9 — THE CONFIG-CELL RESIDUES -- THE PRIME'S WRITES (09-23 mur residue leaf; the Prime's writes; flagged by director-engine) — status: active
+
+# goal:g15.29.9
+
+# goal:g15.29.9 — THE CONFIG-CELL RESIDUES -- THE PRIME'S WRITES
+
+```
+source    config:links successor_marker cell (R-EF26 D1) + exempt probes/evidence frontmatter (R-EF26 D3) · config:brief: the operating_mode part named for no role (R-EF36 M2) and its body still advertising {{template:}} (R-EF36 D1) · THE FOUR PRAYERS heading built in brief.py code instead of doc:unified-head's HEAD region (R-EF19 M2) · .agi/config.json locations.pi_home/claude_home + box.root/logs_dir still /home/ubuntu (R-EF46 D, the owner's word) · config:posts `template` cell declared, used by no row (R-EF36 M3)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     none -- a config write, owner/prime_director only
+writer    the Prime (config writes)
+```
+
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
 
 <!-- BODY:BEGIN -->
@@ -12377,6 +12526,34 @@ rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
 round     hypothesis:the-spawned-agents-first-turn-is-the-render
 ```
 
+##### G1.9.3 — A RESTARTED AGENT GETS THE SAME RENDER (the brief.py mur residue; assigned director-engine) — status: active
+
+# goal:g1.9.3
+
+# goal:g1.9.3 — A RESTARTED AGENT GETS THE SAME RENDER
+
+```
+source    R-EF40 D1 (restart bypasses the render) D2 (FaithRefError catch untested) M1 (the load-bearing test runs the fallback) M2
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-spawn (EF.61)
+writer    director-engine
+```
+
+##### G1.9.4 — THE BRIEF TEXT STATES WHAT THE ENGINE DOES (the brief.py mur residue; assigned director-engine) — status: active
+
+# goal:g1.9.4
+
+# goal:g1.9.4 — THE BRIEF TEXT STATES WHAT THE ENGINE DOES
+
+```
+source    R-EF32-39 M3 (rc 3/4 undocumented) · R-EF33 D (K=1 scaffold-stamp claim)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:the-parent-and-kid-brief-text-matches-the-engine (EF.62)
+writer    director-engine
+```
+
 #### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine) — status: active
 
 # goal:g1.25
@@ -12462,6 +12639,20 @@ measured  director-engine 16:5xZ 09-23 after batch 2: 177 entries (129 proposabl
 set       backfill-mint-ids.py boxes.py branches.py briefing.py completion.py dashboard.py decompose-engine.py derive-commands.py drift_check.py failures.py frontier.py geometry_config.py glitch_master.py graphweb.py grid_coverage_check.py inject.py lm_bench.py mail_alert.py mem_cap.py migrate_channel.py payload_boundary.py pi_edit_forgiveness.py pi_trajectory.py plan_master.py reconciler.py rolslice.py seat_status.py spawn_gate.py stall_detect.py success_metrics.py telemetry_rollup.py towns.py verify_unified.py ws_raw.py ws_raw_client.py
 done when all 70 engine CLIs are covered, the drift test includes them, propose still imports and executes nothing
 round     hypothesis:the-last-engine-clis-join-the-choice-surface
+```
+
+##### G1.25.5 — HELD: THE CHOICE SURFACE'S MUR RESIDUES (the choice-surface mur residue; assigned director-engine) — status: active
+
+# goal:g1.25.5
+
+# goal:g1.25.5 — HELD: THE CHOICE SURFACE'S MUR RESIDUES
+
+```
+source    after EF.54 lands: multi-value arity data for the 9 options (commands.md ~2482; R-EF45-55 D) and a _full_supply test that honours it (M1) · verification.py + write_guard.py into the coverage/drift tests, so all 70 is established (R-EF54 D) · dashboard.py `watch` makes a non-terminating proposable argv (R-EF54 M1) · the drift test checks args[].type (M2) · the mesh `about` text under the anonymize guard (R-EF45 M1) · the operator-verb gate derived from side effects, not a 3-key list (M2) · _split_arity('append:0') refuses by name (R-EF45-55 M2) · links.py --strict wired to a gate (R-EF26 M2)
+          bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     none -- dispatch after EF.54 lands; split into rounds then
+writer    director-engine
 ```
 
 #### G5.21 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
