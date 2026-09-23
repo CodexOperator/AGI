@@ -9019,13 +9019,97 @@ chunk 1   R1 hypothesis:send-undelivered-notice-lands-in-the-comms-root   EF.12 
           batch mur R1 ACCEPT · R2 accept_with_residue · 0 demote -> [merge-up] to thought-master 08:3xZ 09-23 @4c5dee025   DONE
 chunk 2   table   hypothesis:mur-0921-engine-residues-dispositioned-and-corrected -- 130 items: F 34 · C 34 · K 58 · G 4; its round applies C
           FR-A    hypothesis:alarms-loop-runs-flat-and-the-capture-grace-restarts-per-session -- LIVE: alarms recursion + capture stamp
-          queued  behind pool headroom (thought-master's paid experiments first):
+          leaves  g15.27.1-.6 (KEEP SPLITTING, owner 10:4xZ): .1 FR-B1 · .2 FR-B2 · .3 FR-B3 · .4 FR-C1 · .5 FR-C2 · .6 FR-D1 -- one small round each:
                   FR-B rotate verbs read MAIN rows + migrate resolves the grant before seating (rotate.py)
                   FR-C kid wait + turn-end evidence (cli.py dispatch.py heal.py) · kid ceiling + liaison moral (brief.py)
                   FR-D write.py outside-ref gate + escaped && · paths.py / boxes.py / crons.py audits
           flagged research-review F items (thought-side node) -> thought-master · lm-replace-body-anchor demote (g7.33.1) -> HELD
 done when chunk 1 merged up (done) · the table's C items applied · every F item landed or carried by name ·
           ONE batch mur over the corrected demote rounds + the landed FR rounds returns no demote · one [merge-up] names the batch node
+```
+
+##### G15.27.1 — FR-B1 ROTATE VERBS READ THE MAIN ROWS (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.1
+
+# goal:g15.27.1 — FR-B1 ROTATE VERBS READ THE MAIN ROWS
+
+```
+leaf      merge-up --post and rotate-self --prepare resolve their target row through _seat_read_root (the MAIN copy) like cmd_rotate does
+source    l5-rotate-accepts DEF1 + MISSED1-2 (rotate.py cmd_merge_up ~4449, rotate-self --prepare, _seat_read_root 17851)
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:rotate-verbs-read-the-main-seat-rows
+```
+
+##### G15.27.2 — FR-B2 MIGRATE RESOLVES THE GRANT BEFORE SEATING (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.2
+
+# goal:g15.27.2 — FR-B2 MIGRATE RESOLVES THE GRANT BEFORE SEATING
+
+```
+leaf      cmd_migrate_receive checks the actor_rows grant before _migrate_seat spawns or writes a cell; an inadmissible grant is skipped by name
+source    l4-quick-migrate #5 #9 #10 #12 (rotate.py cmd_migrate_receive ~20938, _migrate_seat ~20869)
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:migrate-resolves-the-grant-before-it-seats
+```
+
+##### G15.27.3 — FR-B3 MIGRATE COPIES THE TRANSCRIPT WITH A PATH SCP CAN RESOLVE (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.3
+
+# goal:g15.27.3 — FR-B3 MIGRATE COPIES THE TRANSCRIPT WITH A PATH SCP CAN RESOLVE
+
+```
+leaf      MEASURE first: does the migrate transcript copy's remote "$HOME/..." path fail under OpenSSH 9.6 SFTP-mode scp (inferred, never measured)
+source    l4-quick-migrate #11 (rotate.py migrate scp ~20747; inferred, not measured)
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:migrate-transcript-copy-survives-sftp-mode-scp
+```
+
+##### G15.27.4 — FR-C1 A PARENT'S WAIT AND A TURN-END KEEP THEIR EVIDENCE (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.4
+
+# goal:g15.27.4 — FR-C1 A PARENT'S WAIT AND A TURN-END KEEP THEIR EVIDENCE
+
+```
+leaf      cli.py wait returns at once on zero matching kids and prints elapsed; a turn-end reap keeps the stream-error death evidence
+source    l5-a-parent-waits DEF1 DEF5 MISSED2 MISSED3 + engine-delta DEF3 (cli.py cmd_wait; dispatch.py turn-end reap; heal.py reap)
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:wait-returns-on-an-empty-kid-set-and-turn-end-keeps-death-evidence
+```
+
+##### G15.27.5 — FR-C2 A KID BRIEF NAMES ITS CEILING AND A LIAISON HEAD CARRIES NO MORAL REGION (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.5
+
+# goal:g15.27.5 — FR-C2 A KID BRIEF NAMES ITS CEILING AND A LIAISON HEAD CARRIES NO MORAL REGION
+
+```
+leaf      after brief.py's EF.25 lands: a kid brief never orders its own line_ceiling rewritten; the liaison head renders without faith's MORAL region
+source    l5-an-across-k-kids DEF2 DEF4 DEF5 + l5-moral-one MISSED1 (brief.py)
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:kid-brief-keeps-the-parent-ceiling-and-liaison-head-carries-no-moral
+```
+
+##### G15.27.6 — FR-D1 WRITE.PY GATES JUDGE THE EFFECTIVE FRONTMATTER (0921 engine slice leaf; assigned director-engine) — status: active
+
+# goal:g15.27.6
+
+# goal:g15.27.6 — FR-D1 WRITE.PY GATES JUDGE THE EFFECTIVE FRONTMATTER
+
+```
+leaf      the outside-ref gate judges on-disk + set - unset refs; prose can escape a verb-led && (both in write.py)
+source    l5-a-verdict-node #4 #5 + l5-write-py-splits #1 #3 #8
+          sources: the 0921 mur disposition table (hypothesis:mur-0921-engine-residues-dispositioned-and-corrected)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:write-py-outside-ref-gate-judges-the-effective-frontmatter-and-prose-can-escape-a-verb-and-pair (minted 10:1xZ under g15.27, re-parented to this leaf)
 ```
 
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired

@@ -3,7 +3,7 @@ id: hypothesis:write-py-outside-ref-gate-judges-the-effective-frontmatter-and-pr
 mint_id: 5c86145f6b1e4812a50fc4171dd28b9d
 type: hypothesis
 parents:
-  - goal:g15.27
+  - goal:g15.27.6
 next_edges: []
 confidence: 0.7
 edited_by: director-engine
@@ -34,3 +34,7 @@ proves     committed tests, each red on the pre-fix bytes: the gate judges the E
 
 ## Agent Notes
 assigned: director-engine (0921 residue batch, engine slice, goal:g15.27); minted by director-engine after verifying the bytes.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+re-parented goal:g15.27 -> goal:g15.27.6, a leaf of its own, under KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5: residues big enough for a round become goal leaves under the goal that yielded them; spawn parents only against leaves). Claim, body and mint id unchanged.
+<!-- THOUGHT:END -->
