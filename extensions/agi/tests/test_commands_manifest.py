@@ -286,16 +286,103 @@ _LISTED_CLIS += [
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
 ]
 
+# EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.
+# These 11 build their parser outside a plain module-level `main()`: under
+# `if __name__ == "__main__"`, in `_cli`/`_main`, or not at all (manual argv,
+# listed parserless below).
+_LISTED_CLIS += [
+    "boxes.py", "branches.py", "completion.py", "mem_cap.py",
+    "migrate_channel.py", "geometry_config.py", "spawn_gate.py", "towns.py",
+    "ws_raw.py", "pi_edit_forgiveness.py", "pi_trajectory.py",
+]
+
+# EF.54 CLI GROUP D. Appended, like GROUP C, so sibling edits cannot collide.
+# The 12 remaining engine CLIs whose parser is a plain module-level `main`:
+# every one is captured by the harness already, so this round is DATA -- each
+# verb declared or excluded by name in `command:commands`, read off its own
+# argparse.
+_LISTED_CLIS += [
+    "backfill-mint-ids.py", "briefing.py", "dashboard.py",
+    "decompose-engine.py", "derive-commands.py", "drift_check.py",
+    "failures.py", "frontier.py", "glitch_master.py", "graphweb.py",
+    "grid_coverage_check.py", "inject.py",
+]
+
+# EF.54 CLI GROUP E. Appended, like GROUP C/D, so sibling edits cannot collide.
+# The 12 last engine CLIs whose parser is a plain module-level `main`; every
+# verb is declared or excluded BY NAME in `command:commands`.
+_LISTED_CLIS += [
+    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
+    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
+    "success_metrics.py", "telemetry_rollup.py", "verify_unified.py",
+    "ws_raw_client.py",
+]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
-#: with no `main`, and `metrics.py` reads a manual argv. They are still IN the
-#: coverage test -- `require_parser=False` returns the single-verb
-#: `{"": set()}` vocabulary -- while every other listed CLI still asserts a
-#: parser was captured. `main` is never imported or run for these two.
-_PARSERLESS_CLIS = {"node_writer.py", "metrics.py"}
+#: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
+#: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`
+#: is a hand-rolled scanner too (the parent brief called it "async", but the
+#: async is only its `main`). They are still IN the coverage test --
+#: `require_parser=False` returns the single-verb `{"": set()}` vocabulary --
+#: while every other listed CLI still asserts a parser was captured. `main` is
+#: never imported or run for these.
+_PARSERLESS_CLIS = {"node_writer.py", "metrics.py", "pi_edit_forgiveness.py",
+                    "pi_trajectory.py", "ws_raw.py"}
 
 
 class _ParserCaptured(Exception):
     """Raised by the spy once the top-level parser exists, before it parses."""
+
+
+def _drive_module(path, modname: str, as_main: bool):
+    """Exec `path` under the active argparse spy and drive its entry point.
+
+    A CLI may build its parser in a module-level `main`, in `_cli`/`_main`, or
+    only under `if __name__ == "__main__"`; this covers all three. `as_main`
+    execs with `__name__ = "__main__"` so the guarded block fires. Every
+    exception -- the spy, a SystemExit, or the CLI's own -- is swallowed: a
+    probe must never let a verb run.
+    """
+    import contextlib
+    import inspect
+    import io
+    import types
+
+    # A plain `exec` rather than `SourceFileLoader.exec_module`: the loader
+    # refuses a module whose `__name__` differs from the loader's (it cannot
+    # "handle __main__"), and the whole point of the `as_main` pass is to give
+    # the module `__name__ == "__main__"` so its guarded block fires.
+    module = types.ModuleType(modname)
+    module.__file__ = str(path)
+    if as_main:
+        module.__name__ = "__main__"
+    sys.modules[modname] = module
+    code = compile(Path(path).read_text(encoding="utf-8"), str(path), "exec")
+    with contextlib.redirect_stdout(io.StringIO()), \
+            contextlib.redirect_stderr(io.StringIO()):
+        try:
+            exec(code, module.__dict__)
+            if as_main:
+                return module
+            for fname in ("main", "_cli", "_main", "_parse_args"):
+                fn = getattr(module, fname, None)
+                if not callable(fn):
+                    continue
+                try:
+                    params = list(inspect.signature(fn).parameters)
+                except (TypeError, ValueError):
+                    continue
+                try:
+                    fn([]) if params else fn()
+                except TypeError:
+                    try:
+                        fn()
+                    except BaseException:  # noqa: BLE001 -- probe
+                        pass
+                break
+        except BaseException:  # noqa: BLE001 -- probe: never run a verb
+            pass
+    return module
 
 
 def _arg_dests(parser) -> set[str]:
@@ -339,22 +426,11 @@ def _introspect_cli(cli: str, monkeypatch,
     monkeypatch.setattr(argparse.ArgumentParser, "parse_args", spy)
     monkeypatch.setattr(argparse.ArgumentParser, "parse_known_args", spy)
 
-    modname = "manifest_probe_" + cli.replace(".", "_").replace("-", "_")
-    loader = importlib.machinery.SourceFileLoader(modname, str(BIN / cli))
-    spec = importlib.util.spec_from_loader(modname, loader)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[modname] = module
-    with contextlib.redirect_stdout(io.StringIO()), \
-            contextlib.redirect_stderr(io.StringIO()):
-        loader.exec_module(module)
-        try:
-            params = list(inspect.signature(module.main).parameters)
-            try:
-                module.main([]) if params else module.main()
-            except TypeError:
-                module.main()
-        except (_ParserCaptured, SystemExit):
-            pass
+    stem = "manifest_probe_" + cli.replace(".", "_").replace("-", "_")
+    _drive_module(BIN / cli, stem, False)
+    if "top" not in captured:
+        # The parser was built ONLY under `if __name__ == "__main__"`.
+        _drive_module(BIN / cli, stem + "_main", True)
 
     top = captured.get("top")
     assert top is not None, f"{cli}: could not capture its ArgumentParser"
@@ -816,21 +892,15 @@ def _cli_arg_specs(entry: dict) -> dict:
     argparse.ArgumentParser.parse_args = spy
     argparse.ArgumentParser.parse_known_args = spy
     try:
-        spec = importlib.util.spec_from_file_location("_drift_probe", str(path))
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["_drift_probe"] = mod
-        with contextlib.redirect_stdout(io.StringIO()), \
-                contextlib.redirect_stderr(io.StringIO()):
-            spec.loader.exec_module(mod)
-            try:
-                mod.main([]) if inspect.signature(mod.main).parameters \
-                    else mod.main()
-            except BaseException:
-                pass
+        _drive_module(path, "_drift_probe", False)
+        if "top" not in seen:
+            # The parser was built ONLY under `if __name__ == "__main__"`.
+            _drive_module(path, "_drift_probe_main", True)
     finally:
         argparse.ArgumentParser.parse_args, \
             argparse.ArgumentParser.parse_known_args = old
         sys.modules.pop("_drift_probe", None)
+        sys.modules.pop("_drift_probe_main", None)
     top = seen.get("top")
     assert top is not None, f"{path.name}: main() never built a parser"
     for act in getattr(top, "_actions", []):
