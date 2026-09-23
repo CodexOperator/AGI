@@ -3021,6 +3021,14 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
         print(guard, file=sys.stderr)
         return 1
 
+    # goal:g7.31.5.3 residue: the loop path seats the successor seat through
+    # spawn_window, so it owes the same pre-rotation drift gate as
+    # rotate-self. Refuse BY NAME here, before the meter and any spawn.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
+        return 1
+
     if not args.force:
         meter_args = SimpleNamespace(session_log=args.session_log, check=True)
         meter_code = cmd_meter(meter_args, root)
