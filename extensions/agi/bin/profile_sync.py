@@ -53,8 +53,17 @@ def project(root, node_id):
 
 
 def _raw_profile_ref(text):
-    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
-    m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
+    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse.
+
+    Only the frontmatter block is searched (goal:g7.31.5.3 residue 5): a
+    `profile_ref:` mentioned in prose or a body is not a link and must not
+    make an unparseable file look linked. Absent frontmatter delimiters =>
+    no hint, so such a file is skipped rather than named unreadable.
+    """
+    m = re.search(r"\A---\s*\n(.*?)\n---", text, re.S)
+    if not m:
+        return ""
+    m = re.search(r"^profile_ref:\s*(.+?)\s*$", m.group(1), re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
 
@@ -73,8 +82,18 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
+            # A permission/IO error reading the raw bytes must also become a
+            # named `unreadable` failure, never a re-raised OSError
+            # (goal:g7.31.5.3 residue 6).
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except OSError as io_err:
+                out.append({"node_id": f.stem, "artifact": "",
+                            "actual": None, "expected": None, "path": str(f),
+                            "status": "unreadable",
+                            "detail": f"{type(io_err).__name__}: {io_err}"})
+                continue
+            if not _raw_profile_ref(raw):
                 continue  # unparseable but not profile-linked: not ours
             out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
                         "actual": None, "expected": None, "path": str(f),
