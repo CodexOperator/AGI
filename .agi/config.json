@@ -208,7 +208,6 @@
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
-      "worktree_a00_d511add6": ".agi/worktrees/a00-d511add6",
       "sessions_dir": ".agi/sessions",
       "nodes_experiment_dir": ".agi/worktrees/a00-d511add6/.agi/nodes/experiment",
       "kid_sft_out_dir": ".agi/worktrees/a00-d511add6/datasets/kid-sft",

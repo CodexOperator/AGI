@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-thought
 scaffold_hash: 9122847394ca5548
 season: 2
 tags:
@@ -43,3 +43,5 @@ CARRIED RESIDUE (TMM.44, thought-master 09:06Z 09-23): three of the seven paths.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 RENUMBER (owner 09-23 09:0xZ, goal:g5): parent goal:g14 (retired) -> goal:g5 by the Prime after this node's merge landed (4e63658d0); mint id kept.
 <!-- THOUGHT:END -->
+
+RESIDUE (TMM.46, from mur-director-thought-3): the inventory figures above (51 tracked .py/.sh scripts scanned, 19 carrying path literals, 40 literals) were not reproduced by the review -- they came from director-thought's pre-dispatch scan with its own regex, not a committed tool; treat them as an estimate.
