@@ -3,11 +3,11 @@
 
 Round 1 of hypothesis:lm-kid-persona-sft-corpus, $0 compute (A1 CPU, file I/O).
 
-Inputs (all READ-ONLY, absolute paths — the session store is gitignored and
-NOT under this worktree's relative paths):
-  SESSIONS   /home/ubuntu/work/agi/.agi/sessions/iter-*/<agent-id>/spawn.json
-  PI_TRAJ    /home/ubuntu/.pi/agent/sessions/--....-worktrees-<agent-id>--/*.jsonl
-  NODES      <worktree>/.agi/nodes/experiment/<agent-id>-<suffix>.md
+Inputs (all READ-ONLY, each resolved from `paths.local_maxxing.<key>` in
+.agi/config.json — the session store is gitignored):
+  SESSIONS   paths.local_maxxing.sessions_dir         iter-*/<agent-id>/spawn.json
+  PI_TRAJ    paths.local_maxxing.pi_traj_dir          --....-worktrees-<agent-id>--/*.jsonl
+  NODES      paths.local_maxxing.nodes_experiment_dir <agent-id>-<suffix>.md
 
 Accept filter (conjunct 1): a round is ACCEPTED iff its kid experiment node
 carries a decisive verdict (proved|disproved) in its frontmatter AND the
@@ -31,11 +31,17 @@ never beside the q4-KV bench.
 """
 import os, re, glob, json, sys, hashlib, random, statistics
 
-WT = "/home/ubuntu/work/agi/.agi/worktrees/a00-d511add6"
-SESSIONS = "/home/ubuntu/work/agi/.agi/sessions"
-PI_TRAJ = "/home/ubuntu/.pi/agent/sessions"
-NODES = os.path.join(WT, ".agi/nodes/experiment")
-OUT_DIR = os.path.join(WT, "datasets/kid-sft")  # moved 2026-09-20 (owner: separate datasets archive)
+import importlib.util as _iu
+_p = os.path.dirname(os.path.abspath(__file__))
+while not os.path.isfile(os.path.join(_p, ".agi", "config.json")): _p = os.path.dirname(_p)
+_s = _iu.spec_from_file_location(
+    "lmpaths", os.path.join(_p, ".agi", "context", "local-maxxing", "paths.py"))
+_lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+
+SESSIONS = _lm.get("sessions_dir")
+PI_TRAJ = _lm.get("pi_traj_dir")
+NODES = _lm.get("nodes_experiment_dir")
+OUT_DIR = _lm.get("kid_sft_out_dir")  # moved 2026-09-20 (owner: separate datasets archive)
 OUT_JSONL = os.path.join(OUT_DIR, "kid_sft.jsonl")
 
 KID_PREAMBLE = (

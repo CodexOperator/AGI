@@ -11,12 +11,7 @@ import subprocess, sys, os, json, time, shutil, urllib.request, urllib.parse
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import importlib.util as _iu, os as _os
-_p = _os.path.dirname(_os.path.abspath(__file__))
-while not _os.path.isfile(_os.path.join(_p, "paths.py")): _p = _os.path.dirname(_p)
-_s = _iu.spec_from_file_location("lmpaths", _os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
-
-WORK = _lm.get("models_dir")
+WORK = "/data/ml/models"
 FILES = {
   "athena": {
     "repo": "slashreboot/athena-class-model-a",

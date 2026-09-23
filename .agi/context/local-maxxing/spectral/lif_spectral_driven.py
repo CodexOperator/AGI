@@ -16,10 +16,6 @@ M symmetric low modes kept; threshold+reset only at snapshot boundaries.
 import importlib.util, json, os, subprocess, time
 import numpy as np
 
-import importlib.util as _iu
-_p = os.path.dirname(os.path.abspath(__file__))
-while not os.path.isfile(os.path.join(_p, "paths.py")): _p = os.path.dirname(_p)
-_s = _iu.spec_from_file_location("lmpaths", os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
 
 N, SYN, T, DT = 10000, 100, 1000, 0.1
 A, B = 1.0 - DT, DT
@@ -68,7 +64,7 @@ def ref_trains():
     src = mod.C.replace("if(fired){ v[i]=v1-ONE; total++; }",
                         'if(fired){ v[i]=v1-ONE; total++; printf("S %d %d %d\\n",q,i,t); }')
     src = src.replace('printf("%llu\\n", total);', 'fprintf(stderr,"TOTAL %llu\\n", total);')
-    src_c, exe = _lm.get("tmp_tm58drv_c"), _lm.get("tmp_tm58drv")
+    src_c, exe = "/tmp/tm58drv.c", "/tmp/tm58drv"
     open(src_c, "w").write(src)
     subprocess.run(["cc", "-O3", "-march=native", "-fopenmp", src_c, "-o", exe], check=True)
     t0 = time.perf_counter()
