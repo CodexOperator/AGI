@@ -71,6 +71,7 @@ import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
+import tmux_seat  # noqa: E402 -- durable named pane seam (goal:g7.31.1.2)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -1692,17 +1693,13 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
             fh.write(launch_cmd + "\n")
         launch_cmd = f"bash {shlex.quote(script)}"
     try:
-        # L4.114 (s3): `-P -F '#{window_id}'` makes tmux print the new
-        # window's @id on stdout so the caller can JOIN the successor by its
-        # WINDOW @id (the `-P` flag was missing here before this round; a
-        # rename/kill addressed the window by dotted name, which real tmux
-        # refuses — see proof (d), owned by kid 2). The @id is discarded when
-        # no one reads it; capture happens in _successor_window_id.
-        proc = subprocess.run(
-            ["tmux", "new-window", "-t", tmux_session, "-n", name,
-             "-P", "-F", "#{window_id}", launch_cmd],
-            capture_output=True, text=True, timeout=10,
-        )
+        # goal:g7.31.1.2: the launch goes through the durable named pane seam.
+        # First launch creates the window and sets `remain-on-exit on`; an
+        # existing window of this name is `respawn-window`ed in place (never a
+        # second `new-window`). L4.114 (s3): the seam's new-window still passes
+        # `-P -F '#{window_id}'`, so tmux prints the @id on stdout exactly as
+        # before (discarded here; captured in _successor_window_id).
+        _op, proc = tmux_seat.ensure_pane(tmux_session, name, launch_cmd)
     except FileNotFoundError:
         print("ERR: tmux not found. Install tmux or pass --dry-run to preview.",
               file=sys.stderr)

@@ -836,8 +836,12 @@ def test_launch_recovered_cds_into_seat_tree(tmp_path, monkeypatch):
     pid, wid = heal._launch_recovered(
         graph, "seat-wt", "echo successor", cwd=wt_dir)
     assert wid == "@123"
-    assert len(captured) == 1, "one tmux new-window launch"
-    tmux_rgx = captured[0]
+    # goal:g7.31.1.2: the launch now runs through the durable pane seam, so the
+    # queue is list-windows, new-window, set-option (remain-on-exit). This
+    # assertion is about the new-window argv, not the call count.
+    new = [c for c in captured if "new-window" in c]
+    assert len(new) == 1, "one tmux new-window launch"
+    tmux_rgx = new[0]
     assert tmux_rgx[-1].startswith(f"cd {wt_dir} && "), tmux_rgx[-1]
     assert "cd " + str(graph) + " " not in tmux_rgx[-1], \
         "the launch never cds into the graph dir"
