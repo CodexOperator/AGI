@@ -6,11 +6,12 @@ parents:
   - hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable
 next_edges: []
 confidence: 0.85
-edited_by: a00-166bfce8
+edited_by: a00-1730cceb
 evidence_runs:
   - experiment:a00-166bfce8-ac87da
 loop: hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable@s2
 model: deepseek/deepseek-v4.1-flash
+probes: "\"PARENT PROBES (EF.37): gate: pre-fix coverage predicate over git b0247001f bytes -> 27 RED (entry,arg) drops, 0 post-fix. wire: all proposable manifest entries composed argv parsed by their own CLI argparse -> 0 failures. auth: workflow.py:run + dispatch.py: and a synthetic proposable:true/side_effects:spend entry all refuse by name; live spend/spawn/destructive proposable list == []. wire: src/schema_registry loads [command] -> fields include manifest+excluded, errors=[]. wire: POST /propose synthetic unmapped <N:M> -> 400 cannot place; GET /propose -> 404. FALSIFYING EDGE: propose(write.py:set,{value:<foo>}) and {value:<div>x</div>} REFUSE unmapped placeholder instead of returning the literal value; kid test only used <engine> (a KEPT metavar) so the one-pass test missed it.\""
 production_lines: 64
 profile: balanced
 role: kid
@@ -18,7 +19,7 @@ scaffold_hash: efe39c69699fa8f0
 season: 2
 title: "propose completes every argv or refuses: 27 required-arg drops fixed, spawn verbs demoted"
 town: local-maxxing
-verdict: proved
+verdict: inconclusive_lean_proved:85
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-166bfce8-ac87da
@@ -112,3 +113,5 @@ regardless of what the node declares.
 
 ## Agent Notes
 propose now completes every argv or refuses by name: 27 required-arg drops fixed in command:commands, spawn/spend verbs demoted, one-pass/declared-only substitution, [command] schema declares manifest/excluded; coverage test 27 RED pre-fix / 0 post-fix, 103 passed
+
+PARENT REVIEW: accepted on all named deliverables (diff carries the 27 entry fixes, the spawn demotion, the schema fields, the red/green coverage test, and the HTTP POST refusal); demoted proved->inconclusive_lean_proved:85 because the one-pass/declared-only conjunct is pinned only for <engine> (a KEPT metavar): a caller value that merely looks like an unmapped placeholder (<foo>, <div>) is refused, not returned. Round-2 kid fixes the leftover scan to read the TEMPLATE, not the substituted output.
