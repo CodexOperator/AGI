@@ -9,7 +9,7 @@ edited_by: a00-0263e9f7
 line_ceiling: 40
 loop: goal:g7.32.1@s2
 model: deepseek/deepseek-v4.1-flash
-production_lines: 65
+production_lines: 66
 profile: balanced
 role: kid
 scaffold_hash: d0866bbe5d5aa979
@@ -23,7 +23,7 @@ town: core
 
 ## Experiment
 
-Built the production CLI `extensions/agi/bin/ingest_session.py` (65 lines) and
+Built the production CLI `extensions/agi/bin/ingest_session.py` (66 lines) and
 its hermetic test `extensions/agi/tests/test_ingest_session.py` (6 tests).
 The mechanism is reproduced byte-for-byte from `hypothesis:a00-d0b6a642-f6ee59`:
 `key_of(a) = sha256(f"{a['harness']}:{a['session_id']}").hexdigest()[:16]`,
@@ -59,5 +59,5 @@ Covered: first ingest writes exactly one node + id on stdout; re-run prints
 malformed is refused by name with no file; two distinct sessions do not
 collide (2 files).
 
-The production-line overage (65 > 40, under the 2× stop of 80) is recorded in
+The production-line overage (66 > 40, under the 2× stop of 80) is recorded in
 this node's frontmatter as `production_lines` / `line_ceiling`.
