@@ -3329,6 +3329,25 @@ def _restart_iter_id(iter_dir, rec):
     return locations.iteration_id(rec.get("iter", 0) or 0)
 
 
+def _carried_restart_brief(iter_dir, agent_id: str) -> str | None:
+    """The render the FIRST spawn used, read back from that agent's
+    `spawn.json` (hypothesis:a-restarted-agent-gets-the-same-render-as-its-
+    first-spawn). The spawn artifact is the ONE place the exact bytes live, so
+    a restart is byte-identical BY CONSTRUCTION, never re-derived from inputs
+    that may have moved. Absent, or the failed-render sentinel, returns None
+    and the adapter assembles exactly as it did pre-fix (back-compat)."""
+    import json
+    try:
+        rec = json.loads(
+            (Path(iter_dir) / agent_id / "spawn.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    brief_text = rec.get("brief")
+    if not brief_text or brief_text == "<brief render failed>":
+        return None
+    return brief_text
+
+
 def _branch_has_done_commit(root, rec, agent_id) -> bool:
     """True when the round's branch has advanced past its base.
 
@@ -3580,6 +3599,11 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
             target=rec.get("target"),
             scaffold=scaffold_info,
             agent_record=rec,
+            # hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-
+            # spawn -- the restart's first turn gets the SAME bytes the first
+            # spawn carried, read back from its spawn.json. None (old record,
+            # failed render) keeps the pre-fix assemble path byte-identical.
+            rendered_brief=_carried_restart_brief(iter_dir, agent_id),
         )
     except (NotImplementedError, Exception) as exc:   # noqa: B014
         spawn_budget.release(lease)
