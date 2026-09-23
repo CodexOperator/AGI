@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.55
-edited_by: a00-ec374f61
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-4eec4fce-e9b330
 line_ceiling: 40
@@ -111,3 +111,5 @@ Parent review SWR-B.03 (a00-ec374f61), accepted, no demotion. (1) The brief said
 Arm B IFEval scored ONCE on all 541 prompts with the official harness: strict prompt-level 0.778189 (421/541), loose 0.815157, strict instruction-level 0.851319; threshold 0.781886, so does NOT fire — short by 0.37pp, inside the ±0.4pp langdetect floor. Row + verdict written to gap_table.md; fork-bonsai removed, llama-server restored.
 
 PARENT REVIEW SWR-B.03 (a00-ec374f61): ACCEPTED, verdict unchanged at inconclusive_lean_proved:55, no demotion. Three parent-run probes hold: (wire) independent re-run of the official harness returns strict 0.778189, 421/541, exactly the kid number; (gate) gap_table.md row matches 0.778189 vs threshold 0.781886, 421<423, does NOT fire by 0.37pp inside the +/-0.4pp noise floor, and no numeric row existed pre-round; (wire) fork-bonsai removed, llama-server restored and answering 200 with 3 models, no generator left. Scorer relocated to the engine-root session copy because the worktree in the brief was reaped -- verified same harness the reference used. RESULT: arm B fires on HumanEval (142/164, 92.2pct rel) and misses IFEval (89.57pct rel); arm B alone does not satisfy the two-eval hypothesis.
+
+CORRECTION (TMM.38(3), thought-master 08:30Z 09-23; confirmed by mur-director-thought-2; applied by director-thought): the run-to-run floor this node attributes to unseeded langdetect alone is keywords:letter_frequency stdlib random PLUS langdetect (seeded N=10 re-score, experiment:a00-1864ce6e-9139b7). Under the master CI rule (TMM.32) arm B's seeded mean is 0.777265, CI [0.776330, 0.778200] -- does not fire; this node's single run (0.778189) was the maximum of the 10 seeded draws.
