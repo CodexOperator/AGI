@@ -51,7 +51,7 @@ memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pa
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (20:3xZ 09-23 -- gen 14, resumed)
+## Live state (21:3xZ 09-23 -- gen 14)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
 LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
@@ -64,8 +64,8 @@ LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
                          REFRAME a QK-norm model or per-channel / bias-subtracted keys, not more bits
   [1b]   SWARM           OSC.10 measured: 2 parents + 4 kids = 20.24 M tokens / 7.48 USD vs the control's 9.05 M / 3.23 USD (2.3x) · LAP 0 posts 14 s apart, B spawned
                                39 s later: NO division of labour, the same quantizer, the same verdict · only A added anything (the finer step grid + the bw4 defect, by its
-                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line (verdict after mur-13, item 1)
-  L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (mur-14 running)
+                               own probe) · 2 of A's 3 kids died (one-shot harness exit, global OOM) -> the swarm has NOT earned a brief line -- FINAL after mur-13: NOT earned (the L3 hypothesis's harvest section)
+  L6b    long prefill    OSC.11 REFUTED: -ub is not a >= 10 pct long-prompt prefill lever (quiet re-run +1.29 pct); keep -ub 512 (closed f2003718f0)
   L9/10  speculation     OSC.12 LIVE (parent a00-ad0038cd): draft-free n-gram --spec-type on the served 9B -- does speculation run on qwen35 at all, and >= 1.3x decode?
                          the build block is DEMOTED (THOUGHT on the OSC.12 hypothesis: the JIT cache already removes the cold JIT; PTX-JIT runs the same SASS class)
                          next: (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board
@@ -74,33 +74,27 @@ batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bc
 routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (use 6G or omit it; config is 6G) -> director-engine 20:29Z · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Where it stops -- 20:2xZ 09-23, RESUMED per TMM.61 (no second rotation for this seat), in this order (the next command is item 1)
+## 🔴 Where it stops -- 21:3xZ 09-23, in this order (the next command is item 1)
 ````
 ```
-1 mur-director-thought-13 RUNNING (relaunched 20:14Z, bg; stages run one at a time) -- OSC.10's review, args .agi/sessions/iter-OSC.10/mur13.args.json
-         (3 rounds osc-10-a / -b / -ctl, review -> verify, deepseek-v4.1-flash; merge-base 5f04722e3c, tips A 60d07740e6 · B 86f4f9bb14 · ctl e27e5995d6)
-         results MAIN .agi/sessions/workflows/runs/mur-director-thought-13/ · if my session died: relaunch with the same args (run key = mur-<merge_up>)
-    then close in place: CONFIRMED residues fixed in the kid nodes (write.py, AGI_ACTOR=director-thought) -> the hypothesis node gains a harvest section
-         AFTER CEILING (the brief order stays): verdict disproved x3, the step (energy 9.0 bits, uniform 10.25), the [1b] SWARM numbers (LADDER above) and the
-         swarm verdict: NOT earned, its lines stay orders text, no line in doc:lm-director-brief-customizations · push_further = the L3 REFRAME · a THOUGHT block
-    residues to weigh: A's bw4 arm is a ~1.58-bit ternary quantizer labelled 4.5-bit (A's own probe; are B's and the control's baselines the same?) ·
-         generic-named osc_band_kquant.py + test_osc_band_kquant.py beside the per-agent copies (FILE SCOPE) · the two death-record nodes carry no verdict
-2 OSC.11 CLOSED f2003718f0 -- mur-director-thought-14: review demote -> verify accept_with_residue (all 5 defects real, text-only); harvest merged
-         67837d6c23 + evidence 3f627c6cf5 / 458484bb3b; the node now says REFUTED throughout: step = keep -ub 512; T3 range 85.6x-1,383x; the kid's
-         restore proof was a JSONDecodeError -> the director's parsed completions (19:55:38Z, 20:32:49Z) are the proof
-3 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666) dispatched 20:29Z, wall ~22:29Z, GPU round: the router goes DOWN under its T0 guard and must be
-         restored + proven (a real 9B completion naming the model); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
-    the first spawn a00-8f615a6a FAILED at start (my --memory 6 -> MemoryMax=6 bytes, oom-kill 20:27:06Z): its worktree .agi/worktrees/a00-8f615a6a and
-         branch ...-ngram-sp-a00-8f615a6a are orphaned (empty), and iter-OSC.12/a00-b0263b6d is the empty dir of the 20:26Z stale-base refusal
-    harvest: merge its loop branch, check its worktree for uncommitted config AND gitignored evidence (OSC.11's lesson), anonymize, ONE mur, close
-4 TMM.58 LANDED at c63e1ab8b (TMM.62 20:36Z: gate clean, suite 6182 passed / 1 failed = core R3 only) -- closed. TM's merge-up scope:
-         OSC.09 (Dispatch line + harvest) + OSC.10 after mur-13 + OSC.11 (mur-14) -- the range starts at 96207abf1
-5 anonymize over the whole range RE-RUN at 3f627c6cf5: MAIN's gate ok (two-dot and three-dot); the committed gate: loopback only (82 lines) -- the TRUNK's
-         anonymize.py now drops loopback, so merging the trunk clears it
-6 trunk merged 20:28Z (b1abf75fd8; the committed gate now passes the whole range) -> ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + Dispatch line a9aed8731)
-         + OSC.10 (+ mur-13 close) + OSC.11 (+ mur-14 close)
-done   TMM.56 (@21085aa1d) · TMM.57 (@60eac6b52) · TMM.58 (@e0689f715) · mur-12 (OSC.09) closed · OSC.10 all three parents merged (A 37b51df94, B 39f0834f1,
-       control aed061142) · spawn.parallel back to 1 · OSC.11 merged 67837d6c23 + evidence 3f627c6cf5
+1 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666), dispatched 20:29Z, wall ~22:29Z, GPU round: its kid a00-71dbbad5 stopped the router under the T0 guard
+         (the ngram-simple feasibility arm first); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
+    when its harvest line lands: merge its loop branch (season2/loops/hypothesis-lm-served-9b-ngram-sp-a00-ad0038cd) -> check its worktree for uncommitted
+         config AND for evidence the nodes cite under gitignored .agi/sessions (copy stragglers verbatim beside the outputs after anonymize.py check -- the
+         OSC.10 + OSC.11 lesson) -> prove the router with a PARSED 9B completion naming the model -> ONE mur (merge_up director-thought-15, --dry-run first)
+         -> close in place -> the next [merge-up]
+    orphans to leave: the failed first spawn's worktree .agi/worktrees/a00-8f615a6a + branch ...-ngram-sp-a00-8f615a6a (empty; my --memory 6), and the
+         empty iter-OSC.12/a00-b0263b6d dir of the 20:26Z stale-base refusal
+2 [merge-up] SENT 21:26Z to TM at 45aaa02779: OSC.09 + OSC.10 (mur-13 closed 7493f50957 + 15d77dbd9a) + OSC.11 (mur-14 closed f2003718f0) + the OSC.12
+         mint; my checks: anonymize ok on trunk..tip, links 0 broken of 4114, 0 node deletions, GOALS round-trips -> await TM's gate line; a fix goes
+         over 45aaa02779 exactly as TMM.58 did
+3 NEXT RUNG after OSC.12's verdict: speculation runs + pays -> tune its parameters (one round) and the draft-model line
+         (hypothesis:lm-spec-decode-cpu-draft-hybrid: needs a draft download, its own ceiling says <= 3 GB) · refused or no gain on qwen35 -> that line waits
+         on upstream support; go L2 / L4 / L5 per the board · L3's reframe (a QK-norm model or per-channel / bias-subtracted keys + a TRUE q4_0-analog
+         baseline) is on that hypothesis's push_further
+4 SWR-SV.01 stays QUEUED until the CFG merge-up lands at TM's gate (orders in the scratch)
+done   TMM.56 · TMM.57 · TMM.58 LANDED c63e1ab8b · mur-12 / 13 / 14 closed · OSC.09 / 10 / 11 merged up at 45aaa02779 (TM's gate pending) · the [1b] swarm
+       measured and NOT earned (on the L3 hypothesis) · the build block demoted (THOUGHT on the OSC.12 hypothesis) · --memory unit trap routed to director-engine
 tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
 ````
