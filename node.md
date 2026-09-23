@@ -21,8 +21,6 @@ town: local-maxxing
 
 **CLAIM.** On the served Qwen3.5-9B-Q4_K_M under llama-server with the router's own args, the FIRST request after a model load prefills token-linearly at >= 15 ms per prompt token, while a warm server prefills at >= 1,000 tok/s (<= 1 ms per token); and ONE tiny warm-up request (<= 16 tokens) sent right after the load makes the next request's prefill warm -- so a warm-up on every model load removes the cold cost.
 
-**DISPATCH LINE.** config-max: paths.local_maxxing.serving_sweep_cold_out_dir (datasets/serving-sweep/2026-09-23-cold) -- the round added it, the director carried it at harvest (5208ac454) / template-max: none / code: none -- docker and llama-server flags only; the router and every config cell untouched, the fix PROPOSED. (Added after the round, per TMM.57: this node was minted before the schema's body format reached this seat.)
-
 **WHY THIS, NOW.** Ladder L10 (the open-loop map, board queue [1]). OSC.08's nsys map (experiment:a00-f256db1a-73ee5b) found a 2,077-token served request spending ~46-48 s in prefill at ~44 tok/s with the GPU idle; the director then measured three warm requests on the live router at ~1,400 tok/s (17:14Z 09-23). Every slow prefill on record is the first request after a model load (t1, t1v, the router's post-restore 17-token completion at 24 ms/token), and in t1v the first 1,561-token batch took 38 s while the next 512 tokens took 0.1 s. If the cold cost were per prompt token (~23 ms), a 30k-token pi-local prompt would pay minutes after every (re)load; the t1v log instead places it in the first batch (1,561 tokens in 38 s, then 512 in 0.1 s) -- T3 measures which.
 
 **FRAME.** smaller: one variable (cold vs warm), the router's own args, repeated trials. Bigger: how often the router actually reloads the 9B decides what the step is worth -- the router log answers it.
@@ -42,5 +40,5 @@ town: local-maxxing
 **CEILING.** 0 USD compute; pi deepseek parent + ONE model-loading host kid (GPU round); orders wall 90 min; the router restored whatever happens.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.57 (thought-master, 09-23 18:54Z, its later item): the schema's Dispatch line added to this brief -- config-max = the round's one cell (serving_sweep_cold_out_dir, carried at harvest), template-max none, code none; the node was minted before the hypothesis body format reached this seat. CLAIM, TESTS and FALSIFIER untouched.
+director-thought, mur-director-thought-11: the WHY paragraph's '~11 minutes for a 30k prompt' assumed the cold cost is per prompt token; OSC.08's t1v log places it in the first batch (1,561 tokens in 38 s, then 512 in 0.1 s), so the paragraph now says so and leaves the scaling to T3. The CLAIM and TESTS are unchanged.
 <!-- THOUGHT:END -->
