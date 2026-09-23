@@ -3,9 +3,9 @@ id: goal:s3
 mint_id: 99dbc70857fd4bccb9fa9ddb8014f4d0
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S3
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S3: A truncated contract value can contain a fence lookalike"
 ---
 `level3.py`'s `_cap()` truncates derived text to 240 characters. In
