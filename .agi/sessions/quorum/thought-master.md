@@ -11,33 +11,34 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (22:4xZ 09-23, gen 13)
+## Live state (23:0xZ 09-23, gen 13)
 ```
-DT LANDED x3   c63e1ab8b (batch C+D, OSC.01-08) · 5085dd5ef (OSC.09-11 + the OSC.12 mint) · 1789d3ffc (OSC.12: mur-15's verify demote = a
-               red selftest, closed in place and re-checked by me: 4/4 on the tip) -- each by commit-tree + ff-only, suite on the gated tree
-DE RETURNED    @a281bb0d85 (EF.49-69; murs 0 demote) -- TMM.64, 2 reds of its own: RED 1 experiment:a00-0abe0186-5b9f2c:359 quotes the opening
-               THOUGHT marker · RED 2 test_crons.py:1421 renders the LIVE repo, crons.py:368 refuses on a detached HEAD -> DE gen 2 (22:00Z)
-               owes the re-sent tip
-HOLD (TMM.66)  no NEW paid dispatch from the town: the OpenRouter account read 3.26 USD left of 170 at 22:3xZ (/api/v1/credits via the
-               MAIN .env provisioning key, read-only); [red] to the Prime 22:3xZ -- top-up / fold the older account / hold PASS 3
-the Prime      [red] the account · FLAG EF.10's post-landing demote (fix or revert before PASS 3) · the L1 router answer
-rotation       owner 20:06Z order DONE (pins verified); since then DE gen 1 -> 2 (22:00Z) and DT gen 14 -> 15 (22:29Z) by their own hooks
-PASS 3         the Prime's trunk -> season2/main merge starts 01:37Z 09-24 (~3 h, 2 cores, pi / deepseek chunks: needs the account)
-trunk reds     core R3 (test_brief g15 fallback) · test_dashboard's SIGINT watch times out under full-suite load (2 of 3 runs), passes alone
-with the Prime grid_sync ref pushes rejected (0 of 7,867 refs/grid on origin; cron log 582 MB, growing) · goal:g15 retired yet parents
-               g15.27-.29 · g15.29.9 cells · box cells (models_dir, ml_scratch_dir, an alias)
+DT LANDED x3   c63e1ab8b (C+D, OSC.01-08) · 5085dd5ef (OSC.09-11) · 1789d3ffc (OSC.12) -- each commit-tree + ff-only, suite on the gated tree
+DE tip #3      @d5696ac1de (EF.49-82; murs 0 demote; its one path removal = EF.71 retiring the duplicate-id build node: mint 07acc9ce
+               moved to deprecated/build/, NOT a deletion) -- NOT landable: TMM.68's 3 reds (a00-0abe0186:359 quoted THOUGHT marker ·
+               test_crons.py:1421 reads the live repo's branch · EF.81's order-dependent brief test). Pre-check over the trunk: 6339 passed /
+               exactly those 3 + the dashboard flake; core R3 PASSES there (TMM.73: no addendum) -> awaiting DE's close
+HOLD (TMM.66)  no NEW paid dispatch: the OpenRouter account read 1.34 USD left of 170 at 22:49Z ([red] to the Prime 22:3xZ); DE's EF.86/87
+               were dispatched before the hold reached it; DT idle, ready order on the lift: LEAF.01 -> REPLAY.01 -> SWR-SV.01 (TMM.69)
+SONNET         owner 22:5xZ-23:0xZ: both directors -> Sonnet max -- the OWNER switches the live sessions in the app; the Prime writes the two
+               config:posts rows (asked twice, the exact subs sent); TMM.70 (self-rotate) withdrawn by TMM.71 + TMM.72; the owner undid the
+               banking of these lines on goal:g5 (2406a007c) -- do not re-bank them
+the Prime      [red] the account · the two director rows · FLAG EF.10's demote (fix or revert before PASS 3) · the L1 router answer
+PASS 3         the Prime's trunk -> season2/main merge starts 01:37Z 09-24 (~3 h, pi / deepseek chunks: needs the account)
+trunk reds     core R3 (test_brief g15 fallback) · test_dashboard's SIGINT watch times out under full-suite load, passes alone
+with the Prime grid_sync ref pushes rejected · goal:g15 retired yet parents g15.27-.29 · g15.29.9 cells · box cells
 ```
 
 ## 🔴 Where it stops
 ````
 ```
-22:4xZ 09-23  gen 13 at f 0.32; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
- NEXT   (1) the Prime's funding answer -> lift the hold with one line to both directors, or keep it (re-read /api/v1/credits first)
-        (2) DE's re-sent tip (TMM.64): delta = the 2 fixes only (test_crons passes DETACHED) -> ONE full suite in a detached /tmp
-            worktree -> land by commit-tree + ff-only -> [merge-up] to the Prime -> the board's engine row
-        (3) DT gen 15: the host-path sweep leaf (TMM.63 + the spec-dec driver's MODELS, CACHE) -> gate
-        (4) the router answer -> the board's L1 row · EF.10 is the Prime's / core's call · (5) switch mvp (goal:g5.27) round 1 when the
-            queue reaches it · PASS 3 01:37Z: keep the trunk green
+23:0xZ 09-23  gen 13 at f 0.38; MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree of mine open
+ NEXT   (1) DE's close over d5696ac1de (TMM.68's 3 fixes): delta = those fixes only -> ONE full suite on its merge over the trunk in a
+            detached /tmp worktree (expect the dashboard flake only; test_crons green DETACHED) -> land by commit-tree + ff-only, the
+            message naming EF.71's retirement (mint 07acc9ce moved, not deleted) -> [merge-up] to the Prime -> the board's engine row
+        (2) the Prime's answers: the account (re-read /api/v1/credits, then lift the hold with one line to both directors) · the rows ·
+            EF.10 · the router
+        (3) DT's ready order on the lift · (4) switch mvp (goal:g5.27) round 1 when the queue reaches it · PASS 3 01:37Z: keep it green
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
@@ -46,11 +47,13 @@ with the Prime grid_sync ref pushes rejected (0 of 7,867 refs/grid on origin; cr
 ```
 meter        the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
 rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
+             rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
+             role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells (a director writes only its own session/key cells) ·
              a pin is verified = .agi/sessions/<post>.meter names the new session's jsonl AND that jsonl shows a [meter] line
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number, interval or RELAYED residue in an order is
              checked against the bytes first · a fix list names every wording of the error (git grep each variant; a test's own regex is
-             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.68
+             the arbiter) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.74
 merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by the NAMED tip · LAND WITHOUT A STAGED MERGE: gate
              M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing T2 = merge-tree(live HEAD, tip) -- if HEAD
              moved, diff(gated tree, T2) = exactly the newcomer files, byte-identical to HEAD on them; L = commit-tree T2 -p HEAD -p tip;
