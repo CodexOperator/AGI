@@ -3,13 +3,13 @@ id: hypothesis:a00-acd7b4f3-34978d
 mint_id: 3eb72f42db914b649f2a89dae3f3224d
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.10
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: d7197c75d45ba17f
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "--strict-goals flag in driver.sh default path causes no regression (0 unresolved goal refs)"
 verdict: pending
 ---

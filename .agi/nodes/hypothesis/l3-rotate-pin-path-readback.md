@@ -3,13 +3,13 @@ id: hypothesis:l3-rotate-pin-path-readback
 mint_id: 0b62aff750654669b40d980c537ff58d
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: belam-S1-L3-IV
+edited_by: belam
 scaffold_hash: 603453b796ff7953
 season: 2
 testable_claim: After the fix, rotate.py loop meters the caller's own transcript with no --session-log (pin resolves under <root>/.agi/sessions/<name>.meter, never <root>/.agi/.agi/sessions) and the successor read-back skips bracketed log lines such as [DEBUG] MDM settings load completed, reporting continue when the successor's first bare answer line is continue; proved by red-first tests in test_rotate.py and a dry rotate.py meter --check run with no --session-log.
-thought_session: L3.25
+thought_session: dissolve-legacy-2026-09-19
 title: Rotation loop meters its own pin and reads back past log noise
 ---
 <!-- BODY:BEGIN -->

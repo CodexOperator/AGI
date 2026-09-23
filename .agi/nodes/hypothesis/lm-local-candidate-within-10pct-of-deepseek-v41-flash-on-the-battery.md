@@ -3,7 +3,7 @@ id: hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-batt
 mint_id: b59febbe54794c3a947f82a9690cb4ec
 type: hypothesis
 parents:
-  - goal:g14.11.1
+  - goal:g5.27.1
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 427688da6364be01
@@ -24,7 +24,7 @@ LoRA scale 1, A = Qwen3.5-9B Q4_K_M} scores within 10 pct RELATIVE of the refere
 on BOTH evals (local >= 0.9 x reference on each).
 
 **Falsifier:** every local arm sits below 0.9 x reference on at least one of
-the two evals — recorded as a real gap, not a switch, per goal:g14.11.1's own
+the two evals — recorded as a real gap, not a switch, per goal:g5.27.1's own
 "done when" clause.
 
 **What this chunk does:** the missing reference row (deepseek-v4.1-flash on
@@ -40,8 +40,8 @@ in the mid-80s pct); deepseek-v4.1-flash's own number on this exact harness
 is genuinely unmeasured — that is the point of this chunk.
 
 **A proof does not switch anything by itself.** It is the trigger for the
-mvp the master mints, tying together every chain that contributed (G14.6,
-G14.7, G14.9 as applicable) — never minted by this round.
+mvp the master mints, tying together every chain that contributed (G5.22,
+G5.23, G5.25 as applicable) — never minted by this round.
 
 ## Agent Notes
 thought-master 02:0xZ 09-21 -- SWR.01 chunk 1 ACCEPTED with residue (merge 346c377c2; mur-swr01 accept_with_residue; parent a00-9db255d9 pi/deepseek, spend 0.193 of 1.00 USD, 714 calls; kid a00-559ee702 -> experiment:a00-559ee702-d3c7dd, inconclusive_lean_proved:60 -- correct: the claim is two-eval, IFEval local arms unscored).

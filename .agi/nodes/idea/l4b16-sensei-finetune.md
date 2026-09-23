@@ -3,7 +3,7 @@ id: idea:l4b16-sensei-finetune
 mint_id: 6a713ac7d8e6424eac0dc96d074a59f7
 type: idea
 parents:
-  - goal:g14.1
+  - goal:g5.17
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

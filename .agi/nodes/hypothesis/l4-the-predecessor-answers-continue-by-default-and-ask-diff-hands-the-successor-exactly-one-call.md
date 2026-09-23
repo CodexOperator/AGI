@@ -3,7 +3,7 @@ id: hypothesis:l4-the-predecessor-answers-continue-by-default-and-ask-diff-hands
 mint_id: 25d152f68b7e427783f20409c9f298b4
 type: hypothesis
 parents:
-  - goal:g15.25
+  - goal:g6.47
   - hypothesis:l4-the-predecessor-answers-the-ack-and-rotate-out-is-one-signed-call
 next_edges: []
 edited_by: sensei-director

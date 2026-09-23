@@ -3,15 +3,15 @@ id: hypothesis:copilot-cli-remote-control
 mint_id: 8115df994dce4feaba519881f3293618
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: f7948c3ba8ccdfab
 season: 2
 status: deprecated
 testable_claim: The copilot-cli adapter build command emits --remote on every unified-route spawn path, with the exact argv order copilot --model M --effort E --allow-all --remote -i ..., proven by adapter, dispatch dry-run, rotate dry-run fixtures, and focused tests.
-thought_session: sensei-director
+thought_session: goal-glom-2026-09-19
 title: Copilot CLI posts expose remote control
 town: core
 ---

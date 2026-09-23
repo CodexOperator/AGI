@@ -26,7 +26,7 @@ verdict: proved
 Tested `hypothesis:l3w4-sanctuary-theme` — that viewport.py gains a third
 live render, `--theme sanctuary`, with `sanctuary_frame` building ONE
 frozen `SanctuaryScene` that both `render_sanctuary_human` and
-`render_sanctuary_llm` read (the goal:g9.7 two-reader discipline). Nothing
+`render_sanctuary_llm` read (the goal:g2.19 two-reader discipline). Nothing
 in the tree existed yet (`viewport.py` had no `--theme`, no sanctuary code,
 no sanctuary tests; `seat_status.py` — a sibling lane — does not exist yet),
 so I built the feature exactly to the hypothesis's DESIGN/FILES/GATE, then

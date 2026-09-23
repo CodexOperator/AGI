@@ -3,10 +3,10 @@ id: goal:g5.3
 mint_id: ddd8252951d249e1a188246a09385dd9
 type: goal
 parents:
-  - goal:g5
+  - goal:g4
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: belam
 goal_id: G5.3
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G5.3: Every top-level gN goal is perpetual — there is no long-term top-level goal"
 ---
 <!-- BODY:BEGIN -->

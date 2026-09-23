@@ -37,7 +37,7 @@ total hierarchy system tokens/hour, conclusive verdicts, overview accuracy
 vs last season, subscription tokens per season, vision-adherence score,
 and the OpenRouter/subscription spend ratio (owner, l4-plan A:263, quoted
 in full on this hypothesis's own `idea:l4b17-success-metrics` parent and
-on `goal:g16.1`). This is genuinely NEW instrumentation, not a bug fix --
+on `goal:g6.48`). This is genuinely NEW instrumentation, not a bug fix --
 say so plainly in your node rather than searching for a hidden
 implementation that is not there.
 

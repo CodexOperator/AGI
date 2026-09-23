@@ -3,7 +3,7 @@ id: idea:l4b17-success-metrics
 mint_id: 198bec8fedc348f7a30cf6d72e218bf5
 type: idea
 parents:
-  - goal:g16.1
+  - goal:g6.48
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

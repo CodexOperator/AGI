@@ -3,7 +3,7 @@ id: doc:local-maxxing-trove-survey-2026-09-14
 mint_id: 6696b1f086b54f6187f367eb44e0da51
 type: doc
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 confidence: 0.7
 edited_by: thought-master

@@ -6,7 +6,7 @@ parents:
   - goal:g1
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
+edited_by: belam
 goal_id: G1.15
 goal_kind: subgoal
 heading_level: 3
@@ -20,7 +20,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.15: ONE message router — invisible harness translation for seat-addressed sends"
 ---
 <!-- BODY:BEGIN -->

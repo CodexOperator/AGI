@@ -3,13 +3,13 @@ id: hypothesis:l3w4-bug-master-seat
 mint_id: e2eea49560724e84b816faaa9ef81732
 type: hypothesis
 parents:
-  - goal:g17
+  - goal:g7.12
 next_edges: []
-edited_by: belam-S1-L3-IX
+edited_by: belam
 scaffold_hash: 6d45c0c92be55616
 season: 2
 testable_claim: dispatch.py --seat bug-master --tier director --role director --ladder-tier 1 --dry-run resolves claude-opus-5 at effort xhigh with CLAUDE_CODE_WORKFLOWS=1 exported and Workflow present in --tools, and new bug_master.py format-record, given agi-round-review.js's returned JSON for N targets plus one global check, writes that JSON verbatim to .agi/sessions/iter-<id>/review/results.json and prints exactly N REVIEW lines plus one GLOBAL line shaped for send.py send --room tier3-quorum.
-thought_session: belam-S1-L3-IX
+thought_session: dissolve-legacy-2026-09-19
 title: Seat the Glitch Master reviewer
 ---
 <!-- BODY:BEGIN -->

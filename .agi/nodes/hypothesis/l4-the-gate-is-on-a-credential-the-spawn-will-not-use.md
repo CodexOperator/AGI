@@ -4,7 +4,7 @@ mint_id: 41b11aa9b5934e1c8df2287974e3f433
 type: hypothesis
 parents:
   - hypothesis:l4-the-meter-pinned-another-sessions-transcript
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 59ba957aa90ed82d

@@ -3,9 +3,9 @@ id: idea:engine-self-decomposition
 mint_id: 404c121212fa40ed99e1dc5e4eefa3e6
 type: idea
 parents:
-  - goal:g6
+  - goal:g4.11
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 scale: big
 season: 1
 status: open
@@ -13,7 +13,7 @@ tags:
   - engine
   - seed
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine self-decomposition: a generated idea layer"
 ---
 The idea layer should be a **census of the engine's changeable surfaces, regenerated

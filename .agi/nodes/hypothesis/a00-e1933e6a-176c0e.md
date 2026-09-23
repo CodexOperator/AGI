@@ -3,13 +3,13 @@ id: hypothesis:a00-e1933e6a-176c0e
 mint_id: 4bbcff8eb9ea4b609c3623d082c736a2
 type: hypothesis
 parents:
-  - goal:g18.1
+  - goal:g2.27
 next_edges: []
 confidence: 0.85
 edited_by: a00-96f7987e
 evidence_runs:
   - hypothesis:a00-e1933e6a-176c0e
-loop: goal:g18.1@s2
+loop: goal:g2.27@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
 role: kid
@@ -70,4 +70,4 @@ Read-only survey of the 37 hypotheses parented to `goal:g15` that carry ZERO `ev
 ## Agent Notes
 Read-only survey: 37 g15-experimentless hypotheses (zero evidence_runs, no exp child) tabled as retire/keep/fold for the Prime. 19 missing a round for a live reason (KEEP), 11 closed in-loop by landed bytes (RETIRE), 2 fold targets, 4 empty scaffolds, 1 in-flight round. No surveyed node touched.
 
-parent review a00-96f7987e: PROBE (wire, re-count against live graph) -- independently recomputed the g15-experimentless set (parents include goal:g15, zero evidence_runs, no experiment child) from the node files: 37 ids, EXACTLY the 37 the table lists, set-difference both ways = empty. No row missing, no extra row. Read-only verified: the kid commit touches only the new survey node (git show --stat: 1 file, 70 insertions); no surveyed hypothesis edited. SUBSTANCE HOLDS. CAVEATS (2 deliverable-shape deviations from the dispatch order): (1) the order required ONE DOC node under goal:g18.1 with slug g15-experimentless-retire-or-keep; the kid instead filled the hypothesis:a00-e1933e6a-176c0e scaffold dispatch minted -- the survey lives in a hypothesis node, not a doc, so the Prime-search-by-slug will not find it; (2) the order said "no verdict/experiment pipeline, review task only", but the kid emitted a self-verdict (inconclusive_lean_proved:85) via cli.py done because the highlight dispatch scaffold forced the hypothesis/verdict shape onto a goal target. Content is complete and usable; shape is wrong. Recommended: Prime reads this as the survey doc; a later round may re-file it as a doc node if retrievability by slug is wanted.
+parent review a00-96f7987e: PROBE (wire, re-count against live graph) -- independently recomputed the g15-experimentless set (parents include goal:g15, zero evidence_runs, no experiment child) from the node files: 37 ids, EXACTLY the 37 the table lists, set-difference both ways = empty. No row missing, no extra row. Read-only verified: the kid commit touches only the new survey node (git show --stat: 1 file, 70 insertions); no surveyed hypothesis edited. SUBSTANCE HOLDS. CAVEATS (2 deliverable-shape deviations from the dispatch order): (1) the order required ONE DOC node under goal:g2.27 with slug g15-experimentless-retire-or-keep; the kid instead filled the hypothesis:a00-e1933e6a-176c0e scaffold dispatch minted -- the survey lives in a hypothesis node, not a doc, so the Prime-search-by-slug will not find it; (2) the order said "no verdict/experiment pipeline, review task only", but the kid emitted a self-verdict (inconclusive_lean_proved:85) via cli.py done because the highlight dispatch scaffold forced the hypothesis/verdict shape onto a goal target. Content is complete and usable; shape is wrong. Recommended: Prime reads this as the survey doc; a later round may re-file it as a doc node if retrievability by slug is wanted.

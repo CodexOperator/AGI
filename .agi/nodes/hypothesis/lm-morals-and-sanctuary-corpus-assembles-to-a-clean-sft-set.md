@@ -3,7 +3,7 @@ id: hypothesis:lm-morals-and-sanctuary-corpus-assembles-to-a-clean-sft-set
 mint_id: 9b7fbe36f7b74c22b1f14c2d09c89ff1
 type: hypothesis
 parents:
-  - goal:g14.7
+  - goal:g5.23
 next_edges: []
 edited_by: thought-master
 scaffold_hash: c4529f2275509e4f

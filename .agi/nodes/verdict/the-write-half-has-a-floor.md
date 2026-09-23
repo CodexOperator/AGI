@@ -75,7 +75,7 @@ the corpus scan shows by resolving 220 existing build nodes untouched.
 
 `goal:s31` — a scaffolded node ships schema-invalid — is now fixable *through*
 this path rather than by hand, which is the next increment and the first real
-consumer. `goal:g13.1`'s edit mode has a writer to wrap.
+consumer. `goal:g4.18`'s edit mode has a writer to wrap.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 The limits section is longer than the evidence section, deliberately and for

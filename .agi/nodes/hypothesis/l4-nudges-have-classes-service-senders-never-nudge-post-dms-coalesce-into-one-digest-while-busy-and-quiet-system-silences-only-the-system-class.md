@@ -3,12 +3,13 @@ id: hypothesis:l4-nudges-have-classes-service-senders-never-nudge-post-dms-coale
 mint_id: a977d75eb13d4cb79846d0478342092b
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 15df5be907790499
 season: 2
 testable_claim: "(a) SERVICE senders -- heal, watch, wake repair, the after_join self-dm (rotate.py ~14527-14632 composes it with no config knob today) -- never fire a nudge, and skip the inbox copy when the same text was already typed into the pane; (b) a POST dm keeps its inline nudge, but while the pane is busy the deferred post dms coalesce into ONE digest nudge per nudge_stale_after_minutes window instead of one bare token each; (c) a settings token quiet-system on a config:posts row selects (a)+(b) for that row, the existing quiet token stays full silence, no token = today. Measured on the Prime 05:26-06:3xZ: 4 nudges = 1 inline dm + 2 bare tokens (deferred direct dms) + 1 after_join self-dm copy -> under the claim: 1 inline + 1 digest + 0. Falsifier: a service sender still nudges or double-delivers; two deferred post dms in one window produce two tokens; quiet-system silences a direct post dm; quiet lets anything through; a row with no token changes behaviour."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.110 (owner 06:3xZ via the Prime, queued after SM.108/109): nudges have CLASSES -- service senders never nudge, post dms keep the inline nudge but coalesce into ONE digest per stale window while the pane is busy, and a quiet-system settings token silences only the system class (quiet stays full silence)"
 town: core
 ---

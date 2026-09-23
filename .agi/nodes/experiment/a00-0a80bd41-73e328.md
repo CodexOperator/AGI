@@ -25,7 +25,7 @@ verdict: inconclusive_lean_proved:65
 ## Experiment
 
 g15 build round on the key-gating half of hypothesis:l4-rotate-self-is-key-gated...
-(parent rot(4) under goal:g15.25). Measured the PRE-FIX state: grepping the
+(parent rot(4) under goal:g6.47). Measured the PRE-FIX state: grepping the
 whole of `rotate.py` for `_seat_key_path` / `keygen` / `_mint_seat_key` /
 `key_history` / `pubkey` returned NOTHING inside rotate.py — `cmd_rotate_self`
 (8618) went straight from row resolution to the started-record/handoff side

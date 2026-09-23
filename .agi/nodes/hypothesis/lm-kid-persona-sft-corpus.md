@@ -4,7 +4,7 @@ mint_id: 1f31b2add2eb4858b5697ddc5ddae965
 type: hypothesis
 parents:
   - idea:lm-kid-persona-lora
-  - goal:g14.7
+  - goal:g5.23
 next_edges: []
 ceiling: "\"$1 OpenRouter for the round own tokens (parent + kid, deepseek-v4-flash class); $0 compute (A1 CPU, file I/O); NO Camber rental, NO GPU, NO model download, NO training in this round — round 2 (the QLoRA on a Camber XS) is a SEPARATE banked ask that needs the Prime line and this round numbers; kid <= 40 tool calls; script <= 20 min wall; A1 loadavg < 3 before the run; never beside the q4-KV bench.\""
 confidence: 0.55

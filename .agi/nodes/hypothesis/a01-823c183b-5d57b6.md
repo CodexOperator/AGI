@@ -3,13 +3,13 @@ id: hypothesis:a01-823c183b-5d57b6
 mint_id: 7538bfaed8d74dc58de4dfd27ac46e49
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 2904b9268f387ddf
 season: 1
 status: pending
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A01 823c183b 5d57b6
 ---
 # hypothesis:a01-823c183b-5d57b6

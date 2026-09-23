@@ -4,7 +4,7 @@ mint_id: dc8104dc0a3e42a6b2c7a6baa93cf636
 type: hypothesis
 parents:
   - hypothesis:lm-own-refusal-direction-on-qwen35-9b-cuts-refusals-at-no-coding-cost
-  - goal:g14.9.1
+  - goal:g5.25.1
 next_edges: []
 confidence: 0.6
 edited_by: director-thought
@@ -77,7 +77,7 @@ server is not stopped for this unless the flag genuinely cannot be applied to
 it directly (in which case run a second process on another port); `:8080`
 answers a real completion before `done` either way.
 
-**Proved →** H2 (already named on `goal:g14.9`): the unembedding signature of
+**Proved →** H2 (already named on `goal:g5.25`): the unembedding signature of
 this direction vs the Bonsai/OrcaBonsai one. **Disproved →** H1'' (the rank-1
 export, now scoped to actually needing a fp16 Qwen3.5-9B checkpoint) or, if
 step 1's feasibility check itself fails, the WHY names the exact tool/format

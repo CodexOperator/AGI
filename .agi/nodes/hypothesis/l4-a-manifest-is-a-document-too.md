@@ -4,7 +4,7 @@ mint_id: fade6328750d42a9b3a3f48c297a0252
 type: hypothesis
 parents:
   - hypothesis:l4-a-round-lives-in-two-trees-so-coming-home-is-a-merge
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 7874ffa62ab5c538

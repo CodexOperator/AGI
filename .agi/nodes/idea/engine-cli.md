@@ -3,9 +3,9 @@ id: idea:engine-cli
 mint_id: c93918a0494b460ca4d6cc8d65188bc0
 type: idea
 parents:
-  - goal:g1
+  - goal:g1.19
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/cli.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/cli.py

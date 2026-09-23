@@ -3,7 +3,7 @@ id: hypothesis:l4-the-main-committed-reader-runs-git-at-mains-toplevel-and-an-em
 mint_id: d39de28d3ca64877b74b18557d12dce9
 type: hypothesis
 parents:
-  - goal:g15.26
+  - goal:g6.47.1
   - hypothesis:l4-the-label-authority-falls-back-to-mains-committed-row-and-every-key-cell-writer-commits-and-pushes-its-own-row
 next_edges: []
 edited_by: sensei-director

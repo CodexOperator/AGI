@@ -3,14 +3,14 @@ id: hypothesis:a03-1b139d1a-8b6adf
 mint_id: cfa6c68f8c3e43faa5d2e693b4fa537f
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 evidence_runs: []
 scaffold_hash: 208188f8456db8e8
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A03 1b139d1a 8b6adf
 verdict: pending
 ---

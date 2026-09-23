@@ -3,14 +3,14 @@ id: hypothesis:l3-workflow-run-serial-and-unleased
 mint_id: 5ce2142f887b41f7ba1abf37698b2f08
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 0b3bc71128d7c27b
 season: 2
 status: deprecated
 testable_claim=Measured: "live 2026-09-08: workflow.py run deep-search --harness pi kept exactly one pi child alive at a time while spawn_budget.py status showed none of them. After the change, stages the manifest declares independent are spawned concurrently under a declared cap, every workflow-spawned agent takes a spawn_budget lease so status counts it, and the two properties are proven by a red-first test asserting concurrent children for an independent stage and a lease count that rises for the duration of a run"
-thought_session: belam-S1-L3-X
+thought_session: goal-glom-2026-09-19
 title: The unified workflow route runs its independent stages serially and takes no spawn lease, so a fan-out costs N times the wall clock and spawn_budget reports an idle box while it works
 ---
 <!-- BODY:BEGIN -->

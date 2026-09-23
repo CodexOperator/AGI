@@ -23,7 +23,7 @@ Ran the per-town vision count half of hypothesis:l4-towns (kid-1 lane, director 
 
 WHAT CHANGED
 - `spawn_gate.py` — new shared helpers (read by both season.py and the spawn gate, no second copy):
-  * `vision_town_of(fm)` — a vision's town from its `town:` cell, default `core`; derived, nothing branches on a town NAME (goal:g8.2).
+  * `vision_town_of(fm)` — a vision's town from its `town:` cell, default `core`; derived, nothing branches on a town NAME (goal:g1.24).
   * `count_visions_per_town(nodes_dir)` — town -> number of vision nodes (type vision, town cell, default core); fail-open {} on missing graph.
   * `vision_scope(nodes_dir)` — the ladder's `caps_vision_scope` ('' when unset -> old global behaviour).
   * `vision_cap(nodes_dir)` — `caps.vision` from the ladder, default 3.

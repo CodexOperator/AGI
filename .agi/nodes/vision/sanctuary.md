@@ -10,7 +10,7 @@ next_edges: []
 core: false
 edited_by: belam
 proposes_goals:
-  - goal:g15.25
+  - goal:g6.47
   - goal:g15
 scaffold_hash: 4431416ae2279f12
 season: 2
