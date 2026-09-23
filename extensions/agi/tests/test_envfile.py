@@ -693,3 +693,87 @@ def test_synthetic_agi_root_resolves_only_its_own_env_key(tmp_path):
     deep = nested / "a" / "b"
     deep.mkdir(parents=True)
     assert _prov._read_provisioning_key(deep) == "sk-nested-pk"
+
+
+# --- required_any: either OpenRouter key satisfies the group --------------
+# config:secrets declares `required_any: [[OPENROUTER_API_KEY,
+# OPENROUTER_PROVISIONING_KEY]]` and `required_keys: []`. The check must move
+# with it: a project with EITHER runtime or provisioning key passes, a project
+# with neither fails and the failure names BOTH keys.
+
+
+REQUIRED_ANY_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any:
+      - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+    ---
+
+    body
+    """
+
+
+def test_required_any_reads_the_groups(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    res = agi_secrets.resolve(tmp_path)
+    assert res.required_any == [["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]]
+
+
+def test_required_any_satisfied_by_provisioning_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_PROVISIONING_KEY=provisioning-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_satisfied_by_api_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-fixture\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_with_neither_key_names_both(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "SOMETHING_ELSE=1\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    blob = "\n".join(problems)
+    assert any("OPENROUTER_API_KEY" in p and "OPENROUTER_PROVISIONING_KEY" in p
+               for p in problems), problems
+    assert blob, "an unsatisfied group must be a problem"
+
+
+def test_required_any_empty_value_counts_as_absent(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("OPENROUTER_PROVISIONING_KEY" in p for p in problems), problems
+
+
+def test_required_keys_still_enforced_alongside_required_any(tmp_path):
+    """A present group does not excuse a missing required_keys entry."""
+    graph = make_project(tmp_path)
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_PROVISIONING_KEY=provisioning-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("OPENROUTER_API_KEY is missing or empty" in p for p in problems), problems
