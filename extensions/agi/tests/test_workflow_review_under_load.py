@@ -16,6 +16,7 @@ and no test sleeps, spawns, or reads the real box's load.
 """
 from __future__ import annotations
 
+import io
 import json
 import subprocess as _sp
 import sys
@@ -27,7 +28,7 @@ sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(TST))
 
 from test_workflow_slice_isolation import (  # noqa: E402  (reused, never copied)
-    WF_DIR, _ctx_or_stage, _drive, _fanout_manifest, _seen_timeouts, _sl,
+    REPO, WF_DIR, _ctx_or_stage, _drive, _fanout_manifest, _seen_timeouts, _sl,
 )
 
 import workflow as _wf  # noqa: E402
@@ -208,3 +209,85 @@ def test_no_context_timeout_keeps_the_60_default(tmp_path_factory,
         monkeypatch, _context_manifest(), tmp_path_factory)
     assert rc == 0, text
     assert seen == [60, 60], seen
+
+
+def test_stage_context_timeout_beats_manifest(tmp_path_factory, monkeypatch):
+    """Presence, not truthiness: a stage-level `context_timeout_s: 300` wins
+    over the manifest's 60 and reaches BOTH context reads."""
+    rc, seen, text = _seen_context_timeouts(
+        monkeypatch,
+        _context_manifest(context_timeout_s=60, stage_context_timeout=300),
+        tmp_path_factory)
+    assert rc == 0, text
+    assert seen == [300, 300], seen
+
+
+# ---------- (6) a fractional budget never floors to zero -------------------
+# A 0<v<1 declared budget is a POSITIVE number, so it clears the refusal, but
+# `int(0.5)` truncates it to 0 and `subprocess.run(timeout=0)` kills the stage
+# instantly on the pre-fix bytes. Every truncation site floors at ONE second.
+
+def test_fractional_context_budget_never_floors_to_zero(tmp_path_factory,
+                                                        monkeypatch):
+    """RED on the pre-fix bytes: int(0.5) == 0, so the context build was
+    handed timeout=0 instead of a positive budget."""
+    assert _wf._resolve_context_timeout(
+        {"label": "only"}, {"context_timeout_s": 0.5}) >= 1
+    rc, seen, text = _seen_context_timeouts(
+        monkeypatch, _context_manifest(context_timeout_s=0.5),
+        tmp_path_factory)
+    assert rc == 0, text
+    assert seen == [1, 1], seen
+
+
+def test_fractional_budget_under_load_never_floors_to_zero(monkeypatch):
+    """The load-scaled truncation sites floor at 1 too: 0.5*(1+0.5*0)=0.5,
+    which `int()` made 0 on the pre-fix bytes."""
+    monkeypatch.setattr(_wf, "_current_load", lambda: 0.0)
+    assert _wf._resolve_context_timeout(
+        {"label": "only", "context_timeout_s": 0.5, "load_factor": 0.5},
+        {}) == 1
+    assert _wf._resolve_stage_timeout(
+        {"label": "only", "timeout_s": 0.5, "load_factor": 0.5}, {}) == 1
+
+
+def test_bool_context_timeout_refused_and_no_stage_dispatched(
+        tmp_path_factory, monkeypatch):
+    """A declared `True` is a bool, not a positive number (bool is an int
+    subclass, so `True <= 0` is False): refused by name before ANY subprocess
+    runs — no context build, no stage dispatch, no key spent."""
+    calls = []
+
+    def fake_run(cmd, **kw):
+        calls.append(cmd)
+        return _sp.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    rc, text, _ = _drive(monkeypatch, _context_manifest(context_timeout_s=True),
+                         {}, fake_run, tmp_path_factory)
+    assert rc == 5, text
+    assert calls == [], calls
+
+
+def test_dry_run_refuses_a_bad_context_timeout_with_rc_5(monkeypatch):
+    """`--dry-run` and the live run agree: the budget is resolved BEFORE the
+    dry-run return, so a bad context budget is rc 5 with no `[dispatch]` line
+    and no subprocess at all."""
+    from unittest import mock as _mock
+    saved = _wf._load_manifest
+    _wf._load_manifest = lambda repo, key: _context_manifest(
+        context_timeout_s=0)
+    monkeypatch.setattr(_wf.provisioning, "available", lambda root=None: False)
+    calls = []
+    buf = io.StringIO()
+    try:
+        with _mock.patch("subprocess.run",
+                         side_effect=lambda cmd, **kw: calls.append(cmd)):
+            rc = _wf.run_workflow(REPO / ".agi", "review", "pi", {}, True,
+                                  out=buf)
+    finally:
+        _wf._load_manifest = saved
+    text = buf.getvalue()
+    assert rc == 5, text
+    # `_repo_root` probes git via subprocess; what must NOT happen is a stage
+    # dispatch line, so assert on the output, not on all subprocess calls.
+    assert "[dispatch]" not in text, text
