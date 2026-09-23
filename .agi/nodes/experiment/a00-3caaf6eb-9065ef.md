@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-served-9b-long-prompt-prefill-gains-from-larger-ubatch
 next_edges: []
 confidence: 0.9
-edited_by: a00-67c8a71a
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-3caaf6eb-9065ef
 line_ceiling: 120
@@ -86,46 +86,50 @@ type is measurably slower than f16 in this round.
 **T3 -- the persistent-JIT-cache proof.** The first arm's 13-token warm-up (the first CUDA work in a
 fresh container) took **185,513 ms**; every later arm's 13-token warm-up, same image, same command,
 shared `/root/.nv/ComputeCache`, took **135.5 / 134.2 / 425.3 / 581.3 / 703.3 / 704.9 / 724.6 /
-2167.1 ms**. Same shape, same code path, ~1,370x-275x faster once the sm_75 PTX JIT result is on disk
-(OSC.09's mechanism, now applied and confirmed).
+2167.1 ms**. Same shape, same code path, 85.6x-1,383x faster once the sm_75 PTX JIT result is on disk
+(185,513.5 / 2,167.1 and / 134.2; OSC.09's mechanism, now applied and confirmed).
 
 ## Evidence
 
 **Bar by bar (pre-registered falsifier: no arm beats its own `-ub 512` by >= 10 pct with the interval
 clearing zero -> `-ub` is not a long-prompt lever).**
 
-- **>= 10 pct gain with the 95 pct interval clearing zero: MET for q8_0** at both 1024 (+27.2 pct
-  [+15.6, +38.8]) and 2048 (+27.3 pct [+17.5, +37.2]). The three q8_0 ub512 slices are 1002 / 949 /
-  929 and every ub1024 / ub2048 slice is 1214-1232 -- a clean separation, not a single outlier.
-- **Fitted context at the winning setting >= 32,768: MET** (q8_0 ub1024 68,608; q8_0 ub2048 56,320;
-  every arm in the matrix fits >= 37,888). The gain does not cost the context pi-local needs.
-- **The falsifier does not fire**, so the claim as written is supported -- but see the caveats: only
-  the q8_0 pair separates, and its ub512 baseline is lower than f16 ub512 and q4_0 ub512, which a
-  simple KV-width story does not predict.
+- **>= 10 pct gain with the 95 pct interval clearing zero: NOT MET -- the falsifier fires.** Only the
+  q8_0 pair crossed the bar in T2 (+27.2 pct at 1024, +27.3 pct at 2048), and both rest on a q8_0 ub512
+  baseline measured on a contended box (1002 / 949 / 929 tok/s, below f16 and q4_0 at ub512). The
+  parent re-ran that pair with the kid's own driver, unmodified, on a quiet box (probe_run.log: load
+  4.35 and 11,564 MB available at 19:56:07Z): ub512 1181.9 / 1186.0 / 1189.1 vs ub1024 1197.6 / 1202.4 /
+  1203.0 tok/s -> paired gain **+1.29 pct [+1.03, +1.56]** (t_0.975 df=2 = 4.303), 7.8x below the bar
+  (datasets/serving-sweep/2026-09-23-ub/parent-probe-a00-67c8a71a/: probe_q8.json, probe_q8.py,
+  probe_run.sh, probe_run.log -- the probes entry at :16 names the same files at their original .agi/sessions path). f16 (+6.0 pct, interval [-89.9, +102.0]) cannot resolve the bar; q4_0
+  (+2.8 pct [-0.7, +6.2]) excludes it.
+- **Fitted context >= 32,768: MET for every arm** (n_ctx_slot from the load logs: f16 49,664 /
+  45,568 / 37,888; q8_0 75,520 / 68,608 / 56,320; q4_0 118,784 / 105,728 / 83,712 at -ub 512 / 1024 /
+  2048). A larger `-ub` costs fitted context monotonically: q8_0 -9 pct at 1024, -25 pct at 2048.
 
-**What the matrix also says.** (a) f16 -- the KV type the router actually serves -- shows **no**
-`-ub` gain (ub1024 +6.0 pct, interval [-89.9, +102.0]; ub2048 negative). (b) q4_0 is flat at ~+3 pct
-with tight intervals that exclude 10 pct. (c) A larger `-ub` costs fitted context monotonically:
-f16 49,664 -> 45,568 -> 37,888, q8_0 75,520 -> 68,608 -> 56,320. At `-ub 1024` the context cost is
-~8 pct for the +27 pct q8_0 gain; at 2048 it is ~25 pct for the same gain, so 1024 dominates 2048.
+**LARGEST SAFE STEP (PROPOSED -- router and config cells untouched): keep `-ub 512`.** No KV type gains
+>= 10 pct from a larger micro-batch on ~30k prompts, and every larger `-ub` costs context; the quiet
+q8_0 gain (+1.3 pct) does not pay for its 9 pct of context. What the round hands forward: the
+persistent JIT cache works in production (T3), and at `-ub 512` no L1 KV type is measurably slower than
+f16 at ~30k (T2), which stacks with L1's q4_0 proposal.
 
-**LARGEST SAFE STEP (PROPOSED -- router and config cells untouched).** If and only if a server is run
-with `q8_0` KV, `-ub 1024` is the step: +27.2 pct prefill on ~30k prompts at a fitted 68,608 context
-(2048 buys no extra speed and costs 12k tokens of context). **Not** proposed for the router: it serves
-f16 KV, where this round found no gain, so changing the router's `-ub` on this evidence would be
-unsupported. Next measurement, at this same node: re-run the **f16** and **q8_0** 512/1024 pairs
-back-to-back on a quiet box (one launcher, no cross-arm pacing) to separate the lever from the
-environment, and add a 4th/5th trial per arm so the f16 interval narrows.
+## Caveats and defects
 
-## Caveats and defects (not fixed this round)
-
-- **The box was under heavy contention by parallel agents.** `MemAvailable` ranged 0.8-11.5 GB and
-  load average 10-52; model loads took 4.1-182.9 s against OSC.09's 36-56 s for the same image and
-  args. The two arms with the longest loads are f16 512 (182.9 s) and f16 2048 (152.3 s).
-- **The q8_0 ub512 baseline is the awkward number.** 960 mean tok/s is below f16 ub512 (1071) and
-  q4_0 ub512 (1167) at the same setting. If that arm had measured like its siblings the q8_0 gain
-  would vanish, so the +27 pct may be partly a kernel-selection or environment artifact rather than a
-  pure `-ub` effect. This is why the verdict is a lean, not `proved`.
+- **Contention during the kid's matrix.** runner.log (datasets/serving-sweep/2026-09-23-ub/
+  kid-session-a00-3caaf6eb/) records arm-start `available` RAM 7,258-12,213 MB, and model loads took
+  4.1-182.9 s (ub.json load_s) against OSC.09's 36-56 s for the same image and args; no per-trial
+  loadavg was recorded. An earlier line here ('MemAvailable 0.8-11.5 GB, load 10-52') had no committed
+  source and is withdrawn (mur-director-thought-14).
+- **The restore proof is the director's, not the kid's.** The kid's restore_proof.txt (committed beside
+  runner.log) holds a JSONDecodeError from its completion check plus a /slots read -- no parsed
+  completion. The parent's re-measure took the router down again 19:56:07-20:01:35Z (probe_run.log).
+  The director proved real Qwen3.5-9B-Q4_K_M completions at 19:55:38Z and, after the second restore,
+  at 20:32:49Z.
+- **The driver never recorded per-trial RAM or loadavg.** ub_prefill_round.py:66-68 writes kv, ub, b, port, load_s, n_ctx, warmup
+  and rows only, though the orders required loadavg and available RAM at each trial (every sibling driver records them:
+  kv_speed_round.py, kv_split_round.py, kv_format_round.py); runner.log's arm-start lines are the only committed RAM record.
+- **No committed test for this round** -- the hypothesis TESTS line (selftests beside the script) was not met; verification rests on
+  the probes and the committed ub.json and load logs.
 - The first arm's first slice (f16 512 s1 = 844) followed the 185.5 s JIT warm-up and is depressed
   relative to its own s2/s3 (1228 / 1143). It is kept, not dropped.
 - `wikitext` byte slices are not length-matched: 28,971 / 30,463 / 31,751 tokens across slices, so
@@ -135,7 +139,7 @@ environment, and add a 4th/5th trial per arm so the f16 interval narrows.
   stays literal (rule 13); a box cell is proposed for the Prime.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review of the kid's first round. The node's own FALSIFIER says: no (KV type, -ub) arm beats the same KV type at -ub 512 by >= 10 pct with its interval clearing zero -> -ub is not a long-prompt lever here. The kid's ub.json shows exactly one arm passing: q8_0 ub1024 +27.2 pct [15.6,38.8]. What the summary hides: that arm divides by a q8_0 ub512 baseline of 960 tok/s that sits below f16 512 (1071) and q4_0 512 (1167) in the SAME run, which the kid's own caveat names. So I ran the one negative probe that decides it: the kid's driver, unmodified, q8_0 512 then q8_0 1024, the same three slices, on a quiet box (probe/probe_q8.json). ub512 rose to 1181.9/1186.0/1189.1 (mean 1185.7, +23.5 pct) and ub1024 to 1197.6/1202.4/1203.0, so the paired gain is +1.29 pct [+1.03,+1.56] -- it clears zero and misses the 10 pct bar by 7.8x. The near miss: re-running only the ub1024 arm would have reproduced the result (1201 vs 1219.6, 1.5 pct) and certified the gain; the falsification is visible only because the probe re-ran the baseline the claim divides by. The speed conjunct therefore fails for the only KV type that passed, and no other pair clears 10 pct (f16 +6.0 [-89.9,+102.0], q4_0 +2.8 [-0.7,+6.2]); the fitted-context conjunct holds everywhere (>= 37888) and is not the failure point. Verdict demoted to inconclusive_lean_disproved:90 with the three probes in frontmatter. The rest of the artifact is sound and worth keeping: the JIT-cache proof (first warm-up 185,513 ms vs 135-2167 ms later) replicates OSC.09, the n_ctx table answers the L1 prefill-cost-at-depth question, and the router was restored and proven before the kid reported.
+director close-in-place after mur-director-thought-14 (review + verify: accept_with_residue). The Evidence and Caveats sections are rewritten to the refuted verdict: the kid's LARGEST SAFE STEP (q8_0 -ub 1024, +27.2 pct) and its lean-not-proved reasoning contradicted the title and verdict the parent had already set; the step is now keep -ub 512. Evidence the parent and kid left in gitignored session dirs is committed under datasets/serving-sweep/2026-09-23-ub/ (parent-probe-a00-67c8a71a/ at 3f627c6cf5, kid-session-a00-3caaf6eb/ at 458484bb3b). Withdrawn: the MemAvailable 0.8-11.5 GB / load 10-52 line (no committed source). Corrected: the T3 factor range (85.6x-1,383x, was 1,370x-275x). Added: the driver's missing per-trial RAM/loadavg fields and the missing committed test. The parent's thought (its demotion to inconclusive_lean_disproved:90) stays in grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
