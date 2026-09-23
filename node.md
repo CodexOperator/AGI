@@ -3,12 +3,12 @@ id: goal:g4.8
 mint_id: 208dc260a25e43959230e94a54785f05
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 next_edges:
   - hypothesis:a00-a54f694b-b20b78
   - hypothesis:shared-lease-bounds-the-tree
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 goal_id: G4.8
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.8: Many loops at once; the delegator is the director"
 ---
 **Several parents each running their own loop, concurrently, against different
