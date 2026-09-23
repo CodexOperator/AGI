@@ -178,10 +178,11 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert "restart_count" not in agents[0], agents
 
 
-def test_record_carries_persistent_live_pid_and_restart_count(
+def test_record_carries_persistent_state_and_no_dead_pid_at_end(
         project, monkeypatch, capsys):
-    """Conjunct (c): the seat's own record shows the occupation -- persistent
-    true, the CURRENT (restarted) pid, and the restart count."""
+    """Conjunct (c) + occupation honesty: while the hold runs the record
+    names the CURRENT (restarted) pid; when the hold ends the record names
+    the END (`persistent_state`, no pid) rather than a dead occupant."""
     spawned = _fake_spawn(monkeypatch, [
         {"left": 14, "rc": 1},
         {"left": 999, "rc": None},
@@ -194,6 +195,89 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     rec = agents[0]
     assert rec["persistent"] is True, rec
     assert rec["restart_count"] == 1, rec
-    assert rec["pid"] == spawned[1][1].pid, (
-        f"record pid {rec['pid']} is not the live child "
-        f"{spawned[1][1].pid}")
+    assert rec["persistent_state"] == "stopped", rec
+    assert rec["pid"] is None, rec
+    # the manifest and the session agent.json are the same bytes: no surface
+    # still asserts the dead child's pid as the live occupant.
+    sess = json.loads(sorted((project / ".agi" / "sessions").glob(
+        f"**/{rec['id']}/agent.json"))[0].read_text())
+    assert sess["persistent_state"] == "stopped" and sess["pid"] is None, sess
+
+
+def _record():
+    return {"id": "a", "persistent": True, "restart_count": 0, "pid": 111}
+
+
+def test_zero_restarts_dead_child_marks_ended(tmp_path, monkeypatch):
+    """Gate: max_restarts=0 with a dead child -> no restart, record marked
+    ended (not running) with no live pid asserted."""
+    monkeypatch.delenv(dispatch._PERSIST_STOP_ENV, raising=False)
+    session = tmp_path / "sess"
+    session.mkdir()
+    rec = _record()
+    reopens: list = []
+
+    def reopen(mode):
+        reopens.append(mode)
+        return _StubProc(222, None, 999)
+
+    dispatch._supervise_persistent(
+        _StubProc(111, 1, 0), reopen, iter_dir=tmp_path, agent_id="a",
+        record=rec, session=session, max_restarts=0)
+    assert reopens == [], "a zero-restart hold must not re-open"
+    assert rec["persistent_state"] == "exhausted", rec
+    assert rec["pid"] is None, rec
+    on_disk = json.loads((session / "agent.json").read_text())
+    assert on_disk["persistent_state"] == "exhausted", on_disk
+    assert on_disk["pid"] is None, on_disk
+
+
+def test_stop_env_marks_ended_without_restart(tmp_path, monkeypatch):
+    """Gate: AGI_PERSISTENT_STOP=1 -> supervisor returns without restart and
+    the record is marked ended."""
+    session = tmp_path / "sess"
+    session.mkdir()
+    rec = _record()
+    reopens: list = []
+    monkeypatch.setenv(dispatch._PERSIST_STOP_ENV, "1")
+
+    def reopen(mode):
+        reopens.append(mode)
+        return _StubProc(222, None, 999)
+
+    dispatch._supervise_persistent(
+        _StubProc(111, None, 999), reopen, iter_dir=tmp_path, agent_id="a",
+        record=rec, session=session, max_restarts=2)
+    assert reopens == [], "a stopped hold must not re-open"
+    assert rec["persistent_state"] == "stopped", rec
+    assert rec["pid"] is None, rec
+
+
+def test_instantly_dead_reopen_is_not_named_as_the_occupant(tmp_path,
+                                                           monkeypatch):
+    """Wire (the case the prior round's probe C FAILED): max_restarts=2 with
+    an instantly-dead `reopen` -> the persisted record's `persistent_state`
+    is not `running`, and its `pid` is not any re-opened child's pid."""
+    monkeypatch.delenv(dispatch._PERSIST_STOP_ENV, raising=False)
+    session = tmp_path / "sess"
+    session.mkdir()
+    rec = _record()
+    dead_pids: list = []
+    calls = {"n": 0}
+
+    def reopen(mode):
+        calls["n"] += 1
+        pid = 9000 + calls["n"]
+        dead_pids.append(pid)
+        return _StubProc(pid, 1, 0)  # instantly dead
+
+    dispatch._supervise_persistent(
+        _StubProc(111, 1, 0), reopen, iter_dir=tmp_path, agent_id="a",
+        record=rec, session=session, max_restarts=2)
+    assert calls["n"] == 2, calls
+    assert rec["persistent_state"] != "running", rec
+    assert rec["persistent_state"] == "exhausted", rec
+    assert rec["pid"] not in dead_pids and rec["pid"] is None, rec
+    on_disk = json.loads((session / "agent.json").read_text())
+    assert on_disk["persistent_state"] != "running", on_disk
+    assert on_disk["pid"] not in dead_pids and on_disk["pid"] is None, on_disk
