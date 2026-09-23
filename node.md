@@ -8,12 +8,12 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: thought-master
+edited_by: belam
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: belam-graph-only-coord-2026-09-21
+thought_session: belam-S2-L5-I
 town: core
 trajectory_standin:
   - "formation: thought-master (MAIN = trunk local-maxxing/season2/main) -> director-thought (Sonnet; research rounds; the ONLY active director on town work) · director-engine OFF g7.33 by owner order 09-23 (Prime-assigned g15 residues only) -> pi parents/kids (OpenRouter) + pi-local (the resident 9B, 0 USD)"
@@ -63,6 +63,7 @@ town:local-maxxing
 ├─ GOAL BUNDLE (diagram-max) — RESEARCH only
 │  ├─ g5.22–.31 … research tracks (was g14.6–.16; nested .N kept)
 │  ├─ g5.17–.21 … remapped from legacy g14.1–.5 / g14.3 lineage
+│  ├─ goal:g1.25 …… CLI GRAMMAR (G1 umbrella: the jev choice surface; owner 09-23)
 │  └─ town:local-maxxing tagged goals (same set ∩)
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
@@ -73,11 +74,12 @@ town:local-maxxing
 
 | id | role |
 |---|---|
-| goal:g14 | umbrella (retired on core/s2; lineage) |
+| goal:g5 | umbrella: the town's goal -- owner lines land here (replaces the retired g14, owner 09-23 09:0xZ) |
 | goal:g5.22 | TRACK I inference |
 | goal:g5.23 | TRACK II fine-tune |
 | goal:g5.24 | TRACK III jev + magic pane |
 | goal:g5.24.3 | MAGIC PANE detector |
+| goal:g1.25 | CLI GRAMMAR = the jev choice surface, across umbrellas (G1 config-maxxing; director-engine; owner go 09-23 10:0xZ; the node reaches the trunk with director-engine's merge-up) |
 | goal:g5.25 | abliteration |
 | goal:g5.25.1 | own refusal lever |
 | goal:g5.26 | research corpus |
