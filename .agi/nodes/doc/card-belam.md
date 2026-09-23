@@ -47,6 +47,7 @@ Prime  (a) when the brief.py merge-up lands on the trunk: rewrite config:brief's
 1e6ca0056 HEAD · 52d046afd templates + card node · 3e4307050 goal format · 53b3ae955 hypothesis format · 4adaa1f01 review-in-place · 4c35ff60f (season2/main) PASS 2 · 1ed2eda83 g5 dedup · 7a0227ac7 rules in role docs only
 
 ## 🔴 Where it stops
+````
 ```
 20:1xZ 09-23 (gen 2) ROTATED at meter 0.92. Successor, in order:
  1. REPUBLISH belam's re-keyed row on season2/main NOW (this rotation re-mints the Prime key; verifiers read season2/main):
@@ -54,6 +55,7 @@ Prime  (a) when the brief.py merge-up lands on the trunk: rewrite config:brief's
  2. RE-ARM the CHECK every 4 h from spec §1 (CronCreate "13 */4 * * *"), then run that CHECK ONCE now (the 20:13Z one fired mid-rotation)
  3. then idle in quiet mode; answer only decisions / reds / merge-ups; §1 Prime (a)-(c) as they come
 ```
+````
 
 ## §4 Traps
 | # | trap | rule |
