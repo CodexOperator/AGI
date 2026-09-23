@@ -81,6 +81,65 @@ def is_alive(pid: int) -> bool:
     return True
 
 
+def pane_name(*, harness: dict, agent_id: str,
+              agent_record: dict | None = None) -> str | None:
+    """Generic pane opt-in (`goal:g7.31.1.2`): the stable tmux window name
+    for this seat, or None when nothing opted in.
+
+    The record's own `pane` (stamped by the first spawn) wins; then a harness
+    `pane` cell -- a name when it is a string, else the agent id when the
+    cell is a bare `true`. No harness literal appears here, so the seam stays
+    harness-agnostic."""
+    existing = (agent_record or {}).get("pane")
+    if isinstance(existing, str) and existing:
+        return existing
+    cell = harness.get("pane")
+    if isinstance(cell, str) and cell:
+        return cell
+    return agent_id if cell else None
+
+
+def spawn(*, harness: dict, tier: str, context_file: str, agent_id: str,
+          iter_n: int, sess_dir: Path, agent_record: dict | None = None,
+          **kwargs) -> int | None:
+    """First-spawn lifecycle entry (`goal:g7.31.1.2`) -- the twin of
+    `restart`: the SAME `build_command` argv builder and the SAME
+    `ensure_pane` seam.
+
+    When the harness opts into a pane, the seat is BORN inside the named pane
+    and the record is stamped `pane`/`pane_session`/`pane_id`, so a later
+    `restart` reattaches to a REAL pane -- no hand-injected record field.
+    Without the opt-in the ordinary detached Popen path is used."""
+    args = build_command(harness=harness, tier=tier,
+                         context_file=context_file, agent_id=agent_id,
+                         iter_n=iter_n, sess_dir=sess_dir, **kwargs)
+    name = pane_name(harness=harness, agent_id=agent_id,
+                     agent_record=agent_record)
+    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    cwd = str(_restart_cwd(sess_dir, agent_record))
+    log_file = sess_dir / "output.log"
+    if not name:
+        with open(log_file, "ab") as logf:
+            proc = subprocess.Popen(args, stdout=logf,
+                                    stderr=subprocess.STDOUT,
+                                    stdin=subprocess.DEVNULL,
+                                    start_new_session=True, cwd=cwd, env=env)
+        return proc.pid
+    from adapters import pane_hold
+    session = ((agent_record or {}).get("pane_session")
+               or harness.get("pane_session")
+               or pane_hold.DEFAULT_TMUX_SESSION)
+    if agent_record is not None:
+        agent_record["pane"] = name
+        agent_record["pane_session"] = session
+    pid = pane_hold.ensure_pane(tmux_session=session, name=name, argv=args,
+                                cwd=cwd, env=env, log_file=str(log_file))
+    if agent_record is not None:
+        agent_record["pane_id"] = pane_hold.pane_id(tmux_session=session,
+                                                    name=name)
+    return pid
+
+
 def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
     """The working directory a restarted agent must be born into.
 
@@ -135,18 +194,20 @@ def restart(
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     cwd = str(_restart_cwd(sess_dir, agent_record))
-    pane_name = (agent_record or {}).get("pane") or harness.get("pane")
-    if pane_name:
+    _pane = pane_name(harness=harness, agent_id=agent_id,
+                      agent_record=agent_record)
+    if _pane:
         # Opt-in durable pane hold (`goal:g7.31.1.2`). The pane NAME comes
-        # from the record, so no harness is named here; when nothing opts in,
-        # the direct-Popen path below stays byte-identical.
+        # from the record (stamped by this adapter's own `spawn`) or a
+        # generic harness cell, so no harness is named here; when nothing
+        # opts in, the direct-Popen path below stays byte-identical.
         from adapters import pane_hold
         session = ((agent_record or {}).get("pane_session")
                    or harness.get("pane_session")
                    or pane_hold.DEFAULT_TMUX_SESSION)
         try:
             new_pid = pane_hold.ensure_pane(
-                tmux_session=session, name=pane_name, argv=args, cwd=cwd,
+                tmux_session=session, name=_pane, argv=args, cwd=cwd,
                 env=env, log_file=str(log_file))
         except (OSError, subprocess.CalledProcessError) as exc:
             print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
@@ -156,7 +217,7 @@ def restart(
             agent_record["status"] = "restarted"
             agent_record["restarted_at"] = int(time.time())
             agent_record["pane_id"] = pane_hold.pane_id(
-                tmux_session=session, name=pane_name)
+                tmux_session=session, name=_pane)
             (sess_dir / "agent.json").write_text(
                 json.dumps(agent_record, indent=2))
         return new_pid
