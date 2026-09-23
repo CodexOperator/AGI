@@ -97,7 +97,7 @@ def penalty(types):
 
 
 def main():
-    res = {"host": os.uname().nodename, "image": IMG, "depths": DEPTHS, "reps": REPS, "types": {}}
+    res = {"image": IMG, "depths": DEPTHS, "reps": REPS, "types": {}}
     res["model_sha256"] = subprocess.run(["sha256sum", GGUF], capture_output=True, text=True).stdout.split()[0]
     res["ram_mb_start"], res["loadavg_start"] = ram(), list(os.getloadavg())
     if "--reparse" in sys.argv:
