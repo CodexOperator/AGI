@@ -64,7 +64,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25); the raw inb
                                                         └─► the master GATES (merge-base, merge-tree clean vs the live trunk head, no deletions, bytes) and LANDS on your town trunk; the Prime merges the trunk into season2/main at cadence (its daily pass). Silence past your line = the loop is healthy. Next.
 ```
 
-**Review in place — why (a director's rule, 09-23, made standing for every director by the owner; verbatim on goal:g5).** Merging each finished round straight onto the post branch let unreviewed work pile up there faster than reviews could clear it, and the merge-up kept slipping. So a finished round now WAITS on its own loop branch and is reviewed THERE; it reaches the post branch only once its review is clean. The post branch therefore only ever holds reviewed work, so a merge-up is always ready to deliver. Many rounds can wait under review at once; they merge one at a time, as each one clears.
+**Review in place — why (a director's rule, 09-23, made standing for every director by the owner).** Merging each finished round straight onto the post branch let unreviewed work pile up there faster than reviews could clear it, and the merge-up kept slipping. So a finished round now WAITS on its own loop branch and is reviewed THERE; it reaches the post branch only once its review is clean. The post branch therefore only ever holds reviewed work, so a merge-up is always ready to deliver. Many rounds can wait under review at once; they merge one at a time, as each one clears.
 
 ## §2 Rules already paid for (every director, every town)
 | rule | do · never | source |
