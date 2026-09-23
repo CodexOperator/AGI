@@ -44,7 +44,10 @@ def ram():
     return int(next(l for l in open("/proc/meminfo") if l.startswith("MemAvailable")).split()[1]) // 1024
 
 
-def parse(out):
+REPS = 5  # llama-bench -r for every bench row this round writes; parse() records it per row
+
+
+def parse(out, reps):
     """{'test@depth': [mean, sd, n]} -- llama-bench labels depth 0 with no `@ d0`."""
     rows = {}
     for line in out.splitlines():
@@ -54,7 +57,7 @@ def parse(out):
         d = int(m.group(2)) if m.group(2) else 0
         mm = re.match(r"([0-9.]+)\s*±\s*([0-9.]+)", [c.strip() for c in line.split("|")][-2])
         if mm:
-            rows["%s@%d" % (m.group(1), d)] = [float(mm.group(1)), float(mm.group(2)), 5]
+            rows["%s@%d" % (m.group(1), d)] = [float(mm.group(1)), float(mm.group(2)), reps]
     return rows
 
 
@@ -62,8 +65,8 @@ def bench(tag):
     args = ["-m", "/work/Qwen3.5-9B-Q4_K_M.gguf", "-ngl", "99", "-fa", "1", "-ctk", tag,
             "-ctv", tag, "-p", "512", "-n", "64", "-d", ",".join(str(d) for d in DEPTHS)]
     run(args + ["-r", "1"], "bench_warm_" + tag)  # discarded; first rep is cold
-    rc, out = run(args + ["-r", "5"], "bench_" + tag)
-    return {"rc": rc, "rows": parse(out), "ram_mb": ram(), "loadavg": list(os.getloadavg()),
+    rc, out = run(args + ["-r", str(REPS)], "bench_" + tag)
+    return {"rc": rc, "rows": parse(out, REPS), "ram_mb": ram(), "loadavg": list(os.getloadavg()),
             "source_log": "logs/bench_%s.log" % tag}
 
 
@@ -91,12 +94,12 @@ def penalty(types):
 
 
 def main():
-    res = {"host": os.uname().nodename, "image": IMG, "depths": DEPTHS, "reps": 5, "types": {}}
+    res = {"host": os.uname().nodename, "image": IMG, "depths": DEPTHS, "reps": REPS, "types": {}}
     res["model_sha256"] = subprocess.run(["sha256sum", GGUF], capture_output=True, text=True).stdout.split()[0]
     res["ram_mb_start"], res["loadavg_start"] = ram(), list(os.getloadavg())
     if "--reparse" in sys.argv:
         for tag in TYPES:
-            res["types"][tag] = {"rows": parse(open(os.path.join(LOG, "bench_%s.log" % tag)).read()),
+            res["types"][tag] = {"rows": parse(open(os.path.join(LOG, "bench_%s.log" % tag)).read(), REPS),
                                  "source_log": "logs/bench_%s.log" % tag}
     else:
         res["started_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
