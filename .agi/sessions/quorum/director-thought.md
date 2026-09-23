@@ -11,17 +11,16 @@
 | ids | renumber 09-23 (mint ids kept): g14.11->g5.27 (.1 battery) · g14.16->g5.31 · g14.15->g5.30 · g14.14->g7.33 (parked) · g14 stays |
 | board | town:local-maxxing trajectory_standin, thought-master writes it; my rows ride the [merge-up] |
 
-## §1 Plan -- TMM.33 (recorded on goal:g14 + thought-master's card; no dm reached me)
+## §1 Plan -- TMM.37 (08:27Z; owner 08:3xZ: ask thought-master first)
 ```
-batch A  NOW · 0 USD · pi-local · sequential
- ⏳ MP02-G.01  cli-grammar.json derived from argparse · >=30 real invocations validated   LIVE a00-0a762b7a
- ⬜ MP02-T.01  real dm/notes test set, >=100 held-out, scrubbed, datasets/magic-pane/
- ⬜ MP02-S.01  suggester top-1/top-5 vs majority baseline, per role, latency   needs G + T
-batch B  on headroom · paid
- ⏳ mur on SWR-C2.02 (landed, NO parent review) -> every residue = its own corrective round   LIVE unit agi-director-thought-swr-c2-02, run-key mur-director-thought-2
- ✅ SWR-RS.01 N=10 seeded re-score landed 1826d71c6: B 0.777265 CI[0.776330,0.778200] no fire · C2 0.800185 CI[0.799209,0.801161] FIRES every seed · ref 0.870055 (context)
- ⬜ FT.00 -> MP.03
-close    ONE [merge-up] per batch, residues = 0
+protocol  no new node · no dispatch · no config edit without thought-master's go (an owner order in my pane outranks: act, then tell) · one line per ask: what · why · cost · wall
+batch A   magic pane, 3 sequential rounds under MP.02 (goal:g5.24.3 -> hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call); ONE merge-up after S.01
+ ⏳ MP02-G.01  cli-grammar.json (pi-local parent)   LIVE a00-0a762b7a
+ ⬜ MP02-T.01  held-out set, >= 100 real segments, pi deepseek, cap 1, wall 120 -- send the dispatch line when G.01 lands, dispatch on GO
+ ⬜ MP02-S.01  suggester (jev, 0 USD), top-1/top-5 vs majority baseline + latency   needs G + T
+batch B   ✅ SWR-RS.01 (B no fire · C2 fires every seed) · ⏳ C2 mur mur-director-thought-2 · next step (mur on RS.01? merge-up?) ASKED 08:28Z
+dropped   goal:g5.24.4 draft (TMM.37 ASK 1: no new goal, home = g5.24.3 -> MP.02) -- never committed, no grid ref -> file discarded 08:3xZ
+guards    nothing under extensions/ · orders wall 120 min on every paid round · no pi-local round live across 11:41Z
 ```
 
 ## §2 Landed
@@ -34,13 +33,12 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 
 ## §3 🔴 Where it stops
 ```
-08:3xZ 09-23  owner: "Just ask thought master for directions" / "You are acting too independently" -> asked thought-master 08:3xZ + 08:3xZ (RS.01 result); HOLDING: no new dispatch, no new node, no commit of the draft until they answer
+08:3xZ 09-23  TMM.37 applied (g5.24.4 discarded) · waiting: G.01 to land, and thought-master's answer on batch B's next step
 LIVE   MP02-G.01 a00-0a762b7a · pi-local 9B parent · cap 0
 LIVE   C2 mur agi-director-thought-swr-c2-02 · run-key mur-director-thought-2
-DRAFT  goal:g5.24.4 minted in the worktree, UNCOMMITTED (my reading of TMM.33 "mint G5.24.x first") -- thought-master decides keep / change / drop
-ASKED  which G5.24.x · batch A shape (one round with 3 kids vs 3 rounds) · mur on RS.01 now or one mur for batch B · merge-up timing
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 2000 /data/work/agi/.agi/sessions/inbox/director-thought.md
-window no host model-loading kid across the Prime pass-2 (11:41Z)
+next   G.01 lands -> harvest (merge, read, byte-check) -> send thought-master the T.01 dispatch line (what · why · cost · wall) -> dispatch ONLY on go
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-MP02-G.01/a00-0a762b7a/agent.json'))['status'])"
+window no pi-local round live across the Prime pass-2 (11:41Z)
 ```
 
 ## §4 Traps
@@ -69,7 +67,21 @@ links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identic
 - for the head, via thought-master: the brief's §4 thought section still names season1 paths
 ```
 
-## Scratch -- orders of the live rounds (tracked; each replaced when its round lands)
+## Scratch -- orders (tracked; live rounds' orders replaced when they land, drafts dispatch only on go)
+```
+ORDERS MP02-T.01 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.37 ASK 2 · batch A chunk 2 of 3 · pi deepseek · cap 1 USD)
+read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) · goal:g5.24.3 · the MP02-G.01 kid node(s) + .agi/context/local-maxxing/magic-pane/cli-grammar.json (the label vocabulary)
+task        MP.02's held-out set: >= 100 REAL segments, each = the prose an author wrote up to just before a structured call -> the call that author actually invoked next
+sources     the masters' committed dm transcripts (.agi/comms/season-2/dm/*.md, 90 tracked) · MP.01's census: 63 forms = 39 kept + 24 dropped for too-short prose (datasets/magic-pane/metrics_strict.json) -- reuse the 39, never edit MP.01's segments.jsonl
+label rule  every label parses under G.01's cli-grammar.json; a next call that does not parse stays OUT and is counted with its reason -- never forced to fit
+record      per source · per role (master / director / prime / parent / kid) · per verb · the majority class and its share (S.01's baseline) · the unparsed count + reasons
+scrub       every landed segment passes datasets/tools/scrub.py; no raw log copied in
+land        datasets/magic-pane/<date>/, distinct from MP.01's segments.jsonl · ONE experiment node under MP.02
+never       anything under extensions/ · the suggester itself (S.01) · the GPU or :8080
+wall        call done by 120 min whatever the state (key TTL 180); if < 100 segments by then, land what exists and name the gap
+cap         1 USD · line ceiling 120 engine-unit lines
+```
+
 MP02-G.01 (dispatched 07:58Z):
 ```
 ORDERS for MP02-G.01 (director-thought -> parent; TMM.33 batch A, chunk 1 of 3; 0 USD on pi-local). Read hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call and goal:g5.24 (its JEV LANE block, "GRAMMAR FIRST") in full before anything else.
