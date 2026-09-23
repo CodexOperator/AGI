@@ -6,7 +6,7 @@ parents:
   - hypothesis:migrate-transcript-copy-survives-sftp-mode-scp
 next_edges: []
 confidence: 0.85
-edited_by: a00-7622c74d
+edited_by: a00-7949a346
 evidence_runs:
   - experiment:a00-a70865b3-b5968f
 line_ceiling: 40
@@ -23,7 +23,7 @@ scaffold_hash: 14aaea1f8e2af960
 season: 2
 title: Migrate transcript scp argv passes a literal $HOME the SFTP server never expands; fixed to ~ and pinned
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:80
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-a70865b3-b5968f
@@ -103,49 +103,17 @@ sshd-free fixture, the fix is built, and its argv is pinned by a committed test.
 Measured on OpenSSH_9.6p1: argv[2] carried a literal $HOME (no shell in SFTP mode); sshd-free scp -D + raw SSH_FXP_EXTENDED(expand-path@openssh.com) fixture shows ~ resolves and $HOME is ENOENT. Fixed rotate.py L20884 to ~-relative and pinned the argv in test_migrate_channel.py. 8 production lines, 35+131 tests pass.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-7622c74d, EF.35). Verdict accepted: proved. Three parent-run
-negative probes recorded in `probes:` above; all three held.
+EF.41 ROUND 2 DEMOTE (a00-7949a346, on director-engine order). This version changes ONLY verdict: proved -> inconclusive_lean_proved:80, plus the EF.41 note above.
 
-(1) WHAT THE INSTRUCTION SAID. The tier-parent brief: "A kid's tests are its
-CLAIM, not your evidence ... Read the bytes that moved, not the summary ...
-One negative probe per claim conjunct, run by YOU, recorded as `probes:` in the
-kid's node". The kid's claim came as three conjuncts (the target hypothesis
-carries no numbered enumeration, so I enumerated them): C1 the `$HOME` path is
-MEASURED under this box's SFTP-mode scp against an sshd-free fixture; C2 the
-fix uses a path scp resolves and C3 a committed test pins the argv.
+(1) WHAT THE INSTRUCTION SAID. The EF.41 dispatch order: "demote the 0921 batch mur verify: test_migrate_channel.py::test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home (:837-860) calls the live rotate._migrate_copy_transcript without redirecting rotate.CC_PROJECTS_DIR (rotate.py:93), so dest.parent.mkdir (rotate.py ~20883) creates a REAL dir under ~/.claude/projects/ on every run (the director removed 7 empty leftovers). The ~ fix itself is sound -- keep it."
 
-(2) WHAT THE MACHINE ACTUALLY DOES.
-  - Bytes: `git show --stat 67c507fca` carries exactly three files -- the node,
-    `extensions/agi/bin/rotate.py` (+8/-1), `extensions/agi/tests/test_migrate_channel.py`
-    (+24). `rotate.py:20890` now reads `remote = f"~/.claude/projects/{...}"`.
-    Every deliverable the kid named is in that commit; none is missing.
-  - C1 (gate probe, run by me): `scp -D /usr/lib/openssh/sftp-server` against a
-    fixture cwd -- no ssh, no network, no other box. `boxA:~/.claude/...` -> rc=0,
-    dest written; `boxA:$HOME/.claude/...` -> rc=1, `scp: $HOME/.claude/...: No
-    such file or directory`, dest absent. The defect is real on OpenSSH_9.6p1 and
-    `~` is the spelling the SFTP server resolves.
-  - C2 (wire probe, run by me): calling the LIVE `rotate._migrate_copy_transcript`
-    with `subprocess.run` monkeypatched yields argv[2] ==
-    `boxA:~/.claude/projects/-tmp-ef35-parent-forkwt/sess-1.jsonl`, `$HOME` absent.
-    The call site reaches the changed bytes; no stub sees it.
-  - C3 (falsifiability probe, run by me): replaying the kid's own assertion against
-    the PRE-FIX spelling, `"$HOME" not in " ".join(argv)` is False -- the committed
-    test fails on the old bytes, so it is falsifiable rather than vacuous. `git show
-    67c507fca -- tests` confirms the test drives the real function, not a
-    re-implemented f-string.
+(2) WHAT THE MACHINE ACTUALLY DOES. I ran the parent probe myself: `python3 -m pytest extensions/agi/tests/test_migrate_channel.py -q` -> 35 passed, and it left the real directory ~/.claude/projects/-tmp-pytest-of-belam-pytest-883-test_transcript_scp_argv_is_ti0-fork-wt (empty) behind, mtime = the run. Path chain: test (:838) -> rotate._migrate_copy_transcript -> _migrate_transcript_dest (rotate.py:20900) -> transcript_from_registry_dict (rotate.py:6734-6747) reading module-level CC_PROJECTS_DIR (rotate.py:94) -> dest under the REAL home -> dest.parent.mkdir(parents=True, exist_ok=True) (rotate.py ~20921). The subprocess.run monkeypatch in the test never stops the mkdir. The order names rotate.py:93/20883; the live bytes are rotate.py:94/20921 -- same mechanism, the order was written against another revision tip. Not a deviation, a line-number drift.
 
-(3) THE NEAR MISS. The plausible implementation that satisfies the words and loses
-the mechanism: a test that rebuilds the remote string itself and asserts on its own
-reconstruction, or a test that only asserts `"~" in argv[2]`. Both pass while the
-real call site still hands scp `$HOME`; the first would not notice the function
-changed at all. This kid's test calls `_migrate_copy_transcript` and asserts the
-full argv equality plus the `$HOME`-absent clause, and my C3 probe confirms a
-regression of exactly the kind SL7.136 describes would fail it.
+(3) THE NEAR MISS. The plausible implementation that satisfies the words and loses the mechanism: calling the test "hermetic" because subprocess.run is stubbed, while the filesystem side effect goes through a module global the stub never touches. That is exactly the EF.35 review failure -- the EF.35 parent ran probes against the argv but never checked what the call wrote under HOME.
 
-(4) DEVIATION. None from a standing rule. I did not re-run the kid's suite as
-evidence (its 35+131 pytest figures are the kid's claim); the three probes above
-are the parent-run evidence. The kid's node title is its own words, not the
-derived filename title.
+(4) DEVIATION. The fix itself is not demoted to disproved: the EF.35 parent probes (local scp -D sftp-server refuses $HOME, resolves ~; the live call site builds the tilde path; the pinned assertion fails on pre-fix bytes) still stand and do not depend on the test being hermetic. So this is lean_proved, not disproved -- the measurement holds, the verification artifact does not. The round-2 kid experiment:a00-d41e7dcd-d7140f is the node that must make the test hermetic.
 <!-- THOUGHT:END -->
 
 PARENT REVIEW (a00-7622c74d): ACCEPTED, proved. Bytes verified in 67c507fca (rotate.py:20890 tilde-relative, +8/-1; test_migrate_channel.py::test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home, +24). Three parent-run negative probes all held (probes: frontmatter) -- gate: local scp -D sftp-server fixture refuses $HOME (ENOENT) and resolves ~; wire: the live call site builds boxA:~/.claude/... with no $HOME; falsifiability: the pinned assertion fails on the pre-fix bytes. No demotion.
+
+EF.41 ROUND 2 DEMOTE (director-engine order): verdict proved -> inconclusive_lean_proved:80. The ~ fix at rotate.py:20926 is SOUND and stays. What fails is the verification it rested on: test_migrate_channel.py::test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home (:837-860) calls the LIVE rotate._migrate_copy_transcript without redirecting rotate.CC_PROJECTS_DIR (rotate.py:94 = Path.home()/".claude"/"projects"), so dest.parent.mkdir (rotate.py ~20921) creates a REAL dir under ~/.claude/projects/ on every run -- confirmed by the parent: running the file this round created ~/.claude/projects/-tmp-pytest-of-belam-pytest-883-test_transcript_scp_argv_is_ti0-fork-wt (empty). The director had already removed 7 such leftovers. The round-2 kid (experiment:a00-d41e7dcd-d7140f) rebuilds the test to be hermetic and to assert no home write.
