@@ -16,6 +16,44 @@ def route(sender_harness: str, target_harness: str) -> str:
     return "native" if a and a == b else "nudge-send"
 
 
+def _harness_of(root: Path, seat: str) -> str:
+    """The `harness` cell of `seat`'s config:posts row, "" when absent.
+
+    The row reader is the transport's own (`send._locally_loaded_rows` +
+    `send._seat_row_by_name`), never a second parser; a missing row or a
+    missing harness cell yields "" -- never an invented harness, since "" can
+    never match and so can never route native.
+    """
+    import send  # reader only; _seat_row_by_name is a pure lookup
+    row = send._seat_row_by_name(send._locally_loaded_rows(root), seat)
+    return str((row or {}).get("harness") or "").strip()
+
+
+def send_magic(root: Path, from_seat: str, to_seat: str, text: str, *,
+               sender: str | None = None, tmux_session: str | None = None,
+               ) -> dict:
+    """The ONE entrypoint that chooses a path: `route()` decides, and exactly
+    one of `native_send` / `cross_send` runs.
+
+    Same harness -> native tmux typing into the recipient's @id window (zero
+    `send.send_dm`). Differing or empty harness -> the cross-harness seam
+    (zero native body keystrokes). The chosen path's result is returned with
+    `via_route` and the resolved harnesses stamped on it, so the caller can
+    see WHICH branch ran without re-reading the posts rows.
+    """
+    from_harness = _harness_of(root, from_seat)
+    to_harness = _harness_of(root, to_seat)
+    path = route(from_harness, to_harness)
+    if path == "native":
+        result = native_send(root, to_seat, text, sender=sender,
+                             tmux_session=tmux_session)
+    else:
+        result = cross_send(root, to_seat, text, sender=sender or from_seat,
+                            tmux_session=tmux_session)
+    return {**result, "via_route": path, "from_harness": from_harness,
+            "to_harness": to_harness}
+
+
 def _native_target(root: Path, to_seat: str, tmux_session: str | None) -> str:
     import boxes, send  # reader only; never send_dm/_nudge_*
     row = send._seat_row_by_name(send._locally_loaded_rows(root), to_seat)
