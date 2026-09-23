@@ -3,9 +3,9 @@ id: goal:s19
 mint_id: ed6a7e053b2e4959aa04ade37256b53c
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S19
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S19: Contract derivation depends on which interpreter ran it"
 ---
 🔴 **`level3.py`'s `how` field is not a function of the payload alone. It is a
