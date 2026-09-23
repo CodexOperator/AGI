@@ -6,11 +6,16 @@ parents:
   - goal:g7.28.1
 next_edges: []
 confidence: 0.8
-edited_by: a00-dbb8baf9
+edited_by: a00-164669ca
 evidence_runs:
   - experiment:persistent-seat-corpse-and-row
 loop: goal:g7.28.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "probes_dh168.py probe_G_exhaustion (_supervise_persistent seeded persistent:true, max_restarts=2, reopen returns an instantly-dead child each time)", "expected": "the final record AND agent.json drop persistent and zero the pid", "observed": "record={'pid':0,'restart_count':2}; agent.json pid=0, persistent absent -> HOLDS", "result": "holds"}
+  - {"conjunct": 1, "class": "gate", "cmd": "inline probe_Y (dispatch.main --persistent with faked instantly-dead children; read the final manifest record the graph consumes)", "expected": "the manifest record drops persistent and zeroes pid", "observed": "manifest rec persistent=None pid=0 restart_count=3 -> HOLDS", "result": "holds"}
+  - {"conjunct": 2, "class": "wire", "cmd": "probes_dh168.py probe_W_row (_persistent_row pid=1234 then pid=0 against a fixture posts.md carrying seat-a pid=999999 and a foreign row other pid=123)", "expected": "the live pid 1234 lands in the seat own row, clears to 0, and the foreign row stays 123", "observed": "live=1234 clear=0 foreign=123 writer_line=wrote identity cells for seat seat-a into MAIN posts.md -> HOLDS", "result": "holds"}
+  - {"conjunct": 2, "class": "wire", "cmd": "probes_dh168.py probe_X_callsite (dispatch.main --persistent --seat seat-a, spy on _persistent_row, faked Popen)", "expected": "args.seat threads argv -> call site -> changed bytes; the live child pids are written then 0", "observed": "rc=0 seats_written={'seat-a'} pids=[1000,1001,1002,1003,0] -> HOLDS", "result": "holds"}
 profile: balanced
 role: kid
 scaffold_hash: 62bfb98c48dcafe6
@@ -68,7 +73,7 @@ regression is green. Both holes hold on the built bytes.
   `session_id` cell alone (the writer's None-guard skips it).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.168 (a00-dbb8baf9) fork of the DH.49 review. WHAT THE PARENT MEASURED: falsifiers 1 and 3 hold (restart reuses the captured argv; `build_command` ran once) but probe C shows the exhaustion branch `break`s without dropping `persistent:true` or the stale pid, and the posts row was never written. WHAT THIS VERSION DOES: (a) on exit, iff `proc.poll() is not None`, drop `persistent`, zero `pid`, persist `agent.json`, and clear the row; (b) write the seat's OWN posts row at start/each restart through rotate's `_write_identity_cells` — REUSE, not a second writer — with `pid 0` as the established empty sentinel (rotate.py:2323), so occupation is visible in the graph row and never asserts a corpse. NEAR MISS: writing the row at all could be done many ways (direct frontmatter edit, a new writer); the single-writer rule and the self_row gate are the reason this reuses rotate's function and passes `actor=seat`. The gate ADMITTED the write (`wrote identity cells for seat 'seat-a' into MAIN posts.md`), so no bypass was needed. `session_id` at spawn is not yet known, so it is passed None and left alone. Measured +38/-2 production lines, ceiling 40.
+DH.168 PARENT REVIEW (a00-164669ca) of hypothesis:a00-dbb8baf9-be621f (kid a00-dbb8baf9). INSTRUCTION: the parent runs one negative probe per claim conjunct against the kid's bytes and records them as probes; a kid that passes its own suite but fails a probe is lean_disproved with the probe NAMED. MACHINE (read from the bytes, not the summary): _persistent_row (dispatch.py:1518) reuses rotate._write_identity_cells with actor=seat; _supervise_persistent (dispatch.py:1538) writes the row at start (pid=proc.pid), after each restart, and on exit iff proc.poll() is not None drops persistent, zeroes pid, persists agent.json, and clears the row (pid=0); the call site (dispatch.py:2989) threads seat=args.seat and root. rotate._write_identity_cells skips None cells, so a None session_id leaves the cell alone; write.submit(actor=seat) is admitted by the [config] self_row grant. NEAR MISS: a direct frontmatter edit or a second row-writer would satisfy row-shows-occupation and lose the one-writer/self_row rule; probe W and the live writer line wrote identity cells for seat seat-a into MAIN posts.md show the reuse is real. PROBES (parent, probes_dh168.py plus inline probe_Y): G gate HOLDS (exhaustion drops persistent and zeroes pid in the record AND agent.json); Y gate HOLDS (the final MANIFEST record is persistent=None pid=0); W wire HOLDS (live pid 1234 lands in the seat own row, clears to 0, foreign row 123 untouched); X wire HOLDS (args.seat reaches the changed bytes; pids 1000,1001,1002,1003,0). JUDGEMENT: proved ACCEPTED. CAVEAT, not a falsifier of the kid stated claim: the target live pid/session pin is only half met because session_id is not knowable at spawn and is passed None, so the supervisor writes pid but no session pin; the seat own ack remains the writer of session_id. That is the kid own scope note, honestly left.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
