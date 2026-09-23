@@ -276,3 +276,49 @@ def test_dispatch_still_has_zero_grok_hits():
     dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
     assert "grok" not in dispatch.read_text(encoding="utf-8").lower()
 
+
+# ------------------------------------------------------ measured argv (g7.31.1.1)
+# The measured `grok-bot --help` (grok-bot-cli@0.3.1, 46 lines, exit 0) lists
+# no `--model` and no `-p`, so the argv must be the bare resolved bin. These
+# pin the falsifier directly rather than through a restart spy.
+
+
+def test_build_command_is_the_bare_resolved_bin():
+    """argv == [resolve_bin(harness)] and nothing else: no `-p <context_file>`,
+    no `--model`, no positional context path."""
+    argv = grok.build_command(
+        harness={"adapter": "grok_bot", "bin": "/opt/grok-bot",
+                 "models": {"kid": "grok-4-fast"}},
+        tier="kid", context_file="/tmp/context.md")
+    assert argv == ["/opt/grok-bot"]
+
+
+def test_build_command_emits_neither_stub_flag():
+    """The two flags the stub guessed (`-p`, `--model`) are absent no matter
+    how the harness row is shaped."""
+    for harness in ({"adapter": "grok_bot"},
+                    {"adapter": "grok_bot", "bin": "grokk",
+                     "models": {"kid": "grok-4-fast"}}):
+        argv = grok.build_command(harness=harness, tier="kid",
+                                  context_file="/tmp/context.md")
+        assert "-p" not in argv
+        assert "--model" not in argv
+        assert all(not tok.startswith("-") for tok in argv[1:]), argv
+
+
+def test_build_command_still_fires_the_tier_contract():
+    """Validation survives the measured argv: a tier absent from a declared
+    `models` block raises before any argv is built."""
+    with pytest.raises(KeyError) as exc:
+        grok.build_command(
+            harness={"adapter": "grok_bot", "models": {"kid": "only"}},
+            tier="parent", context_file="/tmp/context.md")
+    assert "parent" in str(exc.value)
+
+
+def test_env_sentinel_reaches_argv0_without_dash_tokens(monkeypatch):
+    """A wire probe: `$GROK_BOT_BIN` is argv[0], verbatim, and adds no token."""
+    monkeypatch.setenv("GROK_BOT_BIN", "/SENTINEL/grok-bot")
+    argv = grok.build_command(harness={"adapter": "grok_bot"},
+                              tier="kid", context_file="/tmp/context.md")
+    assert argv == ["/SENTINEL/grok-bot"]
