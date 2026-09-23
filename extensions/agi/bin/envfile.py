@@ -118,8 +118,12 @@ def _line_is_forbidden_key(key: str, value: str) -> bool:
     return False
 
 
-class SecretsError(ValueError):
+class SecretsError(Exception):
     """A problem with the node or the paths it declares.
+
+    Its OWN type, never a ValueError (goal:g15.29.16): a malformed secrets
+    cell must not be swallowed by every unrelated ``except ValueError`` in a
+    caller that was only guarding a parse. Callers catch ``SecretsError``.
 
     Raised, printed by `main()`, exit 1. Never swallowed: `goal:g1.5`'s whole
     complaint is that setup fails silently in both directions, so a resolver
