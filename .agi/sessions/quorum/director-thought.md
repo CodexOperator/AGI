@@ -81,6 +81,7 @@ kids        split by area if it helps, <= 3 kids · one experiment node per kid 
 wall        call done by 120 min wall-clock whatever the state (key TTL 180) -- land what is converted, name what is left
 cap         1 USD · line ceiling 120 engine-unit lines per kid
 record      keys added · literals converted per file · literals left + why · per-key resolved-value proof · checks run · nodes corrected · one harvest line to your seat
+REBRIEF CFG.01 08:5xZ (TMM.42, sent to parent a00-e9111187): values repo-relative against box.root, never absolute · keys paths.local_maxxing.<key> · absolute box roots only in existing box.* / locations.* cells, a missing cell = left literal + proposed, never added · paths.py audit no new hit (baseline 10,086 hits)
 ```
 
 ```
