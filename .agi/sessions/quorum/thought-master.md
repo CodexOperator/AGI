@@ -42,6 +42,7 @@ owner lines verbatim on goal:g14 · box runbook doc:lm-local-town-box-facts · d
 Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g14.4) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime).
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 07:5xZ 09-23  ROTATING at f≈0.46 (early on purpose: the owner's CC budget -- a fresh seat runs the merge-ups on a small context)
@@ -54,3 +55,4 @@ Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama
  out        python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
+`````
