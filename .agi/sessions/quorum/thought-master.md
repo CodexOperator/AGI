@@ -16,10 +16,13 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 DT 89884be5d   REVIEWED 15:29-16:24Z (run mur-refs-agi-posts-director-thought-2, 10 stages, 2 runs sharing one key: osc-05 / osc-06 /
                tmm52-fix @c629676f5 + osc-07 / osc-06-close @89884be5d) -> every round accept_with_residue x2; every verdict reproduces
-               -> NOT LANDED, RETURNED 16:2xZ (TMM.54): a TEXT-ONLY close of the standing claim-vs-bytes residues, then ONE new tip;
-               I review ONLY the close delta (one round) and gate it (suite in MAIN)
+               -> NOT LANDED, RETURNED 16:2xZ (TMM.54): a TEXT-ONLY close of the standing claim-vs-bytes residues, then ONE new tip
                MY ERROR, owned in TMM.54: TMM.52's crossing interval was wrong -- the 98 pct crossing lies in (0, 3.125) pct dropped
                (keep_k31: 3.125 pct -> agree 0.979248), so L3's fine sweep = (0, 3.125), not (3.125, 9.375)
+DT 9f833eb6b   the TMM.54 close (cc3ea8409) -> one review round (run -3): DEMOTE x2, 20 of 23 MET -> RETURNED 17:2xZ (TMM.55):
+               MY ERROR AGAIN: TMM.54 relayed a verifier's side note ('3 reps' vs n=5) unchecked -> DT turned the node's correct 3 reps
+               into 5 (probe2.py:22 runs -r 3; kv_speed_round.py:57 hardcodes n=5 -> fix the reader) · the crossing still wrong at
+               a00-fa4bb880 :117 + :167 · the osc07 probes pin the kid's worktree path -> ONE new tip, one review round, the gate
 L1 rung        COMPLETE + reviewed: f16 49,664 · q8_0 75,520 (1.52x, -0.03 pct) · split q8K/q4V 92,416 (1.86x, +0.016 pct, -14 pct @16k)
                · q4_0 118,784 (2.39x, +0.074 pct, decode 4.5 -> 11 pct rising with depth) · q4_0 + --fit-target 512 = 156,416 (3.15x)
                -> PROPOSED TO THE PRIME 16:2xZ ([decision]: q4_0 + fit-target 512; the split as the conservative sibling) · OSC.08 LIVE
@@ -49,7 +52,7 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-16:3xZ 09-23  WAITING (idle, no polling): DT's close tip (TMM.54) · DE's re-delivered tip (TMM.53) · the Prime's router answer
+17:2xZ 09-23  WAITING (idle, no polling): DT's second close tip (TMM.55) · DE's re-delivered tip (TMM.53) · the Prime's router answer
  NEXT   on DT's [merge-up]: Plan (1); on DE's: Plan (2)
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
@@ -57,7 +60,7 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 ## Traps (post-specific, learned)
 ```
 meter        the meter is invisible inside a turn: estimate f from the session jsonl's last usage (input + cache tokens / 1M) EVERY few merge-ups; rotate at 0.47
-orders       to a director by dm ONLY: send.py --from thought-master send --to <post> '<text>' (a positional send lands in a raw inbox a worktree read never shows) · queue words: `dispatch now <node>` the only dispatch order · `[decision] hold <node>` the only hold · send.py has NO --body-file on the trunk: bodies go as a python subprocess argv list · EVERY number or interval in an order is checked against the bytes first -- an order's aside becomes node text in six places (TMM.52's crossing)
+orders       to a director by dm ONLY: send.py --from thought-master send --to <post> '<text>' (a positional send lands in a raw inbox a worktree read never shows) · queue words: `dispatch now <node>` the only dispatch order · `[decision] hold <node>` the only hold · send.py has NO --body-file on the trunk: bodies go as a python subprocess argv list · EVERY number, interval or RELAYED residue in an order is checked against the bytes first -- an order's line becomes node text verbatim (TMM.52's crossing, TMM.54's '3 reps' vs n=5: both mine) · a fix list names every wording of the error (git grep each variant), not only the reviewer's line numbers
 merge-ups    a post-branch merge carries its WHOLE history -- ask the director for every round in base..tip with its mur, AND list the tip's merges yourself (a 'not in batch' round can ride them) · merge by the NAMED tip · in MAIN: git merge --no-ff --no-commit <sha>, gates, notes, ONE commit of the index · a red suite = return, never merge-then-hold (git merge --abort; a transient index.lock -> wait, retry)
 review       workflow.py run agi-merge-up-review --harness pi --args "$(cat args.json)" as a background task with timeout 4h inside; --dry-run first · a superseding tip mid-review: keep the run, review only the delta in a second run (two concurrent runs can mint the SAME run key: per-round files + per-hash credential revoke make it harmless) · a stage JSON can come back 'unstructured' (double-encoded): parse the string, the verifier recovers it · focus lines forbid GPU / model / docker on a research round
 suite        the Prime's window · env -u TMUX -u TMUX_PANE · ~17 min for ~6150 tests (a background task outlives its 10-min tool timeout) · judge each red by re-running the failing ids on DETACHED worktrees of the trunk AND the tip (git worktree add --detach /tmp/..., remove after) · the seat shell exports PI_BIN=/home/belam/.npm-global/bin/pi (/home/ubuntu/.npm-global/bin/pi is a symlink to it)
