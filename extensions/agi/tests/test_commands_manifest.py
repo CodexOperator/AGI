@@ -244,6 +244,27 @@ _LISTED_CLIS = [
     "viewport.py", "crons.py", "envfile.py",
 ]
 
+# EF.48 CLI GROUP A. Appended rather than folded into the literal above so the
+# sibling round's GROUP B edit cannot collide with this one.
+_LISTED_CLIS += [
+    "brief.py", "level3.py", "season.py", "heal.py", "zoom.py",
+    "locations.py", "commands.py", "stitch.py", "paths.py",
+    "evidence_gate.py",
+]
+
+# EF.48 CLI GROUP B. Appended, like GROUP A, so sibling edits cannot collide.
+_LISTED_CLIS += [
+    "sensei.py", "post_wire.py", "node_writer.py", "metrics.py", "unify.py",
+    "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
+]
+
+#: CLIs with NO argparse parser at all: `node_writer.py` is a library module
+#: with no `main`, and `metrics.py` reads a manual argv. They are still IN the
+#: coverage test -- `require_parser=False` returns the single-verb
+#: `{"": set()}` vocabulary -- while every other listed CLI still asserts a
+#: parser was captured. `main` is never imported or run for these two.
+_PARSERLESS_CLIS = {"node_writer.py", "metrics.py"}
+
 
 class _ParserCaptured(Exception):
     """Raised by the spy once the top-level parser exists, before it parses."""
@@ -261,13 +282,21 @@ def _subparsers(parser) -> dict:
     return {}
 
 
-def _introspect_cli(cli: str, monkeypatch) -> dict[str, set[str]]:
+def _introspect_cli(cli: str, monkeypatch,
+                    require_parser: bool = True) -> dict[str, set[str]]:
     """`{verb: {arg dests}}` read from the CLI's OWN argparse, never a list.
 
     A CLI with subparsers keys on each verb; one with a positional `action`
     choices list keys on those choices; one with neither is the single verb
     `""`. The spy raises before parse, so `main` never does its work.
+
+    `require_parser=False` returns the same single-verb `{"": set()}` WITHOUT
+    importing or running the module -- the declared path for a parserless
+    library/manual-argv CLI. The parser-required assertion below stays on for
+    every CLI whose caller leaves the knob True.
     """
+    if not require_parser:
+        return {"": set()}
     import argparse
     import contextlib
     import inspect
@@ -318,7 +347,8 @@ def test_every_listed_cli_verb_is_declared_or_excluded(cli, monkeypatch):
     """Falsifier: a verb of a listed CLI neither declared nor excluded."""
     _, man = _live_manifest()
     declared = {k.split(":", 1)[1] for k in man if k.startswith(cli + ":")}
-    introspected = set(_introspect_cli(cli, monkeypatch))
+    introspected = set(_introspect_cli(cli, monkeypatch,
+                                       require_parser=cli not in _PARSERLESS_CLIS))
     missing = sorted(introspected - declared)
     extra = sorted(declared - introspected)
     assert introspected == declared, (
@@ -331,7 +361,8 @@ def test_every_listed_cli_verb_is_declared_or_excluded(cli, monkeypatch):
 def test_declared_args_are_still_accepted_by_the_cli(cli, monkeypatch):
     """Falsifier: a declared arg the CLI no longer accepts."""
     _, man = _live_manifest()
-    dests = _introspect_cli(cli, monkeypatch)
+    dests = _introspect_cli(cli, monkeypatch,
+                            require_parser=cli not in _PARSERLESS_CLIS)
     for key, entry in man.items():
         if not key.startswith(cli + ":") or not entry.get("proposable"):
             continue
