@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -221,6 +222,8 @@ def _entry(name, argv, m, cli, verb, side, prop, purpose=""):
          "proposable": bool(m.get("proposable", prop))}
     if m.get("reason"):
         e["reason"] = str(m["reason"])
+    if e["side_effects"] in ("spawn", "spend", "destructive"):
+        e["proposable"] = False          # a verb that spends or spawns is never offered
     return e
 
 
@@ -253,6 +256,14 @@ def render_manifest(root) -> str:
     return json.dumps(manifest(root), indent=2, sort_keys=True)
 
 
+#: Placeholders that name no declared arg and stay for the runner to fill:
+#: `<engine>`/`<root>`/`<home>` are resolved by `load`, `<node-id>` by the
+#: verb itself. Anything else left after substitution is unmapped -- refuse.
+KEPT_METAVARS = frozenset({"engine", "root", "home", "stub", "node-id",
+                           "project_root"})
+_PLACEHOLDER_RE = re.compile(r"<([^<>]+)>")
+
+
 def _coerce(value, arg):
     """The declared `type` applied to one propose value."""
     if str(arg.get("type") or "str") == "bool":
@@ -261,16 +272,24 @@ def _coerce(value, arg):
 
 
 def propose(root, name: str, args: dict | None = None) -> list[str]:
-    """Validate `args` against the entry and RETURN its argv — NEVER run it."""
+    """Validate `args` against the entry and RETURN its argv — NEVER run it.
+
+    Substitution is ONE PASS over the declared args only: an undeclared key
+    substitutes nothing, a value containing `<x>` is never re-scanned, and an
+    argv that would still hold an unmapped placeholder -- or a supplied arg
+    with no `<name>` to land in -- REFUSES by name. It never returns an
+    incomplete argv for a proposer to run.
+    """
     entry = manifest(root).get(name)
     if entry is None:
         raise CommandError(f"no command {name!r} in the choice set")
     if not entry.get("proposable"):
         raise CommandError(
             f"{name!r} is not proposable: {entry.get('reason') or 'declared'}")
-    given, values = dict(args or {}), {}
-    for arg in entry.get("args") or []:
-        n = str(arg.get("name") or "")
+    given = dict(args or {})
+    declared = {str(a.get("name") or ""): a for a in entry.get("args") or []}
+    values: dict[str, str] = {}
+    for n, arg in declared.items():
         if n not in given:
             if arg.get("required"):
                 raise CommandError(f"{name!r}: missing required arg {n!r}")
@@ -280,11 +299,22 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
             raise CommandError(
                 f"{name!r}: arg {n!r}={v!r} not in {arg['choices']}")
         values[n] = str(v)
-    for n, v in given.items():                # extras fill non-schema holders
-        values.setdefault(str(n), str(v))
-    argv = [str(t) for t in entry["argv"]]
-    for n, v in values.items():
-        argv = [t.replace(f"<{n}>", v) for t in argv]
+    template = " ".join(str(t) for t in entry["argv"])
+    for n in values:                  # a value with nowhere to land is a drop
+        if f"<{n}>" not in template:
+            raise CommandError(
+                f"{name!r}: cannot place arg {n!r}; argv has no <{n}>")
+
+    def _fill(match: "re.Match") -> str:
+        return values.get(match.group(1), match.group(0))
+
+    argv = [_PLACEHOLDER_RE.sub(_fill, str(t)) for t in entry["argv"]]
+    for token in argv:
+        for n in _PLACEHOLDER_RE.findall(token):
+            if n not in KEPT_METAVARS:
+                raise CommandError(
+                    f"{name!r}: unmapped placeholder <{n}> -- argv cannot "
+                    f"complete; declare the arg or fix the template")
     return argv
 
 

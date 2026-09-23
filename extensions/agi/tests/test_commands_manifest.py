@@ -57,6 +57,7 @@ manifest:
     argv: ["python3", "<engine>/write.py", "<node-id>", "set <key> <value>"]
     args:
       - {name: key, type: str, required: true, choices: []}
+      - {name: value, type: str, required: true, choices: []}
     purpose: "set a key"
     side_effects: graph-write
     proposable: true
@@ -361,11 +362,109 @@ def test_propose_refuses_a_value_outside_choices():
     assert "not in" in str(exc.value)
 
 
-def test_propose_accepts_a_choice_and_leaves_an_unmapped_placeholder():
+def test_propose_completes_a_required_arg_that_used_to_be_dropped():
+    """The old `write.py:read` validated `range` then left `<N:M>` in the
+    argv -- the silent drop. It must land, and no placeholder may survive."""
     root, _ = _live_manifest()
     argv = commands.propose(root, "write.py:read",
                             {"target": "body", "range": "1:2"})
-    assert argv[-1] == "read body <N:M>"
+    assert argv[-1] == "read body 1:2"
+
+
+def test_every_proposable_entry_places_every_required_arg():
+    """Falsifier: a required arg a proposer supplies that never lands.
+
+    Feeds a distinct synthetic value for every required arg of every
+    proposable entry and asserts each appears in the returned argv, so an
+    entry that validates then silently drops an arg fails here rather than in
+    a proposer's hands. Entries with no required arg have nothing to place."""
+    root, man = _live_manifest()
+    for key, entry in man.items():
+        if not entry.get("proposable"):
+            continue
+        required = [a for a in entry.get("args") or [] if a.get("required")]
+        if not required:
+            continue
+        args = {}
+        for arg in required:
+            choices = arg.get("choices") or []
+            args[arg["name"]] = (choices[0] if choices
+                                 else f"SYNTH{len(args)}x{arg['name']}")
+        try:
+            argv = commands.propose(root, key, args)
+        except commands.CommandError as exc:
+            pytest.fail(f"{key}: refused a fully-supplied proposal: {exc}")
+        joined = " ".join(argv)
+        for name, value in args.items():
+            assert value in joined, (
+                f"{key}: required arg {name!r}={value!r} never landed in "
+                f"{argv!r}")
+
+
+def test_no_spend_spawn_or_destructive_entry_is_proposable():
+    _, man = _live_manifest()
+    bad = [k for k, e in man.items()
+           if e["side_effects"] in ("spend", "spawn", "destructive")
+           and e["proposable"]]
+    assert bad == [], bad
+
+
+def test_propose_substitutes_once_and_ignores_undeclared_keys():
+    """One pass only: a value containing `<x>` is never re-scanned, and a key
+    that is not a declared arg substitutes nothing."""
+    root, _ = _live_manifest()
+    argv = commands.propose(root, "write.py:set",
+                            {"key": "title", "value": "x <engine> y",
+                             "engine": "BAD"})
+    joined = " ".join(argv)
+    assert "BAD" not in joined, joined
+    assert "x <engine> y" in joined, joined
+
+
+def test_propose_refuses_a_required_arg_with_nowhere_to_land(tmp_path: Path):
+    """A supplied required arg whose name has no `<name>` in the template is a
+    drop -- it must refuse by name, not return the argv."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(
+        "---\n"
+        "manifest:\n"
+        "  x.py:go:\n"
+        "    cli: x.py\n"
+        "    verb: go\n"
+        "    argv: [python3, x.py, go]\n"
+        "    args:\n"
+        "      - {name: 'wanted', type: str, required: true, choices: []}\n"
+        "    side_effects: read\n"
+        "    proposable: true\n"
+        "id: 'command:commands'\n"
+        "mint_id: aaaabbbbccccdddd\n"
+        "type: command\n"
+        "title: probe\n"
+        "---\n")
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(graph, "x.py:go", {"wanted": "v"})
+    assert "cannot place arg" in str(exc.value)
+    assert "wanted" in str(exc.value)
+
+
+def test_propose_refuses_an_unmapped_placeholder():
+    """A template still holding a placeholder no declared arg maps must
+    refuse by name rather than hand back an argv a proposer cannot run."""
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "session-complete", {})
+    assert "unmapped placeholder" in str(exc.value)
+    assert "<iter>" in str(exc.value)
+
+
+def test_command_schema_declares_manifest_and_excluded():
+    """The `[command]` schema names both maps its resolver reads."""
+    root, _ = _live_manifest()
+    text = (root / "context" / "schemas" / "[command].md").read_text()
+    assert "manifest:" in text
+    assert "excluded:" in text
 
 
 def test_propose_writes_no_file_and_spawns_no_process(project, monkeypatch):
