@@ -986,6 +986,25 @@ def _serialize_node(fm_lines: list[str], body: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+def assemble_node(fm: dict, body: str, *, old_body: str | None = None,
+                  set_fm: dict | None = None,
+                  unset_fm=()) -> tuple[dict, str, list[str]]:
+    """Merge one node edit: unset -> carry THOUGHT -> absorb a duplicate body
+    frontmatter block -> `set_fm`. `set_fm` MUST follow the absorb, or a stale
+    body key clobbers an explicit edit (hypothesis:sub-dry-run-preview-is-
+    the-bytes-update-node-lands). `update_node` and the `--dry-run` preview
+    both call this, so previewed bytes are landed bytes.
+    """
+    fm = dict(fm)
+    for key in unset_fm:
+        fm.pop(key, None)
+    if old_body is not None:
+        body = _carry_thought(old_body, body)
+    fm, body, absorbed = _absorb_leading_frontmatter(fm, body)
+    fm.update(set_fm or {})
+    return fm, body, absorbed
+
+
 def update_node(
     root,
     node_id,
@@ -1033,10 +1052,7 @@ def update_node(
     res.slug = path.stem
     res.parents = list(fm.get("parents") or [])
 
-    for key in unset_fm:
-        fm.pop(key, None)
-
-    new_body = nf.body if body is None else _carry_thought(nf.body, body)
+    new_body = nf.body if body is None else body
 
     # hypothesis:l2-done-doubled-frontmatter — a kid that kept the scaffold's
     # frontmatter in its body (L2.01: experiment:a00-e65beccc-ac5309) leaves a
@@ -1044,7 +1060,10 @@ def update_node(
     # serializes the file back it would read as TWO frontmatter blocks. Absorb
     # the duplicate into the real frontmatter (later keys winning) and strip it
     # from the body, ONE writer -- the shared `cli.py done`/`post_wire` path.
-    fm, new_body, _absorbed = _absorb_leading_frontmatter(fm, new_body)
+    # the order lives in ONE helper so the preview cannot drift (same hyp).
+    fm, new_body, _absorbed = assemble_node(
+        fm, new_body, old_body=None if body is None else nf.body,
+        set_fm=set_fm, unset_fm=unset_fm)
     if _absorbed:
         print(
             f"warn: absorbed duplicate frontmatter from body of {node_id} "
@@ -1052,9 +1071,7 @@ def update_node(
             f"duplicate removed (l2-done-doubled-frontmatter)",
             file=sys.stderr)
 
-    # The verdict/confidence delta wins over anything the duplicate carried,
-    # so it is applied AFTER the absorb -- never clobbered by a body block.
-    fm.update(set_fm or {})
+    # `assemble_node` applies the delta AFTER the absorb (never clobbered).
 
     if fm == nf.frontmatter and new_body == nf.body:
         res.status = UNCHANGED
