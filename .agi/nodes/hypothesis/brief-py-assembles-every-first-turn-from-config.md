@@ -44,8 +44,8 @@ INJECTION.md     written by 5 bin files: commands.py · zoom.py · rolslice.py �
 `brief.py render --post <post>` (and `--role <role> --harness <h>` for parents and kids) returns the WHOLE first user turn, assembled from ONE config cell, and writes no file:
 ```
 parts, in order, per role + harness (config)   head    doc:unified-head HEAD region, {{PRAYERS}} filled from moral:faith §4.1
-                                               template  the ROLE's template, chosen by config: the post row's template cell, else the formation default for its role (director → doc:unified-director-brief · master → the master template · prime_director → the Prime template) — NOT a line in the card (owner 08:5xZ)
-                                               card    the post's card (.agi/sessions/quorum/<post>.md) = its own loop + live scratch
+                                               template  the ROLE's template, chosen by config: the post row's template cell, else the formation default for its role (director → doc:unified-director-brief · master → doc:unified-master-brief · prime_director → build:briefs-prime-director-successor; thought-master's row says director, so its row cell names the master template) — NOT a line in the card (owner 08:5xZ)
+                                               card    the post's card = a doc node, doc:card-<post> (owner 09-23; its own loop + live scratch; .agi/sessions/quorum/<post>.md is a symlink to its file during the move — doc:card-belam first)
                                                harness claude-code: the block that replaces CLAUDE.md · pi: none unless configured
                                                trajectory  the town trajectory (town:<town> trajectory_standin today) — masters by default, any role by config
                                                extras  parent/kid: the dispatch brief
