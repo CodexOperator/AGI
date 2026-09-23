@@ -3,11 +3,10 @@ id: goal:g5.2
 mint_id: 5a5a74b9f6f347c495b216240cf0e8af
 type: goal
 parents:
-  - goal:g5
-  - build:COMPLETE.md
+  - goal:g4
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G5.2
 goal_kind: subgoal
 heading_level: 3
@@ -19,17 +18,17 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G5.2: Splitting a goal is a mechanical act — classifiers and encoders, not taste"
 ---
 # goal:g5.2
 
 ## Agent Notes
-**Why this exists, with a worked failure.** `goal:g9.4` — the live graph viewport
+**Why this exists, with a worked failure.** `goal:g2.17` — the live graph viewport
 — was handed to the loop as one goal and came back as a list view: correct
 against the words, nowhere near the intent. It should have been split first, into
-a hook layer plus two skins plus a player avatar (now `goal:g9.8`, `goal:g9.9`,
-`goal:g9.10`), each chasing its own mvp. Nothing in the engine noticed the goal
+a hook layer plus two skins plus a player avatar (now `goal:g2.20`, `goal:g2.21`,
+`goal:g2.22`), each chasing its own mvp. Nothing in the engine noticed the goal
 was too big to aim at, so a director had to, and did not. That is a harness gap,
 not a model failure.
 
@@ -49,5 +48,5 @@ not a model failure.
 - **Assign the loop flavor** each sub-goal should launch (`goal:g1.12`).
 
 Falsifier shape: run the classifier over the goal corpus as it stood before
-2026-09-04 and check that `goal:g9.4` scores as over-saturated while goals that
+2026-09-04 and check that `goal:g2.17` scores as over-saturated while goals that
 closed cleanly in one chain do not.
