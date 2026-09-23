@@ -11852,6 +11852,8 @@ OWNER 09-23 10:4xZ (Prime pane, verbatim): "And director engine knows to keep sp
 
 OWNER 09-23 10:4xZ-10:5xZ (Prime pane, verbatim, in order): "It’s on the core branch" then "Standing director instructions one of the doc nodes" then "The goal node format is in the goal schema. Schemas define nodes. Update the unified head to reflect that. That’s what the head is for, explaining things everyone should know." -- APPLIED: no separate format doc (a doc:goal-node-shape mint was stopped by the owner; its partial writes were undone in 0cc38d54c); doc:unified-head B · FORM now says schemas define nodes (.agi/context/schemas/[<type>].md — required fields, legal parents, shape; read it before you mint or edit; a goal leaf follows [goal]); the director template KEEP SPLITTING line already cites the goal schema.
 
+OWNER 09-23 11:0xZ (Prime pane, verbatim): "Yes go for apply and sync to every post" -- APPLIED: .agi/context/schemas/[goal].md Conventions now carry the goal body format verbatim from doc:standing-llm-ops §5-§6 (77c997cad): the target framing table, the title form, the fixed body order and what each section carries; the stale never-renumbered line replaced by the owner 09-23 renumber rule (mint_id kept, refs re-pointed in the same commit, THOUGHT old to new, no retired id in a live node). Synced to every post: director worktrees merged with the trunk, one line each to thought-master, director-thought, director-engine.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
