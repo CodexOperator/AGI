@@ -207,7 +207,12 @@ def seat_occupation(row: dict, tmux_session: str,
             pid_alive = None
     state = "occupied"
     if live is None:
-        state = "unoccupied"
+        # goal:g7.28.1 -- a persistent dispatch HOLDS a process, not a tmux
+        # window: a LIVE pid with no pane answering the seat name is an
+        # honest occupation, and only a row with no live pid reads
+        # unoccupied there. Without this a persistent seat reads unoccupied
+        # for its whole life while its child runs.
+        state = "occupied" if pid_alive is True else "unoccupied"
     elif pin != live or pid_alive is False:
         state = "pane-drift"
     return {"state": state, "window": pin, "live": live,

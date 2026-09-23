@@ -1515,8 +1515,40 @@ def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
             or bool(os.environ.get(_PERSIST_STOP_ENV)))
 
 
+def _persist_seat_row(root: Path, seat: str | None, pid: int) -> None:
+    """Name a named seat's occupation in config:posts (goal:g7.28.1).
+
+    Writes the seat's OWN row `pid` through write.py's ONE submit -- the
+    sanctioned writer, never a hand edit -- so the write log carries it. The
+    seat is passed as the actor, so the schema's `self_row` declaration
+    admits exactly its own row and exactly the declared `pid` cell. `pid=0`
+    RELEASES the row: it is the JOIN-miss sentinel `seat_occupation` already
+    reads as "no pid", so a terminated supervisor stops reporting occupation.
+    Best-effort: a row that cannot be written says so and never takes the hold
+    down.
+    """
+    if not seat:
+        return
+    try:
+        import geometry_config as _gc
+        import write as _write
+        rows = _write._load_seats(root)
+        if not any(r.get("name") == seat for r in rows):
+            return
+        new_rows = [dict(r, pid=int(pid)) if r.get("name") == seat
+                    else dict(r) for r in rows]
+        _, list_key = _gc.resolve(root)
+        edit = _write.Edit(node_id=f"config:{list_key}")
+        edit.set_fm[list_key] = new_rows
+        _write.submit(root, edit, actor=seat)
+    except Exception as exc:  # noqa: BLE001
+        print(f"persistent: posts row for {seat!r} not written: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+
+
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
                           record: dict, session: Path,
+                          root: Path | None = None, seat: str | None = None,
                           max_restarts: int = _PERSIST_MAX_RESTARTS,
                           poll_s: float = _PERSIST_POLL_S) -> int:
     """HOLD one seat and re-open the SAME round when it dies.
@@ -1544,8 +1576,20 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         record["pid"] = proc.pid
         record["restart_count"] = restarts
         (session / "agent.json").write_text(json.dumps(record, indent=2))
+        if root is not None:
+            _persist_seat_row(root, seat, proc.pid)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    # goal:g7.28.1 conjunct 2 (the parent's probe C): the hold is OVER -- a
+    # record must never assert `persistent: true` over a corpse, so name the
+    # terminal state, record whether the last pid still answers, and RELEASE
+    # the seat row. The pid is kept for forensics, next to its liveness.
+    record["persistent"] = False
+    record["seat_state"] = "released"
+    record["pid_alive"] = proc.poll() is None
+    (session / "agent.json").write_text(json.dumps(record, indent=2))
+    if root is not None:
+        _persist_seat_row(root, seat, 0)
     return restarts
 
 
@@ -2950,10 +2994,13 @@ def main() -> int:
         print(spawn_line)
         if args.persistent:
             # Hold AFTER the record is on disk; the supervisor keeps pid and
-            # restart_count current.
+            # restart_count current. The named seat's row is occupied here,
+            # on every restart, and released when the hold ends.
+            _persist_seat_row(root, args.seat, proc.pid)
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir)
+                record=agent_record, session=sess_dir,
+                root=root, seat=args.seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
