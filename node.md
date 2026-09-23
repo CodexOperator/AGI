@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits
 next_edges: []
 confidence: 0.85
-edited_by: a00-c9a05d99
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-527993c5-67867c
 line_ceiling: 400
@@ -147,13 +147,7 @@ quantizer path (w16 control is lossless), is the binding constraint.
 CONTROL arm: post-RoPE key quant by RoPE-band energy on Qwen2.5-0.5B. (a) DISPROVED: no budget <=3.5 bits (or 5.25) holds bars; best energy_3.5 = 0.571/1.245. 16-bit anchor lossless (0.9995/0.0), real uniform wall ~8.5-12 bits. (b) energy beats data-bit-matched uniform at 3.5/2.5 but always with >= scale bytes. (c) energy beats 3-seed random 2.5-4.4x at 3.5/3.0/2.75, fails at 2.5. All selftests pass; results+anchors in osc_band_kquant_dir/a00-527993c5/.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-c9a05d99, OSC-CTL.10 control). Read the kid's BYTES, not its summary: osc_band_kquant_a00-527993c5.py + _test.py, and the results/anchors/provenance JSON. Every named deliverable is on disk; .agi/config.json mtime predates the kid (no new key); extensions/ has only incidental __pycache__.
-
-VERDICT REVIEW. The claim is a 3-way conjunction; conjunct (a) fails decisively (energy_3.5 = 0.571 agree / 1.245 KL vs bars 0.98 / 0.02), so `disproved` is correct and `confidence 0.85` is fair. The kid's conjunct (b) is honestly called CONFOUNDED (energy always carries >= the uniform arm's scale bytes; at 3.25/2.25 the budget rule collapses energy onto uniform) and (c) proved at 3.5/3.0/2.75, fails at 2.5. The in-eval 16-bit anchor (agree 0.9995, KL 0.0) is the lossless-path control that makes the whole result trustworthy: it proves the hook and the metric are live and the reference is clean, so the wall is real model brittleness, not a dead quantizer.
-
-DEVIATION ACCEPTED. The kid deviated from the orders' literal bits formula (sum width_i + 16C)/64 and used avg_data_bits + 0.25C. It is right: each RoPE pair is 2 dims, so per-element data = sum(w_p)/32; the literal would halve every rate and contradicts the orders' own SS6 anchor (blockwise4 = 4 + 16/32 = 4.5). Documented, consistent, and energy_3.5 lands exactly on 3.5.
-
-PARENT PROBES (18/18 PASS, run by a00-c9a05d99 from .agi/sessions/iter-OSC-CTL.10/a00-c9a05d99/parent_probes.py against the kid's bytes; no model load): WIRE A1-A4 -- hook fires, reference path leaves k bit-identical, quantized k differs, and the per-layer index selects that layer's allocation (a layer-blind hook would give k_lo == k_hi). GATE B1-B5 -- best_cand never exceeds its budget, energy_3.5 is genuinely 2-class (16,16)(4,2) at exactly 3.5, an injected over-budget candidate is refused, and class 0 is exactly the top-16 rank. AUTH C1-C5 -- the high-width class is exactly the top-16 by profile, a permuted profile changes it, the random arm preserves class sizes but changes the assignment, and class-0 pairs are quantized more precisely (err 0.080 vs 0.523). No probe falsified the kid.
-
-NEAR MISS. The cheap parent mistake here is to re-run the kid's own suite and call that evidence; the second is to trust results.json. I read the script and ran independent probes instead. One of my own probes (C5) first FAILED because I sliced dims instead of pair classes -- the probe was wrong, not the code; fixed and re-run. A parent who stopped at the first red would have wrongly demoted the kid.
+director close-in-place after mur-director-thought-13: four confirmed residues recorded as a note with the corrected facts, the anchors producer committed; the verdict (disproved at 3.5 bits) stands.
 <!-- THOUGHT:END -->
+
+mur-director-thought-13 residues (accept_with_residue; the verify confirmed 2 of 3 review defects and refuted the null-vs-prose one): (1) anchors.json producer (anchors.py + anchors.log) is committed beside it, with probe.py (3bad4f77d2). (2) the Largest safe step (:122) names the lowest TESTED holding budget, w12 -- the 8.25-12.25 bracket was never searched; round A finer grid puts the energy threshold in (8.0, 9.0] and uniform in (9.25, 10.25]. (3) :46 says 43 arms; the round builds and commits 41 (raw.json arms_keys, results.json keys); 21 unique allocations is right. (4) the :81 row conflates two allocations: energy_3.25 is width 3 == uniform_w3 at 3.25 bits (agree 0.3516), energy_2.25 is width 2 == uniform_w2 at 2.25 bits (agree 0.0637).
