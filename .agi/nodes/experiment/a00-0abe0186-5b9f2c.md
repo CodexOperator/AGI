@@ -1,0 +1,394 @@
+---
+id: experiment:a00-0abe0186-5b9f2c
+mint_id: 20d975663bf64370b61169d82eaf4bd3
+type: experiment
+parents:
+  - hypothesis:write-sub-passes-every-gate-set-passes
+next_edges: []
+confidence: 0.9
+edited_by: a00-95077376
+evidence_runs:
+  - experiment:a00-0abe0186-5b9f2c
+line_ceiling: 130
+loop: hypothesis:write-sub-passes-every-gate-set-passes@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "1", "class": "gate", "cmd": "parent-probes.py probe1a: tmp graph, Edit+verb_sub('notes.txt => ../outside/secret.txt'), write.submit(graph, edit)", "expected": "refused by the outside-ref gate naming the outside path; file bytes unchanged", "observed": "EditError `cannot set 'link_ref': .../outside/secret.txt resolves outside the repo tree`; bytes equal", "result": "HOLD"}
+  - {"conjunct": "1", "class": "gate", "cmd": "parent-probes.py probe1c (false-positive control): verb_sub('notes.txt => other.txt') inside the repo", "expected": "still lands (the gate must not over-refuse an inside->inside ref)", "observed": "status=updated, file carries `link_ref: other.txt`", "result": "HOLD"}
+  - {"conjunct": "2", "class": "gate", "cmd": "parent-probes.py probe2a/2c/2d: sub -> `WORLD <THOUGHT-marker>` via API and CLI; verb_set same value", "expected": "refused with the SAME marker refusal verb_set gives; nothing written", "observed": "API EditError, CLI rc=2, verb_set EditError -- all `cannot set 'title': the value carries an open THOUGHT marker`; bytes unchanged", "result": "HOLD"}
+  - {"conjunct": "3", "class": "wire", "cmd": "parent-probes.py probe3a/3b/3c/3d: two chained sub ops via CLI and API; two chained sub payload ops; then a second op whose old is absent", "expected": "second op sees the first op's output; reported count is the composed total; an absent second op refuses 0-occurrences and writes nothing", "observed": "CLI rc=0 count=2 landed `hello EARTH`; API status=updated landed `hello EARTH`; payload bytes `alpha OMEGA gamma`; absent op rc!=0 `0 occurrences ... nothing written`, bytes unchanged", "result": "HOLD"}
+  - {"conjunct": "4", "class": "wire", "cmd": "parent-probes.py probe4d: --dry-run then real write; recompute _landed_node_text(root, edit) after _resolve_sub; compare to the file actually written", "expected": "the preview's `+` side is exactly the bytes the write lands", "observed": "after-side byte-identical to the landed file", "result": "HOLD"}
+  - {"conjunct": "4", "class": "gate", "cmd": "parent-probes.py probe4e (caveat): is the dry-run diff applicable to the RAW file?", "expected": "informational -- the before-side is _landed_node_text(base), a serialized no-op write, not the raw on-disk bytes", "observed": "the real landed diff (re-serialization/provenance) is NOT a substring of the dry-run output -- the preview hides the re-serialization + provenance delta", "result": "CAVEAT (recorded, not a disproof of the land-side claim)"}
+production_lines: 102
+profile: balanced
+rebrief_answer: proceed with ceiling 130
+rebrief_request: "102/40: four conjuncts (API-path resolve, marker refusal, composed subs, landed-bytes dry-run) built and green, 4 red pre-fix tests now green plus 52 supporting write tests; 102 added lines in write.py exceeds the 40 ceiling because four gates and their why-comments cannot fit; request ceiling 130"
+role: kid
+scaffold_hash: 1717dede0f969dd3
+season: 2
+thought_session: iter-EF.57
+title: "write.py sub passes every gate set passes: four conjuncts built and green"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-0abe0186-5b9f2c
+
+## Experiment
+
+Built the four conjuncts in `extensions/agi/bin/write.py`; one test per conjunct.
+
+| # | conjunct | code | test |
+|---|---|---|---|
+| 1 | sub resolves before the outside-ref gate, API path too | `submit` calls `_resolve_sub` right after root resolution, before the gate loops `link_ref`/`payload_ref` | `test_write.py::test_api_direct_sub_is_judged_by_the_outside_ref_gate` |
+| 2 | sub values pass `_refuse_marker_value` | `_resolve_sub` runs each changed frontmatter value through the same refusal `verb_set` uses | `test_write_sub.py::test_sub_value_with_open_thought_marker_is_refused_like_set` |
+| 3 | a second sub composes with the first | `Edit.sub_ops` list; `_resolve_sub` applies ops in order per target; reported count = composed total | `test_write_sub.py::test_second_sub_composes_with_the_first` |
+| 4 | `--dry-run` diffs the bytes the write would LAND | new `_landed_node_text` (render_frontmatter + composed body); main diffs before/after | `test_write_sub.py::test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff` (updated to landed bytes) |
+
+Single-sub behaviour stays byte-identical: one op reads the same source, keeps the same 0/2+ refusal text, and lands through the same `set_fm`/`sub_body`/`payload_bytes` assignments.
+
+## Evidence
+
+RED on the pre-fix bytes (4 failed, 143 passed) -- full log in scratch `red_pre_fix.txt`:
+
+```
+FAILED test_write_sub.py::test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff
+FAILED test_write_sub.py::test_sub_value_with_open_thought_marker_is_refused_like_set
+FAILED test_write_sub.py::test_second_sub_composes_with_the_first
+FAILED test_write.py::test_api_direct_sub_is_judged_by_the_outside_ref_gate
+4 failed, 143 passed
+```
+
+GREEN after the fix -- `python3 -m pytest extensions/agi/tests/test_write_sub.py extensions/agi/tests/test_write.py -q`:
+
+```
+147 passed, 87 warnings in 1.55s
+```
+
+Supporting write tests (`test_write_guard.py test_write_veto_gate.py test_no_live_root_writes.py test_write_actor_rows.py`): `52 passed`.
+
+## Raw production diff (`extensions/agi/bin/write.py`)
+
+```diff
+diff --git a/extensions/agi/bin/write.py b/extensions/agi/bin/write.py
+index 1f905c6e08..15f98f61a7 100644
+--- a/extensions/agi/bin/write.py
++++ b/extensions/agi/bin/write.py
+@@ -165,6 +165,8 @@ class Edit:
+     sub_diff: str = ""
+     sub_count: int = 0
+     sub_resolved: bool = False
++    # conjunct 3: one `(target, old, new, all)` op per `sub`; applied in order.
++    sub_ops: list = field(default_factory=list)
+     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
+     # signatures backing a non-self-row config write that a `ring:`-declaring
+     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
+@@ -456,13 +458,16 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
+ def verb_sub(edit: Edit, spec: str) -> Edit:
+     """`sub <old> => <new>` -- one literal occurrence."""
+     text = spec.strip()
++    target = ""
+     if text.startswith("payload "):
+-        edit.sub_target, text = "payload", text[8:].strip()
++        target, text = "payload", text[8:].strip()
+     if " => " not in text:
+         raise EditError(f"sub needs `sub <old> => <new>`, got {spec!r}")
+-    edit.sub_old, edit.sub_new = text.split(" => ", 1)
+-    if not edit.sub_old:
++    old, new = text.split(" => ", 1)
++    if not old:
+         raise EditError("sub `<old>` is empty -- nothing written")
++    edit.sub_ops.append((target, old, new, False))
++    edit.sub_target, edit.sub_old, edit.sub_new = target, old, new
+     return edit
+ 
+ 
+@@ -470,6 +475,8 @@ def verb_sub_bang(edit: Edit, spec: str) -> Edit:
+     """`sub!` -- every occurrence, count printed."""
+     verb_sub(edit, spec)
+     edit.sub_all = True
++    _t, _o, _n, _a = edit.sub_ops[-1]
++    edit.sub_ops[-1] = (_t, _o, _n, True)
+     return edit
+ 
+ 
+@@ -1949,6 +1956,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
+     # resolved descend-only here, so a wrong root refuses before any write.
+     root = _resolve_api_root(root)
+ 
++    # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
++    # too; main already resolved it for its preview (idempotent).
++    _resolve_sub(root, edit)
++
+     # A link_ref/payload_ref resolving outside the repo tree is refused before
+     # any write; the SAME predicate links.py's schema report calls. It judges
+     # the EFFECTIVE frontmatter: a value this edit SETS, else ABSENT when this
+@@ -1983,10 +1994,6 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
+     # the range while reporting success. Idempotent: main has already resolved
+     # it for its --dry-run preview, and this must not read stdin a second time.
+     _resolve_replace_text(edit)
+-    # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!` resolve into
+-    # `set_fm` / `sub_body` / `payload_bytes` BEFORE the gate below, so the
+-    # changed frontmatter fields are exactly what the ring/schema gates see.
+-    _resolve_sub(root, edit)
+ 
+     _ring_out: dict = {}
+     _enforce_written_by(root, edit.node_id.split(":", 1)[0], actor,
+@@ -2203,47 +2210,65 @@ def _splice_range(text: str, rng: str, new: str) -> str:
+ 
+ 
+ def _resolve_sub(root, edit: Edit) -> None:
+-    """Resolve `sub`/`sub!` into set_fm/body/payload_bytes; 0 or 2+ refuse."""
+-    if not edit.sub_old or edit.sub_resolved:
++    """Resolve every `sub` op, composing in order (conjunct 3)."""
++    if edit.sub_resolved or not edit.sub_ops:
+         return
+-    if edit.sub_target == "payload":
+-        ref, loc = _payload_ref(root, edit)
+-        before, label = _read_payload_bytes(root, ref, loc), ref
+-    else:
+-        path = node_writer.find_node_file(root, edit.node_id)
+-        if path is None:
+-            raise EditError(f"no node file for {edit.node_id}")
+-        before, label = path.read_text(encoding="utf-8"), edit.node_id
+-    n = before.count(edit.sub_old)
+-    if n == 0:
+-        raise EditError(f"sub: 0 occurrences of {edit.sub_old!r} in "
+-                        f"{label} -- nothing written")
+-    if not edit.sub_all and n != 1:
+-        raise EditError(f"sub: {n} occurrences of {edit.sub_old!r} in "
+-                        f"{label}; use sub! -- nothing written")
+-    after = before.replace(edit.sub_old, edit.sub_new,
+-                           -1 if edit.sub_all else 1)
+-    if edit.sub_target == "payload":
+-        edit.payload_bytes = after
+-    else:
+-        old_fm = frontmatter.read_frontmatter(before)
+-        new_fm = frontmatter.read_frontmatter(after)
++    node_before = node_after = None
++    payload_before = payload_after = None
++    node_label = edit.node_id
++    payload_label = ""
++    total = 0
++    for target, old, new, all_ in edit.sub_ops:
++        if target == "payload":
++            if payload_before is None:
++                ref, loc = _payload_ref(root, edit)
++                payload_before = payload_after = _read_payload_bytes(
++                    root, ref, loc)
++                payload_label = ref
++            before, label = payload_after, payload_label
++        else:
++            if node_before is None:
++                path = node_writer.find_node_file(root, edit.node_id)
++                if path is None:
++                    raise EditError(f"no node file for {edit.node_id}")
++                node_before = node_after = path.read_text(encoding="utf-8")
++            before, label = node_after, node_label
++        n = before.count(old)
++        if n == 0:
++            raise EditError(f"sub: 0 occurrences of {old!r} in "
++                            f"{label} -- nothing written")
++        if not all_ and n != 1:
++            raise EditError(f"sub: {n} occurrences of {old!r} in "
++                            f"{label}; use sub! -- nothing written")
++        after = before.replace(old, new, -1 if all_ else 1)
++        total += n if all_ else 1
++        if target == "payload":
++            payload_after = after
++        else:
++            node_after = after
++    if payload_after is not None:
++        edit.payload_bytes = payload_after
++    if node_after is not None:
++        old_fm = frontmatter.read_frontmatter(node_before)
++        new_fm = frontmatter.read_frontmatter(node_after)
+         if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
+-            raise EditError(f"sub would break frontmatter in {label} -- "
++            raise EditError(f"sub would break frontmatter in {node_label} -- "
+                             f"nothing written")
+         if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
+             raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
+                             "-- nothing written")
+-        edit.set_fm.update({k: v for k, v in new_fm.items()
+-                            if k not in PROTECTED and old_fm.get(k) != v})
+-        ob = frontmatter.split_frontmatter(before)[1]
+-        nb = frontmatter.split_frontmatter(after)[1]
++        changed = {k: v for k, v in new_fm.items()
++                   if k not in PROTECTED and old_fm.get(k) != v}
++        for k, v in changed.items():
++            refusal = _refuse_marker_value(k, v)
++            if refusal:
++                raise EditError(refusal)
++        edit.set_fm.update(changed)
++        ob = frontmatter.split_frontmatter(node_before)[1]
++        nb = frontmatter.split_frontmatter(node_after)[1]
+         if nb != ob:
+             edit.sub_body = nb
+-    edit.sub_count, edit.sub_resolved = n, True
+-    edit.sub_diff = "".join(difflib.unified_diff(
+-        before.splitlines(True), after.splitlines(True),
+-        fromfile=f"a/{label}", tofile=f"b/{label}"))
++    edit.sub_count, edit.sub_resolved = total, True
+ 
+ 
+ # --------------------------------------------------------------------------
+@@ -2629,6 +2654,31 @@ def _compose_body(root, edit: Edit) -> str:
+     return body
+ 
+ 
++def _landed_node_text(root, edit: Edit, actor: str = "",
++                      session: str = "") -> str:
++    """The bytes `update_node` would write; the conjunct-4 preview diff."""
++    from graph_core.persistence import frontmatter as fm_reader
++    path = node_writer.find_node_file(root, edit.node_id)
++    if path is None:
++        raise EditError(f"no node file for {edit.node_id}")
++    nf = fm_reader.load_node_file(path)
++    fm = dict(nf.frontmatter)
++    for key in edit.unset_fm:
++        fm.pop(key, None)
++    new_body = nf.body
++    if edit.body_append or edit.thought:
++        new_body = _compose_body(root, edit)
++    elif edit.sub_body:
++        new_body = edit.sub_body
++    fm.update(edit.set_fm or {})
++    fm[PROVENANCE_ACTOR] = actor or _default_actor()
++    if session:
++        fm[PROVENANCE_SESSION] = session
++    fm, new_body, _ = node_writer._absorb_leading_frontmatter(fm, new_body)
++    return node_writer._serialize_node(node_writer.render_frontmatter(fm),
++                                       new_body)
++
++
+ def create(root, node_type: str, slug: str, parents: list[str], *,
+            set_fm: dict | None = None, payload: str | None = None,
+            body: str | None = None,
+@@ -2897,7 +2947,7 @@ def main(argv: list[str] | None = None) -> int:
+     # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
+     # refusal prints ERR and writes nothing. submit() re-resolves idempotently
+     # for an API caller.
+-    if edit.sub_old:
++    if edit.sub_ops:
+         try:
+             _resolve_sub(root, edit)
+         except EditError as exc:
+@@ -3052,8 +3102,17 @@ def main(argv: list[str] | None = None) -> int:
+             print(f"  replace {edit.replace_target} {edit.replace_range} "
+                   f"({len(edit.replace_text)} chars, {_src3})")
+         if edit.sub_resolved:
+-            sys.stdout.write(edit.sub_diff)
+-            if edit.sub_diff and not edit.sub_diff.endswith("\n"):
++            _base = Edit(node_id=edit.node_id)
++            _before = _landed_node_text(root, _base, actor=args.actor,
++                                        session=args.session)
++            _after = _landed_node_text(root, edit, actor=args.actor,
++                                       session=args.session)
++            _sdiff = "".join(difflib.unified_diff(
++                _before.splitlines(True), _after.splitlines(True),
++                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}"))
++            edit.sub_diff = _sdiff
++            sys.stdout.write(_sdiff)
++            if _sdiff and not _sdiff.endswith("\n"):
+                 sys.stdout.write("\n")
+             print(f"  sub     {edit.sub_count} match(es) of "
+                   f"{edit.sub_old!r} -> {edit.sub_new!r}")
+```
+
+## Raw test diff (`extensions/agi/tests/test_write_sub.py`, `test_write.py`)
+
+```diff
+diff --git a/extensions/agi/tests/test_write.py b/extensions/agi/tests/test_write.py
+index 012933db91..418425e98e 100644
+--- a/extensions/agi/tests/test_write.py
++++ b/extensions/agi/tests/test_write.py
+@@ -2223,3 +2223,19 @@ def test_unset_location_makes_the_ref_judged_against_the_repo_root(
+     text = path.read_text()
+     assert "link_ref: notes.txt" in text
+     assert "\nlocation:" not in text
++
++
++def test_api_direct_sub_is_judged_by_the_outside_ref_gate(tmp_path):
++    """conjunct 1: a DIRECT write.submit carrying an unresolved `sub` Edit
++    must resolve the sub BEFORE the outside-ref gate, so the gate judges the
++    post-sub effective frontmatter. Pre-fix the gate ran first, saw the
++    on-disk inside ref, and the sub landed the outside ref unjudged."""
++    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
++    (tmp_path / "notes.txt").write_text("x")
++    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
++    before = path.read_bytes()
++    edit = write.Edit(node_id="doc:n")
++    write.verb_sub(edit, "notes.txt => ../outside/secret.txt")
++    with pytest.raises(write.EditError, match="outside the repo tree"):
++        write.submit(graph, edit)
++    assert path.read_bytes() == before, "the refusal wrote nothing"
+diff --git a/extensions/agi/tests/test_write_sub.py b/extensions/agi/tests/test_write_sub.py
+index fd4f9862ef..746bece212 100644
+--- a/extensions/agi/tests/test_write_sub.py
++++ b/extensions/agi/tests/test_write_sub.py
+@@ -55,8 +55,11 @@ def test_sub_replaces_one_frontmatter_value_and_dry_run_shows_diff(project):
+     before = path.read_text()
+     proc = _run(project, "sub world => WORLD", "--dry-run")
+     assert proc.returncode == 0, proc.stdout + proc.stderr
+-    assert '-title: "hello world"' in proc.stdout
+-    assert '+title: "hello WORLD"' in proc.stdout
++    # conjunct 4: the preview is a diff of the SERIALIZED node the write would
++    # land (frontmatter rendered + body), not the raw splice -- unquoted title
++    # lines, plus the provenance stamp submit adds.
++    assert "-title: hello world" in proc.stdout
++    assert "+title: hello WORLD" in proc.stdout
+     assert path.read_text() == before, "a dry run writes nothing"
+     proc = _run(project, "sub world => WORLD")
+     assert proc.returncode == 0, proc.stdout + proc.stderr
+@@ -152,4 +155,27 @@ def test_sub_payload_mode(tmp_path):
+ def test_sub_ampersand_not_led_by_a_verb_stays_in_argument():
+     assert write.parse_script("sub a && b => c") == [("sub", ["a && b => c"])]
+     assert write.parse_script("sub x => y && note why") == [
+-        ("sub", ["x => y"]), ("note", ["why"])]
+\ No newline at end of file
++        ("sub", ["x => y"]), ("note", ["why"])]
++
++
++def test_sub_value_with_open_thought_marker_is_refused_like_set(project):
++    """conjunct 2: a `sub` that would land an open THOUGHT marker into a
++    frontmatter value is refused by the SAME `_refuse_marker_value` that
++    refuses `set` (verb_set)."""
++    path = project / "nodes" / "hypothesis" / "h1.md"
++    before = path.read_text()
++    edit = _sub_edit("world => WORLD <!-- THOUGHT:BEGIN")
++    with pytest.raises(write.EditError, match="THOUGHT marker"):
++        write.submit(project, edit, actor="kid", session="s1")
++    assert path.read_text() == before
++
++
++def test_second_sub_composes_with_the_first(project):
++    """conjunct 3: `sub a => b && sub c => d` applies the second sub to the
++    bytes the first produced -- here the second old string only exists after
++    the first replacement, so a discarded first sub refuses (0 matches)."""
++    path = project / "nodes" / "hypothesis" / "h1.md"
++    proc = _run(project, "sub hello => goodbye && sub goodbye => farewell")
++    assert proc.returncode == 0, proc.stdout + proc.stderr
++    assert "sub: replaced 2 occurrence(s)" in proc.stdout
++    assert "farewell world" in path.read_text()
+\ No newline at end of file
+```
+
+## Ceiling
+
+`git diff --numstat -- extensions/agi/bin/write.py` = **102 added / 43 deleted** (net 59) against `line_ceiling 40` -> 2.55x. The four-conjunct mechanism plus the per-conjunct tests do not fit 40; a `rebrief_request` is filed on this node (see frontmatter). No work remains pending approval.
+
+## Agent Notes
+four conjuncts built in write.py: sub resolves before the outside-ref gate (API path), sub values pass _refuse_marker_value, sub_ops compose in order, --dry-run diffs landed bytes; 4 tests red pre-fix then green, test_write_sub.py+test_write.py 147 passed
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-95077376, EF.57). I read the diff of commit e8ff8c387a, not the result file. Four conjuncts, each a build item from the target's contract:
+1. `submit()` now calls `_resolve_sub` at write.py:1959-1960, BEFORE the outside-ref gate at 1974-1985 (the gate reads the post-sub `set_fm`). Probe: a direct API `write.submit` carrying `verb_sub('notes.txt => ../outside/secret.txt')` is refused by name; the inside->inside control still lands.
+2. `_resolve_sub` runs each changed frontmatter value through `_refuse_marker_value` (write.py:2244-2249) before `edit.set_fm.update`. Probe: sub -> marker value is refused identically to `verb_set` on the API and CLI paths; file bytes unchanged.
+3. `Edit.sub_ops` (write.py:168) accumulates one op per `sub`; `verb_sub`/`verb_sub_bang` append (write.py:458-480); `_resolve_sub` applies them in order per target (write.py:2212-2265), so the second op sees the first's bytes. Probe: chained node ops and chained payload ops compose; an absent second op refuses 0-occurrences and writes nothing.
+4. `_landed_node_text` (write.py:2657-2681) re-derives the serialized node; the dry-run at write.py:3104-3117 diffs it against a serialized no-op write. Probe: the preview's `+` side is byte-identical to the file the real write lands.
+Caveat recorded (probe4e): the preview's before-side is a synthetic serialized no-op write, not the raw on-disk bytes, so the diff does not apply to the file and hides the re-serialization/provenance delta. This satisfies the claim's land-side reading (the `+` side IS the landed bytes) and the updated test pins exactly that; it is not a disproof.
+The child's rebrief 102/40 was answered: proceed, ceiling 130.
+<!-- THOUGHT:END -->
+
+Parent EF.57: reviewed the bytes (diff 73a0e3cbf9..e8ff8c387a), ran 6 recorded probes (16 assertions) over all four conjuncts; test_write_sub.py + test_write.py 147 passed. Accepted proved; caveat: dry-run before-side is the serialized no-op write, not the raw file. Rebrief 102/40 answered proceed@130.
