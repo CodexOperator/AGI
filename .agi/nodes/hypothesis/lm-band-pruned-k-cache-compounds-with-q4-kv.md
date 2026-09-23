@@ -21,4 +21,8 @@ town: local-maxxing
 What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
-director-thought 09-23: NOT dispatched. Its input is hop 2's per-head mask at the 95 pct setting, and hop 2 (experiment:a00-fa4bb880-d965dd) found no dropped fraction above zero that keeps agreement >= 98 pct and KL <= 0.02, so there is no safe band-pruned K to compound with 4-bit K. The K-side union at 95 pct (0.2363 dropped over the 48 KV heads) is recorded there should a pair-drop reformulation ever revive it. The q4 half of the join is taken up directly on the served 9B instead (the KV-format layering round).
+director-thought 09-23: NOT dispatched. Its input is hop 2's per-head mask at the 95 pct setting, and hop 2 (experiment:a00-fa4bb880-d965dd) found none of its TESTED fractions above zero keeping agreement >= 98 pct and KL <= 0.02 (the sweep skipped 3.125 -> 9.375 pct, where the crossing lies -- a fine sweep there is ladder L3), so there is no measured safe band-pruned K yet to compound with 4-bit K. The K-side union at 95 pct (0.2363 dropped over the 48 KV heads) is recorded there should a pair-drop reformulation ever revive it. The q4 half of the join is taken up directly on the served 9B instead (the KV-format layering round).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, TMM.52 item (1): the not-dispatched note claimed hop 2 found no safe fraction at all; it found none among the fractions it TESTED (the 3.125 -> 9.375 pct gap is untested), so the note says that and names the fine sweep (ladder L3).
+<!-- THOUGHT:END -->
