@@ -1,13 +1,13 @@
 ---
-id: goal:g17.10
+id: goal:g7.21.1.1
 mint_id: 78ea56bd576543ec9389be00ff918915
 type: goal
 parents:
-  - goal:g17.9
+  - goal:g7.21.1
 next_edges: []
 confidence: 0.9
 edited_by: sanctuary-director
-goal_id: G17.10
+goal_id: G7.21.1.1
 goal_kind: subgoal
 heading_level: 5
 origin: goals-doc
@@ -20,9 +20,11 @@ tags:
   - subgoal
   - l4
 thought_session: sanctuary-director-genVI-L4
-title: "G17.10: One voice per chamber, the DM room, and Council-to-Keep propagation"
+title: "G7.21.1.1: One voice per chamber, the DM room, and Council-to-Keep propagation"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.21.1.1
+
 **One voice per chamber; an inter-chamber DM room; Council→Keep propagation.** Brief point **B10** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
