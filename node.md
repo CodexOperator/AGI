@@ -3,9 +3,9 @@ id: goal:g12.1
 mint_id: ea44e514a73a4c30ab13660a30a9e82f
 type: goal
 parents:
-  - goal:g12
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G12.1
 goal_kind: long-term
 heading_level: 3
@@ -15,7 +15,7 @@ seeds: []
 status: horizon
 tags:
   - goal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G12.1: Caps on morals and visions, and season-boundary edges"
 ---
 **G12 sets the chain; this sets the numbers on it.** Two caps, one new edge
@@ -32,13 +32,13 @@ code path that reads more than one field." So "the config node" the owner
 points at does not exist yet, the same way `moral` does not exist yet.
 Second, there is already a **working precedent for exactly this shape**:
 `nodes/.geometry/crons.md` plus `context/schemas/[cron].md` — a real node
-that a real applier reads at runtime (goal:g10.2), parented to `goal:g10.2`
+that a real applier reads at runtime (goal:g2.25), parented to `goal:g2.25`
 rather than left parentless (its own authored version-history note records
 that `cron` was minted parentless in v1 and corrected in v2, because
 "describes the graph's own shape" is not the same claim as "has no
 lineage"). Declaring
 `moral_cap: 5` and `vision_cap: 3` the same way — a `.geometry`-style node,
-parented under `goal:g10.2`, read by `spawn_gate.py` or an extension of it —
+parented under `goal:g2.25`, read by `spawn_gate.py` or an extension of it —
 is the same move `crons.md` already made, not a new pattern this project has
 to invent.
 
