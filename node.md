@@ -6,7 +6,7 @@ parents:
   - hypothesis:pass2-engine-rows-corrected-in-place
 next_edges: []
 confidence: 0.85
-edited_by: a00-b6a44c26
+edited_by: a00-3cc58e53
 evidence_runs:
   - experiment:a00-11ad274b-e6e0c1
 loop: hypothesis:pass2-engine-rows-corrected-in-place@s2
@@ -90,7 +90,7 @@ under the one-write rule. Recorded in that THOUGHT.
 - No production bytes changed; `production_lines` = 0.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EF.70 a00-b6a44c26: recording a proved-over-partial, NOT changing any verdict/confidence/lean field. This node carries verdict: proved, yet probes[0] (class gate, addressability) observed partial/refused by address -- the R14#3 THOUGHT could not land on the a00 duplicate because node_writer.find_node_file resolved the id to the canonical slug first. A verdict of proved beside a probe whose result is partial reads stronger than the evidence: the four remaining probes held, but one of five conjuncts was explicitly refused. This note is the record; the proved field stands untouched per the round order, and the question of a demote is surfaced to the parent.
+PARENT REVIEW a00-3cc58e53 (iter EF.53, hypothesis:pass2-engine-rows-corrected-in-place). (1) The dispatch order said: apply the target node's C rows for director-engine's grok-bot rounds (R12/R13/R14) IN PLACE through write.py after re-checking the bytes, a THOUGHT naming the target on each, never a verdict/lean/confidence field, the held (goal:g7.33) and thought-master nodes untouched and listed, and the duplicate build id recorded with the fix PROPOSED, never executed. (2) What the machine does, measured on the kid DIFF (a9cf4329ef..a459e22945, 10 paths = 9 corrected nodes + this node): each corrected node carries exactly one THOUGHT naming the target (grep count 1 each); `git diff a9cf4329ef HEAD -- <the 9 nodes> | grep -E '^[+-](verdict|confidence|lean):'` is empty, and `id:`/`status:` are unchanged; no goal:g7.33 / lm-* / goal:g5 path appears in the changed-file list. The R14#3 row is the one addressability limit I confirmed with my own probe: `node_writer.find_node_file(root,'build:bin-adapters-grok-bot-adapter')` resolves to nodes/build/bin-adapters-grok-bot-adapter.md (step 1 slug) FIRST, so the a00 duplicate file (mint 07acc9ce) carries no THOUGHT (grep count 0); the record lives on the reachable canonical file and the kid named the gap. The live bytes were re-checked: test_grok_bot_adapter.py is 15 tests, blob e37baef7, green (15 passed); grok_bot_adapter.py:30 DEFAULT_BIN = "grok-bot" bare with restart() a real detached respawn at :105-161; .agi/config.json:113 bin = ~/.npm-global/bin/grok-bot, distinct from DEFAULT_BIN per test :248. (3) NEAR MISS: a kid that trusted the disposition table's line numbers would have rewritten text already moved; a kid that read "record the duplicate" as licence to deprecate or re-id the a00 node would have executed the fix the order forbids. This kid did neither -- it re-checked every byte and recorded+proposed only. (4) Deviation: none from a standing rule. The demote question R12 D1 raised (hypothesis:a00-8ee9bdff-40419b's verdict: proved predates the real-respawn bytes) is left unactioned because the dispatch order forbids verdict-field edits; it is surfaced in that node's THOUGHT and in this round's report, which is the instructed route. Verdict on the kid: ACCEPTED (proved); probes recorded in frontmatter.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
