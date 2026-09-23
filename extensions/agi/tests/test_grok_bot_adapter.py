@@ -76,6 +76,22 @@ def test_no_models_block_passes_no_model_flags():
     assert "--model" not in grok.model_args({"adapter": "grok_bot"}, "kid")
 
 
+def test_build_command_is_the_bare_measured_bin():
+    """MEASURED argv (`grok-bot --help`, goal:g7.31.1.1): the bare resolved bin
+    and nothing else. No brief flag, no context path, no model flag."""
+    assert grok.build_command(
+        harness={"adapter": "grok_bot", "bin": "/SENTINEL/grok-bot"},
+        tier="kid", context_file="/tmp/x") == ["/SENTINEL/grok-bot"]
+
+
+def test_source_carries_no_guessed_flag_literals():
+    """The stub-only guessed flags must be gone from the landed adapter path:
+    neither the quoted flag literal survives in the source."""
+    src = (BIN / "adapters" / "grok_bot_adapter.py").read_text(encoding="utf-8")
+    assert '"-p"' not in src
+    assert '"--model"' not in src
+
+
 # ------------------------------------------------------------ config resolve
 
 
@@ -132,7 +148,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly what build_command produces (the MEASURED argv today)
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
@@ -144,6 +160,39 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     import json as _json
     written = _json.loads((sess / "agent.json").read_text())
     assert written["pid"] == 5252 and written["status"] == "restarted"
+
+
+def test_restart_seam_rebuilds_the_same_bare_bin_argv(monkeypatch, tmp_path):
+    """The restart seam must rebuild the SAME measured argv as `build_command`.
+
+    Guards the prior kid's `push_further` residue directly: faking Popen and
+    capturing the real `args` list proves the respawn path carries the bare
+    bin and nothing else -- no `-p`, no `--model`, no context path -- so a
+    later edit that re-introduces a guessed flag on only the restart branch
+    fails here even if `build_command` itself stays clean.
+    """
+    captured = {}
+
+    class FakeProc:
+        pid = 7777
+
+    def fake_popen(args, **kwargs):
+        captured["args"] = args
+        return FakeProc()
+
+    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    ctx = str(tmp_path / "context.md")
+    grok.restart(harness=RESTART_HARNESS, tier="kid", context_file=ctx,
+                 agent_id="a00-seam", iter_n=1, sess_dir=sess)
+    args = captured["args"]
+    assert args == grok.build_command(harness=RESTART_HARNESS, tier="kid",
+                                      context_file=ctx)
+    assert args == ["grok-bot"]
+    assert "-p" not in args
+    assert "--model" not in args
+    assert ctx not in args
 
 
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
