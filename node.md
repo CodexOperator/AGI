@@ -1,12 +1,12 @@
 ---
-id: goal:g10.2
+id: goal:g2.25
 mint_id: 4b27be7298144a7e801b6e63ce5a5ae0
 type: goal
 parents:
-  - goal:g10
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
-goal_id: G10.2
+edited_by: belam
+goal_id: G2.25
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -16,8 +16,8 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G10.2: The graph describes its own geometry"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.25: The graph describes its own geometry"
 ---
 **A `nodes/.geometry/` directory holding a handful of nodes that describe the
 shape of the graph itself** — what the axes are, what a version is, what a chat
