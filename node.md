@@ -3,26 +3,26 @@ id: goal:g9
 mint_id: 21b70478f4414c09ae658a4caa63d686
 type: goal
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G9
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds:
-  - goal:g9.1
-  - goal:g9.2
-  - goal:g9.3
-  - goal:g9.4
-  - goal:g9.5
+  - goal:g2.14
+  - goal:g2.15
+  - goal:g2.16
+  - goal:g2.17
+  - goal:g2.18
   - idea:engine-cc-session-start
   - idea:engine-render-context
   - idea:engine-renderers
-status: horizon
+status: retired
 tags:
   - goal
   - root
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: "G9: Legibility: a human can see what the loop is doing"
 ---
 **Stated plainly by the owner, and it is the sharpest usability signal this
@@ -43,3 +43,7 @@ run at any moment, mid-iteration, with zero possibility of touching the corpus.
 *truthfully*, including its damage. Truncation, dangling references,
 unevidenced verdicts and deprecated mass are the things a human most needs to
 see — a dashboard that shows a clean graph over a broken one is worse than none.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
+<!-- THOUGHT:END -->
