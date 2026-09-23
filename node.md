@@ -1,15 +1,13 @@
 ---
-id: goal:g15.25
+id: goal:g6.47
 mint_id: 20277b34b3bf40ce9552cb7afaaa28fe
 type: goal
 parents:
-  - goal:g15
-  - build:bin-send
-  - build:bin-rotate
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.25
+edited_by: belam
+goal_id: G6.47
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -27,17 +25,18 @@ tags:
   - subgoal
   - l4
   - sensei-director
-title: "G15.25: signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z)"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.47: signed seats — every live row keyed and every send signed, rotate-self key-gated and minting the successor key, the predecessor answers the ack, the meter hook rotates: wake 3 -> 0 calls, rotate-out 2 -> 0 (owner 20:3xZ via the Sensei 21:16Z)"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.25
+# goal:g6.47
 
 **OWNER DECISION (in the Sensei's pane, 2026-09-11 20:3xZ; relayed by the Sensei 21:16Z; verbatim):** "the plan to go 3 > 0 calls on wake and to go 2 > 1 calls on rotate looks good overall" … "Yes this shape looks good let's go with it. Let's also make it modular so you'd be able to plug in a different key type/algo and use it in encrypted mode, useful later for the managed web app town."
 
 ## Why this exists
 
-- `goal:g15` is the parent because this is a sanctuary update to the seat protocol's identity mechanism, routed by the Sensei as g15 lines in a fixed order, measured against today's floor: wake = 3 calls (ListAgents, ack, commit — `goal:g15.24` just made the commit the tool's), rotate-out = 2 (card, rotate-self); and the stale-row failure the Prime repaired by hand three times in 80 minutes (config:seats @id/ref cells, L4.287/L4.291) exists only because identity travels as a ListAgents ref and a window id that the graph copies — a signature travels with the act.
+- `goal:g15` is the parent because this is a sanctuary update to the seat protocol's identity mechanism, routed by the Sensei as g15 lines in a fixed order, measured against today's floor: wake = 3 calls (ListAgents, ack, commit — `goal:g6.46` just made the commit the tool's), rotate-out = 2 (card, rotate-self); and the stale-row failure the Prime repaired by hand three times in 80 minutes (config:seats @id/ref cells, L4.287/L4.291) exists only because identity travels as a ListAgents ref and a window id that the graph copies — a signature travels with the act.
 - `build:bin-send` is the parent because `send.py` already carries the half that exists: `keygen` (send.py:211, mints `sessions/seats/<seat>.key` 0600 and prints the two row cells `pubkey`/`sig_scheme`), `_sign_line` (177) and the ONE label line VERIFIED / UNSIGNED / FORGED (1745-1780) verified against the from-seat's row — built by `hypothesis:l4-a-seat-signs-with-a-swappable-scheme` on the `seatsig` registry (`extensions/agi/src/seatsig/`: `Scheme`, `SCHEMES`, `register`, `get`, `fingerprint`, pure-python ed25519). Measured 21:1xZ: **zero** `.key` files under `sessions/seats/`, **zero** rows with `pubkey` — every message on the box reads UNSIGNED.
 - `build:bin-rotate` is the parent because `rotate-self` / `ack` / `spawn` are where the successor's identity is minted and back-filled today (session_ref + window + pid into the row: rotate.py `cmd_ack` 1650-, `_backfill_session_ref`, `_write_ack`), which items 2-4 replace with a minted keypair, a signed record and a signed row commit.
 
@@ -67,11 +66,11 @@ L4 (sensei-director gen IV, 21:2xZ): lines (3) and (4) briefs minted ahead of th
 
 SL4.06 harvested 21:58Z into the seat (merge 44711c219): line (1) landed — keygen writes the row cells + --all-live, every send carries an env v1 line + sig, enc_scheme seam with no cipher, key_history/RETIRED label, whois --sig; both kids proved, 312 green in the send neighbourhood on the seat. Harvest against the mur-39 orders: (a)(b) hold; four gaps go to a fix-only round SL5.02 under the same brief before line (2): --all-live mints key files for a non-prime caller (only the row write is refused), no CR-body signature test, the two seatsig import spellings (seatsig / src.seatsig) are two module objects with two SCHEMES dicts, and the RFC 8032 vector test asserts sign() but never verify().
 
-OWNER 22:1xZ (verbatim in doc:l4-owner-decisions lines 657-658, relayed by Prime XII 22:14Z): comms stay plaintext-and-signed by default; a lockdown BOOLEAN config is reserved NOW (flag + seam, warnings printed, optional custodian signing server later; Vultisig is the reference) and built NEXT season (rungs 5-8; rungs 1-4 are this loop). Cut as SL5.03 under hypothesis:l4-lockdown-is-a-reserved-boolean-that-warns-and-encrypts-nothing-until-it-is-built (parallel with SL5.02, disjoint seams). The FLIP to enforcing is goal:g15.26, cut after SL5.02 + merge-up SL2#7.
+OWNER 22:1xZ (verbatim in doc:l4-owner-decisions lines 657-658, relayed by Prime XII 22:14Z): comms stay plaintext-and-signed by default; a lockdown BOOLEAN config is reserved NOW (flag + seam, warnings printed, optional custodian signing server later; Vultisig is the reference) and built NEXT season (rungs 5-8; rungs 1-4 are this loop). Cut as SL5.03 under hypothesis:l4-lockdown-is-a-reserved-boolean-that-warns-and-encrypts-nothing-until-it-is-built (parallel with SL5.02, disjoint seams). The FLIP to enforcing is goal:g6.47.1, cut after SL5.02 + merge-up SL2#7.
 
-SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keygen --all-live refuses a non-prime_director by name before any key file mints; a CR/CRLF body signs and verifies byte-for-byte (the READER was stripping CR; fixed at the reader, not the test); the seatsig package binds to its sys.modules twin so seatsig.SCHEMES is src.seatsig.SCHEMES (verified in-process on the seat); RFC 8032 vectors 1-3 now verify()-assert with flipped-bit negatives. Kid a00-82e704e6 proved, 316 green send neighbourhood. The crypto gate FIX is complete; the FLIP is goal:g15.26 after merge-up SL2#7.
+SL5.02 harvested 22:28Z into the seat: mur-39 orders closed on line (1) — keygen --all-live refuses a non-prime_director by name before any key file mints; a CR/CRLF body signs and verifies byte-for-byte (the READER was stripping CR; fixed at the reader, not the test); the seatsig package binds to its sys.modules twin so seatsig.SCHEMES is src.seatsig.SCHEMES (verified in-process on the seat); RFC 8032 vectors 1-3 now verify()-assert with flipped-bit negatives. Kid a00-82e704e6 proved, 316 green send neighbourhood. The crypto gate FIX is complete; the FLIP is goal:g6.47.1 after merge-up SL2#7.
 
-SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g15.26.
+SL5.03 harvested 22:40Z into the seat: the lockdown boolean is reserved — .agi/config.json gains a comms block (lockdown: false, verify: informational) read by one send.py helper _comms_config; lockdown: true prints exactly one warning per send/read that lockdown is NOT built until next season and encrypts nothing; _lockdown_requirements names encrypted-at-rest + an optional custodian signing server for the warning text only. Two kids proved. comms.verify is read here and acted on only by goal:g6.47.1.
 
 SL5.05 harvested 23:29Z into the seat: line (2) landed — rotate-self is key-gated (no <seat>.key = refused by name with the keygen line, except a row with no pubkey which mints its first key: incremental fleet keying), mints the successor keypair through seatsig via send.py writers (no literal, no second writer), signs the rotation record with the predecessor key, appends the retired key to key_history (never deleted), carries pubkey + key_history in the ONE spawn-row write + commit, and replaces the key file only after both succeed (parent correction order). Four kids lean-proved 65-85; 482 green rotate neighbourhood. Lines (3) (4) stay briefed for the next generation.
 
