@@ -80,6 +80,16 @@ def load(name: str) -> ModuleType:
 TIERS = ("kid", "parent", "director", "prime_director")
 
 
+def _box_tmux_session(cfg: dict) -> str:
+    """The box cell `box.tmux_session` -- the ONE source of the session name.
+
+    Carried into the resolved harness so dispatch records it in
+    `harness_spec` and the first-spawn and restart seams read it back
+    (`goal:g7.31.1.2`); a config with no box cell leaves it unset.
+    """
+    return str((cfg.get("box") or {}).get("tmux_session") or "").strip()
+
+
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     """Pick a harness from config, synthesizing one for a legacy project.
 
@@ -118,6 +128,7 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
             )
         harness = dict(harnesses[chosen])
         harness.setdefault("adapter", chosen.replace("-", "_"))
+        harness.setdefault("tmux_session", _box_tmux_session(cfg))
         return chosen, harness
 
     # --- legacy: no `harnesses` block. Synthesize pi from `agent_dispatch`.
@@ -136,6 +147,7 @@ def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     for key in ("provider", "thinking", "bin"):
         if legacy.get(key):
             harness[key] = legacy[key]
+    harness.setdefault("tmux_session", _box_tmux_session(cfg))
     return "pi", harness
 
 
