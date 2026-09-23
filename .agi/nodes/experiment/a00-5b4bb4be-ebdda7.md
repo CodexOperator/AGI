@@ -6,13 +6,13 @@ parents:
   - hypothesis:the-key-authority-publish-respects-the-veto-and-fires-only-on-a-rekey
 next_edges: []
 confidence: 0.85
-edited_by: a00-5b4bb4be
+edited_by: a00-4dbe6611
 evidence_runs:
   - experiment:a00-5b4bb4be-ebdda7
   - experiment:a00-1838a1cd-bf0d92
 loop: hypothesis:the-key-authority-publish-respects-the-veto-and-fires-only-on-a-rekey@s2
 model: deepseek/deepseek-v4.1-flash
-probes: "\"C4_FIXED: parent probe probe_c4_first_seating_readback now PASSES (aa row PARSED back, close--- index 6 > aa_line index 5); probe_c4_no_row_refuses still PASSES (authority: REFUSED, ref unmoved). C1/C2/C3 parent probes still PASS. Unit probe: pre-fix base+row -> aa parsed back = False; _insert_row_into_frontmatter -> True with _NEW.\""
+probes: "PARENT VERIFIED EF.51: parent_probes.py on the final bytes -> all five PASS: C4_first_seating_publishes_a_PARSED_row (send._pushed_seats now returns aa with the NEW pubkey), C4_no_row_refuses_by_name (authority: REFUSED, ref unmoved), C2_veto (HELD, unmoved; unfrozen control OK), C1_rekey_only (rekey=False -> 0 commits; rekey=True -> +1 with authority: OK), C3_authority_gated_swap (FAILED -> key byte-identical; OK -> flipped)."
 production_lines: 25
 profile: balanced
 role: kid
@@ -121,3 +121,17 @@ and stay recorded, not edited.
 
 ## Agent Notes
 C4 fixed: first-seating row now inserted before the closing frontmatter --- via _insert_row_into_frontmatter, so send._pushed_seats parses aa with the NEW pubkey; by-name REFUSED preserved; parent probes C1-C4 all PASS; test_rotate_key_authority 9 passed, test_send+test_seatsig 358 passed; 25 production lines
+
+parent review EF.51: ACCEPTED. Kid 2 fixed the C4 defect the parent falsified on kid 1 (append after the closing frontmatter ---). _insert_row_into_frontmatter inserts before the closing ---; the test now parses the row back through send._pushed_seats; by-name REFUSED preserved. All five parent probes pass; named suite 358 passed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (EF.51, a00-4dbe6611), rewritten because this version carries the parent-verified fix.
+
+WHAT THE PARENT ORDERED: fix C4 -- kid 1 appended the first-seating row AFTER the closing frontmatter --- so the authority commit moved but send._pushed_seats parsed no seat row (parent probe: aa line index 6 > close index 5). Kid 1's own test asserted raw bytes only.
+
+WHAT THE MACHINE DOES NOW (artifact I BUILT AND RAN): parent_probes.py on this branch -> all five PASS. _insert_row_into_frontmatter(base, row) locates the first closing --- and inserts the row immediately before it, so the row joins the posts list load_node_file reads; the C4 test now parses the row back (seated is not None and pubkey == _NEW). C1 rekey=False -> authority unmoved, rekey=True -> +1 commit "authority: OK". C2 frozen prime -> HELD, unmoved; unfrozen -> OK. C3 authority FAILED -> key byte-identical + .key.pending persisted; authority OK -> key flipped. Named suite (test_rotate_key_authority.py + test_send.py + test_seatsig.py) 358 passed.
+
+NEAR MISS: raw row bytes in the file satisfy a substring assertion and lose the mechanism -- the authority must be able to READ the row back; the added parse-back through the engine's own loader is the assertion that closes it.
+
+DEVIATION / CAVEAT: the 4 neighbour reds (test_rotate.py x3, test_rotate_alert_two_tree.py x1) are the intended C3 invariant -- those fixtures use branch master, so origin/season2/main is absent, the publish returns authority: FAILED and the swap correctly defers. Recorded, not edited; those files are outside this round's test scope.
+<!-- THOUGHT:END -->
