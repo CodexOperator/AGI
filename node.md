@@ -1,13 +1,13 @@
 ---
-id: goal:g15.1
+id: goal:g6.23
 mint_id: ed5f7cd645e946169b0c87db509094d6
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.1
+edited_by: belam
+goal_id: G6.23
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
-title: "G15.1: Build nodes re-attribute to the perpetual goal they actually belong under"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.23: Build nodes re-attribute to the perpetual goal they actually belong under"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.1
+# goal:g6.23
