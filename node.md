@@ -3,9 +3,9 @@ id: goal:s13
 mint_id: 199d522645cc4f84957fd23fda49dfc7
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S13
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S13: `write_frontmatter` serialized YAML null as the string \"None\""
 ---
 Fixed 2026-08-25. `write_frontmatter` in `bin/snapshot-goals.py` — the **shared**
