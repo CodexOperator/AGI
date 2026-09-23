@@ -3,9 +3,9 @@ id: goal:g11.1
 mint_id: 34c17df8db994d3ea8c6f2a63fae8c62
 type: goal
 parents:
-  - goal:g11
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G11.1
 goal_kind: long-term
 heading_level: 3
@@ -15,7 +15,7 @@ seeds: []
 status: complete
 tags:
   - goal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G11.1: Nine Python files still declare their own ancestor walk, and it has cost three outages"
 ---
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
