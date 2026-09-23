@@ -69,7 +69,7 @@ def bench(ctk, ctv, name):
 
 
 def main():
-    res = {"host": os.uname().nodename, "image": IMG, "router_args": SRV, "ram_mb_start": S.ram(),
+    res = {"image": IMG, "router_args": SRV, "ram_mb_start": S.ram(),
            "model_sha256": subprocess.run(["sha256sum", GGUF], capture_output=True, text=True).stdout.split()[0],
            "started_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
     print("T1 placement + T3a split fit", flush=True)

@@ -97,7 +97,7 @@ def bench(tag):
     return {"rc": rc, "tg_tok_s": tg}
 
 
-res = {"host": os.uname().nodename, "ram_mb_start": ram(),
+res = {"ram_mb_start": ram(),
        "model_sha256": subprocess.run(["sha256sum", GGUF], capture_output=True, text=True).stdout.split()[0],
        "router_args_recorded": SRV, "types": {}}
 for tag in TYPES:
