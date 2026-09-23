@@ -177,6 +177,7 @@ def build_command(
     # project graph root the dispatcher resolved, threaded into the brief so
     # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
     project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one pi agent."""
     # hypothesis:l3-pi-install-patch-not-durable -- the L3.38 edit-tool
@@ -209,13 +210,14 @@ def build_command(
     # `brief_tier` keeps the model tier while assembling another tier's brief.
     prompt_args = _append_prompt_args(
         context_file=context_file,
-        segs=brief.assemble(
+        segs=([rendered_brief] if rendered_brief is not None
+              else brief.assemble(
             tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
             dispatch_py=dispatch_py, scaffold=scaffold, target=target,
             parallel=parallel, max_live=max_live, session_dir=_sess,
             source_root=source_root, kid_ceiling=kid_ceiling,
             addendum=addendum, project_root=project_root,
-        ),
+        )),
         skill_prompt=skill_prompt,
     )
     # hypothesis:harness-arg-builders-are-templates-only: argv is DATA (pi.toml).

@@ -1044,7 +1044,8 @@ def _render_dispatch_brief(*, root: Path | None, tier: str, role: str | None,
     config). The head (and card, when the post has one) come from the render;
     the dispatch body rides as its `extras` part, from the config cell's order.
     A render that refuses (e.g. an advisor brief with no configured parts)
-    falls back to legacy `brief.assemble` -- LOUDLY, never silently."""
+    falls back to legacy `brief.assemble` -- LOUDLY, never silently. A
+    `FaithRefError` takes the SAME fallback."""
     import brief as _brief
     if root is not None:
         assemble_kwargs.setdefault("project_root", root)
@@ -1053,7 +1054,7 @@ def _render_dispatch_brief(*, root: Path | None, tier: str, role: str | None,
     try:
         return _brief.render(role=role, harness=harness, extras_text=body,
                              project_root=root)
-    except _brief.RenderError as exc:
+    except (_brief.RenderError, _brief.FaithRefError) as exc:
         print(f"dispatch: brief.render refused for tier {tier!r} ({exc}); "
               f"falling back to brief.assemble", file=sys.stderr)
         return "\n\n".join(s.rstrip("\n") for s in
@@ -1342,9 +1343,23 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 _fh.write(
                     f"# dry-run context (placeholder, no zoom render)\n\n"
                     f"target: {target}\nlevel: {level}\n")
+            # The brief, rendered ONCE so the argv and the report carry the
+            # SAME first turn (hypothesis:the-spawned-agents-first-turn-is-
+            # the-render): head + card + the dispatch extras.
+            brief_text = _render_dispatch_brief(
+                root=root, tier=brief_tier, role=args.role,
+                harness=harness_name, agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
+                source_root=engine_paths["source_root"],
+                target=target, parallel=parallel, max_live=cap,
+                kid_ceiling=kid_ceiling,
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
+                session_dir=sess_dir)
             cmd = adapter.build_command(
                 harness=dispatch_harness, tier=args.tier,
                 brief_tier=brief_tier, context_file=str(ctx_file),
+                rendered_brief=brief_text,
                 agent_id=agent_id, iter_n=args.iter_n,
                 sess_dir=sess_dir, scaffold=None, cli_py=engine_paths["cli_py"],
                 skill_prompt=engine_paths["skill_prompt"],
@@ -1398,18 +1413,6 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
 
-            # The brief, rendered so the report shows the SAME first turn a
-            # harness would spell to disk (head + card + the dispatch extras).
-            brief_text = _render_dispatch_brief(
-                root=root, tier=brief_tier, role=args.role,
-                harness=harness_name, agent_id=agent_id, iter_n=args.iter_n,
-                cli_py=engine_paths["cli_py"],
-                dispatch_py=engine_paths["dispatch_py"], scaffold=None,
-                source_root=engine_paths["source_root"],
-                target=target, parallel=parallel, max_live=cap,
-                kid_ceiling=kid_ceiling,
-                addendum=_read_prompt_file(_effective_carry_forward(args)),
-                session_dir=sess_dir)
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
 
         # goal:g15.25 SM.26 -- a dry run SHOWS the orders section (heading +
@@ -1450,6 +1453,16 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
               f"first 20:")
         for ln in brief_lines[:20]:
             print(f"    {ln}")
+        # The whole brief is now ONE argv segment, so `_compact` truncates its
+        # tail (and the carry-forward label) out of the reported command. Show
+        # the last lines and the carry-forward label so both stay visible.
+        for _l in brief_lines[-6:]:
+            print(f"    ... {_l}")
+        _a = (_read_prompt_file(_effective_carry_forward(args)) or "").strip()
+        _j = next((i for i, l in enumerate(brief_lines)
+                   if _a and _a.splitlines()[0] in l), None)
+        if _j is not None and _j >= 1:
+            print(f"    {brief_lines[_j - 1]}")
     print("dry-run: nothing spawned, nothing written, no budget slot taken")
     return 0
 
@@ -2503,6 +2516,30 @@ def main() -> int:
                     print(f"push-further: {args.target} -> "
                           f"{scaffold_info['node_id']}")
 
+        # The brief, rendered ONCE here so the spawn argv and spawn.json carry
+        # the SAME first turn (hypothesis:the-spawned-agents-first-turn-is-the-
+        # render). Rendered BEFORE build_command so the adapter takes this
+        # text instead of assembling a second, possibly different, one.
+        try:
+            _brief_text = _render_dispatch_brief(
+                root=root, tier=_brief_tier_for(args.tier, tier_eff, target),
+                role=args.role, harness=harness_name,
+                agent_id=agent_id, iter_n=args.iter_n,
+                cli_py=engine_paths["cli_py"],
+                dispatch_py=engine_paths["dispatch_py"],
+                scaffold=scaffold_info,
+                source_root=engine_paths["source_root"],
+                target=target,
+                parallel=adapters.parallelism(cfg),
+                max_live=cap,
+                kid_ceiling=spawn_budget.parent_max_kids(cfg),
+                addendum=_read_prompt_file(_effective_carry_forward(args)),
+                session_dir=sess_dir)
+        except BaseException as exc:  # never let a brief render break spawn
+            print(f"dispatch: brief render failed ({exc}); the adapter will "
+                  f"assemble the legacy brief", file=sys.stderr)
+            _brief_text = None
+
         # Spawn pi (detached). Output -> sess_dir/output.log
         minted = None  # set iff a per-spawn credential was minted for THIS slot
         try:
@@ -2516,6 +2553,7 @@ def main() -> int:
                 # the assembled brief changes.
                 brief_tier=_brief_tier_for(args.tier, tier_eff, target),
                 context_file=ctx_path,
+                rendered_brief=_brief_text,
                 agent_id=agent_id,
                 iter_n=args.iter_n,
                 sess_dir=sess_dir,
@@ -2880,28 +2918,13 @@ def main() -> int:
         # REDACTED to their last 4 chars by name-pattern and value-shape; the
         # child's real env is untouched. A failure here must never take the
         # spawn down -- the spawn is the contract, this is a debugger's nicety.
-        try:
-            _brief_text = _render_dispatch_brief(
-                root=root, tier=_brief_tier_for(args.tier, tier_eff, target),
-                role=args.role, harness=harness_name,
-                agent_id=agent_id, iter_n=args.iter_n,
-                cli_py=engine_paths["cli_py"],
-                dispatch_py=engine_paths["dispatch_py"],
-                scaffold=scaffold_info,
-                source_root=engine_paths["source_root"],
-                target=target,
-                parallel=adapters.parallelism(cfg),
-                max_live=cap,
-                kid_ceiling=spawn_budget.parent_max_kids(cfg),
-                addendum=_read_prompt_file(_effective_carry_forward(args)),
-                session_dir=sess_dir)
-        except BaseException as exc:  # never let the debug artifact break spawn
-            _brief_text = f"<spawn.json brief render failed: {exc}>"
+        # `_brief_text` was rendered ONCE above, before build_command, and is
+        # the SAME string the spawn argv carries -- no second compute.
         (sess_dir / "spawn.json").write_text(json.dumps({
             "agent_id": agent_id,
             "argv": spawn_args,
             "env": _redact_env_map(spawn_env),
-            "brief": _brief_text,
+            "brief": _brief_text or "<brief render failed>",
         }, indent=2))
         # hypothesis:l3-meter-own-transcript -- once the child prints its
         # first stream-json event, capture its session_id into this agent's
