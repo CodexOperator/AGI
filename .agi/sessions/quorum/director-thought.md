@@ -36,7 +36,7 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 ## Live state (09:3xZ 09-23)
 ```
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
-CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 (the round's 7 uncommitted keys) · audit 10,086 -> 10,077, 0 new hits · mur mur-director-thought-3 running -> its OWN merge-up
+CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
 batch A  grammar round CANCELLED (director-engine builds one jev manifest) · T.01 + S.01 wait on that manifest · no jev round until the TypeSafe key reaches kids
 G.01     held @109bcb618 · research-review rr-mp02-g01: DEMOTE rec (dedup leak 282 -> 243 unique; synthesized gold) · dedup lifts blend top-1 0.4539 -> 0.5391 · disposition ASKED, open
 routed   (thought-master -> the Prime) key TTL == wall · kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells on this box · research-review propose-only refute reads an empty list
@@ -44,7 +44,7 @@ routed   (thought-master -> the Prime) key TTL == wall · kids ignore --harness 
 
 ## 🔴 Stops
 ```
-now    CFG.01 mur running (agi-director-thought-cfg-01) -> residues as thought-master says -> CFG.01 merge-up line (tip, merge-base, files, tests, node counts, audit)
+now    CFG.01 residues: waiting on thought-master (in-place vs corrective round CFG.02) -> close -> CFG.01 merge-up line (tip, merge-base, files, tests, node counts, audit)
 open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 1500 /data/work/agi/.agi/sessions/inbox/director-thought.md && systemctl --user is-active agi-director-thought-cfg-01
 window no pi-local round live across the Prime pass-2 (11:41Z)
