@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: director-thought
+edited_by: belam
 link_ref: .agi/config.json
 location: source_root
 origin: mvp-minted
@@ -18,7 +18,7 @@ tags:
   - build
   - prose
   - g15
-thought_session: texas-two-step-belam-voice-2026-09-19
+thought_session: belam-S2-L5-I
 title: Agi config.json
 ---
 <!-- BODY:BEGIN -->
