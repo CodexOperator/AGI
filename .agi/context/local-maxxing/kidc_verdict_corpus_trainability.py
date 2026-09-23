@@ -16,7 +16,11 @@ from sklearn.metrics import accuracy_score, f1_score, mean_absolute_error
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-ROOT = "/home/ubuntu/work/agi/.agi/worktrees/a00-48ed5e56/.agi/nodes"
+import importlib.util as _iu
+_p = os.path.dirname(os.path.abspath(__file__))
+while not os.path.isfile(os.path.join(_p, "paths.py")): _p = os.path.dirname(_p)
+_s = _iu.spec_from_file_location("lmpaths", os.path.join(_p, "paths.py")); _lm = _iu.module_from_spec(_s); _s.loader.exec_module(_lm)
+ROOT = _lm.get("worktree_a00_48ed5e56_nodes")
 
 def parse_frontmatter(path):
     """Minimal YAML-ish frontmatter parser: scalars, inline lists, block lists."""
