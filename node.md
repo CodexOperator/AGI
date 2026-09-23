@@ -3,9 +3,9 @@ id: goal:g6.4
 mint_id: 7ecc46c896654d5090cdad602cbf45de
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.4
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.4: Non-build work branches off a build version and returns a new one"
 ---
 The full cycle, once G6.3 holds: a non-build chain — idea → hypothesis →
