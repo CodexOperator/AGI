@@ -1,0 +1,76 @@
+---
+id: verdict:a00-8e139c40-859afa
+mint_id: 859afaf728ff4b83a45aa79ff2bfec2e
+type: verdict
+parents:
+  - experiment:a00-8e139c40-e048c6
+next_edges: []
+confidence: 0.85
+edited_by: a00-ad41ad28
+evidence_runs:
+  - experiment:a00-8e139c40-e048c6
+loop: experiment:a00-8e139c40-e048c6@s2
+model: deepseek/deepseek-v4.1-flash
+profile: balanced
+role: kid
+scaffold_hash: 158605465666e673
+season: 2
+title: config-only grok-bot row is sufficient for adapters.resolve; adapter module is the remaining gap
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# verdict:a00-8e139c40-859afa
+
+## Verdict
+
+proved
+
+## Evidence
+
+`experiment:a00-8e139c40-e048c6` added the single `"grok-bot"` entry to
+`harnesses` in `.agi/config.json` and ran the three acceptance probes live
+against the live config:
+
+1. `adapters.resolve(cfg, "grok-bot")` -> `("grok-bot", row)` with
+   `row["adapter"] == "grok_bot"` — passed.
+2. With `"adapter"` deleted from a copy, resolve still returns
+   `adapter == "grok_bot"` via the dash-to-underscore default — passed.
+3. `resolve(cfg, "pi")` and `resolve(cfg, "copilot-cli")` still succeed —
+   no other row broken.
+
+`.agi/config.json` remains valid JSON; `grep -Ein 'grok'
+extensions/agi/bin/dispatch.py` prints nothing, so the zero-dispatch-edit
+constraint held.
+
+## What this proves and what it does not
+
+It proves the config row is correct and sufficient for the resolution half of
+the seam: config-driven harness selection (`adapters.resolve`) accepts
+grok-bot with the intended adapter name and leaves every other harness
+untouched. It does NOT prove a spawn works end-to-end: `adapters.load(
+"grok_bot")` still fails because `extensions/agi/bin/adapters/
+grok_bot_adapter.py` does not exist yet — that file is owned by
+`goal:g17.14.1` in parallel, and per its brief the config row is one of the
+two halves. The `bin` value is the peer path pattern, unverified on this box
+(no grok binary exists), and the model ids are documented names, also
+unverified against a live endpoint. Those are the honest open edges, not
+falsifiers of the row itself.
+
+```text
+DONE experiment:a00-8e139c40-e048c6
+caveats: bin path is the peer pattern (no grok binary on this box); model ids documented but unverified; adapter module intentionally absent (goal:g17.14.1) so load() still raises.
+struggles: none — resolve() is pure config, so the row could be proven without the sibling adapter file existing.
+```
+
+## Agent Notes
+Verdict proved: config-only row works with adapters.resolve; dash-default works; other rows intact; dispatch.py untouched. Remaining gap is the adapter module (goal:g17.14.1) and unverified bin/model values.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+First version. `proved` is scoped to the claim this node can actually carry: the config row's resolution behaviour, re-measured live by the experiment. I deliberately did NOT claim end-to-end spawn, because the adapter file is missing and its absence is another subgoal's assignment, not a failure of this row.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+config-only grok-bot row added to harnesses; adapters.resolve accepts it (dash-default too), pi/copilot-cli intact, dispatch.py untouched, JSON valid. bin=peer pattern unverified, models documented/unverified; adapter module owned by g17.14.1
+
+PARENT REVIEW (a00-ad41ad28): accepted, proved. The config row is present in the worktree and resolve(grok-bot) returns it with adapter grok_bot; dash-default verified on a copy. One defect was found and closed by a follow-up kid (a00-da41e117, verdict:grok-bot-bin-cell-agrees-with-adapter): the bin cell originally read .../bin/grok, contradicting the sibling adapter DEFAULT_BIN grok-bot. Parent probes are recorded on that node. CAVEAT: .agi/config.json is excluded from agent round commits (cli.py:_round_scope_ok) so the director lands the row.
