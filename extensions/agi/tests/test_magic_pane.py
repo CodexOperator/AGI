@@ -1,11 +1,18 @@
 """Tests for bin/magic_pane.py — the two-route messaging seam.
 
 Falsifier conjuncts (goal:g7.32.2):
-  1. NATIVE grok->grok types into the destination pane; no send.py invocation.
-  2. CROSS grok->claude|pi writes the nudge artifact AND invokes send.py, in
-     one trace, in order (artifact present when the subprocess is launched).
+  1. NATIVE same-family (grok-bot->grok-bot) types into the destination pane;
+     send.py is never invoked, even when tmux returns non-zero.
+  2. CROSS (grok-bot->claude-code|pi) writes the nudge artifact AND invokes
+     send.py, in one trace, in order (artifact present at subprocess launch),
+     and the artifact lives under the SAME root send.py's own reader uses.
   3. After `import magic_pane`, `rotate`/`dispatch` are not reachable (source
-     grep + a fresh-interpreter sys.modules assertion).
+     grep + a fresh-interpreter sys.modules assertion), and the native path
+     does not even import send.py.
+
+The live harness names are DERIVED from the sources (config `harnesses` keys
+and the adapters' `NAME` constants), never an invented string -- the round-1
+defect was a native set ("grok") no live caller can produce.
 """
 from __future__ import annotations
 
@@ -18,6 +25,7 @@ from pathlib import Path
 
 import pytest
 
+ROOT = Path(__file__).resolve().parents[3]
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
@@ -26,7 +34,7 @@ import magic_pane  # noqa: E402
 
 @pytest.fixture
 def project(tmp_path: Path) -> Path:
-    """A minimal agi project so locations.shared_sessions_dir resolves."""
+    """A minimal agi project so comms_root resolves without the live graph."""
     root = tmp_path / "project"
     (root / ".agi").mkdir(parents=True)
     (root / ".agi" / "config.json").write_text(
@@ -34,31 +42,47 @@ def project(tmp_path: Path) -> Path:
     return root
 
 
+def _live_harness_names() -> set[str]:
+    """Every harness name this tree actually constructs: config keys + NAMEs."""
+    cfg = json.loads((ROOT / ".agi" / "config.json").read_text())
+    names = set((cfg.get("harnesses") or {}).keys())
+    for adapter in sorted((BIN / "adapters").glob("*_adapter.py")):
+        m = re.search(r'^NAME\s*=\s*"([^"]+)"', adapter.read_text(), re.M)
+        if m:
+            names.add(m.group(1))
+    return names
+
+
 class _Trace:
     """Fake subprocess.run: records argv, returns rc 0, honours kwargs."""
 
-    def __init__(self) -> None:
+    def __init__(self, rc: int = 0) -> None:
         self.calls: list[list[str]] = []
+        self.rc = rc
 
     def __call__(self, cmd, **kwargs):
         self.calls.append(list(cmd))
-        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+        return subprocess.CompletedProcess(cmd, self.rc, stdout="", stderr="")
 
 
-def test_choose_route_is_destination_harness_data():
-    assert magic_pane.NATIVE_HARNESSES == frozenset({"grok"})
-    assert magic_pane.choose_route("grok") == "native"
-    assert magic_pane.choose_route("GROK") == "native"
-    assert magic_pane.choose_route("claude") == "cross"
+def test_choose_route_is_destination_family_data():
+    assert magic_pane.NATIVE_FAMILIES == frozenset({"grok"})
+    assert magic_pane.family_of("grok-bot") == "grok"
+    assert magic_pane.choose_route("grok-bot") == "native"
+    assert magic_pane.choose_route("GROK-BOT") == "native"
+    assert magic_pane.choose_route("claude-code") == "cross"
     assert magic_pane.choose_route("pi") == "cross"
 
 
-def test_native_route_types_into_pane_without_send_py(project, monkeypatch):
-    """Conjunct 1: grok->grok is pane type-in, and no send.py anywhere."""
+def test_live_registry_grok_is_native_and_others_cross(project, monkeypatch):
+    """Conjunct 1, on the names the tree ACTUALLY constructs. Fails round 1."""
+    live = _live_harness_names()
+    assert "grok-bot" in live, "grok-bot must be a live registry/adapter name"
     monkeypatch.setattr(magic_pane.time, "sleep", lambda s: None)
+
     trace = _Trace()
     result = magic_pane.send_message(
-        project, "grok-b", "hi there", "grok",
+        project, "grok-b", "hi there", "grok-bot",
         sender="grok-a", run=trace, enter_delay_s=0)
 
     assert result["route"] == "native"
@@ -68,15 +92,28 @@ def test_native_route_types_into_pane_without_send_py(project, monkeypatch):
     ]
     flat = " ".join(" ".join(c) for c in trace.calls)
     assert "send.py" not in flat
+
+    for dest in ("claude-code", "pi"):
+        assert dest in live
+        assert magic_pane.choose_route(dest) == "cross"
+
+
+def test_native_route_survives_nonzero_tmux_without_send_py(project, monkeypatch):
+    """Conjunct 1 hardened: rc!=0 must NOT fall back to send.py."""
+    monkeypatch.setattr(magic_pane.time, "sleep", lambda s: None)
+    trace = _Trace(rc=1)
+    result = magic_pane.send_message(
+        project, "grok-b", "hi", "grok-bot",
+        sender="grok-a", run=trace, enter_delay_s=0)
+
+    assert result["route"] == "native"
+    flat = " ".join(" ".join(c) for c in trace.calls)
+    assert "send.py" not in flat and "send-keys" in flat
     # native route writes no nudge artifact
     assert not magic_pane.nudge_artifact_path(project, "grok-b").exists()
-    # and the module source carries no send.py import (import statements only,
-    # so the docstring's prose about send.py cannot false-positive)
-    src = (BIN / "magic_pane.py").read_text()
-    assert not re.search(r"^\s*(?:import|from)\s+send\b", src, re.M)
 
 
-@pytest.mark.parametrize("harness", ["claude", "pi"])
+@pytest.mark.parametrize("harness", ["claude-code", "pi"])
 def test_cross_route_artifact_then_send_py_in_order(project, harness):
     """Conjunct 2: one trace, both events, artifact already on disk."""
     seen: dict = {}
@@ -105,16 +142,28 @@ def test_cross_route_artifact_then_send_py_in_order(project, harness):
     assert result["returncode"] == 0
 
 
+def test_cross_artifact_root_is_sends_own_comms_root(project):
+    """Conjunct 2 hardened: the nudge lives where send.py reads (not a fork)."""
+    import send as send_mod
+
+    expected = (send_mod.comms_root(project) / magic_pane.NUDGE_DIRNAME
+                / "dest-b.nudge")
+    assert magic_pane.nudge_artifact_path(project, "dest-b") == expected
+
+
 def test_import_graph_has_no_rotate_or_dispatch():
-    """Conjunct 3: source grep AND a fresh-interpreter sys.modules assert."""
+    """Conjunct 3: source grep, fresh-interpreter sys.modules, lazy send."""
     src = (BIN / "magic_pane.py").read_text()
     assert not re.search(
         r"^\s*(?:import|from)\s+(?:rotate|dispatch)\b", src, re.M)
+    # send.py may be imported LAZILY by the cross path only: no module-level
+    # import of it (the native route must never reach it at all).
+    assert not re.search(r"^(?:import|from)\s+send\b", src, re.M)
 
     code = (
         "import sys; sys.path.insert(0, %r)\n"
         "import magic_pane\n"
-        "bad = [m for m in ('rotate', 'dispatch') if m in sys.modules]\n"
+        "bad = [m for m in ('rotate', 'dispatch', 'send') if m in sys.modules]\n"
         "print(','.join(bad))\n" % str(BIN)
     )
     env = dict(os.environ, PYTHONPATH=str(BIN))
