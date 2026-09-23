@@ -3,9 +3,9 @@ id: goal:g6.1
 mint_id: 73547cd61d2f4e37847b43ee6e050a83
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.1
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.1: agi-tree becomes the source of truth agi is assembled from"
 ---
 **The direction of authority reverses.** Today the graph describes the engine
