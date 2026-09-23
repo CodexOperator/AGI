@@ -30,6 +30,7 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 ```
 
 ## 🔴 Where it stops
+``````
 `````
 ````
 ```
@@ -40,6 +41,7 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 ```
 ````
 `````
+``````
 
 ## Traps (post-specific, learned)
 ```
