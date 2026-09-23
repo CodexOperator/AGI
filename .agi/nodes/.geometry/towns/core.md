@@ -15,7 +15,7 @@ tags:
   - tracker
   - geometry
   - town
-thought_session: belam-park-horizon-20260923
+thought_session: belam-daily-town-pass-2026-09-23
 title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
@@ -135,5 +135,5 @@ g7.34  geometry + trajectory (parked)      unassigned    horizon
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-park-horizon / active-stop-line = g7.28+g7.31+g7.32; horizon g7.25/.26/.27/.29/.30/.33/.34* (+.1-.5) moved to HORIZON/INACTIVE section below current bundle — do not touch / not in current stop-line. Owner: stop once the 3 active trunks are done.
+Belam daily 2026-09-23: assignment SoT unchanged (belam g7.31.1/.3 · helper g7.28/g7.31.2/.4/.5/g7.32); no seat/status flips; merges season2→main@5723882c9; verify FAIL tip 5723882c9; reopen/mint=none
 <!-- THOUGHT:END -->
