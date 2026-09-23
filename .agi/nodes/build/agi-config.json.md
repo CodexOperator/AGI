@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: prose
 confidence: 1.0
-edited_by: belam-S1-L4-VI
+edited_by: belam
 link_ref: .agi/config.json
 location: source_root
 origin: mvp-minted
@@ -18,12 +18,12 @@ tags:
   - build
   - prose
   - g15
-thought_session: belam-S1-L4-VI
+thought_session: belam-S2-L5-I
 title: Agi config.json
 ---
 <!-- BODY:BEGIN -->
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-L4.115's cut-over, the Prime's ONE reviewed commit at merge-up 22 (hypothesis:l4-a-model-change-is-one-write-and-harness-config-is-ours): locations.pi_home and locations.claude_home declared (the base every harness-home payload resolves against, the same mechanism as source_root); harnesses.pi.allowed_models (the hand-kept union) replaced by harnesses.pi.allowed_extra - the allowlist is now DERIVED from the ladder roles rows plus this extras list, so a ladder write IS the allowlist write. Bytes from extensions/agi/briefs/harness-config.fragment.json as the kid proposed; proved by the dispatch dry-run and the allowlist tests in the same commit.
+owner 2026-09-23 ~08:1xZ (director-thought pane, verbatim on goal:g14): unblock paid rounds now -- spawn.credential.per_spawn_limit_usd 1.5 -> 1.0 and provisioning.min_account_remaining_usd 1.6 -> -100.0, TEMPORARY (owner: for now). Measured before: account remaining 46.65, floor 1.60, live un-expired key headroom 43.60 (23 of the keys another town), pool headroom 1.45 -> any parent-plus-kids round or mur refused. After: floor -100, caps 1 / 2 / 5 USD all fit, key-floor check passes (sub-floor keys skipped, never refused). min_key_remaining_usd left at 1.0 on purpose (brief: never lower it). Changed on the director-thought post branch only; trunk copy is the master call. Revert = restore 1.5 and 1.6.
 <!-- THOUGHT:END -->

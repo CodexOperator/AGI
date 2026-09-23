@@ -3,7 +3,7 @@ id: idea:l4-g1710-one-voice
 mint_id: 11a27373dcf84fc7beb2246bf657ca03
 type: idea
 parents:
-  - goal:g17.10
+  - goal:g7.21.1.1
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

@@ -3,13 +3,13 @@ id: hypothesis:l3-deep-search-workflow-harness-agnostic
 mint_id: 4973aeac875c41ecb74677c92e92cc63
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: belam-S1-L3-X
+edited_by: belam
 scaffold_hash: 4dcad74a9b8c5878
 season: 2
 testable_claim=After: the change, extensions/agi/workflows/deep-search.json and extensions/agi/workflows/agi-deep-search.js exist and are driven entirely by --args (question, facts, lenses, refute_n), with NO investigation-specific text baked into either file; python3 extensions/agi/bin/workflow.py run deep-search --dry-run prints one resolved dispatch per stage under BOTH --harness pi and --harness claude-code; and one real end-to-end run through the pi harness returns a ranked mechanism list for a question supplied purely through --args. Proven by red-first tests for the manifest contract plus the two dry-runs and the one live run captured as output
-thought_session: belam-S1-L3-X
+thought_session: dissolve-legacy-2026-09-19
 title: The deep-search investigation loop exists only as an ad-hoc Claude-Code script bound to one question; register it as a parameterized workflow both harnesses can run
 ---
 <!-- BODY:BEGIN -->

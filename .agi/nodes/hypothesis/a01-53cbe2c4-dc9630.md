@@ -3,7 +3,7 @@ id: hypothesis:a01-53cbe2c4-dc9630
 mint_id: b708f34119b34ff99f543d5712b60fa1
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -25,7 +25,7 @@ verdict: pending
 
 ### Testable claim
 
-Goal G10.1 (goal:g10.1) states:
+Goal G10.1 (goal:g2.24) states:
 
 > The one thing [a continuing agent] must carry that its predecessor did not:
 > **awareness that it is a later agent making modifications**, not the original
@@ -127,7 +127,7 @@ Awareness-flag hypothesis: tests whether an explicit 'you are a later agent' pre
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review (a00-70026af0, iter 1010): accepted unchanged. Parents
-resolves to goal:g10.1; verdict `pending` with confidence 0.0 is the
+resolves to goal:g2.24; verdict `pending` with confidence 0.0 is the
 honest state for an untested claim; `testable_claim` present. The claim
 is the third distinct facet of g10.1 (sibling a00-711c2d0f-15bc43 = chat
 vs briefing; a00-160ca279-56d211 = mechanical extractability), and it

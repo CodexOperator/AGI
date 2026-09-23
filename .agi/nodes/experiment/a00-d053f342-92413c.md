@@ -21,7 +21,7 @@ verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-d053f342-92413c
-FIX-ONLY build (goal:g15.25 F15). Claim: (1) the own-tail after_join path
+FIX-ONLY build (goal:g6.47 F15). Claim: (1) the own-tail after_join path
 passes the successor's ACKED harness ref or nothing — never the JOIN's session
 uuid — and (2) cmd_ack refuses BY NAME a --ref equal to the running seat's own
 session_id cell (= the joined session uuid) and writes nothing.

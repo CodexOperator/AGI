@@ -3,7 +3,7 @@ id: hypothesis:l4-prepare-performs-the-only-behind-merge-and-lists-the-seats-liv
 mint_id: 84324b6686fd43d79fdbdcea37154710
 type: hypothesis
 parents:
-  - goal:g15.14
+  - goal:g6.36
   - hypothesis:l4-the-prepare-captives-measure-generation-upstream-and-season-and-the-gate-is-not-a-test-seam
 next_edges: []
 edited_by: sensei-director

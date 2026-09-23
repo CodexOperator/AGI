@@ -3,10 +3,10 @@ id: goal:s35
 mint_id: 2e11d8bd74be4ca0a1755ad3240ae405
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S35
 goal_kind: short-term
 heading_level: 2
@@ -19,7 +19,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S35: Schemas are nodes, and they live under nodes/"
 ---
 # goal:s35

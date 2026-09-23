@@ -8,7 +8,7 @@ next_edges:
   - bigger_outcome:exporters-r1
 confidence: 1.0
 edited_by: season.py
-judged_against: goal:g9.3
+judged_against: goal:g2.16
 lens: goal:g9
 season: 1
 status: open

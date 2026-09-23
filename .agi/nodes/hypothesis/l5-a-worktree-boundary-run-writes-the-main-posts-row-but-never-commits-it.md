@@ -3,12 +3,13 @@ id: hypothesis:l5-a-worktree-boundary-run-writes-the-main-posts-row-but-never-co
 mint_id: 1213c5e191ab4829b99c3c77d07dba0c
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: director-belam
+edited_by: belam
 scaffold_hash: 95e9df43067e73cc
 season: 2
 testable_claim: "A rename-boundary run executed from a worktree post writes its spawn row update, including the new pubkey, into MAIN posts.md but never commits that write -- MAIN was left dirty with the new pubkey until the Prime committed it by hand (belam [rule] dm 22:43Z). Fix: the boundary run should commit its own posts.md row write in MAIN itself, the same way other row-owning writers already do, instead of leaving an uncommitted change in a shared working tree for someone else to notice and commit."
+thought_session: dissolve-legacy-2026-09-19
 title: L5 a worktree boundary run writes the main posts row but never commits it
 town: core
 ---

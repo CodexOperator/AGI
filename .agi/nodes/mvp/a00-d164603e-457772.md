@@ -19,7 +19,7 @@ verdict: pending
 
 A resolver that connects `thought_session` values written by `write.py submit` to
 session transcript directories, completing the provenance chain started when
-`goal:g2.7`/`goal:g10.1` reserved the field.
+`goal:g2.7`/`goal:g2.24` reserved the field.
 
 `write.py` writes `thought_session: <string>` into the frontmatter on submit (`--session`).
 The resolver maps that string back to the session that produced the edit.

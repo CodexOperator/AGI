@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-goal:g15.25 FIX-ONLY build — hypothesis
+goal:g6.47 FIX-ONLY build — hypothesis
 `l4-the-after-join-record-names-the-sender-and-signature-the-send-returned-the-trim-keeps-the-captive-ack-line-and-the-cap-counts-bytes`.
 MEASURED at post tip, then IMPLEMENTED, then proved on the built bytes.
 

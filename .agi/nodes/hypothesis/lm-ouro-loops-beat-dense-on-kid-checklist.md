@@ -3,7 +3,7 @@ id: hypothesis:lm-ouro-loops-beat-dense-on-kid-checklist
 mint_id: 583209b50ebe4f2db09c58aa009af13e
 type: hypothesis
 parents:
-  - goal:g14.3
+  - goal:g5.19
 next_edges: []
 ceiling: 1 USD OpenRouter; 0 compute; ONE model file <= 1.6 GB on ARM4C under /tmp only with the owner yes, deleted at round end; runs <= 10 min each
 edited_by: thought-master

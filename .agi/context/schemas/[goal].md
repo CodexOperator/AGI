@@ -159,8 +159,61 @@ mint it on the node.
   it a parent of THIS goal. The 166 goals before it are grandfathered; the
   section is prose, so it is a convention here and not in `validation:` —
   `links.py schema` does not check it, a merge-up reviewer does.
-- **Goal ids are never renumbered.** A gap beats a renumber. Not checkable
-  from one node, so it is not in `validation:`.
+- **The goal body — framing and fixed order (owner 2026-09-23, goal:g5: "The goal
+  node format is in the goal schema. Schemas define nodes."; carried verbatim from
+  `doc:standing-llm-ops` §5–§6 at its pre-fold tip `77c997cad`).** Prose, so not in
+  `validation:`; a merge-up reviewer checks it.
+
+  Goal framing — target, not task-or-fail:
+
+  | Do | Don't |
+  |---|---|
+  | target end-state | "finish today or failed" |
+  | measurable falsifiers | vibes-done |
+  | multi-parent ≤18 | duplicate claims under two roots |
+
+  Title: `"GX.Y: <target end-state in one line>"`. Body order (fixed):
+
+  ```
+  # goal:gX.Y
+  ## Why this exists
+  ## Target end-state
+  ## Invariants
+  ## Falsifier          # FAILED if any red
+  ## Out of scope
+  ## Agent Notes
+  ```
+
+  What each section carries:
+
+  ```
+  ## Why this exists
+  **Parent `goal:gX`.** <pain paid for + owner ask by date/node.>
+
+  ## Target end-state
+  - <world-after claim>
+  - <single seam / retirement>
+
+  ## Invariants
+  - <always-true or graph is wrong>
+
+  ## Falsifier
+  1. <CLI/grep exit 0 only when done>
+  2. <negative: forbidden path zero hits>
+
+  ## Out of scope
+  - <sibling goal:…>
+
+  ## Agent Notes
+  Assigned to **<post>**. <owner one-liners only.>
+  ```
+- **Goal ids MAY be renumbered (owner 2026-09-23, superseding "never renumbered";
+  core's 09-21 re-arrangement renumbered 82).** A renumber keeps every `mint_id`
+  (`mint_id` = identity; never a second mint for a renumber), re-points every
+  frontmatter reference to the moved id in the SAME commit, and records old → new
+  in the moved node's THOUGHT block; a retired id is never used again in a live
+  node (owner 2026-09-23, goal:g5). Not checkable from one node, so it is not in
+  `validation:`.
 - **Retire by marking `retired` and deprecating the seed node — never
   delete.** Renamed from `phasing-out` on 2026-09-02 (goal:g5): the lifecycle
   already meant "retired" and every document already said so, while the field

@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment — build the `post/<n>@sN` intermediate alias rule in branches.py
 
-Prime ruling (goal:g17.1, window-46): "branches.py gets the post/<n>@sN
+Prime ruling (goal:g7.16, window-46): "branches.py gets the post/<n>@sN
 intermediate rule so reshuffle maps it to season2/posts/<n>".
 
 **BEFORE (the defect, measured today ):**
@@ -117,7 +117,7 @@ branches.py gains the post/<n>@sN intermediate alias (forward maps to season2/po
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 REVIEWED by parent a00-d5b6e48c (L4.319), verdict kept: proved.
 
-(1) INSTRUCTION: Prime window-46 HOLD line (goal:g17.1) -- "branches.py gets the post/<n>@sN intermediate rule so reshuffle maps it to season2/posts/<n>".
+(1) INSTRUCTION: Prime window-46 HOLD line (goal:g7.16) -- "branches.py gets the post/<n>@sN intermediate rule so reshuffle maps it to season2/posts/<n>".
 (2) WHAT THE MACHINE DOES, read on the built bytes: branches.py L56 defines _POST_AT_RE = ^post/(.+?)@s(\d+)$; the _alias_canonical branch at L298 maps it to season{int(group(2))}/posts/{group(1)} before the loop rule, so parse("post/foo@s2") returns kind=alias canonical=season2/posts/foo and never raises. _canonical_to_old gains keyword-only legacy_seat=False (L130), post branch at L148-155 returns post/<n>@sN by default and seat/<n>@sN when legacy_seat=True; ref_candidates (the only in-engine caller, L124) passes legacy_seat=True, so the pre-migration seat fallback survives untouched. Measured by hand, not trusted: parse(post/foo@s2) -> season2/posts/foo; parse(seat/foo@s2) unchanged; _canonical_to_old -> "post/foo@s2" default and "seat/foo@s2" with the flag; ref_candidates -> ["season2/posts/foo","seat/foo@s2"]. Re-ran the three suites myself: test_branches.py + test_branch_reshuffle.py + test_cli.py -> 85 passed.
 (3) NEAR MISS: flipping the _canonical_to_old DEFAULT for posts without the legacy_seat flag. That satisfies the ruling words ("the reverse yields the intermediate spelling") and silently breaks every pre-migration reader that asked the function for the DEPRECATED spelling -- ref_candidates would hand back a branch name no live tree carries, and test_ref_candidates_post_keeps_legacy_seat_alias would have been the only thing standing. KID B added the kwarg instead of the flip, so both spellings stay producible and only the default moved.
 (4) DEVIATION: none. Live steps (--apply, --delete-old) not run, stated on the node.

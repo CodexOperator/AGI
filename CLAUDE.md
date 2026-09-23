@@ -7,7 +7,7 @@ what the repo contains and how to run the loop.
 ## What agi is
 
 `agi` is the code that operates on thoughtgraphs, and the thoughtgraph that
-built it, in one repo. Before `goal:g11` these were two — `agi-tree` held the
+built it, in one repo. Before the one-repo move these were two — `agi-tree` held the
 nodes, `agi` held the code — and a whole pipeline existed for no reason but to
 carry bytes across that boundary: `payloads/` as a staged checkout, `grid.py
 checkout`, `stitch.py --publish`, `publish-engine.sh` with four gates in front
@@ -41,7 +41,7 @@ into `.agi/`, because the one document a human opens first must not be hidden
 in a dot directory.
 
 `bin/locations.py` is the single resolver every entry point calls: **nearest
-enclosing `.agi/` wins**, no flag, no project name anywhere (`goal:g8.2`). Run
+enclosing `.agi/` wins**, no flag, no project name anywhere. Run
 a command from `agi/` and it resolves this repo's own graph at `agi/.agi`; run
 the same command from inside a project that has cloned `agi` in, and it
 resolves whichever `.agi/` is nearer — the project's own from the project
@@ -207,7 +207,7 @@ its remaining iterations has spent the owner's tokens on the director's ideas.
 
 ## Editing the engine — one commit
 
-**Before `goal:g11`:** an engine change was `grid.py checkout --all`, edit
+**Before the one-repo move:** an engine change was `grid.py checkout --all`, edit
 under `payloads/`, run the tests against that staged copy, `grid.py commit
 --all`, commit the graph, then `publish-engine.sh` and its four gates. That
 whole pipeline computed nothing — it existed only because the bytes lived in
@@ -222,7 +222,7 @@ git commit
 python3 extensions/agi/bin/grid.py commit --all
 ```
 
-One commit carries the thought and the code it produced — what `goal:g6.5`
+One commit carries the thought and the code it produced — what the retired cron-rebuild goal's
 step 3 wanted and never got.
 
 **Retired, because each existed only to move bytes across a boundary that no
@@ -230,7 +230,7 @@ longer exists:**
 
 - **`payloads/`** — the staged checkout. Gone; the payload *is* the source file.
 - **`grid.py checkout`** — nothing to check out. **Never run it.** Even before
-  `goal:g11` it was a whole-tree command scoped by no statement of file
+  the one-repo move it was a whole-tree command scoped by no statement of file
   ownership, and it silently reverted another agent's uncommitted work twice
   in one session (`goal:g4.1`). Under this layout the hazard is gone by
   construction — there is no second copy for a checkout to overwrite, only the
@@ -242,7 +242,7 @@ longer exists:**
   the gates have nothing left to guard.
 
 **`grid.py commit --all` stays.** It is not the publish pipeline — it is the
-grid, and the grid is not what `goal:g11` removes. It versions `node.md` and
+grid, and the grid is not what the one-repo move removes. It versions `node.md` and
 its payload *together* as one atomic version, which plain git does not do:
 git versions the whole repo per commit, and the grid versions one node's
 history independently of whatever else that commit touched. `refs/grid/*`
@@ -315,7 +315,7 @@ visible rather than swallowed. (Wording produced by `L4.102`, measured against
 automatic writer of the shared branch, and the reason "never merge-then-hold"
 is a rule: a merge held in a shared tree gets published by whoever pushes next.
 `crons_live: false` is a one-edit kill switch for all managed lines at once
-(used to freeze the four crons during the `goal:g11` migration itself); turning
+(used to freeze the four crons during the one-repo migration itself); turning
 it back on takes one manual `crons.py apply`, since the job that would have
 re-applied it is itself one of the lines removed. Of the four jobs the node can
 declare, two are now vestigial under one repo — `publish_engine` has nothing
@@ -330,8 +330,10 @@ at every `apply`, never caching it, for exactly this reason.
 
 ## Conventions
 
-- Goal ids are never renumbered. A gap beats a renumber; nodes reference goals
-  by id.
+- Goal ids MAY be renumbered (owner 2026-09-23, superseding "never renumbered"; core's 09-21 re-arrangement renumbered 82):
+  a renumber keeps every `mint_id`, re-points every frontmatter reference to the moved id in the SAME commit, and records
+  old → new in the moved node's `THOUGHT` block. Nodes reference goals by id, so a renumber that leaves a dangling
+  reference is not finished.
 - Retire a goal by marking it `retired` and **deprecating — never deleting**
   its seed node. Retired chains stay as prior art.
 - **Retire a node with `status: deprecated` and move it to
@@ -400,7 +402,7 @@ at every `apply`, never caching it, for exactly this reason.
   what humans, renderers and lookups use. Never conflate the two (G2.5).
 - **Verify the node count never drops.** A snapshot, a retag, or a migration
   should only ever grow or hold `active_node_count` + `deprecated_node_count`
-  steady, never quietly shrink it. `goal:g11`'s own migration was rehearsed
+  steady, never quietly shrink it. the one-repo move's own migration was rehearsed
   four times to check exactly this before the real cut ran: 807 nodes in, 807
   out, zero bytes changed, every time.
 
@@ -414,16 +416,16 @@ at every `apply`, never caching it, for exactly this reason.
 | `bash '<engine>/extensions/agi/driver.sh' --smoke --max-iters 1` | snapshot + render + metrics, no dispatch — verify the node count did not drop |
 | `python3 -m pytest '<engine>/extensions/agi/tests/' -q` | the engine's own suite |
 | `python3 '<engine>/extensions/agi/bin/snapshot-goals.py' --render --check` | GOALS.md and the goal nodes are byte-identical inverses |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g9.7 — one render, two readers |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --verify` | goal:g2.19 — one render, two readers |
 | `python3 '<engine>/extensions/agi/bin/grid.py' commit --all` | version every changed node and its payload |
-| `python3 '<engine>/extensions/agi/bin/links.py' links` | goal:g13 — every node's link resolves; broken_links must be 0 |
+| `python3 '<engine>/extensions/agi/bin/links.py' links` | every node's link resolves; broken_links must be 0 |
 | `python3 '<engine>/extensions/agi/bin/links.py' schema` | goal:s31 — which nodes violate their type's required list (dry) |
 | `python3 '<engine>/extensions/agi/bin/spawn_budget.py' status` | goal:g4.8 — live agents against the tree-wide bound |
 | `python3 '<engine>/extensions/agi/bin/provisioning.py' status` | goal:g1.11 — whether per-spawn keys are being issued |
 | `python3 '<engine>/extensions/agi/bin/envfile.py' --check` | goal:g1.8 — required keys present, forbidden keys absent |
 | `python3 '<engine>/extensions/agi/bin/crons.py' show` | the crontab the graph declares |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
-| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g9.7 — exactly what a kid is handed, from the same frame stream |
+| `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g13.1 — named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->

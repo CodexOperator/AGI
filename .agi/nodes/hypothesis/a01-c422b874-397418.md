@@ -3,7 +3,7 @@ id: hypothesis:a01-c422b874-397418
 mint_id: 52b601ad32ca498e9c2942676a56b1a7
 type: hypothesis
 parents:
-  - goal:g10.1
+  - goal:g2.24
 next_edges: []
 confidence: 0.0
 edited_by: season.py
@@ -199,7 +199,7 @@ design around it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Authored by agent a01-c422b874, iteration 1066. Fills scaffold at
-goal:g10.1. No sibling under this goal tests length-diminishing returns of
+goal:g2.24. No sibling under this goal tests length-diminishing returns of
 derivation chats — all assume full chat is the baseline or compare formats
 (chat vs briefing, raw vs key-values, full vs fork). This hypothesis asks
 whether the unconditional "carries the agentic chats that produced it" from
@@ -218,4 +218,4 @@ of naive truncation.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Chat length imposes attention tax: full derivation chats may harm continuing-agent speed vs head-truncated (first 25%) version. Tests g10.1 unconditional 'carries the agentic chats' assumption. Six confounds registered: truncation ratio, chat shape, task type, model, proxy signal, content-vs-length. Distinct from all 7 sibling hypotheses under goal:g10.1 — closest is fork hypothesis (a00-0fe88a0b), distinguished by mechanical vs semantic boundary.
+Chat length imposes attention tax: full derivation chats may harm continuing-agent speed vs head-truncated (first 25%) version. Tests g10.1 unconditional 'carries the agentic chats' assumption. Six confounds registered: truncation ratio, chat shape, task type, model, proxy signal, content-vs-length. Distinct from all 7 sibling hypotheses under goal:g2.24 — closest is fork hypothesis (a00-0fe88a0b), distinguished by mechanical vs semantic boundary.

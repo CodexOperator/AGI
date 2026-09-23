@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-goal:g15.25 FIX-ONLY. Two sites in `extensions/agi/bin/rotate.py` paired
+goal:g6.47 FIX-ONLY. Two sites in `extensions/agi/bin/rotate.py` paired
 fences by naive `startswith("```")` (any >=3 backticks toggles), so under a
 four-backtick outer fence a first inner three-backtick line toggled the scan
 CLOSED and a `#`-leading line inside the inner block ended the slot.

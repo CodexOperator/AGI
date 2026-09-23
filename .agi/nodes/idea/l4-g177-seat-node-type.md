@@ -3,7 +3,7 @@ id: idea:l4-g177-seat-node-type
 mint_id: 79fa43169e7d4913b0ed25c695cf0462
 type: idea
 parents:
-  - goal:g17.7
+  - goal:g7.20
 next_edges: []
 edited_by: a00-8f32f863
 loop: hypothesis:l4-chains-for-the-mapped-subgoals@s2

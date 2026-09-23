@@ -165,7 +165,7 @@ never erases a prior one.
 1. **`verification.py` stamps `suite_ran_at` even when the suite never
    launched.** Measured: the refused run above set
    `suite_ran_at=1789542893.86, suite_wall_s=0.657, slowest_15=[]` — a tree can
-   thereby clear `bin-suite-fresh` (goal:g15.10) with a suite that never ran.
+   thereby clear `bin-suite-fresh` (goal:g6.32) with a suite that never ran.
    A named exit code for the refusal (the way `EXIT_SUITE_LOCKED=2` already
    works for the lock) is the clean fix; a text sniff is not.
 2. **The tier gate treats pytest's canonical `file.py::test_name` form as a

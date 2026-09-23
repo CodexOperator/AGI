@@ -3,16 +3,16 @@ id: hypothesis:l3-rotate-launch-window-silent-failure
 mint_id: 84119ae96b8b40678b5cb877004b1cc0
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 66333549ca10fe73
 season: 2
 status: deprecated
 testable_claim: After the change, _launch_window returns tmux's non-zero exit code and prints its stderr instead of discarding both, and a launch line above the tmux argv limit is handed to tmux as a short 'bash <script>' invocation so command length cannot break rotation; proven by red-first tests for each half plus one live 'rotate.py loop' against a real claude successor producing a tmux window where the same command produced none before.
 testable_claim=After: the change, _launch_window propagates tmux's non-zero return code with its stderr instead of returning 0 unconditionally, and a launch line longer than _TMUX_ARG_SAFE is written to a mode-0600 script that tmux is handed by path; proven by a red-first test for each half — one asserting a failing tmux new-window yields a non-zero return and the message reaches stderr, one asserting an oversized command never appears in the tmux argv — both of which fail against the code as it stood at commit dadfdfd04
-thought_session: belam-S1-L3-XI
+thought_session: goal-glom-2026-09-19
 title: tmux refused the rotation command as too long and _launch_window returned 0 anyway, so three primes were told a rotation had happened that had not
 ---
 <!-- BODY:BEGIN -->

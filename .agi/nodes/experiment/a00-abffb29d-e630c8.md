@@ -39,7 +39,7 @@ only such seat today) rotate-self now:
   `_split_roman_suffix` (rotate.py:686 / :669) over the existing windows —
   the exact derivation `cmd_loop` uses, never a copy and never a constructed
   `gen` name (`_derive_successor_name(existing, prefix=<seat>)`; the chain
-  prefix comes from the seat row's `name` via goal:g8.2, nothing here
+  prefix comes from the seat row's `name` via goal:g1.24, nothing here
   branches on the literal string `belam`);
 * sets `generation = the numeral` (`_split_roman_suffix(successor_name)[1]`)
   — not `gen_before+1`;

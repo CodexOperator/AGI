@@ -3,7 +3,7 @@ id: hypothesis:l3-write-partial-diffs-as-writes
 mint_id: d26321711f4b4cecb4c3eb294b2ec95a
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 8f33da4044a59664
@@ -28,7 +28,7 @@ BUILD, NOT A PROBE. YOUR ARTEFACT IS A DIFF — and on this brief that sentence 
 
 THE OWNER ASKED FOR THIS, 2026-09-08, verbatim: "We also need to implement partial write support so we can both read node bodies lines at a time and write to them the same. Maybe just piggyback it off the diff system and use diffs as writes".
 
-THIS IS ALREADY A NAMED HOLE, NOT A NEW IDEA — which is why it should be closed rather than debated. `skills/agi/SKILL.md` records it verbatim: "Known gap: payload writes are whole-file only. There is no anchored or partial edit, so a one-line change to a large module still means emitting the whole file — which is why engine surgery across several modules is still done with ordinary tools plus a `thought` afterwards. That is a real hole in `goal:g13.1`, not a licence."
+THIS IS ALREADY A NAMED HOLE, NOT A NEW IDEA — which is why it should be closed rather than debated. `skills/agi/SKILL.md` records it verbatim: "Known gap: payload writes are whole-file only. There is no anchored or partial edit, so a one-line change to a large module still means emitting the whole file — which is why engine surgery across several modules is still done with ordinary tools plus a `thought` afterwards. That is a real hole in `goal:g4.18`, not a licence."
 
 WHAT THAT HOLE ACTUALLY COSTS, in this project's own measurements. `write.py` is the ONE sanctioned hand: it stamps `edited_by` and `thought_session`, runs the spawn gate, warns on schema, and lands the payload and the reasoning in one submit. Every rule in this repo says use it. And every agent doing real engine work does not, because emitting a whole module to change one line is unaffordable — so the most careful writes in the system route around the mechanism built to make writes traceable. **A rule that is correct and unaffordable is a rule that gets skipped, and this one is skipped by exactly the agents whose edits matter most.** It also puts a hard floor under how cheap an agent can be: a kid on a flash model cannot re-emit a 2,000-line module at all, so whole-file writes silently reserve engine surgery for expensive models.
 

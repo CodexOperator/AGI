@@ -3,7 +3,7 @@ id: hypothesis:a01-0c63908f-245cab
 mint_id: 56fb23c1c07548fea077c85660d8e9c3
 type: hypothesis
 parents:
-  - goal:g8.1
+  - goal:g1.23
 next_edges: []
 confidence: 0.6
 edited_by: season.py
@@ -17,7 +17,7 @@ verdict: pending
 
 ## Hypothesis
 
-**Claim:** the drop-in-clone distribution shape's staleness gap (`goal:g8.1`,
+**Claim:** the drop-in-clone distribution shape's staleness gap (`goal:g1.23`,
 inherited from L9) can be closed cheaply and independently of which of the
 three shapes (clone / skill package / install) wins, by recording the engine
 commit a project was cloned against in its own `.agi/config.json` (e.g.
@@ -41,7 +41,7 @@ of drift (false positive, unusable) or never fires when the engine has
 genuinely moved (silent staleness persists — the exact failure mode this is
 meant to close), or implementing it requires touching `locations.py` in a way
 that couples the pin check to one specific distribution shape (contradicting
-"closes the gap regardless of the outcome" from `goal:g8.1`'s own text).
+"closes the gap regardless of the outcome" from `goal:g1.23`'s own text).
 
 No experiment has been run yet — a sibling scaffold under this same goal
 (`hypothesis:a01-abd43b16-1beb10`) records that both pi kids dispatched for

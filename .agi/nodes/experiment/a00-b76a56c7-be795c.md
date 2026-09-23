@@ -26,7 +26,7 @@ verdict: inconclusive_lean_proved:85
 
 FIX-ONLY build round on `extensions/agi/hooks/rotation_alert.py` + `.gitignore` +
 `extensions/agi/tests/test_rotation_alert.py`, judged on the FOUR claims of the
-parent brief (goal:g15.25 line (2), mur-SL2.17). Baseline: `31 passed` before
+parent brief (goal:g6.47 line (2), mur-SL2.17). Baseline: `31 passed` before
 edits; build-to-`34 passed` after. Every fix is a behaviour built, proved on the
 built bytes, not merely measured.
 
@@ -67,7 +67,7 @@ the production path routes through `_Popen` with the full rotate-self argv,
 tracked (check-ignore exit 1). So the once-per-generation transient latch is
 ignored even though the durable rotation records beside it remain committed.
 
-**Note correction.** `write.py goal:g15.25 'note ...'` appended the SL7.32
+**Note correction.** `write.py goal:g6.47 'note ...'` appended the SL7.32
 CORRECTION naming the hook Popen (rotation_alert.py:795-798) as the true
 origin of c1f01e920, correcting the SL7.23 harvest note that blamed the kid by
 hand.

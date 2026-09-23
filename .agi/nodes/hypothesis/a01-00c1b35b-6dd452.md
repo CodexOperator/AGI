@@ -3,12 +3,12 @@ id: hypothesis:a01-00c1b35b-6dd452
 mint_id: be59fe33edf0412e92ca141840760666
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 53ae96e8c41a5a3d
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A01 00c1b35b 6dd452
 ---
 # hypothesis:a01-00c1b35b-6dd452

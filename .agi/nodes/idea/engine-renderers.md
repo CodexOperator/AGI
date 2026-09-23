@@ -3,9 +3,9 @@ id: idea:engine-renderers
 mint_id: 0be9bfcb6d0d472f854ffde25b2446e5
 type: idea
 parents:
-  - goal:g9
+  - goal:g2.13
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: big
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/src/renderers"
 unit_kind: src_package
 unit_path: extensions/agi/src/renderers

@@ -42,7 +42,7 @@ Tested the full surface of `derive-commands.py --all` against CLAUDE.md and QUIC
 6. **Absolute path defect confirmed**: Every rendered command uses literal
    `/home/ubuntu/work/agi/...` paths rather than `<engine>` placeholder.
    The node stores `<engine>`, but `Command.shell()` resolves it at render
-   time, violating `goal:g8.2`.
+   time, violating `goal:g1.24`.
 
 7. **Tests pass**: 1464 passed, unchanged.
 
@@ -51,7 +51,7 @@ Tested the full surface of `derive-commands.py --all` against CLAUDE.md and QUIC
 - **The absolute-path defect is not fixed — and this run spread it.** All
   three derived files (SKILL.md, CLAUDE.md, QUICKSTART.md) now carry literal
   `/home/ubuntu/work/agi/...` paths where the node stores `<engine>`. A fresh
-  clone is handed commands that do not exist on its machine: a `goal:g8.2`
+  clone is handed commands that do not exist on its machine: a `goal:g1.24`
   violation, and a false instruction delivered at the scale this goal exists
   to remove. The defect pre-existed in SKILL.md; deriving two more files
   inherited it rather than curing it. It is listed under the hypothesis's own
@@ -94,4 +94,4 @@ a number.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Tested derive-commands.py --all against CLAUDE.md + QUICKSTART.md: --check --all detected stale (exit=1), --all patched both + SKILL.md (exit=0), --check --all confirmed current (exit=0). Edit cycle verified: add command → stale detected → re-patch → current. Absolute path defect confirmed (goal:g8.2 violation: <engine> placeholder resolved to /home/ubuntu/work/agi/ literal paths). 1464 tests pass.
+Tested derive-commands.py --all against CLAUDE.md + QUICKSTART.md: --check --all detected stale (exit=1), --all patched both + SKILL.md (exit=0), --check --all confirmed current (exit=0). Edit cycle verified: add command → stale detected → re-patch → current. Absolute path defect confirmed (goal:g1.24 violation: <engine> placeholder resolved to /home/ubuntu/work/agi/ literal paths). 1464 tests pass.

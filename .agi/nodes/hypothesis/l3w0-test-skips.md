@@ -3,12 +3,13 @@ id: hypothesis:l3w0-test-skips
 mint_id: 418a97fa82b94aa7bee97fbd0fa1f6f3
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.14
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 25ddebd136f03d36
 season: 1
 testable_claim: The suite's skip count drops from 9 to at most 1 by repointing the three stale post-g11 skips at the .agi layout and giving the five CLI scripts without --help a real argparse --help, leaving only node_writer.py's library skip
+thought_session: dissolve-legacy-2026-09-19
 title: L3w0 test skips
 ---
 # hypothesis:l3w0-test-skips

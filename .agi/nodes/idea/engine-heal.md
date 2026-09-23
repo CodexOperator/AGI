@@ -3,9 +3,9 @@ id: idea:engine-heal
 mint_id: 427cfeb1a231431c97907b137194ca7a
 type: idea
 parents:
-  - goal:g4
+  - goal:g5.14
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/heal.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/heal.py

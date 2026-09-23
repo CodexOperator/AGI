@@ -3,13 +3,13 @@ id: hypothesis:a00-dbd82e32-0b294f
 mint_id: 4e3b7d8b55f44039a4946a0d2952eec0
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 74b964a5da96094e
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 dbd82e32 0b294f
 verdict: pending
 ---

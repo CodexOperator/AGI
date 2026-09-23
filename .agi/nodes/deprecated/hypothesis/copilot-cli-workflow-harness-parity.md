@@ -3,13 +3,14 @@ id: hypothesis:copilot-cli-workflow-harness-parity
 mint_id: b2d85ecbebe34484b15d13412d830b15
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g25.legacy-direct
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-master
+edited_by: belam
 season: 2
 status: deprecated
 testable_claim: "The copilot-cli harness is declared and resolved through config: adapters.load validates its adapter contract, needs_credential is false for GitHub-authenticated children, model_listing and transcript_path expose adapter-owned diagnostics, and workflow.py --harness accepts only declared harness names while resolving models from the selected harness namespace; proven by the focused adapter/workflow test suite and dry-run output."
+thought_session: goal-glom-2026-09-19
 title: Copilot cli workflow harness parity
 town: core
 ---

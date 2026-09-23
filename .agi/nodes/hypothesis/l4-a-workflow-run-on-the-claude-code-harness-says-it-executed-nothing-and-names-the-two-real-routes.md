@@ -3,12 +3,13 @@ id: hypothesis:l4-a-workflow-run-on-the-claude-code-harness-says-it-executed-not
 mint_id: 2912488d655f4bd3b40c3d308196eee4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.11
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 3348111d3d751964
 season: 2
 testable_claim: "(1) `workflow.py run <name> --harness claude-code` from a plain shell still exits 0 and tracks the run exactly as today, AND prints ONE line to stderr naming that no stage was executed by workflow.py, that the manifest's .js runs under the Claude Code Workflow tool, and that a headless run is `--harness pi` (the default). (2) the pi path's output is byte-identical to today (the line never prints there). (3) director-thought's exact invocation (brainstorm, --harness claude-code, two stages) reproduces: before = silent resolved summary; after = the same summary plus the one named line -- one test with a two-stage fixture manifest."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.120 (thought-master [ask] 19:57Z, owner-ordered brainstorm workflow on goal:g14): a workflow run on the claude-code harness SAYS it executed nothing -- the resolve-and-describe branch prints one named line pointing at the two real routes (the .js under the Workflow tool, or --harness pi) instead of a silent all-resolved summary"
 town: core
 ---

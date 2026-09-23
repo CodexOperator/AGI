@@ -3,12 +3,13 @@ id: hypothesis:l4-a-town-season-rollover-is-one-gated-command-that-cuts-the-new-
 mint_id: be9ad53cd63c45abbb0f0484dbf49f75
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.13
 next_edges: []
-edited_by: director-sanctuary
+edited_by: belam
 scaffold_hash: 9c7d281e8105dd00
 season: 2
 testable_claim: "season.py rollover gains two modes, both dry by default, --apply performs, --delete-old gates every origin delete, each step verified before the next, a failed step stops and names itself leaving no half state. ALIGN (one-time, owner 02:2xZ: town_season == global season G for every town, always): for every town whose season cell != G, rename <town>/season<m>/main -> <town>/season<G>/main through mirror (push old tip as the new name) -> archive ref refs/agi/archive/<town>/season<m>/main verified == old tip -> delete-old of the old name, and set the town season cell to G in the SAME act so nothing resolves a missing trunk; a live worktree on the old name keeps its checkout via git branch -m; post branches re-derive from the cell; --town <t> scopes a master to its own trunks, no flag = every town (the Prime). ROLLOVER (global, G -> G+1 everywhere together): season<G>/main -> season<G+1>/main AND every <town>/season<G>/main -> <town>/season<G+1>/main in ONE command: cut the new trunk from the old tip, fold the old trunk into its ladder head (<town>/main, and master for the global) by merge --no-ff add-only, archive ref verified, delete-old, every cell (ladder global + each town) bumped to G+1, ls-remote heads count before == after. A town never rolls alone: a --town flag on rollover is refused by name. Falsifier: any step performs under dry; a delete precedes its verified archive ref; a fold fast-forwards or rewrites a ladder head; heads count drifts; a cell changes while the old head still exists on origin (align) or before all trunks are cut (rollover); a town rolls alone; the global season and a town cell disagree after either mode."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.104 (owner 09-18 02:1xZ + 02:2xZ via the Prime): season rollover is ONE gated command with two modes -- ALIGN every town season to the global season now, and a GLOBAL rollover G -> G+1 for season<G>/main and every town trunk together (cut, fold into the ladder head, archive under refs/agi/archive, delete the old origin heads, bump every cell, heads +0); a town never rolls alone"
 town: core
 ---

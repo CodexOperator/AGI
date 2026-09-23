@@ -3,7 +3,7 @@ id: hypothesis:l4-completion-signal-cannot-tell-dead-from-silent
 mint_id: 0b772a3892c240b5acf6bc9372bb0051
 type: hypothesis
 parents:
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 confidence: 0.5
 edited_by: belam-S1-L4-IV
