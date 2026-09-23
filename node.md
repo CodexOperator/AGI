@@ -3,9 +3,9 @@ id: goal:g6.6
 mint_id: 26e39066f7bb494581c7b494d409d4fa
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.6
 goal_kind: subgoal
 heading_level: 3
@@ -17,7 +17,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.6: Level 3 covers the non-code surfaces too"
 ---
 **A projection that omits half the engine cannot rebuild it.** `level3.py`'s
