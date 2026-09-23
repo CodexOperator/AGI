@@ -15,7 +15,7 @@
 ```
 batch B   ✅ DELIVERED [merge-up] 09:0xZ @fd947d883 (C2 fires under the CI rule -> SWITCH met on both evals pending TM's gate · B no fire) -- TM gates + runs the suite
           after the RS.01 mur: TMM.38(2) deviation THOUGHT on a00-1864ce6e · TMM.38(3) letter_frequency floor notes on B, C2, gap_table.md · TMM.39(a) gap_table.md b/c labels to scorer.py · TMM.41 C2's 3 residues in place -> ONE batch-B merge-up
-batch A   G.01 HELD on its loop branch @109bcb618 (off-scope, parent overflowed, unreviewed) -> ⏳ research-review rr-mp02-g01 (propose-only)
+batch A   G.01 HELD @109bcb618 -> ✅ rr-mp02-g01 returned DEMOTE (dedup leak 282 -> 243 unique, 11 cross-fold dup groups; gold synthesized from dm headers, not observed) · brainstorm measured: dedup lifts blend top-1 0.4539 -> 0.5391 (lean-disproof = contamination artifact?)
           then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
           then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
 owner     ⏳ CFG.01 a00-e9111187 config-max pass (hypothesis:lm-every-experiment-path-is-a-config-variable) · Rules item 13 in agent-prompt.md (23663947a)
@@ -67,6 +67,21 @@ links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identic
 ```
 
 ## Scratch -- orders (tracked; live rounds' orders replaced when they land, drafts dispatch only on go)
+```
+ORDERS MP02-G.02 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.41 ASK 2 · pi deepseek · cap 1 USD · ONE kid)
+read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) incl. its THOUGHT (why G.01 is held) · extensions/agi/lib/agent-prompt.md Rules item 13
+deliverable cli-grammar.json + the script that derives it, under .agi/context/local-maxxing/magic-pane/ -- every verb of extensions/agi/bin/{write,send,dispatch,workflow}.py DERIVED from argparse / -h, never hand-typed
+per verb    positionals · flags (type, required, default) · one real example · invariants from the tool's own source · traps only from recorded town sources, each cited
+send tags   send.py bodies carry typed tags ([merge-up] [decision] [red] [TM] [DT] [owner]) -- the grammar names them as sub-forms of send, so a merge-up line is its own form (rr-mp02-g01: G.01 force-labelled merge-ups as plain send)
+validate    parse >= 30 REAL invocations (dm transcripts, cards, node commands, claude-code session tool calls -- read only, scrub anything landed) · count parse / fail with each failure's reason
+paths       rule 13: any path the script needs is a paths.local_maxxing.<key> variable, repo-relative
+OUT OF SCOPE segments · test sets · suggesters · baselines -- the parent REFUSES any kid output outside the deliverable (G.01's kids broke this line)
+never       anything under extensions/ · the held loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a · GPU or :8080
+wall        call done by 120 min whatever the state (key TTL 180)
+cap         1 USD · ONE kid · line ceiling 120 engine-unit lines
+record      verbs + flags covered per tool vs its own -h (misses named) · parse rate on >= 30 real invocations with failure reasons · grammar size in tokens · one harvest line
+```
+
 ```
 ORDERS CFG.01 (director-thought -> parent · OWNER order 09-23 ~08:4xZ, verbatim on goal:g14 · pi deepseek · cap 1 USD)
 read first  hypothesis:lm-every-experiment-path-is-a-config-variable · extensions/agi/lib/agent-prompt.md Rules item 13 (read only)
