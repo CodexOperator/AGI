@@ -557,12 +557,17 @@ ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
 #: stays in the current verb's last free-text argument. The literal
 #: `str.split("&&")` this replaces split inside an argument too, and leaked
 #: prose in a note/ref field crashed `links.py links` (experiment:a00-794503d4).
-#: Residual (test-pinned): prose cannot quote a VERB-LED command.
+#: Residual (test-pinned): prose cannot quote a VERB-LED command UNLESS it
+#: escapes the pair: `\&&` is carried byte-for-byte (backslash consumed) while
+#: an unescaped verb-led `&&` still splits.
 #: A trailing `&&` (nothing but whitespace after it) is still a separator --
 #: otherwise it leaks into the last argument and verb-only scripts change.
 #: So is a pair that closes a verb name with no space: `-&&adopt&&`.
-_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
-    sorted(VERBS, key=len, reverse=True)))
+#: A DOUBLED pair (`&&&&`) is its own separator, so it parses exactly as the
+#: pre-verb-led `str.split("&&")` did (the empty middle chunk is skipped).
+_ESC_AMP = "\x00esc-amp\x00"
+_VERB_SEP = re.compile(r"\s*(?:&&){2,}\s*|\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)"
+                       % "|".join(sorted(VERBS, key=len, reverse=True)))
 
 #: One-line example per verb, for the help epilog. Module-level (not local to
 #: main) so a test can assert each example PARSES as its verb's arity via the
@@ -656,8 +661,8 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     the string is data here, exactly as `commands.py` keeps argv a list.
     """
     out: list[tuple[str, list[str]]] = []
-    for chunk in _VERB_SEP.split(str(text)):
-        stripped = chunk.strip()
+    for chunk in _VERB_SEP.split(str(text).replace(r"\&&", _ESC_AMP)):
+        stripped = chunk.strip().replace(_ESC_AMP, "&&")
         if not stripped:
             continue
         name = stripped.split(None, 1)[0]
@@ -1944,20 +1949,31 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
 
-    # A link_ref/payload_ref set outside the repo tree is refused before any
-    # write; the SAME predicate links.py's schema report calls. The ref
-    # resolves against the EFFECTIVE location -- this edit's `location` if it
-    # carries one, else the one already on the node file -- so the refusal and
-    # the report agree in every reachable state (hypothesis:l5-a-verdict-...).
-    _loc = edit.set_fm.get("location")
-    if _loc is None and (_nf := node_writer.find_node_file(root, edit.node_id)):
+    # A link_ref/payload_ref resolving outside the repo tree is refused before
+    # any write; the SAME predicate links.py's schema report calls. It judges
+    # the EFFECTIVE frontmatter: a value this edit SETS, else ABSENT when this
+    # edit UNSETS the key, else what the node file already carries. Reading
+    # only `set_fm` admitted a location-only move of an existing inside ref,
+    # and falling back to the stale on-disk location over-refused an
+    # `unset location` (hypothesis:write-py-outside-ref-gate-...).
+    _on_disk: dict = {}
+    if (_nf := node_writer.find_node_file(root, edit.node_id)):
         from graph_core.persistence import frontmatter as _fmr
         try:
-            _loc = _fmr.load_node_file(_nf, body=False).frontmatter.get("location")
+            _on_disk = _fmr.load_node_file(_nf, body=False).frontmatter or {}
         except Exception:
-            _loc = None
+            _on_disk = {}
+
+    def _effective(key):
+        if key in edit.set_fm:
+            return edit.set_fm[key]
+        if key in edit.unset_fm:
+            return None
+        return _on_disk.get(key)
+
     for _f in ("link_ref", "payload_ref"):
-        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f), _loc)):
+        if (_p := links.outside_repo_path(root, _effective(_f),
+                                          _effective("location"))):
             raise EditError(
                 f"cannot set {_f!r}: {_p} resolves outside the repo tree")
 
@@ -2726,6 +2742,10 @@ def main(argv: list[str] | None = None) -> int:
         "  replace body is standalone; it cannot share a script line with "
         "note, thought or body_patch (one body writer per submit). "
         "Compose them as separate write.py calls.")
+    epilog_lines.append(
+        "  a prose argument carries a literal verb-led && by escaping it "
+        "as \\&&; an unescaped && before a verb still separates, and "
+        "&&&& (a doubled pair) separates exactly as it always did.")
     epilog = "\n".join(epilog_lines)
 
     ap = argparse.ArgumentParser(
