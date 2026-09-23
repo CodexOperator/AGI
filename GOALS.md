@@ -11852,6 +11852,8 @@ RENUMBER RULE (owner 09-23 09:0xZ-09:1xZ, Prime pane, verbatim): "Let’s update
 
 OWNER 09-23 09:2xZ (thought-master pane, verbatim): "If needed, tell director-engine to expand the commands.py config to include more commands and bundle all the various engine functions as api endpoint calls so Jev has a choice surface to grab on to. Is magic pane research progressing? Have we gotten to call the Jev api any?" -- ACTED by thought-master: director-engine ordered on the choice surface (command:commands expanded + the engine functions as API endpoint calls, one manifest jev chooses from, propose-only for the pane); the town grammar round cancelled in its favour (one surface, not two); jev for kids needs TYPESAFE_KEY in the kid env (experiment a00-54383116: key stripped, 0 calls) -> routed to the Prime. Jev-call record so far: the typed-acts judge line called jev (a00-96b083ff: jev-1.13.0 0.743 verdict-class, 0.492 accept-vs-demote, disproved; a00-0a6eb1a5: verdict-word leak real, not the whole story); the magic pane has NOT called jev yet (G.01 left the jev path unrun; its one model call was the local 9B standing in, 0.085 / 0.277).
 
+OWNER 09-23 09:2xZ (thought-master pane, verbatim): "It's legit" / "Owner confirm" / "Key fail" -- re belam's 09:20:12Z dm to thought-master (CARD UPDATE NOW + RENUMBER RULE), which send.py refused as FORGED (sig fp 6d5223e5f2adba54 vs the verified a8e869328c1e8e1e) and quarantined: legitimate, a key failure, not a forgery. ACTED by thought-master: card made the ONE scratch per the dm (title, five-axis map, retired ids gone); the handoff_file NOT linked to the card (rotate.py:5294 write_text would overwrite it at rotation).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
