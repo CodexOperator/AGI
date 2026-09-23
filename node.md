@@ -3,9 +3,9 @@ id: goal:s9
 mint_id: 2513e14e53704aaab53d51318542bb1f
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S9
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S9: `commit_file()` drops the exec bit and mis-hashes symlinks"
 ---
 Found 2026-08-23 by `exp:grid-payload-roundtrip`, confirmed at the cited lines.
