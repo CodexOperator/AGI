@@ -269,7 +269,7 @@ with the target node's body as the brief — **mint a hypothesis node for the
 bug, commit it, and aim parents at it.** Sixteen hazards that were carried
 across a handoff instead of fixed in-loop became `goal:s34`.
 
-## Every node edit goes through `write.py` (`goal:g4.19`)
+## Every node edit goes through `write.py` (`goal:g4.18`)
 
 **One way in.** Creating a node, editing its frontmatter, appending a body note,
 rewriting its `THOUGHT` or `FEELING` region — all of it is
@@ -813,5 +813,5 @@ npx gitnexus query "<concept>" --repo /home/ubuntu/work/agi
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
