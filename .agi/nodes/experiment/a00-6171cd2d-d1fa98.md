@@ -6,7 +6,7 @@ parents:
   - hypothesis:brief-render-hygiene-after-the-batch-mur
 next_edges: []
 confidence: 0.7
-edited_by: a00-32ff8393
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-6171cd2d-d1fa98
 loop: hypothesis:brief-render-hygiene-after-the-batch-mur@s2
@@ -30,14 +30,14 @@ verdict: inconclusive_lean_proved:70
 
 Built the render-hygiene fix for `hypothesis:brief-render-hygiene-after-the-batch-mur` and measured it red→green on the real bytes.
 
-**Pre-fix (measured before touching code).** `python3 extensions/agi/bin/brief.py render --post director-engine` emitted **2 authored `<!-- THOUGHT:BEGIN ... -->` regions** (line 166 = the role template `doc:unified-director-brief`; line 574 = the harness block) and **0 `OPERATING MODE` lines** — the block `_prepend_head` prepends on the legacy `assemble` path is dropped by `render`. 637 lines total.
+**Pre-fix (measured before touching code).** `python3 extensions/agi/bin/brief.py render --post director-engine` emitted **2 authored THOUGHT regions (the THOUGHT-begin comment marker)** (line 166 = the role template `doc:unified-director-brief`; line 574 = the harness block) and **0 `OPERATING MODE` lines** — the block `_prepend_head` prepends on the legacy `assemble` path is dropped by `render`. 637 lines total.
 
 **What was implemented** (production lines 31 added / 5 removed; ceiling 40):
 1. `brief.py`: a `_THOUGHT_RE` + `_strip_thought()` applied to every node-sourced read — `_node_text` (template body, card node, trajectory, extras), `_template_text`'s payload file, and the `sessions/quorum/<post>.md` card fallback. The `harness` part reads a FILE (`CLAUDE.md`) and is deliberately **not** stripped: its block is the documented syntax example, not a node's authored delta.
 2. `brief.py`: `operating_mode` joins `BRIEF_PARTS` and `_part()` returns `_operating_mode_block(project_root=root)`. The default part lists (`config:brief`) are untouched, so a project opts in per role with one config line — exactly as the hypothesis scoped it.
 3. `rotate.py`: `_assembled_successor_command` now catches `(brief.RenderError, brief.FaithRefError)`. `brief.render` reads `moral:faith`, so a broken faith ref raised `FaithRefError` PAST the old `except brief.RenderError` and killed the rotation instead of falling back. It still prints the reason and says it fell back.
 
-**Post-fix, same command.** Node-sourced THOUGHT blocks: **0**. The one remaining `<!-- THOUGHT:BEGIN` (line 570) is inside the `CLAUDE.md` harness block and is the documentation example. 633 lines. `OPERATING MODE` is still 0 on the live tree because `config:brief` does not yet list the new part — by design, that is the one config line.
+**Post-fix, same command.** Node-sourced THOUGHT blocks: **0**. The one remaining THOUGHT-begin comment marker (line 570) is inside the `CLAUDE.md` harness block and is the documentation example. 633 lines. `OPERATING MODE` is still 0 on the live tree because `config:brief` does not yet list the new part — by design, that is the one config line.
 
 **What was measured FALSE in the hypothesis.** The `{{template:}}` card-line mechanism and "the test that pins it" are not both live: `_TEMPLATE_RE`/`_expand` still exist but are reached ONLY from the `extras` part; the card path already refuses expansion. `test_brief_render.py::test_card_is_data_and_is_never_expanded` asserts the template line stays **literal** — it pins the REJECTION, not the expansion. There is no test pinning the rejected expansion. Removed only nothing: deleting `_expand` would break the (live-unused) `extras` ref-expander.
 
@@ -82,3 +82,5 @@ built the hygiene fix: _strip_thought on node-sourced render parts (live directo
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Parent review EF.36 (a00-32ff8393): read the DIFF, not the result file. Conjuncts 1-3 held under parent-run probes recorded as `probes:` above -- GATE1 (a node template whose body is ONLY a THOUGHT region renders ''), GATE2 (a REAL tmp graph with no moral:faith makes brief.render raise FaithRefError; rotate._assembled_successor_command falls back and prints the reason), WIRE3 (operating_mode absent when unlisted, present with SOURCE when listed). Caveat: the live director render still carries ONE THOUGHT example from the CLAUDE.md harness block -- a FILE part, not node-sourced; the conjunct scopes itself to node-sourced parts, so this is a boundary of the claim, not a defect. Conjuncts 4-5 were deliberately left by this kid and finished by a00-71d5dbe1; this node's 70%% lean is kept for its own three conjuncts.
 <!-- THOUGHT:END -->
+
+director-engine 15:3xZ 09-23: two prose quotes of the THOUGHT-begin comment marker (body :33, :40) rephrased -- test_thought_hygiene counted them as blocks (3), red at thought-master gate TMM.53; the one authored THOUGHT block is untouched.
