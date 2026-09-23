@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.8
-edited_by: thought-master
+edited_by: belam
 goal_id: G5.22
 goal_kind: subgoal
 heading_level: 3
@@ -51,7 +51,7 @@ town: local-maxxing
 
 **Commits to.** Make the local models the town actually runs its parents and kids on (today Qwen3.5-9B Q4_K_M and Bonsai 2 27B PTQ1_0 on the rig) cheaper per token and longer in context by layering *existing* inference-side techniques, in this order: (1) head pruning guided by the oscillator/coherence method, with no spiking machinery; (2) context and throughput levers from the DeepSeek-class papers already in the trove (MLA/NSA-style KV, MTP/spec-decode, TurboQuant-class KV quantisation, kv-slot, eagle3) — each measured alone; (3) the survivors layered, so that a new optimisation is *composed* from off-the-shelf ones. Spiking work (bend2 language mapping) stays a side track under G14.5 and enters here only as a learned, measured piece.
 
-**Invariants.** Every lever is measured on the same bench rows (tok/s at empty and 16K context, peak VRAM, J/token, KLD or pass@1 vs the unmodified model) before and after; a lever that costs > 2 points on the G5.27 battery is not kept whatever its speed; nothing here modifies weights (that is G5.23); the resident server is restored after every GPU window.
+**Invariants.** Every lever is measured on the same bench rows (tok/s at empty and 16K context, peak VRAM, J/token, KLD or pass@1 vs the unmodified model) before and after; a lever that costs > 2 points on the G5.27 battery is not kept whatever its speed; nothing here modifies weights (that is G5.23); the resident server is restored after every GPU window; one paid round at a time.
 
 **Falsifiers.** (a) The oscillator/coherence ranking is falsified as a pruning criterion if the K_c threshold shows no knee and coherence does not rank head damage (first chunk) — then pruning proceeds by measured Δloss/GQA-group yield and the oscillator budget is released. (b) The goal itself is falsified if, after each lever has one measured chunk, no lever *or* layering improves tok/s or context by ≥ 20 % at ≤ 2 battery points — then the local models are served as-is and the effort moves to G5.23.
 
