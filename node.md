@@ -1,13 +1,13 @@
 ---
-id: goal:g15.10
+id: goal:g6.32
 mint_id: 5ba356e26b334574a49fff5ad8a63f7c
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G15.10
+edited_by: belam
+goal_id: G6.32
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-6b
-title: "G15.10: a new bin/*.py needing the suite is a CHECK, not a memo"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.32: a new bin/*.py needing the suite is a CHECK, not a memo"
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.10
+# goal:g6.32
