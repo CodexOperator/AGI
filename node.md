@@ -1,13 +1,13 @@
 ---
-id: goal:g14.1
+id: goal:g5.17
 mint_id: fe96fb0493c543a8bf85900473a7ec6f
 type: goal
 parents:
-  - goal:g14
+  - goal:g5
 next_edges: []
 confidence: 0.6
-edited_by: sanctuary-helper
-goal_id: G14.1
+edited_by: belam
+goal_id: G5.17
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -20,8 +20,8 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: sanctuary-helper-05
-title: "G14.1: Role Keeper (Sensei) assigns fine-tune runs and local-maxxing"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G5.17: Role Keeper (Sensei) assigns fine-tune runs and local-maxxing"
 ---
 <!-- BODY:BEGIN -->
-# goal:g14.1
+# goal:g5.17
