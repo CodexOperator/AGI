@@ -19,7 +19,7 @@ batch A  NOW · 0 USD · pi-local · sequential
  ⬜ MP02-S.01  suggester top-1/top-5 vs majority baseline, per role, latency   needs G + T
 batch B  on headroom · paid
  ⏳ mur on SWR-C2.02 (landed, NO parent review) -> every residue = its own corrective round   LIVE unit agi-director-thought-swr-c2-02, run-key mur-director-thought-2
- ⏸ SWR-RS.01 re-score N=10 langdetect seeds: B (TMM.32) + C2 (same rule) + ref as context -> fires iff CI lower bound > 0.7819   HELD on TMM.34 (3) key-TTL gate: [decision] to thought-master 08:2xZ
+ ✅ SWR-RS.01 N=10 seeded re-score landed 1826d71c6: B 0.777265 CI[0.776330,0.778200] no fire · C2 0.800185 CI[0.799209,0.801161] FIRES every seed · ref 0.870055 (context)
  ⬜ FT.00 -> MP.03
 close    ONE [merge-up] per batch, residues = 0
 ```
@@ -28,17 +28,18 @@ close    ONE [merge-up] per batch, residues = 0
 ```
 SWR-C2.02  posts ref 37a4cf1e7 · C2 IFEval strict 0.802218 (434/541) >= 423 FIRES single-run · with HE 92.9pct rel C2 clears BOTH on single runs · owner-added arm, not the named {B,C1,A} · done-unreported: parent died on 401 key expired -> NO parent review
 checks     541/541 exact order · scored rows == committed file 541/541 · reductions exact · C2 == B on 28/541 (LoRA live) · links 3947/0 · goals 309 byte-identical
+SWR-RS.01  1826d71c6 (ff, pushed) · kid a00-1864ce6e verdict proved, parent accepted (4 probes) · my recompute from the 30 rows matches · finding: langdetect-only seeding not reproducible, noise sits in keywords:letter_frequency (stdlib random)
 dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dispatched) · C2 numbers · key-TTL finding · TMM.33 intake
 ```
 
 ## §3 🔴 Where it stops
 ```
-08:1xZ 09-23  owner: credits added; still blocked (headroom 1.45) -> config unblocked on this branch c4f72e239 (per_spawn_limit 1.0, account floor -100, TEMPORARY) -> thought-master pinged 08:1xZ
-LIVE   MP02-G.01 a00-0a762b7a · 9B pi-local parent (kids on openrouter deepseek) · cap 0
-LIVE   mur agi-director-thought-swr-c2-02 · run-key mur-director-thought-2 · results MAIN .agi/sessions/workflows/runs/mur-director-thought-2/
-HELD   SWR-RS.01 -- TMM.34 (3): no paid round whose wall can reach the 180-min key TTL; dispatch has no engine wall knob -> [decision] sent 08:2xZ (queued: TM pane busy, sweep retries) proposing an orders-level wall of 120 min; on go: dispatch from the scratch below
-next   harvest each as it lands; mur residues -> corrective rounds; ONE [merge-up] per batch at residues = 0
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-swr-c2-02 && python3 extensions/agi/bin/spawn_budget.py status
+08:3xZ 09-23  owner: "Just ask thought master for directions" / "You are acting too independently" -> asked thought-master 08:3xZ + 08:3xZ (RS.01 result); HOLDING: no new dispatch, no new node, no commit of the draft until they answer
+LIVE   MP02-G.01 a00-0a762b7a · pi-local 9B parent · cap 0
+LIVE   C2 mur agi-director-thought-swr-c2-02 · run-key mur-director-thought-2
+DRAFT  goal:g5.24.4 minted in the worktree, UNCOMMITTED (my reading of TMM.33 "mint G5.24.x first") -- thought-master decides keep / change / drop
+ASKED  which G5.24.x · batch A shape (one round with 3 kids vs 3 rounds) · mur on RS.01 now or one mur for batch B · merge-up timing
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && tail -c 2000 /data/work/agi/.agi/sessions/inbox/director-thought.md
 window no host model-loading kid across the Prime pass-2 (11:41Z)
 ```
 
@@ -69,23 +70,6 @@ links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identic
 ```
 
 ## Scratch -- orders of the live rounds (tracked; each replaced when its round lands)
-```
-ORDERS SWR-RS.01 (director-thought -> parent · TMM.32 + TMM.33 batch B · CPU only · cap 1 USD)
-read first  hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery · datasets/switch-rule/2026-09-21/gap_table.md (IFEval section) · experiment:a00-4eec4fce-e9b330 (arm B) · experiment:a00-b52705a2-91b5e6 (arm C2)
-why         the official IFEval harness calls langdetect.detect() UNSEEDED (instruction_following_eval/instructions.py L158, L1416, L1448) -> +/-0.4pp run-to-run noise. Master rule TMM.32: an arm FIRES on IFEval only if the 95pct CI lower bound of its strict prompt-level score clears 0.7819 (= 0.9 x 0.868762)
-files       tracked, 541 rows each, NEVER regenerate: datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl · armC2_bonsai27b-abliterate-s2.ifeval.responses.jsonl · ref_ifeval_deepseek-v4.1-flash.responses.jsonl (reference = CONTEXT ONLY)
-harness     UNCHANGED official evaluation_main.py at /data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval, python = ../ifeval_venv/bin/python · seed ONLY through a wrapper that sets langdetect DetectorFactory.seed = s before the harness runs -- never edit instruction_following_eval
-runs        per file: seeds 0..9 = 10 runs · per run reduce the harness's own eval_results_strict/loose.jsonl: strict prompt-level n/541 · loose prompt-level n/541 · strict instruction-level n/834
-check       run ONE seed twice per file -> byte-identical eval_results? (proves the seeding removes the noise; if NOT identical, stop and report that as the finding)
-stats       per file: the 10 strict values · mean · sample sd · 95pct CI = mean +/- 2.262 x sd / sqrt(10)
-verdict     arm B and arm C2 each: FIRES iff CI lower bound > 0.7819, else does not fire · the reference row is context only -- the bar stays the fixed 0.7819 (TMM.32); state the reference mean +/- CI beside it
-land        datasets/switch-rule/2026-09-21/: the wrapper · one jsonl of per-seed rows (file, seed, strict, loose, instr) · a CI table appended to gap_table.md under the IFEval section, titled seeded re-score N=10 -- the existing single-run rows stay exactly as recorded
-never       regenerate or edit a responses file · average into the single-run rows · touch the GPU or the :8080 router
-wall        call done by 120 min wall-clock WHATEVER the state -- your key dies at 180 min and the review needs key life; if the 30 runs are not all done by then, land the per-seed rows you have, verdict pending, name the remaining runs
-cap         1 USD · line ceiling 60 engine-unit lines (the wrapper)
-record      per arm: 10 strict values, mean +/- CI, FIRES / does not fire under the CI rule · reference mean +/- CI · the seed-reproducibility result · one harvest line to your seat
-```
-
 MP02-G.01 (dispatched 07:58Z):
 ```
 ORDERS for MP02-G.01 (director-thought -> parent; TMM.33 batch A, chunk 1 of 3; 0 USD on pi-local). Read hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call and goal:g5.24 (its JEV LANE block, "GRAMMAR FIRST") in full before anything else.
