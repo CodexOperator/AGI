@@ -1,0 +1,28 @@
+{
+ "T1_recount": {
+  "dead": 157,
+  "protected": 45,
+  "alive": 134,
+  "dead_safe": 150,
+  "dead_unsafe": 7,
+  "pool": 291,
+  "pool_safe": 278,
+  "precision": 0.9554140127388535,
+  "z_field": "clr_theory.decisions[].mean_cosine * sqrt(896)",
+  "delta_loss_field": "head_results[].delta_loss",
+  "tolerance_field": "clr_theory.ground_truth_loss_threshold",
+  "matches_summary_block": true
+ },
+ "T4_ranking": {
+  "spearman_pool_291": 0.2892548782803909,
+  "spearman_all336": 0.2679876370584551,
+  "artifact_precision": 0.9554140127388535,
+  "random_mean_precision": 0.9553980891719746,
+  "lift": 1.000016666944449,
+  "damage_lift": 1.0865732188422463,
+  "seed": 20260923,
+  "draws": 10000
+ },
+ "verdict": "proved",
+ "next_step": "coherence falsified as a pruning criterion; prune by measured delta-loss per GQA group"
+}
