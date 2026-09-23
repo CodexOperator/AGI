@@ -1,12 +1,12 @@
 ---
-id: goal:g9.7
+id: goal:g2.19
 mint_id: 3f9c1a4e7d2b48c5b1e0a6f83c5d7e21
 type: goal
 parents:
-  - goal:g9
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
-goal_id: G9.7
+edited_by: belam
+goal_id: G2.19
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -16,10 +16,10 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G9.7: One render, two readers: the human viewport and the LLM's context are the same view"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.19: One render, two readers: the human viewport and the LLM's context are the same view"
 ---
-**Stated by the owner, 2026-09-02, and it is a constraint on `goal:g9.4`
+**Stated by the owner, 2026-09-02, and it is a constraint on `goal:g2.17`
 rather than a feature beside it:** *"I want it to be the same view as you'd
 want to present to an LLM, so we can iterate on it as I use it to start
 observing things more graphically."*
@@ -36,7 +36,7 @@ corrected, or handed to anyone else. This goal says the converse is worse:
 **two views drift, and the one nobody watches is the one agents actually
 read.** Today `INJECTION.md` caps its ASCII map at 200 lines and truncates
 silently — a human has never looked at what a kid is handed, because no
-instrument pointed there. The dashboard (`goal:g9.1`, built) shows a human
+instrument pointed there. The dashboard (`goal:g2.14`, built) shows a human
 metrics and health; it does not show a human *what the agents are seeing*.
 
 **The mechanism that makes it hold rather than a rule someone remembers.** The
@@ -54,7 +54,7 @@ feedback loop on agent context quality — which no one currently is.
 
 This is why the viewport comes **after** the unification and not beside it.
 Building it against today's several overlapping ASCII renderers would mint the
-second reader this goal exists to forbid. `goal:g9.4` already absorbs the
+second reader this goal exists to forbid. `goal:g2.17` already absorbs the
 renderer unification (A2) and says to do it *as part of* the viewport, because
 the viewport requirement is what tells you what the unified renderer needs to
 do. This goal adds the other end of that: **and the unified renderer's other
@@ -87,7 +87,7 @@ view is not the one agents read.
 
 ## Relations
 
-- **Constrains `goal:g9.4`** — the viewport is the deliverable; this is the
+- **Constrains `goal:g2.17`** — the viewport is the deliverable; this is the
   invariant it must satisfy.
 - **Depends on `goal:g13`** — the unified read path is the single reader both
   consumers call. Blocked until g13's read half stands.
@@ -101,7 +101,7 @@ Minted 2026-09-02 from the owner's session brief, because it is a commitment
 and commitments belong in a goal node rather than in `HANDOFF.md`, which the
 next director deletes.
 
-The reason it is its own goal rather than a paragraph appended to `goal:g9.4`
+The reason it is its own goal rather than a paragraph appended to `goal:g2.17`
 is that it is falsifiable on its own and g9.4 is not changed by it. g9.4 says
 build a pannable viewport; it would be satisfied by a viewport with its own
 private renderer. This goal says the renderer must be shared with the spawn
