@@ -3,9 +3,9 @@ id: goal:s20
 mint_id: 756ff20a36844c0694354203ecb53ef7
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S20
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S20: The publish alarm stops at the local commit, so a stale remote moves no number"
 ---
 🔴 **`hours_since_successful_publish` measures the local commit, not the push.
