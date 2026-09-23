@@ -1,13 +1,13 @@
 ---
-id: goal:g17.5
+id: goal:g7.19
 mint_id: eeedb3bc9ed643418c5cf8c94430e63f
 type: goal
 parents:
-  - goal:g17
+  - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G17.5
+edited_by: belam
+goal_id: G7.19
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,12 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G17.5: The duty matrix — its rows and entries are the sanctuary director's to reassign"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7.19: The duty matrix — its rows and entries are the sanctuary director's to reassign"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.19
+
 **The duty matrix: its rows and entries are hers to reassign.** Brief point **B5** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:130, A:168, A:240 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
