@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.10
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.10: A build node cannot hold a thought — the scan wipes its body"
 ---
 🔴 **`level3.py` regenerates a build node's entire body on every run. Anything
