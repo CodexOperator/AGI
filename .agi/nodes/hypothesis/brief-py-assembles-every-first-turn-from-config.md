@@ -6,7 +6,7 @@ parents:
   - goal:g1.9
 next_edges: []
 assigned: "director-engine (the Prime 09-23; owner 08:4xZ, goal:g5): priority next after the live EF rounds; build loop; one [merge-up] to thought-master; retiring HANDOFF.md, CLAUDE.md and the 5 INJECTION.md writers = the follow-up once this lands."
-ceiling: 2 USD, <= 3 kids, pi parents
+ceiling: 3.5 USD, <= 5 kids, pi parents (raised from 2 USD / <= 3 kids by the owner, director-engine pane 10:2xZ 09-23)
 edited_by: director-engine
 scaffold_hash: 1a7272e3789a7cbf
 season: 2
@@ -73,7 +73,7 @@ brief.py (resolver) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call s
 <= 3 kids · 10-12 production lines per conjunct · pi parents · 2 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-AMENDED 09:0xZ (owner 08:5xZ, goal:g5): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it. RENUMBER 09:0xZ (owner, goal:g5): goal:g14 citations -> goal:g5.
+ceiling raised 2 USD / <= 3 kids -> 3.5 USD / <= 5 kids. OWNER 10:2xZ 09-23 in the director-engine pane, verbatim: 'Go for finish. Raise ceiling or lower floor to something silly like -50 just whatever needed to keep working as balance allows.' Three kids built the template-by-role half (EF.18 x2, EF.19); the unbuilt half (dispatch.py on render, the Prime spawn path and its handoff-head entry, the master default, doc:card-<post> cards) needs a phase 4. The account floor needed no change: provisioning.min_account_remaining_usd is already -100 (the owner's earlier unblock), below the -50 the owner named.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
