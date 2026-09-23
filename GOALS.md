@@ -9302,6 +9302,19 @@ round     none -- a config write, owner/prime_director only
 writer    the Prime (config writes)
 ```
 
+##### G15.29.10 — A WORKFLOW STAGE'S CONTEXT BUILD TAKES ITS BUDGET FROM THE MANIFEST (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.10
+
+# goal:g15.29.10 — A WORKFLOW STAGE'S CONTEXT BUILD TAKES ITS BUDGET FROM THE MANIFEST
+
+```
+source    measured 09-23 19:0xZ: director-engine's mur L lost both verifies and thought-master's run -4 lost both verifies to 'context-build-timeout after 60 s' at box load 40-51; the range suite's test_pi_bare_json_stage_is_ok failed the same way at load 30+ and passed at load 8
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round
+round     hypothesis:a-workflow-stage-context-build-takes-its-budget-from-the-manifest (EF.66)
+writer    director-engine
+```
+
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
 
 <!-- BODY:BEGIN -->
