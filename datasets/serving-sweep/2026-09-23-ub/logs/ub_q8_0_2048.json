@@ -1,0 +1,48 @@
+{
+ "kv": "q8_0",
+ "ub": 2048,
+ "b": 2048,
+ "port": 18105,
+ "load_s": 4.1,
+ "n_ctx": 56320,
+ "warmup": {
+  "prompt_n": 13,
+  "prompt_ms": 135.548,
+  "prompt_per_second": 95.90698497949066
+ },
+ "rows": [
+  {
+   "prompt_n": 31751,
+   "prompt_ms": 25775.696,
+   "prompt_per_second": 1231.8193076144287,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "slice": "s1",
+   "off": 10000,
+   "bytes": 132000,
+   "ms_per_token": 0.812
+  },
+  {
+   "prompt_n": 30463,
+   "prompt_ms": 25026.737,
+   "prompt_per_second": 1217.2182094693367,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "slice": "s2",
+   "off": 400000,
+   "bytes": 132000,
+   "ms_per_token": 0.822
+  },
+  {
+   "prompt_n": 28971,
+   "prompt_ms": 23857.887,
+   "prompt_per_second": 1214.3154169520544,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "slice": "s3",
+   "off": 800000,
+   "bytes": 132000,
+   "ms_per_token": 0.824
+  }
+ ]
+}
