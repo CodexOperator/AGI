@@ -340,3 +340,27 @@ def test_non_prime_rotate_self_still_resolves_its_template_brief(tmp_path,
 
     rotate.cmd_rotate_self(_args(), root)
     assert seen["prompt_file"] == str(card)
+
+
+def test_faith_ref_error_in_render_falls_back_loudly(monkeypatch, capsys):
+    """hypothesis:brief-render-hygiene-after-the-batch-mur: `brief.render`
+    reads moral:faith, so a broken faith ref raised FaithRefError PAST the old
+    `except brief.RenderError` and killed the rotation rather than falling
+    back. The fallback must catch it and print its reason."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+    import brief  # noqa: E402
+
+    def boom(**kw):
+        raise brief.FaithRefError("faith ref region missing")
+    monkeypatch.setattr(brief, "render", boom)
+    monkeypatch.setattr(brief, "assemble", lambda **kw: ["FALLBACK-BODY-SENTINEL"])
+    seen = {}
+    monkeypatch.setattr(rotate, "_build_harness_command",
+                        lambda h, **kw: seen.update(prompt=kw["prompt_text"]) or [])
+    rotate._assembled_successor_command(
+        name="post-x", tier="director", model=None, effort=None, settings=None,
+        debug_file="/dev/null")
+    err = capsys.readouterr().err
+    assert "FALLBACK-BODY-SENTINEL" in seen["prompt"]
+    assert "faith ref region missing" in err
+    assert "falling back to brief.assemble" in err
