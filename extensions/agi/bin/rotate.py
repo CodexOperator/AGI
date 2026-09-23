@@ -17340,14 +17340,20 @@ def _apply_successor_key_pending(pending: dict) -> str:
             f"(0600, atomic replace)")
 
 
-def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
+def _persist_pending_key(key_rotation: dict, key_path: Path,
+                         deferred_for: str = "push") -> str:
     """g15.26 claim (a) -- PERSIST the pending successor key, not drop it.
     Called by `_apply_successor_key_gated` when the row WAS written and
     committed (so HEAD's committed row names the successor PUBKEY) but the
     season-branch PUSH FAILED. Writes the successor private key to
     `<sessions>/seats/<seat>.key.pending` (SEAT_KEY_MODE 0600, temp +
     os.replace, never committed) as the JSON shape `{scheme, priv_hex,
-    pub_hex, gen_after, minted_at}`, derived from the rotation dict -- so a
+    pub_hex, gen_after, minted_at, deferred_for}` -- `deferred_for` (EF.67,
+    R-EF51 M1) records WHICH leg deferred the swap (`push` or `authority`)
+    so `_complete_pending_key_swap` can refuse to complete an
+    authority-deferred pending without a successful authority publish; a
+    pending with no recorded reason (legacy pre-EF.67) reads push-deferred.
+    Derived from the rotation dict -- so a
     later successful push of that row can complete the swap
     (`_complete_pending_key_swap`). Without this file the successor private
     key exists nowhere on disk (it lived only in the rotation dict before
@@ -17365,7 +17371,9 @@ def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
         "pub_hex": key_rotation.get("successor_pub"),
         "gen_after": (key_rotation.get("retired") or {}).get("to"),
         "minted_at": (key_rotation.get("note") or ""),
+        "deferred_for": str(deferred_for or "push"),
     }
+    _why = str(deferred_for or "push")
     _tmp = _pend.parent / f".{_pend.name}.tmp"
     try:
         _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
@@ -17382,17 +17390,18 @@ def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
         os.chmod(_tmp, send.SEAT_KEY_MODE)
         os.replace(_tmp, _pend)
     except (OSError, TypeError, ValueError):
-        return (f"key_replace: NOT applied -- push did not succeed; "
+        return (f"key_replace: NOT applied -- {_why} did not succeed; "
                 f"{key_path} left byte-identical; pending successor key "
                 f"could NOT be persisted to {_pend}"
                 f" (deferred swap on later join-origin)")
-    return (f"key_replace: NOT applied -- push did not succeed; "
+    return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{key_path} left byte-identical; pending successor key "
             f"persisted to {_pend} (0600, deferred swap on a later "
             f"successful push)")
 
 
-def _complete_pending_key_swap(root: Path, seat: str) -> str:
+def _complete_pending_key_swap(root: Path, seat: str,
+                               authority_line: str | None = None) -> str:
     """g15.26 claim (b) -- COMPLETE a deferred successor-key swap at a later
     successful push of that row. Callers invoke it AFTER `_push_season_branch`
     reports a successful push (origin now carries the committed row). A
@@ -17406,7 +17415,12 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     pub_hex does NOT match the committed row (the row still names the OLD
     pubkey), the pending file is left alone -- the swap stays deferred, and
     ONE line says so. Absent pending file / gitless root -> '' (nothing to
-    do, never a failure). Never raises."""
+    do, never a failure). EF.67 (R-EF51 M1): a pending persisted because the
+    AUTHORITY leg deferred it (`deferred_for == "authority"`) completes ONLY
+    when the caller supplies a non-gating `authority_line`; with no
+    authority context, or a HELD/FAILED line, it refuses BY NAME and leaves
+    the key file byte-identical. A `push`-deferred (or legacy reason-less)
+    pending keeps the old push-only completion, back-compat. Never raises."""
     import send  # local: same dir (send.py pattern)
     _key = send._seat_key_path(root, seat)
     _pend = _key.parent / f"{_key.name}.pending"
@@ -17417,6 +17431,18 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     except (ValueError, OSError):
         return (f"key swap NOT completed -- unreadable pending file "
                 f"{_pend} (left as-is)")
+    # EF.67 (R-EF51 M1): a pending persisted on the AUTHORITY leg completes
+    # ONLY through a non-gating authority line (a publish attempted and
+    # SUCCEEDED, or a non-attempt SKIP). A push-OK site / the direct
+    # completion call passes no authority context -> refuse BY NAME and
+    # leave `<seat>.key` byte-identical.
+    if _obj.get("deferred_for") == "authority" and (
+            authority_line is None
+            or _authority_publish_gates_swap(authority_line)):
+        return (f"key swap NOT completed -- pending {_pend} was deferred on "
+                f"the AUTHORITY leg; no successful authority publish "
+                f"(authority_line={authority_line!r}), key left "
+                f"byte-identical")
     _pend_pub = str(_obj.get("pub_hex") or "")
     if not _pend_pub:
         return (f"key swap NOT completed -- pending file {_pend} carries "
@@ -17503,6 +17529,10 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
     a key on disk never disagrees with what the authority holds. A caller
     that passes no authority line (ack/prepare/keygen push-OK sites with no
     authority publish) keeps the old push-only gate.
+
+    EF.67 (R-EF51 M1): ``authority_line`` is passed THROUGH to
+    `_complete_pending_key_swap`, so an authority-deferred pending is not
+    completed here with no authority context even when the trunk push is OK.
     """
     if not str(push_line or "").startswith("push: OK"):
         return ""
@@ -17512,7 +17542,8 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
               f"({authority_line})")
         print(_l, file=sys.stderr)
         return _l
-    _done = _complete_pending_key_swap(root, seat)
+    _done = _complete_pending_key_swap(root, seat,
+                                       authority_line=authority_line)
     if _done:
         print(_done, file=sys.stderr)
     return _done
@@ -17532,11 +17563,15 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
     ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure; carries a trailing
     ``\npush: <line>`` when the push leg ran). A push line starting ``push:
-    FAILED`` defers the swap with ONE stderr line naming it; a SKIPPED or
+    FAILED`` or ``push: HELD`` defers the swap with ONE stderr line naming
+    it; a SKIPPED or
     absent push is NOT a failure (a gitless / byte-identical case flips the
     key exactly as before). Any other combination -- row write failed, commit
     failed, or the write never ran -- leaves the predecessor key file
-    BYTE-IDENTICAL and records the refusal, never replacing it. Never raises.
+    BYTE-IDENTICAL and records the refusal, never replacing it. EF.67
+    (R-EF20 M1): ``push: HELD`` (a gated veto push) is a DEFERRAL by NAME,
+    exactly like ``push: FAILED`` -- the key must not flip under a gated
+    push. Never raises.
     Returns one line for the handover's ``key_replace``."""
     if not key_rotation or not key_rotation.get("pending_key"):
         return ""
@@ -17547,18 +17582,19 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
                                          "FAILED:"))
     # the push outcome rides the commit string's trailing line, if present:
     # ``\npush: push: FAILED -- ...``. Absent (early-return paths never
-    # reached the push) or SKIPPED is NOT a failure -- only ``push: FAILED``.
+    # reached the push) or SKIPPED is NOT a failure -- only a GATING push
+    # line (``push: FAILED`` / ``push: HELD``, EF.67 R-EF20 M1) defers.
     _push_line = _commit.rpartition("\npush: ")[2]
     # rpartition keeps the helper's own ``push: ...`` prefix on _push_line.
     _push = _push_line
-    _push_failed = _push.startswith("push: FAILED")
+    _push_gated = _push.startswith(("push: FAILED", "push: HELD"))
     # EF.51 C3: the authority publish outcome rides the commit string's
     # trailing ``\nauthority: <line>`` when this commit followed a re-key.
     # ABSENT (a non-rekey commit / early-return path) is NOT a failure.
     _auth = _commit.rpartition("\nauthority: ")[2]
     _auth_present = "\nauthority: " in _commit
     _auth_failed = _auth_present and _authority_publish_gates_swap(_auth)
-    if _row_ok and not _commit_failed and not _push_failed and not _auth_failed:
+    if _row_ok and not _commit_failed and not _push_gated and not _auth_failed:
         return _apply_successor_key_pending(key_rotation["pending_key"])
     if not _row_ok:
         _why = "row write"
@@ -17579,7 +17615,7 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     # falsifier "after a failed push the minted key exists nowhere on disk"
     # is closed here.
     if _why in ("push", "authority"):
-        return _persist_pending_key(key_rotation, Path(_path))
+        return _persist_pending_key(key_rotation, Path(_path), _why)
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{_path} left byte-identical with the predecessor key, NO "
             f"successor key written (deferred swap on later join-origin) "
