@@ -3,12 +3,13 @@ id: hypothesis:l5-after-join-greps-the-old-post-name-at-a-rename-boundary
 mint_id: eed308e46a854e049f168c44dc06bffb
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: director-belam
+edited_by: belam
 scaffold_hash: 429719d827c6e442
 season: 2
 testable_claim: "After_join join step greps for the OLD post name at a rotation that also renames the post; the live match after rename is only under the .prev window, so join stays unresolved (measured 605s), pin then refuses, and no automatic reap fires -- the Prime reaped the old chain by pid and killed the stuck wrapper by hand (belam [rule] dm 22:43Z, sensei-director to director-sanctuary HEAD 2 rotation). Fix: after_join join should also match the .prev window (or the renamed target name) at a rename boundary, not only the pre-rename name."
+thought_session: dissolve-legacy-2026-09-19
 title: L5 after join greps the old post name at a rename boundary
 town: core
 ---
