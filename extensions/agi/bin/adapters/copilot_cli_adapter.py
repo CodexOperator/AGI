@@ -63,6 +63,9 @@ NAME = "copilot-cli"
 #: PATH name; `adapters.resolve_bin` consults PATH at resolve time).
 DEFAULT_BIN = "copilot"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "COPILOT_BIN"
+
 #: The one prompt artefact per agent, beside `context.md` and `agent.json`.
 #: Copilot Code has no system-prompt flag, so what the agent was told is
 #: materialized here and passed whole as the `-p` text (module docstring).
@@ -82,7 +85,7 @@ def resolve_bin(harness: dict) -> str:
     without editing a tracked config file. Delegates to the one shared
     resolver in `adapters.resolve_bin`.
     """
-    return adapters.resolve_bin(harness, "COPILOT_BIN", DEFAULT_BIN)
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:

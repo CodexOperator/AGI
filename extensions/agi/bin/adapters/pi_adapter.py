@@ -37,6 +37,9 @@ NAME = "pi"
 #: name; `adapters.resolve_bin` consults PATH at resolve time).
 DEFAULT_BIN = "pi"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "PI_BIN"
+
 
 def resolve_bin(harness: dict) -> str:
     """$PI_BIN wins over config, which wins over the built-in default.
@@ -46,7 +49,7 @@ def resolve_bin(harness: dict) -> str:
     editing a tracked config file. The expansion/PATH/refusal logic lives
     once, in `adapters.resolve_bin`.
     """
-    return adapters.resolve_bin(harness, "PI_BIN", DEFAULT_BIN)
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:

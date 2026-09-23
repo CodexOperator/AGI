@@ -96,6 +96,9 @@ NAME = "claude-code"
 #: PATH by Popen).
 DEFAULT_BIN = "claude"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "CLAUDE_BIN"
+
 #: Built-in tools a spawned agent may reach; also the auto-approved list. No
 #: `Agent`, no `WebFetch` -- a kid's job is the graph in front of it.
 DEFAULT_TOOLS = ("Bash", "Read", "Edit", "Write", "Glob", "Grep")
@@ -268,7 +271,7 @@ def resolve_bin(harness: dict) -> str:
     without editing a tracked config file. Delegates to the one shared
     resolver in `adapters.resolve_bin`.
     """
-    return adapters.resolve_bin(harness, "CLAUDE_BIN", DEFAULT_BIN)
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
