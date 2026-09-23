@@ -405,7 +405,7 @@ def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path):
     assert dest.name == "sess-1.jsonl"
     assert dest.parent.name == "-home-x--agi-worktrees-p"
     assert ".migrate-transcript.jsonl" not in str(dest)
-    assert str(dest).startswith(str(Path.home() / ".claude" / "projects"))
+    assert str(dest).startswith(str(rotate.CC_PROJECTS_DIR))
 
 
 def test_seat_makes_a_real_worktree_from_the_pushed_ref(tmp_path, monkeypatch):
@@ -845,21 +845,13 @@ def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
     copies, `boxA:$HOME/.claude/.../x.jsonl` is ENOENT. This pins the argv.
 
     Hygiene: `_migrate_transcript_dest` derives its dest under the module
-    global `rotate.CC_PROJECTS_DIR`, and `_migrate_copy_transcript` mkdirs
-    `dest.parent`. Left unredirected that mkdir creates a REAL directory under
-    the live `~/.claude/projects` on every run (seven empty leftovers were
-    removed by hand once). So the global is pointed at `tmp_path` and the real
-    tree is snapshotted before/after with a positive equality assertion."""
-    real_projects = Path.home() / ".claude" / "projects"
-
-    def _snapshot():
-        if not real_projects.exists():
-            return None
-        return sorted(p.name for p in real_projects.iterdir())
-
-    before = _snapshot()
-    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR",
-                        tmp_path / ".claude" / "projects")
+    global `rotate.CC_PROJECTS_DIR` at CALL time, and `_migrate_copy_transcript`
+    mkdirs `dest.parent`. Left unredirected that mkdir creates a REAL directory
+    under the live `~/.claude/projects` on every run (seven empty leftovers
+    were removed by hand once). So the global is pointed at `tmp_path` and the
+    test asserts on THAT fixture — no live path is ever read."""
+    fixture_projects = tmp_path / ".claude" / "projects"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", fixture_projects)
     seen = []
     monkeypatch.setattr(rotate.subprocess, "run",
                         lambda argv, **kw: seen.append(argv))
@@ -874,6 +866,7 @@ def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
     assert argv[3] == str(dest)
     assert "$HOME" not in " ".join(argv)
     # dest must have landed under the redirected root, never the real home,
-    # and the real `~/.claude/projects` must be byte-for-byte unchanged.
-    assert str(dest).startswith(str(tmp_path / ".claude" / "projects"))
-    assert _snapshot() == before
+    # and the fixture dir must actually have been created.
+    assert str(dest).startswith(str(fixture_projects))
+    assert (fixture_projects / dest.parent.name).is_dir()
+    assert dest.parent.is_dir()
