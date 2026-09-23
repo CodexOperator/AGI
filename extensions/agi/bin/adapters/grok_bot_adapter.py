@@ -62,7 +62,7 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 
 def build_command(*, harness: dict, tier: str, context_file: str,
-                  **kwargs) -> list[str]:
+                  rendered_brief: str | None = None, **kwargs) -> list[str]:
     """STUB argv: `<bin> [--model M] -p <context_file>`. `**kwargs` swallows
     the channels dispatch.py passes every adapter, so a spawn cannot die on a
     TypeError before the flags land."""

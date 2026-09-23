@@ -246,6 +246,7 @@ def build_command(
     # project graph root the dispatcher resolved, threaded into the brief so
     # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
     project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one Copilot CLI agent.
 
@@ -264,7 +265,7 @@ def build_command(
     # the `-p` text, because the CLI has no system-prompt flag.
     _btier = brief_tier or tier
     _sess = session_dir or sess_dir
-    segments = brief.assemble(
+    segments = [rendered_brief] if rendered_brief is not None else brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, session_dir=_sess,
