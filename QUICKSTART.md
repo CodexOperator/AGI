@@ -142,8 +142,8 @@ rotation unless `--morals`).
 ## 4. Glossary (only terms not defined in SKILL.md)
 
 - **PLUGIN_ROOT** — the engine directory, `extensions/agi/`. Resolved from `$BASH_SOURCE`.
-- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config (`goal:g11`, `goal:g8.2`) — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-`goal:g11` project with a bare `agi-tree.config.json` at its repo root still resolves.
-  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which `goal:g11` removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
+- **PROJECT_ROOT** — the **graph directory**, `<repo>/.agi/`: holds `config.json`, `nodes/`, `context/`, `sessions/`. Resolved by `bin/locations.py` walking up from cwd for the nearest enclosing `.agi/` that holds a config — **nearest wins, no flag, no project name anywhere**. `$AGI_TREE_PROJECT_ROOT` (legacy `$AUTORESEARCH_TREE_PROJECT_ROOT`) still overrides. A pre-one-repo project with a bare `agi-tree.config.json` at its repo root still resolves.
+  - *Corrected 2026-09-02.* This entry still described the two-repo layout — a separate graph repo with `agi-tree.config.json` at its root — which the one-repo move removed. Note the consequence: `PROJECT_ROOT` is `<repo>/.agi`, **not** `<repo>`, which is exactly the confusion that made `snapshot-goals.py` look for `<repo>/nodes/goal` and refuse (`goal:g11.1`).
 - **Capillary DAG** — the chain shape above: many thin chains, not one thick trunk.
 
 ---
@@ -172,7 +172,7 @@ rotation unless `--morals`).
 | `python3 '<engine>/extensions/agi/bin/write.py'` | named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
 
-## Write guard hook (goal:g13.1, L2 wave 1.5)
+## Write guard hook (goal:g4.19, L2 wave 1.5)
 
 Every sanctioned node write is logged to `.agi/sessions/write-log.jsonl`; `write_guard.py check` warns about any node changed outside `write.py` (the smoke path runs it, warn-only). To refuse such commits locally, install the hook once per clone:
 
