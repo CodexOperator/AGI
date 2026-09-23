@@ -22,7 +22,7 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: g1-g7-rewrite-2026-09-19
+thought_session: belam-S2-L5-I
 title: "G5: Local-maxxing"
 ---
 `status:` should be a field the engine acts on: stop accruing score to
@@ -146,3 +146,5 @@ Folded umbrella from goal:g24 onto goal:g5 in place 2026-09-19; id/mint_id prote
 
 ## Agent Notes
 Perpetual umbrella for Local-maxxing. Absorbs prior art from old G4, G14. Folded from goal:g24 onto goal:g5 in place 2026-09-19.
+
+RENUMBER RULE (owner 09-23 09:0xZ, Prime pane, verbatim): "Let’s update any references to goal g14 to its new proper designation as well and update director-engine of the change" then "So no one uses old designations like g14 and g13" -- APPLIED by the Prime: retired designations are never used · g14 → goal:g5 (THIS goal: every new owner line for the local-maxxing town and the Prime's box lands here; the lines banked on the retired goal:g14 before 09:1xZ 09-23 stay there unchanged as prior art, and a live citation of goal:g5 for such a line resolves there) · g13 → no successor id (its read/write-path work lives under goal:g4.19). Re-pointed: the live frontmatter (doc:lm-town-trajectory; hypothesis:lm-every-experiment-path-is-a-config-variable once its merge lands) and every live instruction surface (the Prime template and card, the session-cron prompts, doc:unified-head, doc:s3-plan, the brief.py and write.py hypotheses, the CLAUDE.md / QUICKSTART.md / SKILL.md links rows). Kept as history: outcome judgments recorded against goal:g13. Open: one config:posts row cell (thought-master's) still says goal:g14 — a frontmatter cell, fixed with the write.py sub verb. Posts told: thought-master, director-thought, director-engine.

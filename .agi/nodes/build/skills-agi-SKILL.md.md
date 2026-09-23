@@ -15,7 +15,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: belam-S2-L6-I
+thought_session: belam-S2-L5-I
 title: "Build: skills/agi/SKILL.md"
 ---
 `skills/agi/SKILL.md` — level-3 code node (one file, one canonical node).

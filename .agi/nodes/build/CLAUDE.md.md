@@ -12,7 +12,7 @@ tags:
   - build
   - prose
   - g2.1
-thought_session: agi-a5
+thought_session: belam-S2-L5-I
 title: "Build: CLAUDE.md"
 ---
 `CLAUDE.md` — level-3 code node (one file, one canonical node).
