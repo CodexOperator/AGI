@@ -2015,6 +2015,24 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 residue (b) — validate any profile link BEFORE the node
+    # write, so a refused `profile_ref` leaves the node body byte-for-byte
+    # unchanged and exits non-zero. Without this the post-write `sync_node`
+    # refuses (rc=2) on a body that already landed. Read-only: `project()`
+    # resolves and raises `NoRef`/`Refused`; write.py still performs no write.
+    # An edit that sets profile_ref is checked at its new value; an unset or
+    # absent one falls back to the ref already on disk.
+    try:
+        if "profile_ref" in set_fm:
+            if set_fm["profile_ref"]:
+                profile_sync.artifact_path(root, str(set_fm["profile_ref"]))
+        elif "profile_ref" not in (edit.unset_fm or ()):
+            profile_sync.project(root, edit.node_id)
+    except (profile_sync.NoRef, FileNotFoundError):
+        pass  # no ref / no node file — `update_node` below reports the truth
+    except profile_sync.Refused as exc:
+        raise EditError(f"profile projection refused: {exc}") from exc
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
