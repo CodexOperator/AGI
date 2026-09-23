@@ -164,6 +164,7 @@ def test_absent_keys_pass_no_flags_so_pis_own_settings_win():
 
 def test_pi_bin_env_var_wins_over_config(monkeypatch):
     pi = adapters.load("pi")
+    monkeypatch.delenv("PI_BIN", raising=False)
     assert pi.resolve_bin({"bin": "/from/config"}) == "/from/config"
     monkeypatch.setenv("PI_BIN", "/from/env")
     assert pi.resolve_bin({"bin": "/from/config"}) == "/from/env"
