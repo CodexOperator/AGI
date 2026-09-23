@@ -1,0 +1,172 @@
+---
+id: experiment:named-clis-write-send-dispatch-transcript
+mint_id: 29e1cc128d24433ba45f8f22e834c216
+type: experiment
+parents:
+  - hypothesis:a00-87be5ad9-4178ce
+next_edges: []
+edited_by: a00-87be5ad9
+line_ceiling: 40
+loop: goal:g7.31.3.2@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 94048beb14c564e3
+season: 2
+title: "Sample write+send+dispatch via named CLIs: recorded transcript"
+town: core
+---
+<!-- BODY:BEGIN -->
+# experiment:named-clis-write-send-dispatch-transcript
+
+## Falsifier (quoted verbatim from `goal:g7.31.3.2`)
+
+> Sample agent action for write + send + one dispatch/workflow run goes
+> through the named CLIs (`write.py` / `send.py` / `dispatch.py`+`workflow.py`),
+> not a parallel script (transcript/experiment proof).
+
+## Testable claim
+
+A live agent can mutate the graph through `write.py`, dm its parent through
+`send.py`, and resolve the dispatch/workflow routers through `dispatch.py`
+and `workflow.py` — each command exits 0 and prints a real, re-runnable
+result. Every transcript below is exact command, exit code, observed output.
+
+Session: agent `a00-87be5ad9`, iteration DH.91, checkout
+`/data/work/agi/.agi/worktrees/a00-def79ad0`. `AGI_ACTOR=a00-87be5ad9`,
+`AGI_TIER=kid`, parent `a00-def79ad0`.
+
+## (a) WRITE through `write.py` — real graph mutation
+
+Command and output, exactly:
+
+```
+$ python3 extensions/agi/bin/write.py hypothesis:a00-87be5ad9-4178ce 'set title Sample write+send+dispatch through named CLIs (recorded transcript)'
+updated: hypothesis:a00-87be5ad9-4178ce
+exit=0
+```
+
+The brief's read-back verb is MAINTENANCE-DEFECT: `write.py` has no `get`
+verb. Recorded raw:
+
+```
+$ python3 extensions/agi/bin/write.py hypothesis:a00-87be5ad9-4178ce 'get title'
+ERR: no verb 'get'. Known: adopt, body_patch, link, note, patch, payload, payload_text, read, replace, set, thought, unset
+exit=2
+```
+
+Read-back proof therefore done by reading the node file back (title landed,
+and `edited_by` was stamped to `a00-87be5ad9`):
+
+```
+$ sed -n '1,18p' .agi/nodes/hypothesis/a00-87be5ad9-4178ce.md
+id: hypothesis:a00-87be5ad9-4178ce
+...
+edited_by: a00-87be5ad9
+...
+title: Sample write+send+dispatch through named CLIs (recorded transcript)
+exit=0
+```
+
+## (b) SEND through `send.py` — real dm to parent `a00-def79ad0`
+
+Body from a file (L4 message ruling). Body file lives in the session scratch
+dir, not the brief's `/tmp/kid-send-body.txt` — the SCRATCH DIR constraint
+forbids `/tmp`.
+
+```
+$ printf '%s\n' 'a00-87be5ad9 evidence for goal:g7.31.3.2: ...' > .agi/sessions/iter-DH.91/a00-87be5ad9/kid-send-body.txt
+$ python3 extensions/agi/bin/send.py send --to a00-def79ad0 "$(cat .agi/sessions/iter-DH.91/a00-87be5ad9/kid-send-body.txt)"
+/data/work/agi/.agi/comms/season-2/dm/a00-87be5ad9--a00-def79ad0.md
+exit=0
+```
+
+Recipient-visibility proof. The brief's peek form fails (exit 1, no target):
+
+```
+$ python3 extensions/agi/bin/send.py peek --from a00-def79ad0
+ERR: peek needs a target (inbox) or --room/--dm
+exit=1
+```
+
+The working form, peeking as the parent, shows the landed line:
+
+```
+$ python3 extensions/agi/bin/send.py peek --from a00-def79ad0 a00-def79ad0
+inbox for a00-def79ad0: empty
+[dm a00-87be5ad9--a00-def79ad0] **a00-87be5ad9** 01:52 — a00-87be5ad9 evidence for goal:g7.31.3.2: write.py title mutation landed; send.py dm; dispatch.py and workflow.py dry-run resolved. Transcripts inline in node hypothesis:a00-87be5ad9-4178ce.
+exit=0
+```
+
+## (c) DISPATCH | WORKFLOW through the named CLIs (dry-run only)
+
+`dispatch.py` resolves the slot from a kid:
+
+```
+$ python3 extensions/agi/bin/dispatch.py . DH.91 --target goal:g7.31.3.2 --dry-run
+dry-run account floor: exempt — kid of admitted live round a00-87be5ad9 pid 3899159
+roles: tier=0 role=kid -> pi/deepseek/deepseek-v4.1-flash/effort=-/thinking=-/settings=-
+season: ladder current_season=2
+aimed: 1 slot(s) at goal:g7.31.3.2 (level=small, strategy=extend_existing)
+[dry-run] slot=0 harness=pi tier=kid role=kid ladder_tier=0 level=small target=goal:g7.31.3.2 brief_tier=kid
+dry-run: nothing spawned, nothing written, no budget slot taken
+exit=0
+```
+
+`workflow.py` resolves stages through the same router. `review` resolves
+cleanly; the brief's suggested `l3w-route-probe` does NOT (exit 2):
+
+```
+$ python3 extensions/agi/bin/workflow.py run review --dry-run
+[run-key] review
+[credential] mint per-run
+[dispatch] global-checks :: role=global model=deepseek/deepseek-v4.1-flash effort=medium
+[dispatch] review :: role=reviewer model=deepseek/deepseek-v4.1-flash effort=medium
+[summary] workflow=review harness=pi stages=2 via dispatch.py kids
+exit=0
+
+$ python3 extensions/agi/bin/workflow.py run l3w-route-probe --dry-run
+workflow.py: stage 'emit': no model resolved from --args, the config row or the stage hint — refusing to guess
+[run-key] lrp
+exit=2
+```
+
+Live dispatch evidence — the manifest of this very iteration carries the
+real `dispatch.py` spawn of this kid, spawned by parent `a00-def79ad0`:
+
+```
+$ find .agi -name manifest.json -path '*DH.91*' 2>/dev/null
+.agi/sessions/iter-DH.91/manifest.json
+# agents[0] excerpt:
+#   "id": "a00-87be5ad9", "target": "goal:g7.31.3.2",
+#   "spawned_by_agent": "a00-def79ad0",
+#   "node_id": "hypothesis:a00-87be5ad9-4178ce"
+#   "command": "/usr/bin/python3 .../pi_trajectory.py --wrapper /home/ubuntu/.npm-global/bin/pi ..."
+```
+
+## Result
+
+All sanctioned routers answered from a kid: `write.py` exit 0 (mutation
+landed), `send.py` exit 0 (dm landed and visible to the recipient),
+`dispatch.py --dry-run` exit 0 (slot resolved at `goal:g7.31.3.2`),
+`workflow.py run review --dry-run` exit 0 (2 stages via dispatch.py kids).
+No parallel script was used for any action.
+
+## Frictions found (deltas for downstream)
+
+- `write.py` has no `get` verb, so the documented read-back `write.py <id>
+  'get title'` exits 2; read the node file or use `read body N:M`.
+- `send.py peek --from <id>` without a target exits 1; the working form is
+  `send.py peek --from <id> <id>` (or `--dm`).
+- `workflow.py run l3w-route-probe --dry-run` exits 2: stage `emit` has no
+  model in the config row or stage hint. The brief's suggested example does
+  not resolve; `review`/`drafting`/`brainstorm` do.
+- `write.py create experiment ... --parent goal:g7.31.3.2` exits 2: schema
+  `[experiment]` forbids a `goal` parent (allowed: build, experiment,
+  hypothesis, idea, task, verdict). The experiment is therefore parented on
+  the hypothesis node; the brief's stated `parents: [goal:...]` shape is
+  schema-illegal.
+- A `proved` done on a hypothesis whose only `evidence_runs` is a hypothesis
+  is demoted (evidence_runs=0): the gate counts experiment-type nodes, so a
+  hypothesis cannot be its own evidence run.
