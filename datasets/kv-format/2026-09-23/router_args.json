@@ -1,0 +1,41 @@
+{
+ "recorded_at": "2026-09-23T12:26Z (router RUNNING, before T0 stop)",
+ "source": "GET :8080/v1/models -> data[id=Qwen3.5-9B-Q4_K_M].status.args, cross-checked against /proc/<llama-server pid>/cmdline",
+ "container_cmd": [
+  "--host",
+  "127.0.0.1",
+  "--port",
+  "8080",
+  "--models-dir",
+  "/models",
+  "--models-max",
+  "1",
+  "--fit",
+  "on",
+  "--jinja",
+  "-np",
+  "1",
+  "--cache-reuse",
+  "8"
+ ],
+ "model_args_9b": [
+  "/app/llama-server",
+  "--cache-reuse",
+  "8",
+  "--host",
+  "127.0.0.1",
+  "--jinja",
+  "--port",
+  "47155",
+  "--alias",
+  "Qwen3.5-9B-Q4_K_M",
+  "--fit",
+  "on",
+  "--model",
+  "/models/Qwen3.5-9B-Q4_K_M.gguf",
+  "--parallel",
+  "1"
+ ],
+ "model_n_ctx_at_record": 49664,
+ "t2_reuse": "identical except --port (spare 18081/18082/18083), --model path inside the container (/work/...), and the added -fa on -ctk T -ctv T"
+}

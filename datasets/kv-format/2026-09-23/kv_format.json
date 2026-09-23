@@ -1,0 +1,74 @@
+{
+ "host": "belam-gpu",
+ "ram_mb_start": 9153,
+ "model_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+ "router_args_recorded": [
+  "--cache-reuse",
+  "8",
+  "--host",
+  "127.0.0.1",
+  "--jinja",
+  "--alias",
+  "Qwen3.5-9B-Q4_K_M",
+  "--fit",
+  "on",
+  "--model",
+  "/work/Qwen3.5-9B-Q4_K_M.gguf",
+  "--parallel",
+  "1"
+ ],
+ "types": {
+  "f16": {
+   "ppl": {
+    "rc": 0,
+    "ppl": 7.1798
+   },
+   "ppl_run2": {
+    "rc": 0,
+    "ppl": 7.1798
+   },
+   "fit": {
+    "n_ctx": 49664,
+    "ram_mb": 9460,
+    "rc": 0
+   },
+   "bench": {
+    "rc": 0,
+    "tg_tok_s": 58.07
+   },
+   "ram_mb_end": 9243
+  },
+  "q8_0": {
+   "ppl": {
+    "rc": 0,
+    "ppl": 7.1753
+   },
+   "fit": {
+    "n_ctx": 75520,
+    "ram_mb": 9266,
+    "rc": 0
+   },
+   "bench": {
+    "rc": 0,
+    "tg_tok_s": 37.91
+   },
+   "ram_mb_end": 9129
+  },
+  "q4_0": {
+   "ppl": {
+    "rc": 0,
+    "ppl": 7.1903
+   },
+   "fit": {
+    "n_ctx": 118784,
+    "ram_mb": 9157,
+    "rc": 0
+   },
+   "bench": {
+    "rc": 0,
+    "tg_tok_s": 37.12
+   },
+   "ram_mb_end": 9171
+  }
+ }
+}
