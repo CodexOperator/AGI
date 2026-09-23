@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5.7
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
@@ -31,25 +31,30 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 - **Quick fixes on the town trunk (owner 04:1xZ 09-19, verbatim: "If you need anything quick fixed on your own branch tell the director to dispatch the parent and use a regular review workflow not research review"):** the master names the fix (a g15 node); the DIRECTOR dispatches the parent; review = the regular `review` workflow (`workflow.py run review --harness pi`), never `research-review` (research rounds only). The master spawns no parents.
 
 ## Dispatch (thought town specifics)
-- One pi parent per hypothesis node: `dispatch.py . <ITER> --target hypothesis:<id> --level small --tier parent --harness pi --branch`; the round cap is the node's `ceiling:` ($0.50-$2; TypeSafe ledger cap named separately, $0.10 for replay rounds).
-- Resource classes: OFF-BOX (local-town over the ssh alias `local-town` only), API-ONLY, A1-LIGHT (one thread, `nice -n 19`), A1-HEAVY (llama-bench, bitnet.cpp, multi-core numpy). Parallel across classes; at most ONE A1-heavy live; every A1-heavy row behind ambient loadavg-1m < 2.0 recorded BEFORE the row (+ after, nproc, -t, pgmajfault beside it) — a "during" gate is unmeetable on 4 cores (a 4-thread bench adds ~4 by itself).
+- One pi parent per hypothesis node: `dispatch.py . <ITER> --target hypothesis:<id> --level small --tier parent --harness pi --branch`. No per-round spending cap (owner 09-23 14:xZ): the dispatcher's concurrency cap is the only cap; a hypothesis `ceiling:` bounds scope in engine units, never spend.
+- Resource classes: RIG-GPU (the GPU2070S rig) · RIG-CPU (the rig's spare threads) · KEEPER CPU8G (encryption town: first choice for CPU-only rounds, owner 09-18 22:4xZ) · API-ONLY. A heavy bench row records ambient loadavg-1m BEFORE the row (+ after, nproc, -t, pgmajfault beside it). How many of each run at once is a spawn limit -> the director's card.
 - Kid `line_ceiling`: 120 for reader / ssh-probe kids, 600 when the bulk is generated data — declared in the brief; every `rebrief_request` answered in-node BEFORE harvest (F31).
-- Measurement rules: a warm-up request before any tok/s number (TM.10); `--load-mode none` or warm-up noted per row; per-prompt rows beside every median; ETA and ratios re-derived by the parent from the bytes, not the kid's prose.
-- Boxes: downloads <= 200 GB on local-town (`/data`), <= 2 GB removable on the A1; the ONE permitted local-town change is logged with its rollback command verbatim BEFORE it is made; never an address in any encoding (alias only), never `.env` / Doppler / secrets; no Camber rental — every GPU-hour ask is banked with numbers (3 GPU-h/month on record, XS ~$1.50-3/h).
+- Measurement rules: a warm-up request before any tok/s number (TM.10); `--load-mode none` or warm-up noted per row; per-prompt rows beside every median; ETA and ratios re-derived by the parent from the bytes, not the kid's prose. A step smaller than about 1 pct counts only with fixed inputs, repeats and a CI (the HEAD's LOOP line, owner 09-23).
+- Boxes: downloads <= 200 GB on local-town (`/data`); box tunables follow the HEAD's DURABLE line (inside your own window, recorded, restored, named; clocks and power limits within +10 / -70 pct of the baseline need no go); never an address in any encoding (alias only), never `.env` / Doppler / secrets; Camber GPU-hours for fine-tuning, RL and pretraining are owner-authorised (09-20 21:4xZ: 'failing is fine') -- the round states its GPU-hours and USD up front against the 3 GPU-h/month on record (XS ~$1.50-3/h).
+- **Town research rules (09-23):** IFEval rounds seed BOTH RNGs (keywords:letter_frequency's stdlib random + langdetect), N=10 CI rule (TMM.32) · abliterated-in-prod · pace slow, small chunks · batch-max (one merge-up per batch) · every synthetic or eval dataset a round makes lands in `datasets/` with its explainer (doc:lm-research-corpus-registry), never only in a run dir (owner 09-20 21:5xZ). SPAWN LIMITS -- how many rounds, parents, kids or model-loading host kids run at once, a paid round's orders wall -- live ONLY on the director's card (owner 09-23 14:xZ).
 
 ## Review (owner 01:5xZ 09-18, goal:g7.16)
 - The director runs the merge-up review ITSELF after each round lands: `workflow.py run merge-up-review --args "$(cat args.json)"` on pi, one slice per kid, `old_tip` = merge-base with `season2/main`; read `returns.<stage>.unstructured` in `.agi/sessions/workflows/merge-up-review.jsonl`; never the Claude Workflow tool.
 - Delivery = ONE `[merge-up]` dm to the master: tips, merge-bases, file counts, mur run key, per-slice verdicts. A `[red]` the review finds is fixed IN-LOOP (own g15 fix round or demote) before delivery.
 - Verdicts: `proved` needs the kid in `evidence_runs`; a failed gate (tenancy, bytes, key) = honest `pending`, never a lean.
+- Research rounds (owner 09-18 20:2xZ + 19:5xZ): run agi-research-review by name (review, verify, why, brainstorm, refute); the batch line carries the WHY, the idea, 1-5 hypotheses and the refute verdicts.
+- Town moral (moral:local-maxxing): judge a round by the knowledge and wisdom it extracts per token, never by tokens saved; a failure, a demotion or an extra thread is data, not waste (owner 09-14, 09-20).
 
 ## Comms
-- Every nudge: read the inbox AND the master dm thread (`send.py read director-thought --dm thought-master --from director-thought`); one dm line per lap: `dispatched (agent id, cap)` / `landed (tip)`; owner pane lines relayed verbatim to the master, never interpreted; `[red]` real engineering findings named to sanctuary-master by node id.
+- Every nudge: read the inbox AND the master dm thread (`send.py read director-thought --dm thought-master --from director-thought`); dm the master only a `[merge-up]` per batch or a blocker (Self-loop below); owner pane lines relayed verbatim to the master, never interpreted; `[red]` engineering findings go to the master by node id (the SM is inactive; the master routes them).
+- **Self-loop (owner 09-23 09:5xZ):** work the town trajectory (`town:local-maxxing` trajectory_standin) in its priority order on your own -- plan, mint, dispatch, review by name, close residues in-loop; message the master ONLY for a blocker or a fully completed merge-up.
 
 ## Rotation
 - Bare `rotate.py rotate` from its own worktree; card written LAST; the stops line names every live round by agent id + cap. `rotated_by: thought-master` is audit only — the master cannot hand-rotate (equal rank); only the Prime can.
 
 ## Typed decisions (TypeSafe)
 - `TYPESAFE_KEY` reaches kids only after SM.103 (`harnesses.<h>.forward_env`); until then typed-decision rounds stop honestly at the key gate. Metrics for every typed-decision round: top-1 agreement with the call actually made, USD per decision, latency; no UI before the replay clears its bar (idea:lm-jev-mcp-sandwich).
+- **Keys live (owner 09-23 10:2xZ):** `TYPESAFE_KEY` + `TYPESAFE_KEY2` are in the main .env (5 USD each, both answered HTTP 200) and pi / pi-local forward both to kids -- the key gate above is OPEN; key 2 is a second 5 USD lane.
 
 ## Live chains (2026-09-18 02:0xZ)
 athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 metronome rhythm-bank (A1-light, hypothesis:c2-kuramoto-metronome-rhythm-bank) · TypeSafe replay r2 (API, blocked on SM.103) · bitnet.cpp A1 tok/s (queued A1-heavy) · kid-persona SFT (banked Camber) · oscillator troves (CC ingestion stays with the master).
