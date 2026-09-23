@@ -5072,6 +5072,97 @@ def _cli_veto(croot: Path, root: Path, args) -> int:
     return 0
 
 
+# --- send transports (goal:g7.32.4) -------------------------------------
+#
+# One row per transport mode. `main` picks the row from `args` via
+# `_transport_for` and calls it; nothing in `main` knows how a room, a dm or
+# an inbox is delivered. Adding a transport is a new handler + a new row, not
+# a new branch in the router (goal:g7.32.4 clause 2).
+
+def _transport_for(args) -> str:
+    """The send transport mode named by `args`: room wins over dm, else inbox."""
+    if args.room is not None:
+        return "room"
+    if args.dm_to is not None:
+        return "dm"
+    return "inbox"
+
+
+def _transport_room(root, croot, sender, args) -> int:
+    text = " ".join(args.send_args)
+    if not text:
+        print("ERR: message text is required for send --room",
+              file=sys.stderr)
+        return 1
+    # R5: a room reaches past the parent, so the kid gate covers it
+    # exactly like the dm paths -- BEFORE any room write.
+    refusal = _kid_room_refusal(root, args.room, sender)
+    if refusal is not None:
+        print(refusal, file=sys.stderr)
+        return 3
+    print(send_room(croot, args.room, text, sender,
+                    quote_harness=args.quote_harness).resolve())
+    last_act.touch_env(root, sender)
+    return 0
+
+
+def _transport_dm(root, croot, sender, args) -> int:
+    text = " ".join(args.send_args)
+    if not text:
+        print("ERR: message text is required for send --to",
+              file=sys.stderr)
+        return 1
+    to = _alias_canon(root, args.dm_to) or args.dm_to
+    refusal = _kid_dm_refusal(root, to, sender)
+    if refusal is not None:
+        print(refusal, file=sys.stderr)
+        return 3
+    print(send_dm(croot, _detect_sender(sender), to, text,
+                  sender,
+                  quote_harness=args.quote_harness).resolve())
+    last_act.touch_env(root, sender)
+    return 0
+
+
+def _transport_inbox(root, croot, sender, args) -> int:
+    # unchanged: inbox send -- first token is the target, the rest is text
+    if not args.send_args:
+        print("ERR: send needs a target (inbox) or --room/--to",
+              file=sys.stderr)
+        return 1
+    target, *rest = args.send_args
+    text = " ".join(rest)
+    if not text:
+        print("ERR: message text is required for send", file=sys.stderr)
+        return 1
+    resolved_target = _alias_canon(root, target) or target
+    # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
+    # per-round -- a kid's dm reaches its parent or no inbox at all. The
+    # refusal is checked BEFORE `send`, so nothing is written on refusal.
+    refusal = _kid_dm_refusal(root, resolved_target, sender)
+    if refusal is not None:
+        print(refusal, file=sys.stderr)
+        return 3
+    # hypothesis:l4-the-prime-hears-only-needed-comms -- the Prime's inbox
+    # takes tagged, needed lines only; checked BEFORE `send`, nothing is
+    # written on refusal.
+    refusal = _prime_dm_refusal(root, resolved_target, text, sender)
+    if refusal is not None:
+        print(refusal, file=sys.stderr)
+        return 3
+    send(root, resolved_target, text, sender,
+         quote_harness=args.quote_harness)
+    last_act.touch_env(root, sender)
+    return 0
+
+
+TRANSPORTS = {
+    "inbox": _transport_inbox,
+    "dm": _transport_dm,
+    "room": _transport_room,
+}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="one-verb agent comms",
         epilog=_LOCKDOWN_RESERVED_HELP)
@@ -5342,69 +5433,9 @@ def main(argv: list[str] | None = None) -> int:
     sender = args.from_id
 
     if args.verb == "send":
-        # --room/--to: the whole positional bucket is text, nothing is a
-        # target. Split by MODE, not by argparse nargs (see p_send comment).
-        if args.room is not None:
-            text = " ".join(args.send_args)
-            if not text:
-                print("ERR: message text is required for send --room",
-                      file=sys.stderr)
-                return 1
-            # R5: a room reaches past the parent, so the kid gate covers it
-            # exactly like the dm paths -- BEFORE any room write.
-            refusal = _kid_room_refusal(root, args.room, sender)
-            if refusal is not None:
-                print(refusal, file=sys.stderr)
-                return 3
-            print(send_room(croot, args.room, text, sender,
-                            quote_harness=args.quote_harness).resolve())
-            last_act.touch_env(root, sender)
-            return 0
-        if args.dm_to is not None:
-            text = " ".join(args.send_args)
-            if not text:
-                print("ERR: message text is required for send --to",
-                      file=sys.stderr)
-                return 1
-            to = _alias_canon(root, args.dm_to) or args.dm_to
-            refusal = _kid_dm_refusal(root, to, sender)
-            if refusal is not None:
-                print(refusal, file=sys.stderr)
-                return 3
-            print(send_dm(croot, _detect_sender(sender), to, text,
-                          sender,
-                          quote_harness=args.quote_harness).resolve())
-            last_act.touch_env(root, sender)
-            return 0
-        # unchanged: inbox send -- first token is the target, the rest is text
-        if not args.send_args:
-            print("ERR: send needs a target (inbox) or --room/--to",
-                  file=sys.stderr)
-            return 1
-        target, *rest = args.send_args
-        text = " ".join(rest)
-        if not text:
-            print("ERR: message text is required for send", file=sys.stderr)
-            return 1
-        resolved_target = _alias_canon(root, target) or target
-        # hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
-        # per-round -- a kid's dm reaches its parent or no inbox at all. The
-        # refusal is checked BEFORE `send`, so nothing is written on refusal.
-        refusal = _kid_dm_refusal(root, resolved_target, sender)
-        if refusal is not None:
-            print(refusal, file=sys.stderr)
-            return 3
-        # hypothesis:l4-the-prime-hears-only-needed-comms -- the Prime's inbox
-        # takes tagged, needed lines only; checked BEFORE `send`, nothing is
-        # written on refusal.
-        refusal = _prime_dm_refusal(root, resolved_target, text, sender)
-        if refusal is not None:
-            print(refusal, file=sys.stderr)
-            return 3
-        send(root, resolved_target, text, sender,
-             quote_harness=args.quote_harness)
-        last_act.touch_env(root, sender)
-        return 0
+        # Transport selection is a TABLE, not an if-harness soup: the mode is
+        # chosen from `args` and the one matching handler runs.
+        return TRANSPORTS[_transport_for(args)](root, croot, sender, args)
 
     if args.verb == "read":
         me = args.me or _detect_sender(sender)
