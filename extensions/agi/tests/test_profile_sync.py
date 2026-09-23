@@ -333,3 +333,51 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.3 corrective 3: unclosed frontmatter is not a silent skip --
+
+
+def _unclosed(graph: Path, name: str, extra: str = "") -> Path:
+    """A file that OPENS frontmatter with `---` but never closes it."""
+    p = graph / "nodes" / "hypothesis" / name
+    p.write_text("---\nid: hypothesis:bad\n" + extra
+                 + ": : : not valid yaml [[[\nbody\n")
+    return p
+
+
+def test_p4_unclosed_frontmatter_with_hint_is_named_unreadable(tmp_path):
+    """P4 regression (goal:g7.31.5.3 residue 7): a malformed file that opens
+    `---` without closing it has NO body boundary, so a `profile_ref:` line in
+    those raw bytes is a hint — it must be surfaced as a named `unreadable`
+    failure, never silently dropped. Before this fix the closed-frontmatter
+    regex returned "" and the file vanished from the sweep."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _unclosed(repo / ".agi", "unclosed.md",
+              extra='profile_ref: "profile/bad.md"\n')
+    rows = profile_sync.check_all(repo / ".agi")
+    hits = [r for r in rows if "unclosed" in (r.get("path") or r["node_id"])]
+    assert len(hits) == 1, rows
+    assert hits[0]["status"] == "unreadable", hits[0]
+    r = _cli_all(repo)
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "UNREADABLE" in r.stdout and "unclosed.md" in r.stdout
+    msg = rotate._check_profile_drift(repo / ".agi")
+    assert msg and "unclosed.md" in msg and "unreadable" in msg
+    assert "profile drift" in msg
+
+
+def test_unclosed_frontmatter_without_hint_is_skipped(tmp_path):
+    """Control: an unclosed-frontmatter file with NO `profile_ref:` carries no
+    link, so it stays a clean no-op — green sweep, no guard refusal."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path)
+    profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    _unclosed(repo / ".agi", "unclosed.md")
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "1 linked, 0 not ok" in r.stdout
+    assert "unclosed" not in r.stdout
+    assert rotate._check_profile_drift(repo / ".agi") is None
