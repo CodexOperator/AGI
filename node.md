@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.3
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.3: The injected map teaches its own use"
 ---
 **The map shows what is in the graph and says nothing about how to move through
