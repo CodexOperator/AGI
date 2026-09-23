@@ -108,3 +108,35 @@ is measured on both; the locals now have two IFEval rows:
 **Do not read this as a switch.** Per the owner's rule it is a trigger for an
 mvp that ties the contributing chains together — the master mints that, never
 this round.
+## IFEval — seeded re-score N=10
+
+Same three response files, same **UNCHANGED** official harness, re-scored 10 times
+each under a wrapper that seeds **both** `random.seed(s)` (stdlib; the harness's
+`LetterFrequencyChecker.build_description` draws from it for under-specified
+`keywords:letter_frequency` args) **and** `DetectorFactory.seed = s` (langdetect).
+Wrapper: `datasets/switch-rule/2026-09-21/ifeval_seeded_wrapper.py`. Per-seed rows:
+`datasets/switch-rule/2026-09-21/ifeval_seeded_rows.jsonl` (`file, seed, strict_n,
+strict, loose_n, loose, instr_n, instr_tot, instr`). The single-run rows above are
+**unchanged and not averaged into** — this is a separate table.
+
+**Reproducibility.** Both-seeded wrapper at seed 0 on arm B: two runs,
+`eval_results_strict.jsonl` md5 `17964f5eb86bede8fa890b197254f9f5` both times —
+byte-identical. **langdetect-only** wrapper at seed 0 on arm B: md5
+`17964f5e…` then `3d4afedf401850db349b3594aceb8800` then `17964f5e…` across three
+runs — not reproducible. Seeding stdlib `random` is required, confirming the
+parent's measurement; langdetect alone is insufficient.
+
+95% CI = mean ± 2.262 × sd(ddof=1) / √10. Bar = 0.9 × 0.868762 = **0.781886** (fixed).
+
+| row | 10 strict values | mean | sample sd | 95% CI | FIRES? |
+|---|---|---|---|---|---|
+| armB_bonsai27b-ptq1 | .778189 .778189 .776340 .778189 .778189 .778189 .778189 .776340 .774492 .776340 | **0.777265** | 0.001307 | [0.776330, 0.778200] | **no** |
+| armC2_bonsai27b-abliterate-s2 | .802218 .800370 .802218 .800370 .798521 .798521 .800370 .798521 .800370 .800370 | **0.800185** | 0.001364 | [0.799209, 0.801161] | **FIRES** |
+| ref_ifeval_deepseek-v4.1-flash (context only) | .868762 .872458 .870610 .868762 .868762 .870610 .870610 .872458 .870610 .866913 | **0.870055** | 0.001753 | [0.868801, 0.871310] | — |
+
+The bar does **not** move to 0.9 × ref mean; it stays the fixed 0.781886.
+Arm B's CI lower bound (0.776330) is below it, so B **does not fire on IFEval**
+under the seeded re-score — the single-run 0.778189 was the **maximum** of the 10
+draws, so the seed spread moves B further from the bar, not closer. Arm C2's lower
+bound (0.799209) clears it, so **C2 FIRES on IFEval**, robust across seeds.
+Reference spread is ±~0.3 pp (0.866913–0.872458), same order as the arms.
