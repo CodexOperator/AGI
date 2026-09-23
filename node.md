@@ -57,7 +57,7 @@ worktree), so the edit collided with no in-flight change.
   long-standing attach skip e66e7919 recorded, not new). The single-reader
   coupling now holds: seat_status and viewport return exactly what
   hierarchy.load_seats returns, so a change to the one reader is seen by both
-  renderings — goal:g9.7 one-render-two-readers reached for the agent map as
+  renderings — goal:g2.19 one-render-two-readers reached for the agent map as
   it already is for the graph.
 
 Not done (outside this slice, banked): the two graphs' remaining drift is
