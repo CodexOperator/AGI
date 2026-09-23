@@ -42,7 +42,7 @@ services:
     restart: on-failure
     working_directory: "{repo_root}"
   agi-reaper:
-    enabled: true
+    enabled: false
     exec_start: /usr/bin/python3 {repo_root}/extensions/agi/bin/heal.py watch --root {repo_root} --poll-s 30
     restart: on-failure
     working_directory: "{repo_root}"
