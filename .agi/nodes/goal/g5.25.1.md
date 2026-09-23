@@ -6,7 +6,7 @@ parents:
   - goal:g5.25
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.25.1
 goal_kind: subgoal
 heading_level: 4
@@ -32,7 +32,7 @@ town: local-maxxing
 
 **Commits to.** The first half of G5.25's capability commitment: derive a direction from a model the town actually serves (Qwen3.5-9B-Q4_K_M, the resident 9B) using the town's own tooling (llama-cvector-generator, mean-difference method over a paired refusal-eliciting/benign prompt set of at least 64 items), apply it at inference as a scaled control vector across s in {0.5, 1.0, 1.5, 2.0}, verify it is genuinely in the compute graph (s=0 byte-identical to the ABC.01 arm-A baseline; a random-direction control at the best s moves refusal far less than the real one), and price it on the same battery every other lever in this town is priced on (HumanEval pass@1, the ABC.01/ABC.02 harness, same 164 problems, same template). Cross-model signature comparison (G5.25.2, the unembedding-overlap question) waits until this lever is actually measured — it is the H2 the ABL.01 node names on a proved branch, not started here.
 
-**Invariants.** Every scale tested carries both controls (random direction; s=0 byte-identity against the ABC.01 arm-A completions); the refusal classifier and its phrase list are committed as text, not ad hoc; refusal rate and coding cost are measured on the same held-out set and the same HumanEval harness every other lever in this town uses; the resident router server answers a real completion on :8080 before done (never merely /v1/models); no model download, no kernel build, no engine code; one paid parent (pi/deepseek, cap 1 USD), one paid round at a time, nothing stacked on the GPU.
+**Invariants.** Every scale tested carries both controls (random direction; s=0 byte-identity against the ABC.01 arm-A completions); the refusal classifier and its phrase list are committed as text, not ad hoc; refusal rate and coding cost are measured on the same held-out set and the same HumanEval harness every other lever in this town uses; the resident router server answers a real completion on :8080 before done (never merely /v1/models); no model download, no kernel build, no engine code; one paid parent (pi/deepseek), nothing stacked on the GPU.
 
 **Falsifiers.** (a) Extraction fails to produce a vector at all — the WHY names the binary/path used (fork dir / full-cuda image / resident image) and the cvector route is dead on this box; next cheapest step is the rank-1 projection export (H1', OrcaBonsai's exporter on dequantised writer matrices). (b) The refusal rate moves less than 10 points at every scale tested — same fallback to H1'. (c) The first scale that moves refusal by more than 50 points also costs 2.0 or more HumanEval pass@1 points versus s=0 (McNemar on the discordant pairs) — the lever is too expensive at the strength needed to work; next cheapest step is again the rank-1 projection route, never a bigger model.
 
