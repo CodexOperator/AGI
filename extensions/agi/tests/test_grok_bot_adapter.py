@@ -26,6 +26,102 @@ grok = adapters.load("grok_bot")
 HARNESS = {"adapter": "grok_bot",
            "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
+#: Verbatim `grok-bot --help` from grok-bot-cli@0.3.1 (46 lines, exit 0),
+#: captured on `experiment:a00-db1af771-grok-help`. This is the measurement
+#: `test_argv_is_bound_to_the_recorded_help` binds the emitted argv to — a
+#: flag the adapter guesses but the CLI never documents must fail here.
+RECORDED_HELP = """gbot - manage Grok Bot agents and groups
+
+Usage:
+  gbot [--dir DIR] [--json] <command>
+
+Commands:
+  doctor
+  bots list
+  bots create --name NAME [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  bots update <id-or-name> [--name NAME] [--description TEXT] [--instructions TEXT]
+           [--title TEXT] [--avatar-shape SHAPE] [--avatar-color COLOR]
+           [--notify on|off] [--hidden on|off]
+  bots get <id-or-name>
+  bots delete <id-or-name>
+  groups list
+  groups create --name NAME --member ID_OR_NAME [--member ...]
+           [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  groups update <id-or-name>  (same flags as bots update; members stay on set/add/remove)
+  groups get <id-or-name>
+  groups members <id-or-name>
+  groups add <group> <bot>
+  groups remove <group> <bot>
+  groups set <group> --member ID [--member ...]
+  groups delete <id-or-name>
+  send <bot-or-group> <message...>
+  thread <bot-or-group> [--limit N] [--root MESSAGE_ID] [--full]
+  chat <bot-or-group>     alias for thread
+  history [bot-or-group] [--search TEXT] [--limit N]  (offline)
+  history --path         print the local JSONL file path
+  codex status
+  codex list-threads [--limit N]
+  codex send <threadId> <message...>
+
+Max group members: 6
+--description / --instructions is the UI Instructions field (same key).
+Avatar shapes: blob pebble bean egg squircle tablet capsule cylinder hex gem crystal wedge shield dome arch cloud teardrop leaf
+Avatar colors: black brown red orange yellow green cyan blue violet magenta gray
+Flags: --gateway  --files  --dir DIR  --json
+Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session, or CURSOR_ACCESS_TOKEN
+File fallback: GROK_BOT_AGENTS_DIR
+Codex: talks to the local app-server daemon socket under CODEX_HOME (default ~/.codex)
+History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
+         GROK_BOT_HISTORY=on to record; --history-dir / GROK_BOT_HISTORY_DIR to relocate
+         --no-history to skip one command
+"""
+
+
+def test_argv_is_bound_to_the_recorded_help():
+    """`goal:g7.31.1.1` conjunct 1: the argv a spawn emits is bound to a real
+    `grok-bot --help` capture, not a guess. Every flag the adapter emits must
+    appear in that capture, argv[0] must be the resolved bin, and the
+    stub-only guesses `-p` / `--model` must be absent."""
+    assert len(RECORDED_HELP.splitlines()) == 46
+    assert "--dir" in RECORDED_HELP  # the capture is real, not an empty string
+    argv = grok.build_command(harness=HARNESS, tier="kid", context_file="/tmp/x")
+    assert argv[0] == grok.resolve_bin(HARNESS)
+    for token in argv:
+        if token.startswith("-"):
+            assert token in RECORDED_HELP, token
+    assert "-p" not in argv
+    assert "--model" not in argv
+
+
+def test_env_sentinel_threads_to_argv0(monkeypatch):
+    """Wire/gate probe for conjunct 1: `$GROK_BOT_BIN` wins over the harness
+    `bin` cell, so argv[0] is the live cell a call site threads — a constant
+    cannot pass both this and the config-sentinel live test."""
+    monkeypatch.setenv("GROK_BOT_BIN", "/ENV/SENTINEL")
+    argv = grok.build_command(
+        harness={"adapter": "grok_bot", "bin": "/ROW/SENTINEL",
+                 "models": {"kid": "m"}}, tier="kid", context_file="/tmp/x")
+    assert argv == ["/ENV/SENTINEL"]
+
+
+def test_declared_models_with_missing_tier_still_raises():
+    """Gate probe for conjunct 1: retiring `--model` must not retire the tier
+    contract — a spawn-path call with the tier absent still raises, by name."""
+    with pytest.raises(KeyError) as exc:
+        grok.build_command(
+            harness={"adapter": "grok_bot", "models": {"kid": "m"}},
+            tier="parent", context_file="/tmp/x")
+    assert "parent" in str(exc.value)
+
+
+def test_context_file_literal_never_leaks_into_argv():
+    """Gate probe for conjunct 2: even a `context_file` that LOOKS like the
+    retired flag is not emitted, so no path can reintroduce `-p`."""
+    argv = grok.build_command(harness=HARNESS, tier="kid", context_file="-p /tmp/x")
+    assert argv == ["grok-bot"]
+
 
 # ---------------------------------------------------------------- interface
 
@@ -132,7 +228,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly what build_command produces (measured argv today)
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
