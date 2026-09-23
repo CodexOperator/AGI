@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.25
 next_edges: []
-ceiling: "3 USD, <= 4 kids, pi parents (owner 10:4xZ: more spend and more spawning)"
+ceiling: "3 USD, <= 4 kids, pi parents (owner 09:5xZ: more spend and more spawning)"
 confidence: 0.75
 edited_by: director-engine
 scaffold_hash: 5d388ecc57354d07
@@ -41,4 +41,4 @@ endpoints) · tests. NOT: pane / jev code (MP.02 is the town's) · execution ove
 <= 4 kids · 3 USD · pi parents · <= 12 production lines per conjunct (the node's entries are data, not production lines)
 
 ## Agent Notes
-assigned: director-engine (owner 10:4xZ 09-23 in the director-engine pane: claim the g7.33 cli grammar part as its own subgoal under an umbrella -- G1 config-maxxing, goal:g1.25 -- work it first thing; more spend and more spawning). Verified 09:2xZ: commands.py has list/show/run/json over 25 commands; graphweb.py already serves stdlib http GET endpoints; no second grammar exists.
+assigned: director-engine (owner 09:5xZ 09-23 in the director-engine pane: claim the g7.33 cli grammar part as its own subgoal under an umbrella -- G1 config-maxxing, goal:g1.25 -- work it first thing; more spend and more spawning). Verified 09:2xZ: commands.py has list/show/run/json over 25 commands; graphweb.py already serves stdlib http GET endpoints; no second grammar exists.
