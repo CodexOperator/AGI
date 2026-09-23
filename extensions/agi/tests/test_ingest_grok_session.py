@@ -123,6 +123,31 @@ def test_empty_refused_writes_nothing(tmp_path, capsys):
     assert _node_files(root) == before
 
 
+def test_missing_artifact_refused_writes_nothing(tmp_path, capsys):
+    """A nonexistent path is a NAMED refusal, never a FileNotFoundError
+    traceback (the goal invariant: every ingest writes a node id or a reason)."""
+    root = _project(tmp_path)
+    before = _node_files(root)
+    rc = ingest.main([str(tmp_path / "does-not-exist.jsonl"), "--root", str(tmp_path), *PROV])
+    out = capsys.readouterr().out.strip()
+    assert rc == 2 and out.startswith("refused:")
+    assert _node_files(root) == before
+
+
+def test_nonobject_row_refused_writes_nothing(tmp_path, capsys):
+    """A JSONL row that is not a JSON object (list, null, string, number)
+    refuses by name, never AttributeError."""
+    root = _project(tmp_path)
+    for payload in ("[1,2,3]\n", "null\n", "\"a string\"\n", "42\n"):
+        bad = tmp_path / "nonobj.jsonl"
+        bad.write_text(payload)
+        before = _node_files(root)
+        rc = ingest.main([str(bad), "--root", str(tmp_path), *PROV])
+        out = capsys.readouterr().out.strip()
+        assert rc == 2 and out.startswith("refused:"), (payload, out)
+        assert _node_files(root) == before
+
+
 def test_default_env_supplies_provenance(tmp_path, capsys, monkeypatch):
     """No --actor/--thought-session flags: AGI_ACTOR + AGI_THOUGHT_SESSION
     are used, and the minted node carries BOTH, non-empty."""
