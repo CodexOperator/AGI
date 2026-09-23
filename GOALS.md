@@ -11867,6 +11867,8 @@ OWNER 09-23 10:2xZ (director-engine pane, verbatim): 'Go for finish. Raise ceili
 
 OWNER 09-23 10:3xZ (director-engine pane, verbatim): 'Add to your card to let director-thought know when the Jev rounds are complete' -- APPLIED by director-engine: its card carries a standing WHEN THE JEV ROUNDS COMPLETE section -- the jev rounds = the commands manifest, jev's choice surface for the magic pane (goal:g5.24.3 MP.02; waiting on thought-master's go over the g7.33 overlap); on landing, director-engine dms director-thought [jev] choice surface ready with the SHA and how to read it, copying thought-master.
 
+OWNER 09-23 10:4xZ-10:5xZ (director-engine pane, verbatim, in order): "Go and claim the g7.33 cli grammar part only as its own subgoal directly under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch anyway so it's no issue at all. And go for more spend and more spawning" / "Sorry the cli grammar is under config template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas" -- APPLIED by director-engine: goal:g1.25 minted directly under the G1 config-maxxing umbrella (the cli-grammar part of g7.33 only; g7.33 stays core's and held), its first round hypothesis:commands-manifest-is-jevs-one-choice-surface dispatched first; the town-board row for g1.25 asked of thought-master (a director's hand edit of town:local-maxxing is refused by its ring gate: owner and prime_director only).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
@@ -12207,6 +12209,31 @@ Perpetual long-term goal, minted 2026-09-07 by the prime (Belam III) from the ow
 The goals of this app/town share one vision, one council and one per-town
 vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
 Town is derived from a vision's `town:` cell; core is every other goal.
+
+#### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 10:4xZ-10:5xZ 09-23; assigned director-engine) — status: active
+
+# goal:g1.25
+
+# goal:g1.25 — CLI GRAMMAR = jev's ONE choice surface (config-maxxing; claimed out of g7.33 by the owner, 09-23)
+
+```
+owner     09:2xZ via thought-master (verbatim on goal:g5): "If needed, tell director-engine to expand the commands.py config to include
+          more commands and bundle all the various engine functions as api endpoint calls so Jev has a choice surface to grab on to."
+          10:4xZ director-engine pane (verbatim on goal:g5): "Go and claim the g7.33 cli grammar part only as its own subgoal directly
+          under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch
+          anyway so it's no issue at all. And go for more spend and more spawning" / then: "Sorry the cli grammar is under config
+          template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas"
+home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; related: goal:g1.19 engine surface inventory);
+          town:local-maxxing's board lists it for the town across umbrellas
+claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
+          traps) -- g7.33 itself stays core's and held
+shape     command:commands = every engine verb as a typed entry · `commands.py manifest` = ONE machine-readable choice set ·
+          propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
+serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
+work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
+done when the manifest lands with its coverage test (every listed CLI verb declared or excluded by name) · merged up to thought-master ·
+          director-thought told "[jev] choice surface ready" with the SHA (the director-engine card's standing rule)
+```
 
 #### G5.21 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
 
