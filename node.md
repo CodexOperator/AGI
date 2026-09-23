@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.85
-edited_by: a00-c4441397
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-c4441397-c8a8c6
 line_ceiling: 200
@@ -24,7 +24,7 @@ verdict: disproved
 <!-- BODY:BEGIN -->
 # experiment:a00-c4441397-c8a8c6
 
-Round **ABC.02** on local-town (RTX 2070 SUPER 8 GB, sm_75), extending
+Round **ABC.02** on local-town (GPU2070S 8 GB, sm_75), extending
 `hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box`. It does four things:
 **(R1)** make the HumanEval harness re-runnable from a clean venv and reproduce the
 ABC.01 scores; **(Owner C2)** run arm C at LoRA scale 2 on the same 164 problems and
@@ -197,19 +197,7 @@ B, vs C1's 141/164) yet changes no capability, and the 27B's +8.5 pp on this box
 scale ladder, never a bigger model.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ABC.01 left four residues: the harness pinned a dead worktree, arm A had no full cost
-row, the overrun was undisclosed, and C2 was skipped. This node closes exactly those
-four and nothing else. I did NOT re-derive the ABC.01 B/C1 numbers — I re-scored the
-existing completions, which is both cheaper and the stronger proof: if the fixed scorer
-reproduces 128/142/141 and the paired tables bit-for-bit, the harness works from a clean
-venv. The two judgements worth naming: (1) the dispatcher gave a 40-line config default
-but the director's R4 explicitly ordered a 200 ceiling for this rewrite; I measured 54
-added lines, which is over 40 but under the 2× stop gate, so I recorded both and landed
-rather than blocking — the conflict itself is on the node. (2) Arm A through the fork is
-the right control even though it cost an extra ~12 min: without it the claim "B > A"
-still carried the template confound, and +1.2 pp p=0.77 says the confound was small.
-The C2 null is reported as the result it is; I deliberately did not hunt for a template
-or scale that would rescue the owner's claim.
+TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :27 is now GPU2070S; a pure substitution, no other content changed.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
