@@ -2037,11 +2037,14 @@ def test_g15_rule_with_no_project_root_keeps_the_current_fallback(tmp_path):
     """`assemble(...)` with no `project_root` still resolves the walk-up
     fallback exactly as before: a real g15-lineage node of this repo renders
     the build-order rule with the default path — existing callers unchanged.
-    (The target walks `hypothesis:l4-a-g15-claim-is-a-build-order-not-a-
-    measurement` -> `goal:g15`, which is g15 lineage on disk.)"""
+    (The target walks `hypothesis:parent-brief-derives-wait-exit-codes-from-
+    cli-constants` -> `goal:g15.29.19` -> `goal:g15.29` -> `goal:g15`, g15
+    lineage on disk. The previous target, `hypothesis:l4-a-g15-claim-is-a-
+    build-order-not-a-measurement`, was re-parented to `goal:g6.11` and no
+    longer reaches `goal:g15` — a graph read, not this file's contract.)"""
     text = _text(
         "parent",
-        target="hypothesis:l4-a-g15-claim-is-a-build-order-not-a-measurement")
+        target="hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants")
     assert _G15_RULE in text
 
 
@@ -2448,6 +2451,25 @@ def test_parent_brief_names_every_actionable_wait_code():
     assert "3 = --agent" in flat, "code 3 must name its cause (--agent)"
     assert "4 = zero tier:kid rows" in flat, "code 4 must name its cause"
     assert "NO kid was spawned" in flat, "code 4's action: no kid exists"
+
+
+def test_parent_brief_wait_codes_are_cli_constants_not_literals(monkeypatch):
+    """hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants: the
+    parent brief's wait-code lines are RENDERED from `cli.py`'s named constants
+    -- the timeout included (it was a bare `return 2`) -- so changing a
+    constant changes the brief with no second edit, and every code's ACTION is
+    asserted beside its cause. Red on the pre-fix bytes, where the brief
+    retyped `2`, `3` and `4` as literals and never read `cli` at all."""
+    import cli
+    monkeypatch.setattr(cli, "_WAIT_TIMEOUT", 27)
+    monkeypatch.setattr(cli, "_WAIT_NO_AGENT", 28)
+    monkeypatch.setattr(cli, "_WAIT_NO_KID_ROWS", 29)
+    flat = " ".join(_text("parent", dispatch_py="/x/dispatch.py",
+                          target="hypothesis:y").split())
+    assert "27 = timeout" in flat and "call it again" in flat
+    assert "28 = --agent" in flat and "re-read the manifest" in flat
+    assert "29 = zero tier:kid rows" in flat and "check the spawn" in flat
+    assert "2 = timeout" not in flat, "the brief retyped the literal code 2"
 
 
 def test_kid_brief_does_not_claim_dispatch_always_stamps_the_ceiling():

@@ -116,7 +116,7 @@ def test_wait_timeout_returns_two_and_names_the_agent(tmp_path, monkeypatch, cap
     cli, _man = _fixture(tmp_path, monkeypatch,
                          [{"id": "k1", "tier": "kid", "status": "running"}])
     # deadline already passed: one poll, then the timeout path
-    assert cli.cmd_wait(_args(max_seconds=-1.0)) == 2
+    assert cli.cmd_wait(_args(max_seconds=-1.0)) == cli._WAIT_TIMEOUT
     assert "still running: k1" in capsys.readouterr().err
 
 
@@ -187,7 +187,7 @@ def test_wait_every_heartbeat_line_carries_elapsed(
     monkeypatch.setattr(cli.time, "time", lambda: 1012.0)
     monkeypatch.setattr(cli.time, "monotonic", lambda: 0.0)
     monkeypatch.setattr(cli, "_WAIT_POLL_SECONDS", 0.0)
-    assert cli.cmd_wait(_args(max_seconds=-1.0)) == 2
+    assert cli.cmd_wait(_args(max_seconds=-1.0)) == cli._WAIT_TIMEOUT
     out = capsys.readouterr().out
     assert "k1=running elapsed=12s" in out
     assert "k2=running elapsed=0s" in out  # absent started_at never raises
