@@ -10,21 +10,21 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (15:3xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
+## LIVE STATE + STOPS (16:2xZ 09-23) -- floor -50; no per-round spend cap (owner 14:xZ); SPAWN LIMIT here: <= 8 live rounds
 ````
 ```
-TM GATE   TMM.53 15:28Z: @fe5647b83 NOT landed -- suite on the merged index 8 failed / 6110 passed: 2 NEW reds were mine
-            1 test_launch_memory_cap (PI_BIN now first, the test fed its fake pi via config only) -> EF.46 a00-db124f0c
-            2 test_thought_hygiene (EF.36's kid node quoted the THOUGHT-begin marker twice) -> FIXED by me via write.py sub (52cefca8b)
-          + the trunk's own test_rolslice x4 (SKILL.md heading renamed by the Prime's sweep) -> EF.47 a00-6a6f912b (TM asked)
-          terms carry over: LAND ALL if the suite passes; EF.10's mur after landing; config:brief = the Prime's write after landing
-NEXT TIP  EF.46 + EF.47 + EF.41 + EF.43 + EF.44 (+ EF.45) + the D/E/F mur verdicts -> ONE [merge-up] -> TM gates the same way
-MURS      D btznjjtr0 (EF.20, EF.24, EF.26) · E bas0611mm (EF.29/34/38) · F = EF.41 + EF.43 + EF.44 + EF.45 + EF.46 + EF.47 when landed
-RUNNING   EF.45 jev follow-up round 2 · EF.46 · EF.47
+MERGE-UP  the whole post range after TMM.53: all 3 gate reds FIXED (thought-hygiene node · EF.46 memory-cap test · EF.47 rolslice) ->
+          waiting on murs D btznjjtr0 (EF.20, EF.24, EF.26) · F1 beistwgf0 (EF.41, EF.43, EF.44) · F2 bue2jwcfs (EF.45, EF.46, EF.47);
+          E (EF.29/34/38) DONE 0 demote -> ONE [merge-up] -> TM's suite gate (the Prime: LAND ALL if green)
+CLI       g1.25: 16 of 70 engine CLIs, 135 entries (106 proposable, 25 excluded) · batch 2 = leaf g1.25.3 EF.48 a00-bb479eab (19 CLIs) ·
+          batch 3 = the remaining 35 -> next leaf
+PASS 2    the Prime 16:14Z (after the queue): pass2-0923-residue-batch (54 residue + 3 demote, 21 rounds; KEEP SPLITTING -- sort running)
+          · grid-old-namespace-refilled-and-forked EF.49 a00-f616eccd (refs/grid/node 3807 + refs/grid/local-maxxing 4057 here)
+          · harness-template-emit-refuses-an-unknown-slot EF.50 a00-5e25515d
+AFTER     landing: the EF.10 mur + a note on goal:g7.33 · config:brief = the Prime's write
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them; a parent can
           report "harvest accepted" with NOTHING committed -- always check the loop tip moved
-TRAP      a post merge-up carries the whole post history: every round needs a mur before its first merge-up; run the gate's suite
-          reds locally WITH the seat env (PI_BIN exported) before sending
+TRAP      a post merge-up carries the whole post history: every round needs a mur before its first merge-up; run gate reds WITH the seat env
 ```
 ````
 
