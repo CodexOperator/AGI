@@ -117,6 +117,54 @@ def test_still_exactly_one_adapter_module_for_grok_bot():
     assert matches == ["grok_bot_adapter.py"], matches
 
 
+# ------------------------------------------------- strict handle validation
+
+MALFORMED = [None, "", "   ", 7, 0, True, False, ["%3"], {"pane": []},
+             {"pane": True}, {"pane": False}, {"pane": 7}, {"pane": {}},
+             {"pane": {"pane": "%3"}}, {"pane": None}]
+
+
+def test_malformed_handles_fail_closed_before_any_subprocess(monkeypatch):
+    """Only a non-blank STRING pane token is a held pane. A malformed handle
+    must raise by name, never reach tmux as `-t True` / `-t ['%3']`."""
+    def boom(*a, **kw):
+        raise AssertionError("tmux was reached with a malformed handle")
+
+    monkeypatch.setattr(grok.subprocess, "run", boom)
+    for handle in MALFORMED:
+        with pytest.raises(grok.NoHeldPaneError):
+            grok.pane_send(handle, "x")
+        with pytest.raises(grok.NoHeldPaneError):
+            grok.pane_read(handle)
+        assert grok.has_pane(handle) is False, handle
+
+
+def test_only_a_string_pane_token_is_held():
+    assert grok.held_pane_id("%3") == "%3"
+    assert grok.held_pane_id("  %3  ") == "%3"
+    assert grok.held_pane_id({"pane": "%3"}) == "%3"
+    assert grok.held_pane_id({"pane": " %3 ", "extra": 1}) == "%3"
+    assert grok.has_pane({"pane": "%3"}) is True
+
+
+# ---------------------------------------- ONE shared optional-method accessor
+
+def test_optional_accessor_resolves_present_and_absent():
+    assert adapters.optional(grok, "pane_send") is grok.pane_send
+    assert adapters.optional(grok, "pane_read") is grok.pane_read
+    for name in ("pi", "claude_code", "copilot_cli"):
+        mod = adapters.load(name)
+        assert adapters.optional(mod, "pane_send") is None
+        assert adapters.optional(mod, "no_such_method") is None
+
+
+def test_optional_pane_names_are_declared_once_and_not_required():
+    assert adapters.OPTIONAL_PANE == ("pane_send", "pane_read", "has_pane",
+                                      "held_pane_id")
+    for name in adapters.OPTIONAL_PANE:
+        assert name not in adapters.REQUIRED
+
+
 def test_required_surface_is_unchanged():
     assert adapters.REQUIRED == ("build_command", "child_env", "is_alive",
                                  "restart", "needs_credential")
