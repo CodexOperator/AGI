@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -188,6 +189,42 @@ def test_pane_coherent_fails_open_without_tmux(tmp_path, monkeypatch):
 def test_pane_coherent_fails_open_when_the_seam_is_absent(tmp_path):
     assert SS.pane_coherent({"name": "director-seat", "window": "@7"},
                             "agi-rc", str(tmp_path / "missing")) is None
+
+
+def _fake_tmux(rc, stderr=""):
+    """A `subprocess.run` stand-in answering ONLY tmux list-windows."""
+    def _run(cmd, *a, **k):
+        assert isinstance(cmd, list) and cmd[:1] == ["tmux"], cmd
+        return subprocess.CompletedProcess(cmd, rc, stdout="",
+                                           stderr=stderr)
+    return _run
+
+
+def test_tmux_unreachable_dead_server_vs_missing_session(monkeypatch):
+    """The distinction the fail-open contract turns on: a DEAD SERVER is
+    unreadable (fail open), a live server that merely lacks the session is a
+    real `unoccupied` read (goal:g7.31.2.1)."""
+    monkeypatch.setattr(SS.subprocess, "run",
+                        _fake_tmux(1, "error connecting to /tmp/tmux-1000/"
+                                   "default (No such file or directory)\n"))
+    assert SS._tmux_unreachable("agi-rc") is True
+    monkeypatch.setattr(SS.subprocess, "run",
+                        _fake_tmux(1, "can't find session: agi-rc\n"))
+    assert SS._tmux_unreachable("agi-rc") is False
+    monkeypatch.setattr(SS.subprocess, "run", _fake_tmux(0))
+    assert SS._tmux_unreachable("agi-rc") is False
+
+
+def test_seat_occupation_fails_open_when_the_server_does_not_answer(
+        monkeypatch):
+    """A dead tmux SERVER must read `None` (unknown), never `unoccupied`:
+    the bug the live-tmux probe found (window_path=None, binary present)."""
+    monkeypatch.setattr(SS.subprocess, "run",
+                        _fake_tmux(1, "error connecting to /tmp/tmux-1000/"
+                                   "default (No such file or directory)\n"))
+    row = {"name": "director-seat", "window": "@7", "pid": _LIVE_PID}
+    assert SS.seat_occupation(row, "agi-rc", None) is None
+    assert SS.pane_coherent(row, "agi-rc", None) is None
 
 # ---- READ side: seat_status.seat_occupation (pane + pid) ----------------- #
 

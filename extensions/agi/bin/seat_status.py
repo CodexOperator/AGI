@@ -27,6 +27,7 @@ board it has, exactly as `briefing.py` degrades.
 from __future__ import annotations
 
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -138,6 +139,29 @@ def _seat_fraction(root: Path, name: str):
         return None, "error"
 
 
+def _tmux_unreachable(tmux_session: str) -> bool:
+    """True when NO tmux SERVER answers for `tmux_session` (goal:g7.31.2.1).
+
+    A dead server is "tmux cannot be read at all", the same unknown as a
+    missing binary, so the two readers below fail open on it. A live server
+    that simply has no such session or window is NOT unreachable: that is a
+    real `unoccupied` read, and `_successor_window_id` returning None says
+    so. tmux's own stderr is the only signal that separates them, because
+    `list-windows` exits 1 for both.
+    """
+    if shutil.which("tmux") is None:
+        return True
+    try:
+        p = subprocess.run(["tmux", "list-windows", "-t", tmux_session],
+                           capture_output=True, text=True, timeout=5)
+    except Exception:                                                # noqa: BLE001
+        return True
+    if p.returncode == 0:
+        return False
+    err = (p.stderr or "").lower()
+    return "no server running" in err or "error connecting to" in err
+
+
 def pane_coherent(row: dict, tmux_session: str,
                   window_path: str | None = None):
     """Whether a seat row's pane pin matches LIVE tmux (goal:g7.31.2.1).
@@ -146,12 +170,14 @@ def pane_coherent(row: dict, tmux_session: str,
     for that seat; a STRING naming the drift by seat (a pin tmux does not
     have, or no live window under that name) when it is not; and `None`
     (fail-open, no crash) when tmux cannot be read at all — no binary and no
-    `window_path` seam, or a seam file that is not there. Reuses rotate's ONE
-    derivation `_successor_window_id`, never a second list-windows parse.
+    `window_path` seam, a seam file that is not there, or a server that does
+    not answer. Reuses rotate's ONE derivation `_successor_window_id`, never
+    a second list-windows parse.
     """
-    if window_path is None and shutil.which("tmux") is None:
-        return None
-    if window_path is not None and not Path(window_path).exists():
+    if window_path is not None:
+        if not Path(window_path).exists():
+            return None
+    elif _tmux_unreachable(tmux_session):
         return None
     name = str(row.get("name") or "")
     pin = str(row.get("window") or "")
@@ -177,13 +203,15 @@ def seat_occupation(row: dict, tmux_session: str,
     THIS seat name and — when the row carries a positive `pid` — that pid is
     alive; "pane-drift" when the window does not match (or matches with a dead
     pid); "unoccupied" when no live window answers the seat name; `None`
-    (fail-open) when tmux is unreadable. Returns {state, window, live,
-    pid_alive} from rotate's `_successor_window_id`/`_pid_alive`; the accepted
+    (fail-open) when tmux is unreadable — no binary, an absent seam file, or
+    a server that does not answer. Returns {state, window, live, pid_alive}
+    from rotate's `_successor_window_id`/`_pid_alive`; the accepted
     `registry_dir` is not consulted.
     """
-    if window_path is None and shutil.which("tmux") is None:
-        return None
-    if window_path is not None and not Path(window_path).exists():
+    if window_path is not None:
+        if not Path(window_path).exists():
+            return None
+    elif _tmux_unreachable(tmux_session):
         return None
     name = str(row.get("name") or "")
     pin = str(row.get("window") or "")
