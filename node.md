@@ -25,7 +25,7 @@ verdict: proved
 ## Experiment
 
 SM.24b clause (3) LATCH — BUILD ONLY. The once-per-seating hook latch is
-re-keyed for non-prime posts (goal:g15.25 /
+re-keyed for non-prime posts (goal:g6.47 /
 hypothesis:l4-non-prime-posts-are-generation-less-on-every-surface-...).
 
 **Changed latch key (file:line):** `extensions/agi/hooks/rotation_alert.py`
