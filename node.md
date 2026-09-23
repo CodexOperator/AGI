@@ -3,13 +3,13 @@ id: hypothesis:a00-38cc46f7-499724
 mint_id: 596658d0793f47ae9a60990f2310bbb5
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 32379b61d90945a6
 season: 1
 status: pending
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A00 38cc46f7 499724
 ---
 # hypothesis:a00-38cc46f7-499724
