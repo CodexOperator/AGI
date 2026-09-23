@@ -6,7 +6,7 @@ parents:
   - hypothesis:rolslice-role-sections-survive-a-heading-rename
 next_edges: []
 confidence: 0.9
-edited_by: a00-b290d20c
+edited_by: a00-6a6f912b
 evidence_runs:
   - experiment:a00-b290d20c-beffb7
 loop: hypothesis:rolslice-role-sections-survive-a-heading-rename@s2
@@ -73,3 +73,18 @@ measured on the real SKILL.md. Existing `test_rolslice.py` (the 4 reds) is green
 
 ## Agent Notes
 rolslice.py now keys role sections on stable_key(heading) (heading text minus trailing goal id) for both the map and the actual headings; no second full-text literal remains; test_rolslice_rename.py renames a fixture heading's goal id and still finds the section, existing test_rolslice.py 4 reds now green
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Review by parent a00-6a6f912b (EF.47), accepted with one caveat.
+
+Diff read (not the result file): extensions/agi/bin/rolslice.py 36+/11-, new extensions/agi/tests/test_rolslice_rename.py 66 lines. The fix adds stable_key() (re \s*\(`?goal:[^)`]+`?\)\s*$) and applies it to BOTH the map keys and the actual `## ` headings; ROLE_SECTIONS/CORE keys no longer carry a goal id; the loud missing-ValueError stays.
+
+Parent-run negative probes (one per claim conjunct, on real bytes):
+  P1 class=wire conjunct=1 -- all CORE/ROLE_SECTIONS keys pass stable_key unchanged; the only goal-id strings left in rolslice.py are the docstring/comment explaining the sweep and the regex -> HELD.
+  P2 class=gate conjunct=2 -- copy the REAL skills/agi/SKILL.md, rename the write.py heading id g4.19 -> g77.77; build_slice for kid/parent/director still carries 'Every node edit goes through `write.py`' -> HELD.
+  P3 class=gate conjunct=3 -- load the PRE-FIX rolslice (git show adab78a2d9:extensions/agi/bin/rolslice.py) and run it on the kid's own fixture (id-free keys, headings id g4.19): raises ValueError for kid/parent/director -> the committed test IS red on the pre-fix bytes -> HELD.
+Tests after the change: test_rolslice*.py + test_brief*.py = 192 passed, 1 failed (test_brief.py::test_g15_rule_with_no_project_root_keeps_the_current_fallback = the KNOWN core R3 red, not this round).
+
+CAVEAT (why the verdict still stands): P3's red is BROADER than the target bug -- the fixture appends a goal id to EVERY heading, including CORE headings the pre-fix map never carried an id for, so pre-fix already fails on 'CLI' before reaching the write.py literal. P2 on the real SKILL.md isolates the actual claim (only the write.py id renamed) and holds, so the proof is real; a tighter fixture would id only the write.py heading.
+WIRE CAVEAT (not a defect of this node): a repo-wide grep finds NO consumer of rolslice.build_slice outside its own tests and CLI -- the slicing mechanism is not yet wired into brief assembly, so this fix is correct but currently unexercised by the loop.
+<!-- THOUGHT:END -->
