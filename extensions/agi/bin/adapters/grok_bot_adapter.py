@@ -160,3 +160,57 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+# --- OPTIONAL pane surface (`goal:g7.32.3`), NOT in `adapters.REQUIRED`: a
+# caller feature-detects with `hasattr(mod, "pane_send")`, so a pane-free
+# harness (pi, claude_code, copilot_cli) simply omits these. Every method
+# WRAPS a handle the seat already holds -- none creates, attaches or re-owns a
+# pane (durable hold is `goal:g7.31.1`) -- and with no held pane fails closed
+# with `NoHeldPaneError` BEFORE any tmux call, never hanging.
+class NoHeldPaneError(RuntimeError):
+    """A pane method was called with no held pane (goal:g7.32.3)."""
+
+
+def held_pane_id(handle) -> str:
+    """The pane token in a held handle: a pane-id string or {"pane": ...}."""
+    if isinstance(handle, str):
+        pane = handle.strip()
+    elif isinstance(handle, dict):
+        pane = str(handle.get("pane") or "").strip()
+    else:
+        pane = ""
+    if not pane:
+        raise NoHeldPaneError(
+            "no held pane: pass the handle the seat holds, e.g. {'pane': '%3'}; "
+            "this adapter never attaches one (goal:g7.31.1 owns the hold)"
+        )
+    return pane
+
+
+def has_pane(handle) -> bool:
+    """Feature-detectable predicate: does this handle name a held pane?"""
+    try:
+        held_pane_id(handle)
+    except NoHeldPaneError:
+        return False
+    return True
+
+
+def pane_send(handle, text: str, *, enter: bool = True) -> None:
+    """Type `text` into the already-held pane (wraps `tmux send-keys`)."""
+    pane = held_pane_id(handle)
+    keys = ["tmux", "send-keys", "-t", pane, "--", str(text)]
+    if enter:
+        keys.append("Enter")
+    subprocess.run(keys, check=True)
+
+
+def pane_read(handle, *, lines: int = 200) -> str:
+    """Return the held pane's visible text (wraps `tmux capture-pane`)."""
+    pane = held_pane_id(handle)
+    proc = subprocess.run(
+        ["tmux", "capture-pane", "-p", "-t", pane, "-S", f"-{int(lines)}"],
+        check=True, capture_output=True, text=True,
+    )
+    return proc.stdout
