@@ -36,6 +36,7 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 ## Live state (09:3xZ 09-23)
 ```
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
+mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids (TMM.47; after the CFG merge-up + pass 2) · round shape ASKED 09:4xZ: R1 served + HumanEval (one GPU round) · R2 typed-round row BLOCKED: no pi provider for the fork's :8899
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
 batch A  grammar round CANCELLED (director-engine builds one jev manifest) · T.01 + S.01 wait on that manifest · no jev round until the TypeSafe key reaches kids
 G.01     held @109bcb618 · research-review rr-mp02-g01: DEMOTE rec (dedup leak 282 -> 243 unique; synthesized gold) · dedup lifts blend top-1 0.4539 -> 0.5391 · disposition ASKED, open
