@@ -11,17 +11,16 @@
 | ids | renumber 09-23 (mint ids kept): g14.11->g5.27 (.1 battery) · g14.16->g5.31 · g14.15->g5.30 · g14.14->g7.33 (parked) · g14 stays |
 | board | town:local-maxxing trajectory_standin, thought-master writes it; my rows ride the [merge-up] |
 
-## §1 Plan -- TMM.37 (08:27Z; owner 08:3xZ: ask thought-master first)
+## §1 Plan -- TMM.37-41 (ask thought-master first; an owner order in my pane: act, then tell)
 ```
-protocol  no new node · no dispatch · no config edit without thought-master's go (an owner order in my pane outranks: act, then tell) · one line per ask: what · why · cost · wall
-batch A   magic pane, 3 sequential rounds under MP.02 (goal:g5.24.3 -> hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call); ONE merge-up after S.01
- ⏳ MP02-G.01  cli-grammar.json (pi-local parent)   LIVE a00-0a762b7a
- ⬜ MP02-T.01  held-out set, >= 100 real segments, pi deepseek, cap 1, wall 120 -- send the dispatch line when G.01 lands, dispatch on GO
- ⬜ MP02-S.01  suggester (jev, 0 USD), top-1/top-5 vs majority baseline + latency   needs G + T
-batch B   ✅ SWR-RS.01 (B no fire · C2 fires every seed) · ⏳ C2 mur mur-director-thought-2 · next step (mur on RS.01? merge-up?) ASKED 08:28Z
-dropped   goal:g5.24.4 draft (TMM.37 ASK 1: no new goal, home = g5.24.3 -> MP.02) -- never committed, no grid ref -> file discarded 08:3xZ
-guards    nothing under extensions/ · orders wall 120 min on every paid round · no pi-local round live across 11:41Z
-owner     08:4xZ CONFIG-MAX: Rules item 13 in agent-prompt.md (23663947a) · pass = CFG.01 on hypothesis:lm-every-experiment-path-is-a-config-variable (owner order outranks the ask-first protocol: act, then tell)
+batch B   ✅ SWR-RS.01 (C2 fires every seed · B no fire) · ✅ C2 mur accept_with_residue · ⏳ RS.01 mur (mur-director-thought-2)
+          after the RS.01 mur: TMM.38(2) deviation THOUGHT on a00-1864ce6e · TMM.38(3) letter_frequency floor notes on B, C2, gap_table.md · TMM.39(a) gap_table.md b/c labels to scorer.py · TMM.41 C2's 3 residues in place -> ONE batch-B merge-up
+batch A   G.01 HELD on its loop branch @109bcb618 (off-scope, parent overflowed, unreviewed) -> ⏳ research-review rr-mp02-g01 (propose-only)
+          then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
+          then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
+owner     ⏳ CFG.01 a00-e9111187 config-max pass (hypothesis:lm-every-experiment-path-is-a-config-variable) · Rules item 13 in agent-prompt.md (23663947a)
+done      TMM.39 (b)(c)(d) 9755735e0 · TMM.40 a00-e51d276e pending 70939506c · TMM.41 slot finding noted · g5.24.4 draft discarded
+guards    nothing under extensions/ (except the owner-ordered item 13) · orders wall 120 on paid rounds · no pi-local round live across 11:41Z · no multi-kid round under a pi-local parent
 ```
 
 ## §2 Landed
@@ -34,11 +33,10 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 
 ## §3 🔴 Where it stops
 ```
-08:3xZ 09-23  TMM.37 applied (g5.24.4 discarded) · waiting: G.01 to land, and thought-master's answer on batch B's next step
-LIVE   MP02-G.01 a00-0a762b7a · pi-local 9B parent · cap 0
-LIVE   C2 mur agi-director-thought-swr-c2-02 · run-key mur-director-thought-2
-next   G.01 lands -> harvest (merge, read, byte-check) -> send thought-master the T.01 dispatch line (what · why · cost · wall) -> dispatch ONLY on go
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-MP02-G.01/a00-0a762b7a/agent.json'))['status'])"
+08:5xZ 09-23  LIVE: RS.01 mur (agi-director-thought-swr-rs-01) · research-review rr-mp02-g01 (agi-director-thought-rr-mp02-g01) · CFG.01 a00-e9111187 (cap 1)
+ASKED  thought-master 08:5xZ: where to record G.01's deviation THOUGHT (MP.02 vs the held kid nodes)
+next   RS.01 mur lands -> batch-B edits -> ONE batch-B merge-up · rr-mp02-g01 lands -> read, report, grammar dispatch line to thought-master · CFG.01 lands -> harvest, report
+exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-swr-rs-01 agi-director-thought-rr-mp02-g01
 window no pi-local round live across the Prime pass-2 (11:41Z)
 ```
 
