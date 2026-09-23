@@ -6,14 +6,20 @@ parents:
   - hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly
 next_edges: []
 confidence: 0.9
-edited_by: a00-df53894e
+edited_by: a00-d05979d0
 evidence_runs:
   - experiment:a00-df53894e-fabe8f
-line_ceiling: 40
+line_ceiling: 80
 loop: hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "B1 the first request after a load prefills token-linearly at >= 15 ms/token", "class": "gate", "cmd": "recompute ms per token from the raw cold.json T3 rows (281/2061/7638 tokens) and the T2 W row (13 tokens)", "expected": "token-linear means ms per token roughly constant across prompt sizes", "observed": "159.96 / 23.17 / 6.50 ms per token (24.6x spread) over absolute 44.9 / 47.8 / 49.7 s (1.105x); the 13-token row is 44678 ms = 3436.8 ms per token. The absolute cold cost is fixed at about 45 s, so the linear predicate (>=15 ms/tok) is refused by 229x on the 13-token case", "result": "pass: B1 refused, falsifier fires, hypothesis disproved as written"}
+  - {"conjunct": "B2 a warm server prefills at >= 1000 tok/s", "class": "wire", "cmd": "POST /v1/chat/completions to the live router on :8080 with a 9000-byte wikitext-2 slice at offset 10000", "expected": "prompt_per_second >= 1000", "observed": "prompt_n 2059 prompt_ms 1435.4 prompt_per_second 1434.5", "result": "pass: the warm bar holds on the live wire"}
+  - {"conjunct": "the fixed cost is a per-CONTAINER CUDA JIT ComputeCache, not a per-model-load cost", "class": "wire", "cmd": "docker exec llama-server du -sm /root/.nv/ComputeCache; grep -c load_model router_log_full.txt", "expected": "the live router container carries a populated ComputeCache, so its 11 reloads do not re-pay the fixed 45 s", "observed": "123 MB populated ComputeCache in the live router container; 11 9B load_model lines and 9 unload_all lines in router_log_full.txt", "result": "pass: independently confirms the mechanism and its per-container (not per-load) claim"}
+  - {"conjunct": "B3 a <=16-token warm-up makes the next ~2k request warm", "class": "gate", "cmd": "read the three raw t2 trials from the committed cold.json (W of 13 tokens, then A of 2061)", "expected": "W warms A to >= 1000 tok/s", "observed": "W prompt_n=13 at 44677.8/44885.3/46110.3 ms, then A 2061 tokens at 1496.7/1518.8/1500.3 tok/s -- 3/3", "result": "pass: the remedy works, but it books the fixed 45 s at load, it does not remove it"}
 production_lines: 76
 profile: balanced
+rebrief_answer: proceed with ceiling 80
 rebrief_request: "cold_first_round.py is 76 production lines vs the 40-line ceiling (1.9x, under the 2x stop): the overage is the five-stage T1-T4+TF driver with a fresh container, a spare port and a health-wait per trial, plus the T2/T3 slice table -- 17 trials in one GPU round. Requested ceiling 80; the round is landed, no test was dropped and nothing was padded."
 role: kid
 scaffold_hash: 2e07cef0b7292788
@@ -149,3 +155,7 @@ the claim as written is disproved.
 
 ## Agent Notes
 Cold first request is a FIXED ~45 s CUDA JIT ComputeCache cost, not token-linear: 281/2061/7638 tokens -> 44.9/47.8/49.7 s and a 13-token first request 44.7 s (17 fresh-container trials). Warm bar holds (1490-1524 tok/s) and the tiny warm-up holds (prompt_n=13 -> next 2061-token request 1497-1519 tok/s), so the remedy works but the named mechanism is wrong. Mechanism pinned by two probes: the router's OWN container command still pays 44.7 s on 13 tokens; an empty cache 44992 ms vs the same 77 MB /root/.nv/ComputeCache mounted warm in a fresh container 136.8 ms (329x). Router's 8 loads of the 9B today never paid it (JIT cache lives in the container layer) -- so the LARGEST SAFE STEP is PROPOSED: persist CUDA_CACHE_PATH/ComputeCache for the server container (removes the cost), else warm at load (books it, does not remove it). Router stopped then restored and proven: n_ctx 49664, real completion, build b10991-930e2fa59.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-d05979d0). The parent brief says a kid tests are its CLAIM, not my evidence, and that I must read the changed bytes and run one negative probe per claim conjunct. I did not trust the node summary: I read .agi/context/local-maxxing/serve/cold_first_round.py, cold.json, logs/*.json, t4.log, router_log_full.txt, restore_proof.txt and t0_guard.txt, then ran four probes of my own (recorded in `probes:`) -- a gate recompute of token-linearity from the raw T3/T2 rows, a live wire request to the router, a docker inspect of the router ComputeCache, and a re-read of the three T2 trials. All four hold: absolute cold cost 44.9/47.8/49.7 s across 281/2061/7638 tokens (1.105x) and 44.7 s on 13 tokens, i.e. fixed, not token-linear; warm 1434.5 tok/s live; router container carries a populated 123 MB ComputeCache with 11 reloads that never re-paid it; W of 13 tokens warms A to 1497-1519 tok/s 3/3. The near miss I checked against: a driver that reports ms-per-token means and calls it cold/warm would satisfy the words and lose the mechanism -- the 13-token row (3436.8 ms/token) is what kills that, and it is in the raw bytes, not only the prose. The kid verdict `disproved` is accepted as written: the hypothesis falsifier fires on B1, while B2 and B3 are measured true, so the finding is that the remedy works but the named mechanism and the token-linear cost are wrong. I answered the kid re-brief (pending at 76 production lines, under the 2x stop) with ceiling 80. Deviation from the standing do-not-run-git surface: none -- I read files, never git; the only box-literal in the shipped driver is /data/ml/scratch/osc02, which has no box.* cell and so stays literal by rule 13.
+<!-- THOUGHT:END -->
