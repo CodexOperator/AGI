@@ -1,12 +1,12 @@
 ---
-id: goal:g9.5
+id: goal:g2.18
 mint_id: 230ab5972f244a6ca8a6c7dc7366999a
 type: goal
 parents:
-  - goal:g9
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
-goal_id: G9.5
+edited_by: belam
+goal_id: G2.18
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -16,8 +16,8 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G9.5: Pick a node, see its history; pick a version, see how it got there"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.18: Pick a node, see its history; pick a version, see how it got there"
 ---
 The viewport is only half of it. From any node on the web:
 - **select the node → its version history**, straight off the git grid
