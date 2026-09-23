@@ -6,10 +6,14 @@ parents:
   - hypothesis:a00-aca0a3bf-e311c3
 next_edges: []
 confidence: 0.75
-edited_by: a00-aca0a3bf
+edited_by: a00-5c79cef4
 evidence_runs: []
 line_ceiling: 40
-probes: []
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "grep -nwiE 'is_ssh|is_mesh|ssh|mesh' extensions/agi/bin/send.py; sed -n '2178p' extensions/agi/bin/send.py", "expected": "no ssh/mesh symbol in send.py; the only topology branch is boxes.row_is_local gating the local wake", "observed": "grep: NONE. 2178: if row is not None and not boxes.row_is_local(root, row):", "result": "pass"}
+  - {"conjunct": 2, "class": "wire", "cmd": "send.py send throwaway-parent2 'parent round trip' -> send.py read throwaway-parent2; _build_nudge_token('throwaway-parent2')", "expected": "body round-trips through the inbox; wake token is a fixed line, never the body", "observed": "send exit 0; read exit 0 with body; token='[agi-nudge] unread for throwaway-parent2: send.py read throwaway-parent2'", "result": "pass"}
+  - {"conjunct": 3, "class": "gate", "cmd": "grep -nE 'mail_poll|nudge_sweep|services:' .agi/nodes/.geometry/crons.md", "expected": "mail moves only on cron ticks; no long-running message daemon", "observed": "mail_poll every_mins 5, nudge_sweep every_mins 2; services: only agi-alarms-*/agi-reaper (heal), no message router", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "send.py send belam 'x'  vs  send.py --comms-root <scratch> send --to belam 'x'", "expected": "both refuse by name (target invariant: authority verified against the graph, not a string)", "observed": "positional exit 3 REFUSED; --to exit 0 [delivered] belam. _prime_dm_refusal called only on positional path (send.py:5400); send_dm guards literal PRIME not resolved seat name (send.py:3879)", "result": "counterexample"}
 production_lines: 0
 season: 2
 title: "send.py transport surface measured: zero ssh/mesh branch, one verb set, cron-only mail — and a live --to Prime-gate bypass"
