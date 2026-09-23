@@ -271,6 +271,45 @@ def test_live_config_peers_still_resolve(live_cfg_raw):
         assert row["adapter"] == adapter
 
 
+# ------------------------------------------------- optional pane surface
+# goal:g7.32.3: this adapter carries the pane names; a harness without panes
+# omits them, so callers feature-detect on PANE_METHODS.
+
+
+def test_pane_surface_is_declared_and_callable():
+    assert set(grok.PANE_METHODS) == {"pane_attach", "pane_send",
+                                      "pane_read", "pane_present"}
+    for name in grok.PANE_METHODS:
+        assert callable(getattr(grok, name)), name
+
+
+@pytest.mark.parametrize("name", ["pane_present", "pane_attach",
+                                  "pane_read", "pane_send"])
+@pytest.mark.parametrize("pane", [None, ""])
+def test_optional_method_without_pane_fails_closed(monkeypatch, name, pane):
+    """The whole falsifier: no held pane -> PaneNotHeld, and tmux is never
+    reached (so no hang, no fallback pane, no sleep)."""
+    calls = []
+
+    def recorder(*a, **k):
+        calls.append((a, k))
+        raise AssertionError("tmux reached without a held pane")
+
+    monkeypatch.setattr(grok.subprocess, "run", recorder)
+    fn = getattr(grok, name)
+    args = (pane, "text") if name == "pane_send" else (pane,)
+    with pytest.raises(grok.PaneNotHeld):
+        fn(*args)
+    assert calls == []
+
+
+def test_panes_are_omitted_from_paneless_harnesses():
+    for harness in ("pi", "claude_code", "copilot_cli"):
+        mod = adapters.load(harness)
+        for name in grok.PANE_METHODS:
+            assert not hasattr(mod, name), (harness, name)
+
+
 def test_dispatch_still_has_zero_grok_hits():
     """The whole point of `goal:g4.6`: adding a harness edits no dispatch code."""
     dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
