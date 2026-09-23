@@ -1,0 +1,57 @@
+{
+ "fits": [
+  {
+   "rep": 0,
+   "ctk": "q8_0",
+   "ctv": "q4_0",
+   "n_ctx": 92416,
+   "ratio": 1.8608247422680413
+  },
+  {
+   "rep": 1,
+   "ctk": "f16",
+   "ctv": "f16",
+   "n_ctx": 49664,
+   "ratio": 1.0
+  },
+  {
+   "rep": 2,
+   "ctk": "q8_0",
+   "ctv": "q4_0",
+   "n_ctx": 92416,
+   "ratio": 1.8608247422680413
+  },
+  {
+   "rep": 3,
+   "ctk": "f16",
+   "ctv": "f16",
+   "n_ctx": 49664,
+   "ratio": 1.0
+  },
+  {
+   "rep": 4,
+   "ctk": "q8_0",
+   "ctv": "q4_0",
+   "n_ctx": 92416,
+   "ratio": 1.8608247422680413
+  }
+ ],
+ "fa_ab": {
+  "split_fa1": {
+   "tg64@16384": [
+    48.76,
+    0.79,
+    3
+   ]
+  },
+  "split_fa0": {},
+  "f16_fa0": {
+   "tg64@16384": [
+    34.01,
+    21.94,
+    3
+   ]
+  }
+ },
+ "_note_reps": "rows produced by probe2.py ran llama-bench -r 3; their third element was first written as 5 by a hardcoded parse() -- corrected to 3 at thought-master's TMM.55 (a half-width built on n=5 would be too narrow)"
+}

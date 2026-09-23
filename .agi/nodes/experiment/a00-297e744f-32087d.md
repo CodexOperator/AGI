@@ -1,0 +1,207 @@
+---
+id: experiment:a00-297e744f-32087d
+mint_id: 75803005382345d4a763a0d9df467b2f
+type: experiment
+parents:
+  - hypothesis:lm-served-9b-q8-kv-fits-1p8x-context-at-half-pct-nll
+next_edges: []
+confidence: 0.9
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-297e744f-32087d
+line_ceiling: 150
+loop: hypothesis:lm-served-9b-q8-kv-fits-1p8x-context-at-half-pct-nll@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "T1 quality: q8_0 delta-NLL <= 0.5 pct of NLL_f16 (q4_0 <= 2 pct)", "class": "wire", "cmd": "recompute delta-NLL from the four raw llama-perplexity logs (Final estimate lines) independently", "expected": "f16 7.1798 twice; q8_0 7.1753; q4_0 7.1903", "observed": "7.1798 / 7.1798 / 7.1753 / 7.1903 -> -0.0318 pct (q8_0) and +0.0741 pct (q4_0) of NLL_f16", "result": "pass"}
+  - {"conjunct": "T2 capacity: q8_0 n_ctx >= 1.8x f16, q4_0 >= 3x", "class": "gate", "cmd": "read n_ctx_slot from the three raw fit load logs; divide against f16", "expected": "f16 49664 (reproduces the router slot); q8_0 and q4_0 to be compared", "observed": "49664 / 75520 = 1.5206x / 118784 = 2.3918x -- both below their bar; falsifier fires", "result": "pass"}
+  - {"conjunct": "served model and wikitext identity", "class": "gate", "cmd": "sha256sum served GGUF, OSC.02 scratch copy, wiki.test.raw", "expected": "both GGUFs 03b74727...52b7e8; wiki.test.raw ff7edb56/173c87a5 family", "observed": "both GGUFs 03b74727a860...52b7e8; wiki.test.raw 173c87a53759...7dd08; zip ef7edb56...", "result": "pass"}
+  - {"conjunct": "router restored (never-list)", "class": "wire", "cmd": "docker start llama-server; curl :8080/v1/chat/completions and /slots?model=Qwen3.5-9B-Q4_K_M", "expected": "model Qwen3.5-9B-Q4_K_M answers with >0 completion tokens; slot n_ctx 49664", "observed": "model=Qwen3.5-9B-Q4_K_M completion_tokens=10; slot n_ctx=49664 is_processing=false; container Up (healthy)", "result": "pass"}
+  - {"conjunct": "rule 13 paths wired to this checkout", "class": "auth", "cmd": "paths.get_local(kv_format_out_dir); paths.get_local(no_such_key_xyz)", "expected": "checkout-local path; undefined key refused by name", "observed": ".../datasets/kv-format/2026-09-23 ; KeyError paths.local_maxxing.no_such_key_xyz is not defined", "result": "pass"}
+  - {"conjunct": "node stated cause: a single constant non-KV p caps the ratio", "class": "gate", "cmd": "invert the (b+p) model per type from the measured n_ctx; test whether one p reproduces both ratios", "expected": "one p reproduces both the q8_0 and the q4_0 ratio", "observed": "q8_0 implies p=12095 B/token, q4_0 implies p=7707 B/token; p=12096 predicts q4_0 2.105x vs measured 2.392x", "result": "fail: the constant-p decomposition is refuted; the measured capacity ratios stand, the prose cause was corrected by the parent through write.py"}
+production_lines: 116
+profile: balanced
+role: kid
+scaffold_hash: 51cce989678c8dfe
+season: 2
+title: "The served 9B's KV cache in q8_0 fits 1.52x the f16 context (75,520 vs 49,664 tokens at the router's --fit on) at -0.032 pct NLL, and q4_0 2.39x at +0.074 pct: both quality bars pass by 16x/27x, both capacity bars (1.8x / 3x) fail, so the claim is disproved"
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-297e744f-32087d
+
+## Experiment
+
+**Question (T0-T3 of the parent hypothesis).** On the served `Qwen3.5-9B-Q4_K_M`, does the KV
+cache in q8_0 fit >= 1.8x the f16-KV context in the 8 GB card at <= 0.5 pct of the baseline NLL on
+wikitext-2 (q4_0: >= 3x at <= 2 pct)?
+
+**T0 guard (2026-09-23T12:26:56Z).** `spawn_budget.py status` = 3/30 live, none pi-local;
+`GET :8080/slots?model=Qwen3.5-9B-Q4_K_M` = `n_ctx 49664, is_processing false`; host `MemAvailable`
+9082 MB >= 2 GB. Then `docker stop llama-server` (GPU freed from 6730 MiB to 1 MiB). RAM sampled
+through the round: 9153 MB at script start, 8644-9460 MB per type at each fit, never near 2 GB.
+
+**Router args recorded BEFORE the stop** (`datasets/kv-format/2026-09-23/router_args.json`; from
+`GET :8080/v1/models` -> `status.args`, cross-checked against `/proc/<pid>/cmdline`):
+
+```
+/app/llama-server --cache-reuse 8 --host 127.0.0.1 --jinja --port 47155 --alias Qwen3.5-9B-Q4_K_M \
+  --fit on --model /models/Qwen3.5-9B-Q4_K_M.gguf --parallel 1          (n_ctx at record: 49664)
+router container: --host 127.0.0.1 --port 8080 --models-dir /models --models-max 1 --fit on --jinja -np 1 --cache-reuse 8
+```
+
+T2 reuses these verbatim; only `--port` (spare 18081/18082/18083) and the in-container `--model` path
+change, plus the added `-fa on -ctk T -ctv T`.
+
+**Inputs.** Served model `/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf` sha256
+`03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8`; the OSC.02 scratch copy
+`/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf` was verified byte-identical (same sha256) and is what
+the containers mount. Nothing was written to any model file. wikitext-2-raw test from the OSC.02
+checkout; `wikitext-2-raw-v1.zip` sha256 `ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11`
+(matches the ordered value), `wiki.test.raw` sha256 `173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08`.
+
+**Method** -- one driver, `.agi/context/local-maxxing/kv/kv_format_round.py`, image
+`ghcr.io/ggml-org/llama.cpp:full-cuda` (llama.cpp 0.4.1-dev, build 11058); the image's own
+`FA_QUANTS` line lists `q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16`, so flash attention supports both KV
+types used. Per type T in f16 / q8_0 / q4_0:
+
+- **T1 quality** -- `llama-perplexity -m <gguf> -f wiki.test.raw -c 512 --chunks 40 -ngl 99 -fa on
+  -ctk T -ctv T --seed 42 -t 8 --no-warmup`; f16 run twice for determinism.
+- **T2 capacity** -- `llama-server` with the recorded router args `--fit on --parallel 1
+  --cache-reuse 8 --jinja` + `-fa on -ctk T -ctv T`, spare port, one slot; the fitted context is the
+  load log's `n_ctx_slot = N`.
+- **T3 speed** (recorded, not a verdict input) -- `llama-bench -ngl 99 -fa 1 -ctk T -ctv T -p 0 -n 64
+  -d 16384 -r 2`, after one discarded warm-up run.
+
+**Deviation, recorded:** the orders allow "`GET /props` or the load log". `/props` is unreachable
+here -- the router's args bind `--host 127.0.0.1`, so a `-p` mapping DNATs to the container IP, not
+its loopback (measured: the mapped port answers nothing while the server logs `listening`). The load
+log's `n_ctx_slot` was used, and it is the same field the router reports through `/slots`.
+
+## Results -- T1 quality (NLL_f16 = ln(7.1798) = 1.971272)
+
+| T | PPL | delta-NLL | delta-NLL / NLL_f16 | secs |
+|---|---|---|---|---|
+| f16 | 7.1798 | 0.000000 | 0.0000 pct | 86 |
+| f16 (run 2) | 7.1798 | 0.000000 | 0.0000 pct | 84 |
+| q8_0 | 7.1753 | -0.000627 | **-0.0318 pct** | 87 |
+| q4_0 | 7.1903 | +0.001461 | **+0.0741 pct** | 88 |
+
+f16 is bit-identical across the two runs. q8_0 comes out *below* f16 (a negative delta-NLL), i.e.
+inside run-to-run determinism-improving quantisation error; q4_0 costs 0.0741 pct. **Both are far
+inside their quality bars** (0.5 pct and 2 pct) -- by 16x and 27x.
+
+Note the baseline shift against OSC.02: with `-fa on` the f16 PPL is 7.1798, vs 7.1783 with `-fa off`
+in OSC.02. The fa-on number is the right denominator here, since flash attention is the flag the
+claim bundles with the cache type.
+
+## Results -- T2 capacity (`--fit on`, one slot, the router's args)
+
+| T | fitted n_ctx | ratio to f16 | GPU used | card total |
+|---|---|---|---|---|
+| f16 | **49,664** | 1.0000x | 6722 MiB | 8192 MiB |
+| q8_0 | **75,520** | **1.5206x** | 6712 MiB | 8192 MiB |
+| q4_0 | **118,784** | **2.3918x** | 6714 MiB | 8192 MiB |
+
+**The f16 figure reproduces the router's own slot exactly** -- the router's live `/slots` reports
+`n_ctx 49664`, and the same figure came back from the standalone f16 load. The method is calibrated
+against the thing it is trying to move.
+
+Every fitted server settles at ~6712-6722 MiB of 8192 MiB, i.e. it leaves ~1470 MiB free: `--fit`'s
+default margin is `--fit-target 1024` MiB, plus ~450 MiB unclaimed. The fitted context is therefore
+margin-bound, not card-bound.
+
+**Margin scan (extra, session-scratch probes `gpu_fit_probe{,2,3}.sh`, numbers in
+`fit_margin_probe.json`).** Same router args, `-fitt` swept:
+
+| T | fitt 1024 | 768 | 512 |
+|---|---|---|---|
+| f16 | 49,664 | 57,600 | 65,536 |
+| q8_0 | 75,520 | 87,552 | 99,328 |
+| q4_0 | 118,784 | -- | 156,416 |
+
+q8_0/f16 = 1.5206 / 1.5200 / 1.5156; q4_0/f16 = 2.3918 / 2.3867. **The type ratio is
+margin-independent** -- the margin is a constant subtracted before a per-token division. At `-fitt
+256` f16 and q8_0 fall back to the 4096 minimum while q4_0 reaches 167,168; f16 at `-fitt 512`
+reaches 65,536, so that is a fit fallback, not a card ceiling, and it does not disturb the ratio
+above. The margin is a separate lever (f16's own context moves 1.00x -> 1.32x without touching the
+cache type), not something the KV format buys.
+
+## Results -- T3 decode speed (recorded, not a verdict input)
+
+`llama-bench`, same depth for all three, after a warm-up:
+
+| T | tg64 @ d16384 (tok/s) |
+|---|---|
+| f16 | 58.07 +/- 0.92 |
+| q8_0 | 37.91 +/- 24.29 |
+| q4_0 | 37.12 +/- 23.74 |
+
+Quantised KV costs ~35 pct of decode throughput at this depth. The +/- on the quantised rows is wide
+(2 reps on one laptop GPU); treat these as recorded, not precise.
+
+## Verdict -- DISPROVED (both cache types)
+
+The parent's falsifier is an OR over two conjuncts. **Quality passes with room to spare; capacity
+fails.**
+
+- **q8_0: DISPROVED.** 0.0318 pct of NLL_f16 (bar 0.5 pct, and the sign is negative -- it measured
+  *better* than f16), but 75,520 / 49,664 = **1.5206x < 1.8x**. The capacity conjunct fires.
+- **q4_0: DISPROVED** at its own bar. 0.0741 pct (bar 2 pct) but 118,784 / 49,664 = **2.3918x < 3x**.
+
+**The measured trade, as the falsifier asks for it.** q8_0 KV on this model buys **+52.1 pct context
+(49,664 -> 75,520 tokens) for -0.0318 pct NLL (i.e. free, quality-wise), at 0.65x decode speed
+(58.07 -> 37.91 tok/s at depth 16,384)**. That is a real lever, just not the 1.8x one claimed.
+
+**Why the byte arithmetic (1.88x predicted) does not arrive.** Fitting a constant non-KV per-token
+cost `p` in `n_ctx_T = (V - M) / (b_T + p)`, with `b_f16 = 32,768 B`, `b_q8_0 = 17,408 B`,
+`b_q4_0 = 9,216 B` per token: the q8_0 point `(32768 + p) / (17408 + p) = 1.5206` solves to
+p = 12,096 B/token. That single p does NOT reproduce the q4_0 ratio -- it predicts 2.105x against
+the measured 2.392x; inverting the q4_0 point gives p = 7,706 B/token instead. So the (b + p)
+decomposition is a first-order fit to one type, not a constant of the model, and no single non-KV
+per-token charge is established. What is measured and robust: the fitted context is margin-bound
+(~1470 MiB left free under `--fit`'s default target, ~6712 of 8192 MiB used) and the type ratio is
+margin-independent, so KV-byte savings translate to sub-linear context gains whatever the exact
+decomposition. This is the parent hypothesis's own FRAME caveat -- "the measurement is whether the
+FITTED context holds, since compute buffers and the DeltaNet state also take VRAM" -- and the
+answer is that it does not reach the claimed ratio.
+
+**No router flag change is proposed.** The falsifier's propose-branch is gated on the capacity bar,
+which q8_0 misses. `-ctk q8_0 -ctv q8_0` remains worth weighing as a +52 pct-context-for-free-quality
+trade, but it is not the 1.8x claim and it costs a third of decode speed; the router, its `run.sh`
+and every box/config cell were left untouched.
+
+## Evidence
+
+`datasets/kv-format/2026-09-23/`: `kv_format.json` (all numbers, model sha, per-run secs and RAM),
+`router_args.json` (the recorded router args), `router_proof.json` (the restored-router completion),
+`fit_margin_probe.json` (the margin scan), `logs/` (13 raw logs: 4 llama-perplexity -- f16 x2, q8_0,
+q4_0 -- 3 llama-server fit loads, 6 llama-bench -- warm-up + measured per type). Script:
+`.agi/context/local-maxxing/kv/kv_format_round.py`. New config keys
+`paths.local_maxxing.kv_dir` and `paths.local_maxxing.kv_format_out_dir`.
+
+**Router restored.** `docker start llama-server`; `GET :8080/v1/models` loads `Qwen3.5-9B-Q4_K_M`;
+a real completion returned it (300 completion tokens, non-empty `reasoning_content`, model
+`Qwen3.5-9B-Q4_K_M`) and `/slots` reports `n_ctx 49664, is_processing false` -- the same slot as
+before the round.
+
+**Proposed box cells (not added by an agent).** `box.models_dir = /data/ml/models` and
+`box.ml_scratch_dir = /data/ml/scratch` are still literals in the driver, as in OSC.02.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, OSC.05 mur (mur-director-thought-8, accept_with_residue): the first Agent Notes paragraph still gave the refuted constant-p decomposition (12,096 B/token) as THE cause of the sub-linear context gain while the body and the parent's own probe had refuted it (q4_0 implies 7,707); the note now states the measured facts (margin-independent type ratio, no single constant explains both types). Numbers and verdict unchanged.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+GPU round on the served Qwen3.5-9B-Q4_K_M (sha 03b74727...52b7e8, router stopped then restored). T1 llama-perplexity -fa on: f16 PPL 7.1798 twice (identical), q8_0 7.1753 (-0.032 pct of NLL_f16), q4_0 7.1903 (+0.074 pct) -- both quality bars pass by 16x/27x. T2 llama-server with the recorded router args (--fit on, one slot) + -fa on -ctk/-ctv T: f16 49,664 (reproduces the router's own slot exactly), q8_0 75,520 = 1.5206x, q4_0 118,784 = 2.3918x -- both capacity bars (1.8x / 3x) MISS. T3 llama-bench tg64 @ d16384: 58.07 / 37.91 / 37.12 tok/s. Falsifier fires on capacity: claim DISPROVED. Measured trade: q8_0 = +52 pct context for -0.032 pct NLL at 0.65x decode speed. Why the byte arithmetic (1.88x) does not arrive: KV bytes are only part of the per-token VRAM the fit divides by, and the type ratio is margin-independent (1.5206/1.5200/1.5156 at -fitt 1024/768/512); a single constant non-KV per-token cost does NOT explain both types (q8_0 implies 12,096 B/token, q4_0 implies 7,707 -- this note first stated the 12,096 fit as the cause; corrected at mur-director-thought-8, as the body already says). Router restored and served a real 300-token completion. 116 production lines (114 script + 2 config) vs the orders' 150. No router flag change proposed.
+
+PARENT REVIEW (a00-f66c29e0, OSC.05): ACCEPTED, verdict disproved stands. Read the changed bytes (1 new script 114L, 2 config path keys, 4 json outputs, 13 raw logs), not the summary. Six probes: quality delta-NLL recomputed from raw logs (-0.0318/+0.0741 pct), capacity n_ctx read from the raw fit logs (1.5206x / 2.3918x, both under bar), both GGUFs sha256 03b74727...52b7e8, wiki.test.raw 173c87a5..., router restored and serving a real 9B completion at the 49664 slot, paths.get_local resolves and refuses unknown keys by name. Probe 6 REFUTED the stated cause (a single constant p does not fit the q4_0 point: 12095 vs 7707 B/token) -- a prose defect only, corrected in the body and title through write.py; the falsifying measurements are direct and untouched. Demoted: none. Router restored before the round ended.
+
+director-thought harvest (OSC.05): merged; the round's 2 config keys (kv_dir, kv_format_out_dir) committed. Director's read of kv_format.json during the run matches every table here (PPL 7.1798 x2 / 7.1753 / 7.1903; n_ctx 49,664 / 75,520 / 118,784; tg 58.07 / 37.91 / 37.12). What the owner's question ('have we applied any off-the-shelf optimisations?') gets from this round: three measured context levers for the served 9B, none applied (the router is the Prime's) -- q8_0 KV +52 pct context at no measurable NLL cost, q4_0 KV +139 pct at +0.07 pct, and the fit margin (-fitt 512 instead of the default 1024 MiB) +32 pct at f16 with no cache change; they compound (q4_0 at -fitt 512 fits 156,416 tokens, 3.15x today's slot). The decode penalty of quantised KV (~35 pct at depth 16,384) rests on 2 reps with +/-24 tok/s spread, so the speed side of the trade is not yet pinned -- the next measurement before any proposal.
+
+LARGEST SAFE STEP (relentless optimism, owner 13:xZ via TMM.50): the bar is verdicted honestly -- DISPROVED, 2.39x < 3x and 1.52x < 1.8x -- and the step is named: q4_0 K+V cache on the served 9B = 2.39x context (49,664 -> 118,784 tokens) at +0.074 pct NLL, a KEEPER that joins the layered stack as its first rung (L1); stacked with the fit margin (-fitt 512) it fits 156,416 tokens (3.15x). Speed side pending (OSC.06). Next on L1: the off-the-shelf K/V split -ctk q8_0 -ctv q4_0 as a sibling arm; the winner goes to the Prime for the router.
+
+director-thought, OSC.05 mur (mur-director-thought-8) closed: accept_with_residue. Fixed in place: the Agent Notes cause sentence (above). Residue CARRIED to OSC.07 by re-measurement: the margin scan's probe scripts sat in the gitignored session, so the -fitt numbers are not reproducible from the tree -- OSC.07's T3 re-measures the L1 stack at --fit-target 512 with a committed driver. REFUTED by the verify stage: the served-vs-copy identity (the served model's sha is recorded in the tree). Notes: the T0 /slots read and RAM samples live only in the session trajectory; paths.local_maxxing.kv_dir has no reader yet; the frontmatter restore probe says 10 completion tokens where router_proof.json holds the later 300-token call (two calls); the /data/ml roots stay literal until the Prime's box cells exist.
+
+director-thought, thought-master's TMM.54 review (its own error corrected first): (1) fit_margin_probe.json's 156,416 rests on scripts that were never committed, but the same figure is now reproduced by OSC.07's COMMITTED fit_l1_q4_f512.log (datasets/kv-format/2026-09-23-split/logs/) -- cite that; (2) paths.local_maxxing.kv_dir had no reader and is dropped from .agi/config.json; (3) which record is which call: the T0 /slots read (n_ctx 49664, is_processing false) and the RAM samples live only in the session trajectory; the frontmatter restore probe's 10 completion tokens is the parent's own probe call, router_proof.json's 300-token completion is the kid's restore proof -- two separate calls.
