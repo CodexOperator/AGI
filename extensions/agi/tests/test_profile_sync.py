@@ -326,3 +326,57 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+def test_body_only_profile_ref_mention_is_not_unreadable(tmp_path):
+    """The raw hint is scoped to the FRONTMATTER region. A malformed node
+    whose BODY merely mentions `profile_ref:` is not linked and must be a
+    clean no-op; pre-fix, the whole-file substring scan named it unreadable
+    and forced `--all` to rc=1 on an unrelated file."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path / "body")
+    graph = repo / ".agi"
+    (graph / "nodes" / "hypothesis" / "h1.md").unlink()
+    (graph / "nodes" / "hypothesis" / "broken.md").write_text(
+        "---\nid: hypothesis:broken\n: : : not valid yaml [[[\n---\n\n"
+        "see profile_ref: for details\n")
+    assert profile_sync.check_all(graph) == []
+    r = _cli_all(repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert "0 linked" in r.stdout and "broken" not in r.stdout
+    assert rotate._check_profile_drift(graph) is None
+
+
+def test_frontmatter_profile_ref_is_still_named_unreadable(tmp_path):
+    """P8 not regressed: a hint inside the frontmatter region still means the
+    node cannot be proven in sync, even when the body also names it."""
+    import rotate  # noqa: E402
+    repo = _repo(tmp_path / "fm")
+    graph = repo / ".agi"
+    _broken(graph, "broken.md",
+            extra='profile_ref: "profile/b.md"\n')
+    rows = profile_sync.check_all(graph)
+    row = next(r for r in rows if r["node_id"] == "broken")
+    assert row["status"] == "unreadable" and row["artifact"] == "profile/b.md"
+    r = _cli_all(repo)
+    assert r.returncode == 1, (r.returncode, r.stdout, r.stderr)
+    assert "UNREADABLE" in r.stdout and "broken.md" in r.stdout
+    assert rotate._check_profile_drift(graph) is not None
+
+
+def test_read_text_failure_yields_a_named_row_not_a_raise(tmp_path, monkeypatch):
+    """A file that cannot be read at all (permission, IO) must surface by
+    name, never escape `check_all` — the rotate guard's own except must see
+    named rows, not a crash."""
+    import rotate  # noqa: E402
+
+    def boom(self, *a, **kw):
+        raise PermissionError(f"denied: {self}")
+
+    repo = _repo(tmp_path / "unreadable")
+    graph = repo / ".agi"
+    monkeypatch.setattr(Path, "read_text", boom)
+    rows = profile_sync.check_all(graph)  # must not raise
+    assert rows and all(r["status"] == "unreadable" for r in rows)
+    assert any("PermissionError" in r["detail"] for r in rows)
+    assert rotate._check_profile_drift(graph) is not None
