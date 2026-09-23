@@ -41,12 +41,13 @@ model   per role: HEAD (doc:unified-head, same bytes for every role incl. parent
 ✅ write.py in-line replace round → director-engine: hypothesis:write-py-inline-replace-verb
 ✅ HANDOFF.md = symlink to this card · the Prime template repointed to the card
 ✅ card orders sent: thought-master · director-thought · director-engine
+✅ retired ids out of use (owner 09:0xZ-09:1xZ): g14→g5 · g14.3→g5.19 · g14.14→g7.33 · g9.7→g2.19 · g13/g13.1→none · g14's 70 owner lines MOVED to goal:g5 (no pointer) · owning_goal cells hand-edited · commands tables fixed · lint round → director-engine
 ⏳ templates: director (doc:unified-director-brief minus what the HEAD says) · master (new, + five-axis map) · Prime (the brief + five-axis map) — on the owner's word
 ⏳ after brief.py lands: retire CLAUDE.md (→ the claude-code harness block) · the 5 INJECTION.md writers · the prime [handoff-head] entry
 ```
 
 ## §2 Landed (09-23)
-969c7390b owner lines + L6 note + flavor doc retired · 1e6ca0056 doc:unified-head · 4c08f0c3a brief.py hypothesis · (next commit) this card + the HANDOFF symlink + the Prime template + the write.py hypothesis + the brief.py amendment
+969c7390b owner lines + L6 note + flavor doc retired · 1e6ca0056 doc:unified-head · 4c08f0c3a brief.py hypothesis · c80b7d4fb HANDOFF symlink + this card + the Prime template + brief.py amendment + write.py round + g14→g5 re-cites · (next) commands tables + g14 owner lines moved to g5 + owning_goal cells + the lint round
 
 ## 🔴 Where it stops
 ```
