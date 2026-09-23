@@ -2,9 +2,8 @@
 
 The claim: `brief.py render` returns the WHOLE first user turn for any role
 (Prime, master, director, parent, kid) assembled from ONE config cell — the
-head (byte-identical across roles), the post's card with its
-`{{template:<node id>}}` lines expanded one level, the harness block and the
-town trajectory — and writes NO injection file.
+head (byte-identical across roles), the post's card (data, never expanded),
+the harness block and the town trajectory — and writes NO injection file.
 
 Each test is a falsifier from the hypothesis node, pinned red-first.
 """
@@ -73,6 +72,20 @@ def _files(root: Path):
     return sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
 
 
+def test_config_schema_declares_the_template_post_row_cell():
+    """Conjunct: the `template` post-row cell is declared in
+    `.agi/context/schemas/[config].md` under `fields.seats`, as the role
+    template node ref that beats `brief.templates[<role>]`."""
+    repo = BIN.parents[2]
+    schema = (repo / ".agi" / "context" / "schemas" / "[config].md").read_text(
+        encoding="utf-8")
+    row = schema[schema.index("seats: {type: list}"):]
+    row = row[:row.index("posts: {type: list}")]
+    assert "template" in row, "the post row's `template` cell is declared"
+    assert "brief.templates" in row, \
+        "the clause names what `template` beats (brief.templates[<role>])"
+
+
 def test_head_bytes_are_identical_across_all_five_roles(tmp_path):
     """Falsifier 1: the head bytes differ between any two roles. The head is
     one doc region and takes no role, so all five renders agree byte for byte."""
@@ -92,14 +105,20 @@ def test_one_config_line_adds_or_removes_a_part(tmp_path):
     assert "CARD-SENTINEL" in brief.render(post="some-post", project_root=root)
 
 
-def test_card_is_data_and_is_never_expanded(tmp_path):
-    """The amendment (owner 08:5xZ): a card is DATA. A `{{template:}}`
-    line in a card is NOT an expansion directive -- the ROLE template comes
-    from the config cell/row, never from a line in the card."""
-    root = _root(tmp_path, parts={"director": ["card"]})
+def test_the_template_macro_is_gone_and_renders_literal(tmp_path):
+    """The `{{template:}}` mechanism is REMOVED (hypothesis:brief-render-
+    hygiene-after-the-batch-mur): a macro line in an `extras` node or a card
+    is DATA, never an expansion directive. Pre-fix the `extras` ref expanded
+    the referenced node's body one level."""
+    root = _root(tmp_path, parts={"director": ["extras", "card"]},
+                 extras={"director": ["doc:wrapper"]})
+    _write(root, "nodes/doc/wrapper.md",
+           "WRAPPER-SENTINEL\n\n{{template:doc:deeper}}\n")
     out = brief.render(post="some-post", project_root=root)
-    assert "{{template:doc:inner}}" in out, "the card's template line stays literal"
-    assert "INNER-BODY-SENTINEL" not in out
+    assert "WRAPPER-SENTINEL" in out, "the extras node itself still renders"
+    assert "{{template:doc:deeper}}" in out, "an extras macro stays literal"
+    assert "DEEPER-SENTINEL" not in out, "the macro never expands"
+    assert "{{template:doc:inner}}" in out, "a card macro stays literal"
 
 
 def test_missing_template_node_is_refused_by_name(tmp_path):

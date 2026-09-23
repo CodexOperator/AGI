@@ -2289,7 +2289,6 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
 # removing a part is one config line, never a code change. Writes NO file.
 BRIEF_PARTS = ("head", "operating_mode", "template", "card", "harness",
                "trajectory", "extras")
-_TEMPLATE_RE = re.compile(r"\{\{template:([^}#\s]+)(?:#([A-Za-z0-9_-]+))?\}\}")
 #: G2.11 -- the authored reasoning region. A render hands a successor the
 #: node's CURRENT words, never the changelog explaining how they got there.
 _THOUGHT_RE = re.compile(
@@ -2343,11 +2342,6 @@ def _node_text(root: Path, ref: str) -> str:
             raise RenderError(f"region {region!r} not found in {node_id}")
         body = m.group(1).strip()
     return _strip_thought(body)
-
-
-def _expand(text: str, root: Path) -> str:
-    """`{{template:}}` expansion, ONE level: re.sub never rescans a replacement."""
-    return _TEMPLATE_RE.sub(lambda m: _node_text(root, m.group(1) + (f"#{m.group(2)}" if m.group(2) else "")), text)
 
 
 def _template_text(root: Path, ref: str) -> str:
@@ -2419,7 +2413,10 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
         # the config cell, never from the caller.
         return extras_text
     refs = (_brief_cell(root).get("extras") or {}).get(role) or []
-    return "\n\n".join(_expand(_node_text(root, r), root) for r in refs)
+    # A `{{template:}}` line in an extras node is DATA, never an expansion
+    # directive -- the mechanism is GONE (hypothesis:brief-render-hygiene-
+    # after-the-batch-mur). Templates come from config alone.
+    return "\n\n".join(_node_text(root, r) for r in refs)
 
 
 def render(*, post: str | None = None, role: str | None = None,
