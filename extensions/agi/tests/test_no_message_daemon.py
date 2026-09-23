@@ -12,6 +12,17 @@ the lines `render_managed_lines` actually emits -- not a copied list, plus
 a synthetic message transport rendered as a PERSISTENT process IS flagged.
 A grep that returns nothing because it keys the wrong word is the near miss
 this control rules out.
+
+**Two persistence mechanisms, not one.** The first version of this scan
+required a transport line to also carry an inline loop flag (`--poll`,
+`--daemon`, `serve_forever`, ...). That missed the natural declaration
+entirely: a row in the crons node's `services:` table already IS a
+long-running systemd unit, so
+`service agi-message-router exec_start .../send.py router restart on-failure`
+-- no inline flag anywhere -- slipped through. Table membership is
+persistence; the inline-loop half is kept only for the OTHER surface, where
+a one-shot `send.py wake` tick is the allowed shape and a loop is the thing
+that makes it a daemon.
 """
 from __future__ import annotations
 
@@ -25,13 +36,20 @@ sys.path.insert(0, str(BIN))
 import crons  # noqa: E402
 import locations  # noqa: E402
 
-#: A message TRANSPORT (send.py / a router / a mail daemon) rendered as a
-#: PERSISTENT process rather than a one-shot tick. The `--poll`/`serve_forever`
-#: /`setsid`/`while True`/`Restart=` half is what separates a daemon from the
-#: allowed one-shot `send.py read|wake` cron lines.
+#: A message TRANSPORT (send.py / a router / a mail daemon).
 _TRANSPORT_RE = re.compile(r"send\.py|router|message|mail")
+
+#: The `--poll`/`serve_forever`/`setsid`/`while True`/`Restart=` half. It
+#: separates a daemon from the allowed one-shot `send.py read|wake` cron
+#: lines -- but only on a NON-service line; a `services:`-table row is
+#: persistent by construction and needs no inline flag.
 _PERSISTENT_RE = re.compile(
     r"--poll|--serve|--daemon|serve_forever|setsid|while\s+True|Restart=")
+
+#: The prefix `_live_surface_text` gives every row of the node's `services:`
+#: table. Matching it is what tells a persistent unit apart from a one-shot
+#: cron tick without trusting the transport name itself.
+_SERVICE_ROW_PREFIX = "service "
 
 #: daemon-construction primitives that must not appear in `send.py`'s bytes.
 _DAEMON_PRIMITIVES = ("os.fork", "daemonize", "setsid", "serve_forever",
@@ -39,9 +57,30 @@ _DAEMON_PRIMITIVES = ("os.fork", "daemonize", "setsid", "serve_forever",
 
 
 def message_daemon_hits(text: str) -> list[str]:
-    """Lines that are BOTH a message transport AND a persistent process."""
-    return [ln.strip() for ln in text.splitlines()
-            if _TRANSPORT_RE.search(ln) and _PERSISTENT_RE.search(ln)]
+    """Message-transport lines that describe a PERSISTENT process.
+
+    Two shapes, because persistence reaches this surface two ways:
+
+    * a `services:`-table row (`service <name> exec_start ... restart ...`)
+      -- **membership in the table IS persistence.** Every row is rendered
+      into a systemd unit, so the moment its `exec_start` names a transport
+      it counts, inline loop flag or none. Requiring the flag here is what
+      let `service agi-message-router exec_start .../send.py router restart
+      on-failure` slip the first version of this scan.
+    * any other line (a rendered cron job, a generic `cmd:`) -- a one-shot
+      tick is the allowed shape, so a transport only counts when the line
+      ALSO shows a loop. This is what keeps the live `send.py wake
+      --all-local` tick out of the hits.
+    """
+    hits: list[str] = []
+    for ln in text.splitlines():
+        if not _TRANSPORT_RE.search(ln):
+            continue
+        if ln.strip().startswith(_SERVICE_ROW_PREFIX):
+            hits.append(ln.strip())
+        elif _PERSISTENT_RE.search(ln):
+            hits.append(ln.strip())
+    return hits
 
 
 def daemon_primitive_hits(text: str) -> list[str]:
@@ -79,6 +118,52 @@ def test_send_py_carries_no_daemon_construction_primitives():
     src = (BIN / "send.py").read_text()
     hits = daemon_primitive_hits(src)
     assert hits == [], f"daemon primitives in send.py: {hits}"
+
+
+def test_scanner_fires_on_a_synthetic_service_row_with_no_loop_flag():
+    """Negative control for the hole this version closes: a `services:` row
+    running a message transport with ONLY `restart on-failure` -- the exact
+    shape that slipped the inline-loop-flag-only scan. Table membership alone
+    must flag it."""
+    raw = ("service agi-message-router exec_start "
+           "/usr/bin/python3 /repo/extensions/agi/bin/send.py router "
+           "restart on-failure")
+    assert "--poll" not in raw and "--daemon" not in raw, "control is not bare"
+    assert message_daemon_hits(raw), \
+        "scanner missed a bare services-row message transport"
+
+    # Same bare shape through a real `services:` dict rendered by the live
+    # surface formatter, not a hand-built string.
+    root, repo_root, engine_root = _roots()
+    node = {
+        "crons_live": True,
+        "services": {"agi-message-router": {
+            "enabled": True,
+            "exec_start": (f"/usr/bin/python3 {BIN}/send.py router"),
+            "restart": "on-failure",
+            "working_directory": None,
+            "environment": {},
+        }},
+        "jobs": {},
+    }
+    from_string = "\n".join(
+        f"service {n} exec_start {s['exec_start']} restart {s['restart']}"
+        for n, s in node["services"].items())
+    assert message_daemon_hits(from_string), from_string
+
+
+def test_scanner_ignores_the_benign_live_services():
+    """The service-row rule must not flag the two real units: `heal.py watch`
+    (`agi-reaper`) and `rotate.py alarms` (`agi-alarms`)."""
+    benign = (
+        "service agi-reaper exec_start /usr/bin/python3 "
+        "/repo/extensions/agi/bin/heal.py watch --root /repo --poll-s 30 "
+        "restart on-failure\n"
+        "service agi-alarms-sanctuary-master exec_start /usr/bin/python3 "
+        "/repo/extensions/agi/bin/rotate.py alarms --holder sanctuary-master "
+        "--root /repo restart on-failure"
+    )
+    assert message_daemon_hits(benign) == [], message_daemon_hits(benign)
 
 
 def test_scanner_fires_on_a_synthetic_message_daemon():
