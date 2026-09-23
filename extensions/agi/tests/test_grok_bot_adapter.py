@@ -99,8 +99,15 @@ def test_bare_row_defaults_the_adapter_to_the_module_stem():
 
 # ----------------------------------------------------------------- restart
 
-RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
+#: Explicit `tmux: False` is the documented opt-out from the pane hold, so
+#: the direct-`Popen` restart path stays covered by these tests.
+RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot", "tmux": False,
                    "models": {"kid": "grok-kid", "parent": "grok-parent"}}
+
+#: The pane-hold path (`goal:g7.31.1.2`).
+HOLD_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
+                "tmux": True, "tmux_session": "test-hold-sess",
+                "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
 def test_restart_is_a_real_respawn_not_a_stub():
@@ -144,6 +151,48 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     import json as _json
     written = _json.loads((sess / "agent.json").read_text())
     assert written["pid"] == 5252 and written["status"] == "restarted"
+
+
+def test_hold_harness_defaults_to_hold_and_honours_an_explicit_cell():
+    """`HOLD_PANE` applies to a row that says nothing; an explicit `tmux`/
+    `pane` cell (True or False) wins outright (`goal:g7.31.1.2`)."""
+    assert grok.HOLD_PANE is True
+    assert grok.hold_harness({"adapter": "grok_bot"}).get("tmux") is True
+    assert grok.hold_harness({"tmux": False}).get("tmux") is False
+    assert grok.hold_harness({"pane": False}).get("pane") is False
+
+
+def test_restart_re_enters_the_named_pane_when_held(monkeypatch, tmp_path):
+    """A held harness routes `restart` through `tmux_hold.reattach` on the
+    SAME pane, never a fresh anonymous one, and stamps `tmux.created:false`
+    on the record (`goal:g7.31.1.2`). The real tmux run is the experiment's
+    headline evidence; this pins the seam and its wiring."""
+    seen = {}
+
+    def fake_reattach(harness, agent_id, argv, *, cwd, log_file=None,
+                      created=None):
+        seen.update(harness=harness, agent_id=agent_id, argv=argv, cwd=cwd,
+                    log_file=log_file)
+        if created is not None:
+            created.update(created=False, pane_id="%9")
+        return 7777
+
+    monkeypatch.setattr(grok.tmux_hold, "reattach", fake_reattach)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=HOLD_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-held", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == 7777
+    assert seen["agent_id"] == "a00-held"
+    assert seen["harness"].get("tmux_session") == "test-hold-sess"
+    assert seen["argv"] == grok.build_command(
+        harness=HOLD_HARNESS, tier="kid",
+        context_file=str(tmp_path / "context.md"))
+    assert rec["pid"] == 7777 and rec["status"] == "restarted"
+    assert rec["tmux"] == {"created": False, "pane_id": "%9"}
 
 
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
