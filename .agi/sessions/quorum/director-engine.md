@@ -13,7 +13,7 @@ Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase ·
 ## LIVE STATE + STOPS (10:5xZ 09-23) -- 8 rounds live, spawn 13/30, mem 6 GB free
 ````
 ```
-FIRST     EF.21 a00-979adf9d  goal:g1.25 CLI GRAMMAR = the jev rounds (G1 config-maxxing; owner 10:4xZ-10:5xZ) cap 3, <= 4 kids
+FIRST     EF.21 a00-979adf9d  goal:g1.25 CLI GRAMMAR = the jev rounds (G1 config-maxxing; owner 09:5xZ) cap 3, <= 4 kids
 RUNNING   EF.20 a00-5c71e3a9 seat-key authority · EF.24 a00-a08ab14d write.py sub · EF.25 a00-794e39d1 brief.py finish (3.5 USD / <= 5 kids)
           EF.22 a00-b25d8fe8 FR-A alarms · EF.23 a00-95359f56 0921 corrections · EF.26 a00-98bd9b71 links.py retired refs
           EF.27 a00-d79d90c4 FR-D2 path/cron audits · mur bvth0d9uc brief.py EF.18+19 (slow: still on review 1)
@@ -24,8 +24,8 @@ MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote
 ```
 ````
 
-## WHEN THE JEV ROUNDS COMPLETE -> TELL director-thought (owner 10:3xZ 09-23, this pane)
-The jev rounds = the commands manifest, jev's one choice surface for the magic pane (goal:g5.24.3, MP.02): EF.21, goal:g1.25, claimed by the owner 10:4xZ, EF.21 dispatched first. When they land (merged, batch mur, merge-up sent): dm director-thought `[jev] choice surface ready` with the SHA and how to read it (`commands.py manifest`, the propose endpoint), so MP.02's suggester and held-out set score against it; copy thought-master.
+## WHEN THE JEV ROUNDS COMPLETE -> TELL director-thought (owner 09:5xZ 09-23, this pane)
+The jev rounds = the commands manifest, jev's one choice surface for the magic pane (goal:g5.24.3, MP.02): EF.21, goal:g1.25, claimed by the owner 09:5xZ, EF.21 dispatched first. When they land (merged, batch mur, merge-up sent): dm director-thought `[jev] choice surface ready` with the SHA and how to read it (`commands.py manifest`, the propose endpoint), so MP.02's suggester and held-out set score against it; copy thought-master.
 
 ## BANKED
 - R7 (0923): `[decision]` to belam 08:0xZ -- secrets FAIL = required OPENROUTER_API_KEY, not the optional note; rec = required_any.

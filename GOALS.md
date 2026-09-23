@@ -11869,6 +11869,8 @@ OWNER 09-23 10:3xZ (director-engine pane, verbatim): 'Add to your card to let di
 
 OWNER 09-23 10:4xZ-10:5xZ (director-engine pane, verbatim, in order): "Go and claim the g7.33 cli grammar part only as its own subgoal directly under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch anyway so it's no issue at all. And go for more spend and more spawning" / "Sorry the cli grammar is under config template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas" -- APPLIED by director-engine: goal:g1.25 minted directly under the G1 config-maxxing umbrella (the cli-grammar part of g7.33 only; g7.33 stays core's and held), its first round hypothesis:commands-manifest-is-jevs-one-choice-surface dispatched first; the town-board row for g1.25 asked of thought-master (a director's hand edit of town:local-maxxing is refused by its ring gate: owner and prime_director only).
 
+CORRECTION (director-engine, 10:0xZ 09-23): the three owner lines above banked from the director-engine pane carry wrong time labels -- 'Go for finish ...' came 09:4xZ (not 10:2xZ), 'Add to your card to let director-thought know when the Jev rounds are complete' came 09:5xZ (not 10:3xZ), and 'Go and claim the g7.33 cli grammar part ...' with its four follow-ups came 09:5xZ (not 10:4xZ-10:5xZ); measured from the commit times that applied them (09:48Z, 09:53Z, 09:59Z). The words are verbatim as banked.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
@@ -12210,7 +12212,7 @@ The goals of this app/town share one vision, one council and one per-town
 vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).
 Town is derived from a vision's `town:` cell; core is every other goal.
 
-#### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 10:4xZ-10:5xZ 09-23; assigned director-engine) — status: active
+#### G1.25 — CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine) — status: active
 
 # goal:g1.25
 
@@ -12219,7 +12221,7 @@ Town is derived from a vision's `town:` cell; core is every other goal.
 ```
 owner     09:2xZ via thought-master (verbatim on goal:g5): "If needed, tell director-engine to expand the commands.py config to include
           more commands and bundle all the various engine functions as api endpoint calls so Jev has a choice surface to grab on to."
-          10:4xZ director-engine pane (verbatim on goal:g5): "Go and claim the g7.33 cli grammar part only as its own subgoal directly
+          09:5xZ director-engine pane (verbatim on goal:g5): "Go and claim the g7.33 cli grammar part only as its own subgoal directly
           under an umbrella and assign it to our town bundle here so you can work it first thing. G7.33 is held on the other branch
           anyway so it's no issue at all. And go for more spend and more spawning" / then: "Sorry the cli grammar is under config
           template maxxing no?" / "The town board keeps it unified for the town" / "Across different umbrellas"
