@@ -4,7 +4,7 @@ mint_id: e5c2da45be824a548507a37842e78f98
 type: hypothesis
 parents:
   - hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-director
