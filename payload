@@ -190,14 +190,6 @@ class Resolution:
         self.env_file = _expand(_path_of("env_file", DEFAULT_ENV_FILE), self.root)
         self.template = _expand(_path_of("env_template", DEFAULT_TEMPLATE), self.root)
         self.required_keys = [str(k) for k in (fm.get("required_keys") or [])]
-        # `required_any` is a list of GROUPS; each group is satisfied when ANY
-        # one of its keys is present non-empty. An absent cell means no groups
-        # (yesterday's behaviour unchanged).
-        self.required_any = [
-            [str(k) for k in group]
-            for group in (fm.get("required_any") or [])
-            if isinstance(group, list)
-        ]
         self.optional_keys = [str(k) for k in (fm.get("optional_keys") or [])]
         # The node may extend the floor; it can never lower it.
         declared_forbidden = [str(k) for k in (fm.get("forbidden_keys") or [])]
@@ -212,7 +204,6 @@ class Resolution:
             "template": str(self.template),
             "template_exists": self.template.is_file(),
             "required_keys": self.required_keys,
-            "required_any": self.required_any,
             "optional_keys": self.optional_keys,
             "forbidden_keys": self.forbidden_keys,
         }
@@ -454,12 +445,6 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
         value = env.get(key, "")
         if not value:
             problems.append(f"{key} is missing or empty in {res.env_file}")
-    for group in res.required_any:
-        if not any(env.get(k, "").strip() for k in group):
-            problems.append(
-                f"none of {', '.join(group)} is set in {res.env_file} — "
-                f"at least one is required"
-            )
     if verify:
         for key in res.required_keys:
             value = env.get(key, "")
