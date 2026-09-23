@@ -37,6 +37,7 @@ mur2     two murs launched while one is running mint the SAME run key (the track
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
 kidrun   a kid's backgrounded pass dies with its scope when its one-shot pi turn ends -- setsid / nohup do not escape the cgroup; the kid must poll in-turn (OSC.10 a00-b59ee70f)
+         and an OOM kill of ANY process in a kid's scope stops the whole scope (systemd stop-on-OOM default), the kid's pi included (OSC.10 a00-04dc76fc: its pass grew 4.2 -> 5.2 GB, global OOM 19:23:59Z) -> kid scripts keep memory bounded per step
 cpu-ram  a CPU torch pass on Qwen2.5-0.5B holds ~3.5 GB RSS: at most TWO at once on this 15.9 GB box beside a GPU round and director-engine's suite (OSC.10 at 18:5xZ: three passes + swap 2.8 GB -> 398 s per prompt) · a pause governor matches `^/data/ml/.venv/bin/python( -[a-zA-Z]+)* [^ ]*<script>` ONLY -- a bare script-name pattern also hits the pi agents, whose command lines carry the orders text (v1 paused a real pass for 38 s)
 ceiling  a kid's line_ceiling comes ONLY from `CEILING: <=N production lines [across K kids]` INSIDE the hypothesis's testable_claim (spawn_budget._ceiling_clause); a body CEILING line is prose -> default 40 (OSC.10's trap, flagged in the swarm room)
 step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
@@ -63,9 +64,11 @@ routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seat
 
 ## 🔴 Stops
 ```
+OSC.10 19:4xZ: a01 DONE + merged 39f0834f1 (kid a00-ddd4762f: energy beats uniform at every budget 3-12 bits; only 12 bits holds both bars; safe step in (8,12]) · control DONE + merged aed061142 (kid a00-527993c5: the same) · a00-30502399 on kid 3 a00-86466b78 (kid 2 OOM-killed; told) · spend so far: parents $1.15-1.56, kids $0.27-1.82 each (pi-reported)
 OSC.10 18:56Z: a01's kid a00-ddd4762f + the control's kid a00-527993c5 FINISHED (results in their parents' trees); a00-30502399's kid a00-b59ee70f DIED: its one-shot pi harness exited after a turn-ending 'sleep 900' poll and the backgrounded pass died with the kid's scope (the parent's diagnosis; my first call 'memory contention' was wrong and corrected in the room) -> re-run AUTHORIZED (method-bug clause waived, recorded)
 LIVE   OSC.10 SWARM (L3) a00-30502399 + a01-f543f6a5 · dispatched 18:1xZ (spawn.parallel 2 for that dispatch only, restored to 1 at once) · wall 120 -> ~20:1xZ
 LIVE   OSC-CTL.10 single-parent control a00-c9a05d99 · 18:2xZ · wall 120 -> ~20:2xZ · (iteration ids must be <label>.<n>: OSC.10C was refused)
+OSC.11 19:4xZ: the persistent JIT cache WORKS (first container warm-up 185 s, the next 0.7 s) · trials are NOISY (806-1,242 tok/s on one slice): the box sat at load 19-29 with 29-35 pct iowait and 23-28 MB/s swap-out (.agi/sessions/iter-OSC.11/director_contention.log) -> if the intervals come out noise-bound, re-run in a quiet window
 LIVE   OSC.11 (L6 long-prompt prefill: -ub 512/1024/2048 x KV f16/q8_0/q4_0 on the router's own image, ~30k prompts, JIT cache mounted) a00-67c8a71a · 18:24Z · GPU · wall 120 -> ~20:24Z
 LIVE   mur-12 (OSC.09; unit agi-director-thought-osc-09) -> close residues in place -> ONE [merge-up] to TM: TMM.56 + the trunk merges + OSC.09 (+ OSC.10 if it lands first)
 TM     TMM.56 DONE @21085aa1d (18:01Z) -> TM verified the diff (d3d6a5ed4); landing tip 9c227503b once TM's review run -4 of @0f3705ca8 returns -> ONE more order may come
