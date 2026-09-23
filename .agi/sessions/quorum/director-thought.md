@@ -21,6 +21,7 @@ batch A   magic pane, 3 sequential rounds under MP.02 (goal:g5.24.3 -> hypothesi
 batch B   ✅ SWR-RS.01 (B no fire · C2 fires every seed) · ⏳ C2 mur mur-director-thought-2 · next step (mur on RS.01? merge-up?) ASKED 08:28Z
 dropped   goal:g5.24.4 draft (TMM.37 ASK 1: no new goal, home = g5.24.3 -> MP.02) -- never committed, no grid ref -> file discarded 08:3xZ
 guards    nothing under extensions/ · orders wall 120 min on every paid round · no pi-local round live across 11:41Z
+owner     08:4xZ CONFIG-MAX: Rules item 13 in agent-prompt.md (23663947a) · pass = CFG.01 on hypothesis:lm-every-experiment-path-is-a-config-variable (owner order outranks the ask-first protocol: act, then tell)
 ```
 
 ## §2 Landed
@@ -68,6 +69,22 @@ links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identic
 ```
 
 ## Scratch -- orders (tracked; live rounds' orders replaced when they land, drafts dispatch only on go)
+```
+ORDERS CFG.01 (director-thought -> parent · OWNER order 09-23 ~08:4xZ, verbatim on goal:g14 · pi deepseek · cap 1 USD)
+read first  hypothesis:lm-every-experiment-path-is-a-config-variable · extensions/agi/lib/agent-prompt.md Rules item 13 (read only)
+task        every path literal in the town's experiment scripts becomes a named variable under paths in .agi/config.json, read through ONE shared reader
+inventory   2026-09-23: 19 of 51 tracked .py/.sh under datasets/ and .agi/context/local-maxxing/ carry 40 literals (15 files .agi/context/local-maxxing · 3 datasets/switch-rule · 1 datasets/kid-sft/build_corpus.py) -- re-derive it yourself, do not trust this count
+reader      one small reader that both .py and .sh can call (prints paths.<key>, relative values resolved from the repo root) -- it lives with the town tooling, NEVER under extensions/
+config      add only the keys you convert · descriptive names · each value = the exact literal it replaces (repo-relative where the literal was)
+behavior    per key: prove the variable resolves to the exact literal it replaced · per converted script: its smallest honest check still passes (--help, a dry run, or an import)
+nodes       Reproduce / Command lines in these chains that call a converted script cite paths.<key> -- a correction in place via write.py, results never rewritten · a node citing a converted file's bytes as evidence gets ONE note: converted, values identical, prior bytes at <commit>
+never       anything under extensions/ · result data (.jsonl / .json outputs) · regenerating any result · loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a (held for thought-master)
+kids        split by area if it helps, <= 3 kids · one experiment node per kid under the hypothesis
+wall        call done by 120 min wall-clock whatever the state (key TTL 180) -- land what is converted, name what is left
+cap         1 USD · line ceiling 120 engine-unit lines per kid
+record      keys added · literals converted per file · literals left + why · per-key resolved-value proof · checks run · nodes corrected · one harvest line to your seat
+```
+
 ```
 ORDERS MP02-T.01 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.37 ASK 2 · batch A chunk 2 of 3 · pi deepseek · cap 1 USD)
 read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) · goal:g5.24.3 · the MP02-G.01 kid node(s) + .agi/context/local-maxxing/magic-pane/cli-grammar.json (the label vocabulary)
