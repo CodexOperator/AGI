@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""OSC.09 cold-first-request round on the served 9B: T1 cold vs warm (3 trials), T2 tiny warm-up
-the try-warm-up make A warm, T3 size sweep (256/2k/8k), T4 -lv 5 first-vs-second request logs.
-Fresh llama-server per trial on a spare port, the router's recorded args verbatim (no -fa/-ctk/-ctv
-added). The CALLER stops llama-server first and restores it after; this script never touches it.
+"""OSC.09 cold-first-request round on the served 9B: T1 cold vs warm (3 trials), T2 tiny warm-up (does W make A
+warm), T3 size sweep (256/2k/8k), T4 -lv 5 first-vs-second request logs.
+Fresh llama-server per trial on a spare port, the router's recorded args (verbatim but for --port, --host 0.0.0.0
+and the in-container model path; no -fa/-ctk/-ctv added). The CALLER stops llama-server first and restores it after; this script never touches it.
 Stage: `python3 cold_first_round.py t1|t2|t3|t4`; every path via paths.get_local (rule 13)."""
 import json, os, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE
