@@ -3,21 +3,21 @@ id: goal:g10
 mint_id: 61522510d1ad4359aed7fa04555065dd
 type: goal
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G10
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds:
-  - goal:g10.1
-  - goal:g10.2
-  - goal:g10.3
-status: horizon
+  - goal:g2.24
+  - goal:g2.25
+  - goal:g2.26
+status: retired
 tags:
   - goal
   - root
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: "G10: The hypergraph: an environment, not a document"
 ---
 **The end state this whole system is walking toward.** Not "a graph the agent can
@@ -33,3 +33,7 @@ thrown the original away. The graph does not remember — **it keeps the origina
 thought verbatim, as it occurred, and lets a later agent connect to it directly.**
 That is why this system has no memory layer and should never grow one. Nothing
 here needs to *recall*; it needs to *reach*.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
+<!-- THOUGHT:END -->
