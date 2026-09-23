@@ -132,7 +132,7 @@
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
-    "min_account_remaining_usd": -50.0
+    "min_account_remaining_usd": -50
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,
