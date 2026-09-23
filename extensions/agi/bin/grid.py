@@ -141,7 +141,7 @@ def ref_ns_for(root: Path) -> str:
 
 
 def migrated_trunk_namespaces(root: Path) -> list[str]:
-    """Namespaces nested under `DEFAULT_REF_NS` that already hold node refs.
+    """Namespaces nested under `DEFAULT_REF_NS` that already hold refs.
 
     The post-migration / stale-config state the falsifier names: history lives
     at `refs/grid/<trunk>/node/<mint-id>` while the resolved namespace is the
@@ -149,15 +149,21 @@ def migrated_trunk_namespaces(root: Path) -> list[str]:
     linked worktree still reads its own pre-migration config). Writing there
     would re-mint the migrated-from namespace and fork a second v1 root, so
     `cmd_commit` refuses by name rather than silently forking.
+
+    A namespace is where `node/` OR `session/` begins
+    (hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 2):
+    a nested trunk holding ONLY session refs was migrated too, and skipping
+    it because it carries no `/node/` let the guard pass and re-mint
+    `DEFAULT_REF_NS` exactly as before.
     """
     prefix = f"{DEFAULT_REF_NS}/"
     ns: set[str] = set()
     for line in git(root, "for-each-ref", DEFAULT_REF_NS,
                     "--format=%(refname)").splitlines():
-        if not line.startswith(prefix) or "/node/" not in line:
+        if not line.startswith(prefix):
             continue
-        found = line.split("/node/", 1)[0]
-        if found != DEFAULT_REF_NS:
+        found = re.sub(r"/(node|session)/.*$", "", line, count=1)
+        if found != line and found != DEFAULT_REF_NS:
             ns.add(found)
     return sorted(ns)
 
@@ -946,6 +952,14 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     reintroduce it under a different cause.
     """
     ensure_repo(root)
+
+    # hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 1 --
+    # a DIRECT `cmd_commit` call must resolve the trunk itself, from the same
+    # config the guard below reads. `main()` calling `apply_storage_trunk`
+    # does not help a library or test caller, and the guard would then compare
+    # the config-aware `ref_ns_for(root)` against writes still going to the
+    # module-global `REF_NS` default -- guard and writer, two namespaces.
+    apply_storage_trunk(root)
 
     # hypothesis:grid-old-namespace-refilled-and-forked conjunct 2 -- refuse by
     # name after a storage-trunk migration. `ref_ns_for` now reads the shared

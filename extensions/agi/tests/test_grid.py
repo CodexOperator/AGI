@@ -2251,3 +2251,57 @@ def test_unconfigured_tree_with_no_nested_trunk_still_uses_refs_grid(
     grid.cmd_commit(agi, [], do_all=True, session=None, lock_wait=1)
     refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
     assert f"refs/grid/node/{MINT_X}" in refs
+
+
+# ---- hypothesis:grid-commit-guard-and-writer-read-one-namespace ------------
+#
+# Conjunct 1: a DIRECT `cmd_commit` resolves the trunk from config itself, so
+# the guard's `ref_ns_for(root)` and the writer's global `REF_NS` are one
+# namespace without a prior `apply_storage_trunk()` from `main()`.
+# Conjunct 2: a nested trunk holding ONLY session refs is detected by the
+# guard too -- it was migrated, and writing `refs/grid` re-mints it.
+
+
+def _seed_session_only_ref(root, ref):
+    """A session ref with NO node ref beside it -- the state the pre-fix
+    detector skipped because it required `/node/` in the refname."""
+    blob = grid.git(root, "hash-object", "-w", "--stdin", input_text="draft\n")
+    tree = grid.git(root, "mktree", input_text=f"100644 blob {blob}\tnode.md\n")
+    commit = grid.git(root, "commit-tree", tree, "-m", "seed session")
+    grid.git(root, "update-ref", ref, commit)
+
+
+def test_direct_cmd_commit_resolves_configured_trunk_itself(
+        tmp_path, restore_ref_ns):
+    """Conjunct 1: a DIRECT `cmd_commit` -- no prior `apply_storage_trunk`,
+    module global deliberately left at the default -- writes ONLY under the
+    configured trunk. FAILS on pre-fix bytes: the guard saw the config-aware
+    trunk but the writer still used the default `REF_NS`, recording
+    `refs/grid/node/*`."""
+    agi = _configure(_make_g11_project(tmp_path),
+                     {"grid": {"storage_trunk": "refs/grid/t7"}})
+    grid.REF_NS = grid.DEFAULT_REF_NS            # the un-resolved state
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/t7/node/{MINT_X}" in refs
+    assert f"refs/grid/node/{MINT_X}" not in refs
+
+
+def test_commit_refuses_nested_trunk_with_only_session_refs(
+        trunk_project, restore_ref_ns):
+    """Conjunct 2: a nested trunk holding ONLY session refs was migrated
+    too; a commit that would re-mint `refs/grid` refuses by name. FAILS on
+    pre-fix bytes: the detector skipped refs without `/node/`, the guard
+    passed, and `refs/grid/node/<mint>` was silently re-minted."""
+    root = trunk_project
+    (root / "nodes" / "level3" / "g.md").write_text(
+        f'---\nid: "level3:g"\nmint_id: {MINT_X}\ntype: level3\n---\n\nhi\n')
+    _seed_session_only_ref(root, "refs/grid/t9/session/1/a01/level3-g")
+    assert grid.migrated_trunk_namespaces(root) == ["refs/grid/t9"]
+
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(root, [], do_all=True, session=None, lock_wait=1)
+    msg = str(exc.value.code)
+    assert "refusing commit" in msg
+    assert "refs/grid/t9" in msg
+    assert _refs(root, "refs/grid/node/") == []        # nothing re-minted
