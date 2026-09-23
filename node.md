@@ -50,7 +50,7 @@ Also computed global aggregates across all scoring goals.
 | goal:g1.10 | 1 | 1 | 1.0000 | 0.8500 | 0.1500 | hyp conf=0.85 |
 | goal:g1.11 | 4 | 1 | 0.2500 | 0.2125 | 0.0375 | hyp conf=0.85 |
 | goal:g13 | 6 | 2 | 0.3333 | 0.2667 | 0.0667 | confs=0.75,0.85 |
-| goal:g13.1 | 1 | 1 | 1.0000 | 0.8500 | 0.1500 | hyp conf=0.85 |
+| goal:g4.18 | 1 | 1 | 1.0000 | 0.8500 | 0.1500 | hyp conf=0.85 |
 | goal:g4.6 | 1 | 1 | 1.0000 | 0.0000 | 1.0000 | orphan mvp (no hyp chain) |
 | goal:g4.8 | 12 | 1 | 0.0833 | 0.0750 | 0.0083 | hyp conf=0.90 |
 | goal:s17 | 1 | 1 | 1.0000 | 0.8000 | 0.2000 | hyp conf=0.80 |
