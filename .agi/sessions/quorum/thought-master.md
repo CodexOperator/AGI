@@ -45,7 +45,7 @@ blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference k
 ````
 ```
 09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
- OWNER GO 10:0xZ: at director-engine's merge-up carrying goal:g1.25 -> set town local-maxxing on goal:g1.25 in the merge commit (owner's hand; banked on goal:g5)
+ OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = PRIME-applied (gate refuses my --role owner); blocks prepared in /tmp/tm-bundle-table.md + /tmp/tm-bundle-tree.md, commands sent to belam 10:1xZ  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
  NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
