@@ -11838,6 +11838,8 @@ OWNER 09-23 09:4xZ (Prime pane, verbatim): "Do the config cell" -- APPLIED by th
 
 OWNER 09-23 09:4xZ (Prime pane, verbatim): "Once settled and handed off continue idle minimum token use protocol" -- APPLIED: card doc:card-belam current (idle stops slot), then idle; the session crons (PASS 2 11:41Z, daily 08:13Z) are the only wake.
 
+OWNER 09-23 09:4xZ (Prime pane, verbatim): "Go route B" -- APPLIED: the seat-key authority stays the Prime-reviewed root (origin/season2/main); the rotation publishes a re-minted seat row there — hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority, director-engine, priority first.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
