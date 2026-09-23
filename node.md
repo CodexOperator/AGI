@@ -3,9 +3,9 @@ id: goal:g7.10
 mint_id: e69b4b0c3ba343078354a045bb1c7b26
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.10
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.10: The publish cron must never fail silently, and a refusal must not strand work"
 ---
+# goal:g7.10
 🔴 **The hourly publish cron can refuse, every hour, forever, and emit no
 signal anywhere a human or an agent will look.** It has already done exactly
 that: **40 consecutive refusals with 0 successful publishes ever**, from
