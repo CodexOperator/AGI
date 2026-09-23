@@ -1,0 +1,24 @@
+| model                          |       size |     params | backend    | ngl | type_k | type_v |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | -----: | -----: | --: | --------------: | -------------------: |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |    f16 |   1 |           pp512 |      1507.32 ± 74.80 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |    f16 |   1 |            tg64 |         63.34 ± 0.53 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |    f16 |   1 |   pp512 @ d4096 |      1361.83 ± 29.67 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |    f16 |   1 |    tg64 @ d4096 |         60.66 ± 0.65 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |   q4_0 |   1 |           pp512 |      1416.40 ± 30.27 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |   q4_0 |   1 |            tg64 |         61.90 ± 0.52 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |   q4_0 |   1 |   pp512 @ d4096 |      1349.55 ± 12.70 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |    f16 |   q4_0 |   1 |    tg64 @ d4096 |         58.51 ± 0.10 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |    f16 |   1 |           pp512 |      1387.64 ± 26.52 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |    f16 |   1 |            tg64 |         60.55 ± 0.29 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |    f16 |   1 |   pp512 @ d4096 |      1322.49 ± 14.07 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |    f16 |   1 |    tg64 @ d4096 |         58.21 ± 0.12 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |   q4_0 |   1 |           pp512 |      1364.95 ± 13.03 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |   q4_0 |   1 |            tg64 |         59.66 ± 0.26 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |   q4_0 |   1 |   pp512 @ d4096 |      1302.46 ± 13.14 |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   q8_0 |   q4_0 |   1 |    tg64 @ d4096 |         53.94 ± 3.14 |
+
+build: f072b1037 (11058)
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 7786 MiB):
+  Device 0: NVIDIA GeForce RTX 2070 SUPER, compute capability 7.5, VMM: yes, VRAM: 7786 MiB
+load_backend: loaded CUDA backend from /app/libggml-cuda.so
+load_backend: loaded CPU backend from /app/libggml-cpu-haswell.so

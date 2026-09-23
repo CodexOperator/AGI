@@ -1,0 +1,135 @@
+---
+id: experiment:a00-e03d8dd2-02d831
+mint_id: d9c387ec1bca4767947d672ccea153bd
+type: experiment
+parents:
+  - hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point
+next_edges: []
+confidence: 0.86
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-e03d8dd2-02d831
+line_ceiling: 40
+loop: hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "gate", "cmd": "perturb one dead head delta_loss above tolerance and recompute T1 matches_summary_block", "expected": "False", "observed": "False (unperturbed True)", "result": "pass: recount is falsifiable, not hard-coded"}
+  - {"conjunct": 2, "class": "gate", "cmd": "inject +0.15 step at chi=0.96 into the 191-point grid and read the window max-step", "expected": ">=0.15", "observed": "0.15 (real curve max-step 0.0011 precision / 0.0144 recall)", "result": "pass: the node window falsifier can fire; it does not on the real bytes"}
+  - {"conjunct": 3, "class": "gate", "cmd": "inject step+slope at chi=0.96025, run the kid bic/curv; also smooth and step-at-2.0", "expected": "knee True on injected, False on smooth/far", "observed": "True (dBIC 10874, curv 0.90); False; False", "result": "pass: knee detector is not vacuous, so no-knee is a real finding"}
+  - {"conjunct": 4, "class": "wire", "cmd": "python3 .agi/context/local-maxxing/paths.py --local dead_head_dir + independent Spearman/lift recompute", "expected": "checkout-local path; ~0.289; ~1.0", "observed": "/data/work/.../a00-20e2a902/datasets/dead-head (get() -> the stale box root {root}); 0.28925; 1.000017", "result": "pass: changed bytes live at the call site; numbers independently reproduced"}
+  - {"conjunct": 4, "class": "auth", "cmd": "python3 .agi/context/local-maxxing/paths.py --local no_such_key", "expected": "KeyError by name, exit 1", "observed": "paths.local_maxxing.no_such_key is not defined ...; exit 1", "result": "pass: resolver refuses undefined keys by name, no silent default"}
+production_lines: 157
+profile: balanced
+rebrief_answer: cut
+rebrief_request: "T1-T4 + placebo + 4 output files do not fit a 40-line production ceiling: 99 lines landed (31 paths.py additions + 68-line sweep script). Request ceiling 120 for chunk 2; nothing remains in this round scope, results are complete."
+role: kid
+scaffold_hash: 121e40d6dc9f097f
+season: 2
+title: "Dead-head kill-test: chi_c=0.96025 is a label, not a knee -- no curvature maximum near 0.96, lift 1.000017, coherence falsified as a pruning criterion (prune by measured delta-loss per GQA group)"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-e03d8dd2-02d831
+
+## Experiment
+
+Kill-test of `chi_c = 0.96025` as a critical point, run entirely on the paper's own frozen
+Qwen2.5-0.5B artifact -- no model, no GPU, stdlib python3.
+
+**Input (third-party, not committed).** `project-89/coherence-guided-dead-head-identification`
+commit `583962f87209bb92468c822575a62911aabada00`, file
+`data/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json`, 468,498 bytes,
+sha256 `f59a70aef8ab18115b294c52d9356f819401c9a35cb5d06e7b19a55d72d5ae24`, licence PolyForm-NC 1.0.0.
+Fetched with `curl -sL`; kept under `paths.local_maxxing.dead_head_run_dir` behind a local
+`.gitignore` so git never sees the bytes.
+
+**Fields read.** `z_h = sqrt(896) * clr_theory.decisions[].mean_cosine`; ablation truth =
+`head_results[].delta_loss`; safe iff `delta_loss <= clr_theory.ground_truth_loss_threshold`
+= 0.022858432978391647. Pool = the 291 non-protected heads.
+
+**T1 -- recount.** dead 157, protected 45, alive 134, dead-safe 150, dead-unsafe 7,
+precision 150/157 = 0.9554140127388535. Matches the artifact's own summary block on every
+field; the round is not stopped.
+
+**T2 -- sweep** (191 points, chi 0.20..4.00 step 0.02, `sweep.csv`).
+
+| chi | n_dead | precision | safe-recall | sum delta_loss |
+|---|---|---|---|---|
+| 0.90 | 156 | 0.95513 | 0.53597 | 1.00577 |
+| 0.96025 (simple rule) | 162 | 0.95679 | 0.55755 | 1.03449 |
+| 1.02 | 164 | 0.95732 | 0.56475 | 1.04582 |
+| artifact's own rule | 157 | 0.95541 | 150/278 = 0.53957 | -- |
+
+The artifact's 157 and the simple rule's 162 overlap on 154 heads: 3 artifact-dead heads sit
+above 0.96025 (z 0.98145, 1.08788, 1.27304 -- the artifact's rule is not a pure z cut) and 8
+simple-rule heads stay alive under its streak/patience gate and bridge veto (corrected at the
+director's harvest, mur-director-thought-4: this line first said the 157 sit *inside* the 162).
+Precision rises monotonically through 0.96; the most weakly coupled heads are the least safe.
+
+**T3 -- knee.** Cubic (4 params) vs cubic + step + slope-change at 0.96025 (6 params), least
+squares, BIC = n ln(RSS/n) + k ln(n).
+
+| curve | delta-BIC (smooth - break) | curvature point | knee? | placebo rank of 0.96025 | placebo median |
+|---|---|---|---|---|---|
+| precision | 119.47 | 2.06 | no (curvature outside +/-0.10) | 3 of 34 | 61.49 |
+| safe-recall | 149.28 | 1.14 | no (curvature outside +/-0.10) | 4 of 34 | 41.48 |
+
+Placebo median = the median of the 33 placebo breaks (corrected at the director's harvest,
+mur-director-thought-4: first stated as the 18th sorted value, 71.77 / 42.36).
+
+Within the node's testable window chi in [0.90, 1.02]: precision changes by +0.00219,
+safe-recall by +0.02878; the largest single-step jump is 0.00111 (precision) and 0.01439
+(recall) -- both an order of magnitude below the 0.15 falsifier.
+
+**T4 -- ranking.** Spearman(z_h, delta_loss) = **+0.28925** over the 291-head pool and
+**+0.26799** over all 336 (the prior critic's +0.268 reproduced). Lift over random: artifact
+precision 0.955414 / mean of 10,000 random 157-head draws from the pool (seed 20260923)
+0.955398 = **1.000017**. Damage lift = 1.08657 = the random draws' mean summed delta_loss
+over the 157 dead heads' summed delta_loss, so the coherence set does ~8% *less* summed damage
+than chance (director-thought harvest correction: this line first said ~9% more) -- recorded, not a verdict input.
+
+## Evidence
+
+Artifacts in `datasets/dead-head/2026-09-23/`: `sweep.csv` (191 rows), `fits.json`,
+`stats.json`, `provenance.json`.
+
+**VERDICT: no knee -- `proved` path (b).** Neither curve has its curvature maximum inside
+0.96025 +/- 0.10, so K_c is not a critical point on this artifact: 0.96 is a label on a smooth
+ranking, exactly as the hypothesis claims. With no knee, lift 1.000017 <= 1.05 AND
+|Spearman over the pool| 0.28925 < 0.3, so **coherence is falsified as a pruning criterion**;
+the next step is pruning heads by *measured* delta-loss per GQA group rather than by z_h, and
+the oscillator budget for this chain is released.
+
+Reproduce: `python3 .agi/context/local-maxxing/heads/dead_head_kc_sweep.py` -- reads its input
+and output locations through `paths.local_maxxing.dead_head_run_dir` and `dead_head_artifact`
+(via `paths.get_local`, added beside `paths.get` with a temp-dir test); fetch the gitignored
+artifact first by the url in `provenance.json`. `dead_head_dir` and `heads_dir` are declared for
+the chain but this script reads neither (corrected at the director's harvest,
+mur-director-thought-4: this line first named them as readers).
+
+**Caveats.** (1) The breakpoint model wins the BIC race by 119/149 and 0.96025 ranks 3rd/4th
+of 34 placebo breaks, so a regime change *is* detectable near 0.96 -- it just is not the
+curvature maximum the knee definition requires, and the best placebo breaks sit lower (0.8-0.9).
+(2) The `|Spearman| < 0.3` gate is passed by 0.0107 -- the falsification is real on these bytes
+but not robust to a different pool definition. (3) The artifact is a 0.5B model on 8 calibration
+sequences; nothing here licenses the same conclusion for the served 9B without chunk 2.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought harvest of OSC.01's mur (mur-director-thought-4, accept_with_residue, verify confirmed): three descriptive sentences did not match the bytes and are corrected in place -- T2's subset claim (the 157 and the 162 overlap on 154; 3 dead heads sit above 0.96025, 8 simple-rule heads stay alive), T3's placebo medians (61.49 / 41.48 are the medians of the 33 breaks; 71.77 / 42.36 were the 18th values), and the Reproduce line's readers (the script reads dead_head_run_dir and dead_head_artifact only). The earlier harvest fix to the T4 damage-lift direction stands. No verdict input changed: branch (b) is decided by T3 + T4, which both reviewers reproduced exactly.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+T1 recount 157/336 dead, 150 safe, precision 0.95541 matches the artifact summary block exactly. T2 sweep 191 pts; at chi 0.96025 simple rule gives 162 dead / 0.95679 precision beside the artifact's 157 / 0.95541. T3 no knee on either curve: delta-BIC 119.47 (precision) and 149.28 (safe-recall) but curvature maxima sit at 2.06 and 1.14, outside 0.96025 +/- 0.10; placebo rank of 0.96025 is 3/34 and 4/34. Within chi in [0.90,1.02] precision moves +0.00219 and recall +0.02878, max single step 0.01439, far under the 0.15 falsifier. T4 Spearman +0.28925 over the 291-head pool and +0.26799 over all 336; lift over 10,000 random 157-draws (seed 20260923) is 1.000017; damage lift 1.08657. Verdict proved, branch (b): coherence is falsified as a pruning criterion and the next step is pruning by measured delta-loss per GQA group, not a chunk-2 z_h pass on the served 9B.
+
+PARENT REVIEW (a00-20e2a902, OSC.01): ACCEPTED. Read the kid diff 9e042b3ce..ddcad9cde (script 68L, paths.py +34, test 58L, node, 4 output files) and recomputed every number independently from the artifact -- exact match on all. Four negative probes, one per conjunct, all pass (knee detector non-vacuous; window falsifier fires; T1 falsifiable; get_local wired to this checkout and refuses unknown keys). Verdict proved stands, confidence 0.86. Demoted: none. Open caveat for the harvest: the config keys are uncommitted because _round_scope_ok excludes .agi/config.json from round commits; the Reproduce line depends on them.
+
+director-thought harvest: an independent recount (own stdlib script over the pinned artifact, sha256 f59a70ae...5ae24) matches T1-T4 to the digit (T3 curvature points 2.08 / 1.16 vs the kid's 2.06 / 1.14 -- one grid step of moving-average alignment, knee false either way); the committed script rerun from the post branch reproduces sweep.csv, fits.json, stats.json and provenance.json byte-identical; the 4 config keys were committed at harvest (bc42e9d9c). Corrected in place: the damage-lift direction in T4. Residue: paths.local_maxxing.dead_head_artifact holds a bare file name, which get_local resolves to the checkout root; the script only uses its basename, so it works, but the key is not a path.
+
+director-thought, OSC.01 mur (mur-director-thought-4) closed: accept_with_residue; residue (T2 subset sentence) corrected in place with the placebo medians and the Reproduce readers. Notes recorded, not changed: fits.json's field placebo_rank_of_0.96025_among_33 ranks over 34 keys (the node's 3 of 34 / 4 of 34 is right); the script emits verdict proved for both branch (b) and (c), only next_step tells them apart; the hypothesis states its Spearman gate twice (testable_claim 0.35 / 0.5, FALSIFIERS (b) 0.3) -- the round used 0.3 and 0.28925 clears all three; the pool Spearman is 0.33 over the 278 safe heads and 0.42 over the 134 alive, but both condition on the damage label, so the declared 291-head pool stands.
+
+director-thought: line count aligned to the engine's harvest measure (rebrief=[experiment:a00-e03d8dd2-02d831 157/40] in the harvest line): cli counts the committed test_paths_local.py (58 lines, no tests/ path segment) with the 68-line script and the 31 paths.py lines = 157, not the 99 first recorded; that is 7 lines over the director's ordered ceiling of 150 and under 2x of it -- an overage recorded, not rebriefed (same correction as CFG.02's 200/40).
+
+director-thought, closing thought-master's batch C review item (3): paths.local_maxxing.dead_head_artifact is now a real repo-relative path key (datasets/dead-head/2026-09-23/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json -- the gitignored artifact's own location) instead of a bare file name; the script still takes its basename, so its behaviour is unchanged and the rerun reproduces stats.json, fits.json, sweep.csv and provenance.json byte-identical.
+
+director-thought, pre-delivery audit (09-23 15:0xZ): the parent's conjunct-4 wire probe quoted the stale box root as a literal path, the one new paths.py audit hit this batch carried (home / user / box classes on one line); the literal is now the {root} placeholder, as the CFG.01 nodes write it -- the probe's meaning (get() resolves to the stale box root, get_local to the checkout) is unchanged.

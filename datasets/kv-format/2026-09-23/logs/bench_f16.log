@@ -1,0 +1,9 @@
+| model                          |       size |     params | backend    | ngl |  fa |            test |                  t/s |
+| ------------------------------ | ---------: | ---------: | ---------- | --: | --: | --------------: | -------------------: |
+| qwen35 9B Q4_K - Medium        |   5.28 GiB |     8.95 B | CUDA       |  99 |   1 |   tg64 @ d16384 |         58.07 ± 0.92 |
+
+build: f072b1037 (11058)
+ggml_cuda_init: found 1 CUDA devices (Total VRAM: 7786 MiB):
+  Device 0: NVIDIA GeForce RTX 2070 SUPER, compute capability 7.5, VMM: yes, VRAM: 7786 MiB
+load_backend: loaded CUDA backend from /app/libggml-cuda.so
+load_backend: loaded CPU backend from /app/libggml-cpu-haswell.so

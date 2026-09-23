@@ -1,0 +1,24 @@
+{
+ "hf_revision": "7ae557604adf67be50417f59c2c2f167def9a775",
+ "hf_sha256": {
+  "config.json": "18e18afcaccafade98daf13a54092927904649e1dd4eba8299ab717d5d94ff45",
+  "generation_config.json": "e558847a8b4402616f1273797b015104dc266fe4b520056fca88823ba8f8ebe6",
+  "model.safetensors": "fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe",
+  "tokenizer.json": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+  "tokenizer_config.json": "5b5d4f65d0acd3b2d56a35b56d374a36cbc1c8fa5cf3b3febbbfabf22f359583"
+ },
+ "wikitext_zip_sha256": "ef7edb566e3e2b2d31b29c1fdb0c89a4cc683597484c3dc2517919c615435a11",
+ "wikitext_test_sha256": "173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08",
+ "humaneval_sha256": "b796127e635a67f93fb35c04f4cb03cf06f38c8072ee7cee8833d7bee06979ef",
+ "pip": {
+  "transformers": "5.17.0",
+  "safetensors": "0.8.0",
+  "tokenizers": "0.23.2",
+  "numpy": "2.5.3",
+  "torch": "2.14.0+cu130"
+ },
+ "logit_repro_rel": 4.2650971682079954e-07,
+ "paris": " Paris",
+ "ppl_512": 25.09446907043457,
+ "t0_s": 36.7
+}
