@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -90,9 +91,14 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
          -> close in place -> the next [merge-up]
     orphans to leave: the failed first spawn's worktree .agi/worktrees/a00-8f615a6a + branch ...-ngram-sp-a00-8f615a6a (empty; my --memory 6), and the
          empty iter-OSC.12/a00-b0263b6d dir of the 20:26Z stale-base refusal
-2 [merge-up] SENT 21:26Z to TM at 45aaa02779: OSC.09 + OSC.10 (mur-13 closed 7493f50957 + 15d77dbd9a) + OSC.11 (mur-14 closed f2003718f0) + the OSC.12
-         mint; my checks: anonymize ok on trunk..tip, links 0 broken of 4114, 0 node deletions, GOALS round-trips -> await TM's gate line; a fix goes
-         over 45aaa02779 exactly as TMM.58 did
+2 [merge-up] 45aaa02779: TM's gate CLEAN (TMM.63; combined with director-engine's @a281bb0d85, the suite running on the combined tree) with ONE fix
+         -> DONE @ae6150cd2e (one commit over 45aaa02779: the OSC.11 Question line names GPU2070S; merged 24bb4fa4ab; told TM 21:3xZ) -> TM lands it
+         after director-engine; await its landing line
+2b LEAF (TMM.63, after OSC.12): ONE sweep round -- every host-path literal in town code -> a paths.local_maxxing cell (paths.get / get_local; shell:
+         V="$(python3 .agi/context/local-maxxing/paths.py <key>)"); new in my range: osc_band_kquant_a00-ddd4762f.py:20 HF (obp.HF owns it),
+         serve/cold_first_round.py SC, serve/ub_prefill_round.py SC + CACHE, serve/osc09/router_mode_probe.sh the wikitext path; on the trunk:
+         athena/fetch_parallel.py, heads/kv_group_round.py, heads/kv_group_surgery.py, kv/kv_{format,speed,split}_round.py, magic-pane/detect.py,
+         osc/osc_band_{measure,prune}.py, serve/serve_sweep_round.py, telepathy/tel02/tel02_probe.py (datasets/ probes stay as recorded evidence)
 3 NEXT RUNG after OSC.12's verdict: speculation runs + pays -> tune its parameters (one round) and the draft-model line
          (hypothesis:lm-spec-decode-cpu-draft-hybrid: needs a draft download, its own ceiling says <= 3 GB) · refused or no gain on qwen35 -> that line waits
          on upstream support; go L2 / L4 / L5 per the board · L3's reframe (a QK-norm model or per-channel / bias-subtracted keys + a TRUE q4_0-analog
