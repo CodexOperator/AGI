@@ -7,7 +7,7 @@ trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tm
 directors   director-thought (research; SELF-LOOPS on the trajectory, messages me only for a blocker or a completed merge-up -- owner 09:5xZ 09-23, superseding 08:3xZ's ask-first)
             director-engine (Prime-assigned g15 residues + goal:g1.25 CLI GRAMMAR = the jev choice surface, claimed on the owner's direct order in its pane 09-23 (hypothesis:commands-manifest-is-jevs-one-choice-surface, EF.21 first, cap 3); 8 rounds live, 'more spend and more spawning' (owner); '[jev] choice surface ready' + SHA goes straight to director-thought, me copied; g1.25's town-bundle row = the owner's edit)
 field       inference R+D toward running the town's own parents/kids off OpenRouter · lead candidate C2 (Bonsai 2 27B + LoRA) · treasury: doc:recurrent-looped-transformer
-rig         RTX 2070 SUPER 8 GB · 16 threads · 15 GB RAM · unix user belam · Camber XS only on a banked ask with numbers
+rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · Camber XS only on a banked ask with numbers
 ```
 
 ## Live state (09:5xZ 09-23)
