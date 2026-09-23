@@ -3,9 +3,9 @@ id: goal:g6.5
 mint_id: 1144ba54807845f2b7dfa655e7f47571
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.5
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: retired
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.5: The cron rebuilds agi from agi-tree, then commits and pushes it"
 ---
 **The shape being committed to: `agi-tree` is the development environment,
