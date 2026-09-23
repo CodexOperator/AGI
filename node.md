@@ -2,10 +2,12 @@
 id: goal:g4
 mint_id: 8d0f63708d94497d86da5e2eccd3ee79
 type: goal
+parents:
+  - vision:self-perpetuating
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4
-goal_kind: long-term
+goal_kind: perpetual
 heading_level: 2
 origin: goals-doc
 season: 1
@@ -23,8 +25,8 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: season
-title: "G4: Right model at the right grain, several goals at once"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G4: Elegance"
 ---
 Model choice is a knob the user sets per tier and experiments with — nothing
 hardcoded. Three tiers: **delegator** (the user's own session, holding intent
@@ -43,3 +45,10 @@ iteration budget, so recursion is bounded regardless of nesting depth.
 Owns: **L3** (per-tier and eventually per-level model assignment), **L6**
 (recursive sub-loops; `cc_dispatch.max_goals_active` exists and is unread).
 Blocked on G2 for per-level assignment.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Folded umbrella from goal:g23 onto goal:g4 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Perpetual umbrella for Elegance. Absorbs prior art from old G5, G6, G7, G11, G12, G13. Folded from goal:g23 onto goal:g4 in place 2026-09-19.
