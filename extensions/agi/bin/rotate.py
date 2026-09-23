@@ -7248,52 +7248,55 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     seat once and returns so the parent's regression test is deterministic;
     without it the loop meters every `--interval` seconds.
     """
-    root = Path(getattr(args, "root", None) or root)
-    holder = args.holder
-    threshold = load_ladder_field(root, "director_rotate_at",
-                                  DEFAULT_DIRECTOR_ROTATE_AT)
-    idle_m = load_ladder_field(root, "alarms_idle_minutes",
-                               DEFAULT_ALARMS_IDLE_MINUTES)
-    try:
-        idle_m = float(idle_m)
-    except (TypeError, ValueError):
-        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
-    try:
-        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
-    except (TypeError, ValueError):
-        ratio = None                       # absent/garbage = idle lane off
-    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
-                  ).strip().lower() in ("1", "true", "yes", "on")
-    due = 0
-    for row in _load_seats(root):
-        if row.get("rotated_by") != holder:
-            continue
-        seat = row.get("name")
-        frac = _seat_fraction(root, row)
-        if frac is None:
-            print(f"warn: no pin/usage for seat {seat!r} — skipping",
-                  file=sys.stderr)
-            continue
-        reason = None
-        if frac >= float(threshold):
-            reason = f"fraction {frac:.4f}"
-        else:
-            idle = _seat_idle_minutes(root, seat)
-            if (ratio is not None and frac >= ratio * float(threshold)
-                    and idle is not None and idle >= idle_m):
-                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
-        if reason is None:
-            print(f"hold {seat} {frac:.4f}")
-            continue
-        if _master_rotate(root, holder, seat, row, masters):
-            continue
-        print(f"rotate -> {seat} ({reason})")
-        due += 1
-    if args.once:
-        return 0
+    # FLAT loop (EF.22 conjunct 1): the pre-fix tail recursed once per
+    # interval (`return cmd_alarms(args, root)` after `time.sleep`), one stack
+    # frame per poll and a RecursionError after ~1000 of them. The per-pass
+    # body is byte-for-byte the former body; only the tail changed.
     while True:
+        root = Path(getattr(args, "root", None) or root)
+        holder = args.holder
+        threshold = load_ladder_field(root, "director_rotate_at",
+                                      DEFAULT_DIRECTOR_ROTATE_AT)
+        idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                                   DEFAULT_ALARMS_IDLE_MINUTES)
+        try:
+            idle_m = float(idle_m)
+        except (TypeError, ValueError):
+            idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+        try:
+            ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+        except (TypeError, ValueError):
+            ratio = None                   # absent/garbage = idle lane off
+        masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                      ).strip().lower() in ("1", "true", "yes", "on")
+        due = 0
+        for row in _load_seats(root):
+            if row.get("rotated_by") != holder:
+                continue
+            seat = row.get("name")
+            frac = _seat_fraction(root, row)
+            if frac is None:
+                print(f"warn: no pin/usage for seat {seat!r} — skipping",
+                      file=sys.stderr)
+                continue
+            reason = None
+            if frac >= float(threshold):
+                reason = f"fraction {frac:.4f}"
+            else:
+                idle = _seat_idle_minutes(root, seat)
+                if (ratio is not None and frac >= ratio * float(threshold)
+                        and idle is not None and idle >= idle_m):
+                    reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+            if reason is None:
+                print(f"hold {seat} {frac:.4f}")
+                continue
+            if _master_rotate(root, holder, seat, row, masters):
+                continue
+            print(f"rotate -> {seat} ({reason})")
+            due += 1
+        if args.once:
+            return 0
         time.sleep(args.interval)
-        return cmd_alarms(args, root)
 
 
 def _master_rotate(root: Path, holder: str, seat: str, row: dict,
