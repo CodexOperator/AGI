@@ -7,6 +7,7 @@ parents:
   - experiment:a00-fa4bb880-d965dd
 next_edges: []
 edited_by: director-thought
+push_further: "L3 REFRAME: per-token absmax is the wrong granularity for Qwen2.5-0.5B keys (k_proj bias, no QK-norm -> outlier channels); push further on a QK-norm model (the served Qwen3.5 carries attn_k_norm) or with per-channel / bias-subtracted key scales, not more bits -- and measure a TRUE q4_0-analog blockwise baseline (round A bw4 was ternary)."
 scaffold_hash: d5e96e2b558b1be8
 season: 2
 testable_claim: On Qwen2.5-0.5B-Instruct (rev 7ae5576, CPU), with OSC.04's held-out 4096-token eval and the unquantized model as the reference, quantizing only the post-RoPE KEYS by band energy -- each KV head's 32 RoPE pairs split by OSC.03's energy profile (summed over the head's 7 query heads) into bit classes, each class absmax-scaled per token -- at an average of at most 3.5 bits per key element (scale bytes counted) keeps top-1 next-token agreement >= 0.98 and mean per-token KL <= 0.02; beats uniform absmax quantization of the keys at the same average bits on both metrics; and beats a random class assignment of the same sizes (3 seeds).
@@ -61,3 +62,27 @@ swarm mode -- spawn.parallel is set in the director's branch config for this rou
 ## CEILING
 ONE kid per parent at a time (a second only as a corrective re-run for a demonstrable method bug, recorded) · ~120 production lines per
 script (the 2x stop applies) · pi deepseek parents · CPU only · no per-round cap (TMM.51) · wall 120 min.
+
+## Harvest -- director-thought gen 14, 09-23 (the three result nodes, mur-director-thought-13, the [1b] swarm)
+- VERDICT: DISPROVED in all three runs at <= 3.5 bits -- top-1 agreement 0.5645 (swarm A, experiment:a00-86466b78-c8d14f) · 0.605 (swarm B,
+  experiment:a00-ddd4762f-fc38ef) · 0.5706 (control, experiment:a00-527993c5-67867c) against the 0.98 bar, KL 1.12-1.38 against 0.02. Conjuncts B
+  (energy beats uniform) and C (energy beats random, 3 seeds) HOLD in all three: the ranking is a lever, the claimed size is not.
+- LARGEST SAFE STEP (A's upward grid: higher_bits.json and its producer probe_higher_bits.py, both committed): energy allocation holds both bars at
+  9.0 average bits (agree 0.9819, KL 0.0019), uniform first at 10.25 -- the thresholds lie in (8.0, 9.0] and (9.25, 10.25], so energy saves
+  0.25-2.25 bits per key element, not a measured 1.25. B and the control, on coarser grids, first hold at 12 bits (8 bits: 0.943 / 0.024).
+- UNMEASURED: a true q4_0-analog baseline -- A's bw4 arm divides by the per-block absmax and is a ternary ~1.58-bit quantizer
+  (osc_band_kquant_a00-86466b78.py:65-69); no sentence of the verdict rests on it.
+- [1b] SWARM, measured: parents A (a00-30502399, 3 kids) and B (a01-f543f6a5, 1 kid) spent 20.24 M tokens / 7.48 USD against the single-parent
+  control (a00-c9a05d99, 1 kid) at 9.05 M / 3.23 USD -- 2.3x. The LAP 0 interpretations went up 14 s apart and B spawned its kid 39 s later:
+  no division of labour, the same quantizer reached independently, the same verdict. The room carried 11 posts (4 the director's); no post
+  changed a sibling's design. The extra spend bought a second same-design run (B, 3.30 USD) and A's two dead kids (1.46 USD: a backgrounded
+  pass reaped with its one-shot turn; a global OOM of a 5.2 GB pass). What only the swarm side produced -- A's finer step grid and its bw4
+  probe -- came from A's own diligence, not from the room.
+- SWARM VERDICT: NOT EARNED. The swarm lines stay orders text; no line goes into doc:lm-director-brief-customizations. A swarm that could earn
+  one needs a split the brief assigns (disjoint conjuncts or bit ranges per parent), not a room that invites one.
+- CLOSES: all three result rounds are accept_with_residue in mur-director-thought-13 -- text and evidence residues only, each recorded as a note on its
+  node with the corrected facts; the missing producers and logs are committed (40850ed0fa, 3bad4f77d2).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director harvest after mur-director-thought-13: the three result rounds agree (disproved at 3.5 bits; energy beats uniform and random); the step is energy at 9.0 bits with its threshold bounded to (8.0, 9.0]; the [1b] swarm measured at 2.3x the control for the same verdict with no division of labour, so its lines stay orders text; push_further carries the reframe.
+<!-- THOUGHT:END -->
