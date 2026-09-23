@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g1
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.10
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.10: The engine's standard commands are declared in a node, not memorised"
 ---
 **Config-maxxing applied to the one surface that has escaped it: the commands
