@@ -2015,6 +2015,22 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.31.5.1 residue A -- a refused projection must not be a PARTIAL
+    # write. Validate the EFFECTIVE `profile_ref` (which this same edit may be
+    # setting or unsetting) BEFORE `update_node`, so a refused ref leaves the
+    # node byte-identical and rc=2 means "nothing happened" rather than "the
+    # node landed and only the projection failed" (measured DH.88: the note
+    # landed while write.py printed a failure, and a retry double-applied).
+    # Read-only; this module still performs no file write.
+    _pref = (set_fm.get("profile_ref", "") if "profile_ref" in set_fm
+             else "" if "profile_ref" in edit.unset_fm
+             else _node_profile_ref(root, edit.node_id))
+    if _pref:
+        try:
+            profile_sync.artifact_path(root, str(_pref))
+        except profile_sync.Refused as exc:
+            raise EditError(f"profile projection refused: {exc}") from exc
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -2048,6 +2064,25 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         except profile_sync.Refused as exc:
             raise EditError(f"profile projection refused: {exc}") from exc
     return res
+
+
+def _node_profile_ref(root, node_id: str) -> str:
+    """The node's on-disk `profile_ref`, read-only (residue A pre-validation).
+
+    hypothesis:l3-write-partial-diffs-as-writes -- everything that can refuse
+    refuses before anything is written. The on-disk value is consulted only
+    when the edit does not itself set or unset the field, so a refused ref is
+    caught before `update_node`. No file write.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    try:
+        path = node_writer.find_node_file(root, node_id)
+        if path is None:
+            return ""
+        return str(fm_reader.load_node_file(path, body=False).frontmatter
+                   .get("profile_ref", "") or "")
+    except BaseException:
+        return ""
 
 
 def _node_mint_id(root, node_id: str) -> str:

@@ -45,7 +45,10 @@ def project(root, node_id):
         raise Refused("no project root — no enclosing .agi/config.json")
     f = node_writer.find_node_file(root, node_id)
     if f is None:
-        raise FileNotFoundError(node_id)
+        # goal:g7.31.5.1 residue B -- a missing node is one more bad input,
+        # and every other bad input here is a named REFUSED rc=2. A bare
+        # FileNotFoundError escaped as a traceback with rc=1 (measured DH.88).
+        raise Refused(f"no such node {node_id!r} — nothing to project")
     nf = fmr.load_node_file(f); ref = nf.frontmatter.get("profile_ref")
     if not ref:
         raise NoRef(node_id)
