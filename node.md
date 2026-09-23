@@ -3,14 +3,14 @@ id: hypothesis:a06-6f2a2b30-6ebafd
 mint_id: 305c402eec5849e982fe1d085cc44df1
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.3
 next_edges: []
 confidence: 0.0
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 090a03e07c3c7ae9
 season: 1
 testable_claim: Whole-graph `outcome_coverage` (mvps / hypotheses, pooled across all goals) diverges from per-goal `outcome_coverage` when hypotheses and mvps concentrate under different goals. This means the primary metric can report rising `outcome_coverage` even though no single goal's chain closure rate improved — mvps spawned under one goal inflate the numerator for hypotheses languishing under another.
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A06 6f2a2b30 6ebafd
 verdict: pending
 ---
