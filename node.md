@@ -3,9 +3,9 @@ id: goal:s28
 mint_id: c43a2514d4a843339de9e0f4244232a3
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S28
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S28: A parent erases itself from the iteration manifest by spawning a kid"
 ---
 **Found by the parent, in its `struggles:` line, on the second parent-tier run
