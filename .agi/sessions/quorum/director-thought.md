@@ -79,6 +79,11 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
 ```
 1 OSC.12 LIVE -- parent a00-ad0038cd (pid 1683666), dispatched 20:29Z, wall ~22:29Z, GPU round: its kid a00-71dbbad5 stopped the router under the T0 guard
          (the ngram-simple feasibility arm first); hypothesis:lm-served-9b-ngram-speculation-speeds-agent-decode; orders in the scratch
+    PRELIMINARY (director's read of the kid's arm logs 21:28Z, NOT the parent's verdict): speculation RUNS on qwen35 (feasibility passed); vs none (median
+         58.8 decode tok/s): ngram-simple edit x7.94 (8/8 outputs identical), code x1.02, digest x0.71 (a slowdown), all x1.02 · ngram-mod edit x7.30
+         (8/8), code x0.97, digest x0.97 (8/8 identical), all x0.98 · map-k / map-k4v ~x1.0 · acceptance simple 89 pct, mod 92 pct, map-k 43-47 pct ->
+         the whole-set 1.3x bar likely FAILS while edit-and-return turns gain ~7x: the step candidate is ngram-mod (no digest loss), pending T3's margins
+         on the code-class divergences and the none-LAST drift bracket; the NEXT round's question = the town's real share of edit-shaped turns
     when its harvest line lands: merge its loop branch (season2/loops/hypothesis-lm-served-9b-ngram-sp-a00-ad0038cd) -> check its worktree for uncommitted
          config AND for evidence the nodes cite under gitignored .agi/sessions (copy stragglers verbatim beside the outputs after anonymize.py check -- the
          OSC.10 + OSC.11 lesson) -> prove the router with a PARSED 9B completion naming the model -> ONE mur (merge_up director-thought-15, --dry-run first)
