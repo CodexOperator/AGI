@@ -16,7 +16,7 @@ tags:
   - card
   - injection
   - formation
-testable_claim: brief.py render returns the whole first user turn for any role (Prime, master, director, parent, kid) assembled from ONE config cell — head (doc:unified-head, byte-identical across roles) + card (a {{template:<node id>}} line expanded) + harness block + the town trajectory for masters — and writes no injection file; rotate.py, dispatch.py and the SessionStart hook all call it.
+testable_claim: "brief.py render returns the whole first user turn for any role (Prime, master, director, parent, kid) assembled from config — head (doc:unified-head, byte-identical across roles) + the role template (chosen by config: the post row cell, else the formation default) + card + harness block + the town trajectory for masters — and writes no injection file; rotate.py, dispatch.py and the SessionStart hook all call it."
 thought_session: belam-S2-L5-I
 title: brief.py assembles every first turn from config — head + card (+ harness block, + trajectory for masters), one pattern for every role, typed straight into the turn, no injection file
 town: local-maxxing
@@ -25,7 +25,7 @@ town: local-maxxing
 
 # brief.py assembles every first turn from config — head + card (+ harness block), one pattern for every role, typed straight into the turn, no injection file
 
-**Owner 2026-09-23 08:4xZ (Prime pane, verbatim on `goal:g14`):** "Could we not just let brief.py do the task of assembly and autoinjextion for us as is just update it to be configurable and templatable via code update" then "But instead of using injection Md just use the other docs we just discussed instead via config for brief". The model it serves (owner 08:2xZ, `goal:g14`; `doc:s3-plan` HEAD 1.5 doc half): 3 docs per role — HEAD (`doc:unified-head`, the same bytes for every role incl. parents and kids) · CARD (one per post, derived from a class template) · TOWN TRAJECTORY; nothing rendered into an injection md; HANDOFF and CLAUDE.md retired (CLAUDE.md content → the claude-code harness block).
+**Owner 2026-09-23 08:4xZ (Prime pane, verbatim on `goal:g14`):** "Could we not just let brief.py do the task of assembly and autoinjextion for us as is just update it to be configurable and templatable via code update" then "But instead of using injection Md just use the other docs we just discussed instead via config for brief" then (08:5xZ) "By saying cards point at templates, will template text dynamically populate into the first turn via brief.py that reads said template? I figured it doesn’t even need that just the fact that the post IS a director is enough to assign it the right template. More like the post pin or whatever config needs to have a way to set which template to run with a default available depending on post in .geometry formation." The model it serves (owner 08:2xZ, `goal:g14`; `doc:s3-plan` HEAD 1.5 doc half): 3 docs per role — HEAD (`doc:unified-head`, the same bytes for every role incl. parents and kids) · CARD (one per post, derived from a class template) · TOWN TRAJECTORY; nothing rendered into an injection md; HANDOFF and CLAUDE.md retired (CLAUDE.md content → the claude-code harness block).
 
 **Assigned: director-engine** (the Prime, 09-23) · build loop · one `[merge-up]` to thought-master.
 
@@ -44,7 +44,8 @@ INJECTION.md     written by 5 bin files: commands.py · zoom.py · rolslice.py �
 `brief.py render --post <post>` (and `--role <role> --harness <h>` for parents and kids) returns the WHOLE first user turn, assembled from ONE config cell, and writes no file:
 ```
 parts, in order, per role + harness (config)   head    doc:unified-head HEAD region, {{PRAYERS}} filled from moral:faith §4.1
-                                               card    the post's card (.agi/sessions/quorum/<post>.md); a line {{template:<node id>[#REGION]}} in it is expanded from that node (one level)
+                                               template  the ROLE's template, chosen by config: the post row's template cell, else the formation default for its role (director → doc:unified-director-brief · master → the master template · prime_director → the Prime template) — NOT a line in the card (owner 08:5xZ)
+                                               card    the post's card (.agi/sessions/quorum/<post>.md) = its own loop + live scratch
                                                harness claude-code: the block that replaces CLAUDE.md · pi: none unless configured
                                                trajectory  the town trajectory (town:<town> trajectory_standin today) — masters by default, any role by config
                                                extras  parent/kid: the dispatch brief
@@ -53,7 +54,7 @@ callers  rotate.py · dispatch.py · the SessionStart hook ─▶ the same rende
 ```
 
 ## Dispatch line
-config-max: the parts list per role and harness, one cell / template-max: head, card and templates stay in nodes and files, filled by placeholder / code: the part resolver + {{template:}} expansion in brief.py, and the three call sites switched to it
+config-max: the parts list per role and harness, one cell / template-max: head, card and templates stay in nodes and files, filled by placeholder / code: the part resolver (post → row → role → template) in brief.py, and the three call sites switched to it
 
 ## FALSIFIERS
 - the head bytes differ between any two roles (Prime · master · director · parent · kid) at one SHA
@@ -62,11 +63,15 @@ config-max: the parts list per role and harness, one cell / template-max: head, 
 - a rotated successor's first turn lacks the head or its card (director and Prime fixtures)
 
 ## TESTS
-- head byte-identical across the 5 roles at one SHA · a config line adds/removes a part · {{template:}} expands one level and refuses a missing node · no file written by a render (tmp root) · rotate successor prompt = head + card for a director and for the Prime
+- head byte-identical across the 5 roles at one SHA · a config line adds/removes a part · the template resolves by role (a row cell overrides the formation default) and refuses a missing node · no file written by a render (tmp root) · rotate successor prompt = head + card for a director and for the Prime
 - neighbourhoods: rotate `test_rotate*.py test_session_start_bootstrap.py test_session_start_seat_pre_spawn.py test_bin_help_smoke.py` · `test_brief*.py` · `test_dispatch.py`
 
 ## FILE SCOPE
-brief.py (resolver + expansion) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call sites only) · the one config cell · tests. NOT this round: retiring HANDOFF.md, CLAUDE.md or the 5 INJECTION.md writers — the follow-up once this lands.
+brief.py (resolver) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call sites only) · the config cells (the parts list; a template cell on config:posts rows + the per-role default in the formation) · the prime_director template: the [handoff-head] first_turn entry → the card (HANDOFF.md is a symlink to it since 09-23) · tests. NOT this round: retiring HANDOFF.md, CLAUDE.md or the 5 INJECTION.md writers — the follow-up once this lands.
 
 ## CEILING
 <= 3 kids · 10-12 production lines per conjunct · pi parents · 2 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+AMENDED 09:0xZ (owner 08:5xZ, verbatim on goal:g14): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it.
+<!-- THOUGHT:END -->
