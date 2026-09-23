@@ -3,9 +3,9 @@ id: goal:g6.9
 mint_id: f9e21a010143472d8f198d7ea5b10fe0
 type: goal
 parents:
-  - goal:g6
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G6.9
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G6.9: `GOALS.md` is rendered from the nodes, not the other way round"
 ---
 **The last hand-authored source in this repo becomes derived, like everything
