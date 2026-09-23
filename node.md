@@ -3,9 +3,9 @@ id: goal:s26
 mint_id: 46d3da15cddd4baaae02af095551cd78
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 0.9
-edited_by: season.py
+edited_by: belam
 goal_id: S26
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S26: An overarching goal is not `complete` while its subgoals are live"
 ---
 **The owner's rule, stated during the 2026-09-02 sweep, and it caught a real
