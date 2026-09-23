@@ -6,11 +6,17 @@ parents:
   - goal:g7.31.2.1
 next_edges: []
 confidence: 0.8
-edited_by: a00-dbcd3780
+edited_by: a00-fc6e6a42
 evidence_runs:
   - experiment:a00-dbcd3780-session-pin
 loop: goal:g7.31.2.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "seat_occupation(row window '@7', session 'SID-LIVE', pid 0; seam '@7 director-seat'; registry dir with 99999.json {view:'@7.%0', session_id:'SID-LIVE'})", "expected": "state occupied, session_ok True, live_session SID-LIVE", "observed": "state occupied session_ok True live_session SID-LIVE", "result": "pass"}
+  - {"conjunct": 2, "class": "auth", "cmd": "same live registry session SID-LIVE vs row session SID-FOREIGN", "expected": "session_ok False and the rendered cell NAMES session-drift", "observed": "session_ok False cell=' pane=occupied(@7) session-drift(row SID-FOREIGN live SID-LIVE)'", "result": "pass"}
+  - {"conjunct": 1, "class": "auth", "cmd": "registry only for window '@70' (view '@70.%0', session SID-70), live window '@7'", "expected": "session_ok None -- @7 must NOT join @70 (substring-join trap)", "observed": "session_ok None live_session ''", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "row session SID-LIVE, registry dir EMPTY (JOIN miss)", "expected": "session_ok None (unknown), never False/True -- a join miss is not an accusation of drift", "observed": "session_ok None", "result": "pass"}
+  - {"conjunct": 4, "class": "gate", "cmd": "registry_dir omitted entirely", "expected": "session_ok None and cell == ' pane=occupied(@7)' exactly (no-registry render byte-identical)", "observed": "session_ok None cell=' pane=occupied(@7)'", "result": "pass"}
 profile: balanced
 role: kid
 scaffold_hash: 76fa08096c7aeba7
@@ -79,17 +85,7 @@ registry dir was supplied.
 Evidence: `experiment:a00-dbcd3780-session-pin`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.178. The parent chain had two OPEN clauses on goal:g7.31.2.1's falsifier:
-pane (landed, probed) and session (open -- the parent's own caveat said the
-row's `session_ref` is harness-only and stays empty until `rotate.py ack`).
-This hypothesis forks the SESSION clause rather than re-testing the pane one.
-Chose the registry-joined `session_id` as the session pin, not `session_ref`,
-because `_ack_path`'s own comment says a ref is harness-only and "NOT
-derivable" -- so no read could ever match it at seat start, and demanding it
-would make the falsifier unfalsifiable. The registry record for the live
-window @id IS live at seat start (cmd_spawn joins it), so it is the one
-session fact a seat-start reader can honestly compare. Evidence:
-experiment:a00-dbcd3780-session-pin.
+Parent review (DH.178, a00-fc6e6a42). (1) The brief said: "Run one negative probe per claim conjunct yourself and record them as `probes:`" and "REVIEW THE BYTES, NOT THE RESULT FILE". (2) The machine: I read the WORKING-TREE bytes, not the result file -- seat_status.py L171-281 (`_live_registry_session`, the seat_occupation session block, `_occ_cell`), test_seat_pane_registry.py L293-358 (the five new session tests), the two authored nodes. I built and RAN .agi/sessions/iter-DH.178/a00-dbcd3780/parent_probe.py: 5/5 probes pass -- (wire) a matching registry session for the live @7 returns occupied/session_ok True; (auth) a foreign row session returns session_ok False and the cell NAMES session-drift; (auth) a registry record for @70 does NOT join a live @7; (gate) an empty registry dir leaves session_ok None, never False; (gate) omitting registry_dir leaves session_ok None and the cell byte-identical to ` pane=occupied(@7)`. (3) Near miss: a join keyed on the registry FILENAME, or a bare substring of the window id, satisfies the words "session pin matches tmux" and loses identity -- `@7` would join `@70` and a foreign session would certify occupied silently. Probe C (registry only for @70, live @7 -> None) is that falsifier; the kid's `_registry_matches_window_id` reuse holds. (4) Deviation: none by me. The kid used 69 production lines vs ceiling 40 -- above the ceiling, under the instruction's own 80 = 2x stop line, so recorded (`production_lines: 69`) rather than cut. Caveat kept in the verdict: the session half joins the per-session registry DIRECTORY, not tmux itself, and the row's short `session_ref` is still empty at seat start by design (back-filled by `rotate.py ack`); the live session that IS checked is the registry-joined `session_id`. That is why the verdict stays inconclusive_lean_proved:80, not proved.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
