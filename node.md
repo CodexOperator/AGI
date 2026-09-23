@@ -3,13 +3,13 @@ id: hypothesis:l3-rotate-loop-false-success
 mint_id: 226f9588236948b3b9e025ca3c1c3334
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.10
 next_edges: []
-edited_by: belam-S1-L3-VII
+edited_by: belam
 scaffold_hash: 046c4b37906489c0
 season: 2
 testable_claim: rotate.py loop exits non-zero with a named error when no tmux window for the successor exists after the spawn attempt, and its successor read-back never opens the caller own transcript, proved by a red-first test that stubs the spawn to create no window and asserts the failure, plus a test that passes --session-log pointing at the caller own transcript and asserts the read-back does not treat it as the successor reply.
-thought_session: 7af11157
+thought_session: dissolve-legacy-2026-09-19
 title: rotate.py loop must not report a rotation it did not perform
 ---
 <!-- BODY:BEGIN -->
