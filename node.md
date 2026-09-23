@@ -3,9 +3,9 @@ id: goal:s1
 mint_id: 7ab72d5c06424296a1c4c3456e48b0e0
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S1
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S1: Retire `bin/` as a directory name"
 ---
 **Every engine entry point is a script, not a binary.** `extensions/agi/bin/`
