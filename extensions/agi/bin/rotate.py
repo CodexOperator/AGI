@@ -3029,6 +3029,15 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
                   file=sys.stderr)
             return 0
 
+    # goal:g7.31.5.3 — the super-ralph `loop` is a rotation path too, so the
+    # SAME drift guard `cmd_rotate_self` runs must gate it. Refuse BY NAME
+    # before the spawn side effect (spawn_window below). Placed AFTER the
+    # meter so a holding loop (returned above) is never refused by the guard.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
+        return 1
+
     role = args.role
     tmux_session = args.tmux_session or DEFAULT_TMUX_SESSION
     existing = _existing_windows(tmux_session, args.window_path)

@@ -230,10 +230,57 @@ def test_rotate_guard_refuses_on_drift_and_passes_when_clean(tmp_path):
     assert msg and "profile drift" in msg and "hypothesis:h1" in msg
 
 
-def test_rotate_guard_wire_reaches_the_sweep(tmp_path):
-    """The call site in cmd_rotate_self must name the guard (wire probe)."""
-    src = (BIN / "rotate.py").read_text()
-    assert "pguard = _check_profile_drift(root)" in src
+def test_loop_refuses_on_drift_and_reaches_spawn_when_clean(
+        tmp_path, monkeypatch, capsys):
+    """Behavioural wire probe: drive rotate.cmd_loop itself, never a grep.
+
+    goal:g7.31.5.3 residue — `cmd_loop` (the super-ralph `loop` rotation
+    primitive) bypassed the drift guard. This asserts the guard gates the
+    LOOP path: a deliberate desync returns non-zero, names the node on
+    stderr, and NEVER calls `spawn_window`; the in-sync case reaches
+    `spawn_window` and returns 0. Red-verified: deleting the
+    `_check_profile_drift(root)` call from `cmd_loop` makes the drift half
+    fail (spawn reached, code 0).
+    """
+    import rotate  # noqa: E402
+    from types import SimpleNamespace  # noqa: E402
+
+    repo = _repo(tmp_path)
+    root = repo / ".agi"
+    dest, _n, _sha = profile_sync.sync_node(root, "hypothesis:h1")
+
+    seen = []
+    monkeypatch.chdir(root)
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.setattr(rotate, "cmd_meter", lambda args, r: 1)  # rotate due
+
+    def _rec(**kw):
+        seen.append(kw)
+        return 0, "claude --remote-control adv-alive"
+
+    monkeypatch.setattr(rotate, "spawn_window", _rec)
+
+    def _loop():
+        return rotate.cmd_loop(SimpleNamespace(
+            session_log=None, force=False, role="adv_alive", name="adv-alive",
+            name_prefix="belam", model=None, effort=None, settings=None,
+            prompt_file=None, tmux_session="agi-rc", window_path=None,
+            debug_file=None, dry_run=True, timeout=1,
+        ), root)
+
+    # clean half: the loop reaches the spawn side effect.
+    assert _loop() == 0
+    assert seen and seen[0].get("name") == "adv-alive"
+
+    # gate half: a deliberate desync refuses BEFORE the spawn.
+    seen.clear()
+    capsys.readouterr()
+    dest.write_text("mutated\n")
+    code = _loop()
+    assert code != 0, "drift must refuse the loop rotation"
+    err = capsys.readouterr().err
+    assert "profile drift" in err and "hypothesis:h1" in err
+    assert not seen, "spawn_window must not run when drift refuses"
 
 
 # ---- goal:g7.31.5.3 corrective round 2: malformed siblings are not drift ----
