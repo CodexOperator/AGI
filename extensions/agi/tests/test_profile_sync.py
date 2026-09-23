@@ -330,3 +330,60 @@ def test_no_tmp_is_left_behind_on_any_refusal_path(tmp_path):
     subprocess.run([sys.executable, str(BIN / "profile_sync.py"),
                     "hypothesis:nope"], cwd=repo, capture_output=True, text=True)
     assert list(repo.rglob("*.tmp")) == []
+
+
+def test_a_non_directory_parent_refuses_before_the_body_changes(tmp_path):
+    """Residue 1, third class: `blocker` is a REGULAR FILE, so
+    `mkdir(parents=True)` would raise NotADirectoryError AFTER update_node
+    had already landed the body (the parent's falsifying probe)."""
+    repo = _repo(tmp_path, ref="blocker/out.md")
+    (tmp_path / "blocker").write_text("i am a regular file\n")
+    before = _node_path(repo).read_bytes()
+    r = _cli(["hypothesis:h1", "replace body 1:1 -"], repo, stdin="clobber\n")
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "profile_ref" in r.stderr and "refused" in r.stderr
+    assert "non-directory parent" in r.stderr
+    assert "Traceback" not in r.stderr and "NotADirectoryError" not in r.stderr
+    assert _node_path(repo).read_bytes() == before, "graph advanced anyway"
+    assert (tmp_path / "blocker").read_text() == "i am a regular file\n"
+    assert list(repo.rglob("*.tmp")) == []
+
+
+def test_the_same_edit_setting_a_blocked_ref_refuses(tmp_path):
+    """The bad ref is set in the SAME edit that changes the body."""
+    repo = _repo(tmp_path, ref=None)
+    (tmp_path / "blocker").write_text("regular file\n")
+    before = _node_path(repo).read_bytes()
+    r = _cli(["hypothesis:h1",
+              "set profile_ref blocker/out.md && replace body 1:1 -"],
+             repo, stdin="clobber\n")
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "non-directory parent" in r.stderr and "Traceback" not in r.stderr
+    assert _node_path(repo).read_bytes() == before
+    assert list(repo.rglob("*.tmp")) == []
+
+
+def test_unsetting_a_blocked_ref_lands_no_deadlock(tmp_path):
+    repo = _repo(tmp_path, ref="blocker/out.md")
+    (tmp_path / "blocker").write_text("regular file\n")
+    r = _cli(["hypothesis:h1", "unset profile_ref && replace body 1:1 -"],
+             repo, stdin="freed\n")
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert b"freed" in _node_path(repo).read_bytes()
+
+
+def test_replacing_a_blocked_ref_with_a_valid_one_lands(tmp_path):
+    repo = _repo(tmp_path, ref="blocker/out.md")
+    (tmp_path / "blocker").write_text("regular file\n")
+    r = _cli(["hypothesis:h1", "set profile_ref profile/ok.md"], repo)
+    assert r.returncode == 0, (r.returncode, r.stdout, r.stderr)
+    assert (repo / "profile" / "ok.md").read_bytes() == BODY.encode()
+
+
+def test_a_deep_nonexistent_parent_chain_is_still_allowed(tmp_path):
+    """Only an EXISTING non-directory ancestor blocks; mkdir may create the
+    rest. Guards against an over-refusal that would break new artifacts."""
+    repo = _repo(tmp_path, ref="deep/new/out.md")
+    dest, _n, _sha = profile_sync.sync_node(repo / ".agi", "hypothesis:h1")
+    assert dest == repo / "deep" / "new" / "out.md"
+    assert dest.read_bytes() == BODY.encode()
