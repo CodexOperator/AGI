@@ -3,9 +3,9 @@ id: goal:s6
 mint_id: 7b5e4b82d1844a56bf67898c520bf0eb
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S6
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S6: Strip agi-tree to the graph and its inputs"
 ---
 Done 2026-08-23. `agi-tree` had accumulated a second copy of most of `agi`:
