@@ -35,3 +35,6 @@ nodes       node commands in these chains cite paths.<key> -- corrections in pla
 **Falsifiers.** Any path literal left in a converted script · any variable resolving to a value different from the literal it replaced · any converted script that no longer runs · any file under `extensions/` touched.
 
 **Standing order behind it.** `extensions/agi/lib/agent-prompt.md` Rules item 13 (commit 23663947a), appended to every parent and kid.
+
+## Agent Notes
+CARRIED RESIDUE (TMM.44, thought-master 09:06Z 09-23): three of the seven paths.local_maxxing keys point into OTHER rounds' worktrees (worktree_a00_2f819956, worktree_a00_48ed5e56_nodes, worktree_a00_d511add6 and the two keys under it) -- ephemeral dirs a reaper can remove; kept byte-identical to the literals they replaced, by the pass's own rule. Routed to the Prime, not this pass: box.root and the other box.* / locations.* cells are stale on this box (they name /home/ubuntu/work/agi; the repo lives elsewhere), and cli.py done's scoped commit drops .agi/config.json edits (the round's 7 keys were committed by director-thought's review pass, 7b0053ac5). Audit: repo-wide 10,086 -> 10,077, no new hit.
