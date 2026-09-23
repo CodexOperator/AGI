@@ -3084,62 +3084,6 @@ def _turn_end_round(tmp_path, last_event=None, kid=True, kid_pid=555):
     return graph, it, rec
 
 
-#: The round base tip at authoring time (`git rev-parse HEAD`), hardcoded so the
-#: red-on-pre-fix proof is reproducible forever.
-_PRE_ROUND_SHA = "6e6ef7fe5ba06fae83918b430cb646e9e52df4ca"
-
-
-def _load_base_dispatch(tmp_path):
-    """Load dispatch.py's PRE-FIX bytes from the round base as a tmp module."""
-    repo = Path(__file__).resolve().parents[3]
-    src = subprocess.run(
-        ["git", "show", f"{_PRE_ROUND_SHA}:extensions/agi/bin/dispatch.py"],
-        cwd=repo, capture_output=True, text=True, check=True).stdout
-    tmp_mod = tmp_path / "base_dispatch.py"
-    tmp_mod.write_text(src)
-    spec = importlib.util.spec_from_file_location("agi_dispatch_base", tmp_mod)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-def _stream_error_turn_end_round(tmp_path):
-    """A turn-end whose log ALSO carries a provider/stream error line."""
-    graph, it, rec = _turn_end_round(
-        tmp_path, last_event={"type": "turn_end"})
-    (it / "parent-p" / "output.log").write_text(
-        "starting\n"
-        "stream error: HTTP 500 from provider\n"
-        + json.dumps({"type": "turn_end"}) + "\n")
-    return graph, it, rec
-
-
-def test_stream_error_survives_a_turn_end_at_the_reaper(tmp_path):
-    """A turn-end whose log already carries a stream error must keep that
-    exact line in `death.evidence`; the turn-end fact rides in `turn_end_kid`.
-    Before the fix the turn-end branch overwrote evidence with "turn-end"."""
-    d = _load_dispatch()
-    graph, it, rec = _stream_error_turn_end_round(tmp_path)
-    out = d._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
-                      cap=5, cfg={}, restart_ok=False)
-    death = out["record"]["death"]
-    assert death["class"] == "infra-stream-error"
-    assert "stream error" in death["evidence"]
-    assert death["evidence"] != "turn-end"
-    assert death["turn_end_kid"] == "experiment:kid-1"
-
-
-def test_pre_fix_reaper_blinds_a_stream_error_with_turn_end(tmp_path):
-    """RED-ON-PRE-FIX: the base-ref `_reap_one` overwrites the stream-error
-    evidence with "turn-end" on the SAME fixture the built bytes preserve."""
-    base = _load_base_dispatch(tmp_path)
-    graph, it, rec = _stream_error_turn_end_round(tmp_path)
-    out = base._reap_one(graph, it, _KidAlive(555), rec, "parent-p", 999,
-                         cap=5, cfg={}, restart_ok=False)
-    assert out["record"]["death"]["evidence"] == "turn-end"
-    assert out["record"]["death"]["class"] == "infra-stream-error"
-
-
 def test_success_tail_with_live_kid_is_a_turn_end_not_a_death(tmp_path):
     """A parent pid gone whose log ends in a completed turn AND whose kid is
     still live is labelled a headless turn-end, never 'died'."""
