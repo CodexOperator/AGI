@@ -10325,6 +10325,81 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
+def _authority_row_content(base: str, new: str, seat: str) -> str:
+    """`base` with ONLY the row keyed to `seat` replaced by that line from
+    `new`; foreign rows byte-identical (a FIRST seating returns `base`)."""
+    b = base.splitlines(keepends=True)
+    row = next((ln for ln in new.splitlines(keepends=True) if _own_row_line(ln, seat)), None)
+    if row is None or not any(_own_row_line(ln, seat) for ln in b):
+        return base
+    return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
+
+
+def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
+    """Route B: the re-minted `seat` row as ONE commit on the FETCHED key
+    authority branch + a fast-forward push. One-line outcome; never raises."""
+    try:
+        import send as _send
+        ref = _send.authority_ref(root)
+    except Exception as exc:  # noqa: BLE001
+        return f"authority: SKIPPED -- no authority ref ({exc})"
+    if not ref.startswith("origin/") or len(ref) <= 7:
+        return f"authority: SKIPPED -- non-origin authority ref {ref!r}"
+    branch, main_root = ref[7:], _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return "authority: SKIPPED -- no git repo (gitless fixture/root)"
+    rel = os.path.relpath(_ack_seats_path(main_root), top)
+    for _att in range(2):  # non-ff race -> fetch again and recompose
+        fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
+                                branch], capture_output=True, text=True,
+                               timeout=60)
+        base = (_blob_text(top, f"FETCH_HEAD:{rel}")
+                if fetch.returncode == 0 else None)
+        if base is None:
+            last = fetch.stderr.strip() or fetch.stdout.strip()
+            continue
+        content = _authority_row_content(base, new_content, seat)
+        if content == base:
+            return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
+        fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
+        os.close(fd)
+        env = dict(os.environ, GIT_INDEX_FILE=idx)
+
+        def _g(*a, **kw):  # noqa: ANN001, ANN002
+            return subprocess.run(["git", "-C", str(top), *a], env=env,
+                                  capture_output=True, text=True, **kw)
+
+        try:
+            # one commit on the FETCHED authority head, one row changed
+            head = _g("rev-parse", "FETCH_HEAD").stdout.strip()
+            blob = _g("hash-object", "-w", "--stdin",
+                      input=content).stdout.strip()
+            tree = ""
+            if (head and blob and _g("read-tree", head).returncode == 0
+                    and _g("update-index", "--add", "--cacheinfo",
+                           f"100644,{blob},{rel}").returncode == 0):
+                tree = _g("write-tree").stdout.strip()
+            if not tree:
+                last = "index/tree build failed"; continue
+            sha = _g("commit-tree", tree, "-p", head, "-m",
+                     f"{seat} key row: re-minted pubkey -> {branch}"
+                     ).stdout.strip()
+            if not sha:
+                last = "commit-tree failed"; continue
+            push = subprocess.run(
+                ["git", "-C", str(top), "push", "origin",
+                 f"{sha}:refs/heads/{branch}"],
+                capture_output=True, text=True, timeout=60)
+            if push.returncode != 0:
+                last = push.stderr.strip() or push.stdout.strip()
+                continue
+            return f"authority: OK -- {sha[:9]} -> {branch}"
+        finally:
+            os.unlink(idx)
+    return f"authority: FAILED -- {last}"
+
+
 # g15 retry budget: the spawn-row commit re-reads HEAD and re-stages the
 # own-row pathspec up to `_SPAWN_ROW_RETRIES` times before recording FAILED
 # (a peer commit may move HEAD mid-rotation: `cannot lock ref 'HEAD'`).
@@ -10486,6 +10561,8 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
+    # conjunct 2 (route B): publish the ONE seat row to the key authority.
+    _auth = _publish_row_to_authority(root, seat, new_content)
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
     # `.key.pending` written when an earlier push FAILED) COMPLETES now
@@ -10497,9 +10574,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     _done = _finish_pending_swap_on_push(root, seat, _push)
     if _done:
         return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
-                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}")
+                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}"
+                f"\n{_auth}")
     return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) -- "
-            f"own-row only: {msg}\npush: {_push}")
+            f"own-row only: {msg}\npush: {_push}\n{_auth}")
 
 
 def _commit_after_join_heal_spawn_row(root: Path, *, seat: str) -> str:
