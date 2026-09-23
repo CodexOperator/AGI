@@ -20881,7 +20881,13 @@ def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
     over ssh (never an address); tests monkeypatch this."""
     dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
     dest.parent.mkdir(parents=True, exist_ok=True)
-    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
+    # `~`-relative, never `$HOME`: this argv is a literal list, so there is no
+    # shell to expand a variable, and scp's SFTP default (OpenSSH >= 9.0) runs
+    # no remote shell either -- the server expands a leading `~` via
+    # expand-path@openssh.com, but `$HOME` reaches it as four literal chars.
+    # Measured on OpenSSH_9.6p1: `scp -D /usr/lib/openssh/sftp-server
+    # boxA:~/.claude/.../x.jsonl` succeeds, the `$HOME` spelling is ENOENT.
+    remote = f"~/.claude/projects/{dest.parent.name}/{dest.name}"
     subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
                     str(dest)], check=False)
     try:
