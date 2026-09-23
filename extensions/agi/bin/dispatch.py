@@ -2703,8 +2703,25 @@ def main() -> int:
         # lease is held by THIS process here, so a re-spawn lands under the
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
+        # hypothesis:a00-1ea3e5cb-5d75a8 -- the adapter stamps generic pane
+        # cells here (it survives every reopen, so the pane NAME is
+        # reattached not re-derived) and they merge into the record below.
+        _pane_stamp: dict = {}
 
         def _open_round(mode: str):
+            # A generic adapter lifecycle entry wins when present; it is handed
+            # THIS round's already-rendered argv/env, so there is no second
+            # argv path. Adapters without `spawn` keep the Popen below.
+            opener = getattr(adapter, "spawn", None)
+            if opener is not None:
+                return opener(
+                    harness=dispatch_harness, tier=args.tier,
+                    context_file=ctx_path, agent_id=agent_id,
+                    iter_n=args.iter_n, sess_dir=sess_dir,
+                    agent_record=_pane_stamp,
+                    argv=mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    env=spawn_env, cwd=str(branch_root),
+                    log_file=log_file, log_mode=mode)
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),
@@ -2841,6 +2858,7 @@ def main() -> int:
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
             "dispatched_from_tree": str(root),
         }
+        agent_record.update(_pane_stamp)
         if args.persistent:
             # Conjunct (c): the record itself names the occupation.
             agent_record["persistent"] = True
@@ -2903,6 +2921,9 @@ def main() -> int:
                 max_live=cap,
                 kid_ceiling=spawn_budget.parent_max_kids(cfg),
                 addendum=_read_prompt_file(_effective_carry_forward(args)),
+                # mirror the brief ACTUALLY handed out -- brief.py's own graph
+                # otherwise, and a scan of it, for a foreign node id.
+                project_root=root,
                 session_dir=sess_dir)
             _brief_text = "\n\n".join(s.rstrip("\n") for s in _segs)
         except BaseException as exc:  # never let the debug artifact break spawn
