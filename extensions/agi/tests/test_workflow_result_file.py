@@ -32,6 +32,14 @@ import subprocess as _sp  # noqa: E402
 import workflow as _wf  # noqa: E402
 from workflow import RunView, _run_stage_pi, run_workflow  # noqa: E402
 
+
+@pytest.fixture(autouse=True)
+def _no_ambient_pi_bin(monkeypatch):
+    """`$PI_BIN` now WINS over the config cell (the ONE shared resolver), so
+    a suite run from a pi seat would otherwise dispatch these fake-bin tests
+    at the real pi. (hypothesis:harness-bin-paths-resolve-per-box round 3)"""
+    monkeypatch.delenv("PI_BIN", raising=False)
+
 SCHEMA = {"type": "object", "properties": {"a": {"type": "string"}},
           "required": ["a"]}
 VALID = {"a": "from-digest"}
