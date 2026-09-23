@@ -18,18 +18,20 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ## 🔴 Where it stops (diagram-maxed)
 ````
 ```
-OWNS (g15, Prime-assigned)                                    state 08:3xZ 09-23
-  0921 batch  hypothesis:mur-0921-residue-batch-into-season2-main  (engine slice = goal:g15.27)
-    chunk 1  R1 EF.12 + R2 EF.11 PROVED · mur R1 ACCEPT / R2 accept_with_residue, 0 demote · [merge-up] SENT to TM 08:3xZ, target @4c5dee025
-    chunk 2  14 engine rounds' residues (demote l4-config-max · l5-a-message claim · substitute verify l5-rotate-accepts · 11 more)
-             -> sort running (.agi/sessions/de-0923/chunk2-dispositions.md) -> fix rounds + claim corrections; 13 lm-* = TM's · 6 HELD (g7.33)
-  0923 batch  hypothesis:core-sync-0923-residues (R1 R4 R5 minted db3151cf5)
-    R1 EF.13  anonymize loopback/link-local   PROVED, merged d6888a04e, re-verified (12 passed; GOALS.md passes anonymize; new test red on pre-fix bytes)
-    R4 EF.14  PI_BIN test hermetic           PROVED, merged 62ff7cedc, re-verified (35 passed x3: PI_BIN=/x, unset, ambient; adapter untouched)
-    R5 EF.15  tty-hangup test under load     running (load: 2 cores, nice 19, none after 11:30Z)
-    R7        BANKED [decision] -> belam 08:0xZ (premise false; rec = required_any); parked
-  NOT mine    R2 R3 R6(g17.14.x) core/grok · R6(g7.33.8) HELD · R8 g7.33
-FLAGGED in the 0921 merge-up: EF.10 + goal:g7.33.8 stranded (pre-hold) · config:posts DE owning_goal = goal:g14.14 (dangling) · lm-replace-body-anchor demote HELD
-NEXT: EF.15 harvest -> 0923 batch mur (R1 R4 R5) -> ONE [merge-up] · g15.27 v2 + batch-node note once the chunk-2 sort lands -> chunk-2 rounds
+OWNS (Prime-assigned)                                          state 09:0xZ 09-23
+  OWNER PRIORITY  hypothesis:brief-py-assembles-every-first-turn-from-config (goal:g1.9; owner 08:4xZ via the Prime)
+                  EF.18 a00-426b02c5 dispatched 08:5xZ, cap 2 USD, <= 3 kids -> harvest -> own mur -> ONE [merge-up] to TM
+  0923 batch      hypothesis:core-sync-0923-residues
+    R1 EF.13 anonymize loopback  · R4 EF.14 PI_BIN test · R5 EF.15 launch-wrapper SIG_IGN reset   all PROVED, merged, re-verified by me
+    R5 measured by me: pre-fix + inherited SIGHUP ignore -> red 30.38 s (child exit 0) · post-fix 0.36 s pass
+    batch mur RUNNING (b0e84wg5g, args .agi/sessions/de-0923/mur-0923-args.json) -> ONE [merge-up] to TM (tip after EF.15 = 1c4f29c85)
+    R7 BANKED [decision] -> belam 08:0xZ (premise false; rec = required_any); parked
+  0921 batch      engine slice = goal:g15.27 v2 (15 engine rounds; THOUGHT says why v1 said 2)
+    chunk 1 R1+R2 merged up to TM 08:3xZ @4c5dee025 (mur 0 demote)
+    chunk 2 table hypothesis:mur-0921-engine-residues-dispositioned-and-corrected (130: F34 C34 K58 G4) · FR-A hypothesis:alarms-loop-runs-flat-...
+            both minted b6f25f475, NOT dispatched: after the 0923 mur frees keys (keep >= 3 USD headroom for TM) · use EF.19/EF.20
+            (EF.16/17 dirs hold orphan agent dirs from a stale-base refusal) · FR-B..D need TM's go (shared headroom); FR-C waits for brief.py
+  NOT mine        R2 R3 R6(g17.14.x) core/grok · R6(g7.33.8) HELD · R8 g7.33 · research-review F items -> TM
+FLAGGED to TM: EF.10 + goal:g7.33.8 stranded (pre-hold) · config:posts DE owning_goal = goal:g14.14 (dangling) · lm-replace-body-anchor demote HELD
 ```
 ````
