@@ -1105,7 +1105,11 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = brief.render(post=name, role=tier,
                             harness=harness or "claude-code",
                             project_root=project_root)
-    except brief.RenderError:
+    except brief.RenderError as exc:
+        # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
+        # config): a rotation that fell back to the legacy brief must say so.
+        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
+              f"falling back to brief.assemble", file=sys.stderr)
         body = None
     if not body:
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
@@ -1859,12 +1863,15 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         # A third harness resolves its own bin (the copilot binary/row); the
         # claude path passes None and stays byte-identical.
         _bin = _harness_row(root, harness).get("bin") or None
-        # A non-prime seat spawned with no explicit --prompt-file gets its body
-        # from the assembled brief. assemble() already inserts the constitution
-        # head, so we skip successor_prompt() — calling both would double-insert it
-        # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
-        # explicit --prompt-file, are untouched.
-        if prompt_file is None and tier != "prime_director":
+        # A seat spawned with no explicit --prompt-file gets its body from the
+        # assembled brief -- for EVERY tier, the prime included
+        # (hypothesis:brief-py-assembles-every-first-turn-from-config; the
+        # render resolves head + the role template + the post's card + the
+        # trajectory). assemble() already inserts the constitution head, so we
+        # skip successor_prompt() — calling both would double-insert it
+        # (hypothesis:l3w4-liaison-seat). An explicit --prompt-file still wins
+        # byte-for-byte.
+        if prompt_file is None:
             claude_cmd = _assembled_successor_command(
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
@@ -1872,8 +1879,6 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 harness=harness, bin_path=_bin, project_root=root,
             )
         else:
-            if prompt_file is None:
-                prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
                 print(f"ERR: prompt file not found: {prompt_file} "
@@ -19091,7 +19096,14 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # The real spawn is where the file-existence gate in spawn_window lives.
     prompt_file = args.prompt_file
     if (not args.dry_run and prompt_file is None
+            and role != "prime_director"
             and tmpl is not None and tmpl.get("brief_file")):
+        # A prime seat is DELIBERATELY excluded: its body is the assembled
+        # render (head + the role template + doc:card-<post> + the town
+        # trajectory), selected by spawn_window's no-prompt-file branch, so
+        # resolving the template's static brief_file here would bypass the
+        # render AND lose the card once the [handoff-head] first_turn entry
+        # is gone (hypothesis:brief-py-assembles-every-first-turn-from-config).
         # L5.11: resolve the template brief through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
         # CWD coincidence. At a rename boundary the card was renamed under

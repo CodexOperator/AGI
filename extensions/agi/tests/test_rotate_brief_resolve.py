@@ -290,3 +290,53 @@ def test_pre_fix_brief_stays_cwd_relative(tmp_path, monkeypatch):
     assert seen["prompt_file"] == ".agi/sessions/quorum/old.md"
     assert Path(seen["prompt_file"]).is_absolute() is False
     assert (elsewhere / seen["prompt_file"]).exists() is False
+
+# --- EF.25 items 2+3: the prime's successor body is the assembled render ----
+
+
+def _rotations_prime(root, brief_file):
+    geo = root / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "rotations.md").write_text(
+        "---\nid: config:rotations\ntype: config\ntemplates:\n"
+        f'  prime_director: {{brief_file: "{brief_file}", steps: [handoff, spawn], '
+        'telemetry: [seat]}\n---\n\nbody\n', encoding="utf-8")
+
+
+def test_prime_rotate_self_leaves_prompt_file_to_the_render(tmp_path,
+                                                            monkeypatch):
+    """item 2 of hypothesis:brief-py-assembles-every-first-turn-from-config:
+    a prime seat's REAL rotation does not resolve the template's static
+    brief_file, so `spawn_window`'s no-prompt-file branch renders head + the
+    role template + doc:card-<post> + the trajectory. Resolving it here would
+    bypass the render AND, with the [handoff-head] first_turn entry gone, drop
+    the card entirely."""
+    root = _root(tmp_path)
+    _seats(root, [{"name": "belam", "role": "prime_director", "worktree": ""}])
+    _rotations_prime(root, "extensions/agi/briefs/prime-director-successor.md")
+    monkeypatch.chdir(tmp_path)
+    seen = _capture(monkeypatch)
+    seen["root"] = root
+
+    rotate.cmd_rotate_self(_args(name="belam", role="prime_director"), root)
+    assert seen.get("prompt_file") is None, (
+        "a prime rotation must let spawn_window render, not read brief_file")
+
+
+def test_non_prime_rotate_self_still_resolves_its_template_brief(tmp_path,
+                                                                 monkeypatch):
+    """GATE: the prime exemption must not disarm the template brief for the
+    other roles -- a parent still resolves its quorum card."""
+    root = _root(tmp_path)
+    wt = tmp_path / "post-old"
+    (wt / ".agi" / "sessions" / "quorum").mkdir(parents=True)
+    card = wt / ".agi" / "sessions" / "quorum" / "old.md"
+    card.write_text("card\n", encoding="utf-8")
+    _seats(root, [{"name": "old", "role": "parent", "worktree": str(wt)}])
+    _rotations(root, ".agi/sessions/quorum/{seat}.md")
+    monkeypatch.chdir(tmp_path)
+    seen = _capture(monkeypatch)
+    seen["root"] = root
+
+    rotate.cmd_rotate_self(_args(), root)
+    assert seen["prompt_file"] == str(card)
