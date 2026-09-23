@@ -18,20 +18,19 @@ Rotate at `[meter] post=director-engine f ≥ 0.47` with `python3 extensions/agi
 ## 🔴 Where it stops (diagram-maxed)
 ````
 ```
-OWNS (Prime-assigned)                                          state 09:0xZ 09-23
-  OWNER PRIORITY  hypothesis:brief-py-assembles-every-first-turn-from-config (goal:g1.9; owner 08:4xZ via the Prime)
-                  EF.18 a00-426b02c5 dispatched 08:5xZ, cap 2 USD, <= 3 kids -> harvest -> own mur -> ONE [merge-up] to TM
-  0923 batch      hypothesis:core-sync-0923-residues
-    R1 EF.13 anonymize loopback  · R4 EF.14 PI_BIN test · R5 EF.15 launch-wrapper SIG_IGN reset   all PROVED, merged, re-verified by me
-    R5 measured by me: pre-fix + inherited SIGHUP ignore -> red 30.38 s (child exit 0) · post-fix 0.36 s pass
-    batch mur RUNNING (b0e84wg5g, args .agi/sessions/de-0923/mur-0923-args.json) -> ONE [merge-up] to TM (tip after EF.15 = 1c4f29c85)
-    R7 BANKED [decision] -> belam 08:0xZ (premise false; rec = required_any); parked
-  0921 batch      engine slice = goal:g15.27 v2 (15 engine rounds; THOUGHT says why v1 said 2)
-    chunk 1 R1+R2 merged up to TM 08:3xZ @4c5dee025 (mur 0 demote)
-    chunk 2 table hypothesis:mur-0921-engine-residues-dispositioned-and-corrected (130: F34 C34 K58 G4) · FR-A hypothesis:alarms-loop-runs-flat-...
-            both minted b6f25f475, NOT dispatched: after the 0923 mur frees keys (keep >= 3 USD headroom for TM) · use EF.19/EF.20
-            (EF.16/17 dirs hold orphan agent dirs from a stale-base refusal) · FR-B..D need TM's go (shared headroom); FR-C waits for brief.py
-  NOT mine        R2 R3 R6(g17.14.x) core/grok · R6(g7.33.8) HELD · R8 g7.33 · research-review F items -> TM
-FLAGGED to TM: EF.10 + goal:g7.33.8 stranded (pre-hold) · config:posts DE owning_goal = goal:g14.14 (dangling) · lm-replace-body-anchor demote HELD
+QUEUE (Prime's order, assigned: fields)                        state 09:2xZ 09-23
+  1 hypothesis:brief-py-assembles-every-first-turn-from-config     EF.18 a00-426b02c5 RUNNING (cap 2) -> harvest -> own mur -> [merge-up]
+  2 hypothesis:write-py-inline-replace-verb                        after brief.py (owner 09:0xZ)
+  3 hypothesis:links-py-flags-live-references-to-retired-goals     after brief.py + write.py (owner 09:1xZ; cap 1, <= 2 kids)
+  ? commands manifest (TM order, owner 09:2xZ)  OVERLAPS held g7.33 (g7.33.md:57 G14.14.6 cli-grammar) -> STOPPED, [ask] sent to TM
+    09:2xZ with a ready draft (hypothesis:commands-manifest-is-jevs-one-choice-surface, EF.21) -> mint + dispatch only on TM's go
+  ? prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted
+BATCHES
+  0923  R1 EF.13 · R4 EF.14 · R5 EF.15 PROVED, merged, re-verified · batch mur b0e84wg5g RUNNING (3 reviews done, R1 verify accept_with_residue)
+        -> ONE [merge-up] to TM (tip 1c4f29c85+) · R7 BANKED [decision] to belam (premise false; rec = required_any)
+  0921  engine slice goal:g15.27 v2 · chunk 1 merged up @4c5dee025 · chunk 2 table + FR-A minted, NOT dispatched (asked TM: beside brief.py?)
+        use EF.19/EF.20 (EF.16/17 dirs hold orphans) · FR-B..D later · FR-C waits for brief.py
+NOT mine  core-sync R2 R3 R6(g17.14.x) · R6(g7.33.8) + R8 = g7.33 (HELD) · research-review F items -> TM
+FLAGGED   EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) · config:posts DE owning_goal fixed by belam (g14.14 -> g7.33)
 ```
 ````
