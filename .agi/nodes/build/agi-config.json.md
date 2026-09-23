@@ -25,5 +25,5 @@ title: Agi config.json
 # build:agi-config.json
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner: lower key/per-spawn caps 1.5→1.0; raise pool headroom vs ~$35 rem (floor 1.6→1.1 = per_spawn+0.1). memory_max stays 6G (restore accidental 8G from prior replace).
+owner: account floor 1.1→-50 (allow deficit headroom) so live-reserved math does not stop spawn while ~$35 credits remain; keys rarely spend per_spawn cap. per_spawn stays 1.0; min_key stays 1.0; max_live stays 30; memory_max stays 6G.
 <!-- THOUGHT:END -->
