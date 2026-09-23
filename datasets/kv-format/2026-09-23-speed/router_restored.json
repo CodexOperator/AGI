@@ -1,0 +1,15 @@
+{
+ "restored_at": "2026-09-23T14:09:55Z",
+ "model": "Qwen3.5-9B-Q4_K_M",
+ "completion_tokens": 64,
+ "content": "",
+ "reasoning_content_tail": "*\n    *   Task: Name one use of a KV cache.\n    *   Constraint: Answer in up to 10 words.\n\n2.  **Define KV Cache:**\n    *   KV cache stands for Key-Value cache.",
+ "slot": [
+  {
+   "id": 0,
+   "n_ctx": 49664,
+   "is_processing": false
+  }
+ ],
+ "container": "llama-server"
+}
