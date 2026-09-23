@@ -214,3 +214,95 @@ def test_cross_send_records_intent_when_seat_has_no_window(
     assert result["nudge"]["pane"] is None
     assert result["nudge"]["event"] == "nudge"
     assert result["events"] == ["nudge", "send_dm"]
+
+
+def test_send_magic_same_harness_routes_native_only(
+        project: Path, monkeypatch):
+    """send_magic, wire: two grok-bot rows -> native typing, ZERO send_dm."""
+    _write_posts(project, [
+        {"name": "grok-a", "harness": "grok-bot", "window": "@11", "pid": 11},
+        {"name": "grok-b", "harness": "grok-bot", "window": "@22", "pid": 22},
+    ])
+    calls = _fake_tmux(monkeypatch)
+    transport = _instrument_transport(monkeypatch)
+
+    result = messaging.send_magic(project, "grok-a", "grok-b", "body-native",
+                                  sender="grok-a")
+
+    assert result["via_route"] == "native"
+    assert result["path"] == "native"
+    assert result["from_harness"] == "grok-bot"
+    assert result["to_harness"] == "grok-bot"
+    assert [c[5] for c in _typed(calls)] == ["body-native"]
+    assert _typed(calls)[0][4] == "agi-rc:@22"
+    assert transport == []                       # ONLY the native path ran
+
+
+def test_send_magic_different_harness_routes_cross_only(
+        project: Path, monkeypatch):
+    """send_magic, gate: grok-bot -> claude-code -> send_dm, ZERO native."""
+    _write_posts(project, [
+        {"name": "grok-a", "harness": "grok-bot", "window": "@11", "pid": 11},
+        {"name": "claude-b", "harness": "claude-code", "window": "@33", "pid": 33},
+    ])
+    calls = _fake_tmux(monkeypatch)
+    native: list[str] = []
+    monkeypatch.setattr(messaging, "native_send",
+                        lambda *a, **k: native.append("native_send"))
+    sent: list[tuple] = []
+
+    def fake_send_dm(croot, me, other, text, sender, quote_harness=False):
+        sent.append((me, other, text, sender))
+        return croot / f"{me}--{other}.md"
+
+    monkeypatch.setattr(send, "send_dm", fake_send_dm)
+
+    result = messaging.send_magic(project, "grok-a", "claude-b", "body-cross",
+                                  sender="grok-a")
+
+    assert result["via_route"] == "nudge-send"
+    assert result["path"] == "nudge-send"
+    assert result["from_harness"] == "grok-bot"
+    assert result["to_harness"] == "claude-code"
+    assert native == []                          # ONLY the cross path ran
+    assert sent == [("grok-a", "claude-b", "body-cross", "grok-a")]
+    assert _typed(calls) == []                   # no native body keystrokes
+
+
+def test_send_magic_missing_harness_is_never_native(
+        project: Path, monkeypatch):
+    """send_magic, auth: a recipient row with no `harness` cell routes cross."""
+    _write_posts(project, [
+        {"name": "grok-a", "harness": "grok-bot", "window": "@11", "pid": 11},
+        {"name": "ghost-b", "window": "@44", "pid": 44},        # no harness
+    ])
+    _fake_tmux(monkeypatch)
+    native: list[str] = []
+    monkeypatch.setattr(messaging, "native_send",
+                        lambda *a, **k: native.append("native_send"))
+    monkeypatch.setattr(send, "send_dm", lambda *a, **k: project / "x.md")
+
+    result = messaging.send_magic(project, "grok-a", "ghost-b", "hi")
+
+    assert result["via_route"] == "nudge-send"
+    assert result["to_harness"] == ""
+    assert native == []
+
+
+def test_send_magic_missing_sender_harness_is_never_native(
+        project: Path, monkeypatch):
+    """Both sides need a harness: sender without one routes cross too."""
+    _write_posts(project, [
+        {"name": "ghost-a", "window": "@11", "pid": 11},        # no harness
+        {"name": "ghost-b", "window": "@22", "pid": 22},        # no harness
+    ])
+    _fake_tmux(monkeypatch)
+    native: list[str] = []
+    monkeypatch.setattr(messaging, "native_send",
+                        lambda *a, **k: native.append("native_send"))
+    monkeypatch.setattr(send, "send_dm", lambda *a, **k: project / "x.md")
+
+    result = messaging.send_magic(project, "ghost-a", "ghost-b", "hi")
+
+    assert result["via_route"] == "nudge-send"
+    assert native == []
