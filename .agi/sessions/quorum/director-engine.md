@@ -10,16 +10,15 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE batch mur per batch, then ONE `[merge-up]` to thought-master naming the exact SHA (board rows inside the text).
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `moral:*`, `vision:*`, `config:*` myself · write engine code myself. MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5) -- plus the owner's director-thought notice when the jev rounds complete; read dms in full (`send.py read` shows dm lines too). Bodies via a file + python subprocess. Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (11:4xZ 09-23) -- floor -50; work runs until the credits empty
+## LIVE STATE + STOPS (12:2xZ 09-23) -- floor -50; work runs until the credits empty
 ````
 ```
-HOLD ALL  merge-ups: this branch's config bins are ~/... (EF.29) but workflow.py:1381 / rotate.py:1868 / harness_template.py:223 exec the
-          RAW cell -> every mur on this branch dies "pi exited rc=1" -> EF.38 a00-402306e7 RUNNING (harness-bin-paths round 3, ceiling
-          raised) -> then re-run the murs. MAIN is unaffected until this branch merges.
-JEV       EF.21 + EF.37 (leaf g1.25.1: 0 silent drops, no spend/spawn proposable) merged -> re-mur -> merge-up -> tell director-thought
-BRIEF.PY  EF.18 accept_with_residue · EF.19 DEMOTE (config:brief hand-written) -> [decision] to belam 11:1xZ · EF.25 + EF.36 (leaf g1.9.1)
-          merged, their mur died on the bin regression -> re-run after EF.38
-0921      ALL LEAVES MERGED (.1-.6 incl. FR-C1 rounds EF.32 kid + EF.39) + FR-A, FR-D2, corrections -> one batch mur -> merge-up
+FIXED     the raw-bin regression: EF.38 merged (workflow.py / rotate.py / harness_template.py on the shared resolver; murs run again)
+MURS      RUNNING: jev bxd8fshfc (EF.21 + EF.37) · 0921 chunks A bbs3kmbhq (FR-A, corrections, FR-D2) · B bon6ue559 (FR-D1, FR-B1,
+          FR-B2) · C be2y7c8cx (FR-C1 x2, FR-C2, FR-B3) · brief.py #2 bz8mqkm2k (EF.25 + EF.36)
+THEN      jev clean -> [merge-up] to TM -> dm director-thought "[jev] choice surface ready" (the owner's rule)
+          0921 clean -> [merge-up] (+ the goal:g15-retired flag) · brief.py -> also needs the Prime's config:brief write (asked 11:1xZ)
+RESIDUE   jev: 64 entries refuse any optional arg (no template slot) -> a follow-up leaf after the merge-up
 FLAG      goal:g15 is status RETIRED yet parents every g15 residue node -> the Prime, in the next merge-up
 TRAP      a round that edits OTHER nodes or .agi/config.json loses them at `done` unless `--owns <node id>` names them
 MERGED UP 0923 R1/R4/R5 @33206423d · 0921 chunk 1 @4c5dee025 (both mur 0 demote)
