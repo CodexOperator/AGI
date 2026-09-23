@@ -2454,3 +2454,27 @@ def test_heal_truncated_log_keeps_the_died_label(graph_project, monkeypatch):
                       / "agent.json").read_text())
     assert rec["fail_reason"] == "pid 424248 died (detected by reaper)"
     assert rec["death"]["evidence"] != "turn-end"
+
+
+def test_heal_turn_end_keeps_the_stream_error_evidence(graph_project,
+                                                      monkeypatch):
+    """A turn-end whose log ALSO carries a provider/stream error keeps that
+    exact line in `death.evidence`; the turn-end fact rides in `turn_end_kid`.
+    Before the fix the watcher's turn-end write blinded the evidence."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(
+        graph_project, "V", "parent-r", 1, 424250, 424251,
+        "Upstream error from Together: Stream error: h2 protocol error\n"
+        + json.dumps({"type": "turn_end"}) + "\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-V" / "parent-r"
+                      / "agent.json").read_text())
+    assert rec["death"]["class"] == "infra-stream-error"
+    assert "h2 protocol error" in rec["death"]["evidence"]
+    assert rec["death"]["evidence"] != "turn-end"
+    assert rec["death"]["turn_end_kid"] == "experiment:kid-1"

@@ -22,6 +22,10 @@ from pathlib import Path
 #: Hardcoded so the red-on-pre-fix proof is reproducible forever.
 _BASE_SHA = "76a6be473cfe5f0ec09268635c9159868ef7eb8a"
 
+#: The PRE-ROUND tip (`git rev-parse HEAD` at authoring time, `6e6ef7fe5`),
+#: which returned 0 on an empty kid set; hardcoded so round 2's red is forever.
+_PRE_ROUND_SHA = "6e6ef7fe5ba06fae83918b430cb646e9e52df4ca"
+
 
 def _load_cli():
     bin_dir = Path(__file__).resolve().parents[1] / "bin"
@@ -47,6 +51,23 @@ def _load_base_cli(tmp_path):
     if str(bin_dir) not in sys.path:
         sys.path.insert(0, str(bin_dir))
     spec = importlib.util.spec_from_file_location("agi_cli_wait_base", tmp_mod)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _load_pre_round_cli(tmp_path):
+    """Load cli.py's bytes as of the PRE-ROUND tip (before this round's edit)."""
+    repo = Path(__file__).resolve().parents[3]
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    src = subprocess.run(
+        ["git", "show", f"{_PRE_ROUND_SHA}:extensions/agi/bin/cli.py"],
+        cwd=repo, capture_output=True, text=True, check=True).stdout
+    tmp_mod = tmp_path / "pre_round_cli.py"
+    tmp_mod.write_text(src)
+    if str(bin_dir) not in sys.path:
+        sys.path.insert(0, str(bin_dir))
+    spec = importlib.util.spec_from_file_location("agi_cli_wait_pre", tmp_mod)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -116,19 +137,26 @@ def test_wait_missing_manifest_is_an_error_not_a_hang(tmp_path, monkeypatch):
     assert cli.cmd_wait(_args()) == 1
 
 
-def test_wait_empty_kid_set_returns_zero_at_once(tmp_path, monkeypatch, capsys):
-    """DEF5 case 1: an iter with NO `tier: kid` row returns 0 at once -- it
-    never sleeps to the deadline and never returns 2 with an empty
-    `still running:` line."""
+def test_wait_empty_kid_set_returns_a_named_code_at_once(
+        tmp_path, monkeypatch, capsys):
+    """DEF5 case 1: an iter with NO `tier: kid` row returns the named
+    `_WAIT_NO_KID_ROWS` at once -- it never sleeps to the deadline and never
+    returns 2 with an empty `still running:` line. Zero kid rows after
+    `dispatch --detach` returned means no kid was ever spawned
+    (dispatch.py:2933 writes the manifest BEFORE dispatch returns), so a
+    silent 0 would let the parent end its turn with nothing running."""
     cli, _man = _fixture(tmp_path, monkeypatch,
                          [{"id": "p1", "tier": "parent", "status": "running"}])
     monkeypatch.setattr(cli, "_WAIT_POLL_SECONDS", 300.0)
     sleeps = []
     monkeypatch.setattr(cli.time, "sleep", lambda s: sleeps.append(s))
     monkeypatch.setattr(cli.time, "monotonic", lambda: 100.0)
-    assert cli.cmd_wait(_args(max_seconds=999.0)) == 0
+    rc = cli.cmd_wait(_args(max_seconds=999.0))
+    assert rc == cli._WAIT_NO_KID_ROWS
+    assert rc not in (0, 1, 2, cli._WAIT_NO_AGENT)
     assert sleeps == []  # a poll to the deadline would have slept
-    assert "wait 7:" in capsys.readouterr().out
+    err = capsys.readouterr().err
+    assert "no tier:kid row" in err and "iter 7" in err
 
 
 def test_wait_agent_absent_from_manifest_is_named_at_once(
@@ -187,8 +215,27 @@ def test_pre_fix_base_sha_polls_empty_kid_set_to_timeout(
     assert sleeps  # it polled/slept to the deadline instead of returning
     assert "still running: " in capsys.readouterr().err
 
-    # the built bytes on the SAME fixture return 0 at once (green)
+    # the built bytes on the SAME fixture name the condition at once (green)
     cli, _man = _fixture(tmp_path, monkeypatch,
                          [{"id": "p1", "tier": "parent", "status": "running"}])
     monkeypatch.setattr(cli.time, "monotonic", lambda: 0.0)
-    assert cli.cmd_wait(_args(max_seconds=999.0)) == 0
+    assert cli.cmd_wait(_args(max_seconds=999.0)) == cli._WAIT_NO_KID_ROWS
+
+
+def test_pre_round_base_sha_returns_zero_on_an_empty_kid_set(
+        tmp_path, monkeypatch, capsys):
+    """RED-ON-PRE-FIX (round 2): the pre-round tip returns 0 on an empty kid
+    set -- the silent success the named `_WAIT_NO_KID_ROWS` replaces."""
+    base = _load_pre_round_cli(tmp_path)
+    man = tmp_path / "pre" / "sessions" / "iter-007" / "manifest.json"
+    man.parent.mkdir(parents=True)
+    man.write_text(json.dumps(
+        {"agents": [{"id": "p1", "tier": "parent", "status": "running"}]}))
+    monkeypatch.setattr(base, "_session_root", lambda: tmp_path / "pre")
+    monkeypatch.setattr(base, "_legacy_fallback", lambda root, p: p)
+    monkeypatch.setattr(base, "_WAIT_POLL_SECONDS", 0.0)
+    monkeypatch.setattr(base.time, "monotonic", lambda: 0.0)
+    sleeps = []
+    monkeypatch.setattr(base.time, "sleep", lambda s: sleeps.append(s))
+    assert base.cmd_wait(_args(max_seconds=999.0)) == 0
+    assert sleeps == []
