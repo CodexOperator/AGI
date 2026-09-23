@@ -3,22 +3,22 @@ id: goal:g13
 mint_id: fe31c846128c479d8687ea6b4c042547
 type: goal
 next_edges:
-  - goal:g13.1
+  - goal:g4.18
   - hypothesis:a00-5b27ca07-438c0a
   - hypothesis:a00-6b4ad6b2-a60b78
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 goal_id: G13
 goal_kind: long-term
 heading_level: 2
 origin: goals-doc
 season: 1
 seeds: []
-status: active
+status: retired
 tags:
   - goal
   - long-term
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: One read/write path for nodes — an LLM-native node interface
 ---
 **One way in and one way out of the graph.** Every operation an agent performs
@@ -66,7 +66,7 @@ agrees by construction".
 
 **Three debts it would pay, each already recorded elsewhere.** First,
 `thought_session:` is reserved in frontmatter and nothing writes it —
-`goal:g2.7` and `goal:g10.1` want the chat that produced a version linked to
+`goal:g2.7` and `goal:g2.24` want the chat that produced a version linked to
 that version, the finest grain of the LOD axis, and `dispatch.py` knows the
 harness session path at spawn time and drops it on the floor. On 2026-09-01 a
 kid wrote `bin/completion.py` in full and died before recording anything; its
@@ -174,7 +174,7 @@ built**, with the three answers above as its inputs rather than as questions it
 has to stop and ask.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner addition, 2026-09-03, and it turns this goal from a direction into a testable end state. The body now names the symmetry -- read and write must treat a build node and a non-build node identically, with the engine choosing whether a body lives in the node or in the payload file and the caller never knowing -- and, more usefully, it names a SUCCESS CRITERION that can be checked rather than argued about: when the agi skill is invoked, exactly two disk-interaction tools exist, render viewport and write. That is falsifiable in a way "one read/write path" was not. A third filesystem tool in the skill is a failure of this goal, visibly, without anyone having to judge whether a path is sufficiently unified. Status stays active: it already was, and the owner confirmed no change is needed. What changed is scope clarity, not commitment. Two things are deliberately left open rather than decided here. First, how a payload-backed body and a node-backed body produce the SAME kind of grid version and session linkage -- if they do not, the unification is cosmetic, and that is a design question this session did not answer. Second, the owner has flagged this as one of the few goals in the tree where fanning out several parallel chains is actually warranted, because the direction is genuinely not obvious. goal:g4.1 records the general rule -- same-target concurrency is for open-ended goals and most goals here are clear-cut -- and this is named as an exception to it. Recorded via note through write.py rather than by editing the node file, after the owner caught me doing the latter earlier in this loop; GOALS.md re-rendered and round-trips byte-identical across 111 goals.
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
