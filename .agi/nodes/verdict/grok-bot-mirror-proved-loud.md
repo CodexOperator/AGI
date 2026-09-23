@@ -6,7 +6,7 @@ parents:
   - experiment:grok-bot-mirror-green-and-loud
 next_edges: []
 confidence: 0.9
-edited_by: a00-8ee9bdff
+edited_by: a00-11ad274b
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
 loop: goal:g7.25.3@s2
@@ -31,9 +31,9 @@ the real sibling bytes and fails loudly, not silently, on a broken adapter.
 
 Judged run: `experiment:grok-bot-mirror-green-and-loud`.
 
-- **Green:** `8 passed in 0.03s` for
-  `extensions/agi/tests/test_grok_bot_adapter.py` against the helper-branch
-  adapter (`b35848f8`) + config (`52e9c262`) in a scratch tree.
+- **Green:** `15 passed in 0.12s` for
+  `extensions/agi/tests/test_grok_bot_adapter.py` against the real adapter
+  (`6aa00b4a`, 166 lines) + config (`fae48c5b`) on this tip.
 - **Loud, not silent:** P-A (missing adapter) and P-B (adapter raising
   `ImportError`) both stop collection with an error — the removed
   `importorskip` would have turned P-B into `1 skipped`.
@@ -45,11 +45,10 @@ Judged run: `experiment:grok-bot-mirror-green-and-loud`.
 
 ## Bounds
 
-The `8 passed` was measured on **scratch copies of the sibling bytes**, not on
-this branch: this branch owns only the test file, so it collection-errors at
-`adapters.load("grok_bot")` until `goal:g17.14.1` / `goal:g17.14.2` merge up.
-That is the intended loud behaviour, but it means the green conjunct cannot be
-re-observed on this branch alone. `model_args` is not in `adapters.REQUIRED`;
+The `15 passed` is now observed **on this tip**: the adapter and the config
+`bin` cell have merged up, so the green conjunct re-runs here. The earlier
+scratch-copy bound is lifted; the P-A/P-B collection-error probes remain the
+loud-failure evidence. `model_args` is not in `adapters.REQUIRED`;
 the tier test binds to it, so a future adapter without that helper errors
 rather than skips — an honest residual, not a defect of this round.
 What evidence supports this verdict?
@@ -57,3 +56,7 @@ What evidence supports this verdict?
 ## Confidence
 
 0.0 – 1.0
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+R12 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. Re-checked live bytes: 15 tests (15 passed in 0.12s), test blob e37baef7bb76f299db30dfab4317f357672a3b88, adapter blob 6aa00b4aac4d3d8e4f4884515b0fb296a2f6a1be (166 lines) with restart() a real detached respawn. The stale "8 passed in 0.03s" count, the helper-branch blob ids (b35848f8 / 52e9c262) and the branch-alone collection-error bound are corrected in place. Per the dispatch order the verdict: proved and confidence: 0.9 fields are left UNCHANGED; the R12 D1 demote question (this proved predates the real-respawn bytes) is surfaced on hypothesis:a00-8ee9bdff-40419b and in the round done report, not actioned here.
+<!-- THOUGHT:END -->

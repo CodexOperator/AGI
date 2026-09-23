@@ -6,7 +6,7 @@ parents:
   - goal:g7.25.1
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: a00-11ad274b
 evidence_runs:
   - experiment:grok-bot-bare-bin-config-max
 loop: goal:g7.25.1@s2
@@ -34,8 +34,10 @@ already ONE line (`grok_bot_adapter.build_command`) shared by the adapter family
 so there is no per-harness template duplication left to collapse. / `code`: the
 resolver that exists is `resolve_bin`'s precedence
 `$GROK_BOT_BIN > harness["bin"] > DEFAULT_BIN`; the trigger that does NOT exist
-is a MEASURED Grok Bot flag set — `restart` refuses with `NotImplementedError`
-until `<bin> --help` is read (locked stub, Belam practice).
+is a MEASURED Grok Bot flag set — `build_command` still emits the locked stub
+argv until `<bin> --help` is read (Belam practice), while `restart` is a real
+detached respawn (`grok_bot_adapter.py:105-161`, `Popen(start_new_session=True)`)
+that rebuilds that same argv, as `goal:g4.7` requires.
 
 ## Hypothesis
 
@@ -69,4 +71,8 @@ Cited in the experiment node minted under this hypothesis: the literal commands
 and their observed output.
 
 ## Agent Notes
-Grok Bot adapter adopted with bare PATH DEFAULT_BIN; box literal gone per paths audit, adapters.load+REQUIRED pass, resolve_bin precedence unchanged, dispatch.py zero grok hits, helper test file 8 passed.
+Grok Bot adapter adopted with bare PATH DEFAULT_BIN; box literal gone per paths audit, adapters.load+REQUIRED pass, resolve_bin precedence unchanged, dispatch.py zero grok hits, mirror test file 15 passed (the restart clause corrected to the real detached respawn).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+R14 #1 correction applied in place by EF.53 a00-11ad274b under hypothesis:pass2-engine-rows-corrected-in-place. The body claimed `restart` refuses with NotImplementedError until `<bin> --help` is read; the live byte grok_bot_adapter.py:105-161 is a real detached respawn via subprocess.Popen(start_new_session=True), and the committed test (test_grok_bot_adapter.py:40-45) expects TypeError from the keyword-only contract. Corrected in place; the bare DEFAULT_BIN / config_max and adapters.load claims are unchanged. Agent Notes also updated from "helper test file 8 passed" to 15. No verdict/lean/confidence field touched.
+<!-- THOUGHT:END -->
