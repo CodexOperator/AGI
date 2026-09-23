@@ -3,13 +3,13 @@ id: hypothesis:a01-35f3a362-28545d
 mint_id: f65e97fa5ea944fb8b248101101925c9
 type: hypothesis
 parents:
-  - goal:g3
+  - goal:g3.6
 next_edges: []
 confidence: 0.85
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 6fd506507224ab84
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Evidence gate resolves existence not type — non-experiment nodes satisfy evidence_runs
 verdict: pending
 ---

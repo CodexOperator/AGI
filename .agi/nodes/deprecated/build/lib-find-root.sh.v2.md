@@ -3,7 +3,7 @@ id: build:lib-find-root.sh@v2
 mint_id: 7d1096b9e7bb412dbeb37ab51860570a
 type: build
 parents:
-  - goal:g8.2
+  - goal:g1.24
 build_kind: code
 confidence: 0.85
 edited_by: season.py

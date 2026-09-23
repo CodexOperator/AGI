@@ -3,10 +3,10 @@ id: goal:s34
 mint_id: e00c348e0718409dbdb4aaa6a9c8cbf1
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S34
 goal_kind: short-term
 heading_level: 2
@@ -19,7 +19,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S34: Every hazard carried in a handoff is closed in the loop, not carried again"
 ---
 # goal:s34

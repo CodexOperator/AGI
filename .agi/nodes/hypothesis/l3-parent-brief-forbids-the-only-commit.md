@@ -3,13 +3,13 @@ id: hypothesis:l3-parent-brief-forbids-the-only-commit
 mint_id: c249c3d9b64b4208ac2c19b4e1b68ac2
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.13
 next_edges: []
-edited_by: self-perpetuating
+edited_by: belam
 scaffold_hash: d847510c32a35e32
 season: 2
 testable_claim=brief.py: _parent contains DO NOT commit, push, or sync and contains no occurrence of branch, worktree or merge, so a --branch parent obeys it and leaves its loop branch at base; after the change the parent brief distinguishes the two cases — in the main checkout it still commits nothing, and under --branch it is told it holds a loop branch in a worktree, that the branch is the only route its kids work has to the season branch, and exactly which commit it owns — proven by a red-first test asserting the --branch parent brief names its branch and authorises that one commit while the non-branch brief still forbids all git, plus one live --branch round whose branch is ahead of base at parent exit
-thought_session: 3066c544-b046-4b05-a372-c9986c07d0a5
+thought_session: dissolve-legacy-2026-09-19
 title: A --branch parent is forbidden to commit and never told it is on a branch, so every loop branch stays at base and merge-up merges nothing and reports green
 ---
 <!-- BODY:BEGIN -->

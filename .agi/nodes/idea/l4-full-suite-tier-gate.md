@@ -3,7 +3,7 @@ id: idea:l4-full-suite-tier-gate
 mint_id: 59568f68a15e430e805251bae07f09bc
 type: idea
 parents:
-  - goal:g15.6
+  - goal:g6.28
 next_edges: []
 confidence: 0.6
 edited_by: sanctuary-helper

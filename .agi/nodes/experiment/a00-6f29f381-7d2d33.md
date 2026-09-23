@@ -30,7 +30,7 @@ verdict: proved
 
 ## Experiment
 
-BUILD ORDER (goal:g15.25), clauses (1)-(4) only — clause (5) was already
+BUILD ORDER (goal:g6.47), clauses (1)-(4) only — clause (5) was already
 landed by SM.14a and was NOT touched (`rotation_alert.py` untouched).
 
 Pre-fix measurement (this tree, worktree `a00-0302d929` @ `9eaf028d0`), a

@@ -3,10 +3,10 @@ id: goal:s32
 mint_id: d28e414ee2ae4b79a901e54e1ff10ebe
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S32
 goal_kind: short-term
 heading_level: 2
@@ -19,7 +19,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S32: Finish the embeddings pipeline the build-site started — cache, in-graph storage, and a scatter renderer"
 ---
 **Minted 2026-09-03 in L1.09 from the cavekit build-site survey

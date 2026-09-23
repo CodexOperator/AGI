@@ -3,13 +3,13 @@ id: hypothesis:a00-b2e49a50-9978aa
 mint_id: f7a1fd0367f74961b63fb5647d48e7fd
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.9
 next_edges: []
 confidence: 0.95
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 81aec29e87a6eb46
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Spawn gate does not check parent goal lifecycle status before approving
 verdict: inconclusive_lean_proved:95
 ---

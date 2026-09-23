@@ -3,9 +3,9 @@ id: idea:engine-grid
 mint_id: 53418e3477c14566a6ee650202255307
 type: idea
 parents:
-  - goal:g7
+  - goal:g4.13
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 origin: engine-decomp
 scale: small
 season: 1
@@ -14,7 +14,7 @@ tags:
   - engine
   - census
   - l19
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: "Engine surface: extensions/agi/bin/grid.py"
 unit_kind: bin_script
 unit_path: extensions/agi/bin/grid.py

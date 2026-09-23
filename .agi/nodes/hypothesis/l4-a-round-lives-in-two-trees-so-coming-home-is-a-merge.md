@@ -4,7 +4,7 @@ mint_id: 4c9a7e2360b445edac4036559f0affe8
 type: hypothesis
 parents:
   - hypothesis:l4-session-dirs-come-home-when-the-round-is-done
-  - goal:g17.1
+  - goal:g7.16
 next_edges: []
 edited_by: sanctuary-director
 scaffold_hash: 8ff796cd0966f4d7

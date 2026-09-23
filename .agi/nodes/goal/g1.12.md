@@ -4,10 +4,9 @@ mint_id: 8749c849dfc0416f82094d1345478ff5
 type: goal
 parents:
   - goal:g1
-  - build:COMPLETE.md
 next_edges: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G1.12
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +18,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G1.12: Loop flavor is a tag: research, exploration, development, implementation"
 ---
 # goal:g1.12
@@ -55,4 +54,4 @@ the top.
 
 Downstream: `goal:g5.2` decides the flavor and the split mechanically;
 `goal:g14` uses the flavor tag to route each node request to a model; the live
-view (`goal:g9.8`) collapses on it.
+view (`goal:g2.20`) collapses on it.

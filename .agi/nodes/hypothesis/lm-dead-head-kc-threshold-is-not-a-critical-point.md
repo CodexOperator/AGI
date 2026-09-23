@@ -3,7 +3,7 @@ id: hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point
 mint_id: 5aa55c767a5a4ad0b1b3fc3a43669278
 type: hypothesis
 parents:
-  - goal:g14.6
+  - goal:g5.22
 next_edges: []
 edited_by: thought-master
 scaffold_hash: 99cdf14b838ed14a

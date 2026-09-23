@@ -3,13 +3,13 @@ id: hypothesis:a01-721930d9-d34989
 mint_id: a403cb87b8db488ab37421457ca6c014
 type: hypothesis
 parents:
-  - goal:g13
+  - goal:g4.10
 next_edges: []
 confidence: 0.65
-edited_by: season.py
+edited_by: belam
 scaffold_hash: e608b41c02ecd52d
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: A01 721930d9 d34989
 verdict: pending
 ---
@@ -49,8 +49,8 @@ The read/write join is testable as an interface transformation, not a semantic o
 
 - **It does not build `engine.py`.** The hypothesis is about whether the pieces *compose* — a stub that delegates to the existing routines is the test harness, not the deliverable. The real `engine.py` design (whether it is `render.py` as the goal names, whether `read.py` and `write.py` stay as helpers with no other callers) is a later decision informed by what the stub reveals.
 - **It does not migrate the corpus to `link_ref: self`.** `declared: 0` remains the honest count. The engine reads what is on disk; declaring links is the next increment, exactly as the write-floor verdict states.
-- **It does not build the modal shell** (`goal:g13.1`). The verb layer proved no cursor-shaped verb exists; the shell is the remaining half under g13.1, not under this goal.
-- **It does not close `thought_session:` linkage** to session transcripts. The field is written by the verb layer; linking it is `goal:g2.7`/`goal:g10.1`, not g13.
+- **It does not build the modal shell** (`goal:g4.18`). The verb layer proved no cursor-shaped verb exists; the shell is the remaining half under g13.1, not under this goal.
+- **It does not close `thought_session:` linkage** to session transcripts. The field is written by the verb layer; linking it is `goal:g2.7`/`goal:g2.24`, not g13.
 - **It does not falsify the write-back corruption finding** (`experiment:a00-00cde6d0-57851d`, T2b). That is a design input for the engine's write path, not a claim the engine proves or disproves.
 
 ### Relationship to the g13 chain

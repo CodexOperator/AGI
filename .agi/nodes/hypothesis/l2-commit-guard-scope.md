@@ -3,13 +3,13 @@ id: hypothesis:l2-commit-guard-scope
 mint_id: f8d57e4ef473446396f2f0598239c949
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: director
+edited_by: belam
 scaffold_hash: 672afc4a4499d19f
 season: 1
 testable_claim: The agent git commit guard refuses commits only inside the project repo it was spawned for, so a kid's tests that commit in temporary repos pass under AGI_TIER=kid while a commit in the project tree is still refused
-thought_session: agi-master-2026-09-06
+thought_session: dissolve-legacy-2026-09-19
 title: "L2 g15: l2-commit-guard-scope"
 ---
 # hypothesis:l2-commit-guard-scope

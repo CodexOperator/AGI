@@ -3,13 +3,13 @@ id: hypothesis:a01-fc9a1d05-5ef909
 mint_id: 5e8164b076484999b916a606c40c2cdc
 type: hypothesis
 parents:
-  - goal:g5
+  - goal:g4.14
 next_edges: []
 confidence: 0.95
-edited_by: season.py
+edited_by: belam
 scaffold_hash: 130e25920291e69d
 season: 1
-thought_session: season
+thought_session: dissolve-legacy-2026-09-19
 title: Dispatch scoring ignores ancestor goal lifecycle status — G5's 'lifecycle the engine reads' is reporting-only
 verdict: inconclusive_lean_proved:95
 ---

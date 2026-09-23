@@ -3,7 +3,7 @@ id: hypothesis:l2w15-write-guard
 mint_id: 3af8415783ef48cc9c1cb3c8a39d519d
 type: hypothesis
 parents:
-  - goal:g13.1
+  - goal:g4.18
 next_edges: []
 edited_by: ubuntu
 scaffold_hash: de23f50cf585a218

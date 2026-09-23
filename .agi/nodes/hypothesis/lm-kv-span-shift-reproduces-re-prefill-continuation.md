@@ -4,7 +4,7 @@ mint_id: fecb719f6f8747c6955ac9922827a593
 type: hypothesis
 parents:
   - idea:lm-nodes-as-kv-caches
-  - goal:g14.15.1
+  - goal:g5.30.1
 next_edges: []
 confidence: 0.5
 edited_by: thought-master

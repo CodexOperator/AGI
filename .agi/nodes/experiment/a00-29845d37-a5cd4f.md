@@ -24,7 +24,7 @@ verdict: proved
 
 ## Experiment
 
-Step 3 worktree caveat round (hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps, goal:g15.14 step 3). The parent measured TWO defects in `verification.py window` (the captive merge-up window reply): from a seat worktree it (1) misread the never-lower baseline from the per-worktree `.agi/sessions/` ("none recorded") when the stamp lives in MAIN, and (2) labelled the CALLER's HEAD as "MAIN HEAD" in the tip line. FILE SCOPE kept: verification.py `render_window` region ONLY + test_verification_window.py.
+Step 3 worktree caveat round (hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps, goal:g6.36 step 3). The parent measured TWO defects in `verification.py window` (the captive merge-up window reply): from a seat worktree it (1) misread the never-lower baseline from the per-worktree `.agi/sessions/` ("none recorded") when the stamp lives in MAIN, and (2) labelled the CALLER's HEAD as "MAIN HEAD" in the tip line. FILE SCOPE kept: verification.py `render_window` region ONLY + test_verification_window.py.
 
 ### PRE-FIX, measured live on the real tree
 
