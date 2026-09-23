@@ -6,7 +6,7 @@ parents:
   - hypothesis:write-sub-passes-every-gate-set-passes
 next_edges: []
 confidence: 0.9
-edited_by: a00-95077376
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-0abe0186-5b9f2c
 line_ceiling: 130
@@ -356,7 +356,7 @@ index fd4f9862ef..746bece212 100644
 +    refuses `set` (verb_set)."""
 +    path = project / "nodes" / "hypothesis" / "h1.md"
 +    before = path.read_text()
-+    edit = _sub_edit("world => WORLD <!-- THOUGHT:BEGIN")
++    edit = _sub_edit("world => WORLD <THOUGHT-marker>")  # marker elided in this quote: one THOUGHT block per node
 +    with pytest.raises(write.EditError, match="THOUGHT marker"):
 +        write.submit(project, edit, actor="kid", session="s1")
 +    assert path.read_text() == before
