@@ -1,14 +1,13 @@
 ---
-id: goal:g9.9
+id: goal:g2.21
 mint_id: 6b292e4fdd41404e98de2844500ff829
 type: goal
 parents:
-  - goal:g9
-  - build:COMPLETE.md
+  - goal:g2
 next_edges: []
 confidence: 1.0
-edited_by: season.py
-goal_id: G9.9
+edited_by: belam
+goal_id: G2.21
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +18,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G9.9: The spider web skin — a living web, animated spiders, every node on it"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.21: The spider web skin — a living web, animated spiders, every node on it"
 ---
-# goal:g9.9
+# goal:g2.21
 
 ## Agent Notes
 **The spider skin.** The graph is a web, drawn in ASCII, and it is alive.
@@ -40,5 +39,5 @@ title: "G9.9: The spider web skin — a living web, animated spiders, every node
 - Damage stays visible (`goal:g9`'s invariant): a broken region of the graph
   looks like a torn web.
 
-Everything under it comes from `goal:g9.8`'s hook layer. This node owns the
+Everything under it comes from `goal:g2.20`'s hook layer. This node owns the
 paint, the animation grammar, and nothing else.
