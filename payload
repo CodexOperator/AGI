@@ -1378,13 +1378,8 @@ def _pi_harness_cfg(cfg: dict) -> dict:
     skips the config, but a config row with sane defaults)."""
     h = (cfg.get("harnesses") or {}).get("pi") or {}
     return {
-        # The ONE shared resolver: $PI_BIN first, then the `~`/{home}-expanded
-        # config cell, then PATH for the built-in default. Round 1 of
-        # hypothesis:harness-bin-paths-resolve-per-box moved the config bins to
-        # `~/.npm-global/bin/pi`; this reader used to read the RAW cell
-        # config-before-env and fall back to a /home/ubuntu literal (the two
-        # defects that killed every merge-up-review stage at once).
-        "bin": adapters.resolve_bin(h, "PI_BIN", "pi"),
+        "bin": h.get("bin") or os.environ.get("PI_BIN")
+               or "/home/ubuntu/.npm-global/bin/pi",
         "provider": h.get("provider") or "openrouter",
         "thinking": h.get("thinking") or "medium",
     }
