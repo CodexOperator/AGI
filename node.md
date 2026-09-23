@@ -3,9 +3,9 @@ id: goal:s25
 mint_id: c205acee53484885b8e5ae817e8f6fa8
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 goal_id: S25
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S25: `build_corpus` resolves whatever directory it is handed"
 ---
 **`goal:s10`'s second fix, which that goal said to do "regardless of (1)" and
