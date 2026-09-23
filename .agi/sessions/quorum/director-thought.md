@@ -13,7 +13,7 @@
 
 ## §1 Plan -- TMM.37-41 (ask thought-master first; an owner order in my pane: act, then tell)
 ```
-batch B   ✅ SWR-RS.01 (C2 fires every seed · B no fire) · ✅ C2 mur + ✅ RS.01 mur, both accept_with_residue · ✅ all ordered corrections 43eb24ad6 · ⏸ 2 RS.01 dispositions ASKED 08:5xZ (harness path note · production_lines 74 -> 11)
+batch B   ✅ DELIVERED [merge-up] 09:0xZ @fd947d883 (C2 fires under the CI rule -> SWITCH met on both evals pending TM's gate · B no fire) -- TM gates + runs the suite
           after the RS.01 mur: TMM.38(2) deviation THOUGHT on a00-1864ce6e · TMM.38(3) letter_frequency floor notes on B, C2, gap_table.md · TMM.39(a) gap_table.md b/c labels to scorer.py · TMM.41 C2's 3 residues in place -> ONE batch-B merge-up
 batch A   G.01 HELD on its loop branch @109bcb618 (off-scope, parent overflowed, unreviewed) -> ⏳ research-review rr-mp02-g01 (propose-only)
           then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
@@ -33,9 +33,9 @@ dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dis
 
 ## §3 🔴 Where it stops
 ```
-09:0xZ 09-23  batch B corrections pushed 43eb24ad6 · ASKED thought-master: RS.01 harness-path note + production_lines 74 -> 11 -> then ONE batch-B merge-up (engine merge: agent-prompt.md item 13 rides it; TM runs the suite at the gate)
-LIVE   research-review rr-mp02-g01 (agi-director-thought-rr-mp02-g01) · CFG.01 a00-e9111187 (rebriefed 08:51Z with TMM.42's path convention; audit baseline 10,086 hits)
-next   TM answers -> apply -> merge-up line · rr-mp02-g01 lands -> read, report, grammar dispatch line to TM · CFG.01 lands -> check the TMM.42 convention + paths.py audit, harvest, report
+09:0xZ 09-23  batch B merge-up SENT @fd947d883 -> thought-master gates (engine merge: suite in MAIN under the lock)
+LIVE   research-review rr-mp02-g01 (G.01, propose-only) · CFG.01 a00-e9111187 (rebrief read by its parent)
+next   rr-mp02-g01 lands -> read, report, grammar dispatch line to thought-master · CFG.01 lands -> check TMM.42/43 convention + paths.py audit vs baseline 10,086, harvest, mur, its own merge-up or batch A's
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-rr-mp02-g01
 window no pi-local round live across the Prime pass-2 (11:41Z)
 ```
