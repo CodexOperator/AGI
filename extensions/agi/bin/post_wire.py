@@ -473,8 +473,10 @@ def cmd_wire(args: argparse.Namespace) -> int:
             # Idempotent: `cli.py done` may already have written this exact
             # section. Appending unconditionally is what put the notes in
             # twice on every kid for as long as both writers have existed.
-            if notes and notes.strip() not in body:
-                body = body.rstrip() + f"\n\n## Agent Notes\n{notes}\n"
+            # DT.95: the substring guard let a one-character-different note
+            # append a SECOND heading; `upsert_agent_notes` replaces instead.
+            if notes and notes.strip():
+                body = node_writer.upsert_agent_notes(body, notes)
             _update_via_writer(root, node_id, node_path,
                                original_fm, fm, original_body, body)
             updated_nodes.append(node_id)

@@ -2047,15 +2047,18 @@ def _append_verdict_to_node(node_file: Path, verdict: str, confidence: float, no
     # L2.05: the raw append bypassed the logged writer, so write_guard.py
     # flagged every done-completed node as unsanctioned. Route through
     # update_node instead, which atomically rewrites and logs the final sha.
+    #
+    # DT.95: both this site and `post_wire.py` guarded on the note as a
+    # SUBSTRING, so a re-run with a one-character-different note appended a
+    # SECOND `## Agent Notes` heading. `node_writer.upsert_agent_notes` now
+    # owns the invariant -- exactly one heading, replaced not appended -- and
+    # both writers call it.
     if notes:
         try:
             from graph_core.persistence import frontmatter as _fmr2
             nf2 = _fmr2.load_node_file(node_file)
-            if notes.strip() not in nf2.body:
-                new_body = nf2.body
-                if not new_body.endswith("\n"):
-                    new_body += "\n"
-                new_body += f"\n## Agent Notes\n{notes}\n"
+            new_body = node_writer.upsert_agent_notes(nf2.body, notes)
+            if new_body != nf2.body:
                 res2 = node_writer.update_node(
                     root, node_id, body=new_body)
                 if res2.status == node_writer.REJECTED:

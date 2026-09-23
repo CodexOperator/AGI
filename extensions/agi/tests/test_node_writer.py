@@ -1720,3 +1720,50 @@ def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
     res = nw.write_node(tmp_path, "notown", "unconfigured", ["idea:i1"])
     assert res.written, f"{res.status}: {res.reason}"
     assert (tmp_path / "nodes" / "notown" / "unconfigured.md").exists()
+
+
+# --- upsert_agent_notes: exactly one heading, replaced not appended (DT.95) ---
+#
+# Two writers append notes to every kid (`cli.py` at the end of `done`,
+# `post_wire.py` at wire time). Both used to guard on the note as a SUBSTRING,
+# so re-running either with a note differing by one character appended a
+# SECOND `## Agent Notes` heading. Measured live on
+# `hypothesis:a00-810b8e08-548ae9`: two headings, one comma apart.
+
+
+def _agent_notes_headings(body):
+    return [l for l in body.splitlines() if l.strip() == nw.AGENT_NOTES_HEADING]
+
+
+def test_agent_notes_upsert_collapses_two_headings_to_one():
+    body = ("content\n\n## Agent Notes\nfirst note\n\n"
+            "## Agent Notes\nfirst note,\n")
+    out = nw.upsert_agent_notes(body, "first note.")
+    assert len(_agent_notes_headings(out)) == 1, out
+    assert "first note." in out
+    # both older variants are gone, not merely shadowed
+    assert "first note\n" not in out.split("## Agent Notes", 1)[1]
+
+
+def test_agent_notes_upsert_is_one_heading_when_re_run():
+    body = "# node\n\nbody text\n"
+    body = nw.upsert_agent_notes(body, "note A")
+    body = nw.upsert_agent_notes(body, "note A.")
+    assert len(_agent_notes_headings(body)) == 1, body
+    assert "note A." in body
+    assert "\nnote A\n" not in body
+
+
+def test_agent_notes_upsert_appends_exactly_one_to_a_bare_body():
+    out = nw.upsert_agent_notes("# node\n\nbody text\n", "a fresh note")
+    assert len(_agent_notes_headings(out)) == 1, out
+    assert out.rstrip("\n").endswith("## Agent Notes\na fresh note")
+
+
+def test_agent_notes_upsert_keeps_content_after_the_section():
+    body = ("body\n\n## Agent Notes\nold\n\n"
+            "## A later section\n\nkept\n")
+    out = nw.upsert_agent_notes(body, "new")
+    assert len(_agent_notes_headings(out)) == 1, out
+    assert "## A later section" in out and "kept" in out
+    assert "old" not in out
