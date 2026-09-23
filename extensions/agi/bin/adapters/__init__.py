@@ -70,6 +70,15 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
         # `~/x`/`~` -> CURRENT HOME; `~user/x` -> THAT user's home. Splicing
         # `home + raw[1:]` made `~bob/x` resolve to `/home/<me>bob/x`.
         path = os.path.expanduser(raw)
+        # A `~user` that does not exist cannot expand: `expanduser` hands the
+        # raw token back unchanged, and the `path == raw` branch below then
+        # returned it, so `Popen` died on a bare
+        # `FileNotFoundError('~nosuch/x')` that named nothing.
+        if path == raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: no such user's home directory; "
+                f"set ${env_var} to override")
     else:
         path = raw.replace("{home}", home)
     if os.sep in path or (os.altsep and os.altsep in path):

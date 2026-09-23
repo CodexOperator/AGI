@@ -490,3 +490,21 @@ def test_no_home_user_literal_survives_in_any_adapter():
             if re.search(r'["\']/home/', line):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
     assert offenders == []
+
+
+def test_an_unresolvable_tilde_user_refuses_by_name(tmp_path, monkeypatch):
+    """`~nosuchuser/bin/x` cannot expand: `os.path.expanduser` hands the raw
+    token back unchanged, so the pre-fix `path == raw` branch returned the raw
+    cell and `Popen` died on a bare `FileNotFoundError('~nosuchuser/...')`
+    that named nothing. It now refuses BY NAME, naming the harness, the raw
+    cell and the `$ENV_VAR` that would override it."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("NOPE_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "nope", "bin": "~nosuchuser_xyz/bin/nope"},
+            "NOPE_BIN", "nope")
+    msg = str(exc.value)
+    assert "nosuchuser_xyz" in msg, msg
+    assert "'nope'" in msg, msg
+    assert "NOPE_BIN" in msg, msg
