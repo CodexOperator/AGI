@@ -1,14 +1,13 @@
 ---
-id: goal:g15.23
+id: goal:g6.45
 mint_id: 0b8a6255a88d43a192505b815c0e2e5f
 type: goal
 parents:
-  - goal:g15
-  - build:bin-send
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.23
+edited_by: belam
+goal_id: G6.45
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -23,11 +22,12 @@ tags:
   - subgoal
   - l4
   - sensei-director
-title: "G15.23: a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.45: a strand is only a line inside a rendered input box — a busy pane echoed token never re-fires the nudge (send.py _input_region / wake), and wake logs its per-seat outcome"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.23
+# goal:g6.45
 
 ## Why this exists
 
