@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-status-hygiene-sot-2026-09-22
+thought_session: belam-park-horizon-20260923
 town: core
 visions:
   - vision:alive
@@ -48,9 +48,9 @@ DIRECTOR (no Belam chat):
   claim next   → write.py version town/geometry board: claim(goal, seat, tip)
   batch done   → residues=0 + format✓ + §3e suite green → write.py board: complete(goal, tip, suite, mur)
                  also version goal Agent Notes; mark status as fits schema
-  claim order  → REOPENED (Prime) > smallest unclaimed leaf under live/hot top
-  idle         → prefer deepen hot top; only open second top when hot top has no free leaf
-  status       → claimed/worked=active · rest of town:core bundle=horizon
+  claim order  → REOPENED (Prime) > smallest unclaimed leaf under live STOP-LINE top
+  idle         → deepen stop-line hot top; when g7.28+g7.31*+g7.32* done → STOP
+  status       → stop-line claimed/worked=active · parked section = do-not-touch
   talk Belam?  → NEVER for batches. ONLY instant: exposed keys / credential leak
   talk owner?  → credits empty · mesh down · HOLD until owner replies
 
@@ -59,43 +59,37 @@ BELAM (daily, not mid-batch):
   merge post tips w/ residues=0 evidence
   full verify on core/main (or post as docs say)
   vision-lens on goals · moral-lens on visions↔goals
-  residue? → reopen existing OR mint new sub/sub-sub into town bundle (judgment)
+  residue? → reopen existing OR mint new sub/sub-sub into ACTIVE stop-line (judgment)
   reopen = Prime priority over plain open
 ```
 
-Standing contract: `doc:standing-llm-ops`. Reopened goals in this town bundle = **PRIORITY** over plain open (Prime order).
+Standing contract: `doc:standing-llm-ops`. Reopened goals in the **active stop-line** = **PRIORITY** over plain open (Prime order).
 
-## GOAL BUNDLE (encryption / core directors)
+## GOAL BUNDLE — CURRENT STOP-LINE (encryption / core directors)
 
 LOCATION ──▶ encryption-town
+
+Owner 2026-09-23: **active stop-line = g7.28 · g7.31* · g7.32* only.**
+Directors stop when those three trunks are done. Parked/horizon lives in the
+section **below** — do not touch / not in current stop-line.
 
 ```
 encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank encryption master LATER)
                     │
                     ▼
- town:core bundle status (stand-in trajectory — TEMP)
+ town:core ACTIVE STOP-LINE (stand-in trajectory — TEMP)
  ┌─────────────────────────────────────────────────────────┐
  │ ACTIVE   g7.31 → .1→.1.1+.1.2; .3→.3.1+.3.2 (belam)   │
  │ ACTIVE   g7.28; g7.31.2/.4/.5; g7.32* (helper)         │
- │ HORIZON  g7.25; g7.26–.27; g7.29–.30                   │
- │ HORIZON  g7.33; g7.34*                                 │
- │ COMPLETE g7.25.1–.3 (unchanged)                        │
+ │ STOP when the three trunks above are done               │
  └─────────────────────────────────────────────────────────┘
 ```
 
-### Directors' core bundle — goal status
+### Directors' active stop-line — goal status
 
 | id | status | title (short) |
 |---|---|---|
-| goal:g7.25 | horizon | Grok Bot third-party harness adapter |
-| goal:g7.25.1 | complete | grok_bot_adapter REQUIRED surface |
-| goal:g7.25.2 | complete | harnesses.grok-bot config row |
-| goal:g7.25.3 | complete | mirror adapter interface tests |
-| goal:g7.26 | horizon | Post briefs self-sufficient |
-| goal:g7.27 | horizon | Templates sole harness arg builders |
 | goal:g7.28 | active | Dispatch persistent mode |
-| goal:g7.29 | horizon | Shrink rotate.py orchestration |
-| goal:g7.30 | horizon | Land grok-bot adapter + post template |
 | goal:g7.31 | active | Pane = post spine (umbrella) |
 | goal:g7.31.1 | active | Measured CLI + durable pane hold |
 | goal:g7.31.1.1 | active | Measured CLI argv |
@@ -122,30 +116,36 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 
 Town schema `parents:` = ladder only → spine listed here / Agent Notes, not town→goal parents.
 
-### UNASSIGNED / parked (engine) — until directors finish current batches
+## HORIZON / INACTIVE — parked below stop-line
 
-Owner ask 2026-09-21: relocate engine ownership cell → `town:core`. **Do not dispatch / SendToAgent / assign directors yet.**
+> **DO NOT TOUCH · NOT IN CURRENT STOP-LINE.**  
+> Owner 2026-09-23: park here so directors understand these should not be
+> touched once the active 3-trunk bundle is done. Goal node `status` fields
+> stay horizon (structural park only — no status flips).
 
 | id | status | title (short) | note |
 |---|---|---|---|
+| goal:g7.25 | horizon | Grok Bot third-party harness adapter | umbrella; kids complete |
+| goal:g7.25.1 | complete | grok_bot_adapter REQUIRED surface | historical complete |
+| goal:g7.25.2 | complete | harnesses.grok-bot config row | historical complete |
+| goal:g7.25.3 | complete | mirror adapter interface tests | historical complete |
+| goal:g7.26 | horizon | Post briefs self-sufficient | parked |
+| goal:g7.27 | horizon | Templates sole harness arg builders | parked |
+| goal:g7.29 | horizon | Shrink rotate.py orchestration | parked |
+| goal:g7.30 | horizon | Land grok-bot adapter + post template | parked |
 | goal:g7.33 | horizon | ENGINE FIXES (write.py / comms / dispatch / workflows / grid trunk / session capture / trajectory type) | nested G7.33.* not yet minted as separate nodes |
-| goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later under town:core when work starts |
-
-### UNASSIGNED / parked — geometry-town + trajectory spine (NEW)
-
-Minted 2026-09-21 Belam; **parked unassigned on town:core**. Nested under `goal:g7.34`. No director assignment. No g7.34.1–.5 implementation yet — mint only.
-
-| id | status | title (short) |
-|---|---|---|
-| goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine |
-| goal:g7.34.1 | parked/horizon | [trajectory] schema + allowed parents/links |
-| goal:g7.34.2 | parked/horizon | mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain |
-| goal:g7.34.3 | parked/horizon | town → .geometry/towns/<slug>/.self (Pass 1 raw) |
-| goal:g7.34.4 | parked/horizon | slim config / template pointer cells on town.self (L6) |
-| goal:g7.34.5 | parked/horizon | formation = nested template + single context loader (L6) |
+| goal:g7.33.* | pending | sub-chunks under g7.33 body (G7.33.1–.8) | mint later when owner re-opens |
+| goal:g7.34 | parked/horizon | umbrella: geometry-town + trajectory spine | parked unassigned |
+| goal:g7.34.1 | parked/horizon | [trajectory] schema + allowed parents/links | mint only |
+| goal:g7.34.2 | parked/horizon | mint trajectory:core + trajectory:local-maxxing; town→traj; traj→chain | mint only |
+| goal:g7.34.3 | parked/horizon | town → .geometry/towns/<slug>/.self (Pass 1 raw) | mint only |
+| goal:g7.34.4 | parked/horizon | slim config / template pointer cells on town.self (L6) | mint only |
+| goal:g7.34.5 | parked/horizon | formation = nested template + single context loader (L6) | mint only |
 
 ```
-goal:g7
+goal:g7  (parked / not stop-line)
+├─ g7.25* / g7.26 / g7.27 / g7.29 / g7.30
+├─ g7.33 ★ ENGINE FIXES (parked)
 └─ g7.34 ★ geometry-town + trajectory spine (parked)
    ├─ .1  [trajectory] schema
    ├─ .2  mint trajectory:core / :local-maxxing
@@ -157,13 +157,13 @@ goal:g7
 ## Agent Notes
 
 - Host alias: SSH `encryption-town` → belam-prime; graph town id = `town:core`.
-- Horizon pass 2026-09-21: active only on g7.31 hot chains claimed on board; other non-complete bundle goals → horizon (§4b).
+- Active stop-line 2026-09-23: **g7.28 · g7.31* · g7.32*** only; horizon tops parked below — do not touch.
 - Actor Belam; master cell = sanctuary-master.
 - Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam-status-hygiene-sot-2026-09-22: sync status rows to goal reality — helper lanes + g7.32* active; belam .1/.3 chain
-<!-- THOUGHT:END -->
-
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+park-horizon / active-stop-line = g7.28+g7.31+g7.32; horizon g7.25/.26/.27/.29/.30/.33/.34* (+.1-.5) moved to HORIZON/INACTIVE section below current bundle — do not touch / not in current stop-line. Owner: stop once the 3 active trunks are done.
+<!-- THOUGHT:END -->
