@@ -322,3 +322,133 @@ def test_env_sentinel_reaches_argv0_without_dash_tokens(monkeypatch):
     argv = grok.build_command(harness={"adapter": "grok_bot"},
                               tier="kid", context_file="/tmp/context.md")
     assert argv == ["/SENTINEL/grok-bot"]
+
+# ------------------------------------------- recorded --help (goal:g7.31.1.1)
+# Verbatim `grok-bot --help`, grok-bot-cli@0.3.1, re-measured on this branch.
+# Re-run and paste -- never hand-edit:
+#   cd /tmp/grokmeasure && node_modules/.bin/grok-bot --help
+# 46 stdout lines, 2117 bytes, exit 0, stderr empty (0 bytes). `latest`
+# (0.9.0) and 0.8.0 print nothing (bundled TUI), so 0.3.1 is the last version
+# publishing static help. This is the RECORDED measurement the adapter argv is
+# bound to; a reader can verify the binding from these bytes alone.
+RECORDED_HELP_0_3_1 = """\
+gbot - manage Grok Bot agents and groups
+
+Usage:
+  gbot [--dir DIR] [--json] <command>
+
+Commands:
+  doctor
+  bots list
+  bots create --name NAME [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  bots update <id-or-name> [--name NAME] [--description TEXT] [--instructions TEXT]
+           [--title TEXT] [--avatar-shape SHAPE] [--avatar-color COLOR]
+           [--notify on|off] [--hidden on|off]
+  bots get <id-or-name>
+  bots delete <id-or-name>
+  groups list
+  groups create --name NAME --member ID_OR_NAME [--member ...]
+           [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  groups update <id-or-name>  (same flags as bots update; members stay on set/add/remove)
+  groups get <id-or-name>
+  groups members <id-or-name>
+  groups add <group> <bot>
+  groups remove <group> <bot>
+  groups set <group> --member ID [--member ...]
+  groups delete <id-or-name>
+  send <bot-or-group> <message...>
+  thread <bot-or-group> [--limit N] [--root MESSAGE_ID] [--full]
+  chat <bot-or-group>     alias for thread
+  history [bot-or-group] [--search TEXT] [--limit N]  (offline)
+  history --path         print the local JSONL file path
+  codex status
+  codex list-threads [--limit N]
+  codex send <threadId> <message...>
+
+Max group members: 6
+--description / --instructions is the UI Instructions field (same key).
+Avatar shapes: blob pebble bean egg squircle tablet capsule cylinder hex gem crystal wedge shield dome arch cloud teardrop leaf
+Avatar colors: black brown red orange yellow green cyan blue violet magenta gray
+Flags: --gateway  --files  --dir DIR  --json
+Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session, or CURSOR_ACCESS_TOKEN
+File fallback: GROK_BOT_AGENTS_DIR
+Codex: talks to the local app-server daemon socket under CODEX_HOME (default ~/.codex)
+History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
+         GROK_BOT_HISTORY=on to record; --history-dir / GROK_BOT_HISTORY_DIR to relocate
+         --no-history to skip one command
+"""
+
+RECORDED_HELP_0_3_1_SHA256 = (
+    "b0865dd7067abd406220a873cf8c02c69421cf6126847fe44871f4655bb7bee1")
+
+#: Flags the recorded help does document -- the positive control the binding
+#: predicate must ACCEPT, so it is visible that rejection is not blanket.
+DOCUMENTED_FLAGS_0_3_1 = ("--json", "--dir", "--gateway", "--files")
+
+
+def _documented_tokens() -> set[str]:
+    """The help's whitespace tokens, stripped of `[]()|,:` syntax punctuation.
+
+    Token-aware, not substring: `-p` is a SUBSTRING of the documented
+    `--path`, so a substring test would accept the retired guess. `[--json]`
+    must reduce to `--json` to be findable.
+    """
+    strip = "[]()|,:"
+    return {tok.strip(strip) for tok in RECORDED_HELP_0_3_1.split()}
+
+
+def _unbound_tokens(argv: list[str]) -> list[str]:
+    """argv tokens the recorded `--help` does NOT document.
+
+    argv[0] is the bin and is exempt; every other `-`-prefixed token must be
+    findable in the recorded help. Extracted into a predicate so it is
+    callable on a REAL multi-token argv -- the binding is not a vacuous loop
+    over a one-element list.
+    """
+    documented = _documented_tokens()
+    return [tok for tok in argv[1:]
+            if tok.startswith("-") and tok not in documented]
+
+
+def test_recorded_help_is_the_measured_bytes():
+    """The constant is the measurement, pinned by digest and shape.
+
+    Without this, a reader cannot tell a verbatim paste from a paraphrase and
+    the binding below would be against unverified text.
+    """
+    import hashlib
+    raw = RECORDED_HELP_0_3_1.encode()
+    assert len(raw) == 2117
+    assert raw.count(b"\n") == 46
+    assert hashlib.sha256(raw).hexdigest() == RECORDED_HELP_0_3_1_SHA256
+    assert "--model" not in RECORDED_HELP_0_3_1
+    assert "-p" not in _documented_tokens()
+
+
+def test_the_binding_predicate_is_falsifiable():
+    """Negative control: the predicate rejects the retired stub flags and
+    accepts documented ones, so it can fail."""
+    bin0 = grok.resolve_bin(HARNESS)
+    assert _unbound_tokens([bin0, "--model", "grok-kid"]) == ["--model"]
+    assert _unbound_tokens([bin0, "-p", "/tmp/ctx.md"]) == ["-p"]
+    assert _unbound_tokens([bin0, "--json", "--dir", "/x"]) == []
+    assert "--model" not in _documented_tokens()
+    assert "-p" not in _documented_tokens()
+    for flag in DOCUMENTED_FLAGS_0_3_1:
+        assert flag in _documented_tokens()
+
+
+def test_argv_is_bound_to_the_recorded_help():
+    """`build_command`'s argv[0] is the resolved bin and every other flag
+    token it emits is documented in the RECORDED help."""
+    argv = grok.build_command(harness=HARNESS, tier="kid",
+                              context_file="/tmp/ctx.md")
+    assert argv[0] == grok.resolve_bin(HARNESS)
+    assert _unbound_tokens(argv) == [], (
+        f"undocumented argv tokens: {_unbound_tokens(argv)}")
+    assert "-p" not in argv
+    assert "--model" not in argv
+    for cmd in ("send", "thread", "history", *DOCUMENTED_FLAGS_0_3_1):
+        assert cmd in RECORDED_HELP_0_3_1
