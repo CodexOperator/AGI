@@ -12399,6 +12399,21 @@ rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
 round     hypothesis:propose-completes-every-argv-or-refuses-and-spend-verbs-are-not-proposable
 ```
 
+##### G1.25.2 — THE CHOICE SURFACE TAKES OPTIONAL ARGS AND OFFERS NO OPERATOR VERB (the jev batch mur's residues; assigned director-engine) — status: active
+
+# goal:g1.25.2
+
+# goal:g1.25.2 — THE CHOICE SURFACE TAKES OPTIONAL ARGS AND OFFERS NO OPERATOR VERB
+
+```
+leaf      jev can express an optional flag, and never sees a verb that writes the real crontab / systemd units or is owner-ops only
+source    the jev batch mur 09-23 (EF.21 + EF.37, accept_with_residue x2): 63 proposable entries refuse any optional arg (no argv slot);
+          crontab/systemd-writing operator verbs (commands.md ~344-346) and mesh-gw (owner ops) are proposable; a mesh entry's purpose
+          names box details; a duplicate test shadows the synthetic <N:M> case; crons.py:show is labelled graph-write
+rule      KEEP SPLITTING (owner 09-23, goal:g5): one leaf, one small round
+round     hypothesis:the-choice-surface-takes-optional-args-and-offers-no-operator-verb
+```
+
 #### G5.21 — Map the Bend2 / HVM source tree into the graph at the source level: one hypothesis per code file ("I think this file does X"), experiment until the hypothesis is right, link it to the build node that IS the file -- a long-term, slow-moving effort chased independently by a dedicated director (the first test of a goal-attached director), NOT stood up yet (owner: preserve resources); the proper mapping waits on the IOMap system — status: active
 
 <!-- BODY:BEGIN -->
