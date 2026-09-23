@@ -59,10 +59,7 @@
         "~z-ai/glm-flash-latest",
         "anthropic/claude-opus-5"
       ],
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_API_KEY"
-      ]
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "pi-local": {
       "adapter": "pi",
@@ -76,10 +73,7 @@
       "allowed_extra": [
         "Qwen3.5-9B-Q4_K_M"
       ],
-      "forward_env": [
-        "TYPESAFE_KEY",
-        "TYPESAFE_API_KEY"
-      ]
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "claude-code": {
       "adapter": "claude_code",
@@ -130,7 +124,7 @@
     "credential": {
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.0,
-      "ttl_minutes": 180,
+      "ttl_minutes": 300,
       "workspace_id": "e31711fe-f121-4904-abe3-c54e7bcbe7e6"
     },
     "parent_max_kids": 10,
@@ -138,7 +132,7 @@
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
-    "min_account_remaining_usd": -100.0
+    "min_account_remaining_usd": 1.6
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,
