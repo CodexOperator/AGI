@@ -3,9 +3,9 @@ id: goal:s7
 mint_id: 1f929b0d5c964abaac19a9e93514d04c
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S7
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S7: `snapshot-goals.py` needs two passes to wire a new sub-goal"
 ---
 Found 2026-08-23 while adding G1.3–G1.5, G6.6 and G6.7. Adding a sub-goal and
