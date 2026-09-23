@@ -7389,28 +7389,29 @@ engine gap-fill
 
 ## Agent Notes
 
-DT.91 residual round (parent a00-b078d529). MUR `mur-g7-31-4-dt-85-c14378fb3`
-(`accept_with_residue`, tip `c14378fb3`) raised five residues; the table below
-records each and how this round closed it. Standing assignment:
-**director-helper** holds `g7.31.2` + `g7.31.4` + `g7.31.5` and keeps the
-`g7.26`–`g7.30` land batch; this round was cut from `c14378fb3` to close the MUR
-before the next merge-up.
+DT.94 residual round (parent `a00-fd6eba7c`). MUR
+`mur-g7-31-4-dt-91-15d310f31` (`accept_with_residue`) raised four residues; the
+table below records each and how this round closed or accurately reflected it.
+Standing assignment: **director-helper** holds `g7.31.2` + `g7.31.4` +
+`g7.31.5` and keeps the `g7.26`–`g7.30` land batch; this round was cut from
+`15d310f31` to close the MUR before the next merge-up.
 
-**Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
+**Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh
+commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
-### Residue round (MUR mur-g7-31-4-dt-85-c14378fb3 @~21:09Z -- accept_with_residue)
+### Residue round (MUR mur-g7-31-4-dt-91-15d310f31 -- accept_with_residue)
 
 | sev | defect | locus | close |
 |-----|--------|-------|-------|
-| primary | `hypothesis:a00-752a05cb-923dbb` self-contradicted: FM `verdict: proved` vs body `## Verdict inconclusive_lean_proved` | `.agi/nodes/hypothesis/a00-752a05cb-923dbb.md` | FM aligned to the authored reasoning → `verdict: inconclusive_lean_proved:88` (the node's own `confidence: 0.88`). |
-| primary | `evidence_runs` scalar/non-list silently accepted (`evidence_runs_violations` returned `[]` for a non-list; `normalize_evidence_runs` returned 0 for a str) | `extensions/agi/bin/evidence_gate.py`; `hypothesis:a00-8890af1d-ed52a9`; `experiment:a00-752a05cb-mesh-transport-loci` | Gate returns `[value]` for a present non-list and names the list/type violation (kid `a00-c616d368`, parent probe held); both named nodes and the kid's own experiment repaired to list form. |
-| note | `experiment:a00-752a05cb-mesh-transport-loci` parents named `hypothesis:a00-8890af1d-ed52a9` while also cited by `923dbb` | `.agi/nodes/experiment/a00-752a05cb-mesh-transport-loci.md` | Second parent `hypothesis:a00-752a05cb-923dbb` added — the experiment carries both the four-loci run and the coalesce test; schema `max_parents=2`. |
-| note | `GOALS.md` not regenerated after the goal body edit | `GOALS.md` | Regenerated via `snapshot-goals.py --render`. |
-| 3d | Agent Notes / residue table stale vs tip; duplicate-heading risk | this node | Whole-replaced with this one `## Agent Notes` heading and the table above. |
+| primary | `evidence_runs_violations` named a scalar count a taxonomy violation (`violations(0)==[0]`, `(3)==[3]`, `("3")==["3"]`) while `apply_gate` exempted the same values via a duplicate inline `scalar_count` — one `GateResult` could carry `taxonomy_violations=[3]` with `rejected is False`, pinned green by `test_evidence_runs_violations` | `extensions/agi/bin/evidence_gate.py`; `extensions/agi/tests/test_evidence_gate.py` | CLEARED. Kid `a00-0c1b8c32` (`hypothesis:a00-0c1b8c32-50bd70`, experiment `experiment:evidence-gate-scalar-count-alignment`) adds one `is_scalar_count` used by `evidence_runs_violations`; `apply_gate` now rejects iff `violations` is non-empty, so scalar counts demote. Parent probes A (gate, 14-value matrix: `rejected == bool(violations)` for all 14 on kid vs 5 mismatches on base), B (gate: `apply_gate("proved",3)` taxonomy `[]` vs base `[3]`), C (wire: `gate_on_disk` commit path carries `[]` vs base `[3]`) all held on the committed bytes. |
+| note | `is_unverifiable_attestation(3) is True` while `evidence_runs_violations(3)==[3]` — latent, no production caller | `extensions/agi/bin/evidence_gate.py` | DOCUMENTED as a deliberate split: a positive count is an honest unverifiable attestation (visible to `metrics.py`, never certifying), not malformed text. Caveat: the new docstring (and kid node body) says "Both share `is_scalar_count` for the shape test" but `is_unverifiable_attestation` keeps its own inline checks — the sharing claim is prose, not code; behaviour is correct. |
+| note | 57 corpus scalar `evidence_runs` remain non-decisive; round scoped to the decisive path | `.agi/nodes/**` | MEASURED, not closed: 57 present scalars (experiment 32, hypothesis 12, verdict 8, idea 3, mvp 1, outcome 1), **0 on decisive-verdict nodes** (`requires_evidence(verdict)` true), so none was ever on the rejection path. A future round may convert them to list form; this table does not read as "closed". |
+| 3d | Agent Notes / residue table stale vs tip; duplicate-heading risk | this node | Whole-replaced with this one `## Agent Notes` heading and the table above via `write.py replace body`. |
 
-Residual round parent `a00-b078d529`, cut from tip `c14378fb3`. Kid
-`a00-c616d368`: `hypothesis:a00-c616d368-e4ece1` proved + its experiment.
-Parent probes A (gate) and B (wire) held. No MAIN. Next: merge-up.
+Round parent `a00-fd6eba7c`, cut from tip `15d310f31`. One kid `a00-0c1b8c32` —
+`hypothesis:a00-0c1b8c32-50bd70` proved with committed experiment
+`experiment:evidence-gate-scalar-count-alignment`. Parent probes A/B/C held. No
+MAIN. Next: merge-up.
 
 #### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: horizon
 
