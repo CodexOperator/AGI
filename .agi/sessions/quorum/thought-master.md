@@ -48,7 +48,8 @@ trunk reds     harness_template --help (core R2) · test_brief g15 fallback (cor
                heading rolslice.py names; DE's quick fix) · test_adapters pi_bin (EF.14 fixes it)
 C2             ACCEPTED (batch B, 4e63658d0) -> mvp:lm-switch-c2-runs-the-towns-parents-and-kids minted + queued
 board          the head/KV LAYERING LADDER L1-L12 (L1 complete) + [1b] SWARM + the rhythm test recursed inward · rules row = a pointer
-pool           floor -50 · key TTL 300 min · per-key cap 1 USD (asked the Prime: keep / raise / drop) · TypeSafe keys live (2 x 5 USD lanes)
+pool           floor -50 · key TTL 300 min · per-key cap 1 USD KEPT (owner via the Prime 19:08Z: the one per-spawn guard left; a kid that
+               measurably hits it reopens it) · TypeSafe keys live (2 x 5 USD lanes)
 ```
 
 ## Plan
