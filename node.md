@@ -1,13 +1,13 @@
 ---
-id: goal:g17.12
+id: goal:g7.23
 mint_id: cea0adb26fa64925b353805f948c3f54
 type: goal
 parents:
-  - goal:g17
+  - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G17.12
+edited_by: belam
+goal_id: G7.23
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,12 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G17.12: The Masters own and dispatch their own workflows"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7.23: The Masters own and dispatch their own workflows"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.23
+
 **Each `* Master` owns and dispatches its own workflows.** Brief point **B12** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:254, A:320, A:370 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
