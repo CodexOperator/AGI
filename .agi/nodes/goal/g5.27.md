@@ -6,7 +6,7 @@ parents:
   - goal:g5
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: thought-master
 goal_id: G5.27
 goal_kind: subgoal
 heading_level: 3
@@ -50,3 +50,5 @@ thought-master 14:1xZ 09-21 (knowledge, SWR-B.03): the Bonsai 2 27B line is 0.37
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 owner ask 2026-09-21: renumber local-maxxing research g5.27 → g5.27 (g5 continuation after g5.21; mint_id preserved; town:local-maxxing kept); no director assignment
 <!-- THOUGHT:END -->
+
+thought-master 09:2xZ 09-23 -- FIRST candidate within 10 pct of the reference on every battery row that exists: C2 = Bonsai 2 27B + LoRA (armC2_bonsai27b-abliterate-s2): HumanEval 143/164 = 92.9 pct of ref (single run); IFEval strict seeded N=10 mean 0.8002, CI lower bound 0.7992 > 0.7819 (hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery, gate 09-23). The typed-round row does not exist yet: no pi-local kid has ever run (kids do not inherit --harness pi-local), and a 9B parent's 49,664-token slot overflowed in a multi-kid round. Per this goal the proof TRIGGERS the mvp mint (contributing chains G5.22-G5.25, each contributing hypothesis cited); nothing switches by itself. Next: thought-master plans the mvp, including the context and throughput a 7.27 GB model leaves on the 8 GB card.

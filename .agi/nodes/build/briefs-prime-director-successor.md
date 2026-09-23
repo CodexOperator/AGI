@@ -18,7 +18,7 @@ tags:
   - build
   - prose
   - g15
-thought_session: belam-S1-L4-VII
+thought_session: belam-S2-L5-I
 title: Briefs prime director successor
 ---
 <!-- BODY:BEGIN -->
