@@ -5,11 +5,15 @@ type: experiment
 parents:
   - hypothesis:a00-e000d5bd-bbf531
 next_edges: []
-edited_by: a00-e000d5bd
+edited_by: a00-8c659a70
 evidence_runs: experiment:no-message-daemon-on-heal-cron-surface-a00-e000d5bd
 line_ceiling: 40
 loop: goal:g7.31.4.3@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 .../probe_no_message_daemon.py p1 (append sub.add_parser(\"serve\") to a temp send.py copy, point tnd.SEND_PY at it, call test_send_py_declares_no_long_running_verb)", "expected": "the tripwire TEST function fires, naming serve", "observed": "P1 FIRES: send.py declares long-running verb(s) ['serve']", "result": "holds"}
+  - {"conjunct": 2, "class": "gate", "cmd": "python3 .../probe_no_message_daemon.py p2 (monkeypatch tnd._live_crons_node to a services table with agi-message-router running send.py serve; call test_live_services_table_has_no_message_daemon)", "expected": "the live-graph test fires, naming agi-message-router and its exec_start", "observed": "P2 FIRES: message daemon on the heal/cron surface ... agi-message-router: exec_start runs send.py with non-one-shot verb 'serve'", "result": "holds"}
+  - {"conjunct": 3, "class": "gate", "cmd": "python3 .../probe_no_message_daemon.py p3 (_service_offenders on agi-pigeon: /opt/pigeon.py daemon --listen and agi-relay: /opt/relay.py --forever --tail inbox/)", "expected": "a message daemon is named; coverage does not rest only on the names send.py/message/router/comms", "observed": "P3 GAP: agi-pigeon and agi-relay escape ([]); only a send.py token or a message marker is caught (a bash-wrapped send.py serve IS caught)", "result": "gap_named"}
 production_lines: 0
 profile: balanced
 role: kid
@@ -158,21 +162,50 @@ green and non-vacuous. The negative is strong but not absolute -- the live
 is `inconclusive_lean_proved`, with the tripwire as the durable half.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This run answers a negative by measurement plus a tripwire, not by assertion.
-The instruction was `prove the negative by measured inventory plus one durable
-tripwire`; the machine that satisfies that is three separate checks, because
-each alone is defeasible: the declared table can be clean while the machine
-runs something undeclared, and the live machine can be clean while a future
-edit adds a daemon. So the measured inventory covers both, and the committed
-test is the half that survives this session. The near miss: reading only the
-declared `services:` table would have passed trivially (it declares two
-non-message services) and said nothing about the crontab, the live units, or
-the future. I also refused to treat `heal.py watch` as an offender just
-because it is literally a `while True`: the falsifier is a MESSAGE daemon, and
-the reaper is neither new nor a message carrier -- flagging it would have been
-a false positive that makes the tripwire unusable. No production byte moved
-(0 lines); the only writes are the test file and the two nodes.
+PARENT REVIEW (a00-8c659a70, DH.128) — ACCEPTED, lean kept, coverage gap named.
+
+(1) WHAT THE INSTRUCTION SAID: prove falsifier-3 of `goal:g7.31.4` — "No new
+message daemon process appears in the heal/cron surface for this goal" — by
+measured inventory plus one durable tripwire.
+
+(2) WHAT THE MACHINE ACTUALLY DOES (run, not read). The kid branch is ONE
+commit, `5cc2ddf03`, and its `--numstat` is exactly the two nodes plus
+`extensions/agi/tests/test_no_message_daemon.py` (260 lines; 0 production
+lines). I parsed the live graph myself with
+`crons.load_crons_node(<worktree>/.agi)` -> `services` is exactly
+`{agi-alarms-sanctuary-master (rotate.py alarms), agi-reaper (heal.py watch)}`,
+neither a message carrier; `crontab -l` carries only `grid_sync`/`branch_push`;
+`systemctl --user list-units | grep -i agi` is 39 dispatch/workflow runners,
+none a message router; `ps` has no `send.py` daemon. I ran two negative probes
+myself (recorded in `probes:`): P1 WIRE — append `add_parser("serve")` to a
+send.py copy, point the module's `SEND_PY` at it, call the real test function
+`test_send_py_declares_no_long_running_verb` -> it FIRES naming `serve`; P2 GATE
+— monkeypatch the live-graph reader to a services table with an
+`agi-message-router` running `send.py serve` and call
+`test_live_services_table_has_no_message_daemon` -> it FIRES naming the service
+and exec_start. The kid's own 4-test suite is green, but it is its claim, not my
+evidence; the probes are.
+
+(3) THE NEAR MISS. A durable tripwire can pass vacuously: an AST walk that finds
+an empty verb set asserts nothing. This one is non-vacuous by construction — it
+asserts the real verbs (`send`, `wake`) were found, and it plants a daemon and
+asserts the detector names it. The plausible loss is the opposite: treating
+`heal.py watch` (literally `while True`) as an offender would have made the
+tripwire a false-positive machine; the falsifier names a MESSAGE daemon and the
+reaper is neither new nor a message carrier.
+
+(4) GAP I FOUND (P3, adversarial). `_service_offenders` only flags a `send.py`
+token or a name containing `message`/`router`/`comms`. A daemon named
+`/opt/pigeon.py daemon --listen` or `/opt/relay.py --forever` ESCAPES (returns
+`[]`); a bash-wrapped `send.py serve` does not. That is a bounded coverage
+residue on the tripwire's future-proofing, NOT a falsification of falsifier-3:
+no daemon exists today, declared or live, and the current send.py seam cannot
+become resident without tripping P1. Accepted at lean 90, gap named for a later
+round (marker list or a `--forever`/`daemon` token scan). No production byte
+moved; no MAIN.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Measured declared + live heal/cron surface and the send.py/heal.py seam; added durable tripwire `extensions/agi/tests/test_no_message_daemon.py` (4 passed, non-vacuous, reads live crons node). No message daemon found: verb set is one-shot, both message transports are cron one-shots (`wake --all-local`, `read --box-local`), also `heal.py watch` is the declared reaper not a message daemon. 0 production lines. Residue: live crontab does not carry the declared mail_poll/nudge_sweep lines.
+
+Parent review a00-8c659a70 DH.128 — ACCEPTED inconclusive_lean_proved:90. Diff `5cc2ddf03` carries exactly the two nodes + `test_no_message_daemon.py` (0 production lines). Falsifier-3 green by measurement: declared `services` = {agi-alarms-sanctuary-master, agi-reaper}, neither a message router; live crontab/systemd/ps clean. Parent probes recorded: P1 wire (planted `serve` -> real test fires) HOLD, P2 gate (planted agi-message-router -> live-graph test fires) HOLD, P3 adversarial GAP (daemons not named send.py/message/router/comms escape the detector — bounded coverage residue, not a falsification). Residue from kid stands: mail_poll/nudge_sweep declared but not installed on the box.
