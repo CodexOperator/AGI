@@ -45,7 +45,6 @@ drop.
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 
@@ -59,28 +58,11 @@ import hierarchy  # noqa: E402
 #   CORE     -> every slice, always. None of the must-not-lose list may live
 #               outside CORE.
 #   role:... -> only slices for that role (or anyone who subsumes it).
-# The map keys are `stable_key(heading)` -- the `## ` heading's text WITHOUT
-# its trailing parenthesised goal id. SKILL.md headings carry that id, and the
-# Prime's goal-id sweeps rewrite it (`(goal:g13.1)` -> `(goal:g4.19)`), so keying
-# on the full heading would silently drop a section on every renumber. A
-# heading with no rule is dropped from every slice (a qualification, not a
-# loss: a section nobody's slice wants is either dead or mislabelled, and the
-# complement — every section mapped — is asserted in the test).
+# The map keys are exact `## ` headings in skills/agi/SKILL.md. A heading with
+# no rule is dropped from every slice (a qualification, not a loss: a section
+# nobody's slice wants is either dead or mislabelled, and the complement —
+# every section mapped — is asserted in the test).
 # --------------------------------------------------------------------------- #
-
-# A trailing `(goal:gNN)` or `(goal:gN.M)` id, with the backticks SKILL.md uses.
-_GOAL_ID_RE = re.compile(r"\s*\(`?goal:[^)`]+`?\)\s*$")
-
-
-def stable_key(heading: str) -> str:
-    """The section key the heading carries: its text minus a trailing goal id.
-
-    This is the ONE place the trailing goal id is stripped, and `build_slice`
-    matches BOTH the map keys and the actual `## ` headings through it, so a
-    goal-id rename can never drop a section. A second full-text literal of a
-    heading is exactly what this file must not contain.
-    """
-    return _GOAL_ID_RE.sub("", heading).rstrip()
 CORE = {
     "CLI",                                        # exact next command
     "Safety rails (non-negotiable)",              # kill procedure, key floor
@@ -96,22 +78,22 @@ ROLE_SECTIONS = {
         #   that whole section. The charter the owner named a kid needs (its
         #   own end-of-job contract) lives inside it.
         "Iteration protocol (parent)",
-        "Every node edit goes through `write.py`",
+        "Every node edit goes through `write.py` (`goal:g13.1`)",
         "Metrics — score goal fulfillment, not chain length",
     },
     "parent": {
         "Iteration protocol (parent)",
         "Director economics — dispatch, don't do",
         "Metrics — score goal fulfillment, not chain length",
-        "Every node edit goes through `write.py`",
+        "Every node edit goes through `write.py` (`goal:g13.1`)",
     },
     "director": {
         "Director economics — dispatch, don't do",
         "Iteration protocol (parent)",
         "`HANDOFF.md` — the director's scratchpad, replaced each session",
-        "`COMPLETE.md` — every finished loop writes one",
+        "`COMPLETE.md` — every finished loop writes one (`goal:g1.13`)",
         "Metrics — score goal fulfillment, not chain length",
-        "Every node edit goes through `write.py`",
+        "Every node edit goes through `write.py` (`goal:g13.1`)",
         "The git grid",
     },
 }
@@ -172,15 +154,9 @@ def build_slice(root: Path, skill_path: Path, role: str, tier=0) -> str:
 
     skill = skill_path.read_text(encoding="utf-8")
     sections = _split_sections(skill)
-    # match map keys and actual headings on the SAME normalization: the
-    # heading text without its trailing goal id (stable_key), so a goal-id
-    # rename in SKILL.md does not drop the section.
-    by_key = {}
-    for heading, text in sections.items():
-        by_key.setdefault(stable_key(heading), text)
 
     want = set(CORE) | set(ROLE_SECTIONS.get(bucket, set()))
-    missing = sorted(s for s in want if s not in by_key)
+    missing = sorted(s for s in want if s not in sections)
     if missing:
         raise ValueError(f"rolslice: section(s) not found in SKILL.md: {missing} "
                          f"(a heading renaming would silently drop content)")
@@ -198,9 +174,8 @@ def build_slice(root: Path, skill_path: Path, role: str, tier=0) -> str:
     # preserve document order
     seen = set()
     for heading, text in sections.items():
-        key = stable_key(heading)
-        if key in want and key not in seen:
-            seen.add(key)
+        if heading in want and heading not in seen:
+            seen.add(heading)
             body.append(text)
     return head + "\n\n".join(body) + "\n"
 
