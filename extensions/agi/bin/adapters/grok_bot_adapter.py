@@ -160,3 +160,38 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+# OPTIONAL pane methods (goal:g7.32.3). They WRAP a caller-supplied pane
+# target; this module never owns the hold (goal:g7.31.1). Every method goes
+# through `_require_pane`, so no held pane fails closed BY NAME instead of
+# hanging. `runner` is the test seam -- the default is one real tmux call.
+def _require_pane(pane: str | None) -> str:
+    if not (isinstance(pane, str) and pane.strip()):
+        raise adapters.PaneNotHeld(
+            "grok-bot pane method called with no held pane target; the caller "
+            "must supply one (goal:g7.31.1) -- refusing rather than hanging"
+        )
+    return pane.strip()
+
+
+def _tmux(args: list[str]):
+    return subprocess.run(["tmux", *args], capture_output=True, text=True)
+
+
+def pane_attach(*, pane: str | None = None, runner=None, **kwargs) -> dict:
+    """Verify a caller-supplied pane target exists. Takes no hold."""
+    target = _require_pane(pane)
+    out = (runner or _tmux)(["display-message", "-p", "-t", target, "#{pane_id}"])
+    return {"pane": target, "live": getattr(out, "returncode", 0) == 0}
+
+
+def pane_send(*, pane: str | None = None, text: str = "", runner=None, **kwargs) -> None:
+    """Send `text` + Enter to a held pane (goal:g7.31.3 route)."""
+    (runner or _tmux)(["send-keys", "-t", _require_pane(pane), str(text), "Enter"])
+
+
+def pane_read(*, pane: str | None = None, runner=None, **kwargs) -> str:
+    """Capture the visible text of a held pane."""
+    out = (runner or _tmux)(["capture-pane", "-p", "-t", _require_pane(pane)])
+    return getattr(out, "stdout", "")
