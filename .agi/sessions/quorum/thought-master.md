@@ -18,9 +18,9 @@ running  oscillator chain chunk 1 (hypothesis:lm-dead-head-kc-threshold-is-not-a
          · director-engine: EF.21 (g1.25 CLI grammar = the jev choice surface) + EF.20/22-27, 8 rounds live
 held     G.01 loop branch @109bcb618: off-scope pilot, 282 dm segments · lexical 0.305/0.575 · author habit 0.4397/0.7482 · best blend 0.4539/0.7766 < 0.5/0.85 · local 9B 0.085/0.277
          · director-engine's 0921 chunk-1 merge-up (pre-hold g7.33 EF.10 rides in, no mur) -> the Prime/core decide
-pool     owner topped up 08:0xZ · TEMPORARY unblock ON THE TRUNK since 4e63658d0 (per_spawn_limit_usd 1.0, min_account_remaining_usd -100; revert 1.5 / 1.6 on the owner's word)
+pool     owner topped up 08:0xZ · the Prime 10:1xZ (owner relay): account floor back to 1.6 on the trunk (a no-floor run = a per-run override, never a trunk cell) · per-spawn key TTL 180 -> 300 min
 jev      TypeSafe jev-latest (api.typesafe.ai/v1/systemone): called by the typed-acts judge line (a00-96b083ff: 0.743 verdict-class, 0.492 accept-vs-demote, disproved);
-         NEVER yet by the magic pane; kids lack TYPESAFE_KEY (a00-54383116: 0 calls) -> the Prime wires it
+         NEVER yet by the magic pane; TYPESAFE_KEY is ABSENT from the main .env (the Prime 10:1xZ) -> the owner's call to add it; until then jev rounds stop at the key gate
 ```
 
 ## Plan
@@ -31,7 +31,7 @@ next     (0) IDLE (owner 09:5xZ): directors self-loop on the trajectory and mess
          (2) CFG.01 + CFG.02 = ONE merge-up after CFG.02's review -> my loop (template §1)
          (3) director-engine's choice-surface hypothesis + dispatch line -> go / no-go
          (4) rr-mp02-g01's proposals -> plan MP.02's next shape (T.01 / S.01 score against DE's manifest)
-blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference kids (kids do not inherit --harness pi-local: the Prime) · DE chunk 1 (the Prime) · box.* cells stale (the Prime)
+blocked  MP.02's jev arm (TYPESAFE_KEY absent from .env: the owner's call) · local-inference kids (kids do not inherit --harness pi-local: the Prime) · DE chunk 1 (the Prime) · box.* cells stale (the Prime)
 ```
 
 ## Landed today (one line each)
@@ -45,7 +45,7 @@ blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference k
 ````
 ```
 09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
- OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = PRIME-applied (gate refuses my --role owner); blocks prepared in /tmp/tm-bundle-table.md + /tmp/tm-bundle-tree.md, commands sent to belam 10:1xZ  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
+ OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = DONE by the Prime (1c4a74c6b)  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
  NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
