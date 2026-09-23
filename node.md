@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-the-meter-captures-the-final-card-and-forces-the-rotation-itself
 next_edges: []
 confidence: 0.9
-edited_by: a00-e4623b0c
+edited_by: a00-baa8e365
 evidence_runs:
   - experiment:a00-d7588719-d59894
 line_ceiling: 40
@@ -21,11 +21,12 @@ profile: balanced
 role: kid
 scaffold_hash: 2f29c706653dc989
 season: 2
-title: "Detached alarms unit is wired: --detach launches the meter, no dead code"
+title: "SUPERSEDED: the detached alarms unit (--detach / _run_alarms_unit) was deleted in 20e848493; grep finds neither in rotate.py"
 town: core
 verdict: proved
 ---
 <!-- BODY:BEGIN -->
+SUPERSEDED (EF.23, hypothesis:mur-0921-engine-residues-dispositioned-and-corrected): the bytes this node proved -- _run_alarms_unit and alarms --detach -- were deleted in 20e848493; grep finds neither in extensions/agi/bin/rotate.py. The node is kept as prior art.
 # experiment:a00-d7588719-d59894
 
 ## Experiment
@@ -91,5 +92,6 @@ $ python3 -m pytest extensions/agi/tests/test_rotate.py \
 Wired the detached alarms unit (P7): alarms --holder H --detach calls _run_alarms_unit once and returns its returncode, no loop/no dm; inner unit argv runs without --detach. Wire probe now shows a call site at rotate.py:7225 outside the def. New red-first test + 345 passed; 8 production lines vs ceiling 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review a00-e4623b0c, iter 136. WHAT THE INSTRUCTION SAID (corrective brief): wire `_run_alarms_unit` — the parent wire probe P7 showed it had NO production call site, so only the kid own test exercised it (green over dead code). WHAT THE MACHINE DOES, cited to the committed bytes: cmd_alarms now returns `_run_alarms_unit(root, holder)` at rotate.py:7225 when `--detach` is set, before any ladder read or meter loop; the `--detach` flag is registered at :20882; `_run_alarms_unit` (:7189) builds `systemd-run --user --unit agi-alarms-<holder> --working-directory <root> <python> rotate.py alarms --holder <holder> --root <root>`, inner argv without `--detach`, every path from the resolved root. NEAR MISS: a kid that only added the `--detach` argparse flag and the test would have shipped an advertised flag that did nothing and a red test that HANGS cmd_alarms in its `while True` loop; the parent found and killed exactly that hung pytest (pid 1868262, 49 min, holding sessions/verify-suite.lock) mid-round, which is why the status read `stalled` before recovering to done. My independent probes (P7 call site; detach launches once with the resolved root and never meters; P5/P6 unchanged) all HOLD. The kid own suite is not my evidence.
+Corrected in place under C item of hypothesis:mur-0921-engine-residues-dispositioned-and-corrected (EF.23, agent a00-baa8e365).
+C item `exp a00-d7588719 :24/:26`. The title said `Detached alarms unit is wired: --detach launches the meter, no dead code` and the node carries `proved`. Re-checked against the bytes: `_run_alarms_unit` and the `--detach` flag were deleted in 20e848493, and `grep -n '_run_alarms_unit\|--detach' extensions/agi/bin/rotate.py` returns 0 hits -- the recorded proof survives only as prior art. The node is now marked SUPERSEDED in its title and body (see the banner under the H1). No verdict, lean or confidence field was changed.
 <!-- THOUGHT:END -->
