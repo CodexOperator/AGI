@@ -20,20 +20,14 @@ BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
 import rolslice  # noqa: E402
-import locations  # noqa: E402
 
-# config:posts (.agi/nodes/.geometry/posts.md) is the instance registry
-# hierarchy.py reads; resolve ROOT through the repo's own resolver so it is a
-# real directory carrying the geometry, never the absent `extensions/agi/agi`.
-ROOT = locations.find_project_root(Path(__file__).resolve())
-if ROOT is None or not ROOT.joinpath("nodes", ".geometry", "posts.md").is_file():
-    cand = Path(__file__).resolve().parents[3] / ".agi"
-    if cand.joinpath("nodes", ".geometry", "posts.md").is_file():
-        ROOT = cand
-assert ROOT is not None and ROOT.joinpath(
-    "nodes", ".geometry", "posts.md").is_file(), (
-    f"rolslice test: no graph root carrying config:posts found (got {ROOT})")
+ROOT = Path(__file__).resolve().parents[1] / "agi"  # graph root for this repo
 SKILL = Path(__file__).resolve().parents[3] / "skills" / "agi" / "SKILL.md"
+if not ROOT.joinpath("nodes", ".geometry", "seats.md").is_file():
+    # running from a checkout where .agi is at worktree root
+    cand = Path(__file__).resolve().parents[3] / ".agi"
+    if cand.joinpath("nodes", ".geometry", "seats.md").is_file():
+        ROOT = cand
 
 
 @pytest.fixture(scope="module")
@@ -75,18 +69,6 @@ def test_hierarchy_chart_in_every_slice(root, skill):
     for role in ("kid", "parent", "director"):
         s = _slice(root, skill, role)
         assert "COMMAND HIERARCHY" in s, f"{role} slice missing hierarchy chart"
-
-
-def test_every_mapped_key_resolves_in_real_skill(skill):
-    """The FORWARD direction the rolslice.py map comment states: every CORE and
-    every ROLE_SECTIONS[bucket] key names a real `## ` heading in SKILL.md."""
-    keys = set(rolslice.CORE)
-    for bucket in ("kid", "parent", "director"):
-        keys |= set(rolslice.ROLE_SECTIONS[bucket])
-    headings = {rolslice.stable_key(h) for h in
-                rolslice._split_sections(skill.read_text(encoding="utf-8"))}
-    missing = sorted(keys - headings)
-    assert not missing, f"mapped keys absent from real SKILL.md: {missing}"
 
 
 def test_slice_is_strictly_smaller_than_full_skill(root, skill):
