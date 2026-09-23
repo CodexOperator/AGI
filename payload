@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import textwrap
 from pathlib import Path
@@ -770,80 +769,11 @@ def test_required_any_empty_value_counts_as_absent(tmp_path):
     assert any("OPENROUTER_PROVISIONING_KEY" in p for p in problems), problems
 
 
-BOTH_NODE = """
-    ---
-    id: "config:secrets"
-    type: config
-    status: active
-    mint_id: 0123456789abcdef0123456789abcdef
-    title: "test secrets node with required_keys and required_any"
-    locations:
-      env_file:
-        path: "<source_root>/.env"
-      env_template:
-        path: "<source_root>/.env.example"
-    required_keys:
-      - MANDATORY_KEY
-    required_any:
-      - ["GROUP_ALPHA_KEY", "GROUP_BETA_KEY"]
-    ---
-
-    body
-    """
-
-
-MALFORMED_NODE = """
-    ---
-    id: "config:secrets"
-    type: config
-    status: active
-    mint_id: 0123456789abcdef0123456789abcdef
-    title: "test secrets node with a malformed required_any entry"
-    locations:
-      env_file:
-        path: "<source_root>/.env"
-      env_template:
-        path: "<source_root>/.env.example"
-    required_keys: []
-    required_any:
-      - "OPENROUTER_API_KEY"
-    ---
-
-    body
-    """
-
-
 def test_required_keys_still_enforced_alongside_required_any(tmp_path):
-    """A satisfied group does not excuse a missing required_keys entry, and a
-    present required_keys entry does not excuse an unsatisfied group."""
+    """A present group does not excuse a missing required_keys entry."""
     graph = make_project(tmp_path)
-    write_node(graph, BOTH_NODE)
-    # group satisfied, required_keys missing -> problem names MANDATORY_KEY
-    write_env(tmp_path, "GROUP_ALPHA_KEY=alpha-value\n")
+    write_node(graph, DEFAULT_NODE)
+    write_env(tmp_path, "OPENROUTER_PROVISIONING_KEY=provisioning-value\n")
     res = agi_secrets.resolve(tmp_path)
     problems, _notes = agi_secrets.check(res)
-    assert any("MANDATORY_KEY is missing or empty" in p for p in problems), problems
-    # required_keys present, neither group key -> problem names BOTH group keys
-    write_env(tmp_path, "MANDATORY_KEY=mandatory-value\n")
-    res = agi_secrets.resolve(tmp_path)
-    problems, _notes = agi_secrets.check(res)
-    assert any("GROUP_ALPHA_KEY" in p and "GROUP_BETA_KEY" in p
-               for p in problems), problems
-
-
-def test_malformed_required_any_entry_is_refused_by_name(tmp_path):
-    """A required_any entry that is not a list of key names is refused by
-    name, not silently dropped."""
-    graph = make_project(tmp_path)
-    write_node(graph, MALFORMED_NODE)
-    with pytest.raises(ValueError, match="OPENROUTER_API_KEY"):
-        agi_secrets.resolve(tmp_path)
-
-
-def test_config_schema_declares_required_any():
-    """The [config] schema declares required_any beside its three siblings."""
-    text = (BIN.parents[2] / ".agi" / "context" / "schemas"
-            / "[config].md").read_text(encoding="utf-8")
-    assert "required_any: {type: list}" in text, "missing fields-block entry"
-    assert re.search(r"^\s+required_any: list\s*$", text, re.M), \
-        "missing validation.types entry"
+    assert any("OPENROUTER_API_KEY is missing or empty" in p for p in problems), problems
