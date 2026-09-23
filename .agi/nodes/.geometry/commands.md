@@ -716,6 +716,27 @@ excluded:
     reason: streams against a live model server and writes measurement rows
     side_effects: network
     proposable: false
+  verification.py::
+    cli: verification.py
+    verb: ""
+    argv: [python3, <engine>/extensions/agi/bin/verification.py]
+    reason: the rotation check carries --suite, --stamp and --ring-* flags -- a proposer must not demand the engine suite under the one-runner lock, stamp the baseline or sign a ring
+    side_effects: read
+    proposable: false
+  verification.py:window:
+    cli: verification.py
+    verb: window
+    argv: [python3, <engine>/extensions/agi/bin/verification.py, window]
+    reason: the merge-up window shares verification.py's --suite-ring/--ring-sig signer flags -- excluded with the bare check
+    side_effects: read
+    proposable: false
+  write_guard.py:hook:
+    cli: write_guard.py
+    verb: hook
+    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, hook]
+    reason: prints a pre-commit hook that installs itself -- an install, not a choice
+    side_effects: graph-write
+    proposable: false
 manifest:
   write.py:create:
     cli: write.py
@@ -2967,6 +2988,22 @@ manifest:
     purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
     side_effects: read
     proposable: true
+  write_guard.py:check:
+    cli: write_guard.py
+    verb: check
+    argv: [python3, <engine>/extensions/agi/bin/write_guard.py, check]
+    args: []
+    purpose: goal:g4.18 — unsanctioned node writes; silent is healthy
+    side_effects: read
+    proposable: true
+  verify-suite:
+    cli: verification.py
+    verb: "--suite"
+    argv: [python3, <engine>/extensions/agi/bin/verification.py, "--suite"]
+    args: []
+    reason: runs the whole engine suite under the one-runner suite lock -- opt-in, never proposed
+    side_effects: read
+    proposable: false
 ordered:
   - verify
 placement:
