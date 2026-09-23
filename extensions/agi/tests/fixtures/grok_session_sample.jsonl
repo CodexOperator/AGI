@@ -1,0 +1,5 @@
+{"session_id": "grok-9f3a2b7c-2026-09-22", "agent_id": "grok-bot", "started_at": "2026-09-22T18:04:11Z", "thought_session": "owner-ask-2026-09-21"}
+{"role": "user", "content": "Ingest this session into the graph.", "timestamp": "2026-09-22T18:04:20Z"}
+{"role": "assistant", "content": "Reading the goal node, then minting one agent_session node.", "timestamp": "2026-09-22T18:04:41Z"}
+{"role": "user", "content": "Make it idempotent.", "timestamp": "2026-09-22T18:05:02Z"}
+{"role": "assistant", "content": "Re-ingest reuses the same slug and mint_id.", "timestamp": "2026-09-22T18:05:19Z"}
