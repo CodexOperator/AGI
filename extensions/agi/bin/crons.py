@@ -488,7 +488,12 @@ def _substitute(text, root: Path, repo_root: Path, own: str):
              "logs_dir": str(_log_path(repo_root).parent),
              "repo_root": str(repo_root),
              "box": own}
-    return boxes.resolve_placeholders(text, cells, Path(root))
+    try:
+        return boxes.resolve_placeholders(text, cells, Path(root))
+    except boxes.BoxSchemaError as exc:
+        # Fail closed BY NAME: an unrenderable token is `ERR: crons.py:` rc 1,
+        # never a traceback out of main's CronsError-only handler.
+        raise CronsError(f"placeholder render: {exc}") from exc
 
 
 def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
