@@ -10490,9 +10490,17 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     # never fetched -- no ref on origin) from "a real publish attempt that
     # failed". Only the latter may gate the C3 successor-key swap; a repo
     # with no authority branch keeps the pre-EF.51 push-only swap behaviour.
+    # EF.73: a failed fetch alone cannot tell a reachable origin whose branch
+    # is absent (SKIPPED) from an UNREACHABLE origin we could not read -- the
+    # ref may exist there and disagree with the on-disk key, so it must FAIL.
+    # `ls-remote --exit-code` discriminates: rc 2 = the ref is truly absent.
     if not attempted:
-        return (f"authority: SKIPPED -- no authority branch {branch} "
-                f"(never fetched; {last})")
+        _probe = subprocess.run(
+            ["git", "-C", str(top), "ls-remote", "--exit-code", "origin",
+             branch], capture_output=True, text=True, timeout=60)
+        if _probe.returncode == 2:
+            return (f"authority: SKIPPED -- no authority branch {branch} "
+                    f"(never fetched; {last})")
     return f"authority: FAILED -- {last}"
 
 
