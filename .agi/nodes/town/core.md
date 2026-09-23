@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-park-horizon-20260923
+thought_session: belam-daily-town-pass-2026-09-23
 town: core
 visions:
   - vision:alive
@@ -161,9 +161,9 @@ goal:g7  (parked / not stop-line)
 - Actor Belam; master cell = sanctuary-master.
 - Owner ask 2026-09-21: engine goals (g7.33) relocated from local-maxxing → core; **UNASSIGNED / parked**.
 - Belam 2026-09-21: g7.34* geometry/trajectory spine minted parked; stand-in stays until trajectory type (g7.34.1/.2).
-
+Belam daily pass 2026-09-23T10:00ET: merges=season2→main (cf89d6ffb→5723882c9); verify=FAIL tip 5723882c9 (goals-check drift + smoke/viewport/tests timeout under load~27); reopen/mint=none
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-park-horizon / active-stop-line = g7.28+g7.31+g7.32; horizon g7.25/.26/.27/.29/.30/.33/.34* (+.1-.5) moved to HORIZON/INACTIVE section below current bundle — do not touch / not in current stop-line. Owner: stop once the 3 active trunks are done.
+Belam daily 2026-09-23: merged 5 season2 commits (spawn caps/floor + park-horizon + ROUTINE_WATCH Sense) into core/main@5723882c9; no board-complete tips (residues>0 mid-batch); verify-suite FAIL on tip (goals-check GOALS drift g7.32.2 + smoke/viewport/tests timed out load~27); vision/moral lens clear — stop-line g7.28/g7.31/g7.32 serves alive/self-perpetuating/all-is-one; no reopen/mint
 <!-- THOUGHT:END -->
