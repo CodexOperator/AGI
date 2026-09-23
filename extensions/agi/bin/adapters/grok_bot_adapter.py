@@ -92,11 +92,21 @@ def pane_name(agent_id: str) -> str:
     return f"{PANE_PREFIX}{agent_id}"
 
 
+class PaneHoldError(RuntimeError):
+    """tmux is PRESENT but the named-pane hold failed: a NAMED refusal, never
+    an anonymous fire-and-forget seat (goal:g7.31.1.2)."""
+
+
 def _tmux(argv: list[str]) -> subprocess.CompletedProcess | None:
-    """Run tmux, or None when tmux is absent/unusable (caller falls back)."""
+    """Run tmux, or None only when tmux is ABSENT (caller falls back).
+    A timeout is a present-but-unresponsive tmux, so it is named."""
     try:
         return subprocess.run(argv, capture_output=True, text=True, timeout=10)
-    except (OSError, subprocess.TimeoutExpired):
+    except FileNotFoundError:
+        return None
+    except subprocess.TimeoutExpired as exc:
+        raise PaneHoldError(f"tmux {' '.join(argv[1:2])} timed out: {exc}") from exc
+    except OSError:
         return None
 
 
@@ -109,23 +119,36 @@ def pane_listing(name: str) -> list[str]:
     return [ln for ln in out.stdout.splitlines() if ln.strip()]
 
 
-def hold_in_pane(*, name: str, args: list[str], cwd: Path) -> bool:
+def hold_in_pane(*, name: str, args: list[str], cwd: Path,
+                 env: dict[str, str] | None = None) -> bool:
     """Run `args` in the ONE named pane: open it once, respawn it thereafter.
 
-    False (never an exception) when tmux is absent, so `restart` falls back
-    to the direct Popen path unchanged. `remain-on-exit` keeps the pane after
-    the process dies -- the hold is on the NAME, independent of pid churn.
+    False only when tmux is ABSENT (caller falls back to the direct Popen).
+    tmux present but failing raises PaneHoldError -- a named refusal, never
+    a silent anonymous process. `env` threads as `-e NAME=VALUE` (before
+    `-c`, so the command argv stays last), giving the pane the SAME scrubbed
+    child env the direct Popen uses. `remain-on-exit` holds the NAME.
     """
     probe = _tmux(["tmux", "has-session", "-t", name])
     if probe is None:
         return False
+    if probe.returncode not in (0, 1):
+        raise PaneHoldError(
+            f"tmux has-session rc={probe.returncode} for {name}")
+    env_flags = [f for k, v in (env or {}).items()
+                 for f in ("-e", f"{k}={v}")]
     if probe.returncode == 0:
-        cmd = ["tmux", "respawn-pane", "-k", "-t", name, "-c", str(cwd)]
+        cmd = ["tmux", "respawn-pane", "-k", "-t", name,
+               *env_flags, "-c", str(cwd)]
     else:
-        cmd = ["tmux", "new-session", "-d", "-s", name, "-c", str(cwd)]
+        cmd = ["tmux", "new-session", "-d", "-s", name,
+               *env_flags, "-c", str(cwd)]
     started = _tmux([*cmd, *args])
-    if started is None or started.returncode != 0:
+    if started is None:
         return False
+    if started.returncode != 0:
+        raise PaneHoldError(
+            f"tmux {cmd[1]} rc={started.returncode} for pane {name}")
     if probe.returncode != 0:
         _tmux(["tmux", "set-option", "-t", name, "remain-on-exit", "on"])
     return True
@@ -191,7 +214,7 @@ def restart(
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     cwd = _restart_cwd(sess_dir, agent_record)
     if hold_pane and hold_in_pane(name=pane_name(agent_id), args=args,
-                                  cwd=cwd):
+                                  cwd=cwd, env=env):
         name = pane_name(agent_id)
         pane_pid = None
         for line in pane_listing(name):
@@ -199,6 +222,9 @@ def restart(
                 pane_pid = int(line.split()[1])
             except (IndexError, ValueError):
                 pass
+        if pane_pid is None:
+            raise PaneHoldError(
+                f"pane {name} is up but its pid could not be read")
         if agent_record is not None:
             agent_record["pid"] = pane_pid
             agent_record["tmux_pane"] = name
