@@ -3,7 +3,7 @@ id: hypothesis:lm-claude-code-session-capture-lands-scrubbed-transcripts-at-rota
 mint_id: 20b674f9ce304c6a9176154d07818d63
 type: hypothesis
 parents:
-  - goal:g14.14.8
+  - goal:g7.33.8
 next_edges: []
 confidence: 0.55
 edited_by: director-engine

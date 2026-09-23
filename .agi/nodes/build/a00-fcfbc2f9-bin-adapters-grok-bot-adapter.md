@@ -10,7 +10,7 @@ confidence: 0.9
 edited_by: a00-fcfbc2f9
 link_ref: extensions/agi/bin/adapters/grok_bot_adapter.py
 location: source_root
-loop: goal:g17.14.1@s2
+loop: goal:g7.25.1@s2
 model: deepseek/deepseek-v4.1-flash
 origin: build-version
 payload_ref: extensions/agi/bin/adapters/grok_bot_adapter.py
