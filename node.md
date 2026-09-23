@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.1
 goal_kind: subgoal
 heading_level: 3
@@ -19,7 +19,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.1: Level 3 first: code nodes that stitch back into a running tree"
 ---
 **Build level 3 before any other level.** It is the one that makes the graph an
