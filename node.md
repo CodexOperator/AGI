@@ -3,12 +3,13 @@ id: hypothesis:l2-goals-active-exempt
 mint_id: 137b6bb1add44136acbb9b3e30a5dee5
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.12
 next_edges: []
-edited_by: ubuntu
+edited_by: belam
 scaffold_hash: 3b0549da9279e871
 season: 1
 testable_claim: metrics.py's max_goals_active check exempts goals marked exempt_from_max_active (or a fixed always-active set naming g15/g16) from the active count and warning, matching wave 1's stated design that g15 (bugfix/optimization) and g16 (telemetry) are always active
+thought_session: dissolve-legacy-2026-09-19
 title: L2 goals active exempt
 ---
 # hypothesis:l2-goals-active-exempt
