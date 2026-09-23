@@ -21,7 +21,13 @@ def _secret_tokens(root):
     from frontmatter import split_frontmatter
     import yaml
     keys = set()
-    node = Path(root) / SECRETS_NODE
+    # `root` is whatever the caller was handed -- the installed hook passes
+    # the SOURCE (repo) root, the tests pass a graph root. The secrets node
+    # lives under the GRAPH root, so resolve it rather than assuming the two
+    # are the same directory; assuming it made the hook check ZERO secret
+    # values (goal:g15.29.16).
+    graph = locations.shared_project_root(root) or locations.find_project_root(root)
+    node = Path(graph or root) / SECRETS_NODE
     if node.is_file():
         parts = split_frontmatter(node.read_text(encoding="utf-8"))
         fm = (yaml.safe_load(parts[0]) if parts else None) or {}

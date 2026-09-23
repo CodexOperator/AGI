@@ -833,11 +833,15 @@ def test_required_keys_still_enforced_alongside_required_any(tmp_path):
 
 def test_malformed_required_any_entry_is_refused_by_name(tmp_path):
     """A required_any entry that is not a list of key names is refused by
-    name, not silently dropped."""
+    name, not silently dropped -- and as a SecretsError, its OWN type, not a
+    bare ValueError every unrelated `except ValueError` would also swallow
+    (goal:g15.29.16)."""
     graph = make_project(tmp_path)
     write_node(graph, MALFORMED_NODE)
-    with pytest.raises(ValueError, match="OPENROUTER_API_KEY"):
+    with pytest.raises(agi_secrets.SecretsError, match="OPENROUTER_API_KEY") as exc:
         agi_secrets.resolve(tmp_path)
+    assert not isinstance(exc.value, ValueError), \
+        "SecretsError must be its own type, not a ValueError (goal:g15.29.16)"
 
 
 def test_config_schema_declares_required_any():
