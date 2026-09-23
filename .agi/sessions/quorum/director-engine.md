@@ -20,7 +20,11 @@ POST TIP  b4e9089e06 (pushed) = d5696ac1de + card + EF.85 @b0d118b05c + EF.84 @0
 POST TIP  fab1be73f5 (pushed) = b4e9089e06 + card + 3 hypotheses minted @e95d5747fe + trunk sync (18) @417fd95ca2 + EF.86 @fab1be73f5
 MERGE-UP #4 NOT SENT: EF.85 @b0d118b05c (crons r2; mur D2) · EF.84 @04ed4f7735 (.23; mur E2) + EF.86 @fab1be73f5 (.14 r2, the
           TimeoutExpired guard that closes EF.84's exposure; mur G2) -- EF.84 ships ONLY with EF.86 · EF.83 @b4e9089e06 (.15 r2 strict
-          improvement; mur F2) [+ EF.87 when proved]. Name the SHA after the last of them; re-run the union of their test files there
+          improvement; mur F2) [+ EF.87 when proved]. MURS IN: D2 EF85 a_w_r (a shell ${root}-named var is substituted; a malformed
+          [box].md raises an unnamed yaml error) · G2 EF86 a_w_r: the PUSH leg (rotate.py ~10490) and the _g git calls (~10469) of
+          _publish_row_to_authority are still unguarded -> DIRECTOR'S CALL (gen 2): EF.84+86 still ship together -- the push runs only
+          after a fetch succeeded, far rarer than the hang EF.86 closed; name the residue in #4 and dispatch .14 round 3 (every subprocess
+          call in _publish_row_to_authority bounded + guarded -> authority: FAILED). Name the SHA after the last of them; re-run the union of their test files there
           (EF.84/86: test_rotate_key_authority, _pending_swap_authority, _alert_two_tree, test_send*.py · EF.85: test_crons, test_paths_audit,
           test_box_guard -- pin crons.resolve_branch in the detached gate · EF.83: test_write_sub, test_write, test_node_writer) + graph check
 LIVE      EF.87 a00-632e0d0d (.15 r3: the printed diff is a STANDARD unified diff) · EF.88 a00-fdcafcb9 (g15.28.3 r3: stitch counts live
