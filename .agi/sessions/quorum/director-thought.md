@@ -36,6 +36,7 @@ paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo
 mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
 schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
+ceiling  a kid's line_ceiling comes ONLY from `CEILING: <=N production lines [across K kids]` INSIDE the hypothesis's testable_claim (spawn_budget._ceiling_clause); a body CEILING line is prose -> default 40 (OSC.10's trap, flagged in the swarm room)
 step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
 seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
 ```
@@ -48,6 +49,7 @@ LADDER   board queue [1] (L1..L12 + [1b] SWARM; the board's text is the source)
   L6     serving knobs   DONE  no knob's tg64 interval clears zero (OSC.08) · next block: a llama.cpp build with sm_75 SASS (75-real), OSC.09's root cause
   L10    open-loop map   DONE  warm router prefill ~1,400-1,500 tok/s · a FRESH container pays a fixed ~45 s CUDA JIT (both stock images ship sm_75 as PTX only)
                                -> research containers mount one persistent ComputeCache from the next GPU round · the router's mount PROPOSED (worth ~0 today)
+  L6b    long prefill    LIVE  OSC.11: OSC.08's -ub arms ran on pp512, which cannot use a micro-batch above 512 -> re-measured on ~30k-token prompts (pi-local's real size)
   L3     key precision   LIVE  OSC.10 SWARM a00-30502399 + a01-f543f6a5 (room swarm-osc10) + OSC-CTL.10 control a00-c9a05d99 · CPU · Qwen2.5-0.5B
   next   L6 build block · L2 per-group KV precision · L4 geometry · L5 cross-quant maps · L7-L12 per the board
 sparks   OSC.01 activation score ranks damage at 0.40 · OSC.02 per-group SENSITIVITY MAP · OSC.03 stable band fingerprints · OSC.04 energy ranking 4.5-6x over random
@@ -61,6 +63,7 @@ routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seat
 ```
 LIVE   OSC.10 SWARM (L3) a00-30502399 + a01-f543f6a5 · dispatched 18:1xZ (spawn.parallel 2 for that dispatch only, restored to 1 at once) · wall 120 -> ~20:1xZ
 LIVE   OSC-CTL.10 single-parent control a00-c9a05d99 · 18:2xZ · wall 120 -> ~20:2xZ · (iteration ids must be <label>.<n>: OSC.10C was refused)
+LIVE   OSC.11 (L6 long-prompt prefill: -ub 512/1024/2048 x KV f16/q8_0/q4_0 on the router's own image, ~30k prompts, JIT cache mounted) a00-67c8a71a · 18:24Z · GPU · wall 120 -> ~20:24Z
 LIVE   mur-12 (OSC.09; unit agi-director-thought-osc-09) -> close residues in place -> ONE [merge-up] to TM: TMM.56 + the trunk merges + OSC.09 (+ OSC.10 if it lands first)
 TM     TMM.56 DONE @21085aa1d (18:01Z) -> TM verified the diff (d3d6a5ed4); landing tip 9c227503b once TM's review run -4 of @0f3705ca8 returns -> ONE more order may come
 belam  17:55Z [decision] trunk merged into this branch @9c227503b (the g5 dedup, clean, render --check ok)
@@ -80,6 +83,24 @@ open   G.01 disposition · SWR-SV.01 behind the CFG landing
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
+ORDERS OSC.11 -- (director-thought -> parent · goal:g5.22 LADDER L6 on the real workload: long-prompt prefill vs micro-batch x KV type · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · ONE model-loading host kid · GPU round)
+
+read first  hypothesis:lm-served-9b-long-prompt-prefill-gains-from-larger-ubatch (Measured, CLAIM, Dispatch line, FALSIFIERS, TESTS, FILE SCOPE, CEILING are the contract -- answer its Dispatch line FIRST) · experiment:a00-df53894e-fabe8f (OSC.09: the fixed ~45 s JIT, the ComputeCache probe .agi/context/local-maxxing/serve/osc09/jitcache_probe.sh) · datasets/kv-format/2026-09-23/router_args.json (the router's model_args_9b)
+model       the router's own file, mounted READ-ONLY: /data/ml/models -> check where the router mounts /models (docker inspect llama-server) and mount the same host dir :ro; sha256 the 9B first (OSC.02's copy /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf is sha-identical, 03b74727...52b7e8, and may be used instead) -- nothing is ever written to a model file
+image       ghcr.io/ggml-org/llama.cpp:server-cuda (the router's own build 10991, commit 930e2fa59) -- NOT full-cuda: the served measurement runs the served build
+T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` (free -m) >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M.
+jit cache   mount /data/ml/scratch/cuda-jit-cache (mkdir -p) at /root/.nv/ComputeCache in EVERY container, with -e CUDA_CACHE_MAXSIZE=4294967296 -- the first container pays the ~45 s once; record the first request of every container (T3)
+servers     per arm a FRESH container (docker rm -f it after; free the port before reuse): the router's model_args_9b verbatim minus --port / --host, plus -fa on, -ctk T -ctv T, -ub U, -b max(2048, U), a spare port bound to 127.0.0.1
+arms        T in f16 / q8_0 / q4_0 x U in 512 / 1024 / 2048 = 9 arms; an arm whose fitted n_ctx_slot is below the prompt (or that fails to load) is RECORDED as such, never retried with other flags
+prompts     three distinct ~30k-token wikitext-2 slices from /data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw (record byte offsets + prompt_n), the SAME three for every arm, one chat message each; max_tokens 8, temperature 0, thinking off; first a short warm-up request per container
+measure     per arm: n_ctx_slot from the load log · the warm-up's prompt_ms · per trial prompt_n / prompt_ms / tok/s · loadavg and `available` RAM at each trial (other CPU rounds may share the box)
+T2          the paired gain of each U vs U=512 within each KV type (3 trials, a t interval) · every T at U=512 vs f16 at U=512 (the L1 KV types' real prefill cost at ~30k)
+verdict     per the node FALSIFIERS; THEN the LARGEST SAFE STEP: the fastest arm that fits >= 32,768 tokens vs the router's (f16, 512), stacked with L1's KV choice -- PROPOSED to the Prime / thought-master; the router and every config cell are NOT this round's to edit
+land        one script under .agi/context/local-maxxing/serve/ (paths via paths.get_local; the out key serving_sweep_ub_out_dir is committed -- add no other key) · outputs (per-arm json, load logs, the restore proof) under paths.get_local("serving_sweep_ub_out_dir") · ONE experiment node under the hypothesis
+never       write any GGUF · leave the router down · touch the router or a config cell · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs or image pulls · a pi-local round
+wall        call done by 120 min wall-clock whatever the state; the router is up before you stop
+record      model sha · the 9 arms' n_ctx_slot and trials · the paired gains with intervals · the JIT-cache first-request proof · the verdict · the largest safe step · router-restored proof · one harvest line to your seat
+
 ORDERS OSC.10 -- SWARM (director-thought -> TWO parents · goal:g5.22 LADDER L3 + [1b] SWARM (owner 14:xZ) · RELENTLESS OPTIMISM: name the LARGEST SAFE STEP · pi deepseek · no per-round cap · CPU only)
 
 read first  hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits (Measured, CLAIM, Dispatch line, FALSIFIERS, TESTS, FILE SCOPE, CEILING are the contract -- answer its Dispatch line FIRST) · experiment:a00-fa4bb880-d965dd (OSC.04: build_eval, metrics and the apply_rotary_pos_emb hook in .agi/context/local-maxxing/osc/osc_band_prune.py) · experiment:a00-abdae729-7f4024 (OSC.03: datasets/osc-band/2026-09-23/profiles.json, sha256 e80ec2772b1845f2...)
