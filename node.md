@@ -27,6 +27,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` (3 behind origin: ff at the PASS) |
 | season2/main | @24099d666 = belam's re-keyed row, published BY THE ROTATION (whois IS-AUTHORIZED, pubkey cdad7f20…) · not yet an ancestor of the trunk |
 | merge | `.agi/sessions/prime-merge.state.json`: BASE ebae4adde · notice → thought-master 20:34Z · run_at 01:37Z 09-24 · pass_started_at null |
+| stream | owner 22:5xZ (goal:g2.27): stream-master seated 23:2xZ, window @17, Sonnet 5 max, master template · prepping local-town (clone, `:1`, ffmpeg, dry run) · LIVE blocked on the keys |
 | quiet | belam row = quiet (owner): `send.py read` shows nothing — read `.agi/comms/season-2/dm/*belam*.md` newer than `.agi/sessions/belam.lastcheck` (20:27:29Z) |
 | crons | SESSION-ONLY, die with this session: CHECK `6f429274` "13 */4 * * *" (§1 of `.agi/sessions/prime-merge.crons.md`) · PASS 3 one-shot `747f3027` "37 1 24 9 *" (§2) |
 | spend | floor -50 (owner) · per-key cap 1 USD kept (owner) · key TTL 300 min · TypeSafe 2 × 5 USD keys in MAIN .env · 42.69 USD at 11:41Z |
@@ -44,13 +45,14 @@ open   director-engine queue: every item has experiments on the trunk now (seat-
 ```
 
 ## §2 Landed (this seat, 09-23)
-dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT carries the four parts) · CHECK run once 20:27Z (0 dms; case (b)) · `[owner]` PASS 3 notice → thought-master 20:34Z · both crons armed · §2 of the crons file = PASS 3
+dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT carries the four parts) · CHECK run once 20:27Z (0 dms; case (b)) · `[owner]` PASS 3 notice → thought-master 20:34Z · both crons armed · §2 of the crons file = PASS 3 · 985fc4981 + 6f15b8c51 stream-master in line (row template = doc:unified-master-brief, card rewritten, host names scrubbed) · 04fdaa857 stream-master seated
 
 ## 🔴 Where it stops
 20:3xZ 09-23 belam-S2-L5-II: QUIET, waiting on the two session crons. In order:
  1. 00:13Z CHECK (6f429274): expect case (c), notice pending and now < run_at: one line, nothing else.
  2. 01:37Z PASS 3 one-shot (747f3027): run §2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at first.
  3. Between: answer only decisions / reds / merge-ups.
+ 4. stream-master answers ONLY by dm (.agi/comms/season-2/dm/belam--stream-master.md, read at each CHECK): [decision] = prepped, waiting on keys · [complete] = live on Twitch + X → one line to the owner.
  SUCCESSOR seated before the PASS is done: RE-ARM both crons from that file (§1 recurring; §2 one-shot only while the state file's pass_started_at is null); session crons do not survive a rotation.
 
 ## §4 Traps
@@ -75,3 +77,5 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 |---|---|
 | global git identity on this box (the box-env red tests) | `git config --global user.name/email` for user belam |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | its trigger (brief.py landed) is met at b0b4fbc9b: one goal, nested rounds, config-max first — opening it stays the owner's call |
+| the stream keys: Twitch key + X RTMP URL/key (in no reachable store: MAIN .env, Doppler agi dev/stg/prd + belam/prd checked by name 23:1xZ; the one copy was stream-town's stub .env) | owner adds TWITCH_KEY, X_URL, X_KEY to Doppler agi/dev; stream-master reads them over the keeper into the stub .env, never echoed |
+| stream-town (= core-town) unreachable: overlay AND public ssh time out (23:1xZ) | owner checks that instance: the stream's designed home, own egress; from local-town all egress rides the overlay hub |
