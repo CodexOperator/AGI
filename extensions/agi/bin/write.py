@@ -2656,27 +2656,50 @@ def _compose_body(root, edit: Edit) -> str:
 
 def _landed_node_text(root, edit: Edit, actor: str = "",
                       session: str = "") -> str:
-    """The bytes `update_node` would write; the conjunct-4 preview diff."""
+    """The bytes `update_node` would write; the conjunct-4 preview diff.
+
+    Built through `node_writer.assemble_node`, the SAME ordering `update_node`
+    uses, so the preview cannot drift from the landed bytes
+    (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+    """
     from graph_core.persistence import frontmatter as fm_reader
     path = node_writer.find_node_file(root, edit.node_id)
     if path is None:
         raise EditError(f"no node file for {edit.node_id}")
     nf = fm_reader.load_node_file(path)
-    fm = dict(nf.frontmatter)
-    for key in edit.unset_fm:
-        fm.pop(key, None)
     new_body = nf.body
+    has_new_body = False
     if edit.body_append or edit.thought:
         new_body = _compose_body(root, edit)
+        has_new_body = True
     elif edit.sub_body:
         new_body = edit.sub_body
-    fm.update(edit.set_fm or {})
-    fm[PROVENANCE_ACTOR] = actor or _default_actor()
+        has_new_body = True
+    set_fm = dict(edit.set_fm or {})
+    set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
     if session:
-        fm[PROVENANCE_SESSION] = session
-    fm, new_body, _ = node_writer._absorb_leading_frontmatter(fm, new_body)
+        set_fm[PROVENANCE_SESSION] = session
+    fm, new_body, _ = node_writer.assemble_node(
+        nf.frontmatter, new_body,
+        old_body=nf.body if has_new_body else None,
+        set_fm=set_fm, unset_fm=edit.unset_fm)
     return node_writer._serialize_node(node_writer.render_frontmatter(fm),
                                        new_body)
+
+
+def _baseline_node_text(root, node_id: str) -> str:
+    """The on-disk node canonicalised -- the `-` diff side: NO stamp, NO
+    absorb, so a duplicate body frontmatter block the real write strips stays
+    visible in the patch (hypothesis:sub-dry-run-preview-is-the-bytes-update-
+    node-lands).
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    path = node_writer.find_node_file(root, node_id)
+    if path is None:
+        raise EditError(f"no node file for {node_id}")
+    nf = fm_reader.load_node_file(path)
+    return node_writer._serialize_node(
+        node_writer.render_frontmatter(dict(nf.frontmatter)), nf.body)
 
 
 def create(root, node_type: str, slug: str, parents: list[str], *,
@@ -3102,9 +3125,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
         if edit.sub_resolved:
-            _base = Edit(node_id=edit.node_id)
-            _before = _landed_node_text(root, _base, actor=args.actor,
-                                        session=args.session)
+            _before = _baseline_node_text(root, edit.node_id)
             _after = _landed_node_text(root, edit, actor=args.actor,
                                        session=args.session)
             _sdiff = "".join(difflib.unified_diff(
