@@ -2688,18 +2688,17 @@ def _landed_node_text(root, edit: Edit, actor: str = "",
 
 
 def _baseline_node_text(root, node_id: str) -> str:
-    """The on-disk node canonicalised -- the `-` diff side: NO stamp, NO
-    absorb, so a duplicate body frontmatter block the real write strips stays
-    visible in the patch (hypothesis:sub-dry-run-preview-is-the-bytes-update-
-    node-lands).
+    """The on-disk node's bytes, VERBATIM -- the `-` diff side: NO stamp, NO
+    absorb, NO re-serialize, so the patch applies to the file that is actually
+    there and a duplicate body frontmatter block the real write strips, a
+    missing EOF newline, or a frontmatter `render_frontmatter` would rewrite
+    all stay visible as the bytes they are (hypothesis:sub-dry-run-preview-is-
+    the-bytes-update-node-lands).
     """
-    from graph_core.persistence import frontmatter as fm_reader
     path = node_writer.find_node_file(root, node_id)
     if path is None:
         raise EditError(f"no node file for {node_id}")
-    nf = fm_reader.load_node_file(path)
-    return node_writer._serialize_node(
-        node_writer.render_frontmatter(dict(nf.frontmatter)), nf.body)
+    return path.read_text(encoding="utf-8")
 
 
 def create(root, node_type: str, slug: str, parents: list[str], *,
@@ -3128,9 +3127,18 @@ def main(argv: list[str] | None = None) -> int:
             _before = _baseline_node_text(root, edit.node_id)
             _after = _landed_node_text(root, edit, actor=args.actor,
                                        session=args.session)
-            _sdiff = "".join(difflib.unified_diff(
-                _before.splitlines(True), _after.splitlines(True),
-                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}"))
+            # Split on a bare "\n" with `lineterm=""` and rejoin on "\n",
+            # matching `apply_unified_diff`'s own split/join. `splitlines(True)`
+            # emits a MALFORMED diff when the last line has no trailing newline
+            # (it concatenates the `-` and `+` forms onto one line), so the
+            # printed patch could not be applied back (hypothesis:sub-dry-run-
+            # preview-is-the-bytes-update-node-lands).
+            _sdiff = "\n".join(difflib.unified_diff(
+                _before.split("\n"), _after.split("\n"),
+                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}",
+                lineterm=""))
+            if _sdiff:
+                _sdiff += "\n"
             edit.sub_diff = _sdiff
             sys.stdout.write(_sdiff)
             if _sdiff and not _sdiff.endswith("\n"):
