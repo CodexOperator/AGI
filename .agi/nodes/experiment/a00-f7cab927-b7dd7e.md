@@ -6,7 +6,7 @@ parents:
   - hypothesis:alarms-loop-runs-flat-and-the-capture-grace-restarts-per-session
 next_edges: []
 confidence: 0.75
-edited_by: a00-f7cab927
+edited_by: a00-b25d8fe8
 evidence_runs:
   - experiment:a00-f7cab927-b7dd7e
 line_ceiling: 40
@@ -30,19 +30,16 @@ Build round, not a measurement: all three EF.22 conjuncts implemented in the
 engine bytes, one new test each, every test proved RED on pre-fix bytes first.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Why this version: conjunct 2 needed a decision. I took option (a) — name the
-WRITING session on the stamp and have the reader treat a stamp whose session
-differs from the seat's current one as ABSENT — over option (b) clearing the
-stamp on rotate, because (b) has no single choke point while (a) is one read
-plus one write. "Current session" is the hook payload's `session_id`, falling
-back to the seat row's `session_id`/`session_ref` only through the existing
-`_seat_latch_identity` path; the force-capture read gets the payload id
-passed in. When the current session CANNOT be known (empty id) or the stamp
-predates the field (no `session`), the stamp stands — same per-boot grace as
-before, deliberately conservative: a wrong "absent" would force-capture every
-prompt of an unknown session and never let its grace elapse. The write only
-re-stamps when the existing stamp explicitly names a DIFFERENT session, so a
-legacy/no-session stamp is not reset every prompt.
+Parent review (a00-b25d8fe8), EF.22 round 1. This version differs from the kid's because I read the changed bytes (diff c3a6711a1^..c3a6711a1) and ran three negative probes of my own against BOTH the built bytes and the pre-fix bytes, instead of accepting the kid's result file.
+
+Mechanism per conjunct, measured not read:
+- c1 flat loop: on the built rotate.py, driving cmd_alarms with once=False, 300 passes (sleep monkeypatched, _load_seats spying frame depth) shows depth 6 at pass 1 and 6 at pass 300. The same probe against a pre-fix copy loaded from `git show 6a152aa0e:extensions/agi/bin/rotate.py` grows 7 -> 306 over the same 300 passes. Gate holds.
+- c2 session scope: on the built hook, `_maybe_force_capture` given a 10-min-old stamp naming s-A returns (False, None) for session_id=s-B (no capture), and (True, 'capture-no-spawn') for s-A. Pre-fix `_maybe_force_capture` (6 args, no session_id) with the same stamp CAPTURES (True, 2 argv logged). The successor waits its own grace; the same session still captures. Gate holds.
+- c3 ratio: built `_captive_rotate` with `captive_rotate_masters:true` and no ratio returns False; with `captive_rotate_ratio: not-a-number` returns False; with a valid 0.85 and an eligible director fires once (positive control). Pre-fix fires on all three (True, 1 capture each). Gate holds.
+
+Touched tests green: 420 passed over test_rotate.py, test_rotate_alarms_captive.py, test_rotate_alarms_idle.py, test_rotation_alert.py, test_rotation_alert_capture.py, test_rotation_alert_captive.py (74s).
+
+Caveat I carry, and the reason this is not a full "proved" of the conjunct as worded: a LEGACY stamp with no `session` field (the pre-fix format) still STANDS for a successor session -- my probe observed handled=True on that shape. The kid documented this as a deliberate conservative choice (a stamp with no session is unprovable as another session's; a wrong absent would force-capture every prompt). It is not a regression, but the fix protects a successor only against stamps written by the fixed code.
 <!-- THOUGHT:END -->
 
 ### (1) `rotate.py` cmd_alarms — flat loop (line 7237-7298)
