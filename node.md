@@ -3,9 +3,9 @@ id: goal:s11
 mint_id: bb55e3a25e244bdd811997143dd84ae7
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S11
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S11: Retire `level3` as a type name"
 ---
 `level3` names a zoom level in the data — the category error G2 now records.
