@@ -68,7 +68,7 @@ EVERY dm · note · card · card update : DIAGRAM-MAXED — fewer tokens AND mor
 ```
 account  : OPENROUTER_PROVISIONING_KEY (provisioning.py status). .env OPENROUTER_API_KEY empty/deleted BY DESIGN (L4.98) — spawns mint their own keys;
            envfile.py --check proves presence, NOT validity.
-floor    : provisioning.min_account_remaining_usd = 1.6 (owner 09-16 13:3xZ; SUPERSEDES the 09-13 $5.00)
+floor    : provisioning.min_account_remaining_usd = -50 (owner 09-23 10:3xZ: "something silly like -50" so headroom never blocks; SUPERSEDES 09-16's 1.6 and 09-13's $5.00)
            below it ─▶ the gate refuses NEW rounds · live rounds finish · NO Sonnet parents/kids fallback
            ─▶ the Prime switches .env key + spawn.credential.workspace_id to the next owner-named account
               (doc:l4-owner-decisions :882 + step 2b; two accounts in rotation, keys in Doppler agi/dev) · dispatch stays ON
