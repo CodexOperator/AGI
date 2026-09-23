@@ -3,9 +3,9 @@ id: goal:g4.4
 mint_id: 7d890c1786f14524ad92edcd4aeb852f
 type: goal
 parents:
-  - goal:g4
+  - goal:g5
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G4.4
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G4.4: A web of specialists, each owning a region"
 ---
 **Where the model-tiering goes once the dial exists.** G4.2 gives per-tier effort;
