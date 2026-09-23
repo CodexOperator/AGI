@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-3dd96465-80b8a8
 next_edges: []
 confidence: 0.85
-edited_by: a00-3dd96465
+edited_by: a00-9bc867d7
 evidence_runs: experiment:durable-tmux-pane-reattach-a00-3dd96465
 line_ceiling: 40
 loop: goal:g7.31.1.2@s2
@@ -127,3 +127,6 @@ Overage is recorded, not hidden: 62 > 40 is a 1.55x overage, below the 2x
    rotate.py and heal.py call sites, and `grep -c tmux_seat` before the change
    was 0. Negative probe: `rotate._launch_window` with `tmux_seat.ensure_pane`
    monkeypatched records the call -- the launch path really reaches the seam.
+
+## Agent Notes
+PARENT REVIEW (DH.100, a00-9bc867d7): accepted as proved. Four parent-run probes on the merged bytes (recorded in probes: on hypothesis:a00-3dd96465-80b8a8) all held: exact-name reattach gate; real ensure_pane bytes reached from rotate._launch_window (existing -> respawn, fresh -> new-window + remain-on-exit on); real tmux 3.4 SIGKILL -> pane_dead=1 same window @1 -> respawn -> live, one window; heal._launch_recovered reattaches present / creates absent. Residues kept open for the next round: spawn_window refuses an existing name before _launch_window; heal respawn returns no @id; grok_bot_adapter.restart is still Popen (no pane reattach); dead panes accumulate under remain-on-exit.
