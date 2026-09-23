@@ -43,7 +43,7 @@ seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the a
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
          pruning line: OSC.01 coherence NOT a criterion · OSC.02 9B KV groups: 1 of 32 at <= 1 pct -> DISPROVED · OSC.03 per-head RoPE band profiles static: PROVED · OSC.04 band masks: no safe fraction -> DISPROVED -> NO USABLE PRUNING LEVER (say so to TM in the merge-up)
-         layering: OSC.05 LIVE -- q8_0 / q4_0 KV on the served 9B (claim >= 1.8x context at <= 0.5 pct NLL) -> if proved, propose the router flag to the Prime
+         layering: OSC.05 disproved as claimed but a real lever (q4_0 KV 2.39x context at +0.07 pct NLL; + fit margin -> 3.15x) -> OSC.06 LIVE pins the decode-speed side -> then the lever table goes to the Prime (router is theirs)
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
@@ -54,8 +54,9 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 
 ## 🔴 Stops
 ```
-LIVE   OSC.05 (layering 1: KV format on the served 9B) parent a00-f66c29e0 pid 2174660 · dispatched 12:25:02Z · GPU round, router stop/restore · wall 120 -> done by ~14:25Z · branch season2/loops/hypothesis-lm-served-9b-q8-kv-fi-a00-f66c29e0
-OSC.05 13:0xZ measured: f16 PPL 7.1798 x2, n_ctx 49,664 (slot reproduced), tg@16k 58.1 · q8_0 PPL 7.1753 (-0.03 pct NLL), n_ctx 75,520 = 1.52x, tg 37.9 · q4_0 PPL 7.1903 (+0.07 pct), n_ctx 118,784 = 2.39x, tg 37.1 -> both capacity bars MISSED (1.8x / 3x), quality free, decode -35 pct at depth · router restored 13:01:17Z · parent writing up
+LIVE   OSC.06 (layering 1b: quantised-KV decode speed vs depth, 5 reps) parent a00-48468b87 · dispatched 13:24:36Z · GPU round, router stop/restore · wall 90 -> done by ~14:55Z
+LIVE   mur osc-05 (agi-director-thought-osc-05, mur-director-thought-8) -> close in place
+done   OSC.05 DISPROVED on capacity (q8_0 1.52x, q4_0 2.39x < 1.8x / 3x), quality free (-0.03 / +0.07 pct NLL) · fit margin -fitt 512 = +32 pct at f16, q4_0 + fitt 512 = 156,416 tokens (3.15x) · decode penalty ~35 pct at 16k on 2 reps +/-24 -> OSC.06 pins it · no router change proposed (rule) · harvest da0513cae
 SENT   13:1xZ [merge-up] batch C (re-delivered) + D @e499f9ea0: C fixes ac673dacf + OSC.02 (mur-5) + OSC.03 (mur-6) + OSC.04 (mur-7), all accept_with_residue, closed in place -> TM gates + lands after pass 2
 done   OSC.04 DISPROVED (band hop 2): 95 pct masks drop 54 pct of pairs but agree 0.61, KL 1.04; energy beats random 4.5-6x; no dropped fraction > 0 clears both bars -> hop 3 NOT dispatched · HumanEval committed (MIT) behind paths.local_maxxing.humaneval_file for both band scripts 985587c1d
 done   OSC.03 PROVED (band hop 1): 336/336 heads stable, self-identifying (331/336; cross-head cos 0.34) · low band 171/336 robust · high band 37/336 at 11-pair thirds, 29 at 10 (definition-sensitive) · 2 kids (kid 1 pairing bug -> corrective re-run) · merged + config keys 0369c20fc · mur-6 accept_with_residue closed 985587c1d; OPEN: bf16 + any-split (measured float32, one split)
@@ -77,22 +78,20 @@ window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.05 -- LIVE a00-f66c29e0 12:25Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): goal:g5.22, layering 1 = the served 9B's KV-cache format · pi deepseek · cap 1 USD · ONE model-loading host kid · GPU round)
+ORDERS OSC.06 -- LIVE a00-48468b87 13:24Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): goal:g5.22 layering 1b = the speed side of the served 9B's KV-format lever · pi deepseek · cap 1 USD · ONE model-loading host kid · GPU round)
 
-read first  hypothesis:lm-served-9b-q8-kv-fits-1p8x-context-at-half-pct-nll (CLAIM, TESTS T0-T3, FALSIFIER are the contract) · experiment:a00-3b543674-ac032a (OSC.02: the same GPU window pattern, docker command, wikitext file and baseline PPL 7.1783 without the cache flags)
-model       the served /data/ml/models/Qwen3.5-9B-Q4_K_M.gguf, mounted READ ONLY (-v /data/ml/models:/models:ro), or OSC.02's sha-identical copy /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf -- sha256 whichever you use against 03b74727...52b7e8 first. Nothing is ever written to a model file.
-router args BEFORE the stop: record the router's exact args for the 9B (GET :8080/v1/models -> status.args) -- T2 reuses them verbatim, only the cache flags change.
-T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` (free -m) >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M. Sample available RAM through the round; under 2 GB at any sample -> stop, restore, report.
-T1 quality  docker ghcr.io/ggml-org/llama.cpp:full-cuda, --entrypoint /app/llama-perplexity, wikitext-2-raw test from /data/ml/scratch/osc02/wikitext-2-raw/ (verify its sha256 ef7edb56...), -c 512 --chunks 40 -ngl 99 -fa on, and -ctk T -ctv T for T in f16, q8_0, q4_0 (f16 twice). Report PPL, delta-NLL = ln(PPL_T / PPL_f16), and delta-NLL / NLL_f16.
-T2 capacity for each T: start the full-cuda image's llama-server on a spare port (never 8080) with the router's recorded args + -fa on -ctk T -ctv T, wait until it serves, read the fitted n_ctx (GET /props or the load log), stop it. Report n_ctx per T and the ratio to f16; the f16 figure should reproduce the 49,664-token slot -- if not, say why (flags, fit margin).
-T3 speed    (recorded, not a verdict input) llama-bench in the same image, -ngl 99 -fa 1 -ctk T -ctv T -p 0 -n 64 -d 16384 (or the deepest depth that fits for f16), after one warm-up; tg tok/s per T.
-verdict     per the node FALSIFIER: q8_0 proved iff delta-NLL <= 0.5 pct of NLL_f16 AND n_ctx ratio >= 1.8; q4_0 judged separately at <= 2 pct and >= 3x. A proved q8_0 -> the node PROPOSES the router flag change (-fa on -ctk q8_0 -ctv q8_0) with the numbers -- the router, its run.sh and every box/config cell are NOT this round's to edit.
-paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local; out-of-repo roots (/data/ml/models, /data/ml/scratch) stay literal, already proposed as box cells.
-land        script(s) under .agi/context/local-maxxing/kv/ · outputs (tables, raw logs, the recorded router args, hashes -- no model bytes, no wikitext bytes) under datasets/kv-format/2026-09-23/ · ONE experiment node under the hypothesis with every number and the router-restored proof
+read first  hypothesis:lm-served-9b-quant-kv-decode-penalty-grows-with-depth (CLAIM, TESTS, FALSIFIER are the contract) · experiment:a00-297e744f-32087d (OSC.05: the same image, model copy, T0 guard and router restore; its T3 speed row had 2 reps and +/- 24 tok/s -- this round replaces it)
+model       OSC.02's sha-identical copy /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf (sha256 it against 03b74727...52b7e8 first) -- nothing is ever written to a model file
+T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M.
+T1          llama-bench in ghcr.io/ggml-org/llama.cpp:full-cuda: -ngl 99 -fa 1 -ctk T -ctv T for T in f16, q8_0, q4_0; -d 0,4096,16384,32768 (if a depth does not fit a type, record that and go on); -p 512 -n 64 -r 5; one discarded warm-up run per type first. Keep llama-bench's own mean and stddev per (T, depth, test). Same process conditions for every row: nothing else on the GPU, the host otherwise idle as far as you can see (record load average per type).
+T2          penalty per depth = 1 - tg_T / tg_f16 with a 95 pct interval from the 5 reps (say how you computed it); the same for pp512.
+verdict     per the node FALSIFIER: q8_0 within 5 pct of f16 at depth 0 AND >= 20 pct slower at 16384 with interval half-width <= 3 tok/s -> proved; otherwise disproved or inconclusive (too wide), with the table.
+paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local; out-of-repo roots stay literal (already proposed as box cells).
+land        script under .agi/context/local-maxxing/kv/ · outputs (the table, raw llama-bench output, load samples, the router-restored proof) under datasets/kv-format/2026-09-23-speed/ · ONE experiment node under the hypothesis
 never       write any GGUF · leave the router down · touch the router's run.sh or any config cell · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs · a pi-local round
-wall        call done by 120 min wall-clock whatever the state; land what is measured, name what is left, and the router is up before you stop
-cap         1 USD · line ceiling 150 engine-unit lines
-record      model sha · router args · PPL x4 + delta-NLL per T · n_ctx per T + ratios · tg tok/s per T · RAM samples · router-restored proof · verdict per T · one harvest line to your seat
+wall        call done by 90 min wall-clock whatever the state; the router is up before you stop
+cap         1 USD · line ceiling 120 engine-unit lines
+record      model sha · the tg64 / pp512 table with stddev per (T, depth) · penalty per depth with its interval · load samples · router-restored proof · verdict · one harvest line to your seat
 
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
