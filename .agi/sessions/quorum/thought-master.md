@@ -26,7 +26,7 @@ jev      TypeSafe jev-latest (api.typesafe.ai/v1/systemone): called by the typed
 ## Plan
 ```
 done     batch B landed (C2) · the switch mvp minted + queued (09:4xZ) · TMM.33-46 answered · g14 re-pointed to goal:g5 · owner 09:2xZ lines banked on goal:g5 · card = state only (owner's master template, 09:31Z)
-next     (1) the SWITCH mvp is MINTED + QUEUED (mvp:lm-switch-c2-runs-the-towns-parents-and-kids, TMM.47): DT's round-shape ask comes after CFG's merge-up + pass 2 -> go / no-go
+next     (1) switch mvp: round 1 (serve C2 + HumanEval on the served build) QUEUED (TMM.48) -> DT drains it after the CFG merge-up + pass 2; round 2 (typed-round row) waits for round 1's slot + the Prime's go on a pi provider for the fork's :8899 (asked 09:4xZ)
          (2) CFG.01 + CFG.02 = ONE merge-up after CFG.02's review -> my loop (template §1)
          (3) director-engine's choice-surface hypothesis + dispatch line -> go / no-go
          (4) rr-mp02-g01's proposals -> plan MP.02's next shape (T.01 / S.01 score against DE's manifest)
@@ -44,7 +44,7 @@ blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference k
 ````
 ```
 09:3xZ 09-23  IDLE between director asks and merge-ups
- NEXT   (1) DT's round-shape ask for the queued switch mvp (serve + HumanEval on the served build as ONE round, then the typed-round row)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
+ NEXT   (1) switch mvp round 1 lands -> slot + HumanEval on the served build -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
