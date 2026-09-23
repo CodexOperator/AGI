@@ -244,6 +244,14 @@ _LISTED_CLIS = [
     "viewport.py", "crons.py", "envfile.py",
 ]
 
+# EF.48 CLI GROUP A. Appended rather than folded into the literal above so the
+# sibling round's GROUP B edit cannot collide with this one.
+_LISTED_CLIS += [
+    "brief.py", "level3.py", "season.py", "heal.py", "zoom.py",
+    "locations.py", "commands.py", "stitch.py", "paths.py",
+    "evidence_gate.py",
+]
+
 
 class _ParserCaptured(Exception):
     """Raised by the spy once the top-level parser exists, before it parses."""
