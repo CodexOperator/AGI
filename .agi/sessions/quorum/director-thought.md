@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-sonnet-5 effort MAX from the 22:5xZ 09-23 rotation (OWNER 22:5xZ via TMM.70; the seat before it ran claude-opus-5-5) · rotate at meter f >= 0.47, EVERY rotate with --model claude-sonnet-5 --effort max until the Prime writes the config:posts model cell · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · claude-opus-5-5 (seated 22:28:59Z 09-23, session post-director-thought-18) -- the switch to claude-sonnet-5 effort MAX is ORDERED (OWNER 22:5xZ via TMM.70) but BLOCKED until the Prime writes the config:posts model cell · rotate at meter f >= 0.47 · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -55,9 +55,10 @@ murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_
 ## Live state (22:5xZ 09-23)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49): goal:g5.22 full force until the jev code fixes land · OWNER 13:xZ (TMM.50): every round names its LARGEST SAFE STEP; it joins the stack
-MODEL    OWNER 22:5xZ (verbatim on goal:g5, lines 390 + 392 at the trunk; relayed as TMM.70 22:55Z): both directors to SONNET MAX -> this seat rotated onto
-         claude-sonnet-5 effort max · the config:posts model cell is Prime/owner-only (write.py refuses a director): until the Prime writes it, EVERY rotate
-         passes --model claude-sonnet-5 --effort max, or a later rotation falls back to Opus
+MODEL    OWNER 22:5xZ (verbatim on goal:g5, lines 390 + 392 at the trunk; relayed as TMM.70 22:55Z): both directors to SONNET MAX -- BLOCKED by the engine:
+         rotate.py rotate --model claude-sonnet-5 --effort max exits 3, verbatim: --model claude-sonnet-5 differs from the row: model claude-opus-5-5; the row
+         changes only through write.py by the Prime/owner ahead of the rotation -> [red] to TM 23:0xZ (delivered) · the config:posts model cell is
+         Prime/owner-only (write.py refuses a director): the switch waits on that write; then a BARE rotate carries it
 HOLD     TMM.66 (TM 22:29Z): NO new OpenRouter dispatch -- pi parents, kids, murs -- until the Prime / owner answers (account 3.26 USD of 170 at 22:3xZ;
          PASS 3 needs it at 01:37Z) · running rounds finish · local work goes on · a fix delta needs no mur (TM verifies at the gate) · LIFTS = one TM line
          pi-local is NOT a way round it: kids ignore --harness pi-local and run on OpenRouter (board open (2)); a parent never writes code (brief.py _parent)
@@ -83,9 +84,11 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          · cli.py done drops config.json · stale box.* / locations.* cells (pi_traj_dir resolves to another box's pi home)
 ```
 
-## 🔴 Where it stops -- 22:5xZ 09-23, ROTATED onto Sonnet max (TMM.70) at a clean stop; the successor idles on the hold -- the next command waits on TM's lift line
+## 🔴 Where it stops -- 23:0xZ 09-23, SEATED on Opus at a clean stop: the Sonnet switch waits on the Prime's row write, the dispatches on TM's lift line
 ```
-0 ROTATE (TMM.70): python3 extensions/agi/bin/rotate.py rotate --model claude-sonnet-5 --effort max -- on EVERY rotate until the Prime's config:posts model cell lands
+0 SWITCH (TMM.70) BLOCKED: rotate.py refuses --model when it differs from the config:posts row (exit 3; [red] to TM 23:0xZ). When the row says
+         claude-sonnet-5: python3 extensions/agi/bin/rotate.py rotate (BARE) from this worktree -- if it refuses a stale .agi/nodes/.geometry/, merge
+         origin/season2/main as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
 1 on TM's lift line (dm log + send.py read): merge the town trunk (local ref; 1789d3ffc or later), push the mirror, then dispatch in this order --
          LEAF.01 (TM's order) · REPLAY.01 (CPU) · SWR-SV.01 (GPU; only if its 120-min wall ends before PASS 3 at 01:37Z, i.e. dispatched by 23:35Z --
          else after PASS 3 closes; read the Prime's card first) -- commands + orders in the scratch; put each agent id + branch here as it launches
@@ -93,7 +96,7 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
 3 still zero-spend while held: nothing further is due -- the queue after these three is (llama.cpp with 75-real SASS) · L2 · L4 · L5 · L7-L12 per the board;
          mint the next rung only when a slot is about to free (never mint ahead of the queue)
 done   this session: TMM.66 read (0 paid dispatch) · OSC.12 LANDED 1789d3ffc · LEAF measured + minted 827d4212c0 · REPLAY framed (642 transcripts) + minted
-       bc777c1fe7 · SWR-SV.01 windows verified clear · DE's post-hold spawns told to TM · TMM.69 order accepted · TMM.70 verified on goal:g5 -> rotated to Sonnet max
+       bc777c1fe7 · SWR-SV.01 windows verified clear · DE's post-hold spawns told to TM · TMM.69 order accepted · TMM.70 verified on goal:g5, rotation refused by the engine (exit 3) -> [red] to TM
 traps  the rotation auto-capture REWRITES this card's Live state in the worktree (uncommitted, 'AUTO-CAPTURED' + a status block): read it, carry what matters,
        git checkout the card before committing · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
        · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
