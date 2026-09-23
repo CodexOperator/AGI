@@ -3,9 +3,9 @@ id: goal:g7.6
 mint_id: 8e22076aae704400b6c0271281a1aaed
 type: goal
 parents:
-  - goal:g7
+  - goal:g4
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G7.6
 goal_kind: subgoal
 heading_level: 3
@@ -16,9 +16,10 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G7.6: One persistence model: frontmatter, JSON, or a database"
 ---
+# goal:g7.6
 Three representations exist and none is authoritative. Markdown frontmatter is
 what the loop actually reads and writes. A JSON/SQLite backend exists
 (`graph_core/persistence/sqlite_backend.py`, `db_loader.py`, plus a one-shot
