@@ -222,6 +222,22 @@ def _turn_end_with_live_kid(iter_dir, agent_id, is_alive) -> "str | None":
     return None
 
 
+def _mark_turn_end(death: dict, turn: "str | None") -> dict:
+    """Record a headless turn-end on a death WITHOUT blinding evidence.
+
+    `_death_class` may already have found the exact provider/stream error line
+    (`class == infra-stream-error`); overwriting `evidence` with `"turn-end"`
+    threw that line away. The turn-end fact rides in its own key
+    (`turn_end_kid`), and `evidence` becomes `"turn-end"` ONLY when
+    `_death_class` left it empty.
+    """
+    if turn:
+        death["turn_end_kid"] = turn
+        if death.get("evidence") is None:
+            death["evidence"] = "turn-end"
+    return death
+
+
 def _rec_pid(rec: dict) -> int:
     """The record's pid as an int, tolerant of null / non-int pids.
 
@@ -3446,8 +3462,7 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
             rec.get("worktree") or "", agent_id,
             int(time.time()) - int(rec.get("started_at", 0) or 0),
             agent_dir=iter_dir / agent_id)
-        if _turn:
-            _death["evidence"] = "turn-end"
+        _death = _mark_turn_end(_death, _turn)
         return {
             "record": {
                 "status": "failed",
