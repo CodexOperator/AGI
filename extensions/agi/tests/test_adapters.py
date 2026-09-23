@@ -434,6 +434,29 @@ def test_a_missing_override_refuses_by_name(monkeypatch):
     assert "pi-not-installed-xyz" in str(exc.value)
 
 
+def test_a_missing_path_shaped_bin_refuses_by_name_with_the_expanded_path(
+        tmp_path, monkeypatch):
+    """Round 2 (`experiment:a00-73aeae86-75e0f3`): a `~`-cell whose expanded
+    file does not exist must raise the SAME named refusal a missing bare name
+    does. Before this fix the RAW cell was returned, so a caller got
+    `'~/.npm-global/bin/nope'` and `Popen` died on a bare
+    `FileNotFoundError('~/...')` that named nothing (the parent's gate probe).
+
+    The message owes three names: the harness, the EXPANDED path tried, and
+    the `$ENV_VAR` that would override it."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("ZEPHYR_BIN", raising=False)
+    expanded = tmp_path / ".npm-global" / "bin" / "zephyr-nope"
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "zephyr", "bin": "~/.npm-global/bin/zephyr-nope"},
+            "ZEPHYR_BIN", "zephyr")
+    msg = str(exc.value)
+    assert "'zephyr'" in msg, msg
+    assert str(expanded) in msg, msg
+    assert "ZEPHYR_BIN" in msg, msg
+
+
 def test_no_home_user_literal_survives_in_any_adapter():
     """The falsifier as a test: no quoted `/home/<user>` path literal in the
     four adapter files (their defaults are bare PATH names now)."""
