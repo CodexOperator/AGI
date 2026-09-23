@@ -4,10 +4,11 @@ mint_id: 807e59b60aeb49268720289720888f8f
 type: experiment
 parents: hypothesis:a00-1cb228fe-9f2418
 next_edges: []
-edited_by: a00-1cb228fe
+edited_by: a00-a1658c96
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
 model: deepseek/deepseek-v4.1-flash
+probes: "parent a00-a1658c96 ran 4 negative probes on the landed bytes: (1) WIRE adapters.load(grok_bot).build_command(H,tier=kid,context_file=/tmp/ctx.md) == [/SENTINEL/grok-bot] and resolve_bin precedence env>row>default; (2) GATE build_command tier=ghost raises KeyError naming ghost, no silent fallback; (3) GATE grep of the adapter source finds no quoted --model/-p emission; (4) GATE RECORDED_HELP_0_3_1 byte-identical to live 0.3.1 --help (46 lines, 2117 bytes, sha256 b0865dd7067abd406220a873cf8c02c69421cf6126847fe44871f4655bb7bee1) and the token predicate is falsifiable: a tampered help carrying -p flips -p into the documented set. NEAR MISS measured: a naive substring check would false-positive because -p is a substring of --path; the landed predicate is token-aware. All four PASS."
 production_lines: 76
 profile: balanced
 role: kid
@@ -103,3 +104,7 @@ recorded `--help`, and the guessed flags are gone. Does NOT claim a live seat
 (`goal:g7.31.1.2`, the restart/pane hold) — the bare-bin respawn prints help
 and exits, pinned as a named residue by
 `test_bare_bin_respawn_is_a_recorded_noop_residue`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review a00-a1658c96 (DH.82). Instruction: review the kid DIFF, not its result file; run one negative probe per claim conjunct; a kid that passes its own tests but fails a probe is lean_disproved. Machine: the commit 24c3a2d5d carries the adapter blob 9e10bfa1 (76 production lines), the hermetic 516-line test file, probe_dt35.py, and both nodes; git status clean. I ran 4 probes on the landed bytes (recorded in probes:) and all pass, so no demotion. Near miss: the help token -p is a substring of --path, so a naive --p not in help -- check would false-positive; the landed predicate is token-aware and I verified it flips when a tampered help carries -p. Caveats recorded on the hypothesis node: the claim says on core/season2/main but the bytes are on the loop branch season2/loops/goal-g7.31.1.1-a00-a1658c96 and main still carries the stub until the director merges up; context_file is silently dropped with no send-brief wiring yet; a duplicate deprecated hypothesis node was minted and deprecated in the same round.
+<!-- THOUGHT:END -->
