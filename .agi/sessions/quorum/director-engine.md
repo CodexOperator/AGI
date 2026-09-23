@@ -25,7 +25,10 @@ MURS      L (EF.49 EF.50) · M (EF.58 EF.60 EF.62 EF.63) · N (EF.57 EF.59 EF.64
           crons coupling ({repo_root} renders literally under a [box].md without the 2 new rows) and EF.58's unify.py guard fail-open
 EF.10     TM's order: its mur = `.agi/sessions/de-0923/mur-O-args.json` (ready, not launched); goal:g7.33's line is TM's, written
 LIVE      EF.65 a00-39a3b18e = EF.61 round 2 (the new test's `mod.child_env =` leak) -> harvest: run test_dispatch_restart_render.py
-          FIRST then test_*adapter*.py, merge (it carries round 1) · EF.66 a00-060879f9 = goal:g15.29.10 (context-build budget)
+          FIRST then test_*adapter*.py, merge (it carries round 1)
+DONE      EF.66 a00-060879f9 = goal:g15.29.10: harvest accepted 20:10Z (its dm is READ -- the mail hook consumed it), loop tip
+          0b42882a87 MOVED (2 commits: workflow.py +71, merge-up-review.json, test_workflow_review_under_load.py) -> read the diff,
+          re-run test_workflow*.py, merge, mur it with EF.65
 NEXT      EF.65 + EF.66 in -> one mur for them -> ONE [merge-up] to TM: EF.10's mur + EF.49 50 51 54 56 57-66 (TMM.60) ·
           then dispatch: g15.29.7/.8 (rotate.py, now unblocked) · g1.25.5 (arity, verification.py + write_guard.py, season.py:judge
           shells out yet proposable) · EF.53's grok-bot node residues -> a g15.28 leaf
