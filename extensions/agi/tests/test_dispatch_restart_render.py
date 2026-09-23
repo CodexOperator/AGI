@@ -267,3 +267,106 @@ def test_config_brief_render_is_what_build_command_receives(tmp_path):
     segs = [argv[i + 1] for i, a in enumerate(argv)
             if a == "--append-system-prompt"]
     assert rendered in segs and any(MARKER in s for s in segs)
+
+
+# ---- conjunct: the restart carries the first spawn's FULL identity ---------
+#
+# hypothesis:restart-carries-the-first-spawns-full-turn-and-identity.
+#
+# The render carry (above) restores the brief TEXT. It does not restore the
+# rest of the first turn: dispatch.py's restart call passed none of `cli_py`,
+# `skill_prompt`, `role` or `ladder_tier`, so a restarted agent assembled a
+# system prompt with no skill segment (claude_code_adapter.py:611) and got the
+# generic tool bundle rather than its role's (build_command :619). The record
+# stores the identity at spawn; the restart reads it back. RED pre-fix: the
+# kwargs are never passed and a non-dict `spawn.json` raises AttributeError
+# out of the restart.
+
+
+def test_carried_restart_brief_tolerates_a_non_dict_spawn_json(tmp_path):
+    """A `null`, list or bare string is valid JSON and NOT a dict;
+    `rec.get("brief")` on any of them raises AttributeError, which surfaced as
+    `restart unavailable` on the whole restart. All must fall back to None so
+    the adapter assembles the legacy brief, exactly as an absent file does.
+    RED pre-fix for every payload but the absent-file control."""
+    _graph, iter_dir, agent_id, sess = _carry_rig(tmp_path)
+    for payload in ("null", "[]", '"a bare string"', "123"):
+        (sess / "spawn.json").write_text(payload, encoding="utf-8")
+        assert dispatch._carried_restart_brief(iter_dir, agent_id) is None
+
+
+def test_reap_restart_threads_the_spawn_identity_to_the_adapter(
+        tmp_path, monkeypatch):
+    """The restart hands the adapter the first spawn's skill prompt, cli_py,
+    role and tiers, read from the agent record -- never the empty defaults.
+    RED pre-fix: `_reap_one_impl` passed none of them, so a restarted
+    director/advisor silently lost its skill prompt and tool bundle."""
+    graph, iter_dir, agent_id, sess = _carry_rig(tmp_path)
+    _stub_reaper(monkeypatch)
+    fake = _CapturingAdapter()
+    rec = {
+        "tier": "kid", "context_file": str(sess / "context.md"),
+        "target": "hypothesis:x",
+        "spawn_role": "director", "ladder_tier": 2, "brief_tier": "parent",
+        "cli_py": "/x/cli.py", "skill_prompt": "/x/agent-prompt.md",
+        "dispatch_py": "/x/dispatch.py",
+    }
+    dispatch._reap_one_impl(graph, iter_dir, fake, rec, agent_id, 999,
+                            cfg={"reaper": {"max_restarts": 1}})
+    assert fake.kw.get("role") == "director"
+    assert fake.kw.get("ladder_tier") == 2
+    assert fake.kw.get("brief_tier") == "parent"
+    assert fake.kw.get("cli_py") == "/x/cli.py"
+    assert fake.kw.get("skill_prompt") == "/x/agent-prompt.md"
+    assert fake.kw.get("dispatch_py") == "/x/dispatch.py"
+
+
+def test_reap_restart_falls_back_to_the_records_role(tmp_path, monkeypatch):
+    """An OLD record (no `spawn_role`) still names a role under `role`; the
+    restart must use it rather than dropping to None. Back-compat lock."""
+    graph, iter_dir, agent_id, sess = _carry_rig(tmp_path)
+    _stub_reaper(monkeypatch)
+    fake = _CapturingAdapter()
+    rec = {"tier": "kid", "role": "research",
+           "context_file": str(sess / "context.md"), "target": "hypothesis:x"}
+    dispatch._reap_one_impl(graph, iter_dir, fake, rec, agent_id, 999,
+                            cfg={"reaper": {"max_restarts": 1}})
+    assert fake.kw.get("role") == "research"
+
+
+def test_pi_restart_accepts_role_and_ladder_tier(adapter_rig, monkeypatch):
+    """pi has no tool bundle, so it accepts-and-ignores role/ladder_tier --
+    but the restart signature must carry them or the dispatch seam TypeErrors
+    on every pi restart. RED pre-fix (TypeError: unexpected keyword)."""
+    mod = adapters.load("pi")
+    monkeypatch.setattr(mod, "child_env", lambda **kw: {})
+    _capture_popen(monkeypatch)
+    pid = mod.restart(
+        harness={"adapter": "pi", "models": {"kid": "k"}}, tier="kid",
+        context_file=str(adapter_rig["sess"] / "context.md"), agent_id="a00-x",
+        iter_n=1, sess_dir=adapter_rig["sess"], rendered_brief=RENDERED,
+        role="director", ladder_tier=2, brief_tier="parent",
+        cli_py="/x/cli.py", skill_prompt="/x/agent-prompt.md")
+    assert pid == 7007
+
+
+def test_claude_restart_keeps_the_skill_prompt_with_a_carried_render(
+        adapter_rig, monkeypatch):
+    """The skill-prompt segment rides beside the carried render: a carried
+    brief must not REPLACE the skill prompt. Regression lock (GREEN pre-fix
+    -- the adapter already forwards it); the dispatch seam above is what was
+    missing."""
+    mod = adapters.load("claude_code")
+    monkeypatch.setattr(mod, "child_env", lambda **kw: {})
+    skill = adapter_rig["sess"] / "agent-prompt.md"
+    skill.write_text("SKILL-PROMPT-MARKER-42", encoding="utf-8")
+    captured = _capture_popen(monkeypatch)
+    mod.restart(
+        harness={"adapter": "claude_code", "models": {"kid": "k"}},
+        tier="kid", context_file=str(adapter_rig["sess"] / "context.md"),
+        agent_id="a00-x", iter_n=1, sess_dir=adapter_rig["sess"],
+        rendered_brief=RENDERED, skill_prompt=str(skill))
+    argv = captured["argv"]
+    i = argv.index("--append-system-prompt-file")
+    txt = Path(argv[i + 1]).read_text(encoding="utf-8")
+    assert RENDERED in txt and "SKILL-PROMPT-MARKER-42" in txt
