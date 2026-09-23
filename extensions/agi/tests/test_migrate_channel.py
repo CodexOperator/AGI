@@ -397,15 +397,21 @@ def test_fork_mode_without_session_id_is_refused_by_name(tmp_path, monkeypatch,
     assert not (tmp_path / "comms").exists()
 
 
-def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path):
+def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path, monkeypatch):
     """SHOULD FIX (a)+(b): dest is the projects path (never a copy in the
-    worktree) and the slug canonicalizes BOTH '/' and '.'."""
+    worktree) and the slug canonicalizes BOTH '/' and '.'.
+
+    The oracle is INDEPENDENT of the module global the code derives from:
+    CC_PROJECTS_DIR is redirected to a separately built tmp path, so a mutant
+    that derives dest from the wrong root is caught."""
+    fixture = tmp_path / ".claude" / "projects"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", fixture)
     dest = rotate._migrate_transcript_dest(
         Path("/home/x/.agi/worktrees/p"), "sess-1")
     assert dest.name == "sess-1.jsonl"
     assert dest.parent.name == "-home-x--agi-worktrees-p"
     assert ".migrate-transcript.jsonl" not in str(dest)
-    assert str(dest).startswith(str(rotate.CC_PROJECTS_DIR))
+    assert dest == fixture / "-home-x--agi-worktrees-p" / "sess-1.jsonl"
 
 
 def test_seat_makes_a_real_worktree_from_the_pushed_ref(tmp_path, monkeypatch):
