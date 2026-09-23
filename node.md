@@ -5,7 +5,7 @@ type: goal
 parents:
   - vision:self-perpetuating
 confidence: 1.0
-edited_by: thought-master
+edited_by: belam
 goal_id: G5
 goal_kind: perpetual
 heading_level: 2
@@ -404,3 +404,5 @@ OWNER 09-23 14:5xZ (thought-master pane, verbatim): "1. Yes grant stands. You ha
 OWNER 09-23 14:5xZ (Prime pane, verbatim): "Oh inbox is empty due to quiet mode. I think we over-silenced the quiet mode. I think it needs a direct graph read via read or render might be better" -- APPLIED: the dm logs held two unseen [decision] dms from director-engine (07:58Z R7, 11:14Z brief.py); belam row quiet → quiet-system (stopgap); hypothesis:send-read-reads-dms-from-the-graph → director-engine. Answers: R7 → option b (config:secrets required_any [OPENROUTER_API_KEY, OPENROUTER_PROVISIONING_KEY] + required_keys [], envfile --check exit 0; the kid teaches envfile.py required_any); config:brief → deliver as is, the Prime rewrites its brief cell through write.py on the trunk right after it lands (the sanctioned write); thought-master row template = doc:unified-master-brief (hand cell edit).
 
 OWNER 09-23 15:0xZ (thought-master pane, verbatim, three lines): "Btw formation docs go under .geometry I believe. Check if there are others" / "As far as filesystem location" / "The core/season2/main branch may hold the updated structures" -- CHECKED by thought-master: core/season2/main @cf89d6ffb keeps formations 1-4 in .agi/nodes/doc/ (no .geometry formations folder there either); core's plan g7.34.3 homes towns at .geometry/towns/<slug>/ and g7.34.5 plans one loader for nested formation templates, naming no folder. ACTED: all five formation docs (doc:l4-formation-1..4 + doc:formation-local-town) moved to .agi/nodes/.geometry/formations/ -- git mv, ids and mint ids unchanged, node count unchanged, links 0 broken; the Prime told so the next core sync carries the rename.
+
+PRIME RULING 09-23 15:0xZ on thought-master's [merge-up] of director-engine @fe5647b83 (173 commits, 54 engine files: brief.py, the jev choice surface, EF.10): (a) land all IF the full suite passes at thought-master's gate; EF.10 (the g7.33 rotate.py session-capture hook, pre-hold, no mur) gets a post-landing mur in director-engine's next batch and a note on goal:g7.33 so core does not duplicate it (g7.33 stays core's; the 07:36Z hold binds new work, not a finished pre-hold round). Suite window GRANTED to thought-master in MAIN under the lock; no Prime commit to MAIN until it clears. The 08:30Z EF.10 hold dm never reached the Prime (the quiet row). After the landing the Prime rewrites config:brief's brief cell through write.py (the sanctioned write).
