@@ -56,10 +56,9 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 ## 🔴 Stops
 ```
 LIVE   OSC.09 (L10: the cold first request after a model load) parent a00-d05979d0 · dispatched 17:16:38Z · GPU round · wall 90 -> ~18:47Z
-LIVE   mur-director-thought-11 (OSC.08) -> close, then the next merge-up (OSC.08 + OSC.09)
 done   OSC.08 DISPROVED: no serving knob's tg64 interval clears zero (best graphs-off +0.74 pct [-0.35,+1.83]) -> the router's flags are at the off-the-shelf decode optimum · nsys traced INSIDE the CUDA 12.8 image · MAP CORRECTED by my 17:14Z measurement: warm router prefill ~1,400 tok/s; the 44 tok/s was the COLD FIRST REQUEST after each load (~23 ms/token) -> OSC.09
 TM     17:18Z TMM.55: the TMM.54 close DEMOTED (20/23 met) -> closed 145e5691ab: 3 reps restored (TM's own error), parse() takes the rep count (root fix, all callers), probe2 rows n=3; crossing (0, 3.125) in the kid's Verdict + notes (grep = 0); osc07 probes resolve from their own location
-PLAN   ONE merge-up = the TMM.55 close + OSC.08 once mur-11 (OSC.08 review) closes -- an unreviewed round in TM's delta risks another demote loop
+SENT   18:0xZ [merge-up] @0f3705ca8 = the TMM.55 close (145e5691a) + OSC.08 (mur-11 closed: a COLD FIRST REQUEST, not an off-GPU serving path; my 11-min extrapolation struck; driver fixed for the next sweep) -> TM reviews the delta + gates
 ROUTER the L1 proposal went to the Prime at 16:2xZ via TM (q4_0 + --fit-target 512 = 3.15x at +0.074 pct; the split = conservative sibling) -- nothing to wait on; OSC.08 stacks on top
 done   OSC.07 PROVED (L1 split: +0.016 pct NLL, 1.86x, GPU-resident) -> L1 RUNG COMPLETE: f16 49,664 / q8_0 1.52x / split 1.86x / q4_0 2.39x / q4_0 at fitt 512 = 156,416 (3.15x, +0.074 pct NLL, decode -5..-11 pct) = the largest safe step for the router
 done   OSC.06 inconclusive_lean_disproved:80: quantised KV costs ~5-11 pct decode at 0-32k (NOT ~35 pct) -> L1 keeper holds; q4_0 pp512 -26 pct at 32k · merged 9b8f62c2b, config key + parent review carried · mur-9 TIMED OUT (review 3600 s) -> re-run in mur-10
