@@ -190,6 +190,47 @@ def test_box_schema_names_the_cells_once(tmp_path):
     assert set((fm.get("fields") or {}).keys()) == set(CELLS)
 
 
+def test_audit_refuses_an_absent_box_schema(tmp_path, capsys):
+    """Conjunct 1 (gate): a graph with NO [box].md must refuse the audit by
+    name -- never pass with an empty cell set. Exit 3 is distinct from the 1
+    a real finding uses and the 2 an unset cell uses."""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    (graph / "config.json").write_text(json.dumps({"box": dict(CELLS)}))
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text("ok = 1\n")
+    rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
+    assert rc == 3, (rc, out)
+    assert "[box].md" in out
+
+
+def test_audit_refuses_a_schema_with_no_cells(tmp_path, capsys):
+    """Conjunct 1 (gate): a [box].md that declares no `fields` is equally
+    unable to classify -- the audit refuses and NAMES the schema."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nname: box\n---\n")
+    (graph / "config.json").write_text(json.dumps({"box": dict(CELLS)}))
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.py").write_text("ok = 1\n")
+    rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
+    assert rc == 3, (rc, out)
+    assert "[box].md" in out
+
+
+def test_findings_refuses_an_absent_box_schema(tmp_path):
+    """Conjunct 1 (gate): the refusal lives in findings() itself, so a direct
+    caller is refused by name -- never handed an empty clean [] by silence."""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        paths.findings(graph)
+    assert "[box].md" in str(err.value)
+
+
 def test_box_schema_declares_the_placeholder_map(tmp_path):
     """Residue 5 (auth/gate): the placeholder tokens are REAL FIELDS on
     [box].md, not a comment. The schema is the one declaration of the mapping
@@ -201,6 +242,7 @@ def test_box_schema_declares_the_placeholder_map(tmp_path):
     assert (fm.get("placeholders") or {}) == {
         "root": "root", "logs": "logs_dir",
         "tmux": "tmux_session", "user": "user",
+        "repo_root": "repo_root", "box": "box",
     }
 
 
