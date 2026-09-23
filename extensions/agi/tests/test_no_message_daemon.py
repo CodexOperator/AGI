@@ -21,11 +21,13 @@ KNOWN_SERVICES = {
     "agi-reaper": "heal.py watch",
 }
 ALLOWED_EXEC = tuple(KNOWN_SERVICES.values())
-#: Jobs that legitimately touch send.py/mail_alert.py -- cadenced, never a
-#: `services:` long-runner.
-MESSAGE_JOBS = {"nudge_sweep", "mail_poll"}
-DAEMON_SIGS = ("message-daemon", "message_daemon", "router", "relay",
-               "SendToAgent", "send.py", "mail_alert.py", "nudge")
+#: Long-runner words: a cadence cmd is a daemon when it names one of these.
+#: A cadenced `send.py <subcommand>` is the repo+nudge model, NOT a daemon.
+DAEMON_SIGS = ("watch", "daemon", "serve", "router", "relay", "SendToAgent")
+#: Broader message-surface signatures -- only `services:` entries, which must
+#: never be a message surface at all, are held to this stricter list.
+MESSAGE_SIGS = ("message-daemon", "message_daemon", "router", "relay",
+                "SendToAgent", "send.py", "mail_alert.py", "nudge")
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -43,11 +45,13 @@ def audit(fm: dict) -> None:
         assert any(a in ex for a in ALLOWED_EXEC), (
             f"service {name!r} exec_start is not rotate.py alarms / "
             f"heal.py watch: {ex!r}")
-        assert not any(s.lower() in ex.lower() for s in DAEMON_SIGS), (
+        assert not any(s.lower() in ex.lower() for s in MESSAGE_SIGS), (
             f"service {name!r} launches a message daemon/long-runner: {ex!r}")
+    # Every cadence cmd is scanned, legitimate message job names included: a
+    # `cmd` may not smuggle a long-runner under a blessed job name.
     for job, cfg in (fm.get("cadences") or {}).items():
         cmd = (cfg or {}).get("cmd") if isinstance(cfg, dict) else None
-        if not cmd or job in MESSAGE_JOBS:
+        if not cmd:
             continue
         assert not any(s.lower() in cmd.lower() for s in DAEMON_SIGS), \
             f"cadence {job!r} launches a message daemon: {cmd!r}"
@@ -73,3 +77,25 @@ def test_audit_is_not_vacuous() -> None:
         "exec_start": "python3 /repo/extensions/agi/bin/send.py serve"}})
     with pytest.raises(AssertionError, match="agi-reaper"):
         audit(smuggled)
+
+
+def _fm(cmd: str, job: str = "mail_poll") -> dict:
+    return {"crons_live": True, "cadences": {job: {"cmd": cmd}}, "services": {}}
+
+
+def test_mail_poll_cmd_cannot_smuggle_a_daemon() -> None:
+    """Regression: a legitimate message job name must not exempt its `cmd`."""
+    with pytest.raises(AssertionError, match="mail_poll"):
+        audit(_fm("python3 /repo/extensions/agi/bin/send.py watch --daemon"))
+
+
+def test_nudge_sweep_cmd_cannot_smuggle_a_daemon() -> None:
+    with pytest.raises(AssertionError, match="nudge_sweep"):
+        audit(_fm("python3 /repo/extensions/agi/bin/send.py serve", "nudge_sweep"))
+
+
+def test_benign_cadenced_sweep_is_still_allowed() -> None:
+    """The repo+nudge model must not be over-blocked."""
+    audit(_fm("python3 /repo/extensions/agi/bin/send.py nudge-sweep"))
+    audit(_fm("python3 /repo/extensions/agi/bin/send.py nudge-sweep",
+              "nudge_sweep"))
