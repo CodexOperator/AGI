@@ -42,9 +42,8 @@ seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the a
 ## Live state (09:5xZ 09-23)
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
-         chunk 1 OSC.01 PROVED + (b): K_c 0.96 is a label (no knee; curvature 2.06/1.14), lift 1.000017, Spearman pool 0.289 < 0.3 -> coherence is NOT a pruning criterion
-         chunk 2 OSC.02 DISPROVED: only 1 of 32 KV groups drops at <= 1 pct NLL -> group pruning is not a context lever on the hybrid 9B -> band hop 1 PROVED (static per-head profiles) -> hop 2 OSC.04 LIVE (95 pct masks drop 54 pct of pairs; agreement + random control) -> hop 3 -> KV-quant layering on the served 9B
-         frame: on the 9B, heads are ~4 pct of weight bytes (small tok/s lever) but KV (32 KB/token, 8 layers) caps the 49,664-token slot -> groups are a CONTEXT lever
+         pruning line: OSC.01 coherence NOT a criterion · OSC.02 9B KV groups: 1 of 32 at <= 1 pct -> DISPROVED · OSC.03 per-head RoPE band profiles static: PROVED · OSC.04 band masks: no safe fraction -> DISPROVED -> NO USABLE PRUNING LEVER (say so to TM in the merge-up)
+         layering: OSC.05 LIVE -- q8_0 / q4_0 KV on the served 9B (claim >= 1.8x context at <= 0.5 pct NLL) -> if proved, propose the router flag to the Prime
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
 CFG.01   owner config-max pass: harvested + review-pass fix 7b0053ac5 · audit 0 new hits (b5399af78) · mur mur-director-thought-3 accept_with_residue: R1 dead key (mine) · R2 box-root-derived literal build_corpus.py:58/:119 · R3 closed · missed: unbounded reader walk in 4 scripts, e3_lut 'reverted' claim wrong -> ASKED how to close (09:3xZ)
@@ -55,11 +54,11 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 
 ## 🔴 Stops
 ```
-LIVE   OSC.04 (band hop 2) parent a00-a76685ba pid 1813933 · dispatched 11:33:22Z · CPU, reuses hop 1's env + weights · wall 120 -> done by ~13:33Z · branch season2/loops/hypothesis-lm-band-pruned-heads--a00-a76685ba
-done   OSC.03 PROVED (band hop 1): 336/336 heads stable, self-identifying (331/336; cross-head cos 0.34) · low band 171/336 robust · high band 37/336 at 11-pair thirds, 29 at 10 (definition-sensitive) · 2 kids (kid 1 pairing bug -> corrective re-run) · merged + config keys 0369c20fc
-LIVE   mur osc-02 (agi-director-thought-osc-02, mur-director-thought-5) · QUEUED mur osc-03 after it (one mur at a time: run-key trap)
+LIVE   OSC.05 (layering 1: KV format on the served 9B) parent a00-f66c29e0 pid 2174660 · dispatched 12:25:02Z · GPU round, router stop/restore · wall 120 -> done by ~14:25Z · branch season2/loops/hypothesis-lm-served-9b-q8-kv-fi-a00-f66c29e0
+LIVE   mur osc-04 (agi-director-thought-osc-04, mur-director-thought-7) -> close, then ONE [merge-up] = batch C fixed + OSC.02 + OSC.03 + OSC.04
+done   OSC.04 DISPROVED (band hop 2): 95 pct masks drop 54 pct of pairs but agree 0.61, KL 1.04; energy beats random 4.5-6x; no dropped fraction > 0 clears both bars -> hop 3 NOT dispatched · HumanEval committed (MIT) behind paths.local_maxxing.humaneval_file for both band scripts 985587c1d
+done   OSC.03 PROVED (band hop 1): 336/336 heads stable, self-identifying (331/336; cross-head cos 0.34) · low band 171/336 robust · high band 37/336 at 11-pair thirds, 29 at 10 (definition-sensitive) · 2 kids (kid 1 pairing bug -> corrective re-run) · merged + config keys 0369c20fc · mur-6 accept_with_residue closed 985587c1d; OPEN: bf16 + any-split (measured float32, one split)
 TM     11:39Z batch C REVIEWED by name (mur-refs-agi-posts-director-thought): cfg-01-02 + osc-01 accept_with_residue, NOT landed -> 3 items closed in-loop ac673dacf ((1) CFG.02 notes state the 200/40 breach, token struck (2) chunk-1 testable_claim gate < 0.3 (3) dead_head_artifact = path key, rerun byte-identical) · config-max e3_lut /tmp/kidB -> box.tmp_scratch is the Prime's · TM lands AFTER pass 2
-PLAN   re-deliver ONE tip = batch C fixed + batch D (OSC.02 disproved, OSC.03 proved) once mur-5 (OSC.02) + the osc-03 mur land and close -> ONE [merge-up] dm
 done   mur cfg-02 accept_with_residue, both defects confirmed -> closed in place b1b464771 (200/40 above the 2x stop; audit scope; pi home restored); box.root + pi_home CARRIED to the Prime
 done   OSC.02 DISPROVED: k(1 pct) = 1 of 32 KV groups, x1.03 context; done commit hit a stale index.lock -> committed at harvest 4116cf46c, merged 45f80be27, CSVs = raw logs; 325 lines vs ordered 150 (parent granted 350) recorded; WHY: hybrid 9B, 8 attention layers, every group load-bearing
 done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
@@ -77,22 +76,22 @@ window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.04 -- LIVE a00-a76685ba 11:33Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): the oscillator head-pruning chain goal:g5.22, band hop 2 · pi deepseek · cap 1 USD · ONE model-loading host kid · CPU only)
+ORDERS OSC.05 -- LIVE a00-f66c29e0 12:25Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): goal:g5.22, layering 1 = the served 9B's KV-cache format · pi deepseek · cap 1 USD · ONE model-loading host kid · GPU round)
 
-read first  hypothesis:lm-band-pruned-heads-keep-next-token-agreement (CLAIM, METHOD, TESTS T1-T4, FALSIFIER are the contract) · experiment:a00-abdae729-7f4024 (hop 1, proved; its script and its pairing fix + per-pair selftest)
-reuse       hop 1's environment AS IS: weights in /data/ml/scratch/osc03/hf/ (re-verify every sha256 against hop 1's provenance.json), PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 /data/ml/.venv/bin/python, float32, CPU, torch.set_num_threads(8). Install nothing new.
-masks       from hop 1's profiles.json (paths.local_maxxing.osc_band_dir) profile_pooled: per QUERY head sort pairs by share and keep the smallest prefix reaching 90 / 95 / 99 pct. Pair p = dims (p, p+32) (the HF rotate_half layout -- run hop 1's per-pair selftest idea on your mask too: a mask dropping only pair 0 must leave every other pair's c_p unchanged). Apply the mask to q (zeroing both dims of a dropped pair; before or after RoPE is equivalent).
-eval        4096 tokens = 8 x 512, DISJOINT from hop 1's 20 prompts: wikitext-2 test slices hop 1 did not read + HumanEval prompts hop 1 did not use; record exactly which.
-measure     reference = unmasked logits at every position · per setting: top-1 agreement, mean per-token KL(unmasked || masked), the mean dropped fraction over query heads, and per KV head the UNION of its 7 query heads' kept pairs (the K-side dropped fraction hop 3 needs)
-control     at each setting the SAME number of pairs dropped per head, chosen at random (seeds 1, 2, 3): same metrics. The energy-guided mask must beat random at the same dropped fraction, or the profile is not the lever.
-verdict     per the node FALSIFIER: at 95 pct (dropped >= 40 pct) agreement >= 98 pct AND KL <= 0.02 -> proved; else disproved at that setting + the largest dropped fraction at which both hold. Energy-guided not better than random -> say so, whatever the agreement.
-paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local; out-of-repo roots stay literal and are proposed as box cells -- never added.
-land        script(s) in .agi/context/local-maxxing/osc/ · outputs in datasets/osc-band/2026-09-23-hop2/ (tables per setting + control, the K-side union table, provenance) · ONE experiment node under the hypothesis with every number
-kids        ONE kid. A second kid ONLY as a corrective re-run for a demonstrable method bug, recorded as a deviation (hop 1 set that precedent).
-never       the GPU or :8080 · anything under extensions/ · installing anything · committing weight or wikitext bytes · a pi-local round
-wall        call done by 120 min wall-clock whatever the state; land what is measured and name what is left
+read first  hypothesis:lm-served-9b-q8-kv-fits-1p8x-context-at-half-pct-nll (CLAIM, TESTS T0-T3, FALSIFIER are the contract) · experiment:a00-3b543674-ac032a (OSC.02: the same GPU window pattern, docker command, wikitext file and baseline PPL 7.1783 without the cache flags)
+model       the served /data/ml/models/Qwen3.5-9B-Q4_K_M.gguf, mounted READ ONLY (-v /data/ml/models:/models:ro), or OSC.02's sha-identical copy /data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf -- sha256 whichever you use against 03b74727...52b7e8 first. Nothing is ever written to a model file.
+router args BEFORE the stop: record the router's exact args for the 9B (GET :8080/v1/models -> status.args) -- T2 reuses them verbatim, only the cache flags change.
+T0 guard    no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named), host RAM `available` (free -m) >= 2 GB -> docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M. Sample available RAM through the round; under 2 GB at any sample -> stop, restore, report.
+T1 quality  docker ghcr.io/ggml-org/llama.cpp:full-cuda, --entrypoint /app/llama-perplexity, wikitext-2-raw test from /data/ml/scratch/osc02/wikitext-2-raw/ (verify its sha256 ef7edb56...), -c 512 --chunks 40 -ngl 99 -fa on, and -ctk T -ctv T for T in f16, q8_0, q4_0 (f16 twice). Report PPL, delta-NLL = ln(PPL_T / PPL_f16), and delta-NLL / NLL_f16.
+T2 capacity for each T: start the full-cuda image's llama-server on a spare port (never 8080) with the router's recorded args + -fa on -ctk T -ctv T, wait until it serves, read the fitted n_ctx (GET /props or the load log), stop it. Report n_ctx per T and the ratio to f16; the f16 figure should reproduce the 49,664-token slot -- if not, say why (flags, fit margin).
+T3 speed    (recorded, not a verdict input) llama-bench in the same image, -ngl 99 -fa 1 -ctk T -ctv T -p 0 -n 64 -d 16384 (or the deepest depth that fits for f16), after one warm-up; tg tok/s per T.
+verdict     per the node FALSIFIER: q8_0 proved iff delta-NLL <= 0.5 pct of NLL_f16 AND n_ctx ratio >= 1.8; q4_0 judged separately at <= 2 pct and >= 3x. A proved q8_0 -> the node PROPOSES the router flag change (-fa on -ctk q8_0 -ctv q8_0) with the numbers -- the router, its run.sh and every box/config cell are NOT this round's to edit.
+paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local; out-of-repo roots (/data/ml/models, /data/ml/scratch) stay literal, already proposed as box cells.
+land        script(s) under .agi/context/local-maxxing/kv/ · outputs (tables, raw logs, the recorded router args, hashes -- no model bytes, no wikitext bytes) under datasets/kv-format/2026-09-23/ · ONE experiment node under the hypothesis with every number and the router-restored proof
+never       write any GGUF · leave the router down · touch the router's run.sh or any config cell · anything under extensions/ · a second kid (except a corrective re-run for a demonstrable method bug, recorded) · installs · a pi-local round
+wall        call done by 120 min wall-clock whatever the state; land what is measured, name what is left, and the router is up before you stop
 cap         1 USD · line ceiling 150 engine-unit lines
-record      sha re-verification · the eval set · per setting: agreement, KL, dropped fraction, K-side union · the random control (3 seeds) · verdict · one harvest line to your seat
+record      model sha · router args · PPL x4 + delta-NLL per T · n_ctx per T + ratios · tg tok/s per T · RAM samples · router-restored proof · verdict per T · one harvest line to your seat
 
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
