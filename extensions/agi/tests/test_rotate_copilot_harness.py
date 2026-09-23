@@ -392,3 +392,36 @@ def test_non_table_roles_refuses_the_seat_by_name_not_a_crash(
     assert rc != 0
     assert shell == ""
     assert "roles is not a table" in err
+
+
+def test_copilot_spawn_bin_is_home_expanded_before_argv(tmp_path, monkeypatch,
+                                                        capsys):
+    """Round 3 of hypothesis:harness-bin-paths-resolve-per-box: the row's
+    `~/.npm-global/bin/copilot` cell reaches the spawn argv as the EXPANDED
+    path under the current HOME, not the raw `~` literal that Popen dies on."""
+    monkeypatch.delenv("COPILOT_BIN", raising=False)
+    home = tmp_path / "home"
+    bindir = home / ".npm-global" / "bin"
+    bindir.mkdir(parents=True)
+    fake = bindir / "copilot"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setenv("HOME", str(home))
+
+    root = tmp_path / "graph"
+    root.mkdir()
+    (root / "config.json").write_text(json.dumps({"harnesses": {
+        "copilot-cli": {"adapter": "copilot_cli",
+                        "bin": "~/.npm-global/bin/copilot",
+                        "models": {"director": "auto"}}}}))
+    prompt = tmp_path / "p.md"
+    prompt.write_text("card\n")
+    capsys.readouterr()
+
+    rc, shell = rotate.spawn_window(
+        name="p", tier="director", prompt_file=str(prompt),
+        dry_run=True, harness="copilot-cli", root=root)
+
+    assert rc == 0, capsys.readouterr().err
+    assert str(fake) in shell, shell
+    assert "~/.npm-global" not in shell, shell

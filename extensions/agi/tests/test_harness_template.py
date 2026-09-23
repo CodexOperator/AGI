@@ -428,3 +428,29 @@ def test_non_list_shape_argv_is_a_named_error(tmp_path, monkeypatch, literal):
     with pytest.raises(harness_template.HarnessTemplateError) as exc:
         harness_template.load("bad")
     assert "shapes.d.argv is not a list" in str(exc.value)
+
+
+def test_render_expands_a_home_token_bin_through_the_one_resolver(
+        tmp_path, monkeypatch):
+    """Round 3 of hypothesis:harness-bin-paths-resolve-per-box: `render()` has
+    no graph root, so a raw `~/.npm-global/bin/...` cell in the template is
+    expanded against the CURRENT HOME. Pre-fix the raw `~` literal reached
+    argv[0] and `Popen` died with FileNotFoundError('~/...') naming nothing."""
+    home = tmp_path / "home"
+    bindir = home / ".npm-global" / "bin"
+    bindir.mkdir(parents=True)
+    fake = bindir / "pi"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("HOME_HARNESS_BIN", raising=False)
+
+    td = tmp_path / "tmpl"
+    td.mkdir()
+    (td / "home-harness.toml").write_text(
+        'id = "home-harness"\nbin = "~/.npm-global/bin/pi"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: td)
+
+    got = harness_template.render("home-harness", prompt="CARD")
+    assert got == [str(fake), "CARD"]

@@ -72,6 +72,7 @@ import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
+import adapters  # noqa: E402 -- the ONE harness bin resolver (goal:g15, round 3)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -917,6 +918,31 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     if root is None or not harness:
         return {}
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
+
+
+def _resolved_harness_bin(root: Path | None, harness: str | None):
+    """The harness row's `bin` cell through the ONE shared resolver.
+
+    `None` when the row has no `bin` cell, so the claude path stays
+    byte-identical (it passes `bin_path=None`). Otherwise `$<HARNESS>_BIN`
+    wins over the `~`/{home}-expanded cell, which wins over PATH; a missing
+    binary refuses by name. The adapter's own env var
+    (`COPILOT_BIN`/`CLAUDE_BIN`/...) is consulted when the row's adapter
+    module is loadable, so rotate and dispatch agree on ONE precedence; a row
+    whose adapter has no module falls back to the derived name
+    (`hypothesis:harness-bin-paths-resolve-per-box` round 3).
+    """
+    row = _harness_row(root, harness)
+    if not row.get("bin"):
+        return None
+    adap = row.get("adapter")
+    if adap:
+        try:
+            return adapters.load(adap).resolve_bin(row)
+        except (adapters.AdapterError, AttributeError):
+            pass
+    env_var = (harness or "claude-code").upper().replace("-", "_") + "_BIN"
+    return adapters.resolve_bin(row, env_var, row["bin"])
 
 
 def _resolve_seat_role(root: Path, harness: str | None, tier: str,
@@ -1864,8 +1890,10 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         shell_cmd = successor_argv
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
-        # claude path passes None and stays byte-identical.
-        _bin = _harness_row(root, harness).get("bin") or None
+        # claude path passes None and stays byte-identical. The raw cell is
+        # resolved (env override, `~`/{home} expansion, PATH) here, before it
+        # reaches the argv (hypothesis:harness-bin-paths-resolve-per-box).
+        _bin = _resolved_harness_bin(root, harness)
         # A seat spawned with no explicit --prompt-file gets its body from the
         # assembled brief -- for EVERY tier, the prime included
         # (hypothesis:brief-py-assembles-every-first-turn-from-config; the

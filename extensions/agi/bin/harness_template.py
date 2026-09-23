@@ -191,6 +191,25 @@ def _emit(part, values: dict) -> list[str]:
     return [str(part["flag"]), *toks] if "flag" in part else toks
 
 
+def _first_arg(harness_id: str, tmpl: dict) -> str:
+    """The template's `bin` cell (or its id) through the ONE shared resolver.
+
+    `render()` has no graph root, so this is the resolver's own behaviour and
+    nothing more: `$<ID>_BIN` (e.g. `PI_BIN`) wins, then `~`/`{home}` expansion
+    against the CURRENT HOME, then PATH; a home-token cell whose expanded file
+    is absent refuses by name (`hypothesis:harness-bin-paths-resolve-per-box`
+    round 3). A bare name that is not on PATH is handed back unchanged, so a
+    synthetic fourth template still renders `["fakebin", ...]`.
+    """
+    cell = tmpl.get("bin") or harness_id
+    env_var = (tmpl.get("id") or harness_id).upper().replace("-", "_") + "_BIN"
+    try:
+        import adapters
+    except ImportError:  # imported as `agi.bin.harness_template`
+        from agi.bin import adapters
+    return adapters.resolve_bin({"adapter": tmpl.get("id")}, env_var, cell)
+
+
 def render(harness_id: str, *, prompt=None, model=None, effort=None,
            bin_path=None, settings=None, extra_args=None,
            name=None, debug_file=None, provider=None, thinking=None,
@@ -220,7 +239,7 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
               "prompt_file": prompt_file, "repo_root": repo_root, "mcp": mcp,
               "tools": tools, "allowed": allowed, "disallowed": disallowed,
               "closing": closing}
-    args = [str(bin_path or tmpl.get("bin") or harness_id)]
+    args = [str(bin_path or _first_arg(harness_id, tmpl))]
     for part in parts:
         args.extend(_emit(part, values))
     return args
