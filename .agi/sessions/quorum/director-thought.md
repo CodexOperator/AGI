@@ -43,7 +43,7 @@ seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the a
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
          chunk 1 OSC.01 PROVED + (b): K_c 0.96 is a label (no knee; curvature 2.06/1.14), lift 1.000017, Spearman pool 0.289 < 0.3 -> coherence is NOT a pruning criterion
-         chunk 2 OSC.02 LIVE: measured delta-NLL per KV group on the served 9B (claim k(1 pct) >= 6 of 32 -> 1.23x context) -> then the band hops (scaffolds, I plan them) -> layering
+         chunk 2 OSC.02 DISPROVED (measured): only 1 of 32 KV groups drops at <= 1 pct NLL -> group pruning is not a context lever on the served 9B -> next: band hop 1 (planned, orders drafted) -> KV-quant layering
          frame: on the 9B, heads are ~4 pct of weight bytes (small tok/s lever) but KV (32 KB/token, 8 layers) caps the 49,664-token slot -> groups are a CONTEXT lever
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
@@ -55,10 +55,10 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 
 ## 🔴 Stops
 ```
-LIVE   OSC.02 (chunk 2) parent a00-2e229bfb pid 1056628 · dispatched 10:10:41Z · GPU round, router stop/restore · wall 120 -> done by ~12:10Z · key TTL 180 · branch season2/loops/hypothesis-lm-served-9b-drops-6--a00-2e229bfb
+LIVE   OSC.02 (chunk 2, measuring done) parent a00-2e229bfb pid 1056628 · dispatched 10:10:41Z · GPU round, router stop/restore · wall 120 -> done by ~12:10Z · key TTL 180 · branch season2/loops/hypothesis-lm-served-9b-drops-6--a00-2e229bfb
 SENT   batch C [merge-up] dm to thought-master 10:4xZ @2c5b0a26a: CFG.01 + CFG.02 + OSC.01, murs 3 / 4 all accept_with_residue, residues closed (b1b464771 2ae432a63 2c5b0a26a), box.root + pi_home carried -> TM gates + merges
 done   mur cfg-02 accept_with_residue, both defects confirmed -> closed in place b1b464771 (200/40 above the 2x stop; audit scope; pi home restored); box.root + pi_home CARRIED to the Prime
-OSC.02 10:26Z: baseline PPL 7.1783 x2 identical (1 pct tol = PPL 7.321) · L3 singles: g0 0.82 pct, g1 8.2 pct, g2 1.19 pct, g3 1.96 pct of NLL · ~1 min/run -> singles ~10:55Z, joint ~11:05Z · router DOWN since 10:16Z
+OSC.02 MEASURED 10:55Z: baseline PPL 7.1783 x2 · singles: 1 of 32 groups <= 1 pct of NLL (L3 g0 0.82), 3 <= 2 pct, most 2-5 pct, L3 g1 8.2 · joint L3g0+L3g2 2.49 pct -> k(1 pct) = 1, k(2 pct) = 1 -> DISPROVED (claim k >= 6) · context x1.03 at best · router RESTORED by the round 10:59:40Z · parent writing up
 done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
 next   OSC.02 lands -> router UP proof first -> harvest (config keys, run worktree) -> review by name -> its verdict picks the hop; TM's merge-up answer when it comes
 open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan · SWR-SV.01 queued behind OSC.02 (loads a model) + pass 2
