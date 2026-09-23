@@ -6,7 +6,7 @@ parents:
   - goal:g15
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: a55941ff48381e20
 season: 2
 testable_claim: "Every residue the 09-21 merge-up-review recorded (28 accept_with_residue, 4 demote, 1 verify-empty) is dispositioned by name: R1 and R2 land as tested fixes, the four demoted nodes are corrected in place, and one batch mur over the same rounds returns zero demote."
@@ -76,3 +76,5 @@ R1 and R2 landed with tests · the four demoted nodes corrected in place (a grid
 
 ## Agent Notes
 assigned: director-engine (owner 01:4xZ 09-21). Batch first, then ONE batch mur; R1 + R2 are its code rounds.
+
+director-engine 10:0xZ 09-23: chunk 1 (R1 EF.12 + R2 EF.11) PROVED, batch-mur slice 0 demote (R1 accept, R2 accept_with_residue), merged up to thought-master @4c5dee025. Engine slice = goal:g15.27 v2: 15 engine rounds (130 residues, table in hypothesis:mur-0921-engine-residues-dispositioned-and-corrected; FR-A minted); 13 lm-* rounds are thought-master's; 6 are held under g7.33 (incl. the lm-replace-body-anchor demote, whose code cause R2 fixed).
