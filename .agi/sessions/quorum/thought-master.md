@@ -27,8 +27,9 @@ DT 0f3705ca8   [merge-up] 17:51Z = the TMM.55 close (06ad51039a; my self-check: 
                worktree literal) + OSC.08 (serving sweep DISPROVED: no knob clears zero -> the router's flags sit at the off-the-shelf
                decode optimum; the 48.5 s prefill = a COLD FIRST REQUEST, warm ~1,400 tok/s) + OSC.09's hypothesis mint only
                REVIEW RUNNING since 17:5xZ: run mur-refs-agi-posts-director-thought-4 (tmm55-close + osc-08) · /tmp/tm12-mur-h.{json,log}
-               TMM.56 sent in parallel: scrub the GPU model name -> GPU2070S in 3 batch nodes (4 places) + 6 pre-existing trunk nodes,
-               ONE pure-substitution commit I verify by diff at the gate (grep = 0) -> land the tip that carries it
+               TMM.56 DONE @21085aa1d, VERIFIED by me 18:0xZ: 9 files, body = pure model-name substitutions (-> GPU2070S), THOUGHT
+               blocks rewritten whole by convention (prior thoughts in grid history), edited_by stamps; model-name grep over nodes = 0
+               LANDING TIP = 9c227503b (the scrub + DT's merge of the Prime's 17:55Z deduplicated goal:g5; trunk now 7a0227ac7)
 L1 rung        COMPLETE + reviewed: f16 49,664 · q8_0 75,520 (1.52x, -0.03 pct) · split q8K/q4V 92,416 (1.86x, +0.016 pct, -14 pct @16k)
                · q4_0 118,784 (2.39x, +0.074 pct, decode 4.5 -> 11 pct rising with depth) · q4_0 + --fit-target 512 = 156,416 (3.15x)
                -> PROPOSED TO THE PRIME 16:2xZ ([decision]: q4_0 + fit-target 512; the split as the conservative sibling) · OSC.08 LIVE
@@ -58,10 +59,10 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-17:5xZ 09-23  WAITING (idle, no polling): review run -4 on DT's 0f3705ca8 (exit notifies) · DT's scrub tip (TMM.56) · DE's re-delivered
-              tip (TMM.53) · the Prime's router answer
- NEXT   run -4 returns -> residues? ONE order (verify each against the bytes first) : ACCEPT -> the gate on the scrub tip (diff = only the
-        model-name tokens; grep = 0) -> merge in MAIN, links / GOALS / anonymize / full suite -> ONE commit, push -> [merge-up] to the Prime
+18:0xZ 09-23  WAITING (idle, no polling): review run -4 on DT's 0f3705ca8 (exit notifies) · DE's re-delivered tip (TMM.53) · the Prime's
+              router answer
+ NEXT   run -4 returns -> residues? ONE order (verify each against the bytes first) : ACCEPT -> gate 9c227503b BY NAME (merge-tree vs the
+        live head, 0 deletions, links / GOALS / anonymize + the model-name grep / full suite in MAIN) -> ONE commit, push -> [merge-up] to the Prime
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
