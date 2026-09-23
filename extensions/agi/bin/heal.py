@@ -106,6 +106,25 @@ def _pi_model_args(root: Path, tier: str = "kid",
         return []
 
 
+def _pi_bin(root: Path) -> str:
+    """The pi binary a healer runs, through the ONE shared resolver
+    (`adapters.resolve_bin`) instead of a stored `/home/<user>` literal
+    (`goal:g15.29.2`). Never raises: healing runs when something is already
+    broken, so an unresolvable pi costs the healer its named override, not
+    its existence."""
+    try:
+        cfg_path = locations.config_path(root)
+        cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
+    except Exception:  # noqa: BLE001 -- see docstring
+        cfg = {}
+    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    try:
+        return adapters.resolve_bin(h, "PI_BIN", "pi")
+    except FileNotFoundError as exc:
+        print(f"heal: {exc}; using bare 'pi' from PATH", file=sys.stderr)
+        return "pi"
+
+
 def main() -> int:
     # hypothesis:l4-the-reaper-is-one-persistent-service — `heal.py watch` is
     # a SUBCOMMAND of heal.py, never a new bin/*.py (test_bin_help_smoke stays
@@ -3109,7 +3128,7 @@ Stay surgical. Don't refactor unrelated code.
 """
     )
 
-    pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
+    pi_bin = _pi_bin(root)
     healer_log = healer_dir / "output.log"
     # Two defects fixed here on 2026-08-31, both silent, both on the path that
     # only runs once something else has already gone wrong:
