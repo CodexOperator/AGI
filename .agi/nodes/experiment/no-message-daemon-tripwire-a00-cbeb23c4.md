@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-cbeb23c4-1ea91d
 next_edges: []
-edited_by: a00-cbeb23c4
+edited_by: a00-e2084a45
 evidence_runs: experiment:no-message-daemon-tripwire-a00-cbeb23c4
 line_ceiling: 40
 loop: goal:g7.31.4.3@s2
@@ -94,3 +94,7 @@ experiment behind the lean; the hypothesis is
 ## Agent Notes
 
 Tripwire landed at tip, 4 passed, no message daemon on the heal/cron surface.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.147 (a00-e2084a45), goal:g7.31.4.3 conjunct 1. ACCEPTED at inconclusive_lean_proved:90. WHAT THE INSTRUCTION SAID: the tripwire must be green AND non-vacuous at this tip, and a kid that fails the parent probe is lean_disproved. WHAT I BUILT AND RAN: I re-ran the suite at tip (python3 -m pytest extensions/agi/tests/test_no_message_daemon.py -v -> 4 passed, none skipped; test_live_services_table_has_no_message_daemon PASSED, so the LIVE graph resolved, it was not a vacuous skip). Four parent probes recorded on the hypothesis: a planted send.py serve router is named (gate, held); the AST verb set is non-empty with empty long-running intersection (wire, held); the live crons node resolves to the two non-message services with no offenders (wire, held); and a lexical-evading daemon escapes (gate, gap_named). THE NEAR MISS: a negative test that skips when the graph root is undiscoverable would be green and vacuous; this one asserts its AST probe found the real verbs and plants a daemon, and at this tip it took the live path, so the green is load-bearing. DEVIATION documented by the kid and correct: the experiment is parented on hypothesis:a00-cbeb23c4-1ea91d, not goal:g7.31.4.3, because context/schemas/[experiment].md removed goal from allowed_parents (goal:s22); the spawn gate would have refused goal->experiment, and routing around it would have been a bypass. RESIDUE NAMED: the detector is lexical -- a new service whose exec_start is /opt/pigeon.py daemon --listen would not be caught. Bounded, not a falsification of the present fact; recommend a future kid either derive the check from the crons surface shape rather than markers, or record the gap on the goal. This is the durable answer to the falsifier, and it supersedes the self-cited duplicate experiment:g7-31-4-3-no-new-message-daemon.
+<!-- THOUGHT:END -->
