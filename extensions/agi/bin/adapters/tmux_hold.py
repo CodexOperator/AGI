@@ -11,12 +11,20 @@ from __future__ import annotations
 
 import hashlib
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
 
 def enabled(harness: dict) -> bool:
     return bool(harness.get("tmux") or harness.get("pane"))
+
+
+def available() -> bool:
+    """Is the `tmux` binary on PATH? A hold cannot land without it, and the
+    caller must fall back to a direct spawn rather than lose the seat
+    (`goal:g7.31.1.2.3`)."""
+    return shutil.which("tmux") is not None
 
 
 def pane_name(agent_id: str) -> str:

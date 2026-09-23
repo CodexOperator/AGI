@@ -254,6 +254,113 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+
+
+def test_tmux_hold_available_follows_path(monkeypatch):
+    """`available()` is the PATH gate the adapter consults, not a smoke test."""
+    monkeypatch.setattr(grok.tmux_hold.shutil, "which", lambda _: "/usr/bin/tmux")
+    assert grok.tmux_hold.available() is True
+    monkeypatch.setattr(grok.tmux_hold.shutil, "which", lambda _: None)
+    assert grok.tmux_hold.available() is False
+
+
+def _fake_popen(captured):
+    class FakeProc:
+        pid = 6161
+
+    def fake(args, **kwargs):
+        captured["args"] = args
+        return FakeProc()
+    return fake
+
+
+def test_hold_without_tmux_falls_back_to_popen(monkeypatch, tmp_path):
+    """`goal:g7.31.1.2.3`: tmux absent -> the direct spawn still runs, and the
+    record stamps `tmux.fallback: popen`. Pre-fix bytes returned None and the
+    seat stayed dead."""
+    captured = {}
+    monkeypatch.setattr(grok.tmux_hold, "available", lambda: False)
+    monkeypatch.setattr(grok.subprocess, "Popen", _fake_popen(captured))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=HOLD_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-held", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == 6161
+    assert captured["args"] == grok.build_command(
+        harness=HOLD_HARNESS, tier="kid",
+        context_file=str(tmp_path / "context.md"))
+    assert rec["tmux"] == {"fallback": "popen"}
+    import json as _json
+    assert _json.loads((sess / "agent.json").read_text())["tmux"] == {
+        "fallback": "popen"}
+
+
+def test_hold_returning_none_falls_back_to_popen(monkeypatch, tmp_path):
+    """`goal:g7.31.1.2.3`: a hold that lands no pane (respawn failed) must not
+    swallow the restart — Popen is attempted and the fallback is stamped."""
+    captured = {}
+    monkeypatch.setattr(grok.tmux_hold, "available", lambda: True)
+    monkeypatch.setattr(grok.tmux_hold, "reattach",
+                        lambda *a, **k: None)
+    monkeypatch.setattr(grok.subprocess, "Popen", _fake_popen(captured))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=HOLD_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-held", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == 6161
+    assert rec["tmux"] == {"fallback": "popen"}
+
+
+def test_hold_exception_falls_back_to_popen(monkeypatch, tmp_path):
+    """`goal:g7.31.1.2.3`: a tmux server/session error raised from the seam is
+    caught (never propagates) and the direct spawn is taken."""
+    captured = {}
+
+    def boom(*a, **k):
+        raise RuntimeError("tmux_hold: no session name")
+
+    monkeypatch.setattr(grok.tmux_hold, "available", lambda: True)
+    monkeypatch.setattr(grok.tmux_hold, "reattach", boom)
+    monkeypatch.setattr(grok.subprocess, "Popen", _fake_popen(captured))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    pid = grok.restart(harness=HOLD_HARNESS, tier="kid",
+                       context_file=str(tmp_path / "context.md"),
+                       agent_id="a00-held", iter_n=1, sess_dir=sess,
+                       agent_record=rec)
+    assert pid == 6161
+    assert rec["tmux"] == {"fallback": "popen"}
+
+
+def test_successful_hold_stamps_no_fallback(monkeypatch, tmp_path):
+    """The stamp is a degraded-mode signal only: a hold that lands keeps
+    `tmux.created` and carries no `fallback` key."""
+    def fake_reattach(harness, agent_id, argv, *, cwd, log_file=None,
+                      created=None, env=None):
+        if created is not None:
+            created.update(created=False, pane_id="%3")
+        return 4343
+
+    monkeypatch.setattr(grok.tmux_hold, "available", lambda: True)
+    monkeypatch.setattr(grok.tmux_hold, "reattach", fake_reattach)
+    monkeypatch.setattr(grok.subprocess, "Popen",
+                        _fake_popen({}))
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    rec = {"worktree": str(tmp_path)}
+    assert grok.restart(harness=HOLD_HARNESS, tier="kid",
+                        context_file=str(tmp_path / "context.md"),
+                        agent_id="a00-held", iter_n=1, sess_dir=sess,
+                        agent_record=rec) == 4343
+    assert rec["tmux"] == {"created": False, "pane_id": "%3"}
+    assert "fallback" not in rec["tmux"]
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the

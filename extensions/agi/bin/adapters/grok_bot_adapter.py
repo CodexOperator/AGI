@@ -151,21 +151,34 @@ def restart(
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     hold = hold_harness(harness)
     if tmux_hold.enabled(hold):
-        # Same pane identity across pid churn; `created` distinguishes a
-        # re-entered pane from a fabricated one (`goal:g7.31.1.2`).
         created: dict = {}
-        new_pid = tmux_hold.reattach(
-            hold, agent_id, args,
-            cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
-            env=env, created=created)
-        if new_pid is not None and agent_record is not None:
-            agent_record["pid"] = new_pid
-            agent_record["status"] = "restarted"
-            agent_record["restarted_at"] = int(time.time())
-            if created:
-                agent_record["tmux"] = created
-            (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
-        return new_pid
+        new_pid = None
+        if tmux_hold.available():
+            # Same pane identity across pid churn; `created` distinguishes a
+            # re-entered pane from a fabricated one (`goal:g7.31.1.2`).
+            try:
+                new_pid = tmux_hold.reattach(
+                    hold, agent_id, args,
+                    cwd=_restart_cwd(sess_dir, agent_record), log_file=log_file,
+                    env=env, created=created)
+            except Exception as exc:  # noqa: BLE001 -- tmux usable-check passed
+                # but the server/session did not: lose the hold, never the seat.
+                print(f"tmux hold failed for {agent_id}: {exc}", file=sys.stderr)
+                new_pid = None
+        if new_pid is not None:
+            if agent_record is not None:
+                agent_record["pid"] = new_pid
+                agent_record["status"] = "restarted"
+                agent_record["restarted_at"] = int(time.time())
+                if created:
+                    agent_record["tmux"] = created
+                (sess_dir / "agent.json").write_text(
+                    json.dumps(agent_record, indent=2))
+            return new_pid
+        # `goal:g7.31.1.2.3`: hold cannot land -> degraded direct spawn, and
+        # the record says so, rather than a dead seat and a silent None.
+        if agent_record is not None:
+            agent_record["tmux"] = {**created, "fallback": "popen"}
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
