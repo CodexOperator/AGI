@@ -105,6 +105,40 @@ def _live_manifest() -> tuple[Path, dict]:
     return root, commands.manifest(root)
 
 
+def _synthetic(tmp_path: Path, extra_marker: str) -> Path:
+    """A minimal graph whose `x.py:go` entry has NO `<wanted>` metavar (a
+    value with nowhere to land) and whose `x.py:slice` entry carries
+    `extra_marker` verbatim after its declared `<target>`."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text("{}")
+    (graph / "nodes" / ".geometry" / "commands.md").write_text(
+        "---\n"
+        "manifest:\n"
+        "  x.py:go:\n"
+        "    cli: x.py\n"
+        "    verb: go\n"
+        "    argv: [python3, x.py, go]\n"
+        "    args:\n"
+        "      - {name: 'wanted', type: str, required: true, choices: []}\n"
+        "    side_effects: read\n"
+        "    proposable: true\n"
+        "  x.py:slice:\n"
+        "    cli: x.py\n"
+        "    verb: slice\n"
+        f"    argv: [python3, x.py, slice, '<target>', '{extra_marker}']\n"
+        "    args:\n"
+        "      - {name: 'target', type: str, required: true, choices: []}\n"
+        "    side_effects: read\n"
+        "    proposable: true\n"
+        "id: 'command:commands'\n"
+        "mint_id: aaaabbbbccccdddd\n"
+        "type: command\n"
+        "title: probe\n"
+        "---\n")
+    return graph
+
+
 def test_every_write_verb_is_declared_or_excluded_by_name():
     """Falsifier: a write.py verb neither declared nor excluded."""
     _, man = _live_manifest()
@@ -410,39 +444,47 @@ def test_no_spend_spawn_or_destructive_entry_is_proposable():
 
 
 def test_propose_substitutes_once_and_ignores_undeclared_keys():
-    """One pass only: a value containing `<x>` is never re-scanned, and a key
-    that is not a declared arg substitutes nothing."""
+    """One pass only: a value containing a NON-kept placeholder is never
+    re-scanned and lands verbatim, and a key that is not a declared arg
+    substitutes nothing.
+
+    `<foo>`/`<div>` are deliberately absent from `KEPT_METAVARS`: an earlier
+    resolver scanned the SUBSTITUTED OUTPUT, so it could not tell a template
+    placeholder from caller data and refused this."""
     root, _ = _live_manifest()
     argv = commands.propose(root, "write.py:set",
-                            {"key": "title", "value": "x <engine> y",
+                            {"key": "title",
+                             "value": "<foo> and <div>x</div>",
                              "engine": "BAD"})
     joined = " ".join(argv)
     assert "BAD" not in joined, joined
-    assert "x <engine> y" in joined, joined
+    assert "<foo> and <div>x</div>" in joined, joined
+
+
+def test_propose_refuses_an_unmapped_placeholder():
+    """A template still holding a placeholder no declared arg maps must
+    refuse by name rather than hand back an argv a proposer cannot run.
+
+    Red-on-prefix: the refusal is read off the TEMPLATE, so a template that
+    declares the arg (or drops the metavar) turns this green -- a caller
+    value shaped like `<N:M>` does not."""
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "session-complete", {})
+    assert "unmapped placeholder" in str(exc.value)
+    assert "<iter>" in str(exc.value)
+    # A placeholder the template never mapped, whatever its spelling.
+    graph = _synthetic(tmp_path, "<N:M>")
+    with pytest.raises(commands.CommandError) as exc2:
+        commands.propose(graph, "x.py:slice", {"target": "body"})
+    assert "unmapped placeholder" in str(exc2.value)
+    assert "<N:M>" in str(exc2.value)
 
 
 def test_propose_refuses_a_required_arg_with_nowhere_to_land(tmp_path: Path):
     """A supplied required arg whose name has no `<name>` in the template is a
     drop -- it must refuse by name, not return the argv."""
-    graph = tmp_path / ".agi"
-    (graph / "nodes" / ".geometry").mkdir(parents=True)
-    (graph / "config.json").write_text("{}")
-    (graph / "nodes" / ".geometry" / "commands.md").write_text(
-        "---\n"
-        "manifest:\n"
-        "  x.py:go:\n"
-        "    cli: x.py\n"
-        "    verb: go\n"
-        "    argv: [python3, x.py, go]\n"
-        "    args:\n"
-        "      - {name: 'wanted', type: str, required: true, choices: []}\n"
-        "    side_effects: read\n"
-        "    proposable: true\n"
-        "id: 'command:commands'\n"
-        "mint_id: aaaabbbbccccdddd\n"
-        "type: command\n"
-        "title: probe\n"
-        "---\n")
+    graph = _synthetic(tmp_path, "")
     with pytest.raises(commands.CommandError) as exc:
         commands.propose(graph, "x.py:go", {"wanted": "v"})
     assert "cannot place arg" in str(exc.value)
