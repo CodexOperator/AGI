@@ -4,17 +4,17 @@
 ```
 post        thought-master · master of town local-maxxing · owns goal:g5 (the town bundle g5.19-g5.31) · claude-opus-5-5 · row in config:posts (Prime-written)
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
-directors   director-thought (research; ASKS ME FIRST before any node, dispatch or config edit -- owner 08:3xZ 09-23)
+directors   director-thought (research; SELF-LOOPS on the trajectory, messages me only for a blocker or a completed merge-up -- owner 09:5xZ 09-23, superseding 08:3xZ's ask-first)
             director-engine (Prime-assigned g15 residues + ONE order from me: the jev choice surface -- owner 09:2xZ 09-23)
 field       inference R+D toward running the town's own parents/kids off OpenRouter · lead candidate C2 (Bonsai 2 27B + LoRA) · treasury: doc:recurrent-looped-transformer
 rig         RTX 2070 SUPER 8 GB · 16 threads · 15 GB RAM · unix user belam · Camber XS only on a banked ask with numbers
 ```
 
-## Live state (09:3xZ 09-23)
+## Live state (09:5xZ 09-23)
 ```
 C2       ACCEPTED 09-23 (merge 4e63658d0): IFEval N=10 mean 0.8002, CI [0.7992, 0.8012] > 0.7819 · HumanEval 143/164 = 92.9 pct of ref (single run)
          -> within 10 pct on every EXISTING battery row (the typed-round row does not exist yet) -> TRIGGERS the g5.27 mvp, never a switch by itself
-running  rr-mp02-g01 (G.01's research-review, propose-only) · CFG.02 (reader-loop guard + pi store-dir from the real checkout root, ONE kid, + a test per fix)
+running  oscillator chain chunk 1 (hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point, TOP PRIORITY, TMM.49) · rr-mp02-g01 (G.01's research-review, propose-only) · CFG.02 (reader-loop guard + pi store-dir from the real checkout root, ONE kid, + a test per fix)
          · director-engine: the jev choice surface (its hypothesis + dispatch line come to me first)
 held     G.01 loop branch @109bcb618: off-scope pilot, 282 dm segments · lexical 0.305/0.575 · author habit 0.4397/0.7482 · best blend 0.4539/0.7766 < 0.5/0.85 · local 9B 0.085/0.277
          · director-engine's 0921 chunk-1 merge-up (pre-hold g7.33 EF.10 rides in, no mur) -> the Prime/core decide
@@ -25,8 +25,9 @@ jev      TypeSafe jev-latest (api.typesafe.ai/v1/systemone): called by the typed
 
 ## Plan
 ```
-done     batch B landed (C2) · the switch mvp minted + queued (09:4xZ) · TMM.33-46 answered · g14 re-pointed to goal:g5 · owner 09:2xZ lines banked on goal:g5 · card = state only (owner's master template, 09:31Z)
-next     (1) switch mvp: round 1 (serve C2 + HumanEval on the served build) QUEUED (TMM.48) -> DT drains it after the CFG merge-up + pass 2; round 2 (typed-round row) waits for round 1's slot + the Prime's go on a pi provider for the fork's :8899 (asked 09:4xZ)
+done     batch B landed (C2) · the switch mvp minted + queued (09:4xZ) · oscillator chain chunk 1 PLANNED + handed to director-thought as top priority (09:5xZ) · TMM.33-46 answered · g14 re-pointed to goal:g5 · owner 09:2xZ lines banked on goal:g5 · card = state only (owner's master template, 09:31Z)
+next     (0) IDLE (owner 09:5xZ): directors self-loop on the trajectory and message me only for a blocker or a completed merge-up -> answer those; the oscillator chain is director-thought's top priority until the jev fixes land
+         (1) switch mvp: round 1 queued after pass 2 and behind any head-pruning chunk that loads a model; round 2 waits for its slot + the Prime's pi-provider go
          (2) CFG.01 + CFG.02 = ONE merge-up after CFG.02's review -> my loop (template §1)
          (3) director-engine's choice-surface hypothesis + dispatch line -> go / no-go
          (4) rr-mp02-g01's proposals -> plan MP.02's next shape (T.01 / S.01 score against DE's manifest)
@@ -43,8 +44,8 @@ blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference k
 `````
 ````
 ```
-09:3xZ 09-23  IDLE between director asks and merge-ups
- NEXT   (1) switch mvp round 1 lands -> slot + HumanEval on the served build -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
+09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
+ NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
