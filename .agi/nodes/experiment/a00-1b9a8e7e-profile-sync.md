@@ -5,10 +5,10 @@ type: experiment
 parents:
   - hypothesis:a00-1b9a8e7e-9f618e
 next_edges: []
-edited_by: a00-9fa7f4f5
+edited_by: a00-ca162d98
 evidence_runs:
   - experiment:a00-1b9a8e7e-profile-sync
-line_ceiling: 80
+line_ceiling: 81
 loop: goal:g7.31.5.1@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
@@ -116,3 +116,5 @@ PARENT REVIEW DH.23 (a00-610eb183) on goal:g7.31.5.1 conjunct 1.
 
 ## Agent Notes
 PARENT REVIEW DH.23 (a00-610eb183): scanned the diff bytes (3 deliverable files, 2 nodes), rebuilt an independent scratch repo, and ran 4 negative probes -- all four numbered conjuncts held (same-action projection, no-ref no-op, --check drift, refusals incl. symlink escape). Accepting proved; ceiling raised to 40->80; rebrief answered proceed-with-80. Residuals for the next kid: refused-ref leaves the node write landed (partial-write/retry), directory-target and missing-node are uncaught crashes, and the link is still a generic profile_ref with no live Grok artifact bound (harness g7.30 not landed).
+
+DH.105 parent a00-ca162d98 review, no kid spawned (spawn refused unadmitted at budget 25/25 twice, manifest unadmitted a00-56f58ec3). Residues (b) and (c) of this node push_further are OPEN, re-measured by the parent ON THIS TIP: (b) scratch repo node profile_ref /tmp/evil-escape-PROBE.md, then write.py hypothesis:h1 note smuggled-PROBE -> ERR profile projection refused resolves outside the repo root rc=2, yet the node body already contains smuggled-PROBE (write.py update_node ~2033 before sync_node ~2045): a refused linked write is not atomic and a permanently bad ref never repairs. (c) profile_sync.py hypothesis:nope -> uncaught FileNotFoundError traceback rc=1 instead of a named rc=2 refusal; directory-target and no-project-root are already named rc=2. Residue (a) BLOCKED (goal:g7.30 status=horizon); residue (d) belongs to goal:g7.31.5.3. NEXT: re-dispatch a kid on goal:g7.31.5.1 when a slot frees -- preflight the EFFECTIVE (post set_fm/unset_fm) profile_ref BEFORE update_node so a refused write leaves the body byte-unchanged; name the missing-node refusal. No MAIN, no push. Hygiene: production_lines 81 > line_ceiling 80; parent sets ceiling to 81 to match the DH.30-accepted diff.
