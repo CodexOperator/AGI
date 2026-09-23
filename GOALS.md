@@ -11848,6 +11848,8 @@ OWNER 09-23 10:1xZ (Prime pane, verbatim, relaying thought-master): "These also 
 
 OWNER 09-23 10:2xZ-10:3xZ (Prime pane, verbatim, in order): "Yes fetch both typesafe keys, each has $5 to use." then "Check they work as well just to be sure. That both work" then "It’s in work/.sanctuary" then "Check access project" then "Doppler" -- APPLIED by the Prime: TYPESAFE_KEY + TYPESAFE_KEY2 read from Doppler agi/dev through the keeper (agi-doppler dev, never echoed) into MAIN .env (0600); one live TypeSafe call each = HTTP 200 (both work); TYPESAFE_KEY2 added to harnesses.pi / pi-local forward_env so kids get both; each key has 5 USD (owner).
 
+OWNER 09-23 10:4xZ (Prime pane, verbatim): "And director engine knows to keep splitting assigned subgoals into smaller and smaller leaves if residues are big enough to broken into more smaller goal leaves that follow the format" -- APPLIED: the director template (doc:unified-director-brief) STANDING nest line now carries KEEP SPLITTING — a residue big enough for its own round becomes smaller goal leaves under the goal that yielded it, recursively, each in the [goal] schema format, several small leaves never one fat sibling; director-engine told directly.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
