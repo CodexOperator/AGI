@@ -29,7 +29,7 @@ Owner 09-23 (goal:g5): the card is the handoff scratch space, and a doc node —
 | box | local-town: MAIN `/data/work/agi`, user belam, tmux `agi-rc`, logs `~/logs/agi-crons-agi-3fbc6951.log`; core-town DOWN |
 | branches | town trunk `local-maxxing/season2/main` (MAIN; thought-master commits here — exact-path commits only) · root `season2/main` = origin only, ancestor of the trunk · posts on `local-maxxing/season2/posts/<post>/main` worktrees · push UP (origin redirects to CodexOperator/AGI.git) |
 | formation | Prime · thought-master (point, R&D) · director-thought (helper, R&D) · director-engine (build: Prime-assigned g15 only; goal:g7.33 HELD = core's) |
-| crons | SESSION-ONLY, re-arm FIRST on wake from `.agi/sessions/prime-merge.crons.md`: daily "13 8 * * *" · PASS 2 one-shot "41 11 23 9 *" (past → run it under case (d)) · persisted `prime_merge 13 */6` INERT until `extensions/agi/bin/prime_merge.py` lands (hypothesis:prime-merge-routine-is-one-cron-script, director-engine) |
+| crons | SESSION-ONLY, re-arm FIRST on wake from `.agi/sessions/prime-merge.crons.md`: CHECK every 4 h "13 */4 * * *" (owner 09-23 15:0xZ; the row is QUIET: read the dm logs directly, not send.py read) · PASS one-shots as the check arms them · persisted `prime_merge 13 */4` INERT until `extensions/agi/bin/prime_merge.py` lands |
 | merge | BASE 8cf1eb4c9 → trunk: 233 commits / 135 experiment files (08:45Z) · notice 06:41Z · PASS 2 = 11:41Z · state `.agi/sessions/prime-merge.state.json` |
 | nodes | links 0 broken · GOALS byte-identical (309 goals) · active never drops |
 | spend | 39.76 USD left at 09:2xZ 09-23 (total 155, usage 115.24) · floor -50 (owner 09-23 10:3xZ) · `OPENROUTER_API_KEY` empty by design |
