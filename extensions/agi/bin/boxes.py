@@ -17,10 +17,12 @@ import json
 import os
 from pathlib import Path
 
-#: The four box cells and the placeholders resolved from them (SM.124 names).
-_BOX_CELLS = ("root", "logs_dir", "tmux_session", "user")
-_PLACEHOLDERS = (("root", "root"), ("logs", "logs_dir"),
-                 ("tmux", "tmux_session"), ("user", "user"))
+def _box_schema(root: Path) -> dict:
+    """Parsed frontmatter of context/schemas/[box].md -- the one declaration."""
+    import frontmatter, yaml
+    p = Path(root) / "context" / "schemas" / "[box].md"
+    parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
+    return (yaml.safe_load(parts[0]) or {}) if parts else {}
 
 
 def _box(root: Path) -> dict:
@@ -32,12 +34,8 @@ def _box(root: Path) -> dict:
 
 
 def box_cell_names(root: Path) -> tuple[str, ...]:
-    """The four cell names from context/schemas/[box].md -- the one declaration."""
-    import frontmatter, yaml
-    p = Path(root) / "context" / "schemas" / "[box].md"
-    parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
-    fm = yaml.safe_load(parts[0]) if parts else None
-    return tuple(((fm or {}).get("fields") or {}).keys()) or _BOX_CELLS
+    """The cell names from the `fields` mapping in [box].md -- the one declaration."""
+    return tuple((_box_schema(root).get("fields") or {}).keys())
 
 
 def box_cells(root: Path) -> dict:
@@ -51,9 +49,9 @@ def allow_paths(root: Path) -> list[str]:
     return ["config.json"] + [str(x) for x in (_box(root).get("allow") or [])]
 
 
-def resolve_placeholders(text: str, cells: dict) -> str:
-    """Substitute {root} {logs} {tmux} {user} from `cells`, literal tokens."""
-    for name, key in _PLACEHOLDERS:
+def resolve_placeholders(text: str, cells: dict, root: Path) -> str:
+    """Substitute `{token}` from `cells` using the mapping declared in [box].md."""
+    for name, key in (_box_schema(root).get("placeholders") or {}).items():
         text = text.replace("{" + name + "}", (cells or {}).get(key, ""))
     return text
 

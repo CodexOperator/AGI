@@ -9,8 +9,11 @@ only; nothing here reads the live tree or writes a file.
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
@@ -25,6 +28,26 @@ CELLS = {
     "user": "boxuser",
 }
 
+SCHEMA = """---
+fields:
+  root: {type: str}
+  logs_dir: {type: str}
+  tmux_session: {type: str}
+  user: {type: str}
+placeholders:
+  root: root
+  logs: logs_dir
+  tmux: tmux_session
+  user: user
+---
+"""
+
+
+def _write_schema(graph: Path, text: str = SCHEMA) -> None:
+    d = graph / "context" / "schemas"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "[box].md").write_text(text)
+
 
 def _graph(tmp_path: Path, **over) -> Path:
     graph = tmp_path / "graph"
@@ -32,6 +55,7 @@ def _graph(tmp_path: Path, **over) -> Path:
     box = dict(CELLS)
     box.update(over)
     (graph / "config.json").write_text(json.dumps({"box": box}))
+    _write_schema(graph)
     return graph
 
 
@@ -63,7 +87,7 @@ def test_box_cells_and_placeholder_resolver(tmp_path):
     graph = _graph(tmp_path)
     assert boxes.box_cells(graph) == CELLS
     assert boxes.resolve_placeholders(
-        "{root}|{logs}|{tmux}|{user}", CELLS
+        "{root}|{logs}|{tmux}|{user}", CELLS, graph
     ) == "/srv/box/repo|/srv/box/logs|box-session|boxuser"
 
 
@@ -84,15 +108,42 @@ def test_unset_cells_refuse_a_clean_pass(tmp_path, capsys):
     """Residue 1 (fail closed): a graph whose box cells are absent must NEVER
     report the logs/tmux/user classes clean by silence. The audit exits 2 --
     distinct from the 1 a real finding uses -- and names the missing cells."""
-    graph = tmp_path / "graph"
-    graph.mkdir()
-    (graph / "config.json").write_text(json.dumps({"box": {}}))
+    graph = _graph(tmp_path, root="", logs_dir="", tmux_session="", user="")
     src = tmp_path / "src"
     src.mkdir()
     (src / "a.py").write_text("tmux = 'box-session'\n")
     rc, out = _run(capsys, ["audit", str(src), "--root", str(graph)])
     assert rc == 2, (rc, out)
     assert "missing box cells" in out
+
+
+def test_findings_refuses_unset_cells_by_name(tmp_path):
+    """Residue 1b: the refusal must live in findings() itself, not only in
+    main()'s pre-check. A caller that reaches findings() directly must be told
+    which cell is unset, never handed a clean [] by silence."""
+    graph = _graph(tmp_path, root="")
+    with pytest.raises(ValueError) as err:
+        paths.findings(graph)
+    assert "root" in str(err.value)
+
+
+def test_audit_without_dir_reaches_the_repo_top(tmp_path, capsys):
+    """Residue 4 (wire): with no dir, `paths.py audit` must list the whole
+    REPO the graph describes -- resolved with locations.repo_root -- not only
+    the graph's own `.agi/` subtree. The engine baselines under
+    extensions/agi/bin were invisible to the audit before this."""
+    repo = tmp_path / "repo"
+    (repo / ".agi").mkdir(parents=True)
+    (repo / ".agi" / "config.json").write_text(json.dumps({"box": dict(CELLS)}))
+    _write_schema(repo / ".agi")
+    ext = repo / "extensions" / "agi" / "bin"
+    ext.mkdir(parents=True)
+    (ext / "x.py").write_text("work = 1\nhome = '/home/someone/x'\n")
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    subprocess.run(["git", "-C", str(repo), "add", "-A"], check=True)
+    rc, out = _run(capsys, ["audit", "--root", str(repo / ".agi")])
+    assert rc == 1, (rc, out)
+    assert f"{ext / 'x.py'}:2: home:" in out
 
 
 def test_path_shaped_logs_dir_literal_is_caught(tmp_path, capsys):
@@ -137,6 +188,46 @@ def test_box_schema_names_the_cells_once(tmp_path):
     schema = Path(__file__).resolve().parents[3] / ".agi/context/schemas/[box].md"
     fm = yaml.safe_load(frontmatter.split_frontmatter(schema.read_text())[0]) or {}
     assert set((fm.get("fields") or {}).keys()) == set(CELLS)
+
+
+def test_box_schema_declares_the_placeholder_map(tmp_path):
+    """Residue 5 (auth/gate): the placeholder tokens are REAL FIELDS on
+    [box].md, not a comment. The schema is the one declaration of the mapping
+    from a rendered token to its cell key."""
+    import yaml
+    import frontmatter
+    schema = Path(__file__).resolve().parents[3] / ".agi/context/schemas/[box].md"
+    fm = yaml.safe_load(frontmatter.split_frontmatter(schema.read_text())[0]) or {}
+    assert (fm.get("placeholders") or {}) == {
+        "root": "root", "logs": "logs_dir",
+        "tmux": "tmux_session", "user": "user",
+    }
+
+
+def test_resolve_placeholders_follows_the_schema_mapping(tmp_path):
+    """A schema that names a placeholder differently from any literal the
+    engine once held must DRIVE the resolver -- proving the mapping is read,
+    not remembered."""
+    other = """---
+fields:
+  root: {type: str}
+  log_dir: {type: str}
+  tmux_session: {type: str}
+  user: {type: str}
+placeholders:
+  root: root
+  log: log_dir
+  tmux: tmux_session
+  user: user
+---
+"""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    _write_schema(graph, other)
+    got = boxes.resolve_placeholders(
+        "{root}|{log}|{tmux}|{user}",
+        {"root": "R", "log_dir": "L", "tmux_session": "T", "user": "U"}, graph)
+    assert got == "R|L|T|U"
 
 
 def test_live_config_declares_the_four_cells():
