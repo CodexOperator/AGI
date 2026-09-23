@@ -1105,9 +1105,12 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = brief.render(post=name, role=tier,
                             harness=harness or "claude-code",
                             project_root=project_root)
-    except brief.RenderError as exc:
+    except (brief.RenderError, brief.FaithRefError) as exc:
         # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
         # config): a rotation that fell back to the legacy brief must say so.
+        # FaithRefError is named too -- brief.render reads moral:faith, so a
+        # broken faith ref raised past the fallback and killed the rotation
+        # (hypothesis:brief-render-hygiene-after-the-batch-mur).
         print(f"rotate: brief.render refused for post {name!r} ({exc}); "
               f"falling back to brief.assemble", file=sys.stderr)
         body = None
