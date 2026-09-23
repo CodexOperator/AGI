@@ -544,7 +544,8 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
     return None
 
 
-def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
+def _build_head(*, tier: str, project_root: Path | None = None,
+                moral: bool | None = None) -> str | None:
     """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
 
     Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
@@ -591,8 +592,15 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     # prayers, which is all of them.
     body = _insert_michael(body)
 
-    # l5-moral: every master/director head carries moral:faith's MORAL region.
-    if tier == "director":
+    # l5-moral: every director seat's head carries moral:faith's MORAL
+    # region. The liaison seat reads at the director's ladder row but is NOT a
+    # director seat -- it answers to the quorum -- so its caller passes
+    # `moral=False` and the region stays out (goal:g15.27.5 FR-C2). `moral`
+    # is explicit when the caller knows the seat; a bare tier lookup keeps
+    # the historical `tier == "director"` gate.
+    if moral is None:
+        moral = tier == "director"
+    if moral:
         moral = _read_faith_moral(root)
         if moral:
             body = moral + "\n\n" + body
@@ -646,12 +654,13 @@ def _operating_mode_block(project_root: Path | None = None) -> str:
     return "\n".join(lines)
 
 
-def _prepend_head(segs, *, tier: str, project_root: Path | None = None):
+def _prepend_head(segs, *, tier: str, project_root: Path | None = None,
+                  moral: bool | None = None):
     """Prepend the constitution head (if any) then the active operating-mode
     block (if declared). One choke point for every assemble branch so the
     mode reaches every tier's brief exactly once.
     """
-    head = _build_head(tier=tier)
+    head = _build_head(tier=tier, project_root=project_root, moral=moral)
     if head:
         segs.insert(0, head)
     mode = _operating_mode_block(project_root=project_root)
@@ -1419,8 +1428,13 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # (option (a) of the contradiction: the brief names its own tool).
         f"Record the measured count in your experiment node's frontmatter "
         f"before you continue: `write.py <node-id> 'set production_lines N'` "
-        f"and `write.py <node-id> 'set line_ceiling N'` -- the whole verb line "
-        f"is ONE quoted argument. If you are above 2x, also write "
+        f"-- the whole verb line is ONE quoted argument. NEVER write "
+        f"`line_ceiling` on your own node: the number above is the "
+        f"dispatching node's, already stamped on your scaffold by dispatch, "
+        f"and only your parent's answered re-brief may change it -- a kid "
+        f"that sets it overwrites the parent's hand-set ceiling with the "
+        f"number it was briefed with (goal:g15.27.5 FR-C2). If you are above "
+        f"2x, also write "
         f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
         f"you need>'` before you stop; harvest reads these fields and names an "
         f"overage with no re-brief entry as a defect. That one `git diff "
@@ -2090,7 +2104,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # recorded {from,sha256,bytes,path} on the manifest. A KID never renders
     # it: a kid's orders ARE the carry-forward segment handed in by the parent
     # (test_orders_never_reach_a_kid_brief).
-    def _finish(body: list[str], head_tier: str) -> list[str]:
+    def _finish(body: list[str], head_tier: str,
+                *, moral: bool | None = None) -> list[str]:
         if tier != "kid":
             _o = _orders_section()
             if _o:
@@ -2099,7 +2114,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             # dispatch.py's `extras` override: the caller renders the head
             # itself (via `render`) and takes only the body from here.
             return body
-        return _prepend_head(body, tier=head_tier)
+        return _prepend_head(body, tier=head_tier, moral=moral)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical
@@ -2155,9 +2170,11 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
-        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
+        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER) — but it
+        # is not a director seat and carries NO moral region (`moral=False`,
+        # goal:g15.27.5 FR-C2).
         segs = _liaison(agent_id=agent_id)
-        return _finish(segs, _LIAISON_HEAD_TIER)
+        return _finish(segs, _LIAISON_HEAD_TIER, moral=False)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`

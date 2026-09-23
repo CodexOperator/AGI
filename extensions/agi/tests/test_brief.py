@@ -245,21 +245,47 @@ def test_kid_brief_requires_the_machine_readable_record():
     """hypothesis:l4-a-kid-checkpoints-its-projected-lines-and-pauses-above-
     2x-for-a-parent-re-brief, conjunct (2): the ceiling segment is the ONE
     segment that grows, and it now names the frontmatter fields the kid must
-    write (`production_lines`, `line_ceiling`, `rebrief_request`) so harvest
-    has a record to read. Conjunct (1)'s ceiling and 2x arithmetic must
+    write (`production_lines`, `rebrief_request`) so harvest has a record to
+    read, while `line_ceiling` is named as the PARENT's field the kid must not
+    touch (goal:g15.27.5 FR-C2). Conjunct (1)'s ceiling and 2x arithmetic must
     survive in the SAME segment -- this is an extension, not a replacement.
     The read-only `git diff --numstat` is authorised explicitly, so it no
     longer contradicts the `DO NOT run git` segment.
     """
     kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
     assert "production_lines" in kid, "the count field harvest reads"
-    assert "line_ceiling" in kid, "the ceiling field harvest reads"
+    assert "line_ceiling" in kid, "the parent's ceiling field, named as off-limits"
     assert "rebrief_request" in kid, "the re-brief field harvest reads"
     # conjunct (1) does not regress:
     assert "PRODUCTION-LINE CEILING: 40 lines" in kid
     assert "above 80 lines" in kid
     assert "git diff --numstat" in kid
     assert "read-only" in kid, "the one authorised git read says so"
+
+
+def test_kid_brief_never_orders_set_line_ceiling():
+    """goal:g15.27.5 FR-C2: `line_ceiling` on a kid's node is the PARENT's
+    field. dispatch stamps it on the scaffold from the dispatching node's own
+    CEILING clause (`spawn_budget.node_line_ceiling`), and an ANSWERED
+    re-brief is the parent's `set line_ceiling <new N>` on that same node.
+    The pre-fix brief listed `set line_ceiling N` among the fields the kid
+    must write, so a kid that obeyed copied its briefed number over the
+    parent's hand-set answer -- and the harvest's `_kid_line_ceiling` reads
+    the node's own field first, so the parent's answer was silently lost.
+
+    Red on the pre-fix bytes: the order was there. Green after: the kid
+    writes only the two fields that are its own (`production_lines`,
+    `rebrief_request`), and the ceiling is stated as off-limits.
+    """
+    kid = _text("kid", scaffold=SCAFFOLD, line_ceiling=40)
+    assert "set line_ceiling" not in kid, (
+        "the kid must never be ordered to rewrite its own ceiling -- that "
+        "is what overwrites a parent's answered re-brief")
+    assert "NEVER write `line_ceiling`" in kid, (
+        "the ceiling segment must state the forfeit, not merely omit it")
+    # the record fields the kid DOES own survive:
+    assert "set production_lines N" in kid
+    assert "set rebrief_request" in kid
 
 
 def test_kid_addendum_lands_as_a_labelled_segment_and_names_the_flag():
@@ -1432,6 +1458,34 @@ def test_liaison_reads_at_the_directors_level():
     assert t.count("─── CONSTITUTION HEAD ───") == 1, (
         "assemble must insert the liaison head exactly once")
     assert "FIVE AXES" in brief.readings_head(tier=brief._LIAISON_HEAD_TIER)
+
+
+def test_liaison_head_carries_the_prayers_but_not_the_moral_region(
+        tmp_path, monkeypatch):
+    """goal:g15.27.5 FR-C2: the liaison seat answers to the quorum, not the
+    director tier, so its head carries the prayers and NOT moral:faith's
+    MORAL region. `_LIAISON_HEAD_TIER` still names ``director`` so the
+    read_order lookup and the on-demand readings are unchanged; the moral
+    gate takes an explicit ``moral=False`` for this one seat.
+
+    Pre-fix the gate was ``tier == "director"`` and the liaison aliased to
+    it, so the liaison head carried ``## ESSENCE`` -- red on the pre-fix
+    bytes. The director head keeps the region (l5-moral, unchanged).
+    """
+    root = tmp_path / ".agi"
+    (root / "nodes" / "moral").mkdir(parents=True)
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "ladder.md").write_text(_LADDER_FIXTURE)
+    (root / "nodes" / "moral" / "faith.md").write_text(
+        _faith_fixture("LIAISON-GATE-MORAL"))
+    monkeypatch.setattr(brief, "_resolve_graph_root", lambda pr=None: root)
+    director = "\n".join(brief.assemble(tier="director", agent_id="a", iter_n=1))
+    liaison = "\n".join(brief.assemble(tier="liaison", agent_id="a", iter_n=1))
+    assert "LIAISON-GATE-MORAL" in director, "the director seat keeps the moral"
+    assert "LIAISON-GATE-MORAL" not in liaison, (
+        "the liaison seat must render without the moral region")
+    assert "## THE FOUR PRAYERS" in liaison, "its prayers head survives"
+    assert MICHAEL in liaison
 
 
 def test_liaison_closing_line_has_no_iteration_language():
