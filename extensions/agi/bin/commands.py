@@ -253,6 +253,41 @@ def render_manifest(root) -> str:
     return json.dumps(manifest(root), indent=2, sort_keys=True)
 
 
+def _coerce(value, arg):
+    """The declared `type` applied to one propose value."""
+    if str(arg.get("type") or "str") == "bool":
+        return str(value).lower() in ("true", "1", "yes")
+    return str(value)
+
+
+def propose(root, name: str, args: dict | None = None) -> list[str]:
+    """Validate `args` against the entry and RETURN its argv — NEVER run it."""
+    entry = manifest(root).get(name)
+    if entry is None:
+        raise CommandError(f"no command {name!r} in the choice set")
+    if not entry.get("proposable"):
+        raise CommandError(
+            f"{name!r} is not proposable: {entry.get('reason') or 'declared'}")
+    given, values = dict(args or {}), {}
+    for arg in entry.get("args") or []:
+        n = str(arg.get("name") or "")
+        if n not in given:
+            if arg.get("required"):
+                raise CommandError(f"{name!r}: missing required arg {n!r}")
+            continue
+        v = _coerce(given[n], arg)
+        if (arg.get("choices") or []) and v not in arg["choices"]:
+            raise CommandError(
+                f"{name!r}: arg {n!r}={v!r} not in {arg['choices']}")
+        values[n] = str(v)
+    for n, v in given.items():                # extras fill non-schema holders
+        values.setdefault(str(n), str(v))
+    argv = [str(t) for t in entry["argv"]]
+    for n, v in values.items():
+        argv = [t.replace(f"<{n}>", v) for t in argv]
+    return argv
+
+
 def get(root, name: str) -> Command:
     """One command by name. Raises `CommandError` naming what is available."""
     table = load(root)
@@ -389,10 +424,13 @@ def main(argv: list[str] | None = None) -> int:
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("action",
-                    choices=["list", "show", "run", "json", "manifest"],
+                    choices=["list", "show", "run", "json", "manifest",
+                             "propose"],
                     nargs="?", default="list")
     ap.add_argument("name", nargs="?", help="command name, for show/run")
     ap.add_argument("extra", nargs="*", help="extra args appended to run")
+    ap.add_argument("--args", dest="args_json", default=None,
+                    help="JSON object of propose args")
     ap.add_argument("--root", default=".", help="any path inside the project")
     ap.add_argument("--workflow", "-w", default=None,
                     help="run a declared workflow instead of a single command")
@@ -440,6 +478,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.action == "manifest":
         print(render_manifest(root))
         return 0
+
+    if args.action == "propose":
+        if not args.name:
+            print("ERR: propose needs a command name", file=sys.stderr)
+            return 2
+        try:
+            payload = json.loads(args.args_json) if args.args_json else {}
+            print(json.dumps(propose(root, args.name, payload)))
+            return 0
+        except (CommandError, json.JSONDecodeError) as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2 if isinstance(exc, json.JSONDecodeError) else 1
 
     if args.action == "list":
         table = load(root)

@@ -316,3 +316,81 @@ def test_live_manifest_carries_no_absolute_path_or_box_value():
             assert not str(token).startswith("/"), (key, token)
     for box_value in (str(Path.home()), str(root.resolve())):
         assert box_value not in text, box_value
+
+
+# --------------------------------------------------------------------------
+# propose: validate against the entry and RETURN the argv, never run it
+# --------------------------------------------------------------------------
+
+def test_propose_substitutes_values_into_a_compound_token():
+    """The compound token `"set <key> <value>"` takes both values in place."""
+    root, _ = _live_manifest()
+    argv = commands.propose(root, "write.py:set",
+                            {"key": "title", "value": "hello world"})
+    assert argv[0] == "python3"
+    assert argv[-1] == "set title hello world"
+
+
+def test_propose_refuses_an_unknown_name_by_name():
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "write.py:nope", {})
+    assert "write.py:nope" in str(exc.value)
+
+
+def test_propose_refuses_a_non_proposable_entry_with_its_reason():
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "write.py:patch", {})
+    assert "not proposable" in str(exc.value)
+    assert "stdin" in str(exc.value)
+
+
+def test_propose_refuses_missing_required():
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "write.py:set", {"key": "title"})
+    assert "missing required" in str(exc.value)
+
+
+def test_propose_refuses_a_value_outside_choices():
+    root, _ = _live_manifest()
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "write.py:read",
+                         {"target": "header", "range": "1:2"})
+    assert "not in" in str(exc.value)
+
+
+def test_propose_accepts_a_choice_and_leaves_an_unmapped_placeholder():
+    root, _ = _live_manifest()
+    argv = commands.propose(root, "write.py:read",
+                            {"target": "body", "range": "1:2"})
+    assert argv[-1] == "read body <N:M>"
+
+
+def test_propose_writes_no_file_and_spawns_no_process(project, monkeypatch):
+    def boom(*a, **k):
+        raise AssertionError("propose must not spawn or write")
+
+    for name in ("call", "Popen", "run", "check_call", "check_output"):
+        monkeypatch.setattr(commands.subprocess, name, boom)
+    monkeypatch.setattr(Path, "write_text", boom)
+    monkeypatch.setattr(Path, "write_bytes", boom)
+    assert commands.propose(project, "write.py:set",
+                            {"key": "k", "value": "v"})
+
+
+def test_propose_action_prints_argv_and_exits_zero(project, capsys):
+    rc = commands.main(["propose", "write.py:set", "--args",
+                        '{"key": "k", "value": "v"}',
+                        "--root", str(project.parent)])
+    assert rc == 0
+    assert json.loads(capsys.readouterr().out) == [
+        "python3", "<engine>/write.py", "<node-id>", "set k v"]
+
+
+def test_propose_action_refuses_non_zero_on_stderr(project, capsys):
+    rc = commands.main(["propose", "write.py:patch",
+                        "--root", str(project.parent)])
+    assert rc != 0
+    assert "not proposable" in capsys.readouterr().err
