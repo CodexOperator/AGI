@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """anonymize.py — physical-token guard at the write seam (SM.122)."""
 from __future__ import annotations
-import argparse, json, os, re, socket, subprocess, sys
+import argparse, ipaddress, json, os, re, socket, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile, locations
@@ -39,7 +39,14 @@ def box_tokens(root):
     for line in (_run(["ip", "-o", "addr"]) + _run(["ip", "-o", "link"])).splitlines():
         m = re.search(r"inet6?\s+([0-9a-fA-F:.]+)", line)
         if m:
-            toks.append(("ip", m.group(1)))
+            addr = m.group(1)
+            try:
+                parsed = ipaddress.ip_address(addr)
+            except ValueError:
+                parsed = None
+            # loopback/link-local are identical on every box, not identifiers
+            if parsed is None or not (parsed.is_loopback or parsed.is_link_local):
+                toks.append(("ip", addr))
         m = re.search(r"link/ether\s+([0-9a-fA-F:]{17})", line)
         if m:
             toks.append(("mac", m.group(1)))
