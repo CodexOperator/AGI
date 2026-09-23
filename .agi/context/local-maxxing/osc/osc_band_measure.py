@@ -19,8 +19,7 @@ import paths
 
 HF = "/data/ml/scratch/osc03/hf"
 WIKI = "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw"
-HEVAL = ("/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/scratch/venv/"
-         "lib/python3.12/site-packages/human_eval/data/HumanEval.jsonl.gz")
+HEVAL = paths.get_local("humaneval_file")  # committed copy, same bytes (sha256 b796127e...)
 REV = "7ae557604adf67be50417f59c2c2f167def9a775"
 NPROMPT, MINTOK = 256, 256
 LOW = list(range(21, 32))   # 11 lowest-frequency pairs
