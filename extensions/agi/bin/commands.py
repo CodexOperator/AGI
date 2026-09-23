@@ -304,18 +304,22 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
         if f"<{n}>" not in template:
             raise CommandError(
                 f"{name!r}: cannot place arg {n!r}; argv has no <{n}>")
+    # The leftover set is read off the TEMPLATE, before any substitution --
+    # never off the output. A caller value that merely LOOKS like a
+    # placeholder (`<foo>`, `<div>x</div>`) is data and lands untouched; only
+    # a placeholder the template itself never mapped is unmapped.
+    leftover = sorted(n for n in set(_PLACEHOLDER_RE.findall(template))
+                      if n not in values and n not in KEPT_METAVARS)
+    if leftover:
+        raise CommandError(
+            f"{name!r}: unmapped placeholder <{leftover[0]}> -- argv cannot "
+            f"complete; declare the arg or fix the template")
 
     def _fill(match: "re.Match") -> str:
         return values.get(match.group(1), match.group(0))
 
-    argv = [_PLACEHOLDER_RE.sub(_fill, str(t)) for t in entry["argv"]]
-    for token in argv:
-        for n in _PLACEHOLDER_RE.findall(token):
-            if n not in KEPT_METAVARS:
-                raise CommandError(
-                    f"{name!r}: unmapped placeholder <{n}> -- argv cannot "
-                    f"complete; declare the arg or fix the template")
-    return argv
+    # ONE pass: a substituted value is never rescanned.
+    return [_PLACEHOLDER_RE.sub(_fill, str(t)) for t in entry["argv"]]
 
 
 def get(root, name: str) -> Command:
