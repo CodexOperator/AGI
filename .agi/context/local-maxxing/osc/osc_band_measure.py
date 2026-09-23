@@ -66,17 +66,47 @@ def head_var(q, k, g=7, pairs=32):
     """
     q, k = q[0].transpose(0, 1), k[0].transpose(0, 1)
     T = q.shape[0]
-    kr = k.repeat_interleave(g, dim=1).reshape(T, -1, pairs, 2).numpy()
-    qr = q.reshape(T, -1, pairs, 2).numpy()
-    cs, cs2 = np.cumsum(kr, 0), np.cumsum(kr * kr, 0)
-    A, B = qr[..., 0], qr[..., 1]
-    K0, K1 = kr[..., 0], kr[..., 1]
+    # HF rotate_half pairs dims (p, p + pairs), NOT consecutive dims -- so
+    # split the head dim in HALVES: A=q[...,:32], B=q[...,32:], K0,K1 alike.
+    # (Pairing consecutive dims was the OSC.03 kid-1 bug, caught by selftest.)
+    kr = k.repeat_interleave(g, dim=1).numpy()
+    qn = q.numpy()
+    cs, cs2 = np.cumsum(kr[..., :pairs], 0), np.cumsum(kr[..., :pairs] ** 2, 0)
+    cs1, cs21 = np.cumsum(kr[..., pairs:], 0), np.cumsum(kr[..., pairs:] ** 2, 0)
+    A, B = qn[..., :pairs], qn[..., pairs:]
+    K0, K1 = kr[..., :pairs], kr[..., pairs:]
     cross = np.cumsum(K0 * K1, 0)
     N = T * (T + 1) / 2.0
-    sc = (A * cs[..., 0] + B * cs[..., 1]).sum(0)
-    sc2 = (A * A * cs2[..., 0] + B * B * cs2[..., 1]
-           + 2 * A * B * cross).sum(0)
+    sc = (A * cs + B * cs1).sum(0)
+    sc2 = (A * A * cs2 + B * B * cs21 + 2 * A * B * cross).sum(0)
     return np.maximum(sc2 / N - (sc / N) ** 2, 0.0).astype(np.float64)
+
+
+def selftest_head_var(g=7, pairs=32):
+    """Synthetic check that head_var pairs dims (p, p+pairs), not consecutive.
+
+    A position-varying signal on both dims of ONE contract pair must put ALL
+    energy on that pair index. Run BEFORE any model pass; a failure means the
+    decomposition is wrong and no measurement may be taken on it.
+    """
+    T, H, D = 16, 14, 64
+    i = torch.arange(T).float().view(1, 1, T)
+    ok = True
+    for p in (0, 21):
+        q, k = torch.zeros(1, H, T, D), torch.zeros(1, 2, T, D)
+        q[..., p], q[..., p + 32] = torch.sin(0.7 * i), torch.sin(0.11 * i)
+        for h in range(2):
+            k[:, h, :, p], k[:, h, :, p + 32] = torch.cos(0.3 * i), torch.cos(0.5 * i)
+        e = np.atleast_2d(head_var(q, k, g, pairs))[0]
+        tot = float(e.sum())
+        hits = [int(x) for x in np.nonzero(e > 1e-6 * tot)[0]]
+        good = hits == [p]
+        ok &= good
+        print(f"selftest head_var pair {p}: hits={hits} "
+              f"shares={[round(float(e[x] / tot), 4) for x in hits]} "
+              f"-> {'PASS' if good else 'FAIL'}")
+    print(f"selftest head_var: {'PASS' if ok else 'FAIL'}")
+    return ok
 
 
 def install_hooks(model):
@@ -109,6 +139,7 @@ def profile(e):
 
 def main():
     t0 = time.time()
+    assert selftest_head_var(), "head_var pairing self-test FAILED -- no measurement"
     from transformers import AutoModelForCausalLM, AutoTokenizer
     tok = AutoTokenizer.from_pretrained(HF)
     model = AutoModelForCausalLM.from_pretrained(
