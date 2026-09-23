@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -42,7 +43,8 @@ def project(tmp_path: Path) -> Path:
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps({
         "harnesses": {"pi": {"adapter": "pi", "provider": "fake",
-                             "models": {"kid": "deepseek-v4"}}},
+                             "models": {"kid": "deepseek-v4",
+                                        "parent": "deepseek-v4"}}},
         "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
         "agent_dispatch": {"inline_reaper": False},
     }))
@@ -108,9 +110,9 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
     return spawned
 
 
-def _argv(tmp_path: Path, *extra):
+def _argv(tmp_path: Path, *extra, tier: str = "kid"):
     return [str(BIN / "dispatch.py"), str(tmp_path), "1",
-            "--level", "small", "--harness", "pi", "--tier", "kid",
+            "--level", "small", "--harness", "pi", "--tier", tier,
             "--target", "hypothesis:x", *extra]
 
 
@@ -197,3 +199,70 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+
+
+# The minted agent identity: `a00-<8 hex>`, and the scaffold slug that embeds
+# it plus the writer's per-mint `uuid4().hex[:6]` suffix (`a00-<8hex>-<6hex>`).
+_AGENT_RE = re.compile(r"a00-[0-9a-f]{8}(?:-[0-9a-f]{6})?")
+
+
+def _norm_argv(argv: list[str], sessions: Path) -> list[str]:
+    """The ONLY two nondeterministic fields, normalized in this order: the
+    per-run session dir, then the minted agent identity -- the agent id and
+    the scaffold node id/ slug derived from it (`experiment:<agent>`), which
+    is what appears in the brief and the closing line."""
+    return [_AGENT_RE.sub("<AGENT>", arg.replace(str(sessions), "<SESSIONS>"))
+            for arg in argv]
+
+
+@pytest.mark.parametrize("tier", ["kid", "parent"])
+def test_goal_g7_28_2_persistent_is_opt_in_on_supervision_only(
+        project, monkeypatch, capsys, tier):
+    """goal:g7.28.2 -- the regression the `--persistent` feature could have
+    caused: with the flag ABSENT the spawn path stays fire-and-forget.
+
+    Same target, same harness, once WITHOUT `--persistent` and once WITH,
+    for BOTH tier=kid and tier=parent. The two child argv lists are EQUAL
+    after exactly two normalizations (session dir, agent id) -- the flag is
+    opt-in on supervision only, never a second argv path. Non-persistent:
+    exactly ONE Popen, the supervisor never entered, and the manifest record
+    carries neither `persistent` nor `restart_count`. Control: with the flag
+    the supervisor IS entered exactly once and the record IS stamped -- so
+    this test cannot go green by the feature being deleted.
+    """
+    supervisor_calls: list = []
+    monkeypatch.setattr(dispatch, "_supervise_persistent",
+                        lambda *a, **k: supervisor_calls.append((a, k)) or 0)
+
+    # --- run 1: WITHOUT --persistent (the invariant under test) ---
+    spawned = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(sys, "argv", _argv(project, tier=tier))
+    assert dispatch.main() == 0
+    assert len(spawned) == 1, f"non-persistent must Popen once: {len(spawned)}"
+    assert supervisor_calls == [], (
+        "fire-and-forget entered _supervise_persistent: "
+        f"{supervisor_calls}")
+    rec1 = _manifest(project)[0]
+    argv_plain = _norm_argv(spawned[0][0], project / ".agi" / "sessions")
+    assert "persistent" not in rec1 and "restart_count" not in rec1, rec1
+
+    # --- run 2: WITH --persistent (control; same argv expected) ---
+    supervisor_calls.clear()
+    spawned_p = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(sys, "argv",
+                        _argv(project, "--persistent", tier=tier))
+    assert dispatch.main() == 0
+    assert len(spawned_p) == 1, len(spawned_p)
+    assert len(supervisor_calls) == 1, (
+        f"--persistent must enter the supervisor exactly once: "
+        f"{len(supervisor_calls)}")
+    rec2 = [r for r in _manifest(project) if r["id"] != rec1["id"]][-1]
+    assert rec2["persistent"] is True, rec2
+    assert rec2["restart_count"] == 0, rec2
+    argv_persistent = _norm_argv(spawned_p[0][0],
+                                 project / ".agi" / "sessions")
+
+    # ARGV PARITY: FULL lists, two normalizations, no substring match.
+    assert argv_plain == argv_persistent, (
+        "the --persistent flag changed the non-persistent child argv:\n"
+        f"  plain:      {argv_plain}\n  persistent: {argv_persistent}")
