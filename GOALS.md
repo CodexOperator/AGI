@@ -6856,7 +6856,7 @@ Owner voice 2026-09-19: templates sole arg builders; thin hook only when format 
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
 
-### G7.28 — Dispatch persistent mode for occupied seats — status: horizon
+### G7.28 — Dispatch persistent mode for occupied seats — status: active
 
 # goal:g7.28
 
@@ -7089,7 +7089,7 @@ Assigned to **director-belam (point)** with umbrella + `.3`. May further split; 
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.1.1 (measured CLI + stub retire) + goal:g7.31.1.2 (durable pane restart). Dispatch parents on leaves.
 
-##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: horizon
+##### G7.31.1.1 — Measured CLI argv matches grok-bot --help; stub flags retired — status: active
 
 # goal:g7.31.1.1
 
@@ -7163,7 +7163,7 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g7.28`, `goal:g7.31.1.1`.
 
-#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: horizon
+#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
 # goal:g7.31.2
 
@@ -7340,7 +7340,7 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
-#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: horizon
+#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
 # goal:g7.31.4
 
@@ -7393,7 +7393,7 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
-#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: horizon
+#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
 
 # goal:g7.31.5
 
@@ -7442,7 +7442,7 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
 
-### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: horizon
+### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: active
 
 # goal:g7.32
 
@@ -7513,7 +7513,7 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
-#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: horizon
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
 
 # goal:g7.32.1
 
@@ -7557,7 +7557,7 @@ grok session artifact
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
-#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: horizon
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
 
 # goal:g7.32.2
 
@@ -7603,7 +7603,7 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.3 — One adapter/harness with optional pane methods — status: horizon
+#### G7.32.3 — One adapter/harness with optional pane methods — status: active
 
 # goal:g7.32.3
 
@@ -7646,7 +7646,7 @@ grok_bot_adapter
 
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.4 — send.py thin router — transport choose, never policy — status: horizon
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
 
 # goal:g7.32.4
 
