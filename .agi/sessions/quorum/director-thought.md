@@ -100,7 +100,8 @@ routed   OPEN: dispatch.py --memory N is written verbatim as MemoryMax=N BYTES (
     the first spawn a00-8f615a6a FAILED at start (my --memory 6 -> MemoryMax=6 bytes, oom-kill 20:27:06Z): its worktree .agi/worktrees/a00-8f615a6a and
          branch ...-ngram-sp-a00-8f615a6a are orphaned (empty), and iter-OSC.12/a00-b0263b6d is the empty dir of the 20:26Z stale-base refusal
     harvest: merge its loop branch, check its worktree for uncommitted config AND gitignored evidence (OSC.11's lesson), anonymize, ONE mur, close
-4 TMM.58: e0689f715 at TM's gate (TMM.61: 'one line when it lands') -- TM rotated gen 12 -> 13 at 20:1xZ; per TMM.59 its landing is TM's successor's step
+4 TMM.58 LANDED at c63e1ab8b (TMM.62 20:36Z: gate clean, suite 6182 passed / 1 failed = core R3 only) -- closed. TM's merge-up scope:
+         OSC.09 (Dispatch line + harvest) + OSC.10 after mur-13 + OSC.11 (mur-14) -- the range starts at 96207abf1
 5 anonymize over the whole range RE-RUN at 3f627c6cf5: MAIN's gate ok (two-dot and three-dot); the committed gate: loopback only (82 lines) -- the TRUNK's
          anonymize.py now drops loopback, so merging the trunk clears it
 6 trunk merged 20:28Z (b1abf75fd8; the committed gate now passes the whole range) -> ONE [merge-up] to TM: OSC.09 (harvest 5208ac454 + mur-12 close d65d5839c + Dispatch line a9aed8731)
