@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-aa592d9a-c374ea
 next_edges: []
-edited_by: a00-046bc37a
+edited_by: a00-cef6db35
 evidence_runs:
   - experiment:a00-046bc37a-live-tmux
 loop: goal:g7.31.2.1@s2
@@ -14,8 +14,8 @@ probes:
   - {"conjunct": 1, "class": "wire", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_seat_start_pin_matches_a_real_tmux_id -q", "expected": "row window == real tmux @id; seat_occupation occupied with window==live", "observed": "window @0 == tmux @0; state occupied, live @0", "result": "pass"}
   - {"conjunct": 2, "class": "gate", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_real_tmux_flags_a_foreign_pin -q", "expected": "pane-drift when the row pins an @id tmux does not have", "observed": "state pane-drift, window @9999, live @0", "result": "pass"}
   - {"conjunct": 3, "class": "gate", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_killed_window_reads_unoccupied -q", "expected": "unoccupied after tmux kill-window", "observed": "state unoccupied, live None", "result": "pass"}
-  - {"conjunct": 4, "class": "falsifier", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_no_server_is_never_occupied -q", "expected": "no server => reader None, state unoccupied (positive needs real tmux)", "observed": "_successor_window_id None; state unoccupied", "result": "pass"}
-  - {"conjunct": 5, "class": "honest", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_seat_start_pin_matches_a_real_tmux_id -q", "expected": "session_ref and session_name empty at seat start (await ack)", "observed": "session_ref empty, session_name empty", "result": "pass"}
+  - {"conjunct": 4, "class": "gate", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_no_server_is_never_occupied -q", "expected": "no server => reader None, state unoccupied (positive needs real tmux)", "observed": "_successor_window_id None; state unoccupied", "result": "pass"}
+  - {"conjunct": 5, "class": "wire", "cmd": "python3 -m pytest extensions/agi/tests/test_seat_pane_live_tmux.py::test_seat_start_pin_matches_a_real_tmux_id -q", "expected": "session_ref and session_name empty at seat start (await ack)", "observed": "session_ref empty, session_name empty", "result": "pass"}
 profile: balanced
 role: kid
 scaffold_hash: da7607cb7f89c063
