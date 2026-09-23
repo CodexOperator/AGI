@@ -13,8 +13,6 @@ instrument's first run shipped with.
 import importlib.util
 from pathlib import Path
 
-import pytest
-
 BIN = Path(__file__).resolve().parents[1] / "bin"
 SEND = BIN / "send.py"
 spec = importlib.util.spec_from_file_location(
@@ -29,18 +27,10 @@ def _t(finding):
 
 
 # DEBT LEDGER -- DO NOT EDIT TO MAKE A FAILURE PASS.
-# This constant is the exact set of rotate/dispatch imports in send.py as of
-# the instrument's first run (2026-09-23). It exists so that every NEW
-# coupling is a test failure and every REMOVED coupling is a required
-# one-line ledger edit. When the ledger is empty, clause (1) has been reached
-# and `test_clause_one_zero_coupling` below XPASSes -- that is the signal this
-# refactor is done, and the signal this constant (and the xfail) may be
-# retired.
-CURRENT_INVENTORY = [
-    ("_row_is_quiet", 1295, "rotate", ("rotate",)),
-    ("_row_is_quiet_system", 1323, "rotate", ("rotate",)),
-    ("_nudge_target", 1903, "rotate", ("rotate",)),
-]
+# clause (1) REACHED 2026-09-23: the last three lazy `import rotate` sites in
+# send.py were replaced by the row_settings.py library, so the ledger is empty
+# and `test_clause_one_zero_coupling` is a plain test (the xfail retired).
+CURRENT_INVENTORY = []
 
 
 def test_scanner_sees_top_level_and_nested(tmp_path):
@@ -74,7 +64,11 @@ def test_scanner_sees_relative_sibling_imports(tmp_path):
     `ImportFrom.module is None`, so a scanner keyed only on the module part
     reports a clean file while the coupling is right there. Each matching
     alias is reported under the enclosing function with `module` set to the
-    alias root; a non-root sibling (`from . import json`) is not."""
+    alias root; a non-root sibling (`from . import json`) is not.
+
+    A relative import WITH a real module part (`from .sub import rotate`) is
+    NOT a coupling -- it imports a SYMBOL named rotate from `sub`, not the
+    rotate module. The gate is `not child.module`, never `child.level`. """
     src = (
         "def outer():\n"
         "    from . import rotate\n"
@@ -83,6 +77,10 @@ def test_scanner_sees_relative_sibling_imports(tmp_path):
         "from . import json\n"
         "from . import rotate as rot\n"
         "from . import rotate, dispatch\n"
+        "from .sub import rotate\n"
+        "from .sub import dispatch\n"
+        "from .sub import rotate as rot2\n"
+        "from .sub.rotate import thing\n"
     )
     p = tmp_path / "relative.py"
     p.write_text(src, encoding="utf-8")
@@ -108,8 +106,5 @@ def test_send_inventory_matches_ledger():
     assert got == CURRENT_INVENTORY
 
 
-@pytest.mark.xfail(reason="goal:g7.32.4 clause (1) not yet met: send.py still "
-                          "imports rotate at 3 lazy sites (see "
-                          "CURRENT_INVENTORY debt ledger)")
 def test_clause_one_zero_coupling():
     assert sra.audit(SEND) == []

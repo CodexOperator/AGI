@@ -47,10 +47,14 @@ def audit(path):
                     found.append({"line": child.lineno, "function": func,
                                   "module": mod,
                                   "names": [a.name for a in child.names]})
-                elif child.level or not child.module:
-                    # A relative import with no module part (`from . import
+                elif not child.module:
+                    # A relative import with NO module part (`from . import
                     # rotate`) has `module is None`; the root lives in the
-                    # ALIAS name instead. Report each matching alias as its
+                    # ALIAS name instead. A relative import WITH a real
+                    # module (`from .sub import rotate`) is NOT a coupling:
+                    # it imports a SYMBOL named rotate from `sub`, so it must
+                    # not enter this branch (`child.level` alone would put it
+                    # here and report a false positive). Report each matching alias as its
                     # own finding, with `module` set to the alias root.
                     for a in child.names:
                         root = a.name.split(".")[0]
