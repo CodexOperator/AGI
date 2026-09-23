@@ -458,3 +458,57 @@ def test_ef56_refused_authority_push_fails_and_defers_the_swap(tmp_path):
     assert seat_key.read_bytes() == before, \
         "a refused authority push must defer the swap"
     assert (seat_key.parent / (seat_key.name + ".pending")).is_file()
+
+
+def test_ef73_unreachable_origin_fails_and_defers_the_swap(tmp_path):
+    """EF.73: an UNREACHABLE origin (the fetch fails for a transport
+    reason, NOT because the ref is absent) must yield `authority: FAILED`,
+    never `authority: SKIPPED` -- the code cannot know the authority branch
+    is absent, only that it could not read it. FAILED gates the C3
+    successor-key swap, so the pending file stays. The discriminator is
+    `git ls-remote --exit-code origin <branch>`: rc 2 = ref truly absent
+    (reachable origin, still SKIPPED), any other rc = FAILED. Origin is made
+    unreachable WITHOUT touching the network by pointing it at a path that
+    does not exist."""
+    import json as _json
+    from agi.bin import send as bin_send
+    repo, g, posts, bare = _fixture(tmp_path)
+    # (a) the publish line itself: unreachable origin -> FAILED, not SKIPPED
+    _git(repo, "remote", "set-url", "origin", str(tmp_path / "gone.git"))
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "authority: SKIPPED" not in out, out
+    # (b) the deferral half: a real re-key with origin unreachable leaves the
+    # authority-deferred successor key pending (never swapped)
+    seat_key = bin_send._seat_key_path(g, "aa")
+    seat_key.parent.mkdir(parents=True, exist_ok=True)
+    seat_key.write_text(_json.dumps({"scheme": "ed25519",
+                                     "priv_hex": "11" * 32}))
+    before = seat_key.read_bytes()
+    succ_pub = send.seatsig.get("ed25519").public_from_secret(
+        bytes.fromhex("22" * 32)).hex()
+    _json.dump({"scheme": "ed25519", "priv_hex": "22" * 32,
+                "pub_hex": succ_pub, "deferred_for": "authority",
+                "gen_after": 5, "minted_at": ""},
+               open(str(seat_key) + ".pending", "w"))
+    text = posts.read_text()
+    posts.write_text(text.replace(f'"pubkey": "{_NEW}"',
+                                  f'"pubkey": "{succ_pub}", '
+                                  f'"generation": 5'))
+    out2 = rotate._commit_spawn_row(
+        g, seat="aa", generation=5, session_id="sid", window="w", pid=1,
+        rekey=True)
+    assert "authority: FAILED" in out2, out2
+    assert "authority: SKIPPED" not in out2, out2
+    assert seat_key.read_bytes() == before, \
+        "an unreachable authority must defer the swap"
+    assert (seat_key.parent / (seat_key.name + ".pending")).is_file()
+    # (c) the gate itself, independent of the push leg: FAILED must refuse a
+    # push-OK completion by NAME (the AUTHORITY leg), where pre-fix SKIPPED
+    # would fall through to the committed-row check instead
+    _auth_line = next(ln for ln in out2.splitlines()
+                      if ln.startswith("authority:"))
+    gate = rotate._finish_pending_swap_on_push(
+        g, "aa", "push: OK", authority_line=_auth_line)
+    assert "authority publish did not succeed" in gate, gate
+    assert (seat_key.parent / (seat_key.name + ".pending")).is_file()
