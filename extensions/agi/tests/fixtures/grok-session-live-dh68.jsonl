@@ -1,0 +1,3 @@
+{"session_id": "grok-2026-09-22-a00-95d3ebfa", "harness": "grok-bot", "started": "2026-09-22T11:30:00Z"}
+{"role": "user", "content": "Does the ingest pipe preserve actor provenance by default?", "ts": "2026-09-22T11:30:01Z"}
+{"role": "assistant", "content": "No: a plain invocation minted a node with neither edited_by nor thought_session. The fix requires both, from flags or env, or refuses.", "ts": "2026-09-22T11:30:07Z"}
