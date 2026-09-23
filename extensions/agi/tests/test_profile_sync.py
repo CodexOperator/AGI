@@ -273,3 +273,45 @@ def test_a_malformed_file_that_looks_linked_is_named_unreadable(tmp_path):
     msg = rotate._check_profile_drift(repo / ".agi")
     assert msg and "broken.md" in msg and "unreadable" in msg
     assert "profile drift" in msg
+
+
+# ---- goal:g7.31.5.1 residue (b): a refused profile_ref is all-or-nothing ----
+
+@pytest.mark.parametrize("ref,why", [
+    ("../escape.md", "outside the repo root"),
+    (".agi/nodes/evil.md", "under .agi/nodes/"),
+])
+def test_a_refused_ref_leaves_the_node_body_unwritten(tmp_path, ref, why):
+    """A refusal must refuse BEFORE the node write: today rc=2 arrived after
+    `update_node` had already advanced the body, so graph and projection
+    disagreed. The node body marker must be absent, and the write must name
+    the refusal."""
+    repo = _repo(tmp_path, ref=ref)
+    before = (repo / ".agi" / "nodes" / "hypothesis" / "h1.md").read_bytes()
+    r = _cli(["hypothesis:h1", "note CHANGED"], repo)
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "refused" in r.stderr.lower() and why in r.stderr, r.stderr
+    assert b"CHANGED" not in (repo / ".agi" / "nodes" / "hypothesis"
+                              / "h1.md").read_bytes()
+    assert (repo / ".agi" / "nodes" / "hypothesis" / "h1.md").read_bytes() \
+        == before
+
+
+def test_a_directory_target_ref_leaves_the_node_body_unwritten(tmp_path):
+    repo = _repo(tmp_path, ref="profile_dir")
+    (repo / "profile_dir").mkdir()
+    r = _cli(["hypothesis:h1", "note CHANGED"], repo)
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "refused" in r.stderr.lower() and "directory" in r.stderr, r.stderr
+    assert b"CHANGED" not in (repo / ".agi" / "nodes" / "hypothesis"
+                              / "h1.md").read_bytes()
+
+
+def test_a_ref_set_in_the_same_edit_is_preflighted_too(tmp_path):
+    """`set profile_ref ../escape.md` must refuse before the field lands."""
+    repo = _repo(tmp_path, ref=None)
+    node = repo / ".agi" / "nodes" / "hypothesis" / "h1.md"
+    r = _cli(["hypothesis:h1", "set profile_ref ../escape.md"], repo)
+    assert r.returncode != 0, (r.returncode, r.stdout, r.stderr)
+    assert "refused" in r.stderr.lower()
+    assert "profile_ref" not in node.read_text()
