@@ -2,10 +2,12 @@
 id: goal:g2
 mint_id: bcbb7e64bb824b74876ad5db95c89969
 type: goal
+parents:
+  - vision:self-perpetuating
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2
-goal_kind: long-term
+goal_kind: perpetual
 heading_level: 2
 origin: goals-doc
 season: 1
@@ -28,8 +30,8 @@ status: horizon
 tags:
   - goal
   - root
-thought_session: season
-title: "G2: Adjustable zoom with contracts that survive the trip"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2: Beauty"
 ---
 One graph readable at five grains, where level 3 is **actual code nodes that
 stitch into a runnable directory layout** — the property that makes the graph an
@@ -68,3 +70,10 @@ round-trips. Ground truth and scoring rule are preserved at
 `agi/context/refs/zoom-roundtrip-ground-truth/` so the follow-up A/B stays cheap.
 
 Owns: **L1** (the 1..5 axis), **L2** (live IO maps as inherited contract slices).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Folded umbrella from goal:g21 onto goal:g2 in place 2026-09-19; id/mint_id protected. Un-retired as perpetual umbrella.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Perpetual umbrella for Beauty. Absorbs prior art from old G2, G9, G10, G18. Folded from goal:g21 onto goal:g2 in place 2026-09-19.
