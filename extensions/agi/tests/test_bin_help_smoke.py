@@ -27,6 +27,8 @@ NO_HELP = {
     "reaper_log.py": "library module (the shared per-event log resolver);"
                      " no --help",
     "last_act.py": "library module (the seat's own last-act clock); no --help",
+    "pane_messaging.py": "library module (the harness-pair messaging seam);"
+                        " no --help",
 }
 
 
