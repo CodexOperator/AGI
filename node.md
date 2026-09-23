@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.2
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.2: IO maps as inherited contract slices"
 ---
 Every node declares required inputs and promised outputs, each with a how/why,
@@ -139,7 +139,7 @@ an argument — the `retired` rename in flight this session is a change with no
 semantic content that still costs a corpus pass plus three hand-edited
 documents.
 
-It was first drafted into `goal:g10.2` and moved here at the owner's
+It was first drafted into `goal:g2.25` and moved here at the owner's
 correction, which was right and is worth recording because the wrong placement
 was plausible: G10.2 is about the *shape* of the hypergraph, while propagation
 is a link (this goal) plus a traversal (`goal:g13`'s write path). The sub-file
