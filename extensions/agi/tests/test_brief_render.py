@@ -255,3 +255,138 @@ def test_hook_head_equals_rotate_head_at_one_sha():
     prompt = brief.successor_prompt(tier="director", body="THE-CARD-BODY")
     assert prompt[:prompt.index("THE-CARD-BODY")].strip() == hook
     assert hook == brief.render_head()
+
+
+# ---- phase 4: the extras override + the doc-card node wins ----------------
+
+
+def test_extras_text_override_lands_last_and_order_is_the_config_cell(tmp_path):
+    """dispatch.py hands `render` the dynamic dispatch brief; the PARTS and
+    their ORDER still come from the config cell, never from the caller."""
+    root = _root(tmp_path, parts={"kid": ["head", "card", "extras"]})
+    out = brief.render(role="kid", extras_text="EXTRAS-SENTINEL",
+                       project_root=root)
+    assert out.endswith("EXTRAS-SENTINEL")
+    assert HEAD_SENTINEL in out
+    assert out.index(HEAD_SENTINEL) < out.index("EXTRAS-SENTINEL")
+
+
+def test_a_doc_card_node_wins_over_the_quorum_file(tmp_path):
+    """`doc:card-<post>`'s file must win; the quorum file is the fallback."""
+    root = _root(tmp_path, parts={"director": ["head", "card"]},
+                 card="QUORUM-CARD-SENTINEL\n")
+    _write(root, "nodes/doc/card-some-post.md",
+           "---\nid: doc:card-some-post\n---\n"
+           "# doc:card-some-post\n\nDOC-CARD-SENTINEL\n")
+    out = brief.render(post="some-post", project_root=root)
+    assert "DOC-CARD-SENTINEL" in out
+    assert "QUORUM-CARD-SENTINEL" not in out
+
+
+def test_assemble_without_head_returns_the_body_only(tmp_path):
+    """The `include_head=False` seam dispatch.py uses: the body carries no
+    head, so a caller can render head + card itself and pass this as extras."""
+    root = _root(tmp_path, parts={})
+    segs = brief.assemble(tier="kid", agent_id="a", iter_n=1,
+                          include_head=False, project_root=root)
+    text = "\n\n".join(segs)
+    assert HEAD_SENTINEL not in text
+    assert "DO NOT run git" in text
+
+
+def test_rotate_fallback_reason_reaches_stderr(tmp_path, monkeypatch, capsys):
+    """The fallback from `brief.render` to `brief.assemble` is never silent."""
+    sys.path.insert(0, str(BIN))
+    import rotate
+
+    root = _root(tmp_path, parts={"director": ["head", "card"]})
+    _write(root, "nodes/doc/director-brief.md", "D\n")
+    # remove the head source so the render refuses by name
+    (root / "nodes" / "doc" / "unified-head.md").unlink()
+    monkeypatch.setattr(rotate, "_build_harness_command",
+                        lambda harness, **kw: ["x"])
+    # the fallback body is stubbed: this test is about the STDOUT/STDERR
+    # contract, not about assembling against a minimal tmp graph.
+    monkeypatch.setattr(brief, "assemble", lambda **kw: ["BODY"])
+    rotate._assembled_successor_command(
+        name="some-post", tier="director", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi",
+        project_root=root)
+    err = capsys.readouterr().err
+    assert "brief.render" in err and "falling back to brief.assemble" in err
+
+
+# ---- phase 4, items 2+3: the Prime spawn path renders and the card lands once
+
+
+def _prime_root(tmp_path):
+    """A tmp graph root with a prime_director post, its template, its card and
+    the town trajectory, so the Prime spawn render can be exercised."""
+    root = _root(
+        tmp_path,
+        parts={"prime_director": ["head", "template", "card", "trajectory"]},
+        templates={"prime_director": "doc:director-brief"})
+    _write(root, "nodes/doc/director-brief.md", "PRIME-TEMPLATE-SENTINEL\n")
+    _write(root, "nodes/.geometry/posts.md",
+           "---\nid: config:posts\nposts:\n"
+           '  - {"name": "prime-post", "role": "prime_director", '
+           '"harness": "pi"}\n---\n')
+    _write(root, "sessions/quorum/prime-post.md", "PRIME-CARD-SENTINEL\n")
+    return root
+
+
+def _capture_prime_body(monkeypatch, root, prompt_file=None, **over):
+    sys.path.insert(0, str(BIN))
+    import rotate
+
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]),
+                               ["x"])[1])
+    rc, _ = rotate.spawn_window(
+        name="prime-post", tier="prime_director", prompt_file=prompt_file,
+        dry_run=True, root=root, **over)
+    assert rc == 0
+    return seen["prompt"]
+
+
+def test_prime_successor_with_no_prompt_file_renders_once(tmp_path,
+                                                         monkeypatch):
+    """A Prime successor with NO `--prompt-file` is the SAME assembled render
+    every other seat gets: head + the role template + the post's card + the
+    town trajectory -- and the card appears EXACTLY ONCE, never once from the
+    render and again from a `[handoff-head]` first_turn read."""
+    root = _prime_root(tmp_path)
+    body = _capture_prime_body(monkeypatch, root)
+    # `ultracode` is the keyword first line the prime's ladder row sets; the
+    # constitution head follows it and precedes the template, card, trajectory.
+    assert brief.render_head(project_root=root) in body
+    assert body.index("PRIME-TEMPLATE-SENTINEL") < body.index("PRIME-CARD-SENTINEL")
+    assert body.index("PRIME-CARD-SENTINEL") < body.index("TOWN-TRAJECTORY-SENTINEL")
+    assert body.count("PRIME-CARD-SENTINEL") == 1
+
+
+def test_prime_explicit_prompt_file_still_wins(tmp_path, monkeypatch):
+    """An EXPLICIT `--prompt-file` beats the render byte-for-byte: the card is
+    NOT smuggled in, and the file's body is the one shipped."""
+    root = _prime_root(tmp_path)
+    pf = _write(root, "explicit-prime.md",
+                "EXPLICIT-PRIME-BODY-SENTINEL {name}\n")
+    body = _capture_prime_body(monkeypatch, root, prompt_file=str(pf))
+    assert "EXPLICIT-PRIME-BODY-SENTINEL prime-post" in body
+    assert "PRIME-CARD-SENTINEL" not in body
+    assert "PRIME-TEMPLATE-SENTINEL" not in body
+
+
+def test_config_rotations_first_turn_no_longer_reads_the_card():
+    """The Prime's card reaches its first turn through the render alone; no
+    `config:rotations` first_turn entry may read `build:HANDOFF.md` (which is a
+    symlink to `doc:card-belam`) or the card would land twice. Other first_turn
+    entries stay."""
+    repo = BIN.parents[2]
+    rot = (repo / ".agi" / "nodes" / ".geometry" / "rotations.md").read_text(
+        encoding="utf-8")
+    assert "build:HANDOFF.md" not in rot
+    assert '"label": "rotation-record"' in rot
+    assert '"label": "verify"' in rot

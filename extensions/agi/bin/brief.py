@@ -2056,6 +2056,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              line_ceiling: int | None = None,
              addendum: str | None = None,
              project_root: str | Path | None = None,
+             include_head: bool = True,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -2094,6 +2095,10 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             _o = _orders_section()
             if _o:
                 body = [*body, _o]
+        if not include_head:
+            # dispatch.py's `extras` override: the caller renders the head
+            # itself (via `render`) and takes only the body from here.
+            return body
         return _prepend_head(body, tier=head_tier)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
@@ -2331,7 +2336,8 @@ def _template_text(root: Path, ref: str) -> str:
     return _node_text(root, ref)
 
 
-def _part(name: str, root: Path, role: str, post: str | None, harness: str | None) -> str:
+def _part(name: str, root: Path, role: str, post: str | None, harness: str | None,
+          extras_text: str | None = None) -> str:
     """One part, resolved from the graph/config; a missing piece refuses."""
     if name == "head":
         prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
@@ -2350,9 +2356,14 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
             ref = (_brief_cell(root).get("templates") or {}).get(role)
         return _template_text(root, str(ref)) if ref else ""
     if name == "card":
-        card = root / "sessions" / "quorum" / f"{post}.md" if post else None
-        if card is None:
+        if not post:
             return ""
+        from node_writer import find_node_file
+        # `doc:card-<post>` WINS; the quorum file is the fallback (a symlink
+        # to the node during the move). Both missing still refuses by name.
+        if find_node_file(root, f"doc:card-{post}") is not None:
+            return _node_text(root, f"doc:card-{post}")
+        card = root / "sessions" / "quorum" / f"{post}.md"
         if not card.is_file():
             raise RenderError(f"card not found: {card}")
         return card.read_text(encoding="utf-8").strip()
@@ -2367,12 +2378,18 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
     if name == "trajectory":
         town = (_brief_cell(root).get("trajectory") or {}).get("town")
         return _node_text(root, f"town:{town}") if town else ""
+    if extras_text is not None:
+        # dispatch.py hands render the DYNAMIC dispatch brief (target,
+        # ceiling, session dir, addendum); PARTS and ORDER still come from
+        # the config cell, never from the caller.
+        return extras_text
     refs = (_brief_cell(root).get("extras") or {}).get(role) or []
     return "\n\n".join(_expand(_node_text(root, r), root) for r in refs)
 
 
 def render(*, post: str | None = None, role: str | None = None,
-           harness: str | None = None, project_root: Path | None = None) -> str:
+           harness: str | None = None, project_root: Path | None = None,
+           extras_text: str | None = None) -> str:
     """The WHOLE first user turn: the config parts in order, joined; `--post`
     resolves role + harness from the post's row. Writes NO file."""
     root = _resolve_graph_root(project_root)
@@ -2390,7 +2407,7 @@ def render(*, post: str | None = None, role: str | None = None,
     bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
     if bad:
         raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
-    segs = [_part(p, root, role, post, harness) for p in parts]
+    segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
     return "\n\n".join(s for s in segs if s)
 
 
