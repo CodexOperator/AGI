@@ -3,9 +3,9 @@ id: goal:s2
 mint_id: 8411f48082324bed9607e200adca84cc
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S2
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S2: Cron parity with fantasia"
 ---
 `grid.py cron install` sets both cadences — a 5-minute grid snapshot + push
