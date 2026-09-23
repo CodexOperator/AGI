@@ -542,6 +542,29 @@ def test_preflight_force_does_not_bypass_real_repo_guard(tmp_path):
     assert result["reason"] == "refuses_real_repo"
 
 
+def test_real_repo_guard_names_this_checkout_without_a_box_cell(tmp_path, monkeypatch):
+    """The guard fails closed (R-EF58 S1/M1).
+
+    `box.root` may be absent, or may name another box entirely (the live
+    cell on this box names a path that does not exist here). Git can always
+    name the repo THIS checkout belongs to — a worktree names its MAIN repo
+    through the common dir — so the guard still refuses, and the refusal
+    says which repo it refused.
+    """
+    monkeypatch.setattr(unify.boxes, "box_cells", lambda root: {})
+    here = unify._git_common_root()
+    assert here is not None, "git must name the repo this checkout belongs to"
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", unify._real_repos())
+
+    assert unify._touches_a_real_repo(here) == here
+    assert unify._touches_a_real_repo(here.parent / (here.name + "-tree"))
+
+    res = unify.preflight(here, tmp_path / "tree")
+    assert res["ok"] is False
+    assert res["reason"] == "refuses_real_repo"
+    assert str(here) in res["detail"]
+
+
 # --- idempotency: a clean refusal on a second run -------------------------------
 
 
