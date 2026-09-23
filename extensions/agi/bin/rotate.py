@@ -1539,6 +1539,29 @@ def _launch_wrapper_log(root, seat: str) -> str:
     return str(_seat_hands(r) / f"{seat}.wrapper.log")
 
 
+def _launch_child_preexec() -> None:
+    """Give the wrapped child DEFAULT signal semantics, then unblock the set.
+
+    `exec` PRESERVES an ignored disposition (`SIG_IGN`), and Popen's own
+    `restore_signals` resets only SIGPIPE/SIGXFZ/SIGXFSZ -- never SIGHUP.
+    So a launcher that ignores SIGHUP (a pytest process that leaked
+    `rotate._shield_final_signals` on an exception path, anything under
+    `nohup`) would hand the wrapper a child that IGNORES the forwarded
+    hangup. Measured 2026-09-23: with the launching process's SIGHUP=SIG_IGN
+    the wrapper still logs `FORWARDED to child <pid>`, but the child exits
+    status 0 when its own `sleep 30` ends and
+    `test_wrapper_tty_hangup_forwards_to_the_child` reds at 30.29 s -- the
+    09-23 suite record's slowest test, exactly. Reset the reserved set to
+    SIG_DFL here so forwarding is guaranteed by construction.
+    """
+    for sig in _LAUNCH_WAIT_SIGS:
+        try:
+            signal.signal(sig, signal.SIG_DFL)
+        except (ValueError, OSError):
+            pass
+    signal.pthread_sigmask(signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS)
+
+
 def cmd_launch_wrapper(args, root) -> int:
     """Signal-masking parent so a seat's lifecycle log distinguishes the
     three death classes (amendment e, hypothesis:l4-rotate-self-under-pytest-
@@ -1581,8 +1604,7 @@ def cmd_launch_wrapper(args, root) -> int:
         signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
         child = subprocess.Popen(
             child_cmd,
-            preexec_fn=lambda: signal.pthread_sigmask(
-                signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS),
+            preexec_fn=_launch_child_preexec,
         )
         received: list[int] = []
         while True:
