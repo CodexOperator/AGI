@@ -11832,6 +11832,8 @@ OWNER 09-23 09:2xZ (thought-master pane, verbatim): "If needed, tell director-en
 
 OWNER 09-23 09:2xZ (thought-master pane, verbatim): "It's legit" / "Owner confirm" / "Key fail" -- re belam's 09:20:12Z dm to thought-master (CARD UPDATE NOW + RENUMBER RULE), which send.py refused as FORGED (sig fp 6d5223e5f2adba54 vs the verified a8e869328c1e8e1e) and quarantined: legitimate, a key failure, not a forgery. ACTED by thought-master: card made the ONE scratch per the dm (title, five-axis map, retired ids gone); the handoff_file NOT linked to the card (rotate.py:5294 write_text would overwrite it at rotation).
 
+OWNER 09-23 09:1xZ-09:3xZ (Prime pane, verbatim, in order): "Three templates are go." then "Update old ids in prose of the three docs. Which docs was it again" then "Your key is failing" then "Your best key only" then "Seat" then "Also your card should be a doc node type as well not a build node" -- APPLIED by the Prime: templates = director doc:unified-director-brief (role only) · master doc:unified-master-brief (new, five axes) · Prime = build:briefs-prime-director-successor + five axes; the Prime's card = doc:card-belam (HANDOFF.md and .agi/sessions/quorum/belam.md symlinked to its file; rotate's own split/render keeps its frontmatter; 89/100 lines); the seat key: the 07:54 rotation's pubkey reached only the town trunk while verifiers read origin/season2/main, so the belam row was published on season2/main (7e134ba7b) and whois reads IS-AUTHORIZED again; the three docs = CLAUDE.md · QUICKSTART.md · skills/agi/SKILL.md: 26 dead-id mentions rewritten (g11 ×18 to the one-repo phrasing, g13.1 to goal:g4.19, g8.1 / g8.2 / g10.1 / g6.5 dropped with the meaning kept), 0 left.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
