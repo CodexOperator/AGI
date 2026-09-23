@@ -195,6 +195,64 @@ def ordered_workflows(root) -> set[str]:
     return {str(v) for v in value} if isinstance(value, list) else set()
 
 
+#: The closed set a manifest entry's `side_effects` may name (a typo here is a
+#: choice a proposer would act on, so the set is data a test can see).
+SIDE_EFFECTS = ("read", "graph-write", "comms", "spawn", "spend",
+                "network", "destructive")
+
+
+def _derived_cli_verb(raw: list[str]) -> tuple[str, str]:
+    """`cli`/`verb` read off an entry's own argv when it declares neither."""
+    for i, arg in enumerate(raw):
+        base = str(arg).rsplit("/", 1)[-1]
+        if base.endswith((".py", ".sh")):
+            rest = [str(a) for a in raw[i + 1:]]
+            return base, (rest[0] if rest else "")
+    return (str(raw[0]) if raw else "", str(raw[1]) if len(raw) > 1 else "")
+
+
+def _entry(name, argv, m, cli, verb, side, prop, purpose=""):
+    """One choice-set entry; `m` (the node's metadata) overrides every default."""
+    e = {"name": name, "cli": str(m.get("cli") or cli),
+         "verb": str(m.get("verb") or verb), "argv": list(argv),
+         "args": list(m.get("args") or []),
+         "purpose": str(m.get("purpose") or m.get("reason") or purpose),
+         "side_effects": str(m.get("side_effects") or side),
+         "proposable": bool(m.get("proposable", prop))}
+    if m.get("reason"):
+        e["reason"] = str(m["reason"])
+    return e
+
+
+def manifest(root) -> dict[str, dict]:
+    """The ONE machine-readable choice set, from `command:commands` alone.
+
+    Declared commands join their `manifest:` metadata (or derive `cli`/`verb`
+    from their own argv); every `excluded:` verb is included with
+    `proposable: false` and its reason. Read-only: it resolves the node and
+    returns data, never running or writing anything.
+    """
+    fm = _load_node(Path(root))
+    dec, exc = fm.get("manifest") or {}, fm.get("excluded") or {}
+    out: dict[str, dict] = {}
+    for name, c in load(root).items():
+        m = dec.get(name) if isinstance(dec.get(name), dict) else {}
+        out[name] = _entry(name, c.raw_argv, m, *_derived_cli_verb(c.raw_argv),
+                           "read", True, c.about)
+    for name, m in {**dec, **exc}.items():
+        if name in out or not isinstance(m, dict):
+            continue
+        cli, verb = name.split(":", 1)[0], name.split(":", 1)[-1]
+        out[name] = _entry(name, [str(a) for a in (m.get("argv") or [])], m,
+                           cli, verb, "graph-write", name not in exc)
+    return out
+
+
+def render_manifest(root) -> str:
+    """`manifest()` as deterministic JSON: two calls agree byte for byte."""
+    return json.dumps(manifest(root), indent=2, sort_keys=True)
+
+
 def get(root, name: str) -> Command:
     """One command by name. Raises `CommandError` naming what is available."""
     table = load(root)
@@ -330,7 +388,8 @@ def main(argv: list[str] | None = None) -> int:
     import argparse
 
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("action", choices=["list", "show", "run", "json"],
+    ap.add_argument("action",
+                    choices=["list", "show", "run", "json", "manifest"],
                     nargs="?", default="list")
     ap.add_argument("name", nargs="?", help="command name, for show/run")
     ap.add_argument("extra", nargs="*", help="extra args appended to run")
@@ -376,6 +435,10 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({n: {"argv": c.argv, "about": c.about,
                               "workflow": c.workflow}
                           for n, c in sorted(load(root).items())}, indent=2))
+        return 0
+
+    if args.action == "manifest":
+        print(render_manifest(root))
         return 0
 
     if args.action == "list":
