@@ -191,3 +191,128 @@ def test_the_manifest_action_prints_the_rendered_bytes(project, capsys):
     rc = commands.main(["manifest", "--root", str(project.parent)])
     assert rc == 0
     assert capsys.readouterr().out == commands.render_manifest(project) + "\n"
+
+
+# --------------------------------------------------------------------------
+# Every listed engine CLI: its verbs are declared or excluded BY NAME
+# --------------------------------------------------------------------------
+# The declaration is only complete if it covers the CLIs the brief names, and
+# it is only honest if the verb list is READ OFF each CLI's own argparse at
+# test time -- never a copied list. `_introspect_cli` captures the top parser
+# by replacing `parse_args`/`parse_known_args` with a spy that raises the
+# moment the parser is built, so no verb list is ever written down here.
+
+_LISTED_CLIS = [
+    "send.py", "dispatch.py", "workflow.py", "cli.py", "grid.py", "links.py",
+    "rotate.py", "spawn_budget.py", "provisioning.py", "snapshot-goals.py",
+    "viewport.py", "crons.py", "envfile.py",
+]
+
+
+class _ParserCaptured(Exception):
+    """Raised by the spy once the top-level parser exists, before it parses."""
+
+
+def _arg_dests(parser) -> set[str]:
+    return {a.dest for a in parser._actions if a.dest != "help"}
+
+
+def _subparsers(parser) -> dict:
+    import argparse
+    for act in parser._actions:
+        if isinstance(act, argparse._SubParsersAction):
+            return dict(act.choices)
+    return {}
+
+
+def _introspect_cli(cli: str, monkeypatch) -> dict[str, set[str]]:
+    """`{verb: {arg dests}}` read from the CLI's OWN argparse, never a list.
+
+    A CLI with subparsers keys on each verb; one with a positional `action`
+    choices list keys on those choices; one with neither is the single verb
+    `""`. The spy raises before parse, so `main` never does its work.
+    """
+    import argparse
+    import contextlib
+    import inspect
+    import io
+
+    captured: dict = {}
+
+    def spy(self, *a, **k):
+        captured.setdefault("top", self)
+        raise _ParserCaptured()
+
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_args", spy)
+    monkeypatch.setattr(argparse.ArgumentParser, "parse_known_args", spy)
+
+    modname = "manifest_probe_" + cli.replace(".", "_").replace("-", "_")
+    loader = importlib.machinery.SourceFileLoader(modname, str(BIN / cli))
+    spec = importlib.util.spec_from_loader(modname, loader)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[modname] = module
+    with contextlib.redirect_stdout(io.StringIO()), \
+            contextlib.redirect_stderr(io.StringIO()):
+        loader.exec_module(module)
+        try:
+            params = list(inspect.signature(module.main).parameters)
+            try:
+                module.main([]) if params else module.main()
+            except TypeError:
+                module.main()
+        except (_ParserCaptured, SystemExit):
+            pass
+
+    top = captured.get("top")
+    assert top is not None, f"{cli}: could not capture its ArgumentParser"
+
+    subs = _subparsers(top)
+    if subs:
+        return {verb: _arg_dests(sp) for verb, sp in subs.items()}
+    positionals = [a for a in top._actions
+                   if not a.option_strings and a.dest != "help"]
+    choices = next((list(a.choices) for a in positionals if a.choices), None)
+    if choices is None:
+        return {"": _arg_dests(top)}
+    return {verb: _arg_dests(top) for verb in choices}
+
+
+@pytest.mark.parametrize("cli", _LISTED_CLIS)
+def test_every_listed_cli_verb_is_declared_or_excluded(cli, monkeypatch):
+    """Falsifier: a verb of a listed CLI neither declared nor excluded."""
+    _, man = _live_manifest()
+    declared = {k.split(":", 1)[1] for k in man if k.startswith(cli + ":")}
+    introspected = set(_introspect_cli(cli, monkeypatch))
+    missing = sorted(introspected - declared)
+    extra = sorted(declared - introspected)
+    assert introspected == declared, (
+        f"{cli} verbs and its manifest/excluded keys have drifted: "
+        f"missing={missing} extra={extra}"
+    )
+
+
+@pytest.mark.parametrize("cli", _LISTED_CLIS)
+def test_declared_args_are_still_accepted_by_the_cli(cli, monkeypatch):
+    """Falsifier: a declared arg the CLI no longer accepts."""
+    _, man = _live_manifest()
+    dests = _introspect_cli(cli, monkeypatch)
+    for key, entry in man.items():
+        if not key.startswith(cli + ":") or not entry.get("proposable"):
+            continue
+        verb = key.split(":", 1)[1]
+        allowed = dests.get(verb, set())
+        for arg in entry["args"]:
+            assert arg["name"] in allowed, (
+                f"{key}: declares arg {arg['name']!r} the CLI no longer "
+                f"accepts (has {sorted(allowed)})"
+            )
+
+
+def test_live_manifest_carries_no_absolute_path_or_box_value():
+    root, man = _live_manifest()
+    text = commands.render_manifest(root)
+    for key, entry in man.items():
+        for token in entry["argv"]:
+            assert not str(token).startswith("/"), (key, token)
+    for box_value in (str(Path.home()), str(root.resolve())):
+        assert box_value not in text, box_value
