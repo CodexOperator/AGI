@@ -32,7 +32,10 @@ TRAJECTORY  your town's todo — your master writes it
 land      format ✓ AND residues=0 AND the suite green on YOUR tip (§2 suite) — accept_with_residue ≠ land
 loop      independently on pi parents until residues=0 · batch-max
 nest      split an ASSIGNED goal into NESTED sub-goals on your own (owner 09-21 01:5xZ, goal:g5): sketch leaves first, batch as resources allow,
-          nest rather than widen, spawn parents ONLY against sketched leaves · a loop your card names R&D needs no sub-goal nesting (owner 09-23)
+          nest rather than widen, spawn parents ONLY against sketched leaves · KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): a residue big enough
+          for its own round becomes smaller goal leaves under the goal that yielded it, and a leaf still too big splits again — every leaf in the goal
+          format (`.agi/context/schemas/[goal].md` required fields), several small leaves, never one fat sibling · a loop your card names R&D needs no
+          sub-goal nesting (owner 09-23)
           · NO new top-level goal (the Prime mints those)
 state     your town's trajectory (your master writes it) + your card · never routine Prime chat
 escalate  credits empty · mesh down → the owner, HOLD until the reply · keys/security → the Prime NOW · rule-changing or Prime/owner-only → [red] to your master
