@@ -211,7 +211,11 @@
       "sessions_dir": ".agi/sessions",
       "nodes_experiment_dir": ".agi/worktrees/a00-d511add6/.agi/nodes/experiment",
       "kid_sft_out_dir": ".agi/worktrees/a00-d511add6/datasets/kid-sft",
-      "pi_traj_dir": "{pi_home}/sessions"
+      "pi_traj_dir": "{pi_home}/sessions",
+      "heads_dir": ".agi/context/local-maxxing/heads",
+      "dead_head_dir": "datasets/dead-head",
+      "dead_head_run_dir": "datasets/dead-head/2026-09-23",
+      "dead_head_artifact": "qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json"
     }
   }
 }
