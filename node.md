@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.9
 next_edges: []
-assigned: "director-engine (the Prime 09-23; owner 08:4xZ verbatim on goal:g14): priority next after the live EF rounds; build loop; one [merge-up] to thought-master; retiring HANDOFF.md, CLAUDE.md and the 5 INJECTION.md writers = the follow-up once this lands."
+assigned: "director-engine (the Prime 09-23; owner 08:4xZ, goal:g5): priority next after the live EF rounds; build loop; one [merge-up] to thought-master; retiring HANDOFF.md, CLAUDE.md and the 5 INJECTION.md writers = the follow-up once this lands."
 ceiling: 2 USD, <= 3 kids, pi parents
 edited_by: belam
 scaffold_hash: 1a7272e3789a7cbf
@@ -25,7 +25,7 @@ town: local-maxxing
 
 # brief.py assembles every first turn from config — head + card (+ harness block), one pattern for every role, typed straight into the turn, no injection file
 
-**Owner 2026-09-23 08:4xZ (Prime pane, verbatim on `goal:g14`):** "Could we not just let brief.py do the task of assembly and autoinjextion for us as is just update it to be configurable and templatable via code update" then "But instead of using injection Md just use the other docs we just discussed instead via config for brief" then (08:5xZ) "By saying cards point at templates, will template text dynamically populate into the first turn via brief.py that reads said template? I figured it doesn’t even need that just the fact that the post IS a director is enough to assign it the right template. More like the post pin or whatever config needs to have a way to set which template to run with a default available depending on post in .geometry formation." The model it serves (owner 08:2xZ, `goal:g14`; `doc:s3-plan` HEAD 1.5 doc half): 3 docs per role — HEAD (`doc:unified-head`, the same bytes for every role incl. parents and kids) · CARD (one per post, derived from a class template) · TOWN TRAJECTORY; nothing rendered into an injection md; HANDOFF and CLAUDE.md retired (CLAUDE.md content → the claude-code harness block).
+**Owner 2026-09-23 08:4xZ (Prime pane, filed on `goal:g5`):** "Could we not just let brief.py do the task of assembly and autoinjextion for us as is just update it to be configurable and templatable via code update" then "But instead of using injection Md just use the other docs we just discussed instead via config for brief" then (08:5xZ) "By saying cards point at templates, will template text dynamically populate into the first turn via brief.py that reads said template? I figured it doesn’t even need that just the fact that the post IS a director is enough to assign it the right template. More like the post pin or whatever config needs to have a way to set which template to run with a default available depending on post in .geometry formation." The model it serves (owner 08:2xZ, `goal:g5`; `doc:s3-plan` HEAD 1.5 doc half): 3 docs per role — HEAD (`doc:unified-head`, the same bytes for every role incl. parents and kids) · CARD (one per post, derived from a class template) · TOWN TRAJECTORY; nothing rendered into an injection md; HANDOFF and CLAUDE.md retired (CLAUDE.md content → the claude-code harness block).
 
 **Assigned: director-engine** (the Prime, 09-23) · build loop · one `[merge-up]` to thought-master.
 
@@ -73,5 +73,5 @@ brief.py (resolver) · rotate.py, dispatch.py, hooks/cc-session-start.sh (call s
 <= 3 kids · 10-12 production lines per conjunct · pi parents · 2 USD
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-AMENDED 09:0xZ (owner 08:5xZ, verbatim on goal:g14): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it.
+AMENDED 09:0xZ (owner 08:5xZ, goal:g5): the template is chosen BY ROLE via config (a template cell on the post row, else the formation default for its role), not a template line in the card; plus the prime handoff-head first_turn entry points at the card, since HANDOFF.md is now a symlink to it. RENUMBER 09:0xZ (owner, goal:g5): goal:g14 citations -> goal:g5.
 <!-- THOUGHT:END -->
