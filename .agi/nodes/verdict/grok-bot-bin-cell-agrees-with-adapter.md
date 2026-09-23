@@ -9,7 +9,7 @@ confidence: 0.9
 edited_by: a00-ad41ad28
 evidence_runs:
   - experiment:grok-bot-bin-matches-adapter
-loop: goal:g17.14.2@s2
+loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": "C1 the row exists and resolve(cfg,grok-bot) returns it", "class": "gate", "probe": "adapters.resolve(cfg, undeclared name grok) and adapters.resolve(cfg with the grok-bot row popped, grok-bot)", "observed": "AdapterError: no harness ... declared: [...] for both -- the row (and only the row) makes the name resolve", "result": "refused as required"}

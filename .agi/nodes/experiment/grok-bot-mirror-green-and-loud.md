@@ -9,7 +9,7 @@ edited_by: a00-8ee9bdff
 evidence_runs:
   - experiment:grok-bot-mirror-green-and-loud
 line_ceiling: 40
-loop: goal:g17.14.3@s2
+loop: goal:g7.25.3@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 0
 profile: balanced
