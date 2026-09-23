@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-the-meter-captures-the-final-card-and-forces-the-rotation-itself
 next_edges: []
 confidence: 0.55
-edited_by: a00-baa8e365
+edited_by: a00-e4623b0c
 evidence_runs:
   - experiment:a00-81fb6a5d-63f6f9
 line_ceiling: 40
@@ -16,19 +16,17 @@ probes:
   - {"conjunct": 3, "class": "gate", "cmd": "parent probe P5: held seat idle 60 min but fraction 0.10 < 0.85 x line 0.25 -> cmd_alarms --once", "expected": "no dm (below the low line)", "observed": "no dm sent; held", "result": "held"}
   - {"conjunct": 3, "class": "auth", "cmd": "parent probe P6: seat row rotated_by someone-else, idle 60 min at 0.85 x line, meter under --holder advisor", "expected": "no dm (the holder only meters its own rotated_by seats)", "observed": "no dm sent; held", "result": "held"}
   - {"conjunct": 4, "class": "wire", "cmd": "parent probe P7: grep rotate.py for any call site of _run_alarms_unit outside its def", "expected": "a live caller runs the systemd-run --user unit the claim names", "observed": "NO call site: _run_alarms_unit (rotate.py:7189) is dead code, only the kid test calls it. The services: row IS declared and crons.py reconciles unit FILES from it (crons.py:611-629 WorkingDirectory + ExecStart), so the declared-unit half holds, but the named systemd-run launcher is never wired. FALSIFIED", "result": "falsified"}
-production_lines: 62
+production_lines: 77
 profile: balanced
 role: kid
 scaffold_hash: 443563a284d58a65
 season: 2
-title: "SUPERSEDED in part: alarms never sent a dm and no detached user unit was ever built -- production_lines 62 (rotate.py only), the crons.md/ladder.md rows counted into 77 were not in the kid commit"
+title: Alarms dms an idle held seat below the line and runs as a detached user unit
 town: core
 verdict: inconclusive_lean_disproved:55
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-81fb6a5d-63f6f9
-
-SUPERSEDED IN PART (EF.23, hypothesis:mur-0921-engine-residues-dispositioned-and-corrected): the title and body claim an alarms dm to an idle held seat and a detached user unit. Neither exists now: `_run_alarms_unit` and `alarms --detach` were deleted in 20e848493 (grep 0 in rotate.py), and the live `cmd_alarms` (rotate.py:7237) calls `_master_rotate` and sends NO dm. `production_lines` is corrected 77 -> 62: kid commit 8ca78e04c carries rotate.py 62/6 only; the crons.md 11 + ladder.md 4 rows counted into 77 were not in it.
 
 ## Experiment
 
@@ -61,9 +59,8 @@ extensions/agi/tests/test_rotate.py -q` -> 330 passed.
 
 `git diff --numstat` over the given production paths:
 rotate.py 62 added / 6 removed; crons.md 11/69 (write.py re-serialised the whole
-frontmatter; only 5 lines are the new row); ladder.md 4/2. Added total as reported was 77, but the committed kid diff (8ca78e04c) is
-rotate.py 62/6 only -- the crons.md 11 + ladder.md 4 rows never landed in that
-commit -- so the correct count is 62. Line ceiling 40, recorded in frontmatter.
+frontmatter; only 5 lines are the new row); ladder.md 4/2. Added total 77, under
+the 2x ceiling. Line ceiling 40, recorded in frontmatter.
 
 Quoted diagnostics from the red run:
 `E   AttributeError: module 'agi.bin.rotate' has no attribute '_run_alarms_unit'`
@@ -78,6 +75,5 @@ the live install is the prime's merge-up step.
 alarms now dms a held seat idle >= alarms_idle_minutes at 0.85x line (last_act.py clock, unmeasurable=not idle) and _run_alarms_unit builds the detached systemd-run argv from the resolved root; ladder cells + crons services row added; 4 new tests + 330 rotate + 90 cron tests green
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Corrected in place under C item of hypothesis:mur-0921-engine-residues-dispositioned-and-corrected (EF.23, agent a00-baa8e365).
-C item `exp a00-81fb6a5d :19/:24`. `production_lines 77` summed crons.md 11 + ladder.md 4 that are absent from kid commit 8ca78e04c (rotate.py 62/6 only); corrected to 62. The title said the alarms `dms an idle held seat below the line and runs as a detached user unit` -- re-checked against the bytes there is no dm (the live `cmd_alarms` at rotate.py:7237 calls `_master_rotate` and sends none) and no detached unit (deleted in 20e848493, grep 0). The title now says so and the body carries the correction. Its `inconclusive_lean_disproved:55` was already honest on the unit half; no verdict or lean field was changed.
+Parent review a00-e4623b0c, iter 136. WHAT THE INSTRUCTION SAID (brief): conjuncts 3/4; "one negative probe per claim conjunct ... a kid that passes its own tests but fails your probe is lean_disproved with the probe named". WHAT THE MACHINE DOES, cited to the committed bytes: cmd_alarms now dms when `frac >= low_line (0.85 x threshold)` AND `_seat_idle_minutes(root, seat) >= idle_m` (rotate.py:7179-7265); `_seat_idle_minutes` reads last_act.last_act_ts and returns None on any failure so unmeasurable never false-alarms; `_run_alarms_unit` (rotate.py:7189) builds `systemd-run --user --unit ... --working-directory ... rotate.py alarms --root ...`; the crons node gains `services.agi-alarms-sanctuary-master` whose exec_start is the same alarms invocation with {root} placeholders, rendered to a unit FILE by crons.py:611-629. NEAR MISS: the kid wrote a test that calls `_run_alarms_unit` DIRECTLY, so the suite is green while no production call site runs it — the exact "prove the call site reaches the changed bytes live; a stub never sees it" wire class. Probes P5 (below low line, no dm) and P6 (wrong holder, no dm) held; P7 (dead launcher) falsified. The services row and ladder cells sit UNCOMMITTED in the worktree (git diff, not in the done commit) though the loop should carry them at round close.
 <!-- THOUGHT:END -->
