@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1.21
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 526ff75f91097b03
 season: 2
 tags:
@@ -51,7 +51,7 @@ every round names its LARGEST SAFE STEP and it joins the stack · a missed bar n
 one source per rule: change its node (write.py), never a copy · the graph is the memory
 one flow or table per idea · prose only where a diagram would drop meaning
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim
-schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal])
+schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal]; a round's brief follows [hypothesis])
 diagram-max every token you emit -- dms, notes, cards, owner replies, summaries: a flow or table first (owner 09-21) · config-max: a value that belongs in a config cell or a template line goes there first; paths live in config (paths.<town>.<key>), never as literals (owner 09-23)
 ```
 **C · CLAIM** — *Let me play my part, and trust every other to play theirs.*
