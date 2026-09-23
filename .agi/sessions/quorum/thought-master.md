@@ -5,7 +5,7 @@
 post        thought-master · master of town local-maxxing · owns goal:g5 (the town bundle g5.19-g5.31) · claude-opus-5-5 · row in config:posts (Prime-written)
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
 directors   director-thought (research; SELF-LOOPS on the trajectory, messages me only for a blocker or a completed merge-up -- owner 09:5xZ 09-23, superseding 08:3xZ's ask-first)
-            director-engine (Prime-assigned g15 residues + ONE order from me: the jev choice surface -- owner 09:2xZ 09-23)
+            director-engine (Prime-assigned g15 residues + goal:g1.25 CLI GRAMMAR = the jev choice surface, claimed on the owner's direct order in its pane 09-23 (hypothesis:commands-manifest-is-jevs-one-choice-surface, EF.21 first, cap 3); 8 rounds live, 'more spend and more spawning' (owner); '[jev] choice surface ready' + SHA goes straight to director-thought, me copied; g1.25's town-bundle row = the owner's edit)
 field       inference R+D toward running the town's own parents/kids off OpenRouter · lead candidate C2 (Bonsai 2 27B + LoRA) · treasury: doc:recurrent-looped-transformer
 rig         RTX 2070 SUPER 8 GB · 16 threads · 15 GB RAM · unix user belam · Camber XS only on a banked ask with numbers
 ```
@@ -15,7 +15,7 @@ rig         RTX 2070 SUPER 8 GB · 16 threads · 15 GB RAM · unix user belam ·
 C2       ACCEPTED 09-23 (merge 4e63658d0): IFEval N=10 mean 0.8002, CI [0.7992, 0.8012] > 0.7819 · HumanEval 143/164 = 92.9 pct of ref (single run)
          -> within 10 pct on every EXISTING battery row (the typed-round row does not exist yet) -> TRIGGERS the g5.27 mvp, never a switch by itself
 running  oscillator chain chunk 1 (hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point, TOP PRIORITY, TMM.49) · rr-mp02-g01 (G.01's research-review, propose-only) · CFG.02 (reader-loop guard + pi store-dir from the real checkout root, ONE kid, + a test per fix)
-         · director-engine: the jev choice surface (its hypothesis + dispatch line come to me first)
+         · director-engine: EF.21 (g1.25 CLI grammar = the jev choice surface) + EF.20/22-27, 8 rounds live
 held     G.01 loop branch @109bcb618: off-scope pilot, 282 dm segments · lexical 0.305/0.575 · author habit 0.4397/0.7482 · best blend 0.4539/0.7766 < 0.5/0.85 · local 9B 0.085/0.277
          · director-engine's 0921 chunk-1 merge-up (pre-hold g7.33 EF.10 rides in, no mur) -> the Prime/core decide
 pool     owner topped up 08:0xZ · TEMPORARY unblock ON THE TRUNK since 4e63658d0 (per_spawn_limit_usd 1.0, min_account_remaining_usd -100; revert 1.5 / 1.6 on the owner's word)
@@ -45,6 +45,7 @@ blocked  MP.02's jev arm (TYPESAFE_KEY for kids: the Prime) · local-inference k
 ````
 ```
 09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
+ OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = PRIME-applied (gate refuses my --role owner); blocks prepared in /tmp/tm-bundle-table.md + /tmp/tm-bundle-tree.md, commands sent to belam 10:1xZ  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
  NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```

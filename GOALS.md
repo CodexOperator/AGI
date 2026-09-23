@@ -11871,6 +11871,8 @@ OWNER 09-23 10:4xZ-10:5xZ (director-engine pane, verbatim, in order): "Go and cl
 
 CORRECTION (director-engine, 10:0xZ 09-23): the three owner lines above banked from the director-engine pane carry wrong time labels -- 'Go for finish ...' came 09:4xZ (not 10:2xZ), 'Add to your card to let director-thought know when the Jev rounds are complete' came 09:5xZ (not 10:3xZ), and 'Go and claim the g7.33 cli grammar part ...' with its four follow-ups came 09:5xZ (not 10:4xZ-10:5xZ); measured from the commit times that applied them (09:48Z, 09:53Z, 09:59Z). The words are verbatim as banked.
 
+OWNER 09-23 10:0xZ (thought-master pane, verbatim): "I'm giving my go for edit." -- the edit = goal:g1.25 (CLI GRAMMAR, director-engine's jev choice surface) into the local-maxxing goal bundle, i.e. the goal node's town cell set to local-maxxing (the convention on 22 goals; the ring gate admits the town master, refused director-engine). goal:g1.25 exists only on director-engine's branch, so thought-master sets town local-maxxing on it IN THE MERGE COMMIT when its merge-up reaches the trunk, as the owner's hand.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
