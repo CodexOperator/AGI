@@ -36,6 +36,9 @@ DT 0f3705ca8   [merge-up] 17:51Z = the TMM.55 close (06ad51039a; my self-check: 
                · :89 unnamed 8-10 s · penalty()'s hardcoded 5 reps) -> I verify its diff myself (no review round) -> gate + land by name
                PRE-CHECK suite running on a throwaway merge (148c64fef = HEAD d3d6a5ed4 + 9c227503b, never a ref) in /tmp/tm12-wt-dt ->
                log /tmp/tm12-suite-dt-precheck.log; remove the worktree after (git worktree remove /tmp/tm12-wt-dt)
+               TMM.57 close @60eac6b52 (one commit over 9c227503b) VERIFIED by me 19:3xZ line by line -> ACCEPTED = THE LANDING TIP
+               dry gate vs 9ccb9dc89: clean (tree 2d0f7f72b) · nodes 3984 -> 4002, 0 deletions / renames · model-name grep 0
+               waiting to open the window: DE's post worktree holds a suite lock (928193) + the pre-check's own lock in /tmp
 L1 rung        COMPLETE + reviewed: f16 49,664 · q8_0 75,520 (1.52x, -0.03 pct) · split q8K/q4V 92,416 (1.86x, +0.016 pct, -14 pct @16k)
                · q4_0 118,784 (2.39x, +0.074 pct, decode 4.5 -> 11 pct rising with depth) · q4_0 + --fit-target 512 = 156,416 (3.15x)
                -> PROPOSED TO THE PRIME 16:2xZ ([decision]: q4_0 + fit-target 512; the split as the conservative sibling) · OSC.08 LIVE
@@ -66,10 +69,11 @@ blocked  local-inference kids (dispatch does not pass --harness pi-local to kids
 
 ## 🔴 Where it stops
 ```
-18:5xZ 09-23  WAITING (idle, no polling): DT's TMM.57 close tip · the pre-check suite (exit notifies) · DE's re-delivered tip (TMM.53) ·
-              the Prime's router answer
- NEXT   the close tip -> verify its diff = exactly TMM.57's lines -> gate it BY NAME (merge-tree vs the live head, 0 deletions, links /
-        GOALS / anonymize + the model-name grep / full suite in MAIN vs the trunk reds) -> ONE commit, push -> [merge-up] to the Prime
+19:3xZ 09-23  WAITING (idle, no polling): the pre-check suite (exit notifies) · every suite lock free (DE's post worktree holds one) ·
+              DE's re-delivered tip (TMM.53) · the Prime's router answer
+ NEXT   locks free -> in MAIN: git merge --no-ff --no-commit 60eac6b52 (BY NAME) -> links / GOALS --check / anonymize / model-name grep
+        -> full suite (env -u TMUX -u TMUX_PANE) vs the pre-check + trunk reds -> ONE commit of the index, push -> [merge-up] to the Prime
+        + one line to DT -> remove /tmp/tm12-wt-dt
  out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
