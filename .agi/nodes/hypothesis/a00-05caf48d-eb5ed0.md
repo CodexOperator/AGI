@@ -6,12 +6,16 @@ parents:
   - goal:g7.32.2
 next_edges: []
 confidence: 0.9
-edited_by: a00-05caf48d
+edited_by: a00-ab3bb108
 evidence_runs:
   - hypothesis:a00-05caf48d-eb5ed0
 line_ceiling: 40
 loop: goal:g7.32.2@s2
 model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "probe_kid3.py: send_magic same-harness rows, tmux seam recorded, native_send wrapped, send.send_dm recorded", "expected": "via_route=native; exactly one tmux send-keys -l to agi-rc:@23 with the body; ZERO send_dm", "observed": "via_route=native; typed_target=agi-rc:@23 native-body; send_dm=0; native_send called once", "result": "pass"}
+  - {"conjunct": 2, "class": "gate", "cmd": "probe_kid3.py: send_magic differing-harness rows, native_send patched to raise, send_dm recorded", "expected": "via_route=nudge-send; one send_dm with the body; native never reached; zero body keystrokes", "observed": "via_route=nudge-send; send_dm=1 with claude-b/cross-body; native_hit=False; keys=[]", "result": "pass"}
+  - {"conjunct": 3, "class": "auth", "cmd": "probe_kid3.py: _harness_of on a missing cell and an unknown seat; route() on empties", "expected": "returns empty, never invented; empty/empty routes nudge-send not native", "observed": "harness(missing)= ; unknown= ; empty_routes=nudge-send", "result": "pass"}
 production_lines: 38
 profile: balanced
 role: kid
@@ -133,3 +137,5 @@ the safety property; the missing-harness test pins it.
 
 ## Agent Notes
 send_magic adds the missing caller of route(): resolves both posts harnesses, runs exactly one of native_send/cross_send, stamps via_route; +38 production lines, 12/12 messaging tests green
+
+Parent review DH.177 (a00-ab3bb108). Read the BYTES: _harness_of at messaging.py:19, send_magic at :32; both existing paths untouched. The residue was real -- grep confirmed no production caller of messaging.py or route() before this kid; route() was an unexercised predicate. Ran three independent negative probes (wire/gate/auth) recorded under probes; all pass: same harness -> native only with the body typed at agi-rc:@23 and ZERO send_dm; different harness -> cross only with one send_dm and native_send never reached; a missing harness cell and an unknown seat return empty and route nudge-send, never native. This closes the gap between the two paths and route(); the module now has one entrypoint whose branch is a production behaviour. Verdict kept at the kid s inconclusive_lean_proved:90 (hypothesis node, no experiment child) -- my probes corroborate it.
