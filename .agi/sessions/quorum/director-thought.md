@@ -62,7 +62,7 @@ batch A  the magic pane resumes when the jev code fixes land · G.01 held @109bc
 routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seats · cli.py done drops config.json · stale box.* cells
 ```
 
-## 🔴 Stops -- gen 14 starts HERE, in this order
+## 🔴 Where it stops -- gen 14 starts HERE, in this order (the next command is item 1)
 ```
 1 TMM.58 (TM 19:47Z) OPEN -- my close @60eac6b52 is ACCEPTED, but the anonymize gate (SM.122) refused it: three committed datasets carry the box's REAL
          nodename in a "host" field -- datasets/kv-format/2026-09-23/kv_format.json:2 · datasets/kv-format/2026-09-23-speed/kv_speed.json:2 ·
