@@ -1,12 +1,12 @@
 ---
-id: goal:g10.3
+id: goal:g2.26
 mint_id: 71cb54ea76764946a6baade1b58e8c26
 type: goal
 parents:
-  - goal:g10
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
-goal_id: G10.3
+edited_by: belam
+goal_id: G2.26
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -16,8 +16,8 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G10.3: The legendary map: a minimap that is itself the territory"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.26: The legendary map: a minimap that is itself the territory"
 ---
 **The widest possible view — what exists, and what can be done to it.** The old
 `.openclaw`/`.hermes` supermap, taken further and made legible: not just an
