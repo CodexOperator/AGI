@@ -11,15 +11,13 @@
 | ids | renumber 09-23 (mint ids kept): g14.11->g5.27 (.1 battery) · g14.16->g5.31 · g14.15->g5.30 · g14.14->g7.33 (parked) · g14 stays |
 | board | town:local-maxxing trajectory_standin, thought-master writes it; my rows ride the [merge-up] |
 
-## §1 Plan -- TMM.37-41 (ask thought-master first; an owner order in my pane: act, then tell)
+## §1 Plan -- TMM.37-45 (ask thought-master first; an owner order in my pane: act, then tell)
 ```
-batch B   ✅ DELIVERED [merge-up] 09:0xZ @fd947d883 (C2 fires under the CI rule -> SWITCH met on both evals pending TM's gate · B no fire) -- TM gates + runs the suite
-          after the RS.01 mur: TMM.38(2) deviation THOUGHT on a00-1864ce6e · TMM.38(3) letter_frequency floor notes on B, C2, gap_table.md · TMM.39(a) gap_table.md b/c labels to scorer.py · TMM.41 C2's 3 residues in place -> ONE batch-B merge-up
-batch A   G.01 HELD @109bcb618 -> ✅ rr-mp02-g01 returned DEMOTE (dedup leak 282 -> 243 unique, 11 cross-fold dup groups; gold synthesized from dm headers, not observed) · brainstorm measured: dedup lifts blend top-1 0.4539 -> 0.5391 (lean-disproof = contamination artifact?)
-          then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
-          then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
-owner     ✅ CFG.01 landed + harvested 7b0053ac5 (7 uncommitted keys committed) · ✅ TMM.44 kid nodes quote {root}/{pi_home}: audit 10,086 -> 10,077, 0 new hits (b5399af78) · ⏳ mur mur-director-thought-3 · then CFG.01's OWN merge-up, after TM's batch-B merge lands
-done      TMM.39 (b)(c)(d) 9755735e0 · TMM.40 a00-e51d276e pending 70939506c · TMM.41 slot finding noted · g5.24.4 draft discarded
+batch B   ✅ MERGED 4e63658d0 09:14Z -- C2 within 10 pct on every battery row -> TRIGGERS the g5.27 mvp (thought-master plans it) · suite 5939 passed (3 pre-existing fails) · floor bypass now on trunk
+batch A   ✗ grammar round CANCELLED (owner 09:2xZ on goal:g5: director-engine builds the jev choice surface -- command:commands + engine functions as API endpoints + ONE manifest)
+          T.01 labels + S.01 scores wait on DE's manifest · no jev round until the TypeSafe key reaches kids (routed to the Prime)
+          G.01 held @109bcb618 · rr-mp02-g01 done: DEMOTE rec (dedup leak, synthesized gold; dedup lifts blend top-1 0.4539 -> 0.5391) · disposition ASKED, open
+owner     ✅ CFG.01 harvested + audit clean (0 new hits) · ⏳ mur mur-director-thought-3 -> CFG.01's OWN merge-up
 guards    nothing under extensions/ (except the owner-ordered item 13) · orders wall 120 on paid rounds · no pi-local round live across 11:41Z · no multi-kid round under a pi-local parent
 ```
 
@@ -66,72 +64,7 @@ links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identic
 - for the head, via thought-master: the brief's §4 thought section still names season1 paths
 ```
 
-## Scratch -- orders (tracked; live rounds' orders replaced when they land, drafts dispatch only on go)
+## Scratch -- orders (tracked; live rounds' orders, replaced when they land)
 ```
-ORDERS MP02-G.02 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.41 ASK 2 · pi deepseek · cap 1 USD · ONE kid)
-read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) incl. its THOUGHT (why G.01 is held) · extensions/agi/lib/agent-prompt.md Rules item 13
-deliverable cli-grammar.json + the script that derives it, under .agi/context/local-maxxing/magic-pane/ -- every verb of extensions/agi/bin/{write,send,dispatch,workflow}.py DERIVED from argparse / -h, never hand-typed
-per verb    positionals · flags (type, required, default) · one real example · invariants from the tool's own source · traps only from recorded town sources, each cited
-send tags   send.py bodies carry typed tags ([merge-up] [decision] [red] [TM] [DT] [owner]) -- the grammar names them as sub-forms of send, so a merge-up line is its own form (rr-mp02-g01: G.01 force-labelled merge-ups as plain send)
-validate    parse >= 30 REAL invocations (dm transcripts, cards, node commands, claude-code session tool calls -- read only, scrub anything landed) · count parse / fail with each failure's reason
-paths       rule 13: any path the script needs is a paths.local_maxxing.<key> variable, repo-relative
-OUT OF SCOPE segments · test sets · suggesters · baselines -- the parent REFUSES any kid output outside the deliverable (G.01's kids broke this line)
-never       anything under extensions/ · the held loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a · GPU or :8080
-wall        call done by 120 min whatever the state (key TTL 180)
-cap         1 USD · ONE kid · line ceiling 120 engine-unit lines
-record      verbs + flags covered per tool vs its own -h (misses named) · parse rate on >= 30 real invocations with failure reasons · grammar size in tokens · one harvest line
-```
-
-```
-ORDERS CFG.01 (director-thought -> parent · OWNER order 09-23 ~08:4xZ, verbatim on goal:g14 · pi deepseek · cap 1 USD)
-read first  hypothesis:lm-every-experiment-path-is-a-config-variable · extensions/agi/lib/agent-prompt.md Rules item 13 (read only)
-task        every path literal in the town's experiment scripts becomes a named variable under paths in .agi/config.json, read through ONE shared reader
-inventory   2026-09-23: 19 of 51 tracked .py/.sh under datasets/ and .agi/context/local-maxxing/ carry 40 literals (15 files .agi/context/local-maxxing · 3 datasets/switch-rule · 1 datasets/kid-sft/build_corpus.py) -- re-derive it yourself, do not trust this count
-reader      one small reader that both .py and .sh can call (prints paths.<key>, relative values resolved from the repo root) -- it lives with the town tooling, NEVER under extensions/
-config      add only the keys you convert · descriptive names · each value = the exact literal it replaces (repo-relative where the literal was)
-behavior    per key: prove the variable resolves to the exact literal it replaced · per converted script: its smallest honest check still passes (--help, a dry run, or an import)
-nodes       Reproduce / Command lines in these chains that call a converted script cite paths.<key> -- a correction in place via write.py, results never rewritten · a node citing a converted file's bytes as evidence gets ONE note: converted, values identical, prior bytes at <commit>
-never       anything under extensions/ · result data (.jsonl / .json outputs) · regenerating any result · loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a (held for thought-master)
-kids        split by area if it helps, <= 3 kids · one experiment node per kid under the hypothesis
-wall        call done by 120 min wall-clock whatever the state (key TTL 180) -- land what is converted, name what is left
-cap         1 USD · line ceiling 120 engine-unit lines per kid
-record      keys added · literals converted per file · literals left + why · per-key resolved-value proof · checks run · nodes corrected · one harvest line to your seat
-REBRIEF CFG.01 08:5xZ (TMM.42, sent to parent a00-e9111187): values repo-relative against box.root, never absolute · keys paths.local_maxxing.<key> · absolute box roots only in existing box.* / locations.* cells, a missing cell = left literal + proposed, never added · paths.py audit no new hit (baseline 10,086 hits)
-```
-
-```
-ORDERS MP02-T.01 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.37 ASK 2 · batch A chunk 2 of 3 · pi deepseek · cap 1 USD)
-read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) · goal:g5.24.3 · the MP02-G.01 kid node(s) + .agi/context/local-maxxing/magic-pane/cli-grammar.json (the label vocabulary)
-task        MP.02's held-out set: >= 100 REAL segments, each = the prose an author wrote up to just before a structured call -> the call that author actually invoked next
-sources     the masters' committed dm transcripts (.agi/comms/season-2/dm/*.md, 90 tracked) · MP.01's census: 63 forms = 39 kept + 24 dropped for too-short prose (datasets/magic-pane/metrics_strict.json) -- reuse the 39, never edit MP.01's segments.jsonl
-label rule  every label parses under G.01's cli-grammar.json; a next call that does not parse stays OUT and is counted with its reason -- never forced to fit
-record      per source · per role (master / director / prime / parent / kid) · per verb · the majority class and its share (S.01's baseline) · the unparsed count + reasons
-scrub       every landed segment passes datasets/tools/scrub.py; no raw log copied in
-land        datasets/magic-pane/<date>/, distinct from MP.01's segments.jsonl · ONE experiment node under MP.02
-never       anything under extensions/ · the suggester itself (S.01) · the GPU or :8080
-wall        call done by 120 min whatever the state (key TTL 180); if < 100 segments by then, land what exists and name the gap
-cap         1 USD · line ceiling 120 engine-unit lines
-```
-
-MP02-G.01 (dispatched 07:58Z):
-```
-ORDERS for MP02-G.01 (director-thought -> parent; TMM.33 batch A, chunk 1 of 3; 0 USD on pi-local). Read hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call and goal:g5.24 (its JEV LANE block, "GRAMMAR FIRST") in full before anything else.
-
-WHY THIS CHUNK: MP.02 (the magic-pane SUGGESTER) ranks up to 5 candidate graph tool calls from a prose stream. It needs a machine-readable grammar of those calls. The engine version of that grammar (goal:g7.33, was G14.14.6) is PARKED by owner order, so TMM.33 builds it here as jev-lane tooling. Do NOT touch extensions/ -- read it only.
-
-TASK: produce .agi/context/local-maxxing/magic-pane/cli-grammar.json plus the script that derives it, in the same dir.
-- Tools in scope (the calls town agents actually emit): extensions/agi/bin/write.py (every verb: create, note, set, thought, replace body, and any others it defines), extensions/agi/bin/send.py (send, read and their flags), extensions/agi/bin/dispatch.py (positionals + flags), extensions/agi/bin/workflow.py (run and its other subcommands).
-- Per verb: name; positional args; flags (type, required, default); ONE real example invocation; invariants taken from the tool's own source or docstrings (examples already known: write.py set takes a SPACE not '='; note appends one paragraph; thought replaces the THOUGHT block; dispatch iter_n is label.digits with digits only after the dot); traps taken ONLY from recorded town sources -- CLAUDE.md, the traps lines on .agi/sessions/quorum/*.md cards, doc:lm-local-town-box-facts -- each trap citing its source. Invent none.
-- DERIVE, DO NOT TRANSCRIBE: the JSON must be generated by the script from the tools themselves (python ast over the argparse/verb tables, or parsing each tool's --help), so it regenerates when the CLI changes. Hand-typed JSON is a defect.
-
-MEASURE (the experiment node must carry these numbers):
-1. coverage -- per tool, verbs and flags the derivation found vs what that tool's own --help lists; name every miss.
-2. validation -- parse >= 30 REAL invocations against the grammar. Sources: exact commands quoted in .agi/comms/season-2/dm/*.md, in the quorum cards, and in node Agent Notes; and the Bash tool_use command strings in the claude-code session logs under /home/belam/.claude/projects/-data-work-agi*/ (READ ONLY -- never copy a raw log into the repo; any example you land goes through datasets/tools/scrub.py first). Report how many parse and how many fail, and WHY each failure fails. A failure is data; do not loosen the grammar to hide it.
-3. size -- grammar size in tokens (it goes into the suggester's prompt next chunk).
-
-LOCAL-MODEL CONSTRAINTS: you and your kids run on Qwen3.5-9B-Q4_K_M through the :8080 router, which has ONE slot (-np 1) and --models-max 1. NEVER request any other model on :8080 -- it would unload the 9B you are running on. Parent and kid share that one slot, so keep kid briefs short and your own turns lean.
-
-CAP: 0 USD (pi-local). LINE CEILING: 120 engine-unit lines (the derivation script); the JSON output does not count. OUT OF SCOPE: the dm/notes test set (chunk MP02-T.01), the suggester itself (chunk MP02-S.01), any edit under extensions/.
-
-RECORD NUMBERS: verbs and flags covered per tool with misses named; validation parse rate on >= 30 real invocations with each failure's reason; grammar token count. One harvest line to your seat when done.
+none live -- MP02-G.01 held, SWR-RS.01 + CFG.01 landed, MP02-G.02 and T.01 drafts cancelled / superseded (TMM.45); prior orders are in this file's git history
 ```
