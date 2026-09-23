@@ -4,7 +4,7 @@ mint_id: be648cffa7e2473f9962b087153c3fe6
 type: goal
 parents: []
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G12
 goal_kind: long-term
 heading_level: 2
@@ -13,11 +13,11 @@ season: 1
 seeds:
   - goal:g12.1
   - goal:g12.2
-status: active
+status: retired
 tags:
   - goal
   - root
-thought_session: season
+thought_session: goal-glom-2026-09-19
 title: "G12: Only morals are parentless — moral spawns vision spawns goal"
 ---
 **The rule, stated once: exactly one node type may have an empty `parents`
@@ -184,7 +184,7 @@ harder to earn than the middle of the graph" survives as a `min_parents_by_type`
 on `moral`/`bigger_outcome`, or is dropped. That is a live question. The
 `overview` type itself should be deprecated rather than deleted (CLAUDE.md's
 retirement rule) if this lands, since a schema for a type with zero instances
-is exactly the "prose with a directory name" failure `goal:g10.2` warns about.
+is exactly the "prose with a directory name" failure `goal:g2.25` warns about.
 
 ## Total parentless count today, for reference
 
@@ -199,3 +199,7 @@ is exactly the "prose with a directory name" failure `goal:g10.2` warns about.
 | doc | 1 | 1 |
 | vision | 17 | 0 |
 | **TOTAL** | | **113 of 799** |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded 2026-09-19 by goal:g20–g26 glom; prior art.
+<!-- THOUGHT:END -->
