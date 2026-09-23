@@ -3,9 +3,9 @@ id: goal:s18
 mint_id: 308859ad381e4981b087e3c947928cab
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S18
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S18: Absorb cavekit references before cavekit retires"
 ---
 Cavekit was the bootstrap that seeded this graph and is being phased out.
