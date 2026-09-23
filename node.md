@@ -1,14 +1,13 @@
 ---
-id: goal:g15.24
+id: goal:g6.46
 mint_id: 7c393f0bc3ab4d6691295c09c60ff24b
 type: goal
 parents:
-  - goal:g15
-  - build:bin-rotate
+  - goal:g6
 next_edges: []
 confidence: 0.6
-edited_by: sensei-director
-goal_id: G15.24
+edited_by: belam
+goal_id: G6.46
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -24,11 +23,12 @@ tags:
   - subgoal
   - l4
   - sensei-director
-title: "G15.24: rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack)"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G6.46: rotate.py ack commits its own row write and prints the +/- lines it changed — the wake floor is two calls (ListAgents, ack)"
 town: core
 ---
 <!-- BODY:BEGIN -->
-# goal:g15.24
+# goal:g6.46
 
 ## Why this exists
 
