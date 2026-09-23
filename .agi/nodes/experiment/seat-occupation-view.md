@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-aa592d9a-c374ea
 next_edges: []
-edited_by: a00-06efdc61
+edited_by: a00-62886e90
 evidence_runs:
   - experiment:seat-occupation-view
 line_ceiling: 40
@@ -28,6 +28,7 @@ role: kid
 scaffold_hash: afe9ed762b148a30
 season: 2
 testable_claim: After seat start a seat row reads occupied iff its pinned window @id is the live tmux @id for its seat name and its pid is alive; a foreign or absent window reads unoccupied, a stale pin or dead pid reads pane-drift, and the fact renders in both seat_status views behind an optional tmux seam.
+thought_session: iter-DH.216
 title: "One read for seat occupation: pane pin plus pid liveness"
 town: core
 verdict: inconclusive_lean_proved:80
@@ -93,3 +94,5 @@ measured with `git diff --numstat`; ceiling 40 (under the 80 = 2x stop line).
 
 ## Agent Notes
 Parent probes on the landed bytes (a00-0a0390bf): wire -- CLI renders pane=occupied(@7); auth -- foreign window director-seat-2 -> unoccupied; gate -- pid-0 sentinel occupied / dead pid pane-drift; gate -- no seam -> no 'pane=' cell. All pass. Source/test bytes byte-identical to kid2's probed branch diff.
+
+Parent DH.216 LIVE-tmux probe closes the fixture-seam caveat above: against a REAL isolated tmux 3.4 server (TMUX_TMPDIR sandbox, window_path=None so the subprocess list-windows branch runs), seat_occupation read occupied/@0==@0/pid_alive True; pane_coherent returned True; renaming the window to director-seat-2 read unoccupied (exact-equality join, never substring); a stale row pin read pane-drift; a dead pid read pane-drift -- 6/6 parent probes pass. Probe driver: .agi/sessions/iter-DH.216/a00-62886e90/live_tmux_probe.py. Round also recorded a spawn refusal by name: dispatch paused (openrouter-credits), 1 of 1 slot unadmitted at cap 30.
