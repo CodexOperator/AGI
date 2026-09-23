@@ -3,9 +3,9 @@ id: goal:s24
 mint_id: 92c99c4d207c402f87dfea8507136976
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 0.8
-edited_by: season.py
+edited_by: belam
 goal_id: S24
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S24: Sweep the corpus for stale nodes: orphan @v2s and filler chain extensions"
 ---
 **The owner's ask, 2026-09-02, alongside the goal sweep: the same pass the
