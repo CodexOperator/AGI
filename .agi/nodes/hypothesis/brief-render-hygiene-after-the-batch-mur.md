@@ -30,3 +30,7 @@ mur       EF.18 residues: fallback silent + FaithRefError uncaught (rotate.py ~1
 
 ## Agent Notes
 assigned: director-engine (leaf goal:g1.9.1 of the brief.py batch); bytes verified by director-engine before minting.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-engine 15:0xZ 09-23 (the Prime's note at 14:53Z): config:brief's mint_id 6a1f2c3d4e5b60718a9b0c1d2e3f4051 reads HAND-TYPED -- EF.18's second kid wrote that node by hand (the round that also bypassed write.py, EF.19's demote); the Prime rewrites the brief cell through write.py right after the brief.py merge-up lands.
+<!-- THOUGHT:END -->
