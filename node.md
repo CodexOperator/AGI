@@ -1,12 +1,12 @@
 ---
-id: goal:g9.4
+id: goal:g2.17
 mint_id: 25db24d1dfdb4bdcb089fd251102f79f
 type: goal
 parents:
-  - goal:g9
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
-goal_id: G9.4
+edited_by: belam
+goal_id: G2.17
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -16,8 +16,8 @@ status: horizon
 tags:
   - goal
   - subgoal
-thought_session: season
-title: "G9.4: The live graph viewport: watch the whole thing, moving"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G2.17: The live graph viewport: watch the whole thing, moving"
 ---
 **This supersedes the dashboard as the primary view.** G9.1 answers "what is the
 state" in panels of text. This answers "what does the graph *look* like, right
@@ -70,12 +70,12 @@ fix.
 
 **Split, and each half chases its own mvp:**
 
-- `goal:g9.8` — one hook layer and frame stream, the player avatar, docking, and
+- `goal:g2.20` — one hook layer and frame stream, the player avatar, docking, and
   LOD-on-approach. Everything both skins share.
-- `goal:g9.9` — the spider web skin: every node on a web, animated ASCII spiders
+- `goal:g2.21` — the spider web skin: every node on a web, animated ASCII spiders
   that crawl edges and mess with the nodes they are working on, motion that reads
   as alive rather than linear.
-- `goal:g9.10` — the space skin: systems, planets, moons, asteroids; ships whose
+- `goal:g2.22` — the space skin: systems, planets, moons, asteroids; ships whose
   size mirrors the tier split, plus modular tiers (station, terraformer, colony);
   a player ship that flies, docks, and browses versions and chats.
 
@@ -87,5 +87,5 @@ a table, never new branches.
 worked, and it is not `complete`. It closes when the three subgoals do.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Owner review 2026-09-04: the shipped --live view is a list, not a web, so the goal returns to horizon and splits into goal:g9.8 (hook layer, player avatar, LOD), goal:g9.9 (spider skin) and goal:g9.10 (space skin). Recorded here as the worked example of a goal too saturated to aim at -- the case goal:g5.2 exists to catch mechanically.
+Owner review 2026-09-04: the shipped --live view is a list, not a web, so the goal returns to horizon and splits into goal:g2.20 (hook layer, player avatar, LOD), goal:g2.21 (spider skin) and goal:g2.22 (space skin). Recorded here as the worked example of a goal too saturated to aim at -- the case goal:g5.2 exists to catch mechanically.
 <!-- THOUGHT:END -->
