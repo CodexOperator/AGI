@@ -17,8 +17,8 @@ LANDED    TMM.60: the whole post range @291510892 landed at b0b4fbc9b (gate 6182
 POST TIP  4af82b8a2 = trunk e7ad0c1e7 + 11 merged rounds: EF.49 EF.50 EF.51+56 EF.54 EF.57 EF.58 EF.59 EF.60 EF.62 EF.63 EF.64
           (EF.50: kept the landed EF.52 wording in test_bin_help_smoke; EF.54: command:commands merged at the ENTRY level -> 216
           entries / 146 proposable, 195 passed). Pushed.
-TESTS     batch-2 run of every touched test file started 20:2xZ -> /tmp/de-batch2.log; if absent or cut by the rotation, RE-RUN:
-          pytest $(cat /tmp/de-batch2-tests.txt) (or `git diff --name-only e7ad0c1e7..HEAD -- 'extensions/agi/tests/test_*.py'`)
+TESTS     DONE 20:14Z on 4af82b8a2: every test file the 11 merges touch + the adapter neighbours = 1747 passed / 1 failed /
+          1 skipped (the 1 = core R3 test_brief g15 fallback, known) -- no re-run needed for these 11
 MURS      L (EF.49 EF.50) · M (EF.58 EF.60 EF.62 EF.63) · N (EF.57 EF.59 EF.64) were running in this session's shells -- results land in
           .agi/sessions/workflows/runs/<run-key>/verify_R-EF*.json; any missing -> re-run `workflow.py run agi-merge-up-review --harness
           pi --args "$(cat .agi/sessions/de-0923/mur-{L,M,N}-args.json)"` (export PI_BIN first; H K J done). M's focus names EF.60's
