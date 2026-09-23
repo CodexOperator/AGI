@@ -1,13 +1,13 @@
 ---
-id: goal:g17.7
+id: goal:g7.20
 mint_id: e50653a634f94a6eb927c02b898a5039
 type: goal
 parents:
-  - goal:g17
+  - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
-goal_id: G17.7
+edited_by: belam
+goal_id: G7.20
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
@@ -19,10 +19,12 @@ tags:
   - goal
   - subgoal
   - l4
-thought_session: sanctuary-director-genVI-L4
-title: "G17.7: The seat node type — the graph shows where everybody is assigned"
+thought_session: g1-g7-rewrite-2026-09-19
+title: "G7.20: The seat node type — the graph shows where everybody is assigned"
 ---
 <!-- BODY:BEGIN -->
+# goal:g7.20
+
 **A `seat` node type, so the graph shows where everybody is assigned.** Brief point **B7** of the L4 mapping round (L4.20), minted so the point exists in the graph rather than only in a plan document.
 
 **Source:** owner, A:164 — read the verbatim by pointer in `doc:l4-owner-decisions` ("L4 PLAN") and the row itself in `doc:l4-plan` §5.0-5.1, never copied here.
