@@ -3,9 +3,9 @@ id: goal:g9.6
 mint_id: 109544c597b047f78178c67f641721f0
 type: goal
 parents:
-  - goal:g9
+  - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G9.6
 goal_kind: long-term
 heading_level: 3
@@ -15,7 +15,7 @@ seeds: []
 status: horizon
 tags:
   - goal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G9.6: A build node's description survives the scan; its body becomes the rendered payload"
 ---
 **Under G9 — legibility: a human can see what the loop is doing — because
