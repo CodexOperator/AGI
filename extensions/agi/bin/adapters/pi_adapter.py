@@ -33,8 +33,9 @@ import harness_template
 
 NAME = "pi"
 
-#: Fallback only. `harness["bin"]`, then $PI_BIN, then this.
-DEFAULT_BIN = "/home/ubuntu/.npm-global/bin/pi"
+#: Fallback only. `harness["bin"]`, then $PI_BIN, then this (a bare PATH
+#: name; `adapters.resolve_bin` consults PATH at resolve time).
+DEFAULT_BIN = "pi"
 
 
 def resolve_bin(harness: dict) -> str:
@@ -42,9 +43,10 @@ def resolve_bin(harness: dict) -> str:
 
     Env-over-config is deliberate and is the pre-existing behaviour: $PI_BIN is
     how a machine with pi installed somewhere else runs the loop without
-    editing a tracked config file.
+    editing a tracked config file. The expansion/PATH/refusal logic lives
+    once, in `adapters.resolve_bin`.
     """
-    return os.environ.get("PI_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, "PI_BIN", DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:

@@ -265,9 +265,10 @@ def resolve_bin(harness: dict) -> str:
 
     Same precedence as `pi_adapter.resolve_bin` and for the same reason: an
     env var is how a machine with the binary somewhere else runs the loop
-    without editing a tracked config file.
+    without editing a tracked config file. Delegates to the one shared
+    resolver in `adapters.resolve_bin`.
     """
-    return os.environ.get("CLAUDE_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, "CLAUDE_BIN", DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
