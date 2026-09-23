@@ -3,12 +3,13 @@ id: hypothesis:l4-a-failed-repeated-stage-slice-never-aborts-its-siblings-and-a-
 mint_id: 1a0475651d9f44ffad16e63e420fe7a4
 type: hypothesis
 parents:
-  - goal:g15
+  - goal:g6.15
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: e6cfc42ac949a871
 season: 2
 testable_claim: "In workflow.py a repeated (fan-out) stage runs its slices in isolation: one slice failing (error or timeout) marks THAT slice failed and only the stages that depend on it skipped-by-name; sibling slices and independent stages run to completion and the run ends with a status that names every failed slice and every skipped dependent -- measured on the trove-survey manifest where one 600 s wall on critique:recipes-sdks aborted critique:pricing, 3 panels and the judge although the 3 read stages (55 pages) had succeeded, the same no-slice-isolation merge-up-review showed. A manifest stage may declare timeout_s and it overrides the 600 s default for that stage only (trove-survey: critique, panel, judge 1200). Falsifier: a failed slice still aborts a sibling; an independent stage is skipped; timeout_s is ignored or applies to every stage; the run status omits the failed slice name."
+thought_session: dissolve-legacy-2026-09-19
 title: "SM.105 (thought-master 02:45Z, jev trove-survey run): a failed repeated-stage slice never aborts its sibling slices or independent stages, and a workflow manifest stage carries its own timeout_s"
 town: core
 ---
