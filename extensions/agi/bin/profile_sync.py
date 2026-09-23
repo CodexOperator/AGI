@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse, hashlib, os, re, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import locations, node_writer  # noqa: E402
+import frontmatter, locations, node_writer  # noqa: E402
 from graph_core.persistence import frontmatter as fmr  # noqa: E402
 
 class Refused(Exception): pass
@@ -53,7 +53,9 @@ def project(root, node_id):
 
 
 def _raw_profile_ref(text):
-    """Best-effort `profile_ref` from raw bytes, for a file YAML cannot parse."""
+    """Best-effort `profile_ref` from raw FRONTMATTER bytes, for a file YAML
+    cannot parse. Callers pass only the frontmatter region (between the two
+    `---` lines), so a body mention can never name an artifact."""
     m = re.search(r"^profile_ref:\s*(.+?)\s*$", text, re.M)
     return m.group(1).strip().strip("\"'") if m else ""
 
@@ -73,10 +75,22 @@ def check_all(root):
         try:
             nf = fmr.load_node_file(f)
         except Exception as e:
-            raw = f.read_text(encoding="utf-8", errors="replace")
-            if "profile_ref:" not in raw:
-                continue  # unparseable but not profile-linked: not ours
-            out.append({"node_id": f.stem, "artifact": _raw_profile_ref(raw),
+            try:
+                raw = f.read_text(encoding="utf-8", errors="replace")
+            except OSError as e2:
+                out.append({"node_id": f.stem, "artifact": "", "actual": None,
+                            "expected": None, "path": str(f),
+                            "status": "unreadable",
+                            "detail": f"{type(e2).__name__}: {e2}"})
+                continue
+            parts = frontmatter.split_frontmatter(raw)
+            if parts is None:
+                continue  # no parseable frontmatter region: not ours to fail
+            fm_text, _body = parts
+            if "profile_ref:" not in fm_text:
+                continue  # body mention only: unparseable but not linked
+            out.append({"node_id": f.stem,
+                        "artifact": _raw_profile_ref(fm_text),
                         "actual": None, "expected": None, "path": str(f),
                         "status": "unreadable",
                         "detail": f"{type(e).__name__}: {e}"})
