@@ -63,6 +63,7 @@ routed   OPEN: kids ignore --harness pi-local · AGI_ACTOR unset on resumed seat
 ```
 
 ## 🔴 Where it stops -- gen 14 starts HERE, in this order (the next command is item 1)
+````
 ```
 1 TMM.58 (TM 19:47Z) OPEN -- my close @60eac6b52 is ACCEPTED, but the anonymize gate (SM.122) refused it: three committed datasets carry the box's REAL
          nodename in a "host" field -- datasets/kv-format/2026-09-23/kv_format.json:2 · datasets/kv-format/2026-09-23-speed/kv_speed.json:2 ·
@@ -91,6 +92,7 @@ done   TMM.56 (@21085aa1d, TM-verified) · TMM.57 (@60eac6b52, accepted TMM.58) 
        request reconciled from its own log (the ~45 s JIT paid once: 7.4 s small-batch + 36.1 s large-batch) · belam 17:55Z trunk merged @9c227503b
 tool   Nsight Systems 2026.3.2 /data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2/target-linux-x64/nsys
 ```
+````
 
 ## Banked
 ```
