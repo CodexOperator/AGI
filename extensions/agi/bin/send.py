@@ -3090,6 +3090,15 @@ def _alias_canon(root: Path, name: str) -> str | None:
     return None
 
 
+def _dm_names_reader(root: Path, stem: str, me: str) -> bool:
+    """Whether a dm/room conversation filename names `me`: one of its
+    `--`-separated tokens IS `me`, or is a FORMER name of `me` in the ONE
+    `aliases:` table (old -> new). A non-aliased filename matches exactly the
+    way it always did -- `_alias_canon` returns None for every other token."""
+    return any(t == me or _alias_canon(root, t) == me
+               for t in stem.split("--"))
+
+
 def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
     """The identity row for ``seat``, resolving the ONE `aliases:` table
     (old -> new) in the REVERSE direction. At a rename boundary the seats ROW
@@ -3857,8 +3866,9 @@ def read_dms(croot: Path, me: str, *, commit: bool = True,
     to-a-post... clauses 1 and 3). Returns the block count shown."""
     n = 0
     d = croot / "dm"
+    root = locations.find_project_root(croot) or croot
     for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
-        if me not in path.stem.split("--"):
+        if not _dm_names_reader(root, path.stem, me):
             continue
         blocks = _conv_blocks(path)
         shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
@@ -4084,9 +4094,10 @@ def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
 
     dm_dir = croot / "dm"
     if dm_dir.is_dir():
+        root = locations.find_project_root(croot) or croot
         for f in sorted(dm_dir.glob("*.md")):
             name = f.stem
-            if me not in name.split("--"):
+            if not _dm_names_reader(root, name, me):
                 continue
             blocks = _conv_blocks(f)
             count = int(_load_state(f).get(me, 0) or 0)
