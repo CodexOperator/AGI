@@ -43,7 +43,7 @@ seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the a
 ```
 TOP      OWNER 09:4xZ-09:5xZ (TMM.49, verbatim on goal:g5): the OSCILLATOR HEAD-PRUNING chain goal:g5.22, full force until the jev code fixes land
          chunk 1 OSC.01 PROVED + (b): K_c 0.96 is a label (no knee; curvature 2.06/1.14), lift 1.000017, Spearman pool 0.289 < 0.3 -> coherence is NOT a pruning criterion
-         chunk 2 OSC.02 DISPROVED (measured): only 1 of 32 KV groups drops at <= 1 pct NLL -> group pruning is not a context lever on the served 9B -> next: band hop 1 (planned, orders drafted) -> KV-quant layering
+         chunk 2 OSC.02 DISPROVED: only 1 of 32 KV groups drops at <= 1 pct NLL -> group pruning is not a context lever on the hybrid 9B -> band hop 1 OSC.03 LIVE -> then KV-quant layering on the served 9B
          frame: on the 9B, heads are ~4 pct of weight bytes (small tok/s lever) but KV (32 KB/token, 8 layers) caps the 49,664-token slot -> groups are a CONTEXT lever
 batch B  MERGED 4e63658d0 -- C2 within 10 pct on every battery row -> triggers the g5.27 mvp (thought-master plans it) · B misses IFEval
 mvp      QUEUED mvp:lm-switch-c2-runs-the-towns-parents-and-kids · R1 SWR-SV.01 GO (TMM.48) -> dispatch after the CFG merge-up AND pass 2 AND behind any head-pruning chunk that loads a model (TMM.49), orders below · R2 waits for R1's slot number (falsifier b); its :8899 provider is with the Prime
@@ -55,12 +55,13 @@ routed   RESOLVED 10:1xZ-10:3xZ: key TTL 180 -> 300 · TYPESAFE_KEY + KEY2 in MA
 
 ## 🔴 Stops
 ```
-LIVE   OSC.02 (chunk 2, measuring done) parent a00-2e229bfb pid 1056628 · dispatched 10:10:41Z · GPU round, router stop/restore · wall 120 -> done by ~12:10Z · key TTL 180 · branch season2/loops/hypothesis-lm-served-9b-drops-6--a00-2e229bfb
+LIVE   OSC.03 (band hop 1) parent a00-817c9ad0 pid 1657818 · dispatched 11:08:15Z · CPU, Qwen2.5-0.5B, pip --target, no GPU · wall 120 -> done by ~13:08Z · key TTL 300 · branch season2/loops/hypothesis-lm-head-rope-band-pro-a00-817c9ad0
+LIVE   mur osc-02 (agi-director-thought-osc-02, run-key mur-director-thought-5) -> close its residues in place when it lands
 SENT   batch C [merge-up] dm to thought-master 10:4xZ @2c5b0a26a: CFG.01 + CFG.02 + OSC.01, murs 3 / 4 all accept_with_residue, residues closed (b1b464771 2ae432a63 2c5b0a26a), box.root + pi_home carried -> TM gates + merges
 done   mur cfg-02 accept_with_residue, both defects confirmed -> closed in place b1b464771 (200/40 above the 2x stop; audit scope; pi home restored); box.root + pi_home CARRIED to the Prime
-OSC.02 MEASURED 10:55Z: baseline PPL 7.1783 x2 · singles: 1 of 32 groups <= 1 pct of NLL (L3 g0 0.82), 3 <= 2 pct, most 2-5 pct, L3 g1 8.2 · joint L3g0+L3g2 2.49 pct -> k(1 pct) = 1, k(2 pct) = 1 -> DISPROVED (claim k >= 6) · context x1.03 at best · router RESTORED by the round 10:59:40Z · parent writing up
+done   OSC.02 DISPROVED: k(1 pct) = 1 of 32 KV groups, x1.03 context; done commit hit a stale index.lock -> committed at harvest 4116cf46c, merged 45f80be27, CSVs = raw logs; 325 lines vs ordered 150 (parent granted 350) recorded; WHY: hybrid 9B, 8 attention layers, every group load-bearing
 done   OSC.01 harvested: merged db47c8a66 · config keys bc42e9d9c · T4 damage-lift direction corrected 2ae432a63 · my independent recount matches to the digit
-next   OSC.02 lands -> router UP proof first -> harvest (config keys, run worktree) -> review by name -> its verdict picks the hop; TM's merge-up answer when it comes
+next   mur-5 lands -> close OSC.02 residues · OSC.03 lands -> harvest -> review -> verdict: hop 2 or KV-quant layering · TM's merge-up answer for batch C when it comes (OSC.02 joins the next batch)
 open   G.01 disposition (demote how, branch held) · the g5.27 mvp is thought-master's to plan · SWR-SV.01 queued behind OSC.02 (loads a model) + pass 2
 exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && python3 -c "import json;print(json.load(open('.agi/sessions/iter-OSC.02/manifest.json'))['agents'][0]['status'])" && ls /data/work/agi/.agi/sessions/workflows/runs/mur-director-thought-4/
 window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi-local round across it
@@ -74,24 +75,22 @@ window the Prime's pass 2 at 11:41Z (pi murs + the suite; no :8080 use) -> no pi
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS OSC.02 -- LIVE a00-2e229bfb 10:10Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): the oscillator head-pruning chain goal:g5.22, chunk 2 = falsifier (b) of OSC.01 · pi deepseek · cap 1 USD · ONE model-loading host kid · GPU round)
+ORDERS OSC.03 -- LIVE a00-817c9ad0 11:08Z (director-thought -> parent · OWNER TOP PRIORITY (TMM.49): the oscillator head-pruning chain goal:g5.22, band hop 1 · pi deepseek · cap 1 USD · ONE model-loading host kid · CPU only)
 
-read first  hypothesis:lm-served-9b-drops-6-of-32-kv-groups-at-1pct-nll (CLAIM, METHOD, TESTS T0-T4, FALSIFIER are the contract) · experiment:a00-e03d8dd2-02d831 (why chunk 2 is measured delta-NLL, not coherence)
-model       the served file /data/ml/models/Qwen3.5-9B-Q4_K_M.gguf is READ ONLY: sha256 it, copy it to /data/ml/scratch/osc02/ (outside /data/ml/models -- the router lists that dir), patch and restore ONLY the copy. After the last run the copy's sha256 must equal the original's again.
-surgery     blk.L.attn_output.weight (L = 3, 7, .. 31) is Q4_K: 4096 rows x 16 super-blocks of 144 bytes (d, dmin fp16, 12 scale bytes, 128 quant bytes), one block per query head, head h -> KV group h // 4. Ablating group g of layer L = writing zeros over blocks 4g .. 4g+3 of EVERY row (576 bytes per row). Parse the GGUF header yourself (tensor offset + data alignment) and assert the tensor type is Q4_K and its shape (4096, 4096) before the first write. Save the original bytes, restore them after each run, check with a sha256 of the tensor slice.
-text        wikitext-2-raw test from https://huggingface.co/datasets/ggml-org/ci/resolve/main/wikitext-2-raw-v1.zip (llama.cpp's own get-wikitext-2 source); record url + sha256; keep it in the scratch dir, never commit it.
-run         llama-perplexity fully on the GPU, ctx 512, the first 40 chunks, identical flags every run: docker ghcr.io/ggml-org/llama.cpp:full-cuda ONLY (--gpus all, mount the scratch dir; its libllama carries the qwen35 arch; the fork build b10685 does NOT load qwen35; and a kid's host cgroup OOM-killed a 9B run before, doc:lm-local-town-box-facts). Record the exact command once.
-T0 guard    BEFORE the router stops: no pi-local round live (spawn_budget.py status + GET :8080/slots with the 9B named) and host RAM available >= 2 GB (the `available` column of free -m, not `free`: page cache is reclaimable). docker stop llama-server. WHATEVER happens -- a failure, the wall, a cut -- restore: docker start llama-server, then prove :8080 answers a real completion from Qwen3.5-9B-Q4_K_M. Sample available host RAM through the round; under 2 GB at any sample -> stop, restore, report.
-T2          baseline twice -> identical ppl, or say so and replicate every ablation.
-T3          the 32 single-group ablations -> one row each: layer, group, ppl, delta-NLL = ln(ppl_abl / ppl_base), delta-NLL / NLL_base.
-T4          add groups in ascending single delta-NLL, re-measure JOINTLY after each addition, stop once past 2 pct of NLL_base -> k(1 pct), k(2 pct), the curve.
-verdict     k(1 pct) >= 6 -> proved (next hop: a converted pruned GGUF + the battery) · k(1 pct) < 6 -> disproved (the curve is the record; the chain moves to the band hops + KV-quant layering). Report KV bytes/token and the context multiplier 32/(32-k) at both tolerances.
-paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local (it exists since OSC.01); out-of-repo roots (/data/ml/models, /data/ml/scratch) stay literal and are PROPOSED as box cells in the node -- never added.
-land        script(s) in .agi/context/local-maxxing/heads/ · outputs (tables, curve, commands, hashes -- no model bytes, no wikitext bytes) in datasets/dead-head/2026-09-23-kv-groups/ · ONE experiment node under the hypothesis with every number and the router-restored proof
-never       write the served GGUF · leave the router down · anything under extensions/ · a second kid · pip or apt installs · a pi-local round
-wall        call done by 120 min wall-clock whatever the state; land what is measured, name what is left, and the router is up before you stop
+read first  hypothesis:lm-head-rope-band-profile-is-static -- CLAIM, METHOD, TESTS T0-T3, FALSIFIER, FILE SCOPE, CEILING in its body are the contract; its Agent Notes carry the served-9B frame
+weights     Qwen/Qwen2.5-0.5B-Instruct from huggingface.co: config.json, tokenizer.json, tokenizer_config.json, generation_config.json, model.safetensors -- record the repo revision (commit sha) and each file's sha256. Put them in /data/ml/scratch/osc03/hf/ (outside /data/ml/models: the router lists that dir). Never commit weight bytes.
+env         python3 -m pip install --target /data/ml/scratch/osc03/pylib transformers safetensors tokenizers numpy (record the exact versions pip resolved); run as PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 /data/ml/.venv/bin/python (torch 2.14 lives there). NEVER install into the system python or into /data/ml/.venv. torch.set_num_threads(8).
+hooks       capture q and k AFTER the rotary embedding (patch or wrap the attention forward; the HF rotate_half layout pairs dims (p, p + 32), frequency 1e6^(-2p/64)); assert your post-RoPE q.k over a head reproduces the model's own pre-softmax logit for one head and one prompt to 1e-3 relative before measuring anything.
+prompts     10 wikitext-2-raw test slices from /data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw (the OSC.02 download; record its sha256) + 10 code prompts = HumanEval task prompts as datasets/humaneval-abc/runner.py loads them, concatenated to >= 256 tokens each; halves A / B = 5 prose + 5 code each.
+measure     per QUERY head (24 x 14 = 336) and causal pair (i >= j): c_p = q_i[p] k_j[p] + q_i[p+32] k_j[p+32]; E_p = variance over (i, j) of c_p; profile = E_p / sum_p E_p, per half and pooled.
+T2 / T3     stability: cos(profile_A, profile_B) per head -> distribution + share >= 0.9 · bimodality: per head the pooled energy share in the 11 lowest-frequency and the 11 highest-frequency pairs -> the shares against the thresholds + the per-layer pattern.
+verdict     per the node FALSIFIER: < 80 pct of heads stable at 0.9, OR no head class meets the band thresholds -> disproved (chain A stops; the chain moves to KV-quant layering) · both hold -> proved (hop 2 masks pairs with these profiles).
+paths       rule 13: in-repo paths as paths.local_maxxing keys via paths.get_local; out-of-repo roots (/data/ml/scratch, /data/ml/.venv) stay literal and are PROPOSED as box cells in the node -- never added.
+land        script(s) in .agi/context/local-maxxing/osc/ · datasets/osc-band/2026-09-23/: profiles.json (336 x 32, halves + pooled), summary tables, provenance (revision, file sha256s, pip versions) · ONE experiment node under the hypothesis with every number
+never       the GPU or :8080 · anything under extensions/ · a second kid · installing outside the round's pip target · committing weight or wikitext bytes · a pi-local round
+wall        call done by 120 min wall-clock whatever the state; land what is measured and name what is left
 cap         1 USD · ONE kid · line ceiling 150 engine-unit lines
-record      served + copy sha256 (before/after) · baseline ppl x2 · the 32-row table · the joint curve · k(1 pct), k(2 pct) · KV bytes/token and context multiplier · RAM samples · router-restored proof · one harvest line to your seat
+record      revision + sha256s + pip versions · T0 Paris + ppl · the logit-reproduction check · stability distribution + share >= 0.9 · band shares vs thresholds · per-layer pattern · verdict · one harvest line to your seat
 
 ORDERS SWR-SV.01 -- QUEUED (thought-master TMM.48 go): dispatch when BOTH windows clear -- the CFG.01+02 merge-up landed AND the Prime's pass-2 close -- target hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery (an experiment cannot hang under an mvp) · pi deepseek parent · cap 1 USD · GPU round · ONE model-loading host kid
 read first  mvp:lm-switch-c2-runs-the-towns-parents-and-kids (outputs 1 + 3, falsifiers b + c) · experiment:a00-b52705a2-91b5e6 (how SWR-C2.02 served C2) · datasets/switch-rule/2026-09-21/README.md (the HumanEval runner + scorer)
