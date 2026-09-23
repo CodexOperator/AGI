@@ -10374,9 +10374,45 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
 
 
+def _insert_row_into_frontmatter(base: str, row: str) -> str:
+    """`base` with `row` inserted as the LAST entry of the frontmatter before
+    the closing ``---`` -- inside the `posts:` list the loader reads.
+
+    An append AFTER the closing delimiter writes a row to the file no reader
+    ever sees: `load_node_file` stops at the closing `---` (EF.51 C4 parent
+    probe -- the commit moved but `send._pushed_seats` returned no row).
+    A base with no frontmatter delimiter falls back to a plain append, which
+    is the only shape left that can carry the row at all."""
+    lines = base.splitlines(keepends=True)
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                if not row.endswith("\n"):
+                    row += "\n"
+                return "".join(lines[:i]) + row + "".join(lines[i:])
+    if base and not base.endswith("\n"):
+        base += "\n"
+    return base + row
+
+
 def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     """Route B: the re-minted `seat` row as ONE commit on the FETCHED key
-    authority branch + a fast-forward push. One-line outcome; never raises."""
+    authority branch + a fast-forward push. One-line outcome; never raises.
+
+    EF.51 C2: the publish is a GATED Prime-scope act -- while a RUNG 3
+    council+Keep veto (or an owner human_gate) freezes `prime`, it REFUSES by
+    name (``authority: HELD``) and never pushes, exactly as
+    ``_push_season_branch`` does for the merge-up push.
+    EF.51 C4: a seat with NO row on the authority publishes its NEW row
+    (append); when the new content carries no such row it refuses by name --
+    never the silent ``SKIPPED -- no ... row to replace``."""
+    try:
+        from seatsig import veto as _veto
+        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        if _frozen:
+            return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+        pass
     try:
         import send as _send
         ref = _send.authority_ref(root)
@@ -10389,16 +10425,29 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     if top is None:
         return "authority: SKIPPED -- no git repo (gitless fixture/root)"
     rel = os.path.relpath(_ack_seats_path(main_root), top)
+    attempted = False  # EF.56: a real fetch of the authority branch happened
     for _att in range(2):  # non-ff race -> fetch again and recompose
         fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
                                 branch], capture_output=True, text=True,
                                timeout=60)
         base = (_blob_text(top, f"FETCH_HEAD:{rel}")
                 if fetch.returncode == 0 else None)
+        if fetch.returncode == 0:
+            attempted = True
         if base is None:
-            last = fetch.stderr.strip() or fetch.stdout.strip()
+            last = fetch.stderr.strip() or fetch.stdout.strip() or (
+                f"authority branch {branch} has no {rel}")
             continue
         content = _authority_row_content(base, new_content, seat)
+        if content == base and not any(
+                _own_row_line(ln, seat) for ln in base.splitlines()):
+            # FIRST seating (C4): no row to replace -> append the new one.
+            row = next((ln for ln in new_content.splitlines(keepends=True)
+                        if _own_row_line(ln, seat)), None)
+            if row is None:
+                return (f"authority: REFUSED -- the new content carries no "
+                        f"{seat!r} row to seat on {branch}")
+            content = _insert_row_into_frontmatter(base, row)
         if content == base:
             return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
         fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
@@ -10436,6 +10485,13 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             return f"authority: OK -- {sha[:9]} -> {branch}"
         finally:
             os.unlink(idx)
+    # EF.56: distinguish "nothing to publish to" (the authority branch was
+    # never fetched -- no ref on origin) from "a real publish attempt that
+    # failed". Only the latter may gate the C3 successor-key swap; a repo
+    # with no authority branch keeps the pre-EF.51 push-only swap behaviour.
+    if not attempted:
+        return (f"authority: SKIPPED -- no authority branch {branch} "
+                f"(never fetched; {last})")
     return f"authority: FAILED -- {last}"
 
 
@@ -10449,7 +10505,8 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                       session_id: str | None = None,
                       window: str = "",
                       pid: int | None = None,
-                      verb: str = "spawn row") -> str:
+                      verb: str = "spawn row",
+                      rekey: bool = False) -> str:
     """g15.24 (Sensei's pick, fix (a)) — rotate-self COMMITS its own s6.1
     spawn-row write, so the successor's ONE required wake act (`rotate.py
     ack --gen N --ref X continue`) finds seats.md CLEAN and the r3b gate
@@ -10477,6 +10534,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     byte-identical and `git add` staged nothing), RECORDS the skip in
     one line and commits nothing. NEVER raises, never fails the rotation.
     Returns a one-line outcome for the handover's `spawn_row_commit`.
+
+    EF.51 C1: `rekey` says whether this commit follows a REAL key mint. The
+    key-authority publish runs ONLY when `rekey` is True (a plain
+    window/pid/session row commit must never touch the authority ref).
     """
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
@@ -10600,8 +10661,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
-    # conjunct 2 (route B): publish the ONE seat row to the key authority.
-    _auth = _publish_row_to_authority(root, seat, new_content)
+    # conjunct 2 (route B): publish the ONE seat row to the key authority --
+    # EF.51 C1: ONLY when this commit follows a real re-key, never on a
+    # plain window/pid/session row write.
+    _auth = _publish_row_to_authority(root, seat, new_content) if rekey else ""
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
     # `.key.pending` written when an earlier push FAILED) COMPLETES now
@@ -10610,13 +10673,17 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # deleted. Best-effort; `_finish_pending_swap_on_push` never raises
     # (and returns '' -- no extra line -- when there is no push OK or no
     # pending swap to complete).
-    _done = _finish_pending_swap_on_push(root, seat, _push)
+    _done = _finish_pending_swap_on_push(
+        root, seat, _push, authority_line=(_auth if rekey else None))
     if _done:
         return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
                 f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}"
                 f"\n{_auth}")
+    if _auth:
+        return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
+                f"-- own-row only: {msg}\npush: {_push}\n{_auth}")
     return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) -- "
-            f"own-row only: {msg}\npush: {_push}\n{_auth}")
+            f"own-row only: {msg}\npush: {_push}")
 
 
 def _commit_after_join_heal_spawn_row(root: Path, *, seat: str) -> str:
@@ -17099,7 +17166,8 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                 generation=_read_generation(root, seat),
                 session_id=str(row.get("session_id") or ""),
                 window=str(row.get("window") or ""),
-                pid=int(row.get("pid") or 0))
+                pid=int(row.get("pid") or 0),
+                rekey=True)
             note += f"; {_cn.splitlines()[0]}"
         except Exception as exc:  # noqa: BLE001
             note += f"; key row commit not performed ({exc})"
@@ -17402,8 +17470,23 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     return f"key swap completed (deferred from gen {_gen})"
 
 
+def _authority_publish_gates_swap(line: str | None) -> bool:
+    """EF.56 C3 discriminator: only an ATTEMPTED authority publish that did
+    not succeed may defer a successor-key swap. ``HELD`` (the veto gate) and
+    ``FAILED`` (a real fetch+push attempt that was refused) gate; every
+    ``SKIPPED``/``REFUSED`` line means nothing was published -- and therefore
+    no on-disk key can disagree with the authority -- so it must NOT gate.
+    Accepts the full ``authority: <line>`` form or its payload (``<line>``),
+    because the two gate sites parse it differently. Never raises."""
+    s = str(line or "")
+    if s.startswith("authority: "):
+        s = s[len("authority: "):]
+    return s.startswith(("HELD", "FAILED"))
+
+
 def _finish_pending_swap_on_push(root: Path, seat: str,
-                                 push_line: str | None) -> str:
+                                 push_line: str | None,
+                                 authority_line: str | None = None) -> str:
     """g15.26 claim (b) -- ONE helper every push-OK site calls to complete a
     deferred `<seat>.key.pending` swap. It completes the swap exactly when
     ``push_line`` reports a successful push (starts ``push: OK``): that is the
@@ -17412,9 +17495,23 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
     cannot drift into completing a swap on a FAILED push. Returns the one-line
     outcome ('' when there is no push OK, no pending file, or the committed
     row still names the old pubkey) and prints the completed-swap line to
-    stderr. Never raises."""
+    stderr. Never raises.
+
+    EF.51 C3: when ``authority_line`` is given (the `_commit_spawn_row`
+    re-key leg), the swap ALSO waits for ``authority: OK`` -- an
+    `authority: FAILED`/HELD/non-origin SKIP defers it with a named line, so
+    a key on disk never disagrees with what the authority holds. A caller
+    that passes no authority line (ack/prepare/keygen push-OK sites with no
+    authority publish) keeps the old push-only gate.
+    """
     if not str(push_line or "").startswith("push: OK"):
         return ""
+    if authority_line is not None and _authority_publish_gates_swap(
+            authority_line):
+        _l = (f"key swap NOT completed -- authority publish did not succeed "
+              f"({authority_line})")
+        print(_l, file=sys.stderr)
+        return _l
     _done = _complete_pending_key_swap(root, seat)
     if _done:
         print(_done, file=sys.stderr)
@@ -17427,7 +17524,9 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     ONE commit, AND the season-branch PUSH all SUCCEEDED (mur-SL2.13 (2): the
     swap waits for the push -- a push FAILED still yields the join, but the
     key is deferred and NOT swapped, so a key on disk never disagrees with
-    what origin holds). ``key_rotation`` is `_rotate_successor_key`'s dict
+    what origin holds). EF.51 C3: when the commit carries a trailing
+    ``\nauthority: <line>`` (a re-key), the swap ALSO waits for
+    ``authority: OK`` -- a FAILED/HELD/non-origin SKIP defers it by name. ``key_rotation`` is `_rotate_successor_key`'s dict
     (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome`` is
     the `_successor_row_write` return (starts ``config:seats row`` on
     success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
@@ -17453,12 +17552,20 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     # rpartition keeps the helper's own ``push: ...`` prefix on _push_line.
     _push = _push_line
     _push_failed = _push.startswith("push: FAILED")
-    if _row_ok and not _commit_failed and not _push_failed:
+    # EF.51 C3: the authority publish outcome rides the commit string's
+    # trailing ``\nauthority: <line>`` when this commit followed a re-key.
+    # ABSENT (a non-rekey commit / early-return path) is NOT a failure.
+    _auth = _commit.rpartition("\nauthority: ")[2]
+    _auth_present = "\nauthority: " in _commit
+    _auth_failed = _auth_present and _authority_publish_gates_swap(_auth)
+    if _row_ok and not _commit_failed and not _push_failed and not _auth_failed:
         return _apply_successor_key_pending(key_rotation["pending_key"])
     if not _row_ok:
         _why = "row write"
     elif _commit_failed:
         _why = "commit"
+    elif _auth_failed:
+        _why = "authority"
     else:
         _why = "push"
     # SL: on a push failure the swap is DEFERRED -- the ONE stderr line naming
@@ -17471,7 +17578,7 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     # (`_complete_pending_key_swap`) atomically completes the swap. The
     # falsifier "after a failed push the minted key exists nowhere on disk"
     # is closed here.
-    if _why == "push":
+    if _why in ("push", "authority"):
         return _persist_pending_key(key_rotation, Path(_path))
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{_path} left byte-identical with the predecessor key, NO "
@@ -19633,7 +19740,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     root, seat=seat, generation=gen,
                     session_id=succ_session_id,
                     window=succ_window_id or spawn_name,
-                    pid=succ_pid)
+                    pid=succ_pid,
+                    rekey=bool(_key_rotation))
             except Exception as exc:  # noqa: BLE001
                 handover["spawn_row_commit"] = f"FAILED: {exc}"
         # SL5.05 handover-order fix: the actual <seat>.key REPLACE happens
