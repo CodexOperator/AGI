@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g2
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: G2.11
 goal_kind: subgoal
 heading_level: 3
@@ -16,7 +16,7 @@ status: complete
 tags:
   - goal
   - subgoal
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "G2.11: Every node version carries the thought that produced it"
 ---
 **`body` is state; `thought` is delta.** The body says what a node asserts
