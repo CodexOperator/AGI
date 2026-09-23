@@ -101,7 +101,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import locations  # noqa: E402
-import boxes  # noqa: E402 -- the ONE box-cell reader (goal:g15.29.2)
 
 # The ENGINE's graph_core, never a project's vendored src/ — same precedent as
 # node_writer.py's `mint_permanent_id` import (goal:s14): unify.py always runs
@@ -392,25 +391,16 @@ def _sha256_file(path: Path) -> str:
 
 # --- safety: never the real repos -------------------------------------------
 
-def _real_repos() -> tuple[Path, ...]:
-    """The two real checkouts THIS box must never write into, named from the
-    `box.root` cell (config-max: the absolute root lives in a cell, never as a
-    literal) plus its `-tree` sibling. Deliberately a path comparison, not a
-    remote-URL check -- a throwaway clone's own `origin` can legitimately
-    point at the same GitHub repos. Empty when no box declares a root (a
-    guard with no named repos, never a stray home literal)."""
-    root = locations.find_project_root(Path(__file__).resolve().parent)
-    cell = (boxes.box_cells(root).get("root") if root else "") or ""
-    if not cell:
-        return ()
-    engine = Path(cell)
-    return (engine, engine.parent / (engine.name + "-tree"))
-
-
 #: Defense in depth beyond operator discipline (see module docstring): these
 #: two paths are never a legitimate `--engine`/`--tree`, regardless of
-#: `--force`.
-_FORBIDDEN_REAL_PATHS = _real_repos()
+#: `--force`. Deliberately a literal path comparison, not a remote-URL check
+#: — a throwaway clone's own `origin` can legitimately point at the same
+#: GitHub repos these paths hold locally; what must never happen is *this
+#: script writing into these two directories*.
+_FORBIDDEN_REAL_PATHS = (
+    Path("/home/ubuntu/work/agi"),
+    Path("/home/ubuntu/work/agi-tree"),
+)
 
 
 def _touches_a_real_repo(path: Path) -> bool:
