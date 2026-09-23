@@ -273,6 +273,29 @@ _LINKS_DEFAULTS = {
     "line_template": "{file}:{line} {old} \u2192 {succ}",
 }
 _GOAL_RE = re.compile(r"goal:[\w.-]+")
+#: The explicit marker a retired node uses to RECORD a successor. A bare
+#: mention of another goal inside the THOUGHT is a cause, not a successor.
+_SUCCESSOR_MARKER = "Superseded"
+
+
+def _goal_id(token: str) -> str:
+    """A matched `goal:` token with sentence punctuation stripped, so
+    `goal:g15.` -> `goal:g15` and `goal:g7.25.` -> `goal:g7.25`; an interior
+    dot is part of a real id and is kept."""
+    return token.rstrip(".-")
+
+
+def _successor(thought: str) -> str:
+    """The successor a retired node's THOUGHT RECORDS, or `none`.
+
+    Requires the explicit `Superseded` marker; the successor is a `goal:` id
+    in that marked clause (not necessarily the token right after `by`)."""
+    for line in thought.splitlines():
+        if _SUCCESSOR_MARKER in line:
+            m = _GOAL_RE.search(line)
+            if m:
+                return _goal_id(m.group(0))
+    return "none"
 
 
 def _links_config(root) -> dict:
@@ -293,8 +316,7 @@ def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
         known.add(nid)
         if str(fm.get("status") or "").lower() == "retired":
             b = re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, re.S)
-            g = _GOAL_RE.search(b.group(1)) if b else None
-            retired[nid] = g.group(0) if g else "none"
+            retired[nid] = _successor(b.group(1)) if b else "none"
     src, nodes = locations.source_root(Path(root)), Path(root) / "nodes"
     no_path = [str(e) for e in cfg["exempt"] if str(e).endswith("/")]
     no_field = {str(e) for e in cfg["exempt"] if not str(e).endswith("/") and e != "THOUGHT"}
@@ -327,7 +349,8 @@ def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
             for i, line in enumerate(lines[:end], 1):
                 if i in skip:
                     continue
-                for old in _GOAL_RE.findall(line):
+                for token in _GOAL_RE.findall(line):
+                    old = _goal_id(token)
                     if old in retired or old not in known:
                         hits.append((rel, i, old, retired.get(old, "none")))
     return hits
