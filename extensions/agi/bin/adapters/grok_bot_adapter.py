@@ -160,3 +160,73 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+# OPTIONAL pane surface (goal:g7.32.3): wraps goal:g7.31.1's hold, fails closed.
+
+DEFAULT_TMUX_SESSION = "agi-rc"  # bare session name, never a /home path
+
+
+class PaneNotHeldError(RuntimeError):
+    """A pane method ran with no pane held; nothing is spawned instead."""
+
+
+#: Pane names attached this process: idempotence + hold read-back.
+_ATTACHED_PANES: set[str] = set()
+
+
+def _held_pane(name, harness, seat):
+    """Held pane NAME: `name`, else the adapter's own `pane` cell (a str or
+    {seat: name}). The hold is NOT created here; unresolved -> fail closed."""
+    cell = (harness or {}).get("pane")
+    if not name:
+        name = cell if isinstance(cell, str) else (
+            (cell or {}).get(seat) or (cell or {}).get("name"))
+    if not (isinstance(name, str) and name.strip()):
+        raise PaneNotHeldError(
+            f"{NAME}: no pane held for seat {seat or '<unnamed>'!r}; "
+            f"configure harness['pane'] (g7.31.1 owns the hold)")
+    return name.strip()
+
+
+def _attached_pane(name, harness, seat):
+    """The held AND attached pane, or fail closed by seat name."""
+    pane = _held_pane(name, harness, seat)
+    if pane not in _ATTACHED_PANES:
+        raise PaneNotHeldError(
+            f"{NAME}: pane {pane!r} not attached (seat {seat or '<unnamed>'!r}); "
+            f"call pane_attach first")
+    return pane
+
+
+def _pane_tmux(args, runner):
+    run = runner or (lambda a: subprocess.run(
+        ["tmux", *a], capture_output=True, text=True, timeout=5))
+    return run(args)
+
+
+def pane_attach(name=None, *, harness=None, seat=None, runner=None):
+    """Attach to the seat's held pane; idempotent, never opens a fresh pane."""
+    pane = _held_pane(name, harness, seat)
+    if pane not in _ATTACHED_PANES:
+        session = (harness or {}).get("tmux_session") or DEFAULT_TMUX_SESSION
+        _pane_tmux(["select-window", "-t", f"{session}:{pane}"], runner)
+        _ATTACHED_PANES.add(pane)
+    return pane
+
+
+def pane_send(text, name=None, *, harness=None, seat=None, runner=None):
+    """Type `text` into the attached pane; fails closed when none is held."""
+    pane = _attached_pane(name, harness, seat)
+    session = (harness or {}).get("tmux_session") or DEFAULT_TMUX_SESSION
+    _pane_tmux(["send-keys", "-t", f"{session}:{pane}", text, "Enter"], runner)
+    return True
+
+
+def pane_read(name=None, *, harness=None, seat=None, runner=None):
+    """Capture the attached pane's visible text; fails closed when none."""
+    pane = _attached_pane(name, harness, seat)
+    session = (harness or {}).get("tmux_session") or DEFAULT_TMUX_SESSION
+    out = _pane_tmux(
+        ["capture-pane", "-p", "-J", "-t", f"{session}:{pane}"], runner)
+    return getattr(out, "stdout", out) or ""
