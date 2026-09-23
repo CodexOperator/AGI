@@ -25,7 +25,9 @@ TYPES = ["f16", "q8_0", "q4_0"]
 DEPTHS = [0, 4096, 16384, 32768]
 OUT = paths.get_local("kv_speed_out_dir")
 LOG = os.path.join(OUT, "logs")
-T975_4 = 2.776445  # two-sided 97.5 pct Student-t point, 4 df (5 reps) -> 95 pct
+T975 = {1: 12.706205, 2: 4.302653, 3: 3.182446, 4: 2.776445, 5: 2.570582, 6: 2.446912, 7: 2.364624, 8: 2.306004, 9: 2.262157}
+# two-sided 97.5 pct Student-t points by df -> 95 pct intervals; penalty() reads each row's n from parse()
+T975_4 = T975[4]  # kept for serve_sweep_round.py, whose rows are REPS=5 (4 df)
 
 
 def run(args, name, timeout=3600):
@@ -71,8 +73,9 @@ def bench(tag):
 
 
 def penalty(types):
-    """P = 1 - X_T/X_f16; se_mean = sd/sqrt(5); se_P^2 = (se_T/mF)^2 + (mT*se_F/mF^2)^2;
-    half-width = T975_4 * se_P. f16 is its own baseline: 0 +/- its own variance term."""
+    """P = 1 - X_T/X_f16; se_mean = sd/sqrt(n), n = the row's reps as parse() records it;
+    se_P^2 = (se_T/mF)^2 + (mT*se_F/mF^2)^2; half-width = T975[min(n_T, n_F) - 1] * se_P (the smaller
+    sample's df, conservative). f16 is its own baseline: 0 +/- its own variance term."""
     out = {}
     for d in DEPTHS:
         r = {tag: {t: types[tag]["rows"].get("%s@%d" % (t, d)) for t in ("pp512", "tg64")}
@@ -81,14 +84,14 @@ def penalty(types):
             f = r["f16"][t]
             if not f or f[0] <= 0:
                 continue
-            se_f = f[1] / 5 ** 0.5
+            se_f = f[1] / f[2] ** 0.5
             for tag in TYPES:
                 x = r[tag][t]
                 if not x or x[0] <= 0:
                     continue
-                se_p = ((x[1] / 5 ** 0.5 / f[0]) ** 2 + (x[0] * se_f / f[0] ** 2) ** 2) ** 0.5
+                se_p = ((x[1] / x[2] ** 0.5 / f[0]) ** 2 + (x[0] * se_f / f[0] ** 2) ** 2) ** 0.5
                 r[tag][t + "_penalty"] = 1.0 - x[0] / f[0]
-                r[tag][t + "_hw"] = T975_4 * se_p
+                r[tag][t + "_hw"] = T975[min(x[2], f[2]) - 1] * se_p
         out[str(d)] = r
     return out
 
