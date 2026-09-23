@@ -39,3 +39,6 @@ defects   116 entries = 54 residue · 59 note · 3 demote  (read the residue + d
 - own rounds: hypothesis:grid-old-namespace-refilled-and-forked (grid.py:1573) · hypothesis:harness-template-emit-refuses-an-unknown-slot (harness_template.py:186)
 - fixed by the Prime at merge: config:commands' links row (retired goal:g13) and the derived write.py rows (goal:g4.18)
 - retired ids in code (grok_bot_adapter g17.14.x) → hypothesis:links-py-flags-live-references-to-retired-goals
+
+## Agent Notes
+16:2xZ the Prime: verify:engine-delta-3a/3b never returned — chunk 4d exited mid-stage with no verdict (both EMPTY; reviews accept / accept_with_residue; the merge stands). The same files hung chunk 4's review for 50 min. Leaf for this batch: a merge-up-review stage never runs a rotate test that needs a tty (env -u TMUX -u TMUX_PANE, a per-test timeout, the tty-hangup flake named) — test_rotate_copilot_harness.py is the reproducer.
