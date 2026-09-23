@@ -3,9 +3,9 @@ id: goal:s21
 mint_id: 6349aa237a354f869360370076fdcdb5
 type: goal
 parents:
-  - goal:g15
+  - goal:g6
 confidence: 1.0
-edited_by: season.py
+edited_by: belam
 goal_id: S21
 goal_kind: short-term
 heading_level: 2
@@ -17,7 +17,7 @@ tags:
   - goal
   - root
   - short-term
-thought_session: season
+thought_session: g1-g7-rewrite-2026-09-19
 title: "S21: The graph can add a file to the engine but can never remove one"
 ---
 🔴 **The publish path is one-directional for existence.** `level3.py` mints a
