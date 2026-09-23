@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 7bdcfffd955edadb
 season: 2
 tags:
@@ -54,7 +54,7 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25); the raw inb
   │   RECONCILE AT WAKE (owner 2026-09-18 14:4xZ: both directors stalled after a box crash): compare your card's LIVE rounds against `spawn_budget.py status` -- a round whose parent is NOT live and NOT harvested is dead (a crash, a load storm, a parent that ended its turn): RE-DISPATCH it (or review its orphaned kid directly) NOW; never wait for a harvest line from a process that is not running. An inbox with nothing pending is not "nothing to do" while your queue or your live list is non-empty.
   └─► NEXT = your master's dispatch order (a node id) or the next line of your queue (queue vocabulary in §2)
         └─► SYNC: git fetch; merge your town trunk (the LOCAL ref if origin lags) into your post branch before every dispatch or status check -- never rebase (F9/F14); a TOWN director never merges origin/season2/main or core directly (§4)
-              └─► NODE: the brief lives on the hypothesis node -- measured lines, CLAIM, FALSIFIERS, TESTS, FILE SCOPE, CEILING (10-12 production lines per conjunct); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch). The kid answers this named line FIRST, before any code: config-max: <what moves to a cell> / template-max: <what moves to a template line> / code: <the trigger or resolver that does not exist>.
+              └─► NODE: the brief lives on the hypothesis node, in the hypothesis schema's format (.agi/context/schemas/[hypothesis].md: Measured · CLAIM · Dispatch line · FALSIFIERS · TESTS · FILE SCOPE · CEILING); mint it if your master did not; commit by exact path (grid history needs a real commit before dispatch); the kid answers its dispatch line FIRST, before any code.
                     └─► DISPATCH a parent from your worktree: dispatch.py . <ITER> --target <node> --level small --tier parent --harness pi --branch  (exit 3 = stale base: merge your town trunk, push your mirror ref, re-run; a town post still refused `stale-base ... integration season2/main` -> `--allow-stale-base "town post: integration is <your town trunk>"` + the refusal line in your return batch; live-parent cap per your master; kids <= 5 per parent)  -- NEVER `--post`/`--seat` on a parent or kid dispatch: that flag spawns the agent AS that seat, and the seat row (your own claude-code row) overrides the ladder's pi/deepseek parent row and silently beats `--harness` (measured gen 11, 2026-09-19 06:5xZ: a parent resolved claude-code/sonnet-5 with a harness that forbids dispatch.py); `--post` is for spawning a SEAT session only
                           └─► HARVEST: MB=$(git merge-base HEAD <loop branch>); git diff --stat $MB <loop branch>; THOUGHT:BEGIN <= 1 per new node; read the kid nodes; git merge --no-ff into your post branch; run the touched tests WITH their neighbourhood (§2 Suite), --basetemp under /tmp
                                 └─► REVIEW IT YOURSELF (owner 2026-09-18 01:5xZ, goal:g7.16): workflow.py run merge-up-review ... --harness pi -- by name, one round per KID slice (rounds[] is the parallel axis; a 15-item round timed out at 1800 s), NEVER the Claude Workflow tool (F29)
