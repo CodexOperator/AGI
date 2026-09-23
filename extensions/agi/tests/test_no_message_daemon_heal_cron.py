@@ -13,9 +13,12 @@ vacuous; this one is not.
 
 Three surfaces are checked, matching the brief:
 
-1. `message_job_findings`   — the closed message-job set. `mail_poll` and
-   `nudge_sweep` must be PERIODIC TICKS (cron `every_mins`/`schedule`), and no
-   job may name itself a message daemon/router.
+1. `message_job_findings`   — the closed message-job set AND each job's
+   command. `mail_poll` and `nudge_sweep` must be PERIODIC TICKS (cron
+   `every_mins`/`schedule`); no job may name itself a message daemon/router;
+   and no job's `cmd`/`exec`/`exec_start` may LAUNCH one, whatever the job is
+   called (a message daemon behind a generic job name is the direct way a
+   daemon reaches the cron surface).
 2. `message_service_findings` / `service_allowlist_findings` — the `services:`
    map. A systemd unit is long-running by construction, so any message token in
    a unit's name or exec argv is a message daemon; and any service outside the
@@ -73,17 +76,32 @@ SELF_MARK = "test_no_message_daemon"
 _TOKENS_SCANNED = 8
 _MAX_NAME_LEN = 40
 
+#: A job `cmd` is a whole shell line (daemon may sit behind `cd`/`&&`/env
+#: prefixes), so it gets a wider token window than a process argv — but it is
+#: still only token basenames that are examined, never the command text as a
+#: substring.
+_CMD_TOKENS_SCANNED = 40
 
-def _name_tokens(comm: str, args: str) -> list[str]:
-    """The lowercased basenames of the first few argv tokens — the tokens
+
+def _name_tokens(comm: str, args: str, limit: int = _TOKENS_SCANNED) -> list[str]:
+    """The lowercased basenames of the first `limit` argv tokens — the tokens
     that name a program or a subcommand, not prompt text or a script body."""
     tokens = [comm] + (args or "").split()
     out = []
-    for tok in tokens[:_TOKENS_SCANNED]:
+    for tok in tokens[:limit]:
         base = tok.rsplit("/", 1)[-1]
         if base and len(base) <= _MAX_NAME_LEN:
             out.append(base.lower())
     return out
+
+
+def _message_daemon_tokens(tokens) -> bool:
+    """One implementation of the verdict both scanners share: a program
+    identity is a message daemon when its token list carries a message token
+    AND a daemon/router token — never a substring of the whole text."""
+    return any(_message_flavored(t) for t in tokens) and any(
+        _daemon_flavored(t) for t in tokens
+    )
 
 
 def _message_flavored(text: str) -> bool:
@@ -132,6 +150,20 @@ def message_job_findings(jobs: dict, known_jobs=crons.KNOWN_JOBS) -> list[str]:
                 f"job {name!r} touches the message path but is outside the "
                 f"closed set {sorted(MESSAGE_JOBS)}"
             )
+        # The job's COMMAND, not just its name: a generic job with an
+        # innocuous name can still launch a message daemon, which is the most
+        # direct way one appears in the cron surface.
+        for field in ("cmd", "exec", "exec_start"):
+            raw = job.get(field)
+            if not (isinstance(raw, str) and raw.strip()):
+                continue
+            if _message_daemon_tokens(
+                _name_tokens("", raw, limit=_CMD_TOKENS_SCANNED)
+            ):
+                findings.append(
+                    f"job {name!r} launches a message daemon via {field}: "
+                    f"{raw!r}"
+                )
     return findings
 
 
@@ -187,9 +219,7 @@ def find_message_daemon_processes(
         tokens = _name_tokens(comm, args)
         if any(job in tokens for job in periodic_jobs):
             continue
-        if any(_message_flavored(t) for t in tokens) and any(
-            _daemon_flavored(t) for t in tokens
-        ):
+        if _message_daemon_tokens(tokens):
             findings.append(f"pid {pid} comm={comm!r} args={args!r}")
     return findings
 
@@ -308,6 +338,41 @@ def test_falsifier_a_message_daemon_process_is_flagged():
     ]
     findings = find_message_daemon_processes(procs)
     assert len(findings) == 2, findings
+
+
+def test_falsifier_a_message_daemon_cmd_in_a_generic_job_is_flagged():
+    """The parent's A/B probe, locked: the job NAME is innocuous, the COMMAND
+    launches a message daemon, and the checker must still flag it by name."""
+    for cmd in (
+        "python3 /srv/mail_daemon.py --serve --forever",
+        "python3 /srv/msg_router.py serve",
+    ):
+        findings = message_job_findings(
+            {"relay_bridge": {"every_mins": 5, "enabled": True, "cmd": cmd}}
+        )
+        assert findings, f"a daemon cmd in a generic job MUST be flagged: {cmd!r}"
+        assert any("relay_bridge" in f for f in findings), findings
+
+
+def test_falsifier_a_daemon_in_exec_start_is_flagged():
+    findings = message_job_findings(
+        {"relay_bridge": {"every_mins": 5, "exec_start": "/usr/bin/inbox-router watch"}}
+    )
+    assert findings and any("relay_bridge" in f for f in findings), findings
+
+
+def test_falsifier_a_benign_generic_job_cmd_is_not_flagged():
+    clean = {
+        "prime_merge": {
+            "every_mins": 5,
+            "cmd": "python3 {repo_root}/extensions/agi/bin/prime_merge.py tick",
+        },
+        "relay_bridge": {
+            "every_mins": 5,
+            "cmd": "cd /srv && python3 heal.py watch --poll-s 30",
+        },
+    }
+    assert message_job_findings(clean) == []
 
 
 def test_falsifier_known_ticks_and_clean_tables_are_not_flagged():
