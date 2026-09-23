@@ -4554,7 +4554,11 @@ def test_launch_window_hands_tmux_a_short_argv_for_a_long_command(monkeypatch):
     seen = {}
 
     def fake_run(argv, **kw):
-        seen["argv"] = argv
+        # the queue is now: list-windows, new-window, set-option (durability).
+        # Record the new-window argv, which is what this test is about
+        # (goal:g7.31.1.2 added the trailing set-option).
+        if "new-window" in argv:
+            seen["argv"] = argv
         return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)
 
@@ -4576,7 +4580,8 @@ def test_launch_window_leaves_a_short_command_inline(monkeypatch):
     seen = {}
 
     def fake_run(argv, **kw):
-        seen["argv"] = argv
+        if "new-window" in argv:
+            seen["argv"] = argv
         return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
     monkeypatch.setattr(rotate.subprocess, "run", fake_run)
 

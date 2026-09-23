@@ -44,6 +44,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # script; the insert makes it so when it is imported as a module too.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import tmux_seat  # noqa: E402 -- durable named pane seam (goal:g7.31.1.2)
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
@@ -2476,10 +2477,10 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
     launch_cmd = f"cd {shlex.quote(str(tree))} && {shell_cmd}"
     try:
-        proc = subprocess.run(
-            ["tmux", "new-window", "-t", tmux_session, "-n", name,
-             "-P", "-F", "#{window_id}", launch_cmd],
-            capture_output=True, text=True, timeout=10)
+        # goal:g7.31.1.2: recovery is a restart, so it goes through the durable
+        # named pane seam. A dead seat whose pane survived (`remain-on-exit`)
+        # is `respawn-window`ed in the SAME pane, never a second `new-window`.
+        _op, proc = tmux_seat.ensure_pane(tmux_session, name, launch_cmd)
     except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
         return 0, ""
     if proc.returncode != 0:
