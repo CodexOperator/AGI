@@ -64,11 +64,8 @@ import hierarchy  # noqa: E402
 # Prime's goal-id sweeps rewrite it (`(goal:g13.1)` -> `(goal:g4.19)`), so keying
 # on the full heading would silently drop a section on every renumber. A
 # heading with no rule is dropped from every slice (a qualification, not a
-# loss: a section nobody's slice wants is either dead or mislabelled). The
-# direction that IS tested is FORWARD, not the complement: every CORE key and
-# every ROLE_SECTIONS[bucket] key must resolve to a real `## ` heading in the
-# live SKILL.md (`test_every_mapped_key_resolves_in_real_skill`, plus the
-# build_slice calls that raise on a missing key).
+# loss: a section nobody's slice wants is either dead or mislabelled, and the
+# complement — every section mapped — is asserted in the test).
 # --------------------------------------------------------------------------- #
 
 # A trailing `(goal:gNN)` or `(goal:gN.M)` id, with the backticks SKILL.md uses.
