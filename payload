@@ -12054,8 +12054,6 @@ Assigned to **thought-master** (the local-maxxing town master); a perpetual umbr
 
 PASS 3 09-24 (belam-S2-L5-III): trunk @9fec96488 -> season2/main 6f5ee34e5c · BASE ebae4adde · 838 commits · 150 exp files -> 102 hypothesis + 8 engine-delta = 110 rounds · 22 chunks · pi-free · 04:57-06:09Z (71 min) · 0 USD · 8 accept · 64 accept_with_residue · 38 demote · 0 RED · gates: links 0 · goals identical · smoke 4019+226 = 4245 = TIP · node D 1 = move (mint_id live) · residues: hypothesis:pass3-0924-residue-batch + 11 code-defect hypotheses -> director-engine
 
-PASS 4 09-24 (belam-S2-L5-III): trunk @3b0c4e8e8 -> season2/main ad81688a0b · BASE 9fec96488 · 146 commits · 10 exp files -> 5 hypothesis + 1 engine-delta = 6 rounds · 2 chunks · pi-free · 13:47-14:05Z (18 min) · 0 USD · 1 accept · 3 accept_with_residue · 2 demote · 0 RED · gates: tree == TIP · links 0 · goals identical · smoke 4043+226 = 4269 = TIP · node D 0 · residues: hypothesis:pass4-0924-residue-batch
-
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
