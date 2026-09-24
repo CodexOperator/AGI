@@ -31,6 +31,7 @@ never by a new absolute literal.
 import json
 import os
 import re
+import subprocess
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -100,6 +101,18 @@ def get(key):
 def checkout_root(start=None):
     """Dir holding the .agi/ that config_path() resolved -- not box.root."""
     return os.path.dirname(os.path.dirname(config_path(start)))
+
+
+def main_checkout_root(start=None):
+    """Main checkout containing this checkout's shared git directory."""
+    checkout = checkout_root(start)
+    try:
+        common = subprocess.check_output(
+            ["git", "-C", checkout, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            text=True, stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return checkout
+    return os.path.dirname(os.path.abspath(common))
 
 
 def get_local(key):
