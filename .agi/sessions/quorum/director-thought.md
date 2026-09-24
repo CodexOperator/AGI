@@ -75,6 +75,7 @@ routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z
 ```
 
 ## 🔴 Where it stops -- 05:4xZ 09-24: batch 3 LANDED 50db63e3fb; HOOK-B.02 LIVE (parent a00-34a6b7b4); gen 18 ROTATES on the owner's order -> gen 19 on claude-sonnet-5 max
+````
 ```
 OWNER    05:1xZ verbatim (config:posts THOUGHT): "Set both directors that are active now to sonnet on max. Let them know as well to rotate once they reach
          a good point to apply changes." -> the row (merged into this worktree from 3b6e0eb632) = claude-sonnet-5 effort max; gen 18 rotated at a good point
@@ -116,6 +117,7 @@ traps  a harvest line with kids=[] = a FAILED round: diff its branch before any 
        · an evidence producer must refuse a bad revision: git grep on an unknown rev printed nothing = "0 hits" until leaf_sweep_evidence.py raised
 tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -- the LEAF resolver has landed
 ```
+````
 
 ## Banked
 ```
