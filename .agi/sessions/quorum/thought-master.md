@@ -41,7 +41,7 @@ DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context w
                0 x 400, all paired) · batch 5 = TMM.110/111/113 (+ the 7 lm-* demotes; HOOK.02 = a real pi-local kid, OWNER GO 06:55Z) · batch 6 = the L3 reframe ·
                SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
 LANDED         DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c; next CHECK 08:13Z) · still owes:
+the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c) · PASS 4 at 13:47Z 09-24, ~1 h (~3 GB, 2 cores, no GPU, <=11 live) -> no full-suite gate of mine 13:47-14:47Z · still owes:
                EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
 trunk reds     test_dashboard's SIGINT watch only
 ```
