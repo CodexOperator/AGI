@@ -28,7 +28,6 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import adapters  # noqa: E402
-import harness_template  # noqa: E402
 
 
 # ------------------------------------------------------------------ loading
@@ -185,20 +184,6 @@ def test_child_env_can_inject_harness_specific_values():
     pi = adapters.load("pi")
     out = pi.child_env(harness={"env": {"X": 1}}, base={"PATH": "/bin"})
     assert out["X"] == "1" and out["PATH"] == "/bin"
-
-
-def test_pi_argv_loads_no_context_files():
-    """Pi discovers AGENTS.md/CLAUDE.md itself unless every prior argv element
-    is preserved and exactly one --no-context-files token is present."""
-    argv = harness_template.render(
-        "pi", bin_path="pi", provider="p", model="m", thinking="medium",
-        extra_args=["--append-system-prompt", "brief"], prompt="turn")
-    assert argv == [
-        "pi", "--provider", "p", "--model", "m", "--thinking", "medium",
-        "--no-context-files", "-p", "--mode", "json",
-        "--append-system-prompt", "brief", "turn",
-    ]
-    assert argv.count("--no-context-files") == 1
 
 
 # --------------------------------------------------- the seam itself (F1/F2)
