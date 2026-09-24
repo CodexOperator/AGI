@@ -32,8 +32,8 @@ Built a pi 0.67.68 context-event extension and a deterministic local chat-comple
 
 | arm | requests | largest | 400s | wall | pairing |
 |---|---:|---:|---:|---:|---:|
-| no extension | 20 | 260,381 B / 68,521.3 tokens | 11, 20 | 9.03 s | intact; 0 unpaired IDs |
-| context trim | 40 | 171,785 B / 45,206.6 tokens | none | 8.16 s | intact; 0 unpaired IDs |
+| no extension | 20 | 260,381 B / 68,521.3 tokens | 11, 20 | 5.3 s | intact; 0 unpaired IDs |
+| context trim | 40 | 171,785 B / 45,206.6 tokens | none | 5.6 s | intact; 0 unpaired IDs |
 
 The control crossed the declared slot and physical ceiling before request 20. The extension arm completed all 40 turns, first elided one result at request 7, and ended in plain text with 34 placeholders and 39 distinct call IDs. The pre-arm selftest passed: under-limit returned 200 with usage, over-limit returned the recognized overflow text, and both summary prompts returned text.
 
@@ -54,13 +54,13 @@ Port the non-mutating context-event result trim into the pi-local adapter, retai
 
 ## Caveat
 
-`getContextUsage().tokens` can lag the returned hook messages. The final extension uses it to trigger trimming, then re-estimates the modified messages plus the system prompt at characters / 4; using the stale usage value as a fixed loop estimate produced one 400 at request 12.
+`getContextUsage().tokens` can lag the returned hook messages. The final extension uses it only to trigger trimming, then re-estimates the modified messages plus the system prompt at characters / 4; an earlier draft that used the stale usage value as a fixed estimate produced a 400 during development, before the committed code and request-log.json existed -- no request number in the committed log corresponds to that earlier failure.
 
 ## Agent Notes
 Harder 26.6KB-system, distinct-ID replication: trim completed 40 requests at max 45,206.6 tokens with zero 400s; control overflowed at 11/20.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Director re-derivation from the committed 754-line request-log.json, independent of the experiment body text: without_extension arm 20 requests, max 260,381 B / 68,521.3 tokens, 400s at seq 11 and 20, all call/result sets equal (0 unpaired) -- matches exactly; with_extension arm 40 requests, max 171,785 B / 45,206.6 tokens, zero 400s, first elided_results greater than 0 at seq 7, all sets equal (0 unpaired) -- matches exactly. Residue found, not a correction to the claim: the control arm phase=summary request (seq 12, right after the seq-11 400) carries only 16,034 bytes, under the 26,600-byte append-system-prompt file alone, while every phase=turn request in both arms sits at or above the 32,197-byte floor set by request 1 -- the internal compaction/summary request issued after an overflow does not carry the full system prompt the way every turn request does. The CLAIM and FALSIFIERS are about phase=turn requests only, so this does not weaken the verdict; it is a side finding consistent with CMP.03 (compaction is agent-loop machinery, checked at agent_end and a new prompt, not the extension). Verdict PROVED stands. Confidence 0.97 to 0.95: stub-only evidence (no real brain call) plus this residue, not a factual gap in the arm comparison.
+Second pass, after mur-director-thought-21 (review + adversarial verify, accept_with_residue, no demote-severity defect): re-confirmed both arms against the committed request-log.json exactly as the prior THOUGHT on this node recorded (without_extension 20 requests/max 68,521.3 tok/400s at seq 11+20; with_extension 40 requests/max 45,206.6 tok/zero 400s/first elision at seq 7; 0 unpaired IDs throughout). The verify stage caught two body inaccuracies the first close-in-place pass missed, both fixed here, neither touching the verdict: (1) the Experiment table wall column read 9.03 s / 8.16 s; the committed log wall_seconds are 5.3 / 5.6 -- corrected. (2) the Caveat cited a 400 at request 12; the committed log request 12 is the control phase=summary 200 (the real 400s are seq 11 and 20) -- the caveat described an earlier, uncommitted draft and is reworded to stop citing a request number absent from the final log. The null-usage fallback gate (conjunct 2 in probes) remains UNVERIFIED by any committed executable check per the mur review -- a residue, not a demotion, since it was a separate manual invocation, not part of request-log.json. Verdict PROVED stands; confidence unchanged at 0.95.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
