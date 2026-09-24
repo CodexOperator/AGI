@@ -19,7 +19,7 @@ current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: director-sanctuary
+edited_by: belam
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -37,10 +37,10 @@ roles:
   - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": "ultracode"}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
-  - {"tier": 1, "role": "parent", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
+  - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "parent", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "kid", "harness": "pi", "model": "deepseek/deepseek-v4.1-flash", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
 season: 1
 season_names:
   1: genesis
@@ -154,7 +154,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-11 01:0xZ (verbatim in doc:l4-owner-decisions): each town has its own 3 visions. So caps.vision is 3 PER TOWN, not 5 global: restored to 3 with caps_vision_scope town and the towns list declared here (core = the three season-2 visions; streaming-suite and web-app-suite each hold their charter vision now and two slots the OWNER names - visions are owner-authored). The per-town counting in season.py status is the towns round code half; this is the config half, first.
+OWNER 2026-09-24 16:5xZ, in the Prime's pane (belam-S2-L5-III), verbatim: 'Need a config update and pushed to all worktrees. It’s about using pi-free instead of pi or pi-local for both parent and kid spawns' APPLIED: roles rows tier 1 parent, tier 0 parent, tier 0 kid: harness pi -> pi-free, model deepseek/deepseek-v4.1-flash -> stealth/space-bunny-alpha (the pi-free row's models, zero_usd); .agi/config.json spawn.harness pi -> pi-free (the fallback, aligned so no cell contradicts the ladder). The tier 0 director row (pi, glm) is not a parent or kid spawn and is unchanged. MECHANISM: dispatch resolves a parent or kid spawn's harness and model from THIS roles row for (tier, role), the one input (hypothesis:l4-a-model-change-is-one-write). NEAR MISS: flipping only the harness cell leaves deepseek/deepseek-v4.1-flash on pi-free's openrouter provider -- billed, not free; editing config.json's harness rows without the ladder changes nothing, the ladder wins. No ladder row named pi-local: that lane is only an explicit --harness flag, so the directors were told by dm.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
