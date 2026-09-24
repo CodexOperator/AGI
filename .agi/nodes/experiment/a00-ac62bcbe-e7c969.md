@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane
 next_edges: []
 confidence: 0.78
-edited_by: a00-b4fb9e29
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-ac62bcbe-e7c969
 loop: hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane@s2
@@ -49,3 +49,5 @@ Public-docs digest covers three concrete components with all four fields; Cua, B
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 WHAT THE INSTRUCTION SAID: survey at least three off-the-shelf components and fill needs, key-fit, recommendation, and reason. WHAT THE MACHINE ACTUALLY DOES: the synthesis file contains four rows, with three concrete rows populated and openjev explicitly demoted; the public README checks fetched in this review confirm Cua offers a bring-your-own model, Browser Use requires Python and an OpenAI/provider model, and LangGraph is a pip-installable orchestration framework. TypeSafe concepts-api.md says POST /v1/systemone accepts noul/choice/score only and explicitly excludes replies/code/reasoning, so the no/partial key-fit calls are supported. THE NEAR MISS: accepting a general LLM loop as TypeSafe-compatible because the rows name a provider, or padding openjev with an inferred contract. IF I DEVIATED: none. Probes: auth—wrong OpenAI credential is not a TypeSafe-compatible System One credential; gate—the typed endpoint rejects a general text-generation request shape; wire—the synthesis artifact contains the changed survey rows and the node points to it. No live TypeSafe or paid call was made.
 <!-- THOUGHT:END -->
+
+Director gen 25 review: grepped both the parent and kid trajectory logs for curl, requests post or put or delete, typesafe.ai POST calls, TYPESAFE_KEY and TYPESAFE_KEY2 values, and Authorization Bearer headers. Every typesafe.ai and curl hit found is a documentation read (a README quote or an endpoint shape description carrying the literal placeholder API_KEY), never an executed call; no key value appears anywhere in either log. Also confirmed the kid ran under the correct full brief: the parent first tried --orders against its own worktree path, hit ERR: --orders path does not exist or is not a file, then retried against the director worktree absolute path and succeeded -- unlike the parallel OSC.19 round, this one did not fall back to a self-improvised kid brief. No demotion; landing as reviewed.
