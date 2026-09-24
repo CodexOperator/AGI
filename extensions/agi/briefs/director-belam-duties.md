@@ -12,6 +12,11 @@ diagram-max ALL tokens: dms · notes · THOUGHT/thought-stream · watches · fut
 board complete → residues=0 AND format ✓ AND §3e suite green (write.py; push seat tip)
 accept_with_residue → keep looping pi parents (never board complete / never Belam land)
 routes: write·read·send·dispatch/workflow·rotate/spawn
+  - write      → python3 extensions/agi/bin/write.py
+  - read       → python3 extensions/agi/bin/commands.py (list/show/run; viewport for see/read)
+  - send       → python3 extensions/agi/bin/send.py
+  - dispatch   → python3 extensions/agi/bin/dispatch.py + workflow.py (ONE workflow router)
+  - rotate     → python3 extensions/agi/bin/rotate.py (spawn / rotate-self / auto-rotation)
 Belam daily: merge board-complete tips · verify · vision/moral lenses · reopen/mint
 ```
 

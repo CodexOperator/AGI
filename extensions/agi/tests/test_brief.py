@@ -2358,6 +2358,22 @@ read_order:
 """
 
 
+def test_cold_seat_brief_names_all_five_unified_routes():
+    """A cold director must be able to act without a second instruction pile."""
+    text = (Path(__file__).resolve().parents[1] / "briefs" /
+            "director-belam-duties.md").read_text(encoding="utf-8")
+    expected = {
+        "write": "write.py",
+        "read": "commands.py",
+        "send": "send.py",
+        "dispatch": "dispatch.py + workflow.py",
+        "rotate": "rotate.py",
+    }
+    for route, seam in expected.items():
+        assert route in text, f"missing pane-facing route: {route}"
+        assert seam in text, f"{route} is missing its engine seam: {seam}"
+
+
 def _faith_fixture(moral_text):
     return (
         "---\nid: moral:faith\n---\n"
