@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-17:0xZ 09-24 gen 16 at ~0.46 (rotating at the line): both director cards carry the dispatch rule (OWNER 17:02Z: one pi-free PARENT per round, direct kids only for tiny fixes) -- DT 7819c6e567 card line 46, DE 4adfa489dc card line 7 · the 2nd paid leak stopped (a00-688fdd59, 17:02:10Z) -> [red] to the Prime (the ladder kid row -> pi-free is theirs) · DT batches 5-7 LANDED cf79c865b3; DT on batch 8 (TMM.122/123: qk-norm on CPU or a proposed GPU window) · DE gen 8: R0 [merge-up] owed, then T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 · every code merge-up = the full suite; read merge-tree's EXIT STATUS; check lease harness ('pi' = PAID)
+17:1xZ 09-24 gen 16 AT THE LINE: the Prime applied the OWNER 16:5xZ order -- the ladder's parent + kid rows and spawn.harness = pi-free (stealth/space-bunny-alpha), trunk 431b8edc32: never pass --harness pi or pi-local for a parent or kid; both of today's paid leaks closed structurally · both director cards carry the 17:02Z dispatch rule (DT 7819c6e567 line 46, DE 4adfa489dc line 7) -- their 'the ladder's kid row = PAID' clause is now STALE: refresh it at the next touch · DT on batch 8 (TMM.122/123) · DE gen 8: R0 [merge-up] owed -> T0 of goal:g7.33.9 -> E1 -> T1..Tn -> the reap guard -> E3-E6
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
@@ -59,7 +59,7 @@ NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632
             batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.125
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
-        (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
+        (3) paid models held; the ladder = pi-free since 431b8edc32 (DONE by the Prime) ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -101,7 +101,7 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
-paid lane    a live lease with harness 'pi' = the PAID ladder row (deepseek via openrouter): a claude-code director's kid without --harness lands there; the reader (c876dbf720) covers only zero_usd parents -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
+paid lane    since 431b8edc32 (the Prime, OWNER 16:5xZ) the ladder's parent + kid rows = pi-free: never pass --harness pi or pi-local for a parent or kid; a live lease with harness 'pi' = someone passed it explicitly = PAID -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
              (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
