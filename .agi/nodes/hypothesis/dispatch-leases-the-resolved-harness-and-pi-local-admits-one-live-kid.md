@@ -35,9 +35,13 @@ test_credential_none_spawn.py::test_a_second_pi_local_spawn_is_unadmitted_at_the
 pi-local. Red today (admitted). Neighbours: test_adapters.py, test_dispatch.py, test_dispatch_dry_run.py.
 ## FILE SCOPE
 extensions/agi/bin/dispatch.py 2331-2370
-extensions/agi/tests/test_credential_none_spawn.py 55-131
+extensions/agi/tests/test_credential_none_spawn.py 55-131 (+ the new test appended after the file's last test; the file ends at 342)
 .agi/config.json 64-77
 ## CEILING
 1 kid (--harness pi-free) · 1 production line + 1 config cell · 0 USD · SECOND (after the acquire leaf merges)
 RESIDUE: a --harness pi round with PI_CODING_AGENT_DIR reaches the same local slot and a row-keyed cap cannot see it; leases taken
 before landing carry no harness; restart leases (:3590-3592) carry none (dormant while reaper.max_restarts = 0).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Re-checked against d19b619aed before dispatch (03:5xZ 09-24): the acquire leaf EF.94 merged (acquire takes harness=, the lease records it, the cap check sits under the lock), so the precondition is met; every Measured citation holds. The new test cannot sit inside 55-131, so FILE SCOPE now names where it goes; the refusal's stderr naming pi-local comes from spawn_budget.py:582-584, not from dispatch's own 'spawn budget full' line. Claim, tests and ceiling unchanged.
+<!-- THOUGHT:END -->
