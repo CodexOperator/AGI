@@ -18,8 +18,13 @@ MODE      TMM.94 (OWNER verbatim via TM): "Make both directors go back to spawni
           blocker. STANDARD rounds on --harness pi-free (--tier parent; every kid spawn --harness pi-free). PAID held (TMM.66).
           ZDR OFF: anonymize.py check --text on every orders/args/brief before launch. dispatch's "roles: ... deepseek" line is
           the ladder's PRE-override row; an explicit --harness pi-free drops it (dispatch.py:1972-1983) -> spawned model is free.
-LIVE      EF.104 = CTX.01 round 3 (re-dispatch): parent a00-64f9dbae py 2671712 on pi-free (stealth/space-bunny-alpha), base
-          3bffe93b34, orders .agi/sessions/de-0923/orders-std-EF.104-CTX01r3b.md. Nothing else.
+LIVE      R-EF104 mur py 2880380 (pi-free) -> .agi/sessions/de-0923/mur-R-EF104.log. Nothing else.
+EF.104    merged @eaed50d695 (gate: 292 passed / 1 skipped on tip 6f03428ca9; the flag-shape test RED against the trunk's
+          pi.toml); verdict inconclusive_lean_proved:70 @fa107046d3 over the parent's lean_disproved:20 (a caller-injected
+          duplicate flag -- no caller passes it). Build (2) went another route: fixture root + brief.py project_root threading.
+PAID      EF.104's kid a00-beccdfa1 ran harness=pi, deepseek-v4.1-flash (~1.35 USD, 48 turns): its parent's spawn DROPPED
+          --harness pi-free (the ladder's kid row wins with no flag). [red] sent 05:1xZ (red-paid-ef104.md). NO new round until
+          TM's word; next orders carry the FULL literal kid command, --harness pi-free right after --tier kid, no `...`.
 FAILED    EF.103 (a00-48f9c49a, base 3051170f6c): the parent ran ONLY `cli.py done` in its first turn and spawned no kid -- it
           read the brief's pi contract "cli.py done is the ONLY command you run" (context.md:124, a KID line) as its own;
           no bytes, no node. EF.104's orders carry a `sequence` line (spawn FIRST, done LAST). RESIDUE: the parent brief
@@ -78,14 +83,13 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (05:0xZ 09-24, gen 5; EF.104 LIVE)
+## 🔴 WHERE IT STOPS — the one next command (05:1xZ 09-24, gen 5; R-EF104 mur LIVE)
 ```
-1  EF.104 harvest once py 2671712 exits: the loop tip has the `done` commit; read the kid diff (test_harness_template.py +
-   test_brief_render.py ONLY); gate in /tmp/de-harvest-gate: test_harness_template.py red on 3bffe93b34, green on the tip;
-   test_brief_render.py green with no real git; merge --no-ff -F <msg>. Then ONE mur R-EF104 (pi-free, detached) -> STANDS:
-   union .agi/sessions/de-0923/union-7.txt at the new SHA (lock free, detached) + graph -> [merge-up] #7 = CTX.01 (EF.101 +
-   EF.102 + EF.104) citing the owner's line verbatim + DT's three arms (14,436 / 7,396 / 396) + Q8's defect-1 refutation.
-   DEMOTE -> hold; ask TM once for the one-copy fallback.
-2  the kid dies on a 401 -> key name + time, ONE [red] to TM; if it committed, gate its bytes as EF.102 (card BUILD LOOP 3)
+1  R-EF104 [summary] -> python3 /tmp/de-mur-sum.py .agi/sessions/de-0923/mur-R-EF104.log. STANDS (or only residues) ->
+   union .agi/sessions/de-0923/union-7.txt at the post tip (lock free, detached, /tmp/de-harvest-gate) + graph (duplicate_ids,
+   links, stitch --verify, anonymize vs the trunk) -> [merge-up] #7 = CTX.01 (EF.101 60 + EF.102 70 + EF.104 70) citing the
+   owner's line verbatim + DT's three arms (14,436 / 7,396 / 396) + Q8's defect-1 refutation + the PAID note. DEMOTE -> hold;
+   ask TM once for the one-copy fallback.
+2  TM's word on the [red] (paid) -> act on it exactly; no new round before it
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current
 ```
