@@ -11,11 +11,11 @@ import paths
 from kv_group_surgery import MODEL, layer_tensors, GGUF, patch, restore, tensor_sha
 
 LAYERS = [3, 7, 11, 15, 19, 23, 27, 31]
-MODELS_DIR = "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf"
-WIKITEXT = "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw"
+MODELS_DIR = paths.get("served_9b_gguf")
+WIKITEXT = paths.get("wikitext2_test_raw")
 OUT = paths.get_local("kv_groups_dir")
 LOGS = os.path.join(OUT, "logs")
-CMD = ["docker", "run", "--rm", "--gpus", "all", "-v", "/data/ml/scratch/osc02:/work",
+CMD = ["docker", "run", "--rm", "--gpus", "all", "-v", paths.get("osc02_scratch_dir") + ":/work",
        "--entrypoint", "/app/llama-perplexity", "ghcr.io/ggml-org/llama.cpp:full-cuda",
        "-m", "/work/Qwen3.5-9B-Q4_K_M.gguf", "-f", "/work/wikitext-2-raw/wiki.test.raw",
        "-c", "512", "--chunks", "40", "-ngl", "99", "-fa", "off", "--seed", "42", "-t", "8",
@@ -104,7 +104,7 @@ def main():
         restore(L)
 
     shas = {str(L): tensor_sha(L) for L in LAYERS}
-    orig = {str(L): open(os.path.join("/data/ml/scratch/osc02", "orig_L%d.q4k.sha256" % L)).read().strip()
+    orig = {str(L): open(os.path.join(paths.get("osc02_scratch_dir"), "orig_L%d.q4k.sha256" % L)).read().strip()
             for L in LAYERS}
     k1 = sum(1 for c in curve if c["k"] and c["delta_nll_frac"] <= 0.01)
     k2 = sum(1 for c in curve if c["k"] and c["delta_nll_frac"] <= 0.02)
@@ -119,7 +119,7 @@ def main():
         "determinism": t2[0]["ppl"] == t2[1]["ppl"],
         "tensor_shas_after": shas, "tensor_shas_original": orig,
         "tensor_restored": shas == orig,
-        "orig_gguf_sha256": open("/data/ml/scratch/osc02/orig.sha256").read().split()[0],
+        "orig_gguf_sha256": open(os.path.join(paths.get("osc02_scratch_dir"), "orig.sha256")).read().split()[0],
         "command": " ".join(CMD),
         "wall_secs": round(time.time() - t0, 1),
     }

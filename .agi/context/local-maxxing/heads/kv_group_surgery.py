@@ -14,14 +14,17 @@ write-back into the residual stream is removed with no requantization.
     python3 kv_group_surgery.py restore <L>        # original bytes back + sha check
     python3 kv_group_surgery.py tensor-sha <L>
 
-The model file is a scratch COPY (/data/ml/scratch/osc02); the served
-/data/ml/models path is never opened for writing. Out-of-repo roots stay
-literal here and are proposed as box cells, never config keys.
+The model file is a scratch COPY (paths.get("osc02_scratch_dir")); the served
+model path is never opened for writing. Out-of-repo roots are resolved through
+paths.py and proposed as box cells, never config keys.
 """
 import hashlib, os, struct, sys
 
-MODEL = "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf"
-SCRATCH = "/data/ml/scratch/osc02"
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import paths
+
+MODEL = paths.get("osc02_9b_gguf")
+SCRATCH = paths.get("osc02_scratch_dir")
 Q4_K, BLOCK, BSIZE = 12, 256, 144  # ggml_type Q4_K: 256 elems / 144 bytes
 NSUP = 16                          # super-blocks per row == query heads
 

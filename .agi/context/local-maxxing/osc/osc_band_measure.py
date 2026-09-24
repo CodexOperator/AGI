@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """OSC.03: per-head post-RoPE band-energy profiles of Qwen2.5-0.5B-Instruct.
 
-Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 /data/ml/.venv/bin/python osc_band_measure.py
+Run: V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" nice -n 19 \
+  "$(python3 .agi/context/local-maxxing/paths.py ml_python)" osc_band_measure.py
 
 One pass, CPU, 8 threads: capture q,k AFTER RoPE (patch apply_rotary_pos_emb),
 assert the capture reproduces the model's own pre-softmax logit to 1e-3 relative,
 then write profiles.json / summary.json / summary.md / provenance.json.
-Out-of-repo roots (HF weights, pip target) stay literal per OSC.03 orders.
+Out-of-repo roots (HF weights, pip target) are resolved through paths.py.
 """
 import gzip, hashlib, json, os, sys, time
 import numpy as np
@@ -17,8 +18,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 import paths
 
-HF = "/data/ml/scratch/osc03/hf"
-WIKI = "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw"
+HF = paths.get("osc03_hf_dir")
+WIKI = paths.get("wikitext2_test_raw")
 HEVAL = paths.get_local("humaneval_file")  # committed copy, same bytes (sha256 b796127e...)
 REV = "7ae557604adf67be50417f59c2c2f167def9a775"
 NPROMPT, MINTOK = 256, 256
@@ -218,7 +219,7 @@ def main():
     json.dump(summary, open(os.path.join(band, "summary.json"), "w"), indent=1)
     json.dump({"hf_revision": REV,
                "hf_sha256": {f: sha(os.path.join(HF, f)) for f in sorted(os.listdir(HF))},
-               "wikitext_zip_sha256": sha("/data/ml/scratch/osc02/wikitext-2-raw-v1.zip"),
+               "wikitext_zip_sha256": sha(paths.get("wikitext2_zip")),
                "wikitext_test_sha256": sha(WIKI),
                "humaneval_sha256": sha(HEVAL),
                "pip": {"transformers": "5.17.0", "safetensors": "0.8.0",
