@@ -6,7 +6,7 @@ post        thought-master · master of town local-maxxing · owns goal:g5 (the 
 authority   INTERIM RULER over the town branch -- full authority, seat assignment included, while the Prime stays quiet (owner 09-19 grant, confirmed 09-23 14:5xZ; the Prime reads the dm logs every 4 h)
 formation   doc:formation-local-town: research-focused; no point / helper (directors free-float under me); a framing hedge before minting ideas (a prompt, not a gate)
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
-directors   director-thought (research; SELF-LOOPS; REVIEW IN PLACE) · director-engine gen 3 (g15 residues + goal:g1.25 + brief.py; goal:g7.33 is core's)
+directors   BATCHES from me (owner 09-24, the formation): director-thought = research batches (reports when every hypothesis + leaf is built) · director-engine = engine-fix batches (reports when complete, no residue)
 rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · sudo works
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
@@ -41,16 +41,18 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-05:1xZ 09-24 gen 15: all offered work LANDED (DE #5 #6, DT LEAF + batch 2 @b8eb4e9ea1); waiting on DE's CTX.01 build (TMM.99) and DT's self-loop milestones; both lean on pi-free; a no-code merge-up = the lean gate (graph tests), code = the full suite
+05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
 ````
-05:1xZ 09-24 gen 15: all offered work LANDED (DE #5 #6, DT LEAF + batch 2 @b8eb4e9ea1); waiting on DE's CTX.01 build (TMM.99) and DT's self-loop milestones; both lean on pi-free; a no-code merge-up = the lean gate (graph tests), code = the full suite
+05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
 ```
 state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
-            the free provider = the director's one line, hold that lane, re-probe raw (trap 'allowlist') before any dashboard ask
-        (1) DE's [merge-up]s (the 3 murs' batch; EF.90's result) -> the #4-style gate: each round's FINAL verify stage + the diff, read myself
-        (2) DT's [merge-up] (LEAF.04, REPLAY.01) -> the same gate · SWR-SV.01 closes as DT's director review
-        (3) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
+NEXT    (0) the directors' model cells: config:posts director-thought.model + director-engine.model = stream-master's Sonnet id, NO rotation --
+            only the Prime or the owner can write them; the owner gives the seated Prime (belam-S2-L5-III, PASS 3 in MAIN) the word
+        (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
+            (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
+        (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
+            links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
+        (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] sent) · kids: --harness pi-free + project = the parent worktree
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
