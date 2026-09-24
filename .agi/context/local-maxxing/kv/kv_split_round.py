@@ -14,7 +14,7 @@ while not os.path.isfile(os.path.join(ROOT, ".agi/config.json")): ROOT = os.path
 sys.path.insert(0, os.path.join(ROOT, ".agi/context/local-maxxing")); sys.path.insert(0, HERE)
 import paths, kv_speed_round as S                     # __main__-guarded: reuse ram()/parse()
 IMG = "ghcr.io/ggml-org/llama.cpp:full-cuda"
-SCRATCH = "/data/ml/scratch/osc02"                    # proposed box.ml_scratch_dir
+SCRATCH = paths.get("osc02_scratch_dir")
 GGUF = SCRATCH + "/Qwen3.5-9B-Q4_K_M.gguf"; M = "/work/Qwen3.5-9B-Q4_K_M.gguf"
 OUT = paths.get_local("kv_split_out_dir"); LOG = os.path.join(OUT, "logs")
 SRV = ["--cache-reuse", "8", "--host", "127.0.0.1", "--jinja", "--alias", "Qwen3.5-9B-Q4_K_M",

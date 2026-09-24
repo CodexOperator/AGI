@@ -10,8 +10,10 @@ Run: python3 fetch_parallel.py start | status | reassemble <model>
 import subprocess, sys, os, json, time, shutil, urllib.request, urllib.parse
 from datetime import datetime
 from zoneinfo import ZoneInfo
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import paths
 
-WORK = "/data/ml/models"
+WORK = paths.get("served_models_dir")
 FILES = {
   "athena": {
     "repo": "slashreboot/athena-class-model-a",
