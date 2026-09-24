@@ -1,0 +1,62 @@
+{
+ "router_stopped": "2026-09-24T01:05:38Z",
+ "plain_B": {
+  "container": "brain-bonsai27b",
+  "started": "2026-09-24T01:05:45Z",
+  "healthy_after_s": 85,
+  "line": [
+   "--gpus all",
+   "--network host",
+   "--restart unless-stopped",
+   "-v <models root>:/models",
+   "-v <prism fork b10685 dir>:/fork",
+   "-v <cuda-jit-cache>:/root/.nv/ComputeCache",
+   "-e LD_LIBRARY_PATH=/fork",
+   "--entrypoint /fork/llama-server",
+   "ghcr.io/ggml-org/llama.cpp:server-cuda",
+   "-m /models/bonsai/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+   "-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja",
+   "--temp 1.0 --top-p 0.95 --top-k 20",
+   "--host 127.0.0.1 --port 8080",
+   "--alias Ternary-Bonsai-2-27B-PTQ1_0"
+  ],
+  "vram_at_load": "7234 MiB, 8192 MiB, 0 %",
+  "vram_after_requests": "7268 MiB",
+  "slots": "slots [(0, 65536, False)]",
+  "removed": "2026-09-24T01:21:53Z (owner: run the orca bonsai instead)"
+ },
+ "orca_C2": {
+  "container": "brain-orcabonsai27b",
+  "started": "2026-09-24T01:21:53Z",
+  "healthy_after_s": 35,
+  "line": [
+   "--gpus all",
+   "--network host",
+   "--restart unless-stopped",
+   "-v <models root>:/models",
+   "-v <prism fork b10685 dir>:/fork",
+   "-v <cuda-jit-cache>:/root/.nv/ComputeCache",
+   "-e LD_LIBRARY_PATH=/fork",
+   "--entrypoint /fork/llama-server",
+   "ghcr.io/ggml-org/llama.cpp:server-cuda",
+   "-m /models/bonsai/Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+   "-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja",
+   "--temp 1.0 --top-p 0.95 --top-k 20",
+   "--host 127.0.0.1 --port 8080",
+   "-v <OrcaBonsai gguf dir>:/lora",
+   "--lora-scaled /lora/bonsai-abliterate-lora.gguf:2",
+   "--alias OrcaBonsai-27B-C2"
+  ],
+  "lora_adapters": [
+   {
+    "id": 0,
+    "path": "/lora/bonsai-abliterate-lora.gguf",
+    "scale": 2.0
+   }
+  ],
+  "models": [
+   "OrcaBonsai-27B-C2"
+  ],
+  "vram_after_requests": "7292 MiB"
+ }
+}

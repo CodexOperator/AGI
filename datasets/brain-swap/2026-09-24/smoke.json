@@ -1,0 +1,35 @@
+{
+ "attempt_1": {
+  "harness": "pi -p on local-town, plain B",
+  "result": "HUNG: 0 bytes out, killed by the owner; the server log shows NO request from pi",
+  "cause": "stdin left open -- pi -p on a non-terminal stdin waits for input; the engine adapter spawns pi with stdin=DEVNULL + a new session (pi_adapter.py), the smoke did not"
+ },
+ "attempt_2": {
+  "started": "2026-09-24T01:23:02Z",
+  "cmd": "setsid pi --provider local-town --model OrcaBonsai-27B-C2 --no-session --tools read,bash --mode json -p <read note.txt, reply with only the number> < /dev/null",
+  "exit": 0,
+  "wall_s": 17,
+  "events": 174,
+  "tool_calls": [
+   "read {path: <smoke dir>/note.txt}"
+  ],
+  "tool_result": "brain smoke marker: the answer is 4217",
+  "final_answer": "4217",
+  "expected": "4217",
+  "model": "OrcaBonsai-27B-C2",
+  "server_requests": [
+   {
+    "prompt_tokens": 1003,
+    "prefill_tps": 217.2,
+    "generated": 50,
+    "decode_tps": 19.85
+   },
+   {
+    "prompt_tokens_new": 28,
+    "note": "prefix-cache hit",
+    "generated": 123,
+    "decode_tps": 21.31
+   }
+  ]
+ }
+}

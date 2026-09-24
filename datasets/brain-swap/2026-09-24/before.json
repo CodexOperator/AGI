@@ -1,0 +1,50 @@
+{
+ "taken": "2026-09-24T01:03:45Z",
+ "router": {
+  "image": "ghcr.io/ggml-org/llama.cpp:server-cuda",
+  "entrypoint": [
+   "/app/llama-server"
+  ],
+  "cmd": [
+   "--host",
+   "127.0.0.1",
+   "--port",
+   "8080",
+   "--models-dir",
+   "/models",
+   "--models-max",
+   "1",
+   "--fit",
+   "on",
+   "--jinja",
+   "-np",
+   "1",
+   "--cache-reuse",
+   "8"
+  ],
+  "restart": {
+   "Name": "unless-stopped",
+   "MaximumRetryCount": 0
+  },
+  "network": "host",
+  "binds": [
+   "/data/ml/models:/models"
+  ],
+  "state": "running",
+  "health": "healthy"
+ },
+ "router_models": [
+  "Qwen3.5-35B-A3B-Q3_K_M (unloaded)",
+  "Qwen3.5-9B-Q4_K_M (loaded, slot 49,664, idle)",
+  "bonsai (unloaded; the 1.7B)"
+ ],
+ "gpu": "6730 MiB, 8192 MiB, 0 %, 300 MHz, 405 MHz, 235.00 W",
+ "ram": "mem avail MiB 10748",
+ "live_agents": "0/30",
+ "pi_local_town_models": [
+  "Qwen3.5-9B-Q4_K_M",
+  "Qwen3.5-35B-A3B-Q3_K_M",
+  "bonsai"
+ ],
+ "pi_models_backup": "taken before any edit, kept off-repo"
+}
