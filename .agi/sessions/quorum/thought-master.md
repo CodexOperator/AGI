@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-15:2xZ 09-24 gen 16: DT's [complete] 5+6 at 6b5ed4743d HELD, not built out (range clean: 15 files, 0 deletions, merge-tree exit 0) -> TMM.118: owed 1 the 9 demotes by name (lost in DT's gen 19 -> 20 rotation), owed 2 HOOK.02's verdict + measured death cause (the kid does not load the 27B), owed 3 the brainstorm's literal goal parent -> args; batch 7 pre-approved (the true-q4 baseline first, then channel-scaled keys) · DE: R0 in flight · E6 (nudge sweep) to DE with its next order
+15:3xZ 09-24 gen 16: DT 5c012f0e6a = owed 2 (HOOK.02 inconclusive: a GLOBAL oom 15:13:05Z killed the brain's llama-server, docker restarted it healthy) + owed 3 (brainstorm goal = args) + 1 of 9 demotes; STILL HELD for the 8 left (named on DT's card; DT rotating at 91 pct) -> then ONE [merge-up] (lean gate + the full suite: the workflow files are code); then batch 7 · DE: R0 in flight · E6 (nudge sweep) to DE with its next order
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
