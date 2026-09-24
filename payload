@@ -67,10 +67,11 @@
       "provider": "local-town",
       "credential": "none",
       "models": {
-        "kid": "Qwen3.5-9B-Q4_K_M",
-        "parent": "Qwen3.5-9B-Q4_K_M"
+        "kid": "OrcaBonsai-27B-C2",
+        "parent": "OrcaBonsai-27B-C2"
       },
       "allowed_extra": [
+        "OrcaBonsai-27B-C2",
         "Qwen3.5-9B-Q4_K_M"
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
@@ -222,7 +223,21 @@
       "serving_sweep_out_dir": "datasets/serving-sweep/2026-09-23",
       "serving_sweep_cold_out_dir": "datasets/serving-sweep/2026-09-23-cold",
       "serving_sweep_ub_out_dir": "datasets/serving-sweep/2026-09-23-ub",
-      "specdec_out_dir": "datasets/specdec/2026-09-23"
+      "specdec_out_dir": "datasets/specdec/2026-09-23",
+      "path_sweep_out_dir": "datasets/path-sweep/2026-09-23",
+      "served_models_dir": "{models_dir}",
+      "served_9b_gguf": "{models_dir}/Qwen3.5-9B-Q4_K_M.gguf",
+      "osc02_scratch_dir": "{ml_scratch_dir}/osc02",
+      "osc02_9b_gguf": "{ml_scratch_dir}/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+      "wikitext2_test_raw": "{ml_scratch_dir}/osc02/wikitext-2-raw/wiki.test.raw",
+      "wikitext2_zip": "{ml_scratch_dir}/osc02/wikitext-2-raw-v1.zip",
+      "osc03_hf_dir": "{ml_scratch_dir}/osc03/hf",
+      "osc03_pylib_dir": "{ml_scratch_dir}/osc03/pylib",
+      "cuda_jit_cache_dir": "{ml_scratch_dir}/cuda-jit-cache",
+      "ml_python": "{ml_venv_dir}/bin/python",
+      "nsys_dir": "{ml_tools_dir}/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+      "specdec_replay_out_dir": "datasets/specdec/2026-09-23-replay",
+      "brain_swap_out_dir": "datasets/brain-swap/2026-09-24"
     }
   }
 }
