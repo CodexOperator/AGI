@@ -8,6 +8,7 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -28,7 +29,14 @@ FRAME    before every mint, and again after every disproof or surprise:
 HYPOTHESIS  CLAIM with a number · FALSIFIER · MEASURE (metric + baseline) · CHEAPEST TEST · CEILING · IF-WRONG next move
 round    one variable · a baseline beside every number · warm-up before any tok/s · replicate before believing
 VERDICT  proved -> try the BIGGER frame · disproved -> WHY (research-review) -> brainstorm -> REFRAME · inconclusive -> the SMALLER frame · no signal round after round -> stop the line, say so, reframe (the master's call)
-protocol SELF-LOOP (owner 09:5xZ 09-23 via TMM.49, supersedes 08:3xZ ask-first): work town:local-maxxing trajectory_standin in its priority order on my own -- plan, mint, dispatch, review by name, close residues in-loop -- inside the board's rules row
+protocol BATCHES ONLY (owner 09-24, verbatim in doc:lm-director-brief-customizations, thought-master gen 16 TMM.120: "Let's switch the
+         formation to you batching research rounds and engine rounds as needed. Directors go back to just working the batches..."
+         -- supersedes 09-23's SELF-LOOP/TMM.49, which itself superseded 08:3xZ ask-first): work ONLY the batch thought-master hands
+         me, head down on graph build -- ONE results report once every hypothesis and hypothesis leaf in the batch is built out; the
+         master keeps the town trajectory and picks the next batch; between batches, WAIT for it, do not self-select the next item
+         from town:local-maxxing trajectory_standin. A blocker that stops the batch is the only early dm. (Old SELF-LOOP text, now
+         superseded, kept for the record: "work town:local-maxxing trajectory_standin in its priority order on my own -- plan, mint,
+         dispatch, review by name, close residues in-loop -- inside the board's rules row.")
          message thought-master ONLY for a blocker or a fully completed merge-up · an owner order in my pane: act, then tell
 coord    owner 09:5xZ (goal:g5): Prime + thought-master idle -> an ENGINE blocker goes to director-engine by send.py + the town board, else keep chasing leads · director-engine tells me when the jev surface is up
 ```
