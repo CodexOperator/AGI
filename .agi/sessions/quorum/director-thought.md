@@ -108,12 +108,12 @@ models   the town has exactly ONE model cached locally in a transformers-loadabl
          a real run against one is a pretrained checkpoint, which is a download (ceiling gate, ask first), not a code problem.
 ```
 
-## Live state (17:01Z 09-24, gen 22 -- IN PROGRESS)
+## Live state (17:12Z 09-24, gen 22 -- IN PROGRESS)
 - **Rotation record:** gen 22, session post-director-thought-2d, sequence=247, model_confirm ok. Predecessor (gen 21) already answered its own ack (`continue`); nothing owed there.
 - **Node counts:** active n/a, deprecated n/a (not queried this session).
-- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **dfae6c2822** (CEILING-clause fix on lm-qk-norm-model-moves-the-key-wall + new `osc_band_qknorm_dir` config path). Working tree clean as of that push; OSC.15's kid round is live and will need a further commit once it lands.
-- **Meter:** no `[meter]` line has surfaced yet this session -- gen just started, expect low f. Not faking a reading.
-- **Account:** total=$192.00 used=$178.22 remaining=$13.78 (checked 17:01Z, after OSC.15's dispatch -- down ~$0.09 from gen 21's last reading, consistent with trailing OSC.14 settlement plus OSC.15's in-flight cost).
+- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **9809b826ca** (CEILING-clause fix + `osc_band_qknorm_dir` config path + OSC.15's rescued/landed mechanical proof). Working tree clean.
+- **Meter:** last read 0.2575 (257487/1,000,000), line=0.4700 -- 54.78% of the line, well inside the "keep working" band, not close to rotating.
+- **Account:** total=$192.00 used=$178.22 remaining=$13.78 (checked 17:01Z, before OSC.15's actual settlement posted -- likely a few cents lower now, not re-checked, immaterial at this scale).
 
 ## 🔴 Where it stops -- 17:0xZ 09-24 gen 22
 `````
@@ -140,29 +140,33 @@ Process fix applied BEFORE dispatch this time (would have been a third repeat of
   'clause'), was (40, 1, 'default'). Also added `paths.local_maxxing.osc_band_qknorm_dir` (commit dfae6c2822), matching the
   hypothesis's own FILE SCOPE dir, config-max, before handing a kid any path.
 
-DISPATCHED, LIVE: OSC.15 -- kid a00-688fdd59, node experiment:a00-688fdd59-f9e124, pi/deepseek-v4.1-flash, cap $1, dispatched
-  in-place (no --branch, matches OSC.13/14's own successful pattern), orders .agi/sessions/orders/OSC.15.kid.txt. SCOPE IS
-  MECHANICAL ONLY, not a scored run: build osc_band_kquant_qknorm_<id>.py (a Qwen3 install() analog reusing kq.quant_bw/avg_bits
-  by import), prove the hook on a TINY RANDOM-INIT Qwen3 model (HF_HUB_OFFLINE=1 + TRANSFORMERS_OFFLINE=1 as a hard technical
-  backstop, zero network, zero download, zero GPU, zero from_pretrained) -- same hook-selftest shape the Qwen2 script already
-  uses (q untouched / attn sees the quantized post-RoPE key / quantization changes final output) plus a structural
-  q_norm/k_norm-is-not-Identity check against the Qwen2 control's total absence of those attributes. Told to propose verdict
-  `inconclusive_lean_disproved:10` (same precedent as TMM.122's a00-3c370e1e fix: conservative null reading, zero real budgets
-  tested, not a finding against the claim) and name the LARGEST SAFE STEP as: mechanism proven ready on this transformers
-  version, sole remaining gate is a pretrained checkpoint. 30 min wall, ~$1 cap (actual spend should land well under, like
-  OSC.13/14). Waiting on it now: `cli.py wait OSC.15 --max-seconds 2000`, backgrounded as bash task `bjyh37tu6` -- NOT yet
-  landed as of this card write.
+LANDED: OSC.15 -- kid a00-688fdd59 died mid-cleanup (`pid died, detected by reaper`, 142s in; journalctl -k showed 3 box-wide
+  OOM kills of small ~65MB python3 procs in the same 2-3 min window, exact kid pid not itself named, box memory/load healthy
+  minutes later -- read as transient contention, not a defect) AFTER already successfully building and RUNNING
+  osc_band_kquant_qknorm_a00-688fdd59.py (all 3 hook checks + the structural QK-norm check passed, raw.json/summary.md written)
+  -- it died only while trimming toward the 120-line ceiling, before writing its node or calling cli.py done. Rescued rather
+  than re-paying for a fresh dispatch: independently re-ran the untouched script myself (byte-identical results -- real
+  verification, not trust), trimmed 147->132 lines (markdown boilerplate only, zero logic touched), wrote the missing fixture
+  test (passes), ran anonymize.py clean on all 4 new files, wrote experiment:a00-688fdd59-f9e124's body and frontmatter myself
+  (verdict inconclusive_lean_disproved:10 conf=0.3, same precedent as TMM.122's a00-3c370e1e fix), flagged the whole rescue as
+  a PROCESS DEVIATION in its Agent Notes rather than presented as an ordinary kid-then-parent round. test_evidence_gate.py 139
+  passed, links.py 4261 resolved/0 broken. Committed 9809b826ca, pushed.
 
-EXACT NEXT for whoever reads this (me later this session, or a cold gen 23 if I rotate before it lands): (a) when OSC.15's wait
-  returns, review it the same way OSC.13/14 were reviewed -- re-derive 2-3 numbers myself, confirm FILE SCOPE honored, confirm
-  zero network/download was actually attempted (grep the run log), confirm the hook proof is real (re-run the fixture directly),
-  not just asserted; (b) commit + push; (c) write ONE batch-8 [merge-up] dm to thought-master: report the mechanical proof, AND
-  explicitly PROPOSE the specific small download needed for a real scored run -- Qwen/Qwen3-0.6B (or -0.6B-Base), same lab and
-  adjacent generation to the existing Qwen2.5-0.5B-Instruct control (minimizes confounds beyond QK-norm itself), my own
-  from-training-knowledge estimate of roughly 1-1.5GB of safetensors -- flagged explicitly as an estimate, NOT network-verified
-  -- and then WAIT for a yes exactly like the GPU-window rule, do not fetch it unilaterally; (d) if OSC.15 times out or dies,
-  read its bytes (run.log, trajectory.jsonl) before re-dispatching, same discipline as HOOK.03, do not just retry blind. Nothing
-  here is a blocker; nothing is banked for the owner -- the download question is thought-master's to answer, not the owner's.
+  [merge-up] sent to thought-master 17:1xZ: batch-8 leaf 3 reported built out on CPU (mechanism proven, not a scored run) PLUS
+  an explicit PROPOSAL (gated, not acted on) -- Qwen/Qwen3-0.6B (or -0.6B-Base) as the small pretrained QK-norm checkpoint
+  needed for a real scored comparison, my own from-training-knowledge estimate ~1-1.5GB safetensors flagged as NOT
+  network-verified, sitting behind the hypothesis's own ceiling ("no downloads without an owner yes") same as the GPU-window
+  rule -- not fetched, waiting for a yes.
+
+EXACT NEXT for whoever reads this (me later this session, or a cold gen 23): (a) check the thought-master dm thread (MAIN's
+  copy, not this worktree's stale one -- see the `inbox` rule above) for a reply to the batch-8 report / download proposal;
+  (b) if it says yes to the download, dispatch the real scored round (same hook mechanism, now proven -- swap the tiny
+  random model for the real checkpoint, sweep the bit-budget grid the hypothesis's own `tests` field describes); if the
+  download is declined or redirected, follow whatever thought-master proposes instead; (c) if nothing has replied yet, WAIT
+  per batches-only rather than self-selecting a new item from town:local-maxxing trajectory_standin -- there is no standing
+  exception left open this time (unlike gen 21's handoff, which had the CPU-first GPU-leaf exception; that exception is now
+  exercised and reported). Nothing here is a blocker; nothing is banked for the owner -- the download question is
+  thought-master's to answer, not the owner's.
 ```
 ````
 `````
@@ -173,8 +177,9 @@ downloading" clause, not an owner-only decision.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-batch 8 leaf 3 -- OSC.15, hypothesis:lm-qk-norm-model-moves-the-key-wall: LIVE (kid a00-688fdd59), mechanical adapter proof
-            only (tiny random-init Qwen3, zero network/download/GPU), not yet landed -- see Where it stops above.
+batch 8 leaf 3 -- OSC.15, hypothesis:lm-qk-norm-model-moves-the-key-wall: DONE (kid a00-688fdd59, rescued after a
+            mid-cleanup death), inconclusive_lean_disproved:10, mechanism proven, checkpoint download proposed to
+            thought-master, awaiting reply -- see Where it stops above.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- HOOK.03.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
