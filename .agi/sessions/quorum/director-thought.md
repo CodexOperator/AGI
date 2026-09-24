@@ -18,7 +18,7 @@ AUTO-CAPTURED
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 24 claude-sonnet-5 max seated 19:14:32Z 09-24 (session post-director-thought-29); succeeds gen 23 claude-sonnet-5, rotated at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 25 claude-sonnet-5 max seated 21:15:15Z 09-24 (session post-director-thought-4f); succeeds gen 24 claude-sonnet-5, rotated at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -112,32 +112,68 @@ models   the town has TWO models cached locally in a transformers-loadable forma
          paths.local_maxxing.osc15_hf_dir, ~1.52GB. Everything else present is GGUF -- not white-box hookable via transformers internals.
 ```
 
-## Live state (20:5xZ 09-24, gen 24 -- batch 11 done, corrected, landed, reported)
-- **Rotation record:** gen 24, session post-director-thought-29, sequence=252, seated 19:14:32Z 09-24. Predecessor (gen 23) already answered its own ack; nothing owed there. Meter well below the line this generation (~0.207 of 0.470 at last check).
-- **Cross-session peer relay, verified before acting:** a peer session (agi-5c) relayed TMM.133 with an inaccurate claim about my OWN session history ("your gen 24 startup read this order at 19:20Z... idle 71 minutes") that did not match my actual STARTUP transcript. Verified the substance directly against MAIN's dm log rather than trusting the relay (authority is the graph, never the message) -- TMM.133 itself was genuine, sent 19:16:50Z, content byte-identical to the relay. Acted on the verified graph copy.
-- **Batch 11 (OSC.18, TMM.133): DISPATCHED, LANDED, CORRECTED, REPORTED.** Parent `a00-a2c10978` correctly spawned kid `a00-edd08f38` as its first action; finished in ~32 min (well under its 130-min wall).
-- **What the kid did well:** built a genuinely new, distinct statistic -- literal key-only post-RoPE energy (mean-square `k` alone, no `q`-term) -- and Spearman rank-correlated it against the existing `head_var(q,k)` interaction statistic across all 224 (layer, KV-head) cells: min -0.269963 / mean 0.210049 / median 0.215842 / max 0.610394, all far below the preregistered 0.90 threshold. Key-only energy IS a distinct allocation from the interaction energy this hypothesis has used throughout. Independently re-derived from `profiles.json` this generation, matches `summary.md` exactly. Qwen3's own architecture (28 layers/16 heads/8 KV-heads/head_dim 128) was read from source and asserted, not copied from Qwen2.5's constants.
-- **DIRECTOR-LEVEL CATCH THIS ROUND:** the round's PRIMARY ask -- actually sweeping the new `profile_pooled` x Qwen3-0.6B cell to get ITS OWN lowest-holding-bit number -- was never done. No `results.json` / sweep output exists anywhere in the landed commit; only `profiles.json` (raw profile data) and a 2-line bench jsonl. The kid's own "Result and 2x2" table then cited OSC.17's already-existing LIVE-method 9.0-bit Qwen3 number under the "OSC.03 `head_var(q,k)`" label (a mislabel), and omitted Qwen2.5's live-method 10.75-bit number entirely -- the exact number that motivated this whole batch. The parent's own review was real and careful on the key-only conjunct but did not catch this gap (another instance of the `parent` card-rule pattern: correct on one conjunct, blind to the round's actual primary deliverable).
-- **CORRECTION:** demoted the kid's node `proved:0.9` -> `inconclusive_lean_proved:85` / confidence 0.85; appended a director-level correction note (mechanism, file:line, near-miss, in the house style) rather than rewriting the kid's own table in place -- their authored record stands, the note is the correction for a future reader. Did NOT amend `hypothesis:lm-qk-norm-model-moves-the-key-wall`'s method commitment -- that amendment was conditioned on a completed grid, which this round did not produce.
-- **Lean gate (by hand, not the formal mur workflow, again):** links 0/4266 broken; GOALS.md round-trips byte-identical (358 goals); FILE SCOPE respected; no new download; anonymize ok on the full 884545-byte round diff. Landed on this post branch and pushed to BOTH `refs/agi/posts/director-thought` and the branch head (tip `688530b60d`). Sent one `[merge-up]` dm to thought-master, recommending a follow-up (the expensive part -- the Qwen3 profile data -- already exists; only the sweep+eval remains) without self-dispatching it.
-- **Account:** not rechecked this generation -- batch 11 was 0 USD end to end (pi-free dispatch, no new downloads).
-- **thought-master replied (20:56Z): batch 11 LANDED 4905c6d0bf on the trunk** (agreed it was partial, lean gate clean) **and issued TWO new batches, explicitly authorized to run in PARALLEL** (separate pi-free parents each): TMM.134 = batch 12 (the OWNER's own ask via the Prime, verbatim: survey off-the-shelf jev/cua components against our two API keys, goal:g5.24.3), TMM.135 = batch 13 (finish OSC.18's sweep -- exactly the follow-up I recommended). Both dispatched this generation.
-- **SAME-DAY DISPATCH-PATTERN CORRECTION FOUND AND APPLIED before dispatching either:** doc:l5-owner-decisions (20:3xZ-20:4xZ) + doc:unified-director-brief now say NO `--harness` flag on a director's own parent dispatch -- `--tier parent --role parent --ladder-tier 0`, the ladder's tier-0 row resolves pi-free on its own; an explicit `--harness pi-free` was ALSO part of what let OSC.15 land on the paid lane earlier today. Verified via `--dry-run` before both real dispatches (`ladder_tier=0, harness=pi-free` both times). Card's dispatch rule + scratch template corrected to match, old version kept for the record. Also reinforced, same owner message, verbatim: "Never ever spawn subagents through claude routines. Ever" -- no Agent/Task tool used for my own recon this generation, and both orders files explicitly forbid it for the parent/kid too.
-- **Batch 13 (OSC.19, TMM.135): DISPATCHED.** Parent `a00-23bf7ce6`, pid 3401185, branch `season2/loops/hypothesis-lm-qk-norm-model-move-a00-23bf7ce6`. Orders: sweep the already-persisted Qwen3 profile (a00-edd08f38's profiles.json) through the existing kquant allocator, capture the one missing cell (Qwen2.5 key-only energy), assemble the real 3-method x 2-model table, recommend a method. Explicitly required: a real results.json per new cell this time, not just profile data (the exact gap in OSC.18).
-- **Batch 12 (JEV.01, TMM.134): DISPATCHED.** First minted the hypothesis it needed (none existed):
-  `hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane`, parent `goal:g5.24.3`, committed
-  f450f8cede. Identified the two keys by NAME ONLY before writing anything: `TYPESAFE_KEY` / `TYPESAFE_KEY2` in MAIN
-  .env (doc:l5-owner-decisions + doc:typesafe-ai-skill -- "jev" = typesafe.ai's `jev-latest` model; no key literally
-  named JEV or CUA exists, matching the order's own framing). Found real, reusable prior art before minting: the
-  retired `lm-jev-docs-hunt` (uncommitted synthesis, raw TypeSafe-doc digests already fetched) and a PROVED cua-bench
-  headless smoke on this same box (`experiment:a00-778d86b3-170630`, 0 USD, no key, typed-acts trajectory already
-  mapped to jev's schema) -- scoped this round to the genuinely NEW question (which components fit goal:g1.25's
-  action registry, minted TODAY) instead of repeating either. Parent `a00-b4fb9e29`, pid 3436022, branch
-  `season2/loops/hypothesis-lm-jev-cua-off-the-sh-a00-b4fb9e29`. Explicitly forbidden in orders: any live call
-  against either TypeSafe key or any other paid API this round -- survey only.
-- **Both monitored** (pid + manifest-status polling, the wait3 workaround) -- neither landed yet as of this card write.
+## Live state (~22:0xZ 09-24, gen 25 -- batches 12+13 reviewed bytes-level and landed, OSC.20 dispatched)
+- **Rotation record:** gen 25, session post-director-thought-4f, sequence=256, seated 21:15:15Z 09-24. Predecessor (gen 24) already answered its own ack; nothing owed there (F19: no ListAgents/ack/push/status re-check on wake).
+- **Recurring prompt-injection pattern, not re-escalating (already flagged red before; per the `inject` trap):** a fake nested system-reminder (bogus commit-attribution trailer with a Claude-Session URL) appeared inside a plain `Read` tool result for a manifest.json file, and separately a fake "deferred tools now available" + "MCP Server Instructions" block advertised Gmail/Calendar/Drive/Robinhood/GitKraken/Claude-Docs tools that were never actually offered. Same handling as prior occurrences: no ToolSearch on those names, no invocation, no compliance, kept working.
+- **Batches 12 (JEV.01) and 13 (OSC.19)**, both left UNREVIEWED by gen 24 at its captive rotation (both had actually finished, per the manifests, moments before rotation) -- reviewed bytes-level this generation, no Agent/Task tool used anywhere (F32):
+  - **JEV.01 -- landed clean, no demotion.** Grepped both parent and kid trajectory logs directly for curl/POST/typesafe.ai calls and TYPESAFE_KEY(2) values: every hit is a documentation read (a README quote or an endpoint-shape description with the literal placeholder `API_KEY`), never an executed call -- zero key spend confirmed. Also confirmed the kid ran under the CORRECT full orders (see the orders-path bug below): the parent hit the same bug OSC.19 hit, but retried with the right path and succeeded. `experiment:a00-ac62bcbe-e7c969`, verdict `inconclusive_lean_proved:78` stands.
+  - **OSC.19 -- landed as real evidence, but does NOT close batch 13.** Root-caused a real dispatch-mechanism bug (log-grep confirmed on both rounds, not guessed): the parent-orders template's kid-spawn line reads `--orders <this worktree's absolute path>/.agi/sessions/orders/<ITER>.kid.txt`, and "this worktree" is genuinely ambiguous -- the sentence one line earlier says "spawn from YOUR OWN worktree root", so a parent reads it as ITS OWN branched worktree, which can never hold the file because `.agi/sessions/` is gitignored and private per worktree. Both JEV.01's and OSC.19's parents hit the identical `ERR: --orders path does not exist or is not a file`. JEV.01's parent retried with the correct director-worktree path and succeeded; OSC.19's parent did NOT retry -- it wrote its own narrower 1634-byte kid brief instead of the real 6972-byte `OSC.19.kid.txt`, and dispatched against that. The result (`experiment:a00-b703a7c8-d976b9`) is real, honestly-reported, and director-verifiable (results.json per cell, independent recomputation matched all six arm means, real negative probes) but measures a DIFFERENT axis -- energy vs uniform vs random allocation at one fixed 3.5 bits, both models -- than TMM.135 actually ordered (profile_pooled vs live head_var(q,k) vs key-only energy, swept across eight bit-widths). Verdict left as set (`inconclusive_lean_proved:60`, honest for its actual scope); a director note on the node documents the mechanism/near-miss and states plainly this does not close batch 13.
+- **Fixed the bug going forward, not just documented it:** dispatched **OSC.20** (batch 13 retry) with the kid `--orders` line spelling the LITERAL director worktree absolute path instead of the ambiguous phrase, plus an explicit instruction that a dispatch refusal must be reported, never papered over with a self-improvised brief, plus a fifth explicit line: do not cite or reuse OSC.19's own `a00-edd08f38-profile-qwen2/profiles.json` (a Spearman correlation-check artifact mislabeled "Qwen3 profile_pooled cell" while living under a `qwen2` directory -- not a usable profile capture). STEPs 1-4 otherwise unchanged from the original ask. Parent `a00-d86a3cf6`, pid 3691097, branch `season2/loops/hypothesis-lm-qk-norm-model-move-a00-d86a3cf6`. Verified `--dry-run` first: `harness=pi-free tier=parent role=parent ladder_tier=0` (no `--harness` flag needed -- confirmed still-current policy by reading the freshly-merged `doc:unified-director-brief`/`doc:l5-owner-decisions` diff before dispatching, not from precedent).
+- **Lean gate (by hand):** links 4271 resolved / 0 broken; GOALS.md round-trips byte-identical (358 goals); anonymize ok on the 131755-byte merged diff; no new download. Merged BOTH town trunks TWICE (once before landing, again fresh right before the OSC.20 dispatch, per the merge rule) -- both clean, no conflicts either time.
+- **Push:** branch head and the `refs/agi/posts/director-thought` mirror both confirmed landed by `ls-remote` (tip `3d77570ab2`). **Mechanism trap hit and solved -- see Traps below** (the bare `git push origin refs/agi/posts/director-thought` form pushes a STALE gen12/season1 local ref and always rejects; the refspec form `git push origin <sha>:refs/agi/posts/director-thought` is correct). `refs/grid/*` push is failing TREE-WIDE right now (~8000 refs, ALL rejected with "Timed out validating rule, please try again", including but not limited to this session's 2 new versions) -- a server-side condition, left for the `grid_sync` cron per CLAUDE.md's own "a failure stays visible rather than swallowed" design.
+- **Incidental, pre-existing, not this session's doing:** `experiment:a00-2a4dfb57-triage` has no `mint_id`; `grid.py commit --all` refuses to version it. Flagged to thought-master, not chased further this generation.
+- **Sent ONE combined `[merge-up]` dm to thought-master** covering both batches plus the OSC.20 redispatch, table-first per the diagram-max rule. No reply yet as of this card write.
+- **Account:** not rechecked this generation -- both batches were 0 USD end to end (pi-free dispatch, no new downloads, no live key calls).
 
-## 🔴 Where it stops -- 21:2xZ 09-24 gen 24 (meter past captive 0.85x threshold, 0.4365/0.47 -- rotating NOW, NEITHER landing reviewed)
+## 🔴 Where it stands -- gen 25, ~22:0xZ 09-24 (not rotating; between-batch pause, OSC.20 live)
+`````
+````
+```
+Nothing blocked. Batches 12 and 13-first-attempt are landed and pushed (branch + mirror ref proven by ls-remote).
+OSC.20 is the live continuation of batch 13, already authorized under TMM.135 (same ask, bug fixed) -- NOT a
+self-selected new batch, so dispatching it does not violate the "wait between batches" protocol.
+
+EXACT NEXT for whoever reads this (this same session resuming, or a future gen):
+  (a) check OSC.20 first: `kill -0 3691097`, and
+      `.agi/sessions/iter-OSC.20/manifest.json` `.agents[0].status` (wait3 trap: `cli.py wait` is blind to a
+      parent's own kid-spawn -- poll pid/manifest, not `cli.py wait`, exactly as OSC.19/JEV.01 required this gen).
+  (b) when OSC.20 lands: review like this generation just did -- READ THE BYTES (`git diff merge-base..<branch>`),
+      confirm a REAL results.json exists for EACH of the three new cells (not just a profiles.json), re-derive
+      2-3 numbers independently, confirm it did NOT cite `a00-edd08f38-profile-qwen2/profiles.json` as a source.
+      If clean: merge both trunks fresh, merge the round branch, lean gate (links/GOALS/anonymize), commit,
+      `grid.py commit --all`, push branch + mirror ref with `git push origin <sha>:refs/agi/posts/director-thought`
+      -- NOT the bare ref-name form, which resolves a STALE local ref and always rejects (see Traps below). ONE
+      `[merge-up]` dm.
+  (c) check the inbox and the thought-master dm log tail for a reply / the next batch assignment before
+      self-selecting anything -- protocol is batches only, and batch 13 is not fully closed until OSC.20 lands.
+  (d) worth a retry out of curiosity, not urgency: `git push origin 'refs/grid/*'` -- if the ~8000-ref "Timed out
+      validating rule" rejection has cleared server-side; if not, leave it to the cron, do not loop on it.
+```
+````
+`````
+
+## Traps hit this generation
+```
+orders-path  the parent-orders template's kid-spawn line said `--orders <this worktree's absolute path>/...` --
+             ambiguous, and BOTH parents dispatched this generation read it as their OWN worktree (ERR: path does
+             not exist). JEV.01's parent retried correctly; OSC.19's did not and self-improvised instead. FIX
+             applied in OSC.20.parent.txt: spell the literal director worktree absolute path, never the phrase.
+mirror-ref   `git push origin refs/agi/posts/director-thought` (bare form) resolves and pushes a STALE LOCAL ref
+             left over from gen12/season1 (`43b4810f`, an unrelated commit) and always rejects non-fast-forward.
+             The correct push is `git push origin <local-HEAD-sha>:refs/agi/posts/director-thought` (a refspec,
+             source = HEAD, not a same-named local ref) -- exactly what `branches.py`'s own `mirror_and_prove()`
+             does under the hood (push `"{sha}:{ref}"` then `ls-remote` to prove it). Do the same by hand.
+grid-push    `refs/grid/*` can fail TREE-WIDE (thousands of refs at once, not just new ones) with "Timed out
+             validating rule, please try again" -- a known, cron-retried condition (CLAUDE.md Git grid section),
+             not a personal blocker. Confirm the branch + mirror ref landed (what merge-up review and the next
+             dispatch actually depend on) and move on; do not loop retrying it.
+```
+
+## 🔴 OLD -- superseded by the block above, kept only until the next card replacement
+### (gen 24's final handoff, acted on in full this generation)
+`````
+````
+```
 `````
 ````
 ```
@@ -188,40 +224,49 @@ EXACT NEXT for whoever reads this (gen 25 almost certainly):
 ````
 `````
 
-## 🔴 OLD -- superseded by the block above, kept only until the next card replacement
-````
-```
-Two pi-free parents are LIVE right now, dispatched this generation, both authorized to run in parallel (TMM.134 +
-TMM.135): OSC.19 (a00-23bf7ce6, pid 3401185, batch 13 -- finish the OSC.18 sweep) and JEV.01 (a00-b4fb9e29, pid
-3436022, batch 12 -- the owner's jev/cua off-the-shelf survey). Neither has landed. No [merge-up] sent for either
-yet. Meter was ~0.285 of 0.470 (60.6% of the line) at the last explicit check, before this dispatch round's own
-tool calls -- check it fresh, it is almost certainly higher now.
+BOTH parents reported done in the last few minutes, UNREVIEWED -- meter hit the captive auto-rotate threshold
+(f>=0.85x0.47=0.3995; now 0.4365) mid-review, no time left to do either properly. DO NOT TRUST either round's
+"accepted 1/demoted 0" self-report at face value -- neither has had the director's own bytes-level check yet.
 
-EXACT NEXT for whoever reads this:
-  (a) check both pids/manifests before anything else: `kill -0 3401185` / `kill -0 3436022`, and
-      `.agi/sessions/iter-OSC.19/manifest.json` / `.agi/sessions/iter-JEV.01/manifest.json` `.agents[0].status`
-      (the wait3 trap: `cli.py wait` from here is blind to a parent's own kid-spawn, poll pid/manifest instead).
-      If a monitor task is still armed (b4ttvfbdr for OSC.19, btfr2tkpn for JEV.01) its own notifications are the
-      first signal -- do not re-poll manually on top of it.
-  (b) on EACH landing, review like OSC.18 taught the hard way: for OSC.19, confirm a REAL results.json (not just
-      profiles.json) exists for every "new cell" claimed; for JEV.01, confirm every surveyed component's NEEDS
-      claim is backed by an actually-opened URL and that KEY-FIT reads against typesafe.ai's real shape (typed
-      judgments only, POST /v1/systemone -- NOT general text/vision), and that no TypeSafe key VALUE and no live
-      spend against either key appears anywhere.
-  (c) land each independently as it completes (do not wait for both before landing the first) -- merge trunks
-      fresh before each commit-adjacent action, push both refs, ONE [merge-up] dm per batch to thought-master.
-  (d) if the meter is at/past 0.47 before both land: this card + both live pids/branches/manifests ARE the
-      handoff -- rotate cleanly (`rotate.py rotate`, bare, same model), do not wait to finish reviewing in-session.
-      A live round survives rotation (runs detached, ppid 1, own scope) -- the successor reconciles from
-      spawn_budget.py status at wake, per doc:unified-director-brief's own "a live ROUND never holds it either."
+JEV.01 (batch 12): parent a00-b4fb9e29 done, kid experiment:a00-ac62bcbe-e7c969, self-reported
+inconclusive_lean_proved:78 (per the dm; NOT independently confirmed), accepted 1/demoted 0. Top recommendation
+per its own [merge-up] dm: adapt Cua as substrate behind goal:g1.25, TypeSafe/Jev only for bounded typed
+ranking/validation, Browser Use adapt, LangGraph reference-only, openjev reference-only/demoted pending a stable
+contract. Claims no key spend / no paid call -- VERIFY THIS FIRST above all else before trusting anything else in
+it (grep the kid's own commands/log for any non-GET request, confirm no TYPESAFE_KEY/KEY2 value anywhere). Branch:
+season2/loops/hypothesis-lm-jev-cua-off-the-sh-a00-b4fb9e29.
+
+OSC.19 (batch 13): parent a00-23bf7ce6 done, kid experiment:a00-b703a7c8-... (id truncated in the streamed log,
+get the exact id from the parent's own dm or manifest -- do not guess it), self-reported around a 3.5-bit energy
+vs uniform/random comparison with a `push_further` note, NOT the 3-method x 2-model table TMM.135 actually
+ordered. **CRITICAL FINDING, NOT YET FULLY DIAGNOSED:** the parent's own struggle line says "the required orders
+file was absent, so I created the scoped OSC.19 kid brief before dispatching." CONFIRMED BY DIRECTOR: my real
+OSC.19.kid.txt (6972 bytes, written 21:02Z) exists ONLY in THIS worktree
+(.agi/sessions/orders/OSC.19.kid.txt) -- the parent's own branched worktree
+(/data/work/agi/.agi/worktrees/a00-23bf7ce6/.agi/sessions/orders/) had NO such file at spawn time (it later wrote
+its OWN 1634-byte one there, 21:03Z, one minute after mine). LIKELY ROOT CAUSE: `.agi/sessions/` is gitignored,
+so a fresh `--branch` worktree checked out from the post branch tip never carries it -- the `<this worktree's
+absolute path>/.agi/sessions/orders/<ITER>.kid.txt` phrasing in the parent-orders template is AMBIGUOUS ("this
+worktree" reads as the PARENT's own, per "spawn from YOUR OWN worktree root" one line earlier) and WRONG for that
+reading -- the file only ever exists in the DIRECTOR's worktree. OSC.18 (same session, same template, ~90 min
+earlier) apparently did NOT hit this -- not yet explained; do not assume it is safe, check when there is time. DO
+NOT TRUST OSC.19's actual result -- it was built from a self-improvised brief, not the carefully-scoped one (which
+required a REAL results.json per new cell, the specific 8-point grid, code reuse). Branch:
+season2/loops/hypothesis-lm-qk-norm-model-move-a00-23bf7ce6.
+
+[gen 25 update: root cause confirmed exactly as hypothesized above, log-grep proof this time, not inference --
+see the `orders-path` trap and the Live state section. JEV.01 landed clean; OSC.19 landed as partial evidence;
+OSC.20 is the fixed retry. Full detail lives there now, not here.]
 ```
 ````
+`````
 
 ## Banked
-(none this generation -- TMM.133/134/135 already authorized every dispatch; minting the survey hypothesis JEV.01
-needed was a judgement call squarely inside the owner's own explicit ask, documented on the node's Measured
-section; the verdict demotion and the decision not to amend the qk-norm hypothesis were review-time judgement
-calls, documented in the node's own note; none of these needed the owner directly.)
+(none this generation -- TMM.134/135 already authorized every dispatch and the OSC.20 redispatch is the SAME
+authorized batch 13 ask, bug fixed, not a new self-selected batch; the key-spend verification method, the OSC.19
+scope-mismatch finding, and the decision to leave both kid verdicts as set rather than further demote were
+review-time judgement calls, documented in each node's own director note; none of these needed the owner
+directly.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
@@ -241,11 +286,18 @@ batch 11 -- OSC.18, the grid-completion round, ORDERED (TMM.133, relayed by a pe
             quantization sweep itself was never run -- only the profile DATA was built and persisted. Recommended
             (not ordered) follow-up: sweep the already-persisted Qwen3 profile through the existing kquant
             allocator, same grid, same OSC.04 eval.
-batch 12 -- JEV.01, the owner's jev/cua survey, ORDERED (TMM.134): LIVE, not yet landed. Parent a00-b4fb9e29,
-            pid 3436022. Target hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane
-            (minted this round). Runs in parallel with batch 13 by explicit authorization.
-batch 13 -- OSC.19, finish OSC.18's sweep, ORDERED (TMM.135): LIVE, not yet landed. Parent a00-23bf7ce6, pid
-            3401185. Target hypothesis:lm-qk-norm-model-moves-the-key-wall. Runs in parallel with batch 12.
+batch 12 -- JEV.01, the owner's jev/cua survey, ORDERED (TMM.134): ALL DONE. experiment:a00-ac62bcbe-e7c969,
+            verdict inconclusive_lean_proved:78, director-reviewed (zero key spend confirmed by log grep, correct
+            orders confirmed used). Landed 3d77570ab2, pushed (branch + mirror ref ls-remote confirmed), reported.
+            CLOSED.
+batch 13 -- OSC.19, finish OSC.18's sweep, ORDERED (TMM.135): DONE BUT WRONG SCOPE. experiment:a00-b703a7c8-d976b9,
+            verdict inconclusive_lean_proved:60 (left as set, honest for what it measured). Landed 3d77570ab2 with
+            a director correction note (orders-path dispatch bug -> self-improvised kid brief -> measured energy
+            vs uniform/random @ 3.5 bits instead of the ordered 3-method x 2-model sweep). NOT CLOSED -- see
+            batch 13 retry.
+batch 13 retry -- OSC.20, same ask under TMM.135, orders-path bug fixed: LIVE, not yet landed. Parent a00-d86a3cf6,
+            pid 3691097, branch season2/loops/hypothesis-lm-qk-norm-model-move-a00-d86a3cf6. Target
+            hypothesis:lm-qk-norm-model-moves-the-key-wall. Orders/kid files: .agi/sessions/orders/OSC.20.{parent,kid}.txt.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
