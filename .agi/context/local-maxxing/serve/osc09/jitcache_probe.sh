@@ -1,8 +1,11 @@
 #!/bin/bash
 # OSC.09 probe: is the fixed ~45 s cold cost the CUDA JIT ComputeCache? run 1 = empty cache, run 2 = same cache warm.
 set -u
-SC=/data/ml/scratch/osc02; CACHE=$SC/coldcache2
-S="$(cd "$(dirname "$0")/../../../../.." && pwd)"; OUT="$(python3 "$S/.agi/context/local-maxxing/paths.py" --local serving_sweep_cold_out_dir)"
+S="$(cd "$(dirname "$0")/../../../../.." && pwd)"
+# Run: V="$(python3 .agi/context/local-maxxing/paths.py osc02_scratch_dir)"
+V="$(python3 "$S/.agi/context/local-maxxing/paths.py" osc02_scratch_dir)"
+SC=$V; CACHE=$SC/coldcache2
+OUT="$(python3 "$S/.agi/context/local-maxxing/paths.py" --local serving_sweep_cold_out_dir)"
 IMG=ghcr.io/ggml-org/llama.cpp:full-cuda; M=/work/Qwen3.5-9B-Q4_K_M.gguf
 mkdir -p $CACHE
 run(){ # $1 tag $2 port

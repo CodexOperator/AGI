@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """OSC.10 L3: post-RoPE KEY quantization by RoPE-band energy vs uniform absmax.
-Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
-  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py
+Run: V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" nice -n 19 \
+  "$(python3 .agi/context/local-maxxing/paths.py ml_python)" .agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py
 Per KV head, sum OSC.03's pooled band profiles over the head's 7 query heads,
 rank the 32 HF rotate_half pairs (dims p, p+32) by energy, and give the top
 pairs more bits. Each bit class is absmax-scaled per (kv head, token) with an
@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE)); sys.path.insert(0, HERE)
 import paths
 import osc_band_prune as obp   # OSC.04: build_eval + metrics, imported unchanged
-HF = "/data/ml/scratch/osc03/hf"
+HF = paths.get("osc03_hf_dir")
 SCALE_BITS = 16
 # (name, pair counts per class, bits per class): avg = (sum 2*s*b + 16*classes)/64
 E = [("e30", [8, 24], [4, 2]),

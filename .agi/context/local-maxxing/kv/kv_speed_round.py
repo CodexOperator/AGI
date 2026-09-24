@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(ROOT, ".agi/context/local-maxxing"))
 import paths
 
 IMG = "ghcr.io/ggml-org/llama.cpp:full-cuda"
-SCRATCH = "/data/ml/scratch/osc02"  # proposed box.ml_scratch_dir
+SCRATCH = paths.get("osc02_scratch_dir")
 GGUF = SCRATCH + "/Qwen3.5-9B-Q4_K_M.gguf"
 TYPES = ["f16", "q8_0", "q4_0"]
 DEPTHS = [0, 4096, 16384, 32768]

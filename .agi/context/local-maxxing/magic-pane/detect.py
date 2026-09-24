@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Magic-pane chunk 1 STRICT retest (census only). A segment counts only if its tool call PRODUCES a known form; a read or mention is never a form. Prose = thinking_delta+text_delta before toolcall_start; form read only from the paired toolcall_end. <40 whitespace (\\S+) prose units -> dropped, counted per class. Model measurement is deferred (corpus insufficient); the 78-line measured harness is recoverable from grid/git history."""
-import json, glob, re, os, collections
+import json, glob, re, os, collections, sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import paths
 LAB = ["write_note", "write_set", "dm", "merge_up", "dispatch", "bench_jsonl", "node_write"]
 OUT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../datasets/magic-pane"))
 # MAIN, not derived from __file__: this script (like spawn_budget.py) must anchor to the ONE
@@ -8,7 +10,7 @@ OUT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 # happens to run it -- deriving from __file__ here would only scan the caller's own (usually
 # empty) nested .agi/worktrees/, silently undercounting (mur-mp-01 residue: flagged, not solved,
 # since a real fix needs a shared root resolver, not a per-script guess -- see bin/locations.py).
-ROOT = "/data/work/agi"
+ROOT = paths.main_checkout_root()
 PI = [f"{ROOT}/.agi/worktrees/*/.agi/sessions/iter-*/*/output.log", f"{ROOT}/.agi/sessions/iter-*/*/output.log"]
 LIVE = {os.path.basename(p)[:-6] for p in glob.glob(f"{ROOT}/.agi/sessions/.spawn-budget/*.lease")}  # a leased agent's stream is not recorded -- NOT a reproducible census: which streams are still growing changes minute to minute (mur-mp-01: 39 -> 49 on a rerun 49min later); excluded_live_agents below names the exact set this run used
 def tok(s): return re.findall(r"\S+", s)

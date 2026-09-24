@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """TEL.02 probe: GGUF arch keys, same-position cache fidelity, shifted-span negative."""
-import json, random, struct, sys, time, urllib.request
+import json, os, random, struct, sys, time, urllib.request
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+import paths
 PORT = sys.argv[1] if len(sys.argv) > 1 else '49525'
 OUT = sys.argv[2] if len(sys.argv) > 2 else '.'
-MODEL = sys.argv[3] if len(sys.argv) > 3 else '/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf'
+MODEL = sys.argv[3] if len(sys.argv) > 3 else paths.get("served_9b_gguf")
 N, M = 24, 20
 W = ('amber birch cinder delta ember fable gable harbor ivory jade kestrel lantern meadow nimbus '
      'opal quartz raven sable tundra umber violet willow xenon yarrow zephyr basalt cobble dune '
