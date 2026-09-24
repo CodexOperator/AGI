@@ -223,6 +223,21 @@ def test_restart_env_honours_a_credential_none_row(monkeypatch, tmp_path):
         "a restarted credential-none kid must not inherit OPENROUTER_API_KEY")
 
 
+def test_restart_env_keeps_harness_marker_for_credential_none(
+        monkeypatch, tmp_path):
+    """The restart seam must filter only the forbidden runtime credential.
+
+    A retained harness marker proves we did not satisfy sanitisation by
+    replacing the child environment with an empty dictionary.
+    """
+    sess = tmp_path / "a00-restart-marker"
+    sess.mkdir()
+    harness = dict(PI_LOCAL_ROW, env={"AGI_HARNESS_MARKER": "present"})
+    env = _capture_restart_env(monkeypatch, harness, sess)
+    assert env.get("AGI_HARNESS_MARKER") == "present"
+    assert provisioning.RUNTIME_KEY_VAR not in env
+
+
 def test_restart_env_keeps_the_key_for_an_unmarked_row(monkeypatch, tmp_path):
     sess = tmp_path / "a00-restart"
     sess.mkdir()
