@@ -174,12 +174,12 @@ def test_push_batches_omit_matching_and_remote_only_refs(tmp_path, monkeypatch):
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"grid": {"push_batch_limit": 200}}))
     rows = [f"refs/grid/node/{i} oid-{i}" for i in range(402)]
-    remote = [f"refs/grid/node/0\tsame", f"refs/grid/node/401\tsame",
+    remote = [f"refs/grid/node/0\toid-0", f"refs/grid/node/401\toid-401",
               "refs/grid/node/remote-only\tremote"]
     monkeypatch.setattr(grid, "git", lambda root, *args: (
         "\n".join(remote) if args[0] == "ls-remote" else "\n".join(rows)))
     batches = grid.push_batches(tmp_path)
-    assert [len(batch) for batch in batches] == [200, 200, 1]
+    assert [len(batch) for batch in batches] == [200, 200]
     assert "refs/grid/node/0:refs/grid/node/0" not in batches[0]
     assert "refs/grid/node/remote-only:refs/grid/node/remote-only" not in sum(batches, [])
 
@@ -235,6 +235,30 @@ def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, mo
     assert grid.push_batches(tmp_path) == [
         ["refs/grid/node/new:refs/grid/node/new",
          "refs/grid/node/child:refs/grid/node/child"]]
+
+
+def test_push_batches_use_measured_seed_boundary_and_count(tmp_path, monkeypatch):
+    """The calendar-midnight proxy admitted the measured 01:48Z seed roots."""
+    boundary = 1789955640  # 2026-09-21 01:54Z: first measured local-only boundary
+    old_seed = 1789955280  # 2026-09-21 01:48Z: the rejected seed root
+    (tmp_path / "agi-tree.config.json").write_text(json.dumps({
+        "grid": {"push_batch_limit": 200, "push_split_epoch": boundary}}))
+    rows = [f"refs/grid/node/{i} oid-{i}" for i in range(1869)]
+
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[-1] == "oid-0":
+            return str(old_seed)
+        return f"{boundary} parent"
+
+    monkeypatch.setattr(grid, "git", fake_git)
+    batches = grid.push_batches(tmp_path)
+    assert [len(batch) for batch in batches] == [200] * 9 + [68]
+    assert sum(map(len, batches)) == 1868
+    assert not any(ref.endswith(":refs/grid/node/0") for batch in batches for ref in batch)
 
 
 def test_push_changed_advances_real_bare_remote(project, tmp_path):
