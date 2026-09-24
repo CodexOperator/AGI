@@ -97,8 +97,9 @@ orders       a director's rotation can drop an order it read but had not carded 
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node ·
              NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.136
-owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
-             NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
+owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
+             quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
+             banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
              tier-0 kid row (= pi-free since 431b8edc32; explicit --harness beats a ladder row) · dispatch iter ids look like TMD.01 · --dry-run writes
@@ -129,7 +130,7 @@ suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid 
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
-             mint THOUGHT may quote the owner: confirm the words live in doc:l5-owner-decisions before a new thought replaces it
+             mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
 paid lane    since 431b8edc32 (the Prime, OWNER 16:5xZ) the ladder's parent + kid rows = pi-free: never pass --harness pi or pi-local for a parent or kid; a live lease with harness 'pi' = someone passed it explicitly = PAID -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
