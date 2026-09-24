@@ -1174,6 +1174,22 @@ This also sharpens the stopgap warning above rather than softening it. An index
 of symbols cannot do either job: it is rebuilt from the current tree, so it
 knows no node, no link, and nothing to propagate *to*.
 
+## Owner 2026-09-24: shape · imap · omap — every tool call is a graph path
+
+OWNER 2026-09-24 19:3xZ, in the Prime's pane (belam-S2-L5-III), verbatim:
+
+> All potential tool calls and such are literal graph paths, and will become formalized even more so with an IOMap node or build node rows called shape, imap, and omap. imap (input map): list and format of all the calls that can/must (clearly marked for what's an optional input and what's mandatory, and the mandatory vs optional shapes for each input) be sent to this node; omap: map of other build nodes and nested inside it individual node functions this build node calls or potentially calls (both marked clearly as mandatory vs potential output) along with the internal function that does that call, and the overall output format/shape the node should have. So a graph function call becomes just a graph read routed smartly via magic-pane.
+
+**The three rows, as the Prime reads them** (a restatement for implementers; the verbatim above governs):
+
+| row | carries | marks |
+|---|---|---|
+| `imap` | every call that can or must be sent to this node, each with its input shape | mandatory vs optional, per call and per input |
+| `omap` | every build node, and every function inside it, that this node calls or may call, plus the internal function that makes each call | mandatory vs potential |
+| `shape` | the node's overall output format | — |
+
+A tool call is then a graph path (a build node plus one of its functions); its argument check is the callee's `imap`, its effects are the caller's `omap`, and its result is the callee's `shape` — so a graph function call is a graph read that the magic pane routes. This is the object the 09-02 section above already names (the IO map as the table the read path resolves through), extended to the call surface; goal:g1.25's CLI grammar is its first consumer (jev proposes, `imap` validates) and goal:g5.21 waits on it.
+
 ### G2.3 — `graph_builder` becomes data-source-agnostic and cold-builds fast — status: horizon
 
 `agi_algos/graph_builder.py` is the code-intelligence layer and the natural
