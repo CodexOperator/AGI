@@ -6,12 +6,13 @@ parents:
   - hypothesis:a00-73020c7e-6d0a68
 next_edges: []
 confidence: 0.95
-edited_by: a00-73020c7e
+edited_by: a00-555d7afb
 evidence_runs:
   - experiment:a00-73020c7e-profile-link-write
 line_ceiling: 40
 loop: DH.256
 model: stealth/space-bunny-alpha
+probes: "wire: real-write.py-set-profile_ref-plus-note-created-standing-artifact; gate: directory-target-compound-write-exited-2-with-named-refusal-and-left-directory-intact"
 production_lines: 0
 profile: balanced
 role: kid
@@ -53,3 +54,9 @@ assuming pre-created output.
 
 ## Agent Notes
 Focused end-to-end test proves a newly profile-linked node projects its standing text in the same write.py action; 19 profile-sync tests pass.
+Parent probes are recorded in frontmatter and in the authored review below.
+Parent probes are recorded in frontmatter and in the authored review below.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Instruction said: a single write.py submission that sets profile_ref and adds standing text must project the post-submit graph bytes without a second projection command. Machine actually does: the reviewed write.py call site invokes profile_sync.sync_node after the named edits at write.py lines 2021-2048, and the focused test at test_profile_sync.py lines 75-83 drives the real CLI then compares the artifact to profile_sync.project. I independently built and ran the session probe: the compound command created the standing artifact, while a directory-target variant exited 2 with a named refusal. Near miss: accepting a merely non-empty file or testing profile_sync.project directly would satisfy the wording while missing the live write.py seam; the wire probe crosses the real CLI and checks produced bytes. No standing rule was deviated from; my first probe expected uppercase REFUSED although the engine emits lowercase refused, so I made the assertion case-insensitive.
+<!-- THOUGHT:END -->
