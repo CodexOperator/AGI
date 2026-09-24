@@ -4,9 +4,11 @@ Temp-dir fixtures ONLY: get()'s box.root is deliberately pointed at a DIFFERENT
 directory than the one holding .agi/config.json, which is the stale-box-root
 trap get_local() exists to close.
 """
+import glob
 import json
 import os
 import shutil
+import subprocess
 import tempfile
 import unittest
 
@@ -61,6 +63,30 @@ class TestGetLocal(unittest.TestCase):
     def test_local_anchors_at_checkout_not_box_root(self):
         self.assertEqual(paths.get_local("k"), os.path.join(self.checkout, "datasets", "x"))
         self.assertEqual(paths.get("k"), os.path.join(self.other, "datasets", "x"))
+
+    def test_main_checkout_root_and_census_worktree(self):
+        main = os.path.join(self.tmp, "main-repo")
+        _fixture(main, self.other)
+        git = lambda *args: subprocess.check_call(["git", "-C", main] + list(args))
+        git("init")
+        git("config", "user.email", "test@example.com")
+        git("config", "user.name", "Test")
+        git("add", ".")
+        git("commit", "-m", "fixture")
+        worktree = os.path.join(main, ".agi", "worktrees", "w1")
+        git("worktree", "add", worktree, "-b", "fixture-worktree")
+        for checkout in (main, worktree):
+            log = os.path.join(checkout, ".agi", "sessions", "iter-X", "a", "output.log")
+            os.makedirs(os.path.dirname(log), exist_ok=True)
+            open(log, "w", encoding="utf-8").close()
+        patterns = [".agi/worktrees/*/.agi/sessions/iter-*/*/output.log",
+                    ".agi/sessions/iter-*/*/output.log"]
+        self.assertEqual(paths.main_checkout_root(main), main)
+        self.assertEqual(paths.main_checkout_root(worktree), main)
+        for start in (main, worktree):
+            root = paths.main_checkout_root(start)
+            found = [p for pattern in patterns for p in glob.glob(os.path.join(root, pattern))]
+            self.assertEqual(len(found), 2)
 
     def test_get_is_unchanged_for_absolute_values(self):
         self.assertEqual(paths.get("abs"), self.other)
