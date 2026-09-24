@@ -180,6 +180,7 @@ Diffing a kid's branch against the WRONG base (e.g. current HEAD, which may alre
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (19:3xZ 09-24, gen 10 -> rotating NOW at the captive line)
+`````
 ````
 ```
 1  Check the final full-suite confirmation run: `cat /tmp/full-suite-final.log` (started ~19:33Z, on merged
@@ -210,3 +211,4 @@ Diffing a kid's branch against the WRONG base (e.g. current HEAD, which may alre
    yourself -- do not wait for a nudge, and do not let the captive mechanism catch you again.
 ```
 ````
+`````
