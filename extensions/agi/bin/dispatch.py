@@ -2649,16 +2649,17 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
+            launch = getattr(adapter, "launch", None)
+            if callable(launch):
+                return launch(args=mem_cap.wrap_argv(spawn_args, _mem_cap),
+                              cwd=str(branch_root), env=spawn_env,
+                              log_file=log_file, mode=mode, record=None)
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+                    stdout=logf, stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL, start_new_session=True,
+                    cwd=str(branch_root), env=spawn_env)
 
         _attempt = 1
         _sig = None
@@ -2748,6 +2749,9 @@ def main() -> int:
             "context_file": ctx_path,
             "log_file": str(log_file),
             "harness": harness_name,
+            "pane_id": getattr(proc, "pane_id", None),
+            "pane_session": getattr(proc, "pane_session", None),
+            "pane_observed": bool(getattr(proc, "pane_id", None)),
             # hypothesis:l4-needs-credential-is-provider-gated -- the config
             # row reaches the RESTART path. dispatch.py:restart reads
             # `rec.get("harness_spec")` but nothing wrote it, so a restarted
