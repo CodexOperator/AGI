@@ -44,6 +44,23 @@ def test_distinct_safe_ids_and_exact_id_update_preserve_provenance(tmp_path):
     assert "changed" in text and "actor-A.B" in text
     assert "parents:" in text and "goal:g7.32.1" in text
 
+def test_mixed_jsonl_preserves_non_object_records(tmp_path):
+    root, artifact = setup(tmp_path)
+    artifact.write_text("\n".join([
+        json.dumps({"session_id": "mixed", "goal": "g7.32.1", "text": "object"}),
+        json.dumps("important scalar transcript record"),
+        json.dumps([1, 2]),
+        "null",
+    ]) + "\n")
+    got = run(root, artifact)
+    assert got.returncode == 0, got.stderr
+    node = next((root / "nodes" / "doc").glob("*.md")).read_text()
+    assert "important scalar transcript record" in node
+    assert '"text": "object"' in node
+    assert '[\n    1,\n    2\n  ]' in node
+    assert "\n  null\n" in node
+
+
 def test_requires_resolved_live_goal_and_keeps_refusals(tmp_path):
     root, artifact = setup(tmp_path)
     artifact.write_text(json.dumps({"session_id": "no-goal", "text": "orphan"}) + "\n")

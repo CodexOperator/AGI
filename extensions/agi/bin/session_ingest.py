@@ -52,10 +52,10 @@ def ingest(path: Path, root: Path) -> str:
         records = parsed if isinstance(parsed, list) else [parsed]
     except json.JSONDecodeError:
         records = [json.loads(line) for line in raw.splitlines()]
-    records = [r for r in records if isinstance(r, dict)]
-    if not records:
-        raise ValueError("session artifact has no records")
-    record = records[0]
+    control_records = [r for r in records if isinstance(r, dict)]
+    if not control_records:
+        raise ValueError("session artifact has no object records")
+    record = control_records[0]
     identity = record.get("session_id", record.get("id"))
     if identity is None:
         raise ValueError("session artifact has no session_id")
