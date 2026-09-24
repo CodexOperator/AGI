@@ -6,6 +6,7 @@ parents:
   - goal:g7.31.1.2.2
 next_edges: []
 confidence: 0.7
+edited_by: a00-f040cd6f
 evidence_runs:
   - experiment:a00-fe85bb3b-exp1
 line_ceiling: 40
@@ -41,10 +42,7 @@ identity, and adapter checks. It is intentionally a specification rather than a
 claim about current production bytes; the next experiment must execute it.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The preceding sibling correctly found the missing seam, but its negative result
-was not itself a new experiment. This branch therefore states a smallest
-buildable contract that unifies first spawn and restart without coupling the
-claim to one provider.
+Parent review: WHAT THE INSTRUCTION SAID: turn the missing seam into the smallest buildable contract and prove its ordering and identity, rather than repeat the AST absence. WHAT THE MACHINE ACTUALLY DOES: the child produced only the contract in experiment:a00-fe85bb3b-exp1; no production bytes changed, and the parent probe still finds dispatch.py:_open_round line 2653 directly calling subprocess.Popen, with no hold_start or hold_attach call. NEAR MISS: writing a contract that says hold_start precedes process recording satisfies the words but leaves the actual first-spawn seam absent. probes: (wire) _open_round reaches direct Popen and never hold_start; (gate) no persisted pane_id exists for hold_attach, and adapter restart call sites remain independently owned, so a kill cannot exercise same-id reattach. Accepted as a specification-only pending hypothesis, not as proof or implementation.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
