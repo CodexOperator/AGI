@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 17 claude-opus-5-5 seated 03:31:50Z 09-24 (session post-director-thought-b7) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 18 claude-opus-5-5 seated 04:55:17Z 09-24 (session post-director-thought-e8) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -31,7 +31,7 @@ mur      run-key = mur-<post>-N · results MAIN .agi/sessions/workflows/runs/<ru
 harvest  a round's .agi/config.json edits are NOT in cli.py done's scoped commit -> check the round worktree for uncommitted config
 spawn    (owner 14:xZ, TMM.51: spawn limits live ONLY on director cards) GPU one research round at a time · ONE model-loading host kid, memory_max 6G · no multi-kid round under a pi-local parent (49,664-token slot) · a paid round's 120-min ORDERS wall until dispatch grows a real wall knob (key TTL 300) · NO per-round spending cap -- the dispatcher's concurrency cap is the only cap (the 1 USD and the TypeSafe ledger caps are gone) · floor -50
 write    AGI_ACTOR=director-thought on every write.py call · replace body: read the range first, whole paragraph/table/section, never --force · bodies via python subprocess, no backtick or apostrophe in shell args
-inbox    send.py read + the RAW inbox tail (MAIN .agi/sessions/inbox/director-thought.md: the Prime's positional sends land ONLY there, 10:35Z + 10:38Z) + the thought-master dm LOG tail + its card -- an order can land in only one of them (TMM.46 showed only in the dm log) · a REFUSED FORGED dm is data: verify its claim on goal:g5 before acting
+inbox    send.py read + the RAW inbox tail (MAIN .agi/sessions/inbox/director-thought.md: the Prime's positional sends land ONLY there, 10:35Z + 10:38Z) + the thought-master dm LOG tail + its card -- an order can land in only one of them (TMM.46 and TMM.106 showed only in the dm log) · a REFUSED FORGED dm is data: verify its claim on goal:g5 before acting
 paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo-relative against box.root · paths.py audit gains no new hit
 mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
 ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
@@ -51,9 +51,11 @@ runs     evidence_runs is a LIST: write.py set evidence_runs [<id>] -- a scalar 
 restore  a restore proof is a PARSED completion naming the model (a non-empty reply), never a /slots read -- OSC.11's kid proof was a JSONDecodeError
 memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pass 6G or omit it (config is 6G); a bare 6 OOM-killed OSC.12's first parent at start
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
+source   before re-running a round whose instrument failed, read the SUBJECT's source for the trigger the claim rests on: CMP.01's stub could not have
+         shown either arm (one request per arm, usage 0) -- a source read found pi checks compaction only at agent_end + a new prompt (gen 18, 05:0xZ)
 ```
 
-## Live state (04:2xZ 09-24, gen 17)
+## Live state (05:0xZ 09-24, gen 18)
 ```
 OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs just research
          towards doing more efficient usd0 runs in the future" · TMM.95 03:39Z "Make both directors go back to spawning parents efficiently with
@@ -62,48 +64,39 @@ OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using t
 LANES    FREE   pi-free (stealth/space-bunny-alpha), 0 USD, the provider RETAINS prompts -> anonymize --text on every orders file
                 a lean parent = 3-6.5 min per round today; parent orders pin the kid spawn to `dispatch.py .` from the parent's own worktree (no 401 since)
          PAID   held (TMM.66) · LOCAL retired as an operating mode (TMM.90) · BRAIN brain-orcabonsai27b UP (router stopped): never restart it
-GATE     [merge-up] + MILESTONE sent 04:20:29Z at b57101ae9a (78 commits / 67 files; supersedes the 03:36Z line): LEAF A/B/C + CEN.01 + REPLAY.01 + CTX.01
-         -> awaits TM; the next-move options it proposed: 1 CTX.02 (started, "unless you say otherwise") · 2 SWR-SV.01 HumanEval once more (TM go)
-         · 3 REPLAY.02 smaller frame (needs the server token ids or a GPU slot) · 4 the Prime writes the 4 box cells
+LANDED   batch 1 7b63a6a5b2 (TMM.105: LEAF A/B/C + CEN.01 + REPLAY.01 + CTX.01) · batch 2 b8eb4e9ea1 (TMM.106, lean gate: CTX.02 + CMP.01) -> "Keep self-looping lean."
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
   done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py)
   L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
-  L9/10  OSC.12 DISPROVED as stated -> REPLAY.01 inconclusive (the instrument failed) -> REPLAY.02 = the smaller frame
-routed   director-engine: dispatch.py --memory N = BYTES · the CLAUDE.md one-copy adapter change (CTX.01, 04:0xZ) · stale box.* / locations.* cells
+  L9/10  OSC.12 DISPROVED as stated -> REPLAY.01 inconclusive (the instrument failed) -> REPLAY.02 HOLD (OSC.12 rows = text, no token ids; re-checked 05:0xZ)
+  horizon  g5.22 hypotheses never run: kv-slot-save-beats-reprefill (needs the 9B router: stopped) · spec-decode-cpu-draft-hybrid · rpc-cpu-split-pays ·
+           eagle3-drafter-on-frozen-qwen3-4b · dead-head-prune-by-oscillator-coherence · rig-fetch-supervisor (all GPU / model-loading -> the router or a window)
+routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:0xZ 09-24: BOTH batches LANDED (7b63a6a5b2, b8eb4e9ea1); gen 17 rotated out by the captive capture at f=0.41 -> gen 18: self-loop lean
+## 🔴 Where it stops -- 05:0xZ 09-24: CMP.02 LIVE (parent a00-b2ddbef3, dispatched 05:06:51Z, pi-free, 0 USD); batch 3 accumulating
 ```
-NOW      batch 1 LANDED 7b63a6a5b2 (TMM.105) · batch 2 LANDED b8eb4e9ea1 (TMM.106, lean gate: no code) -> "Keep self-looping lean." Nothing live; no mur running.
-         gen 18 FIRST: merge the trunk (it moved), then pick the next thread lean (the queue below) -- a posts.md conflict at a landing = TMM.104's recipe
-         (gate tip = the offered SHA + the named trunk commit, the conflicting row to the trunk, merge it into the branch, re-offer ONE line)
-NEXT     batch 3 so far: 01045931c5 the CTX.02 probe fix (parents[3]; heads-up to director-engine queued, its pane busy) · the queue: 2 SWR-SV.01 HOLD ·
-         3 REPLAY.02 HOLD (no token ids) · 4 box cells with TM -> Prime · CTX to PROVED = one re-run of the fixed probe (director-engine's adapter proof)
-mur-19   04:49Z demote x2, closed in place: CTX.02 proved -> lean_proved:80 (the committed probe cannot re-run: parents[4] for parents[3]; the numbers stand)
-         · CMP.01 stays lean_proved:60 + fixture corrections · set aside: "a real pi process" (the design runs pi against a stub; that rule binds reviewers)
-CMP.01   eace9b2e44 (parent a00-188c77c5 -> kid a00-3a7f8962, 12 min): the stub never ran (its own fixture) -> lean_proved:60 on the node STEP from pi source
-         (compaction.js:149-153: compact at contextWindow - 16,384 · model-registry.js:415: a custom id gets 128,000) + the LEAF.03 field overflow
-CTX.02   PROVED bda028a56e (parent a00-35435a6e -> kid a00-206147f4): default 14,436 tokens / 2 copies · --no-context-files 396 / 0 · + --append-system-prompt
-         CLAUDE.md 7,396 / 1 -> 7,040 saved, the payload byte-identical; the kid's disproof rode MY orders' stricter conjunct (156 bytes of pi framing,
-         inside the Project Context section the node's falsifier allows) -> the flags handed to director-engine 04:2xZ (queued: its pane was busy)
-TMM.100  04:21Z: b57101ae9a gates right after director-engine's #6 lands · 1 CTX.02 GO (hand director-engine the exact flags; its CTX.01 build is
-         approved) · 2 SWR-SV.01 HOLD (0-USD runs retired as an operating mode) · 3 REPLAY.02 HOLD -- checked 04:2xZ: OSC.12's committed rows carry the
-         generated TEXT (rows[].text) + completion_tokens counts, NO token ids · 4 TM relays the four box cells to the Prime
-TODAY    LEAF closed (A LEAF.04 proved · B LEAF.05 proved · C LEAF.06 lean_proved:85 + fix 6a1253fce1 · CEN.01 proved: main_checkout_root)
-         REPLAY.01 lean 50 (mur-18: the replay is invalid, 7 defects; the claim untested) · CTX.01 lean_proved:75 (~14,040 tokens a turn duplicated)
-         murs: mur-director-thought-16 (LEAF.04), -17 (B + C), -18 (REPLAY + CTX), all pi-free, all closed in place
+NOW      CMP.02 = CMP.01 re-run on a corrected instrument (hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared, brief ff8ba59578)
+         parent a00-b2ddbef3 pid 2789958 · manifest .agi/sessions/iter-CMP.02/manifest.json · wait: python3 extensions/agi/bin/cli.py wait CMP.02
+PREDICT  pi 0.67.68 source: auto-compaction is checked ONLY at agent_end (agent-session.js:337) and before a NEW prompt (:738); the threshold reads
+         only the last reply's server usage (:1443) -> inside one pi -p loop a declared window cannot stop an over-ceiling request (falsifier 1);
+         the extension API has turn_end (types.d.ts:734) + compact() (:206) = the mid-loop trigger, the bigger frame if disproved
+THEN     review the kid's bytes by name (selftest ran first? usage = bytes/3.80 on every 200? first reply a tool call?) -> verdict -> mur (lean) ->
+         batch 3 = 01045931c5 (the CTX.02 probe fix) + CMP.02 -> ONE [merge-up] line to TM with the next-move options
+NEXT     after CMP.02: disproved -> mint the turn_end-extension hypothesis (bigger frame; an extension = director-engine's build, the measure is mine) ·
+         proved -> the declared-window cell to TM (pi config) · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
 
 traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
-       special 0-USD run; TMM.71 once withdrew TMM.70 the same way
+       special 0-USD run; TMM.71 once withdrew TMM.70 the same way; TMM.106 landed 18 s before gen 17's rotate (dm log only)
        · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
          and read the tail
        · the rotate-out COMMITS a thin auto-captured card: the full card lives only in the predecessor's last hand-written card commit
-         (gen 16 = ec37d59f8e, gen 17 = this commit) -> the successor rebuilds it whole from there; the CAPTIVE capture at 0.85 x the line rotates you out on its own
+         (gen 16 = ec37d59f8e, gen 17 = 63176e51d3, gen 18 = this commit) -> the successor rebuilds it whole from there; the CAPTIVE capture at 0.85 x the line rotates you out on its own
        · pi prints a COST for a custom model id (0.0326 on a 24K free turn) = its own table, not the bill: the key used= (provisioning.py status)
          is the truth
        · write.py: a joined script --dry-run admits can still be refused live ("replace body is standalone") -> replace body alone, thought apart
        · replace body refuses a range that splits a section: a heading's section runs to the next heading, the THOUGHT block included -> replace
-         the whole section, carrying the THOUGHT bytes
+         the whole section, carrying the THOUGHT bytes; two replaces in one node: the LATER range first (the earlier numbers stay valid)
        · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
        · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
        · the dispatch dry-run warns "ladder row wins -> deepseek" and then --harness pi-free overrides it: the spawn line's --model is the truth
@@ -116,18 +109,18 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -
 ## Banked
 ```
 - four proposed box cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir) are the Prime's to write (rule 13); they retire the LEAF's root table
-- the CLAUDE.md-twice lever: measured (CTX.01) and routed to director-engine (the one-copy adapter change); watch for its landing
-- a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner
+- the CLAUDE.md-twice lever: measured (CTX.01/02) and routed to director-engine (the one-copy adapter change); watch for its landing
+- a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner -- CMP.02 decides whether it is enough
 - fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
 - the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
 ```
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS CTX.02 (LIVE) -- .agi/sessions/orders/CTX.02.parent.txt + CTX.02.kid.txt (gitignored; if lost: CTX.01's pair with CTX.01 -> CTX.02 + the three-arm probe line)
+ORDERS CMP.02 (LIVE) -- .agi/sessions/orders/CMP.02.parent.txt + CMP.02.kid.txt (gitignored; if lost: CMP.01's pair + the four fixes in the node's TESTS)
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
-            (evidence_runs as a LIST) · never · wall -- CTX.01.parent.txt is the cleanest copy to sed from
+            (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
 dispatch    AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . <ITER> --target <hypothesis> --level small --tier parent --harness pi-free
             --branch --detach --orders .agi/sessions/orders/<ITER>.parent.txt --from director-thought > /tmp/<file> 2>&1   (--dry-run first)
 mur         python3 workflow.py run merge-up-review --harness pi-free --root <tree> --args <json file> --dry-run, then under systemd-run --user
