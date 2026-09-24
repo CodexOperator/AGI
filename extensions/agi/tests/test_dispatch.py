@@ -2958,6 +2958,18 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
     return code, mint_calls, project
 
 
+def test_live_pi_config_selects_the_initial_dispatch_holder():
+    """The repository's configured pi path—not only an injected fixture—
+    resolves to the holder selected by dispatch._open_round."""
+    import json
+    cfg = json.loads(
+        (Path(__file__).resolve().parents[3] / ".agi/config.json").read_text())
+    name, harness = dispatch.adapters.resolve(cfg, "pi")
+    assert name == "pi"
+    assert harness["persistent_holder"] == "held_pane"
+    assert callable(dispatch.adapters.load_holder(harness["persistent_holder"]).start)
+
+
 def test_initial_dispatch_uses_and_records_the_persistent_holder(
         tmp_path, monkeypatch):
     """goal:g7.31.1.2.2: the production first launch owns a named pane."""
