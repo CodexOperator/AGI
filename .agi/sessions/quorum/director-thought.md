@@ -84,27 +84,34 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          · cli.py done drops config.json · stale box.* / locations.* cells (pi_traj_dir resolves to another box's pi home)
 ```
 
-## 🔴 Where it stops -- 01:3xZ 09-24, the brain is LIVE; step 2 LEAVES started -- LEAF.01 (leaf A) waits for the ONE local slot; the next command is S2
+## 🔴 Where it stops -- 01:3xZ 09-24, the brain is LIVE; the next act is the FIRST WHOLE-LOCAL pi round (TMM.79) once the one slot frees -- item S2
 ```
 BRAIN LIVE (TMM.76 step 1, experiment:director-thought-brain-swap-2026-09-24 @b5a2ab7d24): container brain-orcabonsai27b (restart unless-stopped) on the
          loopback port 8080 = OrcaBonsai C2 (Bonsai 27B + abliterate LoRA scale 2.0 IN the launch line, --alias OrcaBonsai-27B-C2), q4_0 KV, ONE 65,536-token
          slot · 7.29 GB VRAM · 20.2-20.5 tok/s decode · ~250 tok/s prefill · a pi-local tool-call turn in 17 s · the router container llama-server STOPPED
-         (restart unless-stopped keeps it stopped) · the pi local-town provider lists OrcaBonsai-27B-C2 first (backup of the pi models file taken first)
+         (restart unless-stopped keeps it stopped) · the default pi models file was RESTORED by TM (see S2 ROUTE)
          OWNER 01:1xZ in MY pane, verbatim: "Also we need to run the orca bonsai model instead of" -> switched from the plain 27B (it met VRAM/slot/decode)
    RESTORE the 9B if the brain misbehaves: docker rm -f brain-orcabonsai27b; docker start llama-server; prove :8080 answers a PARSED completion naming
          Qwen3.5-9B-Q4_K_M -> fallback B (TMM.76): the 9B with L1s -fa on -ctk q4_0 -ctv q4_0 (3 slots of ~52K)
    TRAP any hand-run pi: CLOSE STDIN (setsid pi ... < /dev/null) -- with stdin open pi -p waits forever and sends nothing (attempt 1, killed by the owner)
-S2 LEAVES (TMM.76 step 2) -- STARTED 01:2xZ: harnesses.pi-local models + allowed_extra = OrcaBonsai-27B-C2 in my branch config (8ca1a1d1cd) · town trunk merged
-         (4277d787b2; posts.md rows resolved to the trunk, whose TM + DE rows were newer) · leaf A MINTED = hypothesis:lm-paths-py-resolves-proposed-box-roots
-         (LEAF.01; <= 60 lines; orders in the scratch dir, rebuilt below) -- its FIRST kid a00-f380da1f (01:29Z, branch season2/loops/hypothesis-lm-paths-py-
-         resolves--a00-f380da1f, stub experiment:a00-f380da1f-1e1471) was CUT by me at 01:30:48Z: director-engine's EF.90 kid a00-0d0977d3 was ALREADY a
-         pi-local kid on the brain (TMM.76: ONE local kid town-wide; one slot = two kids evict each other's prompt cache every turn). My error: the live
-         check and the dispatch ran in ONE command -> gate the dispatch on its own read of spawn_budget.py status
-   NEXT  when NO pi-local kid is live (spawn_budget.py status + the lease harness): python3 extensions/agi/bin/dispatch.py . LEAF.01 --target
-         hypothesis:lm-paths-py-resolves-proposed-box-roots --level small --tier kid --harness pi-local --branch --detach --orders <orders> --from
-         director-thought (dry-run verified 01:2xZ: harness pi-local, provider local-town, model OrcaBonsai-27B-C2, no credential) · then review in place
-         against the bytes, one [merge-up] per batch to TM · after leaf A: split LEAF.01 B/C and REPLAY.01 into leaves the same way
-   OWNER 01:3xZ in my pane: "I paused the pass from prime" -- PASS 3 is PAUSED (no 01:37Z window for now); TMM.66 paid HOLD unchanged
+S2 LEAVES (TMM.76 step 2; route per TMM.79 01:30Z, OWNER 01:1x-01:3xZ verbatim on goal:g5: "Let's try to let both models run in pi via config extension or
+         something." / "I don't want interrupt the local experiments. Maybe we could find a way to serve pi parents and kids." / "Locallly" / "Even if we
+         have to dump cache and reset for each kid spawn per parent"):
+   ROUTE  a WHOLE pi round local, parent AND kids: export PI_CODING_AGENT_DIR=/data/ml/pi-agent-local (TM made it: its openrouter AND local-town
+         providers point at the loopback 8080) + the STANDARD line; kids inherit the env -> every request hits the brain; 0 USD on tokens (dispatch still
+         mints a per-spawn OpenRouter key -- it only reaches the loopback). The DEFAULT ~/.pi/agent is RESTORED byte-identical to the 01:09Z backup (sha
+         41ea5cf92385 = my pre-edit backup at /data/ml/scratch/brain-swap/) -- my OrcaBonsai entry there is GONE: a hand-run pi needs the local dir
+   SLOT   ONE local round town-wide: director-engine's EF.90 kid a00-0d0977d3 held it at 01:3xZ -- mine after it. Gate on a SEPARATE read: no live
+         lease whose agent runs local-town / AGI_HARNESS local (my background watch dies with this session -- re-check by hand)
+   NEXT   merge the town trunk, push the mirror, then (leaf A, the resolver, <= 60 lines; LEAF.01 was the cut kid -> use LEAF.02):
+         PI_CODING_AGENT_DIR=/data/ml/pi-agent-local python3 extensions/agi/bin/dispatch.py . LEAF.02 --target hypothesis:lm-paths-py-resolves-proposed-box-roots
+         --level small --tier parent --harness pi --branch --detach --orders <parent orders: ONE kid on leaf A with the kid orders in
+         .agi/sessions/iter-LEAF.01/orders.leafA.txt; review its diff against the bytes> --from director-thought   (--dry-run first)
+   VERIFY this first round IS the check: the brain log (docker logs brain-orcabonsai27b) shows the parent's AND the kid's requests; each node names its
+         REAL brain (OrcaBonsai-27B-C2) even where pi reports the ladder model · NEVER restart brain-orcabonsai27b while a local round runs (owner)
+   then   review in place (no paid mur), ONE [merge-up] per batch to TM · split LEAF.01 B/C and REPLAY.01 into leaves the same way
+   LOG    my first pi-local kid a00-f380da1f (01:29Z) was CUT at 01:30:48Z: EF.90 already held the slot -- my live check and dispatch ran in ONE command
+   OWNER 01:3xZ in my pane: "I paused the pass from prime" -- PASS 3 is PAUSED; TMM.66 paid HOLD unchanged
 0 MODEL (TMM.71/72): NO rotation for the switch -- the owner switches this live session in the app, the Prime writes the config:posts row. Rotate only
          at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge origin/season2/main
          as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
