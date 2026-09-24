@@ -74,14 +74,13 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:3xZ 09-24: batch 3 [merge-up] SENT to TM (CMP.03 disproved + HOOK.01 proved + the CTX.02 probe fix); nothing live
+## 🔴 Where it stops -- 05:3xZ 09-24: batch 3 [merge-up] SENT to TM 05:35:15Z (tip 3e39c60a24, mirror pushed); HOOK-B.01 LIVE (parent a00-a5082be0)
 ```
 NOW      batch 3 = the pi context thread, offered to TM as ONE [merge-up] (tip in the dm log) -> wait for TM's gate; a posts.md / config.json conflict at
          landing = TMM.104's recipe (merge the named trunk commit, the conflicting row to the trunk, re-offer ONE line)
-NEXT     I start HOOK.01b unless TM says otherwise: harden the extension before director-engine ports it -- count the system prompt + tool schemas
-         (ctx.getContextUsage() or a measured offset) on the stub with a real-size system prompt (--append-system-prompt CLAUDE.md, ~7,000 tokens) and
-         DISTINCT call ids (pairing measured, not by construction); orders = HOOK.01's pair + those two lines · HOOK.02 (a real pi-local kid on the
-         brain's slot) = TM's go · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
+NOW+     HOOK-B.01 = the HOOK.01 replication, harder (HOOK.01b was not a valid iteration id): a ~7,000-token system prompt + distinct call ids,
+         the estimate from ctx.getContextUsage() -- parent a00-a5082be0 pid 3232048, 05:37:25Z · wait on the pid · review like HOOK.01 (re-derive
+         from the log; pairing BY ID this time) -> batch 4 · HOOK.02 (a real pi-local kid on the brain slot) = TM's go · SWR-SV.01 / REPLAY.02 HOLD
 THREAD   CMP.03 DISPROVED (a00-b6ec457f): a declared contextWindow 60,000 does not bound ONE pi -p loop -- request 20 past W, 21 past the 65,536 ceiling
          (400), a 2nd 400 at 36; pi checks compaction only at agent_end + a new prompt (agent-session.js:337/:738; pi 0.73.1 the same)
          HOOK.01 PROVED (a00-cdde7530, conf 0.9): a 13-line context-event extension (types.d.ts:400-404) -> 40 requests, max 44,849.7, 0 x 400 (control:
