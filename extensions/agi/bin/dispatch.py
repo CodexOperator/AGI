@@ -55,6 +55,7 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+import tmux_hold  # noqa: E402 -- first-spawn uses a durable named pane
 import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
@@ -2650,15 +2651,9 @@ def main() -> int:
 
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
-                return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+                return tmux_hold.start(
+                    mem_cap.wrap_argv(spawn_args, _mem_cap), cwd=branch_root,
+                    env=spawn_env, log=log_file, name=agent_id)
 
         _attempt = 1
         _sig = None
