@@ -349,6 +349,44 @@ def test_push_deferred_pending_never_touches_the_authority(tmp_path):
         "a push-deferred pending must attempt no authority publish"
 
 
+def test_authority_deferred_signer_uses_the_verifiers_row(
+        tmp_path, monkeypatch):
+    """An authority-deferred signer consults the verifier's own cached row."""
+    key, pred_priv, pred_pub = _mk_seat_key(tmp_path, "aa")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _pending(tmp_path, "aa", succ_priv.hex(), succ_pub.hex(),
+             reason="authority")
+    committed = [{"name": "aa", "role": "parent", "pubkey": succ_pub.hex(),
+                  "sig_scheme": "ed25519"}]
+    _patch_committed(monkeypatch, committed)
+    pushed = []
+    fetches = []
+
+    def rows(root, ref, do_fetch):
+        fetches.append(do_fetch)
+        if do_fetch or pushed:
+            return pushed, "ref", "ref"
+        pushed[:] = [{"name": "aa"}]
+        return pushed, "ref", "ref"
+
+    monkeypatch.setattr(bin_send, "_pushed_seats", rows)
+    ts, to, text = "2026-09-24T00:00:00+00:00", "bb", "body"
+    sig_line = bin_send._sign_line(tmp_path, "aa", ts, to, text)
+    meta = {"ts": ts, "from": "aa", "to": to,
+            "sig": sig_line.removeprefix("sig: ")}
+    assert fetches == [False], fetches
+    assert bin_send._verify_block(tmp_path, bin_send._load_rows(tmp_path),
+                                  meta, text) == \
+        "VERIFIED aa (ed25519, main-committed)"
+
+    pushed[:] = [{"name": "aa", "role": "parent", "pubkey": pred_pub,
+                  "sig_scheme": "ed25519"}]
+    sig_line = bin_send._sign_line(tmp_path, "aa", ts, to, text)
+    meta["sig"] = sig_line.removeprefix("sig: ")
+    assert bin_send._verify_block(tmp_path, bin_send._load_rows(tmp_path),
+                                  meta, text) == "VERIFIED aa (ed25519)"
+
+
 def test_send_signs_with_the_authority_key_when_deferred_on_authority(
         tmp_path, monkeypatch):
     """EF.84 conjunct B: an authority-deferred pending whose pub matches the
@@ -373,6 +411,13 @@ def test_send_signs_with_the_authority_key_when_deferred_on_authority(
     os.chmod(pend, 0o600)
     row = {"name": "aa", "role": "parent", "pubkey": succ_pub.hex()}
     _patch_committed(monkeypatch, [row])
+    # A pushed predecessor row, like the signed end-to-end fixture below,
+    # must be selected over MAIN's unkeyed/committed successor row.
+    monkeypatch.setattr(
+        bin_send, "_pushed_seats",
+        lambda root, ref, do_fetch: ([{"name": "aa", "role": "parent",
+                                      "pubkey": pred_pub.hex(),
+                                      "sig_scheme": "ed25519"}], "ref", "ref"))
     obj = bin_send._signing_key_obj(tmp_path, "aa", key)
     assert obj is not None
     assert obj["priv_hex"] == pred_priv.hex(), \
