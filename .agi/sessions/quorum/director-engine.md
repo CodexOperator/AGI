@@ -38,8 +38,8 @@ QUEUE     STANDARD rounds, orders READY in .agi/sessions/de-0923/ (chains in ord
           EF.93 L14-1 authority-publish-push-timeout-...      orders-std-EF.93-L14-1.md -> L14-2 authority-publish-plumbing-git-calls-...
           EF.94 ML-1  spawn-budget-acquire-refuses-...        orders-std-EF.94-ML-1.md  -> ML-2 dispatch-leases-the-resolved-harness-...
           then LC2-1 -> LC2-2 (C2). orders-free-L23-1.md / orders-local-LH1.md = the RETIRED kid-tier shape: never use them.
-BRIEFS    a read-only agent is re-checking the 4 briefs' Measured file:lines against HEAD (launched 02:4xZ); a MOVED line = fix the
-          brief (write.py sub) before its dispatch
+BRIEFS    verified vs e7910a90ab (read-only agent, 02:5xZ): L23-1, L14-1, ML-1 hold line-exact; LH-2's 2 drifted citations fixed
+          (config.json:135, test_credential_none_spawn.py:237-293); EF.90's export = dispatch.py:2655 -> all 4 DISPATCHABLE
 PAID LANE on TM's full lift only: orders-lift-1..4 + murs on --harness pi.
 ACCOUNT   old account $0.48 (170.00 / 169.52); dispatch mints on the other account ($14.04 at 02:1xZ).
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed (refused ${PATH}); never merge it.
