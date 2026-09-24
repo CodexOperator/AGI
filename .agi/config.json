@@ -89,20 +89,6 @@
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
-    "pi-free": {
-      "adapter": "pi",
-      "bin": "~/.npm-global/bin/pi",
-      "provider": "openrouter",
-      "thinking": "medium",
-      "models": {
-        "kid": "stealth/space-bunny-alpha",
-        "parent": "stealth/space-bunny-alpha"
-      },
-      "allowed_extra": [
-        "stealth/space-bunny-alpha"
-      ],
-      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
-    },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
