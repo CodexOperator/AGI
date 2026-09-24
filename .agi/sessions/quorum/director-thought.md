@@ -53,75 +53,44 @@ memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pa
 murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
-## Live state (03:4xZ 09-24, gen 17)
+## Live state (04:2xZ 09-24, gen 17)
 ```
-TOP      OWNER 02:3xZ (TMM.90, verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
-         just research towards doing more efficient usd0 runs in the future"
-TOP2     OWNER via TM, verbatim: TMM.95 03:39Z "Make both directors go back to spawning parents efficiently with minimal token use." (LEAN:
-         short briefs, no side work, one [merge-up] per batch) · TMM.96 03:42Z "Let director thought keep pulling on threads independently only
-         informing you of occasionally of various milestones and to brainstorm next moves." -> self-loop; dm TM ONLY at a milestone (+ next-move
-         options) or a blocker
-LANES    FREE   OPEN since TMM.92 (03:18Z): --harness pi-free (stealth/space-bunny-alpha), 0 USD · the provider RETAINS prompts (account ZDR off)
-                -> anonymize --text on every orders file; no secret, key, address or hardware name in any brief
-                PARENTS again (TMM.95) -- LEAF.04's kid 401 likely rode the parent passing the MAIN checkout as <project> (its kid manifest landed
-                there): parent orders now pin `dispatch.py .` from the parent's own worktree · LEAF.05 ran as a direct kid before TMM.95 (90 s, clean)
-         PAID   held (TMM.66) · a kid record showing harness pi = CUT it + one line to TM
-         LOCAL  retired as an operating mode (TMM.90): 0-USD efficiency = research hypotheses on FREE
-BRAIN    brain-orcabonsai27b UP on the loopback 8080 (C2, one 65,536 slot, router stopped) -- nobody's lane now; never restart it without the owner
-GATE     [merge-up] LEAF.04 batch sent 03:36:52Z at 4c67ce248a (47 commits / 19 files; TM pane busy -> queued): LEAF.04 proved (mur-16 closed in
-         place, e88d61a1a7) + REPLAY framing + 5 minted hypotheses + brain swap; config hunk (b) = the pi-local row -> OrcaBonsai: TM keeps or drops
+OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs just research
+         towards doing more efficient usd0 runs in the future" · TMM.95 03:39Z "Make both directors go back to spawning parents efficiently with
+         minimal token use." · TMM.96 03:42Z "Let director thought keep pulling on threads independently only informing you of occasionally of
+         various milestones and to brainstorm next moves." -> lean pi-free parents; dm TM ONLY at a milestone (+ next-move options) or a blocker
+LANES    FREE   pi-free (stealth/space-bunny-alpha), 0 USD, the provider RETAINS prompts -> anonymize --text on every orders file
+                a lean parent = 3-6.5 min per round today; parent orders pin the kid spawn to `dispatch.py .` from the parent's own worktree (no 401 since)
+         PAID   held (TMM.66) · LOCAL retired as an operating mode (TMM.90) · BRAIN brain-orcabonsai27b UP (router stopped): never restart it
+GATE     [merge-up] + MILESTONE sent 04:20:29Z at b57101ae9a (78 commits / 67 files; supersedes the 03:36Z line): LEAF A/B/C + CEN.01 + REPLAY.01 + CTX.01
+         -> awaits TM; the next-move options it proposed: 1 CTX.02 (started, "unless you say otherwise") · 2 SWR-SV.01 HumanEval once more (TM go)
+         · 3 REPLAY.02 smaller frame (needs the server token ids or a GPU slot) · 4 the Prime writes the 4 box cells
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
-  done   L1 KV format (q4_0 + --fit-target 512 = 156,416 tokens, 3.15x, +0.074 pct NLL) · L6 knobs · L10 open-loop map · L6b -ub refuted (keep 512)
-  L3     DISPROVED x3 at 3.5 bits (top-1 agree 0.56-0.61, bar 0.98) · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
-  [1b]   the swarm has NOT earned a brief line (2.3x the tokens of the control, no division of labour)
-  L9/10  OSC.12 DISPROVED as stated (ngram-simple x7.9 on edit-and-return only) -> REFRAME = REPLAY.01 (bc777c1fe7)
-routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> director-engine · kids ignore --harness pi-local · AGI_ACTOR unset on resumed
-         seats · cli.py done drops config.json · stale box.* / locations.* cells (box.root = another box's home: the paths.py CLI get() of a
-         RELATIVE cell resolves there -- use get_local) · pi-free parent -> kid 401 + no kid manifest / agent.json (to TM 03:27Z, for director-engine)
+  done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py)
+  L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
+  L9/10  OSC.12 DISPROVED as stated -> REPLAY.01 inconclusive (the instrument failed) -> REPLAY.02 = the smaller frame
+routed   director-engine: dispatch.py --memory N = BYTES · the CLAUDE.md one-copy adapter change (CTX.01, 04:0xZ) · stale box.* / locations.* cells
 ```
 
-## 🔴 Where it stops -- 04:0xZ 09-24: LEAF CLOSED (mur-17 accept / accept_with_residue); mur-18 (REPLAY + CTX) running; CEN.01 live
+## 🔴 Where it stops -- 04:5xZ 09-24: batch 1 GREEN (6380/0) and re-offered as gate tip 8ca16feccb (TMM.104); batch 2 (CTX.02 + CMP.01) murred, waits for it to land
 ```
-NOW      mur-director-thought-18 = unit agi-director-thought-mur-18 (04:06:00Z, pi-free, rounds replay01 + ctx01, args /tmp/dt17-mur18-args.json)
-         results MAIN .agi/sessions/workflows/runs/mur-director-thought-18/ · by hand: systemctl --user is-active agi-director-thought-mur-18
-         ON ITS VERDICT: close fixes in place -> ONE [merge-up] (LEAF B + C + CEN.01 + REPLAY.01 + CTX.01, from 4c67ce248a) + the MILESTONE line to TM
-         (TMM.96: the LEAF closed + REPLAY / CTX results + next-move options + the SWR-SV.01 correction owed)
-         CEN.01 LANDED 5f54ee5cb7 (parent a00-61c379ca -> kid a00-df02e281, 3 min): experiment:a00-df02e281-3ba1f7 PROVED -- paths.main_checkout_root()
-         (git common dir parent), detect.py ROOT reads it; 25 passed; wire probe from my worktree -> main, from main == checkout_root -> IN this merge-up
-         as the closure of the mur-17 residue (a 14-line fix delta, verified on the bytes; TMM.66: TM verifies a fix delta at the gate)
-mur-17   04:05Z success: leaf05 accept (7/7 MET) · leaf06 accept_with_residue (verify CONFIRMED detect.py ROOT, REFUTED the tempfile residue)
-         -> the LEAF closed on its hypothesis THOUGHT (de13597487)
-LEAF     B LEAF.05 proved @7acd103f71 · C LEAF.06 harvested 0890b9604a (parent a00-9bca4596 -> kid a00-5e699898, 3 min, the parent->kid spawn WORKED
-         with project = its own worktree: no 401) -> parent verdict inconclusive_lean_proved:85 STANDS; my fix delta 6a1253fce1 (router_mode_probe
-         argv[3] was the scratch DIRECTORY, a moved value the parent missed) · final bytes: whole-town regex = 4 paths.py table lines + 6 ~/.venv-lm
-         + 11 test fixtures (excluded by the node's note) · 24 passed · residue: detect.py ROOT = checkout_root() names a worktree when run from one
-         (its census wants the main checkout) -> a follow-up leaf
-REPLAY   REPLAY.01 LANDED 215c2beb65 (parent a00-7d91a301 -> kid a00-3dee1b83, 6.5 min): inconclusive_lean_disproved:85 as the parent recorded --
-         the replay FAILS its calibration gate on every rule (logged rows within 5 pct: 0/17 simple, 0/14 map-k, 0/13 mod; replay accepted 7
-         vs the server 13,538 -> it never sees the generated stream) -> no projection, the transcript half never ran, the claim UNTESTED
-         NEXT-MOVE options: (a) SMALLER: one rule on one OSC.12 request from the server-returned token ids, not re-tokenized text
-         (b) measure live on sampled agent requests on the served model (a GPU round: the router is stopped -> the owner / TM)
-QUEUE    (TMM.90/92/95: my ready order, lean parents)
-  1 LEAF.04  DONE: proved, mur-16 closed in place, [merge-up] sent 03:36Z (GATE)
-  2 LEAF.01  B + C DONE (LEAF.05 proved, LEAF.06 lean_proved:85 + my fix delta) -> mur-17 -> the LEAF verdict + [merge-up]
-  3 REPLAY.01 (bc777c1fe7) -- DONE: inconclusive (the replay is unfaithful, 0 of logged rows); reframe options on REPLAY above -> TM at the milestone
-  4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config: output 1 = the brain-swap numbers + the ONE LoRA-proof prompt still owed · output 3 =
-             HumanEval 164 ONCE MORE on the served build (the mvp words; the battery C2 143/164 is the single run it replicates) = ~1 h of the slot,
-             a script, no agents, 0 USD -> needs TM's go (TMM.90 retired 0-USD runs as an operating mode) -- OWED: my 02:4xZ dm said review-only
-             and TM agreed on that wrong line -> CORRECT it in the next TM line (the B + C merge-up)
-  5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
-             CTX.01 LANDED c83d904440 (parent a00-89a8605a -> kid a00-e98ba376, 4 min): DISPROVED as the compound claim -- the duplicate is REAL
-             (56,019 -> 1,751 request bytes = ~14,040 tokens per agent turn with --no-context-files) but 8 CLAUDE.md sections are ONLY-HERE ->
-             STEP = --no-context-files + ONE appended copy (~7,000 tokens off every pi turn): ROUTED to director-engine 04:0xZ (its adapter lane)
-             director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
-LOG      03:31Z mur-director-thought-16 (pi-free): review demote on ONE defect (no evidence_runs), 6/6 claim conjuncts MET; verify confirmed it,
-                refuted the fallback-table residue -> gen 16 set a SCALAR self-citation (counts 0) -> 3dda5c0841 recorded the demotion ->
-                gen 17 e88d61a1a7: a one-entry LIST -> enforce_on_disk passes, proved restored
-         03:36Z trunk a7bee7f7d2 merged (4c67ce248a), checks: leaf tests 8/8 · anonymize ok · links 0 broken · 0 node deletions -> [merge-up] to TM
-         03:38Z trunk 1a34e5f070 merged again (b2b29f0b67: goal:g5's Agent Notes left the goal) -> LEAF.05 dispatched, dry-run first (exit 0)
+NOW      TMM.104 04:49Z: the batch suite GREEN 6380 passed / 0 failed; landing hit posts.md -> gate tip 8ca16feccb = b57101ae9a + trunk 99cfce84d5, the
+         conflict (director-engine's row) resolved to the trunk (byte-identical) -> re-offered 04:5xZ; mirror 64ef60e110 carries it + batch 2 past it
+         ON LANDING: merge the trunk -> checks (anonymize, links, tests) -> ONE [merge-up] for batch 2 (CTX.02 lean_proved:80 + CMP.01 lean_proved:60)
+mur-19   04:49Z demote x2, closed in place: CTX.02 proved -> lean_proved:80 (the committed probe cannot re-run: parents[4] for parents[3]; the numbers stand)
+         · CMP.01 stays lean_proved:60 + fixture corrections · set aside: "a real pi process" (the design runs pi against a stub; that rule binds reviewers)
+CMP.01   eace9b2e44 (parent a00-188c77c5 -> kid a00-3a7f8962, 12 min): the stub never ran (its own fixture) -> lean_proved:60 on the node STEP from pi source
+         (compaction.js:149-153: compact at contextWindow - 16,384 · model-registry.js:415: a custom id gets 128,000) + the LEAF.03 field overflow
+CTX.02   PROVED bda028a56e (parent a00-35435a6e -> kid a00-206147f4): default 14,436 tokens / 2 copies · --no-context-files 396 / 0 · + --append-system-prompt
+         CLAUDE.md 7,396 / 1 -> 7,040 saved, the payload byte-identical; the kid's disproof rode MY orders' stricter conjunct (156 bytes of pi framing,
+         inside the Project Context section the node's falsifier allows) -> the flags handed to director-engine 04:2xZ (queued: its pane was busy)
+TMM.100  04:21Z: b57101ae9a gates right after director-engine's #6 lands · 1 CTX.02 GO (hand director-engine the exact flags; its CTX.01 build is
+         approved) · 2 SWR-SV.01 HOLD (0-USD runs retired as an operating mode) · 3 REPLAY.02 HOLD -- checked 04:2xZ: OSC.12's committed rows carry the
+         generated TEXT (rows[].text) + completion_tokens counts, NO token ids · 4 TM relays the four box cells to the Prime
+TODAY    LEAF closed (A LEAF.04 proved · B LEAF.05 proved · C LEAF.06 lean_proved:85 + fix 6a1253fce1 · CEN.01 proved: main_checkout_root)
+         REPLAY.01 lean 50 (mur-18: the replay is invalid, 7 defects; the claim untested) · CTX.01 lean_proved:75 (~14,040 tokens a turn duplicated)
+         murs: mur-director-thought-16 (LEAF.04), -17 (B + C), -18 (REPLAY + CTX), all pi-free, all closed in place
 
-0 MODEL  rotate only at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge
-         origin/season2/main as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
 traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way
        · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
@@ -136,7 +105,10 @@ traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z bet
        · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
        · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
        · the dispatch dry-run warns "ladder row wins -> deepseek" and then --harness pi-free overrides it: the spawn line's --model is the truth
-tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) now that the LEAF resolver has landed
+       · a mur review stage can return EMPTY (mur-18 ctx01 review = None): the verify stage MISSED list carries the findings -- read it
+       · the trunk moved 53 commits in 40 min (director-engine merges): re-merge before every merge-up; a config.json ROW conflict -> take the trunk row
+       · an evidence producer must refuse a bad revision: git grep on an unknown rev printed nothing = "0 hits" until leaf_sweep_evidence.py raised
+tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -- the LEAF resolver has landed
 ```
 
 ## Banked
@@ -150,28 +122,12 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) n
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS LEAF.06 (C, LIVE) -- .agi/sessions/orders/LEAF.06.parent.txt + LEAF.06.kid-C.txt (gitignored; if lost: rebuild from the LEAF node's FILE
-            SCOPE + CEILING split, one row per FALSIFIERS-regex hit: file:line literal -> paths.get(cell)) · dispatched as:
-            AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . LEAF.06 --target hypothesis:lm-town-code-host-paths-resolve-through-paths-cells
-            --level small --tier parent --harness pi-free --branch --detach --orders .agi/sessions/orders/LEAF.06.parent.txt --from director-thought > <file> 2>&1
-
-ORDERS REPLAY.01 -- READY, THIRD on the free lane (TMM.90) -- target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation
-dispatch    python3 extensions/agi/bin/dispatch.py . REPLAY.01 --target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation --level small --tier parent
-            --harness pi-free --branch --orders <this block as a file>  (NO --memory; its kid spawn carries --harness pi-free)
-read first  the node (Measured · CLAIM · FALSIFIERS · FILE SCOPE) · experiment:a00-71dbbad5-e8f839 (OSC.12's classes, rows and acceptance lines) ·
-            llama.cpp's draft-free rules at the served image's build (10991): the exact trigger, n / m and acceptance rule per type
-order       ONE kid: (1) the replay + its selftest · (2) the calibration on OSC.12's 24 requests per rule, committed FIRST · (3) only then the transcripts:
-            the seeded stratified sample, the per-part acceptance table, the projections with and without thinking, two disjoint samples
-data        the transcript root is a command-line argument, never a literal (paths.local_maxxing.pi_traj_dir names another box's pi home: stale, routed)
-            -- the pi harness home on this box; streamed, never loaded whole
-tokenizer   the served 9B vocabulary through the BRAIN read-only /tokenize (the local-town provider endpoint in the default pi config;
-            add_special false): its GGUF carries the 9B BPE byte-for-byte (7f226b8bec) -- the router is STOPPED; never restart or reconfigure
-            the brain
-evidence    every output under paths.local_maxxing.specdec_replay_out_dir (get_local), committed; counts and hashes only, never transcript text;
-            anonymize.py check before the commit
-never       the GPU · the router restarted · extensions/ · .agi/config.json · OSC.12's committed results regenerated
-restore     none -- no box state is touched
-wall        call done by 120 min wall-clock whatever the state
-record      calibration misses per rule (x/24) · acceptance per part (thinking / bash / text / write / edit / read) per rule · the fitted curve + its E / D
-            residuals · projected median per rule, thinking on / off · two-sample agreement · one harvest line to my seat
+ORDERS CTX.02 (LIVE) -- .agi/sessions/orders/CTX.02.parent.txt + CTX.02.kid.txt (gitignored; if lost: CTX.01's pair with CTX.01 -> CTX.02 + the three-arm probe line)
+lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
+            --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
+            (evidence_runs as a LIST) · never · wall -- CTX.01.parent.txt is the cleanest copy to sed from
+dispatch    AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . <ITER> --target <hypothesis> --level small --tier parent --harness pi-free
+            --branch --detach --orders .agi/sessions/orders/<ITER>.parent.txt --from director-thought > /tmp/<file> 2>&1   (--dry-run first)
+mur         python3 workflow.py run merge-up-review --harness pi-free --root <tree> --args <json file> --dry-run, then under systemd-run --user
+            --unit agi-director-thought-mur-<N> --property=MemoryMax=6G (the args of -17 / -18: /tmp/dt17-mur-args.json, /tmp/dt17-mur18-args.json)
 ```
