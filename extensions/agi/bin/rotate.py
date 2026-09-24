@@ -10487,10 +10487,18 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
                      ).stdout.strip()
             if not sha:
                 last = "commit-tree failed"; continue
-            push = subprocess.run(
-                ["git", "-C", str(top), "push", "origin",
-                 f"{sha}:refs/heads/{branch}"],
-                capture_output=True, text=True, timeout=60)
+            try:
+                push = subprocess.run(
+                    ["git", "-C", str(top), "push", "origin",
+                     f"{sha}:refs/heads/{branch}"],
+                    capture_output=True, text=True, timeout=60)
+            except subprocess.TimeoutExpired as exc:
+                last = (f"push of authority branch {branch} timed out after "
+                        f"{exc.timeout}s")
+                break
+            except OSError as exc:
+                last = f"could not launch git push for {branch}: {exc}"
+                break
             if push.returncode != 0:
                 last = push.stderr.strip() or push.stdout.strip()
                 continue
