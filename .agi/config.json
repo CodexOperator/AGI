@@ -62,6 +62,7 @@
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "pi-local": {
+      "zero_usd": true,
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
       "provider": "local-town",
@@ -77,6 +78,7 @@
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
     "pi-free": {
+      "zero_usd": true,
       "adapter": "pi",
       "bin": "~/.npm-global/bin/pi",
       "provider": "openrouter",

@@ -7,6 +7,7 @@ argv = [
   {flag = "--provider", slot = "provider"},
   {flag = "--model", slot = "model"},
   {flag = "--thinking", slot = "thinking"},
+  "--no-context-files",
   "-p", "--mode", "json",
   {spread = "extra_args"},
   {slot = "prompt"},
