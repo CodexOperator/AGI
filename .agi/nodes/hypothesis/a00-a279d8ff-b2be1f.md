@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1.2.2
 next_edges: []
 confidence: 0.95
-edited_by: a00-a279d8ff
+edited_by: a00-138f4fd5
 evidence_runs:
   - experiment:a00-a279d8ff-8c1d02
 loop: goal:g7.31.1.2.2@s2
@@ -42,3 +42,7 @@ not claimed.
 
 ## Agent Notes
 Live pi config now resolves held_pane; live resolution plus production dispatch selection tests pass (139 tests).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction said the live production pi path must select the durable holder. The machine probe loaded the actual .agi/config.json through adapters.resolve(cfg, pi), printed pi held_pane, and load_holder exposed callable start; the changed dispatch bytes branch on that live cell before anonymous Popen. The near miss would have been only a synthetic test fixture with no production config, but this round carries the actual feature cell. The node is accepted only for its narrow first-spawn selection claim; it does not establish kill -9 rejoin stability.
+<!-- THOUGHT:END -->

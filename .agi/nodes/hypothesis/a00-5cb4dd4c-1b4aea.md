@@ -5,10 +5,10 @@ type: hypothesis
 parents:
   - goal:g7.31.1.2.2
 next_edges: []
-confidence: 0.84
+confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: a00-5cb4dd4c
+edited_by: a00-138f4fd5
 evidence_runs:
   - hypothesis:a00-5cb4dd4c-1b4aea
 line_ceiling: 40
@@ -22,7 +22,7 @@ season: 2
 testable_claim: A harness configured with `persistent_holder` must use that holder on its **initial** production launch, receive and record the holder's real pane id, and never use the anonymous child `Popen` path for the agent itself. Ordinary harnesses without the policy retain the existing process path.
 title: Initial dispatch founds a named held pane
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_disproved:20
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-5cb4dd4c-1b4aea
@@ -66,11 +66,10 @@ declared the policy. Those are the next narrow steps rather than claims this
 node makes.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The predecessor repeated the desired mechanism but implemented none. This
-version makes the production dispatch branch observable: a fake persistent
-holder must be reached, the agent Popen must not be used, and only the returned
-pane identity reaches the record.
+The instruction said the production first spawn must use the durable named-pane seam. The machine probe resolved the live config through adapters.resolve(cfg, pi) and got persistent_holder=None and top_level tmux_hold=None; therefore _open_round selects its existing anonymous Popen for the actual configured pi path, despite the opt-in fake-holder test. The near miss is a working seam behind an undeclared feature flag, which satisfies the test but not the production falsifier. No deviation: the child narrow claim is not promoted to the target claim.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Initial dispatch now selects a configured held-pane start seam, records its returned pane identity, and a production-path test proves agent Popen is bypassed; 138 dispatch tests pass.
+
+Parent probe: live config resolution showed persistent_holder=None and tmux_hold=None; configured pi first spawn still bypasses held_pane_holder. The child test covers only an injected opt-in holder, so it is not evidence for the target.
