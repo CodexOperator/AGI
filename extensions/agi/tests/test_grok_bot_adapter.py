@@ -18,6 +18,7 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import adapters  # noqa: E402
+from adapters import tmux_hold  # noqa: E402
 
 grok = adapters.load("grok_bot")
 
@@ -59,6 +60,42 @@ def test_needs_no_openrouter_credential():
     per-spawn OpenRouter key for it: the EXPLICIT `False` claude_code and
     copilot_cli return -- a bool, not `None`, not an AttributeError."""
     assert grok.needs_credential(HARNESS) is False
+
+
+def test_child_env_drops_credential_but_preserves_harness_env():
+    """The held/restart env is the adapter contract: no OpenRouter key, while
+    explicit harness environment (including a sentinel) reaches the child."""
+    harness = dict(HARNESS, env={"GROK_SENTINEL": "kept"})
+    env = grok.child_env(
+        harness=harness,
+        base={"OPENROUTER_API_KEY": "must-not-leak", "PATH": "/bin"},
+    )
+    assert "OPENROUTER_API_KEY" not in env
+    assert env["GROK_SENTINEL"] == "kept"
+    assert env["PATH"] == "/bin"
+
+
+def test_tmux_hold_carries_exact_env_to_named_pane(monkeypatch):
+    """A held pane gets `-e` entries, not bare tmux-server inheritance."""
+    calls = {}
+
+    class Result:
+        returncode = 0
+        stdout = "%3\n"
+        stderr = ""
+
+    def fake_run(args, **kwargs):
+        calls["args"] = args
+        return Result()
+
+    monkeypatch.setattr(tmux_hold.subprocess, "run", fake_run)
+    env = {"GROK_SENTINEL": "kept", "OPENROUTER_API_KEY": "absent"}
+    assert tmux_hold.start(session="agi", name="kid", command=["grok-bot"],
+                           env=env) == "%3"
+    assert calls["args"][:5] == ["tmux", "-e", "GROK_SENTINEL=kept",
+                                  "-e", "OPENROUTER_API_KEY=absent"]
+    assert "new-session" in calls["args"] and "agi" in calls["args"]
+    assert "kid" in calls["args"]
 
 
 # ------------------------------------------------------------- tier contract
