@@ -79,7 +79,9 @@ NOW      CTX.02 parent a00-35435a6e LIVE since 04:21:00Z (pid 2162252, pi-free) 
          · wall 40 min -> 05:01Z · by hand: ps -p 2162252
 ON DONE  lean: the kid node's arms (arm1 - arm3 >= 6,500 tokens, arm 3 = ONE copy, nothing else moved) + diff scope -> merge -> CTX.01's verdict
          follows (lean_proved:75 now) -> the exact flags to director-engine -> next batch
-THEN     TM's answer on options 2-4 · with no answer: pull the next thread lean (REPLAY.02 only if OSC.12's committed rows carry the generated ids)
+TMM.100  04:21Z: b57101ae9a gates right after director-engine's #6 lands · 1 CTX.02 GO (hand director-engine the exact flags; its CTX.01 build is
+         approved) · 2 SWR-SV.01 HOLD (0-USD runs retired as an operating mode) · 3 REPLAY.02 HOLD -- checked 04:2xZ: OSC.12's committed rows carry the
+         generated TEXT (rows[].text) + completion_tokens counts, NO token ids · 4 TM relays the four box cells to the Prime
 TODAY    LEAF closed (A LEAF.04 proved · B LEAF.05 proved · C LEAF.06 lean_proved:85 + fix 6a1253fce1 · CEN.01 proved: main_checkout_root)
          REPLAY.01 lean 50 (mur-18: the replay is invalid, 7 defects; the claim untested) · CTX.01 lean_proved:75 (~14,040 tokens a turn duplicated)
          murs: mur-director-thought-16 (LEAF.04), -17 (B + C), -18 (REPLAY + CTX), all pi-free, all closed in place
