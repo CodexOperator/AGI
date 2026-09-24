@@ -57,13 +57,13 @@ table until then / template-max: none / code: the resolver fallback + the unreso
 
 ## CEILING
 ```
-leaf bar  (TMM.76) one pi-local kid on OrcaBonsai-27B-C2 · <= 60 production lines · read <= 3 files by line range (paths.py, test_paths_local.py, the
-          paths block of .agi/config.json) · <= 30 tool calls · ONE experiment node -- an overflow or a loop = split again
+round     (TMM.90) the standard line on the free lane: one pi-free parent + ONE kid spawned with --harness pi-free · <= 60 production lines ·
+          read <= 3 files by line range (paths.py, test_paths_local.py, the paths block of .agi/config.json) · ONE experiment node
 box       CPU only · 0 USD · wall 60 min
-record    turns · first-turn prefill · peak context · wall -- the bar is itself the measurement
+record    turns · tool calls · wall · the before / after test counts · the model the round ran on
 STEP      LARGEST SAFE STEP if the tests stall: the resolver alone with the unresolved raise, proven by hand on two cells
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-frame: smaller -- TMM.76 step 2's first leaf. LEAF.01 as minted (3 kids, 180 lines) cannot run while the paid hold stands; its kid A is the smallest self-contained piece (two files, one resolver) and unblocks every later leaf that reads a {root} cell, so it goes first on the 0-credit brain. The expected literals in its value-table test are fixtures, not paths code relies on (noted on the parent).
+frame: smaller (unchanged) -- LEAF.01 kid A, the resolver: the smallest self-contained piece, and it unblocks every later leaf that reads a {root} cell. THIS version: the round moves to the free lane (TMM.90, owner 02:3xZ: normal operations on the free OpenRouter endpoint, no more special 0-USD runs). Attempts so far, all 0 USD and 0 commits: LEAF.02 (pi-free parent a00-e309c592) refused in 6 s by the account filter (allowed providers = deepseek only); LEAF.03 (a local PI_CODING_AGENT_DIR parent a00-bbb13581) overflowed the 65,536-token slot on its 12th call (one unbounded grep) before spawning its kid, compacted, and was cancelled by the owner mid-retry at 02:28:57Z -- both now research hypotheses under the brain-swap experiment. The expected literals in the value-table test are fixtures, not paths code relies on (noted on the parent).
 <!-- THOUGHT:END -->
