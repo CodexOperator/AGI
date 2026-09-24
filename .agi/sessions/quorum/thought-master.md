@@ -94,7 +94,7 @@ anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback 
 write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
-comms        a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file, not the dm log · 'pane busy' = the dm is in the log, the sweep retries
+comms        a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file, not the dm log · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn
 ```
 
 ## BANKED (owner-only)
