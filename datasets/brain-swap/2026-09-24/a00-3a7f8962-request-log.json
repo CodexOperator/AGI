@@ -1,0 +1,9 @@
+{
+  "agent_id": "a00-3a7f8962",
+  "pi_version": "0.67.68",
+  "ceiling_tokens": 65536,
+  "reserve_tokens": 16384,
+  "selftest": "FAILED before arms: fixture client produced an empty body and Stub JSON decoding failed",
+  "arms": [],
+  "status": "inconclusive"
+}
