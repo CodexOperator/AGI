@@ -66,6 +66,7 @@
       "bin": "~/.npm-global/bin/pi",
       "provider": "local-town",
       "credential": "none",
+      "max_live": 1,
       "models": {
         "kid": "OrcaBonsai-27B-C2",
         "parent": "OrcaBonsai-27B-C2"
