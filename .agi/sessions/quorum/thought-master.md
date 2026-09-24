@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-16:3xZ 09-24 gen 16: OWNER 16:24Z (fixes nest as sub-sub goals in the fixes subgoal of the top-level subgoal they apply to) -> the template pass renumbered goal:g5.32 -> goal:g7.33.9 (under g7.33 ENGINE FIXES SURFACED BY THE TOWN; mint_id kept; board refs re-pointed; GOALS.md 356 round-trip; links 0 broken) · TMM.121 to DE (R0's [merge-up] -> T0 inventory + loader + rotation_alert -> E1 -> T1..Tn -> guard -> E3-E6) · DE woken 16:16Z · DT: TMM.119 fix then a LEAN re-gate + land; batch 7 running
+16:4xZ 09-24 gen 16: OWNER 16:3xZ -> the new rotation warning LIVE: DE's E0 cherry-picked to the trunk 37f1812f52 (test_rotation_alert 57 passed; the hook runs from MAIN = /data/work/agi/extensions/agi/hooks/rotation_alert.py for every session, so no worktree sync or restart is needed for it; both directors' meter pins verified current) + both directors told (sync the trunk at their next step) · pending: DE's R0 [merge-up] (DE rotated gen 7 -> 8 at 16:3xZ, itself) · DT's TMM.119 fix -> a LEAN re-gate + land · goal:g7.33.9 (template pass) with DE
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
@@ -65,7 +65,7 @@ out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write
 
 ## Traps (post-specific, learned)
 ```
-meter        a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
+meter        the prompt hook runs from MAIN (~/.claude/settings.json: python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py): a hook change is live for every session the moment it lands on the trunk · a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
 rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
