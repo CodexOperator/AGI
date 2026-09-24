@@ -189,6 +189,78 @@ def test_boxinfo_prints_only_sanctioned_facts(tmp_path):
     assert "box: core-town" in out
 
 
+# (1c) a key named ONLY under required_any is collected into the physical-token
+# denylist; a key the node does not name is not. Fixture values only.
+def test_secret_tokens_reads_required_any_groups(tmp_path, fake_box):
+    root = _graph(tmp_path)
+    (root / "nodes" / ".geometry" / "secrets.md").write_text(
+        "---\n"
+        'id: "config:secrets"\n'
+        "type: config\n"
+        "status: active\n"
+        "mint_id: 0123456789abcdef0123456789abcdef\n"
+        'title: "fixture secrets node"\n'
+        "locations:\n"
+        "  env_file:\n"
+        '    path: "<source_root>/.env"\n'
+        "  env_template:\n"
+        '    path: "<source_root>/.env.example"\n'
+        "required_keys: []\n"
+        "required_any:\n"
+        '  - ["FIXTURE_ONLY_KEY"]\n'
+        "---\n\n"
+        "body\n"
+    )
+    env = tmp_path / ".env"
+    env.write_text(
+        "FIXTURE_ONLY_KEY=sk-fake-required-any-only\n"
+        "UNLISTED_KEY=sk-fake-not-declared\n"
+    )
+    env.chmod(0o600)
+    toks = anonymize._secret_tokens(root)
+    assert ("secret", "sk-fake-required-any-only") in toks
+    assert ("secret", "sk-fake-not-declared") not in toks
+
+
+# (8) the installed hook passes --root = the SOURCE (repo) root, while the
+# secrets node lives under the GRAPH root (<repo>/.agi/nodes/.geometry). The
+# guard must still resolve it and refuse a declared key's env value -- before
+# this fix `--root <repo root>` read <repo>/nodes/.geometry/secrets.md, found
+# nothing, and checked ZERO secret values (goal:g15.29.16).
+SECRETS_NODE_FIXTURE = (
+    "---\n"
+    'id: "config:secrets"\n'
+    "type: config\n"
+    "status: active\n"
+    "mint_id: 0123456789abcdef0123456789abcdef\n"
+    'title: "fixture secrets node"\n'
+    "locations:\n"
+    "  env_file:\n"
+    '    path: "<source_root>/.env"\n'
+    "  env_template:\n"
+    '    path: "<source_root>/.env.example"\n'
+    "required_keys: [FIXTURE_GUARD_KEY]\n"
+    "---\n\nbody\n"
+)
+
+
+def test_check_from_repo_root_refuses_declared_key_value(tmp_path, monkeypatch):
+    """`anonymize.py check --root <repo root>` refuses text carrying a value
+    of a key the graph's secrets node declares."""
+    root = _graph(tmp_path)                     # <tmp>/.agi graph root
+    (root / "nodes" / ".geometry" / "secrets.md").write_text(SECRETS_NODE_FIXTURE)
+    env = tmp_path / ".env"                    # <source_root>/.env == <tmp>/.env
+    env.write_text("FIXTURE_GUARD_KEY=sk-fake-guard-value\n")
+    env.chmod(0o600)
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setattr(anonymize, "_run", lambda argv: "")  # no live `ip`
+    # the repo root, exactly as cmd_install_hook writes it
+    assert ("secret", "sk-fake-guard-value") in anonymize._secret_tokens(tmp_path)
+    text = "diff line carrying sk-fake-guard-value here\n"
+    assert "secret" in anonymize.scan(text, anonymize.box_tokens(tmp_path))
+    assert anonymize.cmd_check(tmp_path, text, None) == 1
+
+
 # (7) install-hook writes a box-local pre-commit, and refuses a foreign one.
 def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
     root = _graph(tmp_path)

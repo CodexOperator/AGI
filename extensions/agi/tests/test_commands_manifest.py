@@ -286,16 +286,137 @@ _LISTED_CLIS += [
     "hierarchy.py", "handoff.py", "benchmark.py", "anonymize.py",
 ]
 
+# EF.54 CLI GROUP C. Appended, like GROUP A/B, so sibling edits cannot collide.
+# These 11 build their parser outside a plain module-level `main()`: under
+# `if __name__ == "__main__"`, in `_cli`/`_main`, or not at all (manual argv,
+# listed parserless below).
+_LISTED_CLIS += [
+    "boxes.py", "branches.py", "completion.py", "mem_cap.py",
+    "migrate_channel.py", "geometry_config.py", "spawn_gate.py", "towns.py",
+    "ws_raw.py", "pi_edit_forgiveness.py", "pi_trajectory.py",
+]
+
+# EF.54 CLI GROUP D. Appended, like GROUP C, so sibling edits cannot collide.
+# The 12 remaining engine CLIs whose parser is a plain module-level `main`:
+# every one is captured by the harness already, so this round is DATA -- each
+# verb declared or excluded by name in `command:commands`, read off its own
+# argparse.
+_LISTED_CLIS += [
+    "backfill-mint-ids.py", "briefing.py", "dashboard.py",
+    "decompose-engine.py", "derive-commands.py", "drift_check.py",
+    "failures.py", "frontier.py", "glitch_master.py", "graphweb.py",
+    "grid_coverage_check.py", "inject.py",
+]
+
+# EF.54 CLI GROUP E. Appended, like GROUP C/D, so sibling edits cannot collide.
+# The 12 last engine CLIs whose parser is a plain module-level `main`; every
+# verb is declared or excluded BY NAME in `command:commands`.
+_LISTED_CLIS += [
+    "lm_bench.py", "mail_alert.py", "payload_boundary.py", "plan_master.py",
+    "reconciler.py", "rolslice.py", "seat_status.py", "stall_detect.py",
+    "success_metrics.py", "telemetry_rollup.py", "verify_unified.py",
+    "ws_raw_client.py",
+]
+
+# EF.69 CLI GROUP F. Appended, like GROUP A-E, so sibling edits cannot collide.
+# `verification.py` has one optional positional (`window`) beside its bare
+# rotation check; `write_guard.py` is a hand-rolled dispatcher that declares
+# its vocabulary in a module-level `SUBCOMMANDS` tuple (it has no argparse at
+# all) -- so `_introspect_cli` learns both shapes below. Every verb of each is
+# declared or excluded BY NAME in `command:commands`.
+_LISTED_CLIS += ["verification.py", "write_guard.py"]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
-#: with no `main`, and `metrics.py` reads a manual argv. They are still IN the
-#: coverage test -- `require_parser=False` returns the single-verb
-#: `{"": set()}` vocabulary -- while every other listed CLI still asserts a
-#: parser was captured. `main` is never imported or run for these two.
-_PARSERLESS_CLIS = {"node_writer.py", "metrics.py"}
+#: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
+#: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`
+#: is a hand-rolled scanner too (the parent brief called it "async", but the
+#: async is only its `main`). They are still IN the coverage test --
+#: `require_parser=False` returns the single-verb `{"": set()}` vocabulary,
+#: EXCEPT when the module declares a module-level `SUBCOMMANDS` tuple (see
+#: `_declared_subcommands`): `write_guard.py` dispatches by hand and its
+#: `SUBCOMMANDS` is the vocabulary the coverage test reads. `main` is never
+#: imported or run for these.
+_PARSERLESS_CLIS = {"node_writer.py", "metrics.py", "pi_edit_forgiveness.py",
+                    "pi_trajectory.py", "ws_raw.py", "write_guard.py"}
+
+
+def _declared_subcommands(cli: str) -> set[str] | None:
+    """A hand-rolled dispatcher's module-level `SUBCOMMANDS` tuple, or None.
+
+    `write_guard.py` has no argparse for the spy to capture, so the vocabulary
+    is read, never guessed: the tuple is a literal, and a computed value (an
+    indirect `SUBCOMMANDS = _discover()`) returns None and the coverage test
+    then treats the CLI as the single `""` verb, exactly as before.
+    """
+    import ast
+    tree = ast.parse((BIN / cli).read_text(encoding="utf-8"))
+    for node in tree.body:
+        if not isinstance(node, ast.Assign):
+            continue
+        if not any(isinstance(t, ast.Name) and t.id == "SUBCOMMANDS"
+                   for t in node.targets):
+            continue
+        try:
+            value = ast.literal_eval(node.value)
+        except ValueError:
+            return None
+        return {str(v) for v in value} if isinstance(value, (list, tuple)) else None
+    return None
 
 
 class _ParserCaptured(Exception):
     """Raised by the spy once the top-level parser exists, before it parses."""
+
+
+def _drive_module(path, modname: str, as_main: bool):
+    """Exec `path` under the active argparse spy and drive its entry point.
+
+    A CLI may build its parser in a module-level `main`, in `_cli`/`_main`, or
+    only under `if __name__ == "__main__"`; this covers all three. `as_main`
+    execs with `__name__ = "__main__"` so the guarded block fires. Every
+    exception -- the spy, a SystemExit, or the CLI's own -- is swallowed: a
+    probe must never let a verb run.
+    """
+    import contextlib
+    import inspect
+    import io
+    import types
+
+    # A plain `exec` rather than `SourceFileLoader.exec_module`: the loader
+    # refuses a module whose `__name__` differs from the loader's (it cannot
+    # "handle __main__"), and the whole point of the `as_main` pass is to give
+    # the module `__name__ == "__main__"` so its guarded block fires.
+    module = types.ModuleType(modname)
+    module.__file__ = str(path)
+    if as_main:
+        module.__name__ = "__main__"
+    sys.modules[modname] = module
+    code = compile(Path(path).read_text(encoding="utf-8"), str(path), "exec")
+    with contextlib.redirect_stdout(io.StringIO()), \
+            contextlib.redirect_stderr(io.StringIO()):
+        try:
+            exec(code, module.__dict__)
+            if as_main:
+                return module
+            for fname in ("main", "_cli", "_main", "_parse_args"):
+                fn = getattr(module, fname, None)
+                if not callable(fn):
+                    continue
+                try:
+                    params = list(inspect.signature(fn).parameters)
+                except (TypeError, ValueError):
+                    continue
+                try:
+                    fn([]) if params else fn()
+                except TypeError:
+                    try:
+                        fn()
+                    except BaseException:  # noqa: BLE001 -- probe
+                        pass
+                break
+        except BaseException:  # noqa: BLE001 -- probe: never run a verb
+            pass
+    return module
 
 
 def _arg_dests(parser) -> set[str]:
@@ -318,13 +439,16 @@ def _introspect_cli(cli: str, monkeypatch,
     choices list keys on those choices; one with neither is the single verb
     `""`. The spy raises before parse, so `main` never does its work.
 
-    `require_parser=False` returns the same single-verb `{"": set()}` WITHOUT
+    `require_parser=False` returns the single-verb `{"": set()}` WITHOUT
     importing or running the module -- the declared path for a parserless
-    library/manual-argv CLI. The parser-required assertion below stays on for
-    every CLI whose caller leaves the knob True.
+    library/manual-argv CLI -- UNLESS the module declares a module-level
+    `SUBCOMMANDS` tuple, which is then returned as its vocabulary. The
+    parser-required assertion below stays on for every CLI whose caller leaves
+    the knob True.
     """
     if not require_parser:
-        return {"": set()}
+        subs = _declared_subcommands(cli)
+        return {v: set() for v in subs} if subs else {"": set()}
     import argparse
     import contextlib
     import inspect
@@ -339,22 +463,11 @@ def _introspect_cli(cli: str, monkeypatch,
     monkeypatch.setattr(argparse.ArgumentParser, "parse_args", spy)
     monkeypatch.setattr(argparse.ArgumentParser, "parse_known_args", spy)
 
-    modname = "manifest_probe_" + cli.replace(".", "_").replace("-", "_")
-    loader = importlib.machinery.SourceFileLoader(modname, str(BIN / cli))
-    spec = importlib.util.spec_from_loader(modname, loader)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[modname] = module
-    with contextlib.redirect_stdout(io.StringIO()), \
-            contextlib.redirect_stderr(io.StringIO()):
-        loader.exec_module(module)
-        try:
-            params = list(inspect.signature(module.main).parameters)
-            try:
-                module.main([]) if params else module.main()
-            except TypeError:
-                module.main()
-        except (_ParserCaptured, SystemExit):
-            pass
+    stem = "manifest_probe_" + cli.replace(".", "_").replace("-", "_")
+    _drive_module(BIN / cli, stem, False)
+    if "top" not in captured:
+        # The parser was built ONLY under `if __name__ == "__main__"`.
+        _drive_module(BIN / cli, stem + "_main", True)
 
     top = captured.get("top")
     assert top is not None, f"{cli}: could not capture its ArgumentParser"
@@ -364,10 +477,18 @@ def _introspect_cli(cli: str, monkeypatch,
         return {verb: _arg_dests(sp) for verb, sp in subs.items()}
     positionals = [a for a in top._actions
                    if not a.option_strings and a.dest != "help"]
-    choices = next((list(a.choices) for a in positionals if a.choices), None)
-    if choices is None:
+    optional = next((a for a in positionals if a.choices), None)
+    if optional is None:
         return {"": _arg_dests(top)}
-    return {verb: _arg_dests(top) for verb in choices}
+    out = {verb: _arg_dests(top) for verb in optional.choices}
+    # An OPTIONAL positional that IS the CLI's subcommand slot (`dest ==
+    # "subcommand"`, `nargs="?"`) leaves the BARE invocation valid too --
+    # verification.py's rotation check beside its `window` subcommand. A
+    # positional named `action`/`mode`/`cmd` carries a non-None default whose
+    # bare form is that default, not a new verb, and is not a subcommand slot.
+    if optional.nargs == "?" and optional.dest == "subcommand":
+        out[""] = _arg_dests(top)
+    return out
 
 
 @pytest.mark.parametrize("cli", _LISTED_CLIS)
@@ -816,21 +937,15 @@ def _cli_arg_specs(entry: dict) -> dict:
     argparse.ArgumentParser.parse_args = spy
     argparse.ArgumentParser.parse_known_args = spy
     try:
-        spec = importlib.util.spec_from_file_location("_drift_probe", str(path))
-        mod = importlib.util.module_from_spec(spec)
-        sys.modules["_drift_probe"] = mod
-        with contextlib.redirect_stdout(io.StringIO()), \
-                contextlib.redirect_stderr(io.StringIO()):
-            spec.loader.exec_module(mod)
-            try:
-                mod.main([]) if inspect.signature(mod.main).parameters \
-                    else mod.main()
-            except BaseException:
-                pass
+        _drive_module(path, "_drift_probe", False)
+        if "top" not in seen:
+            # The parser was built ONLY under `if __name__ == "__main__"`.
+            _drive_module(path, "_drift_probe_main", True)
     finally:
         argparse.ArgumentParser.parse_args, \
             argparse.ArgumentParser.parse_known_args = old
         sys.modules.pop("_drift_probe", None)
+        sys.modules.pop("_drift_probe_main", None)
     top = seen.get("top")
     assert top is not None, f"{path.name}: main() never built a parser"
     for act in getattr(top, "_actions", []):
@@ -973,3 +1088,82 @@ def test_drift_catches_a_declared_arity_the_cli_does_not_have(tmp_path):
     wrong = {"owns": {"kind": "option", "flag": "--owns", "arity": "2"}}
     got = _drift_problems({"x.py:go": entry}, wrong)
     assert got and "arity" in got[0][2], got
+
+
+# --------------------------------------------------------------------------
+# Coverage of the survey itself: no engine CLI may slip in unlisted
+# --------------------------------------------------------------------------
+
+#: Engine CLIs deliberately OUTSIDE the choice-surface survey, each with the
+#: reason it is not a choice. A bin/*.py with a `__main__` block that is in
+#: neither this map, `_LISTED_CLIS`, nor write.py fails
+#: `test_every_engine_cli_is_listed_write_py_or_named_outside` below.
+_OUTSIDE_CLIS = {
+    "analyze-chat-structure.py": "one-off transcript analysis, not an engine verb",
+    "snapshot-build-site.py": "retired build-site generator; its inputs are gone and must not return",
+}
+
+
+def test_every_engine_cli_is_listed_write_py_or_named_outside():
+    """Falsifier: a `bin/*.py` with a `__main__` block the survey never
+    reached. Every engine CLI is either listed in `_LISTED_CLIS` (and so has
+    its verbs read off its own argparse by the coverage test), is `write.py`
+    (covered by its own `VERBS` drift test), or is named in `_OUTSIDE_CLIS`
+    with a reason. Red on the pre-fix bytes: `verification.py` and
+    `write_guard.py` had a `__main__` block and no entry at all."""
+    covered = set(_LISTED_CLIS) | {"write.py"} | set(_OUTSIDE_CLIS)
+    missed = sorted(
+        p.name for p in BIN.glob("*.py")
+        if "__main__" in p.read_text(encoding="utf-8") and p.name not in covered
+    )
+    assert missed == [], (
+        "engine CLIs with a `__main__` block and no entry in the choice "
+        f"surface survey: {missed}; add each to _LISTED_CLIS or "
+        f"_OUTSIDE_CLIS with a reason")
+
+
+# --------------------------------------------------------------------------
+# The operator verbs off the choice surface: suite, stamp, ring, hook
+# --------------------------------------------------------------------------
+
+_OPERATOR_FLAG_TOKENS = ("--suite", "--stamp")
+
+
+def test_no_suite_stamp_ring_or_hook_verb_is_proposable():
+    """Falsifier: a proposable entry whose stored argv demands the engine
+    suite, stamps the never-lower baseline, signs a ring, or installs the
+    write-guard hook. The choice surface must not offer any of them.
+
+    Red on the pre-fix bytes: the legacy `verify-suite` entry was proposable
+    with `--suite` in its argv."""
+    _, man = _live_manifest()
+    bad = []
+    for key, entry in man.items():
+        if not entry.get("proposable"):
+            continue
+        argv = [str(t) for t in entry["argv"]]
+        if any(t in _OPERATOR_FLAG_TOKENS for t in argv):
+            bad.append(key)
+        elif any(t.startswith("--ring-") for t in argv):
+            bad.append(key)
+        elif (any(t.endswith("write_guard.py") for t in argv)
+              and "hook" in argv):
+            bad.append(key)
+    assert bad == [], bad
+
+
+def test_legacy_verification_names_resolve_and_the_suite_is_refused():
+    """The legacy `verify` / `verify-suite` / `write-guard` names keep
+    resolving -- the commands they name still exist -- while the suite variant
+    is refused by `propose` with its reason and `propose` imports nothing."""
+    root, man = _live_manifest()
+    for legacy in ("verify", "verify-suite", "write-guard"):
+        assert legacy in commands.load(root), legacy
+    for key in ("verification.py:", "verification.py:window", "verify-suite"):
+        assert man[key]["proposable"] is False, key
+        assert man[key].get("reason"), key
+    with pytest.raises(commands.CommandError) as exc:
+        commands.propose(root, "verify-suite", {})
+    assert "not proposable" in str(exc.value)
+    # The read-only check still resolves to a complete argv.
+    assert commands.propose(root, "write-guard", {})[-1] == "check"

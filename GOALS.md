@@ -9125,7 +9125,7 @@ source    hypothesis:pass2-0923-residue-batch (the Prime 16:14Z, PASS 2 closed: 
 sorted    112 rows (54 residue + 3 demote + 55 verify-missed), read-only against the post branch @feb043a63e:
           mine 47 (F 4 · F° 2 · C 20 · K 16 · G 4) · HELD 10 (rounds under goal:g7.33.7) · thought-master's 55 (lm-* under goal:g5.*)
 leaves    .1 the two test gaps (help-smoke for harness_template.py = core-sync R2 · the town location cell pinned)
-          .2 the node corrections on my rounds (the grok-bot nodes: stub vs real respawn, the bin cell claim, a duplicate build id)
+          .2 the node corrections on my rounds (the grok-bot nodes: stub vs real respawn, the bin cell claim, a duplicate build id) -> .3 its mur residues: the dedupe executed + the stale prose (goal:g15.28.3)
           F° already running: hypothesis:grid-old-namespace-refilled-and-forked (EF.49) · hypothesis:harness-template-emit-refuses-an-unknown-slot (EF.50)
 flagged   HELD, LIVE: every 5-min grid_sync trunk push since the 09-21 cutover is rejected by the remote (0 of ~4060 trunk refs on origin;
           one log line per ref, the cron log is 526 MB) -> a batched push is g7.33.7 work (held): the Prime / core decide
@@ -9153,6 +9153,25 @@ rule      KEEP SPLITTING (owner 09-23, goal:g5)
 ```
 leaf      one small round: hypothesis:pass2-engine-rows-corrected-in-place
 rule      KEEP SPLITTING (owner 09-23, goal:g5)
+```
+
+##### G15.28.3 — THE GROK-BOT BUILD NODE HAS ONE LIVE ID AND TRUE PROSE (EF.53 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.28.3
+
+# goal:g15.28.3 — THE GROK-BOT BUILD NODE HAS ONE LIVE ID AND TRUE PROSE
+
+```
+leaf      execute EF.53's proposed dedupe (the a00 duplicate takes its own id, stops claiming the payload and is retired; mint kept)
+          and correct the canonical's stale prose in place
+source    R-EF53 verify (accept_with_residue): D1 the R14#3 record sits on the loader-hidden file · D2 "no committed reader flags
+          duplicate ids" is false · D3 a stale payload hash/line count · D4 an experiment proved over its own partial probe ·
+          MISSED: "the harnesses.grok-bot row is out of scope" while .agi/config.json:107 carries it
+          bytes verified by director-engine 20:5xZ 09-23 on the post tip 102658116c: the loader's duplicate_ids = exactly this ONE
+          id in 4144 nodes; stitch.py --verify duplicate_payload_ref = exactly this ONE payload
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:the-grok-bot-build-node-has-one-live-id-and-true-prose
+writer    director-engine
 ```
 
 #### G15.29 — THE 09-23 MUR RESIDUE BATCH, ENGINE SLICE -- the unrefuted defects and verify-missed items of director-engine's 29 reviewed rounds, re-read on the post tip and split into leaves (assigned director-engine) — status: active
@@ -9302,6 +9321,214 @@ source    config:links successor_marker cell (R-EF26 D1) + exempt probes/evidenc
 rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
 round     none -- a config write, owner/prime_director only
 writer    the Prime (config writes)
+```
+
+##### G15.29.10 — A WORKFLOW STAGE'S CONTEXT BUILD TAKES ITS BUDGET FROM THE MANIFEST (09-23 mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.10
+
+# goal:g15.29.10 — A WORKFLOW STAGE'S CONTEXT BUILD TAKES ITS BUDGET FROM THE MANIFEST
+
+```
+source    measured 09-23 19:0xZ: director-engine's mur L lost both verifies and thought-master's run -4 lost both verifies to 'context-build-timeout after 60 s' at box load 40-51; the range suite's test_pi_bare_json_stage_is_ok failed the same way at load 30+ and passed at load 8
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round
+round     hypothesis:a-workflow-stage-context-build-takes-its-budget-from-the-manifest (EF.66)
+writer    director-engine
+```
+
+##### G15.29.11 — GRID COMMIT GUARD AND REF WRITER READ ONE NAMESPACE (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.11
+
+# goal:g15.29.11 — GRID COMMIT GUARD AND REF WRITER READ ONE NAMESPACE
+
+```
+leaf      one small round: hypothesis:grid-commit-guard-and-writer-read-one-namespace
+source    R-EF49 S1 (guard and writer resolve the namespace from two sources) · R-EF49 M1 (a nested trunk holding only session refs escapes the guard)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:grid-commit-guard-and-writer-read-one-namespace
+writer    director-engine
+```
+
+##### G15.29.12 — HARNESS ARGV REFUSES AN UNKNOWN ENCODING AND AN UNRESOLVED ~USER BIN (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.12
+
+# goal:g15.29.12 — HARNESS ARGV REFUSES AN UNKNOWN ENCODING AND AN UNRESOLVED ~USER BIN
+
+```
+leaf      one small round: hypothesis:harness-argv-refuses-unknown-encoding-and-unresolved-user-bin
+source    R-EF50 M2 (encoding never validated) · R-EF50 M4 (no test pins the unknown-spread refusal) · R-EF58 S2 (a ~unknownuser bin returned raw)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:harness-argv-refuses-unknown-encoding-and-unresolved-user-bin
+writer    director-engine
+```
+
+##### G15.29.13 — UNIFY REAL-REPO GUARD FAILS CLOSED AND NAMES THIS CHECKOUT (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.13
+
+# goal:g15.29.13 — UNIFY REAL-REPO GUARD FAILS CLOSED AND NAMES THIS CHECKOUT
+
+```
+leaf      one small round: hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
+source    R-EF58 S1 (the guard is open with no box.root cell) · R-EF58 M1 (its test depends on this box's config)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
+writer    director-engine
+```
+
+##### G15.29.14 — AN UNREACHABLE KEY AUTHORITY GATES THE SWAP; ONLY A MISSING REF SKIPS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.14
+
+# goal:g15.29.14 — AN UNREACHABLE KEY AUTHORITY GATES THE SWAP; ONLY A MISSING REF SKIPS
+
+```
+leaf      one small round: hypothesis:unreachable-key-authority-gates-the-swap-missing-ref-skips
+source    R-EF56 S1 (any failed fetch reads as 'no authority branch') · R-EF56 M2 (a test pins that conflation)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:unreachable-key-authority-gates-the-swap-missing-ref-skips
+writer    director-engine
+```
+
+##### G15.29.15 — THE SUB DRY-RUN PREVIEW IS THE BYTES UPDATE_NODE LANDS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.15
+
+# goal:g15.29.15 — THE SUB DRY-RUN PREVIEW IS THE BYTES UPDATE_NODE LANDS
+
+```
+leaf      one small round: hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands
+source    R-EF57 S1 (preview can drift from the landed bytes) · S2 (no preview == landed test) · M1 (the '-' side is synthetic) · M2 (assembly order written twice)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands
+writer    director-engine
+```
+
+##### G15.29.16 — SECRETSERROR IS ITS OWN TYPE AND THE HOOK READS THE GRAPH'S SECRETS NODE (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.16
+
+# goal:g15.29.16 — SECRETSERROR IS ITS OWN TYPE AND THE HOOK READS THE GRAPH'S SECRETS NODE
+
+```
+leaf      one small round: hypothesis:secrets-error-own-type-and-hook-reads-graph-secrets-node
+source    R-EF59 S1 (SecretsError widened to ValueError) · M1 (the test asserts ValueError) · M2 (the hook path reads no secrets node)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:secrets-error-own-type-and-hook-reads-graph-secrets-node
+writer    director-engine
+```
+
+##### G15.29.17 — CRONS RENDER FAILS CLOSED BY NAME ON A PARTIAL BOX SCHEMA (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.17
+
+# goal:g15.29.17 — CRONS RENDER FAILS CLOSED BY NAME ON A PARTIAL BOX SCHEMA
+
+```
+leaf      one small round: hypothesis:crons-render-fails-closed-by-name-on-partial-box-schema
+source    R-EF60 S1 (incomplete placeholder map fails open) · S2 (a missing [box].md is a crons outage) · M1 (repo_root/box mapped but undeclared) · M2 (untested) · M3 (a traceback, not an ERR) · M4 (a test reads the live node)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:crons-render-fails-closed-by-name-on-partial-box-schema
+writer    director-engine
+```
+
+##### G15.29.18 — A RESTART CARRIES THE FIRST SPAWN'S FULL TURN AND IDENTITY (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.18
+
+# goal:g15.29.18 — A RESTART CARRIES THE FIRST SPAWN'S FULL TURN AND IDENTITY
+
+```
+leaf      one small round: hypothesis:restart-carries-the-first-spawns-full-turn-and-identity
+source    R-EF61-65 S1 (restart drops skill_prompt / cli_py) · M1 (and role / ladder_tier / brief_tier / addendum / project_root) · M2 (a non-dict spawn.json kills the restart)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:restart-carries-the-first-spawns-full-turn-and-identity
+writer    director-engine
+```
+
+##### G15.29.19 — THE PARENT BRIEF DERIVES THE WAIT EXIT CODES FROM CLI CONSTANTS (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.19
+
+# goal:g15.29.19 — THE PARENT BRIEF DERIVES THE WAIT EXIT CODES FROM CLI CONSTANTS
+
+```
+leaf      one small round: hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants
+source    R-EF62 S1 (the codes are retyped literals) · M1 (each code's action is untested)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:parent-brief-derives-wait-exit-codes-from-cli-constants
+writer    director-engine
+```
+
+##### G15.29.20 — THE CONTEXT BUDGET NEVER FLOORS TO ZERO; STAGE, BOOL AND DRY-RUN PINNED (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.20
+
+# goal:g15.29.20 — THE CONTEXT BUDGET NEVER FLOORS TO ZERO; STAGE, BOOL AND DRY-RUN PINNED
+
+```
+leaf      one small round: hypothesis:context-budget-never-floors-to-zero-and-is-pinned
+source    R-EF66 S1 (a fractional budget truncates to 0) · S2 (the stage override untested) · M1 (dry-run parity) · M2 (bool refusal) · M3 (zero stage dispatch unproved)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:context-budget-never-floors-to-zero-and-is-pinned
+writer    director-engine
+```
+
+##### G15.29.21 — THE MIGRATE TRANSCRIPT DEST TEST ASSERTS AN INDEPENDENT ROOT (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.21
+
+# goal:g15.29.21 — THE MIGRATE TRANSCRIPT DEST TEST ASSERTS AN INDEPENDENT ROOT
+
+```
+leaf      one small round: hypothesis:migrate-transcript-dest-test-asserts-an-independent-root
+source    R-EF63 S1 (the assertion became tautological)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:migrate-transcript-dest-test-asserts-an-independent-root
+writer    director-engine
+```
+
+##### G15.29.22 — WORKFLOW, BRIEF AND HOOK FILES NAME THE REPO BY TOKEN, NOT A /HOME LITERAL (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.22
+
+# goal:g15.29.22 — WORKFLOW, BRIEF AND HOOK FILES NAME THE REPO BY TOKEN, NOT A /HOME LITERAL
+
+```
+leaf      one small round: hypothesis:workflow-prompts-name-the-repo-by-token-not-home-ubuntu
+source    R-EF58 M2 (live /home/<user> literals outside the round's scan scope)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:workflow-prompts-name-the-repo-by-token-not-home-ubuntu
+writer    director-engine
+```
+
+##### G15.29.23 — AN AUTHORITY-DEFERRED KEY SWAP COMPLETES AT THE NEXT SUCCESSFUL PUBLISH (0923b mur residue leaf; assigned director-engine) — status: active
+
+# goal:g15.29.23
+
+# goal:g15.29.23 — AN AUTHORITY-DEFERRED KEY SWAP COMPLETES AT THE NEXT SUCCESSFUL PUBLISH
+
+```
+leaf      one small round: hypothesis:authority-deferred-key-swap-completes-at-the-next-publish
+source    R-EF67 S1 (an authority-deferred pending has no production completion site) · M1 (send._signing_key_obj prefers the pending key) · M2 (the next rotation mints from the predecessor key)
+          bytes verified by a read-only triage pass for director-engine 21:3xZ 09-23 on the post tip a281bb0d85 (every file:line read)
+rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
+round     hypothesis:authority-deferred-key-swap-completes-at-the-next-publish
+writer    director-engine
 ```
 
 ## G19 — L5 the tidy pass — branch deletes, post session-name updates, then every straggling bugfix; Prime + one director — status: retired
@@ -12160,6 +12387,16 @@ PASS 2 09-23 11:41Z-16:2xZ (the Prime): trunk @ebae4adde → season2/main @4c35f
 
 thought-master 20:06Z 09-23 (OWNER, verbatim, in thought-master's pane; banked after the gate suite exited, since the suite read the working tree): "We just reinstalled the rotate threshold hooks hooks so can we inform the two directors to reach a stopping point and let you know so you can rotate them both? Once meter pin is verified as working rotate yourself as well and send the prime a nudge."
 
+OWNER 09-24 00:xZ (thought-master pane, verbatim, four lines; the fourth at 00:5xZ): "Standby for openrouter credits, in the meantime see if any experiments can be run without using the credits like typesafe experiments or local gpu experiments. Our qwen model might just be good enough either way the caching to do some super basic stuff nice and slow until we figure out a better way to run multiple ones in parallel" / "We can use the leaf splitting technique maybe to keep breaking down goals/hypotheses into subgoals and sub hypotheses until the pi-local harness can handle the task size thrown at it" / "Can be gpu as well" / "Use the bonsai or the orca one which is more optimized I think but combine it with kv cache compression" -- ACTED by thought-master (TMM.76 / TMM.77): the 0-CREDIT LANE. BRAIN: director-thought serves Bonsai 2 27B PTQ1_0 (the OrcaBonsai LoRA as its variant) through the router with the L1 KV format (-fa on -ctk q4_0 -ctv q4_0; q8_0 / q4_0 the sibling) in its own window, before-values recorded, the 9B preset restored on failure (the router preset named bonsai today is Ternary-Bonsai-1.7B, not the 27B). SHAPE: the director is the parent and splits a hypothesis into sub-hypothesis leaves (legal per [hypothesis]) until one leaf = one pi-local kid (dispatch --tier kid --harness pi-local --branch, dry-run verified 00:5xZ: no credential minted); ONE local kid at a time town-wide until the slots measure more. FITS: CPU-only, offline analysis of recorded data, TypeSafe API calls (their own 2 x 5 USD keys), GPU through the served brain or inside the VRAM beside it. NEVER a pi-local parent (TMM.41: its slot overflowed over 5 kids) nor a kid spawn without --harness pi-local (the ladder tier-0 kid row names pi = OpenRouter).
+
+OWNER 09-24 01:0xZ (thought-master pane, verbatim, a fifth line): "Oh wait I guess it can't run here" -- the bytes say it can: experiment:a00-bb10233d-5a7f1f served Ternary-Bonsai-2-27B-PTQ1_0 on this box on the PrismML fork b10685 (still on disk under /data/ml/llama-prism-fork/) with KV compression already on (-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja): HumanEval 86.6 vs the 9B 78.0 (+8.5pp, p=0.0094); the OrcaBonsai LoRA routes on the same process but is inert on coding (C1 -0.6pp, 141/164 byte-identical) -> the brain is the plain 27B; fallback = the 9B on the router with the L1 q4_0 KV at -np 3.
+
+OWNER 09-24 01:0xZ (thought-master pane, verbatim, a sixth line): "Not yet, but prisml could help idk if it's Mac only or cuda as well but better" -- measured 01:0xZ: PrismML's llama.cpp fork is CUDA too -- the prebuilt prism-cuda-12.4.tar.gz, unpacked as build 10685 (commit 7dffb158d), links libcudart / libcublas 12 and runs on this box (--version ok); it is the build that served the 27B here on 09-20/21 (experiment:a00-bb10233d-5a7f1f).
+
+OWNER 09-24 01:0xZ (thought-master pane, verbatim, a seventh line): "Use orca bonsai please specifically owner request" -- ACTED by thought-master (TMM.78, supersedes TMM.76's plain 27B): the brain = OrcaBonsai = Ternary-Bonsai-2-27B-PTQ1_0 on the PrismML fork b10685 + --lora /data/work/trove/20260920/OrcaBonsai-27B-Uncensored/gguf/bonsai-abliterate-lora.gguf (9,682,464 B, sha256 f1669534...7f42, matches the 09-20 survey) at scale 1.0 (the repo README: the exact projection; 2 flips the stubborn ones; 3+ degrades) with the KV compression (-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja); the repo's own apply check first (scale 0 = the published model, a large scale visibly breaks it). The 09-21 measure stands beside it: the LoRA was inert on coding (C1 -0.6pp) -- the owner's call is the brain.
+
+OWNER 09-24 01:0xZ (thought-master pane, verbatim, an eighth line): "Can we also set the main pi harness api key to our local server and just leave it at that?" -- ACTED by thought-master (TMM.78): pi's built-in openrouter provider is routed to the local brain at 127.0.0.1:8080 through pi's documented provider override in the box's pi config (~/.pi/agent/models.json; the before-file kept beside it), flipped once OrcaBonsai answers there; the single-model server ignores the requested model name, so EVERY pi call on this box (every post's parents, kids and murs) runs on the local brain at 0 USD, no engine change. Consequences named: dispatch returns to the standard town line (--harness pi), TMM.76's pi-local kid shape is dropped, leaf splitting stays for the 64K slot, one round at a time; a record's model cell no longer names the brain -- each node from the flip names its real brain; the Prime's PASS 3 pi chunks on this box run on the local brain too (told, the Prime's call).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
@@ -12659,7 +12896,7 @@ round     hypothesis:the-last-engine-clis-join-the-choice-surface
 source    after EF.54 lands: multi-value arity data for the 9 options (commands.md ~2482; R-EF45-55 D) and a _full_supply test that honours it (M1) · verification.py + write_guard.py into the coverage/drift tests, so all 70 is established (R-EF54 D) · dashboard.py `watch` makes a non-terminating proposable argv (R-EF54 M1) · the drift test checks args[].type (M2) · the mesh `about` text under the anonymize guard (R-EF45 M1) · the operator-verb gate derived from side effects, not a 3-key list (M2) · _split_arity('append:0') refuses by name (R-EF45-55 M2) · links.py --strict wired to a gate (R-EF26 M2)
           bytes verified by director-engine 18:2xZ 09-23 on the post tip f36cc2420 before minting
 rule      KEEP SPLITTING (owner 09-23 10:4xZ, goal:g5): one leaf, one small round; split again if it grows
-round     none -- dispatch after EF.54 lands; split into rounds then
+round     A = hypothesis:verification-and-write-guard-join-the-choice-surface (EF.69; the verify-suite entry is proposable today; all 70). B arity + the args[].type drift, C proposable derived from side effects (dashboard watch; season.py:judge is graph-write yet proposable; the operator-verb gate; mesh about under anonymize), D links.py --strict gate: after A merges (commands.md is shared)
 writer    director-engine
 ```
 
@@ -13198,6 +13435,8 @@ stream down (6 process(es)) issued from the Prime's pane right after the L4 comp
 [XX 04:29Z] STREAM ENDED on the owner's order 2026-09-14 (verbatim doc:l4-owner-decisions tail: proof of concept done, free the ~10 GB): panic → units streamer-stub, agi-scene-rotate, agi-graph-kiosk, agi-graphweb disabled; tmux stream-follow + the six view-* sessions killed; vncserver :1 killed (Xtigervnc, xfce4-session, the view terminals); the firefox kiosk (5.8 GB + 1.3 GB content process) was the bulk. Measured: used 11.1 → 4.8 GB, available 12.9 → 19.1 GB. Left running on purpose: agi-rc (the Prime, the thought master, the Belam chain), the reaper unit (the thought master's rounds need it), live-bridge.service (the owner's trading bridge -- NOT stream-related, untouched). The stub repo keeps the whole stack incl. the FULL IDLE panel (634a463) for a future stream.
 
 OWNER 2026-09-16 14:1xZ (verbatim in doc:l4-owner-decisions): 'Sounds good let's leave it at your plan. No need to panic stream is down now.' — L4 closes on drain → self-review → COMPLETE.md → prayer; the panic + sb-status steps are STRUCK (stream down); SM plans (4) encryption town + key seats and (5) town goal numbering DEFERRED out of the close.
+
+OWNER 2026-09-23 22:5xZ, in the Prime's pane (belam-S2-L5-II), verbatim: 'Can we stand up stream master and have him start a stream via our streamer-stub across twitch and twitter. The stream master post may need a doc update to bring in line with the rest currently active. Leave him on sonnet max' -- APPLIED by the Prime 23:0xZ: the stream-master config:posts row gains template doc:unified-master-brief (the master template, as the thought-master row carries it); model and effort unchanged (claude-sonnet-5, max); the card is rewritten in the current card shape (state, plan, stops, traps, BANKED); seated through rotate.py spawn. MEASURED on local-town 22:53Z: no X display :1, no ffmpeg, no stream keys (TWITCH_KEY, X_URL, X_KEY absent from MAIN .env; no Doppler CLI and no keeper config on this box); passwordless sudo; apt candidates ffmpeg 6.1.1 and tigervnc-standalone-server 1.13.1; the stub source is CodexOperator/streamer-stub (private, cloned in place, never graph content). The stream keys are the owner's input, banked on the Prime card.
 
 ## App: web-app-suite
 

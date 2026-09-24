@@ -1,0 +1,97 @@
+---
+id: experiment:a00-d31d5314-b7c566
+mint_id: 11b6cbd5bc944cef9fa21dae629fbf3b
+type: experiment
+parents:
+  - hypothesis:grid-old-namespace-refilled-and-forked
+next_edges: []
+confidence: 0.85
+edited_by: a00-f616eccd
+evidence_runs:
+  - experiment:a00-d31d5314-b7c566
+loop: hypothesis:grid-old-namespace-refilled-and-forked@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "probe.py Probe A: real `grid.py commit --all` from a tmp LINKED worktree whose own .agi/config.json declares {\"grid\":{\"storage_trunk\":\"refs/grid\"}} (the OLD ns) while MAIN declares refs/grid/t9", "expected": "exit 0; the worktree's mint ref lands under refs/grid/t9/node/, refs/grid/node/ stays empty -- the local stale seat never wins", "observed": "exit 0; trunk refs ['refs/grid/t9/node/c2c2c2c2...']; old refs []", "result": "held"}
+  - {"conjunct": 2, "class": "gate", "cmd": "probe.py Probe B: seed refs/grid/t9/node/<MINT_X>, then blank BOTH configs and run real `grid.py commit --all` FROM THE LINKED WORKTREE", "expected": "exit non-zero, stderr names BOTH refs/grid and refs/grid/t9, and no ref is written", "observed": "exit 1; stderr 'grid: refusing commit: resolved namespace 'refs/grid' but this repo already holds refs under refs/grid/t9 ... Set grid.storage_trunk to 'refs/grid/t9''; ref set unchanged", "result": "held"}
+production_lines: 54
+profile: balanced
+role: kid
+scaffold_hash: a0c7ee09696387e2
+season: 2
+title: Worktree commits follow the shared trunk; a blanked trunk refuses by name
+town: local-maxxing
+verdict: proved
+---
+# experiment:a00-d31d5314-b7c566
+
+## Experiment
+
+Built BOTH conjuncts of `hypothesis:grid-old-namespace-refilled-and-forked`
+in `extensions/agi/bin/grid.py`; tests in `extensions/agi/tests/test_grid.py`.
+
+### What the two forked roots hold (measured on the live worktree)
+```
+refs/grid/node/                 3807 refs   <- migrated-FROM namespace
+refs/grid/local-maxxing/node/   4060 refs   <- configured trunk
+```
+Reconciling these two roots is a separate data decision, not this round:
+NOTHING moved or deleted (383 flags read-only).
+
+### Conjunct 1 — ONE config for every worktree
+`ref_ns_for(root)` now resolves `grid.storage_trunk` from
+`locations.shared_project_root(root)` — the MAIN checkout's `.agi/config.json`
+— instead of the worktree handed in. A linked git worktree keeps its own
+pre-migration config; reading it resolved `DEFAULT_REF_NS` and re-minted
+`refs/grid` while MAIN named the trunk. A tree that is not a linked worktree,
+or has no `storage_trunk`, resolves `refs/grid` byte-for-byte as before
+(`shared_project_root` returns the identity for both). No new literal path:
+resolution goes through `locations`.
+
+### Conjunct 2 — REFUSE BY NAME after a migration
+New `migrated_trunk_namespaces(root)` enumerates namespaces nested under
+`refs/grid` (`refs/grid/*/node/*`). `cmd_commit` now, before the branch guard:
+when `ref_ns_for(root) == refs/grid` AND nested trunk refs exist, it refuses
+with a message naming BOTH `refs/grid` (the migrated-from namespace) and the
+trunk, exits non-zero, and writes no ref. That is the post-migration /
+blanked-config state; writing there would fork a second v1 root. Session (D3)
+drafts are exempt — a draft is not an accepted version.
+
+## Evidence
+
+### Tests (exact names, in `extensions/agi/tests/test_grid.py`)
+- `test_worktree_resolves_shared_trunk_config` — linked worktree, stale
+  `{}` config, MAIN declares `refs/grid/t9`: commit records under
+  `refs/grid/t9/node/<mint>`, never `refs/grid`. FAILS pre-fix.
+- `test_commit_refuses_remining_migrated_namespace` — migrate to
+  `refs/grid/local-maxxing`, blank the trunk key, commit -> `SystemExit`
+  naming both namespaces, no ref re-minted, trunk untouched. FAILS pre-fix.
+- `test_unconfigured_tree_with_no_nested_trunk_still_uses_refs_grid` —
+  regression: default tree, no nested trunk -> `refs/grid`, no refusal.
+
+### Run
+```
+python3 -m pytest extensions/agi/tests/test_grid.py \
+  extensions/agi/tests/test_grid_coverage_check.py \
+  extensions/agi/tests/test_grid_evidence_gate_defer.py -q
+141 passed, 15 warnings in 16.17s
+```
+
+## THOUGHT
+
+<!-- THOUGHT:BEGIN -->
+why this version differs: the parent hypothesis measured the residue (3807 vs
+4057) but left the writer unguarded. This version builds BOTH halves the claim
+needs: the worktree no longer re-mints because its config is read from the
+shared checkout, and a tree that genuinely lost the key now refuses by name
+instead of silently forking. Chose the commit-path guard over a recorded
+migrated-from marker because it needs no new state and no migration to be
+trusted: the nested refs themselves ARE the evidence a migration happened.
+Production diff 54 added / 1 removed over `extensions/agi/bin/grid.py`
+(ceiling 40; below the 2x stop at 80).
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Both conjuncts built in grid.py: ref_ns_for reads the shared main checkout config (worktree no longer re-mints refs/grid) and cmd_commit refuses by name when the resolved namespace is refs/grid while nested trunk refs exist. Tests: test_worktree_resolves_shared_trunk_config, test_commit_refuses_remining_migrated_namespace, test_unconfigured_tree_with_no_nested_trunk_still_uses_refs_grid; 141 passed across the three grid files, 182 passed across cli/rotate/unify consumers. Forked roots measured: refs/grid/node=3807, refs/grid/local-maxxing/node=4060, untouched. production_lines=54.
+
+parent a00-f616eccd EF.49 review (read the bytes, not the result file): diff adds locations.shared_project_root resolution to grid.py ref_ns_for, migrated_trunk_namespaces(), and a cmd_commit refusal naming both namespaces. Two PARENT probes run against the REAL CLI in tmp linked-worktree repos (not the kid's tests): (1) wire -- worktree's own config explicitly refs/grid while MAIN says refs/grid/t9 -> exit 0, ref landed under the trunk, old namespace empty; (2) gate -- migrated refs/grid/t9/node + blanked shared config, commit FROM the worktree -> exit 1 naming both refs/grid and refs/grid/t9, no ref written. Both held; accepted. This probe also closes the coverage gap the kid's own push_further named (the combined worktree+blanked-MAIN case is not in the committed suite). Residues: the guard has no allow-override; the live 3807 old refs were measured (3807 vs 4060) and left untouched as ordered.
