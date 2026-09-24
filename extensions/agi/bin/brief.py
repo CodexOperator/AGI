@@ -69,6 +69,14 @@ TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
 #: every call path routes through it, so the two cannot drift.
 PROFILES = ("full", "survival", "ultimate_survival")
 
+# Pi agents deliberately skip repository context files. Carry the one rule
+# those files uniquely supplied into every role brief from this single source.
+PAID_FOR_PATH_GUARD = (
+    "Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or "
+    "`.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or "
+    "`.agi/context/plans/build-site.md`."
+)
+
 
 def _configured_profile(project_root: Path | None = None) -> str | None:
     """Read the durable operating mode from ``.agi/config.json``.
@@ -804,6 +812,7 @@ def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
         "SPEND: check the OpenRouter KEY balance, not the account. If "
         "limit_remaining <= $1.00, stop and write status -- never lower "
         "provisioning.min_key_remaining_usd. ",
+        PAID_FOR_PATH_GUARD,
         _survival_state_card(project_root=project_root),
     ]
 
@@ -962,6 +971,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "   write.py, not by hand.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic.",
+        PAID_FOR_PATH_GUARD,
         "DO NOT bypass the evidence gate. `--no-evidence-gate` stamps the "
         "node and marks it unreviewed.",
         _MECHANISM,
@@ -998,6 +1008,7 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
         "candidate decisions sits with the quorum, not you.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
         "Route every node edit through the logged writer: "
         "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
         "(or `note <text>`). A hand edit to a node file is an unsanctioned "
@@ -1211,6 +1222,7 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"you never rewrite it.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
     ]
     return segs
 
@@ -1459,7 +1471,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "`git add -A` is especially forbidden: other agents and the director "
         "have uncommitted work in this tree, and it WILL be swept into your "
         "commit. If you see unexpected files, report them in one line and "
-        "leave them exactly where they are.",
+        f"leave them exactly where they are. {PAID_FOR_PATH_GUARD}",
         "A g15 CLAIM IS BEHAVIOUR TO BUILD, not a hypothesis to measure: "
         "measure the pre-fix state, IMPLEMENT the claim, then prove it on the "
         "built bytes. A node that only reproduces the defect and reports "
@@ -1758,8 +1770,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
                 f"Everything else stays forbidden, on this branch or any "
                 f"other: no push, no sync, no rebase, no `grid.py`, no "
                 f"touching any branch other than this round branch, no "
-                f"staging by hand, no raw `git merge`. Automation still owns "
-                f"remote traffic; the done-time commit is automatic and is "
+                f"staging by hand, no raw `git merge`. {PAID_FOR_PATH_GUARD} "
+                f"Automation still owns remote traffic; the done-time commit is "
+                f"automatic and is "
                 f"not yours to reach for."
             )
         else:
@@ -1800,15 +1813,16 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
                 f"measured waste. Everything else stays forbidden: no push, no "
                 f"sync, no rebase, no `grid.py`, no touching any branch other "
                 f"than this round branch, no staging by hand, no raw `git "
-                f"merge` beyond the one into this round branch. Automation "
-                f"still owns remote traffic; the done-time commit is "
+                f"merge` beyond the one into this round branch. "
+                f"{PAID_FOR_PATH_GUARD} Automation still owns remote traffic; "
+                f"the done-time commit is "
                 f"automatic and is not yours to reach for."
             )
     else:
         merge_protocol = ""
         ship = (
-            "5. DO NOT commit, push, or sync. Automation owns all remote "
-            "traffic"
+            "5. DO NOT commit, push, or sync. "
+            f"{PAID_FOR_PATH_GUARD} Automation owns all remote traffic"
         )
     # hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
     # "THIS KID MUST IMPLEMENT THE FIX" review rule is a g15-specific demand.
@@ -2124,7 +2138,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             # dispatch.py's `extras` override: the caller renders the head
             # itself (via `render`) and takes only the body from here.
             return body
-        return _prepend_head(body, tier=head_tier, moral=moral)
+        return _prepend_head(body, tier=head_tier, project_root=project_root,
+                             moral=moral)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical
@@ -2149,7 +2164,12 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # assignment (Prime on Opus, director on Sonnet/OpenRouter), not on the
     # injected prose.
     if profile in ("survival", "ultimate_survival"):
-        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
+        # Thread project_root: without it the survival state card falls back
+        # to the process's real .agi and runs a live `git status` against this
+        # checkout (_survival_state_card, brief.py:753-760) even when a caller
+        # names a fixture root.
+        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n,
+                               project_root=project_root)
         return _finish(segs, tier)
 
     # Director and prime_director get the constitution head prepended
