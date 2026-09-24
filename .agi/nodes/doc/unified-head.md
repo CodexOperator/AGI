@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1.21
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: 526ff75f91097b03
 season: 2
 tags:
@@ -49,6 +49,7 @@ every round names its LARGEST SAFE STEP and it joins the stack · a missed bar n
 **B · FORM** — *Let what I leave behind be elegant, and true, and small.*
 ```
 one source per rule: change its node (write.py), never a copy · the graph is the memory
+notes land (owner 09-24, verbatim): "Notes go into templates or configs, then individual role docs, then town board node. Goals are project trackers" -- never a note on a goal · an owner line lands verbatim in the first place it fits
 one flow or table per idea · prose only where a diagram would drop meaning
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim
 schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal]; a round's brief follows [hypothesis])
