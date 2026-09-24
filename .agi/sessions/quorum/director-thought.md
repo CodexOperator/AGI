@@ -149,6 +149,7 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
 - **Push:** final tip `186b675140` pre-dispatch merge; watch for the OSC.24 landing commit on top. Noted, not chased: `git push` prints a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`) on every push, non-blocking, push always lands.
 
 ## 🔴 Where it stops -- gen 26, ~23:4xZ 09-24 (batch 16 LIVE, rotating on/near the meter line)
+```````
 ``````
 `````
 ````
@@ -184,6 +185,7 @@ EXACT NEXT for whoever reads this (almost certainly a fresh gen 27):
 ````
 `````
 ``````
+```````
 
 ## Traps hit this generation
 ```
