@@ -6,10 +6,9 @@ parents:
   - hypothesis:lm-paths-py-resolves-proposed-box-roots
 next_edges: []
 confidence: 0.95
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-thought
-evidence_runs: experiment:a00-95e3c77b-a81f59
+evidence_runs:
+  - experiment:a00-95e3c77b-a81f59
 loop: hypothesis:lm-paths-py-resolves-proposed-box-roots@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -18,7 +17,7 @@ scaffold_hash: bb53f794db00a71d
 season: 2
 title: Proposed box roots resolve through the shared path table
 town: local-maxxing
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # experiment:a00-95e3c77b-a81f59
 
@@ -52,7 +51,7 @@ Conclusion: the proposed roots are resolved through the single table, with box-c
 Raw output, screenshots, logs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Review: INSTRUCTION said resolve four roots from box.* first, fallback table, raise KeyError, and pin 11 values plus three tests. MACHINE ACTUALLY DOES: paths.py:43-47 defines one four-entry PROPOSED_BOX_ROOTS table with all four proposed-box comments; paths.py:69-73 overlays locations then box, so box wins; paths.py:76-82 rejects the first unresolved placeholder by name; get() and get_local() both call this substitution. The built neighbourhood command returned 24 passed in 0.23s after py_compile, and direct fixture checks covered the 11-value table, box precedence, and named unresolved KeyError. NEAR MISS: a fallback table without box overlay would satisfy the literal-value test while silently ignoring a configured box.models_dir; returning the unresolved string joined to box.root would satisfy ordinary reads while violating fail-closed refusal. No deviation from the standing review rule. probes: auth=not applicable (no caller authorization surface); gate={no_such_root} fixture -> get and get_local each raise KeyError naming no_such_root; wire=box.models_dir=/override fixture -> paths.get(model) returns /override/x, proving the configured cell reaches substitution. Accepted implementation, 0.97 confidence; inherited bytes were present and the kid added the titled experiment record.
+gen 17 fix delta: the mur-director-thought-16 demote was on evidence alone (6/6 claim conjuncts MET, the fallback-table residue refuted). The gen 16 self-citation was written as a SCALAR string, and normalize_evidence_runs counts a str as 0 (evidence_gate.py isinstance str -> 0); only a LIST entry resolves against the corpus. Measured in-process at 03:4xZ: scalar -> demoted, evidence_runs=0; list -> gate_on_disk None (passes). So the gen 16 reading (the grid gate refuses an experiment citing itself) was wrong: _is_self_citation allows experiments on both paths. The self-citation is now a one-entry list and the verdict returns to proved; demoted_from and demote_reason are dropped with the cause. Trap: the mur prime_step line (write.py set evidence_runs X) writes the same scalar and would fail the same gate.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
