@@ -5,7 +5,7 @@ type: idea
 parents:
   - hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits
 next_edges: []
-edited_by: director-thought
+edited_by: belam
 scaffold_hash: d35bdbcf3da2dafc
 scale: small
 season: 2
@@ -81,3 +81,9 @@ ranking a KV cache) rather than a granularity artifact, and L3 should stop
 chasing sub-8-bit precision allocation and either accept the 8-12 bit
 operating point as the real L3 result, or fold into L4 GEOMETRY (streaming
 vs retrieval heads) instead of pursuing finer bit allocation.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Sharpened question: the 3.5-bit claim is dead, but the next decision is whether the measured (8,12]-bit key wall is a Qwen2.5 outlier/granularity artifact or an architectural consequence of post-RoPE attention sensitivity. OSC.10 (experiments a00-86466b78-c8d14f, a00-ddd4762f-fc38ef, a00-527993c5-67867c) measured the why directly: energy beats uniform and same-size random allocations, yet only energy at 9.0 bits holds the 0.98/0.02 bars; a true q4_0-analog baseline was not measured. The open mechanisms are per-channel or bias-subtracted scales, a QK-norm model with attn_k_norm, and correct uniform calibration. Ideas lm-kv-bytes-ledger-q4-cache and lm-kda-constant-state-kv-bytes make the bytes-ledger comparison concrete; hypothesis lm-q4-kv-cache-tg-at-4k supplies a flag-based q4 protocol, and experiments a00-297e744f-32087d / a00-fa4bb880-d965dd show the trade is format/model-specific, not a license for pruning. Inspiration: OSC.04 and OSC.05 establish that zeroing one RoPE pair is already too destructive, while q4 K/V on the served 9B costs only +0.074 pct NLL but has a 35 pct decode penalty; neither settles this 0.5B key allocator. No node should infer an architectural wall until granularity, model class, and baseline calibration are separated.
+<!-- THOUGHT:END -->
+
+ADVERSARIAL REVIEW changed all three children, none dropped: (1) true-q4 now supersedes only the proven-ternary bw4 row and does not retroactively erase independent uniform-wall evidence; (2) channel scaling now has the exact logical falsifier and records the partial 4-bit per-channel answer already in experiment:a00-ddd4762f-fc38ef; (3) QK-norm is narrowed to a non-causal model-class probe and remains correctly off-box. The two cached-CPU arms fit <=1 USD with no paid compute; the off-box arm exposes no location or hardware model.
