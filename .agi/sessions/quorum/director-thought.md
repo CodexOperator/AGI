@@ -105,11 +105,16 @@ S2 LEAVES (TMM.76 step 2; route per TMM.79 01:30Z, OWNER 01:1x-01:3xZ verbatim o
    SLOT   TMM.81 (TM 01:34Z): the local slot is MINE ALONE once EF.90 (a00-0d0977d3, pid 523515) ends; director-engine moves to pi-free (the free
          cloud model). Gate on a SEPARATE read right before the dispatch: spawn_budget.py status lists NO live EF.* record (my background pid watch
          dies with this session -- re-check by hand)
-   NEXT   READY (gen 16, 01:4xZ): trunk merged ea658a4915 + mirror pushed · orders written: .agi/sessions/orders/LEAF.02.parent.txt (ONE kid, cli.py
-         wait --max-seconds 3000, review against the bytes) + LEAF.02.kid-A.txt (the leaf A orders, the 11 values re-verified vs config at HEAD) ·
-         --dry-run exit 0 (189-line parent brief) -> on the gate, the one command:
-         PI_CODING_AGENT_DIR=/data/ml/pi-agent-local python3 extensions/agi/bin/dispatch.py . LEAF.02 --target hypothesis:lm-paths-py-resolves-proposed-box-roots
-         --level small --tier parent --harness pi --branch --detach --orders .agi/sessions/orders/LEAF.02.parent.txt --from director-thought
+   FREE   TMM.83 (TM 02:14Z) lifted the FREE model (pi-free = stealth/space-bunny-alpha) on the Prime's account move -> my LEAF.02 parent a00-e309c592
+         (pi-free, 02:16:07Z) DIED in 6 s, 0 tokens: OpenRouter 404 "your account's allowed-providers setting permits only: deepseek" -> [red] to TM
+         02:18Z (the owner's fix: the account's privacy page, allowed providers) · the free lane is DEAD for every post until then · PAID stays held
+         (that filter permits deepseek = paid: a local kid that loses PI_CODING_AGENT_DIR would now SPEND -> verify every local kid's env)
+   NEXT   leaf A on the LOCAL slot as LEAF.03 (LEAF.02 = the dead free-lane parent). READY: trunk merged 8aa3da4af1 + mirror pushed · orders
+         .agi/sessions/orders/LEAF.03.parent.txt (ONE kid, its spawn line names PI_CODING_AGENT_DIR itself, cli.py wait --max-seconds 3000) +
+         LEAF.03.kid-A.txt (the 11 values re-verified vs config at HEAD) -> on the gate (no live EF.* in spawn_budget.py status), --dry-run, then:
+         PI_CODING_AGENT_DIR=/data/ml/pi-agent-local python3 extensions/agi/bin/dispatch.py . LEAF.03 --target hypothesis:lm-paths-py-resolves-proposed-box-roots
+         --level small --tier parent --harness pi --branch --detach --orders .agi/sessions/orders/LEAF.03.parent.txt --from director-thought
+         then CHECK the kid the moment it spawns: /proc/<kid pid>/environ has PI_CODING_AGENT_DIR + the brain log shows its requests -- else CUT it
          B/C split waits on LEAF.02's measured bar: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node's f1f675975f count, no drift)
    VERIFY this first round IS the check: the brain log (docker logs brain-orcabonsai27b) shows the parent's AND the kid's requests; each node names its
          REAL brain (OrcaBonsai-27B-C2) even where pi reports the ladder model · NEVER restart brain-orcabonsai27b while a local round runs (owner)
