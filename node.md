@@ -299,6 +299,16 @@ excluded:
     reason: "network: pushes refs to a remote"
     side_effects: network
     proposable: false
+  grid.py:push-changed:
+    cli: grid.py
+    verb: push-changed
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/grid.py
+      - push-changed
+    reason: "network: pushes refs to a remote"
+    side_effects: network
+    proposable: false
   provisioning.py:reap:
     cli: provisioning.py
     verb: reap
