@@ -78,6 +78,14 @@ PAID_FOR_PATH_GUARD = (
 )
 
 
+def _paid_for_path_guard(project_root: Path | None = None) -> str:
+    """Read the project override, retaining the historical default."""
+    root = _resolve_graph_root(project_root)
+    value = _brief_cell(root).get("paid_for_path_guard")
+    return value if isinstance(value, str) and value else PAID_FOR_PATH_GUARD
+
+
+
 def _configured_profile(project_root: Path | None = None) -> str | None:
     """Read the durable operating mode from ``.agi/config.json``.
 
@@ -812,7 +820,7 @@ def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
         "SPEND: check the OpenRouter KEY balance, not the account. If "
         "limit_remaining <= $1.00, stop and write status -- never lower "
         "provisioning.min_key_remaining_usd. ",
-        PAID_FOR_PATH_GUARD,
+        _paid_for_path_guard(project_root),
         _survival_state_card(project_root=project_root),
     ]
 
@@ -2130,6 +2138,9 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # (test_orders_never_reach_a_kid_brief).
     def _finish(body: list[str], head_tier: str,
                 *, moral: bool | None = None) -> list[str]:
+        guard = _paid_for_path_guard(project_root)
+        if guard != PAID_FOR_PATH_GUARD:
+            body = [part.replace(PAID_FOR_PATH_GUARD, guard) for part in body]
         if tier != "kid":
             _o = _orders_section()
             if _o:
@@ -2147,7 +2158,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # a programmatic caller", so it re-resolves via env -> config. One switch,
     # every caller; the surfaces cannot drift.
     if profile == "full":
-        profile = _effective_profile(profile=None)
+        profile = _effective_profile(profile=None, project_root=project_root)
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
@@ -2477,7 +2488,13 @@ def render(*, post: str | None = None, role: str | None = None,
             f"role {role!r} parts {parts} carry no 'extras' part, so "
             f"extras_text ({len(extras_text)} chars) would be dropped")
     segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
-    return "\n\n".join(s for s in segs if s)
+    rendered = "\n\n".join(s for s in segs if s)
+    guard = _paid_for_path_guard(root)
+    if guard != PAID_FOR_PATH_GUARD:
+        rendered = rendered.replace(PAID_FOR_PATH_GUARD, guard)
+    if guard not in rendered:
+        rendered = "\n\n".join(part for part in (rendered, guard) if part)
+    return rendered
 
 
 def _cmd_render(args) -> int:
