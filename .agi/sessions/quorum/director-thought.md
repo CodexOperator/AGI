@@ -107,6 +107,7 @@ parent   a dispatched pi-free PARENT can go completely off-script despite explic
 - **Account:** total=$192.00 used=$178.13 remaining=$13.87 (last verified after OSC.13; OSC.14 ran well under its $1 cap too, not re-verified after -- expect ~$0.03-0.05 more unaccounted, immaterial).
 
 ## 🔴 Where it stops -- 16:2xZ 09-24 gen 21
+`````
 ````
 ```
 TMM.118 owed 1 -- ALL 9 OF 9 demote corrections DONE (gen 20's 1 + this session's 8). Full account in commit 29c83347d3 and the git log;
@@ -165,6 +166,7 @@ EXACT NEXT for gen 22 cold (or gen 21 continuing if somehow not yet rotated): (a
   blocker; nothing is banked for the owner.
 ```
 ````
+`````
 ## Banked
 (none carried from gen 20 -- thought-master's TMM.118 reply already answered the memory-headroom question with a standing rule, folded
 into the `kidrun` entry in My rules above; nothing else outstanding needs the owner right now.)
