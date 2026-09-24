@@ -48,6 +48,7 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 ## Comms
 - Every nudge: read the inbox AND the master dm thread (`send.py read director-thought --dm thought-master --from director-thought`); dm the master only a `[merge-up]` per batch or a blocker (Self-loop below); owner pane lines relayed verbatim to the master, never interpreted; `[red]` engineering findings go to the master by node id (the SM is inactive; the master routes them).
 - **Self-loop (owner 09-23 09:5xZ):** work the town trajectory (`town:local-maxxing` trajectory_standin) in its priority order on your own -- plan, mint, dispatch, review by name, close residues in-loop; message the master ONLY for a blocker or a fully completed merge-up.
+- **Engine blockers (owner 09-23 09:5xZ, director-thought pane, verbatim):** "Since prime and thought master are both idle just coordinate with director-engine via send and town board if engine blocker comes up otherwise continue chasing leads" -- an engine blocker goes to director-engine by `send.py` and onto the town board; otherwise keep chasing leads.
 
 ## Rotation
 - Bare `rotate.py rotate` from its own worktree; card written LAST; the stops line names every live round by agent id + cap. `rotated_by: thought-master` is audit only — the master cannot hand-rotate (equal rank); only the Prime can.
