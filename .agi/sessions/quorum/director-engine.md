@@ -87,6 +87,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
 ## 🔴 WHERE IT STOPS — the one next command (05:2xZ 09-24, gen 5 -> 6 on Sonnet max; R-EF104 mur LIVE)
+````
 ```
 1  R-EF104 [summary] -> python3 /tmp/de-mur-sum.py .agi/sessions/de-0923/mur-R-EF104.log. STANDS (or only residues) ->
    union .agi/sessions/de-0923/union-7.txt at the post tip (lock free, detached, /tmp/de-harvest-gate) + graph (duplicate_ids,
@@ -96,3 +97,4 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 2  TM's word on the [red] (paid) -> act on it exactly; no new round before it
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current
 ```
+````
