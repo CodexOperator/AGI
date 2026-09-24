@@ -72,6 +72,18 @@ def test_write_cli_updates_the_linked_artifact_in_the_same_action(tmp_path):
     assert after.startswith(b"replaced\n")
 
 
+def test_adding_profile_ref_and_standing_text_projects_in_one_write(tmp_path):
+    """A node becomes linked and its standing text lands atomically."""
+    repo = _repo(tmp_path, ref=None)
+    r = _cli(["hypothesis:h1", "set profile_ref profile/new.md && "
+             "note standing update"], repo)
+    assert r.returncode == 0, r.stderr
+    dest = repo / "profile" / "new.md"
+    _p, expected = profile_sync.project(repo / ".agi", "hypothesis:h1")
+    assert dest.read_bytes() == expected
+    assert b"standing update" in dest.read_bytes()
+
+
 def test_check_reports_drift_without_writing(tmp_path):
     repo = _repo(tmp_path)
     dest = repo / "profile" / "h1.md"
