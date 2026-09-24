@@ -49,8 +49,8 @@ next   quiet on the CHECK (job 64ee203f, every 4 h at :13) · watch the two dire
 
 ## 🔴 Where it stops
 07:0xZ 09-24 belam-S2-L5-III: PASS 3 fully closed (merge, residues, note, dms, owner report); the post is QUIET on the CHECK.
- A. Quiet: the CHECK answers only decisions / reds / merge-ups; the next PASS starts from last_merged_town_sha = 9fec964885.
- B. Owner Sonnet-max order: director-engine owes one more rotation, director-thought its next; each rotation record's model_confirm must read claude-sonnet-5 (else item 0).
+ A. PASS 4: 5 h notice sent 08:44Z (thought-master, delivered) · run_at 13:47Z · one-shot armed in this session; if this session is gone, the CHECK's case (d) runs §2 of the crons file (PASS 4) · BASE 9fec964885 · at notice 142 commits / 10 exp files / 10 engine paths.
+ B. Owner Sonnet-max order: DONE — both rotation records read model_confirm claude-sonnet-5 (director-thought 05:46Z, director-engine 05:50Z).
  0. Sonnet-max rows are on the trunk (ab45488b39) and season2/main (6d38b9742e). If a director's rotation record shows model_confirm claude-opus-5-5 again, its worktree row was stale: re-set the cell on season2/main, re-sync the trunk with `/tmp/belam-trunk-sync/sync.sh` (target file), and repeat the merge-before-rotate dm.
  1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
  2. NEVER re-run PASS 3 from the top (pass_started_at is set). Read /tmp/belam-pass3/events.log: no "ALL DONE" → re-arm ONE Monitor (tail -n +1 -F events.log | grep --line-buffered -E "exited|ALL DONE"). Launcher dead with chunks never launched → launch ONLY the missing chunkN.json the same way.
