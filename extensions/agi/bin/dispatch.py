@@ -2648,16 +2648,22 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        pane_id = None
+
         def _open_round(mode: str):
+            nonlocal pane_id
+            argv = mem_cap.wrap_argv(spawn_args, _mem_cap)
+            holder_name = dispatch_harness.get("persistent_holder")
+            if holder_name:
+                proc, pane_id = adapters.load_holder(str(holder_name)).start(
+                    agent_id=agent_id, argv=argv, cwd=str(branch_root),
+                    env=spawn_env, log_file=str(log_file), mode=mode)
+                return proc
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
+                    argv, stdout=logf, stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL, start_new_session=True,
+                    cwd=str(branch_root), env=spawn_env,
                 )
 
         _attempt = 1
@@ -2743,6 +2749,7 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "pane_id": pane_id,
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
