@@ -78,32 +78,23 @@ class GrokPaneAdapter:
 
     build_command = staticmethod(build_command)
 
-    def _target(self) -> str:
-        pane = (self._pane_hold or {}).get("pane")
-        if not isinstance(pane, str) or not pane.strip():
-            raise PaneUnavailableError("grok-bot pane hold has no named pane")
-        return pane
-
     def __getattr__(self, name):
-        methods = {"pane_attach": self._attach, "pane_send": self._send,
-                   "pane_read": self._read}
+        methods = {"pane_attach", "pane_send", "pane_read"}
         if name not in methods:
             raise AttributeError(name)
-        if self._pane_hold is None:
+        hold = self._pane_hold
+        if hold is None or not callable(getattr(hold, name, None)):
             raise AttributeError(name)
-        return methods[name]
+        return getattr(hold, name)
 
     def _attach(self) -> str:
-        return self._target()
+        return self._pane_hold.pane_attach()
 
     def _send(self, text: str) -> None:
-        target = self._target()
-        subprocess.run(["tmux", "send-keys", "-t", target, text, "Enter"],
-                       check=True)
+        return self._pane_hold.pane_send(text)
 
     def _read(self) -> str:
-        return subprocess.run(["tmux", "capture-pane", "-p", "-J", "-t", self._target()], check=True,
-                              capture_output=True, text=True).stdout
+        return self._pane_hold.pane_read()
 
 
 def is_alive(pid: int) -> bool:
