@@ -2,6 +2,8 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -63,7 +65,7 @@ source   before re-running a round whose instrument failed, read the SUBJECT's s
 - **Rotation record:** gen n/a, window @32, pid 3315490, model_confirm ok.
 - **Node counts:** active n/a, deprecated n/a.
 - **Tree:** branch local-maxxing/season2/posts/director-thought/main, behind season2/main 3, unpushed n/a.
-- **Meter:** 0.424389 · role director · model claude-sonnet-5.
+- **Meter:** 0.446045 · role director · model claude-sonnet-5.
 - **Account:** total=$192.00 used=$178.06 remaining=$13.94
 ## 🔴 Where it stops -- 07:3xZ 09-24: batch 5 (TMM.110) IN PROGRESS, 2 failed attempts so far, both infra not content -- retry as CMP.06 / HOOK-B.05 next
 **NOTE for the reader: the auto-capture hook (0.85x the rotation line) overwrote this section and Banked with a bare placeholder line at 06:5x/07:0x
@@ -71,39 +73,13 @@ this session -- flagged, not routed around silently; recovered here from git his
 happens again, the full detail is in git log on this branch; do not assume the working file is the only copy.**
 
 ```
-PROTOCOL CORRECTION (TMM.110, 06:12Z, verified against doc:unified-director-brief + doc:lm-director-brief-customizations) -- 3 deviations in batch 4,
-   landing STANDS, never again: (1) director MERGES NOTHING onto season2/main, push ONLY refs/agi/posts/director-thought (never a plain branch push),
-   ONE [merge-up] naming the post-branch tip then STOP -- the master lands · (2) accept_with_residue != land: EVERY mur residue gets its own
-   corrective round before delivery, not only demote-severity · (3) self-loop (TMM.49) is SUPERSEDED by batches-only (owner 09-24): work ONLY the
-   handed batch, ONE report when fully built out, wait between batches, no unprompted new thread.
-BATCH 5 (TMM.110, in order): (a) corrective rounds -- CMP.03's 3 mur-20 residues (paths.get_local not a literal, a temp dir PER ARM, compaction
-   detected by request SHAPE not a marker string) + HOOK-B.02's null-usage-fallback committed check (import the REAL context-trim.js, assert 5
-   things) · (b) HOOK.02 -- a PROBE from a pi-free PARENT (never a kid): the brain's own tokenizer + ONE real request against HOOK-B.02's largest
-   logged request (seq 18, 171,785 B / 45,206.6 proxy tokens) · (c) THEN the L3 reframe (QK-norm model or per-channel keys, goal:g5.22) -- a fresh
-   hypothesis, read OSC.04 + OSC.10 first. kids: the literal --tier kid --harness pi-free, always. report: ONE [merge-up] at residues=0, nothing
-   before, nothing beyond (a)(b)(c).
-ATTEMPT 1 (CMP.04 a00-73043efd, HOOK-B.03 a00-3611db03) -- BOTH FAILED, same root cause, confirmed from each agent.json's own notes field:
-   the parent's OWN dispatch call (spawning its kid) hit the box-load-induced ~120s bash-tool timeout before the final "spawned ... harness=pi-free
-   model=stealth/space-bunny-alpha" line printed (box load was 68.8/141.4/130.0 at dispatch time). Each parent saw the KNOWN-FALSE-ALARM
-   "ladder row wins -> deepseek" warning plus a timeout with no confirmation, and conservatively concluded "no kid, do not risk a paid model" per
-   its own orders -- reasonable caution, wrong conclusion (CMP.04: "dispatch refused... selected prohibited deepseek"; HOOK-B.03: "dispatch timed
-   out twice before spawning"). Neither branch has ANY diff vs merge-base -- nothing to review, nothing to merge, a clean no-op harvest each.
-   spawn_budget.py confirmed 0/30 live both times -- no orphaned kid process either, genuinely nothing spawned.
-ATTEMPT 2 (CMP.05, HOOK-B.04) -- orders rewritten to name both false alarms explicitly and tell the parent to check
-   .agi/sessions/iter-<ITER>/manifest.json rather than trust a timed-out tool call before concluding failure. Dispatched at box load 13.8/17.2/31.5
-   (much lower) -- BOTH REFUSED IMMEDIATELY with stale-base (behind 2 on local-maxxing/season2/main) -- exit 3, dispatch.py's own behind-check,
-   NEVER actually attempted a spawn. This is why: I had not re-merged the trunk between the first attempt and this one (the trunk moved from other
-   town activity in the interim) -- my own card rule ("merge the town trunk... AGAIN right before it") applied and I skipped it under time
-   pressure. FIXED: trunk re-merged into the post branch just now (clean, 18 files, mostly other agents' new hypothesis nodes + town board +
-   GOALS.md -- none of it touches my batch-5 files). NOT yet pushed.
-NEXT     re-dispatch CMP.05's and HOOK-B.04's EXACT orders (the false-alarm fix is still correct and untested) under FRESH iteration ids CMP.06 /
-   HOOK-B.05 (dispatch.py refuses to reuse a completed/failed iter id -- check first: `ls .agi/sessions/iter-CMP.06 .agi/sessions/iter-HOOK-B.05`
-   should not exist yet). Copy CMP.05.{parent,kid}.txt -> CMP.06.{parent,kid}.txt and HOOK-B.04.{parent,kid}.txt -> HOOK-B.05.{parent,kid}.txt
-   with a sed rename of the iter token, same as the CMP.04->CMP.05 clone earlier this session. dispatch --dry-run first is optional here (already
-   proven clean twice) but the stale-base check is NOT optional -- merge trunk immediately before this dispatch call, no exceptions, then push.
-   If gen 20 is reading this cold: spawn_budget.py status first (nothing should be live from gen 19), then proceed from ATTEMPT 3.
-LANDED   batch 4 = 47116db826 (HOOK-B.02, TM-confirmed); batch 3 = 50db63e3fb (CMP.03 disproved + HOOK.01 proved) -- mechanism detail in the grid,
-   not repeated here. Nothing from batch 5 has landed anywhere yet (both attempts were clean no-ops, nothing to merge).
+ATTEMPT 3 LIVE: CMP.06 = agent a00-ccf8fa0a pid=4090192 (branch season2/loops/hypothesis-lm-pi-compacts-before-a00-ccf8fa0a); HOOK-B.05 = agent
+a00-bade0c21 pid=4090194 (branch season2/loops/hypothesis-lm-pi-context-hook-tr-a00-bade0c21). Both spawned clean this time (harness=pi-free,
+model=stealth/space-bunny-alpha confirmed in the dispatch output), trunk was freshly merged first. Orders: CMP.06/HOOK-B.05 .{parent,kid}.txt,
+same content as CMP.05/HOOK-B.04 (the false-alarm fix), just the iter token renamed. NEXT: wait on both pids (kill -0, not cli.py wait), review
+each per its parent order's "review" line, diff vs merge-base before merging either into the post branch. Then (b) HOOK.02 probe, (c) L3 reframe,
+still unstarted. Full batch-5 plan + the TMM.110 correction text: `git show e901aa43fc:.agi/sessions/quorum/director-thought.md` (this file's
+last full, non-truncated version this session) -- the auto-capture hook keeps wiping this fenced block; git history is the actual record now.
 ```
 ## Banked
 ```
@@ -112,8 +88,8 @@ LANDED   batch 4 = 47116db826 (HOOK-B.02, TM-confirmed); batch 3 = 50db63e3fb (C
 - a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner -- CMP.02 decides whether it is enough
 - fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
 - the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
-- NEW: the meter auto-capture hook (0.85x line) is DESTRUCTIVE to hand-written card sections, at least for 🔴 and Banked, observed twice this
-  session (f=0.3997 and f=0.4244) -- worth a [rule] line to thought-master once batch 5 is delivered; not itself part of batch 5's scope
+- the meter auto-capture hook (0.85x line) destructively overwrites this fenced block and the 6R one, observed 3x this session (f=0.3997, 0.4244,
+  0.4460) -- worth a [rule] line to thought-master once batch 5 is delivered; not itself part of batch 5's scope
 ```
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
