@@ -1,0 +1,654 @@
+{
+  "selftest": "PASS under+usage / recognised over / both summary prompts",
+  "arms": [
+    {
+      "arm": "without_extension",
+      "requests": 22,
+      "largest_bytes": 256539,
+      "largest_proxy_tokens": 67510.3,
+      "400s": [
+        12,
+        22
+      ],
+      "wall_seconds": 2.78,
+      "timed_out": false,
+      "returncode": 0,
+      "all_calls_paired": true,
+      "trace": [
+        {
+          "seq": 1,
+          "bytes": 5593,
+          "proxy_tokens": 1471.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 0,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 2,
+          "bytes": 28391,
+          "proxy_tokens": 7471.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 3,
+          "bytes": 51189,
+          "proxy_tokens": 13470.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 4,
+          "bytes": 73987,
+          "proxy_tokens": 19470.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 5,
+          "bytes": 96785,
+          "proxy_tokens": 25469.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 6,
+          "bytes": 119583,
+          "proxy_tokens": 31469.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 7,
+          "bytes": 142381,
+          "proxy_tokens": 37468.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 8,
+          "bytes": 165179,
+          "proxy_tokens": 43468.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 9,
+          "bytes": 187977,
+          "proxy_tokens": 49467.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 10,
+          "bytes": 210775,
+          "proxy_tokens": 55467.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 11,
+          "bytes": 233573,
+          "proxy_tokens": 61466.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 12,
+          "bytes": 256371,
+          "proxy_tokens": 67466.1,
+          "status": 400,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 13,
+          "bytes": 18176,
+          "proxy_tokens": 4783.2,
+          "status": 200,
+          "phase": "summary",
+          "tool_results": 0,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 14,
+          "bytes": 74155,
+          "proxy_tokens": 19514.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 15,
+          "bytes": 96953,
+          "proxy_tokens": 25513.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 16,
+          "bytes": 119751,
+          "proxy_tokens": 31513.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 17,
+          "bytes": 142549,
+          "proxy_tokens": 37512.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 18,
+          "bytes": 165347,
+          "proxy_tokens": 43512.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 19,
+          "bytes": 188145,
+          "proxy_tokens": 49511.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 20,
+          "bytes": 210943,
+          "proxy_tokens": 55511.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 21,
+          "bytes": 233741,
+          "proxy_tokens": 61510.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 22,
+          "bytes": 256539,
+          "proxy_tokens": 67510.3,
+          "status": 400,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        }
+      ]
+    },
+    {
+      "arm": "with_extension",
+      "requests": 40,
+      "largest_bytes": 170429,
+      "largest_proxy_tokens": 44849.7,
+      "400s": [],
+      "wall_seconds": 2.35,
+      "timed_out": false,
+      "returncode": 0,
+      "all_calls_paired": true,
+      "trace": [
+        {
+          "seq": 1,
+          "bytes": 5593,
+          "proxy_tokens": 1471.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 0,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 2,
+          "bytes": 28391,
+          "proxy_tokens": 7471.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 3,
+          "bytes": 51189,
+          "proxy_tokens": 13470.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 4,
+          "bytes": 73987,
+          "proxy_tokens": 19470.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 5,
+          "bytes": 96785,
+          "proxy_tokens": 25469.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 6,
+          "bytes": 119583,
+          "proxy_tokens": 31469.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 7,
+          "bytes": 142381,
+          "proxy_tokens": 37468.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 8,
+          "bytes": 165179,
+          "proxy_tokens": 43468.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 0,
+          "paired": true
+        },
+        {
+          "seq": 9,
+          "bytes": 165429,
+          "proxy_tokens": 43533.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 1,
+          "paired": true
+        },
+        {
+          "seq": 10,
+          "bytes": 165679,
+          "proxy_tokens": 43599.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 2,
+          "paired": true
+        },
+        {
+          "seq": 11,
+          "bytes": 165929,
+          "proxy_tokens": 43665.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 3,
+          "paired": true
+        },
+        {
+          "seq": 12,
+          "bytes": 166179,
+          "proxy_tokens": 43731.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 4,
+          "paired": true
+        },
+        {
+          "seq": 13,
+          "bytes": 166429,
+          "proxy_tokens": 43797.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 5,
+          "paired": true
+        },
+        {
+          "seq": 14,
+          "bytes": 166679,
+          "proxy_tokens": 43862.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 6,
+          "paired": true
+        },
+        {
+          "seq": 15,
+          "bytes": 166929,
+          "proxy_tokens": 43928.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 7,
+          "paired": true
+        },
+        {
+          "seq": 16,
+          "bytes": 167179,
+          "proxy_tokens": 43994.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 8,
+          "paired": true
+        },
+        {
+          "seq": 17,
+          "bytes": 167429,
+          "proxy_tokens": 44060.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 9,
+          "paired": true
+        },
+        {
+          "seq": 18,
+          "bytes": 167679,
+          "proxy_tokens": 44126.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 10,
+          "paired": true
+        },
+        {
+          "seq": 19,
+          "bytes": 167929,
+          "proxy_tokens": 44191.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 11,
+          "paired": true
+        },
+        {
+          "seq": 20,
+          "bytes": 168179,
+          "proxy_tokens": 44257.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 12,
+          "paired": true
+        },
+        {
+          "seq": 21,
+          "bytes": 168429,
+          "proxy_tokens": 44323.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 13,
+          "paired": true
+        },
+        {
+          "seq": 22,
+          "bytes": 168679,
+          "proxy_tokens": 44389.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 14,
+          "paired": true
+        },
+        {
+          "seq": 23,
+          "bytes": 168929,
+          "proxy_tokens": 44455.0,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 15,
+          "paired": true
+        },
+        {
+          "seq": 24,
+          "bytes": 169179,
+          "proxy_tokens": 44520.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 16,
+          "paired": true
+        },
+        {
+          "seq": 25,
+          "bytes": 169429,
+          "proxy_tokens": 44586.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 17,
+          "paired": true
+        },
+        {
+          "seq": 26,
+          "bytes": 169679,
+          "proxy_tokens": 44652.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 18,
+          "paired": true
+        },
+        {
+          "seq": 27,
+          "bytes": 169929,
+          "proxy_tokens": 44718.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 19,
+          "paired": true
+        },
+        {
+          "seq": 28,
+          "bytes": 170179,
+          "proxy_tokens": 44783.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 20,
+          "paired": true
+        },
+        {
+          "seq": 29,
+          "bytes": 170429,
+          "proxy_tokens": 44849.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 21,
+          "paired": true
+        },
+        {
+          "seq": 30,
+          "bytes": 148131,
+          "proxy_tokens": 38981.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 23,
+          "paired": true
+        },
+        {
+          "seq": 31,
+          "bytes": 148381,
+          "proxy_tokens": 39047.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 24,
+          "paired": true
+        },
+        {
+          "seq": 32,
+          "bytes": 148631,
+          "proxy_tokens": 39113.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 25,
+          "paired": true
+        },
+        {
+          "seq": 33,
+          "bytes": 148881,
+          "proxy_tokens": 39179.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 26,
+          "paired": true
+        },
+        {
+          "seq": 34,
+          "bytes": 149131,
+          "proxy_tokens": 39245.0,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 27,
+          "paired": true
+        },
+        {
+          "seq": 35,
+          "bytes": 149381,
+          "proxy_tokens": 39310.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 28,
+          "paired": true
+        },
+        {
+          "seq": 36,
+          "bytes": 149631,
+          "proxy_tokens": 39376.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 29,
+          "paired": true
+        },
+        {
+          "seq": 37,
+          "bytes": 149881,
+          "proxy_tokens": 39442.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 30,
+          "paired": true
+        },
+        {
+          "seq": 38,
+          "bytes": 150131,
+          "proxy_tokens": 39508.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 31,
+          "paired": true
+        },
+        {
+          "seq": 39,
+          "bytes": 150381,
+          "proxy_tokens": 39573.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 32,
+          "paired": true
+        },
+        {
+          "seq": 40,
+          "bytes": 150631,
+          "proxy_tokens": 39639.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1,
+          "elided_results": 33,
+          "paired": true
+        }
+      ]
+    }
+  ]
+}

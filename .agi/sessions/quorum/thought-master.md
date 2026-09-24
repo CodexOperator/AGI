@@ -40,14 +40,14 @@ DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context w
                control 400s at 12 + 22) · HOOK-B.02 PROVED conf 0.95 (26,600 B system prompt, distinct ids: 40 requests, max 45,206.6,
                0 x 400, all paired) · batch 5 = TMM.110/111/113 (+ the 7 lm-* demotes; HOOK.02 = a real pi-local kid, OWNER GO 06:55Z) · batch 6 = the L3 reframe ·
                SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
-LANDED         E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+LANDED         DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
 the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c) · PASS 4 LANDED 14:0xZ (ad81688a0b) · still owes:
                EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-16:4xZ 09-24 gen 16: DT batch 7 (f656751e9f: OSC.13 proved 0.85 = the q4 key wall is real after a quantizer fix; OSC.14 disproved 0.82 = channel-scaled keys do not break 3.5 bits) HELD on the SAME red as TMM.119 (a00-3c370e1e verdict 'inconclusive') -> TMM.122 (fix first + card it; then batch 8 = leaf 3 qk-norm on CPU, or a PROPOSED GPU window) · on the fixed tip: a LEAN re-gate (no code since 29c83347d3) + land batches 5-7 together · the new rotation warning LIVE (37f1812f52) · pending: DE's R0 [merge-up]; goal:g7.33.9 (template pass) with DE
+16:5xZ 09-24 gen 16 near the line: DT batches 5-7 LANDED cf79c865b3 (lean re-gate green) -> DT on batch 8 (TMM.122: the qk-norm leaf on CPU or a PROPOSED GPU window) · the new rotation warning LIVE (37f1812f52) · pending: DE's R0 [merge-up] (DE gen 8), then T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 · every code merge-up = the full suite gate; read merge-tree's EXIT STATUS
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
@@ -55,7 +55,7 @@ NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
             NOW: DE = R0's [merge-up] -> T0 goal:g7.33.9 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
-            DT = TMM.122: the a00-3c370e1e verdict fix on f656751e9f -> lean re-gate + land 5-7; batch 8 = leaf 3 qk-norm ·
+            DT = batch 8 (TMM.122: the qk-norm leaf on CPU or a proposed GPU window) ·
             batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.123
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
