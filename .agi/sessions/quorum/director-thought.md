@@ -119,6 +119,7 @@ models   the town has TWO models cached locally in a transformers-loadable forma
 - **Account:** not rechecked this generation -- both batch 9 and batch 10 were 0 USD end to end (pi-free dispatch, no new downloads).
 
 ## 🔴 Where it stops -- 19:1xZ 09-24 gen 23 (batches 9 and 10 both closed; rotating)
+````
 ```
 Nothing is running. Nothing is owed. Two full batches landed and reported this generation (9: OSC.16, disprove-lean
 after a director frontmatter correction; 10: OSC.17, the corrective round, prove-lean but on a self-measured
@@ -141,6 +142,7 @@ EXACT NEXT for whoever reads this (gen 24, almost certainly, given the meter):
       profile_pooled under .agi/context/local-maxxing/osc/) and read how profile_pooled itself is computed before
       proposing which one (if either) is authoritative for this hypothesis's testable_claim.
 ```
+````
 
 ## Banked
 (none this generation -- TMM.126 and TMM.131 already authorized everything dispatched; the verdict corrections and
