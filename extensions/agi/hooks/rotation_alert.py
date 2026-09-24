@@ -68,6 +68,8 @@ from pathlib import Path
 #: ZERO rows — the seat lookup that gates the captive auto-rotate (and the
 #: seat's own rotate_at) would be production-dead. rotate.py inserts the same.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+from prose_templates import render
 
 # The sash the hook is told to hand back when it fires. This is the ONE
 # high-signal quantity: the operator copies it and the next command is whole.
@@ -287,15 +289,14 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     return seat, ladder_default, "ladder.director_rotate_at"
 
 
-#: Headline used at and above the rotation line (fires every call).
-AT_OR_OVER_TITLE = "## ⚠️  ROTATION OWED NOW — at or over the line"
-
-IMPERATIVE = ("ROTATE NOW: (a) write the card wholesale now, (b) run python3 "
-              "extensions/agi/bin/rotate.py rotate; nothing else this turn")
+#: Model-facing rotation prose is rendered from templates; wording is unchanged.
+AT_OR_OVER_TITLE = render("rotation_alert", "at_or_over_title")
+IMPERATIVE = render("rotation_alert", "imperative")
 AUTO_CAPTURED = "AUTO-CAPTURED"
 _CAPTURE_LOGGED: list[list[str]] = []
+DEFER_PREFIX = render("rotation_alert", "defer_prefix")
 #: Headline used while below the line but crossing a band (fires once per band).
-BENEATH_TITLE = "## ⚠️  approaching rotation"
+BENEATH_TITLE = render("rotation_alert", "beneath_title")
 
 #: Bands are fractions of the rotation threshold, in rising order. Below the
 #: line we emit at most ONCE per band; crossing the NEXT band emits again.
@@ -467,10 +468,6 @@ ROTATE_SELF = (
     "python3 {bin}/rotate.py rotate-self --name {seat} --role director "
     "--timeout 900 --force --stops {stops!r}"
 )
-
-#: The exact deferral headline the claim makes load-bearing wherever it prints.
-DEFER_PREFIX = "rotation deferred: merge-up in flight"
-
 
 def _git_maybe(cwd, *args: str) -> list[str] | None:
     """git in `cwd`, stdout lines, or None on ANY failure (not a repo, a
@@ -1494,9 +1491,8 @@ def main(argv: list[str] | None = None) -> int:
                       "its card. The command below inspects/rotates by hand "
                       "if needed.")
         _rc = _emit(AT_OR_OVER_TITLE,
-                    "This session is at or over its rotation line. "
-                    "Rotate NOW. If you were mid-round, hand off cleanly first."
-                    + suffix, show_fraction=False)
+                    render("rotation_alert", "at_or_over_body", suffix=suffix),
+                    show_fraction=False)
         _meter(used, threshold, fraction)
         return _rc
 
@@ -1533,10 +1529,9 @@ def main(argv: list[str] | None = None) -> int:
             pass
         pct = int(b_frac * 100)
         _rc = _emit(BENEATH_TITLE,
-                    f"Approaching rotation ({fraction:.4f} of {threshold:.3f} "
-                    f"window ({fraction/threshold * 100:.2f}% of the line)). "
-                    f"Crossed band {pct}% of threshold. Keep working; at the "
-                    f"line run rotate.py rotate yourself.")
+                    render("rotation_alert", "beneath_body", fraction=fraction,
+                           threshold=threshold, percent=fraction/threshold * 100,
+                           pct=pct))
         _meter(used, threshold, fraction)
         return _rc
 
