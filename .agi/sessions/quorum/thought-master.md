@@ -40,6 +40,11 @@ OWNER 18:35Z   (verbatim on the board) the subdirectory WITHDRAWN (refs = the le
                checkout + merges carrying every branch's grid) -> refs stay; upload ONLY the post-split set: 1,868 of 4,298 refs (1,343 changed
                + 525 new; 3,449 versions); the 2,430 split-only v1 snapshots (09-21 01:48-01:49Z pass) stay local · <= 200 refs per push · future
                splits cross-populate from the parent's tips -> TMM.132 (dm + SendMessage to DE gen 10 = post-director-engine-f2)
+OWNER 20:1-4xZ (via the Prime, VERIFIED ed25519 20:49Z; verbatim in doc:l5-owner-decisions) (1) I CO-OWN the director docs with the Prime:
+               doc:unified-director-brief + doc:card-director-{engine,thought} (graph nodes since 004ddcf49a) via write.py + ONE dm per live director,
+               no Prime step (2) dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid
+               (3) doc:lm-director-brief-customizations RETIRED gen 17 (deprecated/doc/; DT card line 1 + formation line 18 + board row 11
+               repointed to the cards; both directors dm'd) (4) NEVER the Agent tool, any post
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
@@ -120,6 +125,9 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
+agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
+director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
+             mint THOUGHT may quote the owner: confirm the words live in doc:l5-owner-decisions before a new thought replaces it
 paid lane    since 431b8edc32 (the Prime, OWNER 16:5xZ) the ladder's parent + kid rows = pi-free: never pass --harness pi or pi-local for a parent or kid; a live lease with harness 'pi' = someone passed it explicitly = PAID -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
