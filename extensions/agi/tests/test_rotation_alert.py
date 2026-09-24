@@ -411,6 +411,21 @@ def test_b_band_pct_is_own_fraction(agi_project, run_hook, tmp_path, monkeypatch
     assert "Crossed band 18" not in out
 
 
+def test_b2_band_message_says_keep_working_not_stop(agi_project, run_hook, tmp_path,
+                                                     monkeypatch, capsys):
+    """A below-the-line band is not a stop: the owner measured a director
+    idling at 0.85x the line instead of working to it (2026-09-24). The band
+    message must say so explicitly, not just report the fraction."""
+    t = tmp_path / "b2.jsonl"
+    _write_transcript(t, 10_000)  # threshold 0.25, window 100k -> band 0.40
+    code, out, err = _fraction_test(agi_project, t, "sess-b2",
+                                    tmp_path / "state-b2", run_hook,
+                                    monkeypatch, capsys)
+    assert code == 0
+    assert "keep working" in out.lower(), out
+    assert "rotate.py rotate" in out, out
+
+
 # --- (c) the fraction line names BOTH the window and the line ---------------
 def test_c_fraction_line_names_window_and_line(agi_project, run_hook, tmp_path, monkeypatch, capsys):
     tp = tmp_path / "c.jsonl"
