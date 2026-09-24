@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """OSC.04 hop 2: per-query-head RoPE-pair pruning from hop 1's pooled profiles.
 
-Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
-       /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_prune.py
+Run: V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" nice -n 19 \
+       "$(python3 .agi/context/local-maxxing/paths.py ml_python)" .agi/context/local-maxxing/osc/osc_band_prune.py
 
 Keep, per query head, the smallest prefix of RoPE pairs (HF rotate_half pair
 p = dims (p, p+32)) carrying 90/95/99 pct of that head's logit energy, zero the
 rest in q AFTER RoPE, and measure top-1 next-token agreement + mean per-token
 KL against the unmasked model on a 4096-token eval disjoint from hop 1. Random
 masks dropping the SAME number of pairs per head are the control. Out-of-repo
-roots stay literal per OSC.04 orders.
+roots are resolved through paths.py.
 """
 import gzip, hashlib, json, os, sys, time
 import numpy as np
@@ -22,8 +22,8 @@ sys.path.insert(0, HERE)
 import paths
 import osc_band_measure as obm   # hop 1: head_var + its per-pair selftest
 
-HF = "/data/ml/scratch/osc03/hf"
-WIKI = "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw"
+HF = paths.get("osc03_hf_dir")
+WIKI = paths.get("wikitext2_test_raw")
 HEVAL = paths.get_local("humaneval_file")  # committed copy, same bytes (sha256 b796127e...)
 REV = "7ae557604adf67be50417f59c2c2f167def9a775"
 T, NHEAD, NPAIR, GROUP = 512, 14, 32, 7
