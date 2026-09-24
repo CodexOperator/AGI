@@ -10,41 +10,51 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 4. ONE mur per round, detached (`setsid nohup python3 extensions/agi/bin/workflow.py run agi-merge-up-review --harness <h> --args "$(cat <args>)" > <log> 2>&1 < /dev/null & disown`, PI_BIN exported; under the HOLD `--harness pi-free`), then ONE `[merge-up]` to thought-master naming the exact pushed SHA (board row inside). Watch the PYTHON pid of a mur, never `pgrep -f`.
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `~/.pi`, `moral:*`, `vision:*`, `config:*` myself · write engine code myself (ONE exception: a fix delta TM orders made by me, as TMM.68's #3 close). MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5); read dms in full (the mail hook runs the ONE read); a TMM.nn the card does not name = grep `/data/work/agi/.agi/comms/season-2/dm/director-engine--thought-master.md` (TMM.82 reached the file, not my inbox read). Bodies via a file + python subprocess (`send.py send thought-master <body>`). Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
-## LIVE STATE + STOPS (04:4xZ 09-24, gen 4) -- no per-round cap; SPAWN LIMIT <= 8 live rounds
+
+## LIVE STATE + STOPS (04:5xZ 09-24, gen 5) -- no per-round cap; SPAWN LIMIT <= 8 live rounds
 ```
 MODE      TMM.94 (OWNER verbatim via TM): "Make both directors go back to spawning parents efficiently with minimal token use."
           -> LEAN: short orders, no extra probes / verification agents / side work, one [merge-up] per batch, dm TM only for a
           blocker. STANDARD rounds on --harness pi-free (--tier parent; every kid spawn --harness pi-free). PAID held (TMM.66).
-          ZDR OFF: anonymize.py check --text on every orders/args/brief before launch.
-LIVE      Q8 mur (EF.101 + EF.102 = CTX.01 rounds 1+2) py 2415635 -> .agi/sessions/de-0923/mur-Q8-EF101-102.log. Nothing else.
-          EF.102 merged @881b528a04 area (gate: every-role test red on base, 234 green; guard refs 5 -> 9: _survival_brief,
-          _director, _liaison, _advisor); its kid died on a 401 AFTER committing -> verdict lean_proved:70 set by the director.
-          [red] #2 on the 401 recurrence sent 04:4xZ (red-401-2.md): TM takes it to the Prime; no re-dispatch (TMM.97).
-LANDED    #1-#3 = EF.49-82 at 7c9231b4f · #4 = d81b444043 · #5 = 5827a677a7 (TMM.98: gate 6380 green, the demotes stand)
-SENT      #6 RE-OFFERED @52a660eed2 (TMM.101: the gate failed ONE test on EF.97's illegal "inconclusive:50"; 52a660eed2 =
-          fcffd7c767 + that verdict -> inconclusive_lean_proved:60 only; evidence gate 139 green; reachable via merge 69a14fe95d)
+          ZDR OFF: anonymize.py check --text on every orders/args/brief before launch. dispatch's "roles: ... deepseek" line is
+          the ladder's PRE-override row; an explicit --harness pi-free drops it (dispatch.py:1972-1983) -> spawned model is free.
+LIVE      EF.103 = CTX.01 round 3: parent a00-48f9c49a py 2644800 on pi-free (stealth/space-bunny-alpha), base 3051170f6c,
+          orders .agi/sessions/de-0923/orders-std-EF.103-CTX01r3.md. Nothing else.
+Q8        mur final=DEMOTE, 0 of 3 defects refuted by its verifier. The director weighed them on the bytes:
+          (1) "rotated pi successor skips the guard, rotate.py:1132" REFUTED: pi.toml rotate = false -> pi is out of
+              _known_harnesses (rotate.py:1002), _validate_harness refuses it (1030) ahead of the ONLY successor build (1861 ->
+              1907); every pi route is dispatch.py:1055 (the assemble body as extras) incl. workflow pi stages (workflow.py:7)
+          (2) survival test runs a real git status (test_brief_render.py:55 -> brief.py:753-760): REAL -> EF.103 build (2)
+          (3) EF.102 had no verdict at the kid tip: answered @881b528a04 (director gate)
+          -> EF.102 HELD at inconclusive_lean_proved:70 @3078c132b4 (THOUGHT). EF.101 stays inconclusive_lean_proved:60.
+UNION     @3078c132b4, 18 files (.agi/sessions/de-0923/union-7.txt = every test importing brief / harness_template /
+          pi_adapter / pi.toml + test_briefing): 819 passed, 7 skipped, 1 FAILED -- test_harness_template.py::
+          test_pi_template_renders_the_flag_shape: its frozen pi argv predates EF.101's --no-context-files (no kid and no mur ran
+          it) -> EF.103 build (1). Graph @321b75a818: duplicate_ids 0 · links 4214 / 0 broken · stitch --verify rc 0 ·
+          0 node deletions · anonymize ok (8 files vs the trunk).
+LANDED    #1-#3 = EF.49-82 at 7c9231b4f · #4 = d81b444043 · #5 = 5827a677a7 · #6 = 2687448d93 (TMM.102)
           LEGAL verdicts (evidence_gate.VERDICT_RE): proved | disproved | inconclusive_lean_proved:NN | inconclusive_lean_disproved:NN | pending
 CTX.01    hypothesis:pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard (goal:g5.27). TMM.99 said ONE copy;
           the OWNER asked in this pane 04:2xZ, verbatim: "Do we even need Claude Md I thought parent and kid role doc took care of
           everything" -> built ZERO copies. DT's CTX.02 measured it: default 14,436 tokens/turn (2 copies) · one copy 7,396 ·
-          zero 396. Round 1 = EF.101 merged @fba65eb667, then DEMOTED by its mur P7 (-> inconclusive_lean_proved:60 @d1a7216efa):
-          the survival / ultimate_survival profiles (brief.py ~2162) and the director / prime_director / advisor / liaison routes
-          (~2155-2187) skip PAID_FOR_PATH_GUARD, and the test covers full profiles only. EF.101 is OUT of every merge-up until
-          round 2 (EF.102, live) closes it. If round 2 cannot close it: fall back to DT's one-copy flags (--no-context-files +
-          ONE --append-system-prompt of the checkout CLAUDE.md, TMM.99's original) -- one line in pi_adapter._append_prompt_args.
-          RESIDUE for TM: a non-parent/kid role running on pi loses CLAUDE.md's director material under zero copies.
-WAITING   on TM's word for: #6 re-offer landing · EF.92 LH-2 (HELD, TMM.97) · the residues below · lift-1..4 (paid lane only)
+          zero 396. Round 1 EF.101 @fba65eb667 (P7 demote -> 60) · round 2 EF.102 @f2121b3831 (Q8, above) · round 3 EF.103 live.
+          If round 3 demotes: fall back to DT's one-copy flags (--no-context-files + ONE --append-system-prompt of the checkout
+          CLAUDE.md, TMM.99's original) -- ask TM once. RESIDUE for TM: a non-parent/kid tier dispatched on pi loses CLAUDE.md's
+          director material under zero copies.
+WAITING   on TM's word for: EF.92 LH-2 (HELD, TMM.97) · the residues below · lift-1..4 (paid lane only)
 RESIDUES  (named, NOT minted): .15 r4 CR/CRLF readers (write.py:2751/2166/2462) · ML-3: restart path acquires without harness=
           (dispatch.py:3576-3593), fallback lease rewrites drop harness (spawn_budget.py:643, 620-625), malformed max_live raises
           unnamed (581) · .23: the discriminating E2 test (EF.98 runs the predecessor path) · .14: mkstemp (rotate.py:10465) +
           index cleanup (10516) · stitch materialize's chain head · rotate's stops-slot fence · CTX.01: the guard text lives
-          inline in brief.py, not in the brief configuration (config-max)
-401       TMM.97: TM suspects a cross-box REAP revoking live kid keys. EF.96/97/99 hit it; EF.100/101 ran clean. A recurrence:
-          note the dead kid key name + time, ONE [red] to TM, no third re-dispatch.
+          inline in brief.py, not in the brief configuration (config-max) -- it would also cover brief.render (rotate.py:1132)
+          were pi ever made a rotate seat
+401       TMM.97: TM suspects a cross-box REAP revoking live kid keys. EF.96/97/99/102 hit it; EF.100/101 ran clean. A recurrence:
+          note the dead kid key name + time, ONE [red] to TM, no third re-dispatch. EF.103 is the first round under TMM.103.
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed; never merge it.
 RULE      TMM.103: every orders file's spawn line pins the kid's project to the PARENT'S OWN WORKTREE path (`dispatch.py
-          <your worktree> <iter> --tier kid ... --harness pi-free`), as director-thought does -- my parents used the town NAME
-          `local-maxxing` (EF.102 measured) and only my kids hit the 401s. [decision] line sent to TM. #6 LANDED 2687448d93 (TMM.102).
+          <your worktree> <iter> --tier kid ... --harness pi-free`), as director-thought does.
+TRAP      a mur runs only the round's NAMED test files: a frozen-shape test elsewhere goes red unseen (Q8 missed
+          test_harness_template) -> the union list is DERIVED from what the rounds touched (grep the importers), never reused
 TRAP      the stops slot grows +1 fence per rotation (rotate.py _fence_for) -> write the slot with ONE 3-backtick fence
 TRAP      git merge -F - does not read stdin; the trunk moves every few minutes -> sync + dispatch in ONE command
 TRAP      mur pid: ps -eo pid,sid,etime,args | awk '$4=="python3" && $5 ~ /workflow.py$/' (never the `$!` wrapper)
@@ -64,15 +74,14 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (04:5xZ 09-24, gen 4; Q8 mur LIVE; #6 re-offered)
-````
+## 🔴 WHERE IT STOPS — the one next command (04:5xZ 09-24, gen 5; EF.103 LIVE)
 ```
-1  Q8 [summary] -> python3 /tmp/de-mur-sum.py .agi/sessions/de-0923/mur-Q8-EF101-102.log (re-create the helper from the
-   workflows/runs/<run-key>/*.json shape if /tmp was wiped). STANDS -> set EF.101 + EF.102 verdicts per the review (legal
-   forms only!), union (#5's 20 files + test_brief test_brief_render test_briefing, detached, lock free) + graph -> [merge-up] #7
-   = CTX.01 (EF.101 + EF.102) citing the owner's line verbatim + DT's three arms (14,436 / 7,396 / 396). DEMOTE -> hold; ask TM
-   once for the one-copy fallback (--no-context-files + ONE --append-system-prompt of the checkout CLAUDE.md).
-2  a TM answer on the #6 re-offer -> act on it exactly
+1  EF.103 harvest once py 2644800 exits: the loop tip has the `done` commit; read the kid diff (test_harness_template.py +
+   test_brief_render.py ONLY); gate in /tmp/de-harvest-gate: test_harness_template.py red on 3051170f6c, green on the tip;
+   test_brief_render.py green with no real git; merge --no-ff -F <msg>. Then ONE mur R-EF103 (pi-free, detached) -> STANDS:
+   union .agi/sessions/de-0923/union-7.txt at the new SHA (lock free, detached) + graph -> [merge-up] #7 = CTX.01 (EF.101 +
+   EF.102 + EF.103) citing the owner's line verbatim + DT's three arms (14,436 / 7,396 / 396) + Q8's defect-1 refutation.
+   DEMOTE -> hold; ask TM once for the one-copy fallback.
+2  the kid dies on a 401 -> key name + time, ONE [red] to TM; if it committed, gate its bytes as EF.102 (card BUILD LOOP 3)
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current
 ```
-````
