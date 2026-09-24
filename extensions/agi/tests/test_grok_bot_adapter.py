@@ -9,7 +9,11 @@ being swallowed by `importorskip`.
 from __future__ import annotations
 
 import os
+import signal
+import subprocess
 import sys
+import time
+import shutil
 from pathlib import Path
 
 import pytest
@@ -160,6 +164,18 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+
+
+def test_restart_normalizes_tmux_subprocess_failure(monkeypatch, tmp_path):
+    def boom(**kwargs):
+        raise grok.subprocess.CalledProcessError(1, ["tmux", "respawn-pane"])
+
+    monkeypatch.setattr(grok, "launch", boom)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    assert grok.restart(harness=RESTART_HARNESS, tier="kid",
+                        context_file=str(tmp_path / "context.md"),
+                        agent_id="a00-test", iter_n=1, sess_dir=sess) is None
 def test_restart_reuses_recorded_pane_identity(monkeypatch, tmp_path):
     calls = []
     def fake_check(argv, **kwargs):
@@ -179,6 +195,44 @@ def test_tmux_facade_exposes_dead_process_returncode():
     assert proc.poll() == 0
     assert proc.returncode == 0
     assert proc.wait() == 0
+
+
+def test_live_tmux_pane_survives_sigkill_and_restarts_same_identity(tmp_path, monkeypatch):
+    """The held pane must outlive its agent, including SIGKILL."""
+    # The project suite intentionally guards subprocess.run; this test opts
+    # back into the real runner for its isolated, uniquely named session.
+    real_run = subprocess.run
+    monkeypatch.setattr(subprocess, "run", real_run)
+    # check_output delegates to run in CPython, so use Popen directly here
+    # to keep this opt-in live test independent of the suite's run guard.
+    def live_check_output(argv, **kwargs):
+        proc = subprocess.Popen(argv, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True)
+        out, err = proc.communicate()
+        if proc.returncode:
+            raise subprocess.CalledProcessError(proc.returncode, argv, err)
+        return out
+    monkeypatch.setattr(subprocess, "check_output", live_check_output)
+    if shutil.which("tmux") is None:
+        pytest.skip("tmux is unavailable")
+    record = {}
+    try:
+        first = grok.launch(args=["sleep", "30"], cwd=str(tmp_path),
+                             env=dict(os.environ), log_file=tmp_path / "out.log",
+                             record=record)
+        live_check_output(["tmux", "has-session", "-t", record["pane_session"]])
+        os.kill(first.pid, signal.SIGKILL)
+        time.sleep(0.2)
+        live_check_output(["tmux", "has-session", "-t", record["pane_session"]])
+        second = grok.launch(args=["sleep", "30"], cwd=str(tmp_path),
+                             env=dict(os.environ), log_file=tmp_path / "out.log",
+                             record=record)
+        assert second.pane_id == first.pane_id
+        assert second.pid != first.pid
+        assert grok.is_alive(second.pid)
+    finally:
+        if record.get("pane_session"):
+            subprocess.Popen(["tmux", "kill-session", "-t", record["pane_session"]]).wait()
 
 
 # -------------------------------------------------------- live config row

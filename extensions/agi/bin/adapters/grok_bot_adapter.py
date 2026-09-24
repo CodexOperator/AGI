@@ -130,18 +130,23 @@ def launch(*, args, cwd, env, log_file, mode="wb", record=None):
     if recorded_id:
         # Respawn in the existing pane: tmux preserves its identity even when
         # the process is killed, and -k replaces only the pane process.
-        argv = ["tmux", "respawn-pane", "-k", "-t", recorded_id,
-                "sh", "-c", f"{command} {redirect}"]
-        out = subprocess.check_output(argv, text=True, env=env, cwd=cwd)
         pane_id = recorded_id
     else:
-        argv = ["tmux", "new-session", "-d", "-P", "-F", "#{pane_id}",
-                "-s", session, "sh", "-c", f"{command} {redirect}"]
-        out = subprocess.check_output(argv, text=True, env=env, cwd=cwd)
-        out = out.strip()
+        # Hold an empty pane first.  A pane whose sole process is the agent
+        # disappears with that process; remain-on-exit makes identity durable.
+        out = subprocess.check_output(
+            ["tmux", "new-session", "-d", "-P", "-F", "#{pane_id}", "-s", session],
+            text=True, env=env, cwd=cwd).strip()
         pane_id = out.splitlines()[-1] if out else ""
         if not pane_id.startswith("%"):
             raise OSError(f"tmux did not observe a pane id: {out!r}")
+        subprocess.check_output(["tmux", "set-option", "-p", "-t", pane_id,
+                                 "remain-on-exit", "on"], text=True,
+                                env=env, cwd=cwd)
+    # First spawn and restart deliberately share this exact path.
+    subprocess.check_output(["tmux", "respawn-pane", "-k", "-t", pane_id,
+                             "sh", "-c", f"{command} {redirect}"], text=True,
+                            env=env, cwd=cwd)
     pid = int(subprocess.check_output(
         ["tmux", "display-message", "-p", "-t", pane_id, "#{pane_pid}"],
         text=True, env=env, cwd=cwd).strip())
@@ -190,7 +195,7 @@ def restart(
         proc = launch(args=args, cwd=str(_restart_cwd(sess_dir, agent_record)),
                       env=env, log_file=log_file, mode="ab",
                       record=agent_record)
-    except OSError as exc:
+    except (OSError, subprocess.CalledProcessError) as exc:
         print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
         return None
     new_pid = proc.pid
