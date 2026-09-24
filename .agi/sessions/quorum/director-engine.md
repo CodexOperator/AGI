@@ -11,48 +11,45 @@ Post `director-engine`, role director, tier 1, town **local-maxxing**, the BUILD
 Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase · force-push · `git rm` under `.agi/nodes` · a tool that waits for a human · message belam except a numbers line or `[decision]` · touch `.env`, secrets, `~/.pi`, `moral:*`, `vision:*`, `config:*` myself · write engine code myself (ONE exception: a fix delta TM orders made by me, as TMM.68's #3 close). MESSAGES: only for a blocker or a fully completed merge-up (owner 09:5xZ via TM, goal:g5); read dms in full (the mail hook runs the ONE read); a TMM.nn the card does not name = grep `/data/work/agi/.agi/comms/season-2/dm/director-engine--thought-master.md` (TMM.82 reached the file, not my inbox read). Bodies via a file + python subprocess (`send.py send thought-master <body>`). Own paths, exact pathspecs, push after every action. Rotate at meter f >= 0.47 (`rotate.py rotate` bare); card write LAST; prayers first and last only.
 
 
-## LIVE STATE + STOPS (05:5xZ 09-24, gen 6 -> 7) -- no per-round cap; SPAWN LIMIT <= 8 live rounds
+## LIVE STATE + STOPS (06:2xZ 09-24, gen 7) -- no per-round cap; SPAWN LIMIT <= 8 live rounds
 ```
-MODE      TMM.94 LEAN (OWNER via TM: "Make both directors go back to spawning parents efficiently with minimal token use.") +
-          TMM.107 (TM 05:19Z, the answer to the paid [red]): (1) #7 = CTX.01 -- SENT · (2) next batch, ONE item = the AGI_HARNESS
-          reader half (LH-2) · (3) until (2) is on the trunk: dispatch --tier kid DIRECTLY, no parent, the literal `--tier kid
-          --harness pi-free` · report at batch end only. PAID held (TMM.66). ZDR OFF: anonymize.py check --text before every launch.
-MODEL     OWNER 05:1xZ verbatim (via belam): "Set both directors that are active now to sonnet on max. Let them know as well to rotate
-          once they reach a good point to apply changes." Gen 6 SEATED ON claude-opus-5-5 (record 20260924T052020Z model_confirm
-          expected=requested=live opus): rotate-self reads the seat row via _seat_read_root (rotate.py:18142) = the SHARED main
-          checkout, which lacked the Prime's sonnet row at 05:20Z. [rotation] line to belam 05:4xZ. Main + both trunks now carry
-          claude-sonnet-5 -> gen 6 rotated at a good point to apply it. GEN 7: your model_confirm must read claude-sonnet-5; if it
-          reads opus again, ONE numbers line to belam and carry on (never rotate twice for it).
-LIVE      EF.106 = LH-2 round 2, kid a00-036553a5 (pi-free / stealth/space-bunny-alpha, 0 USD), branch
-          season2/loops/hypothesis-a-kid-under-a-credent-a00-036553a5, worktree .agi/worktrees/a00-036553a5, orders
-          .agi/sessions/de-0923/orders-kid-EF.106-LH2r2.md (fix ONLY the test; pytest IS the task). Its base = ee8ebd70b5 + round 1's
-          tip merged in by me @bb4fc6de64 before it edited (dispatch had branched it from the post tip).
-#7        SENT 05:3xZ: refs/agi/posts/director-engine @3272d4e001 = CTX.01 (EF.101 60 · EF.102 70 · EF.104 70). R-EF104 mur
-          accept_with_residue (verifier refuted 1 of 3). Union 23 files: 1152 passed / 14 skipped / 0 failed. Graph: 4251 nodes /
-          0 duplicate_ids · links 4231 / 0 broken · stitch rc 0 · 0 deletions · anonymize ok. Body .agi/sessions/de-0923/merge-up-7.md.
-          Its config:posts FLAG is moot: the Prime merged the sonnet rows into the town trunk (ab45488b39).
-EF.105    LH-2 round 1, kid a00-5b271251: built dispatch.py +11 at :1913 (keyed on zero_usd) + the 2 cells + a 3-arm test and RAN NO
-          TEST (the brief's "cli.py done is the ONLY command you run", context.md:116, a git line); its done left the cells unstaged.
-          Gate: red on base AND on its own tip (1 failed / 226 passed). The director's probe of the 4 arms: the CODE is right on all;
-          the TEST (a) asserts an unquoted --model ~deepseek... though _compact shell-quotes (dispatch.py:1437-1443), (b) expects
-          harness=claude-code for a claude-code parent. Verdict inconclusive_lean_proved:60 + cells @3ec6b7904c, synced @98d5ff402e.
-          NOT merged on its own; it rides EF.106's tip.
-LEAF      hypothesis:a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-ladder-row widened @998e257092 (TMM.107):
-          the key is a zero_usd row cell on pi-free + pi-local (pi-free has no credential cell; a harness-name key is banned).
-LANDED    #1-#6 (last 2687448d93, TMM.102) · #7 pending
+MODE      TMM.94 LEAN + TMM.107 (3) still governs: dispatch --tier kid DIRECTLY, no parent, until the AGI_HARNESS reader half
+          (now landed, see #8) is confirmed on the TOWN trunk by TM. PAID held (TMM.66). ZDR OFF: anonymize.py check --text/--diff-file
+          before every launch.
+MODEL     gen 7 seated on claude-sonnet-5 (this session's own model) -- matches the owner's order, no numbers line needed.
+LIVE      nothing dispatched this session -- CMP.02 (below) banked for scope before building anything.
+#8        SENT ~06:1xZ: refs/agi/posts/director-engine @840f57b85d (299c4f4063..840f57b85d) = the AGI_HARNESS reader half
+          (EF.105 build + EF.106 test-fix, TMM.107's ONE queued item). Director's own gate: red on base ee8ebd70b5 (1 failed),
+          green on tip 657ef0c6ba (227 passed). mur R-EF106 SPLIT: review=accept (4/4 MET), verify=demote (2 "missed" defects) --
+          BOTH refuted by the director on the hypothesis node's own THOUGHT block + Dispatch-line (config touch was PLANNED, not a
+          violation; zero_usd vs needs_credential() are orthogonal by design) -- final call accept. Union at 840f57b85d: 1147 passed
+          / 6 failed(all subprocess/harness-spawn TIMEOUTS under load avg 16-31, none touching this round's files, reran 6/6 green
+          in isolation in 173s) / 14 skipped. Graph: 4256 nodes / 0 dup ids · links 4236/0 broken · stitch rc 0 · 0 deletions ·
+          anonymize ok. Full detail: .agi/sessions/de-0923/merge-up-8.md.
+LEAF      hypothesis:a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-ladder-row -- LANDED via #8, no further
+          action; EF.105's own verdict stays inconclusive_lean_proved:60 (historically honest, per the mur's first reviewer and
+          the director -- not retroactively upgraded just because EF.106 later fixed its test).
+LANDED    #1-#8 (last 840f57b85d, this session)
           LEGAL verdicts (evidence_gate.VERDICT_RE): proved | disproved | inconclusive_lean_proved:NN | inconclusive_lean_disproved:NN | pending
-RESIDUES  named, NOT minted. #7's: harness_template.render doubles a caller-supplied --no-context-files (:204) · test_brief_render.py:59
-          does not assert the fixture root · rotate.py:1101-1102 successor_prompt drops project_root · a non-parent/kid tier on pi
-          loses CLAUDE.md's director material · the guard text is inline in brief.py. THIS SESSION: the brief's "ONLY command" line
-          stops pi kids testing (EF.105) and parents spawning (EF.103) · cli.py done leaves a kid's .agi/config.json edit unstaged ·
-          dispatch --branch bases a kid on the CWD post and its stale-base check measures the cwd post · write.py --dry-run admits
-          "replace body && thought", which the real write refuses · rotate-self's seat row comes from the shared main checkout.
-          OLDER: .15 r4 CR/CRLF readers · ML-3 · .23 · .14 · stitch materialize's chain head · rotate's stops-slot fence.
-WAITING   on TM's word for: #7 · lift-1..4 (paid lane only). EF.92 (LH-2) is now EF.105/106 (TMM.107).
-401       TMM.97: a cross-box REAP may revoke live kid keys. On a recurrence: note the key + time, ONE [red] to TM, no third re-dispatch.
+RESIDUES  named, NOT minted, carried from #7 (unchanged): harness_template.render doubles a caller-supplied --no-context-files (:204)
+          · test_brief_render.py:59 does not assert the fixture root · rotate.py:1101-1102 successor_prompt drops project_root · a
+          non-parent/kid tier on pi loses CLAUDE.md's director material · the guard text is inline in brief.py · cli.py done leaves a
+          kid's .agi/config.json edit unstaged · dispatch --branch bases a kid on the CWD post · write.py --dry-run admits an edit the
+          real write refuses · rotate-self's seat row comes from the shared main checkout. OLDER: .15 r4 CR/CRLF readers · ML-3 · .23
+          · .14 · stitch materialize's chain head · rotate's stops-slot fence.
+CMP.02    TMM.109(a)'s "20s startup grace -> key revoked" does NOT reproduce on inspection: spawn_budget._lease_is_live falls back to
+          holder_pid (the dispatcher's own still-running pid) for the entire mint->grace->retry window (spawn_budget.py:423-436,
+          dispatch.py:2698-2842) -- deliberately race-proofed, comment names this exact scenario. The two prior [red]s (red-401.md,
+          red-401-2.md: EF.102's kid ran ~45s of real work before failing) fit the ALREADY-documented cross-box reap hazard far
+          better (doc:lm-local-town-box-facts:47-49, TMM.97's own suspicion): live_hashes is built ONLY from this box's local
+          .spawn-budget dir while the key listing is workspace-wide, so any box's `reap --yes` can revoke another box's live key at
+          any point, not just in a 20s window. Banked in full: .agi/sessions/de-0923/red-cmp02-scope.md (sent to TM). WAITING on TM's
+          steer: harden the cross-box gap in code, or a specific timestamped incident that actually pins the 20s-grace read.
+401       TMM.97 / CMP.02 above: a cross-box REAP may revoke live kid keys. On a recurrence: note the key + time, ONE [red] to TM, no
+          third re-dispatch.
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed; never merge it.
 RULE      TMM.103: a PARENT's spawn line pins its kid's project to the parent's own worktree. TMM.107 (3): the director dispatches kids
-          DIRECTLY until the reader half is on the trunk.
+          DIRECTLY until the reader half is confirmed on the trunk.
 TRAP      dispatch --branch takes the kid's BASE from the cwd post: to stack a round on unmerged bytes, merge that tip into the new
           kid's branch right after the spawn (before it edits)
 TRAP      a pi kid obeys the brief's "ONLY command" line over an orders tests line unless the orders say plainly that pytest IS the task
@@ -69,18 +66,23 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 ```
 
 ## BANKED
+- CMP.02 scope (this session, .agi/sessions/de-0923/red-cmp02-scope.md): the "20s grace" framing doesn't reproduce; asked TM
+  whether the real target is the cross-box reap hazard (code hardening) or a specific incident to re-derive. Nothing to build
+  until answered -- guessing the wrong mechanism would waste the "one test pins it" on a race that isn't there.
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (05:5xZ 09-24, gen 6 -> 7 to apply the owner's Sonnet order; EF.106 LIVE)
+## 🔴 WHERE IT STOPS — the one next command (06:2xZ 09-24, gen 7; #8 landed, CMP.02 banked)
 ````
 ```
-1  EF.106 harvest, once its loop tip has the `done` commit: read the kid DIFF vs bb4fc6de64 -> anonymize.py check --diff-file ->
-   bash /tmp/de-gate.sh EF.106 ee8ebd70b5 <tip> test_dispatch_dry_run.py test_adapters.py test_credential_none_spawn.py test_dispatch.py
-   (RED on the base = no inheritance code; GREEN on the tip) -> git merge --no-ff into the post -> verdict -> ONE mur R-EF106
-   (detached, pi-free) -> [merge-up] #8 at batch end. Kid dead or red again -> ONE [red] to TM; no third round without TM's word.
-2  TM's word on #7 (LANDED / RETURNED) -> act on it exactly.
-3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current.
+1  Check the inbox for TM's word on CMP.02's scope (`python3 extensions/agi/bin/send.py read director-engine`) and on #8
+   (LANDED/RETURNED) -> act on either exactly the moment it arrives.
+2  If TM confirms the cross-box-reap direction: write the reproduction test first (a key hash present in provisioning's listing
+   but absent from this box's spawn_budget.live_agents() gets reaped regardless of a simulated other-box lease), THEN harden
+   (e.g. reap refuses/warns rather than silently revoking when it cannot positively confirm this box owns the round), per
+   TMM.109's "reproduce first, then fix; one test pins it".
+3  Nothing else is queued (HOOK.01 port waits on DT's HOOK.01b, not mine yet) -- if TM has not answered and there is no other
+   actionable item, rotate at meter f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current.
 ```
 ````
