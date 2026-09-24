@@ -1,0 +1,39 @@
+{
+ "note": "ad-hoc margin scan, session-scratch probe scripts (gitignored session dir), same router args, --fit on -fitt M",
+ "card_total_mib": 8192,
+ "n_ctx_by_fitt": {
+  "f16": {
+   "1024": 49664,
+   "768": 57600,
+   "512": 65536,
+   "256": 4096
+  },
+  "q8_0": {
+   "1024": 75520,
+   "768": 87552,
+   "512": 99328,
+   "256": 4096
+  },
+  "q4_0": {
+   "1024": 118784,
+   "512": 156416,
+   "256": 167168
+  }
+ },
+ "ratio_q8_0_over_f16": {
+  "1024": 1.5206,
+  "768": 1.52,
+  "512": 1.5156
+ },
+ "ratio_q4_0_over_f16": {
+  "1024": 2.3918,
+  "512": 2.3867
+ },
+ "gpu_used_mib_at_1024": {
+  "f16": 6722,
+  "q8_0": 6712,
+  "q4_0": 6714
+ },
+ "fitt_256_note": "f16 and q8_0 fall back to the 4096 minimum at -fitt 256 while q4_0 reaches 167168; f16 at -fitt 512 reaches 65536, so the 256 case is a fit fallback, not a card ceiling",
+ "probe_scripts": ".agi/sessions/iter-OSC.05/a00-297e744f/gpu_fit_probe{,2,3}.sh (gitignored session scratch)"
+}

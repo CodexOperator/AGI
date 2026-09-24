@@ -1,0 +1,189 @@
+---
+id: experiment:a00-df53894e-fabe8f
+mint_id: 1938f61310ac4c4ea8cfce8e51252f23
+type: experiment
+parents:
+  - hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly
+next_edges: []
+confidence: 0.9
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-df53894e-fabe8f
+line_ceiling: 80
+loop: hypothesis:lm-served-9b-cold-first-request-prefills-token-linearly@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "B1 the first request after a load prefills token-linearly at >= 15 ms/token", "class": "gate", "cmd": "recompute ms per token from the raw cold.json T3 rows (281/2061/7638 tokens) and the T2 W row (13 tokens)", "expected": "token-linear means ms per token roughly constant across prompt sizes", "observed": "159.96 / 23.17 / 6.50 ms per token (24.6x spread) over absolute 44.9 / 47.8 / 49.7 s (1.105x); the 13-token row is 44678 ms = 3436.8 ms per token. The absolute cold cost is fixed at about 45 s, so the linear predicate (>=15 ms/tok) is refused by 229x on the 13-token case", "result": "pass: B1 refused, falsifier fires, hypothesis disproved as written"}
+  - {"conjunct": "B2 a warm server prefills at >= 1000 tok/s", "class": "wire", "cmd": "POST /v1/chat/completions to the live router on :8080 with a 9000-byte wikitext-2 slice at offset 10000", "expected": "prompt_per_second >= 1000", "observed": "prompt_n 2059 prompt_ms 1435.4 prompt_per_second 1434.5", "result": "pass: the warm bar holds on the live wire"}
+  - {"conjunct": "the fixed cost is a per-CONTAINER CUDA JIT ComputeCache, not a per-model-load cost", "class": "wire", "cmd": "docker exec llama-server du -sm /root/.nv/ComputeCache; grep -c load_model router_log_full.txt", "expected": "the live router container carries a populated ComputeCache, so its 11 reloads do not re-pay the fixed 45 s", "observed": "123 MB populated ComputeCache in the live router container; 11 9B load_model lines and 9 unload_all lines in router_log_full.txt", "result": "pass: independently confirms the mechanism and its per-container (not per-load) claim"}
+  - {"conjunct": "B3 a <=16-token warm-up makes the next ~2k request warm", "class": "gate", "cmd": "read the three raw t2 trials from the committed cold.json (W of 13 tokens, then A of 2061)", "expected": "W warms A to >= 1000 tok/s", "observed": "W prompt_n=13 at 44677.8/44885.3/46110.3 ms, then A 2061 tokens at 1496.7/1518.8/1500.3 tok/s -- 3/3", "result": "pass: the remedy works, but it books the fixed 45 s at load, it does not remove it"}
+production_lines: 76
+profile: balanced
+rebrief_answer: proceed with ceiling 80
+rebrief_request: "cold_first_round.py is 76 production lines vs the 40-line ceiling (1.9x, under the 2x stop): the overage is the five-stage T1-T4+TF driver with a fresh container, a spare port and a health-wait per trial, plus the T2/T3 slice table -- 17 trials in one GPU round. Requested ceiling 80; the round is landed, no test was dropped and nothing was padded."
+role: kid
+scaffold_hash: 2e07cef0b7292788
+season: 2
+title: "The cold first request is NOT token-linear: it is a fixed ~45 s CUDA JIT-ComputeCache cost (281/2061/7638 tokens -> 44.9/47.8/49.7 s; a 13-token first request also 44.7 s) that a warm /root/.nv/ComputeCache removes to 137 ms (329x) -- the warm bar and the tiny-warm-up bar both hold at 1490-1524 tok/s, and the router's container paid it on none of its 11 logged 9B loads"
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-df53894e-fabe8f
+
+## Experiment
+
+**Question.** On the served `Qwen3.5-9B-Q4_K_M` (GPU2070S, 8 GB) under llama-server with the
+router's recorded args, is the FIRST request after a load a token-linear cold prefill at >= 15 ms per
+prompt token, is a warm server >= 1,000 tok/s, and does a <= 16-token warm-up make the next ~2k request
+warm? (Hypothesis bars B1/B2/B3; falsifier = B1 fails.)
+
+**T0 guard + restore (`t0_guard.txt`, `restore_proof.txt`).** 2026-09-23T17:19:52Z: 6/30 agents live, no
+pi-local round; `GET :8080/slots?model=Qwen3.5-9B-Q4_K_M` -> `n_ctx 49664, is_processing false`;
+`MemAvailable` 10,943,992 kB >= 2 GB; only GPU compute app was the router (6,736 MiB).
+`docker stop llama-server` freed the card to **1 MiB**. Restored 17:52:47Z: `docker start
+llama-server`, real `POST /v1/chat/completions` from `Qwen3.5-9B-Q4_K_M` (`completion_tokens=16`),
+`GET /slots` -> `n_ctx 49664, is_processing false`, build `b10991-930e2fa59`, GPU 6,726 MiB.
+**The router was up before this report was written.**
+
+**Inputs.** Served GGUF `/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf` sha256
+`03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8` (re-hashed this round);
+`wiki.test.raw` sha256 `173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08`. Nothing was
+written to any model file. Image `ghcr.io/ggml-org/llama.cpp:full-cuda` (build 11058),
+`--entrypoint /app/llama-server`, fresh `docker run --rm` per trial, a distinct spare port each
+(18081-18094), the router's `model_args_9b` verbatim minus `--port`, the in-container model path and `--host` (0.0.0.0 here for
+the published spare port; the router binds 127.0.0.1 -- timing-neutral) --
+**no `-fa`/`-ctk`/`-ctv` added**. One driver, `.agi/context/local-maxxing/serve/cold_first_round.py`
+(new, 76 lines), stages `t1 t2 t3 t4 tf`; every path via `paths.get_local`; outputs under
+`datasets/serving-sweep/2026-09-23-cold/` (`cold.json`, `logs/`, `t4.log`, `router_log_full.txt`).
+
+**T1 -- cold vs warm, 3 trials (fresh server -> A ~2k -> B ~2k, different slices).**
+
+| trial | A prompt_n | A prompt_ms | A ms/token | B prompt_n | B prompt_ms | B tok/s |
+|---|---|---|---|---|---|---|
+| t1r0 | 2061 | 47,831.8 | **23.21** | 2132 | 1,402.1 | **1,520.6** |
+| t1r1 | 2061 | 45,929.5 | **22.29** | 2132 | 1,399.0 | **1,523.9** |
+| t1r2 | 2061 | 47,617.1 | **23.10** | 2132 | 1,430.6 | **1,490.3** |
+
+B2 holds: the second request is 1,490-1,524 tok/s (0.66 ms/token), 3/3. Superficially B1 holds too
+(22.3-23.2 ms/token at 2061 tokens).
+
+**T2 -- tiny warm-up (fresh server -> W <= 16 tokens -> A ~2k).**
+
+| trial | W prompt_n | W prompt_ms | W ms/token | A prompt_n | A prompt_ms | A tok/s |
+|---|---|---|---|---|---|---|
+| t2r0 | **13** | 44,677.8 | **3,436.8** | 2061 | 1,377.0 | **1,496.7** |
+| t2r1 | **13** | 44,885.3 | **3,452.7** | 2061 | 1,357.0 | **1,518.8** |
+| t2r2 | **13** | 46,110.3 | **3,546.9** | 2061 | 1,373.8 | **1,500.3** |
+
+B3 holds (3/3). But **B1 is destroyed here**: a 13-token first request cost 44.7-46.1 s. 45 s divided by
+13 tokens is not a per-token price.
+
+**T3 -- cold first request vs size, one fresh server per size.**
+
+| size | prompt_n | prompt_ms | ms/token |
+|---|---|---|---|
+| ~256 | **281** | 44,948.4 | 159.96 |
+| ~2k | **2061** | 47,762.5 | 23.17 |
+| ~8k | **7638** | 49,674.8 | 6.50 |
+
+Total cold time is **44.9 / 47.8 / 49.7 s for 281 / 2061 / 7638 tokens**: a FIXED cost of ~45 s, flat
+to within 10 pct across a 27x span of prompt length. ms/token is not a rate, it is 45 s divided by
+whatever arrived first. Fitting a fixed F plus the measured warm rate (0.66 ms/token) gives
+F = 44.8, 46.4, 44.6, 44.7 s -- one constant.
+
+**Mechanism (T4 + two probes).** `-lv 5` first request (`logs/t4.log`):
+`slot operator(): task 0 | new prompt ... task.n_tokens = 2061` at `0.50.397`,
+then 38.9 s of in-graph silence, then
+`slot print_timing: id 0 | task 0 | prompt processing, n_tokens = 1545, progress = 0.75, t = 38.91 s / 39.70 tokens per second`
+(`1.29.310`), the next 512 tokens in **0.10 s** (`1.29.409`, n_tokens = 2057), then a SECOND stall:
+the last 4 prompt tokens took **7.74 s** (`1.29.409` -> `1.37.150`; prompt eval 46,752.6 ms = 39.01 s +
+7.74 s) -- consistent with the small-batch kernels compiling at their own first use (an inference, not
+traced; the router's first-ever 9B load paid 7.4 s on a 5-token prompt, T5); then the second request's
+`cached n_tokens = 1616` after 1.006 s (`1.38.425`) = 1,607 tok/s. Note also
+`load_model: cache_reuse is not supported by this context, it will be disabled` -- the router's
+`--cache-reuse 8` is a no-op on this hybrid/SSM model, so the warm speed is not prefix caching.
+Two probes pinned the fixed cost to the **CUDA JIT compute cache**: (a) a fresh container running the
+ROUTER'S OWN container command (`--models-dir /models --models-max 1 --fit on --jinja -np 1
+--cache-reuse 8`, image `server-cuda`) still paid **44,718 ms on a 13-token first request** then
+1,853 ms/2,061 tokens = 1,112 tok/s (`router_mode_probe.json`); (b) the same image with
+`-v $CACHE:/root/.nv/ComputeCache` -- **empty cache: 44,992 ms; the same 77 MB cache mounted in a
+fresh container: 136.8 ms** (329x), `logs/jitcache_probe.txt`. The router container carries a
+populated `/root/.nv/ComputeCache` (123 MB, `docker cp llama-server:/root/.nv`). That is why the
+router's own first post-restore request in this round took **424.1 ms for prompt_n=13**
+(`restore_proof.txt`) and why OSC.08's recorded `412.6 ms / 17 tokens` was real while a fresh
+container measured ~45 s for the same shape: the fixed cost is per-container-cache, not per-load and
+not per-token.
+
+**T5 -- frequency (read only, `router_log_full.txt`, 5,541 lines; corrected by the director at harvest).**
+The container's log spans several router starts with relative timestamps, so it does not date 'today'.
+It holds **11** spawns of `Qwen3.5-9B-Q4_K_M` (instance ports 49525, 56623, 49553, 55803, 41165, 51919,
+47155, 40675, 50311, 53451, 41079) and 9 `unload_all` lines (`--models-max 1` swaps, incl. one 35B
+load). Each spawn's first `prompt eval time`: the container's FIRST-EVER 9B spawn 7,419 ms for 5
+tokens -- and that same instance's first LARGE request (task 6, 770 tokens) then took 36,094 ms while
+the next (850 tokens) took 600 ms (`router_log_full.txt:66`, `:76`, `:92`): the container paid the whole ~45 s JIT
+once, in two installments (the small-batch kernels on a 5-token request, as T4's last-4-token stall, then
+the large-batch ones); every later spawn warm -- 79-1,801 ms for 12-20 tokens (79.1, 370.6, 375.7, 376.7, 412.6, 686.5,
+704.8, 1,800.5 ms) and 20,633 / 30,245 ms for the two big pi-local prompts (24,964 / 35,260 tokens =
+1,210 / 1,166 tok/s); never ~45 s. So a model reload inside the live container does not re-pay the
+cost -- its JIT cache persists across reloads and `docker stop`/`start` (`restore_proof.txt`: 424 ms). A
+cold first request reaches pi-local only when the **container** is recreated (new image, force-recreate,
+new box).
+
+## Verdict, bar by bar (falsifier: B1 fails -> disproved)
+
+- **B1 token-linear >= 15 ms/token: REFUTED.** 45 s is fixed: 281 tokens 44.9 s, 2061 tokens 47.8 s,
+  7638 tokens 49.7 s, 13 tokens 44.7 s. The T1 numbers that looked linear were 45 s spread over 2061
+  tokens.
+- **B2 warm >= 1,000 tok/s: CONFIRMED** (1,490-1,524, 3/3; 1,460 / 1,112 on the two router-fidelity runs).
+- **B3 tiny warm-up warms the next request: CONFIRMED** (W prompt_n=13 -> 1,497-1,519 tok/s, 3/3).
+
+The cold/warm split is real and the remedy works, but the mechanism named in the claim is wrong, so
+the claim as written is disproved.
+
+## LARGEST SAFE STEP (PROPOSED -- not landed; router and config cells untouched)
+
+1. **Persist the CUDA JIT cache into the server container**: mount a volume at
+   `/root/.nv/ComputeCache` (or set `CUDA_CACHE_PATH` to a mounted dir). Measured: cold first request
+   44,992 ms -> **136.8 ms (329x)** with the same 77 MB cache. This removes the cost instead of moving
+   it, and it is the only step that also helps the `-lv>/dev/null`-cold first request.
+2. **If (1) is not wanted, warm at load**: one <= 16-token request right after each model load. It
+   works (B3) but it does not remove the 45 s, it books it at load time -- and T5 shows the router
+   already does not pay it per load, so its value today is ~0 except on container recreation.
+3. Do **not** build anything on the "23 ms/token" figure from OSC.08 or the restored-router log line:
+   it is a fixed cost divided by a prompt length, and any step sized from it will be sized wrong.
+
+**Director at harvest -- the root cause and what it is worth (`director_fatbin_archs.txt`).** Neither
+stock image ships machine code for this card: all 143 fatbins in `/app/libggml-cuda.so` (full-cuda and
+server-cuda alike) carry SASS only for sm_86 / sm_89 / sm_120 and PTX for sm_50 / 61 / 70 / 75 / 80 / 90,
+so on this sm_75 card the driver compiles the sm_75 PTX at first use -- the JIT the ComputeCache then
+saves. Largest safe step first: (a) OUR GPU rounds pay it on every fresh `docker run --rm` (at least the 13
+of this round's containers with committed timings did, ~10 min), so research drivers mount one persistent ComputeCache from the next
+GPU round (a cold probe mounts an empty one on purpose; how the driver keys the cache is NVIDIA's documented
+behaviour, not measured here);
+(b) the router: step 1 above, PROPOSED -- worth ~0 today (T5), ~45 s at each container recreation;
+(c) ladder L6, a build block: llama.cpp built with `CMAKE_CUDA_ARCHITECTURES=75-real` ships sm_75 SASS
+and never JITs -- whether its SASS decodes faster or slower than the driver's JIT is that round's
+measurement.
+
+## Defects / limits named (not fixed this round)
+
+- T1/T2 ran before `--log-file` was wired, so their server logs are absent (the committed driver is the
+  post-wiring version: re-run, it writes `<name>.log`; the committed `t1r*/t2r*_srv.log` are the 1-line
+  `docker logs` captures of the pre-wiring runs); `docker logs` on a
+  `docker rm -f`'d container returned only line 1 (llama-server's log file is buffered), and the t3/tf
+  `--log-file` outputs are 0 bytes for the same reason. Only `t4.log` survived.
+- Verdict is scored against the hypothesis text; the OSC.08 measurement it builds on stands corrected,
+  not retracted.
+- The two probes ran from the session scratch (`.agi/sessions/iter-OSC.09/a00-df53894e/probe/`); the
+  director committed them at harvest as `.agi/context/local-maxxing/serve/osc09/{router_mode_probe.sh,
+  jitcache_probe.sh}`, changed only to resolve the output dir via `paths.py --local
+  serving_sweep_cold_out_dir` instead of the round's literal worktree path; the out-of-repo scratch
+  roots (`/data/ml/scratch/osc02/coldcache*`) stay literal (rule 13).
+
+## Agent Notes
+Cold first request is a FIXED ~45 s CUDA JIT ComputeCache cost, not token-linear: 281/2061/7638 tokens -> 44.9/47.8/49.7 s and a 13-token first request 44.7 s (14 fresh containers: 11 driver trials + 3 probe containers -- corrected at the mur-12 close from '17', which no committed artifact supports). Warm bar holds (1490-1524 tok/s) and the tiny warm-up holds (prompt_n=13 -> next 2061-token request 1497-1519 tok/s), so the remedy works but the named mechanism is wrong. Mechanism pinned by two probes: the router's OWN container command still pays 44.7 s on 13 tokens; an empty cache 44992 ms vs the same 77 MB /root/.nv/ComputeCache mounted warm in a fresh container 136.8 ms (329x). The router container's 11 logged 9B loads never paid the ~45 s (its JIT cache persists in the container; the first-ever load paid 7.4 s on 5 tokens -- corrected at harvest from '8 loads today') -- so the LARGEST SAFE STEP is PROPOSED: persist CUDA_CACHE_PATH/ComputeCache for the server container (removes the cost), else warm at load (books it, does not remove it). Router stopped then restored and proven: n_ctx 49664, real completion, build b10991-930e2fa59.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, closing mur-director-thought-12 (review accept_with_residue, 9 of 10 conjuncts MET, B1 NOT_MET as the disproof; its verify stage failed on a 60 s context-build timeout under host memory pressure, so both residues were checked against the bytes by the director instead): (1) '17 fresh-container trials' -> 14 (11 driver trials + 3 probe containers), the count the artifacts support; (2) the router's FIRST-EVER 7.4 s request is reconciled from router_log_full.txt:66/:76/:92 -- the same instance's first large request (770 tokens) took 36,094 ms and the next 600 ms, so the container paid the whole ~45 s JIT once in two installments; notes: --host named as a timing-neutral deviation, the cache-keying remark marked unmeasured, the committed driver named as the post-wiring version, the script docstring made a sentence. Nothing re-measured; the verdict stands.
+<!-- THOUGHT:END -->

@@ -25,6 +25,27 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import crons  # noqa: E402
+import boxes  # noqa: E402
+
+# The one schema declaration every fixture root carries now that crons renders
+# every placeholder through `boxes.resolve_placeholders` (this round's claim).
+BOX_SCHEMA = """---
+name: box
+structural: true
+fields:
+  root: {type: str}
+  logs_dir: {type: str}
+  tmux_session: {type: str}
+  user: {type: str}
+placeholders:
+  root: root
+  logs: logs_dir
+  tmux: tmux_session
+  user: user
+  repo_root: repo_root
+  box: box
+---
+"""
 
 
 @pytest.fixture
@@ -108,6 +129,10 @@ def write_crons_node(root: Path, crons_live=True, cadences=None, services=None) 
     p = root / crons.CRONS_NODE_REL
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(_crons_frontmatter(crons_live, cadences, services))
+    s = root / "context" / "schemas" / "[box].md"
+    s.parent.mkdir(parents=True, exist_ok=True)
+    if not s.exists():
+        s.write_text(BOX_SCHEMA)
 
 
 def _git(path: Path, *args: str) -> str:
@@ -1333,9 +1358,11 @@ def test_generic_job_box_gate_matches_builtin_behaviour(tmp_path):
 
 def test_placeholders_resolve_by_literal_replacement(tmp_path):
     """`{root}` / `{repo_root}` / `{logs}` / `{box}` resolve from the
-    resolver's own values; non-strings and shell braces pass untouched (never
+    schema-declared map; non-strings and shell braces pass untouched (never
     `str.format()`)."""
     root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root)
     repo = tmp_path / "repo"
     out = crons._substitute("{root}|{repo_root}|{logs}|{box}",
                             root, repo, "core-town")
@@ -1343,6 +1370,140 @@ def test_placeholders_resolve_by_literal_replacement(tmp_path):
     assert crons._substitute(None, root, repo, "core-town") is None
     assert crons._substitute("awk '{print $1}'", root, repo,
                              "core-town") == "awk '{print $1}'"
+
+
+def test_resolve_placeholders_refuses_schema_without_a_map(tmp_path):
+    """Conjunct 2 (gate): a schema that declares no `placeholders:` map is
+    REFUSED by name instead of quietly substituting nothing."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n---\n")
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        boxes.resolve_placeholders("{root}", {"root": "R"}, graph)
+    assert "[box].md" in str(err.value)
+    assert "placeholders" in str(err.value)
+
+
+def test_resolve_placeholders_falls_back_to_the_engine_schema(tmp_path):
+    """Conjunct 2 (gate, availability): a graph with NO [box].md of its own
+    renders through the ENGINE's own [box].md -- the same declaration, never a
+    second copied token list. Refusing an ABSENT schema is a regression."""
+    graph = tmp_path / "graph"
+    graph.mkdir()
+    assert boxes.resolve_placeholders("{root}", {"root": "R"}, graph) == "R"
+
+
+def test_resolve_placeholders_refuses_a_missing_mapped_cell(tmp_path):
+    """Conjunct 1 (gate): a token the map declares but the caller supplied no
+    cell for refuses by name -- never renders empty."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n"
+        "placeholders:\n  tmux: tmux_session\n---\n")
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        boxes.resolve_placeholders("{tmux}", {"root": "R"}, graph)
+    assert "tmux_session" in str(err.value)
+
+
+def test_resolve_placeholders_refuses_a_supplied_but_empty_cell(tmp_path):
+    """P5 (gate): a mapped token whose cell is PRESENT but EMPTY refuses by
+    name -- presence alone is not enough, because an empty render is exactly
+    the bug this leaf exists to kill."""
+    graph = tmp_path / "graph"
+    (graph / "context" / "schemas").mkdir(parents=True)
+    (graph / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n"
+        "placeholders:\n  tmux: tmux_session\n---\n")
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        boxes.resolve_placeholders("{tmux}", {"tmux_session": ""}, graph)
+    assert "tmux_session" in str(err.value)
+
+
+def test_crons_renders_a_shell_reference_without_refusing(tmp_path):
+    """P6 (wire): a legal shell `${VAR}` is not a stray graph token. Round 1's
+    stray check convicted the `{PATH}` inside `${PATH}`; the declared `{box}`
+    still resolves and the shell reference passes byte-identical."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": False},
+        "path_probe": {"schedule": "0 5 * * *",
+                       "cmd": "run --who {box} ${PATH}"},
+    })
+    node = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, root, root, node,
+                                       box_name="local-town")
+    assert lines == [
+        f"0 5 * * * cd {root} && run --who local-town ${{PATH}} "
+        f">> {crons._log_path(root)} 2>&1"
+    ]
+
+
+def test_crons_refuses_an_undeclared_token_as_a_crons_error(tmp_path):
+    """Conjunct 1 (wire): a bare `{token}` absent from the map refuses as a
+    `CronsError` (which main prints as `ERR: crons.py:` rc 1), never rendered
+    literally and never a traceback."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root)
+    with pytest.raises(crons.CronsError) as err:
+        crons._substitute("run --at {projroot}", root, root, "core-town")
+    assert "projroot" in str(err.value)
+
+
+def test_crons_renders_through_the_one_schema_declared_map(tmp_path):
+    """Conjunct 3 (wire): a token the schema declares but crons never
+    hardcoded must render. crons carries no token list of its own, so the
+    map in [box].md is what decides which tokens exist at all."""
+    root = tmp_path / "proj"
+    root.mkdir()
+    write_crons_node(root, cadences={
+        "grid_sync": {"every_mins": 5, "enabled": False},
+        "town_digest": {"schedule": "0 4 * * *",
+                        "cmd": "run --at {projroot} --who {box}"},
+    })
+    (root / "context" / "schemas" / "[box].md").write_text(
+        "---\nfields:\n  root: {type: str}\n"
+        "placeholders:\n  projroot: root\n  box: box\n---\n")
+    node = crons.load_crons_node(root)
+    lines = crons.render_managed_lines(root, root, root, node,
+                                       box_name="local-town")
+    assert lines == [
+        f"0 4 * * * cd {root} && run --at {root} --who local-town "
+        f">> {crons._log_path(root)} 2>&1"
+    ]
+
+
+def test_routed_resolver_is_byte_identical_to_the_pre_fix_list(tmp_path):
+    """Conjunct 3 (wire, preservation half): the live node's crontab renders
+    byte-identically whether placeholders go through the schema map or the
+    pre-fix four-token literal list -- so routing the renderer changed no
+    bytes on the live crontab."""
+    import unittest.mock as mock
+    repo = Path(__file__).resolve().parents[3]
+    root = repo / ".agi"
+    node = crons.load_crons_node(root)
+
+    def pre_fix(text, root, repo_root, own):
+        if not isinstance(text, str):
+            return text
+        for token, value in (("{repo_root}", str(repo_root)),
+                             ("{root}", str(root)),
+                             ("{logs}", str(crons._log_path(repo_root).parent)),
+                             ("{box}", own)):
+            text = text.replace(token, value)
+        return text
+
+    # the checkout's HEAD is not this test's subject: the branch is pinned so a
+    # detached checkout (a gate worktree) renders exactly what a branch does
+    with mock.patch.object(crons, "resolve_branch", lambda _git_dir: "main"):
+        after = crons.render_managed_lines(root, repo, repo, node)
+        assert after, "the live node must still render its managed lines"
+        with mock.patch.object(crons, "_substitute", pre_fix):
+            before = crons.render_managed_lines(root, repo, repo, node)
+    assert after == before
 
 
 def test_service_placeholders_render_the_same_bytes_as_absolute_paths(tmp_path,
@@ -1366,6 +1527,8 @@ def test_service_placeholders_render_the_same_bytes_as_absolute_paths(tmp_path,
     }
     repo = tmp_path / "box" / "work" / "agi"
     repo.mkdir(parents=True)
+    (repo.parent / "context" / "schemas").mkdir(parents=True)
+    (repo.parent / "context" / "schemas" / "[box].md").write_text(BOX_SCHEMA)
     abs_svc = {
         "enabled": True, "restart": "on-failure",
         "exec_start": f"/usr/bin/python3 {repo}/extensions/agi/bin/"
@@ -1554,3 +1717,17 @@ def test_audit_accepts_a_gated_known_job_with_why_box(tmp_path, monkeypatch):
     fixture = tmp_path / "crontab.fixture"
     crons.cmd_apply(root, crontab_file=fixture)
     assert crons.cmd_audit(root, crontab_file=fixture) == []
+
+
+def test_audit_flags_a_gated_generic_job_without_why_box(tmp_path, monkeypatch):
+    """The `box` gate's why_box rule is not a KNOWN_JOBS privilege: a generic
+    entry (a name outside KNOWN_JOBS carrying a `cmd`) goes through the SAME
+    box gate, so the audit must name it exactly as it names a built-in."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    cad = {"town_probe": {"every_mins": 9, "enabled": True,
+                          "cmd": "/bin/true", "box": "local-town"}}
+    root = make_project(tmp_path, cadences=cad)
+    fixture = tmp_path / "crontab.fixture"
+    crons.cmd_apply(root, crontab_file=fixture)
+    found = crons.cmd_audit(root, crontab_file=fixture)
+    assert any("town_probe" in f and "why_box" in f for f in found), found

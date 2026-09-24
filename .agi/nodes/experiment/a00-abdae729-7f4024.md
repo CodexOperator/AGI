@@ -1,0 +1,222 @@
+---
+id: experiment:a00-abdae729-7f4024
+mint_id: 5f7a8e39e5c04746a5f714e8c5b92eb4
+type: experiment
+parents:
+  - hypothesis:lm-head-rope-band-profile-is-static
+next_edges: []
+confidence: 0.85
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-abdae729-7f4024
+line_ceiling: 60
+loop: hypothesis:lm-head-rope-band-profile-is-static@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "the per-pair decomposition c_p = q[p]k[p] + q[p+32]k[p+32] (HF rotate_half pair (p,p+32))", "class": "wire", "cmd": "load the FIXED head_var from the changed bytes and feed a position-varying signal only on contract dims (0,32), then only on (21,53)", "expected": "each signal lands all energy on exactly its own pair index", "observed": "true pair 0 -> nonzero pairs [0] share 1.0; true pair 21 -> nonzero pairs [21] share 1.0; both PASS (the identical probe FAILED on kid-1 bytes: split [0,16])", "result": "pass: the fixed decomposition implements the contract pair (p,p+32)"}
+  - {"conjunct": "band class thresholds: low-third p21..31 >=0.80 at >=25 pct heads; high-third p0..10 >=0.50 at >=10 pct heads", "class": "gate", "cmd": "independently recompute cos, low=sum(pp[21:32]), high=sum(pp[0:11]) for all 336 heads from the canonical datasets/osc-band/2026-09-23/profiles.json", "expected": "reproduce the summary; both band classes clear their bars with a numbered margin", "observed": "stable 336/336; low>=0.80 = 171/336 (need 84); high>=0.50 = 37/336 (need 34); high strictly >0.50 also 37", "result": "pass: both classes exist on the correct pairing; high margin is 3 heads above the bar"}
+  - {"conjunct": "in-repo paths resolve through config, never a literal", "class": "auth", "cmd": "paths.get_local(osc_dir); paths.get_local(osc_band_dir); paths.get_local(no_such_key_xyz)", "expected": "checkout-local paths; undefined key refused by name", "observed": "osc_dir and osc_band_dir resolve under the checkout; undefined key raises KeyError naming paths.local_maxxing.no_such_key_xyz", "result": "pass"}
+production_lines: 39
+profile: balanced
+role: kid
+scaffold_hash: f11157d161323c98
+season: 2
+title: "fixing the rotate_half pairing flips the band null: static per-head RoPE band profile is real, both band classes exist"
+town: local-maxxing
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-abdae729-7f4024
+
+**Title (mine):** fixing the rotate_half pairing flips the band null -- the static per-head RoPE band profile is real and BOTH band classes exist.
+
+This is round 2 of the band hop-1 measurement. It corrects
+`experiment:a00-696d3283-44467f` (kid 1), whose `head_var` paired CONSECUTIVE head
+dims instead of the HF `rotate_half` pair `(p, p+32)`, and re-measures the band
+shares on the verified decomposition. The kid-1 artifacts are preserved at
+`paths.local_maxxing.osc_band_dir/pairing-bug/` (profiles, summary, summary.md,
+provenance) so the wrong run is not lost.
+
+## The fix
+
+`head_var` in `paths.local_maxxing.osc_dir/osc_band_measure.py` now splits the head
+dim in HALVES: `A = q[..., :32]`, `B = q[..., 32:]`, same for `k`, and
+`c_p = A[...,p]*K0[...,p] + B[...,p]*K1[...,p]` with `p = 0..31` the contract pair
+index (the installed transformers 5.17.0 `apply_rotary_pos_emb` pairs `(i, i+32)`).
+The variance/prefix-sum algebra is otherwise unchanged.
+
+**Unit self-test, run BEFORE the model pass** (`selftest_head_var`, embedded in the
+script, asserted at the top of `main`): a synthetic q,k with position-varying signal
+only on contract dims `(0,32)` must land all energy on pair 0; signal only on
+`(21,53)` on pair 21. On the OLD bytes it FAILED (energy split over kid-pairs 0/16
+and 10/26, shares 0.42/0.58 -- reproduced in the parent review and again by a probe
+in this round's scratch dir). On the fixed bytes:
+
+```
+selftest head_var pair 0: hits=[0] shares=[1.0] -> PASS
+selftest head_var pair 21: hits=[21] shares=[1.0] -> PASS
+selftest head_var: PASS
+```
+
+## Run
+
+```
+cd <checkout> && PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
+  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_measure.py
+```
+
+Same weights as kid 1: `Qwen/Qwen2.5-0.5B-Instruct` revision
+`7ae557604adf67be50417f59c2c2f167def9a775`, model.safetensors sha256 `fdf756fa7f…`,
+config `18e18afcac…`, tokenizer `c0382117ea…`; float32; CPU, 8 threads, nice 19;
+20 prompts (10 wikitext-2 slices + 10 HumanEval prompts), halves A/B disjoint;
+336 query heads x 32 pairs; GQA groups of 7. Canonical
+`profiles.json`/`summary.json`/`summary.md`/`provenance.json` overwritten with the
+corrected numbers.
+
+**Hook check.** `q·kᵀ·64^-0.5` recomputed from captured post-RoPE q,k vs the model's
+own eager `attn_weights` (via `log w`), layer 0 head 0 prompt 0: max relative diff
+**4.265e-07** (kid 1: 4.27e-07). Note this check is pairing-invariant -- it compares
+the FULL q·k sum -- which is exactly why it could not catch kid 1's bug; the new
+per-pair selftest is the check that does.
+
+## T0 sanity
+
+| test | result |
+|---|---|
+| greedy next token after `The capital of France is` | **` Paris`** (pass) |
+| wikitext-2 perplexity, one 512-token slice | **25.0945** (finite) |
+
+## T2 stability: cos(profile_A, profile_B)
+
+| stat | value |
+|---|---|
+| mean | 0.998801 |
+| median | 0.999305 |
+| min | 0.984192 |
+| q10 | 0.997417 |
+| q25 | 0.998593 |
+| q75 | 0.999630 |
+| q90 | 0.999787 |
+| heads cos >= 0.9 | **336 / 336 = 100.0 pct** |
+
+Stability clause passes (claim needs >= 90 pct; falsifier trips below 80 pct).
+
+## T3 band classes: pooled energy share, low third p 21..31, high third p 0..10
+
+| class | threshold | corrected | kid 1 (wrong pairing) | met |
+|---|---|---|---|---|
+| low-third share >= 0.80 | >= 25 pct of heads | **171 / 336 = 50.89 pct** | 3 / 336 = 0.89 pct | **YES** |
+| high-third share >= 0.50 | >= 10 pct of heads | **37 / 336 = 11.01 pct** | 0 / 336 = 0.00 pct | **YES** |
+
+Means: low-third share **0.7224**, high-third share **0.1709** (uniform = 0.344).
+Both classes exist on the correct decomposition. Independently recomputed from
+`profiles.json` (re-derivng cos and the two shares from the stored profiles):
+336 stable, 171 low, 37 high -- exact match with `summary.json`, so the summary is
+faithful to the artifact bytes.
+
+### Per-layer pattern (24 rows)
+
+| layer | mean_cos | mean_low | mean_high |
+|---|---|---|---|
+| 0 | 0.997758 | 0.873116 | 0.112095 |
+| 1 | 0.998451 | 0.787739 | 0.152097 |
+| 2 | 0.995933 | 0.761247 | 0.198631 |
+| 3 | 0.999108 | 0.596699 | 0.268270 |
+| 4 | 0.999133 | 0.587606 | 0.318708 |
+| 5 | 0.999116 | 0.741565 | 0.141843 |
+| 6 | 0.998655 | 0.576871 | 0.296702 |
+| 7 | 0.999021 | 0.453932 | 0.392300 |
+| 8 | 0.999562 | 0.563711 | 0.369496 |
+| 9 | 0.998477 | 0.748706 | 0.141120 |
+| 10 | 0.999411 | 0.656756 | 0.204204 |
+| 11 | 0.999358 | 0.832321 | 0.054350 |
+| 12 | 0.999350 | 0.618245 | 0.240060 |
+| 13 | 0.999229 | 0.764554 | 0.099393 |
+| 14 | 0.998890 | 0.670409 | 0.168222 |
+| 15 | 0.999415 | 0.686306 | 0.175537 |
+| 16 | 0.999606 | 0.846504 | 0.030189 |
+| 17 | 0.998830 | 0.786338 | 0.094721 |
+| 18 | 0.999103 | 0.690113 | 0.162951 |
+| 19 | 0.999262 | 0.561828 | 0.300530 |
+| 20 | 0.999176 | 0.856092 | 0.041406 |
+| 21 | 0.999487 | 0.884285 | 0.049990 |
+| 22 | 0.997916 | 0.928689 | 0.017054 |
+| 23 | 0.996979 | 0.864968 | 0.072165 |
+
+Low-band heads are spread across all 24 layers (2..13 per layer), heaviest in the
+late half (L20-23: 11, 12, 13, 11). High-band heads concentrate in the early-middle
+layers (L4 5, L7 5, L8 7) and are absent from L9, L11, L13, L16, L17 and L20-23.
+Stability is uniformly >= 0.9959 everywhere.
+
+## Verdict: PROVED (falsifier does not trip)
+
+The hypothesis falsifier is a disjunction: `< 80 pct of heads stable at cos 0.9, OR
+no head class meets the band thresholds -> no static per-head distillation map`.
+
+- branch 1: stability 100.0 pct >= 90 pct and not < 80 pct -> **false**.
+- branch 2: low class 50.89 pct >= 25 pct AND high class 11.01 pct >= 10 pct ->
+  **false**.
+
+Neither branch triggers, so with the contract pairing the claim holds: every head has
+a static band-energy profile (cos >= 0.9 in 336/336) and BOTH band classes exist at
+the stated thresholds. Chain A continues to hop 2
+(`hypothesis:lm-band-pruned-heads-keep-next-token-agreement`), which masks pairs per
+head with these profiles.
+
+**Margin to name:** the high-band class clears its bar by 1.01 points (11.01 vs
+10.0 pct = 37 vs 34 heads needed). The low class clears by a wide margin. "Bimodal"
+here is the stated operationalization of the two thresholds; the overall profile is
+low-frequency weighted (mean low 0.722 vs uniform 0.344) with a distinct
+high-frequency sub-population, not a symmetric two-peak distribution.
+
+## Artifacts (config vars)
+
+- `paths.local_maxxing.osc_dir/osc_band_measure.py` (fixed, +39/-8 lines)
+- `paths.local_maxxing.osc_band_dir/profiles.json` (336 x 32: profile_A, profile_B, profile_pooled)
+- same dir `summary.json`, `summary.md`, `provenance.json` (corrected)
+- same dir `pairing-bug/` (kid 1's superseded artifacts, preserved)
+
+Out-of-repo roots, left literal and PROPOSED as box cells (not added): HF weights
+`/data/ml/scratch/osc03/hf`, pip target `/data/ml/scratch/osc03/pylib`, wikitext
+`/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw`, HumanEval gz under
+`/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
+
+## Production lines / ceiling
+
+`git diff --numstat` over the production path: **39 added / 8 removed** for
+`osc_band_measure.py` (the fix is ~5 lines; the rest is the selftest, its comments
+and the assert). Under the OSC.03 order ceiling of 60 and under the 40 default.
+`production_lines` = 39.
+
+## Left undone / caveats
+
+- float32, not the shipped bf16 (kept for the 1e-3 hook reproduction).
+- One model, one prompt split; no cross-seed or cross-model check.
+- The high-band threshold clears by ~1 point; a second split would test its
+  robustness.
+- `head_var`'s exactness rests on the embedded selftest plus the unchanged
+  prefix-sum algebra, not on an independent brute-force c_p matrix.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Round 2 after the parent demoted kid 1 (`experiment:a00-696d3283-44467f`,
+inconclusive_lean_disproved:60). Kid 1's `head_var` reshaped the head dim to
+`(T, 32, 2)` and paired CONSECUTIVE dims `(2p, 2p+1)`; the contract and the installed
+transformers 5.17.0 both pair `(p, p+32)`. I re-derived the split as two halves,
+added `selftest_head_var` (signal on one contract pair must land in exactly that pair
+index; run before the model pass), confirmed it FAILS on the old bytes and PASSES on
+the new, then re-ran the same 20-prompt measurement. The band results flip
+completely: low-third>=0.80 goes 3/336 -> 171/336 (50.89 pct) and high-third>=0.50
+0/336 -> 37/336 (11.01 pct), so both band classes exist and the falsifier's second
+branch is false; stability is 336/336. Verdict is proved, with the thin high-band
+margin (1.01 points) named as the caveat. I preserved kid 1's artifact set under
+`pairing-bug/` rather than deleting it.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Fixed head_var to pair rotate_half halves (p,p+32) instead of consecutive dims; embedded per-pair selftest PASSes (signal on (0,32) lands on pair 0 only, (21,53) on pair 21); re-ran 20 prompts on the same weights: stability 336/336 cos>=0.9, low-third>=0.80 171/336=50.89 pct, high-third>=0.50 37/336=11.01 pct -> both band classes exist, falsifier does not trip, proved; kid-1 artifacts preserved under pairing-bug/.
+
+Parent review (a00-817c9ad0): ACCEPTED proved. The parent wire probe reproduces kid-1's failure on the old bytes and PASSES on the fixed head_var (pair 0 and pair 21 land exactly); the gate probe independently recomputes 336 stable / 171 low / 37 high from the canonical artifact, matching summary.json. Falsifier branch 1 (stability < 80 pct) is false at 100 pct; branch 2 (no band class) is false at 50.89 pct low and 11.01 pct high, so per the node's own FALSIFIER the claim holds. Caveats carried forward: the high-band class clears its 10 pct bar by 3 heads (37 vs 34), so a second prompt split should test its robustness; numerics are float32, not the shipped bf16, kept so the 1e-3 hook check is meaningful. The hook check itself is pairing-invariant and could not have caught kid-1's bug, which is why the embedded per-pair selftest is now the load-bearing verification.
+
+director-thought harvest (OSC.03), independent check over the committed profiles.json: (1) STABILITY IS HEAD-SPECIFIC, not an artefact of share vectors: own A-vs-B cosine mean 0.9988 (min 0.984) against a cross-head cosine mean of 0.343 (median 0.245; only 7.4 pct of cross pairs reach 0.9), and 331 of 336 heads have their own B profile as the best match among all 336 -- a genuine per-head signature. (2) BIMODALITY: the low class is robust (171 heads at the ordered 11-pair thirds, 155 = 46 pct at 10-pair thirds); the HIGH class is marginal and definition-sensitive -- 37 heads (11.0 pct) at the ordered 11 pairs but 29 (8.6 pct, under the 10 pct bar) at 10 -- so the claim is proved as ordered, with that caveat carried. (3) For hop 2: masks keeping 95 pct of each head's energy drop a mean 54.1 pct of pairs (283 of 336 heads drop >= 40 pct); 90 pct energy drops 66.3 pct, 99 pct drops 30.7 pct. Deviations recorded: the orders said ONE kid and the parent ran two -- the second a corrective re-run after the first kid's demonstrable pairing bug, which is the right call and is kept; profiles are float32, not the claim's bf16.
+
+director-thought, OSC.03 mur (mur-director-thought-6, accept_with_residue, review + verify) closed: (a) FIXED in place -- the script's HumanEval input was a literal path into a gitignored session venv (iter-ABC.02); the same bytes (sha256 b796127e..., 44,877 B, MIT, human-eval 1.0.3) are now committed at datasets/humaneval-abc/data/ with their LICENSE and read through paths.local_maxxing.humaneval_file, so the script reproduces after that session is cleaned; (b) FIXED in place -- the hypothesis testable_claim's artifact clause now matches the body's FILE SCOPE; kid 1's body carries a demotion banner. OPEN, carried as residues, not edited away: the claim says HF bf16 and ANY two disjoint halves, while this round measured float32 on ONE balanced split (per-prompt profiles were not kept, so other splits cannot be recomputed) -- a follow-up round would persist per-prompt profiles, test many splits and repeat in bf16; the verify stage refuted the definition-sensitivity defect (the contract fixes 11-pair thirds). Notes: the two-kid deviation stands as recorded; the combined script is 196 engine lines vs the ordered 150 (under 2x).

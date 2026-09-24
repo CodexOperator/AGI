@@ -47,7 +47,7 @@
   "harnesses": {
     "pi": {
       "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "bin": "~/.npm-global/bin/pi",
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
@@ -63,15 +63,30 @@
     },
     "pi-local": {
       "adapter": "pi",
-      "bin": "/home/ubuntu/.npm-global/bin/pi",
+      "bin": "~/.npm-global/bin/pi",
       "provider": "local-town",
       "credential": "none",
+      "max_live": 1,
       "models": {
-        "kid": "Qwen3.5-9B-Q4_K_M",
-        "parent": "Qwen3.5-9B-Q4_K_M"
+        "kid": "OrcaBonsai-27B-C2",
+        "parent": "OrcaBonsai-27B-C2"
       },
       "allowed_extra": [
-        "Qwen3.5-9B-Q4_K_M"
+        "OrcaBonsai-27B-C2"
+      ],
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
+    },
+    "pi-free": {
+      "adapter": "pi",
+      "bin": "~/.npm-global/bin/pi",
+      "provider": "openrouter",
+      "thinking": "medium",
+      "models": {
+        "kid": "stealth/space-bunny-alpha",
+        "parent": "stealth/space-bunny-alpha"
+      },
+      "allowed_extra": [
+        "stealth/space-bunny-alpha"
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
@@ -93,7 +108,7 @@
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
-      "bin": "/home/ubuntu/.npm-global/bin/copilot",
+      "bin": "~/.npm-global/bin/copilot",
       "models": {
         "kid": "auto",
         "parent": "auto",
@@ -110,7 +125,7 @@
         "grok-4",
         "grok-4-fast"
       ],
-      "bin": "/home/ubuntu/.npm-global/bin/grok-bot",
+      "bin": "~/.npm-global/bin/grok-bot",
       "models": {
         "kid": "grok-4-fast",
         "parent": "grok-4"
@@ -125,7 +140,7 @@
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.0,
       "ttl_minutes": 300,
-      "workspace_id": "e31711fe-f121-4904-abe3-c54e7bcbe7e6"
+      "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
     },
     "parent_max_kids": 10,
     "memory_max": "6G"
@@ -197,5 +212,46 @@
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing"
+  },
+  "paths": {
+    "local_maxxing": {
+      "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
+      "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
+      "sessions_dir": ".agi/sessions",
+      "nodes_experiment_dir": ".agi/worktrees/a00-d511add6/.agi/nodes/experiment",
+      "kid_sft_out_dir": ".agi/worktrees/a00-d511add6/datasets/kid-sft",
+      "pi_traj_dir": "{pi_home}/sessions",
+      "heads_dir": ".agi/context/local-maxxing/heads",
+      "dead_head_dir": "datasets/dead-head",
+      "dead_head_run_dir": "datasets/dead-head/2026-09-23",
+      "dead_head_artifact": "datasets/dead-head/2026-09-23/qwen25_05b_head336_small_theory_redundancy_v2_boundary2.json",
+      "kv_groups_dir": "datasets/dead-head/2026-09-23-kv-groups",
+      "osc_dir": ".agi/context/local-maxxing/osc",
+      "osc_band_dir": "datasets/osc-band/2026-09-23",
+      "osc_band_hop2_dir": "datasets/osc-band/2026-09-23-hop2",
+      "osc_band_kquant_dir": "datasets/osc-band/2026-09-23-kquant",
+      "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
+      "kv_format_out_dir": "datasets/kv-format/2026-09-23",
+      "kv_speed_out_dir": "datasets/kv-format/2026-09-23-speed",
+      "kv_split_out_dir": "datasets/kv-format/2026-09-23-split",
+      "serving_sweep_out_dir": "datasets/serving-sweep/2026-09-23",
+      "serving_sweep_cold_out_dir": "datasets/serving-sweep/2026-09-23-cold",
+      "serving_sweep_ub_out_dir": "datasets/serving-sweep/2026-09-23-ub",
+      "specdec_out_dir": "datasets/specdec/2026-09-23",
+      "path_sweep_out_dir": "datasets/path-sweep/2026-09-23",
+      "served_models_dir": "{models_dir}",
+      "served_9b_gguf": "{models_dir}/Qwen3.5-9B-Q4_K_M.gguf",
+      "osc02_scratch_dir": "{ml_scratch_dir}/osc02",
+      "osc02_9b_gguf": "{ml_scratch_dir}/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+      "wikitext2_test_raw": "{ml_scratch_dir}/osc02/wikitext-2-raw/wiki.test.raw",
+      "wikitext2_zip": "{ml_scratch_dir}/osc02/wikitext-2-raw-v1.zip",
+      "osc03_hf_dir": "{ml_scratch_dir}/osc03/hf",
+      "osc03_pylib_dir": "{ml_scratch_dir}/osc03/pylib",
+      "cuda_jit_cache_dir": "{ml_scratch_dir}/cuda-jit-cache",
+      "ml_python": "{ml_venv_dir}/bin/python",
+      "nsys_dir": "{ml_tools_dir}/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+      "specdec_replay_out_dir": "datasets/specdec/2026-09-23-replay",
+      "brain_swap_out_dir": "datasets/brain-swap/2026-09-24"
+    }
   }
 }

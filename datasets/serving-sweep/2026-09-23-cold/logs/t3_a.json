@@ -1,0 +1,19 @@
+{
+ "name": "t3_a",
+ "port": 18088,
+ "load_s": 55.4,
+ "lv": 1,
+ "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+ "rows": [
+  {
+   "prompt_n": 2061,
+   "prompt_ms": 47762.527,
+   "prompt_per_second": 43.15098319651303,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 10000,
+   "size_bytes": 9000,
+   "ms_per_token": 23.174
+  }
+ ]
+}

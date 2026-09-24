@@ -37,7 +37,7 @@ director : mints one hypothesis per round · dispatches from ITS worktree · rev
 Prime    : accept / demote from the report + the bytes
            ─▶ verify on the trunk after EVERY landing: links 0 broken · goals round-trip byte-identical · active never drops · guard silent
            ─▶ grant the ONE suite window (stamp BEFORE any delete) ─▶ run the -live steps yourself on MAIN
-           ─▶ rulings = notes on the loop goal (write.py goal:<loop> "note …" + snapshot-goals.py --render, SAME commit) ─▶ push after every action
+           ─▶ rulings land where the HEAD's notes line says — never on a goal: goals are project trackers (owner 09-24) — a RULE lives ONLY in its role template, the HEAD or its schema, never in a loop doc (owner 09-23 16:5xZ, 17:1xZ) ─▶ push after every action
            ─▶ engine follow-ups / residues = g15 rounds ASSIGNED to director-engine, documented in the node, ONE dm (owner 09-21 01:4xZ)
 NEVER    : dispatch yourself · write in a director's worktree · pull work back to the Prime · invent goals to fill a budget
            (scope creep is THE failure mode, not idleness)

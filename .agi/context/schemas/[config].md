@@ -14,6 +14,7 @@ fields:
   config_marker_names: {type: list}  # what makes a directory a project
   discovery: {type: dict}            # how the graph root is found
   required_keys: {type: list}        # env keys a project cannot run without
+  required_any: {type: list}         # list of key groups; any one present satisfies the group
   optional_keys: {type: list}        # env keys it will use if present
   forbidden_keys: {type: list}       # env keys that must never be set
   seats: {type: list}                # config:seats (deprecated spelling, one season) / config:posts. The row list is resolved post-first by extensions/agi/bin/geometry_config.py (hypothesis:l4-a-seat-is-a-post-everywhere): `posts.md`/`posts:` is the primary; `seats.md`/`seats:` is the deprecated alias accepted in THIS window, so the live node may keep `seats:` until the migration renames it. One row per active seat:
@@ -21,7 +22,9 @@ fields:
                                       #  session_kind, personality_ref, handoff_file, pin_ref,
                                       #  rotated_by, owning_goal, worktree, session_ref,
                                       #  pubkey, sig_scheme, enc_scheme, key_history,
-                                      #  town}. `town` is the row's REAL town; its
+                                      #  template, town}. `template` is the role template
+                                      #  node ref that beats `brief.templates[<role>]` for
+                                      #  this row's role. `town` is the row's REAL town; its
                                       #  accepted vocabulary and the transitional
                                       #  overrides are the `town_cell` declaration
                                       #  above (goal:g15.25).
@@ -60,6 +63,7 @@ validation:
     config_marker_names: list
     discovery: dict
     required_keys: list
+    required_any: list
     optional_keys: list
     forbidden_keys: list
     seats: list

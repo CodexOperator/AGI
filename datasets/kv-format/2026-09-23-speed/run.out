@@ -1,0 +1,26 @@
+[bench_warm_f16] exit=0 secs=161
+[bench_f16] exit=0 secs=244
+{"f16": {"('pp512', 4096)": [1280.48, 182.54, 5], "('tg64', 4096)": [60.95, 1.0, 5], "('pp512', 16384)": [1158.66, 142.67, 5], "('tg64', 16384)": [57.14, 1.14, 5], "('pp512', 32768)": [950.55, 78.86, 5], "('tg64', 32768)": [51.08, 3.37, 5]}}
+[bench_warm_q8_0] exit=0 secs=211
+[bench_q8_0] exit=0 secs=217
+{"q8_0": {"('pp512', 4096)": [1277.05, 103.85, 5], "('tg64', 4096)": [51.62, 17.39, 5], "('pp512', 16384)": [1071.21, 170.68, 5], "('tg64', 16384)": [51.23, 2.98, 5], "('pp512', 32768)": [937.18, 32.73, 5], "('tg64', 32768)": [47.32, 1.3, 5]}}
+[bench_warm_q4_0] exit=0 secs=215
+[bench_q4_0] exit=0 secs=261
+{"q4_0": {"('pp512', 4096)": [1271.57, 143.03, 5], "('tg64', 4096)": [51.39, 17.04, 5], "('pp512', 16384)": [989.18, 73.8, 5], "('tg64', 16384)": [51.36, 1.95, 5], "('pp512', 32768)": [704.71, 140.81, 5], "('tg64', 32768)": [45.4, 0.49, 5]}}
+Traceback (most recent call last):
+  File "/data/work/agi/.agi/worktrees/a00-30ac1417/.agi/context/local-maxxing/kv/kv_speed_round.py", line 118, in <module>
+    def reparse():
+    ^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+  File "/usr/lib/python3.12/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib/python3.12/json/encoder.py", line 377, in _iterencode_dict
+    raise TypeError(f'keys must be str, int, float, bool or None, '
+TypeError: keys must be str, int, float, bool or None, not tuple

@@ -1,122 +1,177 @@
-# CARD — director-thought · ROLE = doc:unified-director-brief (the head, every director) + doc:lm-director-brief-customizations (thought-master's section) · this card = STATE + todo scratch only; the chain is the source, no rule is copied here
+# CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
-## §0 State
-| | |
-|---|---|
-| post | director-thought · director · town local-maxxing · claude-opus-5-5 (resumed 07:50Z 09-23; box reboot 13:18Z 09-22) · master thought-master (gen 11, joined 07:52Z) |
-| tree | /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought |
-| trunk | local-maxxing/season2/main -- the only branch merged into this post branch |
-| pool | headroom -7.16 USD (thought-master 07:5xZ) -> paid rounds refuse · pi-local = 0 USD |
-| router | :8080 one slot (-np 1) · --models-max 1 · 9B resident -> pi-local rounds strictly one at a time |
-| ids | renumber 09-23 (mint ids kept): g14.11->g5.27 (.1 battery) · g14.16->g5.31 · g14.15->g5.30 · g14.14->g7.33 (parked) · g14 stays |
-| board | town:local-maxxing trajectory_standin, thought-master writes it; my rows ride the [merge-up] |
-
-## §1 Plan -- TMM.37-41 (ask thought-master first; an owner order in my pane: act, then tell)
+## Identity
 ```
-batch B   ✅ SWR-RS.01 (C2 fires every seed · B no fire) · ✅ C2 mur + ✅ RS.01 mur, both accept_with_residue · ✅ all ordered corrections 43eb24ad6 · ⏸ 2 RS.01 dispositions ASKED 08:5xZ (harness path note · production_lines 74 -> 11)
-          after the RS.01 mur: TMM.38(2) deviation THOUGHT on a00-1864ce6e · TMM.38(3) letter_frequency floor notes on B, C2, gap_table.md · TMM.39(a) gap_table.md b/c labels to scorer.py · TMM.41 C2's 3 residues in place -> ONE batch-B merge-up
-batch A   G.01 HELD on its loop branch @109bcb618 (off-scope, parent overflowed, unreviewed) -> ⏳ research-review rr-mp02-g01 (propose-only)
-          then the grammar ALONE (pi deepseek, cap 1, wall 120, ONE kid, refuses off-scope output) -- dispatch line to thought-master first
-          then T.01 = finalize the 282 segments as MP.02's held-out set (grammar-labelled), per the review
-owner     ⏳ CFG.01 a00-e9111187 config-max pass (hypothesis:lm-every-experiment-path-is-a-config-variable) · Rules item 13 in agent-prompt.md (23663947a)
-done      TMM.39 (b)(c)(d) 9755735e0 · TMM.40 a00-e51d276e pending 70939506c · TMM.41 slot finding noted · g5.24.4 draft discarded
-guards    nothing under extensions/ (except the owner-ordered item 13) · orders wall 120 on paid rounds · no pi-local round live across 11:41Z · no multi-kid round under a pi-local parent
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 17 claude-opus-5-5 seated 03:31:50Z 09-24 (session post-director-thought-b7) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
+tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
+trunk     local-maxxing/season2/main -- the only branch merged in
+ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
 ```
 
-## §2 Landed
+## My R&D loop (owner 08:0xZ: an R&D loop, sub-goal nesting optional)
 ```
-SWR-C2.02  posts ref 37a4cf1e7 · C2 IFEval strict 0.802218 (434/541) >= 423 FIRES single-run · with HE 92.9pct rel C2 clears BOTH on single runs · owner-added arm, not the named {B,C1,A} · done-unreported: parent died on 401 key expired -> NO parent review
-checks     541/541 exact order · scored rows == committed file 541/541 · reductions exact · C2 == B on 28/541 (LoRA live) · links 3947/0 · goals 309 byte-identical
-SWR-RS.01  1826d71c6 (ff, pushed) · kid a00-1864ce6e verdict proved, parent accepted (4 probes) · my recompute from the 30 rows matches · finding: langdetect-only seeding not reproducible, noise sits in keywords:letter_frequency (stdlib random)
-dm         thought-master 07:58Z: TMM.32 crossed in flight (B re-score never dispatched) · C2 numbers · key-TTL finding · TMM.33 intake
-```
-
-## §3 🔴 Where it stops
-```
-09:0xZ 09-23  batch B corrections pushed 43eb24ad6 · ASKED thought-master: RS.01 harness-path note + production_lines 74 -> 11 -> then ONE batch-B merge-up (engine merge: agent-prompt.md item 13 rides it; TM runs the suite at the gate)
-LIVE   research-review rr-mp02-g01 (agi-director-thought-rr-mp02-g01) · CFG.01 a00-e9111187 (rebriefed 08:51Z with TMM.42's path convention; audit baseline 10,086 hits)
-next   TM answers -> apply -> merge-up line · rr-mp02-g01 lands -> read, report, grammar dispatch line to TM · CFG.01 lands -> check the TMM.42 convention + paths.py audit, harvest, report
-exact  cd /data/work/agi/.agi/worktrees/post-director-thought && python3 extensions/agi/bin/send.py read director-thought && systemctl --user is-active agi-director-thought-rr-mp02-g01
-window no pi-local round live across the Prime pass-2 (11:41Z)
+shape    FRAME -> IDEA -> HYPOTHESIS -> EXPERIMENT -> VERDICT -> WHY -> REFRAME -> next
+FRAME    before every mint, and again after every disproof or surprise:
+         goal in ONE line, my own words · BIGGER picture? (what is this a special case of · what would make it unnecessary · who solved the general form)
+         SMALLER, simpler one? (cheapest disproving test · one-variable version · the baseline nobody ran) · what result changes my mind? · what exists already (graph, treasury, papers)?
+         -> write on the node: frame: bigger | as-given | smaller -- <why>
+HYPOTHESIS  CLAIM with a number · FALSIFIER · MEASURE (metric + baseline) · CHEAPEST TEST · CEILING · IF-WRONG next move
+round    one variable · a baseline beside every number · warm-up before any tok/s · replicate before believing
+VERDICT  proved -> try the BIGGER frame · disproved -> WHY (research-review) -> brainstorm -> REFRAME · inconclusive -> the SMALLER frame · no signal round after round -> stop the line, say so, reframe (the master's call)
+protocol SELF-LOOP (owner 09:5xZ 09-23 via TMM.49, supersedes 08:3xZ ask-first): work town:local-maxxing trajectory_standin in its priority order on my own -- plan, mint, dispatch, review by name, close residues in-loop -- inside the board's rules row
+         message thought-master ONLY for a blocker or a fully completed merge-up · an owner order in my pane: act, then tell
+coord    owner 09:5xZ (goal:g5): Prime + thought-master idle -> an ENGINE blocker goes to director-engine by send.py + the town board, else keep chasing leads · director-engine tells me when the jev surface is up
 ```
 
-## §4 Traps
+## My rules (only what the role template does not already say)
 ```
-key TTL    per-spawn key TTL 180 min == wall allowance 180 min -> the parent review starves (C2: 401 at 17:14:14Z) -- reported, thought-master routes it
-orders     TMM.33 never reached me; TMM.34 landed only in the raw inbox while send.py read printed empty -> every lap: send.py read + raw inbox tail + master card + goal:g14
-pi-local   dry-run prints "model=deepseek"; the argv is --model Qwen3.5-9B -> trust the argv
-mur        run-key = mur-<post>; results under MAIN .agi/sessions/workflows/runs/<run-key>/ · a poll loop exiting != the unit finished -> re-check systemctl
-git        check git status AFTER a commit
-write.py   replace-body guard counts a TABLE and a # inside a fence as headings · an apostrophe inside a single-quoted arg breaks the shell
-dispatch   iter ids: digits only after the dot · headroom can change between dry-run and dispatch
-actor      export AGI_ACTOR=director-thought before write.py -- without it edited_by falls back to USER=belam (my past edits read belam)
-kids       a pi-local parent's kids do NOT inherit --harness pi-local -> they run pi/openrouter deepseek
-own miss   SWR-B.03 residues were hand-fixed; the chain says corrective rounds -> rounds from now on · orders were parked in a gitignored dir -> they live in the scratch below, tracked
-```
-
-## §5 Verification (known-good)
-```
-links.py links -> 0 broken · snapshot-goals.py --render --check -> byte-identical · git status clean after commit · push to refs/agi/posts/director-thought
-```
-
-## §6 BANKED
-```
-- fork get_can_shift probe on deployed prism build 10685/7dffb158d (TEL.03/TMM.29) -> next GPU-free slot
-- handoff: owner 08:0xZ 09-23 "HANDOFF.md is your handoff card"; the chain (unified brief §2/§3) makes this card the handoff and the root HANDOFF.md the Prime's -> using this card; owner corrects if the root file was meant
-- for the head, via thought-master: the brief's §4 thought section still names season1 paths
-```
-
-## Scratch -- orders (tracked; live rounds' orders replaced when they land, drafts dispatch only on go)
-```
-ORDERS CFG.01 (director-thought -> parent · OWNER order 09-23 ~08:4xZ, verbatim on goal:g14 · pi deepseek · cap 1 USD)
-read first  hypothesis:lm-every-experiment-path-is-a-config-variable · extensions/agi/lib/agent-prompt.md Rules item 13 (read only)
-task        every path literal in the town's experiment scripts becomes a named variable under paths in .agi/config.json, read through ONE shared reader
-inventory   2026-09-23: 19 of 51 tracked .py/.sh under datasets/ and .agi/context/local-maxxing/ carry 40 literals (15 files .agi/context/local-maxxing · 3 datasets/switch-rule · 1 datasets/kid-sft/build_corpus.py) -- re-derive it yourself, do not trust this count
-reader      one small reader that both .py and .sh can call (prints paths.<key>, relative values resolved from the repo root) -- it lives with the town tooling, NEVER under extensions/
-config      add only the keys you convert · descriptive names · each value = the exact literal it replaces (repo-relative where the literal was)
-behavior    per key: prove the variable resolves to the exact literal it replaced · per converted script: its smallest honest check still passes (--help, a dry run, or an import)
-nodes       Reproduce / Command lines in these chains that call a converted script cite paths.<key> -- a correction in place via write.py, results never rewritten · a node citing a converted file's bytes as evidence gets ONE note: converted, values identical, prior bytes at <commit>
-never       anything under extensions/ · result data (.jsonl / .json outputs) · regenerating any result · loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a (held for thought-master)
-kids        split by area if it helps, <= 3 kids · one experiment node per kid under the hypothesis
-wall        call done by 120 min wall-clock whatever the state (key TTL 180) -- land what is converted, name what is left
-cap         1 USD · line ceiling 120 engine-unit lines per kid
-record      keys added · literals converted per file · literals left + why · per-key resolved-value proof · checks run · nodes corrected · one harvest line to your seat
-REBRIEF CFG.01 08:5xZ (TMM.42, sent to parent a00-e9111187): values repo-relative against box.root, never absolute · keys paths.local_maxxing.<key> · absolute box roots only in existing box.* / locations.* cells, a missing cell = left literal + proposed, never added · paths.py audit no new hit (baseline 10,086 hits)
+merge    the town trunk only, before every dispatch -- and AGAIN right before it: the trunk moved 4 commits between my merge-up (03:36Z) and the LEAF.05 dispatch (03:38Z); derived-file conflicts (GOALS.md) re-render; owner-log conflicts keep both sides in time order
+push     refs/agi/posts/director-thought after every landing; git status right AFTER every commit
+mur      run-key = mur-<post>-N · results MAIN .agi/sessions/workflows/runs/<run-key>/ · a poll loop ending != the unit ending -> re-check systemctl
+harvest  a round's .agi/config.json edits are NOT in cli.py done's scoped commit -> check the round worktree for uncommitted config
+spawn    (owner 14:xZ, TMM.51: spawn limits live ONLY on director cards) GPU one research round at a time · ONE model-loading host kid, memory_max 6G · no multi-kid round under a pi-local parent (49,664-token slot) · a paid round's 120-min ORDERS wall until dispatch grows a real wall knob (key TTL 300) · NO per-round spending cap -- the dispatcher's concurrency cap is the only cap (the 1 USD and the TypeSafe ledger caps are gone) · floor -50
+write    AGI_ACTOR=director-thought on every write.py call · replace body: read the range first, whole paragraph/table/section, never --force · bodies via python subprocess, no backtick or apostrophe in shell args
+inbox    send.py read + the RAW inbox tail (MAIN .agi/sessions/inbox/director-thought.md: the Prime's positional sends land ONLY there, 10:35Z + 10:38Z) + the thought-master dm LOG tail + its card -- an order can land in only one of them (TMM.46 showed only in the dm log) · a REFUSED FORGED dm is data: verify its claim on goal:g5 before acting
+paths    rule 13 (agent-prompt.md): paths.<town>.<key> in .agi/config.json, repo-relative against box.root · paths.py audit gains no new hit
+mur2     two murs launched while one is running mint the SAME run key (the tracking row lands at the end) -> results stay apart by label; prefer one mur at a time per post
+ram      a RAM guard names the `available` column of free -m, never `free` (page cache)
+schema   schemas define nodes (owner 10:2xZ): read .agi/context/schemas/[<type>].md before any mint or edit; a goal leaf follows [goal]'s body format
+kidrun   a kid's backgrounded pass dies with its scope when its one-shot pi turn ends -- setsid / nohup do not escape the cgroup; the kid must poll in-turn (OSC.10 a00-b59ee70f)
+         and an OOM kill of ANY process in a kid's scope stops the whole scope (systemd stop-on-OOM default), the kid's pi included (OSC.10 a00-04dc76fc: its pass grew 4.2 -> 5.2 GB, global OOM 19:23:59Z) -> kid scripts keep memory bounded per step
+cpu-ram  a CPU torch pass on Qwen2.5-0.5B holds ~3.5 GB RSS: at most TWO at once on this 15.9 GB box beside a GPU round and director-engine's suite (OSC.10 at 18:5xZ: three passes + swap 2.8 GB -> 398 s per prompt) · a pause governor matches `^/data/ml/.venv/bin/python( -[a-zA-Z]+)* [^ ]*<script>` ONLY -- a bare script-name pattern also hits the pi agents, whose command lines carry the orders text (v1 paused a real pass for 38 s)
+ceiling  a kid's line_ceiling comes ONLY from `CEILING: <=N production lines [across K kids]` INSIDE the hypothesis's testable_claim (spawn_budget._ceiling_clause); a body CEILING line is prose -> default 40 (OSC.10's trap, flagged in the swarm room) · slice = ceil(N/K); the hard checkpoint is 2x the slice
+step     every round's node names its LARGEST SAFE STEP beside the honest bar verdict (TMM.50); the step joins the ladder's stack
+seat     a crash-recovery respawn leaves my row dirty in MAIN posts.md and the ack refuses -> commit that hunk alone in MAIN, then rotate.py ack --post director-thought --gen N --ref <ListAgents ref> continue
+anon     an anonymize REFUSED names a CLASS only: locate it in-process (anonymize.box_tokens, values masked, per file and +/- sign) before acting · the committed gate counts the LOOPBACK address as a box token (MAIN's uncommitted patch drops loopback/link-local) · never type an IP or hostname literal into a dm
+evidence every file a node cites (probe scripts, logs, T0 guard, restore proof, a step's source data) is written UNDER the round's out dir -- .agi/sessions is
+         gitignored: OSC.10 A's step producer, OSC.11's parent probe and its kid's restore proof all sat there uncommitted (mur-13 / mur-14, 09-23) -> an orders line,
+         and the harvest copies any stragglers verbatim beside the outputs after an anonymize check
+runs     evidence_runs is a LIST: write.py set evidence_runs [<id>] -- a scalar string counts 0 (normalize_evidence_runs: str -> 0) and the grid gate demotes a decisive verdict;
+         an experiment MAY cite itself (LEAF.04: gen 16 wrote the scalar, 3dda5c0841 demoted, e88d61a1a7 fixed) · the mur prime_step line spells the scalar: never copy it
+restore  a restore proof is a PARSED completion naming the model (a non-empty reply), never a /slots read -- OSC.11's kid proof was a JSONDecodeError
+memory   dispatch.py --memory N is written verbatim as MemoryMax=N (BYTES) -> pass 6G or omit it (config is 6G); a bare 6 OOM-killed OSC.12's first parent at start
+murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_up field> (merge_up director-thought-13 -> mur-director-thought-13) · --dry-run first
 ```
 
+## Live state (03:4xZ 09-24, gen 17)
 ```
-ORDERS MP02-T.01 -- DRAFT, dispatch only on thought-master's GO (director-thought -> parent · TMM.37 ASK 2 · batch A chunk 2 of 3 · pi deepseek · cap 1 USD)
-read first  hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call (MP.02) · goal:g5.24.3 · the MP02-G.01 kid node(s) + .agi/context/local-maxxing/magic-pane/cli-grammar.json (the label vocabulary)
-task        MP.02's held-out set: >= 100 REAL segments, each = the prose an author wrote up to just before a structured call -> the call that author actually invoked next
-sources     the masters' committed dm transcripts (.agi/comms/season-2/dm/*.md, 90 tracked) · MP.01's census: 63 forms = 39 kept + 24 dropped for too-short prose (datasets/magic-pane/metrics_strict.json) -- reuse the 39, never edit MP.01's segments.jsonl
-label rule  every label parses under G.01's cli-grammar.json; a next call that does not parse stays OUT and is counted with its reason -- never forced to fit
-record      per source · per role (master / director / prime / parent / kid) · per verb · the majority class and its share (S.01's baseline) · the unparsed count + reasons
-scrub       every landed segment passes datasets/tools/scrub.py; no raw log copied in
-land        datasets/magic-pane/<date>/, distinct from MP.01's segments.jsonl · ONE experiment node under MP.02
-never       anything under extensions/ · the suggester itself (S.01) · the GPU or :8080
-wall        call done by 120 min whatever the state (key TTL 180); if < 100 segments by then, land what exists and name the gap
-cap         1 USD · line ceiling 120 engine-unit lines
+TOP      OWNER 02:3xZ (TMM.90, verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
+         just research towards doing more efficient usd0 runs in the future"
+TOP2     OWNER via TM, verbatim: TMM.95 03:39Z "Make both directors go back to spawning parents efficiently with minimal token use." (LEAN:
+         short briefs, no side work, one [merge-up] per batch) · TMM.96 03:42Z "Let director thought keep pulling on threads independently only
+         informing you of occasionally of various milestones and to brainstorm next moves." -> self-loop; dm TM ONLY at a milestone (+ next-move
+         options) or a blocker
+LANES    FREE   OPEN since TMM.92 (03:18Z): --harness pi-free (stealth/space-bunny-alpha), 0 USD · the provider RETAINS prompts (account ZDR off)
+                -> anonymize --text on every orders file; no secret, key, address or hardware name in any brief
+                PARENTS again (TMM.95) -- LEAF.04's kid 401 likely rode the parent passing the MAIN checkout as <project> (its kid manifest landed
+                there): parent orders now pin `dispatch.py .` from the parent's own worktree · LEAF.05 ran as a direct kid before TMM.95 (90 s, clean)
+         PAID   held (TMM.66) · a kid record showing harness pi = CUT it + one line to TM
+         LOCAL  retired as an operating mode (TMM.90): 0-USD efficiency = research hypotheses on FREE
+BRAIN    brain-orcabonsai27b UP on the loopback 8080 (C2, one 65,536 slot, router stopped) -- nobody's lane now; never restart it without the owner
+GATE     [merge-up] LEAF.04 batch sent 03:36:52Z at 4c67ce248a (47 commits / 19 files; TM pane busy -> queued): LEAF.04 proved (mur-16 closed in
+         place, e88d61a1a7) + REPLAY framing + 5 minted hypotheses + brain swap; config hunk (b) = the pi-local row -> OrcaBonsai: TM keeps or drops
+LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
+  done   L1 KV format (q4_0 + --fit-target 512 = 156,416 tokens, 3.15x, +0.074 pct NLL) · L6 knobs · L10 open-loop map · L6b -ub refuted (keep 512)
+  L3     DISPROVED x3 at 3.5 bits (top-1 agree 0.56-0.61, bar 0.98) · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
+  [1b]   the swarm has NOT earned a brief line (2.3x the tokens of the control, no division of labour)
+  L9/10  OSC.12 DISPROVED as stated (ngram-simple x7.9 on edit-and-return only) -> REFRAME = REPLAY.01 (bc777c1fe7)
+routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> director-engine · kids ignore --harness pi-local · AGI_ACTOR unset on resumed
+         seats · cli.py done drops config.json · stale box.* / locations.* cells (box.root = another box's home: the paths.py CLI get() of a
+         RELATIVE cell resolves there -- use get_local) · pi-free parent -> kid 401 + no kid manifest / agent.json (to TM 03:27Z, for director-engine)
 ```
 
-MP02-G.01 (dispatched 07:58Z):
+## 🔴 Where it stops -- 04:0xZ 09-24: LEAF CLOSED (mur-17 accept / accept_with_residue); mur-18 (REPLAY + CTX) running; CEN.01 live
 ```
-ORDERS for MP02-G.01 (director-thought -> parent; TMM.33 batch A, chunk 1 of 3; 0 USD on pi-local). Read hypothesis:lm-magic-pane-wrapper-prose-to-one-structured-call and goal:g5.24 (its JEV LANE block, "GRAMMAR FIRST") in full before anything else.
+NOW      mur-director-thought-18 = unit agi-director-thought-mur-18 (04:06:00Z, pi-free, rounds replay01 + ctx01, args /tmp/dt17-mur18-args.json)
+         results MAIN .agi/sessions/workflows/runs/mur-director-thought-18/ · by hand: systemctl --user is-active agi-director-thought-mur-18
+         ON ITS VERDICT: close fixes in place -> ONE [merge-up] (LEAF B + C + CEN.01 + REPLAY.01 + CTX.01, from 4c67ce248a) + the MILESTONE line to TM
+         (TMM.96: the LEAF closed + REPLAY / CTX results + next-move options + the SWR-SV.01 correction owed)
+         CEN.01 LANDED 5f54ee5cb7 (parent a00-61c379ca -> kid a00-df02e281, 3 min): experiment:a00-df02e281-3ba1f7 PROVED -- paths.main_checkout_root()
+         (git common dir parent), detect.py ROOT reads it; 25 passed; wire probe from my worktree -> main, from main == checkout_root -> IN this merge-up
+         as the closure of the mur-17 residue (a 14-line fix delta, verified on the bytes; TMM.66: TM verifies a fix delta at the gate)
+mur-17   04:05Z success: leaf05 accept (7/7 MET) · leaf06 accept_with_residue (verify CONFIRMED detect.py ROOT, REFUTED the tempfile residue)
+         -> the LEAF closed on its hypothesis THOUGHT (de13597487)
+LEAF     B LEAF.05 proved @7acd103f71 · C LEAF.06 harvested 0890b9604a (parent a00-9bca4596 -> kid a00-5e699898, 3 min, the parent->kid spawn WORKED
+         with project = its own worktree: no 401) -> parent verdict inconclusive_lean_proved:85 STANDS; my fix delta 6a1253fce1 (router_mode_probe
+         argv[3] was the scratch DIRECTORY, a moved value the parent missed) · final bytes: whole-town regex = 4 paths.py table lines + 6 ~/.venv-lm
+         + 11 test fixtures (excluded by the node's note) · 24 passed · residue: detect.py ROOT = checkout_root() names a worktree when run from one
+         (its census wants the main checkout) -> a follow-up leaf
+REPLAY   REPLAY.01 LANDED 215c2beb65 (parent a00-7d91a301 -> kid a00-3dee1b83, 6.5 min): inconclusive_lean_disproved:85 as the parent recorded --
+         the replay FAILS its calibration gate on every rule (logged rows within 5 pct: 0/17 simple, 0/14 map-k, 0/13 mod; replay accepted 7
+         vs the server 13,538 -> it never sees the generated stream) -> no projection, the transcript half never ran, the claim UNTESTED
+         NEXT-MOVE options: (a) SMALLER: one rule on one OSC.12 request from the server-returned token ids, not re-tokenized text
+         (b) measure live on sampled agent requests on the served model (a GPU round: the router is stopped -> the owner / TM)
+QUEUE    (TMM.90/92/95: my ready order, lean parents)
+  1 LEAF.04  DONE: proved, mur-16 closed in place, [merge-up] sent 03:36Z (GATE)
+  2 LEAF.01  B + C DONE (LEAF.05 proved, LEAF.06 lean_proved:85 + my fix delta) -> mur-17 -> the LEAF verdict + [merge-up]
+  3 REPLAY.01 (bc777c1fe7) -- DONE: inconclusive (the replay is unfaithful, 0 of logged rows); reframe options on REPLAY above -> TM at the milestone
+  4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config: output 1 = the brain-swap numbers + the ONE LoRA-proof prompt still owed · output 3 =
+             HumanEval 164 ONCE MORE on the served build (the mvp words; the battery C2 143/164 is the single run it replicates) = ~1 h of the slot,
+             a script, no agents, 0 USD -> needs TM's go (TMM.90 retired 0-USD runs as an operating mode) -- OWED: my 02:4xZ dm said review-only
+             and TM agreed on that wrong line -> CORRECT it in the next TM line (the B + C merge-up)
+  5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
+             CTX.01 LANDED c83d904440 (parent a00-89a8605a -> kid a00-e98ba376, 4 min): DISPROVED as the compound claim -- the duplicate is REAL
+             (56,019 -> 1,751 request bytes = ~14,040 tokens per agent turn with --no-context-files) but 8 CLAUDE.md sections are ONLY-HERE ->
+             STEP = --no-context-files + ONE appended copy (~7,000 tokens off every pi turn): ROUTED to director-engine 04:0xZ (its adapter lane)
+             director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
+LOG      03:31Z mur-director-thought-16 (pi-free): review demote on ONE defect (no evidence_runs), 6/6 claim conjuncts MET; verify confirmed it,
+                refuted the fallback-table residue -> gen 16 set a SCALAR self-citation (counts 0) -> 3dda5c0841 recorded the demotion ->
+                gen 17 e88d61a1a7: a one-entry LIST -> enforce_on_disk passes, proved restored
+         03:36Z trunk a7bee7f7d2 merged (4c67ce248a), checks: leaf tests 8/8 · anonymize ok · links 0 broken · 0 node deletions -> [merge-up] to TM
+         03:38Z trunk 1a34e5f070 merged again (b2b29f0b67: goal:g5's Agent Notes left the goal) -> LEAF.05 dispatched, dry-run first (exit 0)
 
-WHY THIS CHUNK: MP.02 (the magic-pane SUGGESTER) ranks up to 5 candidate graph tool calls from a prose stream. It needs a machine-readable grammar of those calls. The engine version of that grammar (goal:g7.33, was G14.14.6) is PARKED by owner order, so TMM.33 builds it here as jev-lane tooling. Do NOT touch extensions/ -- read it only.
+0 MODEL  rotate only at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge
+         origin/season2/main as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
+traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
+       special 0-USD run; TMM.71 once withdrew TMM.70 the same way
+       · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
+         and read the tail
+       · the rotate-out COMMITS a thin auto-captured card: the full card lives only in the predecessor's last hand-written card commit
+         (gen 16 = ec37d59f8e) -> the successor rebuilds it whole from there
+       · pi prints a COST for a custom model id (0.0326 on a 24K free turn) = its own table, not the bill: the key used= (provisioning.py status)
+         is the truth
+       · write.py: a joined script --dry-run admits can still be refused live ("replace body is standalone") -> replace body alone, thought apart
+       · replace body refuses a range that splits a section: a heading's section runs to the next heading, the THOUGHT block included -> replace
+         the whole section, carrying the THOUGHT bytes
+       · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
+       · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
+       · the dispatch dry-run warns "ladder row wins -> deepseek" and then --harness pi-free overrides it: the spawn line's --model is the truth
+tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) now that the LEAF resolver has landed
+```
 
-TASK: produce .agi/context/local-maxxing/magic-pane/cli-grammar.json plus the script that derives it, in the same dir.
-- Tools in scope (the calls town agents actually emit): extensions/agi/bin/write.py (every verb: create, note, set, thought, replace body, and any others it defines), extensions/agi/bin/send.py (send, read and their flags), extensions/agi/bin/dispatch.py (positionals + flags), extensions/agi/bin/workflow.py (run and its other subcommands).
-- Per verb: name; positional args; flags (type, required, default); ONE real example invocation; invariants taken from the tool's own source or docstrings (examples already known: write.py set takes a SPACE not '='; note appends one paragraph; thought replaces the THOUGHT block; dispatch iter_n is label.digits with digits only after the dot); traps taken ONLY from recorded town sources -- CLAUDE.md, the traps lines on .agi/sessions/quorum/*.md cards, doc:lm-local-town-box-facts -- each trap citing its source. Invent none.
-- DERIVE, DO NOT TRANSCRIBE: the JSON must be generated by the script from the tools themselves (python ast over the argparse/verb tables, or parsing each tool's --help), so it regenerates when the CLI changes. Hand-typed JSON is a defect.
+## Banked
+```
+- four proposed box cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir) are the Prime's to write (rule 13); they retire the LEAF's root table
+- the CLAUDE.md-twice lever: measured (CTX.01) and routed to director-engine (the one-copy adapter change); watch for its landing
+- a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner
+- fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
+- the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
+```
 
-MEASURE (the experiment node must carry these numbers):
-1. coverage -- per tool, verbs and flags the derivation found vs what that tool's own --help lists; name every miss.
-2. validation -- parse >= 30 REAL invocations against the grammar. Sources: exact commands quoted in .agi/comms/season-2/dm/*.md, in the quorum cards, and in node Agent Notes; and the Bash tool_use command strings in the claude-code session logs under /home/belam/.claude/projects/-data-work-agi*/ (READ ONLY -- never copy a raw log into the repo; any example you land goes through datasets/tools/scrub.py first). Report how many parse and how many fail, and WHY each failure fails. A failure is data; do not loosen the grammar to hide it.
-3. size -- grammar size in tokens (it goes into the suggester's prompt next chunk).
+## Scratch -- orders (tracked; live rounds only, replaced when they land)
+```
+ORDERS LEAF.06 (C, LIVE) -- .agi/sessions/orders/LEAF.06.parent.txt + LEAF.06.kid-C.txt (gitignored; if lost: rebuild from the LEAF node's FILE
+            SCOPE + CEILING split, one row per FALSIFIERS-regex hit: file:line literal -> paths.get(cell)) · dispatched as:
+            AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . LEAF.06 --target hypothesis:lm-town-code-host-paths-resolve-through-paths-cells
+            --level small --tier parent --harness pi-free --branch --detach --orders .agi/sessions/orders/LEAF.06.parent.txt --from director-thought > <file> 2>&1
 
-LOCAL-MODEL CONSTRAINTS: you and your kids run on Qwen3.5-9B-Q4_K_M through the :8080 router, which has ONE slot (-np 1) and --models-max 1. NEVER request any other model on :8080 -- it would unload the 9B you are running on. Parent and kid share that one slot, so keep kid briefs short and your own turns lean.
-
-CAP: 0 USD (pi-local). LINE CEILING: 120 engine-unit lines (the derivation script); the JSON output does not count. OUT OF SCOPE: the dm/notes test set (chunk MP02-T.01), the suggester itself (chunk MP02-S.01), any edit under extensions/.
-
-RECORD NUMBERS: verbs and flags covered per tool with misses named; validation parse rate on >= 30 real invocations with each failure's reason; grammar token count. One harvest line to your seat when done.
+ORDERS REPLAY.01 -- READY, THIRD on the free lane (TMM.90) -- target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation
+dispatch    python3 extensions/agi/bin/dispatch.py . REPLAY.01 --target hypothesis:lm-agent-transcript-replay-prices-ngram-speculation --level small --tier parent
+            --harness pi-free --branch --orders <this block as a file>  (NO --memory; its kid spawn carries --harness pi-free)
+read first  the node (Measured · CLAIM · FALSIFIERS · FILE SCOPE) · experiment:a00-71dbbad5-e8f839 (OSC.12's classes, rows and acceptance lines) ·
+            llama.cpp's draft-free rules at the served image's build (10991): the exact trigger, n / m and acceptance rule per type
+order       ONE kid: (1) the replay + its selftest · (2) the calibration on OSC.12's 24 requests per rule, committed FIRST · (3) only then the transcripts:
+            the seeded stratified sample, the per-part acceptance table, the projections with and without thinking, two disjoint samples
+data        the transcript root is a command-line argument, never a literal (paths.local_maxxing.pi_traj_dir names another box's pi home: stale, routed)
+            -- the pi harness home on this box; streamed, never loaded whole
+tokenizer   the served 9B vocabulary through the BRAIN read-only /tokenize (the local-town provider endpoint in the default pi config;
+            add_special false): its GGUF carries the 9B BPE byte-for-byte (7f226b8bec) -- the router is STOPPED; never restart or reconfigure
+            the brain
+evidence    every output under paths.local_maxxing.specdec_replay_out_dir (get_local), committed; counts and hashes only, never transcript text;
+            anonymize.py check before the commit
+never       the GPU · the router restarted · extensions/ · .agi/config.json · OSC.12's committed results regenerated
+restore     none -- no box state is touched
+wall        call done by 120 min wall-clock whatever the state
+record      calibration misses per rule (x/24) · acceptance per part (thinking / bash / text / write / edit / read) per rule · the fitted curve + its E / D
+            residuals · projected median per rule, thinking on / off · two-sample agreement · one harvest line to my seat
 ```

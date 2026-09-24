@@ -475,19 +475,25 @@ def _this_box(root: Path, box_name: str | None = None) -> str:
 
 
 def _substitute(text, root: Path, repo_root: Path, own: str):
-    """Resolve the four portable placeholders by LITERAL token replacement —
-    `{root}`, `{repo_root}`, `{logs}`, `{box}` — from the same values the
-    renderers already compute. Never `str.format()`: a cron `cmd` is an
-    arbitrary shell string that may carry stray `{`/`}` from shell syntax
-    `format` would choke on or mis-substitute. Non-strings pass through."""
+    """Resolve `{root}`, `{repo_root}`, `{logs}`, `{box}` through the ONE
+    schema-declared map (`boxes.resolve_placeholders`), never a second literal
+    token list here. Values come from what the renderers already compute --
+    never `boxes.box_cells(root)`, whose live cells belong to a foreign box.
+    Never `str.format()`: a cron `cmd` is arbitrary shell and may carry stray
+    `{`/`}` `format` would mis-substitute. Non-strings pass through."""
     if not isinstance(text, str):
         return text
-    for token, value in (("{repo_root}", str(repo_root)),
-                         ("{root}", str(root)),
-                         ("{logs}", str(_log_path(repo_root).parent)),
-                         ("{box}", own)):
-        text = text.replace(token, value)
-    return text
+    import boxes
+    cells = {"root": str(root),
+             "logs_dir": str(_log_path(repo_root).parent),
+             "repo_root": str(repo_root),
+             "box": own}
+    try:
+        return boxes.resolve_placeholders(text, cells, Path(root))
+    except boxes.BoxSchemaError as exc:
+        # Fail closed BY NAME: an unrenderable token is `ERR: crons.py:` rc 1,
+        # never a traceback out of main's CronsError-only handler.
+        raise CronsError(f"placeholder render: {exc}") from exc
 
 
 def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: dict,
@@ -1078,7 +1084,7 @@ def cmd_audit(root: Path, crontab_file: Path | str | None = None,
         found.append("crontab: this project's managed block drifts from the "
                      "node (run `crons.py apply`)")
     for name, job in node["jobs"].items():
-        if name in KNOWN_JOBS and job.get("box") and not job.get("why_box"):
+        if job.get("box") and not job.get("why_box"):
             found.append(f"node: cadences.{name} gates on box {job['box']!r} "
                          f"with no `why_box` — a `box` gate is the exception "
                          f"and must say why")

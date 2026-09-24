@@ -58,7 +58,7 @@ def _default_tier_for_role(role):
     return {"kid": 0, "parent": 1, "director": 1, "prime_director": 3}.get(
         role, 0)
 from dispatch import (pi_model_args, _reap_pass, _reap_one, _death_class,  # noqa: E402
-                      _turn_end_with_live_kid)
+                      _turn_end_with_live_kid, _mark_turn_end)
 from dispatch import _rec_pid, _is_death  # noqa: E402 -- null/non-int pid tolerance; ONE death predicate
 from dispatch import scrubbed_env as _scrubbed_env  # noqa: E402
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
@@ -104,6 +104,25 @@ def _pi_model_args(root: Path, tier: str = "kid",
         print(f"heal: could not read model config ({exc}); using pi defaults",
               file=sys.stderr)
         return []
+
+
+def _pi_bin(root: Path) -> str:
+    """The pi binary a healer runs, through the ONE shared resolver
+    (`adapters.resolve_bin`) instead of a stored `/home/<user>` literal
+    (`goal:g15.29.2`). Never raises: healing runs when something is already
+    broken, so an unresolvable pi costs the healer its named override, not
+    its existence."""
+    try:
+        cfg_path = locations.config_path(root)
+        cfg = json.loads(cfg_path.read_text()) if cfg_path else {}
+    except Exception:  # noqa: BLE001 -- see docstring
+        cfg = {}
+    h = (cfg.get("harnesses") or {}).get("pi") or {}
+    try:
+        return adapters.resolve_bin(h, "PI_BIN", "pi")
+    except FileNotFoundError as exc:
+        print(f"heal: {exc}; using bare 'pi' from PATH", file=sys.stderr)
+        return "pi"
 
 
 def main() -> int:
@@ -479,11 +498,10 @@ def _watch_round(root: Path, iter_dir: Path, adapter) -> None:
                     f"turn-end with live kid {_turn} (headless exit, not a "
                     f"death)" if _turn
                     else f"pid {pid} died (detected by reaper)"),
-                "death": dict(_death_class(
+                "death": _mark_turn_end(_death_class(
                     rec.get("worktree") or "", agent_id,
                     int(time.time()) - int(rec.get("started_at", 0) or 0),
-                    agent_dir=iter_dir / agent_id),
-                    **({"evidence": "turn-end"} if _turn else {})),
+                    agent_dir=iter_dir / agent_id), _turn),
             }
             rec.update(death)
             rec_path.write_text(json.dumps(rec, indent=2))
@@ -3110,7 +3128,7 @@ Stay surgical. Don't refactor unrelated code.
 """
     )
 
-    pi_bin = os.environ.get("PI_BIN", "/home/ubuntu/.npm-global/bin/pi")
+    pi_bin = _pi_bin(root)
     healer_log = healer_dir / "output.log"
     # Two defects fixed here on 2026-08-31, both silent, both on the path that
     # only runs once something else has already gone wrong:

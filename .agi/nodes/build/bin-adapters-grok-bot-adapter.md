@@ -7,7 +7,7 @@ parents:
 next_edges: []
 build_kind: code
 confidence: 0.9
-edited_by: a00-8f215541
+edited_by: a00-b6a44c26
 link_ref: extensions/agi/bin/adapters/grok_bot_adapter.py
 location: source_root
 loop: goal:g7.25.1@s2
@@ -31,18 +31,18 @@ town: core
 `extensions/agi/bin/adapters/grok_bot_adapter.py` — the fourth harness adapter,
 carried onto this tip byte-for-byte from the `goal:g17.14` lineage (sibling tip
 `season2/loops/goal-g7.25.1-a00-28ff2420`, `44e6f11a7`). SHA-256
-`66b7891f4f19a0628a0410bf6e9203536d4504b40b0e85185b27bc310826081c`, 162 lines.
+`07f2ef7f76c263551882f3adbe436828b65b2c609e9e55e710c034c9da5e6dec`, 168 lines.
 
 Surfaces: `NAME`, `resolve_bin`, `model_args` (a missing tier errors by name,
 never a silent fallback), `child_env` (the ONE credential-none rule), a
 measurable stub `build_command`, `is_alive`, a real `restart`, and an explicit
 `needs_credential -> False`. It is loaded by `adapters.load("grok_bot")`; it is
-not yet reachable through config because the `harnesses.grok-bot` row is
-Belam's cell (`goal:g7.25.2`) and out of scope here.
+reachable through config: `.agi/config.json:107` carries the `harnesses.grok-bot` row;
+Belam's cell (`goal:g7.25.2`) is live -- the adapter IS selectable, not out of scope.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Why THIS version exists: the adapter and its test were built on the goal:g17.14.* lineage and exist as committed bytes on two sibling loop tips (44e6f11a7, 1e9e94b75), but neither tip is on core/season2/main and the file is absent on this base. That is DT.23 residue 1: a real engine file with no build node on the tip level3.py scans, so a rescan would mint a second, competing `build:bin-adapters-grok-bot-adapter` and any provenance link to the file would not resolve. This node and the file arrive together as ordinary writes in this worktree — no merge, no cherry-pick — so the tip has exactly one build node per file. `mint_id 93a56c11…` is the DT.21 canonical id, deliberately reused rather than re-minted, and it is unclaimed elsewhere on this tip (checked). Parent `mvp:unified-spawn-path` is the design node that specified the harness seam and it resolves here. The stale `spawn_check_reason` both prior nodes carried ("schema 'build' is discriminated on 'build_kind', which this node does not set") is FALSE on bytes that do set `build_kind: code`, so it is not carried. `origin: build-version` records that this is a version carried onto a new tip, not a fresh scan.
+EF.70 a00-b6a44c26: the duplicate live ids this node EF.53 THOUGHT recorded are now RESOLVED. The a00 file took id build:bin-adapters-grok-bot-adapter-a00-fcfbc2f9, unset link_ref, was marked status deprecated and moved to .agi/nodes/deprecated/build/ (mint 07acc9ce unchanged, no git rm, no supersedes pair); mint 93a56c11 here is the ONE live id and reads its payload. Prose corrected to the live bytes: payload sha 07f2ef7f.../168 lines (was 66b7891f.../162), .agi/config.json:107 carries the harnesses.grok-bot row (was not-yet-reachable/out-of-scope), and the old absolute that no committed reader flags two live files sharing one id is FALSE -- loader.py:222-227 warns and sets graph.duplicate_ids, dashboard.py:279 find_duplicate_ids, stitch.py:436-444 duplicate_payload_ref. ONE residual, measured: the retired node KEEPS payload_ref because the [build] schema requires it and schema_registry.dsl.validate has no conditional rule, so write.py refuses the removal and stitch --verify duplicate_payload_ref stays 1; clearing it needs a schema/engine allowance for deprecated nodes or a supersedes chain, neither in this round scope.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-DT.24 (a00-8f215541): re-landed through write.py in place so the write log carries a sanctioned update_node entry keyed to this node canonical mint id; the DT.23 landing was hand-written and left no write-log record. Payload bytes (sha256 66b7891f...6081c, 162 lines), parents, payload_ref, link_ref and build_kind are unchanged.
+DT.24 (a00-8f215541): re-landed through write.py in place so the write log carries a sanctioned update_node entry keyed to this node canonical mint id; the DT.23 landing was hand-written and left no write-log record. Payload bytes (sha256 07f2ef7f...e6dec, 168 lines), parents, payload_ref, link_ref and build_kind are unchanged.

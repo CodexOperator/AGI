@@ -272,3 +272,20 @@ def test_heal_leaves_a_live_pid_stalled_record_untouched(monkeypatch, tmp_path):
     assert "finished_at" not in rec
     assert json.loads(mp.read_text(encoding="utf-8"))["agents"][0]["status"] \
         == "stalled"
+
+
+def test_healer_pi_bin_resolves_through_the_shared_resolver(tmp_path, monkeypatch):
+    """The healer's pi binary goes through `adapters.resolve_bin` (the ONE
+    resolver every spawn site uses), never a stored `/home/<user>` literal
+    (goal:g15.29.2)."""
+    graph = make_project(tmp_path)
+    seen = {}
+
+    def fake(h, env_var, default):
+        seen.update(env=env_var, raw=default)
+        return "/resolved/pi"
+
+    monkeypatch.setattr(heal.adapters, "resolve_bin", fake)
+    assert heal._pi_bin(graph) == "/resolved/pi"
+    assert seen["env"] == "PI_BIN"
+    assert seen["raw"] == "pi"

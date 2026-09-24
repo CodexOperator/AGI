@@ -105,6 +105,67 @@ def test_copilot_builder_renders_frozen_argv(model, effort, extra):
     assert got == expected
 
 
+# --- hypothesis:harness-template-emit-refuses-an-unknown-slot -----------
+# An element whose `slot`/`when`/`spread` names a value outside the render
+# vocabulary was silently dropped at emit (`values.get` -> None -> []). It is
+# now refused BY NAME at check time, in top-level argv AND in a shape.
+
+def test_unknown_slot_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nflag = "--model"\n'
+        'slot = "modell"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown slot 'modell'" in str(exc.value)
+
+
+def test_unknown_when_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nconst = "--verbose"\n'
+        'when = "verbos"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown when 'verbos'" in str(exc.value)
+
+
+def test_unknown_slot_inside_a_shape_is_refused(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[shapes.d]\nargv = ['
+        '{flag = "--x", slot = "nope"}]\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown slot 'nope'" in str(exc.value)
+    assert "shapes.d" in str(exc.value)
+
+
+def test_known_slot_and_when_still_render(tmp_path, monkeypatch):
+    """Regression guard: the known vocabulary is unchanged -- a known slot
+    emits its flag/value and a known `when` still gates emission."""
+    (tmp_path / "ok.toml").write_text(
+        'id = "ok"\nbin = "b"\n[[argv]]\nflag = "--model"\n'
+        'slot = "model"\n[[argv]]\nconst = "--verbose"\n'
+        'when = "verbose"\n[[argv]]\nslot = "prompt"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    assert harness_template.render(
+        "ok", bin_path="b", prompt="P", model="m", verbose=True) == [
+            "b", "--model", "m", "--verbose", "P"]
+    assert harness_template.render(
+        "ok", bin_path="b", prompt="P", model="m") == [
+            "b", "--model", "m", "P"]
+
+
+def test_render_vocabulary_matches_the_values_dict(tmp_path, monkeypatch):
+    """One source of truth: every render() keyword is in RENDER_VOCABULARY
+    and the emitted values dict has no key outside it."""
+    import inspect
+    params = set(inspect.signature(harness_template.render).parameters) - {
+        "harness_id", "shape", "bin_path"}
+    assert params == set(harness_template.RENDER_VOCABULARY)
+
+
 def test_unknown_template_is_a_named_error():
     with pytest.raises(harness_template.UnknownHarnessError) as exc:
         harness_template.load("does-not-exist")
@@ -428,3 +489,143 @@ def test_non_list_shape_argv_is_a_named_error(tmp_path, monkeypatch, literal):
     with pytest.raises(harness_template.HarnessTemplateError) as exc:
         harness_template.load("bad")
     assert "shapes.d.argv is not a list" in str(exc.value)
+
+
+def test_render_expands_a_home_token_bin_through_the_one_resolver(
+        tmp_path, monkeypatch):
+    """Round 3 of hypothesis:harness-bin-paths-resolve-per-box: `render()` has
+    no graph root, so a raw `~/.npm-global/bin/...` cell in the template is
+    expanded against the CURRENT HOME. Pre-fix the raw `~` literal reached
+    argv[0] and `Popen` died with FileNotFoundError('~/...') naming nothing."""
+    home = tmp_path / "home"
+    bindir = home / ".npm-global" / "bin"
+    bindir.mkdir(parents=True)
+    fake = bindir / "pi"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("HOME_HARNESS_BIN", raising=False)
+
+    td = tmp_path / "tmpl"
+    td.mkdir()
+    (td / "home-harness.toml").write_text(
+        'id = "home-harness"\nbin = "~/.npm-global/bin/pi"\n'
+        '[[argv]]\nslot = "prompt"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: td)
+
+    got = harness_template.render("home-harness", prompt="CARD")
+    assert got == [str(fake), "CARD"]
+
+
+#: (harness id, the ONE env var its adapter owns) -- round 3b of
+#: hypothesis:harness-bin-paths-resolve-per-box. The hyphenated ids must map
+#: to the CONVENTIONAL name (`CLAUDE_BIN`/`COPILOT_BIN`), never a second
+#: derived `<ID>_BIN` convention that only render() honours.
+ADAPTER_OVERRIDES = [
+    ("claude-code", "CLAUDE_BIN"),
+    ("copilot-cli", "COPILOT_BIN"),
+    ("pi", "PI_BIN"),
+]
+
+_REFUSED_DERIVED = ("CLAUDE_CODE_BIN", "COPILOT_CLI_BIN")
+
+
+@pytest.mark.parametrize("harness,env_var", ADAPTER_OVERRIDES)
+def test_render_honours_the_adapters_one_env_override(
+        harness, env_var, tmp_path, monkeypatch):
+    """`render()` must consult the SAME override the adapter's `resolve_bin`
+    does, so a box that exports the documented var gets it in argv[0]. Pre-fix
+    the hyphenated ids derived `$CLAUDE_CODE_BIN`/`$COPILOT_CLI_BIN` and
+    silently ignored the conventional name on the live seat path."""
+    fake = tmp_path / "the-binary"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    for name in ("CLAUDE_BIN", "COPILOT_BIN", "PI_BIN", *_REFUSED_DERIVED):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(env_var, str(fake))
+
+    assert harness_template.render(harness, prompt="CARD")[0] == str(fake)
+
+
+@pytest.mark.parametrize("harness,env_var", ADAPTER_OVERRIDES)
+def test_render_ignores_a_second_derived_override_name(
+        harness, env_var, tmp_path, monkeypatch):
+    """The derived `<ID>_BIN` is not a name any adapter uses; honouring it
+    instead of the adapter's var is the round-3b defect. With ONLY the derived
+    name set the bare template cell (not on PATH) must come through unchanged."""
+    fake = tmp_path / "the-binary"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    derived = harness.upper().replace("-", "_") + "_BIN"
+    if derived == env_var:
+        pytest.skip("single-word harness has no second convention")
+    for name in ("CLAUDE_BIN", "COPILOT_BIN", "PI_BIN", *_REFUSED_DERIVED):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv(derived, str(fake))
+
+    got = harness_template.render(harness, prompt="CARD")[0]
+    assert got != str(fake)
+    assert got == harness_template.load(harness)["bin"]  # the bare cell
+
+
+def test_every_adapter_exports_the_env_var_it_resolves():
+    """ONE name per harness: the module constant `harness_template._first_arg`
+    reads is the same string the adapter's own `resolve_bin` passes."""
+    import importlib
+
+    for adapter_name, expected in (("pi", "PI_BIN"),
+                                   ("claude_code", "CLAUDE_BIN"),
+                                   ("copilot_cli", "COPILOT_BIN"),
+                                   ("grok_bot", "GROK_BOT_BIN")):
+        mod = importlib.import_module(f"agi.bin.adapters.{adapter_name}_adapter")
+        assert mod.ENV_VAR == expected
+
+
+# --- hypothesis:harness-argv-refuses-an-unknown-encoding ----------------
+# `_check_parts` validated `slot`/`when`/`spread` but not `encoding`; `_emit`
+# turned ANY non-json encoding into plain `str()`. A typo'd
+# `encoding = "json5"` therefore emitted the wrong bytes silently. The
+# encoding vocabulary is now closed and checked by name, and the unknown
+# `spread` refusal gets its own pin (R-EF50 M4).
+
+def test_unknown_encoding_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nflag = "--settings"\n'
+        'slot = "settings"\nencoding = "json5"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown encoding 'json5'" in str(exc.value)
+
+
+def test_unknown_encoding_inside_a_shape_is_refused(tmp_path, monkeypatch):
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[shapes.d]\nargv = ['
+        '{flag = "--settings", slot = "settings", encoding = "yaml"}]\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown encoding 'yaml'" in str(exc.value)
+    assert "shapes.d" in str(exc.value)
+
+
+def test_known_json_encoding_still_renders(tmp_path, monkeypatch):
+    """Regression guard: the closed vocabulary keeps the one live encoding."""
+    (tmp_path / "ok.toml").write_text(
+        'id = "ok"\nbin = "b"\n[[argv]]\nflag = "--settings"\n'
+        'slot = "settings"\nencoding = "json"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    assert harness_template.render(
+        "ok", bin_path="b", prompt="P", settings={"a": 1}) == [
+            "b", "--settings", '{"a": 1}']
+
+
+def test_unknown_spread_is_refused_by_name_at_check_time(tmp_path, monkeypatch):
+    """The pin R-EF50 M4 asked for: an unknown `spread` is refused, and the
+    message names the bad token."""
+    (tmp_path / "bad.toml").write_text(
+        'id = "bad"\nbin = "b"\n[[argv]]\nspread = "extra"\n')
+    monkeypatch.setattr(harness_template, "template_dir", lambda: tmp_path)
+    with pytest.raises(harness_template.HarnessTemplateError) as exc:
+        harness_template.load("bad")
+    assert "unknown spread 'extra'" in str(exc.value)

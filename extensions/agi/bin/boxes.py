@@ -15,12 +15,50 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 
-#: The four box cells and the placeholders resolved from them (SM.124 names).
-_BOX_CELLS = ("root", "logs_dir", "tmux_session", "user")
-_PLACEHOLDERS = (("root", "root"), ("logs", "logs_dir"),
-                 ("tmux", "tmux_session"), ("user", "user"))
+class BoxSchemaError(ValueError):
+    """A graph whose `[box].md` cannot declare what this reader needs."""
+
+
+# The engine's OWN [box].md: fallback for a graph with none of its own.
+_ENGINE_BOX_SCHEMA = (Path(__file__).resolve().parents[3] / ".agi" /
+                      "context" / "schemas" / "[box].md")
+# A bare `{token}` absent from the map is a stray; a shell `$`-reference
+# (`${PATH}`, `${VAR:-x}`) is legal syntax and must never be convicted.
+_STRAY_TOKEN = re.compile(r"(?<!\$)\{[A-Za-z_][A-Za-z0-9_]*\}")
+
+
+def box_schema_path(root: Path) -> Path:
+    """The one declaration: context/schemas/[box].md under the graph root."""
+    return Path(root) / "context" / "schemas" / "[box].md"
+
+
+def _schema_at(p: Path) -> dict:
+    """Parsed frontmatter of the `[box].md` at `p`; {} when `p` is absent."""
+    import frontmatter, yaml
+    parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
+    return (yaml.safe_load(parts[0]) or {}) if parts else {}
+
+
+def _box_schema(root: Path) -> dict:
+    """Parsed frontmatter of context/schemas/[box].md -- the one declaration."""
+    return _schema_at(box_schema_path(root))
+
+
+def require_box_cells(root: Path) -> tuple[str, ...]:
+    """The declared cell names, or refuse naming `[box].md`.
+
+    An absent `[box].md` (or one declaring no `fields`) used to read as an
+    empty cell set, hiding the audit's silence. Fail closed instead.
+    """
+    names = box_cell_names(root)
+    if not names:
+        raise BoxSchemaError(
+            f"{box_schema_path(root)} declares no box cells "
+            f"(absent, or no `fields:` map)")
+    return names
 
 
 def _box(root: Path) -> dict:
@@ -32,12 +70,8 @@ def _box(root: Path) -> dict:
 
 
 def box_cell_names(root: Path) -> tuple[str, ...]:
-    """The four cell names from context/schemas/[box].md -- the one declaration."""
-    import frontmatter, yaml
-    p = Path(root) / "context" / "schemas" / "[box].md"
-    parts = frontmatter.split_frontmatter(p.read_text(encoding="utf-8")) if p.is_file() else None
-    fm = yaml.safe_load(parts[0]) if parts else None
-    return tuple(((fm or {}).get("fields") or {}).keys()) or _BOX_CELLS
+    """The cell names from the `fields` mapping in [box].md -- the one declaration."""
+    return tuple((_box_schema(root).get("fields") or {}).keys())
 
 
 def box_cells(root: Path) -> dict:
@@ -51,10 +85,38 @@ def allow_paths(root: Path) -> list[str]:
     return ["config.json"] + [str(x) for x in (_box(root).get("allow") or [])]
 
 
-def resolve_placeholders(text: str, cells: dict) -> str:
-    """Substitute {root} {logs} {tmux} {user} from `cells`, literal tokens."""
-    for name, key in _PLACEHOLDERS:
-        text = text.replace("{" + name + "}", (cells or {}).get(key, ""))
+def resolve_placeholders(text: str, cells: dict, root: Path) -> str:
+    """Substitute `{token}` from `cells` using the mapping declared in [box].md.
+
+    The declaration is the graph's own `[box].md`; a graph with NO schema
+    falls back to the engine's own. A PRESENT schema without a `placeholders:`
+    map, a missing or EMPTY cell, or an undeclared `{token}` each refuse by name.
+    """
+    p = box_schema_path(root)
+    if not p.is_file() and _ENGINE_BOX_SCHEMA.is_file():
+        p = _ENGINE_BOX_SCHEMA
+    mapping = _schema_at(p).get("placeholders")
+    if not mapping:
+        raise BoxSchemaError(f"{p} declares no `placeholders:` map")
+    for name, key in mapping.items():
+        token = "{" + name + "}"
+        if token not in text:
+            continue
+        if key not in (cells or {}):
+            raise BoxSchemaError(
+                f"{p}: placeholder {token} maps to cell `{key}`, which this "
+                f"caller did not supply")
+        value = str(cells[key])
+        if not value.strip():
+            raise BoxSchemaError(
+                f"{p}: placeholder {token} maps to cell `{key}`, which this "
+                f"caller supplied EMPTY -- an empty render is the bug this "
+                f"resolver exists to prevent")
+        text = text.replace(token, value)
+    stray = _STRAY_TOKEN.search(text)
+    if stray:
+        raise BoxSchemaError(
+            f"{p}: `{stray.group(0)}` is not declared in `placeholders:`")
     return text
 
 

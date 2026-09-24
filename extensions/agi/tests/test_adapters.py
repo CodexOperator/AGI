@@ -15,7 +15,11 @@ What these guard, in the order the MVP's falsifiers name them:
 from __future__ import annotations
 
 import importlib.util
+import os
+import pwd
+import re
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -164,6 +168,7 @@ def test_absent_keys_pass_no_flags_so_pis_own_settings_win():
 
 def test_pi_bin_env_var_wins_over_config(monkeypatch):
     pi = adapters.load("pi")
+    monkeypatch.delenv("PI_BIN", raising=False)
     assert pi.resolve_bin({"bin": "/from/config"}) == "/from/config"
     monkeypatch.setenv("PI_BIN", "/from/env")
     assert pi.resolve_bin({"bin": "/from/config"}) == "/from/env"
@@ -358,3 +363,148 @@ def test_needs_credential_defaults_true_for_unmarked_and_unknown_rows():
         {"adapter": "pi", "credential": "openrouter"},  # any other value
     ):
         assert pi.needs_credential(row) is True, row
+
+
+# ------------------------------------- ONE bin resolver (goal:g15 config-max)
+# hypothesis:harness-bin-paths-resolve-per-box. Env override, then the config
+# `bin` cell, then PATH -- with `~`/`{home}` expanded against the CURRENT
+# process HOME at resolve time and a named refusal when an override resolves
+# nowhere. The four adapters must DELEGATE, not keep four copies.
+
+def test_all_four_adapters_delegate_to_the_one_shared_resolver(monkeypatch):
+    seen = []
+
+    def fake(harness, env_var, default):
+        seen.append((env_var, default))
+        return "/resolved"
+
+    monkeypatch.setattr(adapters, "resolve_bin", fake)
+    for name in ("pi", "copilot_cli", "claude_code", "grok_bot"):
+        assert adapters.load(name).resolve_bin({"bin": "/x"}) == "/resolved"
+    assert [env for env, _ in seen] == [
+        "PI_BIN", "COPILOT_BIN", "CLAUDE_BIN", "GROK_BOT_BIN"]
+
+
+def test_tilde_expands_against_the_current_process_home(tmp_path, monkeypatch):
+    """A config cell of `~/.npm-global/bin/pi` resolves to the binary under
+    THIS box's HOME -- never a stored `/home/<user>` literal."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    fake = tmp_path / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.delenv("PI_BIN", raising=False)
+    got = adapters.resolve_bin(
+        {"adapter": "pi", "bin": "~/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+
+
+def test_home_token_expands_the_same_way(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    fake = tmp_path / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.delenv("PI_BIN", raising=False)
+    got = adapters.resolve_bin(
+        {"bin": "{home}/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+
+
+def test_tilde_user_expands_to_that_users_home_not_the_current_home(
+        tmp_path, monkeypatch):
+    """`~user/x` means THAT user's home (os.path.expanduser semantics), never
+    the current HOME with `user/` spliced onto it. Pre-fix `home + raw[1:]`
+    turned `~bob/.npm-global/bin/pi` into `<current home>bob/.npm-global/bin/pi`
+    (goal:g15.29.2)."""
+    monkeypatch.setenv("HOME", str(tmp_path / "me"))
+    user_home = tmp_path / "bob-home"
+    fake = user_home / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.setattr(pwd, "getpwnam",
+                        lambda name: types.SimpleNamespace(pw_dir=str(user_home)))
+    monkeypatch.delenv("PI_BIN", raising=False)
+    assert os.path.expanduser("~bob/.npm-global/bin/pi") == str(fake)
+    got = adapters.resolve_bin(
+        {"adapter": "pi", "bin": "~bob/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+    assert got != str(tmp_path / "me" / "bob/.npm-global/bin/pi")
+
+
+def test_env_override_wins_over_the_config_cell(monkeypatch):
+    monkeypatch.setenv("PI_BIN", "/from/env")
+    assert adapters.resolve_bin(
+        {"bin": "/from/config"}, "PI_BIN", "pi") == "/from/env"
+
+
+def test_path_fallback_resolves_a_bare_name(tmp_path, monkeypatch):
+    fake = tmp_path / "pi"
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+    monkeypatch.delenv("PI_BIN", raising=False)
+    assert adapters.resolve_bin({"adapter": "pi"}, "PI_BIN", "pi") == "pi"
+
+
+def test_a_missing_override_refuses_by_name(monkeypatch):
+    """Never a bare `Popen` FileNotFoundError: the refusal says which harness
+    and which name could not be resolved."""
+    monkeypatch.delenv("PI_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "pi", "bin": "pi-not-installed-xyz"}, "PI_BIN", "pi")
+    assert "pi-not-installed-xyz" in str(exc.value)
+
+
+def test_a_missing_path_shaped_bin_refuses_by_name_with_the_expanded_path(
+        tmp_path, monkeypatch):
+    """Round 2 (`experiment:a00-73aeae86-75e0f3`): a `~`-cell whose expanded
+    file does not exist must raise the SAME named refusal a missing bare name
+    does. Before this fix the RAW cell was returned, so a caller got
+    `'~/.npm-global/bin/nope'` and `Popen` died on a bare
+    `FileNotFoundError('~/...')` that named nothing (the parent's gate probe).
+
+    The message owes three names: the harness, the EXPANDED path tried, and
+    the `$ENV_VAR` that would override it."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("ZEPHYR_BIN", raising=False)
+    expanded = tmp_path / ".npm-global" / "bin" / "zephyr-nope"
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "zephyr", "bin": "~/.npm-global/bin/zephyr-nope"},
+            "ZEPHYR_BIN", "zephyr")
+    msg = str(exc.value)
+    assert "'zephyr'" in msg, msg
+    assert str(expanded) in msg, msg
+    assert "ZEPHYR_BIN" in msg, msg
+
+
+def test_no_home_user_literal_survives_in_any_adapter():
+    """The falsifier as a test: no quoted `/home/<user>` path literal in the
+    four adapter files (their defaults are bare PATH names now)."""
+    offenders = []
+    for path in sorted((BIN / "adapters").glob("*_adapter.py")):
+        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if re.search(r'["\']/home/', line):
+                offenders.append(f"{path.name}:{lineno}: {line.strip()}")
+    assert offenders == []
+
+
+def test_an_unresolvable_tilde_user_refuses_by_name(tmp_path, monkeypatch):
+    """`~nosuchuser/bin/x` cannot expand: `os.path.expanduser` hands the raw
+    token back unchanged, so the pre-fix `path == raw` branch returned the raw
+    cell and `Popen` died on a bare `FileNotFoundError('~nosuchuser/...')`
+    that named nothing. It now refuses BY NAME, naming the harness, the raw
+    cell and the `$ENV_VAR` that would override it."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("NOPE_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "nope", "bin": "~nosuchuser_xyz/bin/nope"},
+            "NOPE_BIN", "nope")
+    msg = str(exc.value)
+    assert "nosuchuser_xyz" in msg, msg
+    assert "'nope'" in msg, msg
+    assert "NOPE_BIN" in msg, msg

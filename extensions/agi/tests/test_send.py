@@ -6401,6 +6401,25 @@ def test_worktree_reader_committed_lookup_targets_main_not_worktree(
         "not [] (the worktree bug) and not a worktree-forked row")
 
 
+def test_load_rows_do_fetch_false_reads_pushed_ref_without_fetching(
+        tmp_path, monkeypatch):
+    """The no-fetch path reads the last-fetched authority; the default still fetches."""
+    calls = []
+    rows = [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": "00"}]
+
+    def pushed(root, ref, do_fetch):
+        calls.append(do_fetch)
+        return (rows, "deadbeef", "origin/season2/main")
+
+    monkeypatch.setattr(send_mod, "_pushed_seats", pushed)
+    monkeypatch.setattr(send_mod, "_seats_committed_rows", lambda root: [])
+
+    assert send_mod._load_rows(tmp_path, do_fetch=False) == rows
+    assert calls == [False]
+    assert send_mod._load_rows(tmp_path) == rows
+    assert calls == [False, True]
+
+
 def test_empty_pushed_set_reads_none_never_dirty_copy(
         tmp_path, monkeypatch):
     """CLAUSE (2): an EMPTY pushed row set (a real, reachable authority with
@@ -7481,6 +7500,188 @@ def test_read_positional_unchanged_when_no_dm_has_unread(
     assert not (croot / "dm").is_dir() or not list((croot / "dm").glob("*.json"))
 
 
+# ── hypothesis:send-read-reads-dms-from-the-graph ────────────────────────────
+# A dm conversation filed under a FORMER name of the post (`old-name--sender.md`)
+# is still a dm addressed to the post. The ONE `aliases:` table (old -> new in
+# `nodes/.geometry/posts.md`) is the graph's rename record, so `read <post>`
+# and `rooms <post>` must match every name that canonicalises to the reader.
+
+def _write_geometry(root: Path, *, rows=None, aliases=None) -> Path:
+    """`<graph>/nodes/.geometry/posts.md` -- the ONE geometry config: the
+    `posts:` rows and/or the Prime-written `aliases:` table (old -> new)."""
+    geo = root / ".agi" / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    lines = ["---", "id: config:posts", "posts:"]
+    for r in rows or []:
+        lines.append("  - " + json.dumps(r, sort_keys=True))
+    if aliases:
+        lines.append("aliases:")
+        for k, v in aliases.items():
+            lines.append(f"  {k}: {v}")
+    lines += ["---", "# body"]
+    (geo / "posts.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return geo / "posts.md"
+
+
+def _mini_project(tmp_path: Path, name: str) -> Path:
+    root = tmp_path / name
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    (root / "sessions" / "inbox").mkdir(parents=True)
+    return root
+
+
+def test_read_lists_a_dm_filed_under_a_former_name_of_the_post(
+        project: Path, capsys, clear_identity, monkeypatch):
+    """FALSIFIER (alias): `read new-name` must list a dm conversation filed as
+    `old-name--sender.md` when old-name is a former name of new-name in the
+    ONE `aliases:` table, and the cursor must land on the canonical key."""
+    _in_project(monkeypatch, project)
+    croot = project / ".agi" / "sessions"
+    _write_geometry(project, aliases={"old-name": "new-name"})
+    send_mod.send_dm(croot, "old-name", "sender-a", "old-name dm body",
+                     "sender-a")
+    capsys.readouterr()
+
+    rc = send_mod.main(["--from", "new-name", "--comms-root", str(croot),
+                        "read", "new-name"])
+    out = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "old-name dm body" in out, out
+    assert "[dm old-name--sender-a]" in out, out
+    state = send_mod._load_state(croot / "dm" / "old-name--sender-a.md")
+    assert state.get("new-name") == 1, state
+
+    rc = send_mod.main(["--from", "new-name", "--comms-root", str(croot),
+                        "read", "new-name"])
+    again = capsys.readouterr().out
+    assert rc == 0, rc
+    assert "old-name dm body" not in again, again
+
+
+def test_rooms_lists_a_dm_filed_under_a_former_name_of_the_post(
+        project: Path):
+    """The `rooms` listing applies the SAME alias rule as the read sweep."""
+    croot = project / ".agi" / "sessions"
+    _write_geometry(project, aliases={"old-name": "new-name"})
+    send_mod.send_dm(croot, "old-name", "sender-a", "old-name dm body",
+                     "sender-a")
+    rows = send_mod.rooms(croot, "new-name")
+    assert ("dm", "old-name--sender-a", 1) in rows, rows
+    assert ("dm", "old-name--sender-a", 1) not in send_mod.rooms(
+        croot, "someone-else"), rows
+
+
+# hypothesis:dm-reader-resolves-aliases-once-per-read -- the sweep over N dm
+# files with M `--` tokens each must load the ONE `aliases:` table ONCE per
+# read_dms / rooms call, and `deprecated alias used` must print AT MOST ONCE
+# per alias per call, never for a token that does not match the reader.
+
+_ALIAS_SWEEP_STEMS = (
+    "old-name--sender-a",
+    "old-name--sender-b",
+    "other-old--sender-c",
+    "stranger--sender-d",
+    "new-name--sender-e",
+)
+
+
+def _dm_sweep_fixture(project: Path) -> Path:
+    """A comms root with SEVERAL dm files, each a `--` pair: two filed under
+    the reader's own former name, one under a DIFFERENT post's former name,
+    one with no alias, one naming the canonical reader directly."""
+    croot = project / ".agi" / "sessions"
+    d = croot / "dm"
+    d.mkdir(parents=True, exist_ok=True)
+    for stem in _ALIAS_SWEEP_STEMS:
+        (d / f"{stem}.md").write_text("body\n", encoding="utf-8")
+    return croot
+
+
+def _count_posts_loads(monkeypatch) -> dict:
+    """Count `_fm.load_node_file` calls for `posts.md` only, over the call
+    under test. Pre-fix this counts ONE load per non-matching `--` token."""
+    real = send_mod._fm.load_node_file
+    loads = {"n": 0}
+
+    def counting(path, *a, **k):
+        if Path(path).name == "posts.md":
+            loads["n"] += 1
+        return real(path, *a, **k)
+
+    monkeypatch.setattr(send_mod._fm, "load_node_file", counting)
+    return loads
+
+
+def test_read_resolves_the_alias_table_once_per_call(
+        project: Path, capsys, monkeypatch):
+    """FALSIFIER (EF.64): `read_dms` over 5 dm files loads posts.md EXACTLY
+    once, prints the deprecation notice once for the matching alias, and
+    NEVER for a different post's alias or an unknown token."""
+    _write_geometry(project,
+                    aliases={"old-name": "new-name",
+                             "other-old": "other-new"})
+    croot = _dm_sweep_fixture(project)
+    loads = _count_posts_loads(monkeypatch)
+
+    capsys.readouterr()
+    send_mod.read_dms(croot, "new-name", commit=False)
+    err = capsys.readouterr().err
+
+    assert loads["n"] == 1, loads
+    assert err.count("deprecated alias used: old-name -> new-name") == 1, err
+    assert "other-old" not in err, err
+    assert "stranger" not in err, err
+
+
+def test_rooms_resolves_the_alias_table_once_per_call(
+        project: Path, capsys, monkeypatch):
+    """The `rooms` sweep shares the one resolver: posts.md loads once, the
+    matching dm files are selected, a different post's alias file is NOT."""
+    _write_geometry(project,
+                    aliases={"old-name": "new-name",
+                             "other-old": "other-new"})
+    croot = _dm_sweep_fixture(project)
+    loads = _count_posts_loads(monkeypatch)
+
+    capsys.readouterr()
+    rows = send_mod.rooms(croot, "new-name")
+    err = capsys.readouterr().err
+
+    assert loads["n"] == 1, loads
+    assert err.count("deprecated alias used: old-name -> new-name") == 1, err
+    assert "other-old" not in err, err
+    selected = {name for _kind, name, _n in rows}
+    assert selected == {"old-name--sender-a", "old-name--sender-b",
+                        "new-name--sender-e"}, rows
+
+
+def test_read_is_quiet_independent(
+        tmp_path: Path, capsys, clear_identity, monkeypatch):
+    """The hypothesis's SECOND conjunct: a `settings: quiet` row and a row
+    with no setting, over IDENTICAL dm bytes, produce identical `read` output
+    and an identical cursor. Quiet governs nudges only."""
+    outs, states = [], []
+    for name, row in (("quiet", {"name": "seat-a", "settings": "quiet"}),
+                      ("plain", {"name": "seat-a"})):
+        root = _mini_project(tmp_path, name)
+        _write_geometry(root, rows=[row])
+        croot = root / ".agi" / "sessions"
+        send_mod.send_dm(croot, "seat-a", "seat-b", "same dm body",
+                         "seat-b")
+        _in_project(monkeypatch, root)
+        rc = send_mod.main(["--from", "seat-a", "--comms-root", str(croot),
+                            "read", "seat-a"])
+        assert rc == 0, rc
+        outs.append(capsys.readouterr().out)
+        states.append(send_mod._load_state(
+            croot / "dm" / "seat-a--seat-b.md"))
+    assert outs[0] == outs[1], outs
+    assert states[0] == states[1], states
+    assert states[0].get("seat-a") == 1, states[0]
+
+
 def test_dm_sweep_cursor_is_shared_across_a_linked_worktree(
         tmp_path: Path, capsys, clear_identity, monkeypatch):
     """ITEM 1's required two-independent-directories falsifier: the dm-sweep
@@ -7573,3 +7774,49 @@ def test_no_pending_signer_is_byte_identical(project, monkeypatch):
             f"{scheme.sign(priv, msg).hex()}")
     assert got == want
     assert not (live.parent / f"{live.name}.pending").exists()
+
+
+# ---- config:key-authority -- the ONE authority ref cell (conjunct 1) ------
+# hypothesis:rotation-publishes-a-reminted-seat-key-to-the-key-authority:
+# KEY is the graph root whose `.agi` holds the node; `authority_ref` must read
+# the cell and default to the reviewed root so today's behaviour is unchanged.
+def _key_authority_root(tmp_path: Path) -> Path:
+    root = tmp_path / "keyauth"
+    (root / ".agi").mkdir(parents=True)
+    (root / ".agi" / "config.json").write_text(json.dumps({}))
+    return root
+
+
+def _write_key_authority_node(root: Path, value: str | None) -> None:
+    p = root / ".agi" / "nodes" / ".geometry" / "key-authority.md"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    field = "" if value is None else f"authority_ref: {value}\n"
+    p.write_text(f"---\nid: config:key-authority\n{field}---\n")
+
+
+def test_authority_ref_defaults_to_the_reviewed_root(tmp_path):
+    """Falsifier: the authority ref is still a literal. With no node (and with
+    a node that names no ref) it resolves to today's hardcoded value."""
+    root = _key_authority_root(tmp_path)
+    assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
+    assert send_mod.authority_ref(root) == "origin/season2/main"
+    # Load-bearing: `_PUSHED_SEATS` itself is unchanged.
+    assert send_mod._PUSHED_SEATS == "origin/" + "season2/main"
+
+
+def test_authority_ref_reads_the_config_cell(tmp_path):
+    """The cell changes the ref the authority reads."""
+    root = _key_authority_root(tmp_path)
+    _write_key_authority_node(root, "origin/season2/main")
+    assert send_mod.authority_ref(root) == "origin/season2/main"
+    _write_key_authority_node(root, "origin/town/some-trunk")
+    assert send_mod.authority_ref(root) == "origin/town/some-trunk"
+
+
+def test_authority_ref_blank_or_missing_field_stays_default(tmp_path):
+    """A blank value is not a ref: it falls back, never returns ''."""
+    root = _key_authority_root(tmp_path)
+    _write_key_authority_node(root, "''")
+    assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
+    _write_key_authority_node(root, None)
+    assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS

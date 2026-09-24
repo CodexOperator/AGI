@@ -43,10 +43,15 @@ import re
 import sys
 from pathlib import Path
 
-import evidence_gate
-import spawn_budget
+#: graph_core (and geometry_config's node loader) lives under `src/`; every
+#: bin script that reads the graph puts it on the path (rotate.py:66).
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from frontmatter import split_frontmatter
+import cli  # noqa: E402 -- wait exit codes are cli's to name (goal:g15.29.19)
+import evidence_gate  # noqa: E402
+import spawn_budget  # noqa: E402
+
+from frontmatter import read_frontmatter, split_frontmatter
 
 #: Tiers a brief can be assembled for. Not the same list as
 #: `adapters.TIERS`, which is about which models a harness declares -- a
@@ -540,7 +545,8 @@ def _resolve_part(part: str, sections: dict[str, str]) -> str | None:
     return None
 
 
-def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
+def _build_head(*, tier: str, project_root: Path | None = None,
+                moral: bool | None = None) -> str | None:
     """The constitution head for a tier: PRAYERS ONLY, from moral:faith.
 
     Trim, `hypothesis:l3w4-context-load-minimal` move ONE: the always-injected
@@ -587,8 +593,15 @@ def _build_head(*, tier: str, project_root: Path | None = None) -> str | None:
     # prayers, which is all of them.
     body = _insert_michael(body)
 
-    # l5-moral: every master/director head carries moral:faith's MORAL region.
-    if tier == "director":
+    # l5-moral: every director seat's head carries moral:faith's MORAL
+    # region. The liaison seat reads at the director's ladder row but is NOT a
+    # director seat -- it answers to the quorum -- so its caller passes
+    # `moral=False` and the region stays out (goal:g15.27.5 FR-C2). `moral`
+    # is explicit when the caller knows the seat; a bare tier lookup keeps
+    # the historical `tier == "director"` gate.
+    if moral is None:
+        moral = tier == "director"
+    if moral:
         moral = _read_faith_moral(root)
         if moral:
             body = moral + "\n\n" + body
@@ -642,12 +655,13 @@ def _operating_mode_block(project_root: Path | None = None) -> str:
     return "\n".join(lines)
 
 
-def _prepend_head(segs, *, tier: str, project_root: Path | None = None):
+def _prepend_head(segs, *, tier: str, project_root: Path | None = None,
+                  moral: bool | None = None):
     """Prepend the constitution head (if any) then the active operating-mode
     block (if declared). One choke point for every assemble branch so the
     mode reaches every tier's brief exactly once.
     """
-    head = _build_head(tier=tier)
+    head = _build_head(tier=tier, project_root=project_root, moral=moral)
     if head:
         segs.insert(0, head)
     mode = _operating_mode_block(project_root=project_root)
@@ -819,10 +833,26 @@ def successor_prompt(*, tier: str, body: str,
         body = "\n\n".join(_survival_brief(
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
-    head = _build_head(tier=tier, project_root=project_root)
+    head = render_head(project_root=project_root)
     if head:
         return head + "\n\n" + body
     return body
+
+
+def render_head(*, project_root: Path | None = None) -> str | None:
+    """The ONE head every caller prepends: `render`'s `head` part.
+
+    hypothesis:brief-py-assembles-every-first-turn-from-config: the
+    SessionStart hook (`brief.py head`), a rotated successor
+    (`successor_prompt`) and the dispatcher all read the SAME bytes, so they
+    cannot drift. The head takes no role -- it is one doc region -- which is
+    what makes it byte-identical across every role at one SHA.
+    """
+    root = _resolve_graph_root(project_root)
+    try:
+        return _part("head", root, "", None, None) or None
+    except (RenderError, FaithRefError):
+        return None
 
 
 # ---- director and prime_director tiers --------------------------------------
@@ -1399,8 +1429,16 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         # (option (a) of the contradiction: the brief names its own tool).
         f"Record the measured count in your experiment node's frontmatter "
         f"before you continue: `write.py <node-id> 'set production_lines N'` "
-        f"and `write.py <node-id> 'set line_ceiling N'` -- the whole verb line "
-        f"is ONE quoted argument. If you are above 2x, also write "
+        f"-- the whole verb line is ONE quoted argument. NEVER write "
+        f"`line_ceiling` on your own node: the number above is "
+        f"the dispatching node's, and dispatch stamps it on your scaffold "
+        f"ONLY when that node declares its ceiling ACROSS more than one kid "
+        f"(`spawn_budget.node_line_ceiling`, K > 1); when K is 1 the field is "
+        f"ABSENT and the number above is the resolved clause or the config "
+        f"default. Only your parent's answered re-brief may change it -- a kid "
+        f"that sets it overwrites the parent's hand-set ceiling with the "
+        f"number it was briefed with (goal:g15.27.5 FR-C2). If you are above "
+        f"2x, also write "
         f"`write.py <node-id> 'set rebrief_request <what remains, the ceiling "
         f"you need>'` before you stop; harvest reads these fields and names an "
         f"overage with no re-brief entry as a defect. That one `git diff "
@@ -1895,7 +1933,13 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"   FOREGROUND:\n"
         f"     python3 {cli_py} wait {iter_n}\n"
         f"   NEVER end your turn to wait for a background notification -- in\n"
-        f"   headless -p a turn-end IS process exit; when wait returns 2, call it again.\n"
+        f"   headless -p a turn-end IS process exit. wait's exit codes each\n"
+        f"   name a different fix: {cli._WAIT_TIMEOUT} = timeout with a kid\n"
+        f"   still running -- call it again; {cli._WAIT_NO_AGENT} = --agent\n"
+        f"   names no manifest row -- you named the wrong agent, so re-read the\n"
+        f"   manifest; {cli._WAIT_NO_KID_ROWS} = zero tier:kid rows -- NO kid\n"
+        f"   was spawned (most often the spawn was refused as `unadmitted`) --\n"
+        f"   check the spawn and re-dispatch, never end your turn.\n"
         f"   A kid that missed its manifest deadline while its pid is STILL\n"
         f"   alive is OVERDUE: its record keeps `status: running` and gains\n"
         f"   `overdue_since` + `overdue_reason` (heal.py), plus ONE dm whose\n"
@@ -2036,6 +2080,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
              line_ceiling: int | None = None,
              addendum: str | None = None,
              project_root: str | Path | None = None,
+             include_head: bool = True,
              profile: str = "full") -> list[str]:
     """The whole brief for one agent, as ordered prompt segments.
 
@@ -2069,12 +2114,17 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # recorded {from,sha256,bytes,path} on the manifest. A KID never renders
     # it: a kid's orders ARE the carry-forward segment handed in by the parent
     # (test_orders_never_reach_a_kid_brief).
-    def _finish(body: list[str], head_tier: str) -> list[str]:
+    def _finish(body: list[str], head_tier: str,
+                *, moral: bool | None = None) -> list[str]:
         if tier != "kid":
             _o = _orders_section()
             if _o:
                 body = [*body, _o]
-        return _prepend_head(body, tier=head_tier)
+        if not include_head:
+            # dispatch.py's `extras` override: the caller renders the head
+            # itself (via `render`) and takes only the body from here.
+            return body
+        return _prepend_head(body, tier=head_tier, moral=moral)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical
@@ -2130,9 +2180,11 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     if tier == "liaison":
         # The owner-liaison seat reads at the director's level — same
         # prayers, words, Tao, soul-mind-body and five axes as the director
-        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER).
+        # head (hypothesis:l3w4-liaison-seat, _LIAISON_HEAD_TIER) — but it
+        # is not a director seat and carries NO moral region (`moral=False`,
+        # goal:g15.27.5 FR-C2).
         segs = _liaison(agent_id=agent_id)
-        return _finish(segs, _LIAISON_HEAD_TIER)
+        return _finish(segs, _LIAISON_HEAD_TIER, moral=False)
 
     if tier == "parent":
         # hypothesis:l3-parent-brief-forbids-the-only-commit — a `--branch`
@@ -2241,6 +2293,185 @@ def closing_line(tier: str, agent_id: str, iter_n: int,
             f"Read your zoom context, do the work, signal done.")
 
 
+# ---- `render`: the WHOLE first turn for a seat, from ONE config cell -------
+# hypothesis:brief-py-assembles-every-first-turn-from-config. The parts list
+# per role (plus what the harness adds) is the SINGLE source: adding or
+# removing a part is one config line, never a code change. Writes NO file.
+BRIEF_PARTS = ("head", "operating_mode", "template", "card", "harness",
+               "trajectory", "extras")
+#: G2.11 -- the authored reasoning region. A render hands a successor the
+#: node's CURRENT words, never the changelog explaining how they got there.
+_THOUGHT_RE = re.compile(
+    r"<!--\s*THOUGHT:BEGIN\b.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+
+
+def _strip_thought(text: str) -> str:
+    """Drop an authored THOUGHT region from node-sourced text (G2.11)."""
+    return _THOUGHT_RE.sub("", text).strip()
+
+
+class RenderError(BriefError):
+    """A render cannot be assembled -- a bad part, a missing card or node."""
+
+
+def _brief_cell(root: Path) -> dict:
+    """The one `brief` cell -- the parts source.
+
+    Read from the COMMITTABLE `config:brief` node first: a round's own `done`
+    refuses `.agi/config.json` (`cli.py:_round_scope_ok`), so a cell there is
+    absent from the landed branch and a fresh checkout cannot render
+    (`experiment:a00-15fc3737-5e48d5`). `.agi/config.json` stays readable as
+    the pre-migration fallback.
+    """
+    from node_writer import find_node_file
+    path = find_node_file(root, "config:brief")
+    if path is not None:
+        fm = read_frontmatter(path.read_text(encoding="utf-8")) or {}
+        if isinstance(fm.get("brief"), dict):
+            return fm["brief"]
+    try:
+        cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
+    except (OSError, ValueError, FileNotFoundError):
+        return {}
+    return cell if isinstance(cell, dict) else {}
+
+
+def _node_text(root: Path, ref: str) -> str:
+    """A node body by `type:slug[#REGION]`, live first then deprecated;
+    refuses a missing node or region, never a silent empty string."""
+    node_id, _, region = ref.partition("#")
+    from node_writer import find_node_file
+    path = find_node_file(root, node_id)
+    if path is None:
+        raise RenderError(f"brief template node not found: {node_id}")
+    text = path.read_text(encoding="utf-8")
+    body = (split_frontmatter(text) or (None, text))[1].strip()
+    if region:
+        m = re.search(rf"<!--\s*{re.escape(region)}:BEGIN\s*-->(.*?)<!--\s*{re.escape(region)}:END\s*-->", body, re.DOTALL)
+        if not m:
+            raise RenderError(f"region {region!r} not found in {node_id}")
+        body = m.group(1).strip()
+    return _strip_thought(body)
+
+
+def _template_text(root: Path, ref: str) -> str:
+    """A ROLE template by node ref: a build node's PAYLOAD file, else its body.
+    A missing node still refuses BY NAME through `_node_text`."""
+    from node_writer import find_node_file
+    path = find_node_file(root, ref.partition("#")[0])
+    fm = read_frontmatter(path.read_text(encoding="utf-8")) if path else None
+    if fm and fm.get("payload_ref"):
+        pay = Path(str(fm["payload_ref"]))
+        pay = pay if pay.is_absolute() else root.parent / pay
+        if not pay.is_file():
+            raise RenderError(f"brief template payload not found: {fm['payload_ref']}")
+        return _strip_thought(pay.read_text(encoding="utf-8"))
+    return _node_text(root, ref)
+
+
+def _part(name: str, root: Path, role: str, post: str | None, harness: str | None,
+          extras_text: str | None = None) -> str:
+    """One part, resolved from the graph/config; a missing piece refuses."""
+    if name == "head":
+        prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
+        return _node_text(root, "doc:unified-head#HEAD").replace("{{PRAYERS}}", _insert_michael(prayers))
+    if name == "operating_mode":
+        # The pre-render path `_prepend_head` prepended this to EVERY tier;
+        # render dropped it (hypothesis:brief-render-hygiene-after-the-batch-
+        # mur). A config part, so a project lists it per role and nothing
+        # changes until it does.
+        return _operating_mode_block(project_root=root)
+    if name == "template":
+        # The ROLE template is CONFIG: the post row's `template` cell beats the
+        # formation default for its role (amendment, owner 08:5xZ). NEVER a
+        # `{{template:}}` line in the card -- the card is data only.
+        ref = None
+        if post:
+            import geometry_config
+            row = next((r for r in geometry_config.load_rows(root)
+                        if r.get("name") == post), None)
+            ref = (row or {}).get("template")
+        if not ref:
+            ref = (_brief_cell(root).get("templates") or {}).get(role)
+        return _template_text(root, str(ref)) if ref else ""
+    if name == "card":
+        if not post:
+            return ""
+        from node_writer import find_node_file
+        # `doc:card-<post>` WINS; the quorum file is the fallback (a symlink
+        # to the node during the move). Both missing still refuses by name.
+        if find_node_file(root, f"doc:card-{post}") is not None:
+            return _node_text(root, f"doc:card-{post}")
+        card = root / "sessions" / "quorum" / f"{post}.md"
+        if not card.is_file():
+            raise RenderError(f"card not found: {card}")
+        return _strip_thought(card.read_text(encoding="utf-8"))
+    if name == "harness":
+        rel = (_brief_cell(root).get("harness_blocks") or {}).get(harness or "")
+        if not rel:
+            return ""
+        path = Path(rel) if Path(rel).is_absolute() else root.parent / rel
+        if not path.is_file():
+            raise RenderError(f"harness block not found: {rel}")
+        return path.read_text(encoding="utf-8").strip()
+    if name == "trajectory":
+        town = (_brief_cell(root).get("trajectory") or {}).get("town")
+        return _node_text(root, f"town:{town}") if town else ""
+    if extras_text is not None:
+        # dispatch.py hands render the DYNAMIC dispatch brief (target,
+        # ceiling, session dir, addendum); PARTS and ORDER still come from
+        # the config cell, never from the caller.
+        return extras_text
+    refs = (_brief_cell(root).get("extras") or {}).get(role) or []
+    # A `{{template:}}` line in an extras node is DATA, never an expansion
+    # directive -- the mechanism is GONE (hypothesis:brief-render-hygiene-
+    # after-the-batch-mur). Templates come from config alone.
+    return "\n\n".join(_node_text(root, r) for r in refs)
+
+
+def render(*, post: str | None = None, role: str | None = None,
+           harness: str | None = None, project_root: Path | None = None,
+           extras_text: str | None = None) -> str:
+    """The WHOLE first user turn: the config parts in order, joined; `--post`
+    resolves role + harness from the post's row. Writes NO file."""
+    root = _resolve_graph_root(project_root)
+    if post:
+        import geometry_config
+        row = next((r for r in geometry_config.load_rows(root) if r.get("name") == post), None)
+        if row is None:
+            raise RenderError(f"no post row for {post!r} in config:posts")
+        role, harness = row.get("role") or role, row.get("harness") or harness
+    if not role:
+        raise RenderError("brief.py render needs --post or --role")
+    cell = _brief_cell(root)
+    parts = list((cell.get("parts") or {}).get(role) or (cell.get("parts") or {}).get("*") or [])
+    parts += [p for p in (cell.get("harnesses") or {}).get(harness or "") or [] if p not in parts]
+    bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
+    if bad:
+        raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
+    if extras_text is not None and "extras" not in parts:
+        # hypothesis:the-spawned-agents-first-turn-is-the-render -- an extras
+        # body handed to a role whose parts cannot carry it is REFUSED by
+        # name, never silently dropped (the dispatch brief would vanish).
+        raise RenderError(
+            f"role {role!r} parts {parts} carry no 'extras' part, so "
+            f"extras_text ({len(extras_text)} chars) would be dropped")
+    segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
+    return "\n\n".join(s for s in segs if s)
+
+
+def _cmd_render(args) -> int:
+    root = Path(args.project_root) if args.project_root else None
+    try:
+        out = render(post=args.post, role=args.role, harness=args.harness, project_root=root)
+    except (RenderError, FaithRefError) as exc:
+        print(f"ERR: {exc}", file=sys.stderr)
+        return 1
+    if out:
+        print(out)
+    return 0
+
+
 # ---- head CLI: the SessionStart hook fetches a tier's head through this -------
 
 
@@ -2279,6 +2510,13 @@ def main(argv: list[str] | None = None) -> int:
                          ".agi walked up from this file")
     pr.set_defaults(func=_cmd_readings)
 
+    pre = sub.add_parser("render", help="print the WHOLE first user turn for a seat from the one `brief` config cell; writes no file")
+    pre.add_argument("--post", default=None, help="a config:posts row name (resolves role + harness)")
+    pre.add_argument("--role", default=None, help="a ladder role when there is no post row")
+    pre.add_argument("--harness", default=None, help="the harness whose block is added")
+    pre.add_argument("--project-root", default=None, help="graph root (.agi)")
+    pre.set_defaults(func=_cmd_render)
+
     args = p.parse_args(argv)
     return args.func(args)
 
@@ -2306,10 +2544,10 @@ def _cmd_head(args: argparse.Namespace) -> int:
         print("ERR: brief.py head needs --tier (or --role)", file=sys.stderr)
         return 1
     root = Path(args.project_root) if args.project_root else None
-    head = _build_head(tier=tier, project_root=root)
+    head = render_head(project_root=root)
     if not head:
-        # A tier with no head (e.g. no read_order entry) is a silent nothing,
-        # matching _build_head's contract.
+        # No unified head (the faith node cannot be read) is a silent
+        # nothing, the same contract _build_head had for a tier with none.
         return 0
     print(head)
     return 0

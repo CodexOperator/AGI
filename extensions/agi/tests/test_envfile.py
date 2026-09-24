@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import textwrap
 from pathlib import Path
@@ -693,3 +694,160 @@ def test_synthetic_agi_root_resolves_only_its_own_env_key(tmp_path):
     deep = nested / "a" / "b"
     deep.mkdir(parents=True)
     assert _prov._read_provisioning_key(deep) == "sk-nested-pk"
+
+
+# --- required_any: either OpenRouter key satisfies the group --------------
+# config:secrets declares `required_any: [[OPENROUTER_API_KEY,
+# OPENROUTER_PROVISIONING_KEY]]` and `required_keys: []`. The check must move
+# with it: a project with EITHER runtime or provisioning key passes, a project
+# with neither fails and the failure names BOTH keys.
+
+
+REQUIRED_ANY_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any:
+      - ["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]
+    ---
+
+    body
+    """
+
+
+def test_required_any_reads_the_groups(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    res = agi_secrets.resolve(tmp_path)
+    assert res.required_any == [["OPENROUTER_API_KEY", "OPENROUTER_PROVISIONING_KEY"]]
+
+
+def test_required_any_satisfied_by_provisioning_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_PROVISIONING_KEY=provisioning-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_satisfied_by_api_key_alone(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=sk-or-v1-fixture\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert problems == [], problems
+
+
+def test_required_any_with_neither_key_names_both(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "SOMETHING_ELSE=1\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    blob = "\n".join(problems)
+    assert any("OPENROUTER_API_KEY" in p and "OPENROUTER_PROVISIONING_KEY" in p
+               for p in problems), problems
+    assert blob, "an unsatisfied group must be a problem"
+
+
+def test_required_any_empty_value_counts_as_absent(tmp_path):
+    graph = make_project(tmp_path)
+    write_node(graph, REQUIRED_ANY_NODE)
+    write_env(tmp_path, "OPENROUTER_API_KEY=\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("OPENROUTER_PROVISIONING_KEY" in p for p in problems), problems
+
+
+BOTH_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with required_keys and required_any"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys:
+      - MANDATORY_KEY
+    required_any:
+      - ["GROUP_ALPHA_KEY", "GROUP_BETA_KEY"]
+    ---
+
+    body
+    """
+
+
+MALFORMED_NODE = """
+    ---
+    id: "config:secrets"
+    type: config
+    status: active
+    mint_id: 0123456789abcdef0123456789abcdef
+    title: "test secrets node with a malformed required_any entry"
+    locations:
+      env_file:
+        path: "<source_root>/.env"
+      env_template:
+        path: "<source_root>/.env.example"
+    required_keys: []
+    required_any:
+      - "OPENROUTER_API_KEY"
+    ---
+
+    body
+    """
+
+
+def test_required_keys_still_enforced_alongside_required_any(tmp_path):
+    """A satisfied group does not excuse a missing required_keys entry, and a
+    present required_keys entry does not excuse an unsatisfied group."""
+    graph = make_project(tmp_path)
+    write_node(graph, BOTH_NODE)
+    # group satisfied, required_keys missing -> problem names MANDATORY_KEY
+    write_env(tmp_path, "GROUP_ALPHA_KEY=alpha-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("MANDATORY_KEY is missing or empty" in p for p in problems), problems
+    # required_keys present, neither group key -> problem names BOTH group keys
+    write_env(tmp_path, "MANDATORY_KEY=mandatory-value\n")
+    res = agi_secrets.resolve(tmp_path)
+    problems, _notes = agi_secrets.check(res)
+    assert any("GROUP_ALPHA_KEY" in p and "GROUP_BETA_KEY" in p
+               for p in problems), problems
+
+
+def test_malformed_required_any_entry_is_refused_by_name(tmp_path):
+    """A required_any entry that is not a list of key names is refused by
+    name, not silently dropped -- and as a SecretsError, its OWN type, not a
+    bare ValueError every unrelated `except ValueError` would also swallow
+    (goal:g15.29.16)."""
+    graph = make_project(tmp_path)
+    write_node(graph, MALFORMED_NODE)
+    with pytest.raises(agi_secrets.SecretsError, match="OPENROUTER_API_KEY") as exc:
+        agi_secrets.resolve(tmp_path)
+    assert not isinstance(exc.value, ValueError), \
+        "SecretsError must be its own type, not a ValueError (goal:g15.29.16)"
+
+
+def test_config_schema_declares_required_any():
+    """The [config] schema declares required_any beside its three siblings."""
+    text = (BIN.parents[2] / ".agi" / "context" / "schemas"
+            / "[config].md").read_text(encoding="utf-8")
+    assert "required_any: {type: list}" in text, "missing fields-block entry"
+    assert re.search(r"^\s+required_any: list\s*$", text, re.M), \
+        "missing validation.types entry"
