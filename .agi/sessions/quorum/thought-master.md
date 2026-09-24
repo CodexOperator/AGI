@@ -11,18 +11,16 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (03:0xZ 09-24, gen 15)
+## Live state (03:1xZ 09-24, gen 15)
 ```
-NORMAL OPS     OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
-               just research towards doing more efficient usd0 runs in the future" -> TMM.89 / TMM.90: the standard town line on --harness
-               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) once DE's ONE probe (TMM.87) passes
-BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mints work) allows ONLY provider deepseek (dashboard Settings >
-               Privacy) -> 404 for the free model, 0 USD (DE 02:32Z mur EF.87 · TM 03:01Z raw probe) · OWNER 02:54Z (verbatim on goal:g5): the
-               key is an admin key, set it yourself -> MEASURED 03:01Z: NOT settable by key -- no public-API route (openapi.json, 94 paths);
-               guardrails + a request's provider.only only NARROW it (1-cent minted probe key, revoked: control 404, provider.only 404) ·
-               fix = ONE dashboard edit by the owner (allow stealth, keep deepseek) · [owner] to the Prime 03:0xZ · DE holds a one-burst go
-               OWNER 03:13Z "Done" -> RE-PROBED 03:14Z: the provider filter PASSES; now 404 at the ACCOUNT's ZDR enforcement (the ONLY reason:
-               zdr-violation-by-account; the free endpoint is not ZDR) -> the owner's 2nd edit, same page (ZDR off; trade-off stated to the owner)
+NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
+               more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
+               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) · GO 03:1xZ: TMM.91 (DE: the 3 murs EF.87-89, EF.91,
+               .23 r2 / .14 r3, the per-harness max_live leaf) · TMM.92 (DT: LEAF.04 -> REPLAY.01 -> SWR-SV.01 as a director review)
+ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist'; the owner's 02:54Z "admin key" line measured 03:01Z) --
+               the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
+               200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
+               answer -> not applied) · 14.04 of 192 USD left (the Prime's 02:13Z move)
 kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
@@ -32,26 +30,23 @@ usd0           the local lane is RETIRED as an operating mode (the owner cancell
 EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
 DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
                prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
-               ceiling-once-the-window-is-declared · LEAF.04 on pi-free READY · SWR-SV.01 closes as a director review
+               ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
 LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
-the Prime      PASS 3 resumes on pi-free at its next CHECK (same filter) · still owes: the two director rows, EF.10
+the Prime      PASS 3 may resume on pi-free at its next CHECK ([owner] line 03:1xZ) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
+03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
 ````
-03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
+03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
 ```
-state   MAIN: goal:g5 note + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (0) the owner's ZDR edit (Settings > Privacy: account-wide ZDR enforcement off) -> ONE re-probe (the 03:01Z raw call, trap
-            'allowlist', or DE one mur) -> ok = ONE go line to both directors (TMM.91+):
-            DE's burst (murs H2/I2/J2, EF.91, leaves) + DT's LEAF.04 -> REPLAY.01 on pi-free, kids flagged --harness pi-free
-        (1) DE's EF.90 result -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
-        (2) DT's first PI_CODING_AGENT_DIR round: does the server log show the parent's AND the kids' requests? -> the lane is proved or fixed
-        (3) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; if pi refuses the
-            free id, merge it into a COPY of pi's config first (PI_CODING_AGENT_DIR), test with a minted key and stdin closed, then swap it in
-        (4) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
+state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
+NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
+            the free provider = the director's one line, hold that lane, re-probe raw (trap 'allowlist') before any dashboard ask
+        (1) DE's [merge-up]s (the 3 murs' batch; EF.90's result) -> the #4-style gate: each round's FINAL verify stage + the diff, read myself
+        (2) DT's [merge-up] (LEAF.04, REPLAY.01) -> the same gate · SWR-SV.01 closes as DT's director review
+        (3) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
