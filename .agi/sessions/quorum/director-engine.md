@@ -19,6 +19,10 @@ BLOCKED   pi-free 02:2xZ: murs H2/I2/J2 (EF.87/88/89) launched --harness pi-free
           available for the selected model ... your account's allowed-providers setting permits only: deepseek" (+ pi: the id is not
           in its openrouter list, "Using custom model id"). 0 USD. [red] to TM 02:2xZ (.agi/sessions/de-0923/blocker-free-lane-2.md):
           the owner's account setting (allow provider `stealth`). NOTHING runs on pi-free until TM says it is fixed.
+OWNER     02:2xZ in my pane, verbatim: "Can we cancel that local kid" -> director-thought's LEAF.03 parent a00-bbb13581 (the only live
+          local agent) SIGTERM'd 02:29Z, 0/30 live, TM told ([owner] line). "Also if we have that free openrouter model available we
+          can keep running rounds the standard way" -> once pi-free is unblocked: STANDARD rounds (--tier parent --harness pi-free,
+          orders tell the parent: every kid spawn passes --harness pi-free) are allowed, not only kid leaves.
 LOCAL     the pi-local slot (OrcaBonsai-27B-C2 on :8080, ONE 65,536-token slot) is director-thought's ALONE since EF.90 (TMM.81/82).
 LANDED    #1-#3 = EF.49-82 at 7c9231b4f (via the #3 close e428f88c80) · #4 = EF.85/84/86/83 at d81b444043 (TMM.75)
 HARVESTED on the post branch, not yet merged up -> merge-up #5 = EF.87 + EF.88 + EF.89 + EF.90:
@@ -33,8 +37,8 @@ QUEUE     on pi-free, --tier kid --harness pi-free (I am the parent), chains in 
           L23-1 load-rows-reads-the-last-fetched-authority-when-do-fetch-is-false = EF.91 (orders-free-L23-1.md, ready)
             -> L23-2 authority-deferred-signer-signs-with-the-key-the-verifiers-row-names -> L23-3 deferred-window-dm-verifies-...
           L14-1 authority-publish-push-timeout-yields-failed-never-raises -> L14-2 ...-plumbing-git-calls-are-bounded-...
-          max_live leaf (TMM.82: dispatch refuses a spawn whose harness is at harnesses.<h>.max_live; pi-local = 1; one function,
-            one test) -- a read-only planner ran 02:3xZ; if its plan is not minted below, re-plan and mint it
+          max_live (TMM.82) MINTED 02:3xZ under goal:g5.27: spawn-budget-acquire-refuses-a-harness-at-its-row-max-live ->
+            dispatch-leases-the-resolved-harness-and-pi-local-admits-one-live-kid (+ the pi-local max_live 1 cell)
           LC2-1 -> LC2-2 (C2) after these. Orders: shape of orders-local-LH1.md / orders-free-L23-1.md (<= 20 tool calls now).
 LEAF BAR  measured: 29 tool calls filled the 65K local slot (EF.90) -> orders say <= 20 calls, read by line range, no whole-file cats.
 PAID LANE on TM's full lift only: orders-lift-1..4 + the murs above on --harness pi.
@@ -56,7 +60,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in (or TM's in-place
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (02:3xZ 09-24, gen 3; post tip e93594dca9 pushed; pi-free BLOCKED on the account)
+## 🔴 WHERE IT STOPS — the one next command (02:3xZ 09-24, gen 3 -> gen 4; pi-free BLOCKED on the account; nothing live)
 ```````
 ``````
 `````
@@ -66,7 +70,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in (or TM's in-place
    for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run agi-merge-up-review --harness pi-free
      --args "$(cat .agi/sessions/de-0923/mur-$m-args.json)" > .agi/sessions/de-0923/mur-$m.log 2>&1 < /dev/null & disown
    + dispatch EF.91 (L23-1, orders-free-L23-1.md) --tier kid --harness pi-free, then LH-2 and L14-1 (write their orders first)
-2  the max_live leaf: mint it (planner output or a re-plan), then dispatch it on pi-free
+2  the max_live leaves (minted): dispatch leaf 1 on pi-free, then leaf 2 after it merges
 3  murs H2/I2/J2 in, 0 demote -> union + graph -> ONE [merge-up] #5 (EF.87 + 88 + 89 + 90) to thought-master
 ```
 ````
