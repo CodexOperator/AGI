@@ -126,8 +126,26 @@ def test_survival_brief_paid_for_path_guard_follows_project_config(tmp_path):
     (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
     rendered = brief.successor_prompt(tier="kid", body="UNUSED-BODY",
                                       profile="survival", project_root=root)
-    assert "SURVIVAL-CONFIG-GUARD-SENTINEL" in rendered
+    assert rendered.count("SURVIVAL-CONFIG-GUARD-SENTINEL") == 1
     assert brief.PAID_FOR_PATH_GUARD not in rendered
+
+
+def test_successor_full_profile_carries_paid_for_path_guard_once(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    rendered = brief.successor_prompt(tier="kid", body="ARBITRARY-BODY",
+                                      project_root=root)
+    assert brief.PAID_FOR_PATH_GUARD in rendered
+    assert rendered.count(brief.PAID_FOR_PATH_GUARD) == 1
+
+
+def test_paid_for_path_guard_falls_back_to_config_with_config_node(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    _write(root, "nodes/.geometry/brief.md",
+           "---\nid: config:brief\nbrief:\n  parts: {kid: [head]}\n---\n")
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "CONFIG-FALLBACK-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    assert brief._paid_for_path_guard(root) == "CONFIG-FALLBACK-SENTINEL"
 
 
 def test_paid_for_path_guard_follows_config_brief_node(tmp_path):
