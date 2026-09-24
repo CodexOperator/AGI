@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.33.10
 
-# goal:g7.33.10
-
 | | |
 |---|---|
 | goal | write.py writes ONE named row of a node -- a frontmatter field or a schema-declared body row -- and the node type's schema decides both whether that row exists and whether the value's format is valid: no verb can invent a row |
@@ -34,3 +32,7 @@ town: core
 | scope | every node type with a schema under .agi/context/schemas/ · frontmatter fields, list rows, and body rows the schema declares · checks the row being written, never blocks on an unrelated legacy violation (links.py schema lists those) · NOT create (the spawn gate already runs there) |
 | done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
 | who | director-engine, batched by thought-master (TMM.128) |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+gen 17: the duplicated heading from the mint removed (write.py create adds its own heading; the body file carried a second one)
+<!-- THOUGHT:END -->
