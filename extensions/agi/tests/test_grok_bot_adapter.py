@@ -35,6 +35,38 @@ def test_name_is_the_harness_literal():
     assert grok.NAME == "grok-bot"
 
 
+def test_optional_pane_methods_do_not_expand_required_surface():
+    assert grok.OPTIONAL_PANE_METHODS == ("pane_attach", "pane_send", "pane_read")
+    assert all(callable(getattr(grok, name)) for name in grok.OPTIONAL_PANE_METHODS)
+    assert all(name not in adapters.REQUIRED for name in grok.OPTIONAL_PANE_METHODS)
+
+
+def test_pane_operations_fail_named_when_no_pane_is_held():
+    for operation, args in ((grok.pane_attach, ()), (grok.pane_send, ("hello",)),
+                            (grok.pane_read, ())):
+        with pytest.raises(grok.PaneUnavailableError, match="no held pane"):
+            operation({"adapter": "grok_bot"}, *args)
+
+
+def test_pane_operations_are_bounded_and_target_the_held_pane(monkeypatch):
+    calls = []
+
+    class Result:
+        stdout = "captured"
+
+    def run(args, **kwargs):
+        calls.append((args, kwargs))
+        return Result()
+
+    monkeypatch.setattr(grok.subprocess, "run", run)
+    harness = {"adapter": "grok_bot", "pane": " @7 "}
+    assert grok.pane_attach(harness) == "captured"
+    assert grok.pane_send(harness, "hello") == "captured"
+    assert grok.pane_read(harness) == "captured"
+    assert [call[0][-1] for call in calls] == ["@7", "@7", "@7"]
+    assert all(call[1]["timeout"] == 5 for call in calls)
+
+
 def test_adapter_implements_the_whole_interface():
     """`adapters.load` only proves the names exist; every REQUIRED name is
     callable. `restart` is now a real respawn (`goal:g4.7`) — the locked

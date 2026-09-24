@@ -29,6 +29,46 @@ NAME = "grok-bot"
 #: a literal here.
 DEFAULT_BIN = "grok-bot"
 
+OPTIONAL_PANE_METHODS = ("pane_attach", "pane_send", "pane_read")
+
+
+class PaneUnavailableError(RuntimeError):
+    """Named, bounded failure for pane operations without a valid hold."""
+
+
+def _pane_target(harness: dict) -> str:
+    pane = harness.get("pane")
+    if not isinstance(pane, str) or not pane.strip():
+        raise PaneUnavailableError(
+            f"grok-bot has no held pane for harness {harness.get('adapter', NAME)!r}"
+        )
+    return pane.strip()
+
+
+def _pane_run(harness: dict, args: list[str], *, input: str | None = None) -> str:
+    try:
+        result = subprocess.run(
+            ["tmux", *args, "-t", _pane_target(harness)],
+            input=input, text=True, capture_output=True, timeout=5, check=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise PaneUnavailableError(f"grok-bot pane operation failed: {exc}") from exc
+    return result.stdout
+
+
+def pane_attach(harness: dict) -> str:
+    return _pane_run(harness, ["attach-session"])
+
+
+def pane_send(harness: dict, text: str) -> str:
+    if not isinstance(text, str) or not text:
+        raise PaneUnavailableError("grok-bot pane_send requires non-empty text")
+    return _pane_run(harness, ["send-keys", text, "Enter"], input=None)
+
+
+def pane_read(harness: dict) -> str:
+    return _pane_run(harness, ["capture-pane", "-p", "-J"])
+
 
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
