@@ -1,0 +1,93 @@
+{
+ "label": "LEAF.06",
+ "base": "0a44823421",
+ "tip": "6a1253fce1",
+ "regex": "(['\"=( ]|^)(/data/|/home/|/mnt/|/media/|/tmp/|/opt/|~/)",
+ "files": [
+  ".agi/context/local-maxxing/athena/fetch_parallel.py",
+  ".agi/context/local-maxxing/e3/e3_lut.py",
+  ".agi/context/local-maxxing/kv/kv_format_round.py",
+  ".agi/context/local-maxxing/kv/kv_speed_round.py",
+  ".agi/context/local-maxxing/kv/kv_split_round.py",
+  ".agi/context/local-maxxing/kv/osc07/place_probe.sh",
+  ".agi/context/local-maxxing/magic-pane/detect.py",
+  ".agi/context/local-maxxing/serve/cold_first_round.py",
+  ".agi/context/local-maxxing/serve/osc09/jitcache_probe.sh",
+  ".agi/context/local-maxxing/serve/osc09/router_mode_probe.sh",
+  ".agi/context/local-maxxing/serve/serve_sweep_round.py",
+  ".agi/context/local-maxxing/serve/ub_prefill_round.py",
+  ".agi/context/local-maxxing/specdec/specdec_a00_71dbbad5.py",
+  ".agi/context/local-maxxing/spectral/lif_spectral_driven.py",
+  ".agi/context/local-maxxing/telepathy/tel02/tel02_probe.py"
+ ],
+ "before_hits": 19,
+ "before": [
+  ".agi/context/local-maxxing/athena/fetch_parallel.py:14:WORK = \"/data/ml/models\"",
+  ".agi/context/local-maxxing/e3/e3_lut.py:80:np.save(_os.path.join(\"/tmp/kidB\", 'spk_in.npy'), spk_in.numpy())",
+  ".agi/context/local-maxxing/e3/e3_lut.py:117:json.dump(out, open(_os.path.join(\"/tmp/kidB\", 'e3_results.json'),'w'))",
+  ".agi/context/local-maxxing/kv/kv_format_round.py:20:SCRATCH = \"/data/ml/scratch/osc02\"  # proposed box.ml_scratch_dir",
+  ".agi/context/local-maxxing/kv/kv_speed_round.py:22:SCRATCH = \"/data/ml/scratch/osc02\"  # proposed box.ml_scratch_dir",
+  ".agi/context/local-maxxing/kv/kv_split_round.py:17:SCRATCH = \"/data/ml/scratch/osc02\"                    # proposed box.ml_scratch_dir",
+  ".agi/context/local-maxxing/kv/osc07/place_probe.sh:10:  docker run -d --rm --name \"$name\" --gpus all -v /data/ml/scratch/osc02:/work \\",
+  ".agi/context/local-maxxing/magic-pane/detect.py:11:ROOT = \"/data/work/agi\"",
+  ".agi/context/local-maxxing/serve/cold_first_round.py:12:IMG = \"ghcr.io/ggml-org/llama.cpp:full-cuda\"; IMG2 = \"ghcr.io/ggml-org/llama.cpp:server-cuda\"; SC = \"/data/ml/scratch/osc02\"; M = \"/work/Qwen3.5-9B-Q4_K_M.gguf\"",
+  ".agi/context/local-maxxing/serve/osc09/jitcache_probe.sh:4:SC=/data/ml/scratch/osc02; CACHE=$SC/coldcache2",
+  ".agi/context/local-maxxing/serve/osc09/router_mode_probe.sh:4:NAME=coldprobe; PORT=18092; SC=/data/ml/scratch/osc02",
+  ".agi/context/local-maxxing/serve/osc09/router_mode_probe.sh:18:raw=open(\"/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw\",\"rb\").read()",
+  ".agi/context/local-maxxing/serve/serve_sweep_round.py:11:IMG = \"ghcr.io/ggml-org/llama.cpp:full-cuda\"; NS = \"/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2\"",
+  ".agi/context/local-maxxing/serve/serve_sweep_round.py:12:SC = \"/data/ml/scratch/osc02\"; M = \"/work/Qwen3.5-9B-Q4_K_M.gguf\"; OUT = paths.get_local(\"serving_sweep_out_dir\"); LOG = OUT + \"/logs\"; T975 = S.T975_4",
+  ".agi/context/local-maxxing/serve/ub_prefill_round.py:14:IMG = \"ghcr.io/ggml-org/llama.cpp:server-cuda\"; SC = \"/data/ml/scratch/osc02\"; CACHE = \"/data/ml/scratch/cuda-jit-cache\"",
+  ".agi/context/local-maxxing/specdec/specdec_a00_71dbbad5.py:2:\"\"\"OSC.12 draft-free n-gram speculation on the served Qwen3.5-9B-Q4_K_M (router's image/args): build|t1|full|analyze|margins. Fresh container per arm, model_args_9b minus --port, host 0.0.0.0 (bridge net; host side is 127.0.0.1), -fa on, --spec-type <arm> at DEFAULT parameters. The CALLER stops and restores llama-server; this script never touches it. Repo paths via paths.get_local (rule 13); /data/ml/models and the JIT cache are out-of-repo box roots kept literal (proposed as box cells).\"\"\"",
+  ".agi/context/local-maxxing/specdec/specdec_a00_71dbbad5.py:7:IMG = \"ghcr.io/ggml-org/llama.cpp:server-cuda\"; MODELS = \"/data/ml/models\"; CACHE = \"/data/ml/scratch/cuda-jit-cache\"",
+  ".agi/context/local-maxxing/spectral/lif_spectral_driven.py:66:    src_c, exe = \"/tmp/tm58drv.c\", \"/tmp/tm58drv\"",
+  ".agi/context/local-maxxing/telepathy/tel02/tel02_probe.py:6:MODEL = sys.argv[3] if len(sys.argv) > 3 else '/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf'"
+ ],
+ "after_hits": 0,
+ "after": [],
+ "cells": 6,
+ "cells_identical": 6,
+ "table": [
+  {
+   "cell": "cuda_jit_cache_dir",
+   "old_literal": "/data/ml/scratch/cuda-jit-cache",
+   "get": "/data/ml/scratch/cuda-jit-cache",
+   "cli": "/data/ml/scratch/cuda-jit-cache",
+   "identical": true
+  },
+  {
+   "cell": "nsys_dir",
+   "old_literal": "/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+   "get": "/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+   "cli": "/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+   "identical": true
+  },
+  {
+   "cell": "osc02_scratch_dir",
+   "old_literal": "/data/ml/scratch/osc02",
+   "get": "/data/ml/scratch/osc02",
+   "cli": "/data/ml/scratch/osc02",
+   "identical": true
+  },
+  {
+   "cell": "served_9b_gguf",
+   "old_literal": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "get": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "cli": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "identical": true
+  },
+  {
+   "cell": "served_models_dir",
+   "old_literal": "/data/ml/models",
+   "get": "/data/ml/models",
+   "cli": "/data/ml/models",
+   "identical": true
+  },
+  {
+   "cell": "wikitext2_test_raw",
+   "old_literal": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "get": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "cli": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "identical": true
+  }
+ ]
+}
