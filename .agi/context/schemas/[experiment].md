@@ -25,6 +25,7 @@ validation:
   types:
     confidence: float
     parents: list
+    probes: list
   regex:
     verdict: '^(proved|disproved|inconclusive_lean_proved:\d{1,3}|inconclusive_lean_disproved:\d{1,3}|pending)$'
 spawn:

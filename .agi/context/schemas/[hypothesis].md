@@ -22,6 +22,7 @@ validation:
     title: str
     testable_claim: str
     subgraph: bool
+    probes: list
 spawn:
   allowed_parents: [idea, goal, experiment, hypothesis]
   min_parents: 1

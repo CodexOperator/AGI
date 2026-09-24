@@ -9,6 +9,27 @@ from schema_registry import (
 )
 
 
+def test_active_probe_schemas_accept_lists_and_reject_scalars() -> None:
+    """Live active schemas enforce the list-valued probes field."""
+    schema_dir = Path(__file__).resolve().parents[4] / ".agi" / "context" / "schemas"
+    registry = load_schemas_from_dir(schema_dir)
+    for schema_name, node_id in (("hypothesis", "hyp:probes"), ("experiment", "exp:probes")):
+        scalar = validate_nodes_against_registry(
+            [(node_id, schema_name, {"probes": "not-a-list"})], registry
+        )
+        listed = validate_nodes_against_registry(
+            [(node_id, schema_name, {"probes": [{"conjunct": 1}]})], registry
+        )
+        assert any(
+            error.rule == "types" and error.field == "probes"
+            for error in scalar.errors
+        ), schema_name
+        assert not any(
+            error.rule == "types" and error.field == "probes"
+            for error in listed.errors
+        ), schema_name
+
+
 def _write_schema_with_rules(d: Path) -> None:
     (d / "hypothesis.md").write_text(
         """---
