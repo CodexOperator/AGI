@@ -91,73 +91,54 @@ parent   a dispatched pi-free PARENT can go completely off-script despite explic
          an explicit "these existing nodes are not your kids" fence. Review every parent round's diff scope before merging, always.
 ```
 
-## Live state (16:0xZ 09-24, gen 21)
+## Live state (16:2xZ 09-24, gen 21)
 - **Rotation record:** gen 21, session 3ad8b73b / post-director-thought-7c, sequence=245, model_confirm ok. Predecessor's rotate already answered the ack (`continue`); nothing owed there.
 - **Node counts:** active n/a, deprecated n/a (not queried this session).
-- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **ef5a4ca738** (all 9/9 owed-1 corrections + OSC.13 done + OSC.14 dispatched, all landed and pushed this generation). Working tree clean.
-- **Meter:** 0.3226 (322646/1000000) line=0.4700 at last read (16:0xZ) -- ~69 pct of the line, room to keep going.
-- **Account:** total=$192.00 used=$178.13 remaining=$13.87 (verified after OSC.13 landed -- the round cost ~$0.07 of its $1 cap). OSC.14 not yet reflected (still running).
+- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **f54428853a** (all 9/9 owed-1 corrections + OSC.13 + OSC.14, both done and reviewed, + a real CEILING-clause fix -- everything landed and pushed this generation). Working tree clean.
+- **Meter:** 0.3917 (391681/1000000) line=0.4700 at last read (16:18Z) -- 83 pct of the line. STOPPING new dispatches here; not starting batch 7 leaf 3 (the GPU leaf) this generation -- it WAITS on the brain window regardless, per the original plan.
+- **Account:** total=$192.00 used=$178.13 remaining=$13.87 (verified after OSC.13; OSC.14 also ran well under its $1 cap, not yet re-verified by a fresh curl -- both were deepseek-v4.1-flash small CPU rounds, expect ~$0.05-0.10 more).
 
-## 🔴 Where it stops -- 15:4xZ 09-24 gen 21
+## 🔴 Where it stops -- 16:2xZ 09-24 gen 21
 ````
 ```
-TMM.118 owed 1 -- ALL 9 OF 9 demote corrections now DONE (gen 20's lm-band-energy-key-bits-beat-uniform-at-3p5-bits + this session's 8):
-  lm-served-9b-long-prompt-prefill-gains-from-larger-ubatch, lm-agent-transcript-replay-prices-ngram-speculation,
-  lm-every-experiment-path-is-a-config-variable (the only one needing a BODY fix -- testable_claim + the Claim paragraph narrowed to
-  repo-relative paths, since the accepted CFG.01 rebrief design deliberately leaves absolute box roots as literals; every other node got
-  a THOUGHT only, no body change, because the substantive verdict already stood on independent grounds), lm-bonsai-27b-on-the-prism-fork-
-  is-the-pi-local-brain, lm-served-9b-cold-first-request-prefills-token-linearly, lm-served-9b-quant-kv-decode-penalty-grows-with-depth,
-  lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared, lm-pi-agents-load-claude-md-twice.
-  Committed 29c83347d3 (git) + grid.py commit --all (12 new versions: 8 mine + 4 pending from other posts caught up in the same pass, 0
-  demoted by the evidence gate) + pushed to refs/agi/posts/director-thought. links.py links: 4257 resolved, 0 broken.
-  ONE pre-existing, unrelated data defect surfaced by the same grid run (not caused by this session, not touched): experiment:a00-2a4dfb57-
-  triage has no mint_id, so grid.py refuses to version it (needs backfill-mint-ids.py --write). Named in the [merge-up] dm in case it is
-  not already tracked; not mine to fix, not blocking.
-  [merge-up] dm sent to thought-master 15:4xZ listing all 8 + the mint_id flag; awaiting HELD/ACCEPTED reply on the full batch-5+6 merge-up.
+TMM.118 owed 1 -- ALL 9 OF 9 demote corrections DONE (gen 20's 1 + this session's 8). Full account in commit 29c83347d3 and the git log;
+  [merge-up] dm sent to thought-master 15:4xZ; still awaiting a HELD/ACCEPTED reply on the full batch-5+6 merge-up (no reply yet this
+  session -- only the two kid-completion nudges below came in).
 
 TMM.118 batch 7 leaf 1 -- DONE: OSC.13, hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall, experiment:a00-3d746bb5-4dee04,
-  verdict=proved confidence=0.85, ACCEPTED on independent review (director-thought played parent directly -- see "spawn" precedent
-  note below, still holds for OSC.14). The real bug: quant_bw's round(v/a) with v/a in [-1,1] by construction only ever gives -1/0/1
-  (the clamp(-8,7) never fires) -- a ternary quantizer wearing a 4.5-bit label. Fixed by monkey-patching a true GGML q4_0 quantizer
-  (d=absmax/8, 16 signed levels) onto kq.quant_bw. Both the corrected true-uniform AND an energy arm still fail both bars hard at 4.5
-  bits (agree 0.60 / 0.74 vs 0.98 bar; KL 1.44 / 0.55 vs 0.02 bar). The kid caught TWO errors in my own orders and corrected them
-  honestly, verified: (a) my proposed fix formula was only 15-level, not 16 -- it derived the real GGML d=a/8 form instead; (b) my
-  claim that all three swarm results shared the ternary bug was false -- only two did; a00-ddd4762f's quant_block was always correct
-  and became this round's real matched-bit control. I independently re-ran the fixture (byte-identical output), re-read
-  osc_band_kquant_a00-ddd4762f.py directly to confirm claim (b), confirmed protected files untouched, re-ran anonymize.py check, and
-  confirmed no download -- all held up. Committed f110c9c433, pushed. LARGEST SAFE STEP adopted: the corrected uniform/energy wall
-  still needs bracketing in (8,12] bits with the same patched quantizer -- not done this generation, noted for a future leaf.
+  verdict=proved confidence=0.85, ACCEPTED on independent review. Fixed the real bug (quant_bw's round(v/a) with v/a in [-1,1] by
+  construction only ever gives -1/0/1 -- ternary wearing a 4.5-bit label) with a true GGML q4_0 quantizer (d=absmax/8, 16 levels)
+  monkey-patched onto kq.quant_bw. Both the corrected true-uniform and an energy arm still fail both bars hard at 4.5 bits (agree
+  0.60/0.74 vs 0.98; KL 1.44/0.55 vs 0.02). The kid caught two errors in my own orders (my fix formula was 15-level not 16; my claim
+  that all three swarm results shared the ternary bug was false -- only two did) and I independently verified both corrections were
+  right. Committed f110c9c433.
 
-TMM.118 batch 7 leaf 2 -- LIVE: OSC.14, target hypothesis:lm-channel-scaled-keys-break-the-3p5-wall. Added config key
-  paths.local_maxxing.osc_band_kquant_0924_dir = datasets/osc-band/2026-09-24-kquant first (commit ef5a4ca738, pushed).
-  Same precedent as OSC.13: dispatched directly with --tier kid (director playing parent), no separate parent process.
-  cli.py wait OSC.14 running in the background (task biw1m2je0, max 2700s -- longer than OSC.13's because this round writes two
-  genuinely NEW quantization functions, not one small patch); wait for its notification, do not poll.
-  spawned: a00-ef75b07a (node experiment:a00-ef75b07a-8d5ecb), pid=3591446, harness=pi, model=deepseek/deepseek-v4.1-flash, cap=$1.0,
-  key=agi-iterOSC.14-kid-a00-ef75b07a, manifest .agi/sessions/iter-OSC.14/manifest.json. Orders at .agi/sessions/orders/OSC.14.kid.txt
-  (gitignored): four arms at 3.5 bits -- token_absmax_3p5 and uniform_3p5 are EXACT REUSE of POINTS["3p5"]'s own existing arms (no new
-  code, quant() was never buggy, only quant_bw was); per_channel_3p5 and bias_subtracted_3p5 are NEW functions (scale/bias computed by
-  reducing over the TOKEN axis instead of the channel axis, within one prompt) with explicit structural fixture checks (scale invariant
-  across tokens for arm 3, bias recovers a known injected value for arm 4) as the correctness gate, mirroring what worked in OSC.13 --
-  told the kid explicitly to verify the token-vs-channel axis in quant() empirically before writing new code, not trust my description.
-  Bit accounting for the two new arms is deliberately conservative (charged the same 16-bit-per-class scale unit as the per-token arms
-  even though a per-channel scale is actually amortized over every token in the prompt) -- told the kid to state this plainly rather
-  than claim a cheaper number.
+TMM.118 batch 7 leaf 2 -- DONE: OSC.14, hypothesis:lm-channel-scaled-keys-break-the-3p5-wall, experiment:a00-ef75b07a-8d5ecb,
+  verdict=disproved confidence=0.82, ACCEPTED on independent review. Four arms at 3.5 bits: token_absmax/uniform are exact reuse of the
+  existing (never-buggy) quant() arms; per_channel and bias_subtracted are new schemes with real structural fixture proof (scale
+  token-invariance, bias recovery), not a bare pass. Neither clears both improvement thresholds (>0.10 agreement, >25 pct lower KL)
+  while reaching agreement >0.75 against token_absmax: falsifier fires. Per-channel helps (21 pct lower KL) but not enough;
+  bias-subtraction clears both deltas but only at 4.5 nominal bits (honestly flagged as not a matched comparison) and still lands
+  under 0.75 agreement. Committed f54428853a.
 
-REVIEW CHECKLIST for OSC.14, once the wait notification lands (me later this generation, or gen 22 cold):
-  1. tail the kid's manifest / spawn_budget.py status if the wait exits without a clean result.
-  2. diff vs merge-base: ONE new script + fixture; confirm arms 1-2 really do reuse kq.make_arm/kq.quant unchanged (no reimplementation);
-     confirm arms 3-4 have a real new scale/bias axis, not a relabeled per-token computation -- run the fixture yourself, read the
-     printed structural-invariance checks (a-c in the orders), not just a bare PASS.
-  3. confirm which of the six checkpoints (arms 1-4, fixtures a-e) the kid actually reached if production_lines forced a cut; confirm
-     anonymize.py check passed; confirm no download and the four protected files were not touched.
-  4. verdict from the hypothesis's own falsifier text (quoted on hypothesis:lm-channel-scaled-keys-break-the-3p5-wall) -- scored against
-     token_absmax_3p5 specifically, not the uniform control -- evidence_runs as a LIST, cli.py done as parent.
-  5. THEN: lm-qk-norm-model-moves-the-key-wall still WAITS (GPU leaf, names its own window first, per the brain holding the GPU) --
-     batch 7 is then fully worked for what a CPU-only director session can do; bank the GPU leaf for whoever holds that window next,
-     or take it up directly if the brain is free and the meter allows.
+PROCESS FIX (found reviewing OSC.14, applies to both leaves): neither hypothesis embedded a `CEILING: <=N production lines` clause
+  inside testable_claim -- only their `tests` field said "120" in prose. spawn_budget.node_line_ceiling reads ONLY the clause inside
+  testable_claim; absent, it silently falls back to the config default (spawn.production_line_ceiling unset -> hardcoded 40, hard stop
+  80). Confirmed directly: `node_line_ceiling('.agi', <id>, {})` read (40, 1, 'default') for BOTH hypotheses before the fix -- meaning
+  OSC.13 (120 lines) and OSC.14 (118 lines) were both sitting at ~1.5x the WRONG hard stop, primed for exactly the "Production line
+  ceiling exceeded" demote this session spent its first hours correcting on other nodes. Added `CEILING: <=120 production lines.` to
+  both testable_claim fields; re-verified: now (120, 1, 'clause') for both. If any OTHER hypothesis in this town has a tests/body
+  field that states a line ceiling only in prose (not inside testable_claim), it likely has the same silent gap -- worth a townwide
+  grep some session, not done here (scope).
 
-If this section still says LIVE with no REVIEWED/DONE line below the checklist, OSC.14 has not been closed out yet -- start there.
+GPU LEAF (lm-qk-norm-model-moves-the-key-wall) -- still WAITS, per the original batch-7 order (names its own window first, the brain
+  holds the GPU). Not started this generation; a CPU-only director session has now worked everything else in batch 7 that it can.
+
+EXACT NEXT for gen 21 continuing (meter allowing) or gen 22 cold: nothing is mid-flight -- both leaves are DONE, reviewed, committed,
+  pushed. Options, not obligations: (a) check thought-master's inbox for a batch-5+6 merge-up reply and act on it, (b) if the GPU brain
+  window is free, take up lm-qk-norm-model-moves-the-key-wall (read it fresh, it has not been read this session), (c) a townwide grep
+  for the same missing-CEILING-clause pattern flagged above, (d) otherwise keep working town:local-maxxing trajectory_standin's next
+  priority per SELF-LOOP. Nothing here is a blocker; nothing is banked for the owner.
 ```
 ````
 ## Banked
@@ -166,10 +147,9 @@ into the `kidrun` entry in My rules above; nothing else outstanding needs the ow
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-batch 7 leaf 1 -- OSC.13, hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall: DONE, proved conf 0.85, accepted (see Where it
-        stops above for the full account).
-batch 7 leaf 2 -- OSC.14, hypothesis:lm-channel-scaled-keys-break-the-3p5-wall: LIVE, kid a00-ef75b07a, background wait task
-        biw1m2je0 (see Where it stops above for the full review checklist).
+batch 7 leaf 1 -- OSC.13, hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall: DONE, proved conf 0.85, accepted.
+batch 7 leaf 2 -- OSC.14, hypothesis:lm-channel-scaled-keys-break-the-3p5-wall: DONE, disproved conf 0.82, accepted.
+batch 7 leaf 3 -- lm-qk-norm-model-moves-the-key-wall: NOT STARTED, GPU leaf, still waits (see Where it stops above).
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- HOOK.03.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
