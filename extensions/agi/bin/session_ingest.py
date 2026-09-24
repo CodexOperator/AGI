@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Ingest a JSON/JSONL session transcript as one stable graph node."""
 from __future__ import annotations
-import ast, json, re, sys
+import hashlib, json, re, sys
 from pathlib import Path
+
+from node_writer import WRITTEN, find_node_file, update_node, write_node
 
 _YAML_BREAKERS = set(':#{}[],&*!|>%@`"\'\n\r\t')
 
-def _session_slug(value: object) -> str:
+def _session_identity(value: object) -> tuple[str, str, str]:
     if isinstance(value, bool) or not isinstance(value, (str, int, float)):
         raise ValueError("session_id must be a non-empty scalar")
     raw = str(value).strip()
@@ -16,15 +18,29 @@ def _session_slug(value: object) -> str:
         raise ValueError("session_id contains a path separator or whitespace")
     if any(c in _YAML_BREAKERS for c in raw):
         raise ValueError("session_id contains YAML-breaking characters")
-    slug = re.sub(r"[^A-Za-z0-9_-]+", "-", raw).strip("-_").lower()
-    if not slug:
-        raise ValueError("session_id normalizes to an empty slug")
-    return slug
+    canonical = json.dumps([type(value).__name__, raw], ensure_ascii=False,
+                           separators=(",", ":"))
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    readable = re.sub(r"[^A-Za-z0-9_-]+", "-", raw).strip("-_").lower() or "session"
+    return f"session-{readable}-{digest}", canonical, raw
 
 def _text(value: object, default: str) -> str:
     if value is None:
         return default
     return value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+
+def _live_goal(root: Path, value: object) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("session artifact has no live goal parent")
+    gid = value.strip() if value.startswith("goal:") else f"goal:{value}"
+    path = find_node_file(root, gid)
+    if path is None:
+        raise ValueError(f"goal parent does not resolve: {gid}")
+    from graph_core.persistence import frontmatter
+    fm = frontmatter.load_node_file(path, body=False).frontmatter
+    if fm.get("type") != "goal" or fm.get("status") in {"retired", "deprecated"}:
+        raise ValueError(f"goal parent is not live: {gid}")
+    return gid
 
 def ingest(path: Path, root: Path) -> str:
     raw = path.read_text(encoding="utf-8").strip()
@@ -43,39 +59,37 @@ def ingest(path: Path, root: Path) -> str:
     identity = record.get("session_id", record.get("id"))
     if identity is None:
         raise ValueError("session artifact has no session_id")
-    sid = _session_slug(identity)
-    nid = f"doc:session-{sid}"
-    node_dir = (Path(root).resolve() / "nodes" / "doc")
-    out = (node_dir / f"{sid}.md").resolve()
-    if out.parent != node_dir.resolve():
-        raise ValueError("session output escapes nodes/doc")
-    previous = out.read_text(encoding="utf-8") if out.exists() else ""
-    def old(name, default):
-        m = re.search(rf"^{re.escape(name)}: (.*)$", previous, re.M)
-        if not m:
-            return default
-        try:
-            return json.loads(m.group(1).strip())
-        except (TypeError, json.JSONDecodeError):
-            try:
-                return ast.literal_eval(m.group(1).strip())
-            except (ValueError, SyntaxError):
-                return m.group(1).strip()
-    edited = _text(record.get("edited_by") or record.get("actor"), old("edited_by", "grok"))
-    thought = _text(record.get("thought_session"), old("thought_session", sid))
-    goal = record.get("goal") or record.get("goal_id")
-    parents = [goal if isinstance(goal, str) and goal.startswith("goal:") else f"goal:{goal}"] if goal else old("parents", [])
-    if not isinstance(parents, list):
-        parents = []
-    seat = record.get("seat", old("seat", None))
-    extra = f"seat: {json.dumps(seat, ensure_ascii=False)}\n" if seat is not None else ""
+    root = Path(root).resolve()
+    slug, canonical, display_id = _session_identity(identity)
+    nid = f"doc:{slug}"
+    previous = find_node_file(root, nid)
+    prior_fm = {}
+    if previous is not None:
+        from graph_core.persistence import frontmatter
+        prior_fm = frontmatter.load_node_file(previous, body=False).frontmatter
+    goal_value = record.get("goal") or record.get("goal_id")
+    if goal_value is None and prior_fm:
+        prior_parents = prior_fm.get("parents") or []
+        goal_value = prior_parents[0] if len(prior_parents) == 1 else None
+    goal = _live_goal(root, goal_value)
+    edited = _text(record.get("edited_by") or record.get("actor"),
+                   prior_fm.get("edited_by", "grok"))
+    thought = _text(record.get("thought_session"),
+                    prior_fm.get("thought_session", display_id))
+    seat = record.get("seat", prior_fm.get("seat"))
     text = json.dumps(records, ensure_ascii=False, indent=2)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    fm = {"id": nid, "mint_id": "session-" + sid, "type": "doc", "title": f"Session {sid}",
-          "parents": parents, "tags": ["session"], "edited_by": edited,
-          "thought_session": thought}
-    yaml = "\n".join(f"{k}: {json.dumps(v, ensure_ascii=False) if isinstance(v, str) else v}" for k, v in fm.items())
-    out.write_text(f"---\n{yaml}\n{extra}---\n# {sid}\n\n```json\n{text}\n```\n", encoding="utf-8")
+    body = f"\n# {display_id}\n\nCanonical session identity: `{canonical}`\n\n```json\n{text}\n```\n"
+    set_fm = {"parents": [goal], "tags": ["session"], "edited_by": edited,
+              "thought_session": thought, "session_id_canonical": canonical}
+    if seat is not None:
+        set_fm["seat"] = seat
+    result = (update_node(root, nid, set_fm=set_fm, body=body)
+              if previous is not None else
+              write_node(root, "doc", slug, [goal], extra_fm={
+                  "title": f"Session {display_id}", **set_fm},
+                  body=body, announce=False))
+    if result.status not in {WRITTEN, "updated", "unchanged"}:
+        raise ValueError(f"node writer refused session artifact: {result.reason}")
     return nid
 
 if __name__ == "__main__":
