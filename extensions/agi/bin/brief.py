@@ -812,6 +812,7 @@ def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
         "SPEND: check the OpenRouter KEY balance, not the account. If "
         "limit_remaining <= $1.00, stop and write status -- never lower "
         "provisioning.min_key_remaining_usd. ",
+        PAID_FOR_PATH_GUARD,
         _survival_state_card(project_root=project_root),
     ]
 
@@ -970,6 +971,7 @@ def _director(*, agent_id: str, iter_n: int, cli_py: str,
         "   write.py, not by hand.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic.",
+        PAID_FOR_PATH_GUARD,
         "DO NOT bypass the evidence gate. `--no-evidence-gate` stamps the "
         "node and marks it unreviewed.",
         _MECHANISM,
@@ -1006,6 +1008,7 @@ def _liaison(*, agent_id: str, project_root: Path | None = None) -> list[str]:
         "candidate decisions sits with the quorum, not you.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
         "Route every node edit through the logged writer: "
         "`python3 extensions/agi/bin/write.py <node-id> 'thought <text>'` "
         "(or `note <text>`). A hand edit to a node file is an unsanctioned "
@@ -1219,6 +1222,7 @@ def _advisor(*, agent_id: str, iter_n: int, target: str | None,
         f"you never rewrite it.",
         "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
         "Automation owns all remote traffic and the parent owns commits.",
+        PAID_FOR_PATH_GUARD,
     ]
     return segs
 
