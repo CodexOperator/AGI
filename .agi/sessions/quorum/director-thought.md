@@ -73,15 +73,17 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          RELATIVE cell resolves there -- use get_local)
 ```
 
-## 🔴 Where it stops -- 03:2xZ 09-24: LEAF.04 (leaf A) LIVE on pi-free (TMM.92 GO); on its done: review in place -> the batch [merge-up] to TM
+## 🔴 Where it stops -- 03:3xZ 09-24: LEAF.04 LANDED (proved) @9a7797e39d; its mur runs; B/C next as DIRECT pi-free kids unless TM says otherwise
 ````
 ```
-NOW      LEAF.04 LIVE since 03:21:09Z: parent a00-47a7b928 (pid 1419936, pi-free, stealth/space-bunny-alpha, key used=0 after its first turn)
-         branch season2/loops/hypothesis-lm-paths-py-resolves--a00-47a7b928 · base 977d0c72e8 (both trunks merged) · my watch (dies with this
-         session) CUTS a LEAF.04 kid whose pi --model is not the free one -- by hand if the watch is gone: spawn_budget.py status + /proc cmdline
+NOW      LEAF.04 harvested @9a7797e39d: experiment:a00-95e3c77b-a81f59 PROVED 0.95 (24 passed, 11/11 values, 37/37 cells resolve, paths.py +20/-7)
+         mur-director-thought-16 (systemd --user unit, launched 03:27:21Z; review + verify on pi-free; results MAIN .agi/sessions/workflows/runs/
+         mur-director-thought-16/) -> on its verdict: ONE [merge-up] to TM = LEAF.04 + REPLAY framing 7f226b8bec + the 2 research hypotheses
+         28ed92197b (format: [DT] [merge-up] <batch> at <tip> (...): harvest ...) · re-check systemctl --user is-active before trusting a poll
+         [red] to TM 03:2xZ: pi-free KIDS die of 401 ~30-60 s in (keys deleted), no kid manifest / agent.json, the parent re-spawned a duplicate
+         DEFAULT told to TM: B then C as DIRECT pi-free kids from my tree (--tier kid, no parent), one at a time, unless TM answers otherwise
 QUEUE    (TMM.90: my ready order the standard way)
-  1 LEAF.04  leaf A -- LIVE (see NOW) · on done: diff vs the merge-base (paths.py + test_paths_local.py + ONE experiment node), the TESTS
-             neighbourhood command, 2 values by hand -> merge the round branch -> push the mirror
+  1 LEAF.04  DONE (see NOW)
   2 LEAF.01  B/C after leaf A lands: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node baseline) · every literal maps to one of the 12
              cells, tempfile (2 /tmp sites), checkout_root() (magic-pane), mount strings as {osc02_scratch_dir}:/work · on FREE (1M ctx) B and C
              can stay the 2 kids as minted -- no local split
