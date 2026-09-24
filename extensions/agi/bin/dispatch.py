@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+from adapters import tmux_hold  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
@@ -2649,6 +2650,13 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
+            # Hold first when configured; an unavailable tmux pane is a real
+            # fallback, never a fabricated hold result.
+            if cfg.get("tmux_hold"):
+                held = tmux_hold.start(f"dispatch-{agent_id}", spawn_args,
+                                        cwd=branch_root, env=spawn_env)
+                if held is None:
+                    print("warn: tmux hold unavailable; using Popen", file=sys.stderr)
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),
