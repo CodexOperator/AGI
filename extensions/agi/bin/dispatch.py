@@ -92,8 +92,27 @@ _PI_CATALOGUE_RE = re.compile(
     r'Using custom model id\.', re.I)
 
 
-def _await_startup(proc, max_s: int = _GRACE_MAX_S,
-                   step_s: int = _GRACE_STEP_S) -> bool:
+class _HeldPaneProc:
+    """Minimal process façade for a tmux pane (the pane pid is the agent)."""
+    def __init__(self, pid: int):
+        self.pid, self.returncode = pid, 0
+    def poll(self):
+        return self.returncode
+
+
+def _open_held_pane(argv, *, cwd: str, env: dict, log_file: Path):
+    """Open the production hold seam; tmux owns the pane and its stable id."""
+    tmux = os.environ.get("AGI_TMUX_HOLD_CMD", "tmux")
+    shell = shlex.join(["sh", "-c", f"exec {shlex.join(argv)} >> {shlex.quote(str(log_file))} 2>&1"])
+    command = ["env"] + [f"{k}={v}" for k, v in env.items()]
+    result = subprocess.run([tmux, "new-window", "-d", "-P", "-F",
+                             "#{pane_id} #{pane_pid}", "-c", cwd,
+                             shlex.join(command + [shell])],
+                            check=True, capture_output=True, text=True)
+    pane_id, pane_pid = result.stdout.strip().split()
+    return _HeldPaneProc(int(pane_pid)), pane_id
+
+
     """True when `proc` OUTLIVED the startup grace, False the moment it
     exited; polls in `step_s`-second steps through the `_GRACE_SLEEP` seam."""
     waited = 0
@@ -2704,17 +2723,16 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        _pane_id = ""
+        _pane_created = False
+
         def _open_round(mode: str):
-            with open(log_file, mode) as logf:
-                return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+            nonlocal _pane_id, _pane_created
+            argv = mem_cap.wrap_argv(spawn_args, _mem_cap)
+            proc, _pane_id = _open_held_pane(
+                argv, cwd=str(branch_root), env=spawn_env, log_file=log_file)
+            _pane_created = _pane_created or not _pane_id
+            return proc
 
         _attempt = 1
         _sig = None
@@ -2799,6 +2817,8 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "pane_id": _pane_id,
+            "created": _pane_created,
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
