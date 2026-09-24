@@ -14,6 +14,7 @@ scaffold_hash: 79084c5ac610b67b
 season: 2
 title: Failed three-cell profile sweep
 town: local-maxxing
+verdict: pending
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-31ae16be-c0ddf6
