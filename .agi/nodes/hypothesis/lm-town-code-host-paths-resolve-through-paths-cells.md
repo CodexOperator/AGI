@@ -107,3 +107,6 @@ STEP      LARGEST SAFE STEP if B or C stall: kid A alone -- every later conversi
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 frame: as-given (TMM.63's leaf), narrowed by rule 13. TMM.63 says every literal becomes a paths.local_maxxing cell, but rule 13 puts an out-of-repo root in a box cell and bars an agent from adding one. So the four roots stay literal ONCE (paths.py's proposed-root table) and every sub-path becomes a cell on a placeholder: 56 lines in 32 files -> 4 lines in 1 file, plus 6 docstring lines naming a root this box does not have. Bigger frame: hypothesis:harness-bin-paths-resolve-per-box (director-engine) is the general form, per-box roots in box.*; the Prime's four cells retire the table. Minted under TMM.66's paid-dispatch HOLD: the dispatch waits on thought-master's lift line. The 12 cells ride this mint commit, so the round needs no config edit (cli.py done drops .agi/config.json).
 <!-- THOUGHT:END -->
+
+## Agent Notes
+TMM.76 step 2 (director-thought 01:4xZ 09-24): this node is split into pi-local leaves; leaf A = hypothesis:lm-paths-py-resolves-proposed-box-roots (the resolver). Its value-table test spells the 11 expected literals as TEST FIXTURES in test_paths_local.py -- the FALSIFIERS count excludes that table.
