@@ -53,7 +53,8 @@ def _load_dispatch():
 dispatch = _load_dispatch()
 
 PI_LOCAL_ROW = {"adapter": "pi", "provider": "local-town",
-                "credential": "none", "models": {"kid": "Qwen3.5-9B-Q4_K_M"}}
+                "credential": "none", "max_live": 1,
+                "models": {"kid": "Qwen3.5-9B-Q4_K_M"}}
 PI_ROW = {"adapter": "pi", "provider": "fake",
           "models": {"kid": "deepseek-v4"},
           "allowed_extra": ["deepseek-v4"]}
@@ -340,3 +341,45 @@ def test_banner_is_present_for_the_default_row(project, monkeypatch, capsys):
     # the minted secret is what reaches the child on the default path
     assert (captured.get("env") or {}).get(
         provisioning.RUNTIME_KEY_VAR) == _MintedKey.secret
+
+
+# -------- 6. the resolved harness leases the row: one live pi-local kid
+# hypothesis:dispatch-leases-the-resolved-harness-and-pi-local-admits-one-
+# live-kid. dispatch passes the harness it resolved into spawn_budget.acquire,
+# so the `max_live: 1` on the pi-local row bounds the ROW, not just the tree.
+
+
+def test_a_second_pi_local_spawn_is_unadmitted_at_the_row_max_live(
+        project, monkeypatch, capsys):
+    """A live pi-local lease occupies the row's one slot; a second live
+    `--harness pi-local` spawn is refused BY NAME -- no Popen, and one
+    manifest.unadmitted entry -- instead of being admitted beside it."""
+    captured = _stub_popen(monkeypatch)
+    graph = project / ".agi"
+    cfg = json.loads((graph / "config.json").read_text())
+    cap = int(cfg["spawn"]["max_live"])
+
+    occupant = dispatch.spawn_budget.acquire(
+        graph, cap, "a00-occupant", tier="kid", iter_n=1, harness="pi-local")
+    assert occupant is not None, "the first pi-local lease must be admitted"
+    dispatch.spawn_budget.commit(occupant, os.getpid())
+
+    monkeypatch.setattr(sys, "argv", _argv(project, "pi-local"))
+    code = dispatch.main()
+    assert code == 0, f"a refused slot is not a failed dispatch, got rc {code}"
+
+    assert "argv" not in captured, (
+        "a refused pi-local slot must never reach Popen; "
+        f"captured={captured.get('argv')!r}")
+    err = capsys.readouterr().err
+    assert "pi-local" in err, (
+        f"the refusal must NAME the full harness row; stderr={err!r}")
+
+    manifests = list((graph / "sessions").rglob("manifest.json"))
+    assert len(manifests) == 1, manifests
+    manifest = json.loads(manifests[0].read_text())
+    unadmitted = manifest.get("unadmitted") or []
+    assert len(unadmitted) == 1, (
+        f"exactly one slot must be recorded unadmitted; got {unadmitted!r}")
+    assert unadmitted[0]["status"] == "unadmitted"
+    assert "full" in unadmitted[0]["reason"], unadmitted[0]

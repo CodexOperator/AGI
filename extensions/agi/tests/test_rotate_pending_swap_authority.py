@@ -230,10 +230,11 @@ def _posts_text(rows):
     return body
 
 
-def _authority_fixture(tmp_path, old_pub, new_pub):
+def _authority_fixture(tmp_path, old_pub, new_pub, sig_scheme=None):
     """bare origin + repo: origin/season2/main holds `old_pub` for `aa`; the
     local trunk HEAD holds `new_pub` (the committed re-key the authority never
-    received)."""
+    received). ``sig_scheme`` is added only to the trunk row when requested,
+    modelling the deferred window's real authority fallback."""
     repo = tmp_path / "repo"
     g = repo / ".agi"
     (g / "nodes" / ".geometry").mkdir(parents=True)
@@ -252,7 +253,8 @@ def _authority_fixture(tmp_path, old_pub, new_pub):
     _git(repo, "commit", "-q", "-m", "authority seed")
     _git(repo, "push", "-q", "origin", "HEAD:refs/heads/season2/main")
     _git(repo, "push", "-q", "-u", "origin", "trunk")
-    rows[0] = dict(rows[0], pubkey=new_pub)
+    rows[0] = dict(rows[0], pubkey=new_pub,
+                   **({"sig_scheme": sig_scheme} if sig_scheme else {}))
     posts.write_text(_posts_text(rows), encoding="utf-8")
     _git(repo, "add", "-A")
     _git(repo, "commit", "-q", "-m", "re-key on trunk")
@@ -349,6 +351,78 @@ def test_push_deferred_pending_never_touches_the_authority(tmp_path):
         "a push-deferred pending must attempt no authority publish"
 
 
+def test_authority_deferred_signer_uses_the_verifiers_row(
+        tmp_path, monkeypatch):
+    """An authority-deferred signer consults the verifier's own cached row."""
+    key, pred_priv, pred_pub = _mk_seat_key(tmp_path, "aa")
+    succ_priv, succ_pub = bin_send.seatsig.get("ed25519").keygen()
+    _pending(tmp_path, "aa", succ_priv.hex(), succ_pub.hex(),
+             reason="authority")
+    committed = [{"name": "aa", "role": "parent", "pubkey": succ_pub.hex(),
+                  "sig_scheme": "ed25519"}]
+    _patch_committed(monkeypatch, committed)
+    pushed = []
+    fetches = []
+
+    def rows(root, ref, do_fetch):
+        fetches.append(do_fetch)
+        if do_fetch or pushed:
+            return pushed, "ref", "ref"
+        pushed[:] = [{"name": "aa"}]
+        return pushed, "ref", "ref"
+
+    monkeypatch.setattr(bin_send, "_pushed_seats", rows)
+    ts, to, text = "2026-09-24T00:00:00+00:00", "bb", "body"
+    sig_line = bin_send._sign_line(tmp_path, "aa", ts, to, text)
+    meta = {"ts": ts, "from": "aa", "to": to,
+            "sig": sig_line.removeprefix("sig: ")}
+    assert fetches == [False], fetches
+    assert bin_send._verify_block(tmp_path, bin_send._load_rows(tmp_path),
+                                  meta, text) == \
+        "VERIFIED aa (ed25519, main-committed)"
+
+    pushed[:] = [{"name": "aa", "role": "parent", "pubkey": pred_pub,
+                  "sig_scheme": "ed25519"}]
+    sig_line = bin_send._sign_line(tmp_path, "aa", ts, to, text)
+    meta["sig"] = sig_line.removeprefix("sig: ")
+    assert bin_send._verify_block(tmp_path, bin_send._load_rows(tmp_path),
+                                  meta, text) == "VERIFIED aa (ed25519)"
+
+
+def test_deferred_window_dm_verifies_against_the_real_authority_ref(
+        tmp_path, monkeypatch):
+    """A deferred-window signature verifies from the real authority ref.
+
+    The pushed row intentionally has no signing scheme; MAIN's committed
+    successor row supplies it, and signing must not fetch while selecting the
+    key to use.
+    """
+    sch = bin_send.seatsig.get("ed25519")
+    pred_priv, pred_pub = sch.keygen()
+    succ_priv, succ_pub = sch.keygen()
+    repo, g, _posts, _bare = _authority_fixture(
+        tmp_path, pred_pub.hex(), succ_pub.hex(), sig_scheme="ed25519")
+    _write_keys(g, "aa", pred_priv, succ_priv, succ_pub, "authority")
+    ts, to, text = "2026-09-24T00:00:00+00:00", "bb", "body"
+    fetches = []
+    real_run_git = bin_send._run_git
+
+    def watched(root, args):
+        if "fetch" in args:
+            fetches.append(args)
+        return real_run_git(root, args)
+
+    monkeypatch.setattr(bin_send, "_run_git", watched)
+    sig_line = bin_send._sign_line(repo, "aa", ts, to, text)
+    assert sig_line is not None
+    assert fetches == [], fetches
+    meta = {"ts": ts, "from": "aa", "to": to,
+            "sig": sig_line.removeprefix("sig: ")}
+    rows = bin_send._load_rows(repo, do_fetch=False)
+    assert bin_send._verify_block(repo, rows, meta, text) == \
+        "VERIFIED aa (ed25519, main-committed)"
+
+
 def test_send_signs_with_the_authority_key_when_deferred_on_authority(
         tmp_path, monkeypatch):
     """EF.84 conjunct B: an authority-deferred pending whose pub matches the
@@ -373,6 +447,13 @@ def test_send_signs_with_the_authority_key_when_deferred_on_authority(
     os.chmod(pend, 0o600)
     row = {"name": "aa", "role": "parent", "pubkey": succ_pub.hex()}
     _patch_committed(monkeypatch, [row])
+    # A pushed predecessor row, like the signed end-to-end fixture below,
+    # must be selected over MAIN's unkeyed/committed successor row.
+    monkeypatch.setattr(
+        bin_send, "_pushed_seats",
+        lambda root, ref, do_fetch: ([{"name": "aa", "role": "parent",
+                                      "pubkey": pred_pub.hex(),
+                                      "sig_scheme": "ed25519"}], "ref", "ref"))
     obj = bin_send._signing_key_obj(tmp_path, "aa", key)
     assert obj is not None
     assert obj["priv_hex"] == pred_priv.hex(), \
