@@ -128,6 +128,39 @@ def test_send_prints_inbox_path(project: Path, capsys):
     assert captured.out.strip() == expected
 
 
+def test_send_body_file_delivers_exact_multiline_text(project, monkeypatch,
+                                                      tmp_path, capsys):
+    body = tmp_path / "body.md"
+    body.write_text("first line `code`\nsecond line\n", encoding="utf-8")
+    monkeypatch.chdir(project)
+    rc = send_mod.main(["send", "parent", "--body-file", str(body),
+                        "--from", "seat-file"])
+    assert rc == 0
+    delivered = (project / ".agi" / "sessions" / "inbox" /
+                 "parent.md").read_text(encoding="utf-8")
+    assert "first line `code`\nsecond line\n" in delivered
+    capsys.readouterr()
+
+
+@pytest.mark.parametrize("body, error", [
+    (None, "cannot read body file"),
+    ("", "body file is empty"),
+    (" \n", "body file is empty"),
+])
+def test_send_body_file_refuses_missing_or_empty(project, monkeypatch,
+                                                 tmp_path, capsys, body, error):
+    path = tmp_path / "body.md"
+    if body is not None:
+        path.write_text(body, encoding="utf-8")
+    monkeypatch.chdir(project)
+    rc = send_mod.main(["send", "parent", "--body-file", str(path),
+                        "--from", "seat-file"])
+    assert rc == 1
+    assert error in capsys.readouterr().err
+    assert not (project / ".agi" / "sessions" / "inbox" /
+                "parent.md").exists()
+
+
 def test_send_verb_stamps_the_sending_seat(project: Path, monkeypatch, capsys):
     """A `send` is one of the seat's OWN work acts (conjunct 1): the verb
     stamps the `--from` seat's last-act, so a rotation can see the seat worked

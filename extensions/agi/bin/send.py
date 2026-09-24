@@ -5119,6 +5119,8 @@ def main(argv: list[str] | None = None) -> int:
                         action="store_true",
                         help="store harness-shaped text quoted instead of "
                              "refusing the body")
+    p_send.add_argument("--body-file", metavar="PATH",
+                        help="read the message body from PATH (never argv)")
 
     p_read = sub.add_parser("read", parents=[common],
                             help="read a conversation / inbox")
@@ -5342,10 +5344,28 @@ def main(argv: list[str] | None = None) -> int:
     sender = args.from_id
 
     if args.verb == "send":
+        # --body-file is the admissible large-body route. Refuse ambiguity and
+        # absent/empty files before any comms gate or write is attempted.
+        if args.body_file is not None:
+            if args.send_args and not ((args.room is None and
+                                        args.dm_to is None and
+                                        len(args.send_args) == 1)):
+                print("ERR: --body-file cannot be combined with message text",
+                      file=sys.stderr)
+                return 1
+            try:
+                text = Path(args.body_file).read_text(encoding="utf-8")
+            except OSError as exc:
+                print(f"ERR: cannot read body file {args.body_file}: {exc}",
+                      file=sys.stderr)
+                return 1
+            if not text.strip():
+                print("ERR: body file is empty", file=sys.stderr)
+                return 1
         # --room/--to: the whole positional bucket is text, nothing is a
         # target. Split by MODE, not by argparse nargs (see p_send comment).
         if args.room is not None:
-            text = " ".join(args.send_args)
+            text = args.body_file is None and " ".join(args.send_args) or text
             if not text:
                 print("ERR: message text is required for send --room",
                       file=sys.stderr)
@@ -5361,7 +5381,7 @@ def main(argv: list[str] | None = None) -> int:
             last_act.touch_env(root, sender)
             return 0
         if args.dm_to is not None:
-            text = " ".join(args.send_args)
+            text = args.body_file is None and " ".join(args.send_args) or text
             if not text:
                 print("ERR: message text is required for send --to",
                       file=sys.stderr)
@@ -5377,12 +5397,22 @@ def main(argv: list[str] | None = None) -> int:
             last_act.touch_env(root, sender)
             return 0
         # unchanged: inbox send -- first token is the target, the rest is text
-        if not args.send_args:
+        if args.body_file is None and not args.send_args:
             print("ERR: send needs a target (inbox) or --room/--to",
                   file=sys.stderr)
             return 1
-        target, *rest = args.send_args
-        text = " ".join(rest)
+        if args.body_file is None:
+            target, *rest = args.send_args
+            text = " ".join(rest)
+        else:
+            if len(args.send_args) == 1:
+                target = args.send_args[0]
+            else:
+                target = args.dm_to
+            if target is None:
+                print("ERR: --body-file send needs an inbox target or --to",
+                      file=sys.stderr)
+                return 1
         if not text:
             print("ERR: message text is required for send", file=sys.stderr)
             return 1
