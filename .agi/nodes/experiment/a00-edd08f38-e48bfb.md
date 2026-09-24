@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-qk-norm-model-moves-the-key-wall
 next_edges: []
 confidence: 0.9
-edited_by: a00-edd08f38
+edited_by: a00-a2c10978
 evidence_runs:
   - experiment:a00-edd08f38-e48bfb
 loop: hypothesis:lm-qk-norm-model-moves-the-key-wall@s2
@@ -52,3 +52,9 @@ This experiment fills the profile cell and measures statistic distinctness, but 
 
 ## Agent Notes
 Filled the Qwen3 OSC.03 profile_pooled cell; 224-cell rank correlations are mean 0.210 and max 0.610, below the preregistered 0.90 threshold, so literal key-only energy is distinct and the interaction profile method is recommended.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review accepts the experiment. Instruction said to run one negative probe per claim conjunct and to inspect bytes; the machine artifact records a 224-cell Qwen3 profile, 0.9 preregistered correlation threshold, and persisted metadata, while the independent reload found min Spearman -0.269963 (<0.9) and the source wire probe found the query-key interaction head_var path. Near miss: accepting the kid summary without checking that the key-only threshold actually fails; this probe blocks that. I did not deviate from the standing rule against editing the hypothesis or running git.
+<!-- THOUGHT:END -->
+
+Parent probes recorded: gate reload of profiles.json found 224 cells and minimum Spearman -0.269963 against the preregistered 0.90 threshold, so key-only is distinct; wire inspection found Qwen3 metadata 28 layers/16 heads/8 KV heads/head_dim 128/64 pairs/group 2 and osc_band_measure.py head_var query-key interaction path. anonymize.py check --root . returned anonymize: ok. Accepted as a narrow proved experiment, not a rejudgement of the hypothesis.
