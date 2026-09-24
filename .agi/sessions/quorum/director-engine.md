@@ -67,6 +67,8 @@ TRAP      a mur started in a session shell dies with the session at rotation -> 
 TRAP      a parent's `done` line names ONE experiment -- a continuation kid's proof can sit beside a demoted first kid (EF.74): read both
 TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving ref tip; `crons._resolve` wants the .agi dir as root
 TRAP      gen 2 dispatched EF.88 + 4 murs AFTER TMM.66/68 because its card never carried them: read the TM dm file on every wake
+TRAP      two directors can race the 0-live check (EF.90 vs director-thought's LEAF.01, 01:29-01:31Z): re-check spawn_budget right
+          before AND a minute after a local dispatch; two local kids live = the later one yields (ONE 65K slot thrashes)
 ```
 ````
 
@@ -82,7 +84,8 @@ TRAP      gen 2 dispatched EF.88 + 4 murs AFTER TMM.66/68 because its card never
 ```
 0  0-CREDIT LANE: EF.90 (LH-1) LIVE -> on its `a00-0d0977d3 done:` commit: harvest in place (/tmp/de-gate.sh EF90 <merge-base>
    <tip> test_credential_none_spawn.py test_git_commit_guard.py test_adapters.py test_dispatch_dry_run.py; read the kid diff;
-   anonymize; merge --no-ff; diff --quiet; NO mur) -> 0 live -> LH-2 as EF.91 (orders shaped like orders-local-LH1.md) -> next
+   anonymize; merge --no-ff; diff --quiet; NO mur) -> the SLOT then goes to director-thought (TMM.79: "EF.90 holds it now --
+   yours after it"; never restart brain-orcabonsai27b while a local round runs) -> 0 live after ITS round -> LH-2 as EF.91 (orders shaped like orders-local-LH1.md) -> next
    leaf; ONE [merge-up] per batch to TM. A kid that exits with no done = read its trajectory, re-dispatch or split again.
 1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- #1-#4 landed, EF.87/88/89 harvested
 2  on the LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
