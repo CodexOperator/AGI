@@ -87,6 +87,40 @@ class TestPiAdapterRestartWithRealProcess:
     """Validate that `pi_adapter.restart()` spawns a real process with a real
     pid that can be killed, detected dead, and restarted."""
 
+    def test_restart_uses_sanitized_env_for_credential_none(self, tmp_path,
+                                                            monkeypatch):
+        """A restart is a spawn: credential-none must be applied before Popen."""
+        import adapters
+        pi = adapters.load("pi")
+        marker = tmp_path / "env.txt"
+        script = tmp_path / "record-env.sh"
+        script.write_text(f"#!/bin/sh\nprintf '%s' \"$OPENROUTER_API_KEY\" > {marker}\n")
+        script.chmod(0o755)
+        sess_dir = tmp_path / "sessions" / "iter-1" / "a00-env"
+        sess_dir.mkdir(parents=True)
+        ctx = sess_dir / "context.md"
+        ctx.write_text("context")
+        monkeypatch.setenv("PI_BIN", str(script))
+        monkeypatch.setenv("OPENROUTER_API_KEY", "must-not-reach-child")
+
+        pid = pi.restart(
+            harness={"adapter": "pi", "bin": str(script), "credential": "none",
+                     "models": {"kid": "test-model"}},
+            tier="kid", context_file=str(ctx), agent_id="a00-env",
+            iter_n=1, sess_dir=sess_dir)
+        assert pid
+        for _ in range(100):
+            if marker.exists():
+                break
+            time.sleep(0.01)
+        try:
+            assert marker.read_text() == ""
+        finally:
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+
     def test_restart_reenters_the_branch_worktree_not_main(self, project_root, monkeypatch):
         """hypothesis:l3-branch-isolation-partial-break — a reaper restart
         of a `--branch` spawn must be born with its cwd INSIDE its own
