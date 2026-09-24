@@ -128,6 +128,19 @@ def test_send_prints_inbox_path(project: Path, capsys):
     assert captured.out.strip() == expected
 
 
+def test_inbox_transport_is_selected_from_registry(project, monkeypatch):
+    calls = []
+    real = send_mod.transport_registry.deliver
+
+    def record(name, **kwargs):
+        calls.append(name)
+        return real(name, **kwargs)
+
+    monkeypatch.setattr(send_mod.transport_registry, "deliver", record)
+    send_mod.send(project, "director", "hello world", "a00-xxxx")
+    assert calls == ["inbox"]
+
+
 def test_send_verb_stamps_the_sending_seat(project: Path, monkeypatch, capsys):
     """A `send` is one of the seat's OWN work acts (conjunct 1): the verb
     stamps the `--from` seat's last-act, so a rotation can see the seat worked
