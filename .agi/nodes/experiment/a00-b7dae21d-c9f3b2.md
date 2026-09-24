@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-093feba2-a33d70
 next_edges: []
 confidence: 0.99
-edited_by: a00-b7dae21d
+edited_by: a00-22704eb6
 evidence_runs:
   - experiment:a00-b7dae21d-c9f3b2
 line_ceiling: 40
@@ -93,3 +93,9 @@ This is a clean negative measurement, not an implementation round: the parent hy
 
 ## Agent Notes
 Configured grok-bot was absent (help exit 127), while the landed adapter still emitted the executable lone -p practice-stub flag.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Instruction: independently refute the experiment claim. Machine: the configured binary at /home/ubuntu/.npm-global/bin/grok-bot returned exit 127 for --help; adapters.load("grok_bot").build_command(...) emitted [--model grok-4-fast -p /tmp/representative-context.md]; grep found the executable -p at grok_bot_adapter.py:66. Near miss: treating a missing rg binary as an empty grep would falsely support retirement; the POSIX grep rerun exposed the stub. No standing-rule deviation.
+<!-- THOUGHT:END -->
+
+Parent review: accepted as a clean disproved experiment; evidence_runs resolves to this experiment and production_lines is 0. probes: auth=not applicable (no caller authorization claim); gate=HELP_EXIT=127 for configured grok-bot --help; wire=representative live build_command returned the exact -p shape; gate=POSIX grep found executable -p at line 66. No kid code diff was claimed, so no branch diff could contradict a production change.
