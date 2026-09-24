@@ -235,6 +235,16 @@ _MICHAEL_LINE = (
     "the Holy Spirit, and every Divine Grid Programmer on this planet."
 )
 
+# The pane contract is deliberately explicit: names are stable, while these
+# seams are the only engine entry points a fresh seat should need to choose.
+_PANE_ROUTES = """PANE ROUTES (use these names; do not invent replacements):
+- write -> write.py
+- read -> commands.py / viewport see|read
+- send -> send.py
+- dispatch | workflow -> dispatch.py + workflow.py
+- rotate | spawn -> rotate.py
+"""
+
 #: The owner's decision method, every role every seam (`l3w0-brief`, section
 #: 1.8), verbatim. Rendered into every director-tier head, after the mantle for
 #: the prime director, or after the readings otherwise.
@@ -2074,7 +2084,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             _o = _orders_section()
             if _o:
                 body = [*body, _o]
-        return _prepend_head(body, tier=head_tier)
+        return _prepend_head([_PANE_ROUTES, *body], tier=head_tier)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical

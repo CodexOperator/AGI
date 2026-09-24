@@ -38,6 +38,22 @@ def _text(tier, **kw):
     return "\n".join(brief.assemble(tier=tier, **kw))
 
 
+def test_every_cold_brief_carries_the_exact_five_pane_routes():
+    """A fresh seat must be able to choose routes without a second lookup."""
+    expected = {
+        "write": "write.py",
+        "read": "commands.py / viewport see|read",
+        "send": "send.py",
+        "dispatch | workflow": "dispatch.py + workflow.py",
+        "rotate | spawn": "rotate.py",
+    }
+    for profile in brief.PROFILES:
+        for tier in ("kid", "parent"):
+            text = _text(tier, scaffold=SCAFFOLD, profile=profile)
+            for route, seam in expected.items():
+                assert f"- {route} -> {seam}" in text, (profile, tier, route)
+
+
 def test_parent_and_kid_get_different_briefs():
     """The defect this module was written for: `dispatch.py --tier parent`
     selected the parent model correctly and then handed it the kid brief, so a
