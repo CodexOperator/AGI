@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g5
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 7c61cb59727a97bd
 season: 2
 status: deprecated
@@ -50,7 +50,7 @@ goal:g14 · goal:g14.6 · goal:g14.7 · goal:g14.8 · goal:g14.9 · goal:g14.10 
 ## Board (formation · live · queue — replaced in place, never appended; 04:5xZ 09-21)
 ```
 formation  thought-master (Opus, MAIN=trunk; IDLE between merge-ups) -> director-thought (Sonnet, research) + director-engine (Sonnet, goal:g14.14 + G14.16.1-2; seated 01:33Z @7) -> pi parents/kids (OpenRouter)
-rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner lines land per the HEAD's notes line (never on a goal)
+rules      diagram-max every emission (goal:g14.16) · batch-max: ONE order = many rounds, ONE merge-up per batch · board/trajectory changes = VERSIONS (replace body), never notes · owner verbatim on goal:g14
 memory     15 GB box, 12 GB avail (9B resident) · memory_max 6G ceiling · ONE model-loading host kid · engine kids 2-3 · GPU = one research round at a time · 06:39Z-~07:40Z: the Prime's large mur = 3 GB + 2 cores
 grid       LIVE: cron records every 5 min into refs/grid/local-maxxing/ (first tick 71 versions; refs 3812) -- this node's overwrites are versions now
 live       research: SWR-C2.02 (IFEval on C2, GPU, single-stream) · engine: 14.14.8 capture hook
