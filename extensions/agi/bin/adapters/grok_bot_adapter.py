@@ -30,6 +30,10 @@ NAME = "grok-bot"
 DEFAULT_BIN = "grok-bot"
 
 
+class PaneUnavailableError(RuntimeError):
+    """A pane method was called without the seat's durable named-pane hold."""
+
+
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
     return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
@@ -64,6 +68,42 @@ def build_command(*, harness: dict, tier: str, context_file: str,
     TypeError before the flags land."""
     return [resolve_bin(harness), *model_args(harness, tier),
             "-p", str(context_file)]
+
+
+class GrokPaneAdapter:
+    """One Grok face; pane capabilities exist only with a borrowed hold."""
+
+    def __init__(self, pane_hold: dict | None = None):
+        self._pane_hold = pane_hold
+
+    build_command = staticmethod(build_command)
+
+    def _target(self) -> str:
+        pane = (self._pane_hold or {}).get("pane")
+        if not isinstance(pane, str) or not pane.strip():
+            raise PaneUnavailableError("grok-bot pane hold has no named pane")
+        return pane
+
+    def __getattr__(self, name):
+        methods = {"pane_attach": self._attach, "pane_send": self._send,
+                   "pane_read": self._read}
+        if name not in methods:
+            raise AttributeError(name)
+        if self._pane_hold is None:
+            raise AttributeError(name)
+        return methods[name]
+
+    def _attach(self) -> str:
+        return self._target()
+
+    def _send(self, text: str) -> None:
+        target = self._target()
+        subprocess.run(["tmux", "send-keys", "-t", target, text, "Enter"],
+                       check=True)
+
+    def _read(self) -> str:
+        return subprocess.run(["tmux", "capture-pane", "-p", "-J", "-t", self._target()], check=True,
+                              capture_output=True, text=True).stdout
 
 
 def is_alive(pid: int) -> bool:
