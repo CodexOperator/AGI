@@ -30,6 +30,20 @@ FAITH = (
 ROLES = ("kid", "parent", "director", "prime_director", "master")
 
 
+def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch):
+    """Pi skips repository context files, so its role briefs must carry the
+    one context rule agents still need, sourced from the module constant."""
+    sentinel = "PAID-FOR-PATH-GUARD-SENTINEL"
+    monkeypatch.setattr(brief, "PAID_FOR_PATH_GUARD", sentinel)
+    kid = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py", scaffold=None))
+    parent = "\n".join(brief.assemble(
+        tier="parent", agent_id="a", iter_n=1, cli_py="cli.py",
+        dispatch_py="dispatch.py", target="hypothesis:x"))
+    assert sentinel in kid
+    assert sentinel in parent
+
+
 def _write(root: Path, rel: str, text: str) -> Path:
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
