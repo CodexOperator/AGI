@@ -37,21 +37,20 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 
 ## §1 Plan
 ```
-done   (0) pass_started_at 04:50Z · CHECK re-armed · (1) trunk sync 9fec964885, ancestor PASS · credits 14.0
-       (2) 110 rounds / 22 chunks built · (3) launched 04:57Z, ONE Monitor on events.log
-next   (4) on ALL DONE: verdicts ONLY from runs/mur-chunkNof22/{review,verify}_*.json → RED | demote | clear
-then   (5) prime-root: pull --ff-only → merge --no-ff 9fec964885 → links 0 · goals identical · smoke ≥ TIP's · 0 node D · tree == TIP → push → grid commit --all
-       (6) residues → one g15 batch node + one per real code defect (assigned: director-engine; incl. the rotate re-fence) → one [decision] dm
-       (7) state reset (+ drop paused_by_owner) · goal:g5 note + render · commit by exact path · push → (8) [merge-up] dm thought-master → (9) owner ≤ 6 lines
+done   PASS 3 (0)-(9): trunk @9fec96488 → season2/main 6f5ee34e5c (pushed; grid commit --all run there) · 110 rounds / 22 chunks, pi-free, 71 min, 0 USD
+       8 accept · 64 residue · 38 demote · 0 RED · residues on the trunk 21fd8d49cd (batch + 11 defect hypotheses → director-engine) · state reset
+       goal:g5 note (+ THOUGHT: capped launch) · dms: [decision] director-engine (queued) · [merge-up] thought-master (delivered)
+       owner 05:1xZ Sonnet-max: rows on season2/main 6d38b9742e + trunk ab45488b39 · merge-before-rotate dms to both directors
+next   quiet on the CHECK (job 64ee203f, every 4 h at :13) · watch the two director rotations: model_confirm must read claude-sonnet-5
 ```
 
 ## §2 Landed (this seat)
 9fec964885 PASS 3 step (1): origin/season2/main (my key row e8d7e577f) merged into the trunk · 3b6e0eb632 (season2/main) the two live director rows → Sonnet max (owner 05:1xZ; verbatim in the config:posts THOUGHT)
 
 ## 🔴 Where it stops
-07:0xZ 09-24 belam-S2-L5-III: PASS 3 closed -- merged 6f5ee34e5c on season2/main, residues + goal:g5 note committed on the trunk; only the two dms and the owner report remain.
- A. If not yet sent: ONE [decision] dm to director-engine (residue batch + 11 defect hypotheses, default order: the three rotate authority/row defects first) and ONE [merge-up] dm to thought-master (numbers from goal:g5's PASS 3 note). Then owner report ≤ 6 lines.
- B. Then quiet: the CHECK (job re-armed per item 1) answers only decisions / reds / merge-ups; the next PASS starts from last_merged_town_sha = 9fec964885.
+07:0xZ 09-24 belam-S2-L5-III: PASS 3 fully closed (merge, residues, note, dms, owner report); the post is QUIET on the CHECK.
+ A. Quiet: the CHECK answers only decisions / reds / merge-ups; the next PASS starts from last_merged_town_sha = 9fec964885.
+ B. Owner Sonnet-max order: director-engine owes one more rotation, director-thought its next; each rotation record's model_confirm must read claude-sonnet-5 (else item 0).
  0. Sonnet-max rows are on the trunk (ab45488b39) and season2/main (6d38b9742e). If a director's rotation record shows model_confirm claude-opus-5-5 again, its worktree row was stale: re-set the cell on season2/main, re-sync the trunk with `/tmp/belam-trunk-sync/sync.sh` (target file), and repeat the merge-before-rotate dm.
  1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
  2. NEVER re-run PASS 3 from the top (pass_started_at is set). Read /tmp/belam-pass3/events.log: no "ALL DONE" → re-arm ONE Monitor (tail -n +1 -F events.log | grep --line-buffered -E "exited|ALL DONE"). Launcher dead with chunks never launched → launch ONLY the missing chunkN.json the same way.
