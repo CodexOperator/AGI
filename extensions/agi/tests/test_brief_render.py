@@ -42,6 +42,20 @@ def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch):
         dispatch_py="dispatch.py", target="hypothesis:x"))
     assert sentinel in kid
     assert sentinel in parent
+    for tier in ("director", "prime_director", "liaison"):
+        rendered = "\n".join(brief.assemble(
+            tier=tier, agent_id="a", iter_n=1, cli_py="cli.py",
+            dispatch_py="dispatch.py", target=None))
+        assert sentinel in rendered
+    advisor = "\n".join(brief.assemble(
+        tier="advisor", agent_id="a", iter_n=1, cli_py="cli.py",
+        dispatch_py="dispatch.py", target="vision:alive"))
+    assert sentinel in advisor
+    for profile in ("survival", "ultimate_survival"):
+        rendered = "\n".join(brief.assemble(
+            tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+            scaffold=None, profile=profile))
+        assert sentinel in rendered
 
 
 def _write(root: Path, rel: str, text: str) -> Path:
