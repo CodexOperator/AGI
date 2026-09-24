@@ -216,6 +216,27 @@ def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
     assert len(calls) == 2
 
 
+def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_split_epoch": 100, "push_batch_limit": 10}}))
+    rows = ["refs/grid/node/old oid-old", "refs/grid/node/new oid-new",
+            "refs/grid/node/child oid-child"]
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[-1] == "oid-old":
+            return "99"
+        if args[-1] == "oid-child":
+            return "101 parent"
+        return "101"
+    monkeypatch.setattr(grid, "git", fake_git)
+    assert grid.push_batches(tmp_path) == [
+        ["refs/grid/node/new:refs/grid/node/new",
+         "refs/grid/node/child:refs/grid/node/child"]]
+
+
 def test_push_changed_advances_real_bare_remote(project, tmp_path):
     grid.cmd_commit(project, [], do_all=True, session=None)
     remote = tmp_path / "remote.git"

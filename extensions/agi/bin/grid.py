@@ -194,12 +194,21 @@ def push_batches(root: Path) -> list[list[str]]:
     remote = {parts[1]: parts[0] for parts in (
         line.split() for line in git(root, "ls-remote", "--refs", "origin", ns).splitlines())}
     cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
-    minimum = int((cfg.get("grid") or {}).get("push_min_season", 0))
+    grid_cfg = cfg.get("grid") or {}
+    split_epoch = int(grid_cfg.get("push_split_epoch", 0))
+    minimum = int(grid_cfg.get("push_min_season", 0))
     changed = []
     for ref, oid in local:
         if remote.get(ref) == oid:
             continue
-        if minimum and " " not in git(root, "show", "-s", "--format=%P", oid).strip():
+        is_root = False
+        if split_epoch or minimum:
+            meta = git(root, "show", "-s", "--format=%ct %P", oid).split()
+            is_root = len(meta) < 2
+            if split_epoch and is_root and int(meta[0]) < split_epoch:
+                # The seed pass created unrelated v1 roots; descendants remain.
+                continue
+        if minimum and is_root:
             season = re.search(r"^season:\s*(\d+)\s*$", git(root, "show", f"{oid}:node.md"), re.M)
             if season and int(season.group(1)) < minimum:
                 continue
