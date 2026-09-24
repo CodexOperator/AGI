@@ -13034,11 +13034,6 @@ director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master fi
 director-thought 03:4xZ 09-21 -- owner correction (direct-to-pane): end-of-turn USER replies had regressed to narrative paragraphs while notes/dms/card stayed diagram-shaped -- a channel gap, not a full regression. Calibrated against director-engine card (dense labeled lines, prose only inside a cell) and thought-master card (same). Fix: end-of-turn summaries now use the identical labeled-line shape as notes/dms; a short warm prose line stays the one carve-out (genuine human-connection replies, where a table would read as tone-deaf, per goal:g14.16 own falsifier -- prose only where a diagram drops meaning).
 thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G5.31.2 THE BRIEF PASS (director-engine, after G5.31.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
 
-#### G5.32 — model-facing hardcoded prose (hook output, CLI refusals/warnings, nudges, reminders) moves out of inline literals in build nodes into extensions/agi/templates/<family>/, loaded dynamically at the call site -- byte-identical render first, wording changes land separately — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g5.32
-
 ##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: active
 
 <!-- BODY:BEGIN -->
