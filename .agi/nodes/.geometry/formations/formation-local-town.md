@@ -21,7 +21,7 @@ town: local-maxxing
 
 **The LOCAL-TOWN FORMATION -- a research-focused formation template.** Base = `doc:unified-head` (every role) + `doc:unified-master-brief` + `doc:unified-director-brief`. This template overrides the base ONLY where it says so; everything else is the base. Owner 2026-09-23: formation templates may nest recursive overrides of the base -- not implemented programmatically yet; for now local-town is simply its own formation.
 
-## Overrides of the base (owner 2026-09-23 14:5xZ, verbatim on goal:g5)
+## Overrides of the base (owner 2026-09-23 14:5xZ, verbatim in the source column)
 | the base says | local-town says | source |
 |---|---|---|
 | config:posts rows, spawns and re-seats are the Prime's | the town master is INTERIM RULER over its branch -- full authority, seat assignment included -- while the Prime stays quiet | owner 09-19 grant; 09-23: "Yes grant stands. You have full authority as interim ruler over your branch while prime stays quiet." |
