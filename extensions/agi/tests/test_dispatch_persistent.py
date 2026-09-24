@@ -197,3 +197,15 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+
+
+def test_exhausted_persistent_restarts_are_not_a_live_occupation(project, monkeypatch):
+    """Negative case: a dead final child cannot remain a live pid/seat."""
+    _fake_spawn(monkeypatch, [{"rc": 1} for _ in range(4)], stop_after=4)
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+    assert dispatch.main() == 0
+    rec = _manifest(project)[0]
+    assert rec["status"] == "failed", rec
+    assert rec["pid"] is None, rec
+    assert rec["persistent"] is False, rec
+    assert rec["restart_count"] == 3, rec
