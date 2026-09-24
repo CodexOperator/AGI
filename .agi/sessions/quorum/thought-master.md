@@ -17,7 +17,8 @@ NORMAL OPS     OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operatio
                just research towards doing more efficient usd0 runs in the future" -> TMM.89 / TMM.90: the standard town line on --harness
                pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) once DE's ONE probe (TMM.87) passes
 BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mints work) allowed ONLY provider deepseek at 02:2xZ -> 404 for the
-               free model, 0 USD; fix = the owner's dashboard setting (allow `stealth`); [red] to the Prime 02:1xZ
+               free model, 0 USD; RE-PROBED 02:32Z (DE, mur EF.87): still 404 -- fix = the owner's dashboard setting (allow `stealth`)
+               on the account that owns the repointed workspace; [red] to the Prime 02:1xZ; DE holds a one-burst go (murs H2/I2/J2, EF.91, leaves)
 kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
