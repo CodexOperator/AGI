@@ -1,0 +1,122 @@
+{
+ "label": "LEAF.05",
+ "base": "b2b29f0b67",
+ "tip": "e43f3eee98",
+ "regex": "(['\"=( ]|^)(/data/|/home/|/mnt/|/media/|/tmp/|/opt/|~/)",
+ "files": [
+  ".agi/context/local-maxxing/heads/kv_group_round.py",
+  ".agi/context/local-maxxing/heads/kv_group_surgery.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-04dc76fc.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5_test.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-86466b78.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py",
+  ".agi/context/local-maxxing/osc/osc_band_measure.py",
+  ".agi/context/local-maxxing/osc/osc_band_prune.py",
+  ".agi/context/local-maxxing/osc/test_osc_band_kquant_a00-ddd4762f.py"
+ ],
+ "before_hits": 31,
+ "before": [
+  ".agi/context/local-maxxing/heads/kv_group_round.py:14:MODELS_DIR = \"/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf\"",
+  ".agi/context/local-maxxing/heads/kv_group_round.py:15:WIKITEXT = \"/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw\"",
+  ".agi/context/local-maxxing/heads/kv_group_round.py:18:CMD = [\"docker\", \"run\", \"--rm\", \"--gpus\", \"all\", \"-v\", \"/data/ml/scratch/osc02:/work\",",
+  ".agi/context/local-maxxing/heads/kv_group_round.py:107:    orig = {str(L): open(os.path.join(\"/data/ml/scratch/osc02\", \"orig_L%d.q4k.sha256\" % L)).read().strip()",
+  ".agi/context/local-maxxing/heads/kv_group_round.py:122:        \"orig_gguf_sha256\": open(\"/data/ml/scratch/osc02/orig.sha256\").read().split()[0],",
+  ".agi/context/local-maxxing/heads/kv_group_surgery.py:17:The model file is a scratch COPY (/data/ml/scratch/osc02); the served",
+  ".agi/context/local-maxxing/heads/kv_group_surgery.py:18:/data/ml/models path is never opened for writing. Out-of-repo roots stay",
+  ".agi/context/local-maxxing/heads/kv_group_surgery.py:23:MODEL = \"/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf\"",
+  ".agi/context/local-maxxing/heads/kv_group_surgery.py:24:SCRATCH = \"/data/ml/scratch/osc02\"",
+  ".agi/context/local-maxxing/osc/osc_band_kquant.py:14:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant.py:15:  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-04dc76fc.py:14:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-04dc76fc.py:15:  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py:4:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py:5:       /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5_test.py:3:Run (the torch venv has no pytest):  PYTHONPATH=/data/ml/scratch/osc03/pylib \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5_test.py:4:  /data/ml/.venv/bin/python osc_band_kquant_a00-527993c5_test.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-86466b78.py:14:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-86466b78.py:15:  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py:3:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py:4:  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py",
+  ".agi/context/local-maxxing/osc/osc_band_kquant_a00-ddd4762f.py:20:HF = \"/data/ml/scratch/osc03/hf\"",
+  ".agi/context/local-maxxing/osc/osc_band_measure.py:4:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 /data/ml/.venv/bin/python osc_band_measure.py",
+  ".agi/context/local-maxxing/osc/osc_band_measure.py:20:HF = \"/data/ml/scratch/osc03/hf\"",
+  ".agi/context/local-maxxing/osc/osc_band_measure.py:21:WIKI = \"/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw\"",
+  ".agi/context/local-maxxing/osc/osc_band_measure.py:221:               \"wikitext_zip_sha256\": sha(\"/data/ml/scratch/osc02/wikitext-2-raw-v1.zip\"),",
+  ".agi/context/local-maxxing/osc/osc_band_prune.py:4:Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \\",
+  ".agi/context/local-maxxing/osc/osc_band_prune.py:5:       /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_prune.py",
+  ".agi/context/local-maxxing/osc/osc_band_prune.py:25:HF = \"/data/ml/scratch/osc03/hf\"",
+  ".agi/context/local-maxxing/osc/osc_band_prune.py:26:WIKI = \"/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw\"",
+  ".agi/context/local-maxxing/osc/test_osc_band_kquant_a00-ddd4762f.py:4:Run: /data/ml/.venv/bin/python -m pytest \\"
+ ],
+ "after_hits": 0,
+ "after": [],
+ "cells": 9,
+ "cells_identical": 9,
+ "table": [
+  {
+   "cell": "ml_python",
+   "old_literal": "/data/ml/.venv/bin/python",
+   "get": "/data/ml/.venv/bin/python",
+   "cli": "/data/ml/.venv/bin/python",
+   "identical": true
+  },
+  {
+   "cell": "osc02_9b_gguf",
+   "old_literal": "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+   "get": "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+   "cli": "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+   "identical": true
+  },
+  {
+   "cell": "osc02_scratch_dir",
+   "old_literal": "/data/ml/scratch/osc02",
+   "get": "/data/ml/scratch/osc02",
+   "cli": "/data/ml/scratch/osc02",
+   "identical": true
+  },
+  {
+   "cell": "osc03_hf_dir",
+   "old_literal": "/data/ml/scratch/osc03/hf",
+   "get": "/data/ml/scratch/osc03/hf",
+   "cli": "/data/ml/scratch/osc03/hf",
+   "identical": true
+  },
+  {
+   "cell": "osc03_pylib_dir",
+   "old_literal": "/data/ml/scratch/osc03/pylib",
+   "get": "/data/ml/scratch/osc03/pylib",
+   "cli": "/data/ml/scratch/osc03/pylib",
+   "identical": true
+  },
+  {
+   "cell": "served_9b_gguf",
+   "old_literal": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "get": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "cli": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+   "identical": true
+  },
+  {
+   "cell": "served_models_dir",
+   "old_literal": "/data/ml/models",
+   "get": "/data/ml/models",
+   "cli": "/data/ml/models",
+   "identical": true
+  },
+  {
+   "cell": "wikitext2_test_raw",
+   "old_literal": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "get": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "cli": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+   "identical": true
+  },
+  {
+   "cell": "wikitext2_zip",
+   "old_literal": "/data/ml/scratch/osc02/wikitext-2-raw-v1.zip",
+   "get": "/data/ml/scratch/osc02/wikitext-2-raw-v1.zip",
+   "cli": "/data/ml/scratch/osc02/wikitext-2-raw-v1.zip",
+   "identical": true
+  }
+ ]
+}

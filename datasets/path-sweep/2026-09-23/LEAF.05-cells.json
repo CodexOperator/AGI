@@ -1,0 +1,9 @@
+{"served_9b_gguf": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+ "wikitext2_test_raw": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+ "osc02_scratch_dir": "/data/ml/scratch/osc02",
+ "served_models_dir": "/data/ml/models",
+ "osc02_9b_gguf": "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+ "osc03_pylib_dir": "/data/ml/scratch/osc03/pylib",
+ "ml_python": "/data/ml/.venv/bin/python",
+ "osc03_hf_dir": "/data/ml/scratch/osc03/hf",
+ "wikitext2_zip": "/data/ml/scratch/osc02/wikitext-2-raw-v1.zip"}
