@@ -170,6 +170,47 @@ def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
     assert grid.FETCH_SPEC in specs.splitlines()
 
 
+def test_push_batches_omit_matching_and_remote_only_refs(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 200}}))
+    rows = [f"refs/grid/node/{i} oid-{i}" for i in range(402)]
+    remote = [f"refs/grid/node/0\tsame", f"refs/grid/node/401\tsame",
+              "refs/grid/node/remote-only\tremote"]
+    monkeypatch.setattr(grid, "git", lambda root, *args: (
+        "\n".join(remote) if args[0] == "ls-remote" else "\n".join(rows)))
+    batches = grid.push_batches(tmp_path)
+    assert [len(batch) for batch in batches] == [200, 200, 1]
+    assert "refs/grid/node/0:refs/grid/node/0" not in batches[0]
+    assert "refs/grid/node/remote-only:refs/grid/node/remote-only" not in sum(batches, [])
+
+
+def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        if len(calls) == 2:
+            raise SystemExit("ERR: rejected")
+    monkeypatch.setattr(grid, "git", push)
+    with pytest.raises(SystemExit, match="rejected"):
+        grid.cmd_push_changed(tmp_path)
+    assert len(calls) == 2
+
+
+def test_push_changed_advances_real_bare_remote(project, tmp_path):
+    grid.cmd_commit(project, [], do_all=True, session=None)
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+    grid.git(project, "remote", "add", "origin", str(remote))
+    grid.cmd_push_changed(project)
+    tip = grid.ref_tip(project, grid.mint_node_ref(MINT_X))
+    remote_tip = subprocess.run(
+        ["git", "--git-dir", str(remote), "rev-parse",
+         grid.mint_node_ref(MINT_X)], capture_output=True, text=True, check=True).stdout
+    assert remote_tip.strip() == tip
+
+
 def test_find_project_root_accepts_canonical_and_legacy_config(tmp_path):
     # Rename window: agi-tree.config.json is canonical, but projects still
     # carrying autoresearch-tree.config.json must keep resolving.
