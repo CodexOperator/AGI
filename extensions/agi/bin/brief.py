@@ -820,7 +820,7 @@ def _survival_brief(*, tier: str, agent_id: str, iter_n: int,
         "SPEND: check the OpenRouter KEY balance, not the account. If "
         "limit_remaining <= $1.00, stop and write status -- never lower "
         "provisioning.min_key_remaining_usd. ",
-        PAID_FOR_PATH_GUARD,
+        _paid_for_path_guard(project_root),
         _survival_state_card(project_root=project_root),
     ]
 

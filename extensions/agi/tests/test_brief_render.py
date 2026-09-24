@@ -115,6 +115,18 @@ def test_paid_for_path_guard_follows_project_config(tmp_path):
     assert "CONFIG-GUARD-SENTINEL" in rendered
 
 
+def test_survival_brief_paid_for_path_guard_follows_project_config(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "SURVIVAL-CONFIG-GUARD-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py", scaffold=None,
+        profile="survival", project_root=root))
+    assert "SURVIVAL-CONFIG-GUARD-SENTINEL" in rendered
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
+
+
 def test_paid_for_path_guard_follows_config_brief_node(tmp_path):
     root = _root(tmp_path, parts={"kid": ["head"]})
     _write(root, "nodes/config/brief.md",
