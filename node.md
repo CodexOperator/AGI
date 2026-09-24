@@ -35,7 +35,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 ## §1 Plan
 ```
 done   seated: CHECK re-armed · quorum re-linked · card
-       owner 20:1xZ-20:4xZ (the parent decision's verbatim = a town:local-maxxing board row; the rest in each changed node's THOUGHT): raw DMs read -- thought-master never asked the Prime; it authorised
+       owner 20:1xZ-20:4xZ (verbatim in doc:l5-owner-decisions): raw DMs read -- thought-master never asked the Prime; it authorised
        direct kids 05:19Z (TMM.107) and lifted them 17:02Z on the two CARDS only · the parent/kid rule + thought-master's co-ownership
        of the director docs in doc:unified-director-brief · director cards = graph entities (doc:card-director-engine / -thought)
        · goal:g1.25 reshaped: action registry, commands.py = query + parse layer · Jev survey ordered to thought-master (g5.24.3)
