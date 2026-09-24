@@ -1080,8 +1080,7 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
                        effort, settings, debug_file: str, extra: str = "",
                        rc_name: str | None = None,
                        harness: str | None = None,
-                       bin_path: str | None = None,
-                       project_root: Path | None = None) -> list[str]:
+                       bin_path: str | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
     model/effort/settings appended as flags.
@@ -1100,8 +1099,7 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
     if extra:
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
-    prompt_text = brief.successor_prompt(tier=tier, body=body,
-                                          project_root=project_root)
+    prompt_text = brief.successor_prompt(tier=tier, body=body)
     return _build_harness_command(
         harness, name=rc_name or name, prompt_text=prompt_text,
         debug_file=debug_file, model=model, effort=effort, settings=settings,
@@ -1145,8 +1143,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = None
     if not body:
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
-                               dispatch_py=dispatch_py, cli_py=cli_py,
-                               project_root=project_root)
+                               dispatch_py=dispatch_py, cli_py=cli_py)
         body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
@@ -1923,7 +1920,6 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
                 extra=extra, harness=harness, bin_path=_bin,
-                project_root=root,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
@@ -10370,28 +10366,13 @@ def _push_season_branch(root: Path) -> str:
 
 
 def _authority_row_content(base: str, new: str, seat: str) -> str:
-    """Publish rotation-owned cells while retaining authority policy edits."""
+    """`base` with ONLY the row keyed to `seat` replaced by that line from
+    `new`; foreign rows byte-identical (a FIRST seating returns `base`)."""
     b = base.splitlines(keepends=True)
-    row = next((ln for ln in new.splitlines(keepends=True)
-                if _own_row_line(ln, seat)), None)
-    own = [ln for ln in b if _own_row_line(ln, seat)]
-    if row is None or not own:
+    row = next((ln for ln in new.splitlines(keepends=True) if _own_row_line(ln, seat)), None)
+    if row is None or not any(_own_row_line(ln, seat) for ln in b):
         return base
-    try:
-        old_row = json.loads(own[0][own[0].index("{"):].rstrip("\r\n"))
-        new_row = json.loads(row[row.index("{"):].rstrip("\r\n"))
-    except (ValueError, json.JSONDecodeError):
-        return base
-    rotation_owned = {
-        "pubkey", "key_history", "session_id", "session_ref", "session_name",
-        "session_label", "pid", "window", "generation",
-    }
-    merged = dict(old_row)
-    merged.update({k: new_row[k] for k in rotation_owned if k in new_row})
-    prefix = own[0][:own[0].index("{")]
-    suffix = "\n" if own[0].endswith("\n") else ""
-    merged_line = prefix + json.dumps(merged, ensure_ascii=False) + suffix
-    return "".join(merged_line if _own_row_line(ln, seat) else ln for ln in b)
+    return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
 
 
 def _insert_row_into_frontmatter(base: str, row: str) -> str:
@@ -10431,10 +10412,8 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
-    except ImportError:  # veto subsystem is not installed on this host
+    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
         pass
-    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
-        return f"authority: HELD -- veto cell is unreadable ({exc})"
     try:
         import send as _send
         ref = _send.authority_ref(root)
