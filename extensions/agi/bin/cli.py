@@ -34,6 +34,7 @@ import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
+import session_ingest  # noqa: E402
 from evidence_gate import VERDICT_HELP, VERDICT_RE  # noqa: E402
 
 # goal:s17 -- the type table and the scaffold routine both live in
@@ -5753,6 +5754,16 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ingest(args: argparse.Namespace) -> int:
+    try:
+        nid = session_ingest.ingest(Path(args.artifact), Path(args.root or _find_root()))
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"ERR: refusing session artifact: {exc}", file=sys.stderr)
+        return 2
+    print(nid)
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -5997,6 +6008,11 @@ def main() -> int:
         help="the graph root (.agi dir) to act on — required to run --apply "
              "against a fixture repo; default resolves the live tree normally.")
     p_lp.set_defaults(func=cmd_loop_prune)
+
+    p_ingest = sub.add_parser("ingest", help="ingest a JSON/JSONL session artifact")
+    p_ingest.add_argument("artifact")
+    p_ingest.add_argument("--root", default=None, help="graph root (.agi) override")
+    p_ingest.set_defaults(func=cmd_ingest)
 
     p_scope = sub.add_parser("scope-check")
     p_scope.add_argument("--agent-id", default=None)
