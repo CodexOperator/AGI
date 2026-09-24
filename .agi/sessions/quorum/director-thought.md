@@ -84,10 +84,11 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
 ```
 NOW      mur-director-thought-18 = unit agi-director-thought-mur-18 (04:06:00Z, pi-free, rounds replay01 + ctx01, args /tmp/dt17-mur18-args.json)
          results MAIN .agi/sessions/workflows/runs/mur-director-thought-18/ · by hand: systemctl --user is-active agi-director-thought-mur-18
-         ON ITS VERDICT: close fixes in place -> ONE [merge-up] (LEAF B + C + REPLAY.01 + CTX.01, from 4c67ce248a) + the MILESTONE line to TM
+         ON ITS VERDICT: close fixes in place -> ONE [merge-up] (LEAF B + C + CEN.01 + REPLAY.01 + CTX.01, from 4c67ce248a) + the MILESTONE line to TM
          (TMM.96: the LEAF closed + REPLAY / CTX results + next-move options + the SWR-SV.01 correction owed)
-         CEN.01 parent a00-61c379ca LIVE since 04:07:27Z (pid 2009025, pi-free; orders CEN.01.parent.txt + CEN.01.kid.txt; wall 45 min) ->
-         hypothesis:lm-magic-pane-census-roots-at-the-main-checkout (minted de13597487: the LEAF residue) -- NEXT batch, not this merge-up
+         CEN.01 LANDED 5f54ee5cb7 (parent a00-61c379ca -> kid a00-df02e281, 3 min): experiment:a00-df02e281-3ba1f7 PROVED -- paths.main_checkout_root()
+         (git common dir parent), detect.py ROOT reads it; 25 passed; wire probe from my worktree -> main, from main == checkout_root -> IN this merge-up
+         as the closure of the mur-17 residue (a 14-line fix delta, verified on the bytes; TMM.66: TM verifies a fix delta at the gate)
 mur-17   04:05Z success: leaf05 accept (7/7 MET) · leaf06 accept_with_residue (verify CONFIRMED detect.py ROOT, REFUTED the tempfile residue)
          -> the LEAF closed on its hypothesis THOUGHT (de13597487)
 LEAF     B LEAF.05 proved @7acd103f71 · C LEAF.06 harvested 0890b9604a (parent a00-9bca4596 -> kid a00-5e699898, 3 min, the parent->kid spawn WORKED
