@@ -49,7 +49,7 @@ next   quiet on the CHECK (job 64ee203f, every 4 h at :13) · watch the two dire
 
 ## 🔴 Where it stops
 07:0xZ 09-24 belam-S2-L5-III: PASS 3 fully closed (merge, residues, note, dms, owner report); the post is QUIET on the CHECK.
- A. PASS 4 CLOSED 14:1xZ: trunk @3b0c4e8e8 → season2/main ad81688a0b (pushed, grid run there) · 6 rounds / 2 chunks, pi-free, 18 min, 0 USD · 1 accept · 3 residue · 2 demote (lm-* probes launch a real pi) · 0 RED · residue batch + goal:g5 note on the trunk 92f34a2f27 · dms sent · state reset (last_merged 3b0c4e8e8f). Next PASS: the CHECK's case (b) when the town lands experiments; §2 of the crons file needs its FACTS line refreshed (BASE 3b0c4e8e8f, p5 run keys) at that notice.
+ A. PASS 4 RUNNING (pass_started_at 13:47Z — never restart it): trunk synced 3b0c4e8e8f (has 6f5ee34e5c) · TIP PINNED 3b0c4e8e8f · 6 rounds / 2 chunks on pi-free, launched 13:47:47Z · /tmp/belam-pass4/ (chunkN.json, events.log, verdicts.py) · resume at step (4) of §2 of the crons file when events.log says ALL DONE.
  B. Owner Sonnet-max order: DONE — both rotation records read model_confirm claude-sonnet-5 (director-thought 05:46Z, director-engine 05:50Z).
  0. Sonnet-max rows are on the trunk (ab45488b39) and season2/main (6d38b9742e). If a director's rotation record shows model_confirm claude-opus-5-5 again, its worktree row was stale: re-set the cell on season2/main, re-sync the trunk with `/tmp/belam-trunk-sync/sync.sh` (target file), and repeat the merge-before-rotate dm.
  1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
