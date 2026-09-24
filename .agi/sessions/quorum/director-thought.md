@@ -11,6 +11,9 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
+AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief · PER-POST = this card (doc:lm-director-brief-customizations retired 09-24; doc:card-director-thought is thought-master's graph mirror of this card, currently stale gen 23 -- not the source, THIS file is) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -134,7 +137,56 @@ models   the town has TWO models cached locally in a transformers-loadable forma
   against either TypeSafe key or any other paid API this round -- survey only.
 - **Both monitored** (pid + manifest-status polling, the wait3 workaround) -- neither landed yet as of this card write.
 
-## 🔴 Where it stops -- 21:1xZ 09-24 gen 24 (batches 12 + 13 both dispatched, running in parallel)
+## 🔴 Where it stops -- 21:2xZ 09-24 gen 24 (meter past captive 0.85x threshold, 0.4365/0.47 -- rotating NOW, NEITHER landing reviewed)
+````
+```
+BOTH parents reported done in the last few minutes, UNREVIEWED -- meter hit the captive auto-rotate threshold
+(f>=0.85x0.47=0.3995; now 0.4365) mid-review, no time left to do either properly. DO NOT TRUST either round's
+"accepted 1/demoted 0" self-report at face value -- neither has had the director's own bytes-level check yet.
+
+JEV.01 (batch 12): parent a00-b4fb9e29 done, kid experiment:a00-ac62bcbe-e7c969, self-reported
+inconclusive_lean_proved:78 (per the dm; NOT independently confirmed), accepted 1/demoted 0. Top recommendation
+per its own [merge-up] dm: adapt Cua as substrate behind goal:g1.25, TypeSafe/Jev only for bounded typed
+ranking/validation, Browser Use adapt, LangGraph reference-only, openjev reference-only/demoted pending a stable
+contract. Claims no key spend / no paid call -- VERIFY THIS FIRST above all else before trusting anything else in
+it (grep the kid's own commands/log for any non-GET request, confirm no TYPESAFE_KEY/KEY2 value anywhere). Branch:
+season2/loops/hypothesis-lm-jev-cua-off-the-sh-a00-b4fb9e29.
+
+OSC.19 (batch 13): parent a00-23bf7ce6 done, kid experiment:a00-b703a7c8-... (id truncated in the streamed log,
+get the exact id from the parent's own dm or manifest -- do not guess it), self-reported around a 3.5-bit energy
+vs uniform/random comparison with a `push_further` note, NOT the 3-method x 2-model table TMM.135 actually
+ordered. **CRITICAL FINDING, NOT YET FULLY DIAGNOSED:** the parent's own struggle line says "the required orders
+file was absent, so I created the scoped OSC.19 kid brief before dispatching." CONFIRMED BY DIRECTOR: my real
+OSC.19.kid.txt (6972 bytes, written 21:02Z) exists ONLY in THIS worktree
+(.agi/sessions/orders/OSC.19.kid.txt) -- the parent's own branched worktree
+(/data/work/agi/.agi/worktrees/a00-23bf7ce6/.agi/sessions/orders/) had NO such file at spawn time (it later wrote
+its OWN 1634-byte one there, 21:03Z, one minute after mine). LIKELY ROOT CAUSE: `.agi/sessions/` is gitignored,
+so a fresh `--branch` worktree checked out from the post branch tip never carries it -- the `<this worktree's
+absolute path>/.agi/sessions/orders/<ITER>.kid.txt` phrasing in the parent-orders template is AMBIGUOUS ("this
+worktree" reads as the PARENT's own, per "spawn from YOUR OWN worktree root" one line earlier) and WRONG for that
+reading -- the file only ever exists in the DIRECTOR's worktree. OSC.18 (same session, same template, ~90 min
+earlier) apparently did NOT hit this -- not yet explained; do not assume it is safe, check when there is time. DO
+NOT TRUST OSC.19's actual result -- it was built from a self-improvised brief, not the carefully-scoped one (which
+required a REAL results.json per new cell, the specific 8-point grid, code reuse). Branch:
+season2/loops/hypothesis-lm-qk-norm-model-move-a00-23bf7ce6.
+
+EXACT NEXT for whoever reads this (gen 25 almost certainly):
+  (a) fix the orders-path mechanism FIRST, before dispatching anything else the same way: either give the
+      DIRECTOR's own absolute worktree path explicitly (not a "your own worktree" placeholder), or pass orders
+      content inline via --prompt-file with a path proven to survive a fresh --branch checkout, or find whatever
+      let OSC.18 succeed and make it deliberate rather than lucky.
+  (b) review JEV.01 for real (bytes, not the dm prose) before landing -- key-spend check first.
+  (c) OSC.19's kid almost certainly needs a proper re-dispatch (call it OSC.20) under the ORIGINAL, correctly-
+      scoped OSC.19.kid.txt/parent.txt (both still sit in this worktree's .agi/sessions/orders/, unchanged, still
+      correct) once (a) is fixed -- do not build on the self-improvised result.
+  (d) neither round's branch is merged into this post branch yet -- nothing has been landed, pushed, or reported
+      to thought-master this stretch. No [merge-up] sent. Send one once each is actually reviewed and correct.
+  (e) rotate.py rotate (bare, same model) is being run now, at the end of this same turn, per standing instruction
+      (own the captive threshold rather than let the engine force it) -- this card IS the handoff.
+```
+````
+
+## 🔴 OLD -- superseded by the block above, kept only until the next card replacement
 ````
 ```
 Two pi-free parents are LIVE right now, dispatched this generation, both authorized to run in parallel (TMM.134 +
