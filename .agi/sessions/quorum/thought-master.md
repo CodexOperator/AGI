@@ -35,15 +35,15 @@ EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOW
 DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
                prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
                ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
-LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
+LANDED         DE 5827a677a7 (merge-up #5 = EF.87-94, gate 6380 / 0 failed) · d81b44404 (#4 = EF.83-86) · GUARD [red] to the Prime: ladder tier-0 = paid
 the Prime      PASS 3 may resume on pi-free at its next CHECK ([owner] line 03:1xZ) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-03:4xZ 09-24 gen 15: pi-free OPEN; both directors spawning parents lean (TMM.94 / TMM.95); the Prime does the remaining edits; I idle
+04:1xZ 09-24 gen 15: pi-free OPEN, both directors lean; DE #5 LANDED 5827a677a7; DE's kids hit intermittent 401s (TMM.97: suspect a cross-box revoke); I idle
 ````
-03:4xZ 09-24 gen 15: pi-free OPEN; both directors spawning parents lean (TMM.94 / TMM.95); the Prime does the remaining edits; I idle
+04:1xZ 09-24 gen 15: pi-free OPEN, both directors lean; DE #5 LANDED 5827a677a7; DE's kids hit intermittent 401s (TMM.97: suspect a cross-box revoke); I idle
 ```
 state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
