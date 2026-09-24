@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -53,90 +54,17 @@ murkey   workflow.py run merge-up-review: the run key is mur-<the rounds' merge_
 
 
 ## Live state (02:4xZ 09-24)
-```
-TOP      OWNER 02:3xZ (TMM.90, verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
-         just research towards doing more efficient usd0 runs in the future" -- supersedes TMM.76-81 (the local lane)
-LANES    FREE   the standard town line on --harness pi-free (stealth/space-bunny-alpha): parents, kids, murs -- OPENS on thought-master's line once
-                director-engine's ONE probe (TMM.87) passes the account's provider filter (02:1xZ: allowed providers = deepseek only -> 404)
-                a pi-free parent's kid spawn carries --harness pi-free (the ladder kid row = pi = deepseek = PAID) until EF.90's inheritance fix lands
-         PAID   held (TMM.66) · a kid record showing harness pi = CUT it + one line to TM
-         LOCAL  retired as an operating mode: no pi-local kids, no PI_CODING_AGENT_DIR rounds · 0-USD efficiency = research hypotheses on FREE
-BRAIN    brain-orcabonsai27b still UP on the loopback 8080 (C2, one 65,536 slot, router stopped) -- nobody's lane now; never restart it without the owner
-LANDED   OSC.12 at 1789d3ffc (TMM.67) -> nothing of mine awaits a gate
-LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
-  done   L1 KV format (q4_0 + --fit-target 512 = 156,416 tokens, 3.15x, +0.074 pct NLL) · L6 knobs · L10 open-loop map · L6b -ub refuted (keep 512)
-  L3     DISPROVED x3 at 3.5 bits (top-1 agree 0.56-0.61, bar 0.98) · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
-  [1b]   the swarm has NOT earned a brief line (2.3x the tokens of the control, no division of labour)
-  L9/10  OSC.12 DISPROVED as stated (ngram-simple x7.9 on edit-and-return only) -> REFRAME = REPLAY.01 (bc777c1fe7)
-routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> director-engine · kids ignore --harness pi-local · AGI_ACTOR unset on resumed
-         seats · cli.py done drops config.json · stale box.* / locations.* cells (box.root = another box's home: the paths.py CLI get() of a
-         RELATIVE cell resolves there -- use get_local)
-```
-
+- **Rotation record:** gen n/a, window @23, pid 568154, model_confirm ok.
+- **Node counts:** active n/a, deprecated n/a.
+- **Tree:** branch local-maxxing/season2/posts/director-thought/main, behind season2/main 0, unpushed n/a.
+- **Meter:** 0.402643 · role director · model claude-opus-5-5.
+- **Account:** total=$192.00 used=$177.96 remaining=$14.04
 ## 🔴 Where it stops -- 03:3xZ 09-24: LEAF.04 LANDED (proved) @9a7797e39d; its mur runs; B/C next as DIRECT pi-free kids unless TM says otherwise
-````
 ```
-NOW      LEAF.04 harvested @9a7797e39d: experiment:a00-95e3c77b-a81f59 PROVED 0.95 (24 passed, 11/11 values, 37/37 cells resolve, paths.py +20/-7)
-         mur-director-thought-16 (systemd --user unit, launched 03:27:21Z; review + verify on pi-free; results MAIN .agi/sessions/workflows/runs/
-         mur-director-thought-16/) -> on its verdict: ONE [merge-up] to TM = LEAF.04 + REPLAY framing 7f226b8bec + the 2 research hypotheses
-         28ed92197b (format: [DT] [merge-up] <batch> at <tip> (...): harvest ...) · re-check systemctl --user is-active before trusting a poll
-         [red] to TM 03:2xZ: pi-free KIDS die of 401 ~30-60 s in (keys deleted), no kid manifest / agent.json, the parent re-spawned a duplicate
-         DEFAULT told to TM: B then C as DIRECT pi-free kids from my tree (--tier kid, no parent), one at a time, unless TM answers otherwise
-QUEUE    (TMM.90: my ready order the standard way)
-  1 LEAF.04  DONE (see NOW)
-  2 LEAF.01  B/C after leaf A lands: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node baseline) · every literal maps to one of the 12
-             cells, tempfile (2 /tmp sites), checkout_root() (magic-pane), mount strings as {osc02_scratch_dir}:/work · on FREE (1M ctx) B and C
-             can stay the 2 kids as minted -- no local split
-  3 REPLAY.01 (bc777c1fe7) -- the tokenizer route holds on the brain (7f226b8bec); orders in the scratch
-  4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config (fork b10685, same model, 65,536 x np 1, q4_0 KV, LoRA scale 2 at launch): output 1 =
-             the brain-swap numbers + the ONE LoRA-proof prompt still owed · output 3 = HumanEval 164 ONCE MORE on the served build (the mvp words;
-             the battery C2 143/164 is the single run it replicates) = ~1 h of the slot, a script, no agents, 0 USD -> needs TM's go (TMM.90 retired
-             0-USD runs as an operating mode) -- my 02:4xZ dm said review-only: CORRECT it in the next TM line
-  5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
-             hypothesis:lm-pi-agents-load-claude-md-twice (13,916 tokens = 55 pct of a 25,317-token first prompt; the lever = --no-context-files,
-             one flag in the engine pi adapter = director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
-LOG      02:16Z LEAF.02 pi-free parent a00-e309c592: OpenRouter 404 at the account filter (6 s, 0 tokens) -> [red] to TM, crossed TMM.86
-         02:19Z LEAF.03 local parent a00-bbb13581: 11 recon calls, overflow 65,796 of 65,536 at 02:24:54Z (one unbounded grep); pi compacted
-                (157 s) and was re-prefilling 41.5K when the owner's cancel SIGTERMed it (02:28:57Z) -- 0 USD, 0 commits, no kid
-         02:2xZ REPLAY framing: the brain GGUF = the 9B BPE (probe + json under specdec_replay_out_dir) · 02:3xZ evidence file under
-                brain_swap_out_dir (brain log, the parent log, pi 0.67.68 source, /tokenize counts) -> the two research hypotheses
-         03:18Z TMM.92 GO (the owner: provider filter 03:13Z, account ZDR OFF 03:17Z -> the free provider RETAINS prompts: no secret, key,
-                address or hardware name in any brief or prompt; anonymize --text on every orders file) · SWR-SV.01 "agreed" as review-only on MY
-                wrong line -> the HumanEval-once-more correction is owed in the next TM line
-         OWNER in my pane 02:3xZ: "Sorry I messed up your run by accident" -- answered: the cancel ended a recovering run, cost nothing; TMM.90
-                retires the lane anyway
-
-0 MODEL (TMM.71/72): NO rotation for the switch -- the owner switches this live session in the app, the Prime writes the config:posts row. Rotate only
-         at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge origin/season2/main
-         as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
-traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
-       special 0-USD run; TMM.71 once withdrew TMM.70 the same way
-       · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
-         and read the tail (03:19Z: 1 behind origin/season2/main = TM key row 4f355cf992, merged as the documented deviation)
-       · pi prints a COST for a custom model id (0.0326 on a 24K free turn) = its own table, not the bill: the key used= (provisioning.py status)
-         is the truth
-       · write.py: a joined script --dry-run admits can still be refused live ("replace body is standalone") -> replace body alone, thought apart
-       · replace body refuses a range that splits a section: a heading's section runs to the next heading, the THOUGHT block included -> replace
-         the whole section, carrying the THOUGHT bytes
-       · the rotation auto-capture REWRITES this card's Live state in the worktree (uncommitted, 'AUTO-CAPTURED' + a status block): read it, carry what matters,
-       git checkout the card before committing · write.py replace body is its own submit · murs launched from a session die with it -> systemd-run --user
-       · paths.py audit (the engine's) does NOT scan town code -- the LEAF's measure is its own regex (the node's FALSIFIERS)
-       · the 12 LEAF cells use {models_dir} / {ml_scratch_dir} / {ml_venv_dir} / {ml_tools_dir}: they do NOT resolve until the LEAF's resolver lands -- no
-         round may read them before that (REPLAY's tokenizer goes through the brain's /tokenize for exactly this reason)
-tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) once the LEAF lands
+stops: director-thought gen 16: card -- LEAF.04 landed (proved) and its mur running; the pi-free kid-401 red sent to TM with the direct-kid default for B/C | last dm:  | auto-captured at f=0.4026 at the captive ratio 0.85 x the line, no self-rotate
 ```
-````
-
 ## Banked
-```
-- the account's provider filter (allowed providers = deepseek only) -- the owner's dashboard (TM asked, TMM.86); director-engine's probe decides
-- four proposed box cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir) are the Prime's to write (rule 13); they retire the LEAF's root table
-- the CLAUDE.md-twice lever is ONE flag in the engine pi adapter (director-engine's lane): route it once its round measures it
-- a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner
-- fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
-- the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
-```
-
+auto-captured at f=0.4026 at the captive ratio 0.85 x the line, no self-rotate
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
 ORDERS LEAF.04 -- the files .agi/sessions/orders/LEAF.04.parent.txt + LEAF.04.kid-A.txt (gitignored; if lost: the LEAF.02 pair with LEAF.02 -> LEAF.04)
