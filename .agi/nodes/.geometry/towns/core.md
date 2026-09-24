@@ -15,7 +15,7 @@ tags:
   - tracker
   - geometry
   - town
-thought_session: belam-daily-town-pass-2026-09-23
+thought_session: belam-daily-town-pass-2026-09-24
 title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
@@ -135,5 +135,5 @@ g7.34  geometry + trajectory (parked)      unassigned    horizon
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-23: assignment SoT unchanged (belam g7.31.1/.3 · helper g7.28/g7.31.2/.4/.5/g7.32); no seat/status flips; merges season2→main@5723882c9; verify FAIL tip 5723882c9; reopen/mint=none
+Belam daily 2026-09-24: assignment SoT unchanged (belam g7.31.1/.3 · helper g7.28/g7.31.2/.4/.5/g7.32); no seat/status flips; merges season2→main FF@04400f68f; verify FAIL tip 04400f68f; reopen/mint=none
 <!-- THOUGHT:END -->
