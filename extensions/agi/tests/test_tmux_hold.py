@@ -1,6 +1,6 @@
 """The held restart gives a fresh pane private-server env, never tmux-server inheritance."""
 from __future__ import annotations
-import io, json, os, subprocess, sys
+import io, json, os, shutil, signal, subprocess, sys, time
 from pathlib import Path
 import pytest
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -59,6 +59,40 @@ def test_missing_tmux_falls_back_to_sanitized_popen(tmp_path, monkeypatch):
     with (tmp_path/"x").open("ab") as log:
         assert tmux_hold.start_held(["pi"],env(),cwd=tmp_path,pane_name="agi-a",log_file=log)==123
     assert seen["kwargs"]["env"]==env()
+
+@pytest.mark.skipif(shutil.which("tmux") is None, reason="tmux is not installed")
+def test_real_tmux_initial_and_dead_replacement_get_fresh_env(tmp_path):
+    """Execute the pane shell, rather than mocking new-session's return value."""
+    pane = f"real-test-{os.getpid()}-{tmp_path.name}"
+    socket = tmux_hold._socket(pane)
+    first, second = tmp_path / "first", tmp_path / "second"
+    e = {"PATH": os.environ["PATH"], "HARNESS_MARKER": "first"}
+    assert "OPENROUTER_API_KEY" not in e
+    log = tmp_path / "held.log"
+    def child(marker):
+        return ["sh", "-c", f'printf "%s" "$HARNESS_MARKER" > "$1"; sleep 30', "child", str(marker)]
+    try:
+        with log.open("ab") as fh:
+            pid = tmux_hold.start_held(child(first), e, cwd=tmp_path, pane_name=pane, log_file=fh)
+            assert pid > 0
+            for _ in range(20):
+                if first.exists():
+                    break
+                time.sleep(0.05)
+            assert first.read_text() == "first"
+            os.kill(pid, signal.SIGKILL)
+            time.sleep(0.1)
+            e = {**e, "HARNESS_MARKER": "second"}
+            replacement = tmux_hold.start_held(child(second), e, cwd=tmp_path, pane_name=pane, log_file=fh)
+            assert replacement > 0
+            for _ in range(20):
+                if second.exists():
+                    break
+                time.sleep(0.05)
+            assert second.read_text() == "second"
+    finally:
+        subprocess.run(["tmux", "-L", socket, "kill-server"], capture_output=True, check=False)
+
 
 def test_restart_uses_held_path_and_live_config_declares_opt_in(tmp_path, fake_tmux, monkeypatch):
     sess=tmp_path/"sess"; sess.mkdir(); monkeypatch.setattr(pi_adapter,"build_command",lambda **kw:["pi","run"])
