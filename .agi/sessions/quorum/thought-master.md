@@ -21,6 +21,8 @@ BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mi
                key is an admin key, set it yourself -> MEASURED 03:01Z: NOT settable by key -- no public-API route (openapi.json, 94 paths);
                guardrails + a request's provider.only only NARROW it (1-cent minted probe key, revoked: control 404, provider.only 404) ·
                fix = ONE dashboard edit by the owner (allow stealth, keep deepseek) · [owner] to the Prime 03:0xZ · DE holds a one-burst go
+               OWNER 03:13Z "Done" -> RE-PROBED 03:14Z: the provider filter PASSES; now 404 at the ACCOUNT's ZDR enforcement (the ONLY reason:
+               zdr-violation-by-account; the free endpoint is not ZDR) -> the owner's 2nd edit, same page (ZDR off; trade-off stated to the owner)
 kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
@@ -37,12 +39,12 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-03:0xZ 09-24 gen 15: the allowlist is dashboard-only (measured: the admin key cannot set it); pi-free waits on the owner's one edit; both directors hold a one-burst go
+03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
 ````
-03:0xZ 09-24 gen 15: the allowlist is dashboard-only (measured: the admin key cannot set it); pi-free waits on the owner's one edit; both directors hold a one-burst go
+03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
 ```
 state   MAIN: goal:g5 note + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (0) the owner's ONE dashboard edit (Settings > Privacy: allowed providers += stealth) -> ONE re-probe (the 03:01Z raw call, trap
+NEXT    (0) the owner's ZDR edit (Settings > Privacy: account-wide ZDR enforcement off) -> ONE re-probe (the 03:01Z raw call, trap
             'allowlist', or DE one mur) -> ok = ONE go line to both directors (TMM.91+):
             DE's burst (murs H2/I2/J2, EF.91, leaves) + DT's LEAF.04 -> REPLAY.01 on pi-free, kids flagged --harness pi-free
         (1) DE's EF.90 result -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
