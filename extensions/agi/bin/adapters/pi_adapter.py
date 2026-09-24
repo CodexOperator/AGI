@@ -318,7 +318,11 @@ def restart(
         max_live=max_live, brief_tier=brief_tier,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ))
+    # Restart is a spawn, so it must receive the same tier-aware environment
+    # policy as dispatch.  In particular, credential-none is applied inside
+    # child_env before Popen; do not let the restart seam inherit a raw
+    # process environment when a held pane is resumed.
+    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
