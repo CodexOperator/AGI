@@ -42,5 +42,9 @@ extensions/agi/tests/test_commands_manifest.py -- read :109-140 + the helper and
 extensions/agi/bin/commands.py -- read :223-264, :526-559 (read-only)
 .agi/nodes/.geometry/commands.md -- read :188-195, :2740-2743 (read-only)
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 0 production lines · 0 USD · SECOND (after the helper leaf merges); never while C1's
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 0 production lines · 0 USD · SECOND (after the helper leaf merges); never while C1's
 continuation is in flight
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->

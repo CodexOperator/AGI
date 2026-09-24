@@ -48,6 +48,10 @@ extensions/agi/bin/dispatch.py 1937-2004
 extensions/agi/tests/test_dispatch_dry_run.py 29-96, 274-303
 extensions/agi/tests/test_adapters.py 192-203
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 10 production lines · 0 USD · SECOND (after the AGI_HARNESS export leaf merges)
-RESIDUE (named, not this leaf's): a parent started before the export leaf has no AGI_HARNESS; restart (pi_adapter.py:337) and heal
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 10 production lines · 0 USD · SECOND (after the AGI_HARNESS export leaf merges)
+RESIDUE (named, not this leaf's): pi-free is NOT covered -- its row (config.json:78-91) has no credential cell, so it mints and this leaf's credential-"none" key skips it: a pi-free parent's kid spawned without --harness still resolves the ladder's tier-0 kid row (ladder.md:43, pi / deepseek, paid, held), and the orders' explicit --harness pi-free is the only guard; a parent started before the export leaf has no AGI_HARNESS; restart (pi_adapter.py:337) and heal
 (heal.py:95-101, the ladder kid row) bypass both leaves; the dry-run report (dispatch.py:1383-1449) does not show AGI_HARNESS.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. RESIDUE gains the pi-free gap measured 02:4xZ 09-24 (config.json:78-91 has no credential cell): TMM.89's 'until EF.90's inheritance fix reaches the trunk' does not hold for pi-free even after this leaf lands. Claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->

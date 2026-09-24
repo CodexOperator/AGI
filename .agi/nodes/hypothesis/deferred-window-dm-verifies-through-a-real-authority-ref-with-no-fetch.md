@@ -36,6 +36,10 @@ Neighbours: the same three files as the signer leaf.
 extensions/agi/tests/test_rotate_pending_swap_authority.py 217-276
 extensions/agi/bin/send.py 263-296, 3154-3187, 4429-4474 (read-only)
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 0 production lines · 0 USD · THIRD (after the signer leaf merges)
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 0 production lines · 0 USD · THIRD (after the signer leaf merges)
 RESIDUE (named, not this leaf's): the signer reads the last-fetched ref while the verifier fetches first (3168) -- a stale tracking
 ref can make them disagree; `_row_for_label` is not alias-aware (a renamed seat falls back to the live key, as the verifier does).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->

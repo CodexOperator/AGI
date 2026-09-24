@@ -39,5 +39,9 @@ assert FAILED + "timed out", no SKIPPED, recorded timeouts non-empty and all tru
 extensions/agi/bin/rotate.py 10429-10530 (+ read 16636-16651)
 extensions/agi/tests/test_rotate_key_authority.py 526-574 + the sibling leaf's new test
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · ~9 production lines · 0 USD · runs AFTER the push-leg leaf merges
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · ~9 production lines · 0 USD · runs AFTER the push-leg leaf merges
 RESIDUE (out of scope): tempfile.mkstemp (10465) and the finally's os.unlink (10499) can still raise OSError.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->
