@@ -6,9 +6,9 @@ parents:
   - goal:g7.32.4
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demote_reason: claimed implementation bytes are absent from the reviewed checkout; no live probe evidence
 demoted_from: proved
-edited_by: a00-eefbbdf0
+edited_by: a00-5222a2f1
 evidence_runs:
   - hypothesis:a00-eefbbdf0-c3f377
 line_ceiling: 40
@@ -22,7 +22,7 @@ season: 2
 testable_claim: One concrete inbox transport can be selected through a callable registry row while message construction, authorization policy, and nudge behavior remain in their existing modules.
 title: The inbox transport is a callable registry row
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: inconclusive_lean_disproved:50
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-eefbbdf0-c3f377
@@ -56,7 +56,7 @@ Added 22 production lines and removed 2 (`send.py` plus the new adapter), below 
 The nudge wake remains a side effect in `send()`, so this is the first adapter rather than a completed thin router.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The inherited hypothesis lacked implementation evidence. This version makes the smallest falsifiable slice real: route the existing inbox block through a delivery-only callable table, then exercise both policy refusal and successful message behavior against the real command path. It does not claim the wider rewrite is complete.
+Parent review: the instruction said to implement one transport adapter/row and prove it on built bytes. The node claims bin/transport_registry.py and send.py changes, but the reviewed checkout has no transport_registry.py and the child cited only itself as evidence, not an experiment node. Thus the machine evidence is absent: the near miss is accepting a test transcript and implementation summary without the changed artifact. Demoted to an inconclusive lean-disproved record; next run must leave the changed files present and cite a real experiment node plus wire/auth/gate probes.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
