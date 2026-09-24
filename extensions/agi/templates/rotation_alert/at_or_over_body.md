@@ -1,0 +1,1 @@
+This session is at or over its rotation line. Rotate NOW. If you were mid-round, hand off cleanly first.{suffix}
