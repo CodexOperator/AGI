@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-15:3xZ 09-24 gen 16: DT 5c012f0e6a = owed 2 (HOOK.02 inconclusive: a GLOBAL oom 15:13:05Z killed the brain's llama-server, docker restarted it healthy) + owed 3 (brainstorm goal = args) + 1 of 9 demotes; STILL HELD for the 8 left (named on DT's card; DT rotating at 91 pct) -> then ONE [merge-up] (lean gate + the full suite: the workflow files are code); then batch 7 · DE: R0 in flight · E6 (nudge sweep) to DE with its next order
+16:0xZ 09-24 gen 16: DT's batch 5+6 (29c83347d3, all 9 demotes done) RETURNED on ONE real red -> TMM.119: a00-3c370e1e's verdict 'inconclusive' is invalid (needs inconclusive_lean_<proved|disproved>:N); the rest green (full suite 6385 passed + the SIGINT flake; links 0 of 4,257; goals 355; anonymize ok; merge-tree clean) -> on DT's fixed tip: a LEAN re-gate (test_evidence_gate + links + goals + leak) and land · DT on batch 7 · DE: R0 in flight · E6 (nudge sweep) to DE with its next order
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
@@ -56,7 +56,7 @@ NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632
             NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> the cross-box reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = TMM.118: owed 1-3 on 6b5ed4743d, then ONE [merge-up]; then batch 7 ·
-            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.119
+            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.120
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -72,7 +72,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.119
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.120
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
