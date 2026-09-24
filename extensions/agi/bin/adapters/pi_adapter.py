@@ -309,6 +309,7 @@ def restart(
     import shlex
     import subprocess
     import time
+    from adapters import tmux_hold
 
     args = build_command(
         harness=harness, tier=tier, context_file=context_file,
@@ -321,19 +322,16 @@ def restart(
     env = child_env(harness=harness, base=dict(os.environ))
     try:
         with open(log_file, "ab") as logf:
-            proc = subprocess.Popen(
-                args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
-                env=env,
-            )
+            if tmux_hold.enabled():
+                new_pid = tmux_hold.start_held(args, env, cwd=str(_restart_cwd(sess_dir, agent_record)),
+                    pane_name=f"agi-{agent_id}", log_file=logf)
+            else:
+                new_pid = subprocess.Popen(args, stdout=logf, stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL, start_new_session=True,
+                    cwd=str(_restart_cwd(sess_dir, agent_record)), env=env).pid
     except OSError as exc:
         print(f"restart failed for {agent_id}: {exc}", file=import_sys_stderr())
         return None
-    new_pid = proc.pid
     if agent_record is not None:
         agent_record["pid"] = new_pid
         agent_record["status"] = "restarted"
