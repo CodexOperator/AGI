@@ -73,17 +73,15 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          RELATIVE cell resolves there -- use get_local)
 ```
 
-## 🔴 Where it stops -- 02:4xZ 09-24: nothing of mine live; the FREE lane opens on thought-master's line -> LEAF.04 first
+## 🔴 Where it stops -- 03:2xZ 09-24: LEAF.04 (leaf A) LIVE on pi-free (TMM.92 GO); on its done: review in place -> the batch [merge-up] to TM
 ````
 ```
-NOW      0/30 live · waiting on TM's line (director-engine's pi-free probe vs the account filter; a 404 = still blocked: hold)
+NOW      LEAF.04 LIVE since 03:21:09Z: parent a00-47a7b928 (pid 1419936, pi-free, stealth/space-bunny-alpha, key used=0 after its first turn)
+         branch season2/loops/hypothesis-lm-paths-py-resolves--a00-47a7b928 · base 977d0c72e8 (both trunks merged) · my watch (dies with this
+         session) CUTS a LEAF.04 kid whose pi --model is not the free one -- by hand if the watch is gone: spawn_budget.py status + /proc cmdline
 QUEUE    (TMM.90: my ready order the standard way)
-  1 LEAF.04  leaf A = hypothesis:lm-paths-py-resolves-proposed-box-roots -- READY: .agi/sessions/orders/LEAF.04.parent.txt + LEAF.04.kid-A.txt
-             (pi-free; the kid spawn carries --harness pi-free; the parent checks the kid row) · on TM's line: merge origin/local-maxxing/season2/main,
-             push the mirror, RE-READ the dm log, --dry-run, then:
-             python3 extensions/agi/bin/dispatch.py . LEAF.04 --target hypothesis:lm-paths-py-resolves-proposed-box-roots --level small --tier parent
-             --harness pi-free --branch --detach --orders .agi/sessions/orders/LEAF.04.parent.txt --from director-thought
-             then read the kid row: harness pi-free + model stealth/space-bunny-alpha, else CUT + one line to TM
+  1 LEAF.04  leaf A -- LIVE (see NOW) · on done: diff vs the merge-base (paths.py + test_paths_local.py + ONE experiment node), the TESTS
+             neighbourhood command, 2 values by hand -> merge the round branch -> push the mirror
   2 LEAF.01  B/C after leaf A lands: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node baseline) · every literal maps to one of the 12
              cells, tempfile (2 /tmp sites), checkout_root() (magic-pane), mount strings as {osc02_scratch_dir}:/work · on FREE (1M ctx) B and C
              can stay the 2 kids as minted -- no local split
@@ -100,6 +98,9 @@ LOG      02:16Z LEAF.02 pi-free parent a00-e309c592: OpenRouter 404 at the accou
                 (157 s) and was re-prefilling 41.5K when the owner's cancel SIGTERMed it (02:28:57Z) -- 0 USD, 0 commits, no kid
          02:2xZ REPLAY framing: the brain GGUF = the 9B BPE (probe + json under specdec_replay_out_dir) · 02:3xZ evidence file under
                 brain_swap_out_dir (brain log, the parent log, pi 0.67.68 source, /tokenize counts) -> the two research hypotheses
+         03:18Z TMM.92 GO (the owner: provider filter 03:13Z, account ZDR OFF 03:17Z -> the free provider RETAINS prompts: no secret, key,
+                address or hardware name in any brief or prompt; anonymize --text on every orders file) · SWR-SV.01 "agreed" as review-only on MY
+                wrong line -> the HumanEval-once-more correction is owed in the next TM line
          OWNER in my pane 02:3xZ: "Sorry I messed up your run by accident" -- answered: the cancel ended a recovering run, cost nothing; TMM.90
                 retires the lane anyway
 
@@ -108,6 +109,10 @@ LOG      02:16Z LEAF.02 pi-free parent a00-e309c592: OpenRouter 404 at the accou
          as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
 traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way
+       · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
+         and read the tail (03:19Z: 1 behind origin/season2/main = TM key row 4f355cf992, merged as the documented deviation)
+       · pi prints a COST for a custom model id (0.0326 on a 24K free turn) = its own table, not the bill: the key used= (provisioning.py status)
+         is the truth
        · write.py: a joined script --dry-run admits can still be refused live ("replace body is standalone") -> replace body alone, thought apart
        · replace body refuses a range that splits a section: a heading's section runs to the next heading, the THOUGHT block included -> replace
          the whole section, carrying the THOUGHT bytes
