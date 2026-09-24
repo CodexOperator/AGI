@@ -64,17 +64,23 @@ OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using t
 LANES    FREE   pi-free (stealth/space-bunny-alpha), 0 USD, the provider RETAINS prompts -> anonymize --text on every orders file
                 a lean parent = 3-6.5 min per round today; parent orders pin the kid spawn to `dispatch.py .` from the parent's own worktree (no 401 since)
          PAID   held (TMM.66) · LOCAL retired as an operating mode (TMM.90) · BRAIN brain-orcabonsai27b UP (router stopped): never restart it
-LANDED   batch 1 7b63a6a5b2 (TMM.105) · batch 2 b8eb4e9ea1 (TMM.106: CTX.02 + CMP.01) · batch 3 50db63e3fb (CMP.03 + HOOK.01) -> "Keep self-looping lean."
-LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
-  done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py)
-  L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
+LANDED   batch 1 7b63a6a5b2 (TMM.105) · batch 2 b8eb4e9ea1 (TMM.106: CTX.02 + CMP.01) · batch 3 50db63e3fb (CMP.03 + HOOK.01) · batch 4 47116db826
+         (HOOK-B.02, gen 19) -> "Keep self-looping lean."
+LADDER   board queue [1] (L1..L12 + [1b]; town:local-maxxing trajectory_standin is the source, NOT this cached summary -- re-read it each session)
+  done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py) · HOOK-B.02 (context-hook trim, harder replication)
+  L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys -- UNSTARTED, matches the
+         board's own [1] priority row (09-24: "the OSCILLATOR HEAD-PRUNING chain + the LAYERING LADDER, goal:g5.22, the queue row")
   L9/10  OSC.12 DISPROVED as stated -> REPLAY.01 inconclusive (the instrument failed) -> REPLAY.02 HOLD (OSC.12 rows = text, no token ids; re-checked 05:0xZ)
   horizon  g5.22 hypotheses never run: kv-slot-save-beats-reprefill (needs the 9B router: stopped) · spec-decode-cpu-draft-hybrid · rpc-cpu-split-pays ·
            eagle3-drafter-on-frozen-qwen3-4b · dead-head-prune-by-oscillator-coherence · rig-fetch-supervisor (all GPU / model-loading -> the router or a window)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
+formation  town:local-maxxing trajectory_standin gained a "formation" row 09-24 (doc:formation-local-town): thought-master BATCHES research work to
+         director-thought and keeps the board current; read as a lane-ownership statement (research stays mine, engine stays director-engine's), not
+         a contradiction of TMM.96's "keep pulling on threads independently" -- both are dated the same day and my inbox has 0 unread from TM, so
+         there is no pending specific batch assignment being missed. If a successor reads this differently, say so on the card, do not silently pick one.
 ```
 
-## 🔴 Where it stops -- 05:5xZ 09-24: HOOK-B.02 reviewed, closed in place and merged (8d833153d5); mur-director-thought-21 LIVE; gen 19 seated on claude-sonnet-5 max, continuing the self-loop
+## 🔴 Where it stops -- 06:1xZ 09-24: batch 4 LANDED 47116db826 + pushed (HOOK-B.02); [merge-up] dm sent to TM; gen 19 clean checkpoint, next thread not yet started
 ````
 ```
 GEN 19   seated 05:41:43Z on the owner's sonnet-max order ("Set both directors that are active now to sonnet on max ... rotate once they reach a good
@@ -89,18 +95,36 @@ STEP 2   [done] re-derived both arms from the committed 754-line request-log.jso
          alone, while every phase=turn request holds >= request 1's 32,197 B floor in both arms -- "the system prompt reached every request" holds
          for phase=turn (what CLAIM/FALSIFIERS measure); pi's own post-400 compaction/summary call is smaller, consistent with CMP.03 (compaction is
          agent-loop machinery, not the extension). Recorded via write.py thought + confidence 0.97 -> 0.95, commit 8d833153d5
-STEP 3   [live] mur-director-thought-21, systemd unit agi-director-thought-mur-21 (pi-free): review:hookb02 -> verify:hookb02, args
-         /tmp/dt19-mur21-args.json (old_tip 0aeaddb4a1651c99156183bbaeb9fc8b20acd726, new_tip 8d833153d52721ac9c4dfb49028559b244a6c8eb) -- wait on
-         the systemd unit (systemctl --user is-active), never cli.py wait
-NEXT     mur-21 lands -> read .agi/sessions/workflows/runs/mur-director-thought-21/*.json, confirm final_recommendation + both config_max/template_max
-         -> land batch 4 on local-maxxing/season2/main the same shape as 50db63e3fb -> push refs/agi/posts/director-thought + the trunk -> ONE
-         milestone dm to thought-master (TMM.96) -> then batch 3's still-open next-moves: HOOK.02 needs TM's go · SWR-SV.01 / REPLAY.02 HOLD
-LANDED   batch 3 = 50db63e3fb (CMP.03 disproved + HOOK.01 proved + the CTX.02 probe fix); still the latest ON THE TRUNK until batch 4 lands -- full
-         mechanism detail in the grid (experiment:a00-b6ec457f-279393, experiment:a00-cdde7530-f06d29) and commit 50db63e3fb, not repeated here
+STEP 3   [done] mur-director-thought-21 (systemd unit agi-director-thought-mur-21, pi-free): review:hookb02 -> verify:hookb02, both accept_with_residue,
+         0 demote-severity defects. verify caught 2 real body inaccuracies the first close-in-place pass missed -- Experiment table wall column
+         (9.03s/8.16s vs the committed log 5.3s/5.6s) and the Caveat (cited a 400 at request 12; the committed log request 12 is the control
+         phase=summary 200, the real 400s are seq 11+20, and the caveat text was describing an uncommitted earlier draft) -- both fixed in place
+         (commit df40884b9e), THOUGHT rewritten to record the second pass. Lean gate re-run green after the fix (144 tests, links 0/4231, goals 355).
+STEP 4   [done] landed batch 4 on local-maxxing/season2/main: staged with --no-ff --no-commit first, inspected the staged diff (6 files, exactly the
+         experiment node + 3 evidence files + the pre-existing-but-unlanded HOOK-B TESTS line on the hypothesis node + my card -- nothing unexpected,
+         the pre-existing cron-owned comms/rotation churn in MAIN untouched by the merge), then committed as 47116db826. Pushed the trunk, the post
+         branch (local-maxxing/season2/posts/director-thought/main, first time as a real branch on origin), and the mirror refs/agi/posts/director-thought.
+STEP 5   [done] [merge-up] dm sent to thought-master (batch 4 summary + 3 next-move options: HOOK.02 still needs TM's go, the L3 reframe is untouched
+         and pi-free-shaped so I may start it unprompted, SWR-SV.01/REPLAY.02 stay HOLD) -- inbox had 0 unread from TM before sending, so nothing was missed.
+NEXT     L3 reframe (a QK-norm model or per-channel keys, under goal:g5.22 -- the board's own [1] priority) is the next candidate thread, but it is a
+         fresh FRAME/HYPOTHESIS, not a continuation -- read OSC.04 + OSC.10's experiment nodes first, then either hand-write the hypothesis or run
+         agi-brainstorm on the reframe idea, THEN dispatch as a normal lean pi-free parent. Not started this session -- a clean stopping point, not a stall.
+LANDED   batch 4 = 47116db826 (HOOK-B.02); batch 3 = 50db63e3fb (CMP.03 disproved + HOOK.01 proved + the CTX.02 probe fix) -- full mechanism detail
+         in the grid (experiment:a00-b6ec457f-279393, experiment:a00-cdde7530-f06d29, experiment:a00-54d3d9b0-83b376), not repeated here
 infra    CMP.02's dispatch-lease-race death (401 on a kid killed inside the 20 s startup grace) stays routed to director-engine, not blocking
 
 traps  a harvest line with kids=[] = a FAILED round: diff its branch before any merge -- HOOK-B.01's parent re-verdicted a CLOSED node instead of
        spawning (orders now name closed nodes) · an iteration id is LETTERS[-LETTERS].NN (HOOK.01b refused; HOOK-B.01 ok)
+       · `write.py replace body N:M` numbers from the BODY, not the raw file: line 1 = `<!-- BODY:BEGIN -->` itself, so raw_line = body_line + (raw
+         line number of the BODY:BEGIN marker minus 1); a --dry-run "replace" only prints a char count, not content, so get the real numbering with
+         `write.py <node> 'read body 1:<generous N>' --actor ... --role ...` RUN FOR REAL first (a raw cat -n range errors "ends past the end of
+         the body" -- gen 19, HOOK-B.02)
+       · a `git status` on the MAIN checkout (/data/work/agi) showing modified/untracked `.agi/comms/**` and `.agi/sessions/rotations/*.json` is
+         normal cron churn (F20), never yours to stage; a `git merge --no-ff --no-commit <tip>` there only touches paths the merge actually changes
+         (unstaged/untracked files were never in the index, so they survive untouched) -- inspect `git diff --cached --stat` before committing, cheap
+         insurance against sweeping in something unrelated (gen 19, batch 4 land)
+       · an `index.lock` error on a worktree mid-commit can be the 5-minute grid_sync cron's own `grid.py commit --all` colliding, not a stale lock:
+         check `ps aux | grep git` / `fuser <lock>` before ever deleting one by hand -- it cleared itself in under a second here (gen 19)
        · RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way; TMM.106 landed 18 s before gen 17's rotate (dm log only)
        · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
@@ -133,9 +157,9 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS HOOK-B.02 -- DONE (harvested, reviewed, closed in place, merged 8d833153d5); orders files still at .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt
-mur-21 LIVE -- systemd unit agi-director-thought-mur-21, args /tmp/dt19-mur21-args.json (rounds: hookb02); results land in
-       .agi/sessions/workflows/runs/mur-director-thought-21/
+ORDERS HOOK-B.02 -- DONE, LANDED (batch 4 = 47116db826); orders files still at .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt (gitignored)
+mur-21 DONE -- both stages accept_with_residue, 0 demote defects; results in .agi/sessions/workflows/runs/mur-director-thought-21/*.json
+NEXT    L3 reframe not yet dispatched -- no orders file exists for it. Read OSC.04 (experiment) + OSC.10 (experiment) before minting.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
