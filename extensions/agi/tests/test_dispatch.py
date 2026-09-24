@@ -2828,7 +2828,7 @@ def test_two_parents_keep_separate_orders_copies_in_one_iter_dir(
 #   (c) cap over pool-minus-floor-minus-live-caps -> exit 1, stderr names
 #       pool/floor/live, and NO mint happened.
 
-def _cap_project(tmp_path, parallel=1):
+def _cap_project(tmp_path, parallel=1, persistent_holder=None):
     """A scratch openrouter project whose standing per-spawn cap is 1.5 and
     whose account floor is 1.0."""
     import json
@@ -2838,7 +2838,9 @@ def _cap_project(tmp_path, parallel=1):
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps({
         "harnesses": {"pi": {"adapter": "pi", "provider": "openrouter",
-                             "models": {"kid": "deepseek/deepseek-v4"}}},
+                             "models": {"kid": "deepseek/deepseek-v4"},
+                             **({"persistent_holder": persistent_holder}
+                                if persistent_holder else {})}},
         "spawn": {"harness": "pi", "parallel": parallel, "max_live": 25,
                   "credential": {"per_spawn_limit_usd": 1.5,
                                  "ttl_minutes": 180}},
@@ -2859,14 +2861,16 @@ def _cap_project(tmp_path, parallel=1):
 
 
 def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0),
-                      keys=(), parallel=1, real_floor=False):
+                      keys=(), parallel=1, real_floor=False,
+                      persistent_holder=None):
     """Drive dispatch.main() for one openrouter kid slot with the network and
     the child process stubbed. Returns (exit_code, [mint kwargs], captured)."""
     import json
     import os
     import provisioning
     import sys as _sys
-    project = _cap_project(tmp_path, parallel=parallel)
+    project = _cap_project(tmp_path, parallel=parallel,
+                           persistent_holder=persistent_holder)
     mint_calls: list = []
 
     class _Minted:
@@ -2896,6 +2900,7 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
     monkeypatch.setattr(provisioning, "list_all_keys",
                         lambda root=None: list(keys))
 
+    holder_calls = []
     real_popen = subprocess.Popen
 
     class _StubProc:
@@ -2918,7 +2923,24 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
             return _StubProc()
         return real_popen(argv, **kw)
 
-    monkeypatch.setattr(subprocess, "Popen", _patched)
+    if persistent_holder:
+        class _Holder:
+            @staticmethod
+            def start(**kw):
+                holder_calls.append(kw)
+                return _StubProc(), "%42"
+
+        monkeypatch.setattr(dispatch.adapters, "load_holder",
+                            lambda name: _Holder())
+
+        def _forbidden_popen(argv, **k):
+            if (k.get("env") or {}).get("AGI_AGENT_ID"):
+                raise AssertionError("persistent dispatch bypassed its held-pane seam")
+            return real_popen(argv, **k)
+
+        monkeypatch.setattr(subprocess, "Popen", _forbidden_popen)
+    else:
+        monkeypatch.setattr(subprocess, "Popen", _patched)
     # the startup-grace poll's sleep seam (dispatch.py:97-102): a stub child
     # that never exits (poll() -> None) otherwise sleeps the real 20 s grace
     # on every cap test that gets as far as spawning. Same seam as 1be791764.
@@ -2931,7 +2953,26 @@ def _run_cap_dispatch(tmp_path, monkeypatch, *extra, balance=(100.0, 0.0, 100.0)
         "--harness", "pi", "--tier", "kid", "--target", "hypothesis:x",
         *extra])
     code = dispatch.main()
+    if persistent_holder:
+        return code, mint_calls, project, holder_calls
     return code, mint_calls, project
+
+
+def test_initial_dispatch_uses_and_records_the_persistent_holder(
+        tmp_path, monkeypatch):
+    """goal:g7.31.1.2.2: the production first launch owns a named pane."""
+    code, _mints, project, calls = _run_cap_dispatch(
+        tmp_path, monkeypatch, persistent_holder="held_pane")
+    import json
+    manifest = json.loads(
+        (project / ".agi/sessions/iter-001/manifest.json").read_text())
+    rec = manifest["agents"][0]
+    assert code == 0
+    assert len(calls) == 1
+    assert calls[0]["agent_id"] == rec["id"]
+    assert calls[0]["argv"] and calls[0]["cwd"] == str(project)
+    assert rec["pane_id"] == "%42"
+    assert "created" not in rec
 
 
 def test_cap_flag_mints_at_exactly_that_limit(tmp_path, monkeypatch, capsys):

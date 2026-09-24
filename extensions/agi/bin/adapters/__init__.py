@@ -80,6 +80,15 @@ def load(name: str) -> ModuleType:
 TIERS = ("kid", "parent", "director", "prime_director")
 
 
+def load_holder(name: str) -> ModuleType:
+    """Load a named initial-dispatch holder, whose ``start`` owns a pane."""
+    modname = f"{__name__}.{name}_holder" if not name.endswith("_holder") else f"{__name__}.{name}"
+    mod = importlib.import_module(modname)
+    if not callable(getattr(mod, "start", None)):
+        raise AdapterError(f"holder {modname} has no callable start")
+    return mod
+
+
 def resolve(cfg: dict, name: str | None = None) -> tuple[str, dict]:
     """Pick a harness from config, synthesizing one for a legacy project.
 
