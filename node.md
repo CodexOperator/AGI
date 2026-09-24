@@ -16,14 +16,14 @@ town: local-maxxing
 
 ## Measured
 - brief.py:1930 -- the parent brief's kid-spawn line carries no --harness, so adapters/__init__.py:163 takes spawn.harness "pi"
-  (config.json:121) and the tier-0 kid row (ladder.md:43: pi, deepseek) wins through dispatch.py:1955 (resolve_role_spec,
+  (config.json:135) and the tier-0 kid row (ladder.md:43: pi, deepseek) wins through dispatch.py:1955 (resolve_role_spec,
   :1111-1115) and :1963-1989 -- how MP02-G.01's kids ran on OpenRouter under a pi-local parent (TMM.41).
 - dispatch.py:1971-1979 already lets an explicit --harness beat the ladder row and take that harness's own tier model; args.harness
   is read only at :1947 and :1961.
 - "credential-none" is the harness ROW cell (config.json:68; pi_adapter.py:372); claude_code / copilot_cli / grok_bot adapters'
   needs_credential() always return False, so `not needs_credential()` would move every claude-code parent's kids off the ladder.
 - no test spawns a kid without --harness under a credential-none parent (test_dispatch.py:796-945, test_dispatch_dry_run.py:274-321,
-  test_credential_none_spawn.py:237-272, test_adapters.py:285-343); on 66e3dd68c7 test_dispatch_dry_run.py 27 passed,
+  test_credential_none_spawn.py:237-293, test_adapters.py:285-343); on 66e3dd68c7 test_dispatch_dry_run.py 27 passed,
   test_credential_none_spawn.py 12 passed.
 ## CLAIM
 When args.harness is None, args.tier is "kid", and AGI_HARNESS names a cfg["harnesses"] row whose credential is "none", main()
@@ -48,6 +48,10 @@ extensions/agi/bin/dispatch.py 1937-2004
 extensions/agi/tests/test_dispatch_dry_run.py 29-96, 274-303
 extensions/agi/tests/test_adapters.py 192-203
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 10 production lines · 0 USD · SECOND (after the AGI_HARNESS export leaf merges)
-RESIDUE (named, not this leaf's): a parent started before the export leaf has no AGI_HARNESS; restart (pi_adapter.py:337) and heal
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 10 production lines · 0 USD · SECOND (after the AGI_HARNESS export leaf merges)
+RESIDUE (named, not this leaf's): pi-free is NOT covered -- its row (config.json:78-91) has no credential cell, so it mints and this leaf's credential-"none" key skips it: a pi-free parent's kid spawned without --harness still resolves the ladder's tier-0 kid row (ladder.md:43, pi / deepseek, paid, held), and the orders' explicit --harness pi-free is the only guard; a parent started before the export leaf has no AGI_HARNESS; restart (pi_adapter.py:337) and heal
 (heal.py:95-101, the ladder kid row) bypass both leaves; the dry-run report (dispatch.py:1383-1449) does not show AGI_HARNESS.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Measured re-checked against e7910a90ab before dispatch (02:5xZ 09-24): two citations drifted, content unchanged -- spawn.harness moved config.json:121 -> :135 (the pi-free row now sits at 78-91), and EF.90 added test_live_spawn_exports_its_own_harness_over_an_inherited_one at :261, so the no-bare-kid-spawn span is 237-293; that test passes --harness pi-local, so 'no test spawns a kid without --harness' still holds (13 tests in the file on this base, 12 on 66e3dd68c7). Claim, tests and file scope unchanged; the previous version's CEILING + pi-free RESIDUE stand.
+<!-- THOUGHT:END -->
