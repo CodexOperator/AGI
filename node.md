@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot
 next_edges: []
-edited_by: a00-280195cb
+edited_by: director-thought
 loop: hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot@s2
 model: OrcaBonsai-27B-C2
 profile: balanced
@@ -14,6 +14,7 @@ scaffold_hash: e9ea7052a8436c01
 season: 2
 title: Real pi-local replication of context-event result trimming
 town: local-maxxing
+verdict: inconclusive
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-3c370e1e-e0f78b
@@ -27,7 +28,7 @@ What did you do? What happened? Include command/inputs and actual outputs.
 Raw output, screenshots, logs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review: instruction said the real pi-local kid must reuse the committed probe and report its own load and wall timing. The machine actually produced a successful two-arm mock run (probe-out.json: control 22 requests, 400s 12/22; trim 40 requests, max 44,849.7 proxy tokens, no 400, rc 0) and wrote a00-3c370e1e-request-log.json, but agent status is failed died-no-work and the node body is still scaffold-only; no cli done, no anonymize result, and the log is a local mock rather than a live pi-local request path. Negative wire probe: request-log trace shows elided_results increasing 1..33, proving the context trim hook was reached in the reused mock, but it does not prove the real pi-local execution conjunct. Therefore this experiment is not accepted as proved; the strongest honest state is pending.
+CORRECTED per thought-master TMM.118 (owed 2): original merge wrongly guessed OOM under memory_max 6G on the kids own scope, reasoning the kid loads the 27B itself -- it does not. The kid is a thin pi-local client; OrcaBonsai-27B-C2 is served by an always-on brain container (llama-server, docker scope) on :8080. Measured cause, from bytes: journalctl -k shows a GLOBAL oom-killer invocation at 15:13:0x 09-24 (trigger task mi-scavenger, likely a Node V8 GC scavenge pass, not this round), constraint=CONSTRAINT_NONE (system-wide, not this cgroup), which killed llama-server pid 477123 (docker-3afa536a7ae60f855b325bd3302bea43d254677e9e229525fa8ba257e0397e4e.scope, anon-rss 6.7 GB) -- the shared brain backend, not the kid. The kids own log shows its last real event immediately after: a 400, request (67981 tokens) exceeds the available context size (65536 tokens), then a compaction_start(overflow) with no further recovery -- consistent with its backend dying mid-conversation, not with the kids own memory. No evidence the kids own process was OOM-killed. Verdict: inconclusive -- the real-pi-local conjunct is untested, not disproved; the measured cause is a box-wide memory event that killed the shared model server, a dependency this round does not control. Residue: retry HOOK.02 only once the brain container has headroom confirmed before dispatch (or after whatever else was pressuring system memory at 15:13Z is identified), not blind.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
