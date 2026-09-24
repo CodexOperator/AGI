@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 18 claude-opus-5-5 seated 04:55:17Z 09-24 (session post-director-thought-e8); the row = claude-sonnet-5 max from gen 19 (owner 05:1xZ) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 19 claude-sonnet-5 max seated 05:41:43Z 09-24 (session post-director-thought-82); succeeds gen 18 claude-opus-5-5, rotated at the owner's 05:1xZ order ("Set both directors ... to sonnet on max ... rotate once they reach a good point") · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -55,7 +55,7 @@ source   before re-running a round whose instrument failed, read the SUBJECT's s
          shown either arm (one request per arm, usage 0) -- a source read found pi checks compaction only at agent_end + a new prompt (gen 18, 05:0xZ)
 ```
 
-## Live state (05:0xZ 09-24, gen 18)
+## Live state (05:5xZ 09-24, gen 19)
 ```
 OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs just research
          towards doing more efficient usd0 runs in the future" · TMM.95 03:39Z "Make both directors go back to spawning parents efficiently with
@@ -74,27 +74,30 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:4xZ 09-24: batch 3 LANDED 50db63e3fb; HOOK-B.02 LIVE (parent a00-34a6b7b4); gen 18 ROTATES on the owner's order -> gen 19 on claude-sonnet-5 max
+## 🔴 Where it stops -- 05:5xZ 09-24: HOOK-B.02 reviewed, closed in place and merged (8d833153d5); mur-director-thought-21 LIVE; gen 19 seated on claude-sonnet-5 max, continuing the self-loop
 ````
 ```
-OWNER    05:1xZ verbatim (config:posts THOUGHT): "Set both directors that are active now to sonnet on max. Let them know as well to rotate once they reach
-         a good point to apply changes." -> the row (merged into this worktree from 3b6e0eb632) = claude-sonnet-5 effort max; gen 18 rotated at a good point
-NOW      HOOK-B.02 = HOOK.01 replicated harder (a ~7,000-token system prompt + DISTINCT call ids; the extension estimate from ctx.getContextUsage())
-         on hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot · parent a00-34a6b7b4 pid 3258347, 05:40:27Z · orders
-         .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt · my manifest has the PARENT row only -> wait on the pid (kill -0), never cli.py wait here
-GEN 19   1 on the harvest line in the inbox: check kids=[...] is NON-EMPTY, then the round branch diff vs its merge-base (ONE new kid node + extension +
-           probe + log under datasets/brain-swap/2026-09-24) BEFORE any merge -- HOOK-B.01's parent spawned no kid and re-verdicted the CLOSED HOOK.01
-           node (branch a85a41625f, REJECTED, never merge it)
-         2 review by name like HOOK.01 (the thread block below): re-derive per arm from the committed log; pairing BY ID now; the system prompt reached
-           every request -> close in place -> a lean mur -> batch 4 [merge-up] to TM
-         3 then TM's answer to batch 3's next moves: HOOK.02 (a real pi-local kid on the brain slot) needs TM's go · SWR-SV.01 / REPLAY.02 HOLD
-LANDED   batch 3 = 50db63e3fb (TM, lean gate): CMP.03 + HOOK.01 + the CTX.02 probe fix + the CMP brief; mirror pushed after the landing
-THREAD   CMP.03 DISPROVED (a00-b6ec457f): a declared contextWindow 60,000 does not bound ONE pi -p loop -- request 20 past W, 21 past the 65,536 ceiling
-         (400), a 2nd 400 at 36; pi checks compaction only at agent_end + a new prompt (agent-session.js:337/:738; pi 0.73.1 the same)
-         HOOK.01 PROVED (a00-cdde7530, conf 0.9): a 13-line context-event extension (types.d.ts:400-404) -> 40 requests, max 44,849.7, 0 x 400 (control:
-         400s at 12 + 22); compact() aborts the loop (agent-session.js:1249-1251) -- routed to director-engine 05:3xZ (estimate = messages only)
-infra    CMP.02 died on a dispatch lease race (kid dispatch killed inside the 20 s startup grace, dispatch.py L2784 before L2831 -> key revoked -> 401)
-         -> director-engine 05:1xZ (not blocking; parent orders carry a >= 180 s spawn timeout)
+GEN 19   seated 05:41:43Z on the owner's sonnet-max order ("Set both directors that are active now to sonnet on max ... rotate once they reach a good
+         point to apply changes"); predecessor's rotate already answered the ack continue -- nothing owed there
+STEP 1   [done] HOOK-B.02 harvest: kids=[experiment:a00-54d3d9b0-83b376] non-empty (unlike HOOK-B.01's kids=[]) -- branch diff vs merge-base 0aeaddb4a1
+         was exactly the expected shape (one kid node + extension + probe + log, 886 insertions, 0 deletions, no closed-node re-verdict) -> merged
+         --no-ff into the post branch clean
+STEP 2   [done] re-derived both arms from the committed 754-line request-log.json directly, not the node prose: without_extension 20 requests / max
+         260,381 B / 68,521.3 tok / 400s at seq 11+20; with_extension 40 requests / max 171,785 B / 45,206.6 tok / zero 400s / first elided_results>0
+         at seq 7; calls==results on every one of the 60 requests, both arms -- matches the node exactly, no corrections needed this time. RESIDUE
+         (not a correction): the control phase=summary request (seq 12, right after the seq-11 400) is 16,034 B, under the 26,600 B system-prompt file
+         alone, while every phase=turn request holds >= request 1's 32,197 B floor in both arms -- "the system prompt reached every request" holds
+         for phase=turn (what CLAIM/FALSIFIERS measure); pi's own post-400 compaction/summary call is smaller, consistent with CMP.03 (compaction is
+         agent-loop machinery, not the extension). Recorded via write.py thought + confidence 0.97 -> 0.95, commit 8d833153d5
+STEP 3   [live] mur-director-thought-21, systemd unit agi-director-thought-mur-21 (pi-free): review:hookb02 -> verify:hookb02, args
+         /tmp/dt19-mur21-args.json (old_tip 0aeaddb4a1651c99156183bbaeb9fc8b20acd726, new_tip 8d833153d52721ac9c4dfb49028559b244a6c8eb) -- wait on
+         the systemd unit (systemctl --user is-active), never cli.py wait
+NEXT     mur-21 lands -> read .agi/sessions/workflows/runs/mur-director-thought-21/*.json, confirm final_recommendation + both config_max/template_max
+         -> land batch 4 on local-maxxing/season2/main the same shape as 50db63e3fb -> push refs/agi/posts/director-thought + the trunk -> ONE
+         milestone dm to thought-master (TMM.96) -> then batch 3's still-open next-moves: HOOK.02 needs TM's go · SWR-SV.01 / REPLAY.02 HOLD
+LANDED   batch 3 = 50db63e3fb (CMP.03 disproved + HOOK.01 proved + the CTX.02 probe fix); still the latest ON THE TRUNK until batch 4 lands -- full
+         mechanism detail in the grid (experiment:a00-b6ec457f-279393, experiment:a00-cdde7530-f06d29) and commit 50db63e3fb, not repeated here
+infra    CMP.02's dispatch-lease-race death (401 on a kid killed inside the 20 s startup grace) stays routed to director-engine, not blocking
 
 traps  a harvest line with kids=[] = a FAILED round: diff its branch before any merge -- HOOK-B.01's parent re-verdicted a CLOSED node instead of
        spawning (orders now name closed nodes) · an iteration id is LETTERS[-LETTERS].NN (HOOK.01b refused; HOOK-B.01 ok)
@@ -130,12 +133,14 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS HOOK-B.02 (LIVE) -- .agi/sessions/orders/HOOK-B.02.parent.txt + HOOK-B.02.kid.txt (gitignored; if lost: HOOK.01's pair + the node's HOOK-B TESTS line + the closed line)
+ORDERS HOOK-B.02 -- DONE (harvested, reviewed, closed in place, merged 8d833153d5); orders files still at .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt
+mur-21 LIVE -- systemd unit agi-director-thought-mur-21, args /tmp/dt19-mur21-args.json (rounds: hookb02); results land in
+       .agi/sessions/workflows/runs/mur-director-thought-21/
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
 dispatch    AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . <ITER> --target <hypothesis> --level small --tier parent --harness pi-free
             --branch --detach --orders .agi/sessions/orders/<ITER>.parent.txt --from director-thought > /tmp/<file> 2>&1   (--dry-run first)
 mur         python3 workflow.py run merge-up-review --harness pi-free --root <tree> --args "$(cat <json file>)" (the JSON TEXT: a path = "not valid JSON") --dry-run, then under systemd-run --user
-            --unit agi-director-thought-mur-<N> --property=MemoryMax=6G (the args of -17 / -18: /tmp/dt17-mur-args.json, /tmp/dt17-mur18-args.json)
+            --unit agi-director-thought-mur-<N> --property=MemoryMax=6G (the args of -19/-20/-21: /tmp/dt19-mur21-args.json is the newest copy to sed from)
 ```
