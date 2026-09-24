@@ -70,31 +70,43 @@ def test_pane_methods_are_absent_without_a_hold():
     assert adapter.build_command(harness=HARNESS, tier="kid", context_file="x")
 
 
-def test_pane_methods_use_the_borrowed_named_hold(monkeypatch):
-    hold = {"pane": "seat:grok"}
-    adapter = grok.GrokPaneAdapter(hold)
+def test_pane_methods_delegate_to_the_borrowed_hold():
     calls = []
 
-    class Result:
-        stdout = "captured pane"
+    class Hold:
+        def pane_attach(self):
+            calls.append(("attach",))
+            return "seat:grok"
 
-    def run(*args, **kwargs):
-        calls.append((args, kwargs))
-        return Result()
+        def pane_send(self, text):
+            calls.append(("send", text))
 
-    monkeypatch.setattr(grok.subprocess, "run", run)
+        def pane_read(self):
+            calls.append(("read",))
+            return "delegated pane"
+
+    hold = Hold()
+    adapter = grok.GrokPaneAdapter(hold)
     assert adapter.pane_attach() == "seat:grok"
     adapter.pane_send("hello")
-    assert adapter.pane_read() == "captured pane"
-    assert calls[0][0][0][:2] == ["tmux", "send-keys"]
-    assert calls[1][0][0][:2] == ["tmux", "capture-pane"]
-    assert hold == {"pane": "seat:grok"}
+    assert adapter.pane_read() == "delegated pane"
+    assert calls == [("attach",), ("send", "hello"), ("read",)]
 
 
-def test_available_method_without_named_pane_fails_closed():
-    adapter = grok.GrokPaneAdapter({})
-    with pytest.raises(grok.PaneUnavailableError, match="named pane"):
+def test_plain_dict_does_not_qualify_as_a_delegate():
+    adapter = grok.GrokPaneAdapter({"pane": "seat:grok"})
+    assert not hasattr(adapter, "pane_attach")
+    with pytest.raises(AttributeError):
         adapter.pane_read()
+
+
+def test_delegate_errors_fail_closed():
+    class Hold:
+        def pane_read(self):
+            raise grok.PaneUnavailableError("delegate has no named pane")
+
+    with pytest.raises(grok.PaneUnavailableError, match="named pane"):
+        grok.GrokPaneAdapter(Hold()).pane_read()
 
 
 # ------------------------------------------------------------- tier contract
