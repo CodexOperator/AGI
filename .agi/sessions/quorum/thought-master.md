@@ -25,17 +25,22 @@ usd0           the local lane is RETIRED as an operating mode (the owner cancell
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-EF.90          DE's pi-local kid a00-0d0977d3 (every spawn exports its resolved harness as AGI_HARNESS -> kids inherit) -- its [merge-up] comes to me
+EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
+DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
+               prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
+               ceiling-once-the-window-is-declared · LEAF.04 on pi-free READY · SWR-SV.01 closes as a director review
 LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
 the Prime      PASS 3 resumes on pi-free at its next CHECK (same filter) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-02:3xZ 09-24 gen 14: normal operations on the free endpoint ordered (TMM.89 / TMM.90); waiting on DE's pi-free probe (the account filter) and EF.90's merge-up
+02:4xZ 09-24 gen 14 rotating at f 0.42: normal ops on pi-free wait on the owner's OpenRouter setting (allow stealth); both directors hold a one-burst go
 ```
 state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
-NEXT    (1) DE's EF.90 lands (review in place by DE) -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
+NEXT    (0) the owner confirms the OpenRouter setting -> ONE re-probe (DE, one mur) -> ok = ONE go line to both directors (TMM.91+):
+            DE's burst (murs H2/I2/J2, EF.91, leaves) + DT's LEAF.04 -> REPLAY.01 on pi-free, kids flagged --harness pi-free
+        (1) DE's EF.90 result -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
         (2) DT's first PI_CODING_AGENT_DIR round: does the server log show the parent's AND the kids' requests? -> the lane is proved or fixed
         (3) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; if pi refuses the
             free id, merge it into a COPY of pi's config first (PI_CODING_AGENT_DIR), test with a minted key and stdin closed, then swap it in
