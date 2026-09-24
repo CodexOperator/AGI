@@ -144,6 +144,26 @@ def test_latest_n_is_completed_only_stable_and_reports_every_failure(tmp_path):
     assert batch().stdout == second.stdout
 
 
+def test_malformed_agent_metadata_refuses_without_substitution(tmp_path):
+    root, _ = setup(tmp_path)
+    sessions = tmp_path / "sessions"
+    for name, metadata in (("good", json.dumps({"status": "done", "finished_at": 1})),
+                           ("newer-broken", "not-json")):
+        session = sessions / name
+        session.mkdir(parents=True)
+        (session / "trajectory.jsonl").write_text('{"text": "visible"}\\n')
+        (session / "agent.json").write_text(metadata)
+    got = subprocess.run([
+        sys.executable, str(CLI), "ingest", "--sessions-root", str(sessions),
+        "--last", "1", "--root", str(root), "--goal", "g7.32.1",
+    ], text=True, capture_output=True)
+    assert got.returncode == 2
+    assert str(sessions / "newer-broken" / "trajectory.jsonl") in got.stderr
+    assert "unreadable agent metadata" in got.stderr
+    assert not got.stdout
+    assert not (root / "nodes" / "doc").exists() or not list((root / "nodes" / "doc").glob("*.md"))
+
+
 def test_batch_requires_goal_and_never_partially_selects_short_set(tmp_path):
     root, _ = setup(tmp_path)
     sessions = tmp_path / "sessions"
