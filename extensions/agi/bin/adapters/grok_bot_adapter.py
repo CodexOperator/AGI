@@ -100,12 +100,20 @@ def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
 
 
 class _TmuxProc:
-    """Small pollable facade for a pane launched by ``tmux new-window``."""
-    def __init__(self, pane_id: str, pane_pid: int):
-        self.pane_id, self.pane_session, self.pid = pane_id, "", pane_pid
+    """Popen-like facade for a command in a durable tmux pane."""
+    def __init__(self, pane_id: str, pane_pid: int, session: str):
+        self.pane_id, self.pane_session, self.pid = pane_id, session, pane_pid
+        self.returncode = None
 
     def poll(self):
-        return None if is_alive(self.pid) else 0
+        if self.returncode is None and not is_alive(self.pid):
+            self.returncode = 0
+        return self.returncode
+
+    def wait(self, timeout=None):
+        while self.poll() is None:
+            time.sleep(0.05)
+        return self.returncode
 
 
 def launch(*, args, cwd, env, log_file, mode="wb", record=None):
@@ -116,34 +124,30 @@ def launch(*, args, cwd, env, log_file, mode="wb", record=None):
     dispatch record receives it after the process has been observed.
     """
     session = (record or {}).get("pane_session") or f"agi-{os.getpid()}-{time.time_ns()}"
-    target = (record or {}).get("pane_id") or f"{session}:0"
     command = " ".join(shlex.quote(str(a)) for a in args)
     redirect = f">> {shlex.quote(str(log_file))} 2>&1"
-    subcmd = ("new-window" if (record or {}).get("pane_id") else "new-session")
-    argv = ["tmux", subcmd, "-d", "-P", "-F", "#{pane_id}"]
-    if subcmd == "new-session":
-        argv += ["-s", session]
-    argv += [target, "sh", "-c", f"{command} {redirect}"]
-    out = subprocess.check_output(argv, text=True, env=env, cwd=cwd)
-    # Older adapter tests provide a Popen-only seam; retain that compatibility
-    # without making a real tmux observation look like a pane id.
-    if out is None:
-        with open(log_file, "ab") as logf:
-            return subprocess.Popen(args, stdout=logf, stderr=subprocess.STDOUT,
-                                    stdin=subprocess.DEVNULL, start_new_session=True,
-                                    cwd=cwd, env=env)
-    out = out.strip()
-    pane_id = out.splitlines()[-1] if out else ""
-    if not pane_id.startswith("%"):
-        raise OSError(f"tmux did not observe a pane id: {out!r}")
+    recorded_id = (record or {}).get("pane_id")
+    if recorded_id:
+        # Respawn in the existing pane: tmux preserves its identity even when
+        # the process is killed, and -k replaces only the pane process.
+        argv = ["tmux", "respawn-pane", "-k", "-t", recorded_id,
+                "sh", "-c", f"{command} {redirect}"]
+        out = subprocess.check_output(argv, text=True, env=env, cwd=cwd)
+        pane_id = recorded_id
+    else:
+        argv = ["tmux", "new-session", "-d", "-P", "-F", "#{pane_id}",
+                "-s", session, "sh", "-c", f"{command} {redirect}"]
+        out = subprocess.check_output(argv, text=True, env=env, cwd=cwd)
+        out = out.strip()
+        pane_id = out.splitlines()[-1] if out else ""
+        if not pane_id.startswith("%"):
+            raise OSError(f"tmux did not observe a pane id: {out!r}")
     pid = int(subprocess.check_output(
         ["tmux", "display-message", "-p", "-t", pane_id, "#{pane_pid}"],
         text=True, env=env, cwd=cwd).strip())
     if record is not None:
         record.update(pane_id=pane_id, pane_session=session, pane_observed=True)
-    proc = _TmuxProc(pane_id, pid)
-    proc.pane_session = session
-    return proc
+    return _TmuxProc(pane_id, pid, session)
 
 
 def restart(

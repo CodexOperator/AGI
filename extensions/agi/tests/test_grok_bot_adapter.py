@@ -116,13 +116,15 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
 
     class FakeProc:
         pid = 5252
+        returncode = None
+        def poll(self):
+            return None
 
-    def fake_popen(args, **kwargs):
-        captured["args"] = args
-        captured["kwargs"] = kwargs
+    def fake_launch(**kwargs):
+        captured.update(kwargs)
         return FakeProc()
 
-    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+    monkeypatch.setattr(grok, "launch", fake_launch)
     sess = tmp_path / "sess"
     sess.mkdir()
     rec = {"worktree": str(tmp_path)}
@@ -136,8 +138,8 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
-    assert captured["kwargs"]["cwd"] == str(tmp_path)
-    assert captured["kwargs"]["start_new_session"] is True
+    assert captured["cwd"] == str(tmp_path)
+    assert captured["mode"] == "ab"
     assert rec["pid"] == 5252
     assert rec["status"] == "restarted"
     assert isinstance(rec["restarted_at"], int)
@@ -149,15 +151,36 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     """An OSError from Popen yields None, never a raised exception — same as
     the other adapters."""
-    def boom(args, **kwargs):
+    def boom(**kwargs):
         raise OSError("no such binary")
 
-    monkeypatch.setattr(grok.subprocess, "Popen", boom)
+    monkeypatch.setattr(grok, "launch", boom)
     sess = tmp_path / "sess"
     sess.mkdir()
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+def test_restart_reuses_recorded_pane_identity(monkeypatch, tmp_path):
+    calls = []
+    def fake_check(argv, **kwargs):
+        calls.append(argv)
+        return "%7\n" if "display-message" not in argv else "123\n"
+    monkeypatch.setattr(grok.subprocess, "check_output", fake_check)
+    record = {"pane_id": "%7", "pane_session": "agi-seat-a"}
+    proc = grok.launch(args=["grok-bot"], cwd=tmp_path, env={},
+                       log_file=tmp_path / "out.log", record=record)
+    assert proc.pane_id == "%7"
+    assert record["pane_id"] == "%7"
+    assert calls[0][:3] == ["tmux", "respawn-pane", "-k"]
+
+
+def test_tmux_facade_exposes_dead_process_returncode():
+    proc = grok._TmuxProc("%7", 999999, "agi-seat-a")
+    assert proc.poll() == 0
+    assert proc.returncode == 0
+    assert proc.wait() == 0
+
+
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the
