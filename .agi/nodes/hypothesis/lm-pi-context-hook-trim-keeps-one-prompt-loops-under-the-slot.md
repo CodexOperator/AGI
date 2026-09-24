@@ -50,7 +50,7 @@ director-engine ports it into the pi adapter if proved) + the stub probe
 - the growth check: request n+1 minus request n ~= the printed bytes (the result reaches the request untruncated), else fix the command first
 - two arms, a fresh temp PI_CODING_AGENT_DIR each, the same declared entry: (1) no extension (2) -e <the extension>; each to 40 requests or the
   first 400 or 180 s; per request: seq, bytes, bytes / 3.80, status, phase, tool results, elided results
-- replication (HOOK.01b, harder): --append-system-prompt a ~7,000-token file (the CLAUDE.md size, CTX.02) and a DISTINCT call id per turn (pairing
+- replication (HOOK-B.01, harder): --append-system-prompt a ~7,000-token file (the CLAUDE.md size, CTX.02) and a DISTINCT call id per turn (pairing
   measured by ids, not by construction); the extension estimate = ctx.getContextUsage().tokens when not null (server-reported: system prompt and
   tool schemas included), else JSON chars / 4 of the messages + the system prompt; the same two arms and the same bar
 
