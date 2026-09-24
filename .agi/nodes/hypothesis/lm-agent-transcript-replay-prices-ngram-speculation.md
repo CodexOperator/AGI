@@ -42,6 +42,11 @@ ngram-mod      1.012x                       1.184x
 ```
   ngram-simple loses on this workload; ngram-mod sits near the 1.3x bar with thinking off -- close enough that only a replay decides.
   The hand numbers ignore bash commands that repeat context paths and thinking that plans a command it then emits (both raise acceptance).
+- the tokenizer route after the brain swap (director-thought 02:2xZ 09-24, a header-only probe, 0.8 s CPU): the brain GGUF
+  (Ternary-Bonsai-2-27B-PTQ1_0) and the served 9B GGUF (Qwen3.5-9B-Q4_K_M) carry the SAME BPE tokenizer -- gpt2, pre qwen35 · 248,320
+  tokens · 247,587 merges · token types, each sha256-equal; only bos (none / 248044), pad (248055 / 248044) and add_bos (none / false)
+  differ, which /tokenize with add_special false never reads -> the live brain read-only /tokenize yields the 9B token ids; the stopped
+  router is not needed. Evidence: datasets/specdec/2026-09-23-replay/director_vocab_probe.py + .json (counts and digests only).
 
 ## CLAIM
 Replayed offline on >= 400 assistant turns sampled (seeded, stratified by harness model and by part mix) from the town's pi transcripts
@@ -93,5 +98,5 @@ STEP      LARGEST SAFE STEP if the transcript half stalls: the calibration table
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-frame: smaller + bigger, the REFRAME after OSC.12's disproof. WHY it was disproved: the n-gram gain is class-specific (prompt echo), so the question that decides the line is the class mix of the REAL workload, not a larger synthetic set. The hand projection over 642 transcripts says ngram-simple loses on it and ngram-mod sits near 1.0-1.2x, close enough to the bar that only a replay decides -- and a replay costs no GPU. Bigger frame: prompt-lookup and suffix-style decoding on agent traffic. Acceptance is a property of the text and the rule, so the per-part table prices any draft-free source and sets the bar a CPU draft model must beat (hypothesis:lm-spec-decode-cpu-draft-hybrid). Minted under TMM.66's HOLD, dispatch-ready, queued behind the LEAF.
+frame: smaller + bigger, unchanged -- the REFRAME after the OSC.12 disproof (acceptance is class-specific, so the class mix of the real workload decides, and a replay costs no GPU). THIS version: the brain swap (TMM.76) stopped the router whose read-only /tokenize the Dispatch line and the orders name; a header-only probe shows the brain GGUF carries the served 9B tokenizer byte-for-byte in every BPE part (tokens, merges, token types sha256-equal), so the route stands on the brain endpoint unchanged. Claim, falsifiers and scope untouched.
 <!-- THOUGHT:END -->
