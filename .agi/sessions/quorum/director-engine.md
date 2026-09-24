@@ -61,6 +61,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in (or TM's in-place
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
 ## 🔴 WHERE IT STOPS — the one next command (02:3xZ 09-24, gen 3 -> gen 4; pi-free BLOCKED on the account; nothing live)
+````````
 ```````
 ``````
 `````
@@ -77,3 +78,4 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in (or TM's in-place
 `````
 ``````
 ```````
+````````
