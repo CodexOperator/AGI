@@ -5,10 +5,9 @@ type: experiment
 parents:
   - hypothesis:pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard
 next_edges: []
-confidence: 0.9
-edited_by: a00-beccdfa1
-evidence_runs:
-  - experiment:a00-beccdfa1-cb4850
+confidence: 0.2
+edited_by: a00-64f9dbae
+evidence_runs: experiment:a00-beccdfa1-cb4850
 loop: hypothesis:pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 10
@@ -18,7 +17,7 @@ scaffold_hash: 18724046033278a6
 season: 2
 title: "CTX.01 round 3: thread project_root through the survival brief; every reachable pi route carries the guard"
 town: local-maxxing
-verdict: inconclusive_lean_proved:90
+verdict: inconclusive_lean_disproved:20
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-beccdfa1-cb4850
@@ -97,3 +96,9 @@ The config-max fix — the guard text in the brief configuration, which would al
 
 ## Agent Notes
 EF.103 round 3: threaded project_root through assemble's survival branch and _finish so a fixture root binds _survival_state_card (no live git status); updated the frozen pi argv shape test for --no-context-files; all 18 tier x profile assemble routes and the pi dispatch renders carry the guard from ONE constant; 292 passed 1 skipped; 10 production lines. Residue: successor_prompt(full) is unguarded but unreachable for pi (rotate=false).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Instruction: “the rendered pi argv carries --no-context-files exactly once.” Machine: harness_template.render(pi, extra_args=[--no-context-files]) emitted two occurrences; the default render emitted one and preserved the ordinary argv. Near miss: a caller-controlled extra_args bypasses the single template occurrence, so the absolute once claim is not closed at the render boundary. The guard probe also reached every non-advisor tier/profile through assemble with a monkeypatched constant; advisor full could not be constructed without a real vision node. No standing rule was deviated from; this is a parent adversarial demotion, and the kid claims/tests are not treated as proof.
+<!-- THOUGHT:END -->
+
+Parent review: default render and live pi_adapter wire path each emit one --no-context-files; the named suite is 292 passed, 1 skipped. Adversarial untrusted extra_args injected a second --no-context-files, so the absolute once invariant is not proved at the public render boundary. Guard constant wire probe reached all constructible non-advisor tier/profile routes; advisor full requires a real vision node.
