@@ -2138,7 +2138,8 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
             # dispatch.py's `extras` override: the caller renders the head
             # itself (via `render`) and takes only the body from here.
             return body
-        return _prepend_head(body, tier=head_tier, moral=moral)
+        return _prepend_head(body, tier=head_tier, project_root=project_root,
+                             moral=moral)
     # A host selects the profile ONCE: explicit `profile=` kwarg wins over
     # the AGI_BRIEF_PROFILE env override, which wins over the durable
     # .agi/config.json ``operating_mode`` (default: full = historical
@@ -2163,7 +2164,12 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # assignment (Prime on Opus, director on Sonnet/OpenRouter), not on the
     # injected prose.
     if profile in ("survival", "ultimate_survival"):
-        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n)
+        # Thread project_root: without it the survival state card falls back
+        # to the process's real .agi and runs a live `git status` against this
+        # checkout (_survival_state_card, brief.py:753-760) even when a caller
+        # names a fixture root.
+        segs = _survival_brief(tier=tier, agent_id=agent_id, iter_n=iter_n,
+                               project_root=project_root)
         return _finish(segs, tier)
 
     # Director and prime_director get the constitution head prepended
