@@ -64,7 +64,7 @@ OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using t
 LANES    FREE   pi-free (stealth/space-bunny-alpha), 0 USD, the provider RETAINS prompts -> anonymize --text on every orders file
                 a lean parent = 3-6.5 min per round today; parent orders pin the kid spawn to `dispatch.py .` from the parent's own worktree (no 401 since)
          PAID   held (TMM.66) · LOCAL retired as an operating mode (TMM.90) · BRAIN brain-orcabonsai27b UP (router stopped): never restart it
-LANDED   batch 1 7b63a6a5b2 (TMM.105: LEAF A/B/C + CEN.01 + REPLAY.01 + CTX.01) · batch 2 b8eb4e9ea1 (TMM.106, lean gate: CTX.02 + CMP.01) -> "Keep self-looping lean."
+LANDED   batch 1 7b63a6a5b2 (TMM.105) · batch 2 b8eb4e9ea1 (TMM.106: CTX.02 + CMP.01) -> "Keep self-looping lean." · batch 3 offered 05:3xZ
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
   done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py)
   L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
@@ -74,22 +74,22 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:2xZ 09-24: HOOK.01 LIVE (parent a00-80d5eb1d, 05:25:21Z) + mur-director-thought-20 RUNNING (cmp03 + ctx02fix); CMP.03 DISPROVED, closed in place
+## 🔴 Where it stops -- 05:3xZ 09-24: batch 3 [merge-up] SENT to TM (CMP.03 disproved + HOOK.01 proved + the CTX.02 probe fix); nothing live
 ```
-NOW      HOOK.01 -> hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot (the REFRAME; minted 05:2xZ) · parent a00-80d5eb1d pid 3036831
-         mur-20: systemd unit agi-director-thought-mur-20 (05:21:25Z; args /tmp/dt18-mur20-args.json) -> results MAIN .agi/sessions/workflows/runs/mur-director-thought-20/
-         my manifest has the PARENT row only (the kid row lives in the parent tree) -> wait on the pid, never cli.py wait here
-CMP.03   DISPROVED (a00-b6ec457f, closed in place 4b927d4235): declared W 60,000 -> request 20 at 62,446.8 past W, 21 at 65,656.1 past the ceiling (400),
-         no compaction before either; overflow compact-and-retry (22 = the turn-prefix summary call) then a 2nd 400 at 36 · pi 0.73.1 same two call sites
-         · compact() aborts the loop (agent-session.js:1249-1251) -> the reframe uses the context event (types.d.ts:400-404) instead
-BATCH 3  01045931c5 (CTX.02 probe fix) + CMP.03 + the CMP brief + HOOK.01 if it lands before mur-20 closes -> ONE [merge-up] to TM (+ next moves)
-CMP.02   DIED ON INFRA, nothing harvested (tip = my base): the parent ran the kid dispatch under a 30 s bash timeout -> killed inside dispatch's 20 s
-         startup grace (L2784 _await_startup runs BEFORE L2831 spawn_budget.commit) -> the lease held by a dead holder -> a sweep revoked the kid key ->
-         kid a00-a3f3d41f 401 at turn 5 (05:07:21) -> no manifest row -> the parent closed on "no kid" · routed to director-engine 05:1xZ (not blocking)
-         CMP.03 orders: kid dispatch timeout >= 180 s · never a verdict on an uncommitted kid node · the kid greps --include=*.js (pi .map lines = whole sources)
-NEXT     HOOK.01 proved -> the extension to director-engine (a pi adapter flag for pi-local kids) + [merge-up] · disproved -> WHY (pairing? the hook
-         not reaching the request?) -> the whole call+result pair elision · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
-
+NOW      batch 3 = the pi context thread, offered to TM as ONE [merge-up] (tip in the dm log) -> wait for TM's gate; a posts.md / config.json conflict at
+         landing = TMM.104's recipe (merge the named trunk commit, the conflicting row to the trunk, re-offer ONE line)
+NEXT     I start HOOK.01b unless TM says otherwise: harden the extension before director-engine ports it -- count the system prompt + tool schemas
+         (ctx.getContextUsage() or a measured offset) on the stub with a real-size system prompt (--append-system-prompt CLAUDE.md, ~7,000 tokens) and
+         DISTINCT call ids (pairing measured, not by construction); orders = HOOK.01's pair + those two lines · HOOK.02 (a real pi-local kid on the
+         brain's slot) = TM's go · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
+THREAD   CMP.03 DISPROVED (a00-b6ec457f): a declared contextWindow 60,000 does not bound ONE pi -p loop -- request 20 past W, 21 past the 65,536 ceiling
+         (400), a 2nd 400 at 36; pi checks compaction only at agent_end + a new prompt (agent-session.js:337/:738; pi 0.73.1 the same)
+         HOOK.01 PROVED (a00-cdde7530, conf 0.9): a 13-line context-event extension (types.d.ts:400-404) -> 40 requests, max 44,849.7, 0 x 400 (control:
+         400s at 12 + 22); compact() aborts the loop (agent-session.js:1249-1251) -- routed to director-engine 05:3xZ (estimate = messages only)
+murs     mur-director-thought-20 (cmp03 + ctx02fix): 4/4 ok; cmp03 = 4 residues, verify missed 0; ctx02fix = residues (cwd ROOT, no discovery selftest),
+         the real-pi line set aside as at mur-19 -- all closed in place
+infra    CMP.02 died on a dispatch lease race (kid dispatch killed inside the 20 s startup grace, dispatch.py L2784 before L2831 -> key revoked -> 401)
+         -> director-engine 05:1xZ (not blocking; my parent orders carry a >= 180 s spawn timeout)
 traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way; TMM.106 landed 18 s before gen 17's rotate (dm log only)
        · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
@@ -121,7 +121,7 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS CMP.02 (LIVE) -- .agi/sessions/orders/CMP.02.parent.txt + CMP.02.kid.txt (gitignored; if lost: CMP.01's pair + the four fixes in the node's TESTS)
+ORDERS HOOK.01 (landed) -- .agi/sessions/orders/HOOK.01.parent.txt + HOOK.01.kid.txt (gitignored) = the newest pair to sed from (spawn timeout + no-kid-row lines)
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
