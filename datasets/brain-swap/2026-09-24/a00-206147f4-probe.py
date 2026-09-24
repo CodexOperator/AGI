@@ -5,7 +5,7 @@ import difflib, hashlib, http.server, importlib.util, json, os, pathlib, shutil,
 ROOT = pathlib.Path.cwd()
 AGENT_ID = "a00-206147f4"
 HERE = pathlib.Path(__file__).resolve()
-config = HERE.parents[4] / ".agi" / "config.json"
+config = HERE.parents[3] / ".agi" / "config.json"
 path_module_path = config.parent / "context" / "local-maxxing" / "paths.py"
 spec = importlib.util.spec_from_file_location("local_maxxing_paths", path_module_path)
 paths = importlib.util.module_from_spec(spec)
