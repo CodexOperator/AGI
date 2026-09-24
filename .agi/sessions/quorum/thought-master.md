@@ -11,41 +11,45 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (01:3xZ 09-24, gen 14)
+## Live state (03:1xZ 09-24, gen 15)
 ```
-LANDED         DE d81b44404 (merge-up #4 = EF.83-86; EF.84 with the named no-cell residue, 0 such seats here) + the earlier 09-23 landings
-HOLD (TMM.66)  no PAID OpenRouter dispatch: 0.48 USD left of 170 at 23:31Z; the OWNER: "Standby for openrouter credits"
-0-CREDIT LANE  the OWNER, 13 lines 00:xZ-01:3xZ 09-24, verbatim on goal:g5 (TMM.76-80)
-  local brain  OrcaBonsai C2 = Bonsai 2 27B PTQ1_0 + abliterate LoRA scale 2.0 (DT's choice = the town's C2 arm), PrismML fork b10685 (CUDA),
-               q4_0 KV, ONE 65,536-token slot, 7.29 GB, decode ~20 tok/s, prefill ~250 tok/s · container brain-orcabonsai27b on 127.0.0.1:8080
-               · the old router container llama-server STOPPED (restore: docker start llama-server) · DT: experiment:director-thought-brain-swap-2026-09-24
-  local round  export PI_CODING_AGENT_DIR=/data/ml/pi-agent-local (built-in openrouter provider -> :8080) + the STANDARD town line -> parent
-               AND kids local (the adapter builds each child env from its parent's) -- UNVERIFIED until DT's first such round (TMM.79)
-  default pi   ~/.pi/agent/models.json byte-identical to /data/ml/pi-models.json.before-20260924T0109Z (the box-wide redirect was NOT applied;
-               PASS 3 + other posts stay on OpenRouter)
-  slot         ONE local round at a time · DE's EF.90 (pi-local kid a00-0d0977d3, 01:29Z: every spawn exports its resolved harness as
-               AGI_HARNESS -> kids inherit) = DE's LAST local round; then the slot is DT's ALONE (leaf A = hypothesis:lm-paths-py-resolves-
-               proposed-box-roots @8ca1a1d1cd queued) and DE runs on pi-free (TMM.81 / TMM.82) · DT's check: no live EF.* in spawn_budget status
-  free cloud   stealth/space-bunny-alpha (0 / 0 USD, 1M ctx, tools; public model list 01:1xZ) via a pi-free harness row in DE's branch config
-               (TMM.80) -- unproved: .env's OPENROUTER_API_KEY is EMPTY, only dispatch's minted per-spawn key reaches OpenRouter; if pi refuses
-               the id, merging it into pi's openrouter provider is MINE (my first try broke auth for that provider: reverted)
-the Prime      told: the swap, the correction (no box-wide redirect), PASS 3 could use the free model · still owes: the account, the two director
-               rows, EF.10 · the router question answered by the owner (Bonsai + KV compression)
-PASS 3         PAUSED by the owner 01:3xZ ("I paused the pass from prime", in DT's pane, on goal:g5) -- was the one-shot 01:37Z
+NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
+               more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
+               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) · GO 03:1xZ: TMM.91 (DE: the 3 murs EF.87-89, EF.91,
+               .23 r2 / .14 r3, the per-harness max_live leaf) · TMM.92 (DT: LEAF.04 -> REPLAY.01 -> SWR-SV.01 as a director review)
+ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist'; the owner's 02:54Z "admin key" line measured 03:01Z) --
+               the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
+               200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
+               answer -> not applied) · 14.04 of 192 USD left (the Prime's 02:13Z move)
+kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
+HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
+usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
+               a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
+               C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
+               /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
+EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
+DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
+               prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
+               ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
+LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
+the Prime      PASS 3 may resume on pi-free at its next CHECK ([owner] line 03:1xZ) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-01:3xZ 09-24 gen 14: the 0-credit lane is built; EF.90 holds the local slot; waiting on DT's first local parent+kids round and DE's free-model dispatch
+03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
+````
+03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
 ```
-state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
-NEXT    (1) DE's EF.90 lands (review in place by DE) -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
-        (2) DT's first PI_CODING_AGENT_DIR round: does the server log show the parent's AND the kids' requests? -> the lane is proved or fixed
-        (3) DE's pi-free proof dispatch: if pi refuses the id, merge {"id": "stealth/space-bunny-alpha", ...} into a COPY of pi's config first,
-            test it with a minted key and stdin closed (< /dev/null), then swap it in -- never leave ~/.pi broken (backup in /data/ml/)
-        (4) the account: re-read; funded = ONE lift line for paid rounds · PASS 3: a [red] from the Prime first
+state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
+NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
+            the free provider = the director's one line, hold that lane, re-probe raw (trap 'allowlist') before any dashboard ask
+        (1) DE's [merge-up]s (the 3 murs' batch; EF.90's result) -> the #4-style gate: each round's FINAL verify stage + the diff, read myself
+        (2) DT's [merge-up] (LEAF.04, REPLAY.01) -> the same gate · SWR-SV.01 closes as DT's director review
+        (3) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
@@ -56,7 +60,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.83
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.91
 owner lines  in my pane = verbatim on goal:g5 (write.py goal:g5 'note ...' -> snapshot-goals.py --render, then --check); run date -u FIRST
              and stamp THAT clock (two wrong stamps this gen, fixed in place: body line N = file line N+27, 'replace body N:N --force <file>')
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
@@ -78,6 +82,9 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
+allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
+             (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
+             provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
 anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
 write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
