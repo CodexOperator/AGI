@@ -45,6 +45,8 @@ OWNER 20:1-4xZ (via the Prime, VERIFIED ed25519 20:49Z; verbatim in doc:l5-owner
                no Prime step (2) dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid
                (3) doc:lm-director-brief-customizations RETIRED gen 17 (deprecated/doc/; DT card line 1 + formation line 18 + board row 11
                repointed to the cards; both directors dm'd) (4) NEVER the Agent tool, any post
+PASS 5         the Prime merges this trunk -> season2/main from 01:59Z 09-25 (~1 h; ~3 GB RAM + 2 cores, no GPU; notice 20:59Z VERIFIED, no reply
+               needed) -> on the board's windows row; rounds overlapping it stay inside the rest of the box
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
