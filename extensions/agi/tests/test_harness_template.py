@@ -268,18 +268,23 @@ def test_claude_production_path_reaches_render(monkeypatch):
 
 
 def test_pi_template_renders_the_flag_shape():
-    """pi's headless argv, frozen: provider/model/thinking, `-p --mode json`,
-    the spread prompt entries, then the positional closing line."""
+    """pi's headless argv, frozen: provider/model/thinking, one
+    `--no-context-files` (hypothesis:pi-agents-load-no-context-file-and-the-
+    brief-carries-the-paid-for-path-guard), `-p --mode json`, the spread
+    prompt entries, then the positional closing line."""
     got = harness_template.render(
         "pi", prompt="CARD", bin_path="/x/pi", provider="openrouter",
         model="kid-m", thinking="medium",
         extra_args=["--append-system-prompt", "S"])
     assert got == ["/x/pi", "--provider", "openrouter", "--model", "kid-m",
-                   "--thinking", "medium", "-p", "--mode", "json",
+                   "--thinking", "medium", "--no-context-files",
+                   "-p", "--mode", "json",
                    "--append-system-prompt", "S", "CARD"]
-    # Absent keys emit NO flag, so pi's own settings keep winning.
+    # Absent keys emit NO flag, so pi's own settings keep winning; the
+    # context guard is unconditional, so it survives an absent-flag render.
     bare = harness_template.render("pi", prompt="CARD", bin_path="/x/pi")
-    assert bare == ["/x/pi", "-p", "--mode", "json", "CARD"]
+    assert bare == ["/x/pi", "--no-context-files", "-p", "--mode", "json",
+                    "CARD"]
 
 
 def test_pi_adapter_production_path_reaches_render(monkeypatch, tmp_path):
