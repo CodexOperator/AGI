@@ -63,3 +63,43 @@ def test_requires_resolved_live_goal_and_keeps_refusals(tmp_path):
     got = run(root, artifact)
     assert got.returncode == 2 and "refusing" in got.stderr
     assert not (root.parent / "escaped.md").exists()
+
+    artifact.write_text("   \n")
+    got = run(root, artifact)
+    assert got.returncode == 2 and "empty session artifact" in got.stderr
+
+    artifact.write_text(json.dumps({
+        "session_id": "safe-id", "goal": "../../../outside"}) + "\n")
+    got = run(root, artifact)
+    assert got.returncode == 2
+    assert "does not resolve" in got.stderr or "path" in got.stderr.lower()
+    assert not (root.parent / "outside.md").exists()
+
+
+def test_live_cli_assigns_one_mint_and_update_keeps_it(tmp_path):
+    root, artifact = setup(tmp_path)
+    artifact.write_text(json.dumps({
+        "session_id": "mint-once", "actor": "original-actor",
+        "thought_session": "original-thought", "seat": "prime",
+        "goal": "g7.32.1"}) + "\n")
+    created = run(root, artifact)
+    assert created.returncode == 0, created.stderr
+    nid = created.stdout.strip()
+    assert nid.startswith("doc:session-mint-once-")
+
+    node = next((root / "nodes" / "doc").glob("*.md"))
+    first = node.read_text()
+    mint_line = next(line for line in first.splitlines() if line.startswith("mint_id:"))
+    assert mint_line.removeprefix("mint_id: ").strip()
+
+    artifact.write_text(json.dumps({
+        "session_id": "mint-once", "text": "second checkpoint"}) + "\n")
+    updated = run(root, artifact)
+    assert updated.returncode == 0, updated.stderr
+    assert updated.stdout.strip() == nid
+    assert list((root / "nodes" / "doc").glob("*.md")) == [node]
+    second = node.read_text()
+    assert next(line for line in second.splitlines() if line.startswith("mint_id:")) == mint_line
+    for preserved in ("original-actor", "original-thought", "prime", "goal:g7.32.1"):
+        assert preserved in second
+    assert "second checkpoint" in second
