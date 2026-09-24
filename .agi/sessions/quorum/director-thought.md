@@ -84,8 +84,16 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          · cli.py done drops config.json · stale box.* / locations.* cells (pi_traj_dir resolves to another box's pi home)
 ```
 
-## 🔴 Where it stops -- 23:0xZ 09-23, SEATED at a clean stop, idle on the TMM.66 hold; the next command waits on TM's lift line
+## 🔴 Where it stops -- 01:0xZ 09-24, TMM.76 STEP 1 (the BRAIN SWAP) IN FLIGHT in my own window
 ```
+!! BRAIN SWAP (TMM.76, OWNER 00:xZ-01:0xZ 09-24 verbatim on goal:g5 lines 390-394): the router container llama-server is being STOPPED and the plain
+         Ternary-Bonsai-2-27B-PTQ1_0 served on the PrismML fork b10685 in container brain-bonsai27b on 127.0.0.1:8080 (arm B's line of
+         datasets/switch-rule/2026-09-21/start_fork_np.sh, --alias Ternary-Bonsai-2-27B-PTQ1_0) · before-values 01:0xZ: router = router mode, restart
+         unless-stopped, 9B loaded + idle (slot 49,664) · GPU 6,730 / 8,192 MiB · RAM available 10,748 MiB · 0 live agents · pi local-town = loopback :8080,
+         3 model entries (backup of the pi models file taken before any edit)
+   RESTORE if anything fails (or a cold reader finds the swap half-done): docker rm -f brain-bonsai27b; docker start llama-server; prove :8080 answers a
+         PARSED completion naming Qwen3.5-9B-Q4_K_M; restore the pi models file from the backup -> fallback B (TMM.76): the 9B with L1's -fa on -ctk q4_0 -ctv q4_0
+   step 2 after it: LEAVES -- I am the parent; kids ONLY with --tier kid --harness pi-local --branch --detach --from director-thought, ONE local kid town-wide
 0 MODEL (TMM.71/72): NO rotation for the switch -- the owner switches this live session in the app, the Prime writes the config:posts row. Rotate only
          at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge origin/season2/main
          as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
