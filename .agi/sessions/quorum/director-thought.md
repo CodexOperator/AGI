@@ -85,6 +85,7 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
 ```
 
 ## 🔴 Where it stops -- 01:3xZ 09-24, the brain is LIVE; the next act is the FIRST WHOLE-LOCAL pi round (TMM.79) once the one slot frees -- item S2
+````
 ```
 BRAIN LIVE (TMM.76 step 1, experiment:director-thought-brain-swap-2026-09-24 @b5a2ab7d24): container brain-orcabonsai27b (restart unless-stopped) on the
          loopback port 8080 = OrcaBonsai C2 (Bonsai 27B + abliterate LoRA scale 2.0 IN the launch line, --alias OrcaBonsai-27B-C2), q4_0 KV, ONE 65,536-token
@@ -132,6 +133,7 @@ traps  RE-READ the dm log right before any rotate or dispatch: TMM.71 withdrew T
          round may read them before that (REPLAY's tokenizer goes through the router's /tokenize for exactly this reason)
 tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) once the LEAF lands
 ```
+````
 
 ## Banked
 ```
