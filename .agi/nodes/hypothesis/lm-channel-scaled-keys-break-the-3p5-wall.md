@@ -8,8 +8,8 @@ parents:
 next_edges: []
 FILE SCOPE: .agi/context/local-maxxing/osc/ and datasets/osc-band/2026-09-24-kquant/ only; no engine, secrets, downloads, or model edits
 ceiling: <= 1 USD OpenRouter; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
-edited_by: brainstorm
-falsifier: If neither per-channel nor bias-subtracted scales gains >=0.10 agreement or >=25 pct KL at 3.5 bits, and the best arm still misses the 0.98/0.02 bars, the 3.5-to-8-bit gap is not primarily a key-scale granularity artifact; stop finer allocation and accept the measured (8,12] wall.
+edited_by: belam
+falsifier: If no tested variant—per-channel or bias-subtracted—clears BOTH improvement thresholds versus token-absmax energy (>0.10 higher top-1 agreement AND >25 pct lower mean KL) while reaching agreement >0.75, the claim is disproved and the measured (8,12] wall is not primarily a granularity artifact on this model. The first cached-CPU experiment can produce this killing result because all three variants and both controls run on the same held-out 4096-token eval.
 scaffold_hash: cc927f067bf81d91
 season: 2
 testable_claim: On cached Qwen2.5-0.5B-Instruct, one post-RoPE key arm using per-channel scales or bias-subtracted per-token scales beats token-absmax energy allocation at 3.5 average bits by >=0.10 top-1 agreement and >=25 pct lower mean KL on the same 4096-token held-out OSC.04 eval; at least one variant must reach agreement >=0.75.
@@ -23,3 +23,6 @@ town: local-maxxing
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
+
+## Agent Notes
+ADVERSARIAL REVIEW MODIFIED: made the falsifier the exact logical negation of the OR-variant claim. Existing experiment:a00-ddd4762f-fc38ef partially answers granularity with one per-channel 4-bit row at agreement 0.801 / KL 0.144, but it does not test the claim at 3.5 bits or bias-subtracted scales, so this hypothesis is not a duplicate.
