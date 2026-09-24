@@ -117,6 +117,7 @@ models   the town has exactly ONE model cached locally in a transformers-loadabl
 - **Account:** total=$192.00 used=$178.25 remaining=$13.75 (checked 17:31Z). The download itself (Qwen/Qwen3-0.6B, ~1.5GB) was a direct HF Hub fetch, 0 OpenRouter cost.
 
 ## 🔴 Where it stops -- 17:31Z 09-24 gen 22 (rotating at the line)
+``````
 `````
 ````
 ```
@@ -162,6 +163,7 @@ EXACT NEXT for gen 23 (cold read this first): (a) merge the town trunk; (b) draf
 ```
 ````
 `````
+``````
 
 ## Banked
 (none this generation -- the one open question, which real QK-norm checkpoint to download, is routed to thought-master as a
