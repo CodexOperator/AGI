@@ -23,6 +23,16 @@ town: local-maxxing
 - pi then compacted AFTER the refusal: a 157 s summary turn (2,918 prompt -> 2,727 generated tokens), then a retry that re-prefilled
   41,518 tokens at 203-222 tok/s (~200 s; cut at 66 pct by the owner cancel) -> one overflow costs ~6 min of the one slot
 - evidence: datasets/brain-swap/2026-09-24/0usd-overflow-and-context-evidence.txt (sections 1, 2 and 5)
+- pi 0.67.68 source (pi-coding-agent dist/, read by the director gen 18 before CMP.02): auto-compaction is checked at TWO sites only --
+  agent_end (core/agent-session.js:337) and prompt() before a NEW user prompt (:738); never between the tool-call turns of one agent loop
+- the threshold reads ONLY the last reply's server usage (agent-session.js:1443 -> compaction.js:78: totalTokens, else input + output +
+  cacheRead + cacheWrite) against contextWindow - reserveTokens (16,384 default, settings-manager.js:432); the overflow path =
+  isContextOverflow at agent_end -> compact + ONE retry (agent-session.js:1402-1421)
+- => source PREDICTS: inside one pi -p loop (every town kid) a declared window cannot stop an over-ceiling request; it acts only at
+  agent_end and at a new prompt -- consistent with LEAF.03 overflowing on its 12th request, mid-loop
+- CMP.01 (a00-3a7f8962) could not have shown either arm: its stub answered the FIRST request with plain text (a tool call only once a
+  tool result existed -> one request per arm) and reported prompt_tokens 0 (a threshold that reads ~0 never fires); its fixtures were
+  invalid JSON and its over-ceiling fixture sat below its own 400 line
 
 ## CLAIM
 With a model entry that declares the served window (contextWindow W <= 60,000 under the 65,536 slot), pi 0.67.68 compacts BEFORE a request would pass W and never sends one past the slot; with no entry it sends the over-ceiling request and compacts only after the 400 -- shown on a loopback stub that enforces a 65,536 ceiling and answers with scripted tool calls whose outputs grow the context. CEILING: <=60 production lines across 1 kid
@@ -37,9 +47,13 @@ none / code: the stub -- a loopback server that scripts tool calls, enforces the
 - the compaction point differs from pi own threshold formula (contextWindow minus its reserve) by more than 5 pct.
 
 ## TESTS
-- a selftest of the stub on fixtures: a request past the ceiling -> a 400 with the brain exact error text; below it -> a scripted reply.
-- the run: pi -p with stdin closed against the stub, twice (with and without the entry), each to the first compaction or the first 400;
-  record every request size, the compaction point and the wall.
+- a selftest of the stub on VALID chat-request fixtures, run before either arm and fatal on failure: under the ceiling -> 200 + a usage
+  chunk; over it (bytes / 3.80 > 65,536) -> a 400 carrying the brain exact error text, checked against pi-ai isContextOverflow; the
+  summary marker -> a summary reply
+- the stub answers EVERY non-summary turn, from the first, with one bash tool call adding ~6,000 tokens (bytes / 3.80), up to 16 turns,
+  and reports usage.prompt_tokens = its own bytes / 3.80 on every 200 -- the number the pi threshold reads
+- the run: pi -p with stdin closed against the stub, twice (declared contextWindow 60,000 vs no entry), a fresh temp agent dir each,
+  each until the first compaction plus one request after it (or 16 turns / 120 s); record every request size, status, phase and the wall
 
 ## FILE SCOPE
 - ONE stub + its selftest + outputs under paths.local_maxxing.brain_swap_out_dir, named with the agent id · ONE experiment node here
@@ -52,5 +66,5 @@ STEP   LARGEST SAFE STEP if the stub stalls: the compaction trigger read from pi
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-frame: as-given -- the owner retired the local lane as an operating mode (02:3xZ: research towards more efficient 0-USD runs), so this prices one of its two measured failure modes for a future lane. Cheapest disproving test: a stub server, no GPU, no brain. Bigger frame: any fixed-slot server behind a harness that trusts a model table. If wrong, the next move is reading where pi sets the window of a custom id.
+gen 18 verdict: DISPROVED by CMP.03 (experiment:a00-b6ec457f-279393) -- with a declared contextWindow 60,000 pi 0.67.68 sent a request past W (62,446.8 at request 20) and past the 65,536 ceiling (65,656.1 at 21, 400) with no compaction before either, then compacted on the overflow path and overflowed AGAIN in the same loop (400 at 36). WHY: auto-compaction is checked only at agent_end and before a new prompt (agent-session.js:337, :738), so a declared window sets the threshold but nothing reads it inside one pi -p loop -- the latest pi (0.73.1, read from its tarball) has the same two call sites, so an upgrade does not close it. CMP.02 died on infra (the kid dispatch killed inside the 20 s startup grace, its key revoked; routed to director-engine). REFRAME (bigger): a turn_end extension that calls compact() once the last usage passes contextWindow - reserve -- the mid-loop trigger pi lacks.
 <!-- THOUGHT:END -->
