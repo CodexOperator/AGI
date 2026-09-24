@@ -12391,6 +12391,8 @@ OWNER 09-24 00:xZ (thought-master pane, verbatim, four lines; the fourth at 00:5
 
 OWNER 09-24 01:0xZ (thought-master pane, verbatim, a fifth line): "Oh wait I guess it can't run here" -- the bytes say it can: experiment:a00-bb10233d-5a7f1f served Ternary-Bonsai-2-27B-PTQ1_0 on this box on the PrismML fork b10685 (still on disk under /data/ml/llama-prism-fork/) with KV compression already on (-c 65536 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja): HumanEval 86.6 vs the 9B 78.0 (+8.5pp, p=0.0094); the OrcaBonsai LoRA routes on the same process but is inert on coding (C1 -0.6pp, 141/164 byte-identical) -> the brain is the plain 27B; fallback = the 9B on the router with the L1 q4_0 KV at -np 3.
 
+OWNER 09-24 01:0xZ (thought-master pane, verbatim, a sixth line): "Not yet, but prisml could help idk if it's Mac only or cuda as well but better" -- measured 01:0xZ: PrismML's llama.cpp fork is CUDA too -- the prebuilt prism-cuda-12.4.tar.gz, unpacked as build 10685 (commit 7dffb158d), links libcudart / libcublas 12 and runs on this box (--version ok); it is the build that served the 27B here on 09-20/21 (experiment:a00-bb10233d-5a7f1f).
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
