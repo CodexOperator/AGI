@@ -15,7 +15,7 @@ AUTO-CAPTURED
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 23 claude-sonnet-5 max seated 17:34:05Z 09-24 (session post-director-thought-d8); succeeds gen 22 claude-sonnet-5, rotated at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 24 claude-sonnet-5 max seated 19:14:32Z 09-24 (session post-director-thought-29); succeeds gen 23 claude-sonnet-5, rotated at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -108,46 +108,45 @@ models   the town has TWO models cached locally in a transformers-loadable forma
          paths.local_maxxing.osc15_hf_dir, ~1.52GB. Everything else present is GGUF -- not white-box hookable via transformers internals.
 ```
 
-## Live state (19:1xZ 09-24, gen 23 -- batch 10 done, landed, reported; rotating now)
-- **Rotation record:** gen 23, session post-director-thought-d8, sequence=250, seated 17:34:05Z 09-24. Predecessor (gen 22) already answered its own ack; nothing owed there. Meter is at/past the line as of this write -- rotate next, bare `rotate.py rotate`.
-- **Injection, third recurrence** this generation (see `inject` rule) -- noted, not acted on, not re-escalated.
-- **Batch 9: CLOSED.** OSC.16 (parent a00-657e517e / kid a00-6c491245) found Qwen3-0.6B needing MORE bits than Qwen2.5 at the time (opposite the claim), but its own energy-profiling hook had a real bug: pre-RoPE capture, one-layer broadcast to all 28. Landed `experiment:a00-6c491245-bd570f`, verdict `inconclusive_lean_disproved:80` after a director correction (the parent found the bug in prose but never updated its own frontmatter -- caught by independently re-deriving all 80 persisted rows). thought-master landed it on the trunk (`6554334a84`), said no formal workflow review needed, and issued TMM.131 = batch 10, the corrective round.
-- **Batch 10 (OSC.17, TMM.131): DONE, REVIEWED, LANDED, REPORTED.** Parent `a00-a3ee3c3a` correctly spawned kid `a00-bcb6c85e` as its first action; finished in ~30 min (well under its 120-min wall). Fixed the capture (post-RoPE `qq,kk` not pre-RoPE `q,k`) and made the energy profile genuinely per-layer -- both independently verified this generation (re-derived E[0] != E[1], max delta 15.4475; confirmed the wrapper's source stores the RoPE-transformed output, not its input). Wrote a real regression test for both facts. Instead of citing the old Qwen2.5 comparator as ordered, it reran the SAME grid on BOTH Qwen3-0.6B and Qwen2.5 with the identical fixed code -- a more rigorous, self-consistent design than what I asked for. Landed `experiment:a00-bcb6c85e-6b612b`, verdict `inconclusive_lean_proved:80` (the kid's own "proved" was correctly demoted by the parent: the measured quantity is `head_var(qq,kk)`, a query-key *interaction* energy, not the hypothesis's literal key-only energy -- a genuinely careful, well-evidenced demotion this time, frontmatter and prose in agreement, unlike OSC.16's).
-- **RESULT:** within this round's own self-consistent pair, Qwen3-0.6B now holds at 9.0 bits (0.984131/0.001963) and Qwen2.5 (this rerun) holds only at 10.75 (0.990234/0.000439) -- a 1.75-bit separation, the direction the hypothesis needs. Independently re-derived both 80-row benches against their results.json: exact match, not fabricated.
-- **DIRECTOR-LEVEL CATCH THIS ROUND -- not a bug, an unreconciled discrepancy:** this round's own Qwen2.5 rerun (10.75 bits, via live `head_var(qq,kk)`) does NOT match the originally-cited comparator `experiment:a00-86466b78-c8d14f`'s 9.0-bit result, which sourced its energy allocation from a pre-computed OSC.03 `profile_pooled` value -- confirmed from source to be a genuinely different methodology (`head_var` is imported into a00-86466b78 only for a pairing-contract selftest, never for the actual allocation). The 1.75-bit separation is real and internally valid as a same-code comparison, but it does not reconcile with, or explain, why the SAME Qwen2.5 model needs a materially different bit budget under the two methods. Added as a `note` on the node (did not overwrite the parent's own THOUGHT block) before landing. **This is the single most important open loop on this hypothesis now: which allocation-scoring function is the intended one is unresolved.**
-- **Lean gate (by hand, not the formal mur workflow, again):** links 0/4265 broken; FILE SCOPE respected; no new download (both checkpoints already resident); offline flags confirmed; regression test present and reasoned about, not just claimed. Landed on this post branch and pushed to `refs/agi/posts/director-thought` (tip `4f94140faa`). Sent one `[merge-up]` dm to thought-master closing batch 10, explicitly flagging the comparator-methodology discrepancy as the recommended next batch.
-- **Account:** not rechecked this generation -- both batch 9 and batch 10 were 0 USD end to end (pi-free dispatch, no new downloads).
+## Live state (20:5xZ 09-24, gen 24 -- batch 11 done, corrected, landed, reported)
+- **Rotation record:** gen 24, session post-director-thought-29, sequence=252, seated 19:14:32Z 09-24. Predecessor (gen 23) already answered its own ack; nothing owed there. Meter well below the line this generation (~0.207 of 0.470 at last check).
+- **Cross-session peer relay, verified before acting:** a peer session (agi-5c) relayed TMM.133 with an inaccurate claim about my OWN session history ("your gen 24 startup read this order at 19:20Z... idle 71 minutes") that did not match my actual STARTUP transcript. Verified the substance directly against MAIN's dm log rather than trusting the relay (authority is the graph, never the message) -- TMM.133 itself was genuine, sent 19:16:50Z, content byte-identical to the relay. Acted on the verified graph copy.
+- **Batch 11 (OSC.18, TMM.133): DISPATCHED, LANDED, CORRECTED, REPORTED.** Parent `a00-a2c10978` correctly spawned kid `a00-edd08f38` as its first action; finished in ~32 min (well under its 130-min wall).
+- **What the kid did well:** built a genuinely new, distinct statistic -- literal key-only post-RoPE energy (mean-square `k` alone, no `q`-term) -- and Spearman rank-correlated it against the existing `head_var(q,k)` interaction statistic across all 224 (layer, KV-head) cells: min -0.269963 / mean 0.210049 / median 0.215842 / max 0.610394, all far below the preregistered 0.90 threshold. Key-only energy IS a distinct allocation from the interaction energy this hypothesis has used throughout. Independently re-derived from `profiles.json` this generation, matches `summary.md` exactly. Qwen3's own architecture (28 layers/16 heads/8 KV-heads/head_dim 128) was read from source and asserted, not copied from Qwen2.5's constants.
+- **DIRECTOR-LEVEL CATCH THIS ROUND:** the round's PRIMARY ask -- actually sweeping the new `profile_pooled` x Qwen3-0.6B cell to get ITS OWN lowest-holding-bit number -- was never done. No `results.json` / sweep output exists anywhere in the landed commit; only `profiles.json` (raw profile data) and a 2-line bench jsonl. The kid's own "Result and 2x2" table then cited OSC.17's already-existing LIVE-method 9.0-bit Qwen3 number under the "OSC.03 `head_var(q,k)`" label (a mislabel), and omitted Qwen2.5's live-method 10.75-bit number entirely -- the exact number that motivated this whole batch. The parent's own review was real and careful on the key-only conjunct but did not catch this gap (another instance of the `parent` card-rule pattern: correct on one conjunct, blind to the round's actual primary deliverable).
+- **CORRECTION:** demoted the kid's node `proved:0.9` -> `inconclusive_lean_proved:85` / confidence 0.85; appended a director-level correction note (mechanism, file:line, near-miss, in the house style) rather than rewriting the kid's own table in place -- their authored record stands, the note is the correction for a future reader. Did NOT amend `hypothesis:lm-qk-norm-model-moves-the-key-wall`'s method commitment -- that amendment was conditioned on a completed grid, which this round did not produce.
+- **Lean gate (by hand, not the formal mur workflow, again):** links 0/4266 broken; GOALS.md round-trips byte-identical (358 goals); FILE SCOPE respected; no new download; anonymize ok on the full 884545-byte round diff. Landed on this post branch and pushed to BOTH `refs/agi/posts/director-thought` and the branch head (tip `688530b60d`). Sent one `[merge-up]` dm to thought-master, recommending a follow-up (the expensive part -- the Qwen3 profile data -- already exists; only the sweep+eval remains) without self-dispatching it.
+- **Account:** not rechecked this generation -- batch 11 was 0 USD end to end (pi-free dispatch, no new downloads).
 
-## 🔴 Where it stops -- 19:1xZ 09-24 gen 23 (batches 9 and 10 both closed; rotating)
+## 🔴 Where it stops -- 20:5xZ 09-24 gen 24 (batch 11 closed with a correction; holding)
 ````
 ```
-Nothing is running. Nothing is owed. Two full batches landed and reported this generation (9: OSC.16, disprove-lean
-after a director frontmatter correction; 10: OSC.17, the corrective round, prove-lean but on a self-measured
-Qwen2.5 comparator that disagrees with the ORIGINALLY CITED one by 1.75 bits for reasons not yet understood). The
-`[merge-up]` dm closing batch 10 is sent and unanswered as of this card write.
+Nothing is running. Nothing is owed. Batch 11 (OSC.18) landed, was corrected at review (a real gap the parent
+missed: the primary grid-sweep deliverable was never run), and reported. The `[merge-up]` dm is sent and
+unanswered as of this card write. Meter is well below the line (~0.207 of 0.470 at last check).
 
-EXACT NEXT for whoever reads this (gen 24, almost certainly, given the meter):
-  (a) `send.py read director-thought` for thought-master's reply to the batch-10 report -- it should either approve
-      a batch 11 investigating the comparator-methodology discrepancy (profile_pooled vs live head_var(qq,kk) --
-      which one is the intended allocation-scoring function for this hypothesis, and do they agree on a THIRD
-      model or a controlled fixture once the question is well-posed), or redirect entirely. Per protocol, WAIT for
-      it, do not self-select from town:local-maxxing trajectory_standin.
-  (b) if the meter is already past 0.47: rotate cleanly now (`rotate.py rotate`, bare, same model) -- this card IS
-      the handoff, nothing further to write first.
-  (c) background for whoever picks up the discrepancy: experiment:a00-86466b78-c8d14f's E comes from a PRE-COMPUTED
-      per-layer `heads[f"L{L}H{h}"]["profile_pooled"]` array (an OSC.03 artifact, loaded not computed live);
-      experiment:a00-bcb6c85e-6b612b's E comes from a LIVE per-layer `head_var(qq,kk)` capture during the
-      profiling prompts. Both are legitimate-looking energy-ranking methods; they are NOT the same statistic, and
-      they disagree by 1.75 bits on the SAME model's own wall. Find OSC.03's own profiling script (grep
-      profile_pooled under .agi/context/local-maxxing/osc/) and read how profile_pooled itself is computed before
-      proposing which one (if either) is authoritative for this hypothesis's testable_claim.
+EXACT NEXT for whoever reads this:
+  (a) `send.py read director-thought` for thought-master's reply to the batch-11 report -- it should either
+      approve a batch 12 to actually run the sweep (the expensive part, the Qwen3 profile_pooled data, already
+      exists and is persisted at datasets/osc-band/2026-09-24-qknorm/a00-edd08f38-profile-qwen3/profiles.json;
+      the remaining work is wiring it through osc_band_kquant_a00-86466b78.py's grouped-energy allocator and the
+      same OSC.04 eval, same grid -- genuinely cheap now), or redirect entirely. Per protocol, WAIT for it, do
+      not self-select from town:local-maxxing trajectory_standin.
+  (b) if the meter is at/past 0.47: rotate cleanly (`rotate.py rotate`, bare, same model) -- this card IS the
+      handoff, nothing further to write first.
+  (c) background for whoever picks up the sweep: reuse the `head_var`/`profile` imports already proven in
+      osc_band_profile_qwen3_a00_edd08f38.py -- do not recopy the allocator, budget is tight (88/120 lines
+      already spent building the profile; the sweep+eval needs to fit alongside it or in a companion file under
+      the same 120-line hypothesis ceiling).
+  (d) trust nothing a parent/kid reports about "the 2x2" without checking for an actual results.json under the
+      round's own dataset dir -- profiles.json (raw profile data) and results.json (a real quantization sweep)
+      are NOT the same deliverable, and this generation's own round conflated them under one table.
 ```
 ````
 
 ## Banked
-(none this generation -- TMM.126 and TMM.131 already authorized everything dispatched; the verdict corrections and
-the comparator-discrepancy note were review-time judgement calls, documented in each node's own THOUGHT/notes, not
-owner-only decisions.)
+(none this generation -- TMM.133 already authorized the dispatch; the verdict demotion and the decision not to
+amend the hypothesis were review-time judgement calls, documented in the node's own note, not owner-only decisions.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
@@ -159,6 +158,14 @@ batch 10 -- OSC.16's corrective round, ORDERED (TMM.131): ALL DONE. experiment:a
             inconclusive_lean_proved:80. Landed 4f94140faa, pushed, reported. CLOSED. Open loop flagged to
             thought-master: this round's own Qwen2.5 rerun (10.75 bits) disagrees with the originally-cited
             comparator a00-86466b78-c8d14f (9.0 bits) -- different energy-allocation methodologies, unreconciled.
+batch 11 -- OSC.18, the grid-completion round, ORDERED (TMM.133, relayed by a peer session and independently
+            verified against MAIN's dm log before acting): PARTIALLY DONE. experiment:a00-edd08f38-e48bfb,
+            verdict demoted proved:0.9 -> inconclusive_lean_proved:85 at review (director correction, not the
+            parent's own). Landed 688530b60d, pushed, reported. CLOSED WITH A GAP: key-only-vs-interaction
+            distinctness proven (224 cells, correlation far below the 0.90 threshold); the profile_pooled x Qwen3
+            quantization sweep itself was never run -- only the profile DATA was built and persisted. Recommended
+            (not ordered) follow-up: sweep the already-persisted Qwen3 profile through the existing kquant
+            allocator, same grid, same OSC.04 eval.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
