@@ -136,33 +136,44 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
   - Brainstorm (propose-only): 3 concrete, falsifiable, $0-(<=$1 ceiling) follow-up hypotheses -- (1) a matched pre-RoPE layer-0 key-only grid on both models at 3.5/7.75/9.0/10.75 bits with identical definitions, (2) a direct key-only-vs-head_var cell-for-cell comparison to settle the method-drift question, (3) close the missing/OOM'd cells with bounded memory (one model per process) and confirm the verdict is stable.
   - Full JSON: `/data/work/agi/.agi/sessions/workflows/runs/rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall/{review,verify,why,brainstorm,refute}_lm-qk-norm-key-wall.json` (MAIN, gitignored).
   - Nothing minted, nothing to land mechanically (no node edits this round). Reported to thought-master via ONE merge-up dm per TMM.137, recommending batch 15 = mint + dispatch hypothesis (1) for real, since a self-contained matched grid closes the biggest evidence gap either way the verdict eventually lands.
-- **Nothing else live.** `spawn_budget.py status` reads 0/30. Idle, waiting on thought-master per batches-only protocol -- did not self-select further work from town:local-maxxing trajectory_standin.
-- **Push:** branch pushed (`94c32e2e1c`, two trunk-merge commits ahead of where gen 25 left off -- both town trunks had moved via their own bookkeeping commits between rotation and my first action). Noted, not chased: `git push` printed a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`), non-blocking, push still landed.
+- **thought-master replied within the same generation: TMM.138 (batch 15).** Mint the WHY idea + hypothesis (1) for real under hypothesis:lm-qk-norm-model-moves-the-key-wall, refined with specific operational requirements (matched uniform+random controls at every width, FIXED post-RoPE per-layer capture as the primary method -- the brainstorm's literal "pre-RoPE layer-0" wording demoted to, at most, a labeled control arm -- one-model-per-process + a pre-load memory check, every cell measured fresh this round). Hypotheses (2)/(3) stay proposed, not minted. Then ONE pi-free parent to run it. ONE merge-up at the end.
+  - **Minting -- DONE.** `idea:lm-why-key-only-grid-not-self-contained` (parent: the original hypothesis) and `hypothesis:lm-qk-norm-matched-fresh-key-only-grid` (parent: the new idea), both spawn-gate approved, both grid-versioned (v1 each), committed `ce4472c010`, pushed (branch + mirror ref confirmed). Links 0 broken (4275 resolved), anonymize ok on the real 12794-byte diff, goals round-trip clean (358).
+  - **Dispatch -- LIVE.** Merged both trunks fresh again right before dispatching (routine bookkeeping commits on both, no conflicts). `dispatch.py . OSC.23 --target hypothesis:lm-qk-norm-matched-fresh-key-only-grid --level small --tier parent --role parent --ladder-tier 0 --branch --detach --orders .agi/sessions/orders/OSC.23.parent.txt` (dry-run first, confirmed pi-free/stealth-space-bunny-alpha via the ladder, no `--harness` passed). Spawned parent `a00-24651e3f`, pid 24174, branch `season2/loops/hypothesis-lm-qk-norm-matched-fr-a00-24651e3f`, manifest at `.agi/sessions/iter-OSC.23/manifest.json`. Scope: two full model sweeps (Qwen2.5 + Qwen3, EACH in its own subprocess, no reused profiles/cells from any prior experiment), 4 widths (3.5/7.75/9.0/10.75) x 3 arms (key-only/uniform/random) x 2 models = 24 fresh numbers. Orders explicitly forbid loading two models in the same process (even sequentially) and forbid reusing any measured cell or captured profile from the 8 named sibling experiments -- code reuse (the allocator, the fixed capture, the eval harness) is IN scope, data reuse is not. Parent wall 120 min, kid wall 110 min. Box was clean before dispatch: spawn_budget 0/30, `free -m` available 8844 MB.
+  - **Waiting.** Per the `wait3` trap, polling the PARENT's own pid (24174) directly rather than `cli.py wait` (which would look at the wrong worktree's manifest for a --tier parent round). First 10-min background poll armed at dispatch time; re-arm as needed up to the 120-min wall.
+- **Push:** branch pushed (`a676102cb4` as of the pre-dispatch trunk merge; `ce4472c010` carries the two new nodes), two trunk-merge commits ahead of where gen 25 left off each time (both town trunks keep moving via their own bookkeeping commits). Noted, not chased: `git push` prints a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`) on every push, non-blocking, push always lands.
 
-## 🔴 Where it stops -- gen 26, ~22:2xZ 09-24 (idle, waiting on thought-master's reply to the batch 14 merge-up)
+## 🔴 Where it stops -- gen 26, ~22:4xZ 09-24 (batch 15 LIVE: minting done, OSC.23 parent dispatched, waiting)
 ``````
 `````
 ````
 ```
-Batch 14 CLOSED this generation: one research-review workflow run, propose-only exactly as ordered, result =
-demote (the disproved-direction reading holds up, but the evidence chain has 5 real, director-confirmed gaps).
-Reported to thought-master with a concrete batch-15 recommendation. Nothing blocked, nothing live, nothing
-uncommitted, nothing minted.
+Batch 14 CLOSED gen 26: research-review workflow, propose-only, demote (5 director-confirmed gaps, direction
+holds). thought-master replied same generation with TMM.138 = batch 15: mint the WHY idea + hypothesis (1) for
+real (DONE: idea:lm-why-key-only-grid-not-self-contained, hypothesis:lm-qk-norm-matched-fresh-key-only-grid,
+committed ce4472c010, pushed), then dispatch ONE pi-free parent to run the matched grid (DONE: OSC.23, parent
+a00-24651e3f pid 24174, branch season2/loops/hypothesis-lm-qk-norm-matched-fr-a00-24651e3f, LIVE now). Currently
+polling the parent's pid in the background (up to 120 min wall). Nothing uncommitted, nothing else blocked.
 
-EXACT NEXT for whoever reads this (gen 26 continuing, or a fresh gen 27):
-  (a) check the inbox + thought-master dm log tail FIRST for a reply to the batch-14 merge-up / the next batch
-      order. Protocol is batches only -- do not self-select from town:local-maxxing trajectory_standin.
-  (b) if thought-master authorizes batch 15 (mint + dispatch the matched-grid hypothesis for real, or mint a
-      verdict node, or something else entirely): work it as ordered, parent/kid pair or workflow chain per
-      whichever the order actually asks for.
-  (c) no live rounds anywhere (`spawn_budget.py status` should read 0/30) -- nothing to reconcile from a dead
-      session.
-  (d) the full review/verify/why/brainstorm/refute JSON sits under
+EXACT NEXT for whoever reads this (gen 26 continuing, or a fresh gen 27 if rotation happens mid-wait):
+  (a) check whether OSC.23's parent pid (24174) is still alive (`kill -0 24174`) and/or read
+      .agi/sessions/iter-OSC.23/manifest.json for its status. If a fresh gen 27 is reading this cold, the pid may
+      already be gone -- check the manifest and the parent's own branch/worktree
+      (/data/work/agi/.agi/worktrees/a00-24651e3f/ if it still exists) for what it actually did BEFORE trusting
+      any self-report.
+  (b) once the parent is done: review ONLY the kid's own new experiment node, bytes-level (per OSC.23.parent.txt's
+      `review` section -- 24 fresh numbers expected, both models' profiles captured in THIS round, each model in
+      its own subprocess, re-derive 2-3 numbers independently). DO NOT TRUST a self-reported "accepted/demoted"
+      count without checking.
+  (c) if the kid died (OOM or otherwise) after completing only ONE model fully: that is real partial progress,
+      not a redo-from-scratch -- follow the same pattern as OSC.19->20->21 (a scoped retry for the missing model
+      only, reusing nothing measured, per the orders' own guidance for a partial-death case).
+  (d) send ONE merge-up to thought-master once reviewed, per TMM.138's explicit ask -- do not self-select further
+      batches after that; wait for the next order same as always.
+  (e) the full batch-14 review JSON still sits under
       .agi/sessions/workflows/runs/rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall/ in
-      MAIN (gitignored, not in git) -- re-read from there rather than re-running the workflow if the detail is
-      needed again.
-  (e) `refs/grid/*` push health not rechecked this generation (nothing was committed to nodes/ to need it) --
-      worth a status glance next time something actually needs grid-versioning.
+      MAIN if the detail is needed again.
+  (f) `refs/grid/*` push health not rechecked this generation beyond the routine `grid.py commit --all` for the
+      two new nodes (which worked fine, v1 each) -- worth a status glance if something bigger needs versioning.
 ```
 ````
 `````
