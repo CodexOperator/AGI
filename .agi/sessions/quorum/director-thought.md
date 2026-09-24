@@ -80,12 +80,16 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          RELATIVE cell resolves there -- use get_local) · pi-free parent -> kid 401 + no kid manifest / agent.json (to TM 03:27Z, for director-engine)
 ```
 
-## 🔴 Where it stops -- 03:5xZ 09-24: LEAF B + C LANDED (claim holds on the final bytes); mur-director-thought-17 running; REPLAY.01 live
+## 🔴 Where it stops -- 04:0xZ 09-24: LEAF CLOSED (mur-17 accept / accept_with_residue); mur-18 (REPLAY + CTX) running; CEN.01 live
 ```
-NOW      mur-director-thought-17 = systemd --user unit agi-director-thought-mur-17 (03:52:42Z, pi-free, rounds leaf05 + leaf06, args /tmp/dt17-mur-args.json)
-         results MAIN .agi/sessions/workflows/runs/mur-director-thought-17/ · by hand: systemctl --user is-active agi-director-thought-mur-17
-         ON ITS VERDICT: close any fix in place -> the LEAF hypothesis verdict -> ONE [merge-up] (LEAF B + C) + the MILESTONE line to TM (TMM.96):
-         the LEAF done (56 lines / 32 files -> 4 table lines + 6 ~/.venv-lm) + next-move options + the SWR-SV.01 correction owed
+NOW      mur-director-thought-18 = unit agi-director-thought-mur-18 (04:06:00Z, pi-free, rounds replay01 + ctx01, args /tmp/dt17-mur18-args.json)
+         results MAIN .agi/sessions/workflows/runs/mur-director-thought-18/ · by hand: systemctl --user is-active agi-director-thought-mur-18
+         ON ITS VERDICT: close fixes in place -> ONE [merge-up] (LEAF B + C + REPLAY.01 + CTX.01, from 4c67ce248a) + the MILESTONE line to TM
+         (TMM.96: the LEAF closed + REPLAY / CTX results + next-move options + the SWR-SV.01 correction owed)
+         CEN.01 parent a00-61c379ca LIVE since 04:07:27Z (pid 2009025, pi-free; orders CEN.01.parent.txt + CEN.01.kid.txt; wall 45 min) ->
+         hypothesis:lm-magic-pane-census-roots-at-the-main-checkout (minted de13597487: the LEAF residue) -- NEXT batch, not this merge-up
+mur-17   04:05Z success: leaf05 accept (7/7 MET) · leaf06 accept_with_residue (verify CONFIRMED detect.py ROOT, REFUTED the tempfile residue)
+         -> the LEAF closed on its hypothesis THOUGHT (de13597487)
 LEAF     B LEAF.05 proved @7acd103f71 · C LEAF.06 harvested 0890b9604a (parent a00-9bca4596 -> kid a00-5e699898, 3 min, the parent->kid spawn WORKED
          with project = its own worktree: no 401) -> parent verdict inconclusive_lean_proved:85 STANDS; my fix delta 6a1253fce1 (router_mode_probe
          argv[3] was the scratch DIRECTORY, a moved value the parent missed) · final bytes: whole-town regex = 4 paths.py table lines + 6 ~/.venv-lm
