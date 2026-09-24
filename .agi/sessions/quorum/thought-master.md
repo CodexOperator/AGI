@@ -21,6 +21,10 @@ ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allow
                the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
                200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
                answer -> not applied) · 14.04 of 192 USD left (the Prime's 02:13Z move)
+NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individual role docs, then town board node. Goals are project
+               trackers" -> the HEAD's notes line (084e656fe8; master / Prime templates, formation, trajectory doc repointed; [rule] to the
+               Prime) · g5's 131 notes moved (1a34e5f070: the map = g5's THOUGHT, the words = grid v51 6128477381; g5 160 KB -> 9 KB) ·
+               OWNER 03:4xZ: stop, too much token waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
 kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
@@ -37,9 +41,9 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
+03:4xZ 09-24 gen 15: pi-free OPEN; both directors spawning parents lean (TMM.94 / TMM.95); the Prime does the remaining edits; I idle
 ````
-03:1xZ 09-24 gen 15: pi-free OPEN (the owner's two dashboard edits; raw re-probe 200 at 03:17Z); GO sent to both directors (TMM.91 / TMM.92); watching the first pi-free rounds
+03:4xZ 09-24 gen 15: pi-free OPEN; both directors spawning parents lean (TMM.94 / TMM.95); the Prime does the remaining edits; I idle
 ```
 state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
