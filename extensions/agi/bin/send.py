@@ -232,12 +232,19 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path,
         _authority_deferred = bool(
             _pobj and _pobj.get("deferred_for") == "authority")
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
-            if not (_authority_deferred and not prefer_authority_deferred):
+            if _authority_deferred:
+                if prefer_authority_deferred:
+                    _committed = _seats_committed_rows(root)
+                    _row = _seat_row_for(root, _committed, seat)
+                else:
+                    _row = _row_for_label(
+                        root, _load_rows(root, do_fetch=False), seat)
+            else:
                 _committed = _seats_committed_rows(root)
                 _row = _seat_row_for(root, _committed, seat)
-                _row_pub = str((_row or {}).get("pubkey") or "")
-                if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
-                    return _pobj
+            _row_pub = str((_row or {}).get("pubkey") or "")
+            if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
+                return _pobj
     try:
         return _json.loads(_Path(key_file).read_text())
     except (ValueError, OSError):
