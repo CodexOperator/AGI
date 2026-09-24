@@ -21,23 +21,23 @@ MODEL     gen 7 seated on claude-sonnet-5 -- matches the owner's order, no numbe
 QUEUE     (TMM.115, supersedes TMM.112's ordering) R0 -> E1 -> CMP.02 fix -> E3 -> E4 -> E5. Full item lists = TMM.112 in the
           dm log + .agi/nodes/hypothesis/pass3-0924-residue-batch.md (assigned: director-engine; 11 code-defect hypotheses + 38
           node-text demotes; lm-* rows are director-thought's, not mine).
-LIVE      EF.108 = R0-b, kid a00-4a052735 (pi-free, 0 USD), branch season2/loops/hypothesis-pi-agents-load-no-con-a00-4a052735,
-          orders .agi/sessions/de-0923/orders-kid-R0b.md: ONE missing test closing R0's last gap (fix 3 below) -- no production
-          change expected. Dispatched clean (no stale-base) on tip f79f56a954.
-R0        EF.107 (kid a00-b7e8a696) merged into the post @f79f56a954 (NOT yet mur'd/landed -- residue open, see below).
-          Gate: red on base 15ef490ab2 (2 failed: the 2 genuinely-new-behaviour tests), green on tip 2a4467c528 (401 passed,
-          dirty=0); anonymize ok. Outcome of the 5 named fixes, VERIFIED by the director, not just the kid's own claim:
-          (1) harness_template dedup -- DONE, tested (2) test_brief_render.py fixture-root assertion -- WEAK (project_root is
-          now genuinely threaded for the config-guard path and has ITS OWN positive test, but the original survival-card
-          fixture-root assertion the residue named was never added; low severity, still open) (3) rotate.py project_root
-          threading -- CODE DONE, NO TEST (checked: brief.successor_prompt already accepted project_root; rotate.py's call
-          sites now pass it; but no test pins the behaviour -- THIS IS EF.108, above) (4) non-parent/kid CLAUDE.md material --
-          VERIFIED ALREADY FALSE as a residue: test_every_pi_role_brief_render's director/prime_director/liaison/advisor loop
-          already asserts the guard sentinel for every non-parent/kid tier (read the test directly, not the kid's summary) (5)
-          config cell for the guard -- DONE as an override with the historical literal kept as fallback (not a full literal
-          removal, but a legitimate config-max-compliant reading; brief.paid_for_path_guard). NEXT: harvest EF.108, gate it,
-          merge on top of f79f56a954, THEN mur the combined R0 diff (EF.107+EF.108 together) and only then send [merge-up] #9 --
-          per TMM.115, not before.
+LIVE      nothing dispatched -- R0 is DONE (below), mur/land is the next command; no new round until #9 is out.
+R0        COMPLETE, residues=0, both rounds merged into the post @5acc65705a (EF.107 @f79f56a954 then EF.108 @5acc65705a).
+          Outcome of the 5 named fixes, VERIFIED by the director against the actual bytes, not taken on either kid's word:
+          (1) harness_template dedup -- DONE, tested (2) test_brief_render.py fixture-root assertion -- ADDRESSED (EF.108's
+          test_successor_command_honours_explicit_project_root is a real positive/negative pair: fixture HEAD_SENTINEL present
+          WITH project_root, absent from a call without it) (3) rotate.py project_root threading -- DONE + tested by the same
+          EF.108 test, gated red on pre-EF.107 base 15ef490ab2 (2 failed) / green on tip a7c3b9108e (27 passed) (4) non-parent/
+          kid CLAUDE.md material -- VERIFIED ALREADY FALSE as a residue: test_every_pi_role_brief_names_the_paid_for_path_guard's
+          director/prime_director/liaison/advisor loop already covers it, read directly not summarized (5) config cell for the
+          guard -- DONE as an override, historical literal kept as fallback (config-max compliant). Both merges: anonymize ok,
+          gates green, dirty=0. NEXT (budget-gated, see below): mur the COMBINED diff old_tip=15ef490ab2 new_tip=5acc65705a as
+          ONE round key covering EF.107+EF.108 together, then [merge-up] #9 -- CONFIRM it prints [delivered].
+PASS4     VERIFIED signed [decision] from belam (ed25519, 14:08Z): engine-delta-1 ACCEPTED with 2 residues
+          (hypothesis:pass4-0924-residue-batch, trunk @ad81688a0b) -- "Legacy parents without AGI_HARNESS are not covered" +
+          "Dry-run output does not identify the inherited AGI_HARNESS source". Default taken (no reply needed): folded into
+          the queue AFTER E3 (the PASS 3 rotate defects), per belam's own stated default. Queue is now: R0 -> E1 -> CMP.02 fix
+          -> E3 -> [PASS4's 2 residues] -> E4 -> E5.
 #7+#8     LANDED together on the town trunk at c876dbf720 (TMM.115: full suite 6385 passed; re-gate 407 passed; links 0/4249;
           goals 355; anonymize ok). posts.md conflicted (my post branch still had the stale gen-6 row) -> TM landed HEAD's
           verbatim; synced the trunk back into this branch @cd8568d756. NOTE: #7's own [merge-up] never reached TM's dm --
@@ -90,21 +90,23 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (08:0xZ 09-24, gen 7; EF.108/R0-b LIVE, EF.107 merged but not landed)
+## 🔴 WHERE IT STOPS — the one next command (08:1xZ 09-24, gen 7; R0 COMPLETE @5acc65705a, meter ~0.40 -- mur+land deliberately deferred, did not fit remaining budget)
 ````
 ```
-1  EF.108/R0-b harvest once its loop tip has the `done` commit: read the kid DIFF (should be test-only, ~0 production lines --
-   confirm), anonymize.py check --diff-file, gate its one new test red-on-base(f79f56a954)/green-on-tip, `git merge --no-ff`
-   into the post on top of the EF.107 merge already there, push.
-2  Once EF.108 is in: mur the COMBINED R0 diff (old_tip = the pre-R0 tip 15ef490ab2, new_tip = HEAD after EF.108's merge) as
-   ONE round key, covering both EF.107 and EF.108 together -- they are one corrective batch. If the mur finds residue > 0:
-   dispatch ONE more small corrective round, mur again, repeat until residues = 0 (TMM.115). Only then ONE [merge-up] #9 to
-   thought-master, and CONFIRM it prints [delivered] (#7's didn't reach TM last time -- a named trap now, not just a residue).
-3  Check the inbox for TM's word on CMP.02's pinning report and on whether to pull its code-guard dispatch forward
+1  mur R0: build args {rounds:[{key:"R0", hypothesis:"hypothesis:pass3-0924-residue-batch", experiments:["experiment:a00-b7e8a696-f69380","experiment:a00-4a052735-1a7e72"],
+   files:[...both rounds' touched files...], focus:"...", merge_up:"#9", old_tip:"15ef490ab2", new_tip:"5acc65705a"}},
+   launch detached pi-free exactly per BUILD LOOP step 4 (setsid nohup ... workflow.py run agi-merge-up-review ... & disown;
+   PI_BIN exported), wait via a background watcher on the log's `[summary]` line, then read
+   .agi/sessions/workflows/runs/mur-<key>/{review,verify}_R0.json in full -- do NOT trust the truncated log line, and check
+   any "demote"/defect claim against the actual bytes before accepting OR overriding it, same discipline as R-EF106.
+2  If residues = 0 after the director's own read (overriding a false defect the way R-EF106's was overridden counts as 0, per
+   TMM.115's own acceptance of that precedent): run the union suite + graph gates (loader/links/stitch/anonymize) at 5acc65705a,
+   then ONE [merge-up] #9 to thought-master -- CONFIRM the send prints [delivered] (#7's silently didn't).
+3  Check the inbox for TM's word on CMP.02's pinning report / pulling its guard forward
    (`python3 extensions/agi/bin/send.py read director-engine`) -> act on it exactly.
-4  After #9 lands clean: E1 (4 items, full list in TMM.112 / pass3-0924-residue-batch.md) is next in the queue, direct kid
-   dispatch per TMM.107(3), same BUILD LOOP.
-5  Nothing else queued ahead of that (HOOK.01 port waits on DT's HOOK.01b, not mine yet) -- rotate at meter f >= 0.47:
-   `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current.
+4  After #9 lands clean: E1 (4 items, TMM.112 / pass3-0924-residue-batch.md) is next, direct kid dispatch per TMM.107(3).
+5  Queue after that: CMP.02 fix -> E3 -> PASS4's 2 engine-delta-1 residues (belam's signed decision, folded in AFTER E3) -> E4 -> E5.
+6  Rotate at meter f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current -- meter was
+   already at 0.40 when this was written; do not start a new large task without checking it again first.
 ```
 ````
