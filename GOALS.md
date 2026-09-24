@@ -7750,8 +7750,6 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 
 # goal:g7.33.10
 
-# goal:g7.33.10
-
 | | |
 |---|---|
 | goal | write.py writes ONE named row of a node -- a frontmatter field or a schema-declared body row -- and the node type's schema decides both whether that row exists and whether the value's format is valid: no verb can invent a row |
@@ -7765,16 +7763,14 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 
 # goal:g7.33.11
 
-# goal:g7.33.11
-
 | | |
 |---|---|
 | goal | grid.py stores a town's grid in ONE named branch (the owner's example: the local-maxxing branch) -- commit writes there, log / diff / versions / payload read from there, and a push is one ref |
-| origin | the owner 17:57Z 09-24 (verbatim on town:local-maxxing's board) |
-| measured | 18:0xZ 09-24: the grid_sync cron commits every 5 min into refs/grid/local-maxxing/ (4,293 refs, newest 17:55:42Z), but its push of refs/grid/local-maxxing/* has failed 967 times -- GitHub rejects each ref "Timed out validating rule, please try again" -> the remote holds 0 of the 4,293 (its 4,204 refs/grid refs are all outside that namespace) -> the town's grid history lives on this box's disk alone · the cron log is 775 MB of those rejection lines |
+| origin | the owner 17:57Z + 18:17Z 09-24 (verbatim on town:local-maxxing's board): the fix NOW, worked by the director, and the 0.7 GB of failure logs cleaned up |
+| measured | 18:0xZ 09-24: the grid_sync cron commits every 5 min into refs/grid/local-maxxing/ (4,293 refs, newest 17:55:42Z), but its push of refs/grid/local-maxxing/* has failed 967 times -- GitHub rejects each ref "Timed out validating rule, please try again" -> the remote holds 0 of the 4,293 (its 4,204 refs/grid refs are all outside that namespace) -> the town's grid history lives on this box's disk alone · the cron log is 775 MB of those rejection lines · 18:2xZ: what exists = grid.storage_trunk (goal:g14.14.7; config value refs/grid/local-maxxing), a per-trunk ref NAMESPACE -- still one ref per node; no verb stores or pushes the grid as one branch (core/season2/main's grid.py is unchanged since the 09-23 merge-base; ours is newer) |
 | where | the branch name = a config cell per town, never a literal · the cron line = config:crons (.agi/nodes/.geometry/crons.md) |
-| done | every node's version count in = out across the move (the 4,293 ref histories migrated or archived, 0 lost) · git ls-remote shows the grid branch on origin carrying the latest versions · grid.py log / diff / versions / payload read it · the cron's push is one ref and logs one summary line per run, never one line per ref · tests pin it |
-| who | director-engine, batched by thought-master (TMM.128) |
+| done | every node's version count in = out across the move (the 4,293 ref histories migrated or archived, 0 lost) · git ls-remote shows the grid branch on origin carrying the latest versions · grid.py log / diff / versions / payload read it · the cron's push is one ref and logs one summary line per run, never one line per ref · the push-rejection lines stripped from the cron log once the new push is live (before / after bytes reported) · tests pin it |
+| who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129) |
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
