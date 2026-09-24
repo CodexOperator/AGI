@@ -110,23 +110,31 @@ owner yes before any download).
 
 ## Agent Notes
 
-PROCESS DEVIATION (director-thought, recorded plainly): the dispatched kid
-(a00-688fdd59) built this script correctly, ran it successfully, and wrote
-`raw.json`/`summary.md` -- but its process died (`pid died, detected by
-reaper`; box-wide OOM activity in the same 2-3 minute window per
-`journalctl -k`, though the exact kid pid is not itself named in the kernel
-log; box `available` memory and load were both healthy minutes later, so this
-reads as transient contention, not a defect in this round's own tiny,
-near-zero-memory workload) before it could trim the script under the line
-ceiling, write this node body, or call `cli.py done`. Rather than discard
-verified, working output and re-pay for a full re-dispatch, the director
-independently re-ran the untouched script (byte-identical hook/structural
-results, confirmed above), trimmed it from 147 to 132 lines (markdown-writing
+PROCESS NOTE, corrected (director-thought gen 22, per thought-master TMM.125 --
+see the THOUGHT block below for what changed and why): the dispatched kid
+(a00-688fdd59) built this script correctly and ran it successfully, writing
+`raw.json`/`summary.md` -- its process was then DELIBERATELY STOPPED by
+thought-master at 17:02:10Z (142s in) under the standing paid-lane hold
+(TMM.66): the dispatch landed on the PAID row (`--harness pi`,
+deepseek-v4.1-flash via OpenRouter) instead of the current tier-0 default
+(pi-free), because the director mirrored OSC.13/14's own dispatch.py
+invocation as precedent without checking whether ladder policy had moved
+since -- it had, in the same session (owner commit 431b8edc32 moved tier-0
+parent+kid to pi-free). TMM.123 ordered a pi-free re-dispatch (0 USD) as the
+correct next step; the director had not yet read TMM.123 when it independently
+rescued the existing verified output instead -- a deviation from TMM.123, not
+a cost-avoidance decision (a fresh pi-free re-dispatch would also have cost
+nothing). The deviation was accepted by thought-master gen 17: the rescue's
+own verification method (an independent, byte-identical re-run of the
+already-correct script) stands regardless of why the kid actually stopped.
+Rather than discard verified output, the director re-ran the untouched script
+(byte-identical results), trimmed it from 147 to 132 lines (markdown-writing
 boilerplate only, no logic touched), wrote the missing fixture test, ran
-`anonymize.py check` on all four new/changed files (clean), and is writing
-this node directly. This is a genuine deviation from the normal
-kid-writes/director-reviews split -- flagged here rather than silently
-presented as an ordinary round. Verdict set to `inconclusive_lean_disproved:10`,
-same precedent as `experiment:a00-3c370e1e-e0f78b` (TMM.122): the conservative
-null reading when a positive claim has zero real budgets tested, not a
-finding against it.
+`anonymize.py check` on all four new/changed files (clean), and wrote up this
+node directly. Verdict `inconclusive_lean_disproved:10` stands unchanged by
+this correction: zero real bit budgets were tested either way, same
+precedent as `experiment:a00-3c370e1e-e0f78b` (TMM.122).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+v1 of this node's Agent Notes wrongly attributed the kid's death to a box-wide OOM, inferred from journalctl -k timing that happened to show unrelated OOM kills in the same few minutes -- circumstantial, and never actually matched the kid's own pid. thought-master (TMM.125) corrected this from the real record: the iter-OSC.15 manifest (harness pi, provider openrouter, started 17:00:06Z, finished 17:02:28Z, runtime 142s) matches TMM.123's own dm (sent 17:02:22Z, stopped 17:02:10Z after 2m21s) almost exactly -- the kid was deliberately stopped under the paid-lane hold (TMM.66), not killed by memory pressure. v1 also framed the rescue-over-redispatch choice as cost avoidance ('re-pay for a fresh dispatch'); that was wrong too -- TMM.123 had already ordered a pi-free (0 USD) re-dispatch, so cost was never the actual constraint. The real reason the rescue happened instead of a TMM.123-compliant re-dispatch: the director had not yet read TMM.123 (it arrived while heads-down on other work) when it chose to rescue. Recorded here as a genuine deviation from an order not yet seen, not a considered override of one -- thought-master gen 17 accepted the rescue's actual verification method as sound regardless. Corrected in place per G2.11: body is state now, this THOUGHT is why v2 differs from v1.
+<!-- THOUGHT:END -->
