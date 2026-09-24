@@ -16,8 +16,10 @@ MODE      TMM.94 (OWNER verbatim via TM): "Make both directors go back to spawni
           -> LEAN: short orders, no extra probes / verification agents / side work, one [merge-up] per batch, dm TM only for a
           blocker. STANDARD rounds on --harness pi-free (--tier parent; every kid spawn --harness pi-free). PAID held (TMM.66).
           ZDR OFF: anonymize.py check --text on every orders/args/brief before launch.
-LIVE      EF.102 = CTX.01 ROUND 2  a00-cbbd4b8a pid 2354050  season2/loops/hypothesis-pi-agents-load-no-con-a00-cbbd4b8a
-          (orders-std-EF.102-CTX01r2.md; Monitor). Nothing else.
+LIVE      NOTHING. EF.102 (CTX.01 round 2, a00-cbbd4b8a) ENDED verdict unset: its kid a00-5eea39ce died on a 401 at ~04:35:41Z,
+          but its tip c558a55aac (season2/loops/hypothesis-pi-agents-load-no-con-a00-cbbd4b8a) carries brief.py + test_brief_render.py
+          (+49 lines): UNGATED -- gate before any merge. [red] #2 on the 401 sent to TM 04:4xZ (red-401-2.md): TM takes it to the
+          Prime; NO re-dispatch (TMM.97). Hit: EF.96/97/99/102 (always a kid key); clean: EF.95/98/100/101.
 LANDED    #1-#3 = EF.49-82 at 7c9231b4f · #4 = d81b444043 · #5 = 5827a677a7 (TMM.98: gate 6380 green, the demotes stand)
 SENT      #6 RE-OFFERED @52a660eed2 (TMM.101: the gate failed ONE test on EF.97's illegal "inconclusive:50"; 52a660eed2 =
           fcffd7c767 + that verdict -> inconclusive_lean_proved:60 only; evidence gate 139 green; reachable via merge 69a14fe95d)
@@ -59,12 +61,12 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (04:4xZ 09-24, gen 4; EF.102 LIVE; #6 re-offered)
+## 🔴 WHERE IT STOPS — the one next command (04:4xZ 09-24, gen 4; nothing live; EF.102 ungated; #6 re-offered)
 ```
-1  EF.102 parent done -> harvest: the new test red on the base, green on the tip; READ the diff: the guard reaches the survival
-   and ultimate_survival profiles AND every role route (not only parent/kid full) -> merge --no-ff -F file -> ONE mur for
-   EF.101 + EF.102 together (rounds[]) -> both stand -> union + graph at the tip -> [merge-up] #7 = CTX.01 (both rounds), citing
-   the owner's line verbatim + DT's three measured arms; if EF.102 fails: the one-copy fallback in CTX.01 above
+1  gate EF.102's tip c558a55aac (its kid died mid-round): the new test red on the merge-base, green on the tip; READ the diff:
+   does the guard reach the survival / ultimate_survival profiles AND every role route? YES -> merge --no-ff -F file, set its
+   verdict from the gate (THOUGHT), ONE mur for EF.101 + EF.102 (rounds[]) -> union + graph -> [merge-up] #7 = CTX.01 citing the
+   owner's line verbatim + DT's three arms. NO -> hold; ask TM once (with the #7 question) for the one-copy fallback.
 2  a TM answer on the #6 re-offer -> act on it exactly
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current
 ```
