@@ -1,0 +1,6 @@
+PASS a length: 3 === 3
+PASS b roles: ["assistant","toolResult","toolResult"]
+PASS c assistant: "ASSISTANT_MARKER_TEXT"
+FAIL d placeholders: ["\"[older tool result elided]\"","\"yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\" (length 100000)"]
+PASS e estimate: 31706.75 < 43616
+exit=1
