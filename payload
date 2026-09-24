@@ -2333,7 +2333,8 @@ def main() -> int:
         # costs no zoom render and leaves no orphan scaffold behind; the lease
         # is released on every path below that gives up on spawning.
         lease = spawn_budget.acquire(
-            root, cap, agent_id, tier=args.tier, iter_n=args.iter_n)
+            root, cap, agent_id, tier=args.tier, iter_n=args.iter_n,
+            harness=harness_name)
         if lease is None:
             # hypothesis:l3-reaper-restarts-through-stop — a refused lease
             # while paused is not "full"; "0/25, refused" read as a budget
