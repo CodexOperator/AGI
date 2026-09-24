@@ -1546,6 +1546,16 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         (session / "agent.json").write_text(json.dumps(record, indent=2))
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    if proc.poll() is not None:
+        # A bounded supervisor must not leave a dead child masquerading as an
+        # occupied seat.  The reaper treats a non-running record as terminal;
+        # retaining the corpse pid would make registry/manifest readers claim
+        # a live occupation that no longer exists.
+        record["status"] = "failed"
+        record["pid"] = None
+        record["persistent"] = False
+        record["fail_reason"] = "persistent restart bound exhausted"
+        (session / "agent.json").write_text(json.dumps(record, indent=2))
     return restarts
 
 
