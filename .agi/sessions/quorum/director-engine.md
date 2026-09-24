@@ -91,8 +91,9 @@ TRAP      two directors can race the 0-live check (EF.90 vs director-thought's L
 ```
 0  0-CREDIT LANE: EF.90 (LH-1) LIVE -> on its `a00-0d0977d3 done:` commit: harvest in place (/tmp/de-gate.sh EF90 <merge-base>
    <tip> test_credential_none_spawn.py test_git_commit_guard.py test_adapters.py test_dispatch_dry_run.py; read the kid diff;
-   anonymize; merge --no-ff; diff --quiet; NO mur) -> the SLOT then goes to director-thought (TMM.79: "EF.90 holds it now --
-   yours after it"; never restart brain-orcabonsai27b while a local round runs) -> 0 live after ITS round -> LH-2 as EF.91 (orders shaped like orders-local-LH1.md) -> next
+   anonymize; merge --no-ff; diff --quiet; NO mur) -> TMM.81: the LOCAL SLOT is then director-thought's for good; my leaves
+   move to the FREE CLOUD LANE (pi-free) -- parked on the mint floor until TM answers my [red]; on the answer: re-run EF.91 (L23-1),
+   then the other chains' first leaves in parallel (L14-1, LC2-1, LH-2 once EF.90 is merged), --tier kid --harness pi-free
    leaf; ONE [merge-up] per batch to TM. A kid that exits with no done = read its trajectory, re-dispatch or split again.
 1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- #1-#4 landed, EF.87/88/89 harvested
 2  on the LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
