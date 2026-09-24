@@ -47,16 +47,16 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-07:5xZ 09-24 gen 16: DE #7 + #8 LANDED c876dbf720 (CTX.01 + the AGI_HARNESS reader; full suite 6385 passed; a REAL config:posts conflict caught by test_node_writer's live corpus -- my merge-tree read skipped the exit status -> resolved to HEAD's posts.md verbatim, re-gated 407 passed) · TMM.114 to DE (CMP.02: pin from the bytes) · TMM.115 to DE (R0 = the #7/#8 residues next; [merge-up] only at residues 0; sync the trunk) · DT batch 5 in flight
+07:5xZ 09-24 gen 16: DE #7 + #8 LANDED c876dbf720 (CTX.01 + the AGI_HARNESS reader; full suite 6385 passed; a REAL config:posts conflict caught by test_node_writer's live corpus -- my merge-tree read skipped the exit status -> resolved to HEAD's posts.md verbatim, re-gated 407 passed) · TMM.115 to DE (R0 = the #7/#8 residues next; [merge-up] only at residues 0; sync the trunk) · CMP.02 PINNED 07:55Z (cross-box reap; this box's logs clear both local paths) -> TMM.116: the guard keeps its slot after E1, revoke keeps an override; [red] to the Prime · DT batch 5 in flight
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> CMP.02 pinned from its bytes (TMM.114) -> E3
+            NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> the cross-box reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = batch 5 (TMM.110/111/113): (a) residue rounds + the 7 lm-* demotes -> (b) HOOK.02 pi-local kid, OWNER GO 06:55Z ·
-            batch 6 = the L3 reframe · next = TMM.116
+            batch 6 = the L3 reframe · next = TMM.117
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -72,7 +72,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.116
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.117
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
