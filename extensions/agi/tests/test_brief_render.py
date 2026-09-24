@@ -148,11 +148,34 @@ def test_render_paid_for_path_guard_override_is_exactly_once(tmp_path):
 
 
 def test_render_does_not_duplicate_paid_for_path_guard_in_a_part(tmp_path):
-    root = _root(tmp_path, parts={"kid": ["card"]},
-                 card=brief.PAID_FOR_PATH_GUARD + "\nCARD-SENTINEL\n")
-    rendered = brief.render(role="kid", harness="pi-free", post="some-post",
+    """render() must not duplicate a guard already present in a part
+    (extras_text, not card+post — see the sibling override test's
+    docstring for why card+post silently renders the wrong role)."""
+    root = _root(tmp_path, parts={"kid": ["extras"]})
+    rendered = brief.render(role="kid", harness="pi-free",
+                            extras_text=brief.PAID_FOR_PATH_GUARD + "\nEXTRAS-SENTINEL",
                             project_root=root)
     assert rendered.count(brief.PAID_FOR_PATH_GUARD) == 1
+
+
+def test_render_override_replaces_guard_already_present_in_a_part(tmp_path):
+    """A configured guard replaces historical prose already in a part,
+    rather than joining it (mur-9-4). Uses extras_text, not card+post: the
+    _root() fixture's posts.md row hardcodes role="director", so post=
+    silently overrides any role=/harness= kwarg and a card-based fixture
+    never actually renders the content it thinks it does."""
+    root = _root(tmp_path, parts={"kid": ["extras"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    override = "HISTORICAL-GUARD-REPLACEMENT-SENTINEL"
+    cfg["brief"]["paid_for_path_guard"] = override
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+
+    rendered = brief.render(role="kid", harness="pi-free",
+                            extras_text=brief.PAID_FOR_PATH_GUARD + "\nEXTRAS-SENTINEL",
+                            project_root=root)
+
+    assert rendered.count(override) == 1
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
 
 
 def _write(root: Path, rel: str, text: str) -> Path:

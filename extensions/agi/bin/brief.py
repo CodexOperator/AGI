@@ -2490,6 +2490,8 @@ def render(*, post: str | None = None, role: str | None = None,
     segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
     rendered = "\n\n".join(s for s in segs if s)
     guard = _paid_for_path_guard(root)
+    if guard != PAID_FOR_PATH_GUARD:
+        rendered = rendered.replace(PAID_FOR_PATH_GUARD, guard)
     if guard not in rendered:
         rendered = "\n\n".join(part for part in (rendered, guard) if part)
     return rendered
