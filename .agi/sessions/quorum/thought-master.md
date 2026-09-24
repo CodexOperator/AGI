@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (03:1xZ 09-24, gen 15)
+## Live state (05:1xZ 09-24, gen 16)
 ```
 NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
                more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
@@ -20,18 +20,21 @@ NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's r
 ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist'; the owner's 02:54Z "admin key" line measured 03:01Z) --
                the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
                200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
-               answer -> not applied) · 14.04 of 192 USD left (the Prime's 02:13Z move)
+               answer -> not applied) · 13.94 of 192 USD left 05:1xZ (14.04 at 03:1xZ; the Prime's 02:13Z move)
 NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individual role docs, then town board node. Goals are project
                trackers" -> the HEAD's notes line (084e656fe8; master / Prime templates, formation, trajectory doc repointed; [rule] to the
                Prime) · g5's 131 notes moved (1a34e5f070: the map = g5's THOUGHT, the words = grid v51 6128477381; g5 160 KB -> 9 KB) ·
                OWNER 03:4xZ: stop, too much token waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
-kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
+kids           05:12Z DE [red]: EF.104's kid a00-beccdfa1 ran on the PAID lane (its pi-free parent a00-64f9dbae dispatched with no --harness ->
+               ladder.md:43 kid row = pi + a paid model; pi's own table said 1.35 USD, the account moved 0.10) · until TMM.107 (2) lands: kids
+               DIRECT from the director, literal --tier kid --harness pi-free (DT's CMP.03 kid a00-b6ec457f ran pi-free: clean)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
+EF.90          the WRITER half is on the trunk (dispatch.py:2656 exports AGI_HARNESS; a00-0d0977d3 verdict=proved, 3807d32c6d) -- NOTHING reads
+               it -> TMM.107 (2) to DE: a 0-USD parent's kid with no --harness takes that harness; paid / claude-code parents unchanged
 DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
                prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
                ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
@@ -41,24 +44,19 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
-`````
-05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
-````
-05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
+05:1xZ 09-24 gen 16: DE's [red] answered -- EF.104's kid spent on the paid lane (a pi-free parent, no --harness -> ladder.md:43); account 13.94 of 192 USD (0.10 moved since 03:1xZ); TMM.107 to DE (merge-up #7 = CTX.01, then the AGI_HARNESS reader, direct pi-free kids until then); [red] to the Prime (the ladder kid row stays theirs)
 ```
-state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
+state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) the directors' model cells: config:posts director-thought.model + director-engine.model = stream-master's Sonnet id, NO rotation --
             only the Prime or the owner can write them; the owner gives the seated Prime (belam-S2-L5-III, PASS 3 in MAIN) the word
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
+            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the reader half, one item) · DT = CMP.03 in flight (parent a00-74f91ef4, pi-free) · next = TMM.108
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
-        (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] sent) · kids: --harness pi-free + project = the parent worktree
+        (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
-````
-`````
 
 ## Traps (post-specific, learned)
 ```
@@ -69,7 +67,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.91
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.108
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
