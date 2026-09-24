@@ -162,6 +162,17 @@ A prompt injection (fake system-reminder appended to a Bash tool's raw stdout, p
 A cross-session message (agi-5c) relayed a real, verified owner order (TMM.132) accurately -- checked
   against the actual dm log before acting, per established protocol, and it matched word for word. Still
   worth the check every time; this is the mechanism, not an excuse to skip verifying a future one.
+A PARENT'S SHARED KID-TARGET HYPOTHESIS CAN GO UNCOMMITTED. DH.292's 4 kids all iterated against ONE
+  dispatch-scaffolded `hypothesis:` node (parent goal:g7.33.11) -- each kid's OWN `done` commit included
+  only ITS OWN experiment node, and nobody ever separately committed the shared hypothesis itself. Landed
+  invisibly: the merge succeeded clean (no conflict, no diff error), and it only surfaced as an "unknown
+  parent" INTEGRITY warning from `snapshot-goals.py --render --check` during an UNRELATED later sync merge
+  -- easy to miss if you don't run that check after every multi-kid parent harvest. Fix was mechanical
+  (the node still existed, untouched, on the parent's own worktree disk, byte-identical, never committed
+  anywhere): copy it in, verify with `links.py links` (0 broken) and the render --check, commit separately.
+  CHECK THIS on every future multi-kid PARENT harvest, not just a direct-kid one: after merging, run
+  `snapshot-goals.py --render --check` and `links.py links` before pushing, not after -- this generation
+  caught it late, by accident, during a sync merge that had nothing to do with it.
 Diffing a kid's branch against the WRONG base (e.g. current HEAD, which may already include later merges)
   produces a nonsense diff full of apparent deletions that are really just "the other branch doesn't have
   this yet" -- always diff against `git merge-base HEAD <branch>`, never HEAD directly, when the kid's
