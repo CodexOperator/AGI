@@ -204,6 +204,7 @@ Don't let an urgent interrupt skip your own checklist. TMM.129 arrived mid-harve
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (18:2xZ 09-24, gen 9 -> rotating NOW at the line per TMM.120)
+````
 ```
 1  `python3 extensions/agi/bin/spawn_budget.py status` -- check DH.290 (g7.33.11, parent a00-be4e901f + kid
    a00-01ccd901) and DH.291 (R0's last test fix, kid a00-1bd260b9). Whichever finished while you were seating,
@@ -226,3 +227,4 @@ Don't let an urgent interrupt skip your own checklist. TMM.129 arrived mid-harve
 6  Work to the line every time, then `python3 extensions/agi/bin/rotate.py rotate` (bare) yourself -- do not wait
    for a nudge.
 ```
+````
