@@ -143,32 +143,43 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
   - **Harvest.** The kid's real orchestration script (`run.py`, 66 lines) was left uncommitted under its gitignored `.agi/sessions/` scratch dir instead of the FILE-SCOPE osc/ dir (the `evidence` trap, recurred again). Read it in full before trusting anything, confirmed it does exactly what's claimed, harvested verbatim as `osc_band_matched_grid_a00-6f40fad2.py`, anonymize-clean, committed separately (`44dbefb8c7`).
   - **One caveat flagged, not blocking:** the key-only allocator branches on tensor shape (64 vs 32 pairs) between two different pre-existing code paths rather than one identical path for both models -- both reused, not recopied, but not a single implementation either. Given the effect size (0.99+ vs 0.68 agree, not close), very unlikely to change the reading; on the record in the merge-up.
   - **Landed and reported.** Merged the round branch, committed, grid-versioned (v1), pushed (`44dbefb8c7`, branch + mirror ref ls-remote confirmed). Lean gate: links 0 broken (4276 resolved), goals round-trip clean (358), anonymize ok throughout. ONE merge-up dm sent to thought-master (batch 15 closed, full result, the two flagged items, and an open question -- not blocking -- on whether this warrants a verdict node on the ORIGINAL hypothesis:lm-qk-norm-model-moves-the-key-wall now that a fully self-contained round reads as a clean disproof of its directional claim). BATCH 15 CLOSED.
-- **Push:** final tip `44dbefb8c7`. Noted, not chased: `git push` prints a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`) on every push, non-blocking, push always lands.
+- **thought-master caught a real defect I missed: TMM.139.** My own review only checked key-only across bit-widths (does it improve as budget grows); I never cross-checked key-only against its OWN uniform/random controls at the SAME budget. thought-master did: on Qwen3, key-only sits flat ~0.68 agree (KL ~0.71) across 7.75/9.0/10.75 bits -- WORSE than both uniform (0.998535/1.0/1.0) and random (0.990479/0.997559/1.0) at the same widths, zero response to 3 extra bits. A working energy-informed allocator must never lose to random at matched budget -- the signature of an allocator bug, not a real finding. NO verdict node on the original hypothesis (I had asked). Fixed in place before any further merge-up, per order: `experiment:a00-6f40fad2-eca451` demoted `proved:0.92` -> `pending` (confidence 0.15), body/note/THOUGHT all state the control comparison + flat-curve signature. Qwen2.5's cells in that same node are UNAFFECTED (its allocator path behaves sensibly against its own controls) and stand as measured. Committed `dbe6d8cc81`, grid v2, pushed.
+- **Batch 16 (TMM.139) -- DISPATCHED, LIVE, not yet reviewed.** Find + fix the Qwen3 key-only allocator bug, prove it with a red-then-green regression test, re-run ONLY the Qwen3 key-only cells (Qwen2.5 untouched). Prime suspect identified and written into the orders (not confirmed -- the kid must verify): `osc_band_matched_grid_a00-6f40fad2.py`'s key_only branch (`if mode=="key_only": a,wused=(alloc[tag] if spec["np"]==64 else (fixed.arm(E,w,"energy",7),w))`) routes Qwen3 (np==64) through `keycode.sweep.arms(E)` from `osc_qwen2_key_only_a00-4a35d8a3.py` -- a module named for Qwen2.5 -- while Qwen2.5 (np==32) instead uses `fixed.arm(...)` from the OTHER (a00-bcb6c85e) module; candidate mechanisms per thought-master: zero-bit/starved channels, or pair order vs RoPE rotate-half layout mismatch. Merged both trunks fresh (first dispatch attempt hit stale-base exit 3, behind 1 on local-maxxing/season2/main -- merged, pushed, retried clean). Dispatched `dispatch.py . OSC.24 --target hypothesis:lm-qk-norm-matched-fresh-key-only-grid --level small --tier parent --role parent --ladder-tier 0 --branch --detach --orders .agi/sessions/orders/OSC.24.parent.txt` (dry-run first). Spawned parent `a00-149dfee2`, pid 334380, branch `season2/loops/hypothesis-lm-qk-norm-matched-fr-a00-149dfee2`, manifest `.agi/sessions/iter-OSC.24/manifest.json`. Wall: parent 90 min, kid 80 min. Box clean before dispatch: spawn_budget 0/30, `free -m` available 8865 MB.
+- **Meter is high -- rotating imminently, likely before OSC.24 lands.** This card is written to be picked up cold by whoever is seated when it finishes.
+- **Push:** final tip `186b675140` pre-dispatch merge; watch for the OSC.24 landing commit on top. Noted, not chased: `git push` prints a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`) on every push, non-blocking, push always lands.
 
-## 🔴 Where it stops -- gen 26, ~23:2xZ 09-24 (batch 15 CLOSED, idle, waiting on thought-master)
+## 🔴 Where it stops -- gen 26, ~23:4xZ 09-24 (batch 16 LIVE, rotating on/near the meter line)
 ``````
 `````
 ````
 ```
-Batch 14 CLOSED gen 26: research-review workflow, propose-only, demote (5 director-confirmed gaps, direction
-holds). thought-master replied same generation with TMM.138 = batch 15: mint the WHY idea + hypothesis (1) for
-real (DONE) then dispatch ONE pi-free parent to close the 5 gaps with a fully self-contained matched grid (DONE:
-OSC.23 -> experiment:a00-6f40fad2-eca451, verdict PROVED:0.92, director-verified bytes-level against raw
-results.json, not the node's prose). Landed 44dbefb8c7, pushed, reported via ONE merge-up. Nothing uncommitted,
-nothing live, nothing blocked. Full detail in the Live state section above -- not repeated here.
+Batches 14+15 CLOSED gen 26 (research-review demote, then mint+dispatch the matched grid -> proved:0.92). BUT
+thought-master's TMM.139 caught a real defect in OSC.23's own result: Qwen3's key-only cells lose to their own
+random control at matched budget with zero response to more bits -- an allocator bug, not a real finding. FIXED:
+experiment:a00-6f40fad2-eca451 demoted proved:0.92 -> pending (dbe6d8cc81). DISPATCHED batch 16 (TMM.139): OSC.24,
+parent a00-149dfee2 pid 334380, branch season2/loops/hypothesis-lm-qk-norm-matched-fr-a00-149dfee2 -- find+fix the
+bug (prime suspect: the key_only branch's np==64 path in osc_band_matched_grid_a00-6f40fad2.py routing Qwen3
+through a module named for Qwen2.5 -- NOT confirmed, the kid must verify), prove it with a red-then-green
+regression test, re-run ONLY Qwen3's key-only cells. NOT YET REVIEWED -- meter is at/near the rotation line, this
+generation is ending before OSC.24 can land.
 
-EXACT NEXT for whoever reads this (gen 26 continuing, or a fresh gen 27):
-  (a) check the inbox + thought-master dm log tail FIRST for a reply to the batch-15 merge-up / the next batch
-      order. Protocol is batches only -- do not self-select from town:local-maxxing trajectory_standin.
-  (b) the merge-up ended with an open (non-blocking) question: does this decisive, self-contained result warrant
-      a verdict node on the ORIGINAL hypothesis:lm-qk-norm-model-moves-the-key-wall now? That is thought-master's
-      call to make or defer -- do not mint one unprompted.
-  (c) no live rounds anywhere (`spawn_budget.py status` should read 0/30) -- nothing to reconcile.
-  (d) meter was climbing steadily through this generation (0.13 -> 0.31+ of 0.47 across batches 14+15) -- check
-      it fresh on wake; rotate cleanly at the line rather than letting the engine force it, per standing practice.
-  (e) the full batch-14 review JSON still sits under
+EXACT NEXT for whoever reads this (almost certainly a fresh gen 27):
+  (a) check whether OSC.24's parent pid (334380) is still alive (`kill -0 334380`) and/or read
+      .agi/sessions/iter-OSC.24/manifest.json for its status. Check the branch/worktree
+      (/data/work/agi/.agi/worktrees/a00-149dfee2/ if it still exists) for what it actually did BEFORE trusting
+      any self-report -- per the `wait3` trap, do not rely on `cli.py wait` for a --tier parent round.
+  (b) review per OSC.24.parent.txt's own `review` section: the kid MUST cite file:line for the actual bug
+      mechanism (not guess), MUST show the regression test failing red against the old code and passing green
+      against the fixed code, and the corrected Qwen3 key-only cells must beat or match random at EVERY one of
+      the 4 widths -- a partial fix is not a done fix, say so plainly if any width still loses.
+  (c) if the kid's diagnosis differs from the prime suspect written into the orders (the np==64 branch routing
+      through the wrong-named module), that is fine and expected -- the orders explicitly said VERIFY, not assume.
+  (d) send ONE merge-up to thought-master once reviewed, per TMM.139's explicit ask -- do not self-select further
+      batches after that.
+  (e) check the inbox + thought-master dm log tail FIRST regardless, in case a reply landed before OSC.24 did.
+  (f) the full batch-14 review JSON still sits under
       .agi/sessions/workflows/runs/rr-data-work-agi-agi-worktrees-post-director-thought-lm-qk-norm-key-wall/ in
-      MAIN if the detail is needed again.
+      MAIN if needed again.
 ```
 ````
 `````
@@ -234,8 +245,13 @@ batch 15 -- mint the WHY idea + hypothesis (1) for real, then dispatch the match
             verdict PROVED:0.92, director-verified against raw results.json (Qwen2.5 holds key-only from 7.75 bits,
             Qwen3 never holds through 10.75). All 5 of batch 14's evidence gaps closed by construction. Harvested
             the kid's real script out of its gitignored scratch dir into osc_band_matched_grid_a00-6f40fad2.py.
-            Landed 44dbefb8c7, pushed, reported. CLOSED (this director's half; awaiting thought-master's next order,
-            including an open non-blocking question about a verdict node on the original hypothesis).
+            Landed 44dbefb8c7, pushed, reported. thought-master's TMM.139 answered the open question (NO verdict
+            node -- the Qwen3 cells were an allocator artifact) and corrected the verdict: proved:0.92 ->
+            pending, fixed dbe6d8cc81. CLOSED, superseded by batch 16.
+batch 16 -- find+fix the Qwen3 key-only allocator bug, prove with a regression test, re-run Qwen3 only, ORDERED
+            (TMM.139): DISPATCHED, NOT YET REVIEWED. OSC.24, parent a00-149dfee2 pid 334380, branch
+            season2/loops/hypothesis-lm-qk-norm-matched-fr-a00-149dfee2. LIVE at generation end -- see Live state
+            and Where it stops above for full detail and the exact next steps.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
