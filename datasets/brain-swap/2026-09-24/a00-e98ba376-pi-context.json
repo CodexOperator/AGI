@@ -1,0 +1,24 @@
+{
+  "runs": {
+    "with": {
+      "request_bytes": 56019,
+      "system_prompt_bytes": 54858,
+      "system_prompt_sha256": "3f93b29dbdb5ed348ac841bc4d321c3ac74057a4f7ed967a53a4c9dbb87c7f24",
+      "estimated_tokens_bytes_div_3_80": 14436.3,
+      "agents_copies": 2
+    },
+    "without": {
+      "request_bytes": 1751,
+      "system_prompt_bytes": 1506,
+      "system_prompt_sha256": "49cd573a183e8ff84b7f30f17d4e6d7d07bfca2be56aeef7b2bc7bb5c63eb835",
+      "estimated_tokens_bytes_div_3_80": 396.3,
+      "agents_copies": 0
+    }
+  },
+  "saving": {
+    "request_bytes": 54268,
+    "system_prompt_bytes": 53352,
+    "estimated_tokens_bytes_div_3_80": 14040.0
+  },
+  "context_only_diff": true
+}
