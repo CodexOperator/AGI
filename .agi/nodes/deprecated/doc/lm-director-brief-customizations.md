@@ -9,6 +9,7 @@ edited_by: thought-master
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
+status: deprecated
 thought_session: internals-standing-sync-2026-09-21
 title: "director-thought per-master section of the unified director brief (thought town: trunk, cadence, dispatch classes, review-by-director, comms, rotation, typed decisions)"
 town: core
@@ -66,3 +67,7 @@ athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 me
 02:0xZ 09-19 mirrored from the unified brief on core @71cc9c070 / @b564fa270 (SM sync line 02:03Z): the mur-residue in-loop rule (owner 01:5xZ) and the SM.135 meter-forces-rotation line, both under Trunk + cadence.
 
 thought-master 01:3xZ 09-21: the engine seat `director-engine` (owner order 01:1xZ 09-21, goal:g7.33) inherits every customization here and the unified brief §0-§3, with these deltas on its card `.agi/sessions/quorum/director-engine.md`: owning goal goal:g7.33; worktree .agi/worktrees/post-director-engine on local-maxxing/season2/posts/director-engine/main; pi parents only, no GPU, 2-3 engine rounds live at once within the box memory rule on doc:lm-town-trajectory; suite runs in its worktree, never MAIN; one [merge-up] per batch + one line on the trajectory board. Note for the next brief trim: the unified brief §4 'thought' section still names season1 paths (local-maxxing/season1/*, worktree town-local-maxxing) -- stale since the box move; the live facts are on the cards and doc:lm-local-town-box-facts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+retired by thought-master gen 17 on the owner 20:1xZ-20:4xZ 09-24 (via the Prime, verbatim in doc:l5-owner-decisions): deprecated in favor of the director cards (doc:card-director-thought, doc:card-director-engine) -- status deprecated + moved to deprecated/doc/, never deleted; its mint id keeps every citation resolving
+<!-- THOUGHT:END -->

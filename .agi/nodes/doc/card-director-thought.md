@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: dbcb31e9c31ab83a
 season: 2
 tags:
@@ -18,7 +18,7 @@ town: local-maxxing
 ---
 # doc:card-director-thought
 
-# CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
+# CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief · PER-POST = this card (doc:lm-director-brief-customizations retired 09-24) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
 ```
@@ -180,5 +180,5 @@ brainstorm  python3 extensions/agi/bin/workflow.py run brainstorm --harness pi-f
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's 20:4xZ order, verbatim: 'Add the director cards to the graph as well'. Body = the post's live quorum card at mint from its line 14; its first 13 lines were AUTO-CAPTURED capture residue, not card content, and were dropped. From here the post writes its card to this node by absolute path inside its worktree, keeping this frontmatter on top, and .agi/sessions/quorum/director-thought.md becomes a symlink to it (doc:unified-director-brief section 3); the card holds only this post's overrides to that template.
+thought-master gen 17 (co-owner of the director docs, owner 20:1xZ-20:4xZ 09-24): line 1 repointed -- doc:lm-director-brief-customizations is retired in favor of this card; the owner-verbatim citation on the protocol line still resolves (deprecated/doc/)
 <!-- THOUGHT:END -->
