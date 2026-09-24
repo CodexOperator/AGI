@@ -197,13 +197,29 @@ THE REAL TOWN TRUNK CAN BE AHEAD OF `origin/local-maxxing/season2/main` BY A WID
    now co-owns the director docs with the Prime (owner 20:4xZ) -- a rules update may land as a direct
    commit to doc:unified-director-brief / doc:card-director-engine rather than only a dm; diff your card
    against the trunk's copy if anything looks stale.
-4  T1 next (rotation_alert.py's capture-declined/captured/captive-deferred cluster): the prose_templates
-   storage mechanism IS LOCATED (this session) -- plain files at `extensions/agi/templates/<family>/
-   <name>.md`, read by `prose_templates.render(family, name, **fields)` (prose_templates.py:14-22).
-   `extensions/agi/templates/rotation_alert/` has 6 files already; the 3 new messages need 3 new template
-   files there, same pattern (the 3rd, captive-deferred, already partially reuses defer_prefix.md via the
-   DEFER_PREFIX constant, so only its trailing body needs a new template). Write real orders now that the
-   mechanism is known, dispatch as a PARENT (no more direct kids, ever). Then CMP.02, E3-E6.
+4  T1 next (rotation_alert.py's capture-declined/captured/captive-deferred cluster) -- FULLY PREPPED this
+   session, not yet dispatched (ran out of budget before the line, chose a clean stop over a rushed
+   dispatch). The prose_templates storage mechanism IS LOCATED: plain files at
+   `extensions/agi/templates/<family>/<name>.md`, read by `prose_templates.render(family, name, **fields)`
+   (prose_templates.py:14-22, a 9-line function: reads the file, `.format(**fields)`s it, refuses missing
+   required fields). Exact template FORMAT confirmed from `extensions/agi/templates/rotation_alert/
+   defer_prefix.md` (single plain-text line, no frontmatter, `{field}` placeholders only where needed --
+   e.g. `beneath_body.md` = "Approaching rotation ({fraction:.4f} of {threshold:.3f} window
+   ({percent:.2f}% of the line))...").
+   Exact CURRENT line numbers (re-grepped this session, extensions/agi/hooks/rotation_alert.py):
+   - line 829: `print(f"rotation: capture for {seat} declined (AGI_HOOK_NO_SPAWN).")`  -- field: seat.
+     New template: rotation_alert/capture_declined.md (or similar name), one field `seat`.
+   - line 843: `print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")` -- fields:
+     seat, minutes, line. New template: rotation_alert/captured.md, three fields.
+   - lines 892-893: `print(f"{DEFER_PREFIX} ({which or 'suite-lock-held'}) — the captive "
+     "auto-rotate does not fire while that holds.")` -- already uses the existing `DEFER_PREFIX = render(
+     "rotation_alert", "defer_prefix")` constant for its first half; only the trailing clause needs a new
+     template (one field: `which`, already computed as `which or 'suite-lock-held'` before the call site,
+     or pass both and let the template decide -- kid's/parent's call).
+   Write real orders directly from this (no more re-deriving needed), dispatch as a PARENT ONLY (no direct
+   kids, ever, per the owner's 20:1xZ-20:4xZ order). Mint a hypothesis under goal:g5.32 or wherever T0's
+   own hypothesis nested (check T0's own node for the right parent before minting a sibling). Then CMP.02,
+   E3-E6.
 5  Before ANY dispatch: sync the town trunk first. `origin/local-maxxing/season2/main` lags the REAL trunk
    -- the freshest state is the LOCAL branch `local-maxxing/season2/main` checked out at the main checkout
    `/data/work/agi` (shared object store, same box); `git merge local-maxxing/season2/main` picks up
