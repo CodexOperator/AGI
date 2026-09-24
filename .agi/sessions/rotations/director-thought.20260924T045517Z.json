@@ -132,5 +132,10 @@
     "reap_source": "SKIPPED: own pid 2653132 not under pane pid 1527390 from own window @id @26; no chain to TERM",
     "skipped": "SKIPPED: own pid 2653132 not under pane pid 1527390 from own window @id @26; no chain to TERM"
   },
-  "committed_by": "rotate-self"
+  "committed_by": "rotate-self",
+  "after_join": {
+    "claimed_at": "2026-09-24T04:57:23.836506+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-24T04:57:00.491705Z"
+  }
 }
