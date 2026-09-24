@@ -20,9 +20,11 @@ REGEX = r"""(['"=( ]|^)(/data/|/home/|/mnt/|/media/|/tmp/|/opt/|~/)"""
 
 
 def grep(rev, files):
-    out = subprocess.run(["git", "grep", "-n", "-I", "-E", REGEX, rev, "--"] + files,
-                         cwd=ROOT, capture_output=True, text=True).stdout
-    return [ln.split(":", 1)[1] for ln in out.splitlines() if ln]
+    r = subprocess.run(["git", "grep", "-n", "-I", "-E", REGEX, rev, "--"] + files,
+                       cwd=ROOT, capture_output=True, text=True)
+    if r.returncode not in (0, 1):  # 1 = no match; anything else (a bad rev) must not read as "0 hits"
+        raise SystemExit("git grep failed on %r: %s" % (rev, r.stderr.strip()))
+    return [ln.split(":", 1)[1] for ln in r.stdout.splitlines() if ln]
 
 
 def main():
