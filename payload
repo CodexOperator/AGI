@@ -53,13 +53,7 @@ literally cannot perform because it has nothing to compare against:
                           `supersedes` pointing at the wrong id or an id
                           absent from the group, a version gap) stays here;
                           ambiguity is a defect, only a provable order is
-                          exempt. **Retired claims:** a non-chain group with
-                          exactly one live claimant beside one or more nodes
-                          declaring `status: deprecated` is not ambiguous
-                          either — the live node is the one materialization
-                          resolves, and the group is reported separately under
-                          `retired_claims` (informational, never drift). Two
-                          or more live claimants, or none, stay here.
+                          exempt.
   4. stale_contracts    — a node's contract block (the mechanically-derived
                           `how` half: imports, top-level defs, read/write
                           call sites) no longer matches what re-running the
@@ -415,15 +409,6 @@ def _chain_order(group: list[Level3Node]) -> list[str]:
     return [n.node_id for n in sorted(group, key=lambda n: n.version)]
 
 
-def _is_retired(n: Level3Node) -> bool:
-    """True iff the node declares `status: deprecated` — the same predicate
-    `links.py` and `metrics.py` use to split a claim live/retired. A retired
-    node keeps its `payload_ref` (the schema requires it), so the status, not
-    the directory it sits in, is what says whether it still competes to
-    materialize."""
-    return str((n.fm or {}).get("status") or "").strip().lower() == "deprecated"
-
-
 def verify_tree(project_root: Path, engine_root: Path,
                 from_grid: bool = False) -> dict:
     """Report drift between the graph (`nodes/level3/`) and the live engine tree.
@@ -450,19 +435,11 @@ def verify_tree(project_root: Path, engine_root: Path,
     ref_groups = _group_by_payload_ref(nodes)
     duplicate_payload_ref: dict[str, list[str]] = {}
     version_chains: dict[str, list[str]] = {}
-    retired_claims: dict[str, list[str]] = {}
     for ref, group in ref_groups.items():
         if len(group) < 2:
             continue
         if _is_well_formed_chain(group):
             version_chains[ref] = _chain_order(group)
-            continue
-        live = [n for n in group if not _is_retired(n)]
-        if len(live) == 1:
-            # Exactly one live claimant: the retired nodes beside it cannot
-            # win materialization anyway (they are read like live ones but
-            # sit in `deprecated/`), so the group is not ambiguous drift.
-            retired_claims[ref] = [n.node_id for n in group]
         else:
             duplicate_payload_ref[ref] = [n.node_id for n in group]
 
@@ -566,7 +543,6 @@ def verify_tree(project_root: Path, engine_root: Path,
         "orphan_files": orphan_files,
         "duplicate_payload_ref": duplicate_payload_ref,
         "version_chains": version_chains,
-        "retired_claims": retired_claims,
         "stale_contracts": stale_contracts,
         "unreadable_contracts": unreadable_contracts,
         "contracts_not_derived": contracts_not_derived,
@@ -863,10 +839,6 @@ def print_verify_report(report: dict) -> None:
     print(f"      version_chains (informational, not drift): "
           f"{len(report['version_chains'])}")
     for ref, ids in report["version_chains"].items():
-        print(f"      {ref}: {' -> '.join(ids)}")
-    print(f"      retired_claims (informational, not drift): "
-          f"{len(report['retired_claims'])}")
-    for ref, ids in report["retired_claims"].items():
         print(f"      {ref}: {' -> '.join(ids)}")
 
     if report.get("contract_source") == "grid":
