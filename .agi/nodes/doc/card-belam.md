@@ -30,7 +30,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | stream | LIVE on Twitch + X since 00:33Z 09-24 (stream-master [complete] 00:35Z; sb-status 00:43Z: relay up, delay climbing to 15 min, 4-thread cap CPUAffinity=0-3) · stream-master @17 idle, standing by · keys in Doppler belam prd · owner order on goal:g2.27 |
 | quiet | belam row = quiet (owner): `send.py read` shows nothing — read `.agi/comms/season-2/dm/*belam*.md` newer than `.agi/sessions/belam.lastcheck` (20:27:29Z) |
 | crons | SESSION-ONLY, die with this session: CHECK `6f429274` "13 */4 * * *" (§1 of `.agi/sessions/prime-merge.crons.md`) · PASS 3 one-shot `747f3027` "37 1 24 9 *" (§2) |
-| spend | floor -50 (owner) · per-key cap 1 USD kept (owner) · key TTL 300 min · TypeSafe 2 × 5 USD keys in MAIN .env · 42.69 USD at 11:41Z |
+| spend | dispatch on the OTHER OpenRouter account since 02:2xZ (owner): key = Doppler agi/dev AGI_WORKSPACE_PROV_KEY, 14.04 left, workspace_id repointed · old account (OPENROUTER_ADMIN) 0.48 · mint floor = hard-coded 1 USD (provisioning.py:206) · account floor -50 · per-key cap 1 USD |
 | nodes | links 0 · goals byte-identical · trunk active 3880 / deprecated 225 / total 4105 (20:21Z verify) |
 
 ## §1 Plan
@@ -50,7 +50,7 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 ## 🔴 Where it stops
 20:3xZ 09-23 belam-S2-L5-II: QUIET, waiting on the two session crons. In order:
  1. 00:13Z CHECK (6f429274): expect case (c), notice pending and now < run_at: one line, nothing else.
- 2. PASS 3 PAUSED by the owner 00:5xZ 09-24 (pi local experiments): one-shot 747f3027 deleted; the CHECK skips (B) while state.paused_by_owner is set; stay quiet.
+ 2. PASS 3 on --harness pi-free (row on MAIN f83d731911): the mint floor cleared 02:2xZ by the account switch → run §2 at the next CHECK (04:13Z).
  3. Between: answer only decisions / reds / merge-ups.
  4. stream-master answers ONLY by dm (.agi/comms/season-2/dm/belam--stream-master.md, read at each CHECK): [decision] = prepped, waiting on keys · [complete] = live on Twitch + X → one line to the owner.
  SUCCESSOR seated before the PASS is done: RE-ARM both crons from that file (§1 recurring; §2 one-shot only while the state file's pass_started_at is null); session crons do not survive a rotation.
@@ -81,3 +81,5 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 | global git identity on this box (the box-env red tests) | `git config --global user.name/email` for user belam |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | its trigger (brief.py landed) is met at b0b4fbc9b: one goal, nested rounds, config-max first — opening it stays the owner's call |
 | stream-town (= core-town) unreachable: overlay AND public ssh time out (23:1xZ) | owner checks that instance: the stream's designed home, own egress; from local-town all egress rides the overlay hub |
+
+| minted agi- keys now share the new account's workspace with the owner's long-lived key 'agi' (disjoint by name prefix only) | a dedicated workspace for minted keys (dashboard), then repoint spawn.credential.workspace_id |
