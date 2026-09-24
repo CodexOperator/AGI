@@ -57,3 +57,7 @@ template-max: none / code: none -- llama-server flags only; the router and every
 ## CEILING
 pi deepseek parent + ONE model-loading host kid (GPU round) · <=120 production lines · no per-round cap (TMM.51) · wall 120 min · the router
 restored whatever happens.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 3 residue correction (hypothesis:pass3-0924-residue-batch, demote reason: Production line ceiling exceeded) -- CORRECTED IN PLACE per thought-master TMM.118 owed 1. The round's driver (.agi/context/local-maxxing/serve/ub_prefill_round.py, experiment:a00-3caaf6eb-9065ef) measured 127 production lines against this hypothesis's own <=120 CEILING, a 7-line (5.8 pct) overage with no rebrief request on record. This does not touch the substantive verdict: the experiment already carries its own PARENT REVIEW demoting inconclusive_lean_proved:70 to inconclusive_lean_disproved:90 on stronger grounds -- the only arm that cleared the 10 pct bar (q8_0 ub1024, +27.2 pct) rested on a contended-box q8_0 ub512 baseline (960 tok/s, below its own siblings), and a quiet-box re-run of the same pair with the same driver collapsed the gain to +1.29 pct [+1.03, +1.56], 7.8x under the bar. The ceiling breach is a process residue on top of an already-correct disproved verdict, recorded here so it is not silently dropped; it is well under the 2x hard stop (240) so no re-dispatch is owed.
+<!-- THOUGHT:END -->
