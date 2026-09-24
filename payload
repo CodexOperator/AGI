@@ -7746,6 +7746,32 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | done | the inventory's "still in code" column = 0, and every migrated family has a guard test that it prints only through the loader |
 | who | director-engine, batched by thought-master · feeds goal:g1.19 (core's engine surface inventory under config-maxxing) |
 
+#### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
+
+# goal:g7.33.10
+
+| | |
+|---|---|
+| goal | write.py writes ONE named row of a node -- a frontmatter field or a schema-declared body row -- and the node type's schema decides both whether that row exists and whether the value's format is valid: no verb can invent a row |
+| origin | the owner 17:57Z 09-24 (verbatim on town:local-maxxing's board) · enables clean re-titling of goals and clean node body modifications |
+| measured | 18:0xZ 09-24, real writes in a scratch worktree: `set` on goal:g7.33.9 admitted all five of an invented field (invented_row), goal_id X9 (fails [goal]'s regex), status bogus (fails its regex), confidence notafloat (fails its types) and a title with no id prefix (no rule declared) -- exit 0 each; write.py consults no schema on edit |
+| scope | every node type with a schema under .agi/context/schemas/ · frontmatter fields, list rows, and body rows the schema declares · checks the row being written, never blocks on an unrelated legacy violation (links.py schema lists those) · NOT create (the spawn gate already runs there) |
+| done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
+| who | director-engine, batched by thought-master (TMM.128) |
+
+#### G7.33.11 — THE GRID IN ONE BRANCH -- grid.py stores a town's grid in one named branch, so a push is one ref and the remote finally holds it — status: active
+
+# goal:g7.33.11
+
+| | |
+|---|---|
+| goal | grid.py stores each branch's grid as a SUBDIRECTORY inside that branch's own tree -- one directory per branch, never a separate remote head and never refs/grid/* -- so branches never share grid state, the grid reaches origin with the branch's own push, merges back through the ordinary merge (or stays as that branch's per-node history), and origin/season2/main + origin/main keep the coarse history of node changes |
+| origin | the owner 17:57Z + 18:17Z + 18:21Z 09-24 (verbatim on town:local-maxxing's board): the fix NOW, worked by the director; the 0.7 GB of failure logs cleaned up; the shape = a per-branch subdirectory, not a separate head |
+| measured | 18:0xZ 09-24: the grid_sync cron commits every 5 min into refs/grid/local-maxxing/ (4,293 refs, newest 17:55:42Z), but its push of refs/grid/local-maxxing/* has failed 967 times -- GitHub rejects each ref "Timed out validating rule, please try again" -> the remote holds 0 of the 4,293 (its 4,204 refs/grid refs are all outside that namespace) -> the town's grid history lives on this box's disk alone · the cron log is 775 MB of those rejection lines · 18:2xZ: what exists = grid.storage_trunk (goal:g14.14.7; config value refs/grid/local-maxxing), a per-trunk ref NAMESPACE -- still one ref per node; no verb stores or pushes the grid as one branch (core/season2/main's grid.py is unchanged since the 09-23 merge-base; ours is newer) |
+| where | the directory derives from a config cell (grid.storage_trunk, one per branch), never a literal · the cron line = config:crons (.agi/nodes/.geometry/crons.md) |
+| done | every node's version count in = out across the move (the 4,293 ref histories carried into the directory, 0 lost) · grid.py commit / log / diff / versions / payload write and read the directory · the grid reaches origin through the branch's own push -- no refs/grid push left in the cron · two branches never write the same grid path · the 5-min grid commit and an agent's commit on the same checkout never drop each other's files (a test) · every version's bytes reachable from the pushed branch (a test) · the push-rejection lines stripped from the cron log once the refs/grid push is gone (before / after bytes reported) · tests pin it |
+| who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130) |
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->
