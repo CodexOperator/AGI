@@ -30,7 +30,8 @@ FAITH = (
 ROLES = ("kid", "parent", "director", "prime_director", "master")
 
 
-def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch):
+def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch,
+                                                            tmp_path):
     """Pi skips repository context files, so its role briefs must carry the
     one context rule agents still need, sourced from the module constant."""
     sentinel = "PAID-FOR-PATH-GUARD-SENTINEL"
@@ -52,9 +53,12 @@ def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch):
         dispatch_py="dispatch.py", target="vision:alive"))
     assert sentinel in advisor
     for profile in ("survival", "ultimate_survival"):
+        # project_root=tmp_path keeps the survival state card off the LIVE
+        # repo: with no root, brief.assemble -> _survival_state_card runs a
+        # real `git status` against this checkout (brief.py:753-760).
         rendered = "\n".join(brief.assemble(
             tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
-            scaffold=None, profile=profile))
+            scaffold=None, profile=profile, project_root=tmp_path))
         assert sentinel in rendered
 
 
