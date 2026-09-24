@@ -8,6 +8,7 @@ the harness block and the town trajectory — and writes NO injection file.
 Each test is a falsifier from the hypothesis node, pinned red-first.
 """
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -60,6 +61,31 @@ def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch,
             tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
             scaffold=None, profile=profile, project_root=tmp_path))
         assert sentinel in rendered
+
+
+def test_survival_state_card_uses_the_passed_project_root(tmp_path):
+    """The survival card's TREE row follows each passed repository root."""
+    roots = []
+    for name, count in (("two", 2), ("five", 5)):
+        root = tmp_path / name
+        root.mkdir()
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        for index in range(count):
+            (root / f"untracked-{name}-{index}.txt").write_text(
+                "untracked\n", encoding="utf-8")
+        roots.append((root, count))
+
+    for profile in ("survival", "ultimate_survival"):
+        rendered = [
+            "\n".join(brief.assemble(
+                tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+                scaffold=None, profile=profile, project_root=root))
+            for root, _ in roots
+        ]
+        assert "TREE  2 dirty/unreviewed" in rendered[0]
+        assert "TREE  2 dirty/unreviewed" not in rendered[1]
+        assert "TREE  5 dirty/unreviewed" in rendered[1]
+        assert "TREE  5 dirty/unreviewed" not in rendered[0]
 
 
 def test_paid_for_path_guard_follows_project_config(tmp_path):
