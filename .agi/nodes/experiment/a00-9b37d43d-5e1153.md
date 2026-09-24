@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands
 next_edges: []
-confidence: 0.9
-edited_by: a00-632e0d0d
+confidence: 0.7
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-9b37d43d-5e1153
 loop: hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands@s2
@@ -23,7 +23,7 @@ season: 2
 thought_session: EF.87
 title: "Standard unified diff: no-EOF marker, honoured by write and GNU patch"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-9b37d43d-5e1153
@@ -86,7 +86,7 @@ Suite: `env -u TMUX -u TMUX_PANE python3 -m pytest
 (under the 2x = 80 stop).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review EF.87 (a00-632e0d0d). (1) Instruction, quoted: "REVIEW THE BYTES, NOT THE RESULT FILE: a kid's own tests are its CLAIM, not your evidence ... Run one negative probe per claim conjunct yourself and record them as probes:; a kid that passes its own suite but fails your probe is lean_disproved with the probe named." (2) What I read and ran. DIFF merge-base..season2/loops/hypothesis-sub-dry-run-preview-i-a00-9b37d43d: extensions/agi/bin/write.py +71/-24 (new _split_keepends splitting on a bare \n only; new _standard_unified_diff over keepends lines with lineterm="\n" appending the '\\ No newline at end of file' marker after any content line that lacks a trailing newline; apply_unified_diff now keepends with a per-entry has_nl that the marker line clears; write.main's dry-run calls _standard_unified_diff instead of split("\n")+lineterm="" and drops the old '+= "\n"'); extensions/agi/tests/test_write_sub.py +81 (test_sub_dry_run_diff_is_a_standard_unified_diff over the three EF.83 shapes plus a canonical node -- write's applier == landed, no bare '+' phantom, marker iff no EOF newline, GNU patch rc=0 and == landed, pytest.skip by name when patch is absent; test_apply_unified_diff_honours_the_no_newline_marker). node_writer.py UNTOUCHED, so update_node is byte-identical by construction. My own probes (scratch probe_parent.py, run against the kid bytes): [no_eof_newline] marker=True, write_applier==landed, GNU patch 2.7.6 rc=0 and ==landed, no_phantom=True; [fm_render_rewrite], [dup_body_frontmatter], [blank_tail] marker=False, both appliers ==landed; [fm_only_noeof] (a shape the kid did NOT test) marker=True, both appliers ==landed; marker removed on an unterminated file -> EditError (refused, no mis-land); the EF.83-style split diff fed to the new applier -> EditError (refused). Named suite 261 passed. (3) Near miss: rendering over split("\n") with lineterm="" satisfies 'the printed diff round-trips write's own applier' and loses GNU patch -- the phantom trailing '' element models a missing EOF newline the way no standard tool reads it, which is exactly the EF.83 residual this round closes. (4) Deviation: I spawned the kid under its own --branch. The current cmd_done order (_append_verdict_to_node at :1655 runs before _auto_commit_worktree at :1738) cannot land a parent review on a separate kid branch in ONE done, because the node is not in the parent checkout when the append runs; the review here is committed by a second done after the branch merge. Accepted the kid's proved verdict; probes pass.
+Demoted by the director from its merge-up review (agi-merge-up-review on pi-free, 03:19Z 09-24, log mur-H2-EF87-r3.log: review demote, verify demote, 3 of 4 defects confirmed): CR and CRLF bytes are still normalized by the node baseline reader (write.py:2751), the payload patch path (write.py:2166) and the body patch path (write.py:2462), so the claim's 'every shape' fails for CR/CRLF files. The LF shapes (the three EF.83 shapes) stand, red to green measured at harvest. Residue: the a/<type:slug> pseudo-path headers (write.py:3188). Next step: a round 4 leaf for the CR/CRLF readers.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
