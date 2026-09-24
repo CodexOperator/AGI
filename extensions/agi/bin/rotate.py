@@ -10467,6 +10467,7 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         env = dict(os.environ, GIT_INDEX_FILE=idx)
 
         def _g(*a, **kw):  # noqa: ANN001, ANN002
+            kw.setdefault("timeout", 60)
             return subprocess.run(["git", "-C", str(top), *a], env=env,
                                   capture_output=True, text=True, **kw)
 
@@ -10503,6 +10504,14 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
                 last = push.stderr.strip() or push.stdout.strip()
                 continue
             return f"authority: OK -- {sha[:9]} -> {branch}"
+        except subprocess.TimeoutExpired as exc:
+            last = (f"authority commit build for {branch} timed out after "
+                    f"{exc.timeout}s")
+            break
+        except OSError as exc:
+            last = (f"could not launch git for the authority commit on "
+                    f"{branch}: {exc}")
+            break
         finally:
             os.unlink(idx)
     # EF.56: distinguish "nothing to publish to" (the authority branch was
