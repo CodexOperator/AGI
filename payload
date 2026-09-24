@@ -1080,7 +1080,8 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
                        effort, settings, debug_file: str, extra: str = "",
                        rc_name: str | None = None,
                        harness: str | None = None,
-                       bin_path: str | None = None) -> list[str]:
+                       bin_path: str | None = None,
+                       project_root: Path | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
     model/effort/settings appended as flags.
@@ -1099,7 +1100,8 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
     if extra:
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
-    prompt_text = brief.successor_prompt(tier=tier, body=body)
+    prompt_text = brief.successor_prompt(tier=tier, body=body,
+                                          project_root=project_root)
     return _build_harness_command(
         harness, name=rc_name or name, prompt_text=prompt_text,
         debug_file=debug_file, model=model, effort=effort, settings=settings,
@@ -1920,6 +1922,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
                 extra=extra, harness=harness, bin_path=_bin,
+                project_root=root,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
