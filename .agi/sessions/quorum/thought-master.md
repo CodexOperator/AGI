@@ -31,29 +31,30 @@ usd0           the local lane is RETIRED as an operating mode (the owner cancell
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-DT research    batch 8 @9809b826ca RETURNED 17:1xZ (TMM.125): lean gate GREEN; ONE residue = the OSC.15 node blames a box OOM for the
-               kid gen 16 stopped under the paid hold (TMM.123) and calls the pi-free re-dispatch a 're-pay' · the rescue itself ACCEPTED (a
-               deterministic CPU-only mechanism check, re-run byte-identical) · TMM.126 = batch 9: the Qwen3-0.6B download APPROVED (owner
+DT research    batch 8 LANDED b27dd43dd2 17:2xZ (OSC.15: Qwen3's q_norm/k_norm apply before RoPE -> the post-RoPE key hook point holds;
+               inconclusive_lean_disproved:10) after ONE return (TMM.125: the node had blamed a box OOM for the kid gen 16 stopped under the
+               paid hold; fixed in 17ddd8a982) · the rescue ACCEPTED (a deterministic CPU-only check, re-run byte-identical) · the board
+               carries it · TMM.126 = batch 9 (DT started 17:2xZ): the Qwen3-0.6B download APPROVED (owner
                09-18 06:5xZ standing yes for downloads on this rig, doc:l5-owner-decisions:130; the node's ceiling reserves ARM4C only) ->
                the scored QK-norm round · [decision] to the Prime 17:1xZ · earlier: CMP.03 DISPROVED · HOOK.01 PROVED 0.9 · HOOK-B.02
                PROVED 0.95 · OSC.13 proved 0.85, OSC.14 disproved 0.82 · SWR-SV.01 + REPLAY.02 HOLD
-LANDED         DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+LANDED         DT b27dd43dd2 (batch 8, OSC.15; lean gate, one return) · DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
 the Prime      both director rows -> claude-sonnet-5 max (3b6e0eb632 + 6d38b9742e) · PASS 3 (6f5ee34e5c) + PASS 4 (ad81688a0b) LANDED ·
                the ladder -> pi-free DONE 431b8edc32 (OWNER 16:5xZ) · still owes: EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-17:2xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's corrected batch 8 tip (TMM.125: 9809b826ca RETURNED for one provenance residue, the OSC.15 node's cause of death; lean gate otherwise GREEN) -> re-run the LEAN gate if the new range still carries no code, then land + push; batch 9 = TMM.126 (the Qwen3-0.6B download APPROVED -> the scored QK-norm round) follows · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127)
+17:3xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127) · batch 8 LANDED b27dd43dd2 + the board refreshed
 ````
-17:2xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's corrected batch 8 tip (TMM.125: 9809b826ca RETURNED for one provenance residue, the OSC.15 node's cause of death; lean gate otherwise GREEN) -> re-run the LEAN gate if the new range still carries no code, then land + push; batch 9 = TMM.126 (the Qwen3-0.6B download APPROVED -> the scored QK-norm round) follows · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127)
+17:3xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127) · batch 8 LANDED b27dd43dd2 + the board refreshed
 ```
-state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open (/tmp/gate-dt-b8 removed)
+state   MAIN: b27dd43dd2 + this card pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
             NOW: DE = R0's [merge-up] -> T0 goal:g7.33.9 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
-            DT = TMM.125 (the batch 8 fix + ONE [merge-up]) -> TMM.126 = batch 9 (the download, then the scored round under ONE pi-free parent) ·
+            DT = TMM.126 = batch 9 (the download, then the scored round under ONE pi-free parent) ·
             next = TMM.128
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
@@ -71,7 +72,9 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
-             positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
+             positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
+             my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
+             17:02:28Z) and DT copied it into the OSC.15 node ·
              NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.128
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
