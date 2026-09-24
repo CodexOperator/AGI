@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Selftests for osc_band_kquant_a00-ddd4762f.py (fixtures + a tiny Qwen2).
 
-Run: /data/ml/.venv/bin/python -m pytest \
+Run: "$(python3 .agi/context/local-maxxing/paths.py ml_python)" -m pytest \
   .agi/context/local-maxxing/osc/test_osc_band_kquant_a00-ddd4762f.py -q
 """
 import importlib.util

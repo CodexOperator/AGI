@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """OSC-CTL.10 control arm: post-RoPE KEY quantization by RoPE-band energy.
 
-Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
-       /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py
+Run: V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" nice -n 19 \
+       "$(python3 .agi/context/local-maxxing/paths.py ml_python)" .agi/context/local-maxxing/osc/osc_band_kquant_a00-527993c5.py
 
 Only the post-RoPE keys are quantized (queries/values untouched). Each KV head's
 32 HF rotate_half pairs (p = dims (p, p+32)) are ranked by OSC.03's profile_pooled
@@ -10,8 +10,7 @@ summed over the head's 7 query heads; a class partition by that rank gets one
 integer width per class, each class absmax-scaled per token per KV head. Arms:
 energy / uniform / random-same-sizes / blockwise4, measured against the
 unquantized model with OSC.04's held-out 4096-token eval and its metrics().
-Selftests: --selftest (see the sibling *_test.py). Out-of-repo roots stay
-literal per OSC.03/04.
+Selftests: --selftest (see the sibling *_test.py). Out-of-repo roots are resolved through paths.py.
 """
 import hashlib
 import itertools
