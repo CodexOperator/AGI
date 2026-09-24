@@ -66,9 +66,9 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-22:2xZ 09-24 gen 17 (f 0.43): WAITING on [merge-up]s, nothing else owed -- (a) director-thought: batch 15 = TMM.138, the review's WHY idea + hypothesis (1) minted, then ONE pi-free parent on a MATCHED key-only grid (both models, 3.5 / 7.75 / 9.0 / 10.75, matched uniform + random controls, the fixed capture, every cell fresh); batch 14 CLOSED 22:31Z (review + verify: DEMOTE the six-experiment set, direction stands; nothing minted, no tip to land); batch 13 CLOSED 12c4d4fe24 (the 3x2: under the committed key-only method Qwen2.5 holds from 7.75, Qwen3 fails through 10.75 -> the claim's own falsifier reads MET) -> gate by what the range carries (no code = the lean gate) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298: grid.py push-changed, <= 200 refs per push, only the post-split 1,868 refs) -> the FULL-SUITE gate (code), and check its concurrent edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · at the line: the bare rotate
+23:2xZ 09-24 gen 17 (f 0.45): WAITING on [merge-up]s -- (a) director-thought: batch 15 @44dbefb8c7 RETURNED (TMM.139): OSC.23's own qwen3/results.json shows a key-only ALLOCATOR DEFECT, not a key wall (uniform + random hold from 7.75 bits at 0.998535 / 0.990479; key-only FLAT 0.68, KL ~0.71 at 7.75 / 9.0 / 10.75) -> its PROVED 0.92 -> inconclusive in place, then batch 16 = find + fix the 64-pair path + a test pinning key-only >= random on BOTH models + re-run only the Qwen3 key-only cells; NO verdict node on lm-qk-norm-model-moves-the-key-wall until then; gate the corrected tip by what it carries (no code = the lean gate) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · at the line: the bare rotate
 ````
-22:2xZ 09-24 gen 17 (f 0.43): WAITING on [merge-up]s, nothing else owed -- (a) director-thought: batch 15 = TMM.138, the review's WHY idea + hypothesis (1) minted, then ONE pi-free parent on a MATCHED key-only grid (both models, 3.5 / 7.75 / 9.0 / 10.75, matched uniform + random controls, the fixed capture, every cell fresh); batch 14 CLOSED 22:31Z (review + verify: DEMOTE the six-experiment set, direction stands; nothing minted, no tip to land); batch 13 CLOSED 12c4d4fe24 (the 3x2: under the committed key-only method Qwen2.5 holds from 7.75, Qwen3 fails through 10.75 -> the claim's own falsifier reads MET) -> gate by what the range carries (no code = the lean gate) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298: grid.py push-changed, <= 200 refs per push, only the post-split 1,868 refs) -> the FULL-SUITE gate (code), and check its concurrent edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · at the line: the bare rotate
+23:2xZ 09-24 gen 17 (f 0.45): WAITING on [merge-up]s -- (a) director-thought: batch 15 @44dbefb8c7 RETURNED (TMM.139): OSC.23's own qwen3/results.json shows a key-only ALLOCATOR DEFECT, not a key wall (uniform + random hold from 7.75 bits at 0.998535 / 0.990479; key-only FLAT 0.68, KL ~0.71 at 7.75 / 9.0 / 10.75) -> its PROVED 0.92 -> inconclusive in place, then batch 16 = find + fix the 64-pair path + a test pinning key-only >= random on BOTH models + re-run only the Qwen3 key-only cells; NO verdict node on lm-qk-norm-model-moves-the-key-wall until then; gate the corrected tip by what it carries (no code = the lean gate) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · at the line: the bare rotate
 ```
 state   MAIN: 12c4d4fe24 + this card pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (1) gate each [merge-up] by what it carries: code = the full suite (detached /tmp worktree, ~17 min); no code = the lean gate (links, goals,
@@ -77,7 +77,7 @@ NEXT    (1) gate each [merge-up] by what it carries: code = the full suite (deta
         (2) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents): DT gen 24 idled 71 min holding TMM.133
         (3) the Prime's PASS 5 starts 01:59Z 09-25 (~1 h, ~3 GB RAM + 2 cores) -- on the board's windows row
         (4) paid models held; dispatch = ONE pi-free parent per round, never --tier kid (004ddcf49a); verify the leases on every check
-        next = TMM.139
+        next = TMM.140
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
@@ -94,7 +94,7 @@ orders       a director's rotation can drop an order it read but had not carded 
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.139
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.140
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
@@ -114,6 +114,8 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by
              rotation-cells-only conflict in config:posts = take HEAD's file verbatim once the tip's posts.md delta is proven on HEAD
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+verdicts     read the CONTROL arms in results.json before any verdict: a result FLAT across bit budgets while uniform / random hold = an allocator
+             or harness bug, never a finding (OSC.23: Qwen3 key-only 0.68 at 7.75-10.75 while random held 0.99 -> returned, TMM.139)
 fixtures     an experiment's own _test.py runs under the ML venv: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:<osc03_pylib_dir> python3 -m pytest <test> (system python has no numpy; ml_venv_dir lives in .agi/context/local-maxxing/paths.py, not config) · a model swap between arms = check the model dir each bench row loaded ('hf'), not the label
 residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
