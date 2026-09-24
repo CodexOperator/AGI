@@ -1,0 +1,40 @@
+{
+  "agent_id": "a00-206147f4",
+  "selftest": "PASS: toy 2 / 1 / 0 marker copies counted as 2 / 1 / 0",
+  "arms": {
+    "default": {
+      "request_bytes": 56019,
+      "system_prompt_bytes": 54858,
+      "estimated_tokens_bytes_div_3_80": 14436.3,
+      "system_prompt_sha256": "00f7bab95256c0dc40b706afee08e1084f2a85d6d868554b4fd3a026fca8c6b9",
+      "claude_marker_copies": 2
+    },
+    "no_context": {
+      "request_bytes": 1751,
+      "system_prompt_bytes": 1506,
+      "estimated_tokens_bytes_div_3_80": 396.3,
+      "system_prompt_sha256": "5cda339d8af695bfa0c130274536a2b0dab396f4fb3fc33c067391c31d0cba0a",
+      "claude_marker_copies": 0
+    },
+    "one_copy": {
+      "request_bytes": 28803,
+      "system_prompt_bytes": 28105,
+      "estimated_tokens_bytes_div_3_80": 7396.1,
+      "system_prompt_sha256": "a849c3da55651978653bb7b428b1860b7dcd70f4711fcb916028e7368a247a5b",
+      "claude_marker_copies": 1
+    }
+  },
+  "diff_summary": {
+    "default_to_one_copy_estimated_token_saving": 7040.2,
+    "claude_payload_bytes_removed": 26417,
+    "only_duplicate_payload_moved": false,
+    "other_moved": {
+      "removed_project_context_preamble_bytes": 95,
+      "removed_between_copies_path_heading_bytes": 59,
+      "default_suffix": "\n\n\nCurrent date: 2026-09-24\nCurrent working directory: /data/work/agi/.agi/worktrees/a00-35435a6e",
+      "one_copy_suffix": "\nCurrent date: 2026-09-24\nCurrent working directory: /data/work/agi/.agi/worktrees/a00-35435a6e",
+      "unchanged_base_prefix": true
+    },
+    "unified_diff_hunk_count": 2
+  }
+}

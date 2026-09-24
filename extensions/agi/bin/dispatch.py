@@ -1910,6 +1910,17 @@ def main() -> int:
         return 1
     cfg = json.loads(cfg_path.read_text())
 
+    # hypothesis:a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-ladder-row
+    # A zero-cost parent can spawn a kid without paying for another harness.
+    # The child inherits that parent harness when it does not choose one;
+    # an explicit flag, a seat, or a non-zero-cost parent keeps the old path.
+    if (args.harness is None and args.seat is None and args.tier == "kid"):
+        inherited = os.environ.get("AGI_HARNESS")
+        inherited_row = (cfg.get("harnesses") or {}).get(inherited) or {}
+        if inherited_row.get("zero_usd") is True:
+            args.harness = inherited
+            print(f"harness: inherited zero_usd harness {inherited} from AGI_HARNESS")
+
     # hypothesis:l3w4-seat-registry — a named seat overrides the (tier, role)
     # ladder class table with the seat's own row. Resolved here, after `root`
     # exists and before the harness block reads the ladder.
