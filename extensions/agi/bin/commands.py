@@ -199,7 +199,15 @@ def ordered_workflows(root) -> set[str]:
 #: The closed set a manifest entry's `side_effects` may name (a typo here is a
 #: choice a proposer would act on, so the set is data a test can see).
 SIDE_EFFECTS = ("read", "graph-write", "comms", "spawn", "spend",
-                "network", "destructive")
+                "network", "destructive", "box-write", "long-running")
+
+#: The ONE never-proposable set beside `SIDE_EFFECTS`: a verb that spends,
+#: spawns, destroys, writes box state outside the graph (crontab, systemd
+#: units, a git hook, the env file) or never exits on its own is never offered.
+#: `_entry` forces `proposable: false` for any of these, so the floor cannot be
+#: lowered by a node edit; `propose` refuses a supplied arg that declares one.
+NEVER_PROPOSABLE = frozenset({"spawn", "spend", "destructive",
+                              "box-write", "long-running"})
 
 
 def _derived_cli_verb(raw: list[str]) -> tuple[str, str]:
@@ -222,8 +230,8 @@ def _entry(name, argv, m, cli, verb, side, prop, purpose=""):
          "proposable": bool(m.get("proposable", prop))}
     if m.get("reason"):
         e["reason"] = str(m["reason"])
-    if e["side_effects"] in ("spawn", "spend", "destructive"):
-        e["proposable"] = False          # a verb that spends or spawns is never offered
+    if e["side_effects"] in NEVER_PROPOSABLE:
+        e["proposable"] = False          # spend/spawn/destructive/box-write/long-running
     return e
 
 
@@ -337,6 +345,10 @@ def propose(root, name: str, args: dict | None = None) -> list[str]:
             if arg.get("required"):
                 raise CommandError(f"{name!r}: missing required arg {n!r}")
             continue
+        if str(arg.get("side_effects") or "") in NEVER_PROPOSABLE:
+            raise CommandError(
+                f"{name!r}: arg {n!r} is never proposable "
+                f"(side effect {arg['side_effects']!r})")
         v = _coerce(given[n], arg)
         if (arg.get("choices") or []) and v not in arg["choices"]:
             raise CommandError(

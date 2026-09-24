@@ -258,6 +258,27 @@ def test_live_spawn_records_harness_spec_and_drops_the_key(
         f"got {spec!r}")
 
 
+def test_live_spawn_exports_its_own_harness_over_an_inherited_one(
+        project, monkeypatch, capsys):
+    """The child must know which harness resolved FOR IT, not merely inherit
+    the parent's AGI_HARNESS. The conftest strips every AGI_* var, so this
+    setenv is the only inherited source; a --harness pi-local spawn under an
+    inherited AGI_HARNESS=pi must hand its child pi-local.
+    """
+    captured = _stub_popen(monkeypatch)
+    monkeypatch.setenv("AGI_HARNESS", "pi")
+    monkeypatch.setattr(sys, "argv", _argv(project, "pi-local"))
+
+    code = dispatch.main()
+    assert code == 0, (
+        f"live spawn must succeed, got rc {code}\n"
+        f"{capsys.readouterr().out}")
+
+    assert captured["env"]["AGI_HARNESS"] == "pi-local", (
+        f"the child must carry the resolved harness, not the inherited one; "
+        f"got {captured['env'].get('AGI_HARNESS')!r}")
+
+
 def test_live_spawn_keeps_the_key_for_an_unmarked_row(
         project, monkeypatch, capsys):
     """Guard the other direction: the default row still receives the inherited
