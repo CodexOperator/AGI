@@ -121,8 +121,7 @@ BATCH 5 PROGRESS (06:3xZ, box load very high today -- 68.8/141.4/130.0 at dispat
         iff its tool_results count is LOWER than request N-1's (a structural drop, zero string/marker search anywhere in the file). Mints a
         SIBLING experiment node under hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared; CMP.03 itself (disproved,
         source-verified, conf 0.95) is untouched.
-  (a-2) HOOK-B.03 DISPATCHING (background task bu11c7iwh at rotation time, orders written and dry-run clean, real dispatch launched but not yet
-        confirmed spawned -- CHECK spawn_budget.py status / .agi/sessions/iter-HOOK-B.03/manifest.json FIRST). Orders
+  (a-2) HOOK-B.03 LIVE -- parent a00-3611db03 pid=3923888, branch season2/loops/hypothesis-lm-pi-context-hook-tr-a00-3611db03. Orders
         .agi/sessions/orders/HOOK-B.03.{parent,kid}.txt (gitignored): a committed Node.js script that imports the REAL
         datasets/brain-swap/2026-09-24/a00-54d3d9b0-context-trim.js (never a copy), captures its context handler via a fake `pi.on`, invokes it
         with getContextUsage()=null + a 26,600-char system prompt + 2x 100,000-char toolResult bodies + 1 assistant message, and asserts 5 things
