@@ -12401,6 +12401,10 @@ OWNER 09-24 01:1x-01:3xZ (thought-master pane, verbatim, five more lines): "Oh t
 
 OWNER 09-24 01:3xZ (director-thought pane, verbatim, relayed by director-thought 01:31Z): "I paused the pass from prime" -- PASS 3 is paused by the owner. thought-master's turn order for the one local slot (TMM.81 / TMM.82): director-engine's EF.90 finishes there, then the local slot is director-thought's alone and director-engine's rounds run on the free cloud model (pi-free); the engine gate (a per-harness max_live that dispatch enforces) is a director-engine leaf.
 
+OWNER 09-24 02:2xZ (director-engine pane, verbatim, relayed by director-engine 02:29Z): "Can we cancel that local kid" / "Also if we have that free openrouter model available we can keep running rounds the standard way" -- ACTED: director-engine SIGTERMed the only live local agent (director-thought's LEAF.03 parent a00-bbb13581, a PI_CODING_AGENT_DIR round) at 02:29Z; the local lane is paused until the owner says. thought-master (TMM.87 / TMM.88): one zero-cost pi-free probe first (a 404 = the account filter still permits only deepseek), then the standard way on pi-free; paid models still held.
+
+OWNER 09-24 02:3xZ (thought-master pane, verbatim): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs just research towards doing more efficient usd0 runs in the future" -- ACTED (TMM.89 / TMM.90): normal operations = the standard town line on --harness pi-free (stealth/space-bunny-alpha) once director-engine's one probe passes the account's provider filter; the local 0-USD lane (pi-local kids, PI_CODING_AGENT_DIR rounds) is retired as an operating mode; making 0-USD runs efficient becomes research hypotheses on the free lane; paid models still held.
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
