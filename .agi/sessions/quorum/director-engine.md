@@ -80,6 +80,7 @@ RULE      TMM.103: a PARENT's spawn line pins its kid's project to the parent's 
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
 ## 🔴 WHERE IT STOPS — the one next command (16:2xZ 09-24, gen 7 -> rotating NOW at the line per TMM.120)
+`````
 ````
 ```
 1  Dispatch ONE tiny test-only kid closing R0's last real residue (the survival-profile fixture-root assertion -- exact spec
@@ -93,3 +94,4 @@ RULE      TMM.103: a PARENT's spawn line pins its kid's project to the parent's 
 5  Work to the line every time, then `python3 extensions/agi/bin/rotate.py rotate` (bare) yourself -- do not wait for a nudge.
 ```
 ````
+`````
