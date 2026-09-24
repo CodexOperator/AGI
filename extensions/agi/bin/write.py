@@ -2478,6 +2478,44 @@ def _target_text(root, edit: "Edit", target: str,
 _HUNK_RE = re.compile(
     r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@.*")
 
+_NO_EOF_MARKER = "\\ No newline at end of file"
+
+
+def _split_keepends(text: str) -> list[str]:
+    """Split on a bare `\n` ONLY, keeping the newline on terminated lines.
+
+    `str.splitlines(True)` also splits on `\r`, `\v`, `\f` and friends, which
+    would corrupt a node whose bytes contain any of them. This is the one
+    line-splitter `apply_unified_diff` and the diff renderer share, so the
+    two halves agree on what a "line" is.
+    """
+    parts = text.split("\n")
+    lines = [p + "\n" for p in parts[:-1]]
+    if parts[-1]:
+        lines.append(parts[-1])
+    return lines
+
+
+def _standard_unified_diff(before: str, after: str, *, fromfile: str,
+                           tofile: str) -> str:
+    """`difflib.unified_diff` rendered as a STANDARD unified diff.
+
+    Both sides are compared keepends, so a missing EOF newline is a real line
+    difference (exactly as GNU diff sees it), and every content line with no
+    trailing newline is followed by the `\\ No newline at end of file` marker.
+    The split("\n") representation instead models a missing EOF newline as a
+    phantom empty trailing line, which GNU `patch` rejects (hypothesis:sub-
+    dry-run-preview-is-the-bytes-update-node-lands).
+    """
+    out = []
+    for line in difflib.unified_diff(
+            _split_keepends(before), _split_keepends(after),
+            fromfile=fromfile, tofile=tofile, lineterm="\n"):
+        out.append(line)
+        if not line.endswith("\n"):
+            out.append("\n" + _NO_EOF_MARKER + "\n")
+    return "".join(out)
+
 
 def apply_unified_diff(original: str, diff: str) -> str:
     """Apply a unified diff to `original`, fail-closed, in memory.
@@ -2485,7 +2523,10 @@ def apply_unified_diff(original: str, diff: str) -> str:
     hypothesis:l3-write-partial-diffs-as-writes. Reads the grid's own diff
     vocabulary (what `git diff` / `difflib.unified_diff` emit): `---`/`+++`
     headers are optional, `@@` hunks carry body lines prefixed with space
-    (context), `-` (removed) or `+` (added).
+    (context), `-` (removed) or `+` (added). A `\\ No newline at end of file`
+    marker strips the trailing newline from the line before it, so a patch
+    round-trips a file whose last line is unterminated -- the marker GNU
+    `patch` emits and demands.
 
     **No partial application, ever.** Every context line and every removal is
     checked against the payload's current bytes; the first mismatch raises
@@ -2493,13 +2534,14 @@ def apply_unified_diff(original: str, diff: str) -> str:
     header is malformed, or body bytes that arrive outside any hunk, also
     refuse. The result is a single new string built entirely in memory.
     """
-    orig = original.split("\n")
+    orig = _split_keepends(original)
     diff_lines = diff.split("\n")
     if diff_lines and diff_lines[-1] == "":
         diff_lines = diff_lines[:-1]
 
     # --- Collect the hunks first, so a malformed diff refuses before any
-    # state has been touched. ---
+    # state has been touched. Each body entry carries `has_nl`: the marker
+    # line clears it on the entry it follows. ---
     hunks = []
     i, n = 0, len(diff_lines)
     while i < n:
@@ -2515,12 +2557,19 @@ def apply_unified_diff(original: str, diff: str) -> str:
             while i < n and not diff_lines[i].startswith("@@"):
                 b = diff_lines[i]
                 i += 1
+                if b == _NO_EOF_MARKER:
+                    if not body:
+                        raise EditError(
+                            "no-newline marker with no preceding line")
+                    action, content, _ = body[-1]
+                    body[-1] = (action, content, False)
+                    continue
                 if not b:
-                    body.append((" ", ""))   # a context blank line
+                    body.append((" ", "", True))   # a context blank line
                     continue
                 if b[0] not in "+- ":
                     raise EditError(f"bytes outside any hunk: {b!r}")
-                body.append((b[0], b[1:]))
+                body.append((b[0], b[1:], True))
             hunks.append((old_start, new_start, body))
         else:
             # `---`/`+++` path headers and stray blank separators are
@@ -2538,28 +2587,29 @@ def apply_unified_diff(original: str, diff: str) -> str:
         while oi < target:
             out.append(orig[oi])
             oi += 1
-        for action, content in body:
+        for action, content, has_nl in body:
+            want = content + ("\n" if has_nl else "")
             if action == " ":
-                if oi >= len(orig) or orig[oi] != content:
+                if oi >= len(orig) or orig[oi] != want:
                     got = (repr(orig[oi]) if oi < len(orig) else "<EOF>")
                     raise EditError(
                         f"context mismatch at original line {oi + 1}: "
-                        f"diff expects {content!r}, file has {got}")
+                        f"diff expects {want!r}, file has {got}")
                 out.append(orig[oi])
                 oi += 1
             elif action == "-":
-                if oi >= len(orig) or orig[oi] != content:
+                if oi >= len(orig) or orig[oi] != want:
                     got = (repr(orig[oi]) if oi < len(orig) else "<EOF>")
                     raise EditError(
                         f"removal mismatch at original line {oi + 1}: "
-                        f"diff expects {content!r}, file has {got}")
+                        f"diff expects {want!r}, file has {got}")
                 oi += 1
             else:                       # action == "+"
-                out.append(content)
+                out.append(want)
     while oi < len(orig):
         out.append(orig[oi])
         oi += 1
-    return "\n".join(out)
+    return "".join(out)
 
 
 def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
@@ -3127,18 +3177,15 @@ def main(argv: list[str] | None = None) -> int:
             _before = _baseline_node_text(root, edit.node_id)
             _after = _landed_node_text(root, edit, actor=args.actor,
                                        session=args.session)
-            # Split on a bare "\n" with `lineterm=""` and rejoin on "\n",
-            # matching `apply_unified_diff`'s own split/join. `splitlines(True)`
-            # emits a MALFORMED diff when the last line has no trailing newline
-            # (it concatenates the `-` and `+` forms onto one line), so the
-            # printed patch could not be applied back (hypothesis:sub-dry-run-
-            # preview-is-the-bytes-update-node-lands).
-            _sdiff = "\n".join(difflib.unified_diff(
-                _before.split("\n"), _after.split("\n"),
-                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}",
-                lineterm=""))
-            if _sdiff:
-                _sdiff += "\n"
+            # A STANDARD unified diff: compared keepends so a missing EOF
+            # newline is a real line difference, rendered with the `\ No
+            # newline at end of file` marker GNU `patch` demands. The old
+            # split("\n") render modelled a missing EOF newline as a phantom
+            # empty trailing line and GNU patch rejected the printed diff
+            # (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+            _sdiff = _standard_unified_diff(
+                _before, _after,
+                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}")
             edit.sub_diff = _sdiff
             sys.stdout.write(_sdiff)
             if _sdiff and not _sdiff.endswith("\n"):

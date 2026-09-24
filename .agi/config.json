@@ -71,8 +71,7 @@
         "parent": "OrcaBonsai-27B-C2"
       },
       "allowed_extra": [
-        "OrcaBonsai-27B-C2",
-        "Qwen3.5-9B-Q4_K_M"
+        "OrcaBonsai-27B-C2"
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },

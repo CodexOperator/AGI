@@ -3151,7 +3151,7 @@ def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
     return None
 
 
-def _load_rows(root: Path) -> list | None:
+def _load_rows(root: Path, do_fetch: bool = True) -> list | None:
     """The seat rows, through the SAME resolver whois uses: the PUSHED ref
     first, then the working-tree rows as the fallback. Returns None when
     neither yields any rows -- a reader then labels any sig FORGED rather
@@ -3165,7 +3165,7 @@ def _load_rows(root: Path) -> list | None:
     freshly keyed/rotated post's signed dms verify instead of reading
     UNKEYED/FORGED until the hourly push. A pushed row that DOES name a key
     stays authoritative (a stale MAIN key never overrides origin)."""
-    seeded = _pushed_seats(root, authority_ref(root), True)
+    seeded = _pushed_seats(root, authority_ref(root), do_fetch)
     if seeded is not None:
         rows, _sha, _resolved_ref = seeded
         if rows:
