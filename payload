@@ -3201,6 +3201,23 @@ CHARTER TABLE REVISED 22:3xZ 09-20 (thought-master; every number on its node): (
 ## Agent Notes
 OWNER 23:47Z (via Prime XX): the hub weak point — the old single box recovery path + its inbound-closed posture — is the OWNER to handle; this goal records it as the owner own item and asks nothing.
 
+### G5.32 — TEMPLATE-MAX FOR MODEL-FACING PROSE -- every warning, refusal, nudge and reminder the engine sends a model loads at run time from a template, never a literal in a build node — status: active
+
+# goal:g5.32
+
+# goal:g5.32
+
+| | |
+|---|---|
+| goal | every warning, refusal, nudge and reminder the engine sends back to a MODEL loads at run time from a template -- never a literal in a build node |
+| origin | the owner 16:20Z 09-24 (verbatim on town:local-maxxing's board) · first case: rotation_alert.py's band text read as a stop (director-engine idled at 0.40 of the 0.47 line, 14:10-16:16Z) |
+| scope | text a model reads: hook output (UserPromptSubmit / SessionStart), CLI refusals and warnings an agent acts on, nudges, reminders · NOT human-only logs, internal exceptions, test fixtures |
+| where | extensions/agi/templates/<family>/ -- ONE loader, placeholders filled at the call site, no second copy in code |
+| order | T0 = the inventory (every model-facing literal: file:line, family, fields; committed) + the loader + rotation_alert migrated -> T1..Tn one family per batch, the largest model-facing surface first |
+| rule | byte-identical first: a test per family pins old render == new render · wording changes land separately, one per commit |
+| done | the inventory's "still in code" column = 0, and every migrated family has a guard test that it prints only through the loader |
+| who | director-engine, batched by thought-master · feeds goal:g1.19 (core's engine surface inventory under config-maxxing) |
+
 ### G6.1 — Legacy direct links absorbed from old top-level roots — status: retired
 
 <!-- BODY:BEGIN -->
