@@ -109,12 +109,13 @@ S2 LEAVES (TMM.76 step 2; route per TMM.79 01:30Z, OWNER 01:1x-01:3xZ verbatim o
          (pi-free, 02:16:07Z) DIED in 6 s, 0 tokens: OpenRouter 404 "your account's allowed-providers setting permits only: deepseek" -> [red] to TM
          02:18Z (the owner's fix: the account's privacy page, allowed providers) · the free lane is DEAD for every post until then · PAID stays held
          (that filter permits deepseek = paid: a local kid that loses PI_CODING_AGENT_DIR would now SPEND -> verify every local kid's env)
-   NEXT   leaf A on the LOCAL slot as LEAF.03 (LEAF.02 = the dead free-lane parent). READY: trunk merged 8aa3da4af1 + mirror pushed · orders
-         .agi/sessions/orders/LEAF.03.parent.txt (ONE kid, its spawn line names PI_CODING_AGENT_DIR itself, cli.py wait --max-seconds 3000) +
-         LEAF.03.kid-A.txt (the 11 values re-verified vs config at HEAD) -> on the gate (no live EF.* in spawn_budget.py status), --dry-run, then:
-         PI_CODING_AGENT_DIR=/data/ml/pi-agent-local python3 extensions/agi/bin/dispatch.py . LEAF.03 --target hypothesis:lm-paths-py-resolves-proposed-box-roots
-         --level small --tier parent --harness pi --branch --detach --orders .agi/sessions/orders/LEAF.03.parent.txt --from director-thought
-         then CHECK the kid the moment it spawns: /proc/<kid pid>/environ has PI_CODING_AGENT_DIR + the brain log shows its requests -- else CUT it
+   LIVE   LEAF.03 = leaf A on the LOCAL slot, dispatched 02:19:12Z (gate: EF.90 pid gone, spawn_budget 0/30; TMM.86: pi-free HOLD, local goes on)
+         parent a00-bbb13581 pid 960588 · branch season2/loops/hypothesis-lm-paths-py-resolves--a00-bbb13581 · base fba89c81e1 (trunk merged + mirror
+         pushed) · VERIFIED: wrapper + pi carry PI_CODING_AGENT_DIR=/data/ml/pi-agent-local; the brain prefilled its first turn (~25.6K tokens, ~270 tok/s)
+         orders .agi/sessions/orders/LEAF.03.parent.txt + LEAF.03.kid-A.txt · my watch (dies with this session) CUTS the kid if its env lacks the dir
+   NEXT   when the kid spawns: its env + the brain log (its requests) -- by hand if the watch is gone · when the parent calls done: review in place
+         against the bytes (paths.py + test_paths_local.py + ONE experiment node; the neighbourhood command; 2 values by hand) -> merge the round
+         branch into mine -> then size the B/C leaves from its measured bar (turns, tool calls, peak context, wall)
          B/C split waits on LEAF.02's measured bar: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node's f1f675975f count, no drift)
    VERIFY this first round IS the check: the brain log (docker logs brain-orcabonsai27b) shows the parent's AND the kid's requests; each node names its
          REAL brain (OrcaBonsai-27B-C2) even where pi reports the ladder model · NEVER restart brain-orcabonsai27b while a local round runs (owner)
