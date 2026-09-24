@@ -827,7 +827,7 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
              _rotate_self_argv(b, seat, f"{_stops_line(root, seat)} | {line}")]
     if os.environ.get("AGI_HOOK_NO_SPAWN"):
         _CAPTURE_LOGGED.extend(argvs)
-        print(f"rotation: capture for {seat} declined (AGI_HOOK_NO_SPAWN).")
+        print(render("rotation_alert", "capture_declined", seat=seat))
         return "capture-no-spawn"
     card.write_text(f"{AUTO_CAPTURED}\n" + card.read_text(encoding="utf-8"),
                     encoding="utf-8")
@@ -842,7 +842,7 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
             "bash", str(len(handoff_argv)), *handoff_argv, *rotate_argv],
            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
            stdin=subprocess.DEVNULL, start_new_session=True)
-    print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")
+    print(render("rotation_alert", "captured", seat=seat, minutes=minutes, line=line))
     return "captured"
 
 
@@ -891,8 +891,8 @@ def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
         return False
     which = _merge_in_flight(root)
     if which or _suite_lock_held(root):
-        print(f"{DEFER_PREFIX} ({which or 'suite-lock-held'}) — the captive "
-              "auto-rotate does not fire while that holds.")
+        print(render("rotation_alert", "captive_deferred_body",
+                     prefix=DEFER_PREFIX, which=which or "suite-lock-held"))
         return False
     line = (f"auto-captured at f={fraction:.4f} at the captive ratio "
             f"{ratio:g} x the line, no self-rotate")
