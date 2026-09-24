@@ -48,6 +48,20 @@ def test_acquire_admits_up_to_the_cap_and_then_refuses(root: Path):
         "the fourth agent must be refused, not queued")
 
 
+def test_acquire_refuses_a_harness_at_its_row_max_live(root: Path, capsys):
+    (root / ".agi").mkdir(exist_ok=True)
+    (root / ".agi" / "config.json").write_text(
+        '{"harnesses": {"pi-local": {"max_live": 1}}}')
+    first = spawn_budget.acquire(root, 25, "local-1", harness="pi-local")
+    assert first is not None
+    assert json.loads(first.path.read_text())["harness"] == "pi-local"
+    assert spawn_budget.acquire(root, 25, "local-2", harness="pi-local") is None
+    err = capsys.readouterr().err
+    assert "pi-local" in err and "(1/1)" in err
+    assert spawn_budget.acquire(root, 25, "global", harness="pi") is not None
+    assert spawn_budget.acquire(root, 25, "bare") is not None
+
+
 def test_acquire_refuses_while_paused_and_admits_once_resumed(root: Path):
     """hypothesis:l3-reaper-restarts-through-stop — the structural form of
     an owner stop order. Refuses even with the cap wide open; resumes
