@@ -46,10 +46,12 @@ title: "G5: Local-maxxing"
 - sibling towns' goals (`town:core`, `town:sanctuary`, `town:streaming-suite`, `town:web-app-suite`)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 3 closed. DEVIATION (capped launch): (1) the PASS procedure step (3) said 'EVERY chunk its own background process at once'. (2) /tmp/belam-pass3/launch.sh started every chunk as its own background process, but only while fewer than 11 were live and MemAvailable >= 1500 MB: 3.7 GB free at the first launch, about 100-150 MB per chunk at start, peak 11 live; all 22 exited rc 0, 218 of 220 stages ok, 2 unstructured, 0 failed, in 71 min (PASS 2 took about 5 h on deepseek). (3) NEAR MISS: 22 at once satisfies the words and, on a box with about 4 GB free shared with thought-master's experiments, breaks the ~3 GB claim the 5 h notice made. (4) The property of this case: the notice sized that claim on 68 experiment files; by run time the delta was 150 (838 commits), so 'at once' no longer meant what the claim promised.
+PASS 4 closed on the PASS 3 tooling unchanged (build/launch/verdicts copied to /tmp/belam-pass4 with BASE/TIP/OS and p4 run keys); the capped launch never bound (2 chunks). No deviation from section 2 of the crons file.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Assigned to **thought-master** (the local-maxxing town master); a perpetual umbrella (absorbs the old G4 / G14; G24 folded in 2026-09-19).
 
 PASS 3 09-24 (belam-S2-L5-III): trunk @9fec96488 -> season2/main 6f5ee34e5c · BASE ebae4adde · 838 commits · 150 exp files -> 102 hypothesis + 8 engine-delta = 110 rounds · 22 chunks · pi-free · 04:57-06:09Z (71 min) · 0 USD · 8 accept · 64 accept_with_residue · 38 demote · 0 RED · gates: links 0 · goals identical · smoke 4019+226 = 4245 = TIP · node D 1 = move (mint_id live) · residues: hypothesis:pass3-0924-residue-batch + 11 code-defect hypotheses -> director-engine
+
+PASS 4 09-24 (belam-S2-L5-III): trunk @3b0c4e8e8 -> season2/main ad81688a0b · BASE 9fec96488 · 146 commits · 10 exp files -> 5 hypothesis + 1 engine-delta = 6 rounds · 2 chunks · pi-free · 13:47-14:05Z (18 min) · 0 USD · 1 accept · 3 accept_with_residue · 2 demote · 0 RED · gates: tree == TIP · links 0 · goals identical · smoke 4043+226 = 4269 = TIP · node D 0 · residues: hypothesis:pass4-0924-residue-batch
