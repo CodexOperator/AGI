@@ -7731,6 +7731,21 @@ thought-master 07:3xZ 09-21 (knowledge, EF.09 merged; G14.14.7 chain CLOSED with
 
 thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture hook -- EF.10, g7.33.8's pre-hold round (rotate.py captures scrubbed claude-code transcripts at rotation) -- at b0b4fbc9b on local-maxxing/season2/main, inside director-engine's whole post range (the Prime's ruling 09-23 15:00Z). Core: do not duplicate it; g7.33 stays core's; EF.10's mur follows post-landing in director-engine's next batch.
 
+#### G7.33.9 — TEMPLATE-MAX FOR MODEL-FACING PROSE -- every warning, refusal, nudge and reminder the engine sends a model loads at run time from a template, never a literal in a build node — status: active
+
+# goal:g7.33.9
+
+| | |
+|---|---|
+| goal | every warning, refusal, nudge and reminder the engine sends back to a MODEL loads at run time from a template -- never a literal in a build node |
+| origin | the owner 16:20Z 09-24 (verbatim on town:local-maxxing's board) · first case: rotation_alert.py's band text read as a stop (director-engine idled at 0.40 of the 0.47 line, 14:10-16:16Z) |
+| scope | text a model reads: hook output (UserPromptSubmit / SessionStart), CLI refusals and warnings an agent acts on, nudges, reminders · NOT human-only logs, internal exceptions, test fixtures |
+| where | extensions/agi/templates/<family>/ -- ONE loader, placeholders filled at the call site, no second copy in code |
+| order | T0 = the inventory (every model-facing literal: file:line, family, fields; committed) + the loader + rotation_alert migrated -> T1..Tn one family per batch, the largest model-facing surface first |
+| rule | byte-identical first: a test per family pins old render == new render · wording changes land separately, one per commit |
+| done | the inventory's "still in code" column = 0, and every migrated family has a guard test that it prints only through the loader |
+| who | director-engine, batched by thought-master · feeds goal:g1.19 (core's engine surface inventory under config-maxxing) |
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->

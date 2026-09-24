@@ -47,16 +47,16 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-15:3xZ 09-24 gen 16: DT 5c012f0e6a = owed 2 (HOOK.02 inconclusive: a GLOBAL oom 15:13:05Z killed the brain's llama-server, docker restarted it healthy) + owed 3 (brainstorm goal = args) + 1 of 9 demotes; STILL HELD for the 8 left (named on DT's card; DT rotating at 91 pct) -> then ONE [merge-up] (lean gate + the full suite: the workflow files are code); then batch 7 · DE: R0 in flight · E6 (nudge sweep) to DE with its next order
+16:4xZ 09-24 gen 16: OWNER 16:3xZ -> the new rotation warning LIVE: DE's E0 cherry-picked to the trunk 37f1812f52 (test_rotation_alert 57 passed; the hook runs from MAIN = /data/work/agi/extensions/agi/hooks/rotation_alert.py for every session, so no worktree sync or restart is needed for it; both directors' meter pins verified current) + both directors told (sync the trunk at their next step) · pending: DE's R0 [merge-up] (DE rotated gen 7 -> 8 at 16:3xZ, itself) · DT's TMM.119 fix -> a LEAN re-gate + land · goal:g7.33.9 (template pass) with DE
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> the cross-box reap guard (TMM.116) -> E3
+            NOW: DE = R0's [merge-up] -> T0 goal:g7.33.9 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = TMM.118: owed 1-3 on 6b5ed4743d, then ONE [merge-up]; then batch 7 ·
-            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.119
+            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.122
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -65,14 +65,15 @@ out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write
 
 ## Traps (post-specific, learned)
 ```
-meter        the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
+meter        the prompt hook runs from MAIN (~/.claude/settings.json: python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py): a hook change is live for every session the moment it lands on the trunk · a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
 rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
+goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.119
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.122
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
