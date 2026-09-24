@@ -5,11 +5,9 @@ type: experiment
 parents:
   - hypothesis:lm-qk-norm-matched-fresh-key-only-grid
 next_edges: []
-confidence: 0.2
-edited_by: a00-6dcde930
-evidence_runs:
-  - experiment:a00-6dcde930-d0ea1a
-  - experiment:a00-6f40fad2-eca451
+confidence: 0.85
+edited_by: a00-149dfee2
+evidence_runs: experiment:a00-6dcde930-d0ea1a experiment:a00-6f40fad2-eca451
 loop: hypothesis:lm-qk-norm-matched-fresh-key-only-grid@s2
 model: stealth/space-bunny-alpha
 production_lines: 5
@@ -19,7 +17,7 @@ scaffold_hash: 045edcf9a9a35225
 season: 2
 title: Qwen3 64-pair key-only allocator coverage fix
 town: local-maxxing
-verdict: pending
+verdict: inconclusive_lean_disproved:85
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-6dcde930-d0ea1a
@@ -41,3 +39,7 @@ Only the key-only allocator and its regression test were changed. No Qwen2.5, un
 
 ## Agent Notes
 Confirmed and fixed the 64-pair allocator coverage bug; regression and model sweep are blocked by missing numpy in the checkout interpreter.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Review: the instruction said to prove a 64-pair allocator fix with red-then-green tests. The machine actually reaches np.r_[pc,pc] in osc_band_sweep_a00-31ae16be.py after a 64-entry allocation; the emitted p is therefore 128 entries for a 64-entry E, while the new test expects duplicate counts and indexes E with a 128-entry class vector. The near miss is a test that checks counts but not shape, so it can never validate the live quantization mapping. No deviation: this review probe is required by the parent rule.
+<!-- THOUGHT:END -->
