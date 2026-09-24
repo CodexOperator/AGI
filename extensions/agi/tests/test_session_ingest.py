@@ -107,6 +107,59 @@ def test_requires_resolved_live_goal_and_keeps_refusals(tmp_path):
     assert not (root.parent / "outside.md").exists()
 
 
+def test_latest_n_is_completed_only_stable_and_reports_every_failure(tmp_path):
+    root, _ = setup(tmp_path)
+    sessions = tmp_path / "sessions"
+    for agent, finished, status, text in [
+        ("a-old", 10, "done", json.dumps({"text": "old"})),
+        ("a-new", 20, "done", "not-json"),
+        ("a-live", 30, "running", json.dumps({"text": "must skip selection"})),
+    ]:
+        session = sessions / agent
+        session.mkdir(parents=True)
+        (session / "trajectory.jsonl").write_text(text + "\n")
+        (session / "agent.json").write_text(json.dumps({
+            "status": status, "started_at": finished, "finished_at": finished}))
+
+    def batch():
+        return subprocess.run([
+            sys.executable, str(CLI), "ingest", "--sessions-root", str(sessions),
+            "--last", "2", "--root", str(root), "--goal", "g7.32.1",
+        ], text=True, capture_output=True)
+
+    first = batch()
+    assert first.returncode == 1
+    assert first.stdout.strip().startswith("doc:session-a-old-")
+    assert f"REFUSED {sessions / 'a-new' / 'trajectory.jsonl'}" in first.stderr
+    assert "a-live" not in first.stdout + first.stderr
+    assert len(list((root / "nodes" / "doc").glob("*.md"))) == 1
+
+    (sessions / "a-new" / "trajectory.jsonl").write_text(
+        json.dumps({"text": "checkpoint update"}) + "\n")
+    second = batch()
+    assert second.returncode == 0
+    ids = second.stdout.splitlines()
+    assert len(ids) == 2 and ids[1].startswith("doc:session-a-new-")
+    assert len(list((root / "nodes" / "doc").glob("*.md"))) == 2
+    assert batch().stdout == second.stdout
+
+
+def test_batch_requires_goal_and_never_partially_selects_short_set(tmp_path):
+    root, _ = setup(tmp_path)
+    sessions = tmp_path / "sessions"
+    session = sessions / "a-one"
+    session.mkdir(parents=True)
+    (session / "trajectory.jsonl").write_text(json.dumps({"text": "one"}) + "\n")
+    (session / "agent.json").write_text(json.dumps({"status": "done", "finished_at": 1}))
+    base = [sys.executable, str(CLI), "ingest", "--sessions-root", str(sessions),
+            "--last", "1", "--root", str(root)]
+    assert subprocess.run(base, text=True, capture_output=True).returncode == 2
+    short = subprocess.run(base + ["--goal", "g7.32.1", "--last", "2"],
+                           text=True, capture_output=True)
+    assert short.returncode == 2 and "only 1 completed artifacts" in short.stderr
+    assert not (root / "nodes" / "doc").exists() or not list((root / "nodes" / "doc").glob("*.md"))
+
+
 def test_live_cli_assigns_one_mint_and_update_keeps_it(tmp_path):
     root, artifact = setup(tmp_path)
     artifact.write_text(json.dumps({

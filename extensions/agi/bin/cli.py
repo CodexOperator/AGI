@@ -5756,6 +5756,14 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
 
 def cmd_ingest(args: argparse.Namespace) -> int:
     try:
+        if args.sessions_root:
+            if args.artifact:
+                raise ValueError("choose artifact or --sessions-root, not both")
+            return session_ingest.ingest_batch(
+                Path(args.sessions_root), Path(args.root or _find_root()),
+                args.last, args.goal)
+        if not args.artifact:
+            raise ValueError("ingest requires an artifact or --sessions-root")
         nid = session_ingest.ingest(Path(args.artifact), Path(args.root or _find_root()),
                                     session_id=args.session_id, goal=args.goal)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
@@ -6010,8 +6018,10 @@ def main() -> int:
              "against a fixture repo; default resolves the live tree normally.")
     p_lp.set_defaults(func=cmd_loop_prune)
 
-    p_ingest = sub.add_parser("ingest", help="ingest a JSON/JSONL session artifact")
-    p_ingest.add_argument("artifact")
+    p_ingest = sub.add_parser("ingest", help="ingest one artifact or the newest completed sessions")
+    p_ingest.add_argument("artifact", nargs="?")
+    p_ingest.add_argument("--sessions-root", help="directory whose completed */trajectory.jsonl sessions to ingest")
+    p_ingest.add_argument("--last", type=int, default=1, help="newest completed sessions to ingest")
     p_ingest.add_argument("--root", default=None, help="graph root (.agi) override")
     p_ingest.add_argument("--goal", default=None, help="live goal id/address for the session")
     p_ingest.add_argument("--session-id", default=None, help="stable external session identity")

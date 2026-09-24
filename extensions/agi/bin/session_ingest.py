@@ -42,6 +42,33 @@ def _live_goal(root: Path, value: object) -> str:
         raise ValueError(f"goal parent is not live: {gid}")
     return gid
 
+def latest_artifacts(sessions_root: Path, count: int) -> list[Path]:
+    if count < 1:
+        raise ValueError("last count must be positive")
+    rows = []
+    for path in sessions_root.glob("*/trajectory.jsonl"):
+        try:
+            record = json.loads((path.parent / "agent.json").read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        if record.get("status") in {"done", "done-unreported", "checkpointed"}:
+            rows.append((record.get("finished_at") or record.get("started_at") or 0, path))
+    if len(rows) < count:
+        raise ValueError(f"only {len(rows)} completed artifacts available; requested {count}")
+    return [path for _, path in sorted(rows, key=lambda row: (row[0], row[1].as_posix()))[-count:]]
+
+def ingest_batch(sessions_root: Path, root: Path, count: int, goal: object) -> int:
+    if not goal:
+        raise ValueError("batch ingest requires one explicit live goal")
+    failed = False
+    for path in latest_artifacts(sessions_root, count):
+        try:
+            print(ingest(path, root, session_id=path.parent.name, goal=goal))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            print(f"REFUSED {path}: {exc}", file=sys.stderr)
+            failed = True
+    return 1 if failed else 0
+
 def ingest(path: Path, root: Path, *, session_id: object = None,
             goal: object = None) -> str:
     raw = path.read_text(encoding="utf-8").strip()
