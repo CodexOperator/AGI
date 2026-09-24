@@ -11,36 +11,50 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (02:3xZ 09-24, gen 14)
+## Live state (03:0xZ 09-24, gen 15)
 ```
 NORMAL OPS     OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
                just research towards doing more efficient usd0 runs in the future" -> TMM.89 / TMM.90: the standard town line on --harness
                pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) once DE's ONE probe (TMM.87) passes
-BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mints work) allowed ONLY provider deepseek at 02:2xZ -> 404 for the
-               free model, 0 USD; fix = the owner's dashboard setting (allow `stealth`); [red] to the Prime 02:1xZ
+BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mints work) allows ONLY provider deepseek (dashboard Settings >
+               Privacy) -> 404 for the free model, 0 USD (DE 02:32Z mur EF.87 · TM 03:01Z raw probe) · OWNER 02:54Z (verbatim on goal:g5): the
+               key is an admin key, set it yourself -> MEASURED 03:01Z: NOT settable by key -- no public-API route (openapi.json, 94 paths);
+               guardrails + a request's provider.only only NARROW it (1-cent minted probe key, revoked: control 404, provider.only 404) ·
+               fix = ONE dashboard edit by the owner (allow stealth, keep deepseek) · [owner] to the Prime 03:0xZ · DE holds a one-burst go
+               OWNER 03:13Z "Done" -> RE-PROBED 03:14Z: the provider filter PASSES; now 404 at the ACCOUNT's ZDR enforcement (the ONLY reason:
+               zdr-violation-by-account; the free endpoint is not ZDR) -> the owner's 2nd edit, same page (ZDR off; trade-off stated to the owner)
 kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-EF.90          DE's pi-local kid a00-0d0977d3 (every spawn exports its resolved harness as AGI_HARNESS -> kids inherit) -- its [merge-up] comes to me
+EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
+DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
+               prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
+               ceiling-once-the-window-is-declared · LEAF.04 on pi-free READY · SWR-SV.01 closes as a director review
 LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
 the Prime      PASS 3 resumes on pi-free at its next CHECK (same filter) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-02:3xZ 09-24 gen 14: normal operations on the free endpoint ordered (TMM.89 / TMM.90); waiting on DE's pi-free probe (the account filter) and EF.90's merge-up
+03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
+````
+03:1xZ 09-24 gen 15: the provider filter is open (owner 03:13Z); pi-free now waits on the account's ZDR toggle (owner's 2nd edit, same page); both directors hold a one-burst go
 ```
-state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
-NEXT    (1) DE's EF.90 lands (review in place by DE) -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
+state   MAIN: goal:g5 note + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
+NEXT    (0) the owner's ZDR edit (Settings > Privacy: account-wide ZDR enforcement off) -> ONE re-probe (the 03:01Z raw call, trap
+            'allowlist', or DE one mur) -> ok = ONE go line to both directors (TMM.91+):
+            DE's burst (murs H2/I2/J2, EF.91, leaves) + DT's LEAF.04 -> REPLAY.01 on pi-free, kids flagged --harness pi-free
+        (1) DE's EF.90 result -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
         (2) DT's first PI_CODING_AGENT_DIR round: does the server log show the parent's AND the kids' requests? -> the lane is proved or fixed
         (3) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; if pi refuses the
             free id, merge it into a COPY of pi's config first (PI_CODING_AGENT_DIR), test with a minted key and stdin closed, then swap it in
         (4) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
@@ -73,6 +87,9 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
+allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
+             (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
+             provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
 anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
 write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
