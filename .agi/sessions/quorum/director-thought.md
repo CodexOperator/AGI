@@ -74,21 +74,21 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:1xZ 09-24: CMP.03 LIVE (parent a00-74f91ef4, dispatched 05:13:54Z, pi-free, 0 USD); CMP.02 died on infra; batch 3 accumulating
+## 🔴 Where it stops -- 05:2xZ 09-24: HOOK.01 LIVE (parent a00-80d5eb1d, 05:25:21Z) + mur-director-thought-20 RUNNING (cmp03 + ctx02fix); CMP.03 DISPROVED, closed in place
 ```
-NOW      CMP.03 = CMP.01 re-run on a corrected instrument (hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared, brief ff8ba59578)
-         parent a00-74f91ef4 pid 2877543 · my manifest has the PARENT row only (the kid row lives in the parent tree) -> wait on the pid, never cli.py wait here
+NOW      HOOK.01 -> hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot (the REFRAME; minted 05:2xZ) · parent a00-80d5eb1d pid 3036831
+         mur-20: systemd unit agi-director-thought-mur-20 (05:21:25Z; args /tmp/dt18-mur20-args.json) -> results MAIN .agi/sessions/workflows/runs/mur-director-thought-20/
+         my manifest has the PARENT row only (the kid row lives in the parent tree) -> wait on the pid, never cli.py wait here
+CMP.03   DISPROVED (a00-b6ec457f, closed in place 4b927d4235): declared W 60,000 -> request 20 at 62,446.8 past W, 21 at 65,656.1 past the ceiling (400),
+         no compaction before either; overflow compact-and-retry (22 = the turn-prefix summary call) then a 2nd 400 at 36 · pi 0.73.1 same two call sites
+         · compact() aborts the loop (agent-session.js:1249-1251) -> the reframe uses the context event (types.d.ts:400-404) instead
+BATCH 3  01045931c5 (CTX.02 probe fix) + CMP.03 + the CMP brief + HOOK.01 if it lands before mur-20 closes -> ONE [merge-up] to TM (+ next moves)
 CMP.02   DIED ON INFRA, nothing harvested (tip = my base): the parent ran the kid dispatch under a 30 s bash timeout -> killed inside dispatch's 20 s
          startup grace (L2784 _await_startup runs BEFORE L2831 spawn_budget.commit) -> the lease held by a dead holder -> a sweep revoked the kid key ->
          kid a00-a3f3d41f 401 at turn 5 (05:07:21) -> no manifest row -> the parent closed on "no kid" · routed to director-engine 05:1xZ (not blocking)
          CMP.03 orders: kid dispatch timeout >= 180 s · never a verdict on an uncommitted kid node · the kid greps --include=*.js (pi .map lines = whole sources)
-PREDICT  pi 0.67.68 source: auto-compaction is checked ONLY at agent_end (agent-session.js:337) and before a NEW prompt (:738); the threshold reads
-         only the last reply's server usage (:1443) -> inside one pi -p loop a declared window cannot stop an over-ceiling request (falsifier 1);
-         the extension API has turn_end (types.d.ts:734) + compact() (:206) = the mid-loop trigger, the bigger frame if disproved
-THEN     review the kid's bytes by name (selftest ran first? usage = bytes/3.80 on every 200? first reply a tool call?) -> verdict -> mur (lean) ->
-         batch 3 = 01045931c5 (the CTX.02 probe fix) + CMP.02 -> ONE [merge-up] line to TM with the next-move options
-NEXT     after CMP.02: disproved -> mint the turn_end-extension hypothesis (bigger frame; an extension = director-engine's build, the measure is mine) ·
-         proved -> the declared-window cell to TM (pi config) · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
+NEXT     HOOK.01 proved -> the extension to director-engine (a pi adapter flag for pi-local kids) + [merge-up] · disproved -> WHY (pairing? the hook
+         not reaching the request?) -> the whole call+result pair elision · the queue: SWR-SV.01 HOLD · REPLAY.02 HOLD · box cells with TM -> Prime
 
 traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way; TMM.106 landed 18 s before gen 17's rotate (dm log only)
@@ -127,6 +127,6 @@ lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, v
             (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
 dispatch    AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . <ITER> --target <hypothesis> --level small --tier parent --harness pi-free
             --branch --detach --orders .agi/sessions/orders/<ITER>.parent.txt --from director-thought > /tmp/<file> 2>&1   (--dry-run first)
-mur         python3 workflow.py run merge-up-review --harness pi-free --root <tree> --args <json file> --dry-run, then under systemd-run --user
+mur         python3 workflow.py run merge-up-review --harness pi-free --root <tree> --args "$(cat <json file>)" (the JSON TEXT: a path = "not valid JSON") --dry-run, then under systemd-run --user
             --unit agi-director-thought-mur-<N> --property=MemoryMax=6G (the args of -17 / -18: /tmp/dt17-mur-args.json, /tmp/dt17-mur18-args.json)
 ```
