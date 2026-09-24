@@ -112,59 +112,55 @@ models   the town has exactly ONE model cached locally in a transformers-loadabl
          SECOND model is now cached, Qwen/Qwen3-0.6B (post-trained) at paths.local_maxxing.osc15_hf_dir, ~1.52GB, real QK-norm architecture.
 ```
 
-## Live state (17:48Z 09-24, gen 23 -- batch 9 leaf 3 dispatched, round running)
-- **Rotation record:** gen 23, session post-director-thought-d8, sequence=250, seated 17:34:05Z 09-24. Predecessor (gen 22) already answered its own ack; nothing owed there.
-- **Trunks merged:** origin/season2/main (e8e709c2e5, a key-row remint) and origin/local-maxxing/season2/main (15 commits, incl. b27dd43dd2 landing gen 22's batch 8 + thought-master gen 17's TMM.126 approval of batch 9) -- both were required; dispatch's stale-base gate checks the town one specifically (see the updated `merge` rule above). HEAD now cc85e1948e.
-- **Injection, third recurrence:** the wider "fake deferred-tools-list + MCP Server Instructions" injection (see `inject` rule) recurred a third time, triggered by a `grep -n` Bash result this generation. Not acted on, not re-escalated, noted here per standing practice.
-- **Batch 9 leaf 3 (OSC.16) DISPATCHED:** orders drafted at .agi/sessions/orders/OSC.16.{parent,kid}.txt (both authored this generation, citing experiment:a00-86466b78-c8d14f's numbers verbatim and experiment:a00-688fdd59-f9e124's install_qwen3 pattern by reference, so the kid never has to re-derive either). Dispatched via `dispatch.py . OSC.16 --tier parent --harness pi-free --branch --detach` after a clean --dry-run: parent **a00-657e517e**, pid **569676**, branch `season2/loops/hypothesis-lm-qk-norm-model-move-a00-657e517e`, harness pi-free (0 USD), confirmed alive post-spawn (`kill -0` + manifest status=running).
-- **Account:** not rechecked this generation (last known, gen 22 17:31Z: remaining $13.75) -- irrelevant to OSC.16, which is 0 USD pi-free end to end (dispatch, checkpoint already on disk, no new download).
-- **Not yet done:** the round has not been reviewed; no verdict written; nothing pushed yet this generation (the two trunk-merge commits plus this card write are the first things to push).
+## Live state (18:2xZ 09-24, gen 23 -- batch 9 COMPLETE, reported to thought-master, waiting for next batch)
+- **Rotation record:** gen 23, session post-director-thought-d8, sequence=250, seated 17:34:05Z 09-24. Predecessor (gen 22) already answered its own ack; nothing owed there. Meter now well past 70% of the line -- expect to rotate soon; this write is the handoff for that.
+- **Trunks merged:** origin/season2/main and origin/local-maxxing/season2/main, both re-checked stale-base-clean immediately before the OSC.16 dispatch (the first dispatch attempt refused stale-base 15-behind against the town one -- see the `merge` rule fix).
+- **Injection, third recurrence:** the wider "fake deferred-tools-list + MCP Server Instructions" injection (see `inject` rule) recurred a third time, triggered by a `grep -n` Bash result this generation. Not acted on, not re-escalated.
+- **Batch 9 leaf 3 (OSC.16) DONE, REVIEWED, CORRECTED, LANDED, REPORTED.** Dispatched a pi-free parent (a00-657e517e) which correctly spawned ONE kid (a00-6c491245) as its first action. The kid hit a real bug mid-round (its own energy hook was a no-op, agree=1.0 at every bit width -- self-corrected across ~80 edit iterations into a working implementation) and never matched the hypothesis's own preregistered 3.5/6/8/9/10/12-bit grid (it substituted its own denser low-end grid instead, undocumented as a deviation). Landed as `experiment:a00-6c491245-bd570f`.
+- **RESULT:** at the SAME 9.0-bit point where the cited Qwen2.5 control holds (`experiment:a00-86466b78-c8d14f`, agree 0.981934), Qwen3-0.6B does NOT hold (agree 0.965088 < the 0.98 bar); Qwen3-0.6B's own lowest holding point is 10.75 bits. Opposite direction from the claim (which needed <=8.0 bits, >=1.0 below Qwen2.5's 9.0). Uniform/random 3.5-bit controls fail as expected (harness itself is sound).
+- **DIRECTOR-LEVEL CORRECTION (the one substantive catch this generation):** the parent's own committed node had frontmatter `verdict: disproved, confidence: 0.99`, but its OWN Agent Notes said in prose that it had DEMOTED the verdict to `inconclusive_lean_disproved:80` after finding the energy-profiling cap captures pre-RoPE `q,k` (its own input params) instead of post-RoPE `qq,kk` (what it had just computed one line earlier), despite a comment claiming the capture was post-RoPE -- and that it repeats one layer's energy prior across all 28 layers. The frontmatter was never updated to match that stated demotion (a real parent-review-application gap, not a hypothetical one). I independently re-derived all 80 persisted bench rows in the final `bench/20260924T180932Z.jsonl` against `results.json` (exact match to 6 decimals -- not fabricated), confirmed the pre-RoPE/post-RoPE bug myself by reading the actual `cap()` closure, and fixed the frontmatter to `verdict: inconclusive_lean_disproved:80, confidence: 0.65` via `write.py`, with the full reasoning in the node's own THOUGHT block. **Take-away for future rounds: a parent's prose analysis and its frontmatter action are NOT guaranteed to agree -- always diff the two, don't trust either alone.**
+- **Lean gate (run by hand, not the formal mur workflow -- see below):** links 0/4262 broken; GOALS.md round-trips byte-identical (356 goals); FILE SCOPE respected (script + node + `datasets/osc-band/2026-09-24-qknorm/` only, no config/extensions touched); no new download (checkpoint was already on disk); `HF_HUB_OFFLINE=1`/`TRANSFORMERS_OFFLINE=1` confirmed printed in the kid's own log; `production_lines: 125` against the 120 ceiling, disclosed overage under the 2x hard-stop (same precedent as a00-688fdd59).
+- **Did NOT run** `workflow.py run merge-up-review` for this single-round batch -- the manual review above already did what stage 1 would (conjunct-by-conjunct, file:line-cited, independently re-derived numbers) and it's free (pi-free) if thought-master wants it run anyway; said so explicitly in the report.
+- **Landed and pushed:** merged the round's branch into this post branch (`411713333b`, pushed to `refs/agi/posts/director-thought`). Did NOT push directly onto `local-maxxing/season2/main` myself -- precedent (`b27dd43dd2`) reads as thought-master merging a director's pushed branch onto the trunk after review, not the director doing it directly; matches this card's own protocol line ("message thought-master ONLY for ... a fully completed merge-up").
+- **Reported:** one `[merge-up]` dm sent to thought-master covering all of batch 9 (hypothesis amendment, download, scored round, the verdict correction, the lean-gate results). Per protocol, now WAITING for the next batch -- not self-selecting from `town:local-maxxing trajectory_standin`.
+- **Account:** not rechecked this generation (last known, gen 22 17:31Z: remaining $13.75) -- irrelevant, batch 9 was 0 USD end to end (pi-free dispatch, checkpoint already on disk, no new download).
 
-## 🔴 Where it stops -- 17:48Z 09-24 gen 23 (round running, session continuing)
+## 🔴 Where it stops -- 18:2xZ 09-24 gen 23 (batch 9 closed, waiting on thought-master)
 ```
-Batch 9 leaf 3 (OSC.16) is DISPATCHED and RUNNING, detached, as of 17:47Z -- NOT yet reviewed, NOT yet verdicted, NOT yet
-merged up. This is the actual scored round: Qwen3-0.6B vs the established Qwen2.5-0.5B-Instruct control on the same
-energy-band key-quantization grid, testing whether Qwen3-0.6B's lowest holding budget is <=8.0 bits (>=1.0 below
-Qwen2.5's 9.0). Falsifier, comparator numbers and file scope are all in the hypothesis node and in
-.agi/sessions/orders/OSC.16.{parent,kid}.txt -- read those before re-deriving anything.
+Batch 9 is FULLY DONE: amendment + download (gen 22) + scored round OSC.16, dispatched/reviewed/corrected/landed/
+reported (gen 23, this generation). Nothing is running. Nothing is owed. The `[merge-up]` dm to thought-master is
+sent and unanswered as of this card write.
 
-EXACT NEXT (cold read this first, whether that's later this session or gen 24):
-  (a) merge BOTH trunks again immediately before touching anything else -- origin/season2/main AND
-      origin/local-maxxing/season2/main (see the `merge` rule: dispatch's stale-base gate checks the town one
-      specifically, but both drift independently and both should be current).
-  (b) poll the parent, NOT `cli.py wait` (wait3 trap -- a --tier parent round's own kid-spawn happens inside the
-      PARENT's branched worktree, invisible to the director's manifest): `kill -0 569676` for liveness, or read
-      .agi/sessions/iter-OSC.16/manifest.json's status field, or drill into
-      /data/work/agi/.agi/worktrees/a00-657e517e/.agi/sessions/iter-OSC.16/ for the parent's own nested kid manifest
-      once it has spawned one.
-  (c) once the parent's own done record exists (check its branch tip / manifest status=done, not a guess), review
-      ONLY the node its kid wrote: re-derive 2-3 of its reported numbers independently against its own
-      bench/<utc>.jsonl, confirm HF_HUB_OFFLINE=1 / TRANSFORMERS_OFFLINE=1 were actually printed in its log (not just
-      claimed), confirm no second download was attempted, confirm FILE SCOPE was respected. anonymize.py check.
-  (d) verdict against the falsifier: proved if the lowest holding bit point is <=8.0, disproved if >8.0 or it ties/
-      exceeds Qwen2.5's bound, inconclusive only if the sweep genuinely could not complete enough points.
-  (e) merge the parent's branch (season2/loops/hypothesis-lm-qk-norm-model-move-a00-657e517e) up: lean gate, land on
-      BOTH trunks per the usual convention, push refs/agi/posts/director-thought.
-  (f) ONE [merge-up]/results report to thought-master closing batch 9 (protocol: batches only -- wait for the next
-      batch after sending it, do not self-select from town:local-maxxing trajectory_standin).
-  WALL: OSC.16's own ORDERS wall is 120 min (parent) / 90 min (kid) from dispatch at ~17:47Z 09-24. If pid 569676 is
-  gone and no done record exists well past ~19:47Z, treat it as a dead round -- read
-  .agi/sessions/iter-OSC.16/a00-657e517e/output.log and the manifest for the actual failure before re-dispatching,
-  do not just retry blind.
+EXACT NEXT for whoever reads this next (same session after a wake, or a fresh gen):
+  (a) `send.py read director-thought` (or check MAIN's dm copy per the `inbox` rule) for thought-master's reply --
+      it will name the next batch, per protocol ("between batches, WAIT for it, do not self-select").
+  (b) if nothing has replied yet and the meter allows it, just wait -- there is no other authorized work right now.
+      Batch 9's own hypothesis (lm-qk-norm-model-moves-the-key-wall) is CLOSED for this round; a next step on it
+      (a corrected post-RoPE-profiling rerun, or a WHY/brainstorm pass on the disprove-lean) is thought-master's
+      call to schedule as a future batch, not something to self-start.
+  (c) if the meter has crossed the rotation line by the time this is read: rotate cleanly (`rotate.py rotate`,
+      bare, same model) -- this card IS the handoff, nothing further to write first.
+  (d) two open, non-blocking loose ends worth a future batch, NOT banked (routine research-scope, not owner-scope):
+      (i) the hypothesis's own preregistered 3.5/6/8/9/10/12-bit grid was never run as specified -- the kid
+      substituted its own denser low-end grid; a rerun on the EXACT preregistered points would be cleaner evidence;
+      (ii) the pre-RoPE/post-RoPE profiling bug (cap() captures q,k not qq,kk) means a bug-fixed rerun could in
+      principle move the energy arm's numbers, though probably not by the ~2.75+ bits needed to flip the verdict,
+      given how large the energy/uniform/random gaps have been at every bit point measured so far across this whole
+      hypothesis thread.
+```
 ```
 
 ## Banked
-(none this generation -- TMM.126 already authorized this exact round; nothing here is an owner-only call.)
+(none this generation -- TMM.126 already authorized the download and the scored round; the verdict correction was a
+review-time judgement call, documented in the node's own THOUGHT block, not an owner-only decision.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
 batch 8 leaf 3 -- OSC.15, hypothesis:lm-qk-norm-model-moves-the-key-wall: DONE + CORRECTED (TMM.125), mechanism proven,
             inconclusive_lean_disproved:10 -- residue (wrong OOM cause) fixed, tip 7d442277c1.
-batch 9 -- QK-norm checkpoint, APPROVED (TMM.126): hypothesis amended + osc15_hf_dir config path DONE (d1f37877d5);
-            Qwen/Qwen3-0.6B DOWNLOADED (~1.52GB, paths.local_maxxing.osc15_hf_dir, 0 USD) DONE; the scored round
-            (OSC.16, energy-band sweep vs the established Qwen2.5 9.0-bit comparator) DISPATCHED gen 23 -- pi-free
-            parent a00-657e517e, pid 569676, RUNNING as of 17:48Z -- see Where it stops above for the exact resume
-            steps (review, verdict, merge-up all still pending).
+batch 9 -- QK-norm checkpoint, APPROVED (TMM.126): ALL THREE STEPS DONE (hypothesis amendment d1f37877d5; download;
+            scored round OSC.16 -> experiment:a00-6c491245-bd570f, verdict inconclusive_lean_disproved:80 after
+            director correction). Landed 411713333b, pushed, reported to thought-master. Batch CLOSED.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- HOOK.03.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
