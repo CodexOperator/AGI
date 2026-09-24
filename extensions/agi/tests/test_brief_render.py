@@ -62,6 +62,17 @@ def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch,
         assert sentinel in rendered
 
 
+def test_paid_for_path_guard_follows_project_config(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "CONFIG-GUARD-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+        project_root=root))
+    assert "CONFIG-GUARD-SENTINEL" in rendered
+
+
 def _write(root: Path, rel: str, text: str) -> Path:
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
