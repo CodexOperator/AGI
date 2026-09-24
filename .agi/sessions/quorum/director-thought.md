@@ -88,9 +88,10 @@ QUEUE    (TMM.90: my ready order the standard way)
              cells, tempfile (2 /tmp sites), checkout_root() (magic-pane), mount strings as {osc02_scratch_dir}:/work · on FREE (1M ctx) B and C
              can stay the 2 kids as minted -- no local split
   3 REPLAY.01 (bc777c1fe7) -- the tokenizer route holds on the brain (7f226b8bec); orders in the scratch
-  4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config (fork b10685, same model, 65,536 x np 1, q4_0 KV, LoRA scale 2 at launch instead of
-             by POST): output 1 = the brain-swap node numbers, output 3 = the C2 gate 143/164 (bar 139) cited there -> verify its runner and endpoint
-             match the battery, then the LoRA-proof prompt is the only new measurement -> a director review, no GPU round
+  4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config (fork b10685, same model, 65,536 x np 1, q4_0 KV, LoRA scale 2 at launch): output 1 =
+             the brain-swap numbers + the ONE LoRA-proof prompt still owed · output 3 = HumanEval 164 ONCE MORE on the served build (the mvp words;
+             the battery C2 143/164 is the single run it replicates) = ~1 h of the slot, a script, no agents, 0 USD -> needs TM's go (TMM.90 retired
+             0-USD runs as an operating mode) -- my 02:4xZ dm said review-only: CORRECT it in the next TM line
   5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
              hypothesis:lm-pi-agents-load-claude-md-twice (13,916 tokens = 55 pct of a 25,317-token first prompt; the lever = --no-context-files,
              one flag in the engine pi adapter = director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
