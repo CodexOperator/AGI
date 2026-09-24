@@ -118,36 +118,56 @@ models   the town has TWO models cached locally in a transformers-loadable forma
 - **CORRECTION:** demoted the kid's node `proved:0.9` -> `inconclusive_lean_proved:85` / confidence 0.85; appended a director-level correction note (mechanism, file:line, near-miss, in the house style) rather than rewriting the kid's own table in place -- their authored record stands, the note is the correction for a future reader. Did NOT amend `hypothesis:lm-qk-norm-model-moves-the-key-wall`'s method commitment -- that amendment was conditioned on a completed grid, which this round did not produce.
 - **Lean gate (by hand, not the formal mur workflow, again):** links 0/4266 broken; GOALS.md round-trips byte-identical (358 goals); FILE SCOPE respected; no new download; anonymize ok on the full 884545-byte round diff. Landed on this post branch and pushed to BOTH `refs/agi/posts/director-thought` and the branch head (tip `688530b60d`). Sent one `[merge-up]` dm to thought-master, recommending a follow-up (the expensive part -- the Qwen3 profile data -- already exists; only the sweep+eval remains) without self-dispatching it.
 - **Account:** not rechecked this generation -- batch 11 was 0 USD end to end (pi-free dispatch, no new downloads).
+- **thought-master replied (20:56Z): batch 11 LANDED 4905c6d0bf on the trunk** (agreed it was partial, lean gate clean) **and issued TWO new batches, explicitly authorized to run in PARALLEL** (separate pi-free parents each): TMM.134 = batch 12 (the OWNER's own ask via the Prime, verbatim: survey off-the-shelf jev/cua components against our two API keys, goal:g5.24.3), TMM.135 = batch 13 (finish OSC.18's sweep -- exactly the follow-up I recommended). Both dispatched this generation.
+- **SAME-DAY DISPATCH-PATTERN CORRECTION FOUND AND APPLIED before dispatching either:** doc:l5-owner-decisions (20:3xZ-20:4xZ) + doc:unified-director-brief now say NO `--harness` flag on a director's own parent dispatch -- `--tier parent --role parent --ladder-tier 0`, the ladder's tier-0 row resolves pi-free on its own; an explicit `--harness pi-free` was ALSO part of what let OSC.15 land on the paid lane earlier today. Verified via `--dry-run` before both real dispatches (`ladder_tier=0, harness=pi-free` both times). Card's dispatch rule + scratch template corrected to match, old version kept for the record. Also reinforced, same owner message, verbatim: "Never ever spawn subagents through claude routines. Ever" -- no Agent/Task tool used for my own recon this generation, and both orders files explicitly forbid it for the parent/kid too.
+- **Batch 13 (OSC.19, TMM.135): DISPATCHED.** Parent `a00-23bf7ce6`, pid 3401185, branch `season2/loops/hypothesis-lm-qk-norm-model-move-a00-23bf7ce6`. Orders: sweep the already-persisted Qwen3 profile (a00-edd08f38's profiles.json) through the existing kquant allocator, capture the one missing cell (Qwen2.5 key-only energy), assemble the real 3-method x 2-model table, recommend a method. Explicitly required: a real results.json per new cell this time, not just profile data (the exact gap in OSC.18).
+- **Batch 12 (JEV.01, TMM.134): DISPATCHED.** First minted the hypothesis it needed (none existed):
+  `hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane`, parent `goal:g5.24.3`, committed
+  f450f8cede. Identified the two keys by NAME ONLY before writing anything: `TYPESAFE_KEY` / `TYPESAFE_KEY2` in MAIN
+  .env (doc:l5-owner-decisions + doc:typesafe-ai-skill -- "jev" = typesafe.ai's `jev-latest` model; no key literally
+  named JEV or CUA exists, matching the order's own framing). Found real, reusable prior art before minting: the
+  retired `lm-jev-docs-hunt` (uncommitted synthesis, raw TypeSafe-doc digests already fetched) and a PROVED cua-bench
+  headless smoke on this same box (`experiment:a00-778d86b3-170630`, 0 USD, no key, typed-acts trajectory already
+  mapped to jev's schema) -- scoped this round to the genuinely NEW question (which components fit goal:g1.25's
+  action registry, minted TODAY) instead of repeating either. Parent `a00-b4fb9e29`, pid 3436022, branch
+  `season2/loops/hypothesis-lm-jev-cua-off-the-sh-a00-b4fb9e29`. Explicitly forbidden in orders: any live call
+  against either TypeSafe key or any other paid API this round -- survey only.
+- **Both monitored** (pid + manifest-status polling, the wait3 workaround) -- neither landed yet as of this card write.
 
-## 🔴 Where it stops -- 20:5xZ 09-24 gen 24 (batch 11 closed with a correction; holding)
+## 🔴 Where it stops -- 21:1xZ 09-24 gen 24 (batches 12 + 13 both dispatched, running in parallel)
 ````
 ```
-Nothing is running. Nothing is owed. Batch 11 (OSC.18) landed, was corrected at review (a real gap the parent
-missed: the primary grid-sweep deliverable was never run), and reported. The `[merge-up]` dm is sent and
-unanswered as of this card write. Meter is well below the line (~0.207 of 0.470 at last check).
+Two pi-free parents are LIVE right now, dispatched this generation, both authorized to run in parallel (TMM.134 +
+TMM.135): OSC.19 (a00-23bf7ce6, pid 3401185, batch 13 -- finish the OSC.18 sweep) and JEV.01 (a00-b4fb9e29, pid
+3436022, batch 12 -- the owner's jev/cua off-the-shelf survey). Neither has landed. No [merge-up] sent for either
+yet. Meter was ~0.285 of 0.470 (60.6% of the line) at the last explicit check, before this dispatch round's own
+tool calls -- check it fresh, it is almost certainly higher now.
 
 EXACT NEXT for whoever reads this:
-  (a) `send.py read director-thought` for thought-master's reply to the batch-11 report -- it should either
-      approve a batch 12 to actually run the sweep (the expensive part, the Qwen3 profile_pooled data, already
-      exists and is persisted at datasets/osc-band/2026-09-24-qknorm/a00-edd08f38-profile-qwen3/profiles.json;
-      the remaining work is wiring it through osc_band_kquant_a00-86466b78.py's grouped-energy allocator and the
-      same OSC.04 eval, same grid -- genuinely cheap now), or redirect entirely. Per protocol, WAIT for it, do
-      not self-select from town:local-maxxing trajectory_standin.
-  (b) if the meter is at/past 0.47: rotate cleanly (`rotate.py rotate`, bare, same model) -- this card IS the
-      handoff, nothing further to write first.
-  (c) background for whoever picks up the sweep: reuse the `head_var`/`profile` imports already proven in
-      osc_band_profile_qwen3_a00_edd08f38.py -- do not recopy the allocator, budget is tight (88/120 lines
-      already spent building the profile; the sweep+eval needs to fit alongside it or in a companion file under
-      the same 120-line hypothesis ceiling).
-  (d) trust nothing a parent/kid reports about "the 2x2" without checking for an actual results.json under the
-      round's own dataset dir -- profiles.json (raw profile data) and results.json (a real quantization sweep)
-      are NOT the same deliverable, and this generation's own round conflated them under one table.
+  (a) check both pids/manifests before anything else: `kill -0 3401185` / `kill -0 3436022`, and
+      `.agi/sessions/iter-OSC.19/manifest.json` / `.agi/sessions/iter-JEV.01/manifest.json` `.agents[0].status`
+      (the wait3 trap: `cli.py wait` from here is blind to a parent's own kid-spawn, poll pid/manifest instead).
+      If a monitor task is still armed (b4ttvfbdr for OSC.19, btfr2tkpn for JEV.01) its own notifications are the
+      first signal -- do not re-poll manually on top of it.
+  (b) on EACH landing, review like OSC.18 taught the hard way: for OSC.19, confirm a REAL results.json (not just
+      profiles.json) exists for every "new cell" claimed; for JEV.01, confirm every surveyed component's NEEDS
+      claim is backed by an actually-opened URL and that KEY-FIT reads against typesafe.ai's real shape (typed
+      judgments only, POST /v1/systemone -- NOT general text/vision), and that no TypeSafe key VALUE and no live
+      spend against either key appears anywhere.
+  (c) land each independently as it completes (do not wait for both before landing the first) -- merge trunks
+      fresh before each commit-adjacent action, push both refs, ONE [merge-up] dm per batch to thought-master.
+  (d) if the meter is at/past 0.47 before both land: this card + both live pids/branches/manifests ARE the
+      handoff -- rotate cleanly (`rotate.py rotate`, bare, same model), do not wait to finish reviewing in-session.
+      A live round survives rotation (runs detached, ppid 1, own scope) -- the successor reconciles from
+      spawn_budget.py status at wake, per doc:unified-director-brief's own "a live ROUND never holds it either."
 ```
 ````
 
 ## Banked
-(none this generation -- TMM.133 already authorized the dispatch; the verdict demotion and the decision not to
-amend the hypothesis were review-time judgement calls, documented in the node's own note, not owner-only decisions.)
+(none this generation -- TMM.133/134/135 already authorized every dispatch; minting the survey hypothesis JEV.01
+needed was a judgement call squarely inside the owner's own explicit ask, documented on the node's Measured
+section; the verdict demotion and the decision not to amend the qk-norm hypothesis were review-time judgement
+calls, documented in the node's own note; none of these needed the owner directly.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
@@ -167,6 +187,11 @@ batch 11 -- OSC.18, the grid-completion round, ORDERED (TMM.133, relayed by a pe
             quantization sweep itself was never run -- only the profile DATA was built and persisted. Recommended
             (not ordered) follow-up: sweep the already-persisted Qwen3 profile through the existing kquant
             allocator, same grid, same OSC.04 eval.
+batch 12 -- JEV.01, the owner's jev/cua survey, ORDERED (TMM.134): LIVE, not yet landed. Parent a00-b4fb9e29,
+            pid 3436022. Target hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane
+            (minted this round). Runs in parallel with batch 13 by explicit authorization.
+batch 13 -- OSC.19, finish OSC.18's sweep, ORDERED (TMM.135): LIVE, not yet landed. Parent a00-23bf7ce6, pid
+            3401185. Target hypothesis:lm-qk-norm-model-moves-the-key-wall. Runs in parallel with batch 12.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
