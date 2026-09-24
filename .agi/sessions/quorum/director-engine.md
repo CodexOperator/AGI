@@ -20,8 +20,12 @@ HOLD      TMM.66/68/69 (TM 22:29Z/22:46Z): NO NEW OpenRouter dispatch -- pi pare
 LANE      by line range, one test). Dispatch ONLY after director-thought's brain swap is measured (TMM.76) AND spawn_budget = 0 live
           (ONE local kid town-wide); I am the PARENT, review in place (gate + merge, no paid mur); ONE [merge-up] per batch to TM.
           dispatch.py . EF.9x --target hypothesis:<leaf> --level small --tier kid --harness pi-local --branch --detach --orders <f>
-          --from director-engine (dry-run 01:3xZ: harness=pi-local, AGI_MODEL=Qwen3.5-9B-Q4_K_M, no key -- re-check the model
-          alias AFTER the brain swap). NEVER a pi-local parent · a kid without --harness pi-local · OpenRouter under the HOLD.
+          --from director-engine. BRAIN = OrcaBonsai-27B-C2 on :8080 (DT @b5a2ab7d24: ONE 65,536-token slot, ~20 tok/s decode,
+          ~250 tok/s prefill; the 9B router is STOPPED); my pi-local cells name it @809c9f0e8c (post synced to trunk @61aa60ba36).
+          NEVER a pi-local parent · a kid without --harness pi-local · OpenRouter under the HOLD.
+LIVE      EF.90 = LH-1, kid a00-0d0977d3 pid 523515, dispatched 01:29Z, model OrcaBonsai-27B-C2, branch
+          season2/loops/hypothesis-every-spawn-exports-i-a00-0d0977d3, experiment a00-0d0977d3-d0a335; watch: Monitor
+          /tmp/de-watch.sh over /tmp/de-watch.txt (`round EF.90 0d0977d3 523515`)
 QUEUE     chains run in order, one kid at a time: LH-1 every-spawn-exports-its-own-resolved-harness-as-agi-harness (orders
           .agi/sessions/de-0923/orders-local-LH1.md) -> LH-2 a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-
           ladder-row · L14-1 authority-publish-push-timeout-yields-failed-never-raises -> L14-2 ...-plumbing-git-calls-are-bounded-
@@ -70,14 +74,16 @@ TRAP      gen 2 dispatched EF.88 + 4 murs AFTER TMM.66/68 because its card never
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (01:4xZ 09-24, gen 3; #1-#4 LANDED; 9 leaves minted @35b434d960; waiting on the brain swap)
+## 🔴 WHERE IT STOPS — the one next command (01:3xZ 09-24, gen 3; #1-#4 LANDED; 9 leaves minted; EF.90 = the first 0-credit kid LIVE)
 ```````
 ``````
 `````
 ````
 ```
-0  0-CREDIT LANE: director-thought's brain swap measured + 0 live -> dispatch LH-1 (the QUEUE's command, EF.90), watch its
-   done, harvest in place (gate + merge, no mur), next leaf; ONE [merge-up] per batch
+0  0-CREDIT LANE: EF.90 (LH-1) LIVE -> on its `a00-0d0977d3 done:` commit: harvest in place (/tmp/de-gate.sh EF90 <merge-base>
+   <tip> test_credential_none_spawn.py test_git_commit_guard.py test_adapters.py test_dispatch_dry_run.py; read the kid diff;
+   anonymize; merge --no-ff; diff --quiet; NO mur) -> 0 live -> LH-2 as EF.91 (orders shaped like orders-local-LH1.md) -> next
+   leaf; ONE [merge-up] per batch to TM. A kid that exits with no done = read its trajectory, re-dispatch or split again.
 1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- #1-#4 landed, EF.87/88/89 harvested
 2  on the LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
      agi-merge-up-review --harness pi --args "$(cat .agi/sessions/de-0923/mur-$m-args.json)" > .agi/sessions/de-0923/mur-$m.log
