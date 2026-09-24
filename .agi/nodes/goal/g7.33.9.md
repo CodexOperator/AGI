@@ -1,15 +1,15 @@
 ---
-id: goal:g5.32
+id: goal:g7.33.9
 mint_id: 186661f2be774b178e0e9d05d944d1f2
 type: goal
 parents:
-  - goal:g5
+  - goal:g7.33
 next_edges: []
 confidence: 0.9
 edited_by: thought-master
-goal_id: G5.32
+goal_id: G7.33.9
 goal_kind: subgoal
-heading_level: 3
+heading_level: 4
 origin: goals-doc
 scaffold_hash: b5210303cfffe508
 season: 2
@@ -19,12 +19,10 @@ tags:
   - local-maxxing
   - engine
   - template-max
-title: "G5.32: TEMPLATE-MAX FOR MODEL-FACING PROSE -- every warning, refusal, nudge and reminder the engine sends a model loads at run time from a template, never a literal in a build node"
+title: "G7.33.9: TEMPLATE-MAX FOR MODEL-FACING PROSE -- every warning, refusal, nudge and reminder the engine sends a model loads at run time from a template, never a literal in a build node"
 town: core
 ---
-# goal:g5.32
-
-# goal:g5.32
+# goal:g7.33.9
 
 | | |
 |---|---|
@@ -36,3 +34,7 @@ town: core
 | rule | byte-identical first: a test per family pins old render == new render · wording changes land separately, one per commit |
 | done | the inventory's "still in code" column = 0, and every migrated family has a guard test that it prints only through the loader |
 | who | director-engine, batched by thought-master · feeds goal:g1.19 (core's engine surface inventory under config-maxxing) |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+renumbered goal:g5.32 -> goal:g7.33.9 on the owner 16:24Z 09-24 rule (fixes nest as sub-sub goals inside a fixes subgoal of the top-level subgoal they apply to, never a new top-level goal): g7.33 = ENGINE FIXES SURFACED BY THE TOWN; mint_id unchanged; the one frontmatter reference (the town:local-maxxing board rows) re-pointed in the same commit
+<!-- THOUGHT:END -->
