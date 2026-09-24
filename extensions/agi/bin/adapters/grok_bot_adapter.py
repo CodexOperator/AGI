@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 import adapters
+from adapters import tmux_hold
 
 NAME = "grok-bot"
 
@@ -136,19 +137,25 @@ def restart(
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
         with open(log_file, "ab") as logf:
-            proc = subprocess.Popen(
-                args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
-                env=env,
-            )
+            cwd = str(_restart_cwd(sess_dir, agent_record))
+            if tmux_hold.enabled():
+                new_pid = tmux_hold.start_held(
+                    args, env, cwd=cwd, pane_name=f"agi-{agent_id}",
+                    log_file=logf,
+                )
+            else:
+                new_pid = subprocess.Popen(
+                    args,
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    start_new_session=True,
+                    cwd=cwd,
+                    env=env,
+                ).pid
     except OSError as exc:
         print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
         return None
-    new_pid = proc.pid
     if agent_record is not None:
         agent_record["pid"] = new_pid
         agent_record["status"] = "restarted"
