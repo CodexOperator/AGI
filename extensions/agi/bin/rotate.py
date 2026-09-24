@@ -10431,8 +10431,10 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
         _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
-    except Exception:  # noqa: BLE001  (a broken veto cell never gates silently)
+    except ImportError:  # veto subsystem is not installed on this host
         pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
+        return f"authority: HELD -- veto cell is unreadable ({exc})"
     try:
         import send as _send
         ref = _send.authority_ref(root)
