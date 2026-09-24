@@ -42,7 +42,8 @@ def _live_goal(root: Path, value: object) -> str:
         raise ValueError(f"goal parent is not live: {gid}")
     return gid
 
-def ingest(path: Path, root: Path) -> str:
+def ingest(path: Path, root: Path, *, session_id: object = None,
+            goal: object = None) -> str:
     raw = path.read_text(encoding="utf-8").strip()
     if not raw:
         raise ValueError("empty session artifact")
@@ -56,7 +57,12 @@ def ingest(path: Path, root: Path) -> str:
     if not control_records:
         raise ValueError("session artifact has no object records")
     record = control_records[0]
-    identity = record.get("session_id", record.get("id"))
+    for name, supplied, keys in (("session_id", session_id, ("session_id", "id")),
+                                 ("goal", goal, ("goal", "goal_id"))):
+        present = next((record[key] for key in keys if record.get(key) is not None), None)
+        if supplied is not None and present is not None and supplied != present:
+            raise ValueError(f"conflicting CLI {name} and artifact {name}")
+    identity = session_id if session_id is not None else record.get("session_id", record.get("id"))
     if identity is None:
         raise ValueError("session artifact has no session_id")
     root = Path(root).resolve()
@@ -67,7 +73,7 @@ def ingest(path: Path, root: Path) -> str:
     if previous is not None:
         from graph_core.persistence import frontmatter
         prior_fm = frontmatter.load_node_file(previous, body=False).frontmatter
-    goal_value = record.get("goal") or record.get("goal_id")
+    goal_value = goal if goal is not None else (record.get("goal") or record.get("goal_id"))
     if goal_value is None and prior_fm:
         prior_parents = prior_fm.get("parents") or []
         goal_value = prior_parents[0] if len(prior_parents) == 1 else None

@@ -4,8 +4,8 @@ from pathlib import Path
 CLI = Path(__file__).parents[1] / "bin" / "cli.py"
 REPO = Path(__file__).parents[3]
 
-def run(root, artifact):
-    return subprocess.run([sys.executable, str(CLI), "ingest", str(artifact), "--root", str(root)], text=True, capture_output=True)
+def run(root, artifact, *args):
+    return subprocess.run([sys.executable, str(CLI), "ingest", str(artifact), "--root", str(root), *args], text=True, capture_output=True)
 
 def setup(tmp_path):
     root = tmp_path / ".agi"
@@ -16,6 +16,20 @@ def setup(tmp_path):
     goal_dir.mkdir(parents=True)
     shutil.copy(REPO / ".agi" / "nodes" / "goal" / "g7.32.1.md", goal_dir / "g7.32.1.md")
     return root, tmp_path / "session.jsonl"
+
+def test_cli_controls_ingest_real_pi_shape_and_refuse_conflicts(tmp_path):
+    root, artifact = setup(tmp_path)
+    artifact.write_text(json.dumps({"tool": "read", "timestamp": "now", "text": "first"}) + "\n")
+    got = run(root, artifact, "--session-id", "external-1", "--goal", "g7.32.1")
+    assert got.returncode == 0, got.stderr
+    assert got.stdout.strip().startswith("doc:session-external-1-")
+    assert "first" in next((root / "nodes" / "doc").glob("*.md")).read_text()
+    conflict = run(root, artifact, "--session-id", "external-1", "--goal", "g7.32.1")
+    assert conflict.returncode == 0
+    artifact.write_text(json.dumps({"session_id": "embedded", "goal": "g7.32.1"}) + "\n")
+    bad = run(root, artifact, "--session-id", "external-2", "--goal", "g7.32.1")
+    assert bad.returncode == 2 and "conflicting CLI session_id" in bad.stderr
+
 
 def test_distinct_safe_ids_and_exact_id_update_preserve_provenance(tmp_path):
     root, artifact = setup(tmp_path)
