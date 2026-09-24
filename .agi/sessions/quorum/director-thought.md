@@ -74,10 +74,14 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:0xZ 09-24: CMP.02 LIVE (parent a00-b2ddbef3, dispatched 05:06:51Z, pi-free, 0 USD); batch 3 accumulating
+## 🔴 Where it stops -- 05:1xZ 09-24: CMP.03 LIVE (parent a00-74f91ef4, dispatched 05:13:54Z, pi-free, 0 USD); CMP.02 died on infra; batch 3 accumulating
 ```
-NOW      CMP.02 = CMP.01 re-run on a corrected instrument (hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared, brief ff8ba59578)
-         parent a00-b2ddbef3 pid 2789958 · manifest .agi/sessions/iter-CMP.02/manifest.json · wait: python3 extensions/agi/bin/cli.py wait CMP.02
+NOW      CMP.03 = CMP.01 re-run on a corrected instrument (hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared, brief ff8ba59578)
+         parent a00-74f91ef4 pid 2877543 · my manifest has the PARENT row only (the kid row lives in the parent tree) -> wait on the pid, never cli.py wait here
+CMP.02   DIED ON INFRA, nothing harvested (tip = my base): the parent ran the kid dispatch under a 30 s bash timeout -> killed inside dispatch's 20 s
+         startup grace (L2784 _await_startup runs BEFORE L2831 spawn_budget.commit) -> the lease held by a dead holder -> a sweep revoked the kid key ->
+         kid a00-a3f3d41f 401 at turn 5 (05:07:21) -> no manifest row -> the parent closed on "no kid" · routed to director-engine 05:1xZ (not blocking)
+         CMP.03 orders: kid dispatch timeout >= 180 s · never a verdict on an uncommitted kid node · the kid greps --include=*.js (pi .map lines = whole sources)
 PREDICT  pi 0.67.68 source: auto-compaction is checked ONLY at agent_end (agent-session.js:337) and before a NEW prompt (:738); the threshold reads
          only the last reply's server usage (:1443) -> inside one pi -p loop a declared window cannot stop an over-ceiling request (falsifier 1);
          the extension API has turn_end (types.d.ts:734) + compact() (:206) = the mid-loop trigger, the bigger frame if disproved
