@@ -9,6 +9,7 @@ schema / ring / written_by gates run exactly as they do for `set`.
 """
 from __future__ import annotations
 
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -159,6 +160,86 @@ def test_sub_dry_run_diff_applied_to_disk_is_the_landed_bytes(project, shape):
         assert '-title: "hello world"' in diff
     if shape == "dup_body_frontmatter":
         assert "dupe" not in landed
+
+
+# conjunct 5 (round 3): the printed diff must be a STANDARD unified diff, so
+# BOTH write's own applier and GNU `patch` turn the raw on-disk bytes into the
+# landed bytes -- and a file with no EOF newline carries the `\ No newline at
+# end of file` marker instead of a phantom empty trailing line
+# (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+_PATCH = shutil.which("patch")
+_STD_SHAPES = dict(_SUB_SHAPES)
+_STD_SHAPES["canonical"] = (
+    '---\nid: hypothesis:h1\nmint_id: abc123\ntype: hypothesis\n'
+    'scaffold_hash: deadbeef\nstatus: pending\ntestable_claim: c\n'
+    'title: "hello world"\n---\n\nthe body says nothing here\n')
+
+
+def _printed_diff(proc) -> str:
+    lines = proc.stdout.splitlines(True)
+    start = next(i for i, l in enumerate(lines) if l.startswith("--- a/"))
+    end = next(i for i, l in enumerate(lines) if l.startswith("  sub "))
+    return "".join(lines[start:end])
+
+
+@pytest.mark.parametrize("shape", sorted(_STD_SHAPES))
+def test_sub_dry_run_diff_is_a_standard_unified_diff(project, shape):
+    """The printed `--dry-run` diff is a STANDARD unified diff for the three
+    EF.83 shapes plus a node that is already canonical with an EOF newline:
+    write's applier lands the bytes, GNU `patch` lands the same bytes, no
+    phantom empty added line escapes, and the no-newline marker appears iff
+    the on-disk bytes lack a trailing newline."""
+    path = project / "nodes" / "hypothesis" / "h1.md"
+    path.write_text(_STD_SHAPES[shape], encoding="utf-8")
+    before = path.read_text()
+    proc = _run(project, "sub world => WORLD", "--dry-run")
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+    diff = _printed_diff(proc)
+    assert diff, "the preview printed no diff for a real change"
+
+    # (1) write's own applier: printed diff -> landed bytes.
+    previewed = write.apply_unified_diff(before, diff)
+    assert path.read_text() == before, "a dry run writes nothing"
+    res = _run(project, "sub world => WORLD")
+    assert res.returncode == 0, res.stdout + res.stderr
+    landed = path.read_text()
+    assert previewed == landed, (
+        f"write's applier disagrees for shape {shape}\n" + diff)
+
+    # (2) no phantom empty added line (a bare `+` was how the old split("\n")
+    # render modelled a missing EOF newline).
+    assert "+" not in diff.split("\n"), f"phantom added line for {shape}"
+
+    # (3) the marker appears iff the raw bytes end without a newline.
+    assert ("No newline at end of file" in diff) == (not before.endswith("\n"))
+
+    # (4) GNU patch, on a copy of the raw bytes, lands the same bytes. Skips
+    # by name when `patch` is absent -- never fails on a box without it.
+    if _PATCH is None:
+        pytest.skip("GNU patch not present on this box")
+    target = project / "nodes" / "hypothesis" / "patched.md"
+    target.write_text(before, encoding="utf-8")
+    pp = subprocess.run([_PATCH, str(target)], input=diff,
+                        capture_output=True, text=True)
+    assert pp.returncode == 0, pp.stdout + pp.stderr
+    assert target.read_text() == landed
+
+
+def test_apply_unified_diff_honours_the_no_newline_marker():
+    """apply_unified_diff strips a trailing newline on the line the marker
+    follows, and refuses without it rather than mis-landing."""
+    before = "a\nbody"
+    after = "a\nbody\n"
+    diff = write._standard_unified_diff(
+        before, after, fromfile="a/x", tofile="b/x")
+    assert write.apply_unified_diff(before, diff) == after
+    unstripped = diff.replace("\\ No newline at end of file\n", "")
+    with pytest.raises(write.EditError):
+        write.apply_unified_diff(before, unstripped)
+    # The other direction: the ADDED line is the unterminated one.
+    diff2 = write._standard_unified_diff(
+        "a\nbody\n", "a\nBODY", fromfile="a/x", tofile="b/x")
+    assert write.apply_unified_diff("a\nbody\n", diff2) == "a\nBODY"
 
 
 def test_sub_body_lands_through_update_node(project):
