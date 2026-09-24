@@ -2488,7 +2488,11 @@ def render(*, post: str | None = None, role: str | None = None,
             f"role {role!r} parts {parts} carry no 'extras' part, so "
             f"extras_text ({len(extras_text)} chars) would be dropped")
     segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
-    return "\n\n".join(s for s in segs if s)
+    rendered = "\n\n".join(s for s in segs if s)
+    guard = _paid_for_path_guard(root)
+    if guard not in rendered:
+        rendered = "\n\n".join(part for part in (rendered, guard) if part)
+    return rendered
 
 
 def _cmd_render(args) -> int:
