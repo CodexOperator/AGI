@@ -126,6 +126,35 @@ def test_paid_for_path_guard_follows_config_brief_node(tmp_path):
     assert "NODE-GUARD-SENTINEL" in rendered
 
 
+def test_render_carries_paid_for_path_guard_for_pi_free_and_pi(monkeypatch, tmp_path):
+    sentinel = "RENDER-PAID-FOR-PATH-GUARD-SENTINEL"
+    monkeypatch.setattr(brief, "PAID_FOR_PATH_GUARD", sentinel)
+    for role, harness in (("kid", "pi-free"), ("parent", "pi-free"),
+                          ("director", "pi")):
+        root = _root(tmp_path / f"{role}-{harness}",
+                     parts={role: ["head"]})
+        rendered = brief.render(role=role, harness=harness, project_root=root)
+        assert rendered.count(sentinel) == 1, (role, harness)
+
+
+def test_render_paid_for_path_guard_override_is_exactly_once(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "RENDER-OVERRIDE-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = brief.render(role="kid", harness="pi-free", project_root=root)
+    assert rendered.count("RENDER-OVERRIDE-SENTINEL") == 1
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
+
+
+def test_render_does_not_duplicate_paid_for_path_guard_in_a_part(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["card"]},
+                 card=brief.PAID_FOR_PATH_GUARD + "\nCARD-SENTINEL\n")
+    rendered = brief.render(role="kid", harness="pi-free", post="some-post",
+                            project_root=root)
+    assert rendered.count(brief.PAID_FOR_PATH_GUARD) == 1
+
+
 def _write(root: Path, rel: str, text: str) -> Path:
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -405,7 +434,8 @@ def test_extras_text_override_lands_last_and_order_is_the_config_cell(tmp_path):
     root = _root(tmp_path, parts={"kid": ["head", "card", "extras"]})
     out = brief.render(role="kid", extras_text="EXTRAS-SENTINEL",
                        project_root=root)
-    assert out.endswith("EXTRAS-SENTINEL")
+    assert out.index("EXTRAS-SENTINEL") < out.index("Paid-for path guard")
+    assert out.count("Paid-for path guard") == 1
     assert HEAD_SENTINEL in out
     assert out.index(HEAD_SENTINEL) < out.index("EXTRAS-SENTINEL")
 
