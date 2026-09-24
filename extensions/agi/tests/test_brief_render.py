@@ -88,6 +88,22 @@ def test_survival_state_card_uses_the_passed_project_root(tmp_path):
         assert "TREE  5 dirty/unreviewed" not in rendered[0]
 
 
+def test_default_profile_resolution_follows_project_root(monkeypatch, tmp_path):
+    """The full sentinel must re-resolve the supplied root's own mode."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    renders = {}
+    for name, mode in (("survival", "survival"), ("full", "full")):
+        root = _root(tmp_path / name, parts={"kid": []})
+        cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+        cfg["operating_mode"] = mode
+        (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+        renders[name] = "\n".join(brief.assemble(
+            tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+            scaffold=None, project_root=root))
+    assert "SURVIVAL PROFILE" in renders["survival"]
+    assert "SURVIVAL PROFILE" not in renders["full"]
+
+
 def test_paid_for_path_guard_follows_project_config(tmp_path):
     root = _root(tmp_path, parts={"kid": ["head"]})
     cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
@@ -426,6 +442,28 @@ def test_rotate_fallback_reason_reaches_stderr(tmp_path, monkeypatch, capsys):
         project_root=root)
     err = capsys.readouterr().err
     assert "brief.render" in err and "falling back to brief.assemble" in err
+
+
+def test_rotate_assemble_fallback_forwards_project_root(tmp_path,
+                                                        monkeypatch):
+    """The legacy fallback must render the same caller-supplied graph root."""
+    import rotate
+
+    def refuse(**kwargs):
+        raise brief.RenderError("forced primary-path refusal")
+
+    captured = {}
+    monkeypatch.setattr(brief, "render", refuse)
+    monkeypatch.setattr(
+        brief, "assemble",
+        lambda **kwargs: captured.update(kwargs) or ["FALLBACK-BODY-SENTINEL"])
+    monkeypatch.setattr(rotate, "_build_harness_command",
+                        lambda harness, **kwargs: ["x"])
+    root = _root(tmp_path, parts={"kid": []})
+    rotate._assembled_successor_command(
+        name="kid-seat", tier="kid", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi", project_root=root)
+    assert captured["project_root"] == root
 
 
 # ---- phase 4, items 2+3: the Prime spawn path renders and the card lands once
