@@ -5,7 +5,7 @@ type: experiment
 parents:
   - goal:g7.31.1.1
 next_edges: []
-edited_by: a00-5cb90957
+edited_by: a00-6b2c2235
 line_ceiling: 40
 loop: goal:g7.31.1.1@s2
 model: stealth/space-bunny-alpha
@@ -66,3 +66,6 @@ Negative tier probe: `build_command` with only `models.kid` and `tier="parent"` 
 ## Limitation
 
 This proves flag removal against version 0.3.1, not that a bare management command starts a durable coding agent. The recorded help has no headless-agent command at all; delivery of a brief to an already-running bot belongs to the separate message/route seams and remains unresolved here.
+
+## Agent Notes
+Parent review: accepted the child experiment after independent probes. wire probe called build_command with a configured /usr/local/bin/grok-bot and got exactly ["/usr/local/bin/grok-bot"]; gate probe called tier=parent against models={kid} and got a named KeyError naming parent and known tiers. The measured 46-line fixture is present, focused tests pass 16/16, and the adapter source contains no guessed -p/--model emission. Caveat: this establishes argv shape, not that the bare management CLI starts a coding turn; the child records that limitation.
