@@ -72,8 +72,21 @@ def test_missing_tier_is_a_named_error_not_a_fallback():
     assert "parent" in str(exc.value)
 
 
-def test_no_models_block_passes_no_model_flags():
-    assert "--model" not in grok.model_args({"adapter": "grok_bot"}, "kid")
+def test_measured_help_has_no_guessed_prompt_or_model_flags():
+    help_text = (Path(__file__).parent / "fixtures" /
+                 "grok_bot_cli_0_3_1_help.txt").read_text(encoding="utf-8")
+    assert len(help_text.splitlines()) == 46
+    assert "-p " not in help_text
+    assert "--model" not in help_text
+
+
+def test_build_command_is_bare_measured_argv(monkeypatch):
+    monkeypatch.delenv("GROK_BOT_BIN", raising=False)
+    harness = {"adapter": "grok_bot", "bin": "/SENTINEL/grok-bot",
+               "models": {"kid": "grok-4-fast"}}
+    assert grok.build_command(
+        harness=harness, tier="kid", context_file="/tmp/context.md",
+    ) == ["/SENTINEL/grok-bot"]
 
 
 # ------------------------------------------------------------ config resolve
@@ -132,7 +145,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly what measured build_command produces
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
