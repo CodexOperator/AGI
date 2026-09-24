@@ -33,13 +33,16 @@ QUEUE     chains run in order, one kid at a time: LH-1 every-spawn-exports-its-o
           signer-signs-with-the-key-the-verifiers-row-names -> L23-3 deferred-window-dm-verifies-through-a-real-authority-ref-with-
           no-fetch · LC2-1 the-box-detail-guard-scan-lives-in-one-helper-over-one-list-and-one-pattern -> LC2-2 a-box-label-in-an-
           about-a-reason-shadows-fails-the-guard (never while C1's continuation runs). .19 r2 = DONE by the #3 close (RED 3).
-FREE LANE TMM.80 (owner 01:1xZ): harness pi-free = the pi row + stealth/space-bunny-alpha (0/0 USD), committed @164ed0f167;
-          runs IN PARALLEL with the local slot. PARKED: the proof dispatch EF.91 (L23-1, --tier kid --harness pi-free, orders
-          .agi/sessions/de-0923/orders-free-L23-1.md) was REFUSED at the mint floor 01:33Z (provisioning.can_fund:
-          MIN_REMAINING_CREDITS 1.00, a module constant; $0.48 left) -> [red] to TM 01:3xZ (blocker-free-lane.md): (a) top-up,
-          (b) a row cell the floor honours for all-free rows (spend safety: TM/owner's call), (c) an owner-supplied free key.
-          On TM's pick: re-run the same EF.91 command (it reuses EF.91). pi's acceptance of the id is still UNPROVEN.
-          Never edit ~/.pi (TM's); kids under a pi-free PARENT must pass --harness pi-free (the ladder kid row = paid).
+FREE LANE TMM.80/82/84: pi-free (stealth/space-bunny-alpha, 0/0 USD) is on the trunk too (f83d731911); the Prime moved dispatch to
+          the OTHER OpenRouter account 02:13Z ($14.04, mints work). TMM.84 = open pi-free rounds, parents + kids + murs; PAID stays
+          held; a pi-free parent's kid spawn MUST pass --harness pi-free (a kid record showing harness pi = cut it + tell TM).
+          MINE on pi-free, in order: murs H2/I2/J2 (EF.87/88/89) -> .23 r2 (L23 leaves; EF.91 orders-free-L23-1.md) + .14 r3 (L14)
+          -> the per-harness max_live leaf (TMM.82: dispatch refuses a spawn whose harness is at harnesses.<h>.max_live;
+          pi-local = 1; one function, one test -- planner running, mint it). ONE [merge-up] per batch.
+BLOCKED   02:2xZ: all 3 murs launched on pi-free -> pi rc=1, verbatim "404 No allowed providers are available for the selected
+          model ... your account's allowed-providers setting permits only: deepseek" (+ pi: model not in its openrouter list,
+          'Using custom model id'). 0 USD spent. [red] to TM 02:2xZ (blocker-free-lane-2.md): the owner's account setting.
+          On TM's word: re-run the 3 mur launches (card step 2 loop, --harness pi-free) + EF.91. Nothing else dispatched.
 WATCH     Monitor /tmp/de-lane-watch.sh (director-thought's dm headlines to TM + the live count); re-arm on expiry
 LANDED    #1-#3 = EF.49-82 via the #3 close e428f88c80 (TMM.68's 3 reds, test+graph only, made by me) at 7c9231b4f (TMM.74)
           #4 8042f69f3c = EF.85 + EF.84 + EF.86 + EF.83 at d81b444043 (TMM.75): trunk suite 6355 passed / 1 = the dashboard load
