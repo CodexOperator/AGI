@@ -21,7 +21,7 @@ town: core
   committed row (3293-3299); rows come from 3534 -> 3172; a pushed row with no pubkey / sig_scheme is filled from MAIN
   (3258-3266) = the SUCCESSOR.
 - so with no key cell on the authority the signer uses the predecessor and 3382 returns FORGED (mur E2 STANDS on EF.84).
-- rotate.py:18178-18179 passes prefer_authority_deferred=True: that branch (the committed-row comparison) is unchanged.
+- rotate.py:18186-18187 passes prefer_authority_deferred=True: that branch (the committed-row comparison) is unchanged.
 ## CLAIM
 When the pending is authority-deferred and prefer_authority_deferred is False, the row is
 `_row_for_label(root, _load_rows(root, do_fetch=False), seat)` -- the verifier's OWN resolver, called, never copied; the pending
@@ -40,10 +40,14 @@ the verdict is UNKEYED, 3374-3375); a recorder stub on bin_send._pushed_seats. (
 do_fetch is False; (ii) the pushed row names the predecessor (ed25519) -> "VERIFIED aa (ed25519)".
 AMEND test_send_signs_with_the_authority_key_when_deferred_on_authority (352-382): add a pushed stub naming the predecessor -- its
 fixture has no pushed row, so without it the verifier's chain resolves the committed successor and 376-379 pin the FORGED case.
-Neighbours: test_rotate_pending_swap_authority.py (9), test_send.py (338), test_rotate_key_authority.py (15) on 66e3dd68c7.
+Neighbours: test_rotate_pending_swap_authority.py (9), test_send.py (339), test_rotate_key_authority.py (17) on d19b619aed.
 ## FILE SCOPE
 extensions/agi/bin/send.py 199-245 (read 3240-3299, 3455-3521)
 extensions/agi/tests/test_rotate_pending_swap_authority.py 26-60, 352-382
-extensions/agi/bin/rotate.py 18169-18201 (read-only)
+extensions/agi/bin/rotate.py 18177-18209 (read-only)
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · ~12 production lines · 0 USD · SECOND (after the do_fetch leaf merges)
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · ~12 production lines · 0 USD · SECOND (after the do_fetch leaf merges)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Re-checked against d19b619aed before dispatch (03:5xZ 09-24): EF.91 (the do_fetch leaf this one depends on) and EF.93 are merged; EF.93 added 8 lines above the rotate.py citations, so they moved +8 with content unchanged, and the neighbour counts are the base's own (EF.91 added 1 test to test_send.py, EF.93 added 2 to test_rotate_key_authority.py). Claim, tests and file scope otherwise unchanged; the precondition is met.
+<!-- THOUGHT:END -->
