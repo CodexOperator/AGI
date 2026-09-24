@@ -531,10 +531,10 @@ def _timeout(args):
     raise subprocess.TimeoutExpired(args, 60)
 
 
-def _stub_git_run(monkeypatch, *, fetch=None, probe=None):
-    """Route `subprocess.run` inside rotate: a `fetch` / `ls-remote` call is
-    answered by the given callable (or raises through it); every other git
-    call falls through to the real binary, so the tmp fixture stays real."""
+def _stub_git_run(monkeypatch, *, fetch=None, probe=None, push=None):
+    """Route `subprocess.run` inside rotate: a `fetch` / `ls-remote` / `push`
+    call is answered by the given callable (or raises through it); every other
+    git call falls through to the real binary, so the tmp fixture stays real."""
     real = subprocess.run
 
     def fake(args, *a, **kw):
@@ -543,6 +543,8 @@ def _stub_git_run(monkeypatch, *, fetch=None, probe=None):
                 return fetch(args)
             if "ls-remote" in args and probe is not None:
                 return probe(args)
+            if "push" in args and push is not None:
+                return push(args)
         return real(args, *a, **kw)
 
     monkeypatch.setattr(rotate.subprocess, "run", fake)
@@ -572,6 +574,31 @@ def _assert_retry_defers(g, seat_key, before):
     assert seat_key.read_bytes() == before
     pend = seat_key.parent / (seat_key.name + ".pending")
     assert pend.is_file(), "a hanging authority must defer the swap"
+
+
+def test_publish_push_timeout_fails_and_defers_the_swap(tmp_path, monkeypatch):
+    """A push timeout yields FAILED naming the push; the EF.84 retry still
+    refuses by name and leaves the key byte-identical."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    _stub_git_run(monkeypatch, push=_timeout)
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "push" in out and "timed out" in out, out
+    assert "authority: SKIPPED" not in out, out
+    seat_key, before = _seed_authority_pending(g)
+    _assert_retry_defers(g, seat_key, before)
+
+
+def test_publish_push_oserror_fails_and_never_raises(tmp_path, monkeypatch):
+    """An unlaunchable push yields FAILED naming push instead of raising."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    _stub_git_run(monkeypatch,
+                  push=lambda a: (_ for _ in ()).throw(
+                      OSError("git not found")))
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "could not launch git push" in out, out
+    assert "authority: SKIPPED" not in out, out
 
 
 def test_ef86_fetch_timeout_fails_and_defers_the_swap(tmp_path, monkeypatch):
