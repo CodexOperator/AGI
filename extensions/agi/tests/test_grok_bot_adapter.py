@@ -61,6 +61,34 @@ def test_needs_no_openrouter_credential():
     assert grok.needs_credential(HARNESS) is False
 
 
+def test_optional_pane_methods_delegate_to_the_existing_hold():
+    calls = []
+    class FakePane:
+        def attach(self, **kw): calls.append(("attach", kw)); return "attached"
+        def send(self, *a, **kw): calls.append(("send", a, kw)); return "sent"
+        def read(self, *a, **kw): calls.append(("read", a, kw)); return "read"
+    hold = {"seat-a": FakePane()}
+    assert grok.pane_attach(hold_owner=hold, pane_name="seat-a", reason="boot") == "attached"
+    assert grok.pane_send("hello", hold_owner=hold, pane_name="seat-a", urgent=True) == "sent"
+    assert grok.pane_read(hold_owner=hold, pane_name="seat-a", lines=3) == "read"
+    assert [c[0] for c in calls] == ["attach", "send", "read"]
+
+
+def test_optional_pane_methods_fail_closed_without_a_hold():
+    for fn in (grok.pane_attach, grok.pane_send, grok.pane_read):
+        with pytest.raises(grok.PaneUnavailable, match="seat-missing"):
+            fn(hold_owner={}, pane_name="seat-missing")
+
+
+def test_pane_methods_stay_optional_and_grok_branchless():
+    assert grok.PaneUnavailable.__name__ == "PaneUnavailable"
+    for name in ("pi", "claude_code", "copilot_cli"):
+        mod = adapters.load(name)
+        assert not any(hasattr(mod, op) for op in ("pane_attach", "pane_send", "pane_read"))
+    for path in (BIN / "dispatch.py", BIN / "rotate.py"):
+        assert "grok" not in path.read_text(encoding="utf-8").lower()
+
+
 # ------------------------------------------------------------- tier contract
 
 

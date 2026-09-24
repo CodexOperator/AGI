@@ -30,6 +30,30 @@ NAME = "grok-bot"
 DEFAULT_BIN = "grok-bot"
 
 
+class PaneUnavailable(RuntimeError):
+    """The named pane is not held by the supplied hold owner."""
+
+
+def _held_pane(hold_owner, pane_name):
+    """Resolve without creating or replacing a g7.31.1 hold."""
+    try:
+        return hold_owner[pane_name]
+    except (KeyError, TypeError) as exc:
+        raise PaneUnavailable(f"no held pane {pane_name!r}") from exc
+
+
+def pane_attach(*, hold_owner, pane_name, **kwargs):
+    return _held_pane(hold_owner, pane_name).attach(**kwargs)
+
+
+def pane_send(*args, hold_owner, pane_name, **kwargs):
+    return _held_pane(hold_owner, pane_name).send(*args, **kwargs)
+
+
+def pane_read(*args, hold_owner, pane_name, **kwargs):
+    return _held_pane(hold_owner, pane_name).read(*args, **kwargs)
+
+
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
     return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
