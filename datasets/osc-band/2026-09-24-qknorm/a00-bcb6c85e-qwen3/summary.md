@@ -1,0 +1,130 @@
+# corrected qwen3
+
+{
+ "meta": {
+  "event": "meta",
+  "model": "qwen3",
+  "hf": "/data/ml/scratch/osc15/hf",
+  "offline": true,
+  "eval": {
+   "wiki_slice_starts": [
+    5000,
+    61000,
+    120000,
+    240000
+   ],
+   "wiki_span": 512,
+   "heval_task_ids": [
+    "HumanEval/107",
+    "HumanEval/108",
+    "HumanEval/109",
+    "HumanEval/11"
+   ],
+   "heval_padded_to": 512,
+   "n_prompts": 8,
+   "n_tokens": 4096,
+   "hop1_wiki_starts": [
+    0,
+    29875,
+    59751,
+    89627,
+    119503,
+    149379,
+    179254,
+    209130,
+    239006,
+    268882
+   ],
+   "hop1_heval_task_ids": [
+    "HumanEval/0",
+    "HumanEval/1",
+    "HumanEval/10",
+    "HumanEval/100",
+    "HumanEval/101",
+    "HumanEval/102",
+    "HumanEval/103",
+    "HumanEval/104",
+    "HumanEval/105",
+    "HumanEval/106"
+   ]
+  },
+  "bits": {
+   "energy_3p5": 3.5,
+   "energy_4p5": 4.5,
+   "energy_5p5": 4.75,
+   "energy_6p5": 5.75,
+   "energy_7p5": 6.75,
+   "energy_8p5": 7.75,
+   "energy_9p0": 9.0,
+   "energy_10p0": 10.75,
+   "uniform_3p5": 3.125,
+   "random_3p5": 3.5
+  },
+  "capture": "post_rope_per_layer"
+ },
+ "settings": {
+  "energy_3p5": {
+   "agree": 0.050049,
+   "kl": 7.79745,
+   "bits": 3.5,
+   "holds": false
+  },
+  "energy_4p5": {
+   "agree": 0.168701,
+   "kl": 4.857131,
+   "bits": 4.5,
+   "holds": false
+  },
+  "energy_5p5": {
+   "agree": 0.192383,
+   "kl": 4.495916,
+   "bits": 4.75,
+   "holds": false
+  },
+  "energy_6p5": {
+   "agree": 0.596191,
+   "kl": 1.294129,
+   "bits": 5.75,
+   "holds": false
+  },
+  "energy_7p5": {
+   "agree": 0.859863,
+   "kl": 0.146894,
+   "bits": 6.75,
+   "holds": false
+  },
+  "energy_8p5": {
+   "agree": 0.943115,
+   "kl": 0.025102,
+   "bits": 7.75,
+   "holds": false
+  },
+  "energy_9p0": {
+   "agree": 0.984131,
+   "kl": 0.001963,
+   "bits": 9.0,
+   "holds": true
+  },
+  "energy_10p0": {
+   "agree": 0.995361,
+   "kl": 0.000283,
+   "bits": 10.75,
+   "holds": true
+  },
+  "uniform_3p5": {
+   "agree": 0.019775,
+   "kl": 11.257038,
+   "bits": 3.125,
+   "holds": false
+  },
+  "random_3p5": {
+   "agree": 0.023438,
+   "kl": 9.936828,
+   "bits": 3.5,
+   "holds": false
+  }
+ },
+ "lowest_holding_energy": 9.0,
+ "bench": "a00-bcb6c85e-qwen3/bench/20260924T185557Z.jsonl",
+ "t_s": 380.5
+}
