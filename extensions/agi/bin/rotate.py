@@ -10370,13 +10370,28 @@ def _push_season_branch(root: Path) -> str:
 
 
 def _authority_row_content(base: str, new: str, seat: str) -> str:
-    """`base` with ONLY the row keyed to `seat` replaced by that line from
-    `new`; foreign rows byte-identical (a FIRST seating returns `base`)."""
+    """Publish rotation-owned cells while retaining authority policy edits."""
     b = base.splitlines(keepends=True)
-    row = next((ln for ln in new.splitlines(keepends=True) if _own_row_line(ln, seat)), None)
-    if row is None or not any(_own_row_line(ln, seat) for ln in b):
+    row = next((ln for ln in new.splitlines(keepends=True)
+                if _own_row_line(ln, seat)), None)
+    own = [ln for ln in b if _own_row_line(ln, seat)]
+    if row is None or not own:
         return base
-    return "".join(row if _own_row_line(ln, seat) else ln for ln in b)
+    try:
+        old_row = json.loads(own[0][own[0].index("{"):].rstrip("\r\n"))
+        new_row = json.loads(row[row.index("{"):].rstrip("\r\n"))
+    except (ValueError, json.JSONDecodeError):
+        return base
+    rotation_owned = {
+        "pubkey", "key_history", "session_id", "session_ref", "session_name",
+        "session_label", "pid", "window", "generation",
+    }
+    merged = dict(old_row)
+    merged.update({k: new_row[k] for k in rotation_owned if k in new_row})
+    prefix = own[0][:own[0].index("{")]
+    suffix = "\n" if own[0].endswith("\n") else ""
+    merged_line = prefix + json.dumps(merged, ensure_ascii=False) + suffix
+    return "".join(merged_line if _own_row_line(ln, seat) else ln for ln in b)
 
 
 def _insert_row_into_frontmatter(base: str, row: str) -> str:
