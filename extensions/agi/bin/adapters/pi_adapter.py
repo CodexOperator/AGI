@@ -303,6 +303,13 @@ def restart(
     max_live: int = 1,
     agent_record: dict | None = None,
     brief_tier: str | None = None,
+    # hypothesis:restart-carries-the-first-spawns-full-turn-and-identity --
+    # dispatch.py passes role=/ladder_tier= to EVERY adapter's build_command,
+    # and now to restart() too, so a pi restart must accept them or the seam
+    # TypeErrors. pi has no tool bundle, so they are accepted and unused.
+    role: str | None = None,
+    ladder_tier: int | None = None,
+    rendered_brief: str | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -322,7 +329,9 @@ def restart(
         agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
         scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
         dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live, brief_tier=brief_tier,
+        max_live=max_live, brief_tier=brief_tier, role=role,
+        ladder_tier=ladder_tier,
+        rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ))

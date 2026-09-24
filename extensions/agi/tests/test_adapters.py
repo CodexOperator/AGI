@@ -16,8 +16,10 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import pwd
 import re
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -409,6 +411,28 @@ def test_home_token_expands_the_same_way(tmp_path, monkeypatch):
     assert got == str(fake)
 
 
+def test_tilde_user_expands_to_that_users_home_not_the_current_home(
+        tmp_path, monkeypatch):
+    """`~user/x` means THAT user's home (os.path.expanduser semantics), never
+    the current HOME with `user/` spliced onto it. Pre-fix `home + raw[1:]`
+    turned `~bob/.npm-global/bin/pi` into `<current home>bob/.npm-global/bin/pi`
+    (goal:g15.29.2)."""
+    monkeypatch.setenv("HOME", str(tmp_path / "me"))
+    user_home = tmp_path / "bob-home"
+    fake = user_home / ".npm-global" / "bin" / "pi"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.setattr(pwd, "getpwnam",
+                        lambda name: types.SimpleNamespace(pw_dir=str(user_home)))
+    monkeypatch.delenv("PI_BIN", raising=False)
+    assert os.path.expanduser("~bob/.npm-global/bin/pi") == str(fake)
+    got = adapters.resolve_bin(
+        {"adapter": "pi", "bin": "~bob/.npm-global/bin/pi"}, "PI_BIN", "pi")
+    assert got == str(fake)
+    assert got != str(tmp_path / "me" / "bob/.npm-global/bin/pi")
+
+
 def test_env_override_wins_over_the_config_cell(monkeypatch):
     monkeypatch.setenv("PI_BIN", "/from/env")
     assert adapters.resolve_bin(
@@ -466,3 +490,21 @@ def test_no_home_user_literal_survives_in_any_adapter():
             if re.search(r'["\']/home/', line):
                 offenders.append(f"{path.name}:{lineno}: {line.strip()}")
     assert offenders == []
+
+
+def test_an_unresolvable_tilde_user_refuses_by_name(tmp_path, monkeypatch):
+    """`~nosuchuser/bin/x` cannot expand: `os.path.expanduser` hands the raw
+    token back unchanged, so the pre-fix `path == raw` branch returned the raw
+    cell and `Popen` died on a bare `FileNotFoundError('~nosuchuser/...')`
+    that named nothing. It now refuses BY NAME, naming the harness, the raw
+    cell and the `$ENV_VAR` that would override it."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.delenv("NOPE_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "nope", "bin": "~nosuchuser_xyz/bin/nope"},
+            "NOPE_BIN", "nope")
+    msg = str(exc.value)
+    assert "nosuchuser_xyz" in msg, msg
+    assert "'nope'" in msg, msg
+    assert "NOPE_BIN" in msg, msg

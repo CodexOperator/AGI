@@ -7554,6 +7554,90 @@ def test_rooms_lists_a_dm_filed_under_a_former_name_of_the_post(
         croot, "someone-else"), rows
 
 
+# hypothesis:dm-reader-resolves-aliases-once-per-read -- the sweep over N dm
+# files with M `--` tokens each must load the ONE `aliases:` table ONCE per
+# read_dms / rooms call, and `deprecated alias used` must print AT MOST ONCE
+# per alias per call, never for a token that does not match the reader.
+
+_ALIAS_SWEEP_STEMS = (
+    "old-name--sender-a",
+    "old-name--sender-b",
+    "other-old--sender-c",
+    "stranger--sender-d",
+    "new-name--sender-e",
+)
+
+
+def _dm_sweep_fixture(project: Path) -> Path:
+    """A comms root with SEVERAL dm files, each a `--` pair: two filed under
+    the reader's own former name, one under a DIFFERENT post's former name,
+    one with no alias, one naming the canonical reader directly."""
+    croot = project / ".agi" / "sessions"
+    d = croot / "dm"
+    d.mkdir(parents=True, exist_ok=True)
+    for stem in _ALIAS_SWEEP_STEMS:
+        (d / f"{stem}.md").write_text("body\n", encoding="utf-8")
+    return croot
+
+
+def _count_posts_loads(monkeypatch) -> dict:
+    """Count `_fm.load_node_file` calls for `posts.md` only, over the call
+    under test. Pre-fix this counts ONE load per non-matching `--` token."""
+    real = send_mod._fm.load_node_file
+    loads = {"n": 0}
+
+    def counting(path, *a, **k):
+        if Path(path).name == "posts.md":
+            loads["n"] += 1
+        return real(path, *a, **k)
+
+    monkeypatch.setattr(send_mod._fm, "load_node_file", counting)
+    return loads
+
+
+def test_read_resolves_the_alias_table_once_per_call(
+        project: Path, capsys, monkeypatch):
+    """FALSIFIER (EF.64): `read_dms` over 5 dm files loads posts.md EXACTLY
+    once, prints the deprecation notice once for the matching alias, and
+    NEVER for a different post's alias or an unknown token."""
+    _write_geometry(project,
+                    aliases={"old-name": "new-name",
+                             "other-old": "other-new"})
+    croot = _dm_sweep_fixture(project)
+    loads = _count_posts_loads(monkeypatch)
+
+    capsys.readouterr()
+    send_mod.read_dms(croot, "new-name", commit=False)
+    err = capsys.readouterr().err
+
+    assert loads["n"] == 1, loads
+    assert err.count("deprecated alias used: old-name -> new-name") == 1, err
+    assert "other-old" not in err, err
+    assert "stranger" not in err, err
+
+
+def test_rooms_resolves_the_alias_table_once_per_call(
+        project: Path, capsys, monkeypatch):
+    """The `rooms` sweep shares the one resolver: posts.md loads once, the
+    matching dm files are selected, a different post's alias file is NOT."""
+    _write_geometry(project,
+                    aliases={"old-name": "new-name",
+                             "other-old": "other-new"})
+    croot = _dm_sweep_fixture(project)
+    loads = _count_posts_loads(monkeypatch)
+
+    capsys.readouterr()
+    rows = send_mod.rooms(croot, "new-name")
+    err = capsys.readouterr().err
+
+    assert loads["n"] == 1, loads
+    assert err.count("deprecated alias used: old-name -> new-name") == 1, err
+    assert "other-old" not in err, err
+    selected = {name for _kind, name, _n in rows}
+    assert selected == {"old-name--sender-a", "old-name--sender-b",
+                        "new-name--sender-e"}, rows
+
+
 def test_read_is_quiet_independent(
         tmp_path: Path, capsys, clear_identity, monkeypatch):
     """The hypothesis's SECOND conjunct: a `settings: quiet` row and a row

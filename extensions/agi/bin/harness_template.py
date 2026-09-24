@@ -42,9 +42,26 @@ from pathlib import Path
 TEMPLATES_SUBPATH = ("extensions", "agi", "templates", "harness")
 _ALLOWED_KEYS = {"flag", "slot", "const", "encoding", "spread", "when"}
 
+#: The ONE render vocabulary: every `slot`, `when` and `spread` name a template
+#: element may use. `render()`'s values dict is asserted against this, so a
+#: template name the renderer cannot resolve is refused at check time rather
+#: than looked up with `.get` and silently emitted as nothing.
+RENDER_VOCABULARY = (
+    "prompt", "model", "effort", "settings", "extra_args", "name",
+    "debug_file", "provider", "thinking", "model_args", "output_format",
+    "verbose", "budget", "prompt_file", "repo_root", "mcp", "tools",
+    "allowed", "disallowed", "closing",
+)
+
 #: Where a seat's model/effort/settings come from. Closed vocabulary: a
 #: template that omits `[roles] source` is `ladder` (claude-code's behaviour).
 ROLE_SOURCES = ("ladder", "row")
+
+#: The encodings `_emit` knows: `json` json-dumps the slot value, `str` (the
+#: default) is plain `str()`. Closed vocabulary -- before this a typo'd
+#: `encoding = "json5"` fell through to `str()` and emitted the WRONG bytes
+#: silently, because `_check_parts` validated `slot`/`when`/`spread` only.
+ENCODINGS = ("json", "str")
 
 
 class HarnessTemplateError(Exception):
@@ -146,6 +163,17 @@ def _check_parts(path: Path, parts: list, label: str = "argv") -> None:
                 raise HarnessTemplateError(
                     f"{path}: {label}[{i}] has non-template key(s) {sorted(bad)}; "
                     f"allowed: {sorted(_ALLOWED_KEYS)}")
+            for field in ("slot", "when", "spread"):
+                name = part.get(field)
+                if name is not None and name not in RENDER_VOCABULARY:
+                    raise HarnessTemplateError(
+                        f"{path}: {label}[{i}] unknown {field} {name!r}; "
+                        f"known: {list(RENDER_VOCABULARY)}")
+            enc = part.get("encoding")
+            if enc is not None and enc not in ENCODINGS:
+                raise HarnessTemplateError(
+                    f"{path}: {label}[{i}] unknown encoding {enc!r}; "
+                    f"known: {list(ENCODINGS)}")
 
 
 def role_source(harness_id: str) -> str:
@@ -251,6 +279,9 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
               "prompt_file": prompt_file, "repo_root": repo_root, "mcp": mcp,
               "tools": tools, "allowed": allowed, "disallowed": disallowed,
               "closing": closing}
+    assert set(values) == set(RENDER_VOCABULARY), (
+        "render() values drifted from RENDER_VOCABULARY: "
+        f"{sorted(set(values) ^ set(RENDER_VOCABULARY))}")
     args = [str(bin_path or _first_arg(harness_id, tmpl))]
     for part in parts:
         args.extend(_emit(part, values))

@@ -2848,6 +2848,19 @@ def main() -> int:
             # never in the row.
             "harness_spec": dict(dispatch_harness),
             "tier": args.tier,
+            # hypothesis:restart-carries-the-first-spawns-full-turn-and-
+            # identity -- the restart rebuilds the first spawn's argv, so it
+            # needs the first spawn's IDENTITY, not just its brief text. Record
+            # the seat role (the record's `role` above is the per-TARGET role
+            # and may be null), the ladder/brief tiers and the engine paths the
+            # first spawn passed. `spawn_role` is null for an old record, and
+            # the restart falls back to `role`.
+            "spawn_role": args.role,
+            "ladder_tier": tier_eff,
+            "brief_tier": _brief_tier_for(args.tier, tier_eff, target),
+            "cli_py": str(engine_paths["cli_py"]),
+            "skill_prompt": str(engine_paths["skill_prompt"]),
+            "dispatch_py": str(engine_paths["dispatch_py"]),
             "command": " ".join(shlex.quote(a) for a in spawn_args),
             # SM.112 -- the cap this round was launched under (None = no
             # wrapper), so a capped death can be NAMED from the record.
@@ -3329,6 +3342,30 @@ def _restart_iter_id(iter_dir, rec):
     return locations.iteration_id(rec.get("iter", 0) or 0)
 
 
+def _carried_restart_brief(iter_dir, agent_id: str) -> str | None:
+    """The render the FIRST spawn used, read back from that agent's
+    `spawn.json` (hypothesis:a-restarted-agent-gets-the-same-render-as-its-
+    first-spawn). The spawn artifact is the ONE place the exact bytes live, so
+    a restart is byte-identical BY CONSTRUCTION, never re-derived from inputs
+    that may have moved. Absent, or the failed-render sentinel, returns None
+    and the adapter assembles exactly as it did pre-fix (back-compat)."""
+    import json
+    try:
+        rec = json.loads(
+            (Path(iter_dir) / agent_id / "spawn.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(rec, dict):
+        # `null`, a list or a bare string is valid JSON and not a dict.
+        # Without this guard `rec.get` raised AttributeError, which the restart
+        # try converted into `restart unavailable` for the whole round.
+        return None
+    brief_text = rec.get("brief")
+    if not brief_text or brief_text == "<brief render failed>":
+        return None
+    return brief_text
+
+
 def _branch_has_done_commit(root, rec, agent_id) -> bool:
     """True when the round's branch has advanced past its base.
 
@@ -3580,6 +3617,23 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
             target=rec.get("target"),
             scaffold=scaffold_info,
             agent_record=rec,
+            # hypothesis:restart-carries-the-first-spawns-full-turn-and-
+            # identity -- the rest of the first spawn's turn and identity,
+            # read back from the agent record. `spawn_role` is the seat role
+            # the first spawn's build_command got; fall back to the record's
+            # per-target `role` for an old record. All None/"" defaults keep
+            # the pre-fix assemble path byte-identical.
+            cli_py=rec.get("cli_py") or "",
+            skill_prompt=rec.get("skill_prompt") or None,
+            dispatch_py=rec.get("dispatch_py") or "",
+            role=rec.get("spawn_role") or rec.get("role"),
+            ladder_tier=rec.get("ladder_tier"),
+            brief_tier=rec.get("brief_tier"),
+            # hypothesis:a-restarted-agent-gets-the-same-render-as-its-first-
+            # spawn -- the restart's first turn gets the SAME bytes the first
+            # spawn carried, read back from its spawn.json. None (old record,
+            # failed render) keeps the pre-fix assemble path byte-identical.
+            rendered_brief=_carried_restart_brief(iter_dir, agent_id),
         )
     except (NotImplementedError, Exception) as exc:   # noqa: B014
         spawn_budget.release(lease)
