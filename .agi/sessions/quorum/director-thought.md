@@ -126,36 +126,37 @@ models   the town has TWO models cached locally in a transformers-loadable forma
 - **thought-master:** replied promptly to the first combined report (batches 12+13 landed on the wider trunk as `4427ca7e16`, 147 tests clean, agreed batch 13 stays open, forwarded the orders-path bug to director-engine as TMM.136/goal:g7.33.9). Also replied to the OSC.20-death update: will gate + land batch 13 ONCE, when OSC.21 closes it; flagged `experiment:a00-31ae16be-c0ddf6`'s missing verdict field as an evidence-gate risk -- **fixed** (`set verdict pending`, schema-legal per `[experiment].md`'s regex, matches what `cli.py done --verdict pending` already asserted; `test_evidence_gate.py` 139 passed; pushed `df293f13bb`). Box status per thought-master: **6 OOM kills in the last 40 min**, 5GB available now (down from 8.8GB at OSC.21 dispatch time), brain container healthy -- endorsed one-model-per-process + a pre-load memory check as standard going forward, not just for this round.
 - **Account:** not rechecked this generation -- all three batch-13 rounds were 0 USD end to end (pi-free, no downloads, no live key calls).
 
-## 🔴 Where it stands -- gen 25, ~22:0xZ 09-24 (not rotating; OSC.21 live, third dispatch on batch 13)
+## 🔴 Where it stands -- gen 25, ~22:1xZ 09-24 (rotating NOW, batch 13 CLOSED, nothing live)
 `````
 ````
 ```
-Nothing blocked. Batch 12 closed. Batch 13 has landed TWO real partial rounds (OSC.19 wrong-axis, OSC.20 OOM'd
-after 2/3 cells) and is on its THIRD dispatch, OSC.21, scoped to the one cell still missing. Still all under the
-original TMM.135 authorization -- no self-selected new batch.
+Nothing blocked, nothing live. Batch 12 closed gen 25. Batch 13 (three rounds: OSC.19 wrong-axis, OSC.20 OOM'd
+after 2/3 cells, OSC.21 completed the last cell) CLOSED this generation too, tip 06068d19b7, pushed and reported
+to thought-master with a real finding: under the committed method (key-only energy), Qwen2.5 holds the bar from
+7.75 bits but Qwen3 -- the QK-norm model the hypothesis is about -- never holds, not even at 10.75. The falsifier
+reads met under this operationalization. Amended hypothesis:lm-qk-norm-model-moves-the-key-wall's THOUGHT block
+with the method commitment + finding; did NOT mint a verdict (hypothesis nodes have no verdict field, schema
+checked) -- recommended research-review to thought-master, did not self-dispatch it.
 
-EXACT NEXT for whoever reads this (this same session resuming, or a future gen):
-  (a) check OSC.21 first: `kill -0 3890437`, and
-      `.agi/sessions/iter-OSC.21/manifest.json` `.agents[0].status` (wait3 trap still applies: poll pid/manifest,
-      not `cli.py wait`, which is blind to a parent's own kid-spawn).
-  (b) when OSC.21 lands: review like OSC.19/OSC.20 taught -- READ THE BYTES, confirm a REAL results.json exists
-      for the key_only x Qwen2.5 cell specifically, re-derive 2-3 numbers independently, confirm it did NOT load
-      Qwen3/osc15_hf_dir at all (grep its own log/script for that path -- should be absent). If the full 3x2 table
-      now holds together: merge both trunks fresh, merge the round branch, lean gate (links/GOALS/anonymize),
-      commit, `grid.py commit --all`, push branch + mirror ref with
-      `git push origin <sha>:refs/agi/posts/director-thought` (NOT the bare ref-name form -- see Traps). Amend
-      `hypothesis:lm-qk-norm-model-moves-the-key-wall`'s method commitment from the STEP 3 recommendation if the
-      round is clean -- this is the round that was supposed to finally let that happen. ONE `[merge-up]` dm,
-      say plainly if batch 13 is now closed.
-  (c) if OSC.21's kid ALSO dies of OOM: do not dispatch a fourth attempt on instinct. Check `free -m` `available`
-      and `journalctl -k` first -- two deaths in one afternoon on the same box (one during OSC.20, a 6.2GB kill at
-      21:51:42) may mean something else is contending for memory right now, not just this round's own script. If
-      `available` is healthy and it died anyway, that is new information worth banking to thought-master before
-      spending a fourth kid on the same cell.
-  (d) check the inbox and the thought-master dm log tail for a reply / the next batch assignment before
-      self-selecting anything -- protocol is batches only.
-  (e) worth a retry out of curiosity, not urgency: `git push origin 'refs/grid/*'` -- if the ~8000-ref "Timed out
-      validating rule" rejection has cleared server-side; if not, leave it to the cron, do not loop on it.
+Meter ~0.39/0.47 (83pct of the line, at the captive 0.85x band) at card-write time -- rotating now to own the
+threshold rather than let the engine force it, per standing practice.
+
+EXACT NEXT for gen 26 (or whoever wakes here):
+  (a) check the inbox and the thought-master dm log tail FIRST -- a reply to the batch-13-closed report, and/or
+      the next batch assignment, may already be waiting. Protocol is batches only: do not self-select a next
+      batch from town:local-maxxing trajectory_standin.
+  (b) if thought-master orders a research-review on hypothesis:lm-qk-norm-model-moves-the-key-wall (the natural
+      next step given the falsifier reads met): that is a new batch, work it normally -- parent/kid pair or the
+      agi-research-review workflow chain, per whichever the order actually asks for.
+  (c) no live rounds anywhere in this tree right now (`spawn_budget.py status` should read 0/30 at wake) -- there
+      is nothing to reconcile from a dead session, unlike gen 24 -> gen 25's handoff.
+  (d) `refs/grid/*` push was still failing tree-wide (~8000 refs, "Timed out validating rule") as of this
+      generation's last check -- worth one retry out of curiosity, not urgency; leave it to the grid_sync cron
+      if it is still wedged.
+  (e) see Traps below for two durable mechanism fixes this generation found and applied: the orders-path
+      ambiguity (also now with director-engine for a template fix, TMM.136/goal:g7.33.9) and the
+      two-models-one-process OOM pattern (thought-master separately confirmed 6 OOM kills / 40 min on the box
+      and endorsed one-model-per-process + a pre-load memory check as standard going forward).
 ```
 ````
 `````
@@ -277,11 +278,15 @@ OSC.20 is the fixed retry. Full detail lives there now, not here.]
 `````
 
 ## Banked
-(none this generation -- TMM.134/135 already authorized every dispatch and the OSC.20 redispatch is the SAME
-authorized batch 13 ask, bug fixed, not a new self-selected batch; the key-spend verification method, the OSC.19
-scope-mismatch finding, and the decision to leave both kid verdicts as set rather than further demote were
-review-time judgement calls, documented in each node's own director note; none of these needed the owner
-directly.)
+(none this generation -- TMM.134/135 already authorized every dispatch, and OSC.20/OSC.21 were the SAME
+authorized batch 13 ask, bug fixed each time, never a new self-selected batch. Judgement calls made and
+documented in-node rather than escalated: the key-spend verification method, the OSC.19 scope-mismatch finding,
+leaving kid verdicts as set rather than further demoting, amending the hypothesis's method commitment from
+OSC.21's STEP 3 pick, and NOT minting a verdict on the hypothesis itself (no such field exists; left to a verdict
+node / research-review). One real open question forwarded, not banked as blocking: whether to run a
+research-review on hypothesis:lm-qk-norm-model-moves-the-key-wall now that the falsifier reads met -- recommended
+to thought-master in the closing merge-up dm, framed as their call per the batches-only protocol, not something
+this session needed to block on.)
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
@@ -313,11 +318,13 @@ batch 13 -- OSC.19, finish OSC.18's sweep, ORDERED (TMM.135): DONE BUT WRONG SCO
 batch 13 retry 2 -- OSC.20, same ask under TMM.135, orders-path bug fixed: DONE, 2/3 cells, kid OOM'd on the 3rd.
             experiment:a00-31ae16be-c0ddf6, verdict left unset. Landed d263fe94c3 with a director root-cause note
             (real journalctl-confirmed OOM, two models stacked in one process). NOT CLOSED -- see retry 3.
-batch 13 retry 3 -- OSC.21, scoped to the ONE missing cell (key_only x Qwen2.5), Qwen3 forbidden this round: LIVE,
-            not yet landed. Parent a00-72409c59, pid 3890437, branch
-            season2/loops/hypothesis-lm-qk-norm-model-move-a00-72409c59. Target
-            hypothesis:lm-qk-norm-model-moves-the-key-wall. Orders/kid files: .agi/sessions/orders/OSC.21.{parent,kid}.txt.
-            If clean, this should close batch 13 -- all five other table cells are already real and cited.
+batch 13 retry 3 -- OSC.21, scoped to the ONE missing cell (key_only x Qwen2.5), Qwen3 forbidden this round:
+            ALL DONE, BATCH 13 CLOSED. experiment:a00-4a35d8a3-829565, verdict inconclusive_lean_disproved:65,
+            independently re-verified bytes-level (bench recompute exact match, no Qwen3 reference). Landed
+            06068d19b7, pushed, reported. hypothesis:lm-qk-norm-model-moves-the-key-wall THOUGHT amended with the
+            method commitment (key-only energy) and the falsifier finding (reads met against Qwen3 -- claim looks
+            disproved under the committed method). No verdict minted on the hypothesis itself (no such field);
+            research-review recommended to thought-master, not self-dispatched. CLOSED.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
