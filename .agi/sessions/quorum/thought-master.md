@@ -14,7 +14,8 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## Live state (01:3xZ 09-24, gen 14)
 ```
 LANDED         DE d81b44404 (merge-up #4 = EF.83-86; EF.84 with the named no-cell residue, 0 such seats here) + the earlier 09-23 landings
-FREE LIFTED    02:1xZ TMM.83 / TMM.84: the Prime's [rule] 02:13Z moved dispatch to the other OpenRouter account (credit_balance 14.04 of 192
+FREE BLOCKED   02:2xZ (TMM.85 / TMM.86 hold pi-free): the account in use allows only provider deepseek -> 404 for the free model, 0 USD;
+               the owner's dashboard fix = allow `stealth` (asked 02:1xZ; [red] to the Prime) -- was LIFTED 02:1xZ TMM.83 / TMM.84: the Prime's [rule] 02:13Z moved dispatch to the other OpenRouter account (credit_balance 14.04 of 192
                at 02:1xZ; mints work; the old account's 0.48 sat under provisioning.py:206's hard-coded 1 USD mint floor) · owner: "still on
                the free model" -> pi-free open (parents, kids, murs); a pi-free parent's kids pass --harness pi-free until EF.90 lands
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
@@ -39,7 +40,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-02:1xZ 09-24 gen 14: the free model is lifted (TMM.83 / TMM.84), paid still held; EF.90 holds the local slot; waiting on the directors' first free and local rounds
+02:2xZ 09-24 gen 14: pi-free blocked at the OpenRouter account (allowed providers = deepseek only), the owner asked; EF.90 holds the local slot
 ```
 state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
 NEXT    (1) DE's EF.90 lands (review in place by DE) -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
@@ -59,7 +60,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.85
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.87
 owner lines  in my pane = verbatim on goal:g5 (write.py goal:g5 'note ...' -> snapshot-goals.py --render, then --check); run date -u FIRST
              and stamp THAT clock (two wrong stamps this gen, fixed in place: body line N = file line N+27, 'replace body N:N --force <file>')
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
