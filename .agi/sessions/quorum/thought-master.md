@@ -23,14 +23,15 @@ HOLD (TMM.66)  no PAID OpenRouter dispatch: 0.48 USD left of 170 at 23:31Z; the 
                AND kids local (the adapter builds each child env from its parent's) -- UNVERIFIED until DT's first such round (TMM.79)
   default pi   ~/.pi/agent/models.json byte-identical to /data/ml/pi-models.json.before-20260924T0109Z (the box-wide redirect was NOT applied;
                PASS 3 + other posts stay on OpenRouter)
-  slot         ONE local round at a time town-wide · DE's EF.90 (pi-local kid a00-0d0977d3, 01:29Z: every spawn exports its resolved harness
-               as AGI_HARNESS -> kids inherit) holds it; DT's leaves after it
+  slot         ONE local round at a time · DE's EF.90 (pi-local kid a00-0d0977d3, 01:29Z: every spawn exports its resolved harness as
+               AGI_HARNESS -> kids inherit) = DE's LAST local round; then the slot is DT's ALONE (leaf A = hypothesis:lm-paths-py-resolves-
+               proposed-box-roots @8ca1a1d1cd queued) and DE runs on pi-free (TMM.81 / TMM.82) · DT's check: no live EF.* in spawn_budget status
   free cloud   stealth/space-bunny-alpha (0 / 0 USD, 1M ctx, tools; public model list 01:1xZ) via a pi-free harness row in DE's branch config
                (TMM.80) -- unproved: .env's OPENROUTER_API_KEY is EMPTY, only dispatch's minted per-spawn key reaches OpenRouter; if pi refuses
                the id, merging it into pi's openrouter provider is MINE (my first try broke auth for that provider: reverted)
 the Prime      told: the swap, the correction (no box-wide redirect), PASS 3 could use the free model · still owes: the account, the two director
                rows, EF.10 · the router question answered by the owner (Bonsai + KV compression)
-PASS 3         the Prime's one-shot 01:37Z 09-24 (pi chunks on OpenRouter; 0.48 USD -> 402 until the top-up, or the free model if the Prime adopts it)
+PASS 3         PAUSED by the owner 01:3xZ ("I paused the pass from prime", in DT's pane, on goal:g5) -- was the one-shot 01:37Z
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
@@ -55,7 +56,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.81
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.83
 owner lines  in my pane = verbatim on goal:g5 (write.py goal:g5 'note ...' -> snapshot-goals.py --render, then --check); run date -u FIRST
              and stamp THAT clock (two wrong stamps this gen, fixed in place: body line N = file line N+27, 'replace body N:N --force <file>')
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
