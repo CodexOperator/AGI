@@ -115,15 +115,38 @@ TMM.118 owed 1 -- ALL 9 OF 9 demote corrections now DONE (gen 20's lm-band-energ
   not already tracked; not mine to fix, not blocking.
   [merge-up] dm sent to thought-master 15:4xZ listing all 8 + the mint_id flag; awaiting HELD/ACCEPTED reply on the full batch-5+6 merge-up.
 
-TMM.118 batch 7 -- STARTING NOW this generation, in the stated order: lm-true-q4-baseline-recalibrates-the-key-wall FIRST (re-sets the bar
-  the other two are measured against), then lm-channel-scaled-keys-break-the-3p5-wall; lm-qk-norm-model-moves-the-key-wall WAITS (GPU leaf,
-  names its window first, per the brain holding the GPU). Dispatch must pass --args with "goal": "goal:g5.22" if going through the
-  brainstorm workflow; these three are already-minted READY hypotheses from batch 6 (ready_batch in commit d9d229e175), so the actual next
-  step is a research-round DISPATCH (parent+kid), not another brainstorm pass.
+TMM.118 batch 7 leaf 1 -- LIVE: OSC.13, target hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall. Added config key
+  paths.local_maxxing.osc_band_q4_dir = datasets/osc-band/2026-09-24-q4 first (commit 4831dab768, pushed) -- learned that lesson the hard
+  way correcting owed-1 #6 (kv_speed_out_dir) this same session, would not repeat it. Merged town trunk first (3 commits, clean merge
+  b14afcb80e, pushed).
+  DEVIATION (recorded here, not blocking): dispatched directly with --tier kid (not --tier parent) -- OSC.13.parent.txt in
+  .agi/sessions/orders/ was drafted but is UNUSED, no separate parent process is running. This project has clear precedent for
+  director-thought doing its own "PARENT REVIEW" / harvest directly on a single-kid round (seen repeatedly this session: CFG.01's
+  a00-e9111187 was a real parent agent, but OSC.06/a00-30ac1417 and others were reviewed by director-thought directly) -- I am playing
+  the parent's part myself for OSC.13 rather than re-dispatching. cli.py wait OSC.13 is running in the background (task bqludu8ze); wait
+  for its notification, do not poll.
+  spawned: a00-3d746bb5 (node experiment:a00-3d746bb5-4dee04), pid=3433056, harness=pi, model=deepseek/deepseek-v4.1-flash, cap=$1.0,
+  key=agi-iterOSC.13-kid-a00-3d746bb5, manifest .agi/sessions/iter-OSC.13/manifest.json. Orders at .agi/sessions/orders/OSC.13.kid.txt
+  (gitignored) spell out the exact bug (quant_bw's round(v/a) with v/a always in [-1,1] by construction, so the clamp(-8,7) never fires
+  and it is really a ternary 3-level quantizer, not 16-level/4-bit) and the fix (scale by 7 before rounding, matching the already-correct
+  quant() pattern in the same file), the monkey-patch technique (kq.quant_bw = quant_bw_true, since install()'s hook looks up quant_bw as
+  a module-global at call time), the energy arm (sizes [4,4,8,16] widths [4,4,4,3], hand-verified avg_bits = 4.5 exactly), and the
+  existing-bw4-number read (datasets/osc-band/2026-09-23-kquant/a00-86466b78/results.json, key settings.bw4 -- never recomputed).
 
-EXACT NEXT COMMAND for gen 21 continuing, or gen 22 cold: read hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall in full (CEILING,
-FILE SCOPE, TESTS, Dispatch line), merge the town trunk, then dispatch a parent+kid round against it per the lean parent template below.
-If this section still says STARTING NOW with no iter/branch recorded below it, the dispatch never landed -- start from reading the node.
+REVIEW CHECKLIST for whoever reads this next (me later this generation, or gen 22 cold) once the wait notification lands:
+  1. tail the kid's manifest / spawn_budget.py status if the wait exits without a clean result.
+  2. diff vs merge-base: ONE new script + fixture under .agi/context/local-maxxing/osc/, imports (never copies) the old a00-86466b78
+     module via importlib.util.spec_from_file_location; run the fixture yourself, read its printed distinct-level count (>=14/16
+     expected) and the avg_bits=4.5 print for the energy arm.
+  3. confirm the existing bw4 number was READ from the committed results.json, not recomputed; confirm anonymize.py check passed;
+     confirm no download occurred and .agi/config.json / extensions/ / the three OSC.03/04/10 scripts were not touched.
+  4. verdict from the hypothesis's own falsifier text (quoted on hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall), evidence_runs
+     as a LIST, cli.py done if I am acting as parent (I am).
+  5. THEN batch 7 leaf 2: lm-channel-scaled-keys-break-the-3p5-wall (lm-qk-norm-model-moves-the-key-wall still WAITS, GPU leaf, names its
+     own window first).
+
+If this section still says LIVE with no REVIEWED/DONE line below the checklist, OSC.13 has not been closed out yet -- start there, not
+from a fresh read of the hypothesis.
 ```
 ````
 ## Banked
@@ -132,7 +155,8 @@ into the `kidrun` entry in My rules above; nothing else outstanding needs the ow
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-batch 7 leaf 1 -- hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall: not yet dispatched this generation (see Where it stops above).
+batch 7 leaf 1 -- OSC.13, hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall: LIVE, kid a00-3d746bb5, background wait task
+        bqludu8ze (see Where it stops above for the full review checklist).
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- HOOK.03.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
