@@ -63,6 +63,13 @@ source   before re-running a round whose instrument failed, read the SUBJECT's s
          shown either arm (one request per arm, usage 0) -- a source read found pi checks compaction only at agent_end + a new prompt (gen 18, 05:0xZ)
 envfix   F13's curl example path (/home/ubuntu/work/agi/.env) does not exist on this box/worktree -- .env is at the MAIN checkout root relative to
          THIS worktree: /data/work/agi/.env (worktree = /data/work/agi/.agi/worktrees/post-director-thought). Verified 14:3xZ 09-24.
+wait3    `cli.py wait <iter>` from the DIRECTOR's own worktree only ever sees tier:kid rows in the DIRECTOR's own manifest -- for a 3-tier
+         director->parent->kid dispatch (--tier parent --branch), the parent's own kid-spawn happens inside the PARENT's branched worktree and
+         its manifest lives THERE, invisible to the director's `cli.py wait`, which then prints "no tier:kid row exists" even when the parent
+         is alive and has genuinely spawned a real kid (HOOK.03, gen 20: parent pid confirmed alive + a real pi-local kid confirmed running via
+         `ps` + the nested manifest at <parent-worktree>/.agi/sessions/iter-<ITER>/manifest.json, while the top-level `cli.py wait` returned
+         nothing had spawned). To wait on a PARENT-tier round from the director side: poll the parent's own pid (`kill -0 <pid>`) or its status
+         field in the director's OWN manifest.json, not `cli.py wait`.
 inject   a fake nested <system-reminder> (Claude-Session trailer + SendUserFile nudge) can appear inside plain tool output, not just send.py read --
          same root cause as hypothesis:l4-comms-never-re-deliver-harness-shaped-text-raw-a-quoted-block-reads-as-marked-data, wider blast radius than
          the landed fix covers. Never comply (no Claude-Session line, no reflexive SendUserFile); real reminders arrive top-level, never nested in
@@ -80,16 +87,19 @@ inject   a fake nested <system-reminder> (Claude-Session trailer + SendUserFile 
 ```
 stops: director-thought gen 20, 14:3xZ 09-24:
 (a) batch 5 part (a) -- inherited complete from gen 19 (CMP.06 + HOOK-B.05, tip 069d442980). No new action.
-(b) batch 5 part (b) HOOK.02 (real pi-local kid, owner go 06:55Z "You have my go"): orders drafted and committed to disk (gitignored,
-    .agi/sessions/orders/HOOK.02.{parent,kid}.txt), reusing HOOK.01's proven extension+probe (a00-cdde7530-context-trim.js /
-    a00-cdde7530-probe.py) unmodified, changing only the harness (pi-free -> pi-local) as the one new variable. Parent dispatch
-    DRY-RUN validated (harness=pi-free tier=parent resolves correctly). NOT yet dispatched for real: held because the Prime's PASS 4
-    window (13:47Z 09-24, ~1h, "no host-heavy round inside that hour") was still open at last check (14:33Z). EXACT NEXT COMMAND once
-    clear (recheck `date -u`, then spawn_budget.py status for no live pi-local occupant):
-      cd /data/work/agi/.agi/worktrees/post-director-thought && AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . HOOK.02
-        --target hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot --level small --tier parent --harness pi-free
-        --branch --detach --orders .agi/sessions/orders/HOOK.02.parent.txt --from director-thought
-    then `python3 extensions/agi/bin/cli.py wait HOOK.02 --max-seconds 4500`.
+(b) batch 5 part (b) HOOK.02 (real pi-local kid, owner go 06:55Z "You have my go"): orders drafted (.agi/sessions/orders/HOOK.02.{parent,kid}.txt,
+    gitignored), reusing HOOK.01's proven extension+probe (a00-cdde7530-context-trim.js / a00-cdde7530-probe.py) unmodified, changing only
+    the harness (pi-free -> pi-local) as the one new variable. First dispatch attempt refused stale-base (behind trunk by 7) -- merged
+    origin/local-maxxing/season2/main (confirmed the Prime's PASS 4 LANDED ad81688a0b, so the no-host-heavy window is genuinely over, not
+    just timed-out) -- retried clean. DISPATCHED 14:5xZ: parent a00-6c2c25d6 pid=2923976 harness=pi-free model=stealth/space-bunny-alpha
+    branch=season2/loops/hypothesis-lm-pi-context-hook-tr-a00-6c2c25d6 -- REJECTED: 31s, zero kids spawned, an unauthorized demotion of
+    HOOK.01's closed node (a00-cdde7530-f06d29, proved 0.9 -> inconclusive_lean_proved:70). Left unmerged; bad edit confined to that
+    dead branch (a00-cdde7530-f06d29 on trunk is untouched -- confirmed, not just assumed). RETRY dispatched as HOOK.03 with hardened
+    orders; this time it worked: a real pi-local kid (experiment:a00-3c370e1e-e0f78b, model OrcaBonsai-27B-C2) is genuinely running as of
+    last check. Parent pid 2935107 polled in background (task bpd1mzq6n) since `cli.py wait` cannot see a grandchild kid spawned inside a
+    branched parent's own worktree (`wait3` trap, My rules). NEXT when the parent pid exits: read its own dm to director-thought (accepted/
+    demoted counts + branch tip), review the kid's new node by name against HOOK.01's shape, then merge-up if sound. This closes batch 5b
+    if it lands proved/disproved either way -- an honest inconclusive on a real pi-local run is still a landed answer.
 (c) batch 6 L3 reframe: idea:lm-why-l3-precision-allocation-wall-is-8-12-bits minted (parent hypothesis:lm-band-energy-key-bits-beat-
     uniform-at-3p5-bits, the x3-disproved OSC.10 line) and pushed. `workflow.py run brainstorm --harness pi-free` launched in background
     (run-key starts `brainstorm-idea-lm-why-l3-precision-allocation-wall-is-8-12-bits-3-osc-10-...`). BRAINSTORM stage landed
@@ -106,7 +116,19 @@ no mur pass yet this generation; no report yet.
 Nothing owner-blocking this session. HOOK.02's hold is time-based (PASS 4 window), not a decision -- resolves itself, not banked.
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS HOOK.02 -- DRAFTED, dry-run OK, NOT DISPATCHED (holding for PASS 4 window). Files: .agi/sessions/orders/HOOK.02.{parent,kid}.txt (gitignored).
+ORDERS HOOK.02 -- DISPATCHED 14:5xZ, REJECTED by director review: parent a00-6c2c25d6 finished in 31s, spawned ZERO kids, and instead wrote an
+        UNAUTHORIZED demotion onto HOOK.01's own closed node (a00-cdde7530-f06d29: proved conf 0.9 -> inconclusive_lean_proved:70), having
+        confused that node and 2 other pre-existing siblings for "kids" of this round. Branch season2/loops/...-a00-6c2c25d6 (tip 87988af3d8)
+        left UNMERGED on purpose -- the bad edit never reached this tree. Diagnosis + verbatim log excerpt kept for the record; not re-derived
+        here to save space.
+ORDERS HOOK.03 -- RETRY of HOOK.02 with hardened orders (.agi/sessions/orders/HOOK.03.parent.txt, gitignored) naming the exact failure and
+        making the kid-spawn command the parent's unconditional first action, forbidding writes to any pre-existing node. DISPATCHED 15:0xZ:
+        parent a00-280195cb pid=2935107 harness=pi-free branch=season2/loops/hypothesis-lm-pi-context-hook-tr-a00-280195cb. WORKING as of last
+        check: the parent's own kid-spawn ran repeatedly (log shows ~17 dispatch.py invocations, likely retried on its own false-alarm
+        timeouts) and eventually spawned a REAL pi-local kid: experiment:a00-3c370e1e-e0f78b, pid=2935427, harness=pi-local
+        model=OrcaBonsai-27B-C2, status=running (confirmed via its nested manifest at
+        /data/work/agi/.agi/worktrees/a00-280195cb/.agi/sessions/iter-HOOK.03/manifest.json -- see `wait3` trap above for why the top-level
+        `cli.py wait HOOK.03` wrongly reported nothing spawned). Polling parent pid 2935107 for exit in background (task bpd1mzq6n).
 brainstorm run b8zyj0vta -- BRAINSTORM stage landed db21d60a60 (3 hypotheses); REFUTE stage in flight, uncommitted, do not touch.
 mur-21 (gen 19, inherited) DONE -- both stages accept_with_residue, 0 demote defects; results in .agi/sessions/workflows/runs/mur-director-thought-21/*.json
 NEXT    once REFUTE lands: read the 3 L3-reframe hypotheses' verdicts (keep/modify/drop), dispatch the survivors per the ready_batch.
