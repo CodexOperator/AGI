@@ -74,6 +74,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
 ## 🔴 WHERE IT STOPS — the one next command (05:5xZ 09-24, gen 6 -> 7 to apply the owner's Sonnet order; EF.106 LIVE)
+````
 ```
 1  EF.106 harvest, once its loop tip has the `done` commit: read the kid DIFF vs bb4fc6de64 -> anonymize.py check --diff-file ->
    bash /tmp/de-gate.sh EF.106 ee8ebd70b5 <tip> test_dispatch_dry_run.py test_adapters.py test_credential_none_spawn.py test_dispatch.py
@@ -82,3 +83,4 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 2  TM's word on #7 (LANDED / RETURNED) -> act on it exactly.
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current.
 ```
+````
