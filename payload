@@ -67,11 +67,11 @@
       "provider": "local-town",
       "credential": "none",
       "models": {
-        "kid": "Qwen3.5-9B-Q4_K_M",
-        "parent": "Qwen3.5-9B-Q4_K_M"
+        "kid": "OrcaBonsai-27B-C2",
+        "parent": "OrcaBonsai-27B-C2"
       },
       "allowed_extra": [
-        "Qwen3.5-9B-Q4_K_M"
+        "OrcaBonsai-27B-C2"
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
@@ -139,7 +139,7 @@
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.0,
       "ttl_minutes": 300,
-      "workspace_id": "72750376-2d45-452e-8273-197fdaabae95"
+      "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
     "memory_max": "6G"
