@@ -116,13 +116,16 @@ def test_paid_for_path_guard_follows_project_config(tmp_path):
 
 
 def test_survival_brief_paid_for_path_guard_follows_project_config(tmp_path):
+    """The survival SUCCESSOR path (successor_prompt), not assemble() —
+    assemble(profile="survival") already goes through _finish()'s
+    substitution and would pass even without _survival_brief's own fix;
+    successor_prompt does not call _finish() at all (mur-9-5)."""
     root = _root(tmp_path, parts={"kid": ["head"]})
     cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
     cfg["brief"]["paid_for_path_guard"] = "SURVIVAL-CONFIG-GUARD-SENTINEL"
     (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
-    rendered = "\n".join(brief.assemble(
-        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py", scaffold=None,
-        profile="survival", project_root=root))
+    rendered = brief.successor_prompt(tier="kid", body="UNUSED-BODY",
+                                      profile="survival", project_root=root)
     assert "SURVIVAL-CONFIG-GUARD-SENTINEL" in rendered
     assert brief.PAID_FOR_PATH_GUARD not in rendered
 
