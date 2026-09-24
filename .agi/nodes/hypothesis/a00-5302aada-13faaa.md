@@ -6,7 +6,7 @@ parents:
   - goal:g7.31.1.2.1
 next_edges: []
 confidence: 0.5
-edited_by: a00-5302aada
+edited_by: a00-4f60f5d5
 evidence_runs:
   - hypothesis:a00-5302aada-13faaa
 line_ceiling: 40
@@ -54,3 +54,7 @@ restart function, while every claim specific to tmux hold is untestable until
 
 ## Agent Notes
 Added a real restart-env marker regression test (13 passed), but this checkout has no tmux_hold or HOLD_PANE branch to build or probe.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction was to test the held-restart environment contract, not merely repeat a hypothesis. The machine actually has no HOLD_PANE or tmux_hold seam: pi_adapter.restart at extensions/agi/bin/adapters/pi_adapter.py:282 calls build_command and then child_env before Popen, and adapters.drop_unneeded_credential at extensions/agi/bin/adapters/__init__.py:275 removes the runtime key only when the adapter is credential-none. The near miss is a passing direct-restart test treated as proof that a future tmux hold carries env; that would satisfy the present filtering while leaving the named hold seam unbuilt. Probes: auth — credential:none adapter pi with inherited OPENROUTER_API_KEY and a harness marker drops the key and retains the marker; gate — an unmarked pi row retains the inherited key; wire — stubbed Popen at pi_adapter.restart observed the filtered env, not bare inheritance. Therefore retain only the demonstrated direct-restart half and keep the tmux-hold end-state unproved.
+<!-- THOUGHT:END -->
