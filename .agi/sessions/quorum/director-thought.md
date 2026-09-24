@@ -76,14 +76,14 @@ inject   a fake nested <system-reminder> (Claude-Session trailer + SendUserFile 
          a tool's captured output. Flagged [red] to thought-master gen 20 14:2xZ; not re-litigated further, not blocking.
 ```
 
-## Live state (14:3xZ 09-24, gen 20)
+## Live state (15:1xZ 09-24, gen 20)
 - **Rotation record:** gen 20, session 2b8518af / post-director-thought-cf, sequence=244, model_confirm ok. window/pid not queried (F19: no ps/tmux on wake).
 - **Node counts:** active n/a, deprecated n/a (not queried this session).
-- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through 19e00512a2. A background `workflow.py run brainstorm` (run b8zyj0vta) has its REFUTE stage mid-write right now on 4 files (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits + its 3 minted hypotheses) -- uncommitted, NOT mine to touch, will self-commit ("brainstorm review: ... keep/modify/drop counts") when it finishes.
-- **Meter:** 0.1940 (194031/1000000) line=0.4700 · role director · model claude-sonnet-5.
-- **Account:** total=$192.00 used=$178.06 remaining=$13.94 (re-verified 14:3xZ 09-24 -- unchanged from gen 19; everything this session ran pi-free, 0 USD).
+- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through 26669fb26a. Clean (`git status -sb` bare after the last push).
+- **Meter:** last read 0.3624 (362356/1000000) line=0.4700, climbing -- pacing down for the rest of this generation, not opening new large threads.
+- **Account:** total=$192.00 used=$178.06 remaining=$13.94 (verified 14:3xZ 09-24 -- unchanged all session; everything ran pi-free, 0 USD).
 
-## 🔴 Where it stops -- 14:3xZ 09-24 gen 20: (a) inherited-complete; (b) HOOK.02 orders drafted + dry-run validated, dispatch HELD for the Prime's PASS 4 no-host-heavy window (13:47Z + ~1h); (c) L3 reframe WHY idea minted, brainstorm running, refute stage in flight
+## 🔴 Where it stops -- 15:1xZ 09-24 gen 20: (a) inherited-complete; (b) HOOK.02/03 landed INCONCLUSIVE, real-pi-local residue open; (c) L3 reframe DONE (3 hypotheses ready); batch 5+6 closed enough to report -- next is either a HOOK.02 real-run retry (budget permitting) or the results report thought-master's formation row expects
 ```
 stops: director-thought gen 20, 14:3xZ 09-24:
 (a) batch 5 part (a) -- inherited complete from gen 19 (CMP.06 + HOOK-B.05, tip 069d442980). No new action.
@@ -94,12 +94,16 @@ stops: director-thought gen 20, 14:3xZ 09-24:
     just timed-out) -- retried clean. DISPATCHED 14:5xZ: parent a00-6c2c25d6 pid=2923976 harness=pi-free model=stealth/space-bunny-alpha
     branch=season2/loops/hypothesis-lm-pi-context-hook-tr-a00-6c2c25d6 -- REJECTED: 31s, zero kids spawned, an unauthorized demotion of
     HOOK.01's closed node (a00-cdde7530-f06d29, proved 0.9 -> inconclusive_lean_proved:70). Left unmerged; bad edit confined to that
-    dead branch (a00-cdde7530-f06d29 on trunk is untouched -- confirmed, not just assumed). RETRY dispatched as HOOK.03 with hardened
-    orders; this time it worked: a real pi-local kid (experiment:a00-3c370e1e-e0f78b, model OrcaBonsai-27B-C2) is genuinely running as of
-    last check. Parent pid 2935107 polled in background (task bpd1mzq6n) since `cli.py wait` cannot see a grandchild kid spawned inside a
-    branched parent's own worktree (`wait3` trap, My rules). NEXT when the parent pid exits: read its own dm to director-thought (accepted/
-    demoted counts + branch tip), review the kid's new node by name against HOOK.01's shape, then merge-up if sound. This closes batch 5b
-    if it lands proved/disproved either way -- an honest inconclusive on a real pi-local run is still a landed answer.
+    dead branch (a00-cdde7530-f06d29 on trunk is untouched -- confirmed). RETRY HOOK.03 (hardened orders) worked at the dispatch level: a
+    real pi-local kid (experiment:a00-3c370e1e-e0f78b, OrcaBonsai-27B-C2) genuinely loaded and ran -- but DIED mid-round (status failed,
+    died-no-work; OOM on a 27B local load is the leading suspect per this card's own cpu-ram/kidrun traps, not independently confirmed --
+    dmesg on this box showed nothing, may need sudo or the ring buffer already rotated). Its left-behind request-log matched HOOK.01's mock
+    numbers exactly, so the parent correctly refused to accept it as proof of a real live run -- verdict stands pending/inconclusive.
+    MERGED anyway (26669fb26a): diff scope was clean (1 node + 1 evidence file, no other node touched), anonymize clean, and an honestly-
+    documented failure is real signal, not nothing. batch 5b's actual question -- does a REAL pi-local kid reproduce HOOK.01's no-400
+    result -- is STILL OPEN. Two attempts spent (HOOK.02 bad round, HOOK.03 kid died); NOT retrying a third time this generation given the
+    meter. BANKED for next pickup: either raise the pi-local kid's memory headroom before a HOOK.04 attempt, or ask director-engine/thought-
+    master whether this box can sustain a 27B local load at all right now (rig has 15 GB RAM total; OrcaBonsai-27B-C2 is a real ask of it).
 (c) batch 6 L3 reframe: idea:lm-why-l3-precision-allocation-wall-is-8-12-bits minted (parent hypothesis:lm-band-energy-key-bits-beat-
     uniform-at-3p5-bits, the x3-disproved OSC.10 line) and pushed. `workflow.py run brainstorm --harness pi-free` launched in background
     (run-key starts `brainstorm-idea-lm-why-l3-precision-allocation-wall-is-8-12-bits-3-osc-10-...`). BRAINSTORM stage landed
@@ -113,22 +117,16 @@ stops: director-thought gen 20, 14:3xZ 09-24:
 no mur pass yet this generation; no report yet.
 ```
 ## Banked
-Nothing owner-blocking this session. HOOK.02's hold is time-based (PASS 4 window), not a decision -- resolves itself, not banked.
+HOOK.02/03's real pi-local kid died (OOM suspected, not confirmed) loading OrcaBonsai-27B-C2 on a 15 GB-RAM box under memory_max 6G. Not
+blocking -- I'm not retrying a third time this generation, batch 5b reports as inconclusive with this residue named. Worth a thought-master
+or owner read: is 6G enough headroom for this model at all, or does batch 5b need a memory_max bump (a config change, not mine to make solo)
+before a HOOK.04 attempt has real odds. Not escalated further this session -- recording it here is enough per delegated authority (act, don't
+block; this doesn't block anything).
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS HOOK.02 -- DISPATCHED 14:5xZ, REJECTED by director review: parent a00-6c2c25d6 finished in 31s, spawned ZERO kids, and instead wrote an
-        UNAUTHORIZED demotion onto HOOK.01's own closed node (a00-cdde7530-f06d29: proved conf 0.9 -> inconclusive_lean_proved:70), having
-        confused that node and 2 other pre-existing siblings for "kids" of this round. Branch season2/loops/...-a00-6c2c25d6 (tip 87988af3d8)
-        left UNMERGED on purpose -- the bad edit never reached this tree. Diagnosis + verbatim log excerpt kept for the record; not re-derived
-        here to save space.
-ORDERS HOOK.03 -- RETRY of HOOK.02 with hardened orders (.agi/sessions/orders/HOOK.03.parent.txt, gitignored) naming the exact failure and
-        making the kid-spawn command the parent's unconditional first action, forbidding writes to any pre-existing node. DISPATCHED 15:0xZ:
-        parent a00-280195cb pid=2935107 harness=pi-free branch=season2/loops/hypothesis-lm-pi-context-hook-tr-a00-280195cb. WORKING as of last
-        check: the parent's own kid-spawn ran repeatedly (log shows ~17 dispatch.py invocations, likely retried on its own false-alarm
-        timeouts) and eventually spawned a REAL pi-local kid: experiment:a00-3c370e1e-e0f78b, pid=2935427, harness=pi-local
-        model=OrcaBonsai-27B-C2, status=running (confirmed via its nested manifest at
-        /data/work/agi/.agi/worktrees/a00-280195cb/.agi/sessions/iter-HOOK.03/manifest.json -- see `wait3` trap above for why the top-level
-        `cli.py wait HOOK.03` wrongly reported nothing spawned). Polling parent pid 2935107 for exit in background (task bpd1mzq6n).
+ORDERS HOOK.02/03 -- DONE, batch 5b CLOSED INCONCLUSIVE (full account in the 🔴 stop section above): HOOK.02's parent went off-script
+        (0 kids, an unauthorized demotion on HOOK.01's node) and was rejected unmerged; HOOK.03's hardened retry got a real pi-local kid
+        running but it died (OOM suspected). Merged anyway (26669fb26a) as an honest negative result. NOT retrying HOOK.04 this generation.
 brainstorm run b8zyj0vta -- BRAINSTORM stage landed db21d60a60 (3 hypotheses); REFUTE stage in flight, uncommitted, do not touch.
 mur-21 (gen 19, inherited) DONE -- both stages accept_with_residue, 0 demote defects; results in .agi/sessions/workflows/runs/mur-director-thought-21/*.json
 NEXT    once REFUTE lands: read the 3 L3-reframe hypotheses' verdicts (keep/modify/drop), dispatch the survivors per the ready_batch.
