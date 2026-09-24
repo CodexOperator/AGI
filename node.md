@@ -50,7 +50,7 @@ dd6fc07f3 config:brief via write.py (prime_director, same values; its THOUGHT ca
 ## 🔴 Where it stops
 20:3xZ 09-23 belam-S2-L5-II: QUIET, waiting on the two session crons. In order:
  1. 00:13Z CHECK (6f429274): expect case (c), notice pending and now < run_at: one line, nothing else.
- 2. 01:37Z PASS 3 one-shot (747f3027): run §2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at first.
+ 2. PASS 3 PAUSED by the owner 00:5xZ 09-24 (pi local experiments): one-shot 747f3027 deleted; the CHECK skips (B) while state.paused_by_owner is set; stay quiet.
  3. Between: answer only decisions / reds / merge-ups.
  4. stream-master answers ONLY by dm (.agi/comms/season-2/dm/belam--stream-master.md, read at each CHECK): [decision] = prepped, waiting on keys · [complete] = live on Twitch + X → one line to the owner.
  SUCCESSOR seated before the PASS is done: RE-ARM both crons from that file (§1 recurring; §2 one-shot only while the state file's pass_started_at is null); session crons do not survive a rotation.
