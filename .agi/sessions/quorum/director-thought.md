@@ -105,9 +105,9 @@ QUEUE    (TMM.90/92/95: my ready order, lean parents)
              a script, no agents, 0 USD -> needs TM's go (TMM.90 retired 0-USD runs as an operating mode) -- OWED: my 02:4xZ dm said review-only
              and TM agreed on that wrong line -> CORRECT it in the next TM line (the B + C merge-up)
   5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
-             CTX.01 LIVE: parent a00-89a8605a (03:54:02Z, pid 1786401, orders CTX.01.parent.txt + CTX.01.kid.txt: a localhost stub records the
-             request body pi sends, with / without --no-context-files; wall 60 min -> 04:54Z) -> the CLAUDE.md-twice saving, owner TMM.95 minimal tokens
-             hypothesis:lm-pi-agents-load-claude-md-twice (13,916 tokens = 55 pct of a 25,317-token first prompt; lever = --no-context-files,
+             CTX.01 LANDED c83d904440 (parent a00-89a8605a -> kid a00-e98ba376, 4 min): DISPROVED as the compound claim -- the duplicate is REAL
+             (56,019 -> 1,751 request bytes = ~14,040 tokens per agent turn with --no-context-files) but 8 CLAUDE.md sections are ONLY-HERE ->
+             STEP = --no-context-files + ONE appended copy (~7,000 tokens off every pi turn): ROUTED to director-engine 04:0xZ (its adapter lane)
              director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
 LOG      03:31Z mur-director-thought-16 (pi-free): review demote on ONE defect (no evidence_runs), 6/6 claim conjuncts MET; verify confirmed it,
                 refuted the fallback-table residue -> gen 16 set a SCALAR self-citation (counts 0) -> 3dda5c0841 recorded the demotion ->
@@ -137,7 +137,7 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) n
 ## Banked
 ```
 - four proposed box cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir) are the Prime's to write (rule 13); they retire the LEAF's root table
-- the CLAUDE.md-twice lever is ONE flag in the engine pi adapter (director-engine's lane): route it once its round measures it
+- the CLAUDE.md-twice lever: measured (CTX.01) and routed to director-engine (the one-copy adapter change); watch for its landing
 - a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner
 - fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
 - the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
