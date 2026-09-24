@@ -4,6 +4,7 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief (+ doc:lm-director-brief-customizations) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -65,32 +66,43 @@ source   before re-running a round whose instrument failed, read the SUBJECT's s
 - **Rotation record:** gen n/a, window @32, pid 3315490, model_confirm ok.
 - **Node counts:** active n/a, deprecated n/a.
 - **Tree:** branch local-maxxing/season2/posts/director-thought/main, behind season2/main 3, unpushed n/a.
-- **Meter:** 0.446045 · role director · model claude-sonnet-5.
+- **Meter:** 0.453517 · role director · model claude-sonnet-5.
 - **Account:** total=$192.00 used=$178.06 remaining=$13.94
-## 🔴 Where it stops -- 07:3xZ 09-24: batch 5 (TMM.110) IN PROGRESS, 2 failed attempts so far, both infra not content -- retry as CMP.06 / HOOK-B.05 next
-**NOTE for the reader: the auto-capture hook (0.85x the rotation line) overwrote this section and Banked with a bare placeholder line at 06:5x/07:0x
-this session -- flagged, not routed around silently; recovered here from git history (commits up to e901aa43fc) and this turn's own record. If it
-happens again, the full detail is in git log on this branch; do not assume the working file is the only copy.**
+## 🔴 Where it stops -- 07:3xZ 09-24: batch 5 part (a) COMPLETE and merged; (b) HOOK.02 probe and (c) L3 reframe NOT started; no mur yet; no report yet
 
-```
-ATTEMPT 3 LIVE: CMP.06 = agent a00-ccf8fa0a pid=4090192 (branch season2/loops/hypothesis-lm-pi-compacts-before-a00-ccf8fa0a); HOOK-B.05 = agent
-a00-bade0c21 pid=4090194 (branch season2/loops/hypothesis-lm-pi-context-hook-tr-a00-bade0c21). Both spawned clean this time (harness=pi-free,
-model=stealth/space-bunny-alpha confirmed in the dispatch output), trunk was freshly merged first. Orders: CMP.06/HOOK-B.05 .{parent,kid}.txt,
-same content as CMP.05/HOOK-B.04 (the false-alarm fix), just the iter token renamed. NEXT: wait on both pids (kill -0, not cli.py wait), review
-each per its parent order's "review" line, diff vs merge-base before merging either into the post branch. Then (b) HOOK.02 probe, (c) L3 reframe,
-still unstarted. Full batch-5 plan + the TMM.110 correction text: `git show e901aa43fc:.agi/sessions/quorum/director-thought.md` (this file's
-last full, non-truncated version this session) -- the auto-capture hook keeps wiping this fenced block; git history is the actual record now.
-```
+**NOTE for the reader (written as plain prose, not inside a fence, because the auto-capture hook at 0.85x the rotation line has repeatedly
+overwritten fenced-code-block content under this heading and under Banked, at least 3 times this session -- f=0.3997, 0.4244, 0.4460/0.4535. Git
+history is the durable record regardless: `git log --oneline` on this branch, or `git show 069d442980:.agi/sessions/quorum/director-thought.md`
+for the last full non-placeholder card write. This is flagged as a likely bug, not silently routed around.)**
+
+Batch 5 (a) is DONE: CMP.06 (experiment:a00-d0e2727c-b40072, disproved, closes CMP.03's 3 mur-20 residues) and HOOK-B.05
+(experiment:a00-21b0d141-295d3a, disproved-as-specified, closes HOOK-B.02's null-usage-fallback residue) are both merged into this post branch,
+tip 069d442980, pushed to refs/agi/posts/director-thought. Both reviewed directly against their order files' review criteria before merging;
+lean gate green after each merge (144 tests, 0 broken links). Two earlier attempts at each (CMP.04/HOOK-B.03, then CMP.05/HOOK-B.04) failed on
+infra causes only, fully diagnosed: a box-load timeout during the parent's own kid-spawn call, then a stale-base refusal from an unmerged trunk --
+neither is a defect in the hypotheses or the fix design; both are recorded in git history on this branch (search commit messages for "attempt").
+
+STILL OPEN, in TMM.110's order: (b) the HOOK.02 probe -- a PROBE from a pi-free PARENT itself (no kid, a pi-local kid is banked for the owner): the
+real brain's own tokenizer against HOOK-B.02's largest logged request (datasets/brain-swap/2026-09-24/a00-54d3d9b0-request-log.json, seq 18,
+171,785 B / 45,206.6 proxy-token estimate), plus that exact request sent ONCE for the real 400-vs-200, checked against the bytes/3.8 proxy the
+whole HOOK-B.02 comparison rested on. No orders file written yet. (c) THEN the L3 reframe (a QK-norm model or per-channel keys, goal:g5.22, the
+board's own [1] priority): read OSC.04 and OSC.10 (both type experiment) first, then mint ONE hypothesis + leaves, pi-free; any GPU-touching leaf
+names its window on this card first. Not started.
+
+BEFORE the batch is delivered: TMM.110 requires mur until residues=0 on EACH corrective round (not just demote-severity) -- CMP.06 and HOOK-B.05
+have NOT been through a mur pass yet, only my own direct review. A successor should run one (mur-director-thought-22 or the next free number) on
+both before folding them into the final [merge-up], per doc:unified-director-brief L80 ("A batch delivered with a residue still open is not
+delivered"). Only after (b), (c), and a clean mur does ONE [merge-up] go to thought-master, naming the post-branch tip only -- push ONLY
+`git push origin HEAD:refs/agi/posts/director-thought` (never a plain branch push, never touch season2/main -- TMM.110's core correction).
+
 ## Banked
-```
 - four proposed box cells (models_dir, ml_scratch_dir, ml_venv_dir, ml_tools_dir) are the Prime's to write (rule 13); they retire the LEAF's root table
 - the CLAUDE.md-twice lever: measured (CTX.01/02) and routed to director-engine (the one-copy adapter change); watch for its landing
 - a future local brain's pi model entry (contextWindow <= 60,000 under a 65,536 slot) is pi config = TM / the owner -- CMP.02 decides whether it is enough
 - fork get_can_shift probe on the deployed prism build (TEL.03 follow-up) -> next GPU-free slot
 - the unified brief's thought section still names season1 paths (for the head's owner, via thought-master)
-- the meter auto-capture hook (0.85x line) destructively overwrites this fenced block and the 6R one, observed 3x this session (f=0.3997, 0.4244,
-  0.4460) -- worth a [rule] line to thought-master once batch 5 is delivered; not itself part of batch 5's scope
-```
+- the meter auto-capture hook (0.85x line) destructively overwrites fenced content under 6R and Banked, observed 3x+ this session -- worth a
+  [rule] line to thought-master once batch 5 is delivered; not itself part of batch 5's scope
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
 ORDERS HOOK-B.02 -- DONE, LANDED (batch 4 = 47116db826); orders files still at .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt (gitignored)
