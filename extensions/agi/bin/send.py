@@ -2900,6 +2900,31 @@ def type_input(root: Path, to: str, text: str,
 # ── verbs ─────────────────────────────────────────────────────────────────
 
 
+def route(from_harness: str, to_harness: str) -> str:
+    """Choose the single transport for a message.
+
+    Equality is the complete same-harness contract. Empty names are not a
+    valid same-harness identity, so they take the cross-harness path rather
+    than silently selecting native delivery.
+    """
+    return "native" if from_harness and from_harness == to_harness else "send.py"
+
+
+def deliver(from_harness: str, to_harness: str, text: str, *,
+            native: object = None, cross: object = None) -> object:
+    """Dispatch exactly once using one ``route`` decision.
+
+    Transports are injected for focused tests; the real CLI path supplies its
+    existing native/send adapters. Neither transport receives the harness
+    pair, so it cannot independently re-decide routing.
+    """
+    decision = route(from_harness, to_harness)
+    transport = native if decision == "native" else cross
+    if transport is None:
+        raise RuntimeError(f"no transport configured for {decision}")
+    return transport(text, decision)
+
+
 def send(root: Path, to: str, text: str, sender: str | None,
          nudge: bool = True, quote_harness: bool = False) -> tuple[str, bool]:
     """Append one message block to the recipient's inbox; return the pair
