@@ -82,6 +82,13 @@ def _paid_for_path_guard(project_root: Path | None = None) -> str:
     """Read the project override, retaining the historical default."""
     root = _resolve_graph_root(project_root)
     value = _brief_cell(root).get("paid_for_path_guard")
+    if not (isinstance(value, str) and value):
+        try:
+            cfg_cell = json.loads((root / "config.json").read_text(encoding="utf-8")).get("brief")
+        except (OSError, ValueError, FileNotFoundError):
+            cfg_cell = None
+        if isinstance(cfg_cell, dict):
+            value = cfg_cell.get("paid_for_path_guard")
     return value if isinstance(value, str) and value else PAID_FOR_PATH_GUARD
 
 
@@ -851,9 +858,13 @@ def successor_prompt(*, tier: str, body: str,
             tier=tier, agent_id="successor", iter_n=0,
             project_root=project_root))
     head = render_head(project_root=project_root)
-    if head:
-        return head + "\n\n" + body
-    return body
+    rendered = head + "\n\n" + body if head else body
+    guard = _paid_for_path_guard(project_root)
+    if guard != PAID_FOR_PATH_GUARD:
+        rendered = rendered.replace(PAID_FOR_PATH_GUARD, guard)
+    if guard not in rendered:
+        rendered = "\n\n".join(part for part in (rendered, guard) if part)
+    return rendered
 
 
 def render_head(*, project_root: Path | None = None) -> str | None:
