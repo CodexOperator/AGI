@@ -18,8 +18,12 @@ MODE      TMM.94 (OWNER verbatim via TM): "Make both directors go back to spawni
           blocker. STANDARD rounds on --harness pi-free (--tier parent; every kid spawn --harness pi-free). PAID held (TMM.66).
           ZDR OFF: anonymize.py check --text on every orders/args/brief before launch. dispatch's "roles: ... deepseek" line is
           the ladder's PRE-override row; an explicit --harness pi-free drops it (dispatch.py:1972-1983) -> spawned model is free.
-LIVE      EF.103 = CTX.01 round 3: parent a00-48f9c49a py 2644800 on pi-free (stealth/space-bunny-alpha), base 3051170f6c,
-          orders .agi/sessions/de-0923/orders-std-EF.103-CTX01r3.md. Nothing else.
+LIVE      EF.104 = CTX.01 round 3 (re-dispatch): parent a00-64f9dbae py 2671712 on pi-free (stealth/space-bunny-alpha), base
+          3bffe93b34, orders .agi/sessions/de-0923/orders-std-EF.104-CTX01r3b.md. Nothing else.
+FAILED    EF.103 (a00-48f9c49a, base 3051170f6c): the parent ran ONLY `cli.py done` in its first turn and spawned no kid -- it
+          read the brief's pi contract "cli.py done is the ONLY command you run" (context.md:124, a KID line) as its own;
+          no bytes, no node. EF.104's orders carry a `sequence` line (spawn FIRST, done LAST). RESIDUE: the parent brief
+          renders the kid-only "ONLY command" line.
 Q8        mur final=DEMOTE, 0 of 3 defects refuted by its verifier. The director weighed them on the bytes:
           (1) "rotated pi successor skips the guard, rotate.py:1132" REFUTED: pi.toml rotate = false -> pi is out of
               _known_harnesses (rotate.py:1002), _validate_harness refuses it (1030) ahead of the ONLY successor build (1861 ->
@@ -37,7 +41,7 @@ LANDED    #1-#3 = EF.49-82 at 7c9231b4f · #4 = d81b444043 · #5 = 5827a677a7 ·
 CTX.01    hypothesis:pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard (goal:g5.27). TMM.99 said ONE copy;
           the OWNER asked in this pane 04:2xZ, verbatim: "Do we even need Claude Md I thought parent and kid role doc took care of
           everything" -> built ZERO copies. DT's CTX.02 measured it: default 14,436 tokens/turn (2 copies) · one copy 7,396 ·
-          zero 396. Round 1 EF.101 @fba65eb667 (P7 demote -> 60) · round 2 EF.102 @f2121b3831 (Q8, above) · round 3 EF.103 live.
+          zero 396. Round 1 EF.101 @fba65eb667 (P7 demote -> 60) · round 2 EF.102 @f2121b3831 (Q8, above) · round 3 EF.103 FAILED (no kid) -> EF.104 live.
           If round 3 demotes: fall back to DT's one-copy flags (--no-context-files + ONE --append-system-prompt of the checkout
           CLAUDE.md, TMM.99's original) -- ask TM once. RESIDUE for TM: a non-parent/kid tier dispatched on pi loses CLAUDE.md's
           director material under zero copies.
@@ -49,7 +53,7 @@ RESIDUES  (named, NOT minted): .15 r4 CR/CRLF readers (write.py:2751/2166/2462) 
           inline in brief.py, not in the brief configuration (config-max) -- it would also cover brief.render (rotate.py:1132)
           were pi ever made a rotate seat
 401       TMM.97: TM suspects a cross-box REAP revoking live kid keys. EF.96/97/99/102 hit it; EF.100/101 ran clean. A recurrence:
-          note the dead kid key name + time, ONE [red] to TM, no third re-dispatch. EF.103 is the first round under TMM.103.
+          note the dead kid key name + time, ONE [red] to TM, no third re-dispatch. EF.104 is the first kid under TMM.103.
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed; never merge it.
 RULE      TMM.103: every orders file's spawn line pins the kid's project to the PARENT'S OWN WORKTREE path (`dispatch.py
           <your worktree> <iter> --tier kid ... --harness pi-free`), as director-thought does.
@@ -74,13 +78,13 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (04:5xZ 09-24, gen 5; EF.103 LIVE)
+## 🔴 WHERE IT STOPS — the one next command (05:0xZ 09-24, gen 5; EF.104 LIVE)
 ```
-1  EF.103 harvest once py 2644800 exits: the loop tip has the `done` commit; read the kid diff (test_harness_template.py +
-   test_brief_render.py ONLY); gate in /tmp/de-harvest-gate: test_harness_template.py red on 3051170f6c, green on the tip;
-   test_brief_render.py green with no real git; merge --no-ff -F <msg>. Then ONE mur R-EF103 (pi-free, detached) -> STANDS:
+1  EF.104 harvest once py 2671712 exits: the loop tip has the `done` commit; read the kid diff (test_harness_template.py +
+   test_brief_render.py ONLY); gate in /tmp/de-harvest-gate: test_harness_template.py red on 3bffe93b34, green on the tip;
+   test_brief_render.py green with no real git; merge --no-ff -F <msg>. Then ONE mur R-EF104 (pi-free, detached) -> STANDS:
    union .agi/sessions/de-0923/union-7.txt at the new SHA (lock free, detached) + graph -> [merge-up] #7 = CTX.01 (EF.101 +
-   EF.102 + EF.103) citing the owner's line verbatim + DT's three arms (14,436 / 7,396 / 396) + Q8's defect-1 refutation.
+   EF.102 + EF.104) citing the owner's line verbatim + DT's three arms (14,436 / 7,396 / 396) + Q8's defect-1 refutation.
    DEMOTE -> hold; ask TM once for the one-copy fallback.
 2  the kid dies on a 401 -> key name + time, ONE [red] to TM; if it committed, gate its bytes as EF.102 (card BUILD LOOP 3)
 3  rotate at f >= 0.47: `python3 extensions/agi/bin/rotate.py rotate` (bare) once this card is current
