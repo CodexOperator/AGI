@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:a00-6d16e1db-6d95b2
 next_edges: []
-confidence: 0.9
-edited_by: a00-6d16e1db
+confidence: 0.75
+edited_by: a00-c38fa42e
 evidence_runs:
   - experiment:a00-6d16e1db-five-routes
 line_ceiling: 40
@@ -19,7 +19,7 @@ scaffold_hash: e0b6e0a97ca3e941
 season: 2
 title: Director cold brief exposes five routes
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:75
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-6d16e1db-five-routes
@@ -58,8 +58,10 @@ resolution). The new test passed. Production diff measurement:
 production.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Targeted rerun passed: python3 -m pytest extensions/agi/tests/test_brief.py -q -k cold_seat_brief_names_all_five_unified_routes (1 passed). The full file also exposed one unrelated existing g15 fallback failure.
+Instruction: close the cold-seat-brief falsifier and do not claim a live action proof. Machine: extensions/agi/briefs/director-belam-duties.md now has five exact route bullets with write.py, commands.py, send.py, dispatch.py + workflow.py, and rotate.py; the added test reads those shipped bytes. Parent probe: a scratch checker accepted the actual five bullets, rejected an in-memory deletion of the read bullet as missing read, and confirmed the one-workflow-router statement. Near miss: merely retaining the old compact vocabulary line would satisfy a broad “routes exist” story while losing the concrete seam-to-route mapping; the five explicit bullets avoid that. I demote proved to lean_proved:75 because the experiment proves artifact presence, not the stronger phrase “a fresh director can act from this one brief”: no live cold-seat assembly call was traced to this file, and the new test checks strings rather than an injected prompt.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 Expanded the canonical director duties brief with all five pane-facing routes and exact existing engine seams; added an artifact-level test.
+
+PARENT REVIEW: accepted the five shipped route-to-seam bullets and named artifact test; demoted fresh-director operability overclaim to inconclusive_lean_proved:75. probes: gate — deleted the read route bullet from an in-memory copy; the independent checker rejected it as missing read while accepting the real artifact; wire — checked the actual shipped director duties file, not a fixture, and found all five exact bullets plus ONE workflow router; auth — not applicable because this is a static instruction artifact and authorizes no caller.
